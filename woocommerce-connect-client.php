@@ -3,11 +3,11 @@
  * Plugin Name: WooCommerce Connect
  * Plugin URI: http://woothemes.com/
  * Description: Connects allthethings
- * Author: WooThemes
+ * Author: Automattic
  * Author URI: http://woothemes.com/
  * Version: 1.0.0
  *
- * Copyright (c) 2016 WooThemes
+ * Copyright (c) 2016 Automattic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,16 +38,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'canada_post' => array(
 						'id' => 'wc-connect-canada-post',
 						'enabled' => 'yes',
-						'title' => __( 'Canada Post', 'woocommerce_connect' ),
-						'method_title' => __( 'Canada Post (WooCommerce Connect)', 'woocommerce_connect' ),
-						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce_connect' )
+						'title' => __( 'Canada Post', 'woocommerce' ),
+						'method_title' => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
+						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' )
 					),
 					'usps' => array(
 						'id' => 'wc-connect-usps',
 						'enabled' => 'yes',
-						'title' => __( 'USPS', 'woocommerce_connect' ),
-						'method_title' => __( 'USPS (WooCommerce Connect)', 'woocommerce_connect' ),
-						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce_connect' )
+						'title' => __( 'USPS', 'woocommerce' ),
+						'method_title' => __( 'USPS (WooCommerce Connect)', 'woocommerce' ),
+						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce' )
 					),
 				)
 			);
@@ -69,5 +69,5 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 	}
 
-	$GLOBALS[ 'wc_connect_loader' ] = new WC_Connect_Loader();
+	new WC_Connect_Loader();
 }

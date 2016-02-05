@@ -1,22 +1,26 @@
 module.exports = {
-	entry: './assets/js/src/main.js',
+	entry: [
+		'babel-polyfill',
+		'./src/main.js'
+	],
 	output: {
-		filename: './assets/js/bundle.js'
+		filename: './build/bundle.js'
 	},
 	resolve: {
-		extensions: ['', '.js', '.jsx']
+		extensions: ['', '.js']
 	},
 	module: {
-		loaders: [
-			{
-				test: /\.js$/,
-				exclude: /node_modules/,
-				loaders: ['babel-loader']
+		loaders: [{
+			loader: "babel",
+
+			query: {
+				presets: ['es2015', 'react']
 			},
-			{
-				test: /\.jsx$/,
-				loaders: ['babel-loader']
-			}
-		]
+
+			exclude: /node-modules/,
+
+			test: /\.js$/
+
+		}]
 	}
 };

@@ -51,7 +51,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'assets/js/bundle.js', dirname( __FILE__ ) ), array( 'jquery') );
+			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
 
 			$admin_array = array(
 				'foo' => 'bar'
