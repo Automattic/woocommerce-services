@@ -27,6 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once( plugin_basename( 'classes/class-react-test.php' ) );
+
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	class WC_Connect_Loader {
 		protected $services = array();
