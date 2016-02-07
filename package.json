@@ -22,6 +22,6 @@
     "babel-runtime": "6.3.19",
     "react": "0.14.7",
     "react-dom": "0.14.7",
-    "react-json-editor": "^0.2.0"
+    "react-json-editor": "ismaelga/react-json-editor#master"
   }
 }
