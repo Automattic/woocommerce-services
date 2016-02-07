@@ -1,12 +1,11 @@
 var React = require( 'react' );
+var Form = require( 'react-json-editor' );
 
 module.exports = React.createClass( {
 
     render: function() {
         return (
-            <p>
-                How doodly do - I'm a react component
-            </p>
+            <Form schema={this.props.schema} />
         );
     }
 
