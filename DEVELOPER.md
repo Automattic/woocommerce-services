@@ -33,7 +33,7 @@
         'title' : 'USPS',
         'method_title' : 'USPS (WooCommerce Connect)',
         'method_description' : 'Shipping via USPS, Powered by WooCommerce Connect'
-        'json-schema' : {
+        'fields' : {
         }
       },
       'canada-post' : {
@@ -41,7 +41,7 @@
         'title' : 'Canada Post',
         'method_title' : 'Canada Post (WooCommerce Connect)',
         'method_description' : 'Shipping via Canada Post, Powered by WooCommerce Connect'
-        'json-schema' : {
+        'fields' : {
         }
       }
     ]
