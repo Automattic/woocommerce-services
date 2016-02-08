@@ -8,9 +8,10 @@
 
 ### Headers:
 
-    TODO: Version
+    Authorization: Bearer API_TOKEN
+    Accept: application/vnd.woocommerce-connect.v1
     TODO: Token
-    TODO: Language
+    Accept-Language: en
 
 ### Body (JSON):
 
