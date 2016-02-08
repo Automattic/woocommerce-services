@@ -173,6 +173,17 @@
     distance: 'cm'
   },
   fields: {
+    usps: [
+      enabled: true,
+      'method-availability': 'specific',
+      'countries': [
+        'US'
+      ],
+      origin: 98290
+    ],
+    'canada-post': [
+      enabled: false,
+    ]
   },
   origin: {
     country: 'US',
