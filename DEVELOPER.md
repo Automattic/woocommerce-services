@@ -25,127 +25,180 @@
 
 ```javascript
 {
-  "services" : [
-    "shipping" : [
-      "usps" : {
-        "id" : "usps",
-        "title" : "USPS",
-        "method_title" : "USPS (WooCommerce Connect)",
-        "method_description" : "Shipping via USPS, Powered by WooCommerce Connect",
-        "fields" : {
-          "type" : "object",
-          "title" : "USPS",
-          "description" : "The USPS extension obtains rates dynamically from the USPS API during cart/checkout.",
-          "required" : [
+  "services":{
+    "shipping":{
+      "usps":{
+        "id":"usps",
+        "title":"USPS",
+        "method_title":"USPS (WooCommerce Connect)",
+        "method_description":"Shipping via USPS, Powered by WooCommerce Connect",
+        "fields":{
+          "type":"object",
+          "title":"USPS",
+          "description":"The USPS extension obtains rates dynamically from the USPS API during cart/checkout.",
+          "required":[
+
           ],
-          "definitions" : {
-            "countries" : {
-              "type" : "string",
-              "enum" : [
+          "definitions":{
+            "countries":{
+              "type":"string",
+              "enum":[
                 "AU",
                 "GB",
                 "US"
               ],
-              "enumNames" : [
+              "enumNames":[
                 "Australia",
                 "United Kingdom (UK)",
                 "United States (US)"
               ]
             }
           },
-          "properties" : {
-            "enabled" : {
-              "type" : "boolean",
-              "title" : " Enable/Disable",
-              "description" : "Enable this shipping method",
+          "properties":{
+            "enabled":{
+              "type":"boolean",
+              "title":" Enable/Disable",
+              "description":"Enable this shipping method",
               "default":false
             },
-            "title" : {
-              "type" : "string",
-              "title" : "Method Title",
-              "description" : "This controls the title which the user sees during checkout.",
-              "default" : ""
+            "title":{
+              "type":"string",
+              "title":"Method Title",
+              "description":"This controls the title which the user sees during checkout.",
+              "default":""
             },
-            "origin" : {
-              "type" : "string",
-              "title" : "Origin Postcode",
-              "description" : "Enter the postcode for the sender.",
-              "default" : ""
+            "origin":{
+              "type":"string",
+              "title":"Origin Postcode",
+              "description":"Enter the postcode for the sender.",
+              "default":""
             },
-            "method_availability" : {
-              "type" : "object",
-              "title" : "Method Availability",
-              "properties" : {
-                "filter" : {
-                  "type" : "string",
-                  "enum" : [
+            "method_availability":{
+              "type":"object",
+              "title":"Method Availability",
+              "properties":{
+                "filter":{
+                  "type":"string",
+                  "enum":[
                     "all",
                     "specific",
                     "excluding"
                   ],
-                  "enumNames" : [
+                  "enumNames":[
                     "All Countries",
                     "Specific Countries",
                     "Exclude Specific Countries"
                   ]
                 }
               },
-              "oneOf" : [
+              "oneOf":[
                 {
-                  "properties" : {
-                    "filter" : {
-                      "enum" : [
+                  "properties":{
+                    "filter":{
+                      "enum":[
                         "all"
                       ]
                     }
                   }
                 },
                 {
-                  "properties" : {
-                    "filter" : {
-                      "enum" : [
+                  "properties":{
+                    "filter":{
+                      "enum":[
                         "specific"
                       ]
                     },
-                    "countries" : {
-                      "title" : "Specific Countries",
-                      "$ref" : "#/definitions/countries"
+                    "countries":{
+                      "title":"Specific Countries",
+                      "$ref":"#/definitions/countries"
                     }
                   }
                 },
                 {
-                  "properties" : {
-                    "filter" : {
-                      "enum" : [
+                  "properties":{
+                    "filter":{
+                      "enum":[
                         "excluding"
                       ]
                     },
-                    "countries" : {
-                      "title" : "Specific Countries",
-                      "$ref" : "#/definitions/countries"
+                    "countries":{
+                      "title":"Specific Countries",
+                      "$ref":"#/definitions/countries"
                     }
                   }
                 }
               ],
-              "x-hints" : {
-                "form" : {
-                  "selector" : "filter"
+              "x-hints":{
+                "form":{
+                  "selector":"filter"
+                }
+              }
+            },
+            "boxes":{
+              "type":"array",
+              "title":"Box Sizes",
+              "description":"Items will be packed into these boxes based on item dimensions and volume. Outer dimensions will be passed to USPS, whereas inner dimensions will be used for packing. Items not fitting into boxes will be packed individually.",
+              "items":{
+                "type":"object",
+                "title":"Box",
+                "properties":{
+                  "name":{
+                    "type":"string",
+                    "title":"Name"
+                  },
+                  "outer_length":{
+                    "type":"number",
+                    "title":"L (in)"
+                  },
+                  "outer_width":{
+                    "type":"number",
+                    "title":"W (in)"
+                  },
+                  "outer_height":{
+                    "type":"number",
+                    "title":"H (in)"
+                  },
+                  "inner_length":{
+                    "type":"number",
+                    "title":"Inner L (in)"
+                  },
+                  "inner_width":{
+                    "type":"number",
+                    "title":"Inner W (in)"
+                  },
+                  "inner_height":{
+                    "type":"number",
+                    "title":"Inner H (in)"
+                  },
+                  "box_weight":{
+                    "type":"number",
+                    "title":"Weight of Box (lbs)"
+                  },
+                  "max_weight":{
+                    "type":"number",
+                    "title":"Max Weight (lbs)"
+                  },
+                  "is_letter":{
+                    "type":"boolean",
+                    "title":"Letter"
+                  }
                 }
               }
             }
           }
-        ]
+        }
       },
-      "canada-post" : {
-        "id" : "canada-post",
-        "title" : "Canada Post",
-        "method_title" : "Canada Post (WooCommerce Connect)",
-        "method_description" : "Shipping via Canada Post, Powered by WooCommerce Connect",
-        "fields" : {
+      "canada-post":{
+        "id":"canada-post",
+        "title":"Canada Post",
+        "method_title":"Canada Post (WooCommerce Connect)",
+        "method_description":"Shipping via Canada Post, Powered by WooCommerce Connect",
+        "fields":{
+
         }
       }
-    ]
-  ]
+    }
+  }
 }
 ```
 
