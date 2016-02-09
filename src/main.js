@@ -4,6 +4,6 @@ var Settings = require( './views/settings' );
 
 document.addEventListener( "DOMContentLoaded", function( event ) {
     ReactDOM.render(
-        React.createElement( Settings, {} ), document.getElementById( 'wc-connect-admin-container' )
+        React.createElement( Settings, { schema: window.wcConnectData.usps } ), document.getElementById( 'wc-connect-admin-container' )
     );
 } );
