@@ -36,9 +36,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$hide_save_button = true;
 
 			?>
+			</form>
 				<div id="wc-connect-admin-container">
 					React goes here
 				</div>
+			<form>
 			<?php
 		}
 
