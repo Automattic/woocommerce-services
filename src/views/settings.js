@@ -1,4 +1,5 @@
-import React from "react";
+import React, { Component } from "react";
+import { Draggable, Droppable } from "react-drag-and-drop";
 import SchemaField from "react-jsonschema-form/lib/components/fields/SchemaField";
 import Form from "react-jsonschema-form";
 
@@ -7,41 +8,98 @@ const schema = {
   type: "object",
   required: ["title"],
   properties: {
-    title: {type: "string", title: "Title", default: "A new task"},
-    done: {type: "boolean", title: "Done?", default: false}
+    one: {
+      type: "object",
+      properties: {
+        title: {
+          type: "string",
+          title: "Title",
+          default: "A new task"
+        },
+        done: {
+          type: "boolean",
+          title: "Done?",
+          default: false
+        }
+      }
+    },
+    two: {
+      type: "object",
+      properties: {
+        title: {
+          type: "string",
+          title: "Title",
+          default: "A new task"
+        },
+        done: {
+          type: "boolean",
+          title: "Done?",
+          default: false
+        }
+      }
+    }
   }
 };
 
 const uiSchema = {
-	done: {
-		"ui:widget": "select",
-		"arbitrary": "value"
-	}
+	one: {
+		sortable: true
+	},
+  two: {
+    sortable: true
+  }
 };
 
-const CustomSchemaField = function( props ) {
+const DraggableFieldContainer = ( props ) => {
+  const {
+    children,
+    dragData,
+    onDrop
+  } = props;
+  return (
+    <Draggable type="sortable" data={dragData}>
+      <Droppable types={["sortable"]} onDrop={onDrop}>
+        {children}
+      </Droppable>
+    </Draggable>
+  );
+}
 
-	if ( props.uiSchema && props.uiSchema.hasOwnProperty( "arbitrary" ) && "value" === props.uiSchema.arbitrary ) {
+class SortableField extends Component {
 
-		return (
-			<div className="custom">
-				<p>Arbitrary Value found</p>
-				<SchemaField {...props} />
-			</div>
-		);
+  handleDrop(data) {
+    const {name, swapFields, insertField} = this.props;
+    if ("sortable" in data && data["sortable"]) {
+      if (data["sortable"] !== name) {
+        console.log( "swapping", data["sortable"], name);
+      }
+    }
+  }
 
-	}
+  render() {
+    const props = this.props;
 
-	return (
-		<SchemaField {...props} />
-	);
-};
+    if ( props.uiSchema && props.uiSchema.sortable ) {
+      return (
+        <DraggableFieldContainer
+          dragData={props.name}
+          onDrop={this.handleDrop.bind(this)}>
+          <SchemaField {...props}/>
+        </DraggableFieldContainer>
+      );
+    }
+
+    return <SchemaField {...props}/>;
+
+  }
+
+}
 
 module.exports = React.createClass( {
 
     render: function() {
         return (
-            <Form schema={schema} uiSchema={uiSchema} SchemaField={CustomSchemaField} />
+            <Form schema={schema} uiSchema={uiSchema} SchemaField={SortableField} />
         );
     }
 
