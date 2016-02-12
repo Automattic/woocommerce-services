@@ -18,6 +18,52 @@
 import React, { Component } from "react";
 import SchemaField from "react-jsonschema-form/lib/components/fields/SchemaField";
 import Form from "react-jsonschema-form";
+import { Draggable, Droppable } from "react-drag-and-drop";
+
+const DraggableFieldContainer = ( props ) => {
+  const {
+    children,
+    dragData,
+    onDrop
+  } = props;
+  return (
+    <Draggable type="sortable" data={dragData}>
+      <Droppable types={["sortable"]} onDrop={onDrop}>
+        {children}
+      </Droppable>
+    </Draggable>
+  );
+}
+
+class SortableField extends Component {
+
+  handleDrop(data) {
+    const {name} = this.props;
+    if ("sortable" in data && data["sortable"]) {
+      if (data["sortable"] !== name) {
+        console.log( "swapping", data["sortable"], name);
+      }
+    }
+  }
+
+  render() {
+    const props = this.props; console.log( props );
+
+    if ( props.uiSchema && props.uiSchema.sortable ) {
+      return (
+        <DraggableFieldContainer
+          dragData={props.name}
+          onDrop={this.handleDrop.bind(this)}>
+          <SchemaField {...props}/>
+        </DraggableFieldContainer>
+      );
+    }
+
+    return <SchemaField {...props} />;
+
+  }
+
+}
 
 class Settings extends Component {
 	
@@ -25,13 +71,18 @@ class Settings extends Component {
 		super( props );
 		this.state = {
 			uiSchema: props.initialUiSchema || {},
-			formData: props.initialFormData || {}
+			formData: props.initialFormData || { title: "" }
 		};
 	}
 
 	render() {
 		return(
-			<Form schema={this.props.schema} uiSchema={this.state.uiSchema} formData={this.state.formData} />
+			<Form
+				schema={this.props.schema}
+				uiSchema={this.state.uiSchema}
+				formData={this.state.formData}
+				SchemaField={SortableField}
+			/>
 		);
 	}
 
