@@ -48,12 +48,52 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
          * @return object|WP_Error
          */
         public static function get_shipping_rates( $settings, $package ) {
+
+            // First, build the contents array
+            // each item needs to specify quantity, weight, length, width and height
+            $contents = array();
+            foreach ( $package['contents'] as $item_id => $values ) {
+                if ( $values['quantity'] > 0 && $values['data']->needs_shipping() ) {
+
+                    $weight = $values['data']->get_weight();
+                    if ( ! $weight ) {
+                        return new WP_Error( 'product_missing_weight', 'A shippable product has no weight.' );
+                    }
+
+                    $weight = wc_get_weight( $weight, get_option( 'woocommerce_weight_unit' ) );
+
+                    if ( ! $values['data']->length || ! $values['data']->height || ! $values['data']->width ) {
+                        return new WP_Error( 'product_missing_dimension', 'A shippable product is missing length, height or width.');
+                    }
+
+                    $woocommerce_dimension_unit = get_option( 'woocommerce_dimension_unit' );
+
+                    $dimensions = array(
+                        wc_get_dimension( $values['data']->length, $woocommerce_dimension_unit ),
+                        wc_get_dimension( $values['data']->height, $woocommerce_dimension_unit ),
+                        wc_get_dimension( $values['data']->width, $woocommerce_dimension_unit )
+                    );
+                    sort( $dimensions );
+
+                    $contents[] = array(
+                        'quantity' => $values['quantity'],
+                        'weight' => $weight,
+                        'length' => $dimensions[2],
+                        'width' => $dimensions[1],
+                        'height' => $dimensions[0]
+                    );
+                }
+            }
+
+            if ( empty( $contents ) ) {
+                return new WP_Error( 'nothing_to_ship', 'No shipping rate could be calculated. No items in the package are shippable.' );
+            }
+
+            // Then, make the request
             $body = array(
                 'fields' => $settings,
-                'destination' => $package->destination,
-                'contents' => array(
-                    // TODO - extract and format package contents
-                )
+                'destination' => $package['destination'],
+                'contents' => $contents
             );
 
             return self::request( 'GET', '/shipping/rates', $body );
@@ -80,6 +120,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
          */
         protected static function request( $method, $path, $body = array() ) {
 
+            // TODO - incorporate caching for repeated identical requests
+
             if ( ! class_exists( 'Jetpack_client' ) ) {
                 return new WP_Error( 'jetpack_client_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack client was not found.' );
             }
@@ -102,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
             $body['settings'] = wp_parse_args( $body['settings'], array(
                 'currency' => get_woocommerce_currency(),
-                'weight' => strtolower( get_option('woocommerce_weight_unit') ),
+                'weight' => strtolower( get_option('woocommerce_weight_unit' ) ),
                 'distance' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
                 'wp_version' => get_bloginfo( 'version' ),
                 'wc_version' => WC()->version,
@@ -112,6 +154,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
             $body = apply_filters( 'wc_connect_api_client_body', $body );
 
             add_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ), 10, 2 );
+            // USEFUL FOR DEBUGGING: error_log( print_r( $body, true ) );
             $body = wp_json_encode( $body );
             if ( $body ) {
                 $result = Jetpack_client::remote_request( $args, $body );
