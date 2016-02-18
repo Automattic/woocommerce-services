@@ -13,13 +13,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function init() {
-			$this->init_form_fields();
 			$this->init_settings();
 			add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		}
 
-		public function calculate_shipping( $package ) {
+		public function calculate_shipping( $packages = array() ) {
 			// TODO - request the rate from connect.woocommerce.com
 			$rate = array(
 				'id' => $this->id,
