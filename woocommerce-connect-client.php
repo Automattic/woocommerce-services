@@ -67,9 +67,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						),
 					),
 				),
+				'checkout' => array(
+					'paypal' => array(
+						'id' => 'wc-connect-paypal',
+						'enabled' => 'yes',
+						'title' => __( 'PayPal', 'woocommerce' ),
+						'method_title' => __( 'PayPal (WooCommerce Connect)', 'woocommerce' ),
+						'method_description' => __( 'Checkout via PayPal, Powered by WooCommerce Connect', 'woocommerce' )
+					)
+				),
 			);
 
 			add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
+			add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 		}
 
 		public function woocommerce_shipping_methods( $methods ) {
@@ -85,6 +95,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			return $methods;
+		}
+
+		public function woocommerce_payment_gateways( $gateways ) {
+
+			$payment_gateways = (array) $this->services[ 'checkout' ];
+
+			if ( $payment_gateways ) {
+				require_once( plugin_basename( 'classes/class-wc-connect-payment-gateway.php' ) );
+			}
+
+			foreach ( $payment_gateways as $key => $value ) {
+				$gateways[] = new WC_Connect_Payment_Gateway( $value );
+			}
+
+			return $gateways;
 		}
 	}
 
