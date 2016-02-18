@@ -12,7 +12,7 @@
   "description": "Connect allthethings",
   "devDependencies": {
     "@automattic/custom-colors-loader": "github:automattic/custom-colors-loader",
-    "@automattic/dops-components": "github:automattic/dops-components",
+    "@automattic/dops-components": "github:automattic/dops-components#fix/update-react-version",
     "autoprefixer-loader": "^3.2.0",
     "babel-core": "6.4.5",
     "babel-loader": "^6.2.2",
