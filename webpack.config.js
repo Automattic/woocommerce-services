@@ -7,7 +7,7 @@ module.exports = {
 		filename: './build/bundle.js'
 	},
 	resolve: {
-		extensions: ['', '.js']
+		extensions: [ '', '.js', '.jsx' ]
 	},
 	module: {
 		loaders: [{
@@ -15,8 +15,11 @@ module.exports = {
 			query: {
 				presets: ['es2015', 'react']
 			},
-			exclude: /node-modules/,
-			test: /\.js$/
+			include: [
+				__dirname + '/src',
+				__dirname + '/node_modules/@automattic/dops-components/client'
+			],
+			test: /\.jsx?$/
 		}]
 	}
 };
