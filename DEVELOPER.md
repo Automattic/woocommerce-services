@@ -16,8 +16,12 @@
 
 ```javascript
 {
-  jetpack_site_id: 12345678,
-  wc_base_location: 'US'
+  settings: {
+    base_location: 'US',
+    currency: 'USD',
+    weight_unit: 'kg',
+    dimension_unit: 'cm'
+  }
 }
 ```
 
@@ -26,18 +30,14 @@
 ```javascript
 {
   "services":{
-    "shipping":{
-      "usps":{
+    "shipping":[
+      {
         "id":"usps",
-        "title":"USPS",
         "method_title":"USPS (WooCommerce Connect)",
-        "method_description":"Shipping via USPS, Powered by WooCommerce Connect",
-        "fields":{
+        "method_description":"Obtains rates dynamically from the USPS API during cart/checkout.",
+        "service_settings":{
           "type":"object",
-          "title":"USPS",
-          "description":"The USPS extension obtains rates dynamically from the USPS API during cart/checkout.",
           "required":[
-
           ],
           "definitions":{
             "countries":{
@@ -65,7 +65,7 @@
               "type":"string",
               "title":"Method Title",
               "description":"This controls the title which the user sees during checkout.",
-              "default":""
+              "default":"USPS"
             },
             "origin":{
               "type":"string",
@@ -188,13 +188,30 @@
           }
         }
       },
-      "canada-post":{
-        "id":"canada-post",
-        "title":"Canada Post",
+      {
+        "id":"canada_post",
         "method_title":"Canada Post (WooCommerce Connect)",
-        "method_description":"Shipping via Canada Post, Powered by WooCommerce Connect",
-        "fields":{
-
+        "method_description":"Obtains rates dynamically from the Canada Post API during cart/checkout.",
+        "service_settings":{
+          "type":"object",
+          "required":[
+          ],
+          "definitions":{
+          },
+          "properties":{
+            "enabled":{
+              "type":"boolean",
+              "title":" Enable/Disable",
+              "description":"Enable this shipping method",
+              "default":false
+            },
+            "title":{
+              "type":"string",
+              "title":"Method Title",
+              "description":"This controls the title which the user sees during checkout.",
+              "default":"Canada Post"
+            }
+          }
         }
       }
     }
@@ -221,31 +238,46 @@
 ```javascript
 {
   settings: {
+    base_location: 'US',
     currency: 'USD',
-    weight: 'kg',
-    distance: 'cm'
+    weight_unit: 'kg',
+    dimension_unit: 'cm'
   },
-  fields: {
-    usps: [
-      enabled: true,
-      'method-availability': 'specific',
-      'countries': [
-        'US'
-      ],
-      origin: 98290
-    ],
-    'canada-post': [
-      enabled: false,
-    ]
-  },
-  origin: {
-    country: 'US',
-    state: 'WA',
-    postcode: 98290,
-    city: 'Snohomish',
-    address: '1003 1st St',
-    address_2: ''
-  },
+  services: [
+    {
+      id: 'usps',
+      instance: 0,
+      service_settings: {
+        'enabled': true,
+        'title': 'USPS - West Coast Warehouse',
+        'method-availability': 'specific',
+        'countries': [
+          'US'
+        ],
+        origin: 98290
+      }
+    },
+    {
+      id: 'usps',
+      instance: 1,
+      service_settings: {
+        'enabled': true,
+        'title': 'USPS - East Coast Warehouse',
+        'method-availability': 'specific',
+        'countries': [
+          'US'
+        ],
+        origin: 22306
+      }
+    },
+    {
+      id: 'canada_post',
+      instance: 0,
+      service_settings: {
+        'enabled': false
+      }
+    }
+  ],
   destination: {
     country: 'US',
     state: 'WA',
@@ -256,6 +288,7 @@
   },
   contents: [
     {
+      product_id: 403,
       quantity: 1,
       weight: 5,
       length: 10,
@@ -263,6 +296,7 @@
       height: 10
     },
     {
+      product_id: 407,
       quantity: 1,
       weight: 10,
       length: 15,
@@ -270,6 +304,7 @@
       height: 15
     },
     {
+      product_id: 513,
       quantity: 2,
       weight: 2,
       length: 2,
@@ -285,13 +320,17 @@
 ```javascript
 {
   rates:[
-    'usps' : [
+    [
       {
-        title: 'Priority Mail Express',
+        id: 'usps',
+        instance: 0,
+        title: 'USPS - West Coast Warehouse',
         rate: 15.00
       },
       {
-        title: 'Priority Mail',
+        id: 'usps',
+        instance: 1,
+        title: 'USPS - East Coast Warehouse',
         rate: 8.00
       }
     ]
