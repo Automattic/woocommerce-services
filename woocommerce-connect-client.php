@@ -69,16 +69,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				),
 			);
 
-			add_action( 'woocommerce_shipping_init', array( $this, 'woocommerce_shipping_init' ) );
 			add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
 		}
 
-		public function woocommerce_shipping_init() {
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
-		}
-
 		public function woocommerce_shipping_methods( $methods ) {
-			foreach ( (array) $this->services[ 'shipping' ] as $key => $value ) {
+
+			$shipping_methods = (array) $this->services[ 'shipping' ];
+
+			if ( $shipping_methods ) {
+				require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+			}
+
+			foreach ( $shipping_methods as $key => $value ) {
 				$methods[] = new WC_Connect_Shipping_Method( $value );
 			}
 
