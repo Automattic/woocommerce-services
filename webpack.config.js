@@ -11,7 +11,7 @@ var scssLoader = ExtractTextPlugin.extract(styleDefaults);
 
 // build the plugin list, optionally excluding hot update plugins if we're building for production
 var plugins = [
-	new ExtractTextPlugin("[name].css")
+	new ExtractTextPlugin("bundle.css")
 ].filter( function(plugin) { return plugin !== false; } );
 
 module.exports = {
