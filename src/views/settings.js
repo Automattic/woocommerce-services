@@ -4,18 +4,26 @@ var transform = require( 'tcomb-json-schema' );
 
 module.exports = React.createClass( {
 
+    componentWillMount: function() {
+        this.schema = transform( this.props.schema );
+    },
+
     onSubmit: function ( evt ) {
+
         evt.preventDefault();
-        console.log( this.refs.form.getValue() );
+
+        var formValue = this.refs.form.getValue();
+
+        if ( formValue ) {
+            console.log( 'valid! we can send to server.', formValue );
+        }
+
     },
 
     render: function() {
-
-        var FormSchema = transform( this.props.schema );
-
         return (
             <form onSubmit={this.onSubmit}>
-                <t.form.Form ref="form" type={FormSchema} />
+                <t.form.Form ref="form" type={this.schema} />
                 <div className="form-group">
                     <button type="submit" className="btn btn-primary">Save</button>
                 </div>
