@@ -55,7 +55,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
 
 			$admin_array = array(
-				'foo' => 'bar'
+				'formSchema' => isset( $this->fields ) ? $this->fields : null
 			);
 
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
