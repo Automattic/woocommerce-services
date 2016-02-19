@@ -67,7 +67,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						),
 					),
 				),
-				'checkout' => array(
+				'payment' => array(
 					'paypal' => array(
 						'id' => 'wc-connect-paypal',
 						'enabled' => 'yes',
@@ -101,7 +101,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function woocommerce_payment_gateways( $payment_gateways ) {
 
-			$wcc_payment_gateways = (array) $this->services[ 'checkout' ];
+			$wcc_payment_gateways = (array) $this->services[ 'payment' ];
 
 			if ( empty( $wcc_payment_gateways ) ) {
 				return $payment_gateways;
