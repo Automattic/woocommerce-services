@@ -70,11 +70,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			?>
-			<div id="wc-connect-admin-container">
-				React goes here
-			</div>
-			<?php
+			echo '<div id="wc-connect-admin-container"></div>', "\n";
 		}
 
 		public function admin_enqueue_scripts( $hook ) {
