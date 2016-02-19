@@ -30,7 +30,7 @@ module.exports = React.createClass( {
             <form onSubmit={this.onSubmit}>
                 <t.form.Form ref="form" type={this.schema} />
                 <div className="form-group">
-                    <button type="submit" className="btn btn-primary">Save</button>
+                    <button type="submit" className="btn btn-primary">Save Changes</button>
                 </div>
             </form>
         ) : null;
