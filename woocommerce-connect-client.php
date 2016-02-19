@@ -37,18 +37,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'shipping' => array(
 					'canada_post' => array(
 						'id'                 => 'wc-connect-canada-post',
-						'enabled'            => 'yes',
-						'title'              => __( 'Canada Post', 'woocommerce' ),
 						'method_title'       => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
 						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' ),
+						'service_settings'   => array()
 					),
 					'usps'        => array(
 						'id'                 => 'wc-connect-usps',
-						'enabled'            => 'yes',
-						'title'              => __( 'USPS', 'woocommerce' ),
 						'method_title'       => __( 'USPS (WooCommerce Connect)', 'woocommerce' ),
 						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce' ),
-						'fields'             => array(
+						'service_settings'   => array(
 							'type'        => 'object',
 							'title'       => 'USPS',
 							'description' => 'The USPS extension obtains rates dynamically from the USPS API during cart/checkout.',
