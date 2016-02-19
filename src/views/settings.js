@@ -1,5 +1,5 @@
 var React = require( 'react' );
-var t = require( 'tcomb-form' );
+var Form = require( 'tcomb-form' ).form.Form;
 var transform = require( 'tcomb-json-schema' );
 
 module.exports = React.createClass( {
@@ -12,14 +12,28 @@ module.exports = React.createClass( {
 
     },
 
-    onSubmit: function( evt ) {
+    getInitialState: function() {
 
-        evt.preventDefault();
+        return {
+            value: this.props.initialValue || {}
+        };
 
-        var formValue = this.refs.form.getValue();
+    },
 
-        if ( formValue ) {
-            console.log( 'valid! we can send to server.', formValue );
+    onChange: function( newValue ) {
+
+        this.setState( {
+            value: newValue
+        } );
+
+    },
+
+    onSubmit: function( event ) {
+
+        // getValue() returns null if validation fails
+        // See: https://github.com/gcanti/tcomb-form/blob/master/GUIDE.md#getvalue
+        if ( ! this.refs.form.getValue() ) {
+            event.preventDefault();
         }
 
     },
@@ -27,12 +41,12 @@ module.exports = React.createClass( {
     render: function() {
 
         return this.schema ? (
-            <form onSubmit={this.onSubmit}>
-                <t.form.Form ref="form" type={this.schema} />
+            <div>
+                <Form ref="form" type={this.schema} value={this.state.value} onChange={this.onChange} />
                 <div className="form-group">
-                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                    <button type="submit" className="btn btn-primary" onClick={this.onSubmit}>Save Changes</button>
                 </div>
-            </form>
+            </div>
         ) : null;
 
     }

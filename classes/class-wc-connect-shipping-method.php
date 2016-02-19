@@ -18,6 +18,29 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		}
 
+		/**
+		 * Handle the settings form submission.
+		 *
+		 * This method will pass the settings values off to the WCC server for validation.
+		 *
+		 * @return bool
+		 */
+		public function process_admin_options() {
+
+			$settings = $_POST;
+			unset( $settings['subtab'], $settings['_wpnonce'], $settings['_wp_http_referer'] );
+
+			// TODO: validate settings with WCC server
+			$result = true;
+
+			// TODO: check for errors, use $this->add_error() ?
+
+			$this->settings = $settings;
+
+			return update_option( $this->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ) );
+
+		}
+
 		public function calculate_shipping( $package = array() ) {
 
 			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
@@ -48,11 +71,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$hide_save_button = true;
 
 			?>
-			</form>
-				<div id="wc-connect-admin-container">
-					React goes here
-				</div>
-			<form>
+				<div id="wc-connect-admin-container"></div>
 			<?php
 		}
 
@@ -68,7 +87,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
 
 			$admin_array = array(
-				'formSchema' => isset( $this->service_settings ) ? $this->service_settings : null
+				'formSchema' => empty( $this->service_settings ) ? null : $this->service_settings,
+				'formData'   => empty( $this->settings ) ? array() : $this->settings,
 			);
 
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
