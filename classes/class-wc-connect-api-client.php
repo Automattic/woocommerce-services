@@ -43,44 +43,44 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
         /**
          * Gets the shipping rates from the WooCommerce Connect Server
          *
-         * @param $settings All settings for all services we want rates for
+         * @param $services All settings for all services we want rates for
          * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
          * @return object|WP_Error
          */
-        public static function get_shipping_rates( $settings, $package ) {
+        public static function get_shipping_rates( $services, $package ) {
 
             // First, build the contents array
             // each item needs to specify quantity, weight, length, width and height
             $contents = array();
             foreach ( $package['contents'] as $item_id => $values ) {
-                if ( $values['quantity'] > 0 && $values['data']->needs_shipping() ) {
 
-                    $weight = $values['data']->get_weight();
-                    if ( ! $weight ) {
-                        return new WP_Error( 'product_missing_weight', 'A shippable product has no weight.' );
+                $product_id = $values['data']->id;
+                $product = wc_get_product( $product_id );
+
+                if ( $values['quantity'] > 0 && $product->needs_shipping() ) {
+
+                    if ( ! $product->has_weight() ) {
+                        return new WP_Error( 'product_missing_weight', "Product ( ID $product_id ) did not include a weight. Shipping rates cannot be calculated." );
                     }
 
-                    $weight = wc_get_weight( $weight, get_option( 'woocommerce_weight_unit' ) );
+                    $height = 0;
+                    $length = 0;
+                    $weight = $product->get_weight();
+                    $width = 0;
 
-                    if ( ! $values['data']->length || ! $values['data']->height || ! $values['data']->width ) {
-                        return new WP_Error( 'product_missing_dimension', 'A shippable product is missing length, height or width.');
+                    if ( $product->has_dimensions() ) {
+                        $height = $product->get_height();
+                        $length = $product->get_length();
+                        $width  = $product->get_width();
                     }
-
-                    $woocommerce_dimension_unit = get_option( 'woocommerce_dimension_unit' );
-
-                    $dimensions = array(
-                        wc_get_dimension( $values['data']->length, $woocommerce_dimension_unit ),
-                        wc_get_dimension( $values['data']->height, $woocommerce_dimension_unit ),
-                        wc_get_dimension( $values['data']->width, $woocommerce_dimension_unit )
-                    );
-                    sort( $dimensions );
 
                     $contents[] = array(
+                        'height' => $height,
+                        'item_id' => $values['data']->id,
+                        'length' => $length,
                         'quantity' => $values['quantity'],
                         'weight' => $weight,
-                        'length' => $dimensions[2],
-                        'width' => $dimensions[1],
-                        'height' => $dimensions[0]
+                        'width' => $width
                     );
                 }
             }
@@ -91,9 +91,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
             // Then, make the request
             $body = array(
-                'fields' => $settings,
+                'contents' => $contents,
                 'destination' => $package['destination'],
-                'contents' => $contents
+                'services' => $services
             );
 
             return self::request( 'GET', '/shipping/rates', $body );
@@ -143,16 +143,19 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
             }
 
             $body['settings'] = wp_parse_args( $body['settings'], array(
+                'base_city' => WC()->countries->get_base_city(),
+                'base_country' => WC()->countries->get_base_country(),
+                'base_postcode' => WC()->countries->get_base_postcode(),
+                'base_state' => WC()->countries->get_base_state(),
                 'currency' => get_woocommerce_currency(),
-                'weight' => strtolower( get_option('woocommerce_weight_unit' ) ),
-                'distance' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
-                'wp_version' => get_bloginfo( 'version' ),
+                'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+                'jetpack_version' => JETPACK__VERSION,
                 'wc_version' => WC()->version,
-                'jetpack_version' => JETPACK__VERSION
+                'weight_unit' => strtolower( get_option('woocommerce_weight_unit' ) ),
+                'wp_version' => get_bloginfo( 'version' )
             ) );
 
             $body = apply_filters( 'wc_connect_api_client_body', $body );
-
             add_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ), 10, 2 );
             // USEFUL FOR DEBUGGING: error_log( print_r( $body, true ) );
             $body = wp_json_encode( $body );
@@ -182,7 +185,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
                 $request_args['headers'] = array();
             }
 
-            $request_args['headers']['Accept-Language'] = substr( get_locale(), 0, 2 );
+            $lang = strtolower( str_replace( '_', '-', get_locale() ) );
+            $request_args['headers']['Accept-Language'] = $lang;
             $request_args['headers']['Accept'] = 'application/vnd.woocommerce-connect.v1';
 
             return $request_args;
