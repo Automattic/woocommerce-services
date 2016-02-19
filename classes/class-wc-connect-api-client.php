@@ -54,13 +54,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
             $contents = array();
             foreach ( $package['contents'] as $item_id => $values ) {
 
-                $product_id = $values['data']->id;
+                $product_id = absint( $values['data']->id );
                 $product = wc_get_product( $product_id );
 
                 if ( $values['quantity'] > 0 && $product->needs_shipping() ) {
 
                     if ( ! $product->has_weight() ) {
-                        return new WP_Error( 'product_missing_weight', "Product ( ID $product_id ) did not include a weight. Shipping rates cannot be calculated." );
+                        return new WP_Error(
+                            'product_missing_weight',
+                            sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product_id )
+                        );
                     }
 
                     $height = 0;
@@ -159,18 +162,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
                 'wp_version' => get_bloginfo( 'version' )
             ) );
 
-            $body = apply_filters( 'wc_connect_api_client_body', $body );
-            add_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ), 10, 2 );
-            // USEFUL FOR DEBUGGING: error_log( print_r( $body, true ) );
-            $body = wp_json_encode( $body );
-            if ( $body ) {
-                $result = Jetpack_client::remote_request( $args, $body );
-            }
-            remove_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ) );
-
+            $body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
             if ( ! $body ) {
                 return new WP_Error( 'unable_to_json_encode_body', 'Unable to encode body for request to WooCommerce Connect server.' );
             }
+
+            add_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ), 10, 2 );
+            $result = Jetpack_client::remote_request( $args, $body );
+            remove_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ) );
 
             return $result;
         }

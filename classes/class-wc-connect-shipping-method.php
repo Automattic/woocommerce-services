@@ -29,7 +29,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				if ( array_key_exists( $this->id, $response ) ) {
 					$rates = $response[$this->id];
 
-					foreach ($rates as $rate) {
+					foreach ( (array) $rates as $rate ) {
 						$rate_to_add = array(
 							'id' => $this->id,
 							'label' => $rate['title'],
