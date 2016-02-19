@@ -123,7 +123,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
             // TODO - incorporate caching for repeated identical requests
 
             if ( ! class_exists( 'Jetpack_client' ) ) {
-                return new WP_Error( 'jetpack_client_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack client was not found.' );
+                return new WP_Error( 'jetpack_client_class_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack client was not found.' );
+            }
+
+            if ( ! method_exists( 'Jetpack_client', 'remote_request' ) ) {
+                return new WP_Error( 'jetpack_client_remote_request_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack client does not implement remote_request.' );
             }
 
             if ( ! is_array( $body ) ) {
