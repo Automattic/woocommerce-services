@@ -39,7 +39,26 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						'id'                 => 'wc-connect-canada-post',
 						'method_title'       => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
 						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' ),
-						'service_settings'   => array()
+						'service_settings'   => array(
+							'type'        => 'object',
+							'title'       => 'Canada Post',
+							'description' => 'The Canada Post extension obtains rates dynamically from the Canada Post API during cart/checkout.',
+							'required'    => array(),
+							'properties'  => array(
+								'enabled' => array(
+									'type'        => 'boolean',
+									'title'       => 'Enable/Disable',
+									'description' => 'Enable this shipping method.',
+									'default'     => false,
+								),
+								'title'   => array(
+									'type'        => 'string',
+									'title'       => 'Method Title',
+									'description' => 'This controls the title which the user sees during checkout.',
+									'default'     => '',
+								),
+							),
+						)
 					),
 					'usps'        => array(
 						'id'                 => 'wc-connect-usps',
