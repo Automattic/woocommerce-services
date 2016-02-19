@@ -30,6 +30,8 @@ module.exports = React.createClass( {
 
     onSubmit: function( event ) {
 
+        // getValue() returns null if validation fails
+        // See: https://github.com/gcanti/tcomb-form/blob/master/GUIDE.md#getvalue
         if ( ! this.refs.form.getValue() ) {
             event.preventDefault();
         }
