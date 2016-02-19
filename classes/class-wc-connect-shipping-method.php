@@ -51,9 +51,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			wp_enqueue_style( 'wc_connect_shipping_admin_style', plugins_url( 'build/bundle.css', dirname( __FILE__ ) ) );
+			wp_enqueue_style( 'wc_connect_shipping_admin_style', plugins_url( 'dist/woocommerce-connect-client.css', dirname( __FILE__ ) ) );
 
-			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
+			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'dist/woocommerce-connect-client.js', dirname( __FILE__ ) ), array() );
 
 			$admin_array = array(
 				'foo' => 'bar'
