@@ -12,7 +12,7 @@ module.exports = React.createClass( {
 
     },
 
-    onSubmit: function ( evt ) {
+    onSubmit: function( evt ) {
 
         evt.preventDefault();
 
