@@ -67,22 +67,53 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						),
 					),
 				),
+				'payment' => array(
+					'paypal' => array(
+						'id' => 'wc-connect-paypal',
+						'enabled' => 'yes',
+						'title' => __( 'PayPal', 'woocommerce' ),
+						'method_title' => __( 'PayPal (WooCommerce Connect)', 'woocommerce' ),
+						'method_description' => __( 'Checkout via PayPal, Powered by WooCommerce Connect', 'woocommerce' )
+					)
+				),
 			);
 
-			add_action( 'woocommerce_shipping_init', array( $this, 'woocommerce_shipping_init' ) );
 			add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
+			add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 		}
 
-		public function woocommerce_shipping_init() {
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
-		}
+		public function woocommerce_shipping_methods( $shipping_methods ) {
 
-		public function woocommerce_shipping_methods( $methods ) {
-			foreach ( (array) $this->services[ 'shipping' ] as $key => $value ) {
-				$methods[] = new WC_Connect_Shipping_Method( $value );
+			$wcc_shipping_methods = (array) $this->services[ 'shipping' ];
+
+			if ( empty( $wcc_shipping_methods ) ) {
+				return $shipping_methods;
 			}
 
-			return $methods;
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+
+			foreach ( $wcc_shipping_methods as $wcc_shipping_method ) {
+				$shipping_methods[] = new WC_Connect_Shipping_Method( $wcc_shipping_method );
+			}
+
+			return $shipping_methods;
+		}
+
+		public function woocommerce_payment_gateways( $payment_gateways ) {
+
+			$wcc_payment_gateways = (array) $this->services[ 'payment' ];
+
+			if ( empty( $wcc_payment_gateways ) ) {
+				return $payment_gateways;
+			}
+
+			require_once( plugin_basename( 'classes/class-wc-connect-payment-gateway.php' ) );
+
+			foreach ( $wcc_payment_gateways as $wcc_payment_gateway ) {
+				$payment_gateways[] = new WC_Connect_Payment_Gateway( $wcc_payment_gateway );
+			}
+
+			return $payment_gateways;
 		}
 	}
 
