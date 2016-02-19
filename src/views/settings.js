@@ -1,5 +1,5 @@
 var React = require( 'react' );
-var t = require( 'tcomb-form' );
+var Form = require( 'tcomb-form' ).form.Form;
 var transform = require( 'tcomb-json-schema' );
 
 module.exports = React.createClass( {
@@ -27,12 +27,12 @@ module.exports = React.createClass( {
     render: function() {
 
         return this.schema ? (
-            <form onSubmit={this.onSubmit}>
-                <t.form.Form ref="form" type={this.schema} />
+            <div>
+                <Form ref="form" type={this.schema} />
                 <div className="form-group">
                     <button type="submit" className="btn btn-primary">Save Changes</button>
                 </div>
-            </form>
+            </div>
         ) : null;
 
     }
