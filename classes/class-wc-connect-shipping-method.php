@@ -18,16 +18,29 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		}
 
-		public function calculate_shipping( $packages = array() ) {
-			// TODO - request the rate from connect.woocommerce.com
-			$rate = array(
-				'id' => $this->id,
-				'label' => $this->title,
-				'cost' => '19.99',
-				'calc_tax' => 'per_item'
-			);
+		public function calculate_shipping( $package = array() ) {
 
-			$this->add_rate( $rate );
+			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
+
+			// TODO - fetch settings when that layer is defined
+			$response = WC_Connect_API_Client::get_shipping_rates( array(), $package );
+
+			if ( ! is_wp_error( $response ) ) {
+				if ( array_key_exists( $this->id, $response ) ) {
+					$rates = $response[$this->id];
+
+					foreach ( (array) $rates as $rate ) {
+						$rate_to_add = array(
+							'id' => $this->id,
+							'label' => $rate['title'],
+							'cost' => $rate['rate'],
+							'calc_tax' => 'per_item'
+						);
+
+						$this->add_rate( $rate_to_add );
+					}
+				}
+			}
 		}
 
 		public function admin_options() {
