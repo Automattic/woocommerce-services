@@ -4,6 +4,10 @@ var Settings = require( './views/settings' );
 
 document.addEventListener( "DOMContentLoaded", function( event ) {
     ReactDOM.render(
-        React.createElement( Settings, { schema: wcConnectData.formSchema } ), document.getElementById( 'wc-connect-admin-container' )
+        React.createElement( Settings, {
+            schema: wcConnectData.formSchema,
+            initialValue: wcConnectData.formData
+        } ),
+        document.getElementById( 'wc-connect-admin-container' )
     );
 } );

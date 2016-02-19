@@ -12,6 +12,22 @@ module.exports = React.createClass( {
 
     },
 
+    getInitialState: function() {
+
+        return {
+            value: this.props.initialValue || {}
+        };
+
+    },
+
+    onChange: function( newValue ) {
+
+        this.setState( {
+            value: newValue
+        } );
+
+    },
+
     onSubmit: function( evt ) {
 
         if ( ! this.refs.form.getValue() ) {
@@ -24,7 +40,7 @@ module.exports = React.createClass( {
 
         return this.schema ? (
             <div>
-                <Form ref="form" type={this.schema} />
+                <Form ref="form" type={this.schema} value={this.state.value} onChange={this.onChange} />
                 <div className="form-group">
                     <button type="submit" className="btn btn-primary" onClick={this.onSubmit}>Save Changes</button>
                 </div>
