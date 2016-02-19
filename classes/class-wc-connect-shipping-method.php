@@ -89,7 +89,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
 
 			$admin_array = array(
-				'formSchema' => isset( $this->service_settings ) ? $this->service_settings : null,
+				'formSchema' => empty( $this->service_settings ) ? null : $this->service_settings,
 				'formData'   => empty( $this->settings ) ? array() : $this->settings,
 			);
 
