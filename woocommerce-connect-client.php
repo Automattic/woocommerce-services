@@ -82,34 +82,39 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 		}
 
-		public function woocommerce_shipping_methods( $methods ) {
+		public function woocommerce_shipping_methods( $shipping_methods ) {
 
-			$shipping_methods = (array) $this->services[ 'shipping' ];
+			$wcc_shipping_methods = (array) $this->services[ 'shipping' ];
 
-			if ( $shipping_methods ) {
-				require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+			if ( empty( $wcc_shipping_methods ) ) {
+				return $shipping_methods;
 			}
 
-			foreach ( $shipping_methods as $key => $value ) {
-				$methods[] = new WC_Connect_Shipping_Method( $value );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+
+			foreach ( $wcc_shipping_methods as $wcc_shipping_method ) {
+				$shipping_methods[] = new WC_Connect_Shipping_Method( $wcc_shipping_method );
 			}
 
-			return $methods;
+			return $shipping_methods;
 		}
 
-		public function woocommerce_payment_gateways( $gateways ) {
+		public function woocommerce_payment_gateways( $payment_gateways ) {
 
-			$payment_gateways = (array) $this->services[ 'checkout' ];
+			$wcc_payment_gateways = (array) $this->services[ 'checkout' ];
 
-			if ( $payment_gateways ) {
-				require_once( plugin_basename( 'classes/class-wc-connect-payment-gateway.php' ) );
+			if ( empty( $wcc_payment_gateways ) ) {
+				return $payment_gateways;
 			}
 
-			foreach ( $payment_gateways as $key => $value ) {
-				$gateways[] = new WC_Connect_Payment_Gateway( $value );
+			require_once( plugin_basename( 'classes/class-wc-connect-payment-gateway.php' ) );
+
+
+			foreach ( $wcc_payment_gateways as $wcc_payment_gateway ) {
+				$payment_gateways[] = new WC_Connect_Payment_Gateway( $wcc_payment_gateway );
 			}
 
-			return $gateways;
+			return $payment_gateways;
 		}
 	}
 
