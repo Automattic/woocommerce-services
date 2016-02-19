@@ -36,20 +36,37 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->services = array(
 				'shipping' => array(
 					'canada_post' => array(
-						'id' => 'wc-connect-canada-post',
-						'enabled' => 'yes',
-						'title' => __( 'Canada Post', 'woocommerce' ),
-						'method_title' => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' )
+						'id'                 => 'wc-connect-canada-post',
+						'method_title'       => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
+						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' ),
+						'service_settings'   => array()
 					),
-					'usps' => array(
-						'id' => 'wc-connect-usps',
-						'enabled' => 'yes',
-						'title' => __( 'USPS', 'woocommerce' ),
-						'method_title' => __( 'USPS (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce' )
+					'usps'        => array(
+						'id'                 => 'wc-connect-usps',
+						'method_title'       => __( 'USPS (WooCommerce Connect)', 'woocommerce' ),
+						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce' ),
+						'service_settings'   => array(
+							'type'        => 'object',
+							'title'       => 'USPS',
+							'description' => 'The USPS extension obtains rates dynamically from the USPS API during cart/checkout.',
+							'required'    => array(),
+							'properties'  => array(
+								'enabled' => array(
+									'type'        => 'boolean',
+									'title'       => 'Enable/Disable',
+									'description' => 'Enable this shipping method.',
+									'default'     => false,
+								),
+								'title'   => array(
+									'type'        => 'string',
+									'title'       => 'Method Title',
+									'description' => 'This controls the title which the user sees during checkout.',
+									'default'     => '',
+								),
+							),
+						),
 					),
-				)
+				),
 			);
 
 			add_action( 'woocommerce_shipping_init', array( $this, 'woocommerce_shipping_init' ) );

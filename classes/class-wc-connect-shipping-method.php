@@ -35,9 +35,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$hide_save_button = true;
 
 			?>
+			</form>
 				<div id="wc-connect-admin-container">
 					React goes here
 				</div>
+			<form>
 			<?php
 		}
 
@@ -53,7 +55,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
 
 			$admin_array = array(
-				'foo' => 'bar'
+				'formSchema' => isset( $this->service_settings ) ? $this->service_settings : null
 			);
 
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
