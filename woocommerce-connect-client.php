@@ -109,7 +109,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			require_once( plugin_basename( 'classes/class-wc-connect-payment-gateway.php' ) );
 
-
 			foreach ( $wcc_payment_gateways as $wcc_payment_gateway ) {
 				$payment_gateways[] = new WC_Connect_Payment_Gateway( $wcc_payment_gateway );
 			}
