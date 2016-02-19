@@ -14,12 +14,8 @@ module.exports = React.createClass( {
 
     onSubmit: function( evt ) {
 
-        evt.preventDefault();
-
-        var formValue = this.refs.form.getValue();
-
-        if ( formValue ) {
-            console.log( 'valid! we can send to server.', formValue );
+        if ( ! this.refs.form.getValue() ) {
+            evt.preventDefault();
         }
 
     },
@@ -30,7 +26,7 @@ module.exports = React.createClass( {
             <div>
                 <Form ref="form" type={this.schema} />
                 <div className="form-group">
-                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                    <button type="submit" className="btn btn-primary" onClick={this.onSubmit}>Save Changes</button>
                 </div>
             </div>
         ) : null;
