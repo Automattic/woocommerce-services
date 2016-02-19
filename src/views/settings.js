@@ -28,10 +28,10 @@ module.exports = React.createClass( {
 
     },
 
-    onSubmit: function( evt ) {
+    onSubmit: function( event ) {
 
         if ( ! this.refs.form.getValue() ) {
-            evt.preventDefault();
+            event.preventDefault();
         }
 
     },
