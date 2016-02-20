@@ -31,75 +31,115 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	class WC_Connect_Loader {
 		protected $services = array();
 
-		public function __construct() {
-			// Dummy data until we can fetch it
-			$this->services = array(
-				'shipping' => array(
-					'canada_post' => array(
-						'id'                 => 'wc-connect-canada-post',
-						'method_title'       => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' ),
-						'service_settings'   => array(
-							'type'        => 'object',
-							'title'       => 'Canada Post',
-							'description' => 'The Canada Post extension obtains rates dynamically from the Canada Post API during cart/checkout.',
-							'required'    => array(),
-							'properties'  => array(
-								'enabled' => array(
-									'type'        => 'boolean',
-									'title'       => 'Enable/Disable',
-									'description' => 'Enable this shipping method.',
-									'default'     => false,
-								),
-								'title'   => array(
-									'type'        => 'string',
-									'title'       => 'Method Title',
-									'description' => 'This controls the title which the user sees during checkout.',
-									'default'     => '',
-								),
-							),
-						)
-					),
-					'usps'        => array(
-						'id'                 => 'wc-connect-usps',
-						'method_title'       => __( 'USPS (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce' ),
-						'service_settings'   => array(
-							'type'        => 'object',
-							'title'       => 'USPS',
-							'description' => 'The USPS extension obtains rates dynamically from the USPS API during cart/checkout.',
-							'required'    => array(),
-							'properties'  => array(
-								'enabled' => array(
-									'type'        => 'boolean',
-									'title'       => 'Enable/Disable',
-									'description' => 'Enable this shipping method.',
-									'default'     => false,
-								),
-								'title'   => array(
-									'type'        => 'string',
-									'title'       => 'Method Title',
-									'description' => 'This controls the title which the user sees during checkout.',
-									'default'     => '',
-								),
-							),
-						),
-					),
-				),
-				'payment' => array(
-					'paypal' => array(
-						'id' => 'wc-connect-paypal',
-						'enabled' => 'yes',
-						'title' => __( 'PayPal', 'woocommerce' ),
-						'method_title' => __( 'PayPal (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Checkout via PayPal, Powered by WooCommerce Connect', 'woocommerce' )
-					)
-				),
-			);
+		protected $log = null;
 
+		public function __construct() {
 			add_action( 'woocommerce_init', array( $this, 'load_dependencies' ) );
-			add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
-			add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
+
+			$this->services = get_option( 'wc_connect_services', null );
+			if ( $this->services ) {
+				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
+				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
+			}
+
+			if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) ) {
+				add_action( 'admin_init', array( $this, 'fetch_services' ) );
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
+			}
+
+			add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services' ) );
+		}
+
+		public function fetch_services() {
+			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+
+
+			$response = WC_Connect_API_Client::get_services();
+			if ( is_wp_error( $response ) ) {
+				$this->log( $response->get_error_code() . ' ' . $response->get_error_message() . ' (fetch_services)' );
+				return;
+			}
+
+			if ( ! array_key_exists( 'body', $response ) ) {
+				$this->log( 'Server response did not include body.  Services not updated. (fetch_services)' );
+				$this->log( 'Server response = ' . print_r( $response, true ) );
+				return;
+			}
+
+			$body = json_decode( $response['body'] );
+
+			if ( ! is_object( $body ) ) {
+				$this->log( 'Server response body is not an object.  Services not updated. (fetch_services)' );
+				$this->log( 'Server response body = ' . print_r( $body, true ) );
+				return;
+			}
+
+			$this->update_services( $body );
+		}
+
+		protected function update_services( $services ) {
+
+			// Validate
+			// Make sure each of services properties is an array
+			// e.g. $kind = "shipping" and $kind_services is an array of service objects (e.g. usps, canada post, etc)
+			foreach ( $services as $kind => $kind_services ) {
+				if ( ! is_array( $kind_services ) ) {
+					$this->log(
+						sprintf(
+							"services['%s'] does not reference an array. Services not updated. (update_services)",
+							$kind
+						)
+					);
+					return;
+				}
+
+				$this->log(
+					sprintf(
+						"Found %d %s services to process",
+						count( $kind_services ), $kind
+					)
+				);
+
+				// Check each service of this kind for required properties
+				$required_properties = array( 'id', 'method_description', 'method_title', 'service_settings' );
+				$kind_service_offset = 0;
+				// e.g. each kind_service should be an object
+				foreach ( $kind_services as $kind_service ) {
+					if ( ! is_object( $kind_service ) ) {
+						$this->log(
+							sprintf(
+								"services['%s'][%d] is not an object. Services not updated. (update_services)",
+								$kind, $kind_service_offset
+							)
+						);
+						return;
+					}
+
+					foreach ( $required_properties as $required_property ) {
+						if ( ! property_exists( $kind_service, $required_property ) ) {
+							$this->log(
+								sprintf(
+									"services['%s'][%d] is missing %s, which is required. Services not updated. (update_services)",
+									$kind, $kind_service_offset, $required_property
+								)
+							);
+							$this->log(
+								sprintf(
+									"services['%s'][%d] = %s",
+									$kind, $kind_service_offset, print_r( $kind_service, true )
+								)
+							);
+							return;
+						}
+					}
+
+					$kind_service_offset++;
+				}
+			}
+
+			// If we made it this far, it is safe to store the object
+			update_option( 'wc_connect_services', $services );
 		}
 
 		public function load_dependencies() {
@@ -138,6 +178,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			return $payment_gateways;
+		}
+
+		public function log( $message ) {
+			if ( empty( $this->log ) ) {
+				$this->log = new WC_Logger();
+			}
+
+			$this->log->add( 'wc-connect', $message );
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( $message );
+			}
 		}
 	}
 

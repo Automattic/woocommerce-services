@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
                 return new WP_Error( 'request_body_should_be_array', 'Unable to send request to WooCommerce Connect server. Body must be an array.' );
             }
 
-            $url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . $path;
+            $url = rtrim( WOOCOMMERCE_CONNECT_SERVER_URL, '/' ) . $path;
 
             $args = array(
                 'url' => $url,
