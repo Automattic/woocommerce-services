@@ -43,8 +43,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		public function calculate_shipping( $package = array() ) {
 
-			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
-
 			// TODO - fetch settings when that layer is defined
 			$response = WC_Connect_API_Client::get_shipping_rates( array(), $package );
 

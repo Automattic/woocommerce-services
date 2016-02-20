@@ -97,8 +97,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				),
 			);
 
+			add_action( 'woocommerce_init', array( $this, 'load_dependencies' ) );
 			add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
 			add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
+		}
+
+		public function load_dependencies() {
+			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 		}
 
 		public function woocommerce_shipping_methods( $shipping_methods ) {
