@@ -35,8 +35,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$this->enabled		         = $this->get_option( 'enabled' );
 			$this->title 		         = $this->get_option( 'title' );
 
-			error_log( "{$this->id} enabled = {$this->enabled}" );
-
 			add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
@@ -108,10 +106,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						$this->add_rate( $rate_to_add );
 					}
 				}
-			} else {
-				error_log( "unable to fetch rates for {$this->id}" );
-				error_log( $response->get_error_message() );
 			}
+
+			// TODO log error if get_shipping_rates fails
 		}
 
 		/* TEMP DO NOT COMMIT public function admin_options() {

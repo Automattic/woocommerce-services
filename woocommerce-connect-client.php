@@ -30,7 +30,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
+
 	class WC_Connect_Loader {
+
 		protected $services = array();
 
 		public function __construct() {
@@ -44,6 +46,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Filters in shipping methods for things like WC_Shipping::get_shipping_method_class_names
+		 *
+		 * @param $shipping_methods
+		 * @return mixed
+		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
 
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
