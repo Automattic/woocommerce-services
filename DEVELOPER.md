@@ -332,20 +332,18 @@
 ```javascript
 {
   rates : [
-    [
-      {
-        id : 'usps',
-        instance : 0,
-        rate : 15.00,
-        title : 'USPS - West Coast Warehouse'
-      },
-      {
-        id : 'usps',
-        instance : 1,
-        rate : 8.00,
-        title : 'USPS - East Coast Warehouse'
-      }
-    ]
+    {
+      id : 'usps',
+      instance : 0,
+      rate : 15.00,
+      title : 'USPS - West Coast Warehouse'
+    },
+    {
+      id : 'usps',
+      instance : 1,
+      rate : 8.00,
+      title : 'USPS - East Coast Warehouse'
+    }
   ]
 }
 ```
