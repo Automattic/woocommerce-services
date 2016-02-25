@@ -70,6 +70,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             }
 
             add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
+
         }
 
         public function fetch_services_from_connect_server() {
@@ -307,6 +308,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             );
             return $this->get_service_by_id( $service_id );
         }
+
     }
 
 }
