@@ -43,6 +43,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
 				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
+				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 			}
 		}
 
@@ -72,9 +73,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Registers shipping methods for use in things like the Add Shipping Method dialog
 		 * on the Shipping Zones view
 		 *
-		 * Has an artifact that it also seems to be displaying one for the class in the
-		 * submenu navigation bar for Shipping
-		 *
 		 */
 		public function woocommerce_load_shipping_methods() {
 
@@ -93,6 +91,50 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $payment_gateways;
 
 		}
+
+		/**
+		 * When on an wp-admin shipping zone shipping method instance page, enqueues
+		 * the React UI bundle and shipping service instance form schema and settings
+		 *
+		 */
+		public function admin_enqueue_scripts( $hook ) {
+
+			if ( ! is_user_logged_in() ) {
+				return;
+			}
+
+			if ( 'woocommerce_page_wc-settings' !== $hook ) {
+				return;
+			}
+
+			$tab = isset( $_GET['tab'] ) ? $_GET['tab'] : '';
+			if ( 'shipping' !== $tab ) {
+				return;
+			}
+
+			$instance_id = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : '';
+			if ( empty( $instance_id ) ) {
+				return;
+			}
+
+			$instance_id = absint( $instance_id );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+			$shipping_method = new WC_Connect_Shipping_Method( $instance_id );
+
+			$shipping_method_form_schema = $shipping_method->get_form_schema();
+			$shipping_method_settings = $shipping_method->get_form_settings();
+
+			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', __FILE__ ), array() );
+
+			$admin_array = array(
+				'formSchema' => $shipping_method_form_schema,
+				'formData'   => $shipping_method_settings,
+			);
+
+			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
+			wp_enqueue_script( 'wc_connect_shipping_admin' );
+		}
+
 
 	}
 
