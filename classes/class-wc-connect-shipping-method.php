@@ -40,11 +40,49 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
+		/**
+		 * Returns the JSON schema for the form from the settings for this service
+		 *
+		 * @return array
+		 */
+		protected function get_form_schema() {
+
+			return $this->service->service_settings;
+
+		}
+
+		/**
+		 * Takes the JSON schema for the form and extracts defaults (and other fields)
+		 * in a format and with values compatible with the WC_Settings_API
+		 *
+		 * @return array
+		 */
 		public function get_instance_form_fields() {
 
-			// TODO - generate defaults from the service json schema so WC can use it to generate
-			// defaults for wc_settings_api for this instance
+			$form_schema = $this->get_form_schema();
+			$fields = array();
 
+			foreach ( $form_schema['properties'] as $property_key => $property_values ) {
+
+				// Special handling for WC boolean, which is weird
+				$type = $property_values['type'];
+				$default = $property_values['default'];
+				if ( "boolean" == $type ) {
+					$type = "checkbox";
+					$default = $default ? "yes" : "no";
+				}
+
+				$fields[ $property_key ] = array(
+					'type'    => $type,
+					'title'   => $property_values['title'],
+					'label'   => $property_values['description'],
+					'default' => $default,
+				);
+			}
+
+			return $fields;
+
+			/*
 			return array(
 				'enabled' => array(
 					'title' 		=> __( 'Enable/Disable', 'woocommerce' ),
@@ -60,6 +98,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					'desc_tip'		=> true,
 				)
 			);
+			*/
 		}
 
 		/**
