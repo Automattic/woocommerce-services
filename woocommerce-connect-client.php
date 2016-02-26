@@ -121,8 +121,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			$shipping_method = new WC_Connect_Shipping_Method( $instance_id );
 
-			$shipping_method_form_schema = $shipping_method->get_form_schema();
-			$shipping_method_settings = $shipping_method->get_form_settings();
+			$shipping_method_form_schema = $shipping_method->get_form_schema_with_prefixed_keys();
+			$shipping_method_settings = $shipping_method->get_form_settings_with_prefixed_keys();
 
 			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', __FILE__ ), array() );
 

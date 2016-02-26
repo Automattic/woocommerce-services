@@ -47,34 +47,73 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		/**
 		 * Returns the JSON schema for the form from the settings for this service
 		 *
-		 * @return array
-		 */
-		public function get_form_schema() {
-			return $this->service->service_settings;
-		}
-
-		/**
-		 * Returns the settings for this service (e.g. for use in the form or for
-		 * sending to the rate request endpoint
+		 * The key for each field is prefixed with pluginid id _ so that the $_POST
+		 * from the form has keys compatible with WC_Settings_API processing logic
+		 *
+		 * Used by WC_Connect_Loader to embed the form schema in the page for JS to consume
 		 *
 		 * @return array
 		 */
-		public function get_form_settings() {
-			return array();
+		public function get_form_schema_with_prefixed_keys() {
+
+			$service_settings = $this->service->service_settings;
+			$form_schema = $service_settings;
+
+			$form_schema['properties'] = array();
+
+			// TODO - handle nested settings? are they even a thing?
+
+			foreach ( $service_settings['properties'] as $property_key => $property_values ) {
+				$prefixed_key = $this->get_field_key( $property_key );
+				$form_schema['properties'][ $prefixed_key ] = $property_values;
+			}
+
+			return $form_schema;
+		}
+
+		/**
+		 * Uses the JSON schema for the form to assemble the settings for this service
+		 * (e.g. for use in the form or for sending to the rate request endpoint
+		 *
+		 * The key for each field is prefixed with pluginid id _ so that the $_POST
+		 * from the form has keys compatible with WC_Settings_API processing logic
+		 *
+		 * Used by WC_Connect_Loader to embed the form schema in the page for JS to consume
+		 *
+		 * @return array
+		 */
+		public function get_form_settings_with_prefixed_keys() {
+
+			$form_settings = array();
+
+			// TODO - handle nested settings? are they even a thing?
+
+			foreach ( $this->instance_settings as $setting_key => $setting_value ) {
+				$prefixed_key = $this->get_field_key( $setting_key );
+				$form_settings[ $prefixed_key ] = $setting_value;
+			}
+
+			return $form_settings;
 		}
 
 		/**
 		 * Takes the JSON schema for the form and extracts defaults (and other fields)
 		 * in a format and with values compatible with the WC_Settings_API
 		 *
+		 * Besides driving WC form generation (which we are overriding with our React
+		 * based form), the WC_Settings_API uses these fields to provide defaults when
+		 * setting up a new instance of a method, for example
+		 *
 		 * @return array
 		 */
 		public function get_instance_form_fields() {
 
-			$form_schema = $this->get_form_schema();
+			$service_settings = $this->service->service_settings;
 			$fields = array();
 
-			foreach ( $form_schema['properties'] as $property_key => $property_values ) {
+			// TODO - handle nested settings - is that even a thing?
+
+			foreach ( $service_settings['properties'] as $property_key => $property_values ) {
 
 				// Special handling for WC boolean, which is weird
 				$type = $property_values['type'];
@@ -96,10 +135,25 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
+
 		/**
 		 * Handle the settings form submission.
 		 *
 		 * This method will pass the settings values off to the WCC server for validation.
+		 *
+		 * The parent (WC_Shipping_Method) process_admin_options walks the instance form
+		 * fields, and foreach key grabs the "field value" (from $_POST) using
+		 * WC_Settings_API::get_field_key and saves it into the options for the instance
+		 *
+		 * Note: WC_Settings_API::get_field_value uses WC_Settings_API::get_field_key which
+		 * expects $_POST keys which are based on, but not the same as the properties
+		 * array keys returned from get_form_schema.  For example:
+		 *
+		 * enabled <==> woocommerce_wc_connect_usps_enabled
+		 * title   <==> woocommerce_wc_connect_usps_title
+		 *
+		 * If the WooCommerce Connect server doesn't like one of the settings, we
+		 * won't save anything but will return the error message(s) from the server
 		 *
 		 * @return bool
 		 */
@@ -123,7 +177,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		public function calculate_shipping( $package = array() ) {
 
-			$response = WC_Connect_API_Client::get_shipping_rates( array(), $package );
+			$response = WC_Connect_API_Client::get_shipping_rates( $this->instance_settings, $package );
 
 			if ( ! is_wp_error( $response ) ) {
 				if ( array_key_exists( $this->id, $response ) ) {
@@ -146,9 +200,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function admin_options() {
-			global $hide_save_button;
-			$hide_save_button = true;
-
 			?>
 				<div id="wc-connect-admin-container"></div>
 			<?php

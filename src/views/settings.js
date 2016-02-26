@@ -40,12 +40,12 @@ module.exports = React.createClass( {
 
     render: function() {
 
+        // TODO: Add submit button back here once it is working correctly
+        // TODO: and remove it from the container when WC core allows that
+
         return this.schema ? (
             <div>
                 <Form ref="form" type={this.schema} value={this.state.value} onChange={this.onChange} />
-                <div className="form-group">
-                    <button type="submit" className="btn btn-primary" onClick={this.onSubmit}>Save Changes</button>
-                </div>
             </div>
         ) : null;
 
