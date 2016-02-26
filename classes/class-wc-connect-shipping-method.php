@@ -32,11 +32,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				'instance-settings'
 			);
 
-			$this->enabled		         = $this->get_option( 'enabled' );
-			$this->title 		         = $this->get_option( 'title' );
+			$this->enabled = $this->get_option( 'enabled' );
+			$this->title = $this->get_option( 'title' );
 
 			add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+
+			// Note - we cannot hook admin_enqueue_scripts here because we need an instance id
+			// and this constructor is not called with an instance id until after
+			// admin_enqueue_scripts has already fired.  This is why WC_Connect_Loader
+			// does it instead
 
 		}
 
@@ -45,10 +49,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * @return array
 		 */
-		protected function get_form_schema() {
-
+		public function get_form_schema() {
 			return $this->service->service_settings;
+		}
 
+		/**
+		 * Returns the settings for this service (e.g. for use in the form or for
+		 * sending to the rate request endpoint
+		 *
+		 * @return array
+		 */
+		public function get_form_settings() {
+			return array();
 		}
 
 		/**
@@ -82,23 +94,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			return $fields;
 
-			/*
-			return array(
-				'enabled' => array(
-					'title' 		=> __( 'Enable/Disable', 'woocommerce' ),
-					'type' 			=> 'checkbox',
-					'label' 		=> __( 'Enable/Disable', 'woocommerce' ),
-					'default' 		=> 'yes'
-				),
-				'title' => array(
-					'title' 		=> __( 'Title', 'woocommerce' ),
-					'type' 			=> 'text',
-					'description' 	=> __( 'This controls the title which the user sees during checkout.', 'woocommerce' ),
-					'default'		=> $this->method_title,
-					'desc_tip'		=> true,
-				)
-			);
-			*/
 		}
 
 		/**
@@ -150,34 +145,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// TODO log error if get_shipping_rates fails
 		}
 
-		/* TEMP DO NOT COMMIT public function admin_options() {
+		public function admin_options() {
 			global $hide_save_button;
 			$hide_save_button = true;
 
 			?>
 				<div id="wc-connect-admin-container"></div>
 			<?php
-		} */
-
-		public function admin_enqueue_scripts( $hook ) {
-			if ( 'woocommerce_page_wc-settings' !== $hook ) {
-				return;
-			}
-
-			if ( ! isset( $_GET['section'] ) || 'wc_connect_shipping_method' !== $_GET['section'] ) {
-				return;
-			}
-
-			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', dirname( __FILE__ ) ), array() );
-
-			$admin_array = array(
-				'formSchema' => empty( $this->service_settings ) ? null : $this->service_settings,
-				'formData'   => empty( $this->settings ) ? array() : $this->settings,
-			);
-
-			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
-			wp_enqueue_script( 'wc_connect_shipping_admin' );
 		}
+
 	}
 }
 
