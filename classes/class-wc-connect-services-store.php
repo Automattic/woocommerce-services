@@ -10,11 +10,6 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
         protected $services = array();
 
         /**
-         * @var object A reference to a logger
-         */
-        protected $log = null;
-
-        /**
          * @var Singleton The reference the *Singleton* instance of this class
          */
         private static $instance;
@@ -62,43 +57,34 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                 $this->load_services_from_dummy_data();
             }
 
-            // Hook fetching the available services from the connect server
-            if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) ) {
-                add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
-            } else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
-                wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
-            }
-
-            add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
-
         }
 
         public function fetch_services_from_connect_server() {
 
-            require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+            require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
 
             $response = WC_Connect_API_Client::get_services();
             if ( is_wp_error( $response ) ) {
-                $this->log( $response->get_error_code() . ' ' . $response->get_error_message() . ' (fetch_services)' );
+                WC_Connect_Logger::getInstance()->log( $response->get_error_code() . ' ' . $response->get_error_message() . ' (fetch_services)' );
                 return;
             }
 
             if ( ! array_key_exists( 'body', $response ) ) {
-                $this->log( 'Server response did not include body.  Services not updated. (fetch_services)' );
-                $this->log( 'Server response = ' . print_r( $response, true ) );
+                WC_Connect_Logger::getInstance()->log( 'Server response did not include body.  Services not updated. (fetch_services)' );
+                WC_Connect_Logger::getInstance()->log( 'Server response = ' . print_r( $response, true ) );
                 return;
             }
 
             $body = json_decode( $response['body'] );
 
             if ( ! is_object( $body ) ) {
-                $this->log( 'Server response body is not an object.  Services not updated. (fetch_services)' );
-                $this->log( 'Server response body = ' . print_r( $body, true ) );
+                WC_Connect_Logger::getInstance()->log( 'Server response body is not an object.  Services not updated. (fetch_services)' );
+                WC_Connect_Logger::getInstance()->log( 'Server response body = ' . print_r( $body, true ) );
                 return;
             }
 
             if ( property_exists( $body, 'error' ) ) {
-                $this->log(
+                WC_Connect_Logger::getInstance()->log(
                     sprintf( 'Server responded with an error : %s : %s. (fetch_services)',
                         $body->error, $body->message
                     )
@@ -106,7 +92,21 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                 return;
             }
 
-            $this->update_services( $body );
+            require_once( plugin_basename( 'class-wc-connect-services-validator.php' ) );
+
+            $services_validator = new WC_Connect_Services_Validator();
+            if ( ! $services_validator->validate_services( $body ) ) {
+                WC_Connect_Logger::getInstance()->log( 'Services failed to validate. Will not store services in options.' );
+                WC_Connect_Logger::getInstance()->log( 'Server response body = ' . print_r( $body, true ) );
+                return;
+            }
+
+            // If we made it this far, it is safe to store the object
+            update_option( 'wc_connect_services', $body );
+
+            // And set the instance variable to match
+            $this->services = $body;
+
         }
 
         protected function update_services( $services ) {
@@ -116,7 +116,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             // e.g. $kind = "shipping" and $kind_services is an array of service objects (e.g. usps, canada post, etc)
             foreach ( $services as $kind => $kind_services ) {
                 if ( ! is_array( $kind_services ) ) {
-                    $this->log(
+                    WC_Connect_Logger::getInstance()->log(
                         sprintf(
                             "services['%s'] does not reference an array. Services not updated. (update_services)",
                             $kind
@@ -125,12 +125,14 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                     return;
                 }
 
-                $this->log(
+                WC_Connect_Logger::getInstance()->log(
                     sprintf(
                         "Found %d %s services to process",
                         count( $kind_services ), $kind
                     )
                 );
+
+                WC_Connect_Logger::getInstance()->log( print_r( $services, true ) );
 
                 // Check each service of this kind for required properties
                 $required_properties = array( 'id', 'method_description', 'method_title', 'service_settings' );
@@ -138,7 +140,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                 // e.g. each kind_service should be an object
                 foreach ( $kind_services as $kind_service ) {
                     if ( ! is_object( $kind_service ) ) {
-                        $this->log(
+                        WC_Connect_Logger::getInstance()->log(
                             sprintf(
                                 "services['%s'][%d] is not an object. Services not updated. (update_services)",
                                 $kind, $kind_service_offset
@@ -149,13 +151,13 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
                     foreach ( $required_properties as $required_property ) {
                         if ( ! property_exists( $kind_service, $required_property ) ) {
-                            $this->log(
+                            WC_Connect_Logger::getInstance()->log(
                                 sprintf(
                                     "services['%s'][%d] is missing %s, which is required. Services not updated. (update_services)",
                                     $kind, $kind_service_offset, $required_property
                                 )
                             );
-                            $this->log(
+                            WC_Connect_Logger::getInstance()->log(
                                 sprintf(
                                     "services['%s'][%d] = %s",
                                     $kind, $kind_service_offset, print_r( $kind_service, true )
@@ -163,6 +165,28 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                             );
                             return;
                         }
+                    }
+
+                    // Make sure service_settings is an object
+                    if ( ! is_object( $kind_service->service_settings ) ) {
+                        WC_Connect_Logger::getInstance()->log(
+                            sprintf(
+                                "services['%s'][%d]->service_settings is not an object. Services not updated. (update_services)",
+                                $kind, $kind_service_offset
+                            )
+                        );
+                        return;
+                    }
+
+                    // Make sure service_settings properties is an object
+                    if ( ! property_exists( $kind_service->service_settings, 'properties' ) ) {
+                        WC_Connect_Logger::getInstance()->log(
+                            sprintf(
+                                "services['%s'][%d]->service_settings is missing properties, which is required. Services not updated. (update_services)",
+                                $kind, $kind_service_offset
+                            )
+                        );
+                        return;
                     }
 
                     $kind_service_offset++;
@@ -184,7 +208,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
          */
         protected function load_services_from_dummy_data() {
 
-            $this->services = array(
+            $this->services = (object) array(
                 'shipping' => array(
                     (object) array(
                         'id'                 => 'wc_connect_usps',
@@ -258,13 +282,21 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                 return array();
             }
 
-            if ( ! array_key_exists( $type, $this->services ) ) {
+            if ( ! is_object( $this->services ) ) {
+                return array();
+            }
+
+            if ( ! property_exists( $this->services, $type ) ) {
+                return array();
+            }
+
+            if ( ! is_array( $this->services->$type ) ) {
                 return array();
             }
 
             $service_ids = array();
 
-            foreach ( $this->services[ $type ] as $service ) {
+            foreach ( $this->services->$type as $service ) {
                 $service_ids[] = $service->id;
             }
 
@@ -279,9 +311,12 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
          */
         public function get_service_by_id( $service_id ) {
 
-            $service_types = array_keys( $this->services );
-            foreach ( $service_types as $service_type ) {
-                foreach ( $this->services[ $service_type ] as $service ) {
+            if ( ! is_object( $this->services ) ) {
+                return null;
+            }
+
+            foreach ( $this->services as $service_type => $service_type_services ) {
+                foreach ( $service_type_services as $service ) {
                     if ( $service->id === $service_id ) {
                         return $service;
                     }
