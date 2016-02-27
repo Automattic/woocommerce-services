@@ -111,9 +111,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$service_settings = $this->service->service_settings;
 			$fields = array();
 
+			if ( ! is_object( $service_settings->properties ) ) {
+				return $fields;
+			}
+
 			// TODO - handle nested settings - is that even a thing?
 
-			foreach ( $service_settings['properties'] as $property_key => $property_values ) {
+			foreach ( $service_settings->properties as $property ) {
+
+				if ( ! is_object ( $service_settings->properties->property ) ) {
+					continue;
+				}
 
 				// Special handling for WC boolean, which is weird
 				$type = $property_values['type'];

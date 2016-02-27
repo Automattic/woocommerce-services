@@ -27,6 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
@@ -45,6 +46,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 			}
+
+			// Hook fetching the available services from the connect server
+			if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) ) {
+				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
+			}
+
+			add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
+		}
+
+		/**
+		 * Prompts the services store to fetch services anew
+		 *
+		 */
+		public function fetch_services_from_connect_server() {
+
+			WC_Connect_Services_Store::getInstance()->fetch_services_from_connect_server();
+
 		}
 
 		/**
