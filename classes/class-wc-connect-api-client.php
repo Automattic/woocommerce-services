@@ -32,7 +32,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
          * @return bool|WP_Error
          */
         public static function validate_service_settings( $service_slug, $service_settings ) {
-            if ( 1 === preg_match( "/[^a-z_-]*/gi", $service_slug ) ) {
+            if ( 1 === preg_match( '/[^a-z_-]*/i', $service_slug ) ) {
                 return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Connect service slug provided' );
             }
 

@@ -30,10 +30,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings = $_POST;
 			unset( $settings['subtab'], $settings['_wpnonce'], $settings['_wp_http_referer'] );
 
-			// TODO: validate settings with WCC server
-			$result = true;
+			// Validate settings with WCC server
+			$result = WC_Connect_API_Client::validate_service_settings( $this->id, $settings );
 
-			// TODO: check for errors, use $this->add_error() ?
+			if ( is_wp_error( $result ) ) {
+
+				$this->add_error( $result->get_error_message() );
+
+				return false;
+
+			}
 
 			$this->settings = $settings;
 
@@ -42,8 +48,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function calculate_shipping( $package = array() ) {
-
-			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
 
 			// TODO - fetch settings when that layer is defined
 			$response = WC_Connect_API_Client::get_shipping_rates( array(), $package );
