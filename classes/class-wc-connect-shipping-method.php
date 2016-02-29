@@ -116,17 +116,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * This method will pass the settings values off to the WCC server for validation.
 		 *
-		 * The parent (WC_Shipping_Method) process_admin_options walks the instance form
-		 * fields, and foreach key grabs the "field value" (from $_POST) using
-		 * WC_Settings_API::get_field_key and saves it into the options for the instance
-		 *
-		 * Note: WC_Settings_API::get_field_value uses WC_Settings_API::get_field_key which
-		 * expects $_POST keys which are based on, but not the same as the properties
-		 * array keys returned from get_form_schema.  For example:
-		 *
-		 * enabled <==> woocommerce_wc_connect_usps_enabled
-		 * title   <==> woocommerce_wc_connect_usps_title
-		 *
 		 * If the WooCommerce Connect server doesn't like one of the settings, we
 		 * won't save anything but will return the error message(s) from the server
 		 *
