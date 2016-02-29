@@ -89,10 +89,11 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
                     return false;
                 }
 
-                if ( ! $this->validate_service_settings_schema( $service->id, $service->service_settings ) ) {
-                    return false;
-                }
 
+            }
+
+            if ( ! $this->validate_service_settings_schema( $service->id, $service->service_settings ) ) {
+                return false;
             }
 
             return true;
@@ -135,22 +136,29 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
             }
 
-            if ( ! $this->validate_service_settings_properties_schema( $service_id, $service_settings->properties ) ) {
+            if ( ! $this->validate_service_settings_required_properties( $service_id, $service_settings->properties ) ) {
                 return false;
             }
+
+            WC_Connect_Logger::getInstance()->log(
+                sprintf(
+                    "Service '%s' schema validated successfully.",
+                    $service_id
+                )
+            );
 
             return true;
 
         }
 
-        protected function validate_service_settings_properties_schema( $service_id, $service_settings_properties ) {
+        protected function validate_service_settings_required_properties( $service_id, $service_settings_properties ) {
 
             $required_properties = array(
-                'title' => 'string',
-                'type' => 'string'
+                'enabled',
+                'title'
             );
 
-            foreach ( $required_properties as $required_property => $required_property_type ) {
+            foreach ( $required_properties as $required_property ) {
                 if ( ! property_exists( $service_settings_properties, $required_property ) ) {
                     WC_Connect_Logger::getInstance()->log(
                         sprintf(
@@ -162,19 +170,6 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
                     return false;
                 }
 
-                $property_type = gettype( $service_settings_properties->$required_property );
-                if ( $required_property_type != $property_type ) {
-                    WC_Connect_Logger::getInstance()->log(
-                        sprintf(
-                            "Malformed services. Service '%s' service_setting properties property '%s' is a %s. Was expecting a %s.",
-                            $service_id,
-                            $required_property,
-                            $property_type,
-                            $required_property_type
-                        )
-                    );
-                    return false;
-                }
             }
 
             return true;

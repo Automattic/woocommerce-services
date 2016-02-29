@@ -73,6 +73,19 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
         }
 
+        /**
+         * Clears the log
+         */
+        public function clear() {
+
+            if ( empty( $this->logger ) ) {
+                $this->logger = new WC_Logger();
+            }
+
+            $this->logger->clear( 'wc-connect' );
+
+        }
+
     }
 
 }
