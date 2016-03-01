@@ -349,3 +349,46 @@
   ]
 }
 ```
+
+# GET /notices
+
+## Example Request
+
+### Query Params:
+
+    None
+
+### Headers:
+
+    Accept: application/vnd.woocommerce-connect.v1
+    Accept-Language: en
+    Authorization: X-Jetpack API_TOKEN
+
+### Body (JSON):
+
+    None
+
+## Example Response (JSON):
+
+```javascript
+{
+	"notices": [
+		{
+			"id": "connect-your-jetpack",
+			"location": "global",
+			"title": "WooCommerce Connect Rocks",
+			"message": "You should connect your Jetpack and enable WooCommerce Connect.",
+			"button_text": "Connect",
+			"button_action": "/wp-admin/admin.php?page=wc-settings&action=connect"
+		},
+		{
+			"id": "enable-usps-shipping",
+			"location": "shipping",
+			"title": "USPS Now Available",
+			"message": "USPS shipping is now available through WooCommerce Connect.",
+			"button_text": "Enable USPS",
+			"button_action": "/wp-admin/admin.php?page=wc-settings&action=enable-usps"
+		}
+	]
+}
+```
