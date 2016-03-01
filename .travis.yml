@@ -53,7 +53,7 @@ cache:
 # Move directories we intend to cache back to $TRAVIS_BUILD_DIR so they can be found
 before_cache:
     - ls -al "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
-    - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG" "$TRAVIS_BUILD_DIR/../"
+    - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG" $TRAVIS_BUILD_DIR
     - ls -al $TRAVIS_BUILD_DIR
 
 # Use an updated Node runtime
