@@ -51,6 +51,11 @@ cache:
     - node_modules
     - .nvm
 
+# Move directories we intend to cache back to $TRAVIS_BUILD_DIR so they can be found
+before_cache:
+    - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/.nvm" "$TRAVIS_BUILD_DIR/.nvm"
+    - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/node_modules" "$TRAVIS_BUILD_DIR/node_modules"
+
 # Use an updated Node runtime
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
 install:
