@@ -45,12 +45,18 @@ matrix:
    - php: "5.6"
      env: WP_VERSION=4.4
 
+# Cache the NPM dependencies
+cache:
+  directories:
+    - node_modules
+
 # Use an updated Node runtime
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
 install:
     - . $HOME/.nvm/nvm.sh
     - nvm install 4.3.1
     - nvm use 4.3.1
+    - npm install
 
 # Clones WordPress and configures our testing environment.
 before_script:
@@ -65,8 +71,6 @@ before_script:
     - sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
     - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
     - sed -i "s/yourpasswordhere//" wp-tests-config.php
-    - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
-    - npm install
 
 script: phpunit && npm test
 
