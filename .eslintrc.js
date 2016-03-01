@@ -5,7 +5,7 @@ module.exports = {
 		'browser': true,
 		'es6': true,
 		'mocha': true,
-		'node': true
+		'commonjs': true
 	},
 	'ecmaFeatures': {
 		'jsx': true,
