@@ -14,7 +14,6 @@ describe( 'react-test-env-setupEnvironment', function() {
 		delete global.window;
 		delete global.document;
 		delete global.navigator;
-		delete global.localStorage;
 		delete global.XMLHttpRequest;
 	} );
 
@@ -38,22 +37,17 @@ describe( 'react-test-env-setupEnvironment', function() {
 		expect( global.document.documentElement.outerHTML ).to.equal( markup );
 	} );
 
-	it( 'should add support for localStorage and XMLHttpRequest by default', function() {
+	it( 'should add support for XMLHttpRequest by default', function() {
 		setupEnvironment();
 
-		expect( global.localStorage ).to.not.be.undefined;
-		expect( global.localStorage.setItem ).to.be.a( 'function' );
-		global.localStorage.setItem( 'test', 'ok' );
-		expect( global.localStorage.getItem( 'test' ) ).to.equal( 'ok' );
 		expect( global.XMLHttpRequest ).to.be.a( 'function' );
 	} );
 
 	it( 'should allow you to disable one or more additional features', function() {
 		setupEnvironment( null, {
-			localStorage: false
+			XMLHttpRequest: false
 		} );
 
-		expect( global.localStorage ).to.be.undefined;
-		expect( global.XMLHttpRequest ).to.be.a( 'function' );
+		expect( global.XMLHttpRequest ).to.be.undefined;
 	} );
 } );

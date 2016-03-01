@@ -18,10 +18,10 @@ var React = require( 'react' );
 // ...
 ```
 
-By default, a fully functional `localStorage` and noop `XMLHttpRequest` will be added to the global scope. One or both of these can be disabled by passing an additional `features` option when calling the module.
+By default, a noop `XMLHttpRequest` will be added to the global scope. This can be disabled by passing an additional `features` option when calling the module.
 
 ```js
 require( 'lib/react-test-env-setup' )( null, {
-	localStorage: false
+	XMLHttpRequest: false
 } );
 ```

@@ -8,7 +8,6 @@ var jsdom = require( 'jsdom' ).jsdom,
  * Module variables
  */
 var defaultFeatures = {
-	localStorage: true,
 	XMLHttpRequest: true
 };
 
