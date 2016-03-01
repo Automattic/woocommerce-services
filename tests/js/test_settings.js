@@ -1,5 +1,5 @@
 /* eslint-disable vars-on-top */
-require( './lib/react-test-env-setup' )();
+var ReactTestEnvSetup = require( './lib/react-test-env-setup' );
 
 /**
  * External dependencies
@@ -15,7 +15,11 @@ var expect = require( 'chai' ).expect,
 var Settings = require( '../../src/views/settings' );
 
 describe( 'Settings', function() {
-	afterEach( function () {
+	before( function() {
+		ReactTestEnvSetup();
+	} );
+
+	afterEach( function() {
 		ReactDom.unmountComponentAtNode( document.body );
 	} );
 
