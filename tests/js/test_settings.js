@@ -1,5 +1,5 @@
 /* eslint-disable vars-on-top */
-require( '../../lib/react-test-env-setup' )();
+require( './lib/react-test-env-setup' )();
 
 /**
  * External dependencies
