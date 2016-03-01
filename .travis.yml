@@ -49,6 +49,7 @@ matrix:
 cache:
   directories:
     - node_modules
+    - .nvm
 
 # Use an updated Node runtime
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
