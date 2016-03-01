@@ -53,6 +53,7 @@ cache:
 
 # Move directories we intend to cache back to $TRAVIS_BUILD_DIR so they can be found
 before_cache:
+    - ls -al "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
     - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/.nvm" "$TRAVIS_BUILD_DIR/.nvm"
     - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/node_modules" "$TRAVIS_BUILD_DIR/node_modules"
 
@@ -66,6 +67,9 @@ install:
 
 # Clones WordPress and configures our testing environment.
 before_script:
+    - ls -al
+    - ls -al node_modules
+    - ls -al .nvm
     - export PLUGIN_SLUG=$(basename $(pwd))
     - git clone --depth=1 --branch $WP_VERSION git://develop.git.wordpress.org/ /tmp/wordpress
     - cd ..
