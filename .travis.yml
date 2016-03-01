@@ -9,7 +9,7 @@ php:
 
 # WordPress version used in first build configuration.
 env:
-    - WP_VERSION=master WP_TRAVISCI=travis:phpunit
+    - WP_VERSION=master
 
 # Next we define our matrix of additional build configurations to test against.
 # The versions listed above will automatically create our first configuration,
@@ -25,51 +25,37 @@ env:
 
 matrix:
   include:
-   - php: "5.6"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:js
    - php: "5.2"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master
    - php: "5.2"
-     env: WP_VERSION=4.3 WP_TRAVISCI=travis:phpunit
-   - php: "5.2"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.4
    - php: "5.3"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master
+   - php: "5.3"
+     env: WP_VERSION=4.4
    - php: "5.4"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master
+   - php: "5.4"
+     env: WP_VERSION=4.4
    - php: "5.5"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master
    - php: "5.5"
-     env: WP_VERSION=4.3 WP_TRAVISCI=travis:phpunit
-   - php: "5.5"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.4
      # 5.6 / master already included above as first build.
    - php: "5.6"
-     env: WP_VERSION=4.3 WP_TRAVISCI=travis:phpunit
-   - php: "5.6"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
-   - php: "7.0"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
-   - php: hhvm
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
-   - php: "nightly"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
-  allow_failures:
-   - php: "hhvm"
-   - php: "nightly"
+     env: WP_VERSION=4.4
 
 # Use an updated Node runtime
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
 install:
     - . $HOME/.nvm/nvm.sh
-    - nvm install stable
-    - nvm use stable
+    - nvm install 4.3.1
+    - nvm use 4.3.1
 
 # Clones WordPress and configures our testing environment.
 before_script:
     - export PLUGIN_SLUG=$(basename $(pwd))
     - git clone --depth=1 --branch $WP_VERSION git://develop.git.wordpress.org/ /tmp/wordpress
-# - git clone . "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
     - cd ..
     - mv $PLUGIN_SLUG "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
     - cd /tmp/wordpress
@@ -80,9 +66,7 @@ before_script:
     - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
     - sed -i "s/yourpasswordhere//" wp-tests-config.php
     - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
-#    - npm install -g npm
     - npm install
-#    - webpack
 
 script: phpunit && npm test
 
