@@ -58,6 +58,13 @@ matrix:
    - php: "hhvm"
    - php: "nightly"
 
+# Use an updated Node runtime
+# See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
+install:
+    - . $HOME/.nvm/nvm.sh
+    - nvm install stable
+    - nvm use stable
+
 # Clones WordPress and configures our testing environment.
 before_script:
     - export PLUGIN_SLUG=$(basename $(pwd))
@@ -73,7 +80,7 @@ before_script:
     - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
     - sed -i "s/yourpasswordhere//" wp-tests-config.php
     - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
-    - npm install -g npm
+#    - npm install -g npm
     - npm install
 #    - webpack
 
