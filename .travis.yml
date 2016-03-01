@@ -84,4 +84,4 @@ sudo: false
 
 notifications:
    email:
-       - jeff.stieler@automattic.com
+       - hydra@matticspace.com
