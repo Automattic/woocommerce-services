@@ -124,17 +124,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function process_admin_options() {
 
 			$settings = $_POST;
+			// TODO - build a whitelist from the form schema if possible
 			unset( $settings['subtab'], $settings['_wpnonce'], $settings['_wp_http_referer'] );
 
 			// Validate settings with WCC server
 			$result = WC_Connect_API_Client::validate_service_settings( $this->id, $settings );
 
 			if ( is_wp_error( $result ) ) {
-
 				$this->add_error( $result->get_error_message() );
-
 				return false;
-
 			}
 
 			return update_option( $this->get_instance_form_settings_key(), $settings );
