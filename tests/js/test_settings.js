@@ -1,7 +1,5 @@
 /* eslint-disable vars-on-top */
-require( '../../lib/react-test-env-setup' )( null, {
-	localStorage: false
-} );
+require( '../../lib/react-test-env-setup' )();
 
 /**
  * External dependencies
