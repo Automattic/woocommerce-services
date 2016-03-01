@@ -4,7 +4,7 @@
   "scripts": {
     "webpack": "./node_modules/.bin/webpack",
     "eslint": "./node_modules/.bin/eslint",
-    "test": "./node_modules/.bin/mocha --require babel-core/register --reporter spec tests/js/**/*.js"
+    "test": "./node_modules/.bin/mocha --require babel-core/register --reporter spec tests/js/**/*.js && ./node_modules/.bin/eslint src/"
   },
   "repository": {
     "type": "git",
