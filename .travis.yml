@@ -73,8 +73,8 @@ before_script:
     - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
     - sed -i "s/yourpasswordhere//" wp-tests-config.php
     - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
-#    - npm install -g npm
-#    - npm install
+    - npm install -g npm
+    - npm install
 #    - webpack
 
 script: phpunit && npm test
