@@ -27,118 +27,143 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
+require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
+
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
+
 	class WC_Connect_Loader {
 		protected $services = array();
 
+		protected $service_object_cache = array();
+
 		public function __construct() {
-			// Dummy data until we can fetch it
-			$this->services = array(
-				'shipping' => array(
-					'canada_post' => array(
-						'id'                 => 'wc-connect-canada-post',
-						'method_title'       => __( 'Canada Post (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Shipping via Canada Post, Powered by WooCommerce Connect', 'woocommerce' ),
-						'service_settings'   => array(
-							'type'        => 'object',
-							'title'       => 'Canada Post',
-							'description' => 'The Canada Post extension obtains rates dynamically from the Canada Post API during cart/checkout.',
-							'required'    => array(),
-							'properties'  => array(
-								'enabled' => array(
-									'type'        => 'boolean',
-									'title'       => 'Enable/Disable',
-									'description' => 'Enable this shipping method.',
-									'default'     => false,
-								),
-								'title'   => array(
-									'type'        => 'string',
-									'title'       => 'Method Title',
-									'description' => 'This controls the title which the user sees during checkout.',
-									'default'     => '',
-								),
-							),
-						)
-					),
-					'usps'        => array(
-						'id'                 => 'wc-connect-usps',
-						'method_title'       => __( 'USPS (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Shipping via USPS, Powered by WooCommerce Connect', 'woocommerce' ),
-						'service_settings'   => array(
-							'type'        => 'object',
-							'title'       => 'USPS',
-							'description' => 'The USPS extension obtains rates dynamically from the USPS API during cart/checkout.',
-							'required'    => array(),
-							'properties'  => array(
-								'enabled' => array(
-									'type'        => 'boolean',
-									'title'       => 'Enable/Disable',
-									'description' => 'Enable this shipping method.',
-									'default'     => false,
-								),
-								'title'   => array(
-									'type'        => 'string',
-									'title'       => 'Method Title',
-									'description' => 'This controls the title which the user sees during checkout.',
-									'default'     => '',
-								),
-							),
-						),
-					),
-				),
-				'payment' => array(
-					'paypal' => array(
-						'id' => 'wc-connect-paypal',
-						'enabled' => 'yes',
-						'title' => __( 'PayPal', 'woocommerce' ),
-						'method_title' => __( 'PayPal (WooCommerce Connect)', 'woocommerce' ),
-						'method_description' => __( 'Checkout via PayPal, Powered by WooCommerce Connect', 'woocommerce' )
-					)
-				),
-			);
-
 			add_action( 'woocommerce_init', array( $this, 'load_dependencies' ) );
-			add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
-			add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
-		}
 
-		public function load_dependencies() {
-			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
-		}
-
-		public function woocommerce_shipping_methods( $shipping_methods ) {
-
-			$wcc_shipping_methods = (array) $this->services[ 'shipping' ];
-
-			if ( empty( $wcc_shipping_methods ) ) {
-				return $shipping_methods;
+			$this->services = get_option( 'wc_connect_services', null );
+			if ( $this->services ) {
+				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
+				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
+				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
+				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 			}
 
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+			// Hook fetching the available services from the connect server
+			if ( ! $this->services ) {
+				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
+			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
+				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
+			}
 
-			foreach ( $wcc_shipping_methods as $wcc_shipping_method ) {
-				$shipping_methods[] = new WC_Connect_Shipping_Method( $wcc_shipping_method );
+			add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
+		}
+
+		/**
+		 * Prompts the services store to fetch services anew
+		 *
+		 */
+		public function fetch_services_from_connect_server() {
+			WC_Connect_Services_Store::fetch_services_from_connect_server();
+		}
+
+		/**
+		 * Returns a reference to a service (e.g. WC_Connect_Shipping_Method) of
+		 * a particular id so we can avoid instantiating them multiple times
+		 *
+		 * @param string $class_name Class name of service to create (e.g. WC_Connect_Shipping_Method)
+		 * @param string $service_id Service id of service to create (e.g. usps)
+		 * @return mixed
+		 */
+		protected function get_service_object_by_id( $class_name, $service_id ) {
+			if ( ! array_key_exists( $service_id, $this->service_object_cache ) ) {
+				$this->service_object_cache[ $service_id ] = new $class_name( $service_id );
+			}
+
+			return $this->service_object_cache[ $service_id ];
+		}
+
+		/**
+		 * Filters in shipping methods for things like WC_Shipping::get_shipping_method_class_names
+		 *
+		 * @param $shipping_methods
+		 * @return mixed
+		 */
+		public function woocommerce_shipping_methods( $shipping_methods ) {
+			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
+			foreach ( $shipping_service_ids as $shipping_service_id ) {
+				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
 			}
 
 			return $shipping_methods;
 		}
 
+		public function load_dependencies() {
+			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+		}
+
+		/**
+		 * Registers shipping methods for use in things like the Add Shipping Method dialog
+		 * on the Shipping Zones view
+		 *
+		 */
+		public function woocommerce_load_shipping_methods() {
+			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
+			foreach ( $shipping_service_ids as $shipping_service_id ) {
+				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
+				WC_Shipping::instance()->register_shipping_method( $shipping_method );
+			}
+		}
+
+
 		public function woocommerce_payment_gateways( $payment_gateways ) {
-
-			$wcc_payment_gateways = (array) $this->services[ 'payment' ];
-
-			if ( empty( $wcc_payment_gateways ) ) {
-				return $payment_gateways;
-			}
-
-			require_once( plugin_basename( 'classes/class-wc-connect-payment-gateway.php' ) );
-
-			foreach ( $wcc_payment_gateways as $wcc_payment_gateway ) {
-				$payment_gateways[] = new WC_Connect_Payment_Gateway( $wcc_payment_gateway );
-			}
-
 			return $payment_gateways;
 		}
+
+		/**
+		 * When on an wp-admin shipping zone shipping method instance page, enqueues
+		 * the React UI bundle and shipping service instance form schema and settings
+		 *
+		 */
+		public function admin_enqueue_scripts( $hook ) {
+			if ( ! is_user_logged_in() ) {
+				return;
+			}
+
+			if ( 'woocommerce_page_wc-settings' !== $hook ) {
+				return;
+			}
+
+			$tab = isset( $_GET['tab'] ) ? $_GET['tab'] : '';
+			if ( 'shipping' !== $tab ) {
+				return;
+			}
+
+			$instance_id = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : '';
+			if ( empty( $instance_id ) ) {
+				return;
+			}
+
+			$instance_id = absint( $instance_id );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+			$shipping_method = new WC_Connect_Shipping_Method( $instance_id );
+
+			$shipping_method_form_schema = $shipping_method->get_form_schema();
+			$shipping_method_settings = $shipping_method->get_form_settings();
+
+			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', __FILE__ ), array() );
+
+			$admin_array = array(
+				'formSchema' => $shipping_method_form_schema,
+				'formData'   => $shipping_method_settings,
+			);
+
+			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
+			wp_enqueue_script( 'wc_connect_shipping_admin' );
+		}
+
 	}
 
 	new WC_Connect_Loader();
