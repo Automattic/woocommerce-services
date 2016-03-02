@@ -3,71 +3,45 @@
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
     class WC_Connect_Logger {
+
         /**
          * @var WC_Logger
          */
-        protected $logger = null;
+        private static $logger = null;
 
         /**
-         * @var Singleton The reference the *Singleton* instance of this class
+         * Retrieve the logger, initialize as needed
          */
-        private static $instance;
+        protected static function get_logger() {
 
-        /**
-         * Returns the *Singleton* instance of this class.
-         *
-         * @return WC_Connect_Logger The *Singleton* instance.
-         */
-        protected static function getInstance() {
-            if ( null === self::$instance ) {
-                self::$instance = new self();
+            if ( is_null( self::$logger ) ) {
+                self::$logger = new WC_Logger();
             }
 
-            return self::$instance;
+            return self::$logger;
         }
 
         /**
-         * Private clone method to prevent cloning of the instance of the
-         * *Singleton* instance.
+         * Format a message with optional context for logging.
          *
-         * @return void
+         * @param string|WP_Error $message Either a string message, or WP_Error object.
+         * @param string $context Optional. Context for the logged message.
+         * @return string The formatted log message.
          */
-        private function __clone() {
-        }
+        protected static function format_message( $message, $context = '' ) {
 
-        /**
-         * Private unserialize method to prevent unserializing of the *Singleton*
-         * instance.
-         *
-         * @return void
-         */
-        private function __wakeup() {
-        }
+            $formatted_message = '';
 
-        /**
-         * Protected constructor to prevent creating a new instance of the
-         * *Singleton* via the `new` operator from outside of this class.
-         */
-        protected function __construct() {
-        }
-
-        /**
-         * Initialize the logger as needed
-         *
-         */
-        protected function init() {
-            if ( empty( $this->logger ) ) {
-                $this->logger = new WC_Logger();
+            if ( is_wp_error( $message ) ) {
+                $formatted_message = $message->get_error_code() . ' ' . $message->get_error_message();
             }
-        }
 
-        protected function add( $message ) {
-            $this->init();
-            $this->logger->add( 'wc-connect', $message );
-
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( $message );
+            if ( ! empty( $context ) ) {
+                $formatted_message .= ' (' . $context . ')';
             }
+
+            return $formatted_message;
+
         }
 
         /**
@@ -79,15 +53,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
         public static function log( $message, $context = '' ) {
             // TODO add a debug control somewhere to turn logging on and off
 
-            if ( is_wp_error( $message ) ) {
-                $message = $message->get_error_code() . ' ' . $message->get_error_message();
+            $log_message = self::format_message( $message, $context );
+
+            self::get_logger()->add( 'wc-connect', $log_message );
+
+            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                error_log( $log_message );
             }
 
-            if ( ! empty( $context ) ) {
-                $message .= ' (' . $context . ')';
-            }
-
-            self::getInstance()->add( $message );
         }
 
     }
