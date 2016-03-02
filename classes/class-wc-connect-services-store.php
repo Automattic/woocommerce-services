@@ -4,110 +4,74 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
     class WC_Connect_Services_Store
     {
-        /**
-         * @var array An in memory copy of all services and their properties
-         */
-        protected $services = null;
-
-        /**
-         * @var Singleton The reference the *Singleton* instance of this class
-         */
-        private static $instance;
-
-        /**
-         * Returns the *Singleton* instance of this class.
-         *
-         * @return Singleton The *Singleton* instance.
-         */
-        public static function getInstance() {
-            if ( null === self::$instance ) {
-                self::$instance = new self();
-            }
-
-            return self::$instance;
+        private function __construct() {
         }
 
-        /**
-         * Private clone method to prevent cloning of the instance of the
-         * *Singleton* instance.
-         *
-         * @return void
-         */
-        private function __clone() {
-        }
-
-        /**
-         * Private unserialize method to prevent unserializing of the *Singleton*
-         * instance.
-         *
-         * @return void
-         */
-        private function __wakeup() {
-        }
-
-        /**
-         * Protected constructor to prevent creating a new instance of the
-         * *Singleton* via the `new` operator from outside of this class.
-         */
-        protected function __construct() {
-
-            $this->services = get_option( 'wc_connect_services', null );
-
-        }
-
-        public function fetch_services_from_connect_server() {
-
+        public static function fetch_services_from_connect_server() {
             require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
 
             $response = WC_Connect_API_Client::get_services();
             if ( is_wp_error( $response ) ) {
-                WC_Connect_Logger::getInstance()->log( $response->get_error_code() . ' ' . $response->get_error_message() . ' (fetch_services)' );
+                WC_Connect_Logger::getInstance()->log(
+                    $response,
+                    __FUNCTION__
+                );
                 return;
             }
 
             if ( ! array_key_exists( 'body', $response ) ) {
-                WC_Connect_Logger::getInstance()->log( 'Server response did not include body.  Service schemas not updated. (fetch_services)' );
+                WC_Connect_Logger::getInstance()->log(
+                    'Server response did not include body. Service schemas not updated.',
+                    __FUNCTION__
+                );
                 return;
             }
 
             $body = json_decode( $response['body'] );
 
             if ( ! is_object( $body ) ) {
-                WC_Connect_Logger::getInstance()->log( 'Server response body is not an object.  Service schemas not updated. (fetch_services)' );
+                WC_Connect_Logger::getInstance()->log(
+                    'Server response body is not an object. Service schemas not updated.',
+                    __FUNCTION__
+                );
                 return;
             }
 
             if ( property_exists( $body, 'error' ) ) {
                 WC_Connect_Logger::getInstance()->log(
-                    sprintf( 'Server responded with an error : %s : %s. (fetch_services)',
+                    sprintf( 'Server responded with an error : %s : %s.',
                         $body->error, $body->message
-                    )
+                    ),
+                    __FUNCTION__
                 );
                 return;
             }
 
             require_once( plugin_basename( 'class-wc-connect-services-validator.php' ) );
-            $services_validator = new WC_Connect_Services_Validator();
 
-            if ( ! $services_validator->validate_services( $body ) ) {
-                WC_Connect_Logger::getInstance()->log( 'One or more service schemas failed to validate. Will not store services in options.' );
+            if ( ! WC_Connect_Services_Validator::validate_services( $body ) ) {
+                WC_Connect_Logger::getInstance()->log(
+                    'One or more service schemas failed to validate. Will not store services in options.',
+                    __FUNCTION__
+                );
                 return;
             }
 
-            WC_Connect_Logger::getInstance()->log( "Successfully loaded service schemas from server response." );
+            WC_Connect_Logger::getInstance()->log(
+                'Successfully loaded service schemas from server response.',
+                __FUNCTION__
+            );
 
             // If we made it this far, it is safe to store the object
-            $this->update_services( $body );
-
+            self::update_services( $body );
         }
 
-        protected function update_services( $services ) {
+        protected static function get_services() {
+            return get_option( 'wc_connect_services', null );
+        }
 
+        protected static function update_services( $services ) {
             update_option( 'wc_connect_services', $services );
-
-            // And set the instance variable to match
-            $this->services = $services;
-
         }
 
         /**
@@ -116,26 +80,27 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
          * @param string $type The type of services to return
          * @return array An array of that type's service ids, or an empty array if no such type is known
          */
-        public function get_all_service_ids_of_type( $type ) {
+        public static function get_all_service_ids_of_type( $type ) {
             if ( empty( $type ) ) {
                 return array();
             }
 
-            if ( ! is_object( $this->services ) ) {
+            $services = self::get_services();
+            if ( ! is_object( $services ) ) {
                 return array();
             }
 
-            if ( ! property_exists( $this->services, $type ) ) {
+            if ( ! property_exists( $services, $type ) ) {
                 return array();
             }
 
-            if ( ! is_array( $this->services->$type ) ) {
+            if ( ! is_array( $services->$type ) ) {
                 return array();
             }
 
             $service_ids = array();
 
-            foreach ( $this->services->$type as $service ) {
+            foreach ( $services->$type as $service ) {
                 $service_ids[] = $service->id;
             }
 
@@ -148,13 +113,13 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
          * @param string service_id The service id for which to return properties
          * @return object|null The service properties or null if no such id was found
          */
-        public function get_service_by_id( $service_id ) {
-
-            if ( ! is_object( $this->services ) ) {
+        public static function get_service_by_id( $service_id ) {
+            $services = self::get_services();
+            if ( ! is_object( $services ) ) {
                 return null;
             }
 
-            foreach ( $this->services as $service_type => $service_type_services ) {
+            foreach ( $services as $service_type => $service_type_services ) {
                 foreach ( $service_type_services as $service ) {
                     if ( $service->id === $service_id ) {
                         return $service;
@@ -163,7 +128,6 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             }
 
             return null;
-
         }
 
         /**
@@ -172,7 +136,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
          * @param string $instance_id The shipping zone instance id for which to return properties
          * @return object|null The service properties or null if no such instance was found
          */
-        public function get_service_by_instance_id( $instance_id ) {
+        public static function get_service_by_instance_id( $instance_id ) {
             global $wpdb;
             $service_id = $wpdb->get_var(
                 $wpdb->prepare(
@@ -180,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
                     $instance_id
                 )
             );
-            return $this->get_service_by_id( $service_id );
+            return self::get_service_by_id( $service_id );
         }
 
     }

@@ -33,7 +33,6 @@ require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) )
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	class WC_Connect_Loader {
-
 		protected $services = array();
 
 		public function __construct() {
@@ -48,7 +47,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			// Hook fetching the available services from the connect server
-			if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) ) {
+			if ( ! $this->services ) {
+				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
+			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
 				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
 			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
@@ -62,9 +63,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 */
 		public function fetch_services_from_connect_server() {
-
-			WC_Connect_Services_Store::getInstance()->fetch_services_from_connect_server();
-
+			WC_Connect_Services_Store::fetch_services_from_connect_server();
 		}
 
 		/**
@@ -74,15 +73,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return mixed
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
-
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
-			$shipping_service_ids = WC_Connect_Services_Store::getInstance()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = new WC_Connect_Shipping_Method( $shipping_service_id );
 			}
 
 			return $shipping_methods;
-
 		}
 
 		public function load_dependencies() {
@@ -95,21 +92,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 */
 		public function woocommerce_load_shipping_methods() {
-
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
-			$shipping_service_ids = WC_Connect_Services_Store::getInstance()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = new WC_Connect_Shipping_Method( $shipping_service_id );
 				WC_Shipping::instance()->register_shipping_method( $shipping_method );
 			}
-
 		}
 
 
 		public function woocommerce_payment_gateways( $payment_gateways ) {
-
 			return $payment_gateways;
-
 		}
 
 		/**
@@ -118,7 +111,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 */
 		public function admin_enqueue_scripts( $hook ) {
-
 			if ( ! is_user_logged_in() ) {
 				return;
 			}
@@ -154,7 +146,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
 			wp_enqueue_script( 'wc_connect_shipping_admin' );
 		}
-
 
 	}
 
