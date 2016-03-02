@@ -2,8 +2,7 @@
 
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
-    class WC_Connect_Logger
-    {
+    class WC_Connect_Logger {
         /**
          * @var WC_Logger
          */
@@ -53,16 +52,32 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
         }
 
         /**
-         * Logs messages
+         * Initialize the logger as needed
          *
-         * @param $message Message to log
          */
-        public function log( $message ) {
-
-            // TODO add a debug control somewhere to turn logging on and off
-
+        protected function init() {
             if ( empty( $this->logger ) ) {
                 $this->logger = new WC_Logger();
+            }
+        }
+
+        /**
+         * Logs messages
+         *
+         * @param string $message Message to log
+         * @param string $context Optional context (e.g. a class or function name)
+         */
+        public function log( $message, $context = '' ) {
+            // TODO add a debug control somewhere to turn logging on and off
+
+            $this->init();
+
+            if ( is_wp_error( $message ) ) {
+                $message = $message->get_error_code() . ' ' . $message->get_error_message();
+            }
+
+            if ( ! empty( $context ) ) {
+                $message .= ' ' . $context;
             }
 
             $this->logger->add( 'wc-connect', $message );
@@ -70,20 +85,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
                 error_log( $message );
             }
-
         }
 
         /**
          * Clears the log
          */
         public function clear() {
-
-            if ( empty( $this->logger ) ) {
-                $this->logger = new WC_Logger();
-            }
-
+            $this->init();
             $this->logger->clear( 'wc-connect' );
-
         }
 
     }
