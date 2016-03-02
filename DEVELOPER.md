@@ -366,7 +366,25 @@
 
 ### Body (JSON):
 
-    None
+```javascript
+{
+  "settings": {
+    "base_city": "Snohomish",
+    "base_country": "US",
+    "base_postcode": "98290",
+    "base_state": "WA",
+    "currency": "USD",
+    "dimension_unit": "cm",
+    "dismissed_notices": [
+    	"connect-your-jetpack"
+    ],
+    "jetpack_version": "3.9.1",
+    "wc_version": "2.5.2",
+    "weight_unit": "kg",
+    "wp_version": "4.5-alpha-36527"
+  }
+}
+```
 
 ## Example Response (JSON):
 
