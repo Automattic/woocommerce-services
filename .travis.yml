@@ -1,0 +1,87 @@
+# Travis CI Configuration File
+
+# Tell Travis CI we're using PHP
+language: php
+
+# PHP version used in first build configuration.
+php:
+    - "5.6"
+
+# WordPress version used in first build configuration.
+env:
+    - WP_VERSION=master
+
+# Next we define our matrix of additional build configurations to test against.
+# The versions listed above will automatically create our first configuration,
+# so it doesn't need to be re-defined below.
+
+# Test WP trunk/master and two latest versions on minimum (5.2).
+# Test WP latest two versions (4.4, 4.4) on most popular (5.5, 5.6).
+# Test WP latest stable (4.4) on other supported PHP (5.3, 5.4).
+# Test WP trunk/master on edge platforms (7.0, hhvm, PHP nightly).
+
+# WP_VERSION specifies the tag to use. The way these tests are configured to run
+# requires at least WordPress 3.8. Specify "master" to test against SVN trunk.
+
+matrix:
+  include:
+   - php: "5.2"
+     env: WP_VERSION=master
+   - php: "5.2"
+     env: WP_VERSION=4.4
+   - php: "5.3"
+     env: WP_VERSION=master
+   - php: "5.3"
+     env: WP_VERSION=4.4
+   - php: "5.4"
+     env: WP_VERSION=master
+   - php: "5.4"
+     env: WP_VERSION=4.4
+   - php: "5.5"
+     env: WP_VERSION=master
+   - php: "5.5"
+     env: WP_VERSION=4.4
+     # 5.6 / master already included above as first build.
+   - php: "5.6"
+     env: WP_VERSION=4.4
+
+# Cache the NPM dependencies
+cache:
+  directories:
+    - node_modules
+    - "$HOME/.nvm"
+
+# Move directories we intend to cache back to $TRAVIS_BUILD_DIR so they can be found
+before_cache:
+    - mv "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG" $TRAVIS_BUILD_DIR
+
+# Use an updated Node runtime
+# See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
+install:
+    - . $HOME/.nvm/nvm.sh
+    - nvm install 4.3.1
+    - nvm use 4.3.1
+    - npm install
+
+# Clones WordPress and configures our testing environment.
+before_script:
+    - export PLUGIN_SLUG=$(basename $(pwd))
+    - git clone --depth=1 --branch $WP_VERSION git://develop.git.wordpress.org/ /tmp/wordpress
+    - cd ..
+    - mv $PLUGIN_SLUG "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - cd /tmp/wordpress
+    - git checkout $WP_VERSION
+    - mysql -e "CREATE DATABASE wordpress_tests;" -uroot
+    - cp wp-tests-config-sample.php wp-tests-config.php
+    - sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
+    - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
+    - sed -i "s/yourpasswordhere//" wp-tests-config.php
+    - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+
+script: phpunit && npm test
+
+sudo: false
+
+notifications:
+   email:
+       - hydra@matticspace.com

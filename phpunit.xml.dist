@@ -1,0 +1,16 @@
+<phpunit bootstrap="tests/php/bootstrap.php" backupGlobals="false" colors="true">
+	<testsuites>
+		<!-- Default test suite to run all tests -->
+		<testsuite>
+			<directory prefix="test_" suffix=".php">tests</directory>
+		</testsuite>
+	</testsuites>
+	<filter>
+		<whitelist processUncoveredFilesFromWhitelist="false">
+			<directory suffix=".php">.</directory>
+			<exclude>
+				<directory suffix=".php">tests</directory>
+			</exclude>
+		</whitelist>
+	</filter>
+</phpunit>
