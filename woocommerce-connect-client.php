@@ -35,6 +35,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	class WC_Connect_Loader {
 		protected $services = array();
 
+		protected $service_object_cache = array();
+
 		public function __construct() {
 			add_action( 'woocommerce_init', array( $this, 'load_dependencies' ) );
 
@@ -67,16 +69,31 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Returns a reference to a service (e.g. WC_Connect_Shipping_Method) of
+		 * a particular id so we can avoid instantiating them multiple times
+		 *
+		 * @param string $class_name Class name of service to create (e.g. WC_Connect_Shipping_Method)
+		 * @param string $service_id Service id of service to create (e.g. usps)
+		 * @return mixed
+		 */
+		protected function get_service_object_by_id( $class_name, $service_id ) {
+			if ( ! array_key_exists( $service_id, $this->service_object_cache ) ) {
+				$this->service_object_cache[ $service_id ] = new $class_name( $service_id );
+			}
+
+			return $this->service_object_cache[ $service_id ];
+		}
+
+		/**
 		 * Filters in shipping methods for things like WC_Shipping::get_shipping_method_class_names
 		 *
 		 * @param $shipping_methods
 		 * @return mixed
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
-				$shipping_methods[ $shipping_service_id ] = new WC_Connect_Shipping_Method( $shipping_service_id );
+				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
 			}
 
 			return $shipping_methods;
@@ -84,6 +101,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function load_dependencies() {
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 		}
 
 		/**
@@ -92,10 +110,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 */
 		public function woocommerce_load_shipping_methods() {
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
-				$shipping_method = new WC_Connect_Shipping_Method( $shipping_service_id );
+				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
 				WC_Shipping::instance()->register_shipping_method( $shipping_method );
 			}
 		}
