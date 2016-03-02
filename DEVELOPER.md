@@ -250,44 +250,32 @@
     base_state : 'WA',
     currency : 'USD',
     dimension_unit : 'cm',
+    weight_unit : 'kg',
     jetpack_version : '3.9.1',
     wc_version : '2.5.2',
-    weight_unit : 'kg',
     wp_version : '4.5-alpha-36527'
   },
   services: [
     {
       id : 'usps',
-      instance : 0,
-      service_settings : {
-        countries : [
-          'US'
-        ],
-        enabled : true,
-        method_availability : 'specific',
-        origin: 98290,
-        title : 'USPS - West Coast Warehouse'
-      }
+      instance : '0',
+      enabled : true,
+      title : 'USPS - West Coast Warehouse'
+      countries : [ 'US' ],
+      method_availability : 'specific',
     },
     {
       id : 'usps',
-      instance : 1,
-      service_settings : {
-        enabled : true,
-        method_availability : 'specific',
-        countries : [
-          'US'
-        ],
-        origin : 22306,
-        title : 'USPS - East Coast Warehouse',
-      }
+      instance : '1',
+      enabled : true,
+      title : 'USPS - East Coast Warehouse',
+      countries : [ 'US' ],
+      method_availability : 'specific',
     },
     {
       id : 'canada_post',
-      instance : 0,
-      service_settings : {
-        enabled : false
-      }
+      instance : '0',
+      enabled : false
     }
   ],
   destination: {
@@ -330,22 +318,32 @@
 ## Example Response (JSON):
 
 ```javascript
-{
-  rates : [
-    [
+[
+  {
+    id : 'usps',
+    instance : 0,
+    title : 'USPS - West Coast Warehouse',
+    rates: [
       {
-        id : 'usps',
-        instance : 0,
+        title: '1-Day Shipping',
         rate : 15.00,
-        title : 'USPS - West Coast Warehouse'
+        packages: [
+          {
+            id: 'box_2',
+            name: 'medium box',
+            length: 1,
+            width: 1,
+            height: 1,
+            items: [
+              {
+                product_id: 513,
+                quantity: 1
+              }
+            ]
+          }
+        ]
       },
-      {
-        id : 'usps',
-        instance : 1,
-        rate : 8.00,
-        title : 'USPS - East Coast Warehouse'
-      }
     ]
-  ]
-}
+  }
+]
 ```
