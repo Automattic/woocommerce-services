@@ -17,6 +17,8 @@ if( false !== getenv( 'WP_DEVELOP_DIR' ) ) {
 	$test_root = '../../../../tests/phpunit';
 } else if ( file_exists( '/tmp/wordpress-tests-lib/includes/bootstrap.php' ) ) {
 	$test_root = '/tmp/wordpress-tests-lib';
+} else {
+	exit( 'Could not determine test root directory. Aborting.' );
 }
 
 require $test_root . '/includes/functions.php';
