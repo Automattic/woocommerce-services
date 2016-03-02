@@ -16,9 +16,9 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
         /**
          * Returns the *Singleton* instance of this class.
          *
-         * @return Singleton The *Singleton* instance.
+         * @return WC_Connect_Logger The *Singleton* instance.
          */
-        public static function getInstance() {
+        protected static function getInstance() {
             if ( null === self::$instance ) {
                 self::$instance = new self();
             }
@@ -61,25 +61,8 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
             }
         }
 
-        /**
-         * Logs messages
-         *
-         * @param string $message Message to log
-         * @param string $context Optional context (e.g. a class or function name)
-         */
-        public function log( $message, $context = '' ) {
-            // TODO add a debug control somewhere to turn logging on and off
-
+        protected function add( $message ) {
             $this->init();
-
-            if ( is_wp_error( $message ) ) {
-                $message = $message->get_error_code() . ' ' . $message->get_error_message();
-            }
-
-            if ( ! empty( $context ) ) {
-                $message .= ' ' . $context;
-            }
-
             $this->logger->add( 'wc-connect', $message );
 
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -88,11 +71,23 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
         }
 
         /**
-         * Clears the log
+         * Logs messages
+         *
+         * @param string $message Message to log
+         * @param string $context Optional context (e.g. a class or function name)
          */
-        public function clear() {
-            $this->init();
-            $this->logger->clear( 'wc-connect' );
+        public static function log( $message, $context = '' ) {
+            // TODO add a debug control somewhere to turn logging on and off
+
+            if ( is_wp_error( $message ) ) {
+                $message = $message->get_error_code() . ' ' . $message->get_error_message();
+            }
+
+            if ( ! empty( $context ) ) {
+                $message .= ' (' . $context . ')';
+            }
+
+            self::getInstance()->add( $message );
         }
 
     }

@@ -23,7 +23,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			if ( ! $this->service ) {
-				WC_Connect_Logger::getInstance()->log(
+				WC_Connect_Logger::log(
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
 				);
@@ -84,7 +84,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					// If we can't comprehend the setting, go
 					// ahead and mark it disabled and log a warning
 					$this->enabled = 'no';
-					WC_Connect_Logger::getInstance()->log(
+					WC_Connect_Logger::log(
 						sprintf(
 							'Warning. Unrecognized value for \'Enabled\' when updating settings for %s instance id %d. Setting to NOT enabled.',
 							$this->id,
@@ -173,7 +173,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					}
 				}
 			} else {
-				WC_Connect_Logger::getInstance()->log(
+				WC_Connect_Logger::log(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -181,7 +181,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					),
 					__FUNCTION__
 				);
-				WC_Connect_Logger::getInstance()->log(
+				WC_Connect_Logger::log(
 					$response,
 					__FUNCTION__
 				);

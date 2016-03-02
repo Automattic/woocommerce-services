@@ -16,7 +16,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
          */
         public static function validate_services( $services ) {
             if ( ! is_object( $services ) ) {
-                WC_Connect_Logger::getInstance()->log(
+                WC_Connect_Logger::log(
                     'Malformed services. Outermost container is not an object.',
                     __FUNCTION__
                 );
@@ -25,7 +25,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
             foreach ( $services as $service_type => $service_type_services ) {
                 if ( ! is_array( $service_type_services ) ) {
-                    WC_Connect_Logger::getInstance()->log(
+                    WC_Connect_Logger::log(
                         sprintf(
                             'Malformed services. Service type \'%s\' does not reference an array.',
                             $service_type
@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
                 $service_counter = 0;
                 foreach ( $service_type_services as $service ) {
                     if ( ! is_object( $service ) ) {
-                        WC_Connect_Logger::getInstance()->log(
+                        WC_Connect_Logger::log(
                             sprintf(
                                 'Malformed services. Service type \'%s\' [%d] does not reference an object.',
                                 $service_type,
@@ -71,7 +71,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
             foreach ( $required_properties as $required_property => $required_property_type ) {
                 if ( ! property_exists( $service, $required_property ) ) {
-                    WC_Connect_Logger::getInstance()->log(
+                    WC_Connect_Logger::log(
                         sprintf(
                             'Malformed service. Service type \'%s\' [%d] does not include a required \'%s\' property.',
                             $service_type,
@@ -85,7 +85,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
                 $property_type = gettype( $service->$required_property );
                 if ( $required_property_type !== $property_type ) {
-                    WC_Connect_Logger::getInstance()->log(
+                    WC_Connect_Logger::log(
                         sprintf(
                             'Malformed services. Service type \'%s\' [%d] property \'%s\' is a %s. Was expecting a %s.',
                             $service_type,
@@ -112,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
             foreach ( $required_properties as $required_property => $required_property_type ) {
                 if ( ! property_exists( $service_settings, $required_property ) ) {
-                    WC_Connect_Logger::getInstance()->log(
+                    WC_Connect_Logger::log(
                         sprintf(
                             'Malformed service settings. Service \'%s\' service_settings do not include a required \'%s\' property.',
                             $service_id,
@@ -125,7 +125,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
                 $property_type = gettype( $service_settings->$required_property );
                 if ( $required_property_type !== $property_type ) {
-                    WC_Connect_Logger::getInstance()->log(
+                    WC_Connect_Logger::log(
                         sprintf(
                             "Malformed service settings. Service '%s' service_setting property '%s' is a %s. Was expecting a %s.",
                             $service_id,
@@ -143,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
                 return false;
             }
 
-            WC_Connect_Logger::getInstance()->log(
+            WC_Connect_Logger::log(
                 sprintf(
                     "Service '%s' schema validated successfully.",
                     $service_id
@@ -162,7 +162,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
             foreach ( $required_properties as $required_property ) {
                 if ( ! property_exists( $service_settings_properties, $required_property ) ) {
-                    WC_Connect_Logger::getInstance()->log(
+                    WC_Connect_Logger::log(
                         sprintf(
                             "Malformed service. Service '%s' service_settings properties do not include a required '%s' property.",
                             $service_id,

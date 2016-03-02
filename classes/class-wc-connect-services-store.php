@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
             $response = WC_Connect_API_Client::get_services();
             if ( is_wp_error( $response ) ) {
-                WC_Connect_Logger::getInstance()->log(
+                WC_Connect_Logger::log(
                     $response,
                     __FUNCTION__
                 );
@@ -20,7 +20,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             }
 
             if ( ! array_key_exists( 'body', $response ) ) {
-                WC_Connect_Logger::getInstance()->log(
+                WC_Connect_Logger::log(
                     'Server response did not include body. Service schemas not updated.',
                     __FUNCTION__
                 );
@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             $body = json_decode( $response['body'] );
 
             if ( ! is_object( $body ) ) {
-                WC_Connect_Logger::getInstance()->log(
+                WC_Connect_Logger::log(
                     'Server response body is not an object. Service schemas not updated.',
                     __FUNCTION__
                 );
@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             }
 
             if ( property_exists( $body, 'error' ) ) {
-                WC_Connect_Logger::getInstance()->log(
+                WC_Connect_Logger::log(
                     sprintf( 'Server responded with an error : %s : %s.',
                         $body->error, $body->message
                     ),
@@ -50,14 +50,14 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
             require_once( plugin_basename( 'class-wc-connect-services-validator.php' ) );
 
             if ( ! WC_Connect_Services_Validator::validate_services( $body ) ) {
-                WC_Connect_Logger::getInstance()->log(
+                WC_Connect_Logger::log(
                     'One or more service schemas failed to validate. Will not store services in options.',
                     __FUNCTION__
                 );
                 return;
             }
 
-            WC_Connect_Logger::getInstance()->log(
+            WC_Connect_Logger::log(
                 'Successfully loaded service schemas from server response.',
                 __FUNCTION__
             );
