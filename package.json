@@ -24,6 +24,7 @@
     "jsdom": "8.0.4",
     "mocha": "2.4.5",
     "react-addons-test-utils": "0.14.7",
+    "tcomb": "2.7.0",
     "tcomb-form": "0.8.1",
     "tcomb-json-schema": "0.2.5",
     "webpack": "1.12.13"
