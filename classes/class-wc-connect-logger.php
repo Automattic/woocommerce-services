@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
          */
         protected static function format_message( $message, $context = '' ) {
 
-            $formatted_message = '';
+			$formatted_message = $message;
 
             if ( is_wp_error( $message ) ) {
                 $formatted_message = $message->get_error_code() . ' ' . $message->get_error_message();
