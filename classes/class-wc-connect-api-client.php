@@ -18,8 +18,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *
 		 * @return array|WP_Error
 		 */
-		public static function get_services() {
-			return self::request( 'GET', '/services' );
+		public function get_services() {
+			return $this->request( 'GET', '/services' );
 		}
 
 
@@ -31,14 +31,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *
 		 * @return bool|WP_Error
 		 */
-		public static function validate_service_settings( $service_slug, $service_settings ) {
+		public function validate_service_settings( $service_slug, $service_settings ) {
 
 			// Make sure the service slug only contains underscores or letters
 			if ( 1 === preg_match( '/[^a-z_]/i', $service_slug ) ) {
 				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Connect service slug provided' );
 			}
 
-			return self::request( 'POST', "/services/{$service_slug}/settings", $service_settings );
+			return $this->request( 'POST', "/services/{$service_slug}/settings", $service_settings );
 		}
 
 
@@ -49,7 +49,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
 		 * @return object|WP_Error
 		 */
-		public static function get_shipping_rates( $services, $package ) {
+		public function get_shipping_rates( $services, $package ) {
 
 			// First, build the contents array
 			// each item needs to specify quantity, weight, length, width and height
@@ -101,7 +101,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'services' => $services
 			);
 
-			return self::request( 'GET', '/shipping/rates', $body );
+			return $this->request( 'GET', '/shipping/rates', $body );
 		}
 
 
@@ -110,8 +110,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *
 		 * @return true|WP_Error
 		 */
-		public static function auth_test() {
-			return self::request( 'GET', '/auth-test' );
+		public function auth_test() {
+			return $this->request( 'GET', '/auth-test' );
 		}
 
 
@@ -123,7 +123,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $body
 		 * @return mixed|WP_Error
 		 */
-		protected static function request( $method, $path, $body = array() ) {
+		protected function request( $method, $path, $body = array() ) {
 
 			// TODO - incorporate caching for repeated identical requests
 
@@ -169,9 +169,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return new WP_Error( 'unable_to_json_encode_body', 'Unable to encode body for request to WooCommerce Connect server.' );
 			}
 
-			add_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ), 10, 2 );
+			add_filter( 'http_request_args', array( $this, 'filter_http_request_args' ), 10, 2 );
 			$result = Jetpack_client::remote_request( $args, $body );
-			remove_filter( 'http_request_args', array( 'WC_Connect_API_Client', 'filter_http_request_args' ) );
+			remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
 
 			return $result;
 		}
@@ -184,7 +184,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $url string
 		 * @return array
 		 */
-		public static function filter_http_request_args( $request_args, $url ) {
+		public function filter_http_request_args( $request_args, $url ) {
 
 			if ( ! array_key_exists( 'headers', $request_args ) ) {
 				$request_args['headers'] = array();
