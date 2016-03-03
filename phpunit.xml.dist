@@ -1,15 +1,22 @@
-<phpunit bootstrap="tests/php/bootstrap.php" backupGlobals="false" colors="true">
+<phpunit
+	bootstrap="tests/php/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+>
 	<testsuites>
 		<!-- Default test suite to run all tests -->
 		<testsuite>
-			<directory prefix="test_" suffix=".php">tests</directory>
+			<directory prefix="test_" suffix=".php">tests/php</directory>
 		</testsuite>
 	</testsuites>
 	<filter>
 		<whitelist processUncoveredFilesFromWhitelist="false">
 			<directory suffix=".php">.</directory>
 			<exclude>
-				<directory suffix=".php">tests</directory>
+				<directory suffix=".php">tests/php</directory>
 			</exclude>
 		</whitelist>
 	</filter>
