@@ -16,7 +16,7 @@ install_wc() {
 }
 
 install_wp() {
-	/tmp/woocommerce/tests/bin/install.sh $DB_NAME $DB_USER $DB_PASS $DB_HOST $WP_VERSION
+	bash /tmp/woocommerce/tests/bin/install.sh $DB_NAME $DB_USER "$DB_PASS" $DB_HOST $WP_VERSION
 }
 
 install_wc
