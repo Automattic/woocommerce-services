@@ -1,6 +1,12 @@
 var React = require( 'react' );
 var Form = require( 'tcomb-form' ).form.Form;
 var transform = require( 'tcomb-json-schema' );
+const _ = {
+	assign: require( 'lodash/assign' ),
+	transform: require( 'lodash/transform' ),
+	has: require( 'lodash/has' ),
+	isPlainObject: require( 'lodash/isPlainObject' )
+};
 
 module.exports = React.createClass( {
 
@@ -11,8 +17,26 @@ module.exports = React.createClass( {
 	},
 
 	getInitialState: function() {
+		const schema = this.props.schema || {};
+		let defaults = {};
+
+		// Pull field names and default values from the JSON Schema object
+		if ( ( 'object' === schema.type ) && _.isPlainObject( schema.properties ) ) {
+
+			defaults = _.transform( schema.properties, function( result, fieldMeta, fieldName ) {
+
+				if ( _.has( fieldMeta, 'default' ) ) {
+
+					result[ fieldName ] = fieldMeta.default;
+
+				}
+
+			} );
+
+		}
+
 		return {
-			value: this.props.initialValue || {}
+			value: _.assign( defaults, this.props.initialValue )
 		};
 	},
 
