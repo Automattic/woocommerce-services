@@ -27,9 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
-require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
-
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	class WC_Connect_Loader {
@@ -38,7 +35,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_object_cache = array();
 
 		public function __construct() {
-			add_action( 'woocommerce_init', array( $this, 'load_dependencies' ) );
+			add_action( 'woocommerce_init', array( $this, 'init' ) );
+		}
+
+		/**
+		 * Once WooCommerce has finished loading, we can start hooking our services
+		 * into it.
+		 *
+		 */
+		public function init() {
+			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
 
 			$this->services = get_option( 'wc_connect_services', null );
 			if ( $this->services ) {
@@ -97,11 +106,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			return $shipping_methods;
-		}
-
-		public function load_dependencies() {
-			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 		}
 
 		/**
