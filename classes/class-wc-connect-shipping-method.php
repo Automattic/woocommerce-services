@@ -190,7 +190,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		public function localize_and_enqueue_form_script() {
+
+			$admin_array = array(
+				'formSchema' => $this->get_form_schema(),
+				'formData'   => $this->get_form_settings(),
+			);
+
+			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
+
+			wp_enqueue_script( 'wc_connect_shipping_admin' );
+
+		}
+
 		public function admin_options() {
+
+			$this->localize_and_enqueue_form_script();
+
 			?>
 				<div id="wc-connect-admin-container"></div>
 			<?php

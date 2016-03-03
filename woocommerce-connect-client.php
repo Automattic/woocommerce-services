@@ -140,32 +140,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			$tab = isset( $_GET['tab'] ) ? $_GET['tab'] : '';
-			if ( 'shipping' !== $tab ) {
+			if ( ! isset( $_GET['tab'] ) || ( 'shipping' !== $_GET['tab'] ) ) {
 				return;
 			}
 
-			$instance_id = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : '';
-			if ( empty( $instance_id ) ) {
+			if ( ! isset( $_GET['instance_id'] ) || empty( $_GET['instance_id'] ) ) {
 				return;
 			}
 
-			$instance_id = absint( $instance_id );
-			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
-			$shipping_method = new WC_Connect_Shipping_Method( $instance_id );
+			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', __FILE__ ), array(), false, true );
 
-			$shipping_method_form_schema = $shipping_method->get_form_schema();
-			$shipping_method_settings = $shipping_method->get_form_settings();
-
-			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', __FILE__ ), array() );
-
-			$admin_array = array(
-				'formSchema' => $shipping_method_form_schema,
-				'formData'   => $shipping_method_settings,
-			);
-
-			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
-			wp_enqueue_script( 'wc_connect_shipping_admin' );
 		}
 
 	}
