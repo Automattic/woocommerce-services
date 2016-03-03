@@ -84,6 +84,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+				add_action( 'wc_connect_shipping_method_init', array( $this, 'init_shipping_method' ), 10, 2 );
 			}
 
 			// Hook fetching the available services from the connect server
@@ -96,6 +97,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
+		}
+
+		/**
+		 * @param WC_Connect_Shipping_Method $method
+		 * @param int|string                 $id_or_instance_id
+		 */
+		public function init_shipping_method( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
+
+			$method->set_api_client( $this->api_client );
+			$method->set_logger( $this->logger );
+
+			if ( $method->instance_id ) {
+
+				$method->set_service( $this->service_store->get_service_by_instance_id( $method->instance_id ) );
+
+			} else if ( ! empty( $id_or_instance_id ) ) {
+
+				$method->set_service( $this->service_store->get_service_by_id( $id_or_instance_id ) );
+
+			}
+
 		}
 
 		/**
