@@ -9,21 +9,41 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected $service = null;
 
+		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $logger;
+
+		/**
+		 * @var WC_Connect_API_Client
+		 */
+		protected $api_client;
+
 		public function __construct( $id_or_instance_id = null ) {
 
 			// If $arg looks like a number, treat it as an instance_id
 			// Otherwise, treat it as a (method) id (e.g. wc_connect_usps)
-			$this->instance_id = null;
-
 			if ( is_numeric( $id_or_instance_id ) ) {
 				$this->instance_id = absint( $id_or_instance_id );
-				$this->service = WC_Connect_Services_Store::get_service_by_instance_id( $this->instance_id );
-			} else if ( ! empty( $id_or_instance_id ) ) {
-				$this->service = WC_Connect_Services_Store::get_service_by_id( $id_or_instance_id );
+			} else {
+				$this->instance_id = null;
 			}
 
+			/**
+			 * Provide a dependency injection point for each shipping method.
+			 *
+			 * WooCommerce core instantiates shipping method with only a string ID
+			 * or a numeric instance ID. We depend on more than that, so we need
+			 * to provide a hook for our plugin to inject dependencies into each
+			 * shipping method instance.
+			 *
+			 * @param WC_Connect_Shipping_Method $this
+			 * @param int|string                 $id_or_instance_id
+			 */
+			do_action( 'wc_connect_shipping_method_init', $this, $id_or_instance_id );
+
 			if ( ! $this->service ) {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
 				);
@@ -59,6 +79,24 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		public function set_service( $service ) {
+
+			$this->service = $service;
+
+		}
+
+		public function set_logger( WC_Connect_Logger $logger ) {
+
+			$this->logger = $logger;
+
+		}
+
+		public function set_api_client( WC_Connect_API_Client $api_client ) {
+
+			$this->api_client = $api_client;
+
+		}
+
 		protected function get_instance_form_settings_key() {
 			return $this->plugin_id . $this->id . '_' . $this->instance_id . '_form_settings';
 		}
@@ -82,7 +120,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					// If we can't comprehend the setting, go
 					// ahead and mark it disabled and log a warning
 					$this->enabled = 'no';
-					WC_Connect_Logger::log(
+					$this->logger->log(
 						sprintf(
 							'Warning. Unrecognized value for \'Enabled\' when updating settings for %s instance id %d. Setting to NOT enabled.',
 							$this->id,
@@ -145,7 +183,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings[ 'enabled' ] = array_key_exists( 'enabled', $settings );
 
 			// Validate settings with WCC server
-			$result = WC_Connect_API_Client::validate_service_settings( $this->id, $settings );
+			$result = $this->api_client->validate_service_settings( $this->id, $settings );
 
 			if ( is_wp_error( $result ) ) {
 				$this->add_error( $result->get_error_message() );
@@ -158,7 +196,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function calculate_shipping( $package = array() ) {
 			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
 
-			$response = WC_Connect_API_Client::get_shipping_rates( $this->get_form_settings(), $package );
+			$response = $this->api_client->get_shipping_rates( $this->get_form_settings(), $package );
 			if ( ! is_wp_error( $response ) ) {
 				if ( array_key_exists( $this->id, $response ) ) {
 					$rates = $response[$this->id];
@@ -175,7 +213,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					}
 				}
 			} else {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -183,7 +221,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					),
 					__FUNCTION__
 				);
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					$response,
 					__FUNCTION__
 				);
