@@ -1,6 +1,6 @@
 var React = require( 'react' );
 var Form = require( 'tcomb-form' ).form.Form;
-var transform = require( 'tcomb-json-schema' );
+var schemaToType = require( 'tcomb-json-schema' );
 const _ = {
 	assign: require( 'lodash/assign' ),
 	transform: require( 'lodash/transform' ),
@@ -12,7 +12,7 @@ module.exports = React.createClass( {
 
 	componentWillMount: function() {
 		if ( this.props.schema ) {
-			this.schema = transform( this.props.schema );
+			this.type = schemaToType( this.props.schema );
 		}
 	},
 
@@ -55,9 +55,9 @@ module.exports = React.createClass( {
 	},
 
 	render: function() {
-		return this.schema ? (
+		return this.type ? (
 			<div>
-				<Form ref="form" type={ this.schema } value={ this.state.value } onChange={ this.onChange } />
+				<Form ref="form" type={ this.type } value={ this.state.value } onChange={ this.onChange } />
 				<div className="form-group">
 					<button type="submit" className="btn btn-primary" onClick={ this.onSubmit }>Save Changes</button>
 				</div>
