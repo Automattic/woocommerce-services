@@ -154,5 +154,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	}
 
-	new WC_Connect_Loader();
+	if ( ! defined( 'WC_UNIT_TESTING' ) ) {
+		new WC_Connect_Loader();
+	}
 }
