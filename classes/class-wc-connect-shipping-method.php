@@ -76,9 +76,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// to "yes" or "no" (which WC expects instead of a boolean)
 			if ( array_key_exists( 'enabled', $form_settings ) ) {
 				$enabled = $form_settings['enabled'];
-				if ( in_array( $enabled, array( 'yes', 'no' ) ) ) {
-					$this->enabled = $enabled;
-				} else if ( is_bool( $enabled ) ) {
+				if ( is_bool( $enabled ) ) {
 					$this->enabled = $enabled ? 'yes' : 'no';
 				} else {
 					// If we can't comprehend the setting, go
@@ -141,6 +139,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings = $_POST;
 			// TODO - build a whitelist from the form schema if possible
 			unset( $settings['subtab'], $settings['_wpnonce'], $settings['_wp_http_referer'] );
+
+			// Special handling is needed to turn checkboxes like enabled back into booleans
+			// TODO - use the whitelisting above to identify checkboxes that need re-boolean-izing
+			$settings[ 'enabled' ] = array_key_exists( 'enabled', $settings );
 
 			// Validate settings with WCC server
 			$result = WC_Connect_API_Client::validate_service_settings( $this->id, $settings );
