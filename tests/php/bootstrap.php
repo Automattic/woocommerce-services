@@ -8,20 +8,20 @@
  */
 
 // Support for:
-// 1. `WP_DEVELOP_DIR` environment variable
-// 2. Plugin installed inside of WordPress.org developer checkout
-// 3. Tests checked out to /tmp
-if( false !== getenv( 'WP_DEVELOP_DIR' ) ) {
-	$test_root = getenv( 'WP_DEVELOP_DIR' );
-} else if ( file_exists( '../../../../tests/phpunit/includes/bootstrap.php' ) ) {
-	$test_root = '../../../../tests/phpunit';
-} else if ( file_exists( '/tmp/wordpress-tests-lib/includes/bootstrap.php' ) ) {
-	$test_root = '/tmp/wordpress-tests-lib';
+// 1. `WC_DEVELOP_DIR` environment variable
+// 2. Tests checked out to /tmp
+if( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
+	$wc_root = getenv( 'WC_DEVELOP_DIR' );
+} else if ( file_exists( '/tmp/woocommerce/tests/bootstrap.php' ) ) {
+	$wc_root = '/tmp/woocommerce/tests';
 } else {
 	exit( 'Could not determine test root directory. Aborting.' );
 }
 
-require $test_root . '/includes/functions.php';
+$wp_tests_dir = getenv( 'WP_TESTS_DIR' ) ? getenv( 'WP_TESTS_DIR' ) : '/tmp/wordpress-tests-lib';
+
+// load test function so tests_add_filter() is available
+require_once( $wp_tests_dir . '/includes/functions.php' );
 
 // Activates this plugin in WordPress so it can be tested.
 function _manually_load_plugin() {
@@ -29,4 +29,4 @@ function _manually_load_plugin() {
 }
 tests_add_filter( 'plugins_loaded', '_manually_load_plugin' );
 
-require $test_root . '/includes/bootstrap.php';
+require $wc_root . '/bootstrap.php';
