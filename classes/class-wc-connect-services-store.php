@@ -3,15 +3,40 @@
 if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
 	class WC_Connect_Services_Store {
-		private function __construct() {
+
+		/**
+		 * @var WC_Connect_API_Client
+		 */
+		protected $api_client;
+
+		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $logger;
+
+		/**
+		 * @var WC_Connect_Services_Validator
+		 */
+		protected $validator;
+
+		public function __construct(
+			WC_Connect_API_Client $api_client,
+			WC_Connect_Logger $logger,
+			WC_Connect_Services_Validator $validator
+		) {
+
+			$this->api_client = $api_client;
+			$this->logger     = $logger;
+			$this->validator  = $validator;
+
 		}
 
-		public static function fetch_services_from_connect_server() {
-			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
+		public function fetch_services_from_connect_server() {
 
-			$response = WC_Connect_API_Client::get_services();
+			$response = $this->api_client->get_services();
+
 			if ( is_wp_error( $response ) ) {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					$response,
 					__FUNCTION__
 				);
@@ -20,7 +45,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			}
 
 			if ( ! array_key_exists( 'body', $response ) ) {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					'Server response did not include body. Service schemas not updated.',
 					__FUNCTION__
 				);
@@ -31,7 +56,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			$body = json_decode( $response['body'] );
 
 			if ( ! is_object( $body ) ) {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					'Server response body is not an object. Service schemas not updated.',
 					__FUNCTION__
 				);
@@ -40,7 +65,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			}
 
 			if ( property_exists( $body, 'error' ) ) {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					sprintf(
 						'Server responded with an error : %s : %s.',
 						$body->error, $body->message
@@ -51,10 +76,8 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				return;
 			}
 
-			require_once( plugin_basename( 'class-wc-connect-services-validator.php' ) );
-
-			if ( ! WC_Connect_Services_Validator::validate_services( $body ) ) {
-				WC_Connect_Logger::log(
+			if ( ! $this->validator->validate_services( $body ) ) {
+				$this->logger->log(
 					'One or more service schemas failed to validate. Will not store services in options.',
 					__FUNCTION__
 				);
@@ -62,20 +85,20 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				return;
 			}
 
-			WC_Connect_Logger::log(
+			$this->logger->log(
 				'Successfully loaded service schemas from server response.',
 				__FUNCTION__
 			);
 
 			// If we made it this far, it is safe to store the object
-			self::update_services( $body );
+			$this->update_services( $body );
 		}
 
-		protected static function get_services() {
+		public function get_services() {
 			return get_option( 'wc_connect_services', null );
 		}
 
-		protected static function update_services( $services ) {
+		protected function update_services( $services ) {
 			update_option( 'wc_connect_services', $services );
 		}
 
@@ -86,12 +109,12 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 		 *
 		 * @return array An array of that type's service ids, or an empty array if no such type is known
 		 */
-		public static function get_all_service_ids_of_type( $type ) {
+		public function get_all_service_ids_of_type( $type ) {
 			if ( empty( $type ) ) {
 				return array();
 			}
 
-			$services = self::get_services();
+			$services = $this->get_services();
 			if ( ! is_object( $services ) ) {
 				return array();
 			}
@@ -120,8 +143,8 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 		 *
 		 * @return object|null The service properties or null if no such id was found
 		 */
-		public static function get_service_by_id( $service_id ) {
-			$services = self::get_services();
+		public function get_service_by_id( $service_id ) {
+			$services = $this->get_services();
 			if ( ! is_object( $services ) ) {
 				return null;
 			}
@@ -144,7 +167,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 		 *
 		 * @return object|null The service properties or null if no such instance was found
 		 */
-		public static function get_service_by_instance_id( $instance_id ) {
+		public function get_service_by_instance_id( $instance_id ) {
 			global $wpdb;
 			$service_id = $wpdb->get_var(
 				$wpdb->prepare(
@@ -153,7 +176,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				)
 			);
 
-			return self::get_service_by_id( $service_id );
+			return $this->get_service_by_id( $service_id );
 		}
 
 	}
