@@ -22,17 +22,11 @@ module.exports = React.createClass( {
 
 		// Pull field names and default values from the JSON Schema object
 		if ( ( 'object' === schema.type ) && _.isPlainObject( schema.properties ) ) {
-
 			defaults = _.transform( schema.properties, function( result, fieldMeta, fieldName ) {
-
 				if ( _.has( fieldMeta, 'default' ) ) {
-
 					result[ fieldName ] = fieldMeta.default;
-
 				}
-
 			} );
-
 		}
 
 		return {
