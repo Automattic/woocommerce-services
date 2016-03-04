@@ -53,7 +53,9 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				return;
 			}
 
-			if ( ! array_key_exists( 'body', $response ) ) {
+			$body = $this->api_client->decode_body_from_response( $response );
+
+			if ( ! $body ) {
 				$this->logger->log(
 					'Server response did not include body. Service schemas not updated.',
 					__FUNCTION__
@@ -61,8 +63,6 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
 				return;
 			}
-
-			$body = $this->api_client->decode_body_from_response( $response );
 
 			if ( ! $this->validator->validate_services( $body ) ) {
 				$this->logger->log(
