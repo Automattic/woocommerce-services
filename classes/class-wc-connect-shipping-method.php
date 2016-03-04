@@ -152,7 +152,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// to "yes" or "no" (which WC expects instead of a boolean)
 			if ( array_key_exists( 'enabled', $form_settings ) ) {
 				$enabled = $form_settings['enabled'];
-				if ( is_bool( $enabled ) ) {
+				if ( 1 === $enabled ) {
+					$this->enabled = 'yes';
+				} else if ( is_bool( $enabled ) ) {
 					$this->enabled = $enabled ? 'yes' : 'no';
 				} else {
 					// If we can't comprehend the setting, go
@@ -221,12 +223,29 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings[ 'enabled' ] = array_key_exists( 'enabled', $settings );
 
 			// Validate settings with WCC server
-			$result = $this->api_client->validate_service_settings( $this->id, $settings );
+			$response = $this->api_client->validate_service_settings( $this->id, $settings );
 
-			if ( is_wp_error( $result ) ) {
-				$this->add_error( $result->get_error_message() );
+			if ( is_wp_error( $response ) ) {
+				$error = sprintf(
+					__( 'Unable to save changes.  Reason: %s', 'woocommerce' ),
+					$response->get_error_message()
+				);
+				$this->add_error( $error );
 				return false;
 			}
+
+			if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+				$error = sprintf(
+					__( 'Unable to save changes.  Server returned: %s', 'woocommerce' ),
+					$this->api_client->decode_error_from_response( $response )
+				);
+				$this->add_error( $error );
+				return false;
+			}
+
+			// TODO - so, returning false above doesn't actually prevent a
+			// "Your settings have been saved." message from appearing.  At
+			// first glance, WooCommerce may not prevent that.  Need to dig further.
 
 			return update_option( $this->get_instance_form_settings_key(), $settings );
 		}
@@ -268,33 +287,28 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
 
-				return WC_Connect_Logger::log(
+				return $this->log(
 					sprintf( 'Package destination failed validation. Skipping %s rate request.', $this->id ),
 					__FUNCTION__
 				);
 
 			}
 
-			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
+			// TODO: Request rates for all WooCommerce Connect powered methods in
+			// the current shipping zone to avoid each method making an independent request
+			$services = array(
+				array_merge( $this->get_form_settings(),
+					array(
+						'id' => $this->id,
+						'instance' => $this->instance_id
+					)
+				)
+			);
 
-			$response = $this->api_client->get_shipping_rates( $this->get_form_settings(), $package );
-			if ( ! is_wp_error( $response ) ) {
-				if ( array_key_exists( $this->id, $response ) ) {
-					$rates = $response[$this->id];
+			$response = $this->api_client->get_shipping_rates( $services, $package );
 
-					foreach ( (array) $rates as $rate ) {
-						$rate_to_add = array(
-							'id' => $this->id,
-							'label' => $rate['title'],
-							'cost' => $rate['rate'],
-							'calc_tax' => 'per_item'
-						);
-
-						$this->add_rate( $rate_to_add );
-					}
-				}
-			} else {
-				$this->log(
+			if ( is_wp_error( $response ) ) {
+				$this->logger->log(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -302,10 +316,39 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					),
 					__FUNCTION__
 				);
-				$this->log(
-					$response,
+
+				$this->logger->log( $response, __FUNCTION__ );
+				return;
+			}
+
+			if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+				$this->logger->log(
+					sprintf(
+						'Error. Unable to get shipping rate(s) for %s instance id %d. Error: %s',
+						$this->id,
+						$this->instance_id,
+						$this->api_client->decode_error_from_response( $response )
+					),
 					__FUNCTION__
 				);
+				return;
+			}
+
+			$body = $this->api_client->decode_body_from_response( $response );
+			// TODO - handle instances, parse new format
+			if ( array_key_exists( $this->id, $body ) ) {
+				$rates = $response[$this->id];
+
+				foreach ( (array) $rates as $rate ) {
+					$rate_to_add = array(
+						'id' => $this->id,
+						'label' => $rate['title'],
+						'cost' => $rate['rate'],
+						'calc_tax' => 'per_item'
+					);
+
+					$this->add_rate( $rate_to_add );
+				}
 			}
 		}
 

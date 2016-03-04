@@ -44,6 +44,15 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				return;
 			}
 
+			if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+				$this->logger->log(
+					$this->api_client->decode_error_from_response( $response ),
+					__FUNCTION__
+				);
+
+				return;
+			}
+
 			if ( ! array_key_exists( 'body', $response ) ) {
 				$this->logger->log(
 					'Server response did not include body. Service schemas not updated.',
@@ -53,28 +62,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				return;
 			}
 
-			$body = json_decode( $response['body'] );
-
-			if ( ! is_object( $body ) ) {
-				$this->logger->log(
-					'Server response body is not an object. Service schemas not updated.',
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			if ( property_exists( $body, 'error' ) ) {
-				$this->logger->log(
-					sprintf(
-						'Server responded with an error : %s : %s.',
-						$body->error, $body->message
-					),
-					__FUNCTION__
-				);
-
-				return;
-			}
+			$body = $this->api_client->decode_body_from_response( $response );
 
 			if ( ! $this->validator->validate_services( $body ) ) {
 				$this->logger->log(
