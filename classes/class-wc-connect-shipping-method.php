@@ -43,7 +43,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			do_action( 'wc_connect_shipping_method_init', $this, $id_or_instance_id );
 
 			if ( ! $this->service ) {
-				$this->logger->log(
+				$this->log(
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
 				);
@@ -91,6 +91,26 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
+		/**
+		 * Logging helper.
+		 *
+		 * Avoids calling methods on an undefined object if no logger was
+		 * injected during the init action in the constructor.
+		 *
+		 * @see WC_Connect_Logger::log()
+		 * @param string|WP_Error $message
+		 * @param string $context
+		 */
+		protected function log( $message, $context = '' ) {
+
+			if ( is_a( $this->logger, 'WC_Connect_Logger' ) ) {
+
+				$this->log( $message, $context );
+
+			}
+
+		}
+
 		public function set_api_client( WC_Connect_API_Client $api_client ) {
 
 			$this->api_client = $api_client;
@@ -120,7 +140,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					// If we can't comprehend the setting, go
 					// ahead and mark it disabled and log a warning
 					$this->enabled = 'no';
-					$this->logger->log(
+					$this->log(
 						sprintf(
 							'Warning. Unrecognized value for \'Enabled\' when updating settings for %s instance id %d. Setting to NOT enabled.',
 							$this->id,
@@ -213,7 +233,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					}
 				}
 			} else {
-				$this->logger->log(
+				$this->log(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -221,7 +241,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					),
 					__FUNCTION__
 				);
-				$this->logger->log(
+				$this->log(
 					$response,
 					__FUNCTION__
 				);
