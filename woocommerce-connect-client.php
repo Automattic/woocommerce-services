@@ -246,6 +246,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Wrapper for enqueuing scripts based on page hook and GET parameters.
 		 *
+		 * @codeCoverageIgnore
 		 * @see 'admin_enqueue_scripts'
 		 * @see self::enqueue_shipping_script
 		 * @param string $hook
