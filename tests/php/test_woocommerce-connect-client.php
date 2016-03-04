@@ -16,6 +16,9 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	}
 
+	/**
+	 * @covers WC_Connect_Loader::__construct
+	 */
 	public function test_init_hook_attached_in_constructor() {
 
 		$loader   = new WC_Connect_Loader();
@@ -38,6 +41,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	/**
 	 * @dataProvider enqueue_scripts_provider
+	 * @covers WC_Connect_Loader::enqueue_shipping_script
 	 */
 	public function test_enqueue_shipping_script( $hook, $tab, $instance_id, $expected ) {
 
