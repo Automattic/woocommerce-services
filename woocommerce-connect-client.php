@@ -174,24 +174,40 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Wrapper for enqueuing scripts based on page hook and GET parameters.
+		 *
+		 * @see 'admin_enqueue_scripts'
+		 * @see self::enqueue_shipping_script
+		 * @param string $hook
+		 */
+		public function admin_enqueue_scripts( $hook ) {
+
+			$tab      = isset( $_GET['tab'] ) ? $_GET['tab'] : null;
+			$instance = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : null;
+
+			$this->enqueue_shipping_script( $hook, $tab, $instance );
+
+		}
+
+		/**
 		 * When on an wp-admin shipping zone shipping method instance page, enqueues
 		 * the React UI bundle and shipping service instance form schema and settings
 		 *
+		 * @param string $hook
+		 * @param string $tab
+		 * @param int    $instance_id
 		 */
-		public function admin_enqueue_scripts( $hook ) {
-			if ( ! is_user_logged_in() ) {
-				return;
-			}
+		public function enqueue_shipping_script( $hook, $tab, $instance_id ) {
 
 			if ( 'woocommerce_page_wc-settings' !== $hook ) {
 				return;
 			}
 
-			if ( ! isset( $_GET['tab'] ) || ( 'shipping' !== $_GET['tab'] ) ) {
+			if ( 'shipping' !== $tab ) {
 				return;
 			}
 
-			if ( ! isset( $_GET['instance_id'] ) || empty( $_GET['instance_id'] ) ) {
+			if ( empty( $instance_id ) ) {
 				return;
 			}
 
