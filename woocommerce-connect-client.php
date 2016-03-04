@@ -89,14 +89,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Hook fetching the available services from the connect server
 			if ( ! $services ) {
-				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
+				add_action( 'admin_init', array( $this->service_store, 'fetch_services_from_connect_server' ) );
 			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
-				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
+				add_action( 'admin_init', array( $this->service_store, 'fetch_services_from_connect_server' ) );
 			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
 			}
 
-			add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
+			add_action( 'wc_connect_fetch_services', array( $this->service_store, 'fetch_services_from_connect_server' ) );
 		}
 
 		/**
@@ -117,16 +117,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$method->set_service( $this->service_store->get_service_by_id( $id_or_instance_id ) );
 
 			}
-
-		}
-
-		/**
-		 * Prompts the services store to fetch services anew
-		 *
-		 */
-		public function fetch_services_from_connect_server() {
-
-			$this->service_store->fetch_services_from_connect_server();
 
 		}
 
