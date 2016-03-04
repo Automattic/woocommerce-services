@@ -79,15 +79,39 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		public function get_service() {
+
+			return $this->service;
+
+		}
+
 		public function set_service( $service ) {
 
 			$this->service = $service;
 
 		}
 
+		public function get_logger() {
+
+			return $this->logger;
+
+		}
+
 		public function set_logger( WC_Connect_Logger $logger ) {
 
 			$this->logger = $logger;
+
+		}
+
+		public function get_api_client() {
+
+			return $this->api_client;
+
+		}
+
+		public function set_api_client( WC_Connect_API_Client $api_client ) {
+
+			$this->api_client = $api_client;
 
 		}
 
@@ -108,12 +132,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->log( $message, $context );
 
 			}
-
-		}
-
-		public function set_api_client( WC_Connect_API_Client $api_client ) {
-
-			$this->api_client = $api_client;
 
 		}
 
