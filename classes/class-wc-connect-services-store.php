@@ -179,6 +179,30 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			return $this->get_service_by_id( $service_id );
 		}
 
+		/**
+		 * Returns a service's properties given an id or shipping zone instance.
+		 *
+		 * @param string $id_or_instance_id String ID or numeric instance ID.
+		 * @return bool|object Service object on success, boolean False on failure.
+		 */
+		public function get_service_by_id_or_instance_id( $id_or_instance_id ) {
+
+			if ( is_numeric( $id_or_instance_id ) ) {
+
+				return $this->get_service_by_instance_id( $id_or_instance_id );
+
+			}
+
+			if ( ! empty( $id_or_instance_id ) ) {
+
+				return $this->get_service_by_id( $id_or_instance_id );
+
+			}
+
+			return false;
+
+		}
+
 	}
 
 }

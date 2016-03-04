@@ -154,21 +154,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Inject API Client and Logger into WC Connect shipping method instances.
+		 *
 		 * @param WC_Connect_Shipping_Method $method
 		 * @param int|string                 $id_or_instance_id
 		 */
 		public function init_shipping_method( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
 
-			$method->set_api_client( $this->api_client );
-			$method->set_logger( $this->logger );
+			$method->set_api_client( $this->get_api_client() );
+			$method->set_logger( $this->get_logger() );
 
-			if ( $method->instance_id ) {
+			if ( $service = $this->get_services_store()->get_service_by_id_or_instance_id( $id_or_instance_id ) ) {
 
-				$method->set_service( $this->get_services_store()->get_service_by_instance_id( $method->instance_id ) );
-
-			} else if ( ! empty( $id_or_instance_id ) ) {
-
-				$method->set_service( $this->get_services_store()->get_service_by_id( $id_or_instance_id ) );
+				$method->set_service( $service );
 
 			}
 
