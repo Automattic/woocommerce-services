@@ -53,4 +53,19 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	}
 
+	/**
+	 * @covers WC_Connect_Loader::load_dependencies
+	 */
+	public function test_load_dependencies() {
+
+		$loader = new WC_Connect_Loader();
+		$loader->load_dependencies();
+
+		$this->assertInstanceOf( 'WC_Connect_Logger', $loader->get_logger() );
+		$this->assertInstanceOf( 'WC_Connect_API_Client', $loader->get_api_client() );
+		$this->assertInstanceOf( 'WC_Connect_Services_Validator', $loader->get_services_validator() );
+		$this->assertInstanceOf( 'WC_Connect_Services_Store', $loader->get_services_store() );
+
+	}
+
 }
