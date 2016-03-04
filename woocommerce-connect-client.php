@@ -100,6 +100,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$this->load_dependencies();
 			$this->attach_hooks();
+			$this->schedule_services_fetch();
 
 		}
 
@@ -142,16 +143,31 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'wc_connect_shipping_method_init', array( $this, 'init_shipping_method' ), 10, 2 );
 			}
 
-			// Hook fetching the available services from the connect server
-			if ( ! $services ) {
-				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
-			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
-				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
-			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
-				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
-			}
-
 			add_action( 'wc_connect_fetch_services', array( $store, 'fetch_services_from_connect_server' ) );
+
+		}
+
+		/**
+		 * Hook fetching the available services from the connect server
+		 */
+		public function schedule_services_fetch() {
+
+			$store    = $this->get_services_store();
+			$services = $store->get_services();
+
+			if ( ! $services ) {
+
+				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
+
+			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
+
+				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
+
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
+
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
+
+			}
 
 		}
 
