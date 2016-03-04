@@ -93,6 +93,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
+		 *
+		 * @codeCoverageIgnore
 		 */
 		public function init() {
 
