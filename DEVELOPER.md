@@ -263,18 +263,11 @@
       title : 'USPS - West Coast Warehouse'
       countries : [ 'US' ],
       method_availability : 'specific',
-    },
-    {
-      id : 'usps',
-      instance : 1,
-      enabled : true,
-      title : 'USPS - East Coast Warehouse',
-      countries : [ 'US' ],
-      method_availability : 'specific',
+      origin: 98007,
     },
     {
       id : 'canada_post',
-      instance : '0',
+      instance : 1,
       enabled : false
     }
   ],
