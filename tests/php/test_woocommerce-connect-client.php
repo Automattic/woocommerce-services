@@ -140,4 +140,43 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	}
 
+	/**
+	 * @covers WC_Connect_Loader::init_shipping_method
+	 */
+	public function test_init_shipping_method() {
+
+		$store = $this->getMockBuilder( 'WC_Connect_Services_Store' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_service_by_id_or_instance_id' ) )
+			->getMock();
+
+		$service_data = array(
+			'method_id' => 'test_method'
+		);
+
+		$store->expects( $this->any() )
+			->method( 'get_service_by_id_or_instance_id' )
+			->will( $this->returnValue( $service_data ) );
+
+		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_services_store' ) )
+			->getMock();
+
+		$loader->expects( $this->any() )
+			->method( 'get_services_store' )
+			->will( $this->returnValue( $store ) );
+
+		$loader->load_dependencies();
+
+		$method = new WC_Connect_Shipping_Method();
+
+		$loader->init_shipping_method( $method, 1 );
+
+		$this->assertEquals( $loader->get_logger(), $method->get_logger() );
+		$this->assertEquals( $loader->get_api_client(), $method->get_api_client() );
+		$this->assertEquals( $service_data, $method->get_service() );
+
+	}
+
 }
