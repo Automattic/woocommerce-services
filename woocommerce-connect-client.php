@@ -60,11 +60,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Once WooCommerce has finished loading, we can start hooking our services
-		 * into it.
-		 *
+		 * Bootstrap our plugin and hook into WP/WC core.
 		 */
 		public function init() {
+
+			$this->load_dependencies();
+			$this->attach_hooks();
+
+		}
+
+		/**
+		 * Load all plugin dependencies.
+		 */
+		public function load_dependencies() {
 
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
@@ -76,6 +84,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->api_client        = new WC_Connect_API_Client();
 			$this->service_validator = new WC_Connect_Services_Validator( $this->logger );
 			$this->service_store     = new WC_Connect_Services_Store( $this->api_client, $this->logger, $this->service_validator );
+
+		}
+
+		/**
+		 * Hook plugin classes into WP/WC core.
+		 */
+		public function attach_hooks() {
 
 			$services = $this->service_store->get_services();
 
@@ -97,6 +112,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'wc_connect_fetch_services', array( $this->service_store, 'fetch_services_from_connect_server' ) );
+
 		}
 
 		/**
