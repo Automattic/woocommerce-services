@@ -44,12 +44,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * @var WC_Connect_Services_Store
 		 */
-		protected $service_store;
+		protected $services_store;
 
 		/**
 		 * @var WC_Connect_Services_Validator
 		 */
-		protected $service_validator;
+		protected $services_validator;
 
 		protected $services = array();
 
@@ -57,6 +57,38 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function __construct() {
 			add_action( 'woocommerce_init', array( $this, 'init' ) );
+		}
+
+		public function get_logger() {
+			return $this->logger;
+		}
+
+		public function set_logger( WC_Connect_Logger $logger ) {
+			$this->logger = $logger;
+		}
+
+		public function get_api_client() {
+			return $this->api_client;
+		}
+
+		public function set_api_client( WC_Connect_API_Client $api_client ) {
+			$this->api_client = $api_client;
+		}
+
+		public function get_services_store() {
+			return $this->services_store;
+		}
+
+		public function set_services_store( WC_Connect_Services_Store $store ) {
+			$this->services_store = $store;
+		}
+
+		public function get_services_validator() {
+			return $this->services_validator;
+		}
+
+		public function set_services_validator( WC_Connect_Services_Validator $validator ) {
+			$this->services_validator = $validator;
 		}
 
 		/**
@@ -80,10 +112,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
 
-			$this->logger            = new WC_Connect_Logger( new WC_Logger() );
-			$this->api_client        = new WC_Connect_API_Client();
-			$this->service_validator = new WC_Connect_Services_Validator( $this->logger );
-			$this->service_store     = new WC_Connect_Services_Store( $this->api_client, $this->logger, $this->service_validator );
+			$logger     = new WC_Connect_Logger( new WC_Logger() );
+			$api_client = new WC_Connect_API_Client();
+			$validator  = new WC_Connect_Services_Validator( $logger );
+			$store      = new WC_Connect_Services_Store( $api_client, $logger, $validator );
+
+			$this->set_logger( $logger );
+			$this->set_api_client( $api_client );
+			$this->set_services_validator( $validator );
+			$this->set_services_store( $store );
 
 		}
 
@@ -92,7 +129,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function attach_hooks() {
 
-			$services = $this->service_store->get_services();
+			$store    = $this->get_services_store();
+			$services = $store->get_services();
 
 			if ( $services ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -104,14 +142,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Hook fetching the available services from the connect server
 			if ( ! $services ) {
-				add_action( 'admin_init', array( $this->service_store, 'fetch_services_from_connect_server' ) );
+				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
 			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
-				add_action( 'admin_init', array( $this->service_store, 'fetch_services_from_connect_server' ) );
+				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
 			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
 			}
 
-			add_action( 'wc_connect_fetch_services', array( $this->service_store, 'fetch_services_from_connect_server' ) );
+			add_action( 'wc_connect_fetch_services', array( $store, 'fetch_services_from_connect_server' ) );
 
 		}
 
@@ -126,11 +164,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( $method->instance_id ) {
 
-				$method->set_service( $this->service_store->get_service_by_instance_id( $method->instance_id ) );
+				$method->set_service( $this->get_services_store()->get_service_by_instance_id( $method->instance_id ) );
 
 			} else if ( ! empty( $id_or_instance_id ) ) {
 
-				$method->set_service( $this->service_store->get_service_by_id( $id_or_instance_id ) );
+				$method->set_service( $this->get_services_store()->get_service_by_id( $id_or_instance_id ) );
 
 			}
 
@@ -160,7 +198,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
 
-			$shipping_service_ids = $this->service_store->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_services_store()->get_all_service_ids_of_type( 'shipping' );
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -176,7 +214,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function woocommerce_load_shipping_methods() {
 
-			$shipping_service_ids = $this->service_store->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_services_store()->get_all_service_ids_of_type( 'shipping' );
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
