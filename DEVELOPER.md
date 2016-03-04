@@ -260,7 +260,8 @@
       id : 'usps',
       instance : '0',
       enabled : true,
-      title : 'USPS - West Coast Warehouse'
+      title : 'USPS - West Coast Warehouse',
+      origin: 98290,
       countries : [ 'US' ],
       method_availability : 'specific',
     },
@@ -269,6 +270,7 @@
       instance : '1',
       enabled : true,
       title : 'USPS - East Coast Warehouse',
+      origin: 98290,
       countries : [ 'US' ],
       method_availability : 'specific',
     },
