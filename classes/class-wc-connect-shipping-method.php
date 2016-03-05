@@ -223,24 +223,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings[ 'enabled' ] = array_key_exists( 'enabled', $settings );
 
 			// Validate settings with WCC server
-			$response = $this->api_client->validate_service_settings( $this->id, $settings );
+			$response_body = $this->api_client->validate_service_settings( $this->id, $settings );
 
-			if ( is_wp_error( $response ) ) {
-				$error = sprintf(
-					__( 'Unable to save changes.  Reason: %s', 'woocommerce' ),
-					$response->get_error_message()
-				);
-				$this->add_error( $error );
-				return false;
-			}
+			if ( is_wp_error( $response_body ) ) {
+				// TODO - handle multiple error messages when the validation endpoint can return them
+				$this->add_error( $response_body->get_error_message() );
 
-			if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-				$error = sprintf(
-					__( 'Unable to save changes.  Server returned: %s', 'woocommerce' ),
-					$this->api_client->decode_error_from_response( $response )
-				);
-				$this->add_error( $error );
-				return false;
+				// TODO - when the validation endpoint is ready, return false on failures
+				// but go ahead and save for now to make development and testing possible
+				// return false;
+
 			}
 
 			// TODO - so, returning false above doesn't actually prevent a
@@ -305,9 +297,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				)
 			);
 
-			$response = $this->api_client->get_shipping_rates( $services, $package );
+			$response_body = $this->api_client->get_shipping_rates( $services, $package );
 
-			if ( is_wp_error( $response ) ) {
+			if ( is_wp_error( $response_body ) ) {
 				$this->logger->log(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
@@ -317,27 +309,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					__FUNCTION__
 				);
 
-				$this->logger->log( $response, __FUNCTION__ );
+				$this->logger->log( $response_body, __FUNCTION__ );
 				return;
 			}
 
-			if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-				$this->logger->log(
-					sprintf(
-						'Error. Unable to get shipping rate(s) for %s instance id %d. Error: %s',
-						$this->id,
-						$this->instance_id,
-						$this->api_client->decode_error_from_response( $response )
-					),
-					__FUNCTION__
-				);
-				return;
-			}
-
-			$body = $this->api_client->decode_body_from_response( $response );
-			// TODO - handle instances, parse new format
-			if ( array_key_exists( $this->id, $body ) ) {
-				$rates = $response[$this->id];
+			if ( array_key_exists( $this->id, $response_body ) ) {
+				$rates = $response_body[$this->id];
 
 				foreach ( (array) $rates as $rate ) {
 					$rate_to_add = array(

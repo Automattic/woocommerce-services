@@ -33,38 +33,18 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
 		public function fetch_services_from_connect_server() {
 
-			$response = $this->api_client->get_services();
+			$response_body = $this->api_client->get_services();
 
-			if ( is_wp_error( $response ) ) {
-				$this->logger->log(
-					$response,
+			if ( is_wp_error( $response_body ) ) {
+				WC_Connect_Logger::log(
+					$response_body,
 					__FUNCTION__
 				);
 
 				return;
 			}
 
-			if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-				$this->logger->log(
-					$this->api_client->decode_error_from_response( $response ),
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			$body = $this->api_client->decode_body_from_response( $response );
-
-			if ( ! $body ) {
-				$this->logger->log(
-					'Server response did not include body. Service schemas not updated.',
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			if ( ! $this->validator->validate_services( $body ) ) {
+			if ( ! $this->validator->validate_services( $response_body ) ) {
 				$this->logger->log(
 					'One or more service schemas failed to validate. Will not store services in options.',
 					__FUNCTION__
@@ -79,7 +59,8 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			);
 
 			// If we made it this far, it is safe to store the object
-			$this->update_services( $body );
+
+			$this->update_services( $response_body );
 		}
 
 		public function get_services() {
