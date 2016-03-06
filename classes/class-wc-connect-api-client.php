@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Connect service slug provided' );
 			}
 
-			return $this->request( 'POST', "/services/{$service_slug}/settings", $service_settings );
+			return $this->request( 'PUT', "/services/{$service_slug}/settings", $service_settings );
 		}
 
 
