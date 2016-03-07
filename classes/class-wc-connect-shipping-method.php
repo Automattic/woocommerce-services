@@ -127,9 +127,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected function log( $message, $context = '' ) {
 
-			if ( is_a( $this->logger, 'WC_Connect_Logger' ) ) {
+			$logger = $this->get_logger();
 
-				$this->log( $message, $context );
+			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
+
+				$logger->log( $message, $context );
 
 			}
 
