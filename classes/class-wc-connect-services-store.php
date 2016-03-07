@@ -36,7 +36,7 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			$response_body = $this->api_client->get_services();
 
 			if ( is_wp_error( $response_body ) ) {
-				WC_Connect_Logger::log(
+				$this->logger->log(
 					$response_body,
 					__FUNCTION__
 				);
