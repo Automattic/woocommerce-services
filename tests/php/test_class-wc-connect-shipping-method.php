@@ -19,7 +19,7 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 					'postcode' => '84068'
 				)
 			), false ),
-			'empty postcode' => array( array(
+			'invalid empty postcode' => array( array(
 				'destination' => array(
 					'country'  => 'US',
 					'state'    => 'UT',
@@ -40,11 +40,25 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 					'postcode' => '84068'
 				)
 			), false ),
-			'valid destination' => array( array(
+			'valid destination with postcode' => array( array(
 				'destination' => array(
 					'country'  => 'US',
 					'state'    => 'UT',
 					'postcode' => '84068'
+				)
+			), true ),
+			'valid destination without postcode' => array( array(
+				'destination' => array(
+					'country'  => 'HK',
+					'state'    => 'KOWLOON',
+					'postcode' => ''
+				)
+			), true ),
+			'valid destination without state or postcode' => array( array(
+				'destination' => array(
+					'country'  => 'AW',
+					'state'    => '',
+					'postcode' => ''
 				)
 			), true ),
 		);
@@ -56,6 +70,9 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	 * @covers WC_Connect_Shipping_Method::is_valid_package_destination
 	 */
 	public function test_is_valid_package_destination( $package, $expected ) {
+
+		$loader = new WC_Connect_Loader();
+		$loader->load_dependencies();
 
 		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
 			->disableOriginalConstructor()

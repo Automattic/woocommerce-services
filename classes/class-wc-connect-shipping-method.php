@@ -243,8 +243,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$postcode = isset( $package['destination']['postcode'] ) ? $package['destination']['postcode'] : '';
 			$state    = isset( $package['destination']['state'] ) ? $package['destination']['state'] : '';
 
-			// Ensure that the State, Country and Postcode have values
-			if ( empty( $country ) || empty( $state ) || empty( $postcode ) ) {
+			// Ensure that Country is specified
+			if ( empty( $country ) ) {
 				return false;
 			}
 
@@ -256,7 +256,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// Validate State
 			$valid_states = WC()->countries->get_states( $country );
 
-			if ( empty( $valid_states ) || ! array_key_exists( $state, $valid_states ) ) {
+			if ( $valid_states && ! array_key_exists( $state, $valid_states ) ) {
 				return false;
 			}
 
