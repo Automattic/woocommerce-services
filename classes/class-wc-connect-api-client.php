@@ -111,11 +111,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return true|WP_Error
 		 */
 		public function auth_test() {
-			return $this->request( 'GET', '/auth-test' );
+			return $this->request( 'GET', '/connection/test' );
 		}
 
 		/**
-		 * Sends a request to the WooCommerce Connect Server via Jetpack
+		 * Sends a request to the WooCommerce Connect Server
 		 *
 		 * @param $method
 		 * @param $path
@@ -125,19 +125,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		protected function request( $method, $path, $body = array() ) {
 
 			// TODO - incorporate caching for repeated identical requests
-
-			if ( ! class_exists( 'Jetpack_client' ) ) {
-				return new WP_Error(
-					'jetpack_client_class_not_found',
-					'Unable to send request to WooCommerce Connect server. Jetpack client was not found.'
-				);
+			if ( ! class_exists( 'Jetpack_Data' ) ) {
+				return new WP_Error( 'jetpack_data_class_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack_Data was not found.' );
 			}
 
-			if ( ! method_exists( 'Jetpack_client', 'remote_request' ) ) {
-				return new WP_Error(
-					'jetpack_client_remote_request_not_found',
-					'Unable to send request to WooCommerce Connect server. Jetpack client does not implement remote_request.'
-				);
+			if ( ! method_exists( 'Jetpack_Data', 'get_access_token' ) ) {
+				return new WP_Error( 'jetpack_data_get_access_token_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack_Data does not implement get_access_token.' );
 			}
 
 			if ( ! is_array( $body ) ) {
@@ -147,12 +140,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . ltrim( $path, '/' );
-
-			$args = array(
-				'url' => $url,
-				'method' => $method
-			);
+			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
+			$url = apply_filters( 'wc_connect_server_url', $url );
+			$url = trailingslashit( $url ) . ltrim( $path, '/' );
 
 			// Add interesting fields to the body of each request
 			if ( ! array_key_exists( 'settings', $body ) ) {
@@ -180,9 +170,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			add_filter( 'http_request_args', array( $this, 'filter_http_request_args' ), 10, 2 );
-			$response = Jetpack_client::remote_request( $args, $body );
-			remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
+			$args = array(
+				'headers' => $this->request_headers(),
+				'method' => $method,
+				'body' => $body,
+				'redirection' => 0,
+				'compress' => true,
+			);
+
+			$args = apply_filters( 'wc_connect_request_args', $args );
+
+			$response = wp_remote_request( $url, $args );
 
 			$response_code = wp_remote_retrieve_response_code( $response );
 			$response_body = wp_remote_retrieve_body( $response );
@@ -220,24 +218,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 
 		/**
-		 * Adds language to the header
+		 * Generates headers for our request to the WooCommerce Connect Server
 		 *
-		 * @param $request_args array
-		 * @param $url string
 		 * @return array
 		 */
-		public function filter_http_request_args( $request_args, $url ) {
-
-			if ( ! array_key_exists( 'headers', $request_args ) ) {
-				$request_args['headers'] = array();
-			}
-
+		protected function request_headers() {
+			$headers = array();
 			$lang = strtolower( str_replace( '_', '-', get_locale() ) );
-			$request_args['headers']['Accept-Language'] = $lang;
-			$request_args['headers']['Accept'] = 'application/vnd.woocommerce-connect.v1';
-			$request_args['headers']['content-type'] = 'application/json; charset=utf-8';
-
-			return $request_args;
+			$headers['Accept-Language'] = $lang;
+			$headers['Accept'] = 'application/vnd.woocommerce-connect.v1';
+			$headers['Authorization'] = Jetpack_Data::get_access_token( JETPACK_MASTER_USER )->secret;
+			return $headers;
 		}
 	}
 
