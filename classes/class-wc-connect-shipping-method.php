@@ -303,7 +303,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$response_body = $this->api_client->get_shipping_rates( $services, $package );
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->logger->log(
+				$this->log(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -312,7 +312,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					__FUNCTION__
 				);
 
-				$this->logger->log( $response_body, __FUNCTION__ );
+				$this->log( $response_body, __FUNCTION__ );
 				return;
 			}
 
