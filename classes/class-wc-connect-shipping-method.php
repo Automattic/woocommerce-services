@@ -231,7 +231,50 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return update_option( $this->get_instance_form_settings_key(), $settings );
 		}
 
+		/**
+		 * Determine if a package's destination is valid enough for a rate quote.
+		 *
+		 * @param array $package
+		 * @return bool
+		 */
+		public function is_valid_package_destination( $package ) {
+
+			$country  = isset( $package['destination']['country'] ) ? $package['destination']['country'] : '';
+			$postcode = isset( $package['destination']['postcode'] ) ? $package['destination']['postcode'] : '';
+			$state    = isset( $package['destination']['state'] ) ? $package['destination']['state'] : '';
+
+			// Ensure that the State, Country and Postcode have values
+			if ( empty( $country ) || empty( $state ) || empty( $postcode ) ) {
+				return false;
+			}
+
+			// Validate Postcode
+			if ( ! WC_Validation::is_postcode( $postcode, $country ) ) {
+				return false;
+			}
+
+			// Validate State
+			$valid_states = WC()->countries->get_states( $country );
+
+			if ( empty( $valid_states ) || ! array_key_exists( $state, $valid_states ) ) {
+				return false;
+			}
+
+			return true;
+
+		}
+
 		public function calculate_shipping( $package = array() ) {
+
+			if ( ! $this->is_valid_package_destination( $package ) ) {
+
+				return WC_Connect_Logger::log(
+					sprintf( 'Package destination failed validation. Skipping %s rate request.', $this->id ),
+					__FUNCTION__
+				);
+
+			}
+
 			require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
 
 			$response = $this->api_client->get_shipping_rates( $this->get_form_settings(), $package );
