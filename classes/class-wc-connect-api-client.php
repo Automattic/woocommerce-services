@@ -191,7 +191,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			if ( 200 != $response_code ) {
-				if ( ! $response_body ) {
+				if ( empty( $response_body ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
