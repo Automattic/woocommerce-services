@@ -29,4 +29,8 @@ function _manually_load_plugin() {
 }
 tests_add_filter( 'plugins_loaded', '_manually_load_plugin' );
 
+if ( ! defined( 'WC_UNIT_TESTING' ) ) {
+	define( 'WC_UNIT_TESTING', true );
+}
+
 require $wc_root . '/bootstrap.php';

@@ -30,6 +30,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	class WC_Connect_Loader {
+
+		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $logger;
+
+		/**
+		 * @var WC_Connect_API_Client
+		 */
+		protected $api_client;
+
+		/**
+		 * @var WC_Connect_Services_Store
+		 */
+		protected $services_store;
+
+		/**
+		 * @var WC_Connect_Services_Validator
+		 */
+		protected $services_validator;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -38,43 +59,135 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_init', array( $this, 'init' ) );
 		}
 
+		public function get_logger() {
+			return $this->logger;
+		}
+
+		public function set_logger( WC_Connect_Logger $logger ) {
+			$this->logger = $logger;
+		}
+
+		public function get_api_client() {
+			return $this->api_client;
+		}
+
+		public function set_api_client( WC_Connect_API_Client $api_client ) {
+			$this->api_client = $api_client;
+		}
+
+		public function get_services_store() {
+			return $this->services_store;
+		}
+
+		public function set_services_store( WC_Connect_Services_Store $store ) {
+			$this->services_store = $store;
+		}
+
+		public function get_services_validator() {
+			return $this->services_validator;
+		}
+
+		public function set_services_validator( WC_Connect_Services_Validator $validator ) {
+			$this->services_validator = $validator;
+		}
+
 		/**
-		 * Once WooCommerce has finished loading, we can start hooking our services
-		 * into it.
+		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
+		 * @codeCoverageIgnore
 		 */
 		public function init() {
+
+			$this->load_dependencies();
+			$this->attach_hooks();
+			$this->schedule_services_fetch();
+
+		}
+
+		/**
+		 * Load all plugin dependencies.
+		 */
+		public function load_dependencies() {
+
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-services-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
 
-			$this->services = get_option( 'wc_connect_services', null );
-			if ( $this->services ) {
+			$logger     = new WC_Connect_Logger( new WC_Logger() );
+			$api_client = new WC_Connect_API_Client();
+			$validator  = new WC_Connect_Services_Validator( $logger );
+			$store      = new WC_Connect_Services_Store( $api_client, $logger, $validator );
+
+			$this->set_logger( $logger );
+			$this->set_api_client( $api_client );
+			$this->set_services_validator( $validator );
+			$this->set_services_store( $store );
+
+		}
+
+		/**
+		 * Hook plugin classes into WP/WC core.
+		 */
+		public function attach_hooks() {
+
+			$store    = $this->get_services_store();
+			$services = $store->get_services();
+
+			if ( $services ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
 				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+				add_action( 'wc_connect_shipping_method_init', array( $this, 'init_shipping_method' ), 10, 2 );
 			}
 
-			// Hook fetching the available services from the connect server
-			if ( ! $this->services ) {
-				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
-			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
-				add_action( 'admin_init', array( $this, 'fetch_services_from_connect_server' ) );
-			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
-				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
-			}
+			add_action( 'wc_connect_fetch_services', array( $store, 'fetch_services_from_connect_server' ) );
 
-			add_action( 'wc_connect_fetch_services', array( $this, 'fetch_services_from_connect_server' ) );
 		}
 
 		/**
-		 * Prompts the services store to fetch services anew
-		 *
+		 * Hook fetching the available services from the connect server
 		 */
-		public function fetch_services_from_connect_server() {
-			WC_Connect_Services_Store::fetch_services_from_connect_server();
+		public function schedule_services_fetch() {
+
+			$store    = $this->get_services_store();
+			$services = $store->get_services();
+
+			if ( ! $services ) {
+
+				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
+
+			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
+
+				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
+
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
+
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
+
+			}
+
+		}
+
+		/**
+		 * Inject API Client and Logger into WC Connect shipping method instances.
+		 *
+		 * @param WC_Connect_Shipping_Method $method
+		 * @param int|string                 $id_or_instance_id
+		 */
+		public function init_shipping_method( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
+
+			$method->set_api_client( $this->get_api_client() );
+			$method->set_logger( $this->get_logger() );
+
+			if ( $service = $this->get_services_store()->get_service_by_id_or_instance_id( $id_or_instance_id ) ) {
+
+				$method->set_service( $service );
+
+			}
+
 		}
 
 		/**
@@ -100,7 +213,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return mixed
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
-			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
+
+			$shipping_service_ids = $this->get_services_store()->get_all_service_ids_of_type( 'shipping' );
+
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
 			}
@@ -114,7 +229,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 */
 		public function woocommerce_load_shipping_methods() {
-			$shipping_service_ids = WC_Connect_Services_Store::get_all_service_ids_of_type( 'shipping' );
+
+			$shipping_service_ids = $this->get_services_store()->get_all_service_ids_of_type( 'shipping' );
+
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
 				WC_Shipping::instance()->register_shipping_method( $shipping_method );
@@ -127,24 +244,41 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Wrapper for enqueuing scripts based on page hook and GET parameters.
+		 *
+		 * @codeCoverageIgnore
+		 * @see 'admin_enqueue_scripts'
+		 * @see self::enqueue_shipping_script
+		 * @param string $hook
+		 */
+		public function admin_enqueue_scripts( $hook ) {
+
+			$tab      = isset( $_GET['tab'] ) ? $_GET['tab'] : null;
+			$instance = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : null;
+
+			$this->enqueue_shipping_script( $hook, $tab, $instance );
+
+		}
+
+		/**
 		 * When on an wp-admin shipping zone shipping method instance page, enqueues
 		 * the React UI bundle and shipping service instance form schema and settings
 		 *
+		 * @param string $hook
+		 * @param string $tab
+		 * @param int    $instance_id
 		 */
-		public function admin_enqueue_scripts( $hook ) {
-			if ( ! is_user_logged_in() ) {
-				return;
-			}
+		public function enqueue_shipping_script( $hook, $tab, $instance_id ) {
 
 			if ( 'woocommerce_page_wc-settings' !== $hook ) {
 				return;
 			}
 
-			if ( ! isset( $_GET['tab'] ) || ( 'shipping' !== $_GET['tab'] ) ) {
+			if ( 'shipping' !== $tab ) {
 				return;
 			}
 
-			if ( ! isset( $_GET['instance_id'] ) || empty( $_GET['instance_id'] ) ) {
+			if ( empty( $instance_id ) ) {
 				return;
 			}
 
@@ -154,5 +288,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	}
 
-	new WC_Connect_Loader();
+	if ( ! defined( 'WC_UNIT_TESTING' ) ) {
+		new WC_Connect_Loader();
+	}
 }

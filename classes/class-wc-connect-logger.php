@@ -7,18 +7,12 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		/**
 		 * @var WC_Logger
 		 */
-		private static $logger = null;
+		private $logger;
 
-		/**
-		 * Retrieve the logger, initialize as needed
-		 */
-		protected static function get_logger() {
+		public function __construct( WC_Logger $logger ) {
 
-			if ( is_null( self::$logger ) ) {
-				self::$logger = new WC_Logger();
-			}
+			$this->logger = $logger;
 
-			return self::$logger;
 		}
 
 		/**
@@ -28,7 +22,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string          $context Optional. Context for the logged message.
 		 * @return string The formatted log message.
 		 */
-		protected static function format_message( $message, $context = '' ) {
+		protected function format_message( $message, $context = '' ) {
 
 			$formatted_message = $message;
 
@@ -50,12 +44,12 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $message Message to log
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
-		public static function log( $message, $context = '' ) {
+		public function log( $message, $context = '' ) {
 			// TODO add a debug control somewhere to turn logging on and off
 
-			$log_message = self::format_message( $message, $context );
+			$log_message = $this->format_message( $message, $context );
 
-			self::get_logger()->add( 'wc-connect', $log_message );
+			$this->logger->add( 'wc-connect', $log_message );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( $log_message );
