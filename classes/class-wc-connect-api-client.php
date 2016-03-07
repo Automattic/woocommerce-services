@@ -114,51 +114,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'GET', '/auth-test' );
 		}
 
-
-		/**
-		 * Decodes the JSON encoded body from a response to an already retrieved HTTP request
-		 *
-		 * @param array The response to extract a JSON encoded body from
-		 * @return object|null The decoded body or null
-		 */
-		public function decode_body_from_response( $response ) {
-			$body = wp_remote_retrieve_body( $response );
-
-			if ( empty( $body ) ) {
-				return null;
-			}
-
-			return json_decode( $body );
-		}
-
-
-		/**
-		 * Extracts the error message from a response to an already retrieved HTTP request
-		 *
-		 * @param array The response to extract from
-		 * @return string
-		 */
-		public function decode_error_from_response( $response ) {
-			$body = $this->decode_body_from_response( $response );
-
-			if ( ! $body ) {
-				return '';
-			}
-
-			$error = property_exists( $body, 'error' ) ? $body->error : '';
-			$message = property_exists( $body, 'message' ) ? $body->message : '';
-
-			$error = sprintf(
-				'%s - %s ( %d )',
-				$error,
-				$message,
-				wp_remote_retrieve_response_code( $response )
-			);
-
-			return $error;
-		}
-
-
 		/**
 		 * Sends a request to the WooCommerce Connect Server via Jetpack
 		 *
