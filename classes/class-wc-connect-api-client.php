@@ -272,7 +272,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				$header_pieces[] = sprintf( '%s="%s"', $key, $value );
 			}
 
-			$authorization = 'X_JP_WCC ' . join( ' ', $header_pieces );
+			$authorization = 'X_JP_Auth ' . join( ' ', $header_pieces );
 			return $authorization;
 		}
 
