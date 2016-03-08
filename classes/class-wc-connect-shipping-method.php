@@ -221,22 +221,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			// Whitelist settings sent to the validation endpoint using the schema
 			if ( isset( $schema->properties ) ) {
-
 				foreach ( (array) $schema->properties as $field_name => $properties ) {
-
 					// Special handling is needed to turn checkboxes like enabled back into booleans
 					// since our form returns 'on' for checkboxes if they are checked and omits
 					// the key if they are not checked
 					if ( 'boolean' === $properties->type ) {
-
 						$settings[ $field_name ] = isset( $posted[ $field_name ] );
-
 					} elseif ( isset( $posted[ $field_name ] ) ) {
-
 						$settings[ $field_name ] = $posted[ $field_name ];
-
 					}
-
 				}
 			}
 
