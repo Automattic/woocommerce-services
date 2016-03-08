@@ -4,9 +4,6 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
 	class WC_Connect_Services_Validator {
 
-		public function __construct() {
-		}
-
 		/**
 		 * Validates the overall passed services object (all service types and all services therein)
 		 *
