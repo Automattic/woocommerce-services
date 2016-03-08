@@ -346,14 +346,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			if ( array_key_exists( $this->id, $response_body ) ) {
-				$rates = $response_body[$this->id];
+			if ( ! property_exists( $response_body, 'rates' ) ) {
+				return;
+			}
+			$instances = $response_body->rates;
 
-				foreach ( (array) $rates as $rate ) {
+			foreach ( (array) $instances as $instance ) {
+				if ( ! property_exists( $instance, 'rates' ) ) {
+					continue;
+				}
+
+				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
 					$rate_to_add = array(
-						'id' => $this->id,
-						'label' => $rate['title'],
-						'cost' => $rate['rate'],
+						'id'       => sprintf( '%s:%d:%d', $instance->id, $instance->instance, $rate_idx ),
+						'label'    => $rate->title,
+						'cost'     => $rate->rate,
 						'calc_tax' => 'per_item'
 					);
 

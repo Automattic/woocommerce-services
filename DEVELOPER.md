@@ -225,7 +225,7 @@
 }
 ```
 
-# GET /shipping/rates
+# POST /shipping/rates
 
 ## Example Request
 
@@ -320,32 +320,34 @@
 ## Example Response (JSON):
 
 ```javascript
-[
-  {
-    id : 'usps',
-    instance : 0,
-    title : 'USPS - West Coast Warehouse',
-    rates: [
-      {
-        title: '1-Day Shipping',
-        rate : 15.00,
-        packages: [
-          {
-            id: 'box_2',
-            name: 'medium box',
-            length: 1,
-            width: 1,
-            height: 1,
-            items: [
-              {
-                product_id: 513,
-                quantity: 1
-              }
-            ]
-          }
-        ]
-      },
-    ]
-  }
-]
+{
+  "rates": [
+    {
+      "id": "usps",
+      "instance": 0,
+      "title": "USPS - West Coast Warehouse",
+      "rates": [
+        {
+          "title": "1-Day Shipping",
+          "rate": 15.00,
+          "packages": [
+            {
+              "id": "box_2",
+              "name": "medium box",
+              "length": 1,
+              "width": 1,
+              "height": 1,
+              "items": [
+                {
+                  "product_id": 513,
+                  "quantity": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
