@@ -216,6 +216,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$posted = $_POST;
 			}
 
+			if ( empty( $posted ) ) {
+				return array();
+			}
+
 			$settings = array();
 			$schema   = $this->get_form_schema();
 

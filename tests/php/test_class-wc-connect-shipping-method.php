@@ -117,6 +117,8 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 			'bad schema' => array( array(), $posted_data, $bad_schema, $expected_bad_schema ),
 			'good schema, passed in data' => array( array(), $posted_data, $good_schema, $expected_good_schema ),
 			'good schema, data from POST' => array( $posted_data, null, $good_schema, $expected_good_schema ),
+			'early return, passed in empty' => array( array(), array(), null, array() ),
+			'early return, empty POST' => array( null, array(), null, array() ),
 		);
 
 	}
