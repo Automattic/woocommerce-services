@@ -124,7 +124,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_api_client( $api_client );
 			$this->set_services_validator( $validator );
 			$this->set_services_store( $store );
+			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
+		}
 
+		/**
+		 * Load admin-only plugin dependencies.
+		 */
+		public function load_admin_dependencies() {
+			require_once( plugin_basename( 'classes/class-wc-connect-debug-tools.php' ) );
+			new WC_Connect_Debug_Tools( $this->api_client );
 		}
 
 		/**
