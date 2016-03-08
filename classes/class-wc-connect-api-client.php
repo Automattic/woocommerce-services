@@ -158,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
 				'jetpack_version' => JETPACK__VERSION,
 				'wc_version' => WC()->version,
-				'weight_unit' => strtolower( get_option('woocommerce_weight_unit' ) ),
+				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 				'wp_version' => get_bloginfo( 'version' )
 			) );
 
@@ -170,18 +170,21 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
+			$headers = $this->request_headers();
+			if ( is_wp_error( $headers ) ) {
+				return $headers;
+			}
+
 			$args = array(
-				'headers' => $this->request_headers(),
+				'headers' => $headers,
 				'method' => $method,
 				'body' => $body,
 				'redirection' => 0,
 				'compress' => true,
 			);
-
 			$args = apply_filters( 'wc_connect_request_args', $args );
 
 			$response = wp_remote_request( $url, $args );
-
 			$response_code = wp_remote_retrieve_response_code( $response );
 			$response_body = wp_remote_retrieve_body( $response );
 			if ( ! empty( $response_body ) ) {
@@ -223,12 +226,69 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return array
 		 */
 		protected function request_headers() {
+			$authorization = $this->authorization_header();
+			if ( is_wp_error( $authorization ) ) {
+				return $authorization;
+			}
+
 			$headers = array();
 			$lang = strtolower( str_replace( '_', '-', get_locale() ) );
 			$headers['Accept-Language'] = $lang;
 			$headers['Accept'] = 'application/vnd.woocommerce-connect.v1';
-			$headers['Authorization'] = Jetpack_Data::get_access_token( JETPACK_MASTER_USER )->secret;
+			$headers['Authorization'] = $authorization;
 			return $headers;
+		}
+
+		protected function authorization_header() {
+			$token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			if ( ! $token || empty( $token->secret ) ) {
+				return new WP_Error( 'missing_token', 'Unable to send request to WooCommerce Connect server. Jetpack Token is missing' );
+			}
+
+			if ( false === strpos( $token->secret, '.' ) ) {
+				return new WP_Error( 'invalid_token', 'Unable to send request to WooCommerce Connect server. Jetpack Token is malformed.' );
+			}
+
+			list( $token_key, $token_secret ) = explode( '.', $token->secret );
+			$token_key = sprintf( '%s:%d:%d', $token_key, JETPACK__API_VERSION, $token->external_user_id );
+			$time_diff = (int)Jetpack_Options::get_option( 'time_diff' );
+			$timestamp = time() + $time_diff;
+			$nonce = wp_generate_password( 10, false );
+
+			$signature = $this->request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff );
+			if ( is_wp_error( $signature ) ) {
+				return $signature;
+			}
+
+			$auth = array(
+				'token' => $token_key,
+				'timestamp' => $timestamp,
+				'nonce' => $nonce,
+				'signature' => $signature,
+			);
+
+			$header_pieces = array();
+			foreach ( $auth as $key => $value ) {
+				$header_pieces[] = sprintf( '%s="%s"', $key, $value );
+			}
+
+			$authorization = 'X_JP_WCC ' . join( ' ', $header_pieces );
+			return $authorization;
+		}
+
+		protected function request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff ) {
+			$local_time = $timestamp - $time_diff;
+			if ( $local_time < time() - 600 || $local_time > time() + 300 ) {
+				return new WP_Error( 'invalid_signature', 'Unable to send request to WooCommerce Connect server. The timestamp generated for the signature is too old.' );
+			}
+
+			$normalized_request_string = join( "\n", array(
+					$token_key,
+					$timestamp,
+					$nonce
+				) ) . "\n";
+
+			return base64_encode( hash_hmac( 'sha1', $normalized_request_string, $token_secret, true ) );
 		}
 	}
 
