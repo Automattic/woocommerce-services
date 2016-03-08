@@ -117,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$logger     = new WC_Connect_Logger( new WC_Logger() );
 			$api_client = new WC_Connect_API_Client();
-			$validator  = new WC_Connect_Services_Validator( $logger );
+			$validator  = new WC_Connect_Services_Validator();
 			$store      = new WC_Connect_Services_Store( $api_client, $logger, $validator );
 
 			$this->set_logger( $logger );
