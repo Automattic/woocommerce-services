@@ -114,11 +114,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-services-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-debug-tools.php' ) );
 
 			$logger     = new WC_Connect_Logger( new WC_Logger() );
 			$api_client = new WC_Connect_API_Client();
 			$validator  = new WC_Connect_Services_Validator( $logger );
 			$store      = new WC_Connect_Services_Store( $api_client, $logger, $validator );
+			new WC_Connect_Debug_Tools( $api_client );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
