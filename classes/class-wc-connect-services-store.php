@@ -33,50 +33,18 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 
 		public function fetch_services_from_connect_server() {
 
-			$response = $this->api_client->get_services();
+			$response_body = $this->api_client->get_services();
 
-			if ( is_wp_error( $response ) ) {
+			if ( is_wp_error( $response_body ) ) {
 				$this->logger->log(
-					$response,
+					$response_body,
 					__FUNCTION__
 				);
 
 				return;
 			}
 
-			if ( ! array_key_exists( 'body', $response ) ) {
-				$this->logger->log(
-					'Server response did not include body. Service schemas not updated.',
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			$body = json_decode( $response['body'] );
-
-			if ( ! is_object( $body ) ) {
-				$this->logger->log(
-					'Server response body is not an object. Service schemas not updated.',
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			if ( property_exists( $body, 'error' ) ) {
-				$this->logger->log(
-					sprintf(
-						'Server responded with an error : %s : %s.',
-						$body->error, $body->message
-					),
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			if ( ! $this->validator->validate_services( $body ) ) {
+			if ( ! $this->validator->validate_services( $response_body ) ) {
 				$this->logger->log(
 					'One or more service schemas failed to validate. Will not store services in options.',
 					__FUNCTION__
@@ -91,7 +59,8 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			);
 
 			// If we made it this far, it is safe to store the object
-			$this->update_services( $body );
+
+			$this->update_services( $response_body );
 		}
 
 		public function get_services() {

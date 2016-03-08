@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Connect service slug provided' );
 			}
 
-			return $this->request( 'POST', "/services/{$service_slug}/settings", $service_settings );
+			return $this->request( 'PUT', "/services/{$service_slug}/settings", $service_settings );
 		}
 
 
@@ -81,7 +81,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 					$contents[] = array(
 						'height' => $height,
-						'item_id' => $values['data']->id,
+						'product_id' => $values['data']->id,
 						'length' => $length,
 						'quantity' => $values['quantity'],
 						'weight' => $weight,
@@ -101,7 +101,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'services' => $services
 			);
 
-			return $this->request( 'GET', '/shipping/rates', $body );
+			return $this->request( 'POST', '/shipping/rates', $body );
 		}
 
 
@@ -113,7 +113,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function auth_test() {
 			return $this->request( 'GET', '/auth-test' );
 		}
-
 
 		/**
 		 * Sends a request to the WooCommerce Connect Server via Jetpack
@@ -128,15 +127,24 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// TODO - incorporate caching for repeated identical requests
 
 			if ( ! class_exists( 'Jetpack_client' ) ) {
-				return new WP_Error( 'jetpack_client_class_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack client was not found.' );
+				return new WP_Error(
+					'jetpack_client_class_not_found',
+					'Unable to send request to WooCommerce Connect server. Jetpack client was not found.'
+				);
 			}
 
 			if ( ! method_exists( 'Jetpack_client', 'remote_request' ) ) {
-				return new WP_Error( 'jetpack_client_remote_request_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack client does not implement remote_request.' );
+				return new WP_Error(
+					'jetpack_client_remote_request_not_found',
+					'Unable to send request to WooCommerce Connect server. Jetpack client does not implement remote_request.'
+				);
 			}
 
 			if ( ! is_array( $body ) ) {
-				return new WP_Error( 'request_body_should_be_array', 'Unable to send request to WooCommerce Connect server. Body must be an array.' );
+				return new WP_Error(
+					'request_body_should_be_array',
+					'Unable to send request to WooCommerce Connect server. Body must be an array.'
+				);
 			}
 
 			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . ltrim( $path, '/' );
@@ -166,14 +174,48 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
 			if ( ! $body ) {
-				return new WP_Error( 'unable_to_json_encode_body', 'Unable to encode body for request to WooCommerce Connect server.' );
+				return new WP_Error(
+					'unable_to_json_encode_body',
+					'Unable to encode body for request to WooCommerce Connect server.'
+				);
 			}
 
 			add_filter( 'http_request_args', array( $this, 'filter_http_request_args' ), 10, 2 );
-			$result = Jetpack_client::remote_request( $args, $body );
+			$response = Jetpack_client::remote_request( $args, $body );
 			remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
 
-			return $result;
+			$response_code = wp_remote_retrieve_response_code( $response );
+			$response_body = wp_remote_retrieve_body( $response );
+			if ( ! empty( $response_body ) ) {
+				$response_body = json_decode( $response_body );
+			}
+
+			if ( 200 != $response_code ) {
+				if ( empty( $response_body ) ) {
+					return new WP_Error(
+						'wcc_server_empty_response',
+						sprintf(
+							'Error: The WooCommerce Connect server returned ( %d ) and an empty response body.',
+							$response_code
+						)
+					);
+				}
+
+				$error = property_exists( $response_body, 'error' ) ? $response_body->error : '';
+				$message = property_exists( $response_body, 'message' ) ? $response_body->message : '';
+
+				return new WP_Error(
+					'wcc_server_error_response',
+					sprintf(
+						'Error: The WooCommerce Connect server returned: %s %s ( %d )',
+						$error,
+						$message,
+						$response_code
+					)
+				);
+			}
+
+			return $response_body;
 		}
 
 
@@ -193,6 +235,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$lang = strtolower( str_replace( '_', '-', get_locale() ) );
 			$request_args['headers']['Accept-Language'] = $lang;
 			$request_args['headers']['Accept'] = 'application/vnd.woocommerce-connect.v1';
+			$request_args['headers']['content-type'] = 'application/json; charset=utf-8';
 
 			return $request_args;
 		}
