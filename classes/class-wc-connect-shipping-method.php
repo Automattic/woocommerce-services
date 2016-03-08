@@ -328,7 +328,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
 					$rate_to_add = array(
-						'id' => $this->id,
+						'id'       => sprintf( '%s:%d:%d', $instance->id, $instance->instance, $rate_idx ),
 						'label'    => $rate->title,
 						'cost'     => $rate->rate,
 						'calc_tax' => 'per_item'
