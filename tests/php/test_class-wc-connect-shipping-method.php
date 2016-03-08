@@ -135,7 +135,9 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 			->setMethods( array( 'get_form_schema' ) )
 			->getMock();
 
-		$shipping_method->method( 'get_form_schema' )->willReturn( $schema );
+		$shipping_method->expects( $this->any() )
+			->method( 'get_form_schema' )
+			->will( $this->returnValue( $schema ) );
 
 		$_POST = $post_data;
 
