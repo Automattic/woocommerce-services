@@ -205,6 +205,43 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		/**
+		 * Retrieve posted settings, whitelisted with the form schema.
+		 *
+		 * @param array $posted Optional. Defaults to $_POST.
+		 * @return array Posted settings found in schema definition.
+		 */
+		public function get_posted_form_settings( $posted = null ) {
+
+			if ( is_null( $posted ) ) {
+				$posted = $_POST;
+			}
+
+			if ( empty( $posted ) ) {
+				return array();
+			}
+
+			$settings = array();
+			$schema   = $this->get_form_schema();
+
+			// Whitelist settings sent to the validation endpoint using the schema
+			if ( isset( $schema->properties ) ) {
+				foreach ( (array) $schema->properties as $field_name => $properties ) {
+					// Special handling is needed to turn checkboxes like enabled back into booleans
+					// since our form returns 'on' for checkboxes if they are checked and omits
+					// the key if they are not checked
+					if ( 'boolean' === $properties->type ) {
+						$settings[ $field_name ] = isset( $posted[ $field_name ] );
+					} elseif ( isset( $posted[ $field_name ] ) ) {
+						$settings[ $field_name ] = $posted[ $field_name ];
+					}
+				}
+			}
+
+			return $settings;
+
+		}
+
+		/**
 		 * Handle the settings form submission.
 		 *
 		 * This method will pass the settings values off to the WCC server for validation.
@@ -215,15 +252,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @return bool
 		 */
 		public function process_admin_options() {
-			$settings = $_POST;
-			// TODO - build a whitelist from the form schema if possible
-			unset( $settings['subtab'], $settings['_wpnonce'], $settings['_wp_http_referer'] );
 
-			// Special handling is needed to turn checkboxes like enabled back into booleans
-			// since our form returns 'on' for checkboxes if they are checked and omits
-			// the key if they are not checked
-			// TODO - use the whitelisting above to identify checkboxes that need re-boolean-izing
-			$settings[ 'enabled' ] = array_key_exists( 'enabled', $settings );
+			$settings = $this->get_posted_form_settings();
 
 			// Validate settings with WCC server
 			$response_body = $this->api_client->validate_service_settings( $this->id, $settings );
