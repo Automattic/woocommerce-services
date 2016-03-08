@@ -99,6 +99,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 							'Malformed services. Service type \'%s\' [%d] property \'%s\' is a %s. Was expecting a %s.',
 							$service_type,
 							$service_counter,
+							$service->$required_property,
 							$property_type,
 							$required_property_type
 						)
