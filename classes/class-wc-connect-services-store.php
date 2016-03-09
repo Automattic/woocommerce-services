@@ -44,7 +44,12 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 				return;
 			}
 
-			if ( ! $this->validator->validate_services( $response_body ) ) {
+			$result = $this->validator->validate_services( $response_body );
+			if ( is_wp_error( $result ) ) {
+				$this->logger->log(
+					$result,
+					__FUNCTION__
+				);
 				$this->logger->log(
 					'One or more service schemas failed to validate. Will not store services in options.',
 					__FUNCTION__
