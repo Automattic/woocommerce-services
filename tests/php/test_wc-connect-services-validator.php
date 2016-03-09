@@ -171,4 +171,17 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 
 	}
 
+	/**
+	 * @covers WC_Connect_Services_Validator::validate_services
+	 */
+	public function test_validate_services() {
+
+		$services = self::get_golden_services();
+		$result   = $this->validator->validate_services( $services );
+
+		$this->assertNotWPError( $result );
+		$this->assertTrue( $result );
+
+	}
+
 }
