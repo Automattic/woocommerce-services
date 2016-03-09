@@ -16,7 +16,7 @@
 
 ```javascript
 {
-  settings: {
+  wc_settings: {
     base_city : 'Snohomish',
     base_country : 'US',
     base_postcode : '98290',
@@ -300,7 +300,7 @@
 
 ```javascript
 {
-  settings: {
+  wc_settings: {
     base_city : 'Snohomish',
     base_country : 'US',
     base_postcode : '98290',
