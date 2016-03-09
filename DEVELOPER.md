@@ -225,6 +225,63 @@
 }
 ```
 
+# POST /services/{service}/rates
+
+## Example Request
+
+### Query Params:
+
+    None
+
+### Headers:
+
+    Accept: application/vnd.woocommerce-connect.v1
+    Accept-Language: en
+    Authorization: X-Jetpack API_TOKEN
+
+### Body (JSON):
+
+```javascript
+{
+  "wc_settings": {
+    "base_city": "Snohomish",
+    "base_country": "US",
+    "base_postcode": "98290",
+    "base_state": "WA",
+    "currency": "USD",
+    "dimension_unit": "cm",
+    "weight_unit": "kg",
+    "jetpack_version": "3.9.1",
+    "wc_version": "2.5.2",
+    "wp_version": "4.5-alpha-36527"
+  },
+  "service_settings: {
+    "enabled": true,
+    "title": "USPS - West Coast Warehouse",
+    "origin": "98290",
+    "countries": [ "US" ],
+    "method_availability": "specific",
+    "boxes": []
+  }
+}
+```
+
+## Example Response (JSON):
+
+### Success (HTTP 200)
+
+    None
+
+### Failure (HTTP 400)
+
+```javascript
+{
+  "statusCode": 400,
+  "error": "Bad Request",
+  "message": "ValidationError: child \"countries\" fails because [\"countries\" is required]"
+}
+```
+
 # POST /shipping/rates
 
 ## Example Request
