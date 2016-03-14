@@ -1,7 +1,7 @@
 /*global wcConnectData */
 var React = require( 'react' );
 var ReactDOM = require( 'react-dom' );
-var Settings = require( './views/settings' );
+var Settings = require( './views/usps' );
 
 document.addEventListener( 'DOMContentLoaded', function() {
 	ReactDOM.render(
