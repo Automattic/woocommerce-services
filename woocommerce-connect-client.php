@@ -290,7 +290,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'build/bundle.js', __FILE__ ), array(), false, true );
+			wp_enqueue_style( 'wc_connect_shipping_admin', plugins_url( 'dist/style.css', __FILE__ ) );
+			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'dist/woocommerce-connect-client.js', __FILE__ ), array(), false, true );
 
 		}
 
