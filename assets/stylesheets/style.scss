@@ -25,4 +25,30 @@
   // Components
   @import 'components';
 
+  // Custom styles
+  max-width: 700px;
+
+  // Reset
+  .card {
+	min-width: initial;
+	max-width: initial;
+  }
+
+}
+
+// WP style conflict resets
+.wp-admin {
+  #wc-connect-admin-container {
+	select {
+	  height: initial;
+	}
+  }
+}
+
+.wp-core-ui {
+  #wc-connect-admin-container {
+	.button {
+	  height: initial;
+	}
+  }
 }
