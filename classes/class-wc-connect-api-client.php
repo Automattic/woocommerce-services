@@ -19,7 +19,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return array|WP_Error
 		 */
 		public function get_services() {
-			return $this->request( 'GET', '/services' );
+			return $this->request( 'POST', '/services' );
 		}
 
 

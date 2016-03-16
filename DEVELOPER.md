@@ -1,4 +1,4 @@
-# GET /services
+# POST /services
 
 ## Example Request
 
