@@ -14,20 +14,13 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 		 */
 		protected $logger;
 
-		/**
-		 * @var WC_Connect_Services_Validator
-		 */
-		protected $validator;
-
 		public function __construct(
 			WC_Connect_API_Client $api_client,
-			WC_Connect_Logger $logger,
-			WC_Connect_Services_Validator $validator
+			WC_Connect_Logger $logger
 		) {
 
 			$this->api_client = $api_client;
 			$this->logger     = $logger;
-			$this->validator  = $validator;
 
 		}
 
@@ -38,20 +31,6 @@ if ( ! class_exists( 'WC_Connect_Services_Store' ) ) {
 			if ( is_wp_error( $response_body ) ) {
 				$this->logger->log(
 					$response_body,
-					__FUNCTION__
-				);
-
-				return;
-			}
-
-			$result = $this->validator->validate_services( $response_body );
-			if ( is_wp_error( $result ) ) {
-				$this->logger->log(
-					$result,
-					__FUNCTION__
-				);
-				$this->logger->log(
-					'One or more service schemas failed to validate. Will not store services in options.',
 					__FUNCTION__
 				);
 

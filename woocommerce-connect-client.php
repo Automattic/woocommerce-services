@@ -116,9 +116,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
 
 			$logger     = new WC_Connect_Logger( new WC_Logger() );
-			$api_client = new WC_Connect_API_Client();
 			$validator  = new WC_Connect_Services_Validator();
-			$store      = new WC_Connect_Services_Store( $api_client, $logger, $validator );
+			$api_client = new WC_Connect_API_Client( $validator );
+			$store      = new WC_Connect_Services_Store( $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );

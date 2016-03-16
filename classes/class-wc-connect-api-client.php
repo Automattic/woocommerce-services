@@ -14,14 +14,37 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 	class WC_Connect_API_Client {
 
 		/**
+		 * @var WC_Connect_Services_Validator
+		 */
+		protected $validator;
+
+		public function __construct(
+			WC_Connect_Services_Validator $validator
+		) {
+
+			$this->validator = $validator;
+
+		}
+
+		/**
 		 * Requests the available services for this site from the WooCommerce Connect Server
 		 *
 		 * @return array|WP_Error
 		 */
 		public function get_services() {
-			return $this->request( 'POST', '/services' );
-		}
+			$response_body = $this->request( 'POST', '/services' );
 
+			if ( is_wp_error( $response_body ) ) {
+				return $response_body;
+			}
+
+			$result = $this->validator->validate_services( $response_body );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+
+			return $response_body;
+		}
 
 		/**
 		 * Validates the settings for a given service with the WooCommerce Connect Server
