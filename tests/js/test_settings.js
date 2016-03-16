@@ -23,10 +23,10 @@ describe( 'Settings', function() {
 		ReactDom.unmountComponentAtNode( document.body );
 	} );
 
-	it( 'should contain an input', function() {
+	it( 'should contain a button', function() {
 		var tree = TestUtils.renderIntoDocument( <Settings schema={{ "type": "string" }} /> ),
-			input = TestUtils.findRenderedDOMComponentWithTag( tree, 'input' );
+			button = TestUtils.findRenderedDOMComponentWithTag( tree, 'button' );
 
-		expect( input ).to.be.ok;
+		expect( button ).to.be.ok;
 	} );
 } );
