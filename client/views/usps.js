@@ -19,7 +19,7 @@ export default React.createClass( {
 		return (
 			<div>
 				<SectionHeader label="USPS Shipping">
-					<FormToggle id="enabled" name="enabled" checked={true}><FormLabel htmlFor="enabled" style={{float: 'left'}}>Enable</FormLabel></FormToggle>
+					<FormToggle id="enabled" name="enabled" checked={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
@@ -49,77 +49,77 @@ export default React.createClass( {
 					</FormFieldset>
 					<FormFieldset>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Priority Mail Express™</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>First-Class Mail®</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Standard Post™</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Media Mail</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Library Mail</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Priority Mail®</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Priority Mail Express Flat Rate®</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Priority Mail Flat Rate®</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Priority Mail Express International™</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Priority Mail International®</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>Global Express Guaranteed®</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>First Class Mail® International Letters</span>
 						</FormLabel>
 						<FormLabel>
-							<FormCheckbox checked={true} />
+							<FormCheckbox checked={ true } />
 							<span>International Postcards</span>
 						</FormLabel>
 					</FormFieldset>
 					<FormFieldset>
 						<FormLegend>Rate Pricing</FormLegend>
 						<FormLabel>
-							<FormRadio value="retail" checked={true} />
+							<FormRadio value="retail" checked={ true } />
 							<span>Retail</span>
 						</FormLabel>
 						<FormLabel>
-							<FormRadio value="commercial" checked={false} />
+							<FormRadio value="commercial" checked={ false } />
 							<span>Commercial</span>
 						</FormLabel>
 					</FormFieldset>
 					<FormFieldset>
 						<FormLegend>Show the customer</FormLegend>
 						<FormLabel>
-							<FormRadio value="all" checked={true} />
+							<FormRadio value="all" checked={ true } />
 							<span>All available rates that apply and let them choose</span>
 						</FormLabel>
 						<FormLabel>
-							<FormRadio value="cheapest" checked={false} />
+							<FormRadio value="cheapest" checked={ false } />
 							<span>Only give them the one, cheapest rate</span>
 						</FormLabel>
 					</FormFieldset>
