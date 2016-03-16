@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from 'wp-calypso/client/components/button';
+import Button from 'components/button';
 
 export default React.createClass( {
 	displayName: 'Settings',
