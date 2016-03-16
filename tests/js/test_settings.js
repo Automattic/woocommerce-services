@@ -12,7 +12,7 @@ var expect = require( 'chai' ).expect,
 /**
  * Internal dependencies
  */
-var Settings = require( '../../src/views/settings' );
+var Settings = require( '../../client/views/settings' );
 
 describe( 'Settings', function() {
 	before( function() {
