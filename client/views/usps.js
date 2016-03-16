@@ -11,7 +11,10 @@ import FormSelect from 'components/forms/form-select';
 import FormButton from 'components/forms/form-button';
 import FormRadio from 'components/forms/form-radio';
 import FormCheckbox from 'components/forms/form-checkbox';
+import FormButtonsBar from 'components/forms/form-buttons-bar';
 import CompactCard from 'components/card/compact';
+import Notice from 'components/notice';
+import Gridicon from 'components/gridicon';
 
 export default React.createClass( {
 	displayName: 'Settings',
@@ -134,6 +137,25 @@ export default React.createClass( {
 							<option value="weight_based">Group regular items (less than 12 inches) and get a quote by weight</option>
 						</FormSelect>
 					</FormFieldset>
+					<FormFieldset>
+						<FormSettingExplanation>
+							<Gridicon icon="info-outline" />
+							Your packages will appear here once you add them
+						</FormSettingExplanation>
+					</FormFieldset>
+					<FormFieldset>
+						<FormButton
+							type="button"
+							isPrimary={ false }
+							style={ { float: 'left', marginLeft: 'initial' } }>
+							Add a package
+						</FormButton>
+					</FormFieldset>
+				</CompactCard>
+				<CompactCard>
+					<FormButtonsBar>
+						<FormButton>Save changes</FormButton>
+					</FormButtonsBar>
 				</CompactCard>
 			</div>
 		);
