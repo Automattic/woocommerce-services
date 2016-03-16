@@ -1,16 +1,9 @@
 var webpack = require( 'webpack' ),
-	path = require( 'path' );
+	path = require( 'path' ),
+	nodeExternals = require( 'webpack-node-externals' );
 
 module.exports = {
 	cache: true,
-	entry: {
-		'all_tests': './tests/js/test_settings.js'
-	},
-	output: {
-		path: path.join( __dirname, 'tests', 'js' ),
-		filename: '[name].js'
-	},
-	//devtool: '#eval',
 	module: {
 		loaders: [
 			{
@@ -25,9 +18,6 @@ module.exports = {
 				test: /\.jsx?$/,
 				loader: 'babel-loader'
 			}
-		],
-		noParse: [
-			/node_modules\/(?!wp\-calypso).*/
 		]
 	},
 	resolve: {
@@ -45,5 +35,10 @@ module.exports = {
 			path.join( __dirname, 'node_modules', 'wp-calypso', 'node_modules' )
 		]
 	},
-	target: 'node'
+	target: 'node',
+	externals: [
+		nodeExternals( {
+			whitelist: [ 'wp-calypso' ]
+		} )
+	]
 };
