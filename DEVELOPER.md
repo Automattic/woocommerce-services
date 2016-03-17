@@ -255,7 +255,7 @@
     "wc_version": "2.5.2",
     "wp_version": "4.5-alpha-36527"
   },
-  "service_settings: {
+  "service_settings": {
     "enabled": true,
     "title": "USPS - West Coast Warehouse",
     "origin": "98290",
