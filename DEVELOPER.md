@@ -45,21 +45,6 @@
           type : "object",
           required : [
           ],
-          definitions : {
-            countries : {
-              type : "string",
-              enum : [
-                "AU",
-                "GB",
-                "US"
-              ],
-              enumNames : [
-                "Australia",
-                "United Kingdom (UK)",
-                "United States (US)"
-              ]
-            }
-          },
           properties : {
             enabled : {
               type : "boolean",
@@ -78,67 +63,6 @@
               title : "Origin Postcode",
               description : "Enter the postcode for the sender.",
               "default" : ""
-            },
-            method_availability : {
-              type : "object",
-              title : "Method Availability",
-              properties : {
-                filter : {
-                  type : "string",
-                  "enum" : [
-                    "all",
-                    "specific",
-                    "excluding"
-                  ],
-                  enumNames : [
-                    "All Countries",
-                    "Specific Countries",
-                    "Exclude Specific Countries"
-                  ]
-                }
-              },
-              oneOf : [
-                {
-                  properties : {
-                    filter : {
-                      "enum" : [
-                        "all"
-                      ]
-                    }
-                  }
-                },
-                {
-                  properties : {
-                    filter : {
-                      "enum" : [
-                        "specific"
-                      ]
-                    },
-                    countries : {
-                      title : "Specific Countries",
-                      "$ref" : "#/definitions/countries"
-                    }
-                  }
-                },
-                {
-                  properties : {
-                    filter : {
-                      "enum" : [
-                        "excluding"
-                      ]
-                    },
-                    countries : {
-                      title : "Specific Countries",
-                      "$ref" : "#/definitions/countries"
-                    }
-                  }
-                }
-              ],
-              "x-hints" : {
-                form : {
-                  selector : "filter"
-                }
-              }
             },
             boxes : {
               type : "array",
@@ -259,8 +183,6 @@
     "enabled": true,
     "title": "USPS - West Coast Warehouse",
     "origin": "98290",
-    "countries": [ "US" ],
-    "method_availability": "specific",
     "boxes": []
   }
 }
@@ -278,7 +200,7 @@
 {
   "statusCode": 400,
   "error": "Bad Request",
-  "message": "ValidationError: child \"countries\" fails because [\"countries\" is required]"
+  "message": "ValidationError: child \"boxes\" fails because [\"boxes\" is required]"
 }
 ```
 
@@ -318,18 +240,14 @@
       instance : '0',
       enabled : true,
       title : 'USPS - West Coast Warehouse',
-      origin: 98290,
-      countries : [ 'US' ],
-      method_availability : 'specific',
+      origin: 98290
     },
     {
       id : 'usps',
       instance : '1',
       enabled : true,
       title : 'USPS - East Coast Warehouse',
-      origin: 98290,
-      countries : [ 'US' ],
-      method_availability : 'specific',
+      origin: 98290
     },
     {
       id : 'canada_post',
