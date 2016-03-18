@@ -7,6 +7,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	ReactDOM.render(
 		React.createElement( Settings, {
 			schema: wcConnectData.formSchema,
+			layout: wcConnectData.formLayout,
 			initialValue: wcConnectData.formData
 		} ),
 		document.getElementById( 'wc-connect-admin-container' )

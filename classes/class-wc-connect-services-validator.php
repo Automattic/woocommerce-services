@@ -72,7 +72,8 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 				'id'                 => 'string',
 				'method_description' => 'string',
 				'method_title'       => 'string',
-				'service_settings'   => 'object'
+				'service_settings'   => 'object',
+				'form_layout'        => 'array'
 			);
 
 			foreach ( $required_properties as $required_property => $required_property_type ) {

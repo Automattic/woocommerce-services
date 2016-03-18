@@ -191,6 +191,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		/**
+		 * Returns the form layout array for this service.
+		 *
+		 * Used by WC_Connect_Loader to embed the form layout in the page for JS to consume
+		 *
+		 * @return array
+		 */
+		public function get_form_layout() {
+			return $this->service->form_layout;
+		}
+
+		/**
 		 * Returns the settings for this service (e.g. for use in the form or for
 		 * sending to the rate request endpoint
 		 *
@@ -373,6 +384,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			$admin_array = array(
 				'formSchema' => $this->get_form_schema(),
+				'formLayout' => $this->get_form_layout(),
 				'formData'   => $this->get_form_settings(),
 			);
 
