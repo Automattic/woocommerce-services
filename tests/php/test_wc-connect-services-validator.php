@@ -25,12 +25,6 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 						'type' => 'object',
 						'required' => array(),
 						'properties' => (object) array(
-							'enabled' => (object) array(
-								'type' => 'boolean',
-								'title' => 'Enable/Disable',
-								'description' => 'Enable this shipping method',
-								'default' => false
-							),
 							'title' => (object) array(
 								'type' => 'string',
 								'title' => 'Method Title',
@@ -132,10 +126,6 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 		$service_settings_properties_object = self::get_golden_services();
 		$service_settings_properties_object->shipping[0]->service_settings->properties = array();
 
-		// service settings properties should have enabled
-		$service_settings_enabled_required = self::get_golden_services();
-		unset( $service_settings_enabled_required->shipping[0]->service_settings->properties->enabled );
-
 		// service settings properties should have title
 		$service_settings_title_required = self::get_golden_services();
 		unset( $service_settings_title_required->shipping[0]->service_settings->properties->title );
@@ -158,7 +148,6 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 			'service settings required should be an array' => array( $service_settings_required_array, 'service_settings_property_wrong_type' ),
 			'service settings should have properties' => array( $service_settings_properties_required, 'service_settings_missing_required_property' ),
 			'service settings properties should be an object' => array( $service_settings_properties_object, 'service_settings_property_wrong_type' ),
-			'service settings properties should have enabled' => array( $service_settings_enabled_required, 'service_properties_missing_required_property' ),
 			'service settings properties should have title' => array( $service_settings_title_required, 'service_properties_missing_required_property' ),
 		);
 

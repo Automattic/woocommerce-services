@@ -163,7 +163,7 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 
 		/**
 		 * Validates a particular service's required properties, especially the parts of the
-		 * properties that WC relies on like enabled and title
+		 * properties that WC relies on and title
 		 *
 		 * @param string $service_id
 		 * @param object $service_settings_properties
@@ -172,7 +172,6 @@ if ( ! class_exists( 'WC_Connect_Services_Validator' ) ) {
 		 */
 		protected function validate_service_settings_required_properties( $service_id, $service_settings_properties ) {
 			$required_properties = array(
-				'enabled',
 				'title'
 			);
 
