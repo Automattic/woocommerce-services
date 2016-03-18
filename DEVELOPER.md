@@ -16,7 +16,7 @@
 
 ```javascript
 {
-  settings: {
+  wc_settings: {
     base_city : 'Snohomish',
     base_country : 'US',
     base_postcode : '98290',
@@ -45,21 +45,6 @@
           type : "object",
           required : [
           ],
-          definitions : {
-            countries : {
-              type : "string",
-              enum : [
-                "AU",
-                "GB",
-                "US"
-              ],
-              enumNames : [
-                "Australia",
-                "United Kingdom (UK)",
-                "United States (US)"
-              ]
-            }
-          },
           properties : {
             enabled : {
               type : "boolean",
@@ -78,67 +63,6 @@
               title : "Origin Postcode",
               description : "Enter the postcode for the sender.",
               "default" : ""
-            },
-            method_availability : {
-              type : "object",
-              title : "Method Availability",
-              properties : {
-                filter : {
-                  type : "string",
-                  "enum" : [
-                    "all",
-                    "specific",
-                    "excluding"
-                  ],
-                  enumNames : [
-                    "All Countries",
-                    "Specific Countries",
-                    "Exclude Specific Countries"
-                  ]
-                }
-              },
-              oneOf : [
-                {
-                  properties : {
-                    filter : {
-                      "enum" : [
-                        "all"
-                      ]
-                    }
-                  }
-                },
-                {
-                  properties : {
-                    filter : {
-                      "enum" : [
-                        "specific"
-                      ]
-                    },
-                    countries : {
-                      title : "Specific Countries",
-                      "$ref" : "#/definitions/countries"
-                    }
-                  }
-                },
-                {
-                  properties : {
-                    filter : {
-                      "enum" : [
-                        "excluding"
-                      ]
-                    },
-                    countries : {
-                      title : "Specific Countries",
-                      "$ref" : "#/definitions/countries"
-                    }
-                  }
-                }
-              ],
-              "x-hints" : {
-                form : {
-                  selector : "filter"
-                }
-              }
             },
             boxes : {
               type : "array",
@@ -225,6 +149,61 @@
 }
 ```
 
+# POST /services/{service}/rates
+
+## Example Request
+
+### Query Params:
+
+    None
+
+### Headers:
+
+    Accept: application/vnd.woocommerce-connect.v1
+    Accept-Language: en
+    Authorization: X-Jetpack API_TOKEN
+
+### Body (JSON):
+
+```javascript
+{
+  "wc_settings": {
+    "base_city": "Snohomish",
+    "base_country": "US",
+    "base_postcode": "98290",
+    "base_state": "WA",
+    "currency": "USD",
+    "dimension_unit": "cm",
+    "weight_unit": "kg",
+    "jetpack_version": "3.9.1",
+    "wc_version": "2.5.2",
+    "wp_version": "4.5-alpha-36527"
+  },
+  "service_settings": {
+    "enabled": true,
+    "title": "USPS - West Coast Warehouse",
+    "origin": "98290",
+    "boxes": []
+  }
+}
+```
+
+## Example Response (JSON):
+
+### Success (HTTP 200)
+
+    None
+
+### Failure (HTTP 400)
+
+```javascript
+{
+  "statusCode": 400,
+  "error": "Bad Request",
+  "message": "ValidationError: child \"boxes\" fails because [\"boxes\" is required]"
+}
+```
+
 # POST /shipping/rates
 
 ## Example Request
@@ -243,7 +222,7 @@
 
 ```javascript
 {
-  settings: {
+  wc_settings: {
     base_city : 'Snohomish',
     base_country : 'US',
     base_postcode : '98290',
@@ -261,18 +240,14 @@
       instance : '0',
       enabled : true,
       title : 'USPS - West Coast Warehouse',
-      origin: 98290,
-      countries : [ 'US' ],
-      method_availability : 'specific',
+      origin: 98290
     },
     {
       id : 'usps',
       instance : '1',
       enabled : true,
       title : 'USPS - East Coast Warehouse',
-      origin: 98290,
-      countries : [ 'US' ],
-      method_availability : 'specific',
+      origin: 98290
     },
     {
       id : 'canada_post',
