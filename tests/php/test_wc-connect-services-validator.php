@@ -20,6 +20,7 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 					'id' => 'usps',
 					'method_description' => 'Obtains rates dynamically from the USPS API during cart/checkout.',
 					'method_title' => 'USPS (WooCommerce Connect)',
+					'form_layout' => array(),
 					'service_settings' => (object) array(
 						'type' => 'object',
 						'required' => array(),
@@ -103,6 +104,10 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 		$service_settings_required = self::get_golden_services();
 		unset( $service_settings_required->shipping[0]->service_settings );
 
+		// service should have form layout
+		$form_layout_required = self::get_golden_services();
+		unset( $form_layout_required->shipping[0]->form_layout );
+
 		// service settings should have type
 		$service_settings_type_required = self::get_golden_services();
 		unset( $service_settings_type_required->shipping[0]->service_settings->type );
@@ -146,6 +151,7 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 			'service should have method title' => array( $service_title_required, 'required_service_property_missing' ),
 			'service method title should be a string' => array( $service_title_string, 'required_service_property_wrong_type' ),
 			'service should have service settings' => array( $service_settings_required, 'required_service_property_missing' ),
+			'service should have form layout' => array( $form_layout_required, 'required_service_property_missing' ),
 			'service settings should have type' => array( $service_settings_type_required, 'service_settings_missing_required_property' ),
 			'service settings type should be a string' => array( $service_settings_type_string, 'service_settings_property_wrong_type' ),
 			'service settings should have required' => array( $service_settings_required_required, 'service_settings_missing_required_property' ),
