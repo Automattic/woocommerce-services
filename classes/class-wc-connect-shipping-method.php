@@ -52,7 +52,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->method_description = '';
 				$this->supports = array();
 				$this->title = '';
-				$this->enabled = 'no';
 			} else {
 				$this->id = $this->service->id;
 				$this->method_title = $this->service->method_title;
@@ -62,11 +61,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					'instance-settings'
 				);
 
-				// Set title and enabled to default values
+				// Set title to default value
 				$this->title = $this->service->method_title;
-				$this->enabled = 'yes';
 
-				// Load form values from options, updating title and enabled if present
+				// Load form values from options, updating title if present
 				$this->init_form_settings();
 
 				// Process any changes to values present in $_POST
@@ -143,35 +141,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		/**
 		 * Restores any values persisted to the DB for this service instance
-		 * and sets up both enabled and title for WC core to work properly
+		 * and sets up title for WC core to work properly
 		 *
 		 */
 		protected function init_form_settings() {
 
 			$form_settings = $this->get_form_settings();
 
-			// We need to initialize the instance property $this->enabled
-			// to "yes" or "no" (which WC expects instead of a boolean)
-			if ( array_key_exists( 'enabled', $form_settings ) ) {
-				$enabled = $form_settings['enabled'];
-				if ( is_bool( $enabled ) ) {
-					$this->enabled = $enabled ? 'yes' : 'no';
-				} else {
-					// If we can't comprehend the setting, go
-					// ahead and mark it disabled and log a warning
-					$this->enabled = 'no';
-					$this->log(
-						sprintf(
-							'Warning. Unrecognized value for \'Enabled\' when updating settings for %s instance id %d. Setting to NOT enabled.',
-							$this->id,
-							$this->instance_id
-						),
-						__FUNCTION__
-					);
-				}
-			}
-
-			// We also need to initialize the instance title ($this->title)
+			// We need to initialize the instance title ($this->title)
 			// from the settings blob
 			if ( array_key_exists( 'title', $form_settings ) ) {
 				$this->title = $form_settings['title'];
@@ -237,7 +214,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// Whitelist settings sent to the validation endpoint using the schema
 			if ( isset( $schema->properties ) ) {
 				foreach ( (array) $schema->properties as $field_name => $properties ) {
-					// Special handling is needed to turn checkboxes like enabled back into booleans
+					// Special handling is needed to turn checkboxes back into booleans
 					// since our form returns 'on' for checkboxes if they are checked and omits
 					// the key if they are not checked
 					if ( 'boolean' === $properties->type ) {
