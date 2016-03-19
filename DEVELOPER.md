@@ -180,7 +180,6 @@
     "wp_version": "4.5-alpha-36527"
   },
   "service_settings": {
-    "enabled": true,
     "title": "USPS - West Coast Warehouse",
     "origin": "98290",
     "boxes": []
@@ -238,21 +237,20 @@
     {
       id : 'usps',
       instance : '0',
-      enabled : true,
-      title : 'USPS - West Coast Warehouse',
-      origin: 98290
+      service_settings : {
+        title : 'USPS - West Coast Warehouse',
+        origin : '98290',
+        boxes : []
+      }
     },
     {
       id : 'usps',
       instance : '1',
-      enabled : true,
-      title : 'USPS - East Coast Warehouse',
-      origin: 98290
-    },
-    {
-      id : 'canada_post',
-      instance : '0',
-      enabled : false
+      service_settings : {
+        title : 'USPS - East Coast Warehouse',
+        origin : '22306',
+        boxes : []
+      }
     }
   ],
   destination: {
