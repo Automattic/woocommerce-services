@@ -290,11 +290,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			wp_enqueue_style( 'merriweather', plugins_url( 'assets/stylesheets/merriweather.css', __FILE__ ), array(), '20160210' );
 			wp_enqueue_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
 			wp_enqueue_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
 
-			wp_enqueue_style( 'wc_connect_shipping_admin', plugins_url( 'dist/style.css', __FILE__ ), array( 'merriweather', 'noticons', 'dashicons' ) );
+			wp_enqueue_style( 'wc_connect_shipping_admin', plugins_url( 'dist/style.css', __FILE__ ), array( 'noticons', 'dashicons' ) );
 			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'dist/woocommerce-connect-client.js', __FILE__ ), array(), false, true );
 
 		}
