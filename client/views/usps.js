@@ -13,9 +13,7 @@ import FormRadio from 'components/forms/form-radio';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
 import FormInputValidation from 'components/forms/form-input-validation';
-import Card from 'components/card';
 import CompactCard from 'components/card/compact';
-import Notice from 'components/notice';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
 
