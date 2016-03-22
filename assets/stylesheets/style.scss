@@ -28,27 +28,22 @@
   // Custom styles
   max-width: 700px;
 
-  // Reset
+  // WP style conflict resets
   .card {
 	min-width: initial;
 	max-width: initial;
   }
 
-}
-
-// WP style conflict resets
-.wp-admin {
-  #wc-connect-admin-container {
+  .wp-admin & {
 	select {
 	  height: initial;
 	}
   }
-}
 
-.wp-core-ui {
-  #wc-connect-admin-container {
+  .wp-core-ui & {
 	.button {
 	  height: initial;
 	}
   }
+
 }
