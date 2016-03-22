@@ -12,15 +12,15 @@
   @import 'shared/animation'; // all UI animation
   @import 'shared/forms'; // form styling
   @import 'shared/dropdowns'; // dropdown styling
-  @import 'shared/toolbar-bulk'; // The toolbar used for bulk actions including bulk selecting and deselecting
-  @import 'shared/livechat'; // styles for the popup livechat box
-  @import 'shared/welcome'; // welcome messages
-  @import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
+  //@import 'shared/toolbar-bulk'; // The toolbar used for bulk actions including bulk selecting and deselecting
+  //@import 'shared/livechat'; // styles for the popup livechat box
+  //@import 'shared/welcome'; // welcome messages
+  //@import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
 
   // Layouts
   @import 'layout/main'; // global layout and responsive styles
-  @import 'layout/overlay'; // overlay UX styling
-  @import 'layout/detail-page'; // detail page styles
+  //@import 'layout/overlay'; // overlay UX styling
+  //@import 'layout/detail-page'; // detail page styles
 
   // Components
   @import 'components';
