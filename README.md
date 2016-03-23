@@ -1,17 +1,8 @@
 # woocommerce-hydra-client
 A WordPress plugin that adds the Hydra client to WooCommerce, to eventually be merged into WooCommerce Actual
 
-# Building the Plugin
+# Getting started
 
-* First, install allthethings using
-
-    npm install
-
-* Then, build allthethings using
-
-    webpack
-
-* Next, upload all the things, especially assets/js/bundle.js (you can skip the node_modules folder)
-* Then, activate the plugin if you haven't already
-* Lastly, navigate to wp-admin/admin.php?page=wc-settings&tab=shipping to see the new methods
-* Remember, if you re-webpack, don't forget to upload bundle.js to your remote server
+* `npm install`
+* For Development: `npm start` (will start a webpack dev server at localhost:8085) and add the following to your `wp-config.php` file: `define( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL', 'http://localhost:8085/' );`
+* OR for production use: `npm run dist` will build the files into the `dist` folder ready to be distributed
