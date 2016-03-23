@@ -1,10 +1,11 @@
 var webpack = require( 'webpack' ),
+	ExtractTextPlugin = require( 'extract-text-webpack-plugin' ),
 	path = require( 'path' );
 
 module.exports = {
 	cache: true,
 	entry: {
-		'woocommerce-connect-client': './client/main.js'
+		'woocommerce-connect-client': './client/main.js',
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
@@ -18,6 +19,10 @@ module.exports = {
 				loader: 'json-loader'
 			},
 			{
+				test: /\.scss$/,
+				loader: ExtractTextPlugin.extract( 'style', 'css?minimize!sass' )
+			},
+			{
 				test: /\.html$/,
 				loader: 'html-loader'
 			},
@@ -25,6 +30,12 @@ module.exports = {
 				test: /\.jsx?$/,
 				loader: 'babel-loader'
 			}
+		]
+	},
+	sassLoader: {
+		includePaths: [
+			path.resolve( __dirname, './node_modules/wp-calypso/client' ),
+			path.resolve( __dirname, './node_modules/wp-calypso/assets/stylesheets' ),
 		]
 	},
 	resolve: {
@@ -41,5 +52,8 @@ module.exports = {
 		fallback: [
 			path.join( __dirname, 'node_modules', 'wp-calypso', 'node_modules' )
 		]
-	}
+	},
+	plugins: [
+		new ExtractTextPlugin( '[name].css' ),
+	],
 };
