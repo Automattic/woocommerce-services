@@ -368,7 +368,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
 
 			wp_enqueue_script( 'wc_connect_shipping_admin' );
-
+			wp_enqueue_style( 'wc_connect_shipping_admin' );
 		}
 
 		public function admin_options() {
