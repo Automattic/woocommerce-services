@@ -298,7 +298,6 @@
     {
       "id": "usps",
       "instance": 0,
-      "title": "USPS - West Coast Warehouse",
       "rates": [
         {
           "title": "1-Day Shipping",
