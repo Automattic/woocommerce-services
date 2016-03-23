@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Settings from './views/usps';
+import '../assets/stylesheets/style.scss';
 
 document.addEventListener( 'DOMContentLoaded', () => {
 	ReactDOM.render(
