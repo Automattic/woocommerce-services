@@ -290,11 +290,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			wp_enqueue_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
-			wp_enqueue_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
+			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
+			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
 
-			wp_enqueue_style( 'wc_connect_shipping_admin', plugins_url( 'dist/style.css', __FILE__ ), array( 'noticons', 'dashicons' ) );
-			wp_register_script( 'wc_connect_shipping_admin', plugins_url( 'dist/woocommerce-connect-client.js', __FILE__ ), array(), false, true );
+			$wc_connect_base_url = ( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) && ! empty( WOOCOMMERCE_CONNECT_DEV_SERVER_URL ) ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
+			wp_register_style( 'wc_connect_shipping_admin', $wc_connect_base_url . 'style.css', array( 'noticons', 'dashicons' ) );
+			wp_register_script( 'wc_connect_shipping_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
 
 		}
 
