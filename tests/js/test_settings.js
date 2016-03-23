@@ -1,32 +1,32 @@
 /* eslint-disable vars-on-top */
-var ReactTestEnvSetup = require( './lib/react-test-env-setup' );
+import ReactTestEnvSetup from './lib/react-test-env-setup';
 
 /**
  * External dependencies
  */
-var expect = require( 'chai' ).expect,
-	ReactDom = require( 'react-dom' ),
-	React = require( 'react' ),
-	TestUtils = require( 'react-addons-test-utils' );
+import { expect } from 'chai';
+import ReactDOM from 'react-dom';
+import React from 'react';
+import TestUtils from 'react-addons-test-utils';
 
 /**
  * Internal dependencies
  */
-var Settings = require( '../../src/views/settings' );
+import Settings from '../../client/views/usps';
 
-describe( 'Settings', function() {
-	before( function() {
+describe( 'Settings', () => {
+	before( () => {
 		ReactTestEnvSetup();
 	} );
 
-	afterEach( function() {
-		ReactDom.unmountComponentAtNode( document.body );
+	afterEach( () => {
+		ReactDOM.unmountComponentAtNode( document.body );
 	} );
 
-	it( 'should contain an input', function() {
-		var tree = TestUtils.renderIntoDocument( <Settings schema={{ "type": "string" }} /> ),
-			input = TestUtils.findRenderedDOMComponentWithTag( tree, 'input' );
+	it( 'should contain a button', () => {
+		const tree = TestUtils.renderIntoDocument( <Settings /> );
+		const divs = TestUtils.scryRenderedDOMComponentsWithTag( tree, 'div' );
 
-		expect( input ).to.be.ok;
+		expect( divs ).to.be.ok;
 	} );
 } );

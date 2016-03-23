@@ -1,16 +1,9 @@
 var webpack = require( 'webpack' ),
-	path = require( 'path' );
+	path = require( 'path' ),
+	nodeExternals = require( 'webpack-node-externals' );
 
 module.exports = {
 	cache: true,
-	entry: {
-		'woocommerce-connect-client': './client/main.js'
-	},
-	output: {
-		path: path.join( __dirname, 'dist' ),
-		filename: '[name].js',
-	},
-	devtool: '#eval',
 	module: {
 		loaders: [
 			{
@@ -41,5 +34,11 @@ module.exports = {
 		fallback: [
 			path.join( __dirname, 'node_modules', 'wp-calypso', 'node_modules' )
 		]
-	}
+	},
+	target: 'node',
+	externals: [
+		nodeExternals( {
+			whitelist: [ 'wp-calypso' ]
+		} )
+	]
 };

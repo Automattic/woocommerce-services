@@ -1,9 +1,9 @@
 /*global wcConnectData */
-var React = require( 'react' );
-var ReactDOM = require( 'react-dom' );
-var Settings = require( './views/settings' );
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Settings from './views/usps';
 
-document.addEventListener( 'DOMContentLoaded', function() {
+document.addEventListener( 'DOMContentLoaded', () => {
 	ReactDOM.render(
 		React.createElement( Settings, {
 			schema: wcConnectData.formSchema,
