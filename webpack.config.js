@@ -10,6 +10,7 @@ module.exports = {
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
+		publicPath: 'http://localhost:8085/',
 	},
 	devtool: '#eval',
 	module: {
