@@ -5,7 +5,7 @@ var webpack = require( 'webpack' ),
 
 delete output.publicPath;
 
-var	productionConfig = Object.assign( {}, webpackBaseConfig, {
+var productionConfig = Object.assign( {}, webpackBaseConfig, {
 		output,
 		plugins
 	} );

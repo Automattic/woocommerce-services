@@ -44,7 +44,7 @@ export default React.createClass( {
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
 						<FormLabel htmlFor="rate_types">USPS Rates</FormLabel>
-						<FormSelect id="rate_types" value="some" readOnly={  true }>
+						<FormSelect id="rate_types" value="some" readOnly={ true }>
 							<option value="all">Use all available USPS rates</option>
 							<option value="some">Let me pick which rates to offer</option>
 						</FormSelect>
@@ -132,10 +132,10 @@ export default React.createClass( {
 					<FormSectionHeading>Packages</FormSectionHeading>
 					<FormFieldset>
 						<FormLabel htmlFor="packing_method">Packing method</FormLabel>
-						<FormSelect id="packing_method" value="box_packing" readOnly={  true }>
-							<option value="box_packing" readOnly={  true }>When cheaper, pack multiple items in a single package</option>
-							<option value="per_item" readOnly={  true }>Pack items individually</option>
-							<option value="weight_based" readOnly={  true }>Group regular items (less than 12 inches) and get a quote by weight</option>
+						<FormSelect id="packing_method" value="box_packing" readOnly={ true }>
+							<option value="box_packing" readOnly={ true }>When cheaper, pack multiple items in a single package</option>
+							<option value="per_item" readOnly={ true }>Pack items individually</option>
+							<option value="weight_based" readOnly={ true }>Group regular items (less than 12 inches) and get a quote by weight</option>
 						</FormSelect>
 					</FormFieldset>
 					<FormFieldset>
@@ -186,7 +186,7 @@ export default React.createClass( {
 									{ value: 'legal-envelope', label: 'Priority Mail Legal Flat Rate Envelope' }
 								]
 							}
-						] } readOnly={  true } />
+						] } readOnly={ true } />
 					</FormFieldset>
 					<FormFieldset>
 						<FormLabel htmlFor="package_name">Package name</FormLabel>
