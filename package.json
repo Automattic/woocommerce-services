@@ -2,8 +2,8 @@
   "name": "woocommerce-connect-client",
   "version": "1.0.0",
   "scripts": {
-    "start": "./node_modules/.bin/webpack-dev-server --hot --inline --content-base dist --port 8085",
-    "dist": "./node_modules/.bin/webpack -p --config webpack.production.config.js",
+    "start": "NODE_ENV=development ./node_modules/.bin/webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
+    "dist": "NODE_ENV=production ./node_modules/.bin/webpack -p --config webpack.production.config.js",
     "eslint": "./node_modules/.bin/eslint",
     "test": "./node_modules/.bin/mocha-webpack --webpack-config webpack.test.config.js 'tests/js/test_*.js' && ./node_modules/.bin/eslint client/"
   },
@@ -23,7 +23,7 @@
     "css-loader": "^0.23.1",
     "eslint": "2.2.0",
     "eslint-loader": "^1.3.0",
-    "eslint-plugin-react": "4.1.0",
+    "eslint-plugin-react": "^4.2.3",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "jsdom": "8.0.4",
@@ -32,7 +32,7 @@
     "mocha-webpack": "^0.1.0",
     "node-sass": "^3.4.2",
     "react-addons-test-utils": "0.14.7",
-    "react-hot-loader": "^1.3.0",
+    "redbox-react": "^1.2.2",
     "sass-loader": "^3.1.2",
     "style-loader": "^0.13.0",
     "tcomb": "2.7.0",
@@ -49,6 +49,8 @@
     "lodash": "4.5.1",
     "react": "0.14.7",
     "react-dom": "0.14.7",
+    "react-redux": "^4.4.1",
+    "redux": "^3.3.1",
     "wp-calypso": "automattic/wp-calypso"
   }
 }
