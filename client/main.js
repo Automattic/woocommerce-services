@@ -22,7 +22,7 @@ let render = () => {
 	)
 }
 
-if (module.hot) {
+if ( module.hot ) {
 	// Support hot reloading of components
 	// and display an overlay for runtime errors
 	const renderApp = render
@@ -40,10 +40,11 @@ if (module.hot) {
 		} catch ( error ) {
 			renderError( error );
 		}
-	}
+	};
+
 	module.hot.accept( './views/usps', () => {
 		setTimeout( render );
-	})
+	});
 }
 
 render();
