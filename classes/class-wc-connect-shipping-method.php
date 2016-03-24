@@ -314,7 +314,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				array(
 					'id'               => $this->id,
 					'instance'         => $this->instance_id,
-					'title'            => $settings['title'],
 					'service_settings' => $settings,
 				),
 			);
