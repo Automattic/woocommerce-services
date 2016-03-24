@@ -5,8 +5,8 @@ import { Provider } from 'react-redux'
 import configureStore from './store';
 import '../assets/stylesheets/style.scss';
 
-const store = configureStore()
-const rootEl = document.getElementById( 'wc-connect-admin-container' )
+const store = configureStore();
+const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
 	const Settings = require( './views/usps' );
@@ -29,7 +29,7 @@ if (module.hot) {
 	const renderError = ( error ) => {
 		const RedBox = require( 'redbox-react' );
 		ReactDOM.render(
-			<RedBox error={error} />,
+			<RedBox error={ error } />,
 			rootEl
 		);
 	};
