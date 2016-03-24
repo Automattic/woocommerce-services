@@ -1,7 +1,12 @@
 var webpack = require( 'webpack' ),
 	webpackBaseConfig = require( './webpack.config.js' ),
 	plugins = webpackBaseConfig.plugins || [],
-	productionConfig = Object.assign( {}, webpackBaseConfig, {
+	output = webpackBaseConfig.output || {};
+
+delete output.publicPath;
+
+var	productionConfig = Object.assign( {}, webpackBaseConfig, {
+		output,
 		plugins
 	} );
 
