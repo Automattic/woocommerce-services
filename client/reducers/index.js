@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
-import settingsReducer from './settings';
+import settings from './settings';
 
 const rootReducer = combineReducers({
-    settingsReducer
+    settings
 });
 
 export default rootReducer;
