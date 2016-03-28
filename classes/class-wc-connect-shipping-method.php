@@ -376,7 +376,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$this->localize_and_enqueue_form_script();
 
 			?>
+			</form>
 				<div id="wc-connect-admin-container"></div>
+			<form>
 			<?php
 		}
 
