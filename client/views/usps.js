@@ -16,12 +16,14 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
+import protectForm from 'lib/mixins/protect-form';
 
 export default React.createClass( {
 	displayName: 'Settings',
+	mixins: [ protectForm.mixin ],
 	render: function() {
 		return (
-			<div>
+			<form onChange={ this.markChanged }>
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
@@ -223,7 +225,7 @@ export default React.createClass( {
 						<FormButton>Add package</FormButton>
 					</FormButtonsBar>
 				</CompactCard>
-			</div>
+			</form>
 		);
 	}
 } );
