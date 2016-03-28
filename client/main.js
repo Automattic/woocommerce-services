@@ -19,13 +19,13 @@ let render = () => {
 			/>
 		</Provider>,
 		rootEl
-	)
-}
+	);
+};
 
 if ( module.hot ) {
 	// Support hot reloading of components
 	// and display an overlay for runtime errors
-	const renderApp = render
+	const renderApp = render;
 	const renderError = ( error ) => {
 		const RedBox = require( 'redbox-react' );
 		ReactDOM.render(
@@ -44,7 +44,7 @@ if ( module.hot ) {
 
 	module.hot.accept( './views/usps', () => {
 		setTimeout( render );
-	});
+	} );
 }
 
 render();
