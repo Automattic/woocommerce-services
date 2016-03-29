@@ -16,6 +16,7 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
+import ShippingServiceGroups from './shipping-services-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
@@ -23,6 +24,96 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
+	getDummyData: function() {
+		return {
+			services: [
+				{
+					group: 'First-Class',
+					title: 'First-Class Mail',
+					enabled: true,
+					adjustment: 1,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'First-Class',
+					title: 'First-Class Mail International Letters',
+					enabled: true,
+					adjustment: 2,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Global Express',
+					title: 'Global Express Guaranteed',
+					enabled: true,
+					adjustment: 3,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Other Services',
+					title: 'International Postcards',
+					enabled: true,
+					adjustment: 4,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Other Services',
+					title: 'Library Mail',
+					enabled: true,
+					adjustment: 10,
+					adjustment_type: 'percentage'
+				},
+				{
+					group: 'Other Services',
+					title: 'Media Mail',
+					enabled: true,
+					adjustment: 20,
+					adjustment_type: 'percentage'
+				},
+				{
+					group: 'Priority Mail ',
+					title: 'Priority Mail',
+					enabled: true,
+					adjustment: 30,
+					adjustment_type: 'percentage'
+				},
+				{
+					group: 'Priority Mail ',
+					title: 'Priority Mail International',
+					enabled: true,
+					adjustment: 3,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Priority Mail Express',
+					title: 'Priority Mail Express',
+					enabled: true,
+					adjustment: 1.5,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Priority Mail Express',
+					title: 'Priority Mail Express Flat Rate',
+					enabled: true,
+					adjustment: 1.5,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Priority Mail Express',
+					title: 'Priority Mail Express International',
+					enabled: true,
+					adjustment: 1.5,
+					adjustment_type: 'flat'
+				},
+				{
+					group: 'Other Services',
+					title: 'Standard Post',
+					enabled: true,
+					adjustment: 20,
+					adjustment_type: 'percentage'
+				},
+			]
+		};
+	},
 	render: function() {
 		const { settings } = this.props;
 		return (
@@ -45,78 +136,8 @@ const Settings = React.createClass( {
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
-						<FormLabel htmlFor="rate_type">USPS Rates</FormLabel>
-						<FormSelect id="rate_type" name="rate_type" value={ settings.rate_type } onChange={ this.props.actions.onFieldChange }>
-							<option value="all">Use all available USPS rates</option>
-							<option value="some">Let me pick which rates to offer</option>
-						</FormSelect>
-						<FormButton type="button" isPrimary={ false }>Advanced Options</FormButton>
-						<FormSettingExplanation>These rates are automatically sent from the U.S. Post Office</FormSettingExplanation>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLabel>
-							<FormCheckbox name="services[0]" checked={ !! settings['services[0]'] } onChange={ this.props.actions.onFieldChange } />
-							<span>Priority Mail Express™</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>First-Class Mail®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Standard Post™</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Media Mail</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Library Mail</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail Express Flat Rate®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail Flat Rate®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail Express International™</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail International®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Global Express Guaranteed®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>First Class Mail® International Letters</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>International Postcards</span>
-						</FormLabel>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLegend>Rate Pricing</FormLegend>
-						<FormLabel>
-							<FormRadio name="rate_type" value="retail" checked={ 'retail' === settings.rate_type } onChange={ this.props.actions.onFieldChange } />
-							<span>Retail</span>
-						</FormLabel>
-						<FormLabel>
-							<FormRadio name="rate_type" value="commercial" checked={ 'commercial' === settings.rate_type } onChange={ this.props.actions.onFieldChange } />
-							<span>Commercial</span>
-						</FormLabel>
+						<FormLegend>Services</FormLegend>
+						<ShippingServiceGroups services={ this.getDummyData().services } />
 					</FormFieldset>
 					<FormFieldset>
 						<FormLegend>Show the customer</FormLegend>

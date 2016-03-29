@@ -17,6 +17,8 @@
   //@import 'shared/welcome'; // welcome messages
   //@import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
 
+  @import 'shipping-services'; // Shipping Services Groups, Group and Entry Component styles
+
   // Layouts
   @import 'layout/main'; // global layout and responsive styles
   //@import 'layout/overlay'; // overlay UX styling
@@ -45,5 +47,4 @@
 	  height: initial;
 	}
   }
-
 }
