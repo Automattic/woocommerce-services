@@ -17,11 +17,29 @@ import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
 import protectForm from 'lib/mixins/protect-form';
+import { UPDATE_TEXT_FIELD } from '../actions/settings';
 
-export default React.createClass( {
+const Settings = React.createClass( {
 	displayName: 'Settings',
 	mixins: [ protectForm.mixin ],
+	componentDidMount: function() {
+		const { store } = this.context;
+		this.unsubscribe = store.subscribe( () => this.forceUpdate() );
+	},
+	componentWillUnmount: function() {
+		this.unsubscribe();
+	},
+	onFieldChange: function( event ) {
+		const { store } = this.context;
+		store.dispatch( {
+			type: UPDATE_TEXT_FIELD,
+			key: event.target.name,
+			value: ( 'checkbox' === event.target.type ) ? event.target.checked: event.target.value
+		} );
+	},
 	render: function() {
+		const { store } = this.context;
+		const state = store.getState();
 		return (
 			<form onChange={ this.markChanged }>
 				<SectionHeader label="USPS Shipping">
@@ -31,7 +49,7 @@ export default React.createClass( {
 					<FormSectionHeading>Setup</FormSectionHeading>
 					<FormFieldset>
 						<FormLabel htmlFor="method_title">Shipping method title</FormLabel>
-						<FormTextInput id="method_title" name="method_title" placeholder="USPS" />
+						<FormTextInput id="method_title" name="method_title" placeholder="USPS" value={ state.settings.method_title } onChange={ this.onFieldChange } />
 						<FormSettingExplanation>The customer will see this during checkout</FormSettingExplanation>
 					</FormFieldset>
 					<FormFieldset>
@@ -45,8 +63,8 @@ export default React.createClass( {
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
-						<FormLabel htmlFor="rate_types">USPS Rates</FormLabel>
-						<FormSelect id="rate_types" value="some" readOnly={ true }>
+						<FormLabel htmlFor="rate_type">USPS Rates</FormLabel>
+						<FormSelect id="rate_type" name="rate_type" value={ state.settings.rate_type } onChange={ this.onFieldChange }>
 							<option value="all">Use all available USPS rates</option>
 							<option value="some">Let me pick which rates to offer</option>
 						</FormSelect>
@@ -55,7 +73,7 @@ export default React.createClass( {
 					</FormFieldset>
 					<FormFieldset>
 						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
+							<FormCheckbox name="services[0]" checked={ !! state.settings['services[0]'] } onChange={ this.onFieldChange } />
 							<span>Priority Mail Express™</span>
 						</FormLabel>
 						<FormLabel>
@@ -110,11 +128,11 @@ export default React.createClass( {
 					<FormFieldset>
 						<FormLegend>Rate Pricing</FormLegend>
 						<FormLabel>
-							<FormRadio value="retail" checked={ true } readOnly={ true } />
+							<FormRadio name="rate_type" value="retail" checked={ 'retail' === state.settings.rate_type } onChange={ this.onFieldChange } />
 							<span>Retail</span>
 						</FormLabel>
 						<FormLabel>
-							<FormRadio value="commercial" checked={ false } />
+							<FormRadio name="rate_type" value="commercial" checked={ 'commercial' === state.settings.rate_type } onChange={ this.onFieldChange } />
 							<span>Commercial</span>
 						</FormLabel>
 					</FormFieldset>
@@ -229,3 +247,9 @@ export default React.createClass( {
 		);
 	}
 } );
+
+Settings.contextTypes = {
+	store: React.PropTypes.object
+};
+
+export default Settings;
