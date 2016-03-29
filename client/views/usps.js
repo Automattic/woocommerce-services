@@ -34,7 +34,7 @@ const Settings = React.createClass( {
 		store.dispatch( {
 			type: UPDATE_TEXT_FIELD,
 			key: event.target.name,
-			value: ( 'checkbox' === event.target.type ) ? event.target.checked: event.target.value
+			value: ( 'checkbox' === event.target.type ) ? event.target.checked : event.target.value
 		} );
 	},
 	render: function() {
