@@ -17,29 +17,15 @@ import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
 import protectForm from 'lib/mixins/protect-form';
-import { UPDATE_TEXT_FIELD } from '../actions/settings';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as SettingsActions from '../actions/settings';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	mixins: [ protectForm.mixin ],
-	componentDidMount: function() {
-		const { store } = this.context;
-		this.unsubscribe = store.subscribe( () => this.forceUpdate() );
-	},
-	componentWillUnmount: function() {
-		this.unsubscribe();
-	},
-	onFieldChange: function( event ) {
-		const { store } = this.context;
-		store.dispatch( {
-			type: UPDATE_TEXT_FIELD,
-			key: event.target.name,
-			value: ( 'checkbox' === event.target.type ) ? event.target.checked : event.target.value
-		} );
-	},
 	render: function() {
-		const { store } = this.context;
-		const state = store.getState();
+		const { settings } = this.props;
 		return (
 			<form onChange={ this.markChanged }>
 				<SectionHeader label="USPS Shipping">
@@ -49,7 +35,7 @@ const Settings = React.createClass( {
 					<FormSectionHeading>Setup</FormSectionHeading>
 					<FormFieldset>
 						<FormLabel htmlFor="method_title">Shipping method title</FormLabel>
-						<FormTextInput id="method_title" name="method_title" placeholder="USPS" value={ state.settings.method_title } onChange={ this.onFieldChange } />
+						<FormTextInput id="method_title" name="method_title" placeholder="USPS" value={ settings.method_title } onChange={ this.props.actions.onFieldChange } />
 						<FormSettingExplanation>The customer will see this during checkout</FormSettingExplanation>
 					</FormFieldset>
 					<FormFieldset>
@@ -64,7 +50,7 @@ const Settings = React.createClass( {
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
 						<FormLabel htmlFor="rate_type">USPS Rates</FormLabel>
-						<FormSelect id="rate_type" name="rate_type" value={ state.settings.rate_type } onChange={ this.onFieldChange }>
+						<FormSelect id="rate_type" name="rate_type" value={ settings.rate_type } onChange={ this.props.actions.onFieldChange }>
 							<option value="all">Use all available USPS rates</option>
 							<option value="some">Let me pick which rates to offer</option>
 						</FormSelect>
@@ -73,7 +59,7 @@ const Settings = React.createClass( {
 					</FormFieldset>
 					<FormFieldset>
 						<FormLabel>
-							<FormCheckbox name="services[0]" checked={ !! state.settings['services[0]'] } onChange={ this.onFieldChange } />
+							<FormCheckbox name="services[0]" checked={ !! settings['services[0]'] } onChange={ this.props.actions.onFieldChange } />
 							<span>Priority Mail Express™</span>
 						</FormLabel>
 						<FormLabel>
@@ -128,11 +114,11 @@ const Settings = React.createClass( {
 					<FormFieldset>
 						<FormLegend>Rate Pricing</FormLegend>
 						<FormLabel>
-							<FormRadio name="rate_type" value="retail" checked={ 'retail' === state.settings.rate_type } onChange={ this.onFieldChange } />
+							<FormRadio name="rate_type" value="retail" checked={ 'retail' === settings.rate_type } onChange={ this.props.actions.onFieldChange } />
 							<span>Retail</span>
 						</FormLabel>
 						<FormLabel>
-							<FormRadio name="rate_type" value="commercial" checked={ 'commercial' === state.settings.rate_type } onChange={ this.onFieldChange } />
+							<FormRadio name="rate_type" value="commercial" checked={ 'commercial' === settings.rate_type } onChange={ this.props.actions.onFieldChange } />
 							<span>Commercial</span>
 						</FormLabel>
 					</FormFieldset>
@@ -248,8 +234,19 @@ const Settings = React.createClass( {
 	}
 } );
 
-Settings.contextTypes = {
-	store: React.PropTypes.object
-};
+function mapStateToProps( state ) {
+	return {
+		settings: state.settings
+	};
+}
 
-export default Settings;
+function mapDispatchToProps( dispatch ) {
+	return {
+		actions: bindActionCreators( SettingsActions, dispatch )
+	};
+}
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)( Settings );
