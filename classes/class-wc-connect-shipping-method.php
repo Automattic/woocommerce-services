@@ -310,12 +310,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// TODO: Request rates for all WooCommerce Connect powered methods in
 			// the current shipping zone to avoid each method making an independent request
 			$services = array(
-				array_merge( $this->get_form_settings(),
-					array(
-						'id' => $this->id,
-						'instance' => $this->instance_id
-					)
-				)
+				array(
+					'id'               => $this->id,
+					'instance'         => $this->instance_id,
+					'service_settings' => $this->get_form_settings(),
+				),
 			);
 
 			$response_body = $this->api_client->get_shipping_rates( $services, $package );
