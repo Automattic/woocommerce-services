@@ -1,7 +1,6 @@
 /**
  * External dependencies
  */
-import { combineReducers } from 'redux';
 import { UPDATE_TEXT_FIELD } from '../actions/settings';
 
 export default function settings( state = {}, action ) {
