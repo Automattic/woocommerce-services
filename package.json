@@ -5,7 +5,8 @@
     "start": "NODE_ENV=development ./node_modules/.bin/webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "dist": "NODE_ENV=production ./node_modules/.bin/webpack -p --config webpack.production.config.js",
     "eslint": "./node_modules/.bin/eslint client/",
-    "test": "./node_modules/.bin/mocha-webpack --webpack-config webpack.test.config.js 'tests/js/test_*.js' && npm run eslint"
+    "check-shrinkwrap": "./node_modules/.bin/npm-shrinkwrap-check",
+    "test": "npm run check-shrinkwrap && ./node_modules/.bin/mocha-webpack --webpack-config webpack.test.config.js 'tests/js/test_*.js' && npm run eslint"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
     "mocha": "2.4.5",
     "mocha-webpack": "^0.1.0",
     "node-sass": "^3.4.2",
+    "npm-shrinkwrap-check": "0.0.9",
     "react-addons-test-utils": "0.14.7",
     "redbox-react": "^1.2.2",
     "sass-loader": "^3.1.2",

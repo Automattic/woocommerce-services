@@ -118,6 +118,59 @@
       "from": "react-dom@0.14.7",
       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-0.14.7.tgz"
     },
+    "react-redux": {
+      "version": "4.4.1",
+      "from": "react-redux@latest",
+      "resolved": "https://registry.npmjs.org/react-redux/-/react-redux-4.4.1.tgz",
+      "dependencies": {
+        "hoist-non-react-statics": {
+          "version": "1.0.5",
+          "from": "hoist-non-react-statics@>=1.0.3 <2.0.0",
+          "resolved": "https://registry.npmjs.org/hoist-non-react-statics/-/hoist-non-react-statics-1.0.5.tgz"
+        },
+        "invariant": {
+          "version": "2.2.1",
+          "from": "invariant@>=2.0.0 <3.0.0",
+          "resolved": "https://registry.npmjs.org/invariant/-/invariant-2.2.1.tgz"
+        },
+        "loose-envify": {
+          "version": "1.1.0",
+          "from": "loose-envify@>=1.1.0 <2.0.0",
+          "resolved": "https://registry.npmjs.org/loose-envify/-/loose-envify-1.1.0.tgz",
+          "dependencies": {
+            "js-tokens": {
+              "version": "1.0.2",
+              "from": "js-tokens@>=1.0.1 <2.0.0",
+              "resolved": "https://registry.npmjs.org/js-tokens/-/js-tokens-1.0.2.tgz"
+            }
+          }
+        }
+      }
+    },
+    "redux": {
+      "version": "3.3.1",
+      "from": "redux@latest",
+      "resolved": "https://registry.npmjs.org/redux/-/redux-3.3.1.tgz",
+      "dependencies": {
+        "lodash-es": {
+          "version": "4.6.1",
+          "from": "lodash-es@>=4.2.1 <5.0.0",
+          "resolved": "https://registry.npmjs.org/lodash-es/-/lodash-es-4.6.1.tgz"
+        },
+        "loose-envify": {
+          "version": "1.1.0",
+          "from": "loose-envify@>=1.1.0 <2.0.0",
+          "resolved": "https://registry.npmjs.org/loose-envify/-/loose-envify-1.1.0.tgz",
+          "dependencies": {
+            "js-tokens": {
+              "version": "1.0.2",
+              "from": "js-tokens@>=1.0.1 <2.0.0",
+              "resolved": "https://registry.npmjs.org/js-tokens/-/js-tokens-1.0.2.tgz"
+            }
+          }
+        }
+      }
+    },
     "wp-calypso": {
       "version": "0.17.0",
       "from": "automattic/wp-calypso",
