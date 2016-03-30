@@ -20,6 +20,7 @@ import protectForm from 'lib/mixins/protect-form';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from '../actions/settings';
+import ShippingServiceSetup from '../components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
@@ -33,18 +34,15 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<FormFieldset>
-						<FormLabel htmlFor="method_title">Shipping method title</FormLabel>
-						<FormTextInput id="method_title" name="method_title" placeholder="USPS" value={ settings.method_title } onChange={ this.props.actions.onFieldChange } />
-						<FormSettingExplanation>The customer will see this during checkout</FormSettingExplanation>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
-						<FormTextInput id="usps_account" name="usps_account" placeholder="WOOUSPS2016" />
-						<FormSettingExplanation>
-							Use the account provided or <a href="#">sign up for your own</a>
-						</FormSettingExplanation>
-					</FormFieldset>
+					<ShippingServiceSetup title_placeholder="USPS" title_value={ settings.method_title } onChange={ this.props.actions.onFieldChange }>
+						<FormFieldset>
+							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
+							<FormTextInput id="usps_account" name="usps_account" placeholder="WOOUSPS2016" value={ settings.usps_account } onChange={ this.props.actions.onFieldChange } />
+							<FormSettingExplanation>
+								Use the account provided or <a href="#">sign up for your own</a>
+							</FormSettingExplanation>
+						</FormFieldset>
+					</ShippingServiceSetup>
 				</CompactCard>
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
