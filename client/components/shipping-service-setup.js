@@ -7,8 +7,8 @@ import FormSettingExplanation from 'components/forms/form-setting-explanation';
 const ShippingServiceSetup = React.createClass( {
 	displayName: 'ShippingServiceSetup',
 	propTypes: {
-		title_placeholder: React.PropTypes.string,
-		title_value: React.PropTypes.string,
+		titlePlaceholder: React.PropTypes.string,
+		titleValue: React.PropTypes.string,
 		onChange: React.PropTypes.func,
 	},
 	render: function() {
@@ -16,7 +16,7 @@ const ShippingServiceSetup = React.createClass( {
 			<div>
 				<FormFieldset>
 					<FormLabel htmlFor="method_title">Shipping method title</FormLabel>
-					<FormTextInput id="method_title" name="method_title" placeholder={ this.props.title_placeholder } value={ this.props.title_value } onChange={ this.props.onChange } />
+					<FormTextInput id="method_title" name="method_title" placeholder={ this.props.titlePlaceholder } value={ this.props.titleValue } onChange={ this.props.onChange } />
 					<FormSettingExplanation>The customer will see this during checkout</FormSettingExplanation>
 				</FormFieldset>
 				{ this.props.children }

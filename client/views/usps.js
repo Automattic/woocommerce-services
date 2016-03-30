@@ -34,7 +34,7 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup title_placeholder="USPS" title_value={ settings.method_title } onChange={ this.props.actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.method_title } onChange={ this.props.actions.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
 							<FormTextInput id="usps_account" name="usps_account" placeholder="WOOUSPS2016" value={ settings.usps_account } onChange={ this.props.actions.onFieldChange } />
