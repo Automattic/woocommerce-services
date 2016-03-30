@@ -18,7 +18,7 @@ export default React.createClass( {
 		serviceGroups.sort();
 
 		return (
-			<div className='wcc-shipping-services-groups'>
+			<div className="wcc-shipping-services-groups">
 				{ serviceGroups.map( serviceGroup => {
 					return (
 						<ShippingServiceGroup

@@ -1,6 +1,5 @@
 import React from 'react';
 import FormCheckbox from 'components/forms/form-checkbox';
-import FormLabel from 'components/forms/form-label';
 import FormSelect from 'components/forms/form-select';
 import FormTextInput from 'components/forms/form-text-input';
 

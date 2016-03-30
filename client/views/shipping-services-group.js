@@ -11,7 +11,7 @@ export default React.createClass( {
 
 	render: function() {
 		return (
-			<div className='wcc-shipping-services-group'>
+			<div className="wcc-shipping-services-group">
 				<h4>
 					{ this.props.title }
 				</h4>
