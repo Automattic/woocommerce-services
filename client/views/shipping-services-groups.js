@@ -1,34 +1,33 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import ShippingServiceGroup from './shipping-services-group';
 
-export default React.createClass( {
-	displayName: 'ShippingServiceGroups',
+const ShippingServiceGroups = ( { services } ) => {
+	let serviceGroups = [];
+	services.forEach( service => {
+		service.group = service.group || '';
+		if ( -1 === serviceGroups.indexOf( service.group ) ) {
+			serviceGroups.push( service.group );
+		}
+	} );
+	serviceGroups.sort();
 
-	propTypes: {
-		services: React.PropTypes.array.isRequired,
-	},
+	return (
+		<div className="wcc-shipping-services-groups">
+			{ serviceGroups.map( serviceGroup => {
+				return (
+					<ShippingServiceGroup
+						key={ serviceGroup }
+						title={ serviceGroup }
+						services={ services.filter( service => service.group === serviceGroup ) }
+					/>
+				);
+			} ) }
+		</div>
+	);
+};
 
-	render: function() {
-		let serviceGroups = [];
-		this.props.services.forEach( service => {
-			if ( -1 === serviceGroups.indexOf( service.group ) ) {
-				serviceGroups.push( service.group );
-			}
-		} );
-		serviceGroups.sort();
+ShippingServiceGroups.propTypes = {
+	services: PropTypes.array.isRequired
+};
 
-		return (
-			<div className="wcc-shipping-services-groups">
-				{ serviceGroups.map( serviceGroup => {
-					return (
-						<ShippingServiceGroup
-							key={ serviceGroup }
-							title={ serviceGroup }
-							services={ this.props.services.filter( service => service.group === serviceGroup ) }
-						/>
-					);
-				} ) }
-			</div>
-		);
-	}
-} );
+export default ShippingServiceGroups;
