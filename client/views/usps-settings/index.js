@@ -5,20 +5,17 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
-import FormSelect from 'components/forms/form-select';
 import FormButton from 'components/forms/form-button';
 import FormRadio from 'components/forms/form-radio';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
 import CompactCard from 'components/card/compact';
-import Gridicon from 'components/gridicon';
 import ShippingServiceGroups from 'components/shipping-service-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
 import * as FormActions from 'state/actions/form';
 import SettingsGroup from './render-group';
-import AddPackageDialog from 'components/shipping/packages/add-package';
+import Packages from 'components/shipping/packages';
 
 const handleSaveForm = ( event, props ) => {
 	event.preventDefault();
@@ -34,7 +31,6 @@ const Settings = ( props ) => {
 	const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
 	return (
 		<div>
-			<AddPackageDialog />
 			<SectionHeader label="USPS Shipping">
 				<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }>
 					<FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel>
@@ -74,32 +70,7 @@ const Settings = ( props ) => {
 			</CompactCard>
 			<CompactCard>
 				<FormSectionHeading>Packages</FormSectionHeading>
-				<FormFieldset>
-					<FormLabel htmlFor="packing_method">Packing method</FormLabel>
-					<FormSelect id="packing_method" value="box_packing" readOnly={ true }>
-						<option value="box_packing" readOnly={ true }>When cheaper, pack multiple items in a single
-							package
-						</option>
-						<option value="per_item" readOnly={ true }>Pack items individually</option>
-						<option value="weight_based" readOnly={ true }>Group regular items (less than 12 inches) and get
-							a quote by weight
-						</option>
-					</FormSelect>
-				</FormFieldset>
-				<FormFieldset>
-					<FormSettingExplanation>
-						<Gridicon icon="info-outline"/>
-						Your packages will appear here once you add them
-					</FormSettingExplanation>
-				</FormFieldset>
-				<FormFieldset>
-					<FormButton
-						type="button"
-						isPrimary={ false }
-						style={ { float: 'left', marginLeft: 'initial' } }>
-						Add a package
-					</FormButton>
-				</FormFieldset>
+				<Packages />
 			</CompactCard>
 			<CompactCard>
 				<FormButtonsBar>
