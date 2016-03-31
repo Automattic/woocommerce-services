@@ -12,7 +12,7 @@ DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
 
 install_wc() {
-	git clone --depth=1 --branch=master https://github.com/woothemes/woocommerce.git /tmp/woocommerce
+	git clone --depth=1 --branch=2.5.5 https://github.com/woothemes/woocommerce.git /tmp/woocommerce
 }
 
 install_wp() {
