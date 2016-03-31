@@ -16,7 +16,6 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
-import protectForm from 'lib/mixins/protect-form';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
@@ -24,7 +23,6 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
-	mixins: [ protectForm.mixin ],
 	render: function() {
 		const { settings } = this.props;
 		return (
