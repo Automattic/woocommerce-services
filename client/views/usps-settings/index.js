@@ -34,10 +34,10 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.method_title } onChange={ this.props.actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.props.actions.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
-							<FormTextInput id="usps_account" name="usps_account" placeholder="WOOUSPS2016" value={ settings.usps_account } onChange={ this.props.actions.onFieldChange } />
+							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.props.actions.onFieldChange } />
 							<FormSettingExplanation>
 								Use the account provided or <a href="#">sign up for your own</a>
 							</FormSettingExplanation>

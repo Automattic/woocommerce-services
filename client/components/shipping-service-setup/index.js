@@ -15,8 +15,8 @@ const ShippingServiceSetup = React.createClass( {
 		return (
 			<div>
 				<FormFieldset>
-					<FormLabel htmlFor="method_title">Shipping method title</FormLabel>
-					<FormTextInput id="method_title" name="method_title" placeholder={ this.props.titlePlaceholder } value={ this.props.titleValue } onChange={ this.props.onChange } />
+					<FormLabel htmlFor="title">Shipping method title</FormLabel>
+					<FormTextInput id="title" name="title" placeholder={ this.props.titlePlaceholder } value={ this.props.titleValue } onChange={ this.props.onChange } />
 					<FormSettingExplanation>The customer will see this during checkout</FormSettingExplanation>
 				</FormFieldset>
 				{ this.props.children }
