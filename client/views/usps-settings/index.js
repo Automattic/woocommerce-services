@@ -137,7 +137,11 @@ const Settings = React.createClass( {
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
 						<FormLegend>Services</FormLegend>
-						<ShippingServiceGroups services={ this.getDummyData().services } />
+						<ShippingServiceGroups
+							services={ this.getDummyData().services }
+							currencySymbol={ this.props.wooCommerceSettings.currency_symbol }
+							onChange={ this.props.actions.onFieldChange }
+						/>
 					</FormFieldset>
 					<FormFieldset>
 						<FormLegend>Show the customer</FormLegend>

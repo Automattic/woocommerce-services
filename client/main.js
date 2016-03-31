@@ -15,6 +15,7 @@ let render = () => {
 	ReactDOM.render(
 		<Provider store={ store }>
 			<UspsSettings
+				wooCommerceSettings={ wcConnectData.wooCommerceSettings }
 				schema={ wcConnectData.formSchema }
 				layout={ wcConnectData.formLayout }
 			/>
