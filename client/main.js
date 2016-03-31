@@ -6,7 +6,9 @@ import configureStore from 'state/store';
 import UspsSettings from 'views/usps-settings';
 import '../assets/stylesheets/style.scss';
 
-const store = configureStore();
+const store = configureStore( {
+	settings: wcConnectData.formData
+} );
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
@@ -15,7 +17,6 @@ let render = () => {
 			<UspsSettings
 				schema={ wcConnectData.formSchema }
 				layout={ wcConnectData.formLayout }
-				initialValue={ wcConnectData.formData }
 			/>
 		</Provider>,
 		rootEl
