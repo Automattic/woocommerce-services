@@ -28,7 +28,7 @@ const Settings = React.createClass( {
 	render: function() {
 		const { settings } = this.props;
 		return (
-			<form onChange={ this.markChanged }>
+			<div>
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
@@ -227,7 +227,7 @@ const Settings = React.createClass( {
 						<FormButton>Add package</FormButton>
 					</FormButtonsBar>
 				</CompactCard>
-			</form>
+			</div>
 		);
 	}
 } );
