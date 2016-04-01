@@ -6,7 +6,8 @@ const PackagesListItem = ( {
 	id,
 	type,
 	name,
-	dimensions
+	dimensions,
+	onRemove
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
@@ -19,7 +20,7 @@ const PackagesListItem = ( {
 			<span>{ dimensions }</span>
 		</div>
 		<div className="package-actions">
-			<Button compact borderless>
+			<Button compact borderless onClick={ onRemove }>
 				<Gridicon icon="cross" size={ 18 } />
 			</Button>
 		</div>
@@ -31,6 +32,7 @@ PackagesListItem.propTypes = {
 	type: React.PropTypes.string,
 	name: React.PropTypes.string,
 	dimensions: React.PropTypes.string,
+	onRemove: React.PropTypes.func,
 };
 
 export default PackagesListItem;
