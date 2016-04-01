@@ -15,6 +15,10 @@ module.exports = {
 				loader: 'html-loader'
 			},
 			{
+				test: /\.scss$/,
+				loader: 'noop-loader',
+			},
+			{
 				test: /\.jsx?$/,
 				loader: 'babel-loader'
 			}

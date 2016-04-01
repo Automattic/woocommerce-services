@@ -1,17 +1,14 @@
-/**
- * External dependencies
- */
-var jsdom = require( 'jsdom' ).jsdom,
-	assign = require( 'lodash/assign' );
+import { jsdom } from 'jsdom';
+import assign from 'lodash/assign';
 
 /**
  * Module variables
  */
-var defaultFeatures = {
+const defaultFeatures = {
 	XMLHttpRequest: true
 };
 
-module.exports = function( markup, features ) {
+export default function( markup, features ) {
 	features = assign( {}, defaultFeatures, features );
 
 	global.document = jsdom( markup, {

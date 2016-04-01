@@ -1,13 +1,7 @@
-/**
- * External dependencies
- */
-var jsdom = require( 'jsdom' ).jsdom,
-	expect = require( 'chai' ).expect;
+import { jsdom } from 'jsdom';
+import { expect } from 'chai';
 
-/**
- * Internal dependencies
- */
-var setupEnvironment = require( '../' );
+const setupEnvironment = require( '../' );
 
 describe( 'react-test-env-setupEnvironment', function() {
 	afterEach( function() {
