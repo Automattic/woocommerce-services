@@ -6,22 +6,17 @@ import FormTextInput from 'components/forms/form-text-input';
 const ShippingServiceEntry = ( { id, enabled, title, adjustment, adjustment_type, currencySymbol, onChange } ) => (
 	<div className="wcc-shipping-service-entry">
 		<FormCheckbox
-			name="services[0].enabled"
 			checked={ enabled }
-			onChange={ () => onChange( id ) }
+			onChange={ ( event ) => onChange( 'services', id, 'enabled', event.target.checked ) }
 		/>
 		<span className="wcc-shipping-service-entry-title">{ title }</span>
 		<FormTextInput
-			id="adjustment"
-			name="adjustment"
-			placeholder=""
 			value={ adjustment }
-			onChange={ () => onChange( id ) }
+			onChange={ ( event ) => onChange( 'services', id, 'adjustment', parseFloat( event.target.value ) ) }
 		/>
 		<FormSelect
-			id="adjustment"
 			value={ adjustment_type }
-			onChange={ () => onChange( id ) }
+			onChange={ ( event ) => onChange( 'services', id, 'adjustment_type', event.target.value ) }
 		>
 			<option value="flat">{ currencySymbol }</option>
 			<option value="percentage">%</option>

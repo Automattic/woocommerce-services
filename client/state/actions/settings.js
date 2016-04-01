@@ -8,12 +8,14 @@ export function onFieldChange( event ) {
 	};
 }
 
-export const TOGGLE_SERVICE = 'TOGGLE_SERVICE';
+export const UPDATE_ARRAY_FIELD = 'UPDATE_ARRAY_FIELD';
 
-export const toggleService = ( id ) => {
-	console.log( 'in actions/settings.js TOGGLE_SERVICE' );
+export const updateArrayField = ( array_key, id, key, value ) => {
 	return {
-		type: TOGGLE_SERVICE,
-		id: id
+		type: UPDATE_ARRAY_FIELD,
+		array_key: array_key,
+		id: id,
+		key: key,
+		value: value
 	};
 };

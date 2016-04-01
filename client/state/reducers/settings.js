@@ -2,28 +2,25 @@
  * External dependencies
  */
 import { UPDATE_TEXT_FIELD } from '../actions/settings';
-import { TOGGLE_SERVICE } from '../actions/settings';
+import { UPDATE_ARRAY_FIELD } from '../actions/settings';
 
 const settings = ( state = {}, action ) => {
-	console.log( state );
 	switch ( action.type ) {
 		case UPDATE_TEXT_FIELD:
 			return Object.assign( {}, state, {
 				[action.key]: action.value
 			} );
-		case TOGGLE_SERVICE:
-			console.log( 'in settings TOGGLE_SERVICE' );
-			console.log( 'action.id=', action.id );
-			const updatedServices = state.services.map( s => {
-				if ( action.id !== s.id ) {
-					return s;
-				}
-				s.enabled = ! s.enabled;
-				return s;
-			} );
-			return Object.assign( {}, state, {
-				services: updatedServices
-			} );
+			case UPDATE_ARRAY_FIELD:
+				const updatedArray = state[ action.array_key ].map( arrayItemState => {
+					if ( action.id !== arrayItemState.id ) {
+						return arrayItemState;
+					}
+					arrayItemState[ action.key ] = action.value;
+					return arrayItemState;
+				} );
+				return Object.assign( {}, state, {
+					[ action.array_key ]: updatedArray
+				} );
 	}
 
 	return state;

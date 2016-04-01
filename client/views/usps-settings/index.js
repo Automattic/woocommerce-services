@@ -50,7 +50,7 @@ const Settings = React.createClass( {
 						<ShippingServiceGroups
 							services={ settings.services }
 							currencySymbol={ this.props.wooCommerceSettings.currency_symbol }
-							onChange={ this.props.actions.toggleService }
+							onChange={ this.props.actions.updateArrayField }
 						/>
 					</FormFieldset>
 					<FormFieldset>
