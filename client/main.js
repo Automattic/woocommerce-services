@@ -42,7 +42,7 @@ if ( module.hot ) {
 		}
 	};
 
-	module.hot.accept( './views/usps', () => {
+	module.hot.accept( 'views/usps-settings', () => {
 		setTimeout( render );
 	} );
 }
