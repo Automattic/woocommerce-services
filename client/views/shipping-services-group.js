@@ -9,6 +9,7 @@ const ShippingServiceGroup = ( { title, services, currencySymbol, onChange } ) =
 		{ services.map( service => {
 			return (
 				<ShippingServiceEntry
+					id={ service.id }
 					key={ service.title }
 					enabled={ service.enabled }
 					title={ service.title }

@@ -138,9 +138,9 @@ const Settings = React.createClass( {
 					<FormFieldset>
 						<FormLegend>Services</FormLegend>
 						<ShippingServiceGroups
-							services={ this.getDummyData().services }
+							services={ settings.services }
 							currencySymbol={ this.props.wooCommerceSettings.currency_symbol }
-							onChange={ this.props.actions.onFieldChange }
+							onChange={ this.props.actions.toggleService }
 						/>
 					</FormFieldset>
 					<FormFieldset>
