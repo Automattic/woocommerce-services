@@ -14,6 +14,13 @@ module.exports = {
 	'plugins': [
 		'react'
 	],
+	'parserOptions': {
+		'ecmaVersion': 6,
+		'sourceType': 'module',
+		'ecmaFeatures': {
+			'modules': true
+		},
+	},
 	'rules': {
 		'brace-style': [ 1, '1tbs' ],
 		// REST API objects include underscores
