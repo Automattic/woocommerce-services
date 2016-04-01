@@ -16,7 +16,7 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
-import ShippingServiceGroups from './shipping-services-groups';
+import ShippingServiceGroups from '../shipping-services-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
@@ -24,96 +24,6 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
-	getDummyData: function() {
-		return {
-			services: [
-				{
-					group: 'First-Class',
-					title: 'First-Class Mail',
-					enabled: true,
-					adjustment: 1,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'First-Class',
-					title: 'First-Class Mail International Letters',
-					enabled: true,
-					adjustment: 2,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Global Express',
-					title: 'Global Express Guaranteed',
-					enabled: true,
-					adjustment: 3,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Other Services',
-					title: 'International Postcards',
-					enabled: true,
-					adjustment: 4,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Other Services',
-					title: 'Library Mail',
-					enabled: true,
-					adjustment: 10,
-					adjustment_type: 'percentage'
-				},
-				{
-					group: 'Other Services',
-					title: 'Media Mail',
-					enabled: true,
-					adjustment: 20,
-					adjustment_type: 'percentage'
-				},
-				{
-					group: 'Priority Mail ',
-					title: 'Priority Mail',
-					enabled: true,
-					adjustment: 30,
-					adjustment_type: 'percentage'
-				},
-				{
-					group: 'Priority Mail ',
-					title: 'Priority Mail International',
-					enabled: true,
-					adjustment: 3,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Priority Mail Express',
-					title: 'Priority Mail Express',
-					enabled: true,
-					adjustment: 1.5,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Priority Mail Express',
-					title: 'Priority Mail Express Flat Rate',
-					enabled: true,
-					adjustment: 1.5,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Priority Mail Express',
-					title: 'Priority Mail Express International',
-					enabled: true,
-					adjustment: 1.5,
-					adjustment_type: 'flat'
-				},
-				{
-					group: 'Other Services',
-					title: 'Standard Post',
-					enabled: true,
-					adjustment: 20,
-					adjustment_type: 'percentage'
-				},
-			]
-		};
-	},
 	render: function() {
 		const { settings } = this.props;
 		return (
