@@ -35,7 +35,9 @@ export default React.createClass( {
 					<FormButton
 						type="button"
 						isPrimary={ false }
-						style={ { float: 'left', marginLeft: 'initial' } }>
+						style={ { float: 'left', marginLeft: 'initial' } }
+						onClick={ () => this.setState( { addingPackage: true } ) }
+					>
 						Add a package
 					</FormButton>
 				</FormFieldset>
