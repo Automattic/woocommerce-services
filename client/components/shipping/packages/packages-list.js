@@ -11,7 +11,7 @@ const PackagesList = ( { packages } ) => (
 			<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
 		</div>
 		{ packages.map( packageProps => (
-			<PackagesListItem { ...packageProps } />
+			<PackagesListItem key={ packageProps.id } { ...packageProps } />
 		) ) }
 	</FormFieldset>
 );
