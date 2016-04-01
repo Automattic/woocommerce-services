@@ -2,17 +2,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import configureStore from './store';
+import configureStore from 'state/store';
+import UspsSettings from 'views/usps-settings';
 import '../assets/stylesheets/style.scss';
 
 const store = configureStore();
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
-	const Settings = require( './views/usps' );
 	ReactDOM.render(
 		<Provider store={ store }>
-			<Settings
+			<UspsSettings
 				schema={ wcConnectData.formSchema }
 				layout={ wcConnectData.formLayout }
 				initialValue={ wcConnectData.formData }

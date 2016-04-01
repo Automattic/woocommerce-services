@@ -6,7 +6,7 @@
     "dist": "NODE_ENV=production ./node_modules/.bin/webpack -p --config webpack.production.config.js",
     "eslint": "./node_modules/.bin/eslint client/",
     "check-shrinkwrap": "./node_modules/.bin/npm-shrinkwrap-check",
-    "test": "npm run check-shrinkwrap && ./node_modules/.bin/mocha-webpack --webpack-config webpack.test.config.js 'tests/js/test_*.js' && npm run eslint"
+    "test": "npm run check-shrinkwrap && ./node_modules/.bin/mocha-webpack --webpack-config webpack.test.config.js 'client/**/test/*.js' && npm run eslint"
   },
   "repository": {
     "type": "git",

@@ -19,8 +19,8 @@ import SelectOptGroups from 'components/forms/select-opt-groups';
 import protectForm from 'lib/mixins/protect-form';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as SettingsActions from '../actions/settings';
-import ShippingServiceSetup from '../components/shipping-service-setup';
+import * as SettingsActions from 'state/actions/settings';
+import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
