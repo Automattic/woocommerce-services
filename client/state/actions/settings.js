@@ -1,4 +1,4 @@
-const UPDATE_SETTINGS_FIELD = 'UPDATE_SETTINGS_FIELD';
+export const UPDATE_SETTINGS_FIELD = 'UPDATE_SETTINGS_FIELD';
 
 export function onFieldChange( event ) {
 	return {

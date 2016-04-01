@@ -51,6 +51,7 @@ const Settings = React.createClass( {
 							services={ settings.services }
 							currencySymbol={ this.props.wooCommerceSettings.currency_symbol }
 							onChange={ this.props.actions.updateArrayField }
+							onChangeScope="services"
 						/>
 					</FormFieldset>
 					<FormFieldset>

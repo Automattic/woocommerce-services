@@ -3,20 +3,23 @@ import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
 import FormTextInput from 'components/forms/form-text-input';
 
-const ShippingServiceEntry = ( { id, enabled, title, adjustment, adjustment_type, currencySymbol, onChange } ) => (
+const ShippingServiceEntry = ( { id, enabled, title, adjustment, adjustment_type, currencySymbol, onChange, onChangeScope } ) => (
 	<div className="wcc-shipping-service-entry">
 		<FormCheckbox
+			name="enabled"
 			checked={ enabled }
-			onChange={ ( event ) => onChange( 'services', id, 'enabled', event.target.checked ) }
+			onChange={ ( event ) => onChange( onChangeScope, id, event.target.name, event.target.checked ) }
 		/>
 		<span className="wcc-shipping-service-entry-title">{ title }</span>
 		<FormTextInput
+			name="adjustment"
 			value={ adjustment }
-			onChange={ ( event ) => onChange( 'services', id, 'adjustment', parseFloat( event.target.value ) ) }
+			onChange={ ( event ) => onChange( onChangeScope, id, event.target.name, parseFloat( event.target.value ) ) }
 		/>
 		<FormSelect
+			name="adjustment_type"
 			value={ adjustment_type }
-			onChange={ ( event ) => onChange( 'services', id, 'adjustment_type', event.target.value ) }
+			onChange={ ( event ) => onChange( onChangeScope, id, event.target.name, event.target.value ) }
 		>
 			<option value="flat">{ currencySymbol }</option>
 			<option value="percentage">%</option>
@@ -25,13 +28,14 @@ const ShippingServiceEntry = ( { id, enabled, title, adjustment, adjustment_type
 );
 
 ShippingServiceEntry.propTypes = {
-	id: React.PropTypes.string.isRequired,
-	enabled: React.PropTypes.bool.isRequired,
-	title: React.PropTypes.string.isRequired,
-	adjustment: React.PropTypes.number.isRequired,
-	adjustment_type: React.PropTypes.string.isRequired,
-	currencySymbol: React.PropTypes.string.isRequired,
-	onChange: React.PropTypes.func.isRequired,
+	id: PropTypes.string.isRequired,
+	enabled: PropTypes.bool.isRequired,
+	title: PropTypes.string.isRequired,
+	adjustment: PropTypes.number.isRequired,
+	adjustment_type: PropTypes.string.isRequired,
+	currencySymbol: PropTypes.string.isRequired,
+	onChange: PropTypes.func.isRequired,
+	onChangeScope: PropTypes.string.isRequired
 };
 
 export default ShippingServiceEntry;
