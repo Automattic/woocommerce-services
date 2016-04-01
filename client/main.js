@@ -110,7 +110,6 @@ const store = configureStore( {
 	settings: wcConnectData.formData
 } );
 
-// const store = configureStore( initialDummyState );
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
