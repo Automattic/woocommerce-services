@@ -15,6 +15,7 @@ export default React.createClass( {
 		};
 	},
 	render: function() {
+		const { packages } = this.props;
 		return (
 			<div>
 				<FormFieldset>
@@ -28,7 +29,7 @@ export default React.createClass( {
 						<span>Ship items individually, in their original packaging</span>
 					</FormLabel>
 				</FormFieldset>
-				<PackagesList />
+				<PackagesList packages={ packages } />
 				{ this.renderAddPackage() }
 				<FormFieldset>
 					<FormButton

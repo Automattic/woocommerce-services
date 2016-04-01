@@ -26,6 +26,19 @@ const handleSaveForm = ( event, props ) => {
 	} );
 };
 
+const getPackages = () => ( [
+	{
+		type: 'mail',
+		name: 'Large padded envelope',
+		dimensions: '14 x 7 x .25 in',
+	},
+	{
+		type: 'flip-horizontal',
+		name: 'Bike box',
+		dimensions: '34 x 12 x 9.75 in',
+	},
+] );
+
 const Settings = ( props ) => {
 	const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = props;
 	const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
@@ -70,7 +83,7 @@ const Settings = ( props ) => {
 			</CompactCard>
 			<CompactCard>
 				<FormSectionHeading>Packages</FormSectionHeading>
-				<Packages />
+				<Packages packages={ getPackages() } />
 			</CompactCard>
 			<CompactCard>
 				<FormButtonsBar>
