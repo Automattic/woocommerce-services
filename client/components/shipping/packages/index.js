@@ -21,11 +21,11 @@ export default React.createClass( {
 				<FormFieldset>
 					<FormLegend>Packing method</FormLegend>
 					<FormLabel>
-						<FormRadio value="box_packing" checked={ true } />
+						<FormRadio value="box_packing" checked={ true } readOnly={ true } />
 						<span>When cheaper, pack multiple items in a single package</span>
 					</FormLabel>
 					<FormLabel>
-						<FormRadio value="per_item" checked={ false } />
+						<FormRadio value="per_item" checked={ false } readOnly={ true } />
 						<span>Ship items individually, in their original packaging</span>
 					</FormLabel>
 				</FormFieldset>
