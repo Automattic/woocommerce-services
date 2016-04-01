@@ -16,7 +16,6 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
-import protectForm from 'lib/mixins/protect-form';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
@@ -24,20 +23,19 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
-	mixins: [ protectForm.mixin ],
 	render: function() {
 		const { settings } = this.props;
 		return (
-			<form onChange={ this.markChanged }>
+			<div>
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.method_title } onChange={ this.props.actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.props.actions.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
-							<FormTextInput id="usps_account" name="usps_account" placeholder="WOOUSPS2016" value={ settings.usps_account } onChange={ this.props.actions.onFieldChange } />
+							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.props.actions.onFieldChange } />
 							<FormSettingExplanation>
 								Use the account provided or <a href="#">sign up for your own</a>
 							</FormSettingExplanation>
@@ -227,7 +225,7 @@ const Settings = React.createClass( {
 						<FormButton>Add package</FormButton>
 					</FormButtonsBar>
 				</CompactCard>
-			</form>
+			</div>
 		);
 	}
 } );
