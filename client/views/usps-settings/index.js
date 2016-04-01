@@ -28,11 +28,13 @@ const handleSaveForm = ( event, props ) => {
 
 const getPackages = () => ( [
 	{
+		id: 'padded-envelope',
 		type: 'mail',
 		name: 'Large padded envelope',
 		dimensions: '14 x 7 x .25 in',
 	},
 	{
+		id: 'bike-box',
 		type: 'flip-horizontal',
 		name: 'Bike box',
 		dimensions: '34 x 12 x 9.75 in',
