@@ -27,6 +27,7 @@ const PackagesListItem = ( {
 );
 
 PackagesListItem.propTypes = {
+	id: React.PropTypes.string,
 	type: React.PropTypes.string,
 	name: React.PropTypes.string,
 	dimensions: React.PropTypes.string,
