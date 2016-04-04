@@ -4,7 +4,7 @@
 import { UPDATE_SETTINGS_FIELD } from '../actions/settings';
 import { UPDATE_SETTINGS_ARRAY_FIELD } from '../actions/settings';
 
-const settings = ( state = {}, action ) => {
+export default function settings( state = {}, action ) {
 	switch ( action.type ) {
 		case UPDATE_SETTINGS_FIELD:
 			return Object.assign( {}, state, {
@@ -24,6 +24,4 @@ const settings = ( state = {}, action ) => {
 	}
 
 	return state;
-};
-
-export default settings;
+}
