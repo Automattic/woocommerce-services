@@ -1,4 +1,5 @@
 export const UPDATE_SETTINGS_FIELD = 'UPDATE_SETTINGS_FIELD';
+export const UPDATE_SETTINGS_ARRAY_FIELD = 'UPDATE_SETTINGS_ARRAY_FIELD';
 
 export function onFieldChange( event ) {
 	return {
@@ -8,11 +9,9 @@ export function onFieldChange( event ) {
 	};
 }
 
-export const UPDATE_ARRAY_FIELD = 'UPDATE_ARRAY_FIELD';
-
-export const updateArrayField = ( array_key, id, key, value ) => {
+export const updateSettingsArrayField = ( array_key, id, key, value ) => {
 	return {
-		type: UPDATE_ARRAY_FIELD,
+		type: UPDATE_SETTINGS_ARRAY_FIELD,
 		array_key: array_key,
 		id: id,
 		key: key,

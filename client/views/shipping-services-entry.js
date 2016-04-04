@@ -3,29 +3,46 @@ import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
 import FormTextInput from 'components/forms/form-text-input';
 
-const ShippingServiceEntry = ( { id, enabled, title, adjustment, adjustment_type, currencySymbol, onChange, onChangeScope } ) => (
-	<div className="wcc-shipping-service-entry">
-		<FormCheckbox
-			name="enabled"
-			checked={ enabled }
-			onChange={ ( event ) => onChange( onChangeScope, id, event.target.name, event.target.checked ) }
-		/>
-		<span className="wcc-shipping-service-entry-title">{ title }</span>
-		<FormTextInput
-			name="adjustment"
-			value={ adjustment }
-			onChange={ ( event ) => onChange( onChangeScope, id, event.target.name, parseFloat( event.target.value ) ) }
-		/>
-		<FormSelect
-			name="adjustment_type"
-			value={ adjustment_type }
-			onChange={ ( event ) => onChange( onChangeScope, id, event.target.name, event.target.value ) }
-		>
-			<option value="flat">{ currencySymbol }</option>
-			<option value="percentage">%</option>
-		</FormSelect>
-	</div>
-);
+const ShippingServiceEntry = (
+	{
+		id,
+		enabled,
+		title,
+		adjustment,
+		adjustment_type,
+		currencySymbol,
+		onChange,
+		changeScope
+	}
+) => {
+	const onCheckboxChange = ( event ) => onChange( changeScope, id, event.target.name, event.target.checked );
+	const onNumericChange = ( event ) => onChange( changeScope, id, event.target.name, parseFloat( event.target.value ) );
+	const onTextChange = ( event ) => onChange( changeScope, id, event.target.name, event.target.value );
+
+	return (
+		<div className="wcc-shipping-service-entry">
+			<FormCheckbox
+				name="enabled"
+				checked={ enabled }
+				onChange={ ( event ) => onCheckboxChange( event ) }
+			/>
+			<span className="wcc-shipping-service-entry-title">{ title }</span>
+			<FormTextInput
+				name="adjustment"
+				value={ adjustment }
+				onChange={ ( event ) => onNumericChange( event ) }
+			/>
+			<FormSelect
+				name="adjustment_type"
+				value={ adjustment_type }
+				onChange={ ( event ) => onTextChange( event ) }
+			>
+				<option value="flat">{ currencySymbol }</option>
+				<option value="percentage">%</option>
+			</FormSelect>
+		</div>
+	);
+};
 
 ShippingServiceEntry.propTypes = {
 	id: PropTypes.string.isRequired,
@@ -35,7 +52,7 @@ ShippingServiceEntry.propTypes = {
 	adjustment_type: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,
-	onChangeScope: PropTypes.string.isRequired
+	changeScope: PropTypes.string.isRequired
 };
 
 export default ShippingServiceEntry;

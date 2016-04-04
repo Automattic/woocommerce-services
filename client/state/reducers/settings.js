@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { UPDATE_SETTINGS_FIELD } from '../actions/settings';
-import { UPDATE_ARRAY_FIELD } from '../actions/settings';
+import { UPDATE_SETTINGS_ARRAY_FIELD } from '../actions/settings';
 
 const settings = ( state = {}, action ) => {
 	switch ( action.type ) {
@@ -10,7 +10,7 @@ const settings = ( state = {}, action ) => {
 			return Object.assign( {}, state, {
 				[action.key]: action.value
 			} );
-		case UPDATE_ARRAY_FIELD:
+		case UPDATE_SETTINGS_ARRAY_FIELD:
 			const updatedArray = state[ action.array_key ].map( arrayItemState => {
 				if ( action.id !== arrayItemState.id ) {
 					return arrayItemState;

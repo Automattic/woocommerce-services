@@ -25,7 +25,7 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	render: function() {
-		const { settings } = this.props;
+		const { settings, wooCommerceSettings, actions } = this.props;
 		return (
 			<div>
 				<SectionHeader label="USPS Shipping">
@@ -33,7 +33,7 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.props.actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ actions.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
 							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.props.actions.onFieldChange } />
@@ -49,8 +49,8 @@ const Settings = React.createClass( {
 						<FormLegend>Services</FormLegend>
 						<ShippingServiceGroups
 							services={ settings.services }
-							currencySymbol={ this.props.wooCommerceSettings.currency_symbol }
-							onChange={ this.props.actions.updateArrayField }
+							currencySymbol={ wooCommerceSettings.currency_symbol }
+							onChange={ actions.updateSettingsArrayField }
 							onChangeScope="services"
 						/>
 					</FormFieldset>
