@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceGroup from './shipping-services-group';
 
-const ShippingServiceGroups = ( { services, currencySymbol, onChange, onChangeScope } ) => {
+const ShippingServiceGroups = ( { services, currencySymbol, onChange, changeScope } ) => {
 	let serviceGroups = [];
 
 	// Some shippers have so many services that it is helpful to organize them
@@ -25,7 +25,7 @@ const ShippingServiceGroups = ( { services, currencySymbol, onChange, onChangeSc
 						services={ services.filter( service => service.group === serviceGroup ) }
 						currencySymbol={ currencySymbol }
 						onChange={ onChange }
-						changeScope="services"
+						changeScope={ changeScope }
 					/>
 				);
 			} ) }
@@ -37,7 +37,7 @@ ShippingServiceGroups.propTypes = {
 	services: PropTypes.array.isRequired,
 	currencySymbol: PropTypes.string,
 	onChange: PropTypes.func.isRequired,
-	onChangeScope: PropTypes.string.isRequired
+	changeScope: PropTypes.string.isRequired
 };
 
 ShippingServiceGroups.defaultProps = {
