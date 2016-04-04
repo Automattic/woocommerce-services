@@ -1,7 +1,13 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './shipping-services-entry';
 
-const ShippingServiceGroup = ( { title, services, currencySymbol, onChange, changeScope } ) => (
+const ShippingServiceGroup = ( {
+	title,
+	services,
+	currencySymbol,
+	onChange,
+	settingsKey
+} ) => (
 	<div className="wcc-shipping-services-group">
 		<h4>
 			{ title }
@@ -17,7 +23,7 @@ const ShippingServiceGroup = ( { title, services, currencySymbol, onChange, chan
 					adjustment_type={ service.adjustment_type }
 					currencySymbol={ currencySymbol }
 					onChange={ onChange }
-					changeScope={ changeScope }
+					settingsKey={ settingsKey }
 				/>
 			);
 		} ) }
@@ -34,7 +40,7 @@ ShippingServiceGroup.propTypes = {
 	} ) ).isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,
-	changeScope: PropTypes.string.isRequired,
+	settingsKey: PropTypes.string.isRequired,
 };
 
 export default ShippingServiceGroup;

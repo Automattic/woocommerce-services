@@ -1,6 +1,8 @@
 import { expect } from 'chai';
-import { onFieldChange } from '../settings';
-import { updateSettingsArrayField } from '../settings';
+import {
+	onFieldChange,
+	updateSettingsArrayField
+} from '../settings';
 
 describe( 'Settings actions', () => {
 	it( '#onFieldChange()', () => {

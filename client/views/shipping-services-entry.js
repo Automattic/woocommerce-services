@@ -3,21 +3,19 @@ import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
 import FormTextInput from 'components/forms/form-text-input';
 
-const ShippingServiceEntry = (
-	{
-		id,
-		enabled,
-		title,
-		adjustment,
-		adjustment_type,
-		currencySymbol,
-		onChange,
-		changeScope
-	}
-) => {
-	const onCheckboxChange = ( event ) => onChange( changeScope, id, event.target.name, event.target.checked );
-	const onNumericChange = ( event ) => onChange( changeScope, id, event.target.name, parseFloat( event.target.value ) );
-	const onTextChange = ( event ) => onChange( changeScope, id, event.target.name, event.target.value );
+const ShippingServiceEntry = ( {
+	id,
+	enabled,
+	title,
+	adjustment,
+	adjustment_type,
+	currencySymbol,
+	onChange,
+	settingsKey
+} ) => {
+	const onCheckboxChange = ( event ) => onChange( settingsKey, id, event.target.name, event.target.checked );
+	const onNumericChange = ( event ) => onChange( settingsKey, id, event.target.name, parseFloat( event.target.value ) );
+	const onTextChange = ( event ) => onChange( settingsKey, id, event.target.name, event.target.value );
 
 	return (
 		<div className="wcc-shipping-service-entry">
@@ -52,7 +50,7 @@ ShippingServiceEntry.propTypes = {
 	adjustment_type: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,
-	changeScope: PropTypes.string.isRequired
+	settingsKey: PropTypes.string.isRequired
 };
 
 export default ShippingServiceEntry;

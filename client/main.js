@@ -58,7 +58,7 @@ wcConnectData.formData.services = [
 	},
 	{
 		id: 'PRIORITY_MAIL',
-		group: 'Priority Mail ',
+		group: 'Priority Mail',
 		title: 'Priority Mail',
 		enabled: true,
 		adjustment: 30,
@@ -66,7 +66,7 @@ wcConnectData.formData.services = [
 	},
 	{
 		id: 'PRIORITY_MAIL_INTERNATIONAL',
-		group: 'Priority Mail ',
+		group: 'Priority Mail',
 		title: 'Priority Mail International',
 		enabled: true,
 		adjustment: 3,
