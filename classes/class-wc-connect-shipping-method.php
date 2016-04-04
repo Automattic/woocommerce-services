@@ -157,6 +157,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		/**
+		 * Returns selected WooCommerce settings for the form
+		 *
+		 * Used by WC_Connect_Loader to embed the settings in the page for JS to consume
+		 *
+		 * @return array
+		 */
+		public function get_woocommerce_settings() {
+			return array(
+				'currency_symbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
+				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) )
+			);
+		}
+
+		/**
 		 * Returns the JSON schema for the form from the settings for this service
 		 *
 		 * Used by WC_Connect_Loader to embed the form schema in the page for JS to consume
@@ -359,6 +374,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function localize_and_enqueue_form_script() {
 
 			$admin_array = array(
+				'wooCommerceSettings' => $this->get_woocommerce_settings(),
 				'formSchema' => $this->get_form_schema(),
 				'formLayout' => $this->get_form_layout(),
 				'formData'   => $this->get_form_settings(),
@@ -381,4 +397,3 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 	}
 }
-

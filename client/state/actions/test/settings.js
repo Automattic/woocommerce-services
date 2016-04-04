@@ -1,5 +1,8 @@
 import { expect } from 'chai';
-import { onFieldChange } from '../settings';
+import {
+	onFieldChange,
+	updateSettingsArrayField
+} from '../settings';
 
 describe( 'Settings actions', () => {
 	it( '#onFieldChange()', () => {
@@ -35,6 +38,23 @@ describe( 'Settings actions', () => {
 			type: 'UPDATE_SETTINGS_FIELD',
 			key: 'testCheckboxField',
 			value: true,
+		} );
+	} );
+
+	it( '#updateSettingsArrayField()', () => {
+		const array_key = 'testArrayKey';
+		const id = 'testID';
+		const key = 'testKey';
+		const value = 'testValue';
+
+		const action = updateSettingsArrayField( array_key, id, key, value );
+
+		expect( action ).to.eql( {
+			type: 'UPDATE_SETTINGS_ARRAY_FIELD',
+			array_key: 'testArrayKey',
+			id: 'testID',
+			key: 'testKey',
+			value: 'testValue',
 		} );
 	} );
 } );

@@ -1,0 +1,20 @@
+.wcc-shipping-services-group {
+	border: 1px solid #eee;
+	padding: 10px;
+	margin-bottom: 5px;
+}
+
+.wcc-shipping-service-entry {
+	align-items: center;
+	display: flex;
+	width: 100%;
+
+	.wcc-shipping-service-entry-title {
+		flex-grow: 1;
+	}
+
+	.form-text-input {
+		flex-basis: 10%;
+		margin: 5px;
+	}
+}

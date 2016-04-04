@@ -16,6 +16,7 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
+import ShippingServiceGroups from '../shipping-services-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
@@ -24,7 +25,7 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	render: function() {
-		const { settings } = this.props;
+		const { settings, wooCommerceSettings, actions } = this.props;
 		return (
 			<div>
 				<SectionHeader label="USPS Shipping">
@@ -32,7 +33,7 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.props.actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ actions.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
 							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.props.actions.onFieldChange } />
@@ -45,78 +46,13 @@ const Settings = React.createClass( {
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
-						<FormLabel htmlFor="rate_type">USPS Rates</FormLabel>
-						<FormSelect id="rate_type" name="rate_type" value={ settings.rate_type } onChange={ this.props.actions.onFieldChange }>
-							<option value="all">Use all available USPS rates</option>
-							<option value="some">Let me pick which rates to offer</option>
-						</FormSelect>
-						<FormButton type="button" isPrimary={ false }>Advanced Options</FormButton>
-						<FormSettingExplanation>These rates are automatically sent from the U.S. Post Office</FormSettingExplanation>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLabel>
-							<FormCheckbox name="services[0]" checked={ !! settings['services[0]'] } onChange={ this.props.actions.onFieldChange } />
-							<span>Priority Mail Express™</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>First-Class Mail®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Standard Post™</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Media Mail</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Library Mail</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail Express Flat Rate®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail Flat Rate®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail Express International™</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Priority Mail International®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>Global Express Guaranteed®</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>First Class Mail® International Letters</span>
-						</FormLabel>
-						<FormLabel>
-							<FormCheckbox checked={ true } readOnly={ true } />
-							<span>International Postcards</span>
-						</FormLabel>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLegend>Rate Pricing</FormLegend>
-						<FormLabel>
-							<FormRadio name="rate_type" value="retail" checked={ 'retail' === settings.rate_type } onChange={ this.props.actions.onFieldChange } />
-							<span>Retail</span>
-						</FormLabel>
-						<FormLabel>
-							<FormRadio name="rate_type" value="commercial" checked={ 'commercial' === settings.rate_type } onChange={ this.props.actions.onFieldChange } />
-							<span>Commercial</span>
-						</FormLabel>
+						<FormLegend>Services</FormLegend>
+						<ShippingServiceGroups
+							services={ settings.services }
+							currencySymbol={ wooCommerceSettings.currency_symbol }
+							onChange={ actions.updateSettingsArrayField }
+							settingsKey="services"
+						/>
 					</FormFieldset>
 					<FormFieldset>
 						<FormLegend>Show the customer</FormLegend>
