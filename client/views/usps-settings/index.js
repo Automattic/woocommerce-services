@@ -24,6 +24,12 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
+	onFieldChange: function( { target } = event ) {
+		const { updateSettingsField } = this.props.actions;
+		const key = target.name;
+		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
+		updateSettingsField( key, value );
+	},
 	render: function() {
 		const { settings, wooCommerceSettings, actions } = this.props;
 		return (
@@ -33,10 +39,10 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
-							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.props.actions.onFieldChange } />
+							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.onFieldChange } />
 							<FormSettingExplanation>
 								Use the account provided or <a href="#">sign up for your own</a>
 							</FormSettingExplanation>

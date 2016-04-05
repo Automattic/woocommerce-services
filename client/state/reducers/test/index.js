@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import settings from '../settings';
 import {
+	updateSettingsField,
 	updateSettingsArrayField,
 	addSettingsObjectField,
 	removeSettingsObjectField,
@@ -39,6 +40,71 @@ describe( 'Settings reducer', () => {
 		// after each test
 		expect( initialState ).to.eql( {
 			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+			},
+		} );
+	} );
+
+	it( 'UPDATE_SETTINGS_FIELD', () => {
+		const key = 'testField';
+		const val = 'testValue2';
+		const action = updateSettingsField( key, val );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue2',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+			},
+		} );
+	} );
+
+	it( 'UPDATE_SETTINGS_FIELD (add field)', () => {
+		const key = 'testField2';
+		const val = 'FOO_BAR';
+		const action = updateSettingsField( key, val );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testField2: 'FOO_BAR',
 			testArrayKey: [
 				{
 					id: 'ALPHA',

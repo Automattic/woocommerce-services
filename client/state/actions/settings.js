@@ -5,11 +5,11 @@ export const REMOVE_SETTINGS_OBJECT_FIELD = 'REMOVE_SETTINGS_OBJECT_FIELD';
 export const UPDATE_SETTINGS_OBJECT_SUB_FIELD = 'UPDATE_SETTINGS_OBJECT_SUB_FIELD';
 export const REMOVE_SETTINGS_OBJECT_SUB_FIELD = 'REMOVE_SETTINGS_OBJECT_SUB_FIELD';
 
-export function onFieldChange( event ) {
+export function updateSettingsField( key, value ) {
 	return {
 		type: UPDATE_SETTINGS_FIELD,
-		key: event.target.name,
-		value: ( 'checkbox' === event.target.type ) ? event.target.checked : event.target.value
+		key: key,
+		value: value
 	};
 }
 
