@@ -1,8 +1,8 @@
-/**
- * External dependencies
- */
-import { UPDATE_SETTINGS_FIELD } from '../actions/settings';
-import { UPDATE_SETTINGS_ARRAY_FIELD } from '../actions/settings';
+import cloneDeep from 'lodash/cloneDeep';
+import {
+	UPDATE_SETTINGS_FIELD,
+	UPDATE_SETTINGS_ARRAY_FIELD,
+} from '../actions/settings';
 
 export default function settings( state = {}, action ) {
 	switch ( action.type ) {
@@ -11,7 +11,8 @@ export default function settings( state = {}, action ) {
 				[action.key]: action.value
 			} );
 		case UPDATE_SETTINGS_ARRAY_FIELD:
-			const updatedArray = state[ action.array_key ].map( arrayItemState => {
+			const originalArray = cloneDeep( state[ action.array_key ] );
+			const updatedArray = originalArray.map( arrayItemState => {
 				if ( action.id !== arrayItemState.id ) {
 					return arrayItemState;
 				}
