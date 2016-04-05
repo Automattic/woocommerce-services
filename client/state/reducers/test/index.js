@@ -1,6 +1,12 @@
 import { expect } from 'chai';
 import settings from '../settings';
-import { updateSettingsArrayField } from '../../actions/settings';
+import {
+	updateSettingsArrayField,
+	addSettingsObjectField,
+	removeSettingsObjectField,
+	updateSettingsObjectSubField,
+	removeSettingsObjectSubField,
+} from '../../actions/settings';
 
 const initialState = {
 	testField: 'testValue',
@@ -13,11 +19,51 @@ const initialState = {
 			id: 'BETA',
 			testItemField: 'BEE',
 		},
-	]
+	],
+	testPckgs: {
+		PCKG_A: {
+			id: 'PCKG_A',
+			dimensions: {
+				width: 10,
+				length: 11,
+				height: 23,
+			},
+			value: 1122,
+		},
+	},
 };
 
 describe( 'Settings reducer', () => {
-	it( 'settings array field reducer should update correct array item', () => {
+	afterEach( () => {
+		// make sure the state hasn't been mutated
+		// after each test
+		expect( initialState ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+			},
+		} );
+	} );
+
+	it( 'UPDATE_SETTINGS_ARRAY_FIELD', () => {
 		const array_key = 'testArrayKey';
 		const id = 'ALPHA';
 		const key = 'testItemField';
@@ -36,7 +82,155 @@ describe( 'Settings reducer', () => {
 					id: 'BETA',
 					testItemField: 'BEE',
 				},
-			]
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+			},
+		} );
+	} );
+
+	it( 'ADD_SETTINGS_OBJECT_FIELD', () => {
+		const settingsKey = 'testPckgs';
+		const key = 'PCKG_B';
+		const obj = {
+			id: key,
+			dimensions: {
+				width: 12,
+				length: 13,
+				height: 11,
+			},
+			value: 1234,
+		};
+		const action = addSettingsObjectField( settingsKey, key, obj );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+				PCKG_B: {
+					id: 'PCKG_B',
+					dimensions: {
+						width: 12,
+						length: 13,
+						height: 11,
+					},
+					value: 1234,
+				},
+			},
+		} );
+	} );
+
+	it( 'REMOVE_SETTINGS_OBJECT_FIELD', () => {
+		const settingsKey = 'testPckgs';
+		const key = 'PCKG_A';
+
+		const action = removeSettingsObjectField( settingsKey, key );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {},
+		} );
+	} );
+
+	it( 'UPDATE_SETTINGS_OBJECT_SUB_FIELD', () => {
+		const settingsKey = 'testPckgs';
+		const key = 'PCKG_A';
+		const subFieldKey = 'value';
+		const val = 12345;
+
+		const action = updateSettingsObjectSubField( settingsKey, key, subFieldKey, val );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 12345,
+				},
+			},
+		} );
+	} );
+
+	it( 'REMOVE_SETTINGS_OBJECT_SUB_FIELD', () => {
+		const settingsKey = 'testPckgs';
+		const key = 'PCKG_A';
+		const subFieldKey = 'dimensions';
+
+		const action = removeSettingsObjectSubField( settingsKey, key, subFieldKey );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					value: 1122,
+				},
+			},
 		} );
 	} );
 } );
