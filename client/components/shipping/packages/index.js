@@ -28,7 +28,7 @@ export default React.createClass( {
 						<span>Ship items individually, in their original packaging</span>
 					</FormLabel>
 				</FormFieldset>
-				<PackagesList { ...this.props }  />
+				<PackagesList { ...this.props } />
 				{ this.renderAddPackage() }
 				<FormFieldset>
 					<FormButton
