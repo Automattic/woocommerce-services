@@ -9,7 +9,7 @@ const ShippingServiceGroups = ( {
 	services,
 	currencySymbol,
 	onChange,
-	settingsKey
+	settingsKey,
 } ) => {
 	// Some shippers have so many services that it is helpful to organize them
 	// into groups.  This code iterates over the services and extracts the group(s)
@@ -38,11 +38,11 @@ ShippingServiceGroups.propTypes = {
 	services: PropTypes.array.isRequired,
 	currencySymbol: PropTypes.string,
 	onChange: PropTypes.func.isRequired,
-	settingsKey: PropTypes.string.isRequired
+	settingsKey: PropTypes.string.isRequired,
 };
 
 ShippingServiceGroups.defaultProps = {
-	currencySymbol: '$'
+	currencySymbol: '$',
 };
 
 export default ShippingServiceGroups;

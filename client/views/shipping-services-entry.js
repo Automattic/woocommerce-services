@@ -11,7 +11,7 @@ const ShippingServiceEntry = ( {
 	adjustment_type,
 	currencySymbol,
 	onChange,
-	settingsKey
+	settingsKey,
 } ) => {
 	const onCheckboxChange = ( event ) => onChange( settingsKey, id, event.target.name, event.target.checked );
 	const onNumericChange = ( event ) => onChange( settingsKey, id, event.target.name, parseFloat( event.target.value ) );
@@ -50,7 +50,7 @@ ShippingServiceEntry.propTypes = {
 	adjustment_type: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,
-	settingsKey: PropTypes.string.isRequired
+	settingsKey: PropTypes.string.isRequired,
 };
 
 export default ShippingServiceEntry;

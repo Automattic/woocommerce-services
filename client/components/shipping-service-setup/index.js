@@ -22,7 +22,7 @@ const ShippingServiceSetup = React.createClass( {
 				{ this.props.children }
 			</div>
 		);
-	}
+	},
 } );
 
 export default ShippingServiceSetup;

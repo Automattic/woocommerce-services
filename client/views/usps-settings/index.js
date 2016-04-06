@@ -24,6 +24,12 @@ import ShippingServiceSetup from 'components/shipping-service-setup';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
+	onFieldChange: function( { target } = event ) {
+		const { updateSettingsField } = this.props.actions;
+		const key = target.name;
+		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
+		updateSettingsField( key, value );
+	},
 	render: function() {
 		const { settings, wooCommerceSettings, actions } = this.props;
 		return (
@@ -33,10 +39,10 @@ const Settings = React.createClass( {
 				</SectionHeader>
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ actions.onFieldChange }>
+					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.onFieldChange }>
 						<FormFieldset>
 							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
-							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.props.actions.onFieldChange } />
+							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.onFieldChange } />
 							<FormSettingExplanation>
 								Use the account provided or <a href="#">sign up for your own</a>
 							</FormSettingExplanation>
@@ -105,15 +111,15 @@ const Settings = React.createClass( {
 							{
 								options: [
 									{ value: 'box', label: 'Box' },
-									{ value: 'envelope', label: 'Envelope' }
-								]
+									{ value: 'envelope', label: 'Envelope' },
+								],
 							},
 							{
 								label: 'Saved packages',
 								options: [
 									{ value: 'bike-box', label: 'Bike box' },
-									{ value: 'small-padded-envelope', label: 'Small padded envelope' }
-								]
+									{ value: 'small-padded-envelope', label: 'Small padded envelope' },
+								],
 							},
 							{
 								label: 'USPS Flat Rate Boxes and Envelopes',
@@ -121,9 +127,9 @@ const Settings = React.createClass( {
 									{ value: 'small-box', label: 'Priority Mail Small Flat Rate Box' },
 									{ value: 'medium-box', label: 'Priority Mail Medium Flat Rate Box' },
 									{ value: 'large-box', label: 'Priority Mail Large Flat Rate Box' },
-									{ value: 'legal-envelope', label: 'Priority Mail Legal Flat Rate Envelope' }
-								]
-							}
+									{ value: 'legal-envelope', label: 'Priority Mail Legal Flat Rate Envelope' },
+								],
+							},
 						] } readOnly={ true } />
 					</FormFieldset>
 					<FormFieldset>
@@ -163,22 +169,22 @@ const Settings = React.createClass( {
 				</CompactCard>
 			</div>
 		);
-	}
+	},
 } );
 
 function mapStateToProps( state ) {
 	return {
-		settings: state.settings
+		settings: state.settings,
 	};
 }
 
 function mapDispatchToProps( dispatch ) {
 	return {
-		actions: bindActionCreators( SettingsActions, dispatch )
+		actions: bindActionCreators( SettingsActions, dispatch ),
 	};
 }
 
 export default connect(
 	mapStateToProps,
-	mapDispatchToProps
+	mapDispatchToProps,
 )( Settings );
