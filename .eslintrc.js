@@ -22,11 +22,13 @@ module.exports = {
 		},
 	},
 	'rules': {
+		'array-bracket-spacing': [ 1, 'never' ],
 		'brace-style': [ 1, '1tbs' ],
 		// REST API objects include underscores
 		'camelcase': 0,
-		'comma-dangle': 0,
+		'comma-dangle': [ 1, 'always-multiline'] ,
 		'comma-spacing': 1,
+		'computed-property-spacing': [ 1, 'never' ],
 		// Allows returning early as undefined
 		'consistent-return': 0,
 		'dot-notation': 1,

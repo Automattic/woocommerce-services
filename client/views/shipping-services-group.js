@@ -6,7 +6,7 @@ const ShippingServiceGroup = ( {
 	services,
 	currencySymbol,
 	onChange,
-	settingsKey
+	settingsKey,
 } ) => (
 	<div className="wcc-shipping-services-group">
 		<h4>

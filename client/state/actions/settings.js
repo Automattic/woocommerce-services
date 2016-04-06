@@ -9,7 +9,7 @@ export function updateSettingsField( key, value ) {
 	return {
 		type: UPDATE_SETTINGS_FIELD,
 		key: key,
-		value: value
+		value: value,
 	};
 }
 
@@ -19,7 +19,7 @@ export function updateSettingsArrayField( array_key, id, key, value ) {
 		array_key: array_key,
 		id: id,
 		key: key,
-		value: value
+		value: value,
 	};
 }
 
@@ -28,7 +28,7 @@ export function addSettingsObjectField( settings_key, key, object ) {
 		type: ADD_SETTINGS_OBJECT_FIELD,
 		settings_key,
 		key,
-		object
+		object,
 	};
 }
 
@@ -46,7 +46,7 @@ export function updateSettingsObjectSubField( settings_key, key, subfield_key, v
 		settings_key,
 		key,
 		subfield_key,
-		value
+		value,
 	};
 }
 
@@ -55,6 +55,6 @@ export function removeSettingsObjectSubField( settings_key, key, subfield_key ) 
 		type: REMOVE_SETTINGS_OBJECT_SUB_FIELD,
 		settings_key,
 		key,
-		subfield_key
+		subfield_key,
 	};
 }

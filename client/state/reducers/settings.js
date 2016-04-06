@@ -10,21 +10,21 @@ import {
 
 const updateSettingField = ( state, action ) => {
 	return Object.assign( {}, state, {
-		[action.key]: action.value
+		[action.key]: action.value,
 	} );
 };
 
 const updateSettingsArrayField = ( state, action ) => {
-	const originalArray = cloneDeep( state[ action.array_key ] );
+	const originalArray = cloneDeep( state[action.array_key] );
 	const updatedArray = originalArray.map( arrayItemState => {
 		if ( action.id !== arrayItemState.id ) {
 			return arrayItemState;
 		}
-		arrayItemState[ action.key ] = action.value;
+		arrayItemState[action.key] = action.value;
 		return arrayItemState;
 	} );
 	return Object.assign( {}, state, {
-		[ action.array_key ]: updatedArray
+		[action.array_key]: updatedArray,
 	} );
 };
 

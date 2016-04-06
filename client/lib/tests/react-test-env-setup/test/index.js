@@ -39,7 +39,7 @@ describe( 'react-test-env-setupEnvironment', function() {
 
 	it( 'should allow you to disable one or more additional features', function() {
 		setupEnvironment( null, {
-			XMLHttpRequest: false
+			XMLHttpRequest: false,
 		} );
 
 		expect( global.XMLHttpRequest ).to.be.undefined;

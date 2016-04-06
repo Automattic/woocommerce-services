@@ -5,7 +5,7 @@ import assign from 'lodash/assign';
  * Module variables
  */
 const defaultFeatures = {
-	XMLHttpRequest: true
+	XMLHttpRequest: true,
 };
 
 export default function( markup, features ) {
@@ -15,8 +15,8 @@ export default function( markup, features ) {
 		url: 'http://example.com/',
 		features: {
 			FetchExternalResources: false,
-			ProcessExternalResources: false
-		}
+			ProcessExternalResources: false,
+		},
 	} );
 	global.window = document.defaultView;
 	global.navigator = window.navigator;
