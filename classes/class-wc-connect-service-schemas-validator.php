@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 							'Malformed service schema. Service type \'%s\' [%d] property \'%s\' is a %s. Was expecting a %s.',
 							$service_type,
 							$service_counter,
-							$service->$required_property,
+							$service_schema->$required_property,
 							$property_type,
 							$required_property_type
 						)

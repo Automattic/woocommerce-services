@@ -41,13 +41,13 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	/**
 	 * @dataProvider enqueue_scripts_provider
-	 * @covers WC_Connect_Loader::enqueue_shipping_script
+	 * @covers WC_Connect_Loader::enqueue_service_script
 	 */
-	public function test_enqueue_shipping_script( $hook, $tab, $instance_id, $expected ) {
+	public function test_enqueue_service_script( $hook, $tab, $instance_id, $expected ) {
 
 		$loader = new WC_Connect_Loader();
 
-		$loader->enqueue_shipping_script( $hook, $tab, $instance_id );
+		$loader->enqueue_service_script( $hook, $tab, $instance_id );
 
 		$this->assertEquals( $expected, wp_script_is( self::SHIPPING_SCRIPT_HANDLE, 'registered' ) );
 
@@ -171,7 +171,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$method = new WC_Connect_Shipping_Method();
 
-		$loader->init_shipping_method( $method, 1 );
+		$loader->init_service( $method, 1 );
 
 		$this->assertEquals( $loader->get_logger(), $method->get_logger() );
 		$this->assertEquals( $loader->get_api_client(), $method->get_api_client() );
