@@ -47,6 +47,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_schemas_store;
 
 		/**
+		 * @var WC_Connect_Service_Settings_Store
+		 */
+		protected $service_settings_store;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -79,8 +84,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $this->service_schemas_store;
 		}
 
-		public function set_service_schemas_store( WC_Connect_Service_Schemas_Store $schemas ) {
-			$this->service_schemas_store = $schemas;
+		public function set_service_schemas_store( WC_Connect_Service_Schemas_Store $schemas_store ) {
+			$this->service_schemas_store = $schemas_store;
+		}
+
+		public function get_service_settings_store() {
+			return $this->service_settings_store;
+		}
+
+		public function set_service_settings_store( WC_Connect_Service_Settings_Store $settings_store ) {
+			$this->service_settings_store = $settings_store;
 		}
 
 		public function get_service_schemas_validator() {
@@ -114,16 +127,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 
-			$logger        = new WC_Connect_Logger( new WC_Logger() );
-			$validator     = new WC_Connect_Service_Schemas_Validator();
-			$api_client    = new WC_Connect_API_Client( $validator );
-			$schemas_store = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$logger         = new WC_Connect_Logger( new WC_Logger() );
+			$validator      = new WC_Connect_Service_Schemas_Validator();
+			$api_client     = new WC_Connect_API_Client( $validator );
+			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
 			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
+			$this->set_service_settings_store( $settings_store );
+
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
@@ -142,6 +159,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
+			$settings_store = $this->get_service_settings_store();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -152,7 +170,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
-
+			add_action( 'woocommerce_api_' . strtolower( get_class( $this ) ), array( $settings_store, 'handle_wc_api' ) );
 		}
 
 		/**
@@ -185,6 +203,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$method->set_api_client( $this->get_api_client() );
 			$method->set_logger( $this->get_logger() );
+			$method->set_service_settings_store( $this->get_service_settings_store() );
 
 			if ( $service_schema = $this->get_service_schemas_store()->get_service_schema_by_id_or_instance_id( $id_or_instance_id ) ) {
 
