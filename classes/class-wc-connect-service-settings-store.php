@@ -19,11 +19,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		protected $logger;
 
-		public function __construct(
-			WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_API_Client $api_client,
-			WC_Connect_Logger $logger
-		) {
+		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store, WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
 			$this->service_schemas_store = $service_schemas_store;
 			$this->api_client = $api_client;
 			$this->logger     = $logger;
@@ -197,7 +193,5 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			return 'woocommerce_' . $service_id . '_' . $service_instance . '_form_settings';
 		}
-
 	}
-
 }
