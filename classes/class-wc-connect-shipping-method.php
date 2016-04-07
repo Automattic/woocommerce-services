@@ -7,7 +7,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		/**
 		 * @var object A reference to a the fetched properties of the service
 		 */
-		protected $service = null;
+		protected $service_schema = null;
 
 		/**
 		 * @var WC_Connect_Logger
@@ -40,9 +40,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			 * @param WC_Connect_Shipping_Method $this
 			 * @param int|string                 $id_or_instance_id
 			 */
-			do_action( 'wc_connect_shipping_method_init', $this, $id_or_instance_id );
+			do_action( 'wc_connect_service_init', $this, $id_or_instance_id );
 
-			if ( ! $this->service ) {
+			if ( ! $this->service_schema ) {
 				$this->log(
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
@@ -53,16 +53,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->supports = array();
 				$this->title = '';
 			} else {
-				$this->id = $this->service->id;
-				$this->method_title = $this->service->method_title;
-				$this->method_description = $this->service->method_description;
+				$this->id = $this->service_schema->id;
+				$this->method_title = $this->service_schema->method_title;
+				$this->method_description = $this->service_schema->method_description;
 				$this->supports = array(
 					'shipping-zones',
 					'instance-settings'
 				);
 
 				// Set title to default value
-				$this->title = $this->service->method_title;
+				$this->title = $this->service_schema->method_title;
 
 				// Load form values from options, updating title if present
 				$this->init_form_settings();
@@ -77,15 +77,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
-		public function get_service() {
+		public function get_service_schema() {
 
-			return $this->service;
+			return $this->service_schema;
 
 		}
 
-		public function set_service( $service ) {
+		public function set_service_schema( $service_schema ) {
 
-			$this->service = $service;
+			$this->service_schema = $service_schema;
 
 		}
 
@@ -179,7 +179,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @return array
 		 */
 		public function get_form_schema() {
-			return $this->service->service_settings;
+			return $this->service_schema->service_settings;
 		}
 
 		/**
@@ -190,7 +190,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @return array
 		 */
 		public function get_form_layout() {
-			return $this->service->form_layout;
+			return $this->service_schema->form_layout;
 		}
 
 		/**
