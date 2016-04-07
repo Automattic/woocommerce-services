@@ -31,7 +31,7 @@ const Settings = React.createClass( {
 		updateSettingsField( key, value );
 	},
 	render: function() {
-		const { settings, wooCommerceSettings, actions } = this.props;
+		const { settings, wooCommerceSettings, actions, schema } = this.props;
 		return (
 			<div>
 				<SectionHeader label="USPS Shipping">
@@ -61,10 +61,11 @@ const Settings = React.createClass( {
 					<FormFieldset>
 						<FormLegend>Services</FormLegend>
 						<ShippingServiceGroups
-							services={ settings.services }
+							services={ schema.definitions.services }
 							currencySymbol={ wooCommerceSettings.currency_symbol }
 							onChange={ actions.updateSettingsArrayField }
 							settingsKey="services"
+							serviceSettings={ settings.services || {} }
 						/>
 					</FormFieldset>
 					<FormFieldset>

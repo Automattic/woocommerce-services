@@ -16,9 +16,9 @@ const ShippingServiceGroup = ( {
 			return (
 				<ShippingServiceEntry
 					id={ service.id }
-					key={ service.title }
+					key={ service.id }
 					enabled={ service.enabled }
-					title={ service.title }
+					title={ service.name }
 					adjustment={ service.adjustment }
 					adjustment_type={ service.adjustment_type }
 					currencySymbol={ currencySymbol }
@@ -33,8 +33,9 @@ const ShippingServiceGroup = ( {
 ShippingServiceGroup.propTypes = {
 	title: PropTypes.string.isRequired,
 	services: PropTypes.arrayOf( PropTypes.shape( {
+		id: PropTypes.string.isRequired,
+		name: PropTypes.string.isRequired,
 		enabled: PropTypes.bool.isRequired,
-		title: PropTypes.string.isRequired,
 		adjustment: PropTypes.number.isRequired,
 		adjustment_type: PropTypes.string.isRequired,
 	} ) ).isRequired,
