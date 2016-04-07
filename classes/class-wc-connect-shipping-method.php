@@ -10,6 +10,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		protected $service_schema = null;
 
 		/**
+		 * @var WC_Connect_Service_Settings_Store
+		 */
+		protected $service_settings_store;
+
+		/**
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
@@ -67,9 +72,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				// Load form values from options, updating title if present
 				$this->init_form_settings();
 
-				// Process any changes to values present in $_POST
-				add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
-
 				// Note - we cannot hook admin_enqueue_scripts here because we need an instance id
 				// and this constructor is not called with an instance id until after
 				// admin_enqueue_scripts has already fired.  This is why WC_Connect_Loader
@@ -86,6 +88,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function set_service_schema( $service_schema ) {
 
 			$this->service_schema = $service_schema;
+
+		}
+
+		public function get_service_settings_store() {
+
+			return $this->service_settings_store;
+
+		}
+
+		public function set_service_settings_store( $service_settings_store) {
+
+			$this->service_settings_store = $service_settings_store;
 
 		}
 
@@ -135,9 +149,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
-		protected function get_instance_form_settings_key() {
-			return $this->plugin_id . $this->id . '_' . $this->instance_id . '_form_settings';
-		}
 
 		/**
 		 * Restores any values persisted to the DB for this service instance
@@ -146,7 +157,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected function init_form_settings() {
 
-			$form_settings = $this->get_form_settings();
+			$form_settings = $this->get_service_settings();
 
 			// We need to initialize the instance title ($this->title)
 			// from the settings blob
@@ -201,82 +212,28 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * @return array
 		 */
-		public function get_form_settings() {
-			$form_settings = get_option( $this->get_instance_form_settings_key(), array() );
-
-			return $form_settings;
+		public function get_service_settings() {
+			return $this->service_settings_store->get_service_settings( $this->id, $this->instance_id );
 		}
 
 		/**
-		 * Retrieve posted settings, whitelisted with the form schema.
+		 * Returns the callback URL for the settings form for this service
 		 *
-		 * @param array $posted Optional. Defaults to $_POST.
-		 * @return array Posted settings found in schema definition.
+		 * @return string
 		 */
-		public function get_posted_form_settings( $posted = null ) {
-
-			if ( is_null( $posted ) ) {
-				$posted = $_POST;
-			}
-
-			if ( empty( $posted ) ) {
-				return array();
-			}
-
-			$settings = array();
-			$schema   = $this->get_form_schema();
-
-			// Whitelist settings sent to the validation endpoint using the schema
-			if ( isset( $schema->properties ) ) {
-				foreach ( (array) $schema->properties as $field_name => $properties ) {
-					// Special handling is needed to turn checkboxes back into booleans
-					// since our form returns 'on' for checkboxes if they are checked and omits
-					// the key if they are not checked
-					if ( 'boolean' === $properties->type ) {
-						$settings[ $field_name ] = isset( $posted[ $field_name ] );
-					} elseif ( isset( $posted[ $field_name ] ) ) {
-						$settings[ $field_name ] = $posted[ $field_name ];
-					}
-				}
-			}
-
-			return $settings;
-
+		public function get_form_callback_URL() {
+			return $this->service_settings_store->get_wc_api_callback_url();
 		}
 
 		/**
-		 * Handle the settings form submission.
+		 * Returns the nonce for the settings form for this service
 		 *
-		 * This method will pass the settings values off to the WCC server for validation.
-		 *
-		 * If the WooCommerce Connect server doesn't like one of the settings, we
-		 * won't save anything but will return the error message(s) from the server
-		 *
-		 * @return bool
+		 * @return string
 		 */
-		public function process_admin_options( $post_data = array() ) {
-
-			$settings = $this->get_posted_form_settings();
-
-			// Validate settings with WCC server
-			$response_body = $this->api_client->validate_service_settings( $this->id, $settings );
-
-			if ( is_wp_error( $response_body ) ) {
-				// TODO - handle multiple error messages when the validation endpoint can return them
-				$this->add_error( $response_body->get_error_message() );
-
-				// TODO - when the validation endpoint is ready, return false on failures
-				// but go ahead and save for now to make development and testing possible
-				// return false;
-
-			}
-
-			// TODO - so, returning false above doesn't actually prevent a
-			// "Your settings have been saved." message from appearing.  At
-			// first glance, WooCommerce may not prevent that.  Need to dig further.
-
-			return update_option( $this->get_instance_form_settings_key(), $settings );
+		public function get_form_nonce() {
+			return $this->service_settings_store->get_wc_api_callback_nonce( $this->id, $this->instance_id );
 		}
+
 
 		/**
 		 * Determine if a package's destination is valid enough for a rate quote.
@@ -328,7 +285,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				array(
 					'id'               => $this->id,
 					'instance'         => $this->instance_id,
-					'service_settings' => $this->get_form_settings(),
+					'service_settings' => $this->get_service_settings(),
 				),
 			);
 
@@ -375,9 +332,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			$admin_array = array(
 				'wooCommerceSettings' => $this->get_woocommerce_settings(),
-				'formSchema' => $this->get_form_schema(),
-				'formLayout' => $this->get_form_layout(),
-				'formData'   => $this->get_form_settings(),
+				'formSchema'  => $this->get_form_schema(),
+				'formLayout'  => $this->get_form_layout(),
+				'formData'    => $this->get_service_settings(),
+				'callbackURL' => $this->get_form_callback_URL(),
+				'nonce'       => $this->get_form_nonce(),
 			);
 
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
