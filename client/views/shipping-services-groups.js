@@ -1,9 +1,6 @@
 import React, { PropTypes } from 'react';
+import groupBy from 'lodash/groupBy';
 import ShippingServiceGroup from './shipping-services-group';
-
-import mapValues from 'lodash/mapValues';
-import sortedUniq from 'lodash/sortedUniq';
-import values from 'lodash/values';
 
 const ShippingServiceGroups = ( {
 	services,
@@ -23,16 +20,16 @@ const ShippingServiceGroups = ( {
 	// Some shippers have so many services that it is helpful to organize them
 	// into groups.  This code iterates over the services and extracts the group(s)
 	// it finds.  When rendering, we can then iterate over the group(s).
-	const serviceGroups = sortedUniq( values( mapValues( serviceValues, 'group' ) ).sort() );
+	const serviceGroups = groupBy( serviceValues, svc => svc.group );
 
 	return (
 		<div className="wcc-shipping-services-groups">
-			{ serviceGroups.map( serviceGroup => {
+			{ Object.keys( serviceGroups ).sort().map( serviceGroup => {
 				return (
 					<ShippingServiceGroup
 						key={ serviceGroup }
 						title={ serviceGroup }
-						services={ serviceValues.filter( service => service.group === serviceGroup ) }
+						services={ serviceGroups[serviceGroup] }
 						currencySymbol={ currencySymbol }
 						onChange={ onChange }
 						settingsKey={ settingsKey }
