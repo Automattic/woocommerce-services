@@ -92,8 +92,6 @@ export default function settings( state = {}, action ) {
 			return updateSettingsObjectSubField( state, action );
 		case REMOVE_SETTINGS_OBJECT_SUB_FIELD:
 			return removeSettingsObjectSubField( state, action );
-		default:
-			return state;
 	}
 
 	return state;
