@@ -85,25 +85,35 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Emits JSON.
 		 */
 		public function handle_wc_api() {
-			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
-
-			if ( empty( $id ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'service_id_missing',
-					 	'message' => __( 'The request is invalid. No service ID was given.', 'woocommerce' )
-					)
-				);
-				exit;
-			}
-
 			$nonce = isset( $_POST['nonce'] ) ? $_POST['nonce'] : '';
 
 			if ( empty( $nonce ) ) {
 				wp_send_json_error(
 					array(
 						'error' => 'nonce_missing',
-					 	'message' => __( 'The request is invalid. No nonce was given.', 'woocommerce' )
+						'message' => __( 'The request is invalid. No nonce was given.', 'woocommerce' )
+					)
+				);
+				exit;
+			}
+
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_send_json_error(
+					array(
+						'error' => 'missing_capabilities',
+						'message' => __( 'You do not have sufficient permissions for this endpoint.', 'woocommerce' )
+					)
+				);
+				exit;
+			}
+
+			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
+
+			if ( empty( $id ) ) {
+				wp_send_json_error(
+					array(
+						'error' => 'service_id_missing',
+						'message' => __( 'The request is invalid. No service ID was given.', 'woocommerce' )
 					)
 				);
 				exit;
@@ -144,9 +154,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					// since our form returns 'on' for checkboxes if they are checked and omits
 					// the key if they are not checked
 					if ( 'boolean' === $properties->type ) {
-						$settings[ $field_name ] = isset( $posted[ $field_name ] );
-					} elseif ( isset( $posted[ $field_name ] ) ) {
-						$settings[ $field_name ] = $posted[ $field_name ];
+						$settings[ $field_name ] = isset( $_POST[ $field_name ] );
+					} elseif ( isset( $_POST[ $field_name ] ) ) {
+						$settings[ $field_name ] = $_POST[ $field_name ];
 					}
 				}
 			}

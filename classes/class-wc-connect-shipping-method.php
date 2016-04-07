@@ -335,12 +335,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				'formSchema'  => $this->get_form_schema(),
 				'formLayout'  => $this->get_form_layout(),
 				'formData'    => $this->get_service_settings(),
+				'id'          => $this->id,
+				'instance'    => $this->instance_id,
 				'callbackURL' => $this->get_form_callback_URL(),
 				'nonce'       => $this->get_form_nonce(),
 			);
 
 			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
-
 			wp_enqueue_script( 'wc_connect_shipping_admin' );
 			wp_enqueue_style( 'wc_connect_shipping_admin' );
 		}
