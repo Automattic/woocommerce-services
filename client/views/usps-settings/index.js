@@ -63,7 +63,7 @@ const Settings = React.createClass( {
 						<ShippingServiceGroups
 							services={ schema.definitions.services }
 							currencySymbol={ wooCommerceSettings.currency_symbol }
-							onChange={ actions.updateSettingsArrayField }
+							onChange={ actions.updateSettingsObjectSubField }
 							settingsKey="services"
 							serviceSettings={ settings.services || {} }
 						/>
