@@ -19,7 +19,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		protected $validator;
 
 		public function __construct(
-			WC_Connect_Services_Validator $validator
+			WC_Connect_Service_Schemas_Validator $validator
 		) {
 
 			$this->validator = $validator;
@@ -31,14 +31,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *
 		 * @return array|WP_Error
 		 */
-		public function get_services() {
+		public function get_service_schemas() {
 			$response_body = $this->request( 'POST', '/services' );
 
 			if ( is_wp_error( $response_body ) ) {
 				return $response_body;
 			}
 
-			$result = $this->validator->validate_services( $response_body );
+			$result = $this->validator->validate_service_schemas( $response_body );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}

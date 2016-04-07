@@ -42,14 +42,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $api_client;
 
 		/**
-		 * @var WC_Connect_Services_Store
+		 * @var WC_Connect_Service_Schemas_Store
 		 */
-		protected $services_store;
+		protected $service_schemas_store;
 
 		/**
-		 * @var WC_Connect_Services_Validator
+		 * @var WC_Connect_Service_Schemas_Validator
 		 */
-		protected $services_validator;
+		protected $service_schemas_validator;
 
 		protected $services = array();
 
@@ -75,20 +75,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->api_client = $api_client;
 		}
 
-		public function get_services_store() {
-			return $this->services_store;
+		public function get_service_schemas_store() {
+			return $this->service_schemas_store;
 		}
 
-		public function set_services_store( WC_Connect_Services_Store $store ) {
-			$this->services_store = $store;
+		public function set_service_schemas_store( WC_Connect_Service_Schemas_Store $schemas ) {
+			$this->service_schemas_store = $schemas;
 		}
 
-		public function get_services_validator() {
-			return $this->services_validator;
+		public function get_service_schemas_validator() {
+			return $this->service_schemas_validator;
 		}
 
-		public function set_services_validator( WC_Connect_Services_Validator $validator ) {
-			$this->services_validator = $validator;
+		public function set_service_schemas_validator( WC_Connect_Service_Schemas_Validator $validator ) {
+			$this->service_schemas_validator = $validator;
 		}
 
 		/**
@@ -100,7 +100,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$this->load_dependencies();
 			$this->attach_hooks();
-			$this->schedule_services_fetch();
+			$this->schedule_service_schemas_fetch();
 
 		}
 
@@ -111,19 +111,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-services-validator.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-services-store.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 
-			$logger     = new WC_Connect_Logger( new WC_Logger() );
-			$validator  = new WC_Connect_Services_Validator();
-			$api_client = new WC_Connect_API_Client( $validator );
-			$store      = new WC_Connect_Services_Store( $api_client, $logger );
+			$logger        = new WC_Connect_Logger( new WC_Logger() );
+			$validator     = new WC_Connect_Service_Schemas_Validator();
+			$api_client    = new WC_Connect_API_Client( $validator );
+			$schemas_store = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
-			$this->set_services_validator( $validator );
-			$this->set_services_store( $store );
+			$this->set_service_schemas_validator( $validator );
+			$this->set_service_schemas_store( $schemas_store );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
@@ -140,41 +140,35 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function attach_hooks() {
 
-			$store    = $this->get_services_store();
-			$services = $store->get_services();
+			$schemas_store = $this->get_service_schemas_store();
+			$schemas = $schemas_store->get_service_schemas();
 
-			if ( $services ) {
+			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
 				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
-				add_action( 'wc_connect_shipping_method_init', array( $this, 'init_shipping_method' ), 10, 2 );
+				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
 			}
 
-			add_action( 'wc_connect_fetch_services', array( $store, 'fetch_services_from_connect_server' ) );
+			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 
 		}
 
 		/**
 		 * Hook fetching the available services from the connect server
 		 */
-		public function schedule_services_fetch() {
+		public function schedule_service_schemas_fetch() {
 
-			$store    = $this->get_services_store();
-			$services = $store->get_services();
+			$schemas_store = $this->get_service_schemas_store();
+			$schemas = $schemas_store->get_service_schemas();
 
-			if ( ! $services ) {
-
-				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
-
+			if ( ! $schemas ) {
+				add_action( 'admin_init', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
-
-				add_action( 'admin_init', array( $store, 'fetch_services_from_connect_server' ) );
-
-			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_services' ) ) {
-
-				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_services' );
-
+				add_action( 'admin_init', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_service_schemas' ) ) {
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_service_schemas' );
 			}
 
 		}
@@ -185,14 +179,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param WC_Connect_Shipping_Method $method
 		 * @param int|string                 $id_or_instance_id
 		 */
-		public function init_shipping_method( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
+		public function init_service( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
+
+			// TODO - make more generic - allow things other than WC_Connect_Shipping_Method to work here
 
 			$method->set_api_client( $this->get_api_client() );
 			$method->set_logger( $this->get_logger() );
 
-			if ( $service = $this->get_services_store()->get_service_by_id_or_instance_id( $id_or_instance_id ) ) {
+			if ( $service_schema = $this->get_service_schemas_store()->get_service_schema_by_id_or_instance_id( $id_or_instance_id ) ) {
 
-				$method->set_service( $service );
+				$method->set_service_schema( $service_schema );
 
 			}
 
@@ -222,7 +218,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
 
-			$shipping_service_ids = $this->get_services_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -238,7 +234,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function woocommerce_load_shipping_methods() {
 
-			$shipping_service_ids = $this->get_services_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -264,7 +260,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tab      = isset( $_GET['tab'] ) ? $_GET['tab'] : null;
 			$instance = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : null;
 
-			$this->enqueue_shipping_script( $hook, $tab, $instance );
+			$this->enqueue_service_script( $hook, $tab, $instance );
 
 		}
 
@@ -276,7 +272,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param string $tab
 		 * @param int    $instance_id
 		 */
-		public function enqueue_shipping_script( $hook, $tab, $instance_id ) {
+		public function enqueue_service_script( $hook, $tab, $instance_id ) {
 
 			if ( 'woocommerce_page_wc-settings' !== $hook ) {
 				return;
