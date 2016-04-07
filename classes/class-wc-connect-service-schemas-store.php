@@ -1,23 +1,5 @@
 <?php
 
-/**
- * The WC_Connect_Service_Schemas_Store serves as a cache of the
- * schemas of all WooCommerce Connect services.  The schemas are
- * obtained periodically from the /services endpoint of the WooCommerce
- * Connect server and saved in WordPress options.  This cache is then
- * referred to when the merchant is working in wp-admin (e.g. to allow them to
- * add a new instance of a shipping method to a zone or to allow them
- * to use a form to modify the settings for a particular instance.)
- *
- * The schema for each service typically includes
- *   id (e.g. usps)
- *   method_description
- *   method_title
- *   form_layout - an array that describes the settings form layout for each service
- *   service_settings - i.e. the JSON schema that describes the settings for each service
- *      including defaults, but not the actual per service/instance settings themselves
-**/
-
 if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 	class WC_Connect_Service_Schemas_Store {
@@ -32,10 +14,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 */
 		protected $logger;
 
-		public function __construct(
-			WC_Connect_API_Client $api_client,
-			WC_Connect_Logger $logger
-		) {
+		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
 
 			$this->api_client = $api_client;
 			$this->logger     = $logger;
@@ -47,18 +26,11 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			$response_body = $this->api_client->get_service_schemas();
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->logger->log(
-					$response_body,
-					__FUNCTION__
-				);
-
+				$this->logger->log( $response_body, __FUNCTION__ );
 				return;
 			}
 
-			$this->logger->log(
-				'Successfully loaded service schemas from server response.',
-				__FUNCTION__
-			);
+			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
 
 			// If we made it this far, it is safe to store the object
 
@@ -81,24 +53,24 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 * @return array An array of that type's service ids, or an empty array if no such type is known
 		 */
 		public function get_all_service_ids_of_type( $type ) {
+			$service_schema_ids = array();
+
 			if ( empty( $type ) ) {
-				return array();
+				return $service_schema_ids;
 			}
 
 			$service_schemas = $this->get_service_schemas();
 			if ( ! is_object( $service_schemas ) ) {
-				return array();
+				return $service_schema_ids;
 			}
 
 			if ( ! property_exists( $service_schemas, $type ) ) {
-				return array();
+				return $service_schema_ids;
 			}
 
 			if ( ! is_array( $service_schemas->$type ) ) {
-				return array();
+				return $service_schema_ids;
 			}
-
-			$service_schema_ids = array();
 
 			foreach ( $service_schemas->$type as $service_schema ) {
 				$service_schema_ids[] = $service_schema->id;
@@ -159,21 +131,14 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		public function get_service_schema_by_id_or_instance_id( $id_or_instance_id ) {
 
 			if ( is_numeric( $id_or_instance_id ) ) {
-
 				return $this->get_service_schema_by_instance_id( $id_or_instance_id );
-
 			}
 
 			if ( ! empty( $id_or_instance_id ) ) {
-
 				return $this->get_service_schema_by_id( $id_or_instance_id );
-
 			}
 
 			return false;
-
 		}
-
 	}
-
 }
