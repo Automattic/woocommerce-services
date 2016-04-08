@@ -6,7 +6,6 @@ import {
 	REMOVE_SETTINGS_OBJECT_FIELD,
 	UPDATE_SETTINGS_OBJECT_SUB_FIELD,
 	REMOVE_SETTINGS_OBJECT_SUB_FIELD,
-	SET_FORM_STATE,
 } from '../actions/settings';
 
 const updateSettingField = ( state, action ) => {
@@ -79,11 +78,6 @@ const removeSettingsObjectSubField = ( state, action ) => {
 	} );
 };
 
-const setFormState = ( state, action ) => {
-	console.log( 'Im here' );
-	return Object.assign( {}, state, { currentState: action.value } );
-};
-
 export default function settings( state = {}, action ) {
 	switch ( action.type ) {
 		case UPDATE_SETTINGS_FIELD:
@@ -98,8 +92,6 @@ export default function settings( state = {}, action ) {
 			return updateSettingsObjectSubField( state, action );
 		case REMOVE_SETTINGS_OBJECT_SUB_FIELD:
 			return removeSettingsObjectSubField( state, action );
-		case SET_FORM_STATE:
-			return setFormState( state, action );
 	}
 
 	return state;

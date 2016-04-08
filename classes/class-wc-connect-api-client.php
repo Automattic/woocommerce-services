@@ -263,19 +263,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $headers;
 		}
 
-		private function get_access_token() {
-			if ( ! defined( 'WOOCOMMERCE_CONNECT_FAKE_JETPACK_TOKEN' ) ) {
-				return Jetpack_Data::get_access_token( 0 );
-			}
-
-			$token = new stdClass();
-			$token->secret = WOOCOMMERCE_CONNECT_FAKE_JETPACK_TOKEN;
-			$token->external_user_id = 0;
-			return $token;
-		}
-
 		protected function authorization_header() {
-			$token = $this->get_access_token();
+			$token = Jetpack_Data::get_access_token( 0 );
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error( 'missing_token', 'Unable to send request to WooCommerce Connect server. Jetpack Token is missing' );
 			}

@@ -3,7 +3,6 @@ import {
 } from '../actions/form';
 
 const setFormState = ( state, action ) => {
-	console.log( 'Im here' );
 	return Object.assign( {}, state, { currentState: action.value } );
 };
 

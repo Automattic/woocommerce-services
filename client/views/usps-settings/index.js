@@ -23,34 +23,14 @@ import * as SettingsActions from 'state/actions/settings';
 import * as FormActions from 'state/actions/form';
 import ShippingServiceSetup from 'components/shipping-service-setup';
 
-const PropTypes = React.PropTypes;
-
-const SaveChangesButton = ( { onClick, isSaving } ) =>
-	<CompactCard>
-		<FormButtonsBar>
-			<FormButton onClick={ onClick }>
-				{ isSaving ? 'Saving...' : 'Save changes' }
-			</FormButton>
-		</FormButtonsBar>
-	</CompactCard>;
-
-SaveChangesButton.defaultProps = {
-	isSaving: false,
-};
-
-SaveChangesButton.propTypes = {
-	onClick: React.PropTypes.func.isRequired,
-	isSaving: React.PropTypes.bool.isRequired,
-};
-
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	propTypes: {
-		settingsActions: PropTypes.object.isRequired,
-		formActions: PropTypes.object.isRequired,
-		wooCommerceSettings: PropTypes.object.isRequired,
-		settings: PropTypes.object.isRequired,
-		schema: PropTypes.object.isRequired,
+		settingsActions: React.PropTypes.object.isRequired,
+		formActions: React.PropTypes.object.isRequired,
+		wooCommerceSettings: React.PropTypes.object.isRequired,
+		settings: React.PropTypes.object.isRequired,
+		schema: React.PropTypes.object.isRequired,
 	},
 	onFieldChange: function( { target } = event ) {
 		const { updateSettingsField } = this.props.settingsActions;
@@ -61,13 +41,14 @@ const Settings = React.createClass( {
 	handleSaveForm: function( event ) {
 		event.preventDefault();
 		this.props.formActions.setFormState( 'saving' );
-		setTimeout( () => this.props.formActions.setFormState( 'default' ), 3000 );
+
+		// TODO: Replace with actual logic for sending form data
+		setTimeout( () => this.props.formActions.setFormState( 'default' ), 2000 );
 	},
 	render: function() {
 		const { settings, form, wooCommerceSettings, settingsActions, schema } = this.props;
 		return (
 			<div>
-				<SaveChangesButton isSaving={ 'saving' === form.currentState } onClick={ this.handleSaveForm } />
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
@@ -139,7 +120,13 @@ const Settings = React.createClass( {
 						</FormButton>
 					</FormFieldset>
 				</CompactCard>
-				<SaveChangesButton onClick={ this.handleSaveForm } />
+				<CompactCard>
+					<FormButtonsBar>
+						<FormButton onClick={ this.handleSaveForm }>
+							{ 'saving' === form.currentState ? 'Saving...' : 'Save changes' }
+						</FormButton>
+					</FormButtonsBar>
+				</CompactCard>;
 				<br />{ /* Add a package modal */ }
 				<CompactCard>
 					<FormSectionHeading>Add a package</FormSectionHeading>
