@@ -20,7 +20,10 @@ import ShippingServiceGroups from '../shipping-services-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
+import * as FormActions from 'state/actions/form';
 import ShippingServiceSetup from 'components/shipping-service-setup';
+
+const PropTypes = React.PropTypes;
 
 const SaveChangesButton = ( { onClick, isSaving } ) =>
 	<CompactCard>
@@ -42,22 +45,29 @@ SaveChangesButton.propTypes = {
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
+	propTypes: {
+		settingsActions: PropTypes.object.isRequired,
+		formActions: PropTypes.object.isRequired,
+		wooCommerceSettings: PropTypes.object.isRequired,
+		settings: PropTypes.object.isRequired,
+		schema: PropTypes.object.isRequired,
+	},
 	onFieldChange: function( { target } = event ) {
-		const { updateSettingsField } = this.props.actions;
+		const { updateSettingsField } = this.props.settingsActions;
 		const key = target.name;
 		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
 		updateSettingsField( key, value );
 	},
 	handleSaveForm: function( event ) {
 		event.preventDefault();
-		this.props.actions.setFormState( 'saving' );
-		setTimeout( () => this.props.actions.setFormState( 'default' ), 3000 );
+		this.props.formActions.setFormState( 'saving' );
+		setTimeout( () => this.props.formActions.setFormState( 'default' ), 3000 );
 	},
 	render: function() {
-		const { settings, wooCommerceSettings, actions, schema } = this.props;
+		const { settings, form, wooCommerceSettings, settingsActions, schema } = this.props;
 		return (
 			<div>
-				<SaveChangesButton isSaving={ 'saving' === settings.currentState } onClick={ this.handleSaveForm } />
+				<SaveChangesButton isSaving={ 'saving' === form.currentState } onClick={ this.handleSaveForm } />
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
@@ -87,7 +97,7 @@ const Settings = React.createClass( {
 						<ShippingServiceGroups
 							services={ schema.definitions.services }
 							currencySymbol={ wooCommerceSettings.currency_symbol }
-							onChange={ actions.updateSettingsObjectSubField }
+							onChange={ settingsActions.updateSettingsObjectSubField }
 							settingsKey="services"
 							serviceSettings={ settings.services || {} }
 						/>
@@ -203,12 +213,14 @@ const Settings = React.createClass( {
 function mapStateToProps( state ) {
 	return {
 		settings: state.settings,
+		form: state.form,
 	};
 }
 
 function mapDispatchToProps( dispatch ) {
 	return {
-		actions: bindActionCreators( SettingsActions, dispatch ),
+		settingsActions: bindActionCreators( SettingsActions, dispatch ),
+		formActions: bindActionCreators( FormActions, dispatch ),
 	};
 }
 

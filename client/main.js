@@ -6,10 +6,10 @@ import configureStore from 'state/store';
 import '../assets/stylesheets/style.scss';
 
 const { formData, formSchema, formLayout, wooCommerceSettings } = wcConnectData;
-formData.currentState = 'default';
 
 const store = configureStore( {
 	settings: formData,
+	form: { currentState: 'default' },
 } );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
