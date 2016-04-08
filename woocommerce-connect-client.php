@@ -205,10 +205,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$method->set_logger( $this->get_logger() );
 			$method->set_service_settings_store( $this->get_service_settings_store() );
 
-			if ( $service_schema = $this->get_service_schemas_store()->get_service_schema_by_id_or_instance_id( $id_or_instance_id ) ) {
+			$service_schema = $this->get_service_schemas_store()->get_service_schema_by_id_or_instance_id( $id_or_instance_id );
 
+			if ( $service_schema ) {
 				$method->set_service_schema( $service_schema );
-
 			}
 
 		}
