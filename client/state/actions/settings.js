@@ -4,7 +4,6 @@ export const ADD_SETTINGS_OBJECT_FIELD = 'ADD_SETTINGS_OBJECT_FIELD';
 export const REMOVE_SETTINGS_OBJECT_FIELD = 'REMOVE_SETTINGS_OBJECT_FIELD';
 export const UPDATE_SETTINGS_OBJECT_SUB_FIELD = 'UPDATE_SETTINGS_OBJECT_SUB_FIELD';
 export const REMOVE_SETTINGS_OBJECT_SUB_FIELD = 'REMOVE_SETTINGS_OBJECT_SUB_FIELD';
-export const SET_FORM_STATE = 'SET_FORM_STATE';
 
 export function updateSettingsField( key, value ) {
 	return {
@@ -59,10 +58,3 @@ export function removeSettingsObjectSubField( settings_key, key, subfield_key ) 
 		subfield_key,
 	};
 }
-
-export const setFormState = ( stateName ) => {
-	return {
-		type: SET_FORM_STATE,
-		value: stateName,
-	};
-};
