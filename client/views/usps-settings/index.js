@@ -41,10 +41,17 @@ const Settings = React.createClass( {
 					<FormSectionHeading>Setup</FormSectionHeading>
 					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.onFieldChange }>
 						<FormFieldset>
-							<FormLabel htmlFor="usps_account">USPS Account</FormLabel>
+							<FormLabel htmlFor="account_id">USPS Account</FormLabel>
 							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.onFieldChange } />
 							<FormSettingExplanation>
 								Use the account provided or <a href="#">sign up for your own</a>
+							</FormSettingExplanation>
+						</FormFieldset>
+						<FormFieldset>
+							<FormLabel htmlFor="origin">Origin ZIP Code</FormLabel>
+							<FormTextInput id="origin" name="origin" placeholder="" value={ settings.origin } onChange={ this.onFieldChange } />
+							<FormSettingExplanation>
+								The ZIP code from which you will be shipping your items (required)
 							</FormSettingExplanation>
 						</FormFieldset>
 					</ShippingServiceSetup>
@@ -186,5 +193,5 @@ function mapDispatchToProps( dispatch ) {
 
 export default connect(
 	mapStateToProps,
-	mapDispatchToProps,
+	mapDispatchToProps
 )( Settings );
