@@ -22,6 +22,24 @@ import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
 import ShippingServiceSetup from 'components/shipping-service-setup';
 
+const SaveChangesButton = ( { onClick, isSaving } ) =>
+	<CompactCard>
+		<FormButtonsBar>
+			<FormButton onClick={ onClick }>
+				{ isSaving ? 'Saving...' : 'Save changes' }
+			</FormButton>
+		</FormButtonsBar>
+	</CompactCard>;
+
+SaveChangesButton.defaultProps = {
+	isSaving: false,
+};
+
+SaveChangesButton.propTypes = {
+	onClick: React.PropTypes.func.isRequired,
+	isSaving: React.PropTypes.bool.isRequired,
+};
+
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	onFieldChange: function( { target } = event ) {
@@ -30,10 +48,16 @@ const Settings = React.createClass( {
 		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
 		updateSettingsField( key, value );
 	},
+	handleSaveForm: function( event ) {
+		event.preventDefault();
+		this.props.actions.setFormState( 'saving' );
+		setTimeout( () => this.props.actions.setFormState( 'default' ), 3000 );
+	},
 	render: function() {
 		const { settings, wooCommerceSettings, actions, schema } = this.props;
 		return (
 			<div>
+				<SaveChangesButton isSaving={ 'saving' === settings.currentState } onClick={ this.handleSaveForm } />
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
@@ -105,11 +129,7 @@ const Settings = React.createClass( {
 						</FormButton>
 					</FormFieldset>
 				</CompactCard>
-				<CompactCard>
-					<FormButtonsBar>
-						<FormButton>Save changes</FormButton>
-					</FormButtonsBar>
-				</CompactCard>
+				<SaveChangesButton onClick={ this.handleSaveForm } />
 				<br />{ /* Add a package modal */ }
 				<CompactCard>
 					<FormSectionHeading>Add a package</FormSectionHeading>
