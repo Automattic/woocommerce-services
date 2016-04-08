@@ -126,7 +126,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 * Returns a service's schema given an id or shipping zone instance.
 		 *
 		 * @param string $id_or_instance_id String ID or numeric instance ID.
-		 * @return bool|object Service schema on success, boolean False on failure.
+		 * @return object|null Service schema on success, null on failure
 		 */
 		public function get_service_schema_by_id_or_instance_id( $id_or_instance_id ) {
 
@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 				return $this->get_service_schema_by_id( $id_or_instance_id );
 			}
 
-			return false;
+			return null;
 		}
 	}
 }
