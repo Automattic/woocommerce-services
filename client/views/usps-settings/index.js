@@ -69,7 +69,6 @@ const Settings = React.createClass( {
 							currencySymbol={ wooCommerceSettings.currency_symbol }
 							updateValue={ ( id, key, val ) => updateSettingsObjectSubField( 'services', id, key, val ) }
 							settingsKey="services"
-							serviceSettings={ settings.services || {} }
 						/>
 					</FormFieldset>
 					<FormFieldset>
