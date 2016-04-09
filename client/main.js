@@ -9,9 +9,9 @@ const { formData, formSchema, formLayout, wooCommerceSettings } = wcConnectData;
 
 const store = configureStore( {
 	settings: formData,
-	form: { 
+	form: {
 		saveButton: {
-			isSaving: false
+			isSaving: false,
 		},
 	},
 } );

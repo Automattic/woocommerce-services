@@ -4,7 +4,7 @@ import {
 
 const updateFormElementField = ( state, action ) => {
 	const newState = Object.assign( {}, state );
-	newState[ action.element ][ action.field ] = action.value;
+	newState[action.element][action.field] = action.value;
 	return newState;
 };
 

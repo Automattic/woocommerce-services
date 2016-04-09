@@ -35,9 +35,9 @@ ShippingServiceGroup.propTypes = {
 	services: PropTypes.arrayOf( PropTypes.shape( {
 		id: PropTypes.string.isRequired,
 		name: PropTypes.string.isRequired,
-		enabled: PropTypes.bool.isRequired,
-		adjustment: PropTypes.number.isRequired,
-		adjustment_type: PropTypes.string.isRequired,
+		enabled: PropTypes.bool,
+		adjustment: PropTypes.number,
+		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,

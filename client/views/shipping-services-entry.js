@@ -53,4 +53,10 @@ ShippingServiceEntry.propTypes = {
 	settingsKey: PropTypes.string.isRequired,
 };
 
+ShippingServiceEntry.defaultProps = {
+	enabled: false,
+	adjustment: 0,
+	adjustment_type: 'flat',
+};
+
 export default ShippingServiceEntry;
