@@ -41,7 +41,6 @@ const Settings = React.createClass( {
 		setTimeout( () => {
 			this.props.formActions.setField( 'isSaving', false );
 		}, 2000 );
-		}, 2000 );
 	},
 	render: function() {
 		const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = this.props;
