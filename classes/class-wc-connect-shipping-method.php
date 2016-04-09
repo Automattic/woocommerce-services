@@ -254,7 +254,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * @return bool
 		 */
-		public function process_admin_options() {
+		public function process_admin_options( $post_data = array() ) {
 
 			$settings = $this->get_posted_form_settings();
 
