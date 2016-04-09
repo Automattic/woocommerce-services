@@ -40,10 +40,12 @@ const Settings = React.createClass( {
 	},
 	handleSaveForm: function( event ) {
 		event.preventDefault();
-		this.props.formActions.setFormState( 'saving' );
+		this.props.formActions.updateFormElementField( 'saveButton', 'isSaving', true );
 
-		// TODO: Replace with actual logic for sending form data
-		setTimeout( () => this.props.formActions.setFormState( 'default' ), 2000 );
+		// TODO: Replace with call for sending form data
+		setTimeout( () => {
+			this.props.formActions.updateFormElementField( 'saveButton', 'isSaving', false );
+		}, 2000 );
 	},
 	render: function() {
 		const { settings, form, wooCommerceSettings, settingsActions, schema } = this.props;
@@ -123,7 +125,7 @@ const Settings = React.createClass( {
 				<CompactCard>
 					<FormButtonsBar>
 						<FormButton onClick={ this.handleSaveForm }>
-							{ 'saving' === form.currentState ? 'Saving...' : 'Save changes' }
+							{ form.saveButton.isSaving ? 'Saving...' : 'Save changes' }
 						</FormButton>
 					</FormButtonsBar>
 				</CompactCard>;

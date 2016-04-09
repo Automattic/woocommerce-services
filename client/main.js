@@ -9,7 +9,11 @@ const { formData, formSchema, formLayout, wooCommerceSettings } = wcConnectData;
 
 const store = configureStore( {
 	settings: formData,
-	form: { currentState: 'default' },
+	form: { 
+		saveButton: {
+			isSaving: false
+		},
+	},
 } );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );

@@ -1,8 +1,10 @@
-export const SET_FORM_STATE = 'SET_FORM_STATE';
+export const UPDATE_FORM_ELEMENT_FIELD = 'UPDATE_FORM_ELEMENT_FIELD';
 
-export const setFormState = ( stateName ) => {
+export const updateFormElementField = ( element, field, value ) => {
 	return {
-		type: SET_FORM_STATE,
-		value: stateName,
+		type: UPDATE_FORM_ELEMENT_FIELD,
+		element,
+		field,
+		value,
 	};
 };

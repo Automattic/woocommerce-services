@@ -1,15 +1,17 @@
 import {
-	SET_FORM_STATE,
+	UPDATE_FORM_ELEMENT_FIELD,
 } from '../actions/form';
 
-const setFormState = ( state, action ) => {
-	return Object.assign( {}, state, { currentState: action.value } );
+const updateFormElementField = ( state, action ) => {
+	const newState = Object.assign( {}, state );
+	newState[ action.element ][ action.field ] = action.value;
+	return newState;
 };
 
 export default function settings( state = {}, action ) {
 	switch ( action.type ) {
-		case SET_FORM_STATE:
-			return setFormState( state, action );
+		case UPDATE_FORM_ELEMENT_FIELD:
+			return updateFormElementField( state, action );
 	}
 
 	return state;
