@@ -4,15 +4,11 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 import configureStore from 'state/store';
 import '../assets/stylesheets/style.scss';
+import initializeState from './lib/initialize-state';
 
 const { formData, formSchema, formLayout, wooCommerceSettings } = wcConnectData;
 
-const store = configureStore( {
-	settings: formData,
-	form: {
-		isSaving: false,
-	},
-} );
+const store = configureStore( initializeState( formSchema, formData ) );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
