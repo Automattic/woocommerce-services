@@ -40,11 +40,11 @@ const Settings = React.createClass( {
 	},
 	handleSaveForm: function( event ) {
 		event.preventDefault();
-		this.props.formActions.updateFormElementField( 'saveButton', 'isSaving', true );
+		this.props.formActions.setField( 'isSaving', true );
 
 		// TODO: Replace with call for sending form data
 		setTimeout( () => {
-			this.props.formActions.updateFormElementField( 'saveButton', 'isSaving', false );
+			this.props.formActions.setField( 'isSaving', false );
 		}, 2000 );
 	},
 	render: function() {
@@ -124,7 +124,7 @@ const Settings = React.createClass( {
 				<CompactCard>
 					<FormButtonsBar>
 						<FormButton onClick={ this.handleSaveForm }>
-							{ form.saveButton.isSaving ? 'Saving...' : 'Save changes' }
+							{ form.isSaving ? 'Saving...' : 'Save changes' }
 						</FormButton>
 					</FormButtonsBar>
 				</CompactCard>

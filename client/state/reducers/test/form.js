@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import reducer from '../form';
 import {
 	updateFormElementField,
+	setField,
 } from '../../actions/form';
 
 const initialState = {
@@ -37,7 +38,7 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'UPDATE_SETTINGS_FIELD', () => {
+	it( 'UPDATE_FORM_ELEMENT_FIELD', () => {
 		const key = 'textObj';
 		const field = 'field';
 		const val = { id: 'newID', newfield: 'some new value' };
@@ -50,6 +51,19 @@ describe( 'Settings reducer', () => {
 					id: 'newID',
 					newfield: 'some new value',
 				},
+			},
+		} );
+	} );
+	it( 'SET_FIELD', () => {
+		const key = 'textObj';
+		const val = { id: 'newID', newfield: 'some new value' };
+		const action = setField( key, val );
+		const state = reducer( initialState, action );
+
+		expect( state ).to.eql( {
+			textObj: {
+				id: 'newID',
+				newfield: 'some new value',
 			},
 		} );
 	} );
