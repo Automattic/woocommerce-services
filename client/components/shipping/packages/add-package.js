@@ -15,7 +15,7 @@ class AddPackageDialog extends React.Component {
 
 	render() {
 		return (
-			<div>
+			<div className="wcc-shipping-add-package">
 				<CompactCard>
 					<FormSectionHeading>Add a package</FormSectionHeading>
 					<FormFieldset>
@@ -60,15 +60,15 @@ class AddPackageDialog extends React.Component {
 						<a href="#">Define exterior dimensions</a>
 					</FormFieldset>
 					<FormFieldset>
-						<div style={ { width: '200px', float: 'left' } }>
+						<div className="wcc-shipping-add-package-weight">
 							<FormLabel htmlFor="package_weight">Package weight</FormLabel>
-							<FormTextInput style={ { width: '88%' } } id="package_weight" name="package_weight" placeholder="Weight of box" />
+							<FormTextInput id="package_weight" name="package_weight" placeholder="Weight of box" />
 						</div>
-						<div style={ { width: '200px', float: 'left' } }>
+						<div className="wcc-shipping-add-package-weight">
 							<FormLabel htmlFor="max_weight">Max weight</FormLabel>
-							<FormTextInput style={ { width: '88%' } } id="max_weight" name="max_weight" placeholder="Max weight" /> lbs
+							<FormTextInput id="max_weight" name="max_weight" placeholder="Max weight" /> lbs
 						</div>
-						<FormSettingExplanation style={ { display: 'inline-block' } }>Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
+						<FormSettingExplanation>Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
 					</FormFieldset>
 				</CompactCard>
 				<CompactCard>

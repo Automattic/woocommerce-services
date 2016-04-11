@@ -33,3 +33,17 @@
   margin-top: 10px;
   display: flex;
 }
+
+.wcc-shipping-add-package {
+  .wcc-shipping-add-package-weight {
+	width: 200px;
+	float: left;
+	.form-text-input {
+	  width: 88%;
+	}
+  }
+
+  .form-setting-explanation {
+	display: inline-block;
+  }
+}
