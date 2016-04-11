@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
-		public function set_service_settings_store( $service_settings_store) {
+		public function set_service_settings_store( $service_settings_store ) {
 
 			$this->service_settings_store = $service_settings_store;
 

@@ -82,6 +82,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function handle_wc_api() {
 			$nonce = isset( $_POST['nonce'] ) ? $_POST['nonce'] : '';
+			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
+			$instance = isset( $_POST['instance'] ) ? absint( sanitize_text_field( $_POST['instance'] ) ) : '';
 
 			if ( empty( $nonce ) ) {
 				wp_send_json_error(
@@ -90,7 +92,15 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 						'message' => __( 'The request is invalid. No nonce was given.', 'woocommerce' )
 					)
 				);
-				exit;
+			}
+
+			if ( empty( $id ) ) {
+				wp_send_json_error(
+					array(
+						'error' => 'service_id_missing',
+						'message' => __( 'The request is invalid. No service ID was given.', 'woocommerce' )
+					)
+				);
 			}
 
 			if ( ! current_user_can( 'manage_woocommerce' ) ) {
@@ -100,22 +110,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 						'message' => __( 'You do not have sufficient permissions for this endpoint.', 'woocommerce' )
 					)
 				);
-				exit;
 			}
-
-			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
-
-			if ( empty( $id ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'service_id_missing',
-						'message' => __( 'The request is invalid. No service ID was given.', 'woocommerce' )
-					)
-				);
-				exit;
-			}
-
-			$instance = isset( $_POST['instance'] ) ? sanitize_text_field( $_POST['instance'] ) : '';
 
 			$action = $this->get_wc_api_callback_nonce_action( $id, $instance );
 			if ( ! wp_verify_nonce( $nonce, $action ) ) {
@@ -125,18 +120,29 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					 	'message' => __( 'An invalid nonce was received. Please refresh the page and try again.', 'woocommerce' )
 					)
 				);
-				exit;
 			}
 
-			$service_schema = $this->service_schemas_store->get_service_schema_by_id( $id );
-			if ( ! $service_schema ) {
-				wp_send_json_error(
-					array(
-						'error' => 'bad_service_id',
-					 	'message' => __( 'An invalid service ID was received. Please refresh the page and try again.', 'woocommerce' )
-					)
-				);
-				exit;
+			// Validate instance or at least id if no instance is given
+			if ( ! empty( $instance ) ) {
+				$service_schema = $this->service_schemas_store->get_service_schema_by_instance_id( $instance );
+				if ( ! $service_schema ) {
+					wp_send_json_error(
+						array(
+							'error' => 'bad_instance_id',
+							'message' => __( 'An invalid service instance was received. Please refresh the page and try again.', 'woocommerce' )
+						)
+					);
+				}
+			} else {
+				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $id );
+				if ( ! $service_schema ) {
+					wp_send_json_error(
+						array(
+							'error' => 'bad_service_id',
+							'message' => __( 'An invalid service ID was received. Please refresh the page and try again.', 'woocommerce' )
+						)
+					);
+				}
 			}
 
 			$settings = array();
@@ -152,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					if ( 'boolean' === $properties->type ) {
 						$settings[ $field_name ] = isset( $_POST[ $field_name ] );
 					} elseif ( isset( $_POST[ $field_name ] ) ) {
-						$settings[ $field_name ] = $_POST[ $field_name ];
+						$settings[ $field_name ] = sanitize_text_field( $_POST[ $field_name ] );
 					}
 				}
 			}
@@ -168,13 +174,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					 	'message' => $response_body->get_error_message()
 					)
 				);
-				exit;
 			}
 
 			// On success, save the settings to the database and exit
 			update_option( $this->get_service_settings_key( $id, $instance ), $settings );
 			wp_send_json_success();
-			exit;
 		}
 
 		/**

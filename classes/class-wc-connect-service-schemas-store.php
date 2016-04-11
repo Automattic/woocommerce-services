@@ -53,25 +53,17 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 * @return array An array of that type's service ids, or an empty array if no such type is known
 		 */
 		public function get_all_service_ids_of_type( $type ) {
-			$service_schema_ids = array();
 
 			if ( empty( $type ) ) {
-				return $service_schema_ids;
+				return array();
 			}
 
 			$service_schemas = $this->get_service_schemas();
-			if ( ! is_object( $service_schemas ) ) {
-				return $service_schema_ids;
+			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, $type ) || ! is_array( $service_schemas->$type ) ) {
+				return array();
 			}
 
-			if ( ! property_exists( $service_schemas, $type ) ) {
-				return $service_schema_ids;
-			}
-
-			if ( ! is_array( $service_schemas->$type ) ) {
-				return $service_schema_ids;
-			}
-
+			$service_schema_ids = array();
 			foreach ( $service_schemas->$type as $service_schema ) {
 				$service_schema_ids[] = $service_schema->id;
 			}
@@ -93,10 +85,9 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			foreach ( $service_schemas as $service_type => $service_type_service_schemas ) {
-				foreach ( $service_type_service_schemas as $service_schema ) {
-					if ( $service_schema->id === $service_id ) {
-						return $service_schema;
-					}
+				$matches = wp_filter_object_list( $service_type_service_schemas, array( 'id' => $service_id ) );
+				if ( $matches ) {
+					return array_shift( $matches );
 				}
 			}
 
