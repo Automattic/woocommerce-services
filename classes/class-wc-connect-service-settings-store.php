@@ -117,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				wp_send_json_error(
 					array(
 						'error' => 'bad_nonce',
-					 	'message' => __( 'An invalid nonce was received. Please refresh the page and try again.', 'woocommerce' )
+						'message' => __( 'An invalid nonce was received. Please refresh the page and try again.', 'woocommerce' )
 					)
 				);
 			}
