@@ -3,9 +3,10 @@ import {
 } from '../actions/form';
 
 const updateFormElementField = ( state, action ) => {
-	const newState = Object.assign( {}, state );
-	newState[action.element][action.field] = action.value;
-	return newState;
+	const newObj = {};
+	newObj[action.element] = {};
+	newObj[action.element][action.field] = action.value;
+	return Object.assign( {}, state, newObj );
 };
 
 export default function settings( state = {}, action ) {
