@@ -6,7 +6,7 @@ const ShippingServiceGroups = ( {
 	services,
 	settings,
 	currencySymbol,
-	updateValue,
+	onChange,
 	settingsKey,
 } ) => {
 	// Some shippers have so many services that it is helpful to organize them
@@ -21,12 +21,10 @@ const ShippingServiceGroups = ( {
 				return (
 					<ShippingServiceGroup
 						key={ serviceGroup }
-						title={ serviceGroups[serviceGroup][0].groupName }
-						services={ serviceGroups[serviceGroup] }
 						title={ serviceGroup }
 						services={ serviceGroups[serviceGroup] }
 						currencySymbol={ currencySymbol }
-						updateValue={ updateValue }
+						onChange={ onChange }
 						settingsKey={ settingsKey }
 					/>
 				);
@@ -39,7 +37,7 @@ ShippingServiceGroups.propTypes = {
 	services: PropTypes.array.isRequired,
 	settings: PropTypes.object.isRequired,
 	currencySymbol: PropTypes.string,
-	updateValue: PropTypes.func.isRequired,
+	onChange: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,
 };
 
