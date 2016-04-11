@@ -13,6 +13,42 @@ import SelectOptGroups from 'components/forms/select-opt-groups';
 
 class AddPackageDialog extends React.Component {
 
+	getPackageTypeOptions() {
+
+		const { packageTypes } = this.props;
+
+		const defaultTypesGroup = {
+			label: 'Custom box',
+			options: [
+				{
+					value: 'box',
+					label: 'Box',
+				},
+				{
+					value: 'envelope',
+					label: 'Envelope',
+				},
+			],
+		};
+
+		const customTypes = Object.keys( packageTypes ).map( groupName => {
+			const group = packageTypes[ groupName ];
+			return {
+				label: group.label,
+				options: group.packages.map( groupPackage => ( {
+					value: groupPackage.id,
+					label: groupPackage.name,
+				} ) ),
+			}
+		} );
+
+		return [
+			defaultTypesGroup,
+			...customTypes
+		];
+
+	}
+
 	render() {
 		return (
 			<div className="wcc-shipping-add-package">
@@ -20,30 +56,7 @@ class AddPackageDialog extends React.Component {
 					<FormSectionHeading>Add a package</FormSectionHeading>
 					<FormFieldset>
 						<FormLabel htmlFor="package_type">Type of package</FormLabel>
-						<SelectOptGroups id="package_type" value="box" optGroups={ [
-							{
-								options: [
-									{ value: 'box', label: 'Box' },
-									{ value: 'envelope', label: 'Envelope' }
-								]
-							},
-							{
-								label: 'Saved packages',
-								options: [
-									{ value: 'bike-box', label: 'Bike box' },
-									{ value: 'small-padded-envelope', label: 'Small padded envelope' }
-								]
-							},
-							{
-								label: 'USPS Flat Rate Boxes and Envelopes',
-								options: [
-									{ value: 'small-box', label: 'Priority Mail Small Flat Rate Box' },
-									{ value: 'medium-box', label: 'Priority Mail Medium Flat Rate Box' },
-									{ value: 'large-box', label: 'Priority Mail Large Flat Rate Box' },
-									{ value: 'legal-envelope', label: 'Priority Mail Legal Flat Rate Envelope' }
-								]
-							}
-						] } readOnly={ true } />
+						<SelectOptGroups id="package_type" value="box" optGroups={ this.getPackageTypeOptions() } readOnly={ true } />
 					</FormFieldset>
 					<FormFieldset>
 						<FormLabel htmlFor="package_name">Package name</FormLabel>
