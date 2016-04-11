@@ -22,6 +22,7 @@ import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
 import * as FormActions from 'state/actions/form';
 import ShippingServiceSetup from 'components/shipping-service-setup';
+import TextField from '../text-field';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
@@ -49,6 +50,7 @@ const Settings = React.createClass( {
 	},
 	render: function() {
 		const { settings, form, wooCommerceSettings, settingsActions, schema } = this.props;
+		const { updateSettingsField } = this.props.settingsActions;
 		return (
 			<div>
 				<SectionHeader label="USPS Shipping">
@@ -57,20 +59,19 @@ const Settings = React.createClass( {
 				<CompactCard>
 					<FormSectionHeading>Setup</FormSectionHeading>
 					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.onFieldChange } />
-					<FormFieldset>
-						<FormLabel htmlFor="account_id">USPS Account</FormLabel>
-						<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.onFieldChange } />
-						<FormSettingExplanation>
-							Use the account provided or <a href="#">sign up for your own</a>
-						</FormSettingExplanation>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLabel htmlFor="origin">Origin ZIP Code</FormLabel>
-						<FormTextInput id="origin" name="origin" placeholder="" value={ settings.origin } onChange={ this.onFieldChange } />
-						<FormSettingExplanation>
-							The ZIP code from which you will be shipping your items (required)
-						</FormSettingExplanation>
-					</FormFieldset>
+					<TextField
+						id="account_id"
+						schema={ schema.properties.account_id }
+						value={ settings.account_id }
+						placeholder="WOOUSPS2016"
+						updateValue={ value => updateSettingsField( 'account_id', value ) }
+					/>
+					<TextField
+						id="origin"
+						schema={ schema.properties.origin }
+						value={ settings.origin }
+						updateValue={ value => updateSettingsField( 'origin', value ) }
+					/>
 				</CompactCard>
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
