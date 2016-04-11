@@ -1,6 +1,6 @@
 <?php
 
-class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
+class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 
 	/**
 	 * @var WC_Connect_Loader
@@ -8,7 +8,7 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 	protected $loader;
 
 	/**
-	 * @var WC_Connect_Services_Validator
+	 * @var WC_Connect_Service_Schemas_Validator
 	 */
 	protected $validator;
 
@@ -48,15 +48,15 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 			$this->loader->load_dependencies();
 		}
 
-		if ( ! is_a( $this->validator, 'WC_Connect_Services_Validator' ) ) {
-			$this->validator = new WC_Connect_Services_Validator();
+		if ( ! is_a( $this->validator, 'WC_Connect_Service_Schemas_Validator' ) ) {
+			$this->validator = new WC_Connect_Service_Schemas_Validator();
 		}
 
 	}
 
 	public function test_class_exists() {
 
-		$this->assertTrue( class_exists( 'WC_Connect_Services_Validator' ) );
+		$this->assertTrue( class_exists( 'WC_Connect_Service_Schemas_Validator' ) );
 
 	}
 
@@ -159,7 +159,7 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 	 */
 	public function test_validate_services_errors( $services, $expected ) {
 
-		$result = $this->validator->validate_services( $services );
+		$result = $this->validator->validate_service_schemas( $services );
 
 		$this->assertIsWPError( $result );
 		$this->assertEquals( $expected, $result->get_error_code() );
@@ -172,7 +172,7 @@ class WP_Test_WC_Connect_Services_Validator extends WC_Unit_Test_Case {
 	public function test_validate_services() {
 
 		$services = self::get_golden_services();
-		$result   = $this->validator->validate_services( $services );
+		$result   = $this->validator->validate_service_schemas( $services );
 
 		$this->assertNotWPError( $result );
 		$this->assertTrue( $result );

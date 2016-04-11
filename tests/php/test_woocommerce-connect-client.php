@@ -41,13 +41,13 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	/**
 	 * @dataProvider enqueue_scripts_provider
-	 * @covers WC_Connect_Loader::enqueue_shipping_script
+	 * @covers WC_Connect_Loader::enqueue_service_script
 	 */
-	public function test_enqueue_shipping_script( $hook, $tab, $instance_id, $expected ) {
+	public function test_enqueue_service_script( $hook, $tab, $instance_id, $expected ) {
 
 		$loader = new WC_Connect_Loader();
 
-		$loader->enqueue_shipping_script( $hook, $tab, $instance_id );
+		$loader->enqueue_service_script( $hook, $tab, $instance_id );
 
 		$this->assertEquals( $expected, wp_script_is( self::SHIPPING_SCRIPT_HANDLE, 'registered' ) );
 
@@ -98,12 +98,12 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader = new WC_Connect_Loader();
 		$loader->load_dependencies();
 
-		$store = $this->getMockBuilder( 'WC_Connect_Services_Store' )
+		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
 			->disableOriginalConstructor()
 			->getMock();
-		$loader->set_services_store( $store );
+		$loader->set_service_schemas_store( $store );
 
-		$this->assertEquals( $store, $loader->get_services_store() );
+		$this->assertEquals( $store, $loader->get_service_schemas_store() );
 
 	}
 
@@ -116,12 +116,12 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader = new WC_Connect_Loader();
 		$loader->load_dependencies();
 
-		$validator = $this->getMockBuilder( 'WC_Connect_Services_Validator' )
+		$validator = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Validator' )
 			->disableOriginalConstructor()
 			->getMock();
-		$loader->set_services_validator( $validator );
+		$loader->set_service_schemas_validator( $validator );
 
-		$this->assertEquals( $validator, $loader->get_services_validator() );
+		$this->assertEquals( $validator, $loader->get_service_schemas_validator() );
 
 	}
 
@@ -135,8 +135,8 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$this->assertInstanceOf( 'WC_Connect_Logger', $loader->get_logger() );
 		$this->assertInstanceOf( 'WC_Connect_API_Client', $loader->get_api_client() );
-		$this->assertInstanceOf( 'WC_Connect_Services_Validator', $loader->get_services_validator() );
-		$this->assertInstanceOf( 'WC_Connect_Services_Store', $loader->get_services_store() );
+		$this->assertInstanceOf( 'WC_Connect_Service_Schemas_Validator', $loader->get_service_schemas_validator() );
+		$this->assertInstanceOf( 'WC_Connect_Service_Schemas_Store', $loader->get_service_schemas_store() );
 
 	}
 
@@ -145,9 +145,9 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	 */
 	public function test_init_shipping_method() {
 
-		$store = $this->getMockBuilder( 'WC_Connect_Services_Store' )
+		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'get_service_by_id_or_instance_id' ) )
+			->setMethods( array( 'get_service_schema_by_id_or_instance_id' ) )
 			->getMock();
 
 		$service_data = array(
@@ -155,27 +155,27 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		);
 
 		$store->expects( $this->any() )
-			->method( 'get_service_by_id_or_instance_id' )
+			->method( 'get_service_schema_by_id_or_instance_id' )
 			->will( $this->returnValue( $service_data ) );
 
 		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'get_services_store' ) )
+			->setMethods( array( 'get_service_schemas_store' ) )
 			->getMock();
 
 		$loader->expects( $this->any() )
-			->method( 'get_services_store' )
+			->method( 'get_service_schemas_store' )
 			->will( $this->returnValue( $store ) );
 
 		$loader->load_dependencies();
 
 		$method = new WC_Connect_Shipping_Method();
 
-		$loader->init_shipping_method( $method, 1 );
+		$loader->init_service( $method, 1 );
 
 		$this->assertEquals( $loader->get_logger(), $method->get_logger() );
 		$this->assertEquals( $loader->get_api_client(), $method->get_api_client() );
-		$this->assertEquals( $service_data, $method->get_service() );
+		$this->assertEquals( $service_data, $method->get_service_schema() );
 
 	}
 
