@@ -351,6 +351,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function admin_options() {
+			// hide WP native save button on settings page
+			global $hide_save_button;
+			$hide_save_button = true;
 
 			$this->localize_and_enqueue_form_script();
 
