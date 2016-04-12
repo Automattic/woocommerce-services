@@ -1,23 +1,17 @@
-const getItemValue = ( schema, value ) => {
-	if ( value ) {
-		return value;
-	}
+import handleObject from './handle-object';
 
-	if ( schema.default ) {
-		return schema.default;
-	}
-
+const getItemValue = ( schema, value, definitions ) => {
 	switch ( schema.type ) {
 		case 'boolean':
-			return false;
+			return value || schema.default || false;
 		case 'number':
-			return 0;
+			return value || schema.default || 0;
 		case 'string':
-			return '';
+			return value || schema.default || '';
 		case 'array':
 			return [];
 		case 'object':
-			return {};
+			return handleObject( schema, value, definitions );
 		default:
 			return null;
 	}
@@ -25,9 +19,8 @@ const getItemValue = ( schema, value ) => {
 
 export default ( schema, values ) => {
 	const formValues = {};
-
 	Object.keys( schema.properties ).forEach( ( key ) => {
-		formValues[key] = getItemValue( schema.properties[key], values[key] );
+		formValues[key] = getItemValue( schema.properties[key], values[key], schema.definitions );
 	} );
 
 	return {
