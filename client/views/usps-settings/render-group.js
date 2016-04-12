@@ -1,31 +1,20 @@
 import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
-import TextField from '../text-field';
+import RenderItem from './render-item';
 
-const RenderField = ( { item, schema, settings, updateValue } ) => {
-	const id = item.key ? item.key : item;
-	return (
-		<TextField
-			id={ id }
-			schema={ schema.properties[id] }
-			value={ settings[id] }
-			placeholder={ item.placeholder }
-			updateValue={ value => updateValue( id, value ) }
-		/>
-	);
-};
-
-const Group = ( { group, schema, settings, updateValue } ) => (
+const Group = ( { group, schema, settings, updateValue, updateSubValue, updateSubSubValue } ) => (
 	<CompactCard>
 		<FormSectionHeading>{ group.title }</FormSectionHeading>
 		{ group.items.map( item => (
-			<RenderField
+			<RenderItem
 				key={ item.key ? item.key : item }
 				item={ item }
 				schema={ schema }
 				settings={ settings }
 				updateValue={ updateValue }
+				updateSubValue={ updateSubValue }
+				updateSubSubValue={ updateSubSubValue }
 			/>
 		) ) }
 	</CompactCard>
@@ -39,6 +28,8 @@ Group.propTypes = {
 	schema: PropTypes.object.isRequired,
 	settings: PropTypes.object.isRequired,
 	updateValue: PropTypes.func.isRequired,
+	updateSubValue: PropTypes.func.isRequired,
+	updateSubSubValue: PropTypes.func.isRequired,
 };
 
 export default Group;

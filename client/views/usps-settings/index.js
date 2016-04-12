@@ -60,7 +60,9 @@ const Settings = React.createClass( {
 					group={ layout[0] }
 					schema={ schema }
 					settings={ settings }
-					updateValue={ ( key, value ) => updateSettingsField( key, value ) }
+					updateValue={ updateSettingsField }
+					updateSubValue={ () => {} }
+					updateSubSubValue={ updateSettingsObjectSubField }
 				/>
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
