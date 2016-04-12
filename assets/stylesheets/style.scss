@@ -1,10 +1,15 @@
-#wc-connect-admin-container {
+// Only nest imports that conflict with WP core style or apply
+// to elements rendered as a child of our React container
+@import 'shared/functions'; // functions that we've used from Compass, ported over
+@import 'shared/functions/functions'; // sass functions for z-index, etc.
+@import 'shared/colors'; // import all of our wpcom colors
+@import 'components/dialog/style';
+
+#wc-connect-admin-container,
+.wcc-modal {
 
   // Shared
   @import 'shared/reset'; // css reset before the rest of the styles are defined
-  @import 'shared/functions'; // functions that we've used from Compass, ported over
-  @import 'shared/functions/functions'; // sass functions for z-index, etc.
-  @import 'shared/colors'; // import all of our wpcom colors
   @import 'shared/utilities'; // Helper classes
   @import 'shared/typography'; // all the typographic rules, variables, etc.
   @import 'shared/mixins/mixins'; // sass mixins for gradients, bordius radii, etc.
