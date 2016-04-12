@@ -6,7 +6,6 @@ import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
 import FormCheckbox from 'components/forms/form-checkbox';
-import FormButtonsBar from 'components/forms/form-buttons-bar';
 import FormInputValidation from 'components/forms/form-input-validation';
 import SelectOptGroups from 'components/forms/select-opt-groups';
 import Dialog from 'components/dialog';
@@ -54,6 +53,16 @@ class AddPackageDialog extends React.Component {
 		];
 	}
 
+	getDialogButtons() {
+		return [
+			<FormLabel>
+				<FormCheckbox checked={ true } readOnly={ true } />
+				<span>Save package to use in other shipping methods</span>
+			</FormLabel>,
+			<FormButton>Add package</FormButton>
+		];
+	}
+
 	renderOuterDimensionsToggle() {
 		if ( this.state.hideOuterDimensions ) {
 			return (
@@ -80,7 +89,11 @@ class AddPackageDialog extends React.Component {
 
 	render() {
 		return (
-			<Dialog isVisible={ true } additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog" onClose={ this.props.onClose }>
+			<Dialog
+				isVisible={ true }
+				additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
+				onClose={ this.props.onClose }
+				buttons={ this.getDialogButtons() }>
 				<FormSectionHeading>Add a package</FormSectionHeading>
 				<FormFieldset>
 					<FormLabel htmlFor="package_type">Type of package</FormLabel>
@@ -112,14 +125,6 @@ class AddPackageDialog extends React.Component {
 					</div>
 					<FormSettingExplanation>Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
 				</FormFieldset>
-
-				<FormLabel>
-					<FormCheckbox checked={ true } readOnly={ true } />
-					<span>Save package to use in other shipping methods</span>
-				</FormLabel>
-				<FormButtonsBar>
-					<FormButton>Add package</FormButton>
-				</FormButtonsBar>
 			</Dialog>
 		);
 	}
