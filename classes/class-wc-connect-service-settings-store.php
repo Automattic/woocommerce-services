@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH' ) ) {
+	define( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH', 32 );
+}
+
 if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 	class WC_Connect_Service_Settings_Store {
@@ -82,6 +86,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function handle_wc_api() {
 			$nonce = isset( $_POST['nonce'] ) ? $_POST['nonce'] : '';
+			$json_encoded_settings = isset( $_POST['settings'] ) ? $_POST['settings'] : '';
 			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
 			$instance = isset( $_POST['instance'] ) ? absint( sanitize_text_field( $_POST['instance'] ) ) : '';
 
@@ -90,6 +95,25 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					array(
 						'error' => 'nonce_missing',
 						'message' => __( 'The request is invalid. No nonce was given.', 'woocommerce' )
+					)
+				);
+			}
+
+			if ( empty( $json_encoded_settings ) ) {
+				wp_send_json_error(
+					array(
+						'error' => 'settings_missing',
+						'message' => __( 'The request is invalid. No settings were given.', 'woocommerce' )
+					)
+				);
+			}
+
+			$settings = json_decode( stripslashes( $json_encoded_settings ), false, WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH );
+			if ( is_null( $settings ) ) {
+				wp_send_json_error(
+					array(
+						'error' => 'malformed_settings',
+						'message' => __( 'The request is invalid. Settings must be provided as JSON.', 'woocommerce' )
 					)
 				);
 			}
@@ -142,24 +166,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 							'message' => __( 'An invalid service ID was received. Please refresh the page and try again.', 'woocommerce' )
 						)
 					);
-				}
-			}
-
-			$settings = array();
-			$settings_schema = $service_schema->service_settings;
-
-			// Whitelist settings to be sent to the validation endpoint using the schema
-			// in the service's service_settings
-			if ( isset( $settings_schema->properties ) ) {
-				foreach ( (array) $settings_schema->properties as $field_name => $properties ) {
-					// Special handling is needed to turn checkboxes back into booleans
-					// since our form returns 'on' for checkboxes if they are checked and omits
-					// the key if they are not checked
-					if ( 'boolean' === $properties->type ) {
-						$settings[ $field_name ] = isset( $_POST[ $field_name ] );
-					} elseif ( isset( $_POST[ $field_name ] ) ) {
-						$settings[ $field_name ] = sanitize_text_field( $_POST[ $field_name ] );
-					}
 				}
 			}
 
