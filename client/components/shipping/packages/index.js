@@ -11,7 +11,7 @@ export default React.createClass( {
 	displayName: 'Packages',
 	getInitialState: function() {
 		return {
-			addingPackage: false
+			addingPackage: false,
 		};
 	},
 	render: function() {
@@ -49,5 +49,5 @@ export default React.createClass( {
 				<AddPackageDialog { ...this.props } />
 			);
 		}
-	}
+	},
 } );

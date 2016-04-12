@@ -21,7 +21,6 @@ class AddPackageDialog extends React.Component {
 	}
 
 	getPackageTypeOptions() {
-
 		const { packageTypes } = this.props;
 
 		const defaultTypesGroup = {
@@ -39,7 +38,7 @@ class AddPackageDialog extends React.Component {
 		};
 
 		const customTypes = Object.keys( packageTypes ).map( groupName => {
-			const group = packageTypes[ groupName ];
+			const group = packageTypes[groupName];
 			return {
 				label: group.label,
 				options: group.packages.map( groupPackage => ( {
@@ -51,9 +50,8 @@ class AddPackageDialog extends React.Component {
 
 		return [
 			defaultTypesGroup,
-			...customTypes
+			...customTypes,
 		];
-
 	}
 
 	renderOuterDimensionsToggle() {
@@ -62,7 +60,7 @@ class AddPackageDialog extends React.Component {
 				<a
 					href="#"
 					onClick={ ( evt ) => {
-				   		evt.preventDefault();
+						evt.preventDefault();
 						this.setState( { hideOuterDimensions: false } );
 					} }>
 					Define exterior dimensions
