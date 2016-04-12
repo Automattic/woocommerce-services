@@ -161,8 +161,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			// We need to initialize the instance title ($this->title)
 			// from the settings blob
-			if ( array_key_exists( 'title', $form_settings ) ) {
-				$this->title = $form_settings['title'];
+			if ( property_exists( $form_settings, 'title' ) ) {
+				$this->title = $form_settings->title;
 			}
 
 		}
@@ -210,10 +210,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * Used by WC_Connect_Loader to embed the form schema in the page for JS to consume
 		 *
-		 * @return array
+		 * @return object
 		 */
 		public function get_service_settings() {
-			return $this->service_settings_store->get_service_settings( $this->id, $this->instance_id );
+			$service_settings = $this->service_settings_store->get_service_settings( $this->id, $this->instance_id );
+			if ( ! is_object( $service_settings ) ) {
+				$service_settings = new stdClass();
+			}
+			return $service_settings;
 		}
 
 		/**
