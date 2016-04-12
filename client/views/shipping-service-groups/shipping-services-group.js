@@ -21,7 +21,7 @@ const ShippingServiceGroup = ( {
 					adjustment={ service.adjustment }
 					adjustment_type={ service.adjustment_type }
 					currencySymbol={ currencySymbol }
-					updateValue={ ( key, val ) => updateValue( service.id, key, val) }
+					updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
 					settingsKey={ settingsKey }
 				/>
 			);

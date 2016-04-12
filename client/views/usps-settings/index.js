@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import SectionHeader from 'components/section-header';
 import FormToggle from 'components/forms/form-toggle';
 import FormSectionHeading from 'components/forms/form-section-heading';
@@ -21,17 +21,17 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
 import * as FormActions from 'state/actions/form';
-import ShippingServiceSetup from 'components/shipping-service-setup';
-import TextField from '../text-field';
+import SettingsGroup from './render-group';
 
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	propTypes: {
-		settingsActions: React.PropTypes.object.isRequired,
-		formActions: React.PropTypes.object.isRequired,
-		wooCommerceSettings: React.PropTypes.object.isRequired,
-		settings: React.PropTypes.object.isRequired,
-		schema: React.PropTypes.object.isRequired,
+		settingsActions: PropTypes.object.isRequired,
+		formActions: PropTypes.object.isRequired,
+		wooCommerceSettings: PropTypes.object.isRequired,
+		settings: PropTypes.object.isRequired,
+		schema: PropTypes.object.isRequired,
+		layout: PropTypes.array.isRequired,
 	},
 	onFieldChange: function( { target } = event ) {
 		const { updateSettingsField } = this.props.settingsActions;
@@ -49,30 +49,19 @@ const Settings = React.createClass( {
 		}, 2000 );
 	},
 	render: function() {
-		const { settings, form, wooCommerceSettings, settingsActions, schema } = this.props;
-		const { updateSettingsField } = this.props.settingsActions;
+		const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = this.props;
+		const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
 		return (
 			<div>
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
-				<CompactCard>
-					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.onFieldChange } />
-					<TextField
-						id="account_id"
-						schema={ schema.properties.account_id }
-						value={ settings.account_id }
-						placeholder="WOOUSPS2016"
-						updateValue={ value => updateSettingsField( 'account_id', value ) }
-					/>
-					<TextField
-						id="origin"
-						schema={ schema.properties.origin }
-						value={ settings.origin }
-						updateValue={ value => updateSettingsField( 'origin', value ) }
-					/>
-				</CompactCard>
+				<SettingsGroup
+					group={ layout[0] }
+					schema={ schema }
+					settings={ settings }
+					updateValue={ ( key, value ) => updateSettingsField( key, value ) }
+				/>
 				<CompactCard>
 					<FormSectionHeading>Rates</FormSectionHeading>
 					<FormFieldset>
@@ -81,7 +70,7 @@ const Settings = React.createClass( {
 							services={ schema.definitions.services }
 							settings={ settings.services }
 							currencySymbol={ wooCommerceSettings.currency_symbol }
-							onChange={ settingsActions.updateSettingsObjectSubField }
+							updateValue={ ( id, key, val ) => updateSettingsObjectSubField( 'services', id, key, val ) }
 							settingsKey="services"
 						/>
 					</FormFieldset>
