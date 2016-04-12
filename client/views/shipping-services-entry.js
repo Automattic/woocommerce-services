@@ -14,7 +14,7 @@ const ShippingServiceEntry = ( {
 	settingsKey,
 } ) => {
 	const onCheckboxChange = ( event ) => onChange( settingsKey, id, event.target.name, event.target.checked );
-	const onNumericChange = ( event ) => onChange( settingsKey, id, event.target.name, parseFloat( event.target.value ) );
+	const onNumericChange = ( event ) => onChange( settingsKey, id, event.target.name, parseFloat( event.target.value || 0 ) );
 	const onTextChange = ( event ) => onChange( settingsKey, id, event.target.name, event.target.value );
 
 	return (
