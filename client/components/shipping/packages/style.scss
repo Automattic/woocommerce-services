@@ -34,15 +34,15 @@
   display: flex;
 }
 
-.wcc-shipping-add-package {
-  .wcc-shipping-add-package-weight {
-	width: 200px;
-	float: left;
-	.form-text-input {
-	  width: 88%;
-	}
+.wcc-shipping-add-package-weight {
+  width: 200px;
+  float: left;
+  .form-text-input {
+	width: 88%;
   }
+}
 
+& .wcc-shipping-add-edit-package-dialog {
   .form-setting-explanation {
 	display: inline-block;
   }
