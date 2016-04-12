@@ -46,7 +46,7 @@ export default React.createClass( {
 	renderAddPackage: function() {
 		if ( this.state.addingPackage ) {
 			return (
-				<AddPackageDialog { ...this.props } />
+				<AddPackageDialog { ...this.props } onClose={ () => this.setState( { addingPackage: false } ) } />
 			);
 		}
 	},
