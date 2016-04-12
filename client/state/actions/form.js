@@ -1,6 +1,5 @@
 export const UPDATE_FORM_ELEMENT_FIELD = 'UPDATE_FORM_ELEMENT_FIELD';
 export const SET_FIELD = 'SET_FIELD';
-export const FORM_SAVE_SUCCESSFUL = 'FORM_SAVE_SUCCESSFUL';
 
 export const updateFormElementField = ( element, field, value ) => {
 	return {

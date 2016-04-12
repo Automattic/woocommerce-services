@@ -23,6 +23,26 @@ import * as SettingsActions from 'state/actions/settings';
 import * as FormActions from 'state/actions/form';
 import SettingsGroup from './render-group';
 
+const PropTypes = React.PropTypes;
+
+const SaveChangesButton = ( { onClick, isSaving } ) =>
+	<CompactCard>
+		<FormButtonsBar>
+			<FormButton onClick={ onClick }>
+				{ isSaving ? 'Saving...' : 'Save changes' }
+			</FormButton>
+		</FormButtonsBar>
+	</CompactCard>;
+
+SaveChangesButton.defaultProps = {
+	isSaving: false,
+};
+
+SaveChangesButton.propTypes = {
+	onClick: React.PropTypes.func.isRequired,
+	isSaving: React.PropTypes.bool.isRequired,
+};
+
 const Settings = React.createClass( {
 	displayName: 'Settings',
 	propTypes: {
@@ -32,12 +52,6 @@ const Settings = React.createClass( {
 		settings: PropTypes.object.isRequired,
 		schema: PropTypes.object.isRequired,
 		layout: PropTypes.array.isRequired,
-	},
-	onFieldChange: function( { target } = event ) {
-		const { updateSettingsField } = this.props.settingsActions;
-		const key = target.name;
-		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
-		updateSettingsField( key, value );
 	},
 	handleSaveForm: function( event ) {
 		event.preventDefault();
@@ -53,6 +67,7 @@ const Settings = React.createClass( {
 		const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
 		return (
 			<div>
+				<SaveChangesButton isSaving={ 'saving' === form.currentState } onClick={ this.handleSaveForm } />
 				<SectionHeader label="USPS Shipping">
 					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
 				</SectionHeader>
@@ -74,6 +89,7 @@ const Settings = React.createClass( {
 							currencySymbol={ wooCommerceSettings.currency_symbol }
 							updateValue={ ( id, key, val ) => updateSettingsObjectSubField( 'services', id, key, val ) }
 							settingsKey="services"
+							serviceSettings={ settings.services || {} }
 						/>
 					</FormFieldset>
 					<FormFieldset>
