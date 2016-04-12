@@ -129,40 +129,6 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'UPDATE_SETTINGS_ARRAY_FIELD', () => {
-		const array_key = 'testArrayKey';
-		const id = 'ALPHA';
-		const key = 'testItemField';
-		const value = 'ACK';
-		const action = updateSettingsArrayField( array_key, id, key, value );
-		const state = settings( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'ACK',
-				},
-				{
-					id: 'BETA',
-					testItemField: 'BEE',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
 	it( 'ADD_SETTINGS_OBJECT_FIELD', () => {
 		const settingsKey = 'testPckgs';
 		const key = 'PCKG_B';
