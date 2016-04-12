@@ -16,7 +16,18 @@ const getDefault = ( definition, itemSchema ) => {
 
 const handleObject = ( schema, value, definitions ) => {
 	const defaultValues = getDefault( definitions[schema.definition], schema.items );
-	return Object.assign( defaultValues, value );
+
+	if ( value ) {
+		Object.keys( value ).forEach( key => {
+			if ( ! defaultValues[ key ] ) { //ignore values that don't exist in the schema
+				return;
+			}
+
+			Object.assign( defaultValues[ key ], value[ key ] );
+		} );
+	}
+
+	return defaultValues;
 };
 
 export default handleObject;
