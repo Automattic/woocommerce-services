@@ -3,7 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 import configureStore from 'state/store';
-import UspsSettings from 'views/usps-settings';
 import '../assets/stylesheets/style.scss';
 
 // Temporarily add dummy data
@@ -113,6 +112,7 @@ const store = configureStore( {
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
+	const UspsSettings = require( 'views/usps-settings' );
 	ReactDOM.render(
 		<Provider store={ store }>
 			<UspsSettings
