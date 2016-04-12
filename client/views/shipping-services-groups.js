@@ -4,6 +4,7 @@ import ShippingServiceGroup from './shipping-services-group';
 import mapValues from 'lodash/mapValues';
 import sortedUniq from 'lodash/sortedUniq';
 import values from 'lodash/values';
+import filter from 'lodash/filter';
 
 const ShippingServiceGroups = ( {
 	services,
@@ -23,7 +24,7 @@ const ShippingServiceGroups = ( {
 					<ShippingServiceGroup
 						key={ serviceGroup }
 						title={ serviceGroup }
-						services={ services.filter( service => service.group === serviceGroup ) }
+						services={ filter( services, service => service.group === serviceGroup ) }
 						currencySymbol={ currencySymbol }
 						onChange={ onChange }
 						settingsKey={ settingsKey }
@@ -35,7 +36,7 @@ const ShippingServiceGroups = ( {
 };
 
 ShippingServiceGroups.propTypes = {
-	services: PropTypes.array.isRequired,
+	services: PropTypes.object.isRequired,
 	currencySymbol: PropTypes.string,
 	onChange: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,
