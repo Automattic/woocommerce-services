@@ -1,5 +1,4 @@
 export const UPDATE_SETTINGS_FIELD = 'UPDATE_SETTINGS_FIELD';
-export const UPDATE_SETTINGS_ARRAY_FIELD = 'UPDATE_SETTINGS_ARRAY_FIELD';
 export const ADD_SETTINGS_OBJECT_FIELD = 'ADD_SETTINGS_OBJECT_FIELD';
 export const REMOVE_SETTINGS_OBJECT_FIELD = 'REMOVE_SETTINGS_OBJECT_FIELD';
 export const UPDATE_SETTINGS_OBJECT_SUB_FIELD = 'UPDATE_SETTINGS_OBJECT_SUB_FIELD';
@@ -8,16 +7,6 @@ export const REMOVE_SETTINGS_OBJECT_SUB_FIELD = 'REMOVE_SETTINGS_OBJECT_SUB_FIEL
 export function updateSettingsField( key, value ) {
 	return {
 		type: UPDATE_SETTINGS_FIELD,
-		key: key,
-		value: value,
-	};
-}
-
-export function updateSettingsArrayField( array_key, id, key, value ) {
-	return {
-		type: UPDATE_SETTINGS_ARRAY_FIELD,
-		array_key: array_key,
-		id: id,
 		key: key,
 		value: value,
 	};

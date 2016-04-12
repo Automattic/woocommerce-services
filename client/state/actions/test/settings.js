@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import {
 	updateSettingsField,
-	updateSettingsArrayField,
 	addSettingsObjectField,
 	removeSettingsObjectField,
 	updateSettingsObjectSubField,
@@ -18,40 +17,6 @@ describe( 'Settings actions', () => {
 		expect( action ).to.eql( {
 			type: 'UPDATE_SETTINGS_FIELD',
 			key: 'testField',
-			value: 'testValue',
-		} );
-	} );
-
-	it( '#updateSettingsArrayField()', () => {
-		const array_key = 'testArrayKey';
-		const id = 'testID';
-		const key = 'testKey';
-		const value = 'testValue';
-
-		const action = updateSettingsArrayField( array_key, id, key, value );
-
-		expect( action ).to.eql( {
-			type: 'UPDATE_SETTINGS_ARRAY_FIELD',
-			array_key: 'testArrayKey',
-			id: 'testID',
-			key: 'testKey',
-			value: 'testValue',
-		} );
-	} );
-
-	it( '#updateSettingsArrayField()', () => {
-		const array_key = 'testArrayKey';
-		const id = 'testID';
-		const key = 'testKey';
-		const value = 'testValue';
-
-		const action = updateSettingsArrayField( array_key, id, key, value );
-
-		expect( action ).to.eql( {
-			type: 'UPDATE_SETTINGS_ARRAY_FIELD',
-			array_key: 'testArrayKey',
-			id: 'testID',
-			key: 'testKey',
 			value: 'testValue',
 		} );
 	} );

@@ -1,7 +1,5 @@
-import cloneDeep from 'lodash/cloneDeep';
 import {
 	UPDATE_SETTINGS_FIELD,
-	UPDATE_SETTINGS_ARRAY_FIELD,
 	ADD_SETTINGS_OBJECT_FIELD,
 	REMOVE_SETTINGS_OBJECT_FIELD,
 	UPDATE_SETTINGS_OBJECT_SUB_FIELD,
@@ -11,20 +9,6 @@ import {
 const updateSettingField = ( state, action ) => {
 	return Object.assign( {}, state, {
 		[action.key]: action.value,
-	} );
-};
-
-const updateSettingsArrayField = ( state, action ) => {
-	const originalArray = cloneDeep( state[action.array_key] );
-	const updatedArray = originalArray.map( arrayItemState => {
-		if ( action.id !== arrayItemState.id ) {
-			return arrayItemState;
-		}
-		arrayItemState[action.key] = action.value;
-		return arrayItemState;
-	} );
-	return Object.assign( {}, state, {
-		[action.array_key]: updatedArray,
 	} );
 };
 
@@ -82,8 +66,6 @@ export default function settings( state = {}, action ) {
 	switch ( action.type ) {
 		case UPDATE_SETTINGS_FIELD:
 			return updateSettingField( state, action );
-		case UPDATE_SETTINGS_ARRAY_FIELD:
-			return updateSettingsArrayField( state, action );
 		case ADD_SETTINGS_OBJECT_FIELD:
 			return addSettingsObjectField( state, action );
 		case REMOVE_SETTINGS_OBJECT_FIELD:

@@ -6,8 +6,8 @@ import configureStore from 'state/store';
 import '../assets/stylesheets/style.scss';
 
 // Temporarily add dummy data
-wcConnectData.formData.services = [
-	{
+wcConnectData.formData.services = {
+	FIRST_CLASS_MAIL: {
 		id: 'FIRST_CLASS_MAIL',
 		group: 'First-Class',
 		title: 'First-Class Mail',
@@ -15,7 +15,7 @@ wcConnectData.formData.services = [
 		adjustment: 11,
 		adjustment_type: 'flat',
 	},
-	{
+	FIRST_CLASS_INTERNATIONAL_LETTERS: {
 		id: 'FIRST_CLASS_INTERNATIONAL_LETTERS',
 		group: 'First-Class',
 		title: 'First-Class Mail International Letters',
@@ -23,7 +23,7 @@ wcConnectData.formData.services = [
 		adjustment: 2,
 		adjustment_type: 'flat',
 	},
-	{
+	GLOBAL_EXPRESS_GUARANTEED: {
 		id: 'GLOBAL_EXPRESS_GUARANTEED',
 		group: 'Global Express',
 		title: 'Global Express Guaranteed',
@@ -31,7 +31,7 @@ wcConnectData.formData.services = [
 		adjustment: 3,
 		adjustment_type: 'flat',
 	},
-	{
+	INTERNATIONAL_POSTCARDS: {
 		id: 'INTERNATIONAL_POSTCARDS',
 		group: 'Other Services',
 		title: 'International Postcards',
@@ -39,7 +39,7 @@ wcConnectData.formData.services = [
 		adjustment: 4,
 		adjustment_type: 'flat',
 	},
-	{
+	LIBRARY_MAIL: {
 		id: 'LIBRARY_MAIL',
 		group: 'Other Services',
 		title: 'Library Mail',
@@ -47,7 +47,7 @@ wcConnectData.formData.services = [
 		adjustment: 10,
 		adjustment_type: 'percentage',
 	},
-	{
+	MEDIA_MAIL: {
 		id: 'MEDIA_MAIL',
 		group: 'Other Services',
 		title: 'Media Mail',
@@ -55,7 +55,7 @@ wcConnectData.formData.services = [
 		adjustment: 20,
 		adjustment_type: 'percentage',
 	},
-	{
+	PRIORITY_MAIL: {
 		id: 'PRIORITY_MAIL',
 		group: 'Priority Mail',
 		title: 'Priority Mail',
@@ -63,7 +63,7 @@ wcConnectData.formData.services = [
 		adjustment: 30,
 		adjustment_type: 'percentage',
 	},
-	{
+	PRIORITY_MAIL_INTERNATIONAL: {
 		id: 'PRIORITY_MAIL_INTERNATIONAL',
 		group: 'Priority Mail',
 		title: 'Priority Mail International',
@@ -71,7 +71,7 @@ wcConnectData.formData.services = [
 		adjustment: 3,
 		adjustment_type: 'flat',
 	},
-	{
+	PRIORITY_MAIL_EXPRESS: {
 		id: 'PRIORITY_MAIL_EXPRESS',
 		group: 'Priority Mail Express',
 		title: 'Priority Mail Express',
@@ -79,7 +79,7 @@ wcConnectData.formData.services = [
 		adjustment: 1.5,
 		adjustment_type: 'flat',
 	},
-	{
+	PRIORITY_MAIL_EXPRESS_FLAT_RATE: {
 		id: 'PRIORITY_MAIL_EXPRESS_FLAT_RATE',
 		group: 'Priority Mail Express',
 		title: 'Priority Mail Express Flat Rate',
@@ -87,7 +87,7 @@ wcConnectData.formData.services = [
 		adjustment: 1.5,
 		adjustment_type: 'flat',
 	},
-	{
+	PRIORITY_MAIL_EXPRESS_INTERNATIONAL: {
 		id: 'PRIORITY_MAIL_EXPRESS_INTERNATIONAL',
 		group: 'Priority Mail Express',
 		title: 'Priority Mail Express International',
@@ -95,7 +95,7 @@ wcConnectData.formData.services = [
 		adjustment: 1.5,
 		adjustment_type: 'flat',
 	},
-	{
+	STANDARD_POST: {
 		id: 'STANDARD_POST',
 		group: 'Other Services',
 		title: 'Standard Post',
@@ -103,7 +103,7 @@ wcConnectData.formData.services = [
 		adjustment: 20,
 		adjustment_type: 'percentage',
 	},
-];
+};
 
 const store = configureStore( {
 	settings: wcConnectData.formData,

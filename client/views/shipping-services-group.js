@@ -33,6 +33,7 @@ const ShippingServiceGroup = ( {
 ShippingServiceGroup.propTypes = {
 	title: PropTypes.string.isRequired,
 	services: PropTypes.arrayOf( PropTypes.shape( {
+		id: PropTypes.string.isRequired,
 		enabled: PropTypes.bool.isRequired,
 		title: PropTypes.string.isRequired,
 		adjustment: PropTypes.number.isRequired,
