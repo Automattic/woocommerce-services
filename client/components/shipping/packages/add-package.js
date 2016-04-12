@@ -13,6 +13,13 @@ import SelectOptGroups from 'components/forms/select-opt-groups';
 
 class AddPackageDialog extends React.Component {
 
+	constructor() {
+		super();
+		this.state = {
+			hideOuterDimensions: true,
+		};
+	}
+
 	getPackageTypeOptions() {
 
 		const { packageTypes } = this.props;
@@ -49,6 +56,30 @@ class AddPackageDialog extends React.Component {
 
 	}
 
+	renderOuterDimensionsToggle() {
+		if ( this.state.hideOuterDimensions ) {
+			return (
+				<a
+					href="#"
+					onClick={ ( evt ) => {
+				   		evt.preventDefault();
+						this.setState( { hideOuterDimensions: false } );
+					} }>
+					Define exterior dimensions
+				</a>
+			);
+		}
+	}
+
+	renderOuterDimensions() {
+		return this.state.hideOuterDimensions ? null : (
+			<FormFieldset>
+				<FormLabel>Outer Dimensions (L x W x H)</FormLabel>
+				<FormTextInput name="outer_dimensions" placeholder="100.25 x 25.25 x 5.75" />
+			</FormFieldset>
+		);
+	}
+
 	render() {
 		return (
 			<div className="wcc-shipping-add-package">
@@ -69,9 +100,10 @@ class AddPackageDialog extends React.Component {
 					</FormFieldset>
 					<FormFieldset>
 						<FormLabel>Inner Dimensions (L x W x H)</FormLabel>
-						<FormTextInput placeholder="100 x 25 x 5.5" />
-						<a href="#">Define exterior dimensions</a>
+						<FormTextInput name="inner_dimensions" placeholder="100 x 25 x 5.5" />
+						{ this.renderOuterDimensionsToggle() }
 					</FormFieldset>
+					{ this.renderOuterDimensions() }
 					<FormFieldset>
 						<div className="wcc-shipping-add-package-weight">
 							<FormLabel htmlFor="package_weight">Package weight</FormLabel>
