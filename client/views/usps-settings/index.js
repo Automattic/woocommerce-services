@@ -32,15 +32,15 @@ const Settings = React.createClass( {
 		settings: PropTypes.object.isRequired,
 		schema: PropTypes.object.isRequired,
 		layout: PropTypes.array.isRequired,
+		saveFormData: PropTypes.func.isRequired,
 	},
 	handleSaveForm: function( event ) {
 		event.preventDefault();
 		this.props.formActions.setField( 'isSaving', true );
 
-		// TODO: Replace with call for sending form data
-		setTimeout( () => {
+		this.props.saveFormData( this.props.settings ).then( () => {
 			this.props.formActions.setField( 'isSaving', false );
-		}, 2000 );
+		} );
 	},
 	render: function() {
 		const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = this.props;
