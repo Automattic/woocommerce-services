@@ -54,6 +54,7 @@ describe( 'Settings reducer', () => {
 			},
 		} );
 	} );
+
 	it( 'SET_FIELD', () => {
 		const key = 'textObj';
 		const val = { id: 'newID', newfield: 'some new value' };

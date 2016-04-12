@@ -12,14 +12,12 @@ const saveForm = ( url, id, instance, nonce, formData ) => {
 		body,
 	};
 
-	console.log( 'request: ', request );
 	return fetch( url, request ).then( response => {
-		console.log( 'response: ', response );
-		return response.json()
-	} ).then( json => {
-		console.log( 'json response: ', json );
-	} ).catch( e => {
-		console.log( 'error: ', e );
+		return response.json();
+	} ).then( () => {
+		// TODO: Check response
+	} ).catch( () => {
+		// TODO: Handler errors
 	} );
 };
 

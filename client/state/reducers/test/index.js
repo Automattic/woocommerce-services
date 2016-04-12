@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import settings from '../settings';
 import {
 	updateSettingsField,
-	updateSettingsArrayField,
 	addSettingsObjectField,
 	removeSettingsObjectField,
 	updateSettingsObjectSubField,

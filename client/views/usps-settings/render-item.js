@@ -14,8 +14,6 @@ const RenderField = ( { item, schema, settings, updateValue } ) => {
 			/>
 		)
 	}
-
-	console.log( 'Don\'t know how to handle: ', item );
 };
 
 RenderField.propTypes = {
