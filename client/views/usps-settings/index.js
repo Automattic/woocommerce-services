@@ -23,26 +23,22 @@ import * as SettingsActions from 'state/actions/settings';
 import * as FormActions from 'state/actions/form';
 import SettingsGroup from './render-group';
 
-const Settings = React.createClass( {
-	displayName: 'Settings',
-	propTypes: {
-		settingsActions: PropTypes.object.isRequired,
-		formActions: PropTypes.object.isRequired,
-		wooCommerceSettings: PropTypes.object.isRequired,
-		settings: PropTypes.object.isRequired,
-		schema: PropTypes.object.isRequired,
-		layout: PropTypes.array.isRequired,
-		saveFormData: PropTypes.func.isRequired,
-	},
-	handleSaveForm: function( event ) {
+class Settings extends React.Component {
+	constructor( props ) {
+		super( props );
+		this.handleSaveForm = this.handleSaveForm.bind( this );
+	}
+
+	handleSaveForm( event ) {
 		event.preventDefault();
 		this.props.formActions.setField( 'isSaving', true );
 
 		this.props.saveFormData( this.props.settings ).then( () => {
 			this.props.formActions.setField( 'isSaving', false );
 		} );
-	},
-	render: function() {
+	}
+
+	render() {
 		const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = this.props;
 		const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
 		return (
@@ -181,8 +177,19 @@ const Settings = React.createClass( {
 				</CompactCard>
 			</div>
 		);
-	},
-} );
+	}
+}
+
+Settings.propTypes = {
+	settingsActions: PropTypes.object.isRequired,
+	formActions: PropTypes.object.isRequired,
+	wooCommerceSettings: PropTypes.object.isRequired,
+	settings: PropTypes.object.isRequired,
+	schema: PropTypes.object.isRequired,
+	layout: PropTypes.array.isRequired,
+	saveFormData: PropTypes.func.isRequired,
+};
+
 
 function mapStateToProps( state ) {
 	return {
