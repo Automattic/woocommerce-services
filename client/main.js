@@ -7,7 +7,16 @@ import '../assets/stylesheets/style.scss';
 import initializeState from './lib/initialize-state';
 import saveForm from './lib/save-form';
 
-const { formData, formSchema, formLayout, wooCommerceSettings, callbackURL, id, instance, nonce } = wcConnectData;
+const {
+	formData,
+	formSchema,
+	formLayout,
+	wooCommerceSettings,
+	callbackURL,
+	id,
+	instance,
+	nonce,
+} = wcConnectData;
 
 const saveFormData = data => saveForm( callbackURL, id, instance, nonce, data );
 
