@@ -22,15 +22,20 @@ import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
 import ShippingServiceSetup from 'components/shipping-service-setup';
 
-const Settings = React.createClass( {
-	displayName: 'Settings',
-	onFieldChange: function( { target } = event ) {
+class Settings extends React.Component {
+	constructor( props ) {
+		super( props );
+		this.onFieldChange = this.onFieldChange.bind( this );
+	}
+
+	onFieldChange( { target } = event ) {
 		const { updateSettingsField } = this.props.actions;
 		const key = target.name;
 		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
 		updateSettingsField( key, value );
-	},
-	render: function() {
+	}
+
+	render() {
 		const { settings, wooCommerceSettings, actions } = this.props;
 		return (
 			<div>
@@ -176,20 +181,16 @@ const Settings = React.createClass( {
 				</CompactCard>
 			</div>
 		);
-	},
+	}
+}
+
+const mapStateToProps = ( state ) => ( {
+	settings: state.settings,
 } );
 
-function mapStateToProps( state ) {
-	return {
-		settings: state.settings,
-	};
-}
-
-function mapDispatchToProps( dispatch ) {
-	return {
-		actions: bindActionCreators( SettingsActions, dispatch ),
-	};
-}
+const mapDispatchToProps = ( dispatch ) => ( {
+	actions: bindActionCreators( SettingsActions, dispatch ),
+} );
 
 export default connect(
 	mapStateToProps,
