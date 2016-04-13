@@ -19,7 +19,7 @@ const ShippingServiceEntry = ( {
 		<span className="wcc-shipping-service-entry-title">{ title }</span>
 		<FormTextInput
 			value={ adjustment }
-			onChange={ ( event ) => updateValue( 'adjustment', event.target.value ) }
+			onChange={ ( event ) => updateValue( 'adjustment', Number.parseFloat( event.target.value ) ) }
 		/>
 		<FormSelect
 			value={ adjustment_type }
