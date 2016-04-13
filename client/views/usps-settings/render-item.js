@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import TextField from '../text-field';
+import TextField from 'components/text-field';
 
 const RenderField = ( { item, schema, settings, updateValue } ) => {
 	const id = item.key ? item.key : item;
