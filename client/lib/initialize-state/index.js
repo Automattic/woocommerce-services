@@ -9,7 +9,7 @@ const getItemValue = ( schema, value, definitions ) => {
 		case 'string':
 			return value || schema.default || '';
 		case 'array':
-			return [];
+			return value || schema.default || [];
 		case 'object':
 			return handleObject( schema, value, definitions );
 		default:
