@@ -8,6 +8,7 @@ const saveForm = ( url, id, instance, nonce, formData ) => {
 
 	const request = {
 		method: 'POST',
+		credentials: 'same-origin',
 		body,
 	};
 
