@@ -1,32 +1,30 @@
 import React, { PropTypes } from 'react';
+import groupBy from 'lodash/groupBy';
 import ShippingServiceGroup from './shipping-services-group';
-
-import mapValues from 'lodash/mapValues';
-import sortedUniq from 'lodash/sortedUniq';
-import values from 'lodash/values';
-import filter from 'lodash/filter';
 
 const ShippingServiceGroups = ( {
 	services,
+	settings,
 	currencySymbol,
-	onChange,
+	updateValue,
 	settingsKey,
 } ) => {
 	// Some shippers have so many services that it is helpful to organize them
 	// into groups.  This code iterates over the services and extracts the group(s)
 	// it finds.  When rendering, we can then iterate over the group(s).
-	const serviceGroups = sortedUniq( values( mapValues( services, 'group' ) ).sort() );
+	const servicesWithSettings = services.map( svc => Object.assign( {}, svc, settings[svc.id] ) );
+	const serviceGroups = groupBy( servicesWithSettings, svc => svc.group );
 
 	return (
 		<div className="wcc-shipping-services-groups">
-			{ serviceGroups.map( serviceGroup => {
+			{ Object.keys( serviceGroups ).sort().map( serviceGroup => {
 				return (
 					<ShippingServiceGroup
 						key={ serviceGroup }
-						title={ serviceGroup }
-						services={ filter( services, service => service.group === serviceGroup ) }
+						title={ serviceGroups[serviceGroup][0].group_name }
+						services={ serviceGroups[serviceGroup] }
 						currencySymbol={ currencySymbol }
-						onChange={ onChange }
+						updateValue={ updateValue }
 						settingsKey={ settingsKey }
 					/>
 				);
@@ -36,14 +34,16 @@ const ShippingServiceGroups = ( {
 };
 
 ShippingServiceGroups.propTypes = {
-	services: PropTypes.object.isRequired,
+	services: PropTypes.array.isRequired,
+	settings: PropTypes.object.isRequired,
 	currencySymbol: PropTypes.string,
-	onChange: PropTypes.func.isRequired,
+	updateValue: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,
 };
 
 ShippingServiceGroups.defaultProps = {
 	currencySymbol: '$',
+	settings: {},
 };
 
 export default ShippingServiceGroups;

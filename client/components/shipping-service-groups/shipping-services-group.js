@@ -5,7 +5,7 @@ const ShippingServiceGroup = ( {
 	title,
 	services,
 	currencySymbol,
-	onChange,
+	updateValue,
 	settingsKey,
 } ) => (
 	<div className="wcc-shipping-services-group">
@@ -15,14 +15,13 @@ const ShippingServiceGroup = ( {
 		{ services.map( service => {
 			return (
 				<ShippingServiceEntry
-					id={ service.id }
-					key={ service.title }
+					key={ service.id }
 					enabled={ service.enabled }
-					title={ service.title }
+					title={ service.name }
 					adjustment={ service.adjustment }
 					adjustment_type={ service.adjustment_type }
 					currencySymbol={ currencySymbol }
-					onChange={ onChange }
+					updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
 					settingsKey={ settingsKey }
 				/>
 			);
@@ -34,13 +33,13 @@ ShippingServiceGroup.propTypes = {
 	title: PropTypes.string.isRequired,
 	services: PropTypes.arrayOf( PropTypes.shape( {
 		id: PropTypes.string.isRequired,
-		enabled: PropTypes.bool.isRequired,
-		title: PropTypes.string.isRequired,
-		adjustment: PropTypes.number.isRequired,
-		adjustment_type: PropTypes.string.isRequired,
+		name: PropTypes.string.isRequired,
+		enabled: PropTypes.bool,
+		adjustment: PropTypes.number,
+		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
 	currencySymbol: PropTypes.string.isRequired,
-	onChange: PropTypes.func.isRequired,
+	updateValue: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,
 };
 

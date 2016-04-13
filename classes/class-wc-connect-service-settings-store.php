@@ -77,7 +77,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return string
 		 */
 		public function get_wc_api_callback_url() {
-			return get_home_url( null, '/wc-api/wc_connect_loader' );
+			return get_home_url( null, '/wc-api/wc_connect_loader', is_ssl() );
 		}
 
 		/**

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import SectionHeader from 'components/section-header';
 import FormToggle from 'components/forms/form-toggle';
 import FormSectionHeading from 'components/forms/form-section-heading';
@@ -16,181 +16,193 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import CompactCard from 'components/card/compact';
 import Gridicon from 'components/gridicon';
 import SelectOptGroups from 'components/forms/select-opt-groups';
-import ShippingServiceGroups from '../shipping-services-groups';
+import ShippingServiceGroups from 'components/shipping-service-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/actions/settings';
-import ShippingServiceSetup from 'components/shipping-service-setup';
+import * as FormActions from 'state/actions/form';
+import SettingsGroup from './render-group';
 
-class Settings extends React.Component {
-	constructor( props ) {
-		super( props );
-		this.onFieldChange = this.onFieldChange.bind( this );
-	}
+const handleSaveForm = ( event, props ) => {
+	event.preventDefault();
+	props.formActions.setField( 'isSaving', true );
 
-	onFieldChange( { target } = event ) {
-		const { updateSettingsField } = this.props.actions;
-		const key = target.name;
-		const value = ( 'checkbox' === target.type ) ? target.checked : target.value;
-		updateSettingsField( key, value );
-	}
+	props.saveFormData( props.settings ).then( () => {
+		props.formActions.setField( 'isSaving', false );
+	} );
+};
 
-	render() {
-		const { settings, wooCommerceSettings, actions } = this.props;
-		return (
-			<div>
-				<SectionHeader label="USPS Shipping">
-					<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }><FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel></FormToggle>
-				</SectionHeader>
-				<CompactCard>
-					<FormSectionHeading>Setup</FormSectionHeading>
-					<ShippingServiceSetup titlePlaceholder="USPS" titleValue={ settings.title } onChange={ this.onFieldChange }>
-						<FormFieldset>
-							<FormLabel htmlFor="account_id">USPS Account</FormLabel>
-							<FormTextInput id="account_id" name="account_id" placeholder="WOOUSPS2016" value={ settings.account_id } onChange={ this.onFieldChange } />
-							<FormSettingExplanation>
-								Use the account provided or <a href="#">sign up for your own</a>
-							</FormSettingExplanation>
-						</FormFieldset>
-						<FormFieldset>
-							<FormLabel htmlFor="origin">Origin ZIP Code</FormLabel>
-							<FormTextInput id="origin" name="origin" placeholder="" value={ settings.origin } onChange={ this.onFieldChange } />
-							<FormSettingExplanation>
-								The ZIP code from which you will be shipping your items (required)
-							</FormSettingExplanation>
-						</FormFieldset>
-					</ShippingServiceSetup>
-				</CompactCard>
-				<CompactCard>
-					<FormSectionHeading>Rates</FormSectionHeading>
-					<FormFieldset>
-						<FormLegend>Services</FormLegend>
-						<ShippingServiceGroups
-							services={ settings.services }
-							currencySymbol={ wooCommerceSettings.currency_symbol }
-							onChange={ actions.updateSettingsObjectSubField }
-							settingsKey="services"
-						/>
-					</FormFieldset>
-					<FormFieldset>
-						<FormLegend>Show the customer</FormLegend>
-						<FormLabel>
-							<FormRadio value="all" checked={ true } readOnly={ true } />
-							<span>All available rates that apply and let them choose</span>
-						</FormLabel>
-						<FormLabel>
-							<FormRadio value="cheapest" checked={ false } />
-							<span>Only give them the one, cheapest rate</span>
-						</FormLabel>
-					</FormFieldset>
-				</CompactCard>
-				<CompactCard>
-					<FormSectionHeading>Packages</FormSectionHeading>
-					<FormFieldset>
-						<FormLabel htmlFor="packing_method">Packing method</FormLabel>
-						<FormSelect id="packing_method" value="box_packing" readOnly={ true }>
-							<option value="box_packing" readOnly={ true }>When cheaper, pack multiple items in a single package</option>
-							<option value="per_item" readOnly={ true }>Pack items individually</option>
-							<option value="weight_based" readOnly={ true }>Group regular items (less than 12 inches) and get a quote by weight</option>
-						</FormSelect>
-					</FormFieldset>
-					<FormFieldset>
-						<FormSettingExplanation>
-							<Gridicon icon="info-outline" />
-							Your packages will appear here once you add them
-						</FormSettingExplanation>
-					</FormFieldset>
-					<FormFieldset>
-						<FormButton
-							type="button"
-							isPrimary={ false }
-							style={ { float: 'left', marginLeft: 'initial' } }>
-							Add a package
-						</FormButton>
-					</FormFieldset>
-				</CompactCard>
-				<CompactCard>
-					<FormButtonsBar>
-						<FormButton>Save changes</FormButton>
-					</FormButtonsBar>
-				</CompactCard>
-				<br />{ /* Add a package modal */ }
-				<CompactCard>
-					<FormSectionHeading>Add a package</FormSectionHeading>
-					<FormFieldset>
-						<FormLabel htmlFor="package_type">Type of package</FormLabel>
-						<SelectOptGroups id="package_type" value="box" optGroups={ [
-							{
-								options: [
-									{ value: 'box', label: 'Box' },
-									{ value: 'envelope', label: 'Envelope' },
-								],
-							},
-							{
-								label: 'Saved packages',
-								options: [
-									{ value: 'bike-box', label: 'Bike box' },
-									{ value: 'small-padded-envelope', label: 'Small padded envelope' },
-								],
-							},
-							{
-								label: 'USPS Flat Rate Boxes and Envelopes',
-								options: [
-									{ value: 'small-box', label: 'Priority Mail Small Flat Rate Box' },
-									{ value: 'medium-box', label: 'Priority Mail Medium Flat Rate Box' },
-									{ value: 'large-box', label: 'Priority Mail Large Flat Rate Box' },
-									{ value: 'legal-envelope', label: 'Priority Mail Legal Flat Rate Envelope' },
-								],
-							},
-						] } readOnly={ true } />
-					</FormFieldset>
-					<FormFieldset>
-						<FormLabel htmlFor="package_name">Package name</FormLabel>
-						<FormTextInput
-							id="package_name"
-							name="package_name"
-							className="is-error"
-							placeholder="The customer will see this during checkout" />
-						<FormInputValidation isError text="A package name is needed" />
-					</FormFieldset>
-					<FormFieldset>
-						<FormLabel>Inner Dimensions (L x W x H)</FormLabel>
-						<FormTextInput placeholder="100 x 25 x 5.5" />
-						<a href="#">Define exterior dimensions</a>
-					</FormFieldset>
-					<FormFieldset>
-						<div style={ { width: '200px', float: 'left' } }>
-							<FormLabel htmlFor="package_weight">Package weight</FormLabel>
-							<FormTextInput style={ { width: '88%' } } id="package_weight" name="package_weight" placeholder="Weight of box" />
-						</div>
-						<div style={ { width: '200px', float: 'left' } }>
-							<FormLabel htmlFor="max_weight">Max weight</FormLabel>
-							<FormTextInput style={ { width: '88%' } } id="max_weight" name="max_weight" placeholder="Max weight" /> lbs
-						</div>
-						<FormSettingExplanation style={ { display: 'inline-block' } }>Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
-					</FormFieldset>
-				</CompactCard>
-				<CompactCard>
+const Settings = ( props ) => {
+	const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = props;
+	const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
+	return (
+		<div>
+			<SectionHeader label="USPS Shipping">
+				<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }>
+					<FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel>
+				</FormToggle>
+			</SectionHeader>
+			<SettingsGroup
+				group={ layout[0] }
+				schema={ schema }
+				settings={ settings }
+				updateValue={ updateSettingsField }
+				updateSubValue={ () => {} }
+				updateSubSubValue={ updateSettingsObjectSubField }
+			/>
+			<CompactCard>
+				<FormSectionHeading>Rates</FormSectionHeading>
+				<FormFieldset>
+					<FormLegend>Services</FormLegend>
+					<ShippingServiceGroups
+						services={ schema.definitions.services }
+						settings={ settings.services }
+						currencySymbol={ wooCommerceSettings.currency_symbol }
+						updateValue={ ( id, key, val ) => updateSettingsObjectSubField( 'services', id, key, val ) }
+						settingsKey="services"
+					/>
+				</FormFieldset>
+				<FormFieldset>
+					<FormLegend>Show the customer</FormLegend>
 					<FormLabel>
-						<FormCheckbox checked={ true } readOnly={ true } />
-						<span>Save package to use in other shipping methods</span>
+						<FormRadio value="all" checked={ true } readOnly={ true }/>
+						<span>All available rates that apply and let them choose</span>
 					</FormLabel>
-					<FormButtonsBar>
-						<FormButton>Add package</FormButton>
-					</FormButtonsBar>
-				</CompactCard>
-			</div>
-		);
-	}
+					<FormLabel>
+						<FormRadio value="cheapest" checked={ false }/>
+						<span>Only give them the one, cheapest rate</span>
+					</FormLabel>
+				</FormFieldset>
+			</CompactCard>
+			<CompactCard>
+				<FormSectionHeading>Packages</FormSectionHeading>
+				<FormFieldset>
+					<FormLabel htmlFor="packing_method">Packing method</FormLabel>
+					<FormSelect id="packing_method" value="box_packing" readOnly={ true }>
+						<option value="box_packing" readOnly={ true }>When cheaper, pack multiple items in a single
+							package
+						</option>
+						<option value="per_item" readOnly={ true }>Pack items individually</option>
+						<option value="weight_based" readOnly={ true }>Group regular items (less than 12 inches) and get
+							a quote by weight
+						</option>
+					</FormSelect>
+				</FormFieldset>
+				<FormFieldset>
+					<FormSettingExplanation>
+						<Gridicon icon="info-outline"/>
+						Your packages will appear here once you add them
+					</FormSettingExplanation>
+				</FormFieldset>
+				<FormFieldset>
+					<FormButton
+						type="button"
+						isPrimary={ false }
+						style={ { float: 'left', marginLeft: 'initial' } }>
+						Add a package
+					</FormButton>
+				</FormFieldset>
+			</CompactCard>
+			<CompactCard>
+				<FormButtonsBar>
+					<FormButton onClick={ ( event ) => handleSaveForm( event, props ) }>
+						{ form.isSaving ? 'Saving...' : 'Save changes' }
+					</FormButton>
+				</FormButtonsBar>
+			</CompactCard>
+			<br />{ /* Add a package modal */ }
+			<CompactCard>
+				<FormSectionHeading>Add a package</FormSectionHeading>
+				<FormFieldset>
+					<FormLabel htmlFor="package_type">Type of package</FormLabel>
+					<SelectOptGroups id="package_type" value="box" optGroups={ [
+						{
+							options: [
+								{ value: 'box', label: 'Box' },
+								{ value: 'envelope', label: 'Envelope' },
+							],
+						},
+						{
+							label: 'Saved packages',
+							options: [
+								{ value: 'bike-box', label: 'Bike box' },
+								{ value: 'small-padded-envelope', label: 'Small padded envelope' },
+							],
+						},
+						{
+							label: 'USPS Flat Rate Boxes and Envelopes',
+							options: [
+								{ value: 'small-box', label: 'Priority Mail Small Flat Rate Box' },
+								{ value: 'medium-box', label: 'Priority Mail Medium Flat Rate Box' },
+								{ value: 'large-box', label: 'Priority Mail Large Flat Rate Box' },
+								{ value: 'legal-envelope', label: 'Priority Mail Legal Flat Rate Envelope' },
+							],
+						},
+					] } readOnly={ true }/>
+				</FormFieldset>
+				<FormFieldset>
+					<FormLabel htmlFor="package_name">Package name</FormLabel>
+					<FormTextInput
+						id="package_name"
+						name="package_name"
+						className="is-error"
+						placeholder="The customer will see this during checkout"/>
+					<FormInputValidation isError text="A package name is needed"/>
+				</FormFieldset>
+				<FormFieldset>
+					<FormLabel>Inner Dimensions (L x W x H)</FormLabel>
+					<FormTextInput placeholder="100 x 25 x 5.5"/>
+					<a href="#">Define exterior dimensions</a>
+				</FormFieldset>
+				<FormFieldset>
+					<div style={ { width: '200px', float: 'left' } }>
+						<FormLabel htmlFor="package_weight">Package weight</FormLabel>
+						<FormTextInput style={ { width: '88%' } } id="package_weight" name="package_weight" placeholder="Weight of box"/>
+					</div>
+					<div style={ { width: '200px', float: 'left' } }>
+						<FormLabel htmlFor="max_weight">Max weight</FormLabel>
+						<FormTextInput style={ { width: '88%' } } id="max_weight" name="max_weight" placeholder="Max weight"/> lbs
+					</div>
+					<FormSettingExplanation style={ { display: 'inline-block' } }>Define both the weight of the empty
+						box and the max weight it can hold</FormSettingExplanation>
+				</FormFieldset>
+			</CompactCard>
+			<CompactCard>
+				<FormLabel>
+					<FormCheckbox checked={ true } readOnly={ true }/>
+					<span>Save package to use in other shipping methods</span>
+				</FormLabel>
+				<FormButtonsBar>
+					<FormButton>Add package</FormButton>
+				</FormButtonsBar>
+			</CompactCard>
+		</div>
+	);
+};
+
+Settings.propTypes = {
+	settingsActions: PropTypes.object.isRequired,
+	formActions: PropTypes.object.isRequired,
+	wooCommerceSettings: PropTypes.object.isRequired,
+	settings: PropTypes.object.isRequired,
+	schema: PropTypes.object.isRequired,
+	layout: PropTypes.array.isRequired,
+	saveFormData: PropTypes.func.isRequired,
+};
+
+function mapStateToProps( state ) {
+	return {
+		settings: state.settings,
+		form: state.form,
+	};
 }
 
-const mapStateToProps = ( state ) => ( {
-	settings: state.settings,
-} );
-
-const mapDispatchToProps = ( dispatch ) => ( {
-	actions: bindActionCreators( SettingsActions, dispatch ),
-} );
+function mapDispatchToProps( dispatch ) {
+	return {
+		settingsActions: bindActionCreators( SettingsActions, dispatch ),
+		formActions: bindActionCreators( FormActions, dispatch ),
+	};
+}
 
 export default connect(
 	mapStateToProps,
