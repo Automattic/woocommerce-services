@@ -21,7 +21,7 @@ const ShippingServiceGroups = ( {
 				return (
 					<ShippingServiceGroup
 						key={ serviceGroup }
-						title={ serviceGroups[serviceGroup][0].groupName }
+						title={ serviceGroups[serviceGroup][0].group_name }
 						services={ serviceGroups[serviceGroup] }
 						currencySymbol={ currencySymbol }
 						updateValue={ updateValue }
