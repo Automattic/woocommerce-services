@@ -14,8 +14,8 @@ const saveForm = ( url, id, instance, nonce, formData ) => {
 
 	return fetch( url, request ).then( response => {
 		return response.json();
-	} ).then( () => {
-		// TODO: Check response
+	} ).then( json => {
+		alert( 'server response: ' + JSON.stringify( json ) )
 	} ).catch( () => {
 		// TODO: Handler errors
 	} );
