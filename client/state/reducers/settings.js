@@ -62,7 +62,7 @@ const removeSettingsObjectSubField = ( state, action ) => {
 	} );
 };
 
-export default ( state = {}, action ) => {
+const settings = ( state = {}, action ) => {
 	switch ( action.type ) {
 		case UPDATE_SETTINGS_FIELD:
 			return updateSettingField( state, action );
@@ -80,3 +80,5 @@ export default ( state = {}, action ) => {
 
 	return state;
 };
+
+export default settings;
