@@ -136,11 +136,11 @@ const Settings = ( props ) => {
 				<FormFieldset>
 					<FormLegend>Show the customer</FormLegend>
 					<FormLabel>
-						<FormRadio value="all" checked={ true } readOnly={ true }/>
+						<FormRadio value="all" checked={ 'all' === settings.rate_filter } onChange={ () => updateSettingsField( 'rate_filter', 'all' ) } />
 						<span>All available rates that apply and let them choose</span>
 					</FormLabel>
 					<FormLabel>
-						<FormRadio value="cheapest" checked={ false }/>
+						<FormRadio value="cheapest" checked={ 'cheapest' === settings.rate_filter } onChange={ () => updateSettingsField( 'rate_filter', 'cheapest' ) } />
 						<span>Only give them the one, cheapest rate</span>
 					</FormLabel>
 				</FormFieldset>
