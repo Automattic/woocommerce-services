@@ -5,7 +5,7 @@ import {
 	removeSettingsObjectField,
 	updateSettingsObjectSubField,
 	removeSettingsObjectSubField,
-} from '../settings';
+} from '../actions';
 
 describe( 'Settings actions', () => {
 	it( '#updateSettingsField()', () => {

@@ -1,7 +1,7 @@
 import {
 	UPDATE_FORM_ELEMENT_FIELD,
 	SET_FIELD,
-} from '../actions/form';
+} from './actions';
 
 const reducers = {};
 

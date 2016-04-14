@@ -12,8 +12,8 @@ import CompactCard from 'components/card/compact';
 import ShippingServiceGroups from 'components/shipping-service-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as SettingsActions from 'state/actions/settings';
-import * as FormActions from 'state/actions/form';
+import * as SettingsActions from 'state/settings/actions';
+import * as FormActions from 'state/form/actions';
 import SettingsGroup from './render-group';
 import Packages from 'components/shipping/packages';
 

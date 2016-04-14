@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import configureStore from 'state/store';
+import configureStore from 'state';
 import '../assets/stylesheets/style.scss';
 import initializeState from './lib/initialize-state';
 import saveForm from './lib/save-form';
