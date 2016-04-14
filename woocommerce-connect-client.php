@@ -52,6 +52,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_REST_Connect_Services_Controller
+		 */
+		protected $rest_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -96,6 +101,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_settings_store = $settings_store;
 		}
 
+		public function get_rest_controller() {
+			return $this->rest_controller;
+		}
+
+		public function set_rest_controller( WC_REST_Connect_Services_Controller $rest_controller ) {
+			$this->rest_controller = $rest_controller;
+		}
+
 		public function get_service_schemas_validator() {
 			return $this->service_schemas_validator;
 		}
@@ -129,11 +142,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 
-			$logger         = new WC_Connect_Logger( new WC_Logger() );
-			$validator      = new WC_Connect_Service_Schemas_Validator();
-			$api_client     = new WC_Connect_API_Client( $validator );
-			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$logger          = new WC_Connect_Logger( new WC_Logger() );
+			$validator       = new WC_Connect_Service_Schemas_Validator();
+			$api_client      = new WC_Connect_API_Client( $validator );
+			$schemas_store   = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store  = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -160,6 +173,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
 			$settings_store = $this->get_service_settings_store();
+			$rest_controller = $this->get_rest_controller();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -167,10 +181,53 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
+				add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'woocommerce_api_' . strtolower( get_class( $this ) ), array( $settings_store, 'handle_wc_api' ) );
+		}
+
+		/**
+		 * Hook the REST API
+		 * Note that we cannot load our controller until this time, because prior to
+		 * rest_api_init firing, WP_REST_Controller is not yet defined
+		 */
+		public function rest_api_init() {
+			$schemas_store = $this->get_service_schemas_store();
+			$settings_store = $this->get_service_settings_store();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
+			$rest_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );
+			$this->set_rest_controller( $rest_controller );
+			$rest_controller->register_routes();
+		}
+
+		public function localize_and_enqueue_service_script( $id, $instance = false ) {
+			$settings_store = $this->get_service_settings_store();
+			$rest_controller = $this->get_rest_controller();
+			$schemas_store = $this->get_service_schemas_store();
+			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $id );
+
+			if ( ! $service_schema ) {
+				return;
+			}
+
+			$admin_array = array(
+				'wooCommerceSettings' => $settings_store->get_shared_settings(),
+				'formSchema'  => $service_schema->service_settings,
+				'formLayout'  => $service_schema->form_layout,
+				'formData'    => $settings_store->get_service_settings( $id, $instance ),
+				'id'          => $id,
+				'instance'    => $instance,
+				'callbackURL' => '', // TODO - fix $rest_controller->get_rest_base(),
+				'nonce'       => '', // TODO - fix $rest_controller->get_rest_nonce(),
+			);
+
+			wp_localize_script( 'wc_connect_service_admin', 'wcConnectData', $admin_array );
+			wp_enqueue_script( 'wc_connect_service_admin' );
+			wp_enqueue_style( 'wc_connect_service_admin' );
 		}
 
 		/**
@@ -310,8 +367,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
-			wp_register_style( 'wc_connect_shipping_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
-			wp_register_script( 'wc_connect_shipping_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
+			wp_register_style( 'wc_connect_service_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
+			wp_register_script( 'wc_connect_service_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
 		}
 
 	}

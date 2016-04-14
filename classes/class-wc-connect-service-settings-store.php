@@ -30,6 +30,19 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
+		 * Gets woocommerce settings useful for all connect services
+		 *
+		 * @return object|array
+		 */
+		public function get_shared_settings() {
+			return array(
+				'currency_symbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
+				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) )
+			);
+		}
+
+		/**
 		 * Given a service's id and optional instance, returns the settings for that
 		 * service or an empty array
 		 *

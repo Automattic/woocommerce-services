@@ -168,43 +168,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		/**
-		 * Returns selected WooCommerce settings for the form
-		 *
-		 * Used by WC_Connect_Loader to embed the settings in the page for JS to consume
-		 *
-		 * @return array
-		 */
-		public function get_woocommerce_settings() {
-			return array(
-				'currency_symbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
-				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
-				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) )
-			);
-		}
-
-		/**
-		 * Returns the JSON schema for the form from the settings for this service
-		 *
-		 * Used by WC_Connect_Loader to embed the form schema in the page for JS to consume
-		 *
-		 * @return array
-		 */
-		public function get_form_schema() {
-			return $this->service_schema->service_settings;
-		}
-
-		/**
-		 * Returns the form layout array for this service.
-		 *
-		 * Used by WC_Connect_Loader to embed the form layout in the page for JS to consume
-		 *
-		 * @return array
-		 */
-		public function get_form_layout() {
-			return $this->service_schema->form_layout;
-		}
-
-		/**
 		 * Returns the settings for this service (e.g. for use in the form or for
 		 * sending to the rate request endpoint
 		 *
@@ -219,25 +182,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 			return $service_settings;
 		}
-
-		/**
-		 * Returns the callback URL for the settings form for this service
-		 *
-		 * @return string
-		 */
-		public function get_form_callback_URL() {
-			return $this->service_settings_store->get_wc_api_callback_url();
-		}
-
-		/**
-		 * Returns the nonce for the settings form for this service
-		 *
-		 * @return string
-		 */
-		public function get_form_nonce() {
-			return $this->service_settings_store->get_wc_api_callback_nonce( $this->id, $this->instance_id );
-		}
-
 
 		/**
 		 * Determine if a package's destination is valid enough for a rate quote.
@@ -333,30 +277,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
-		public function localize_and_enqueue_form_script() {
-
-			$admin_array = array(
-				'wooCommerceSettings' => $this->get_woocommerce_settings(),
-				'formSchema'  => $this->get_form_schema(),
-				'formLayout'  => $this->get_form_layout(),
-				'formData'    => $this->get_service_settings(),
-				'id'          => $this->id,
-				'instance'    => $this->instance_id,
-				'callbackURL' => $this->get_form_callback_URL(),
-				'nonce'       => $this->get_form_nonce(),
-			);
-
-			wp_localize_script( 'wc_connect_shipping_admin', 'wcConnectData', $admin_array );
-			wp_enqueue_script( 'wc_connect_shipping_admin' );
-			wp_enqueue_style( 'wc_connect_shipping_admin' );
-		}
-
 		public function admin_options() {
 			// hide WP native save button on settings page
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			$this->localize_and_enqueue_form_script();
+			// TODO: Fire an action here, passing it the id and instance
+			// Have loader hook it and inject all the parameters from its various objects
+			// There is no reason for this class to know anything about the REST API and such
+
+			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
 
 			?>
 				<div id="wc-connect-admin-container"></div>
