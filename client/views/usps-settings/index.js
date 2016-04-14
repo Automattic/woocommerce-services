@@ -1,13 +1,9 @@
 import React, { PropTypes } from 'react';
 import FormSectionHeading from 'components/forms/form-section-heading';
-import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormLegend from 'components/forms/form-legend';
 import FormButton from 'components/forms/form-button';
-import FormRadio from 'components/forms/form-radio';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
 import CompactCard from 'components/card/compact';
-import ShippingServiceGroups from 'components/shipping-service-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
@@ -124,34 +120,20 @@ const Settings = ( props ) => {
 				group={ layout[0] }
 				schema={ schema }
 				settings={ settings }
+				wooCommerceSettings={ wooCommerceSettings }
 				updateValue={ updateSettingsField }
 				updateSubValue={ () => {} }
 				updateSubSubValue={ updateSettingsObjectSubField }
 			/>
-			<CompactCard>
-				<FormSectionHeading>{ __( 'Rates' ) }</FormSectionHeading>
-				<FormFieldset>
-					<FormLegend>{ __( 'Services' ) }</FormLegend>
-					<ShippingServiceGroups
-						services={ schema.definitions.services }
-						settings={ settings.services }
-						currencySymbol={ wooCommerceSettings.currency_symbol }
-						updateValue={ ( id, key, val ) => updateSettingsObjectSubField( 'services', id, key, val ) }
-						settingsKey="services"
-					/>
-				</FormFieldset>
-				<FormFieldset>
-					<FormLegend>{ schema.properties.rate_filter.title }</FormLegend>
-					<FormLabel>
-						<FormRadio value="all" checked={ 'all' === settings.rate_filter } onChange={ () => updateSettingsField( 'rate_filter', 'all' ) } />
-						<span>{ __( 'All available rates that apply and let them choose' ) }</span>
-					</FormLabel>
-					<FormLabel>
-						<FormRadio value="cheapest" checked={ 'cheapest' === settings.rate_filter } onChange={ () => updateSettingsField( 'rate_filter', 'cheapest' ) } />
-						<span>{ __( 'Only give them the one, cheapest rate' ) }</span>
-					</FormLabel>
-				</FormFieldset>
-			</CompactCard>
+			<SettingsGroup
+				group={ layout[1] }
+				schema={ schema }
+				settings={ settings }
+				wooCommerceSettings={ wooCommerceSettings }
+				updateValue={ updateSettingsField }
+				updateSubValue={ () => {} }
+				updateSubSubValue={ updateSettingsObjectSubField }
+			/>
 			<CompactCard>
 				<FormButtonsBar>
 					{ renderFormErrors() }
