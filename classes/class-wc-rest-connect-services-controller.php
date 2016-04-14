@@ -4,6 +4,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH' ) ) {
+	define( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH', 32 );
+}
+
 if ( ! class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 
 	class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
@@ -37,14 +41,6 @@ if ( ! class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 			$this->service_settings_store = $settings_store;
 		}
 
-		public get_rest_base() {
-			return $this->rest_base;
-		}
-
-		public get_rest_nonce() {
-			return wp_create_nonce( 'wp_rest' );
-		}
-
 		/**
 		 * Register the routes for order notes.
 		 */
@@ -58,28 +54,56 @@ if ( ! class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 			) );
 		}
 
-
 		/**
 		 * Attempts to update the settings on a particular service and instance
 		 */
-		public function update_item( WP_REST_Request $request ) {
+		public function update_item( $request ) {
 
-			error_log( print_r( $request, true ) );
+			$request_body = $request->get_body();
+			$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH );
 
-			// Validate id with schema store
+			if ( is_null( $settings ) ) {
+				return new WP_Error( 'bad_form_data',
+					__( 'Unable to update service settings. The form data could not be read.', 'woocommerce' ),
+					array( 'status' => 400 )
+				);
+			}
 
-			// Validate instance with settings store
-			// TODO - make sure this works with a brand new instance of the shipping method too
+			$request_params = $request->get_params();
+			error_log( print_r( $request_params, true ) );
 
-			// TODO - ask settings store to validate and save it.  On success, return new WP_REST_Response( $data, 200 );
-			// on failure, return the error from store
-			return new WP_Error( 'cant-update', __( 'Unable to update service settings', 'woocommerce'), array( 'status' => 500 ) );
+			$id = '';
+			$instance = false;
+
+			$id = array_key_exists( 'id', $request_params ) ? sanitize_text_field( $request_params['id'] ) : '';
+			$instance = array_key_exists( 'instance', $request_params ) ? absint( sanitize_text_field( $request_params['instance'] ) ) : false;
+
+			if ( empty( $id ) ) {
+				return new WP_Error( 'service_id_missing',
+					__( 'Unable to update service settings. Form data is missing service ID.', 'woocommerce' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$validation_result = $this->service_settings_store->validate_and_possibly_update_settings( $settings, $id, $instance );
+
+			if ( is_wp_error( $validation_result ) ) {
+				return new WP_Error( 'validation_failed',
+					sprintf(
+						__( 'Unable to update service settings. Validation failed. %s', 'woocommerce' ),
+						$validation_result->get_error_message()
+					),
+					array( 'status' => 400 )
+				);
+			}
+
+			return new WP_REST_Response( array( 'success' => true ), 200 );
 		}
 
 		/**
 		* Validate the requestor's permissions
 		*/
-		public function update_item_permissions_check( /* WP_REST_Request $request */) {
+		public function update_item_permissions_check( $request ) {
 			return current_user_can( 'manage_woocommerce' );
 		}
 

@@ -282,10 +282,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			// TODO: Fire an action here, passing it the id and instance
-			// Have loader hook it and inject all the parameters from its various objects
-			// There is no reason for this class to know anything about the REST API and such
-
 			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
 
 			?>

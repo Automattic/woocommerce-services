@@ -1,9 +1,5 @@
 <?php
 
-if ( ! defined( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH' ) ) {
-	define( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH', 32 );
-}
-
 if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 	class WC_Connect_Service_Settings_Store {
@@ -94,70 +90,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
-		 * Implements a WC_API compliant endpoint for validating and saving settings.
-		 * Emits JSON.
+		 * Given id and possibly instance, validates the settings and, if they validate, saves them to options
+		 *
+		 * @return bool|WP_Error
 		 */
-		public function handle_wc_api() {
-			$nonce = isset( $_POST['nonce'] ) ? $_POST['nonce'] : '';
-			$json_encoded_settings = isset( $_POST['settings'] ) ? $_POST['settings'] : '';
-			$id = isset( $_POST['id'] ) ? sanitize_text_field( $_POST['id'] ) : '';
-			$instance = isset( $_POST['instance'] ) ? absint( sanitize_text_field( $_POST['instance'] ) ) : '';
-
-			if ( empty( $nonce ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'nonce_missing',
-						'message' => __( 'The request is invalid. No nonce was given.', 'woocommerce' )
-					)
-				);
-			}
-
-			if ( empty( $json_encoded_settings ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'settings_missing',
-						'message' => __( 'The request is invalid. No settings were given.', 'woocommerce' )
-					)
-				);
-			}
-
-			$settings = json_decode( stripslashes( $json_encoded_settings ), false, WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH );
-			if ( is_null( $settings ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'malformed_settings',
-						'message' => __( 'The request is invalid. Settings must be provided as JSON.', 'woocommerce' )
-					)
-				);
-			}
-
-			if ( empty( $id ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'service_id_missing',
-						'message' => __( 'The request is invalid. No service ID was given.', 'woocommerce' )
-					)
-				);
-			}
-
-			if ( ! current_user_can( 'manage_woocommerce' ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'missing_capabilities',
-						'message' => __( 'You do not have sufficient permissions for this endpoint.', 'woocommerce' )
-					)
-				);
-			}
-
-			$action = $this->get_wc_api_callback_nonce_action( $id, $instance );
-			if ( ! wp_verify_nonce( $nonce, $action ) ) {
-				wp_send_json_error(
-					array(
-						'error' => 'bad_nonce',
-						'message' => __( 'An invalid nonce was received. Please refresh the page and try again.', 'woocommerce' )
-					)
-				);
-			}
+		public function validate_and_possibly_update_settings( $settings, $id, $instance = false ) {
 
 			// Validate instance or at least id if no instance is given
 			if ( ! empty( $instance ) ) {
@@ -166,7 +103,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					wp_send_json_error(
 						array(
 							'error' => 'bad_instance_id',
-							'message' => __( 'An invalid service instance was received. Please refresh the page and try again.', 'woocommerce' )
+							'message' => __( 'An invalid service instance was received.', 'woocommerce' )
 						)
 					);
 				}
@@ -176,7 +113,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					wp_send_json_error(
 						array(
 							'error' => 'bad_service_id',
-							'message' => __( 'An invalid service ID was received. Please refresh the page and try again.', 'woocommerce' )
+							'message' => __( 'An invalid service ID was received.', 'woocommerce' )
 						)
 					);
 				}
@@ -197,7 +134,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			// On success, save the settings to the database and exit
 			update_option( $this->get_service_settings_key( $id, $instance ), $settings );
-			wp_send_json_success();
+
+			return true;
 		}
 
 		/**

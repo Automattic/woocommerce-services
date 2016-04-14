@@ -198,6 +198,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store = $this->get_service_schemas_store();
 			$settings_store = $this->get_service_settings_store();
 
+			// TODO - Remove this when woocommerce/pull/10435 lands
+			if ( ! class_exists( 'WP_REST_Controller' ) ) {
+				require_once( plugin_basename( 'vendor/class-wp-rest-controller.php' ) );
+			}
+
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
 			$rest_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );
 			$this->set_rest_controller( $rest_controller );
@@ -216,13 +221,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$admin_array = array(
 				'wooCommerceSettings' => $settings_store->get_shared_settings(),
-				'formSchema'  => $service_schema->service_settings,
+				'formSchema'  => $service_schema->service_settings, // badly named - this is actually the service's settings schema
 				'formLayout'  => $service_schema->form_layout,
 				'formData'    => $settings_store->get_service_settings( $id, $instance ),
 				'id'          => $id,
 				'instance'    => $instance,
-				'callbackURL' => '', // TODO - fix $rest_controller->get_rest_base(),
-				'nonce'       => '', // TODO - fix $rest_controller->get_rest_nonce(),
+				'callbackURL' => 'http://localhost:8888/wp-json/wc/v1/connect/services/usps/5', // TODO
+				'nonce'       => wp_create_nonce( 'wp_rest' ),
 			);
 
 			wp_localize_script( 'wc_connect_service_admin', 'wcConnectData', $admin_array );
