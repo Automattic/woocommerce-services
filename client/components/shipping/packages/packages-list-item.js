@@ -3,11 +3,10 @@ import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 
 const PackagesListItem = ( {
-	id,
 	type,
 	name,
 	dimensions,
-	onRemove
+	onRemove,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
