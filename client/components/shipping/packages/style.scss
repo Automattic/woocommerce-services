@@ -1,0 +1,49 @@
+.wcc-shipping-packages-list {
+  .package-type {
+	width: 10%;
+
+	.gridicon {
+	  border-radius: 50%;
+	  background-color: lightgray;
+	  fill: #fff;
+	  padding: 6px;
+	}
+  }
+
+  .package-name {
+	width: 65%;
+  }
+
+  .package-dimensions {
+	width: 25%;
+  }
+
+  .package-actions {
+	float: right;
+  }
+}
+
+.wcc-shipping-packages-list-header {
+  display: flex;
+  height: 26px;
+  border-bottom: 1px solid #e9eff3;
+}
+
+.wcc-shipping-packages-list-item {
+  margin-top: 10px;
+  display: flex;
+}
+
+.wcc-shipping-add-package-weight {
+  width: 200px;
+  float: left;
+  .form-text-input {
+	width: 88%;
+  }
+}
+
+& .wcc-shipping-add-edit-package-dialog {
+  .form-setting-explanation {
+	display: inline-block;
+  }
+}
