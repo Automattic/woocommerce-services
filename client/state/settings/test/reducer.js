@@ -1,12 +1,12 @@
 import { expect } from 'chai';
-import settings from '../settings';
+import settings from '../reducer';
 import {
 	updateSettingsField,
 	addSettingsObjectField,
 	removeSettingsObjectField,
 	updateSettingsObjectSubField,
 	removeSettingsObjectSubField,
-} from '../../actions/settings';
+} from '../actions';
 
 const initialState = {
 	testField: 'testValue',

@@ -19,8 +19,8 @@ import SelectOptGroups from 'components/forms/select-opt-groups';
 import ShippingServiceGroups from 'components/shipping-service-groups';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as SettingsActions from 'state/actions/settings';
-import * as FormActions from 'state/actions/form';
+import * as SettingsActions from 'state/settings/actions';
+import * as FormActions from 'state/form/actions';
 import SettingsGroup from './render-group';
 
 const handleSaveForm = ( event, props ) => {

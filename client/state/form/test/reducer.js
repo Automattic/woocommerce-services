@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import reducer from '../form';
+import reducer from '../reducer';
 import {
 	updateFormElementField,
 	setField,
-} from '../../actions/form';
+} from '../actions';
 
 const initialState = {
 	textObj: {

@@ -4,7 +4,7 @@ import {
 	REMOVE_SETTINGS_OBJECT_FIELD,
 	UPDATE_SETTINGS_OBJECT_SUB_FIELD,
 	REMOVE_SETTINGS_OBJECT_SUB_FIELD,
-} from '../actions/settings';
+} from './actions';
 
 const updateSettingField = ( state, action ) => {
 	return Object.assign( {}, state, {

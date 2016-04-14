@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {
 	updateFormElementField,
-} from '../form';
+} from '../actions';
 
 describe( 'Form state actions', () => {
 	it( '#updateFormElementField()', () => {
