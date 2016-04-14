@@ -24,7 +24,9 @@ const handleSaveForm = ( event, props ) => {
 
 	props.saveFormData( props.settings ).then( ( result ) => {
 		props.formActions.setField( 'isSaving', false );
-		if ( false === result.success && 'validation_failure' === result.data.error ) {
+		if ( result.success ) {
+			props.formActions.setField( 'error', null );
+		} else if ( 'validation_failure' === result.data.error ) {
 			props.formActions.setField( 'error', result.data.message );
 		}
 	} );
