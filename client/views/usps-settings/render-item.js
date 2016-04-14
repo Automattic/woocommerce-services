@@ -10,13 +10,7 @@ import RadioButtons from 'components/radio-buttons';
 const RenderField = ( { item, schema, settings, wooCommerceSettings, updateValue, updateSubSubValue } ) => {
 	const id = item.key ? item.key : item;
 	const property = schema.properties[id];
-	if ( 'string' === property.type ) {
-		if ( schema.properties[id].oneOf ) {
-			return (
-				<RadioButtons schema={ property } setting={ settings[id] } updateValue={ val => updateValue( id, val ) } />
-			);
-		}
-
+	if ( ! item.type && 'string' === property.type ) {
 		return (
 			<TextField
 				id={ id }
@@ -24,6 +18,17 @@ const RenderField = ( { item, schema, settings, wooCommerceSettings, updateValue
 				value={ settings[id] }
 				placeholder={ item.placeholder }
 				updateValue={ value => updateValue( id, value ) }
+			/>
+		);
+	}
+
+	if ( 'radios' === item.type ) {
+		return (
+			<RadioButtons
+				layout={ item }
+				schema={ property }
+				setting={ settings[id] }
+				updateValue={ val => updateValue( id, val ) }
 			/>
 		);
 	}
@@ -48,7 +53,7 @@ const RenderField = ( { item, schema, settings, wooCommerceSettings, updateValue
 	return (
 		<FormFieldset>
 			<FormLabel htmlFor="unknown" >Unknown</FormLabel>
-			<FormSettingExplanation>Don't know how to handle: { JSON.stringify( property ) }</FormSettingExplanation>
+			<FormSettingExplanation>{ JSON.stringify( property ) }</FormSettingExplanation>
 		</FormFieldset>
 	);
 };

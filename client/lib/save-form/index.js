@@ -1,5 +1,12 @@
 
-const saveForm = ( url, nonce, formData ) => {
+const saveForm = ( setIsSaving, setError, url, id, instance, nonce, formData ) => {
+	setIsSaving( true );
+	const body = new FormData();
+	body.append( 'nonce', nonce );
+	body.append( 'id', id );
+	body.append( 'instance', instance );
+	body.append( 'settings', JSON.stringify( formData ) );
+
 	const request = {
 		method: 'PUT',
 		credentials: 'same-origin',
@@ -10,9 +17,21 @@ const saveForm = ( url, nonce, formData ) => {
 	};
 
 	return fetch( url, request ).then( response => {
-		return response.json();
-	} ).catch( () => {
-		// TODO: Handler errors
+		setIsSaving( false );
+		if ( response.ok ) {
+			return response.json().then( json => {
+				if ( ! json.success ) {
+					return setError( json.data );
+				}
+
+				setError( null );
+			} );
+		}
+
+		setError( 'Network Error' );
+	} ).catch( ( e ) => {
+		setIsSaving( false );
+		setError( 'Unexpected error: ' + JSON.stringify( e ) );
 	} );
 };
 
