@@ -16,13 +16,19 @@ import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';
 import SettingsGroup from './render-group';
 import Packages from 'components/shipping/packages';
+import Notice from 'components/notice';
 
 const handleSaveForm = ( event, props ) => {
 	event.preventDefault();
 	props.formActions.setField( 'isSaving', true );
 
-	props.saveFormData( props.settings ).then( () => {
+	props.saveFormData( props.settings ).then( ( result ) => {
 		props.formActions.setField( 'isSaving', false );
+		if ( result.success ) {
+			props.formActions.setField( 'error', null );
+		} else if ( 'validation_failure' === result.data.error ) {
+			props.formActions.setField( 'error', result.data.message );
+		}
 	} );
 };
 
@@ -93,6 +99,13 @@ const getPackageTypes = () => ( {
 const Settings = ( props ) => {
 	const { settings, form, wooCommerceSettings, settingsActions, schema, layout } = props;
 	const { updateSettingsField, updateSettingsObjectSubField } = settingsActions;
+	const renderFormErrors = () => {
+		if ( form.error ) {
+			return (
+				<Notice status="is-error" text={ form.error } showDismiss={ false } />
+			);
+		}
+	}
 	return (
 		<div>
 			<SectionHeader label="USPS Shipping">
@@ -138,6 +151,7 @@ const Settings = ( props ) => {
 			</CompactCard>
 			<CompactCard>
 				<FormButtonsBar>
+					{ renderFormErrors() }
 					<FormButton onClick={ ( event ) => handleSaveForm( event, props ) }>
 						{ form.isSaving ? 'Saving...' : 'Save changes' }
 					</FormButton>
