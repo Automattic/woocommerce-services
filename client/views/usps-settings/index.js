@@ -134,14 +134,14 @@ const Settings = ( props ) => {
 					/>
 				</FormFieldset>
 				<FormFieldset>
-					<FormLegend>Show the customer</FormLegend>
+					<FormLegend>{ schema.properties.rate_filter.title }</FormLegend>
 					<FormLabel>
-						<FormRadio value="all" checked={ true } readOnly={ true }/>
-						<span>All available rates that apply and let them choose</span>
+						<FormRadio value="all" checked={ 'all' === settings.rate_filter } onChange={ () => updateSettingsField( 'rate_filter', 'all' ) } />
+						<span>{ schema.properties.rate_filter.oneOf[0].title }</span>
 					</FormLabel>
 					<FormLabel>
-						<FormRadio value="cheapest" checked={ false }/>
-						<span>Only give them the one, cheapest rate</span>
+						<FormRadio value="cheapest" checked={ 'cheapest' === settings.rate_filter } onChange={ () => updateSettingsField( 'rate_filter', 'cheapest' ) } />
+						<span>{ schema.properties.rate_filter.oneOf[1].title }</span>
 					</FormLabel>
 				</FormFieldset>
 			</CompactCard>
