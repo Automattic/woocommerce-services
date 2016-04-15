@@ -142,11 +142,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 
-			$logger          = new WC_Connect_Logger( new WC_Logger() );
-			$validator       = new WC_Connect_Service_Schemas_Validator();
-			$api_client      = new WC_Connect_API_Client( $validator );
-			$schemas_store   = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store  = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$logger         = new WC_Connect_Logger( new WC_Logger() );
+			$validator      = new WC_Connect_Service_Schemas_Validator();
+			$api_client     = new WC_Connect_API_Client( $validator );
+			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -197,9 +197,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store = $this->get_service_schemas_store();
 			$settings_store = $this->get_service_settings_store();
 
+			//////////////////////////////////////////////////////////////////////////////
 			// TODO - Remove this when woocommerce/pull/10435 lands
 			if ( ! class_exists( 'WP_REST_Controller' ) ) {
-				require_once( plugin_basename( 'vendor/class-wp-rest-controller.php' ) );
+				include_once( plugin_basename( 'vendor/class-wp-rest-controller.php' ) );
+			}
+			//////////////////////////////////////////////////////////////////////////////
+
+			if ( ! class_exists( 'WP_REST_Controller' ) ) {
+				$this->logger->log( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
+				return;
 			}
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
@@ -209,8 +216,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function localize_and_enqueue_service_script( $id, $instance = false ) {
+			if ( ! function_exists( 'get_rest_url' ) ) {
+				return;
+			}
+
 			$settings_store = $this->get_service_settings_store();
-			$rest_controller = $this->get_rest_controller();
 			$schemas_store = $this->get_service_schemas_store();
 			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $id );
 
@@ -218,20 +228,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			// TODO - there must be a better way to get the WP REST API base url, but I haven't found it yet
-			$callback_url = get_home_url( null, "/wp-json/wc/v1/connect/services/{$id}", is_ssl() ? 'https' : 'http' );
-			if ( $instance ) {
-				$callback_url .= "/{$instance}";
-			}
+			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
 
 			$admin_array = array(
 				'wooCommerceSettings' => $settings_store->get_shared_settings(),
 				'formSchema'  => $service_schema->service_settings,
 				'formLayout'  => $service_schema->form_layout,
 				'formData'    => $settings_store->get_service_settings( $id, $instance ),
-				'id'          => $id,
-				'instance'    => $instance,
-				'callbackURL' => $callback_url,
+				'callbackURL' => get_rest_url( null, $path ),
 				'nonce'       => wp_create_nonce( 'wp_rest' ),
 			);
 
