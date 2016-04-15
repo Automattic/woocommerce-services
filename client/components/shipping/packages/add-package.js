@@ -59,7 +59,7 @@ class AddPackageDialog extends React.Component {
 				<FormCheckbox checked={ true } readOnly={ true } />
 				<span>Save package to use in other shipping methods</span>
 			</FormLabel>,
-			<FormButton>Add package</FormButton>
+			<FormButton>Add package</FormButton>,
 		];
 	}
 
