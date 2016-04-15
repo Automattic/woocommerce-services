@@ -2,13 +2,11 @@
   "name": "woocommerce-connect-client",
   "version": "1.0.0",
   "scripts": {
-    "start": "NODE_ENV=development ./node_modules/.bin/webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
-    "startwin": "set NODE_ENV=development & npm run webpack-dev-server",
-    "webpack-dev-server": "webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
-    "dist": "NODE_ENV=production ./node_modules/.bin/webpack -p --config webpack.production.config.js",
-    "eslint": "./node_modules/.bin/eslint client/",
-    "check-shrinkwrap": "./node_modules/.bin/npm-shrinkwrap-check",
-    "test": "npm run check-shrinkwrap && ./node_modules/.bin/mocha-webpack --webpack-config webpack.test.config.js 'client/**/test/*.js' && npm run eslint"
+    "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
+    "dist": "cross-env NODE_ENV=production webpack -p --config webpack.production.config.js",
+    "eslint": "eslint client/",
+    "check-shrinkwrap": "npm-shrinkwrap-check",
+    "test": "npm run check-shrinkwrap && mocha-webpack --webpack-config webpack.test.config.js client/**/test/*.js && npm run eslint"
   },
   "repository": {
     "type": "git",
@@ -23,6 +21,7 @@
     "babel-eslint": "^5.0.0",
     "babel-loader": "5.3.2",
     "chai": "3.5.0",
+    "cross-env": "^1.0.7",
     "css-loader": "^0.23.1",
     "eslint": "2.2.0",
     "eslint-loader": "^1.3.0",
