@@ -2,11 +2,11 @@
 
 class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
-	const SHIPPING_SCRIPT_HANDLE = 'wc_connect_shipping_admin';
+	const SERVICE_SCRIPT_HANDLE = 'wc_connect_service_admin';
 
 	public function tearDown() {
 
-		wp_deregister_script( self::SHIPPING_SCRIPT_HANDLE );
+		wp_deregister_script( self::SERVICE_SCRIPT_HANDLE );
 
 	}
 
@@ -49,7 +49,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$loader->enqueue_service_script( $hook, $tab, $instance_id );
 
-		$this->assertEquals( $expected, wp_script_is( self::SHIPPING_SCRIPT_HANDLE, 'registered' ) );
+		$this->assertEquals( $expected, wp_script_is( self::SERVICE_SCRIPT_HANDLE, 'registered' ) );
 
 	}
 
