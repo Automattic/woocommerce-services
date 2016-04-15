@@ -265,6 +265,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 		protected function authorization_header() {
 			$token = Jetpack_Data::get_access_token( 0 );
+			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error( 'missing_token', 'Unable to send request to WooCommerce Connect server. Jetpack Token is missing' );
 			}
