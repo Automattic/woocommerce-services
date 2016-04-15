@@ -14,6 +14,11 @@
         }
       }
     },
+    "dompurify": {
+      "version": "0.7.4",
+      "from": "dompurify@0.7.4",
+      "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-0.7.4.tgz"
+    },
     "lodash": {
       "version": "4.5.1",
       "from": "lodash@4.5.1",
