@@ -26,6 +26,7 @@ const handleSaveForm = ( event, props ) => {
 		props.formActions.setField( 'isSaving', false );
 		if ( result.success ) {
 			props.formActions.setField( 'error', null );
+			props.formActions.setField( 'success', true );
 		} else if ( 'validation_failure' === result.data.error ) {
 			props.formActions.setField( 'error', result.data.message );
 		}
@@ -105,7 +106,19 @@ const Settings = ( props ) => {
 				<Notice status="is-error" text={ form.error } showDismiss={ false } />
 			);
 		}
-	}
+		if ( form.success ) {
+			return (
+				<Notice
+					className="wcc-form-success"
+					status="is-success"
+					text="Your changes have been saved."
+					showDismiss={ false }
+					onDismissClick={ () => props.formActions.setField( 'success', null ) }
+					duration={ 2250 }
+				/>
+			);
+		}
+	};
 	return (
 		<div>
 			<SettingsGroup
