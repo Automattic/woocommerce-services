@@ -3,6 +3,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import { sanitize } from 'dompurify';
 
 const TextField = ( { id, schema, value, placeholder, updateValue } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
@@ -16,7 +17,7 @@ const TextField = ( { id, schema, value, placeholder, updateValue } ) => {
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ handleChangeEvent } />
-			<FormSettingExplanation>{ schema.description }</FormSettingExplanation>
+			<FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( schema.description ) } } />
 		</FormFieldset>
 	);
 };
