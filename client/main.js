@@ -6,6 +6,7 @@ import configureStore from 'state';
 import '../assets/stylesheets/style.scss';
 import initializeState from './lib/initialize-state';
 import saveForm from './lib/save-form';
+import boot from './boot';
 
 const {
 	formData,
@@ -64,4 +65,5 @@ if ( module.hot ) {
 	} );
 }
 
+boot();
 render();

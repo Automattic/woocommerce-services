@@ -45,7 +45,7 @@ module.exports = {
 			'react': path.join( __dirname, 'node_modules', 'react' ),
 			'react-dom': path.join( __dirname, 'node_modules', 'react-dom' ),
 			'redux': path.join( __dirname, 'node_modules', 'redux' ),
-			'lib/mixins/i18n': path.join( __dirname, 'client', 'lib', 'mixins', 'i18n' )
+			'config': path.join( __dirname, 'client', 'config', process.env.NODE_ENV || 'development' )
 		},
 		extensions: [ '', '.json', '.js', '.jsx' ],
 		root: [
