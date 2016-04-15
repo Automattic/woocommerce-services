@@ -186,7 +186,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
-			add_action( 'woocommerce_api_' . strtolower( get_class( $this ) ), array( $settings_store, 'handle_wc_api' ) );
 		}
 
 		/**
