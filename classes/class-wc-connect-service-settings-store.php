@@ -31,9 +31,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return object|array
 		 */
 		public function get_shared_settings() {
-			$currency_symbol = wp_kses( html_entity_decode( get_woocommerce_currency_symbol() ), array() );
-			$dimension_unit = wp_kses( strtolower( get_option( 'woocommerce_dimension_unit' ) ), array() );
-			$weight_unit = wp_kses( strtolower( get_option( 'woocommerce_weight_unit' ) ), array() );
+			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ), array() );
+			$dimension_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ), array() );
+			$weight_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ), array() );
 
 			return array(
 				'currency_symbol' => $currency_symbol,
