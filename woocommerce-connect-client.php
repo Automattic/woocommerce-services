@@ -219,14 +219,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			// TODO - there must be a better way to get the WP REST API base url, but I haven't found it yet
+			$callback_url = get_home_url( null, "/wp-json/wc/v1/connect/services/{$id}", is_ssl() ? 'https' : 'http' );
+			if ( $instance ) {
+				$callback_url .= "/{$instance}";
+			}
+
 			$admin_array = array(
 				'wooCommerceSettings' => $settings_store->get_shared_settings(),
-				'formSchema'  => $service_schema->service_settings, // badly named - this is actually the service's settings schema
+				'formSchema'  => $service_schema->service_settings,
 				'formLayout'  => $service_schema->form_layout,
 				'formData'    => $settings_store->get_service_settings( $id, $instance ),
 				'id'          => $id,
 				'instance'    => $instance,
-				'callbackURL' => 'http://localhost:8888/wp-json/wc/v1/connect/services/usps/5', // TODO
+				'callbackURL' => $callback_url,
 				'nonce'       => wp_create_nonce( 'wp_rest' ),
 			);
 
