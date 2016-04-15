@@ -108,11 +108,6 @@ const Settings = ( props ) => {
 	}
 	return (
 		<div>
-			<SectionHeader label="USPS Shipping">
-				<FormToggle id="enabled" name="enabled" checked={ true } readOnly={ true }>
-					<FormLabel htmlFor="enabled" style={ { float: 'left' } }>Enable</FormLabel>
-				</FormToggle>
-			</SectionHeader>
 			<SettingsGroup
 				group={ layout[0] }
 				schema={ schema }
