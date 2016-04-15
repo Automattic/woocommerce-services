@@ -12,16 +12,20 @@ const ShippingServiceEntry = ( {
 	updateValue,
 } ) => (
 	<div className="wcc-shipping-service-entry">
-		<FormCheckbox
-			checked={ enabled }
-			onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
-		/>
-		<span className="wcc-shipping-service-entry-title">{ title }</span>
+		<label className="wcc-shipping-service-entry-title">
+			<FormCheckbox
+				checked={ enabled }
+				onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
+			/>
+			{ title }
+		</label>
 		<FormTextInput
+			disabled={ ! enabled }
 			value={ adjustment }
 			onChange={ ( event ) => updateValue( 'adjustment', Number.parseFloat( event.target.value ) ) }
 		/>
 		<FormSelect
+			disabled={ ! enabled }
 			value={ adjustment_type }
 			onChange={ ( event ) => updateValue( 'adjustment_type', event.target.value ) }
 		>
