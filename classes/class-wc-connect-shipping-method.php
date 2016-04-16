@@ -323,7 +323,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
 					$rate_to_add = array(
 						'id'       => sprintf( '%s:%d:%d', $instance->id, $instance->instance, $rate_idx ),
-						'label'    => $rate->title,
+						'label'    => wp_kses(
+							html_entity_decode( $rate->title ),
+							array(
+								'sup' => array(),
+								'del' => array(),
+								'small' => array(),
+								'em' => array(),
+								'i' => array(),
+								'strong' => array(),
+							)
+						),
 						'cost'     => $rate->rate,
 						'calc_tax' => 'per_item'
 					);
