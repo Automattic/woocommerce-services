@@ -1,6 +1,4 @@
 import React, { PropTypes } from 'react';
-import SectionHeader from 'components/section-header';
-import FormToggle from 'components/forms/form-toggle';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';

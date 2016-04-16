@@ -8,7 +8,7 @@ const initialize = ( newTranslations ) => {
 };
 
 const translate = ( text ) => {
-	return ( text in translations ) ? translations[ text ] : text;
+	return ( text in translations ) ? translations[text] : text;
 };
 
 export default {
