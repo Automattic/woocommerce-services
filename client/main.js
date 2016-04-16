@@ -6,6 +6,7 @@ import configureStore from 'state';
 import '../assets/stylesheets/style.scss';
 import initializeState from './lib/initialize-state';
 import saveForm from './lib/save-form';
+import i18n from './lib/mixins/i18n';
 
 const {
 	formData,
@@ -15,6 +16,15 @@ const {
 	callbackURL,
 	nonce,
 } = wcConnectData;
+
+// Initialize i18n
+let i18nLocaleStringsObject = {};
+
+if ( window.i18nLocaleStrings ) {
+	i18nLocaleStringsObject = JSON.parse( window.i18nLocaleStrings );
+}
+
+i18n.initialize( i18nLocaleStringsObject );
 
 const saveFormData = data => saveForm( callbackURL, nonce, data );
 
