@@ -33,6 +33,16 @@
   // Components
   @import 'components';
 
+  // Cards
+  .card.is-compact {
+      padding-top: 24px;
+
+      &.save-button-bar {
+            background: $gray-light;
+            padding: 16px 24px;
+        }
+  }
+
   // Custom styles
   max-width: 700px;
 

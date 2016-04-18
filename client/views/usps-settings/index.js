@@ -152,7 +152,7 @@ const Settings = ( props ) => {
 					</FormLabel>
 				</FormFieldset>
 			</CompactCard>
-			<CompactCard>
+			<CompactCard className="save-button-bar">
 				<FormButtonsBar>
 					{ renderFormErrors() }
 					<FormButton onClick={ ( event ) => handleSaveForm( event, props ) }>
