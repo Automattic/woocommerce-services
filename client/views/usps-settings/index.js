@@ -153,10 +153,6 @@ const Settings = ( props ) => {
 				</FormFieldset>
 			</CompactCard>
 			<CompactCard>
-				<FormSectionHeading>{ __( 'Packages' ) }</FormSectionHeading>
-				<Packages packages={ getPackages() } packageTypes={ getPackageTypes() } />
-			</CompactCard>
-			<CompactCard>
 				<FormButtonsBar>
 					{ renderFormErrors() }
 					<FormButton onClick={ ( event ) => handleSaveForm( event, props ) }>
