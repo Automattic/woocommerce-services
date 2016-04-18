@@ -33,6 +33,21 @@
   // Components
   @import 'components';
 
+  // Buttons
+  .button {
+      background: $gray-light;
+      box-shadow: none;
+      padding: 5px 14px 7px;
+  }
+
+  .button.is-primary {
+      background: $blue-wordpress;
+      border-color: $blue-dark;
+      &:hover {
+          background: $button-hover;
+      }
+  }
+
   // Cards
   .card.is-compact {
       padding-top: 24px;
