@@ -21,7 +21,7 @@ const {
 let i18nLocaleStringsObject = {};
 
 if ( window.i18nLocaleStrings ) {
-	i18nLocaleStringsObject = JSON.parse( window.i18nLocaleStrings );
+	i18nLocaleStringsObject = window.i18nLocaleStrings;
 }
 
 i18n.initialize( i18nLocaleStringsObject );
