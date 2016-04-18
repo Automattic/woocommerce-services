@@ -15,6 +15,7 @@ import * as FormActions from 'state/form/actions';
 import SettingsGroup from './render-group';
 import Packages from 'components/shipping/packages';
 import Notice from 'components/notice';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const handleSaveForm = ( event, props ) => {
 	event.preventDefault();
@@ -109,7 +110,7 @@ const Settings = ( props ) => {
 				<Notice
 					className="wcc-form-success"
 					status="is-success"
-					text="Your changes have been saved."
+					text={ __( 'Your changes have been saved.' ) }
 					showDismiss={ false }
 					onDismissClick={ () => props.formActions.setField( 'success', null ) }
 					duration={ 2250 }
@@ -128,9 +129,9 @@ const Settings = ( props ) => {
 				updateSubSubValue={ updateSettingsObjectSubField }
 			/>
 			<CompactCard>
-				<FormSectionHeading>Rates</FormSectionHeading>
+				<FormSectionHeading>{ __( 'Rates' ) }</FormSectionHeading>
 				<FormFieldset>
-					<FormLegend>Services</FormLegend>
+					<FormLegend>{ __( 'Services' ) }</FormLegend>
 					<ShippingServiceGroups
 						services={ schema.definitions.services }
 						settings={ settings.services }
@@ -140,26 +141,26 @@ const Settings = ( props ) => {
 					/>
 				</FormFieldset>
 				<FormFieldset>
-					<FormLegend>Show the customer</FormLegend>
+					<FormLegend>{ __( 'Show the customer' ) }</FormLegend>
 					<FormLabel>
 						<FormRadio value="all" checked={ true } readOnly={ true }/>
-						<span>All available rates that apply and let them choose</span>
+						<span>{ __( 'All available rates that apply and let them choose' ) }</span>
 					</FormLabel>
 					<FormLabel>
 						<FormRadio value="cheapest" checked={ false }/>
-						<span>Only give them the one, cheapest rate</span>
+						<span>{ __( 'Only give them the one, cheapest rate' ) }</span>
 					</FormLabel>
 				</FormFieldset>
 			</CompactCard>
 			<CompactCard>
-				<FormSectionHeading>Packages</FormSectionHeading>
+				<FormSectionHeading>{ __( 'Packages' ) }</FormSectionHeading>
 				<Packages packages={ getPackages() } packageTypes={ getPackageTypes() } />
 			</CompactCard>
 			<CompactCard>
 				<FormButtonsBar>
 					{ renderFormErrors() }
 					<FormButton onClick={ ( event ) => handleSaveForm( event, props ) }>
-						{ form.isSaving ? 'Saving...' : 'Save changes' }
+						{ form.isSaving ? __( 'Saving...' ) : __( 'Save changes' ) }
 					</FormButton>
 				</FormButtonsBar>
 			</CompactCard>
