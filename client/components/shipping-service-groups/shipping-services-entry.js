@@ -22,7 +22,12 @@ const ShippingServiceEntry = ( {
 		<FormTextInput
 			disabled={ ! enabled }
 			value={ adjustment }
-			onChange={ ( event ) => updateValue( 'adjustment', Number.parseFloat( event.target.value ) ) }
+			onChange={ ( event ) => {
+				const value = event.target.value ? event.target.value : 0;
+				if ( ! isNaN( value ) ) {
+					updateValue( 'adjustment',  Number.parseFloat( value ) );
+				}
+			} }
 		/>
 		<FormSelect
 			disabled={ ! enabled }
