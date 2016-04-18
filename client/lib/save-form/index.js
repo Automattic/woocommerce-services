@@ -1,15 +1,12 @@
 
-const saveForm = ( url, id, instance, nonce, formData ) => {
-	const body = new FormData();
-	body.append( 'nonce', nonce );
-	body.append( 'id', id );
-	body.append( 'instance', instance );
-	body.append( 'settings', JSON.stringify( formData ) );
-
+const saveForm = ( url, nonce, formData ) => {
 	const request = {
-		method: 'POST',
+		method: 'PUT',
 		credentials: 'same-origin',
-		body,
+		headers: {
+			'X-WP-Nonce': nonce,
+		},
+		body: JSON.stringify( formData ),
 	};
 
 	return fetch( url, request ).then( response => {

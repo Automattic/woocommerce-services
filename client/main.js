@@ -13,12 +13,10 @@ const {
 	formLayout,
 	wooCommerceSettings,
 	callbackURL,
-	id,
-	instance,
 	nonce,
 } = wcConnectData;
 
-const saveFormData = data => saveForm( callbackURL, id, instance, nonce, data );
+const saveFormData = data => saveForm( callbackURL, nonce, data );
 
 const store = configureStore( initializeState( formSchema, formData ) );
 
