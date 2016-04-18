@@ -48,6 +48,33 @@
       }
   }
 
+  // Forms
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type=checkbox],
+  input[type=radio],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+  	@extend %form-field;
+  }
+
+  @mixin placeholder {
+    &::-moz-placeholder { @content }
+    &::-webkit-input-placeholder { @content }
+    &:-ms-input-placeholder { @content }
+  }
+
+  %form-field {
+      box-shadow: none;
+      @include placeholder {
+          color: lighten( $gray, 10% );
+      }
+  }
+
   // Cards
   .card.is-compact {
       padding-top: 24px;
