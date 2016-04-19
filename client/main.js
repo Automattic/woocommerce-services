@@ -14,6 +14,8 @@ const {
 	formLayout,
 	wooCommerceSettings,
 	callbackURL,
+	id,
+	instance,
 	nonce,
 } = wcConnectData;
 
@@ -26,7 +28,9 @@ if ( window.i18nLocaleStrings ) {
 
 i18n.initialize( i18nLocaleStringsObject );
 
-const saveFormData = data => saveForm( callbackURL, nonce, data );
+const saveFormData = ( setIsSaving, setError, data ) => {
+	return saveForm( setIsSaving, setError, callbackURL, id, instance, nonce, data );
+};
 
 const store = configureStore( initializeState( formSchema, formData ) );
 
@@ -40,7 +44,7 @@ let render = () => {
 				wooCommerceSettings={ wooCommerceSettings }
 				schema={ formSchema }
 				layout={ formLayout }
-				saveFormData={ saveFormData }
+				saveForm={ saveFormData }
 			/>
 		</Provider>,
 		rootEl

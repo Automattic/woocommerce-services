@@ -27,6 +27,7 @@ export default ( schema, values ) => {
 		settings: formValues,
 		form: {
 			isSaving: false,
+			error: null,
 		},
 	};
 };
