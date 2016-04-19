@@ -26,7 +26,7 @@ if ( window.i18nLocaleStrings ) {
 
 i18n.initialize( i18nLocaleStringsObject );
 
-const saveFormData = data => saveForm( callbackURL, nonce, data );
+const saveFormData = ( isSaving, setSuccess, setError, data ) => saveForm( isSaving, setSuccess, setError, callbackURL, nonce, data );
 
 const store = configureStore( initializeState( formSchema, formData ) );
 
