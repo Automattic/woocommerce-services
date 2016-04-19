@@ -1,5 +1,5 @@
-# woocommerce-hydra-client
-A WordPress plugin that adds the Hydra client to WooCommerce, to eventually be merged into WooCommerce Actual
+# woocommerce-connect-client
+A WordPress feature plugin that adds the WooCommerce Connect Client, to eventually be merged into WooCommerce itself.
 
 # Getting started
 
