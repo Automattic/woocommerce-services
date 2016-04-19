@@ -10,7 +10,7 @@ const PackagesListItem = ( {
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
-			<Gridicon icon={ type } />
+			<Gridicon icon={ type } size={ 18 } />
 		</div>
 		<div className="package-name">
 			<a href="#">{ name }</a>
@@ -19,8 +19,8 @@ const PackagesListItem = ( {
 			<span>{ dimensions }</span>
 		</div>
 		<div className="package-actions">
-			<Button compact borderless onClick={ onRemove }>
-				<Gridicon icon="cross" size={ 18 } />
+			<Button compact borderless className="remove-package" onClick={ onRemove }>
+				<Gridicon icon="cross-small" size={ 18 } />
 			</Button>
 		</div>
 	</div>

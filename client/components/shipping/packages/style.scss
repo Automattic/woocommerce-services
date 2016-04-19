@@ -1,42 +1,53 @@
 .wcc-shipping-packages-list {
+
+  &.form-fieldset {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid lighten( $gray, 30% );
+  }
   .package-type {
 	width: 10%;
 
 	.gridicon {
 	  border-radius: 50%;
-	  background-color: lightgray;
-	  fill: #fff;
-	  padding: 6px;
+	  background-color: $gray;
+	  fill: white;
+	  padding: 4px;
 	}
   }
 
   .package-name {
-	width: 65%;
+	width: 60%;
   }
 
   .package-dimensions {
 	width: 25%;
+    &.form-legend {
+        width: 30%;
+    }
   }
 
   .package-actions {
-	float: right;
+	width: 5%;
   }
 }
 
 .wcc-shipping-packages-list-header {
   display: flex;
   height: 26px;
-  border-bottom: 1px solid #e9eff3;
+  border-bottom: 1px solid lighten( $gray, 30% );
 }
 
 .wcc-shipping-packages-list-item {
   margin-top: 10px;
   display: flex;
+  align-items: center;
 }
 
 .wcc-shipping-add-package-weight {
   width: 200px;
   float: left;
+
   .form-text-input {
 	width: 88%;
   }
@@ -46,4 +57,17 @@
   .form-setting-explanation {
 	display: inline-block;
   }
+}
+
+.button.is-borderless.remove-package {
+    color: lighten( $gray, 10% );
+
+    &:hover {
+         color: $alert-red;
+     }
+}
+
+.add-package-button-field .button {
+    float: left;
+    margin-left: 0;
 }
