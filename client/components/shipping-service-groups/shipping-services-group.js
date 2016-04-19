@@ -9,9 +9,10 @@ const ShippingServiceGroup = ( {
 	settingsKey,
 } ) => (
 	<div className="wcc-shipping-services-group">
-		<h4>
+		<div className="wcc-shipping-service-header">
 			{ title }
-		</h4>
+		</div>
+		<div className="wcc-shipping-service-content">
 		{ services.map( service => {
 			return (
 				<ShippingServiceEntry
@@ -26,6 +27,7 @@ const ShippingServiceGroup = ( {
 				/>
 			);
 		} ) }
+		</div>
 	</div>
 );
 

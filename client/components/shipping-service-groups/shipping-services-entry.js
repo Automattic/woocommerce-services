@@ -25,7 +25,7 @@ const ShippingServiceEntry = ( {
 			onChange={ ( event ) => {
 				const value = event.target.value ? event.target.value : 0;
 				if ( ! isNaN( value ) ) {
-					updateValue( 'adjustment',  Number.parseFloat( value ) );
+					updateValue( 'adjustment', Number.parseFloat( value ) );
 				}
 			} }
 		/>

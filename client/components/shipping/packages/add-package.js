@@ -55,7 +55,7 @@ class AddPackageDialog extends React.Component {
 
 	getDialogButtons() {
 		return [
-			<FormLabel>
+			<FormLabel className="share-package-option">
 				<FormCheckbox checked={ true } readOnly={ true } />
 				<span>Save package to use in other shipping methods</span>
 			</FormLabel>,
@@ -68,6 +68,7 @@ class AddPackageDialog extends React.Component {
 			return (
 				<a
 					href="#"
+					className="form-setting-explanation"
 					onClick={ ( evt ) => {
 						evt.preventDefault();
 						this.setState( { hideOuterDimensions: false } );
@@ -114,7 +115,7 @@ class AddPackageDialog extends React.Component {
 					{ this.renderOuterDimensionsToggle() }
 				</FormFieldset>
 				{ this.renderOuterDimensions() }
-				<FormFieldset>
+				<FormFieldset className="wcc-shipping-add-package-weight-group">
 					<div className="wcc-shipping-add-package-weight">
 						<FormLabel htmlFor="package_weight">Package weight</FormLabel>
 						<FormTextInput id="package_weight" name="package_weight" placeholder="Weight of box" />
@@ -123,7 +124,7 @@ class AddPackageDialog extends React.Component {
 						<FormLabel htmlFor="max_weight">Max weight</FormLabel>
 						<FormTextInput id="max_weight" name="max_weight" placeholder="Max weight" /> lbs
 					</div>
-					<FormSettingExplanation>Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
+					<FormSettingExplanation> Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
 				</FormFieldset>
 			</Dialog>
 		);

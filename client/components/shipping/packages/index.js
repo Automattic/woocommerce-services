@@ -30,11 +30,11 @@ export default React.createClass( {
 				</FormFieldset>
 				<PackagesList { ...this.props } />
 				{ this.renderAddPackage() }
-				<FormFieldset>
+				<FormFieldset className="add-package-button-field">
 					<FormButton
 						type="button"
 						isPrimary={ false }
-						style={ { float: 'left', marginLeft: 'initial' } }
+						compact
 						onClick={ () => this.setState( { addingPackage: true } ) }
 					>
 						Add a package

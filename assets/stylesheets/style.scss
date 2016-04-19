@@ -2,7 +2,8 @@
 // to elements rendered as a child of our React container
 @import 'shared/functions'; // functions that we've used from Compass, ported over
 @import 'shared/functions/functions'; // sass functions for z-index, etc.
-@import 'shared/colors'; // import all of our wpcom colors
+@import 'colors'; // import wcc colors
+//@import 'shared/colors'; // import all of our wpcom colors
 @import 'components/dialog/style';
 
 #wc-connect-admin-container,
@@ -31,6 +32,82 @@
 
   // Components
   @import 'components';
+
+  // Buttons
+  .button {
+      background: $gray-light;
+      box-shadow: none;
+      padding: 5px 14px 7px;
+  }
+
+  .button.is-primary {
+      background: $blue-wordpress;
+      border-color: $blue-dark;
+      &:hover {
+          background: $button-hover;
+      }
+  }
+
+  // Forms
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type=checkbox],
+  input[type=radio],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+  	@extend %form-field;
+  }
+
+  @mixin placeholder {
+    &::-moz-placeholder { @content }
+    &::-webkit-input-placeholder { @content }
+    &:-ms-input-placeholder { @content }
+  }
+
+  %form-field {
+      box-shadow: none;
+      @include placeholder {
+          color: lighten( $gray, 10% );
+      }
+  }
+
+  // Cards
+  .card.is-compact {
+      padding-top: 24px;
+
+      &.save-button-bar {
+            background: $gray-light;
+            padding: 16px 24px;
+        }
+  }
+
+  // Dialog
+  &.dialog.card {
+      padding: 0;
+      width: 500px;
+  }
+
+  .dialog__content {
+      padding: 24px 24px 0;
+  }
+
+  .dialog__action-buttons {
+      padding: 16px 24px;
+      text-align: left;
+      background: $gray-light;
+      border-top: 1px solid lighten( $gray, 30% );
+  }
+
+  .share-package-option {
+      display: inline-block;
+      margin-top: 8px;
+      text-align: left;
+      font-size: 13px;
+  }
 
   // Custom styles
   max-width: 700px;
