@@ -4,9 +4,9 @@ Hi! Thank you for your interest in contributing to the WooCommerce Connect Clien
 
 Although what you see today is a plugin, the goal for the WooCommerce Connect Client is as a fully integrated part of WooCommerce core. To get us from feature plugin to there, WooCommerce Connect Client development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added to the client. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into WooCommerce 2.7.
 
-We do not recommend you use this ALPHA software on a production site.
+**We do not recommend you use this ALPHA software on a production site.**
 
-The emphasis for this initial release of WooCommerce Connect is shipping simplified. We are providing a Shipping Zones compatible USPS shipping method and, coming soon, a Shipping Zones compatible Canada Post shipping method as well. Shipping Zones are an exciting new feature of WooCommerce 2.6.
+The emphasis for this initial release of WooCommerce Connect is shipping simplified. We are providing a Shipping Zones compatible USPS shipping method and, coming soon, a Shipping Zones compatible Canada Post shipping method as well. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
 
 Our USPS shipping method fetches rates for your customers' carts in real time from the USPS server. No USPS account is needed to use this shipping method - you can use the default one if you'd like.
 
