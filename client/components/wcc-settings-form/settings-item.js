@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import TextField from 'components/text-field';
 import RadioButtons from 'components/radio-buttons';
-import ShippingServiceGroups from 'components/shipping-service-groups';
+import ShippingServiceGroups from 'components/shipping/services';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';

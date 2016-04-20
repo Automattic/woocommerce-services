@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import groupBy from 'lodash/groupBy';
-import ShippingServiceGroup from './shipping-services-group';
+import ShippingServiceGroup from './group';
 
 const ShippingServiceGroups = ( {
 	services,
