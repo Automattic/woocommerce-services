@@ -1,9 +1,9 @@
 import React, { PropTypes } from 'react';
-import RenderForm from 'components/render-form';
+import WCCSettingsForm from 'components/wcc-settings-form';
 
 const Settings = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
 	return (
-		<RenderForm
+		<WCCSettingsForm
 			wooCommerceSettings={ wooCommerceSettings }
 			schema={ schema }
 			layout={ layout }

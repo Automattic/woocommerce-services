@@ -1,20 +1,20 @@
 import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
-import RenderItem from './render-item';
+import SettingsItem from './settings-item';
 import { connect } from 'react-redux';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 import SaveForm from 'components/save-form';
 
-const Group = ( { group, schema, wooCommerceSettings, settings, form, formActions, saveFormData } ) => {
+const SettingsGroup = ( { group, schema, wooCommerceSettings, settings, form, formActions, saveFormData } ) => {
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
 				<CompactCard>
 					<FormSectionHeading>{ group.title }</FormSectionHeading>
 					{ group.items.map( item => (
-						<RenderItem
+						<SettingsItem
 							key={ item.key ? item.key : item }
 							layout={ item }
 							schema={ schema }
@@ -44,7 +44,7 @@ const Group = ( { group, schema, wooCommerceSettings, settings, form, formAction
 	}
 };
 
-Group.propTypes = {
+SettingsGroup.propTypes = {
 	group: PropTypes.shape( {
 		title: PropTypes.string,
 		items: PropTypes.array.isRequired,
@@ -73,4 +73,4 @@ function mapDispatchToProps( dispatch ) {
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)( Group );
+)( SettingsGroup );

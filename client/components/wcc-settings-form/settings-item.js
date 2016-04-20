@@ -7,7 +7,7 @@ import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 
-const RenderItem = ( { layout, schema, settings, settingsActions, wooCommerceSettings } ) => {
+const SettingsItem = ( { layout, schema, settings, settingsActions, wooCommerceSettings } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = value => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
@@ -47,7 +47,7 @@ const RenderItem = ( { layout, schema, settings, settingsActions, wooCommerceSet
 	}
 };
 
-RenderItem.propTypes = {
+SettingsItem.propTypes = {
 	layout: PropTypes.oneOfType( [
 		PropTypes.string.isRequired,
 		PropTypes.object.isRequired,
@@ -74,4 +74,4 @@ function mapDispatchToProps( dispatch ) {
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)( RenderItem );
+)( SettingsItem );

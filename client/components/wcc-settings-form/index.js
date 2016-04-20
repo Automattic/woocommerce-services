@@ -1,11 +1,11 @@
 import React, { PropTypes } from 'react';
-import SettingsGroup from './render-group';
+import WCCSettingsGroup from './settings-group';
 
-const RenderForm = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
+const WCCSettingsForm = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
 	return (
 		<div>
 			{ layout.map( ( group, idx ) => (
-				<SettingsGroup
+				<WCCSettingsGroup
 					key={ idx }
 					group={ group }
 					schema={ schema }
@@ -17,11 +17,11 @@ const RenderForm = ( { wooCommerceSettings, schema, layout, saveFormData } ) => 
 	);
 };
 
-RenderForm.propTypes = {
+WCCSettingsForm.propTypes = {
 	wooCommerceSettings: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
 	saveFormData: PropTypes.func.isRequired,
 };
 
-export default RenderForm;
+export default WCCSettingsForm;
