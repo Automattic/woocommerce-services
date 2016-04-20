@@ -1,19 +1,14 @@
 import React, { PropTypes } from 'react';
-import SettingsGroup from './render-group';
+import RenderForm from 'components/render-form';
 
 const Settings = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
 	return (
-		<div>
-			{ layout.map( ( group, idx ) => (
-				<SettingsGroup
-					key={ idx }
-					group={ group }
-					schema={ schema }
-					wooCommerceSettings={ wooCommerceSettings }
-					saveFormData={ saveFormData }
-				/>
-			) ) }
-		</div>
+		<RenderForm
+			wooCommerceSettings={ wooCommerceSettings }
+			schema={ schema }
+			layout={ layout }
+			saveFormData={ saveFormData }
+		/>
 	);
 };
 
