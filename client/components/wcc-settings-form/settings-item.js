@@ -9,7 +9,7 @@ import { bindActionCreators } from 'redux';
 
 const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions } ) => {
 	const id = layout.key ? layout.key : layout;
-	const updateValue = value => settingsActions.updateSettingsField( id, value );
+	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
 
 	switch ( layout.type ) {
