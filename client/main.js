@@ -12,7 +12,7 @@ const {
 	formData,
 	formSchema,
 	formLayout,
-	wooCommerceSettings,
+	storeOptions,
 	callbackURL,
 	nonce,
 } = wcConnectData;
@@ -33,11 +33,11 @@ const store = configureStore( initializeState( formSchema, formData ) );
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
-	const UspsSettings = require( 'views/usps-settings' );
+	const WCCShippingSettings = require( 'views/shipping' );
 	ReactDOM.render(
 		<Provider store={ store }>
-			<UspsSettings
-				wooCommerceSettings={ wooCommerceSettings }
+			<WCCShippingSettings
+				storeOptions={ storeOptions }
 				schema={ formSchema }
 				layout={ formLayout }
 				saveFormData={ saveFormData }
@@ -67,7 +67,7 @@ if ( module.hot ) {
 		}
 	};
 
-	module.hot.accept( 'views/usps-settings', () => {
+	module.hot.accept( 'views/shipping', () => {
 		setTimeout( render );
 	} );
 }
