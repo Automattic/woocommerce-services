@@ -7,7 +7,7 @@ import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 import SaveForm from 'components/save-form';
 
-const SettingsGroup = ( { group, schema, wooCommerceSettings, settings, form, formActions, saveFormData } ) => {
+const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActions, saveFormData } ) => {
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
@@ -18,7 +18,7 @@ const SettingsGroup = ( { group, schema, wooCommerceSettings, settings, form, fo
 							key={ item.key ? item.key : item }
 							layout={ item }
 							schema={ schema }
-							wooCommerceSettings={ wooCommerceSettings }
+							storeOptions={ storeOptions }
 						/>
 					) ) }
 				</CompactCard>
@@ -50,7 +50,7 @@ SettingsGroup.propTypes = {
 		items: PropTypes.array.isRequired,
 	} ),
 	schema: PropTypes.object.isRequired,
-	wooCommerceSettings: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
 	saveFormData: PropTypes.func.isRequired,
 	settings: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,

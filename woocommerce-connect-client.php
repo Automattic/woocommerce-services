@@ -231,12 +231,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
 
 			$admin_array = array(
-				'wooCommerceSettings' => $settings_store->get_shared_settings(),
-				'formSchema'  => $service_schema->service_settings,
-				'formLayout'  => $service_schema->form_layout,
-				'formData'    => $settings_store->get_service_settings( $id, $instance ),
-				'callbackURL' => get_rest_url( null, $path ),
-				'nonce'       => wp_create_nonce( 'wp_rest' ),
+				'storeOptions' => $settings_store->get_shared_settings(),
+				'formSchema'   => $service_schema->service_settings,
+				'formLayout'   => $service_schema->form_layout,
+				'formData'     => $settings_store->get_service_settings( $id, $instance ),
+				'callbackURL'  => get_rest_url( null, $path ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
 			);
 
 			wp_localize_script( 'wc_connect_service_admin', 'wcConnectData', $admin_array );

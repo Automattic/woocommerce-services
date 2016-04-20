@@ -1,10 +1,10 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsForm from 'components/wcc-settings-form';
 
-const Settings = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
+const Settings = ( { storeOptions, schema, layout, saveFormData } ) => {
 	return (
 		<WCCSettingsForm
-			wooCommerceSettings={ wooCommerceSettings }
+			storeOptions={ storeOptions }
 			schema={ schema }
 			layout={ layout }
 			saveFormData={ saveFormData }
@@ -13,7 +13,7 @@ const Settings = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
 };
 
 Settings.propTypes = {
-	wooCommerceSettings: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
 	saveFormData: PropTypes.func.isRequired,

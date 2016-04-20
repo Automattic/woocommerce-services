@@ -7,7 +7,7 @@ import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 
-const SettingsItem = ( { layout, schema, settings, settingsActions, wooCommerceSettings } ) => {
+const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = value => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
@@ -28,7 +28,7 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, wooCommerceS
 				<ShippingServiceGroups
 					services={ schema.definitions.services }
 					settings={ settings[id] }
-					currencySymbol={ wooCommerceSettings.currency_symbol }
+					currencySymbol={ storeOptions.currency_symbol }
 					updateValue={ updateSubSubValue }
 					settingsKey={ id }
 				/>
@@ -54,7 +54,7 @@ SettingsItem.propTypes = {
 	] ).isRequired,
 	schema: PropTypes.object.isRequired,
 	settings: PropTypes.object.isRequired,
-	wooCommerceSettings: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state ) {

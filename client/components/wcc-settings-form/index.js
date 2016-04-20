@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsGroup from './settings-group';
 
-const WCCSettingsForm = ( { wooCommerceSettings, schema, layout, saveFormData } ) => {
+const WCCSettingsForm = ( { storeOptions, schema, layout, saveFormData } ) => {
 	return (
 		<div>
 			{ layout.map( ( group, idx ) => (
@@ -9,7 +9,7 @@ const WCCSettingsForm = ( { wooCommerceSettings, schema, layout, saveFormData } 
 					key={ idx }
 					group={ group }
 					schema={ schema }
-					wooCommerceSettings={ wooCommerceSettings }
+					storeOptions={ storeOptions }
 					saveFormData={ saveFormData }
 				/>
 			) ) }
@@ -18,7 +18,7 @@ const WCCSettingsForm = ( { wooCommerceSettings, schema, layout, saveFormData } 
 };
 
 WCCSettingsForm.propTypes = {
-	wooCommerceSettings: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
 	saveFormData: PropTypes.func.isRequired,

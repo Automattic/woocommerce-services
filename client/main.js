@@ -12,7 +12,7 @@ const {
 	formData,
 	formSchema,
 	formLayout,
-	wooCommerceSettings,
+	storeOptions,
 	callbackURL,
 	nonce,
 } = wcConnectData;
@@ -37,7 +37,7 @@ let render = () => {
 	ReactDOM.render(
 		<Provider store={ store }>
 			<WCCShippingSettings
-				wooCommerceSettings={ wooCommerceSettings }
+				storeOptions={ storeOptions }
 				schema={ formSchema }
 				layout={ formLayout }
 				saveFormData={ saveFormData }
