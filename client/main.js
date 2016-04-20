@@ -33,10 +33,10 @@ const store = configureStore( initializeState( formSchema, formData ) );
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
-	const UspsSettings = require( 'views/usps-settings' );
+	const WCCShippingSettings = require( 'views/shipping' );
 	ReactDOM.render(
 		<Provider store={ store }>
-			<UspsSettings
+			<WCCShippingSettings
 				wooCommerceSettings={ wooCommerceSettings }
 				schema={ formSchema }
 				layout={ formLayout }
@@ -67,7 +67,7 @@ if ( module.hot ) {
 		}
 	};
 
-	module.hot.accept( 'views/usps-settings', () => {
+	module.hot.accept( 'views/shipping', () => {
 		setTimeout( render );
 	} );
 }
