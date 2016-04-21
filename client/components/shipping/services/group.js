@@ -2,6 +2,18 @@ import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
 import { translate as __ } from 'lib/mixins/i18n';
+import { sprintf } from 'sprintf-js';
+
+const summaryLabel = ( services ) => {
+	const numSelected = services.reduce( ( count, service ) => (
+		count + ( service.enabled ? 1 : 0 )
+	), 0 );
+	if ( numSelected === services.length ) {
+		return __( 'All services selected' );
+	}
+	const format = ( 1 === numSelected ) ? '%d service selected' : '%d services selected';
+	return sprintf( __( format ), numSelected );
+};
 
 const ShippingServiceGroup = ( {
 	title,
@@ -9,27 +21,31 @@ const ShippingServiceGroup = ( {
 	currencySymbol,
 	updateValue,
 	settingsKey,
-} ) => (
-	<FoldableCard
-		header={ title }
-		screenReaderText={ __( 'More' ) }
-		summary="3 services selected">
-		{ services.map( service => {
-			return (
-				<ShippingServiceEntry
-					key={ service.id }
-					enabled={ service.enabled }
-					title={ service.name }
-					adjustment={ service.adjustment }
-					adjustment_type={ service.adjustment_type }
-					currencySymbol={ currencySymbol }
-					updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
-					settingsKey={ settingsKey }
-				/>
-			);
-		} ) }
-	</FoldableCard>
-);
+} ) => {
+	const summary = summaryLabel( services );
+	return (
+		<FoldableCard
+			header={ title }
+			screenReaderText={ __( 'More' ) }
+			summary={ summary }
+			expandedSummary={ summary }>
+			{ services.map( service => {
+				return (
+					<ShippingServiceEntry
+						key={ service.id }
+						enabled={ service.enabled }
+						title={ service.name }
+						adjustment={ service.adjustment }
+						adjustment_type={ service.adjustment_type }
+						currencySymbol={ currencySymbol }
+						updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
+						settingsKey={ settingsKey }
+					/>
+				);
+			} ) }
+		</FoldableCard>
+	);
+};
 
 ShippingServiceGroup.propTypes = {
 	title: PropTypes.string.isRequired,
