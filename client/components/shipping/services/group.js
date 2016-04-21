@@ -11,8 +11,8 @@ const summaryLabel = ( services ) => {
 	if ( numSelected === services.length ) {
 		return __( 'All services selected' );
 	}
-	const format = ( 1 === numSelected ) ? '%d service selected' : '%d services selected';
-	return sprintf( __( format ), numSelected );
+	const format = ( 1 === numSelected ) ? __( '%d service selected' ) : __( '%d services selected' );
+	return sprintf( format, numSelected );
 };
 
 const ShippingServiceGroup = ( {
