@@ -5,8 +5,7 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "dist": "cross-env NODE_ENV=production webpack -p --config webpack.production.config.js",
     "eslint": "eslint client/",
-    "check-shrinkwrap": "npm-shrinkwrap-check",
-    "test": "npm run check-shrinkwrap && mocha-webpack --webpack-config webpack.test.config.js client/**/test/*.js && npm run eslint"
+    "test": "mocha-webpack --webpack-config webpack.test.config.js client/**/test/*.js && npm run eslint"
   },
   "repository": {
     "type": "git",
@@ -34,7 +33,6 @@
     "mocha-webpack": "^0.1.0",
     "node-sass": "^3.4.2",
     "noop-loader": "^1.0.0",
-    "npm-shrinkwrap-check": "0.0.9",
     "react-addons-test-utils": "0.14.7",
     "redbox-react": "^1.2.2",
     "sass-loader": "^3.1.2",
@@ -56,6 +54,7 @@
     "react-dom": "0.14.7",
     "react-redux": "^4.4.1",
     "redux": "^3.3.1",
-    "wp-calypso": "automattic/wp-calypso"
+    "sprintf-js": "1.0.3",
+    "wp-calypso": "github:automattic/wp-calypso"
   }
 }
