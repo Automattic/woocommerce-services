@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
+import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 
@@ -23,12 +24,21 @@ const ShippingServiceGroup = ( {
 	settingsKey,
 } ) => {
 	const summary = summaryLabel( services );
+	const actionButton = (
+		<button className="foldable-card__action foldable-card__expand" type="button">
+			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
+			<Gridicon icon="chevron-up" size={ 24 } />
+		</button>
+	);
 	return (
 		<FoldableCard
 			header={ title }
-			screenReaderText={ __( 'More' ) }
 			summary={ summary }
-			expandedSummary={ summary }>
+			expandedSummary={ summary }
+			clickableHeader={ true }
+			actionButton={ actionButton }
+			actionButtonExpanded={ actionButton }
+		>
 			{ services.map( service => {
 				return (
 					<ShippingServiceEntry
