@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import ShippingServiceEntry from './shipping-services-entry';
+import ShippingServiceEntry from './entry';
 
 const ShippingServiceGroup = ( {
 	title,
