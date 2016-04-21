@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
+import FoldableCard from 'components/foldable-card';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const ShippingServiceGroup = ( {
 	title,
@@ -8,11 +10,10 @@ const ShippingServiceGroup = ( {
 	updateValue,
 	settingsKey,
 } ) => (
-	<div className="wcc-shipping-services-group">
-		<div className="wcc-shipping-service-header">
-			{ title }
-		</div>
-		<div className="wcc-shipping-service-content">
+	<FoldableCard
+		header={ title }
+		screenReaderText={ __( 'More' ) }
+		summary="3 services selected">
 		{ services.map( service => {
 			return (
 				<ShippingServiceEntry
@@ -27,8 +28,7 @@ const ShippingServiceGroup = ( {
 				/>
 			);
 		} ) }
-		</div>
-	</div>
+	</FoldableCard>
 );
 
 ShippingServiceGroup.propTypes = {
