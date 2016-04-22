@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
+import Packages from 'components/shipping/packages';
 
 const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions } ) => {
 	const id = layout.key ? layout.key : layout;
@@ -32,6 +33,11 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 					updateValue={ updateSubSubValue }
 					settingsKey={ id }
 				/>
+			);
+
+		case 'packages':
+			return (
+				<Packages />
 			);
 
 		default:

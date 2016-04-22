@@ -3,6 +3,21 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
 
+const getPackages = () => ( [
+	{
+		id: 'padded-envelope',
+		type: 'mail',
+		name: 'Large padded envelope',
+		dimensions: '14 x 7 x .25 in',
+	},
+	{
+		id: 'bike-box',
+		type: 'flip-horizontal',
+		name: 'Bike box',
+		dimensions: '34 x 12 x 9.75 in',
+	},
+] );
+
 const PackagesList = ( { packages } ) => (
 	<FormFieldset className="wcc-shipping-packages-list">
 		<div className="wcc-shipping-packages-list-header">
@@ -16,8 +31,12 @@ const PackagesList = ( { packages } ) => (
 	</FormFieldset>
 );
 
+PackagesList.defaultProps = {
+	packages: getPackages(),
+};
+
 PackagesList.propTypes = {
-	packages: React.PropTypes.array,
+	packages: React.PropTypes.array.isRequired,
 };
 
 export default PackagesList;

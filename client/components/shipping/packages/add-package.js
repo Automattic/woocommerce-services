@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
@@ -129,7 +129,15 @@ class AddPackageDialog extends React.Component {
 			</Dialog>
 		);
 	}
-
 }
+
+AddPackageDialog.propTypes = {
+	onClose: PropTypes.func.isRequired,
+	packageTypes: PropTypes.object.isRequired,
+};
+
+AddPackageDialog.defaultProps = {
+	packageTypes: {},
+};
 
 export default AddPackageDialog;
