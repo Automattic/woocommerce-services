@@ -6,6 +6,7 @@ const PackagesListItem = ( {
 	type,
 	name,
 	dimensions,
+	dimensionUnit,
 	onRemove,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
@@ -16,7 +17,7 @@ const PackagesListItem = ( {
 			<a href="#">{ name }</a>
 		</div>
 		<div className="package-dimensions">
-			<span>{ dimensions }</span>
+			<span>{ dimensions } { dimensionUnit }</span>
 		</div>
 		<div className="package-actions">
 			<Button compact borderless className="remove-package" onClick={ onRemove }>
@@ -31,6 +32,7 @@ PackagesListItem.propTypes = {
 	type: React.PropTypes.string,
 	name: React.PropTypes.string,
 	dimensions: React.PropTypes.string,
+	dimensionUnit: React.PropTypes.string,
 	onRemove: React.PropTypes.func,
 };
 
