@@ -4,9 +4,10 @@
 	position: relative;
 	transition: margin .15s linear;
 	padding: 0;
+	margin-bottom: 0;
 
 	&.is-expanded {
-		margin-bottom: 8px;
+		margin-bottom: 16px;
 	}
 
 }
@@ -39,7 +40,7 @@
 
 .foldable-card.is-compact {
   .foldable-card__header {
-	padding: 8px 16px;
+	padding: 16px;
 	min-height: 40px;
   }
 }
@@ -98,7 +99,8 @@ button.foldable-card__action {
   display: flex;
   align-items: center;
   flex: 2 1;
-  margin-right: 5px;
+  margin-right: 8px;
+  font-size: 14px;
 
   @include breakpoint( '<480px' ) {
 	flex: 1 1;
@@ -116,7 +118,7 @@ button.foldable-card__action {
   width: 48px;
 
   .gridicon {
-	fill: $gray;
+	fill: lighten( $gray, 10% );
 	display: flex;
 	align-items: center;
 	width: 100%;
@@ -149,7 +151,7 @@ button.foldable-card__action {
 .foldable-card.is-expanded {
   .foldable-card__content {
 	display: block;
-	padding: 16px;
+	padding: 8px 16px;
 	border-top: 1px solid $gray-light;
   }
 }
@@ -157,7 +159,7 @@ button.foldable-card__action {
 .foldable-card.is-compact {
   .foldable-card.is-expanded {
 	.foldable-card__content {
-	  padding: 8px;
+	  padding: 8px 16px;
 	}
   }
 }
@@ -165,7 +167,7 @@ button.foldable-card__action {
 .foldable-card__summary,
 .foldable-card__summary_expanded {
   margin-right: 40px;
-  color: $gray;
+  color: lighten( $gray, 10% );
   font-size: 12px;
   transition: opacity 0.2s linear;
   display: inline-block;

@@ -11,7 +11,7 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
-				<CompactCard>
+				<CompactCard className="settings-group-card">
 					<FormSectionHeading>{ group.title }</FormSectionHeading>
 					{ group.items.map( item => (
 						<SettingsItem
