@@ -75,12 +75,14 @@
 
   // Cards
   .card.is-compact {
-      padding-top: 24px;
+      &.settings-group-card {
+          padding-top: 24px;
+      }
 
       &.save-button-bar {
-            background: $gray-light;
-            padding: 16px 24px;
-        }
+          background: $gray-light;
+          padding: 16px 24px;
+      }
   }
 
   // Dialog

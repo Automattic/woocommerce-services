@@ -36,6 +36,7 @@ const ShippingServiceGroup = ( {
 			summary={ summary }
 			expandedSummary={ summary }
 			clickableHeader={ true }
+			compact
 			actionButton={ actionButton }
 			actionButtonExpanded={ actionButton }
 		>
