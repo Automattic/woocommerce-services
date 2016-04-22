@@ -27,7 +27,7 @@ const ShippingServiceGroup = ( {
 	const actionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
 			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
-			<Gridicon icon="chevron-up" size={ 24 } />
+			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
 	return (
