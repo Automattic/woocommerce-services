@@ -3,7 +3,7 @@ import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 
 const PackagesListItem = ( {
-	type,
+	is_letter,
 	name,
 	dimensions,
 	dimensionUnit,
@@ -11,7 +11,7 @@ const PackagesListItem = ( {
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
-			<Gridicon icon={ type } size={ 18 } />
+			<Gridicon icon={ is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
 		</div>
 		<div className="package-name">
 			<a href="#">{ name }</a>
