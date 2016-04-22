@@ -10,6 +10,20 @@ import FormInputValidation from 'components/forms/form-input-validation';
 import SelectOptGroups from 'components/forms/select-opt-groups';
 import Dialog from 'components/dialog';
 
+const defaultPackages = {
+	label: 'Custom box',
+	options: [
+		{
+			value: 'box',
+			label: 'Box',
+		},
+		{
+			value: 'envelope',
+			label: 'Envelope',
+		},
+	],
+};
+
 class AddPackageDialog extends React.Component {
 
 	constructor() {
@@ -20,36 +34,9 @@ class AddPackageDialog extends React.Component {
 	}
 
 	getPackageTypeOptions() {
-		const { packageTypes } = this.props;
-
-		const defaultTypesGroup = {
-			label: 'Custom box',
-			options: [
-				{
-					value: 'box',
-					label: 'Box',
-				},
-				{
-					value: 'envelope',
-					label: 'Envelope',
-				},
-			],
-		};
-
-		const customTypes = Object.keys( packageTypes ).map( groupName => {
-			const group = packageTypes[groupName];
-			return {
-				label: group.label,
-				options: group.packages.map( groupPackage => ( {
-					value: groupPackage.id,
-					label: groupPackage.name,
-				} ) ),
-			}
-		} );
-
 		return [
-			defaultTypesGroup,
-			...customTypes,
+			defaultPackages,
+			this.props.packageTypes,
 		];
 	}
 
@@ -98,7 +85,14 @@ class AddPackageDialog extends React.Component {
 				<FormSectionHeading>Add a package</FormSectionHeading>
 				<FormFieldset>
 					<FormLabel htmlFor="package_type">Type of package</FormLabel>
-					<SelectOptGroups id="package_type" value="box" optGroups={ this.getPackageTypeOptions() } readOnly={ true } />
+					<SelectOptGroups
+						id="package_type"
+						onClick={ ( e ) => {
+							console.log( 'here', e.target.value );
+						} }
+						onChange={ () => {} }
+						optGroups={ this.getPackageTypeOptions() }
+						readOnly={ false } />
 				</FormFieldset>
 				<FormFieldset>
 					<FormLabel htmlFor="package_name">Package name</FormLabel>
@@ -137,7 +131,19 @@ AddPackageDialog.propTypes = {
 };
 
 AddPackageDialog.defaultProps = {
-	packageTypes: {},
+	packageTypes: {
+		label: 'USPS Flat Rate Boxes and Envelopes',
+		options: [
+			{
+				value: 'usps1',
+				label: 'USPS 1',
+			},
+			{
+				value: 'usps2',
+				label: 'USPS 2',
+			},
+		],
+	},
 };
 
 export default AddPackageDialog;
