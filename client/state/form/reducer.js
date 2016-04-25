@@ -2,6 +2,8 @@ import {
 	UPDATE_FORM_ELEMENT_FIELD,
 	SET_FIELD,
 } from './actions';
+import packages from './packages/reducer';
+import { combineReducers } from 'redux';
 
 const reducers = {};
 
@@ -18,6 +20,10 @@ reducers[SET_FIELD] = ( state, action ) => {
 	return Object.assign( {}, state, newObj );
 };
 
+const childReducers = combineReducers( {
+	packages,
+} );
+
 export default function settings( state = {}, action ) {
 	const reducer = reducers[action.type];
 
@@ -25,5 +31,5 @@ export default function settings( state = {}, action ) {
 		return reducer( state, action );
 	}
 
-	return state;
+	return childReducers( state, action );
 }
