@@ -18,6 +18,7 @@ const PackagesList = ( {
 			{ packages.map( ( pckg, idx ) => (
 				<PackagesListItem
 					key={ idx }
+					index={ idx }
 					is_letter={ pckg.is_letter }
 					name={ pckg.name }
 					dimensions={ '(TODO: implement)' }

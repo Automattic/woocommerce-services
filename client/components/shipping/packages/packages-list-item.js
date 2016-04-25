@@ -1,20 +1,34 @@
 import React from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
+import * as PackagesActions from 'state/form/packages/actions';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
 const PackagesListItem = ( {
+	index,
 	is_letter,
 	name,
 	dimensions,
 	dimensionUnit,
 	onRemove,
+	packagesActions,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
 			<Gridicon icon={ is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
 		</div>
 		<div className="package-name">
-			<a href="#">{ name }</a>
+			<a onClick={ () => {
+				packagesActions.editPackage( {
+					index,
+					name,
+					is_letter,
+					dimensions,
+				} );
+			} }>
+				{ name }
+			</a>
 		</div>
 		<div className="package-dimensions">
 			<span>{ dimensions } { dimensionUnit }</span>
@@ -36,4 +50,11 @@ PackagesListItem.propTypes = {
 	onRemove: React.PropTypes.func,
 };
 
-export default PackagesListItem;
+const mapDispatchToProps = ( dispatch ) => ( {
+	packagesActions: bindActionCreators( PackagesActions, dispatch ),
+} );
+
+export default connect(
+	null,
+	mapDispatchToProps
+)( PackagesListItem );
