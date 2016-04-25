@@ -33,7 +33,6 @@ const getOptionGroups = ( presets ) => {
 };
 
 const handleSelectEvent = ( e, selectDefault, selectPreset ) => {
-	console.log( 'handleSelectEvent', e.target.value );
 	const parts = e.target.value.split( '_' );
 	const type = parts[0];
 	const id = parts[1];
@@ -42,8 +41,6 @@ const handleSelectEvent = ( e, selectDefault, selectPreset ) => {
 			return selectDefault( id );
 		case 'preset':
 			return selectPreset( Number.parseInt( id ) );
-		default:
-			console.log( 'unknown value: ' + e.target.value );
 	}
 };
 

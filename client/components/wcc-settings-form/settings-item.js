@@ -43,6 +43,7 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 					presets={ schema.definitions.preset_boxes }
 					dimensionUnit={ storeOptions.dimension_unit }
 					removePackage={ removeArrayItem }
+					weightUnit={ storeOptions.weight_unit }
 				/>
 			);
 
