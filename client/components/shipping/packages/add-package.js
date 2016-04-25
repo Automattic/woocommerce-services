@@ -6,7 +6,6 @@ import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
 import FormCheckbox from 'components/forms/form-checkbox';
-import FormInputValidation from 'components/forms/form-input-validation';
 import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 
@@ -22,7 +21,8 @@ class AddPackageDialog extends React.Component {
 				inner_dimensions: '',
 				package_weight: '',
 				max_weight: '',
-			}
+				is_letter: false,
+			},
 		};
 	}
 
@@ -60,8 +60,7 @@ class AddPackageDialog extends React.Component {
 					name="outer_dimensions"
 					placeholder="100.25 x 25.25 x 5.75"
 					value={ this.state.form.outer_dimensions }
-					onChange={ () => {} }
-					readOnly={ false }
+					onChange={ event => this.updateFormTextField( 'outer_dimensions', event.target.value ) }
 				/>
 			</FormFieldset>
 		);
@@ -75,20 +74,30 @@ class AddPackageDialog extends React.Component {
 			outer_dimensions: preset.outer_length + ' x ' + preset.outer_width + ' x ' + preset.outer_height,
 			package_weight: preset.box_weight,
 			max_weight: preset.max_weight,
+			is_letter: preset.is_letter || false,
 		};
 		this.setState( { form: newForm } );
 	}
 
 	updateFormTextField( field, value ) {
-		console.log(field, value);
 		const newForm = Object.assign( {}, this.state.form );
 		newForm[field] = value;
 		this.setState( { form: newForm } );
 	}
 
+	useDefaultField( value ) {
+		const newForm = {
+			name: '',
+			inner_dimensions: '',
+			outer_dimensions: '',
+			package_weight: '',
+			max_weight: '',
+			is_letter: 'envelope' === value ? true : false,
+		};
+		this.setState( { form: newForm } );
+	}
+
 	render() {
-		console.log(this.props.presets);
-		console.log(this.state)
 		return (
 			<Dialog
 				isVisible={ true }
@@ -98,7 +107,7 @@ class AddPackageDialog extends React.Component {
 				<FormSectionHeading>Add a package</FormSectionHeading>
 				<AddPackagePresets
 					presets={ this.props.presets }
-					onSelectDefault={ ( value ) => { console.log( 'select default: ' + value ); } }
+					onSelectDefault={ value => this.useDefaultField( value ) }
 					onSelectPreset={ idx => this.usePresetValues( idx ) }
 				/>
 				<FormFieldset>
@@ -107,9 +116,8 @@ class AddPackageDialog extends React.Component {
 						id="package_name"
 						name="package_name"
 						placeholder="The customer will see this during checkout"
-						onChange={ event => this.updateFormTextField( 'package_name', event.target.value ) }
 						value={ this.state.form.name }
-						readOnly={ false }
+						onChange={ event => this.updateFormTextField( 'name', event.target.value ) }
 					/>
 				</FormFieldset>
 				<FormFieldset>
@@ -118,8 +126,7 @@ class AddPackageDialog extends React.Component {
 						name="inner_dimensions"
 						placeholder="100 x 25 x 5.5"
 						value={ this.state.form.inner_dimensions }
-						onChange={ () => {} }
-						readOnly={ false }
+						onChange={ event => this.updateFormTextField( 'inner_dimensions', event.target.value ) }
 					/>
 					{ this.renderOuterDimensionsToggle() }
 				</FormFieldset>
@@ -132,8 +139,7 @@ class AddPackageDialog extends React.Component {
 							name="package_weight"
 							placeholder="Weight of box"
 							value={ this.state.form.package_weight }
-							onChange={ () => {} }
-							readOnly={ false }
+							onChange={ event => this.updateFormTextField( 'package_weight', event.target.value ) }
 						/>
 					</div>
 					<div className="wcc-shipping-add-package-weight">
@@ -143,8 +149,7 @@ class AddPackageDialog extends React.Component {
 							name="max_weight"
 							placeholder="Max weight"
 							value={ this.state.form.max_weight }
-							onChange={ () => {} }
-							readOnly={ false }
+							onChange={ event => this.updateFormTextField( 'max_weight', event.target.value ) }
 						/>
 						{ this.props.weightUnit }
 					</div>
