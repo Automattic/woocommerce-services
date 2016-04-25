@@ -144,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$logger         = new WC_Connect_Logger( new WC_Logger() );
 			$validator      = new WC_Connect_Service_Schemas_Validator();
-			$api_client     = new WC_Connect_API_Client( $validator );
+			$api_client     = new WC_Connect_API_Client( $validator, $this );
 			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 
@@ -383,6 +383,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
 			wp_register_style( 'wc_connect_service_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
 			wp_register_script( 'wc_connect_service_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
+		}
+
+		public function get_active_shipping_services() {
+			global $wpdb;
+			$active_shipping_services = array();
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+
+			foreach ( $shipping_service_ids as $shipping_service_id ) {
+				$is_active = $wpdb->get_var( $wpdb->prepare(
+					"SELECT instance_id FROM wp_woocommerce_shipping_zone_methods WHERE is_enabled = 1 AND method_id = %s LIMIT 1;",
+					$shipping_service_id
+				) );
+				
+				if ( $is_active ) {
+					$active_shipping_services[] = $shipping_service_id;
+				}
+			}
+
+			return $active_shipping_services;
+		}
+
+		public function get_active_services() {
+			return $this->get_active_shipping_services();
 		}
 
 	}

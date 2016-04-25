@@ -18,11 +18,18 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		protected $validator;
 
+		/**
+		 * @var WC_Connect_Loader
+		 */
+		protected $wc_connect_loader;
+
 		public function __construct(
-			WC_Connect_Service_Schemas_Validator $validator
+			WC_Connect_Service_Schemas_Validator $validator,
+			WC_Connect_Loader $wc_connect_loader
 		) {
 
 			$this->validator = $validator;
+			$this->wc_connect_loader = $wc_connect_loader;
 
 		}
 
@@ -184,6 +191,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 				'wp_version' => get_bloginfo( 'version' ),
 				'last_services_update' => get_option( 'wc_connect_services_last_update' ),
+				'active_services' => $this->wc_connect_loader->get_active_services(),
 			) );
 
 			$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
