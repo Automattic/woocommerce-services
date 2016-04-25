@@ -7,22 +7,8 @@ import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormInputValidation from 'components/forms/form-input-validation';
-import SelectOptGroups from 'components/forms/select-opt-groups';
 import Dialog from 'components/dialog';
-
-const defaultPackages = {
-	label: 'Custom box',
-	options: [
-		{
-			value: 'box',
-			label: 'Box',
-		},
-		{
-			value: 'envelope',
-			label: 'Envelope',
-		},
-	],
-};
+import AddPackagePresets from './add-package-presets';
 
 class AddPackageDialog extends React.Component {
 
@@ -31,13 +17,6 @@ class AddPackageDialog extends React.Component {
 		this.state = {
 			hideOuterDimensions: true,
 		};
-	}
-
-	getPackageTypeOptions() {
-		return [
-			defaultPackages,
-			this.props.packageTypes,
-		];
 	}
 
 	getDialogButtons() {
@@ -83,17 +62,11 @@ class AddPackageDialog extends React.Component {
 				onClose={ this.props.onClose }
 				buttons={ this.getDialogButtons() }>
 				<FormSectionHeading>Add a package</FormSectionHeading>
-				<FormFieldset>
-					<FormLabel htmlFor="package_type">Type of package</FormLabel>
-					<SelectOptGroups
-						id="package_type"
-						onClick={ ( e ) => {
-							console.log( 'here', e.target.value );
-						} }
-						onChange={ () => {} }
-						optGroups={ this.getPackageTypeOptions() }
-						readOnly={ false } />
-				</FormFieldset>
+				<AddPackagePresets
+					presets={ this.props.presets }
+					onSelectDefault={ () => {} }
+					onSelectPreset={ () => {} }
+				/>
 				<FormFieldset>
 					<FormLabel htmlFor="package_name">Package name</FormLabel>
 					<FormTextInput
@@ -127,23 +100,7 @@ class AddPackageDialog extends React.Component {
 
 AddPackageDialog.propTypes = {
 	onClose: PropTypes.func.isRequired,
-	packageTypes: PropTypes.object.isRequired,
-};
-
-AddPackageDialog.defaultProps = {
-	packageTypes: {
-		label: 'USPS Flat Rate Boxes and Envelopes',
-		options: [
-			{
-				value: 'usps1',
-				label: 'USPS 1',
-			},
-			{
-				value: 'usps2',
-				label: 'USPS 2',
-			},
-		],
-	},
+	presets: PropTypes.object.isRequired,
 };
 
 export default AddPackageDialog;
