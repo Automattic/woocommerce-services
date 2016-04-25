@@ -182,7 +182,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'jetpack_version' => JETPACK__VERSION,
 				'wc_version' => WC()->version,
 				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
-				'wp_version' => get_bloginfo( 'version' )
+				'wp_version' => get_bloginfo( 'version' ),
+				'last_services_update' => get_option( 'wc_connect_services_last_update' ),
 			) );
 
 			$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );

@@ -31,7 +31,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
-
+			$this->update_last_fetch_timestamp();
 			// If we made it this far, it is safe to store the object
 
 			$this->update_service_schemas( $response_body );
@@ -43,6 +43,10 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 		protected function update_service_schemas( $service_schemas ) {
 			update_option( 'wc_connect_services', $service_schemas );
+		}
+
+		protected function update_last_fetch_timestamp() {
+			update_option( 'wc_connect_services_last_update', time() );
 		}
 
 		/**
