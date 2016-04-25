@@ -26,13 +26,29 @@ class AddPackageDialog extends React.Component {
 		};
 	}
 
+	addPackage() {
+		// TODO: dimensions are ignored for now
+		const form = this.state.form;
+		this.props.saveBox( {
+			name: form.name,
+			is_letter: form.is_letter,
+			outer_length: 0,
+			outer_width: 0,
+			outer_height: 0,
+			inner_length: 0,
+			inner_width: 0,
+			inner_height: 0,
+		} );
+		this.props.onClose();
+	}
+
 	getDialogButtons() {
 		return [
 			<FormLabel className="share-package-option">
 				<FormCheckbox checked={ true } readOnly={ true } />
 				<span>Save package to use in other shipping methods</span>
 			</FormLabel>,
-			<FormButton>Add package</FormButton>,
+			<FormButton onClick={ () => this.addPackage() }>Add package</FormButton>,
 		];
 	}
 
@@ -162,6 +178,7 @@ class AddPackageDialog extends React.Component {
 
 AddPackageDialog.propTypes = {
 	onClose: PropTypes.func.isRequired,
+	saveBox: PropTypes.func.isRequired,
 	presets: PropTypes.object.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 };

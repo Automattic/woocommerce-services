@@ -13,11 +13,14 @@ export default React.createClass( {
 	},
 	propTypes: {
 		presets: PropTypes.object.isRequired,
+		packages: PropTypes.array.isRequired,
+		removePackage: PropTypes.func.isRequired,
+		addPackage: PropTypes.func.isRequired,
 	},
 	render: function() {
 		return (
 			<div>
-				<PackagesList { ...this.props } />
+				<PackagesList packages={ this.props.packages } removePackage={ this.props.removePackage } />
 				{ this.renderAddPackage() }
 				<FormFieldset className="add-package-button-field">
 					<FormButton
@@ -35,7 +38,12 @@ export default React.createClass( {
 	renderAddPackage: function() {
 		if ( this.state.addingPackage ) {
 			return (
-				<AddPackageDialog { ...this.props } onClose={ () => this.setState( { addingPackage: false } ) } />
+				<AddPackageDialog
+					presets={ this.props.presets }
+					weightUnit={ this.props.weightUnit }
+					onClose={ () => this.setState( { addingPackage: false } ) }
+					saveBox={ this.props.addPackage }
+				/>
 			);
 		}
 	},
