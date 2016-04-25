@@ -3,20 +3,21 @@ import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 
 const PackagesListItem = ( {
-	type,
+	is_letter,
 	name,
 	dimensions,
+	dimensionUnit,
 	onRemove,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
-			<Gridicon icon={ type } size={ 18 } />
+			<Gridicon icon={ is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
 		</div>
 		<div className="package-name">
 			<a href="#">{ name }</a>
 		</div>
 		<div className="package-dimensions">
-			<span>{ dimensions }</span>
+			<span>{ dimensions } { dimensionUnit }</span>
 		</div>
 		<div className="package-actions">
 			<Button compact borderless className="remove-package" onClick={ onRemove }>
@@ -31,6 +32,7 @@ PackagesListItem.propTypes = {
 	type: React.PropTypes.string,
 	name: React.PropTypes.string,
 	dimensions: React.PropTypes.string,
+	dimensionUnit: React.PropTypes.string,
 	onRemove: React.PropTypes.func,
 };
 

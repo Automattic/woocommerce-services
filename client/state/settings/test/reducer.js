@@ -6,6 +6,8 @@ import {
 	removeSettingsObjectField,
 	updateSettingsObjectSubField,
 	removeSettingsObjectSubField,
+	addSettingsArrayFieldItem,
+	removeSettingsArrayFieldItem,
 } from '../actions';
 
 const initialState = {
@@ -259,6 +261,75 @@ describe( 'Settings reducer', () => {
 			testPckgs: {
 				PCKG_A: {
 					id: 'PCKG_A',
+					value: 1122,
+				},
+			},
+		} );
+	} );
+
+	it( 'ADD_SETTINGS_ARRAY_FIELD_ITEM', () => {
+		const settingsKey = 'testArrayKey';
+		const item = {
+			id: 'OMEGA',
+			testItemField: 'OHH',
+		};
+
+		const action = addSettingsArrayFieldItem( settingsKey, item );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+				{
+					id: 'BETA',
+					testItemField: 'BEE',
+				},
+				{
+					id: 'OMEGA',
+					testItemField: 'OHH',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+			},
+		} );
+	} );
+
+	it( 'REMOVE_SETTINGS_ARRAY_FIELD_ITEM', () => {
+		const settingsKey = 'testArrayKey';
+		const index = 1;
+
+		const action = removeSettingsArrayFieldItem( settingsKey, index );
+		const state = settings( initialState, action );
+
+		expect( state ).to.eql( {
+			testField: 'testValue',
+			testArrayKey: [
+				{
+					id: 'ALPHA',
+					testItemField: 'AYE',
+				},
+			],
+			testPckgs: {
+				PCKG_A: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
 					value: 1122,
 				},
 			},
