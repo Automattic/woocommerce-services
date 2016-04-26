@@ -7,7 +7,7 @@ import {
 	ADD_SETTINGS_ARRAY_FIELD_ITEM,
 	REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
 } from './actions';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 
 const updateSettingField = ( state, action ) => {
 	return Object.assign( {}, state, {
