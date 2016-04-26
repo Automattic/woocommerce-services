@@ -7,18 +7,27 @@ const PackagesList = ( {
 	packages,
 	dimensionUnit,
 	removePackage,
-} ) => (
-	<FormFieldset className="wcc-shipping-packages-list">
-		<div className="wcc-shipping-packages-list-header">
-			<FormLegend className="package-type">Type</FormLegend>
-			<FormLegend className="package-name">Name</FormLegend>
-			<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
-		</div>
-		{ packages.map( ( packageProps, idx ) => (
-			<PackagesListItem key={ idx } { ...packageProps } dimensionUnit={ dimensionUnit } onRemove={ () => removePackage( idx ) } />
-		) ) }
-	</FormFieldset>
-);
+} ) => {
+	return (
+		<FormFieldset className="wcc-shipping-packages-list">
+			<div className="wcc-shipping-packages-list-header">
+				<FormLegend className="package-type">Type</FormLegend>
+				<FormLegend className="package-name">Name</FormLegend>
+				<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
+			</div>
+			{ packages.map( ( pckg, idx ) => (
+				<PackagesListItem
+					key={ idx }
+					is_letter={ pckg.is_letter }
+					name={ pckg.name }
+					dimensions={ '(TODO: implement)' }
+					dimensionUnit={ dimensionUnit }
+					onRemove={ () => removePackage( idx ) }
+				/>
+			) ) }
+		</FormFieldset>
+	);
+};
 
 PackagesList.propTypes = {
 	packages: React.PropTypes.array.isRequired,

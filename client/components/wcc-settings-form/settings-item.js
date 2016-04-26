@@ -13,6 +13,7 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
+	const addArrayItem = ( data ) => settingsActions.addSettingsArrayFieldItem( id, data );
 
 	switch ( layout.type ) {
 		case 'radios':
@@ -43,6 +44,8 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 					presets={ schema.definitions.preset_boxes }
 					dimensionUnit={ storeOptions.dimension_unit }
 					removePackage={ removeArrayItem }
+					addPackage={ addArrayItem }
+					weightUnit={ storeOptions.weight_unit }
 				/>
 			);
 
