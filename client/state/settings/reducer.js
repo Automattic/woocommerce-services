@@ -6,6 +6,7 @@ import {
 	REMOVE_SETTINGS_OBJECT_SUB_FIELD,
 	ADD_SETTINGS_ARRAY_FIELD_ITEM,
 	REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
+	UPDATE_SETTINGS_ARRAY_FIELD_ITEM,
 } from './actions';
 import cloneDeep from 'lodash/cloneDeep';
 
@@ -80,6 +81,16 @@ reducers[ADD_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
 reducers[REMOVE_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
 	const originalArray = state[action.settings_key] || [];
 	const updatedArray = originalArray.filter( ( item, idx ) => ( idx !== action.index ) );
+
+	return Object.assign( {}, state, {
+		[action.settings_key]: updatedArray,
+	} );
+}
+
+reducers[UPDATE_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
+	const originalArray = state[action.settings_key] || [];
+	const updatedArray = cloneDeep( originalArray );
+	updatedArray[action.index] = action.item;
 
 	return Object.assign( {}, state, {
 		[action.settings_key]: updatedArray,

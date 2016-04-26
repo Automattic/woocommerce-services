@@ -7,8 +7,10 @@ import {
 	removeSettingsObjectSubField,
 	addSettingsArrayFieldItem,
 	removeSettingsArrayFieldItem,
+	updateSettingsArrayFieldItem,
 	ADD_SETTINGS_ARRAY_FIELD_ITEM,
 	REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
+	UPDATE_SETTINGS_ARRAY_FIELD_ITEM,
 } from '../actions';
 
 describe( 'Settings actions', () => {
@@ -118,6 +120,25 @@ describe( 'Settings actions', () => {
 			type: REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
 			settings_key: settingsKey,
 			index,
+		} );
+	} );
+
+	it( '#updateSettingsArrayFieldItem()', () => {
+		const settingsKey = 'boxes';
+		const index = 1;
+		const item = {
+			name: 'Test Envelope',
+			type: 'letter',
+			dimensions: '14 x 7 x .25',
+		};
+
+		const action = updateSettingsArrayFieldItem( settingsKey, index, item );
+
+		expect( action ).to.eql( {
+			type: UPDATE_SETTINGS_ARRAY_FIELD_ITEM,
+			settings_key: settingsKey,
+			index,
+			item,
 		} );
 	} );
 } );
