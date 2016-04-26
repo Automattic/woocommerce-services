@@ -99,7 +99,7 @@ button.foldable-card__action {
   display: flex;
   align-items: center;
   flex: 2 1;
-  margin-right: 8px;
+  margin-right: 16px;
   font-size: 14px;
 
   @include breakpoint( '<480px' ) {
