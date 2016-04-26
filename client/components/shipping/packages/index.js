@@ -3,14 +3,12 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
+import * as PackagesActions from 'state/form/packages/actions';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
-export default React.createClass( {
+const Packages = React.createClass( {
 	displayName: 'Packages',
-	getInitialState: function() {
-		return {
-			addingPackage: false,
-		};
-	},
 	propTypes: {
 		presets: PropTypes.object.isRequired,
 		packages: PropTypes.array.isRequired,
@@ -27,7 +25,7 @@ export default React.createClass( {
 						type="button"
 						isPrimary={ false }
 						compact
-						onClick={ () => this.setState( { addingPackage: true } ) }
+						onClick={ () => this.props.packagesActions.addPackage() }
 					>
 						Add a package
 					</FormButton>
@@ -36,15 +34,27 @@ export default React.createClass( {
 		);
 	},
 	renderAddPackage: function() {
-		if ( this.state.addingPackage ) {
+		if ( this.props.showModal ) {
 			return (
 				<AddPackageDialog
-					presets={ this.props.presets }
-					weightUnit={ this.props.weightUnit }
-					onClose={ () => this.setState( { addingPackage: false } ) }
+					{ ...this.props }
+					onClose={ () => this.props.packagesActions.dismissModal() }
 					saveBox={ this.props.addPackage }
 				/>
 			);
 		}
 	},
 } );
+
+const mapStateToProps = ( state ) => {
+	return state.form.packages;
+};
+
+const mapDispatchToProps = ( dispatch ) => ( {
+	packagesActions: bindActionCreators( PackagesActions, dispatch ),
+} );
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)( Packages );
