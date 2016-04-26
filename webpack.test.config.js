@@ -20,14 +20,28 @@ module.exports = {
 			},
 			{
 				test: /\.jsx?$/,
-				loader: 'babel-loader'
+				loader: 'babel-loader',
+				query: {
+					cacheDirectory: true,
+					presets: [
+						'es2015',
+						'stage-1',
+						'react'
+					],
+					plugins: [
+						"add-module-exports",
+					],
+					babelrc: false,
+				}
 			}
 		]
 	},
 	resolve: {
 		alias: {
 			'react': path.join( __dirname, 'node_modules', 'react' ),
-			'react-dom': path.join( __dirname, 'node_modules', 'react-dom' )
+			'react-dom': path.join( __dirname, 'node_modules', 'react-dom' ),
+			'redux': path.join( __dirname, 'node_modules', 'redux' ),
+			'lib/mixins/i18n': path.join( __dirname, 'client', 'lib', 'mixins', 'i18n' )
 		},
 		extensions: [ '', '.json', '.js', '.jsx' ],
 		root: [
@@ -38,6 +52,9 @@ module.exports = {
 		fallback: [
 			path.join( __dirname, 'node_modules', 'wp-calypso', 'node_modules' )
 		]
+	},
+	resolveLoader: {
+		modulesDirectories: [ __dirname + '/node_modules' ]
 	},
 	target: 'node',
 	externals: [
