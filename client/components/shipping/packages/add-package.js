@@ -17,35 +17,20 @@ class AddPackageDialog extends React.Component {
 		this.state = {
 			hideOuterDimensions: true,
 		};
-	}
-
-	addPackage() {
-		// TODO: dimensions are ignored for now
-		const form = this.state.form;
-		this.props.saveBox( {
-			name: form.name,
-			is_letter: form.is_letter,
-			outer_length: 0,
-			outer_width: 0,
-			outer_height: 0,
-			inner_length: 0,
-			inner_width: 0,
-			inner_height: 0,
-		} );
-		this.props.onClose();
+		this.updateFormTextField = this.updateFormTextField.bind( this );
 	}
 
 	getDialogButtons() {
 		const {
 			mode,
-			addPackage,
+			savePackage,
 		} = this.props;
 		return [
 			<FormLabel className="share-package-option">
 				<FormCheckbox checked={ true } readOnly={ true } />
 				<span>Save package to use in other shipping methods</span>
 			</FormLabel>,
-			<FormButton onClick={ () => addPackage() }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
+			<FormButton onClick={ () => savePackage() }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
 		];
 	}
 
@@ -73,7 +58,7 @@ class AddPackageDialog extends React.Component {
 					name="outer_dimensions"
 					placeholder="100.25 x 25.25 x 5.75"
 					value={ value }
-					onChange={ ( event ) => this.updateFormTextField( 'outer_dimensions', event.target.value ) }
+					onChange={ this.updateFormTextField }
 				/>
 			</FormFieldset>
 		);
@@ -81,33 +66,33 @@ class AddPackageDialog extends React.Component {
 
 	usePresetValues( idx ) {
 		const preset = this.props.presets.boxes[idx];
-		const newForm = {
+		this.props.updatePackagesField( {
 			name: preset.name,
 			inner_dimensions: preset.inner_length + ' x ' + preset.inner_width + ' x ' + preset.inner_height,
 			outer_dimensions: preset.outer_length + ' x ' + preset.outer_width + ' x ' + preset.outer_height,
 			package_weight: preset.box_weight,
 			max_weight: preset.max_weight,
 			is_letter: preset.is_letter || false,
-		};
-		this.setState( { form: newForm } );
+		} );
 	}
 
-	updateFormTextField( field, value ) {
-		const newForm = Object.assign( {}, this.state.form );
-		newForm[field] = value;
-		this.setState( { form: newForm } );
+	updateFormTextField( event ) {
+		const {
+			name,
+			value,
+		} = event.target;
+		this.props.updatePackagesField( { [name]: value } );
 	}
 
 	useDefaultField( value ) {
-		const newForm = {
+		this.props.updatePackagesField( {
 			name: '',
 			inner_dimensions: '',
 			outer_dimensions: '',
 			package_weight: '',
 			max_weight: '',
 			is_letter: 'envelope' === value ? true : false,
-		};
-		this.setState( { form: newForm } );
+		} );
 	}
 
 	render() {
@@ -146,7 +131,7 @@ class AddPackageDialog extends React.Component {
 						name="package_name"
 						placeholder="The customer will see this during checkout"
 						value={ name }
-						onChange={ ( event ) => this.updateFormTextField( 'name', event.target.value ) }
+						onChange={ this.updateFormTextField }
 					/>
 				</FormFieldset>
 				<FormFieldset>
@@ -155,7 +140,7 @@ class AddPackageDialog extends React.Component {
 						name="inner_dimensions"
 						placeholder="100 x 25 x 5.5"
 						value={ inner_dimensions }
-						onChange={ ( event ) => this.updateFormTextField( 'inner_dimensions', event.target.value ) }
+						onChange={ this.updateFormTextField }
 					/>
 					{ this.renderOuterDimensionsToggle() }
 				</FormFieldset>
@@ -168,7 +153,7 @@ class AddPackageDialog extends React.Component {
 							name="package_weight"
 							placeholder="Weight of box"
 							value={ package_weight }
-							onChange={ ( event ) => this.updateFormTextField( 'package_weight', event.target.value ) }
+							onChange={ this.updateFormTextField }
 						/>
 					</div>
 					<div className="wcc-shipping-add-package-weight">
@@ -178,7 +163,7 @@ class AddPackageDialog extends React.Component {
 							name="max_weight"
 							placeholder="Max weight"
 							value={ max_weight }
-							onChange={ ( event ) => this.updateFormTextField( 'max_weight', event.target.value ) }
+							onChange={ this.updateFormTextField }
 						/>
 						<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
 					</div>
@@ -197,7 +182,7 @@ AddPackageDialog.propTypes = {
 };
 
 AddPackageDialog.defaultProps = {
-	packageData: {}
+	packageData: {},
 };
 
 export default AddPackageDialog;
