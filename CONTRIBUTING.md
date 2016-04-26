@@ -2,7 +2,7 @@
 
 Hi! Thank you for your interest in contributing to the WooCommerce Connect Client, we really appreciate it.
 
-Although what you see today is a plugin, the goal for the WooCommerce Connect Client is as a fully integrated part of WooCommerce core. To get us from feature plugin to there, WooCommerce Connect Client development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added to the client. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into WooCommerce 2.7.
+Although what you see today is a plugin, the goal for the WooCommerce Connect Client is as a fully integrated part of WooCommerce core. To get us from feature plugin to there, WooCommerce Connect Client development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added to the client. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
 
 **We do not recommend you use this ALPHA software on a production site.**
 
