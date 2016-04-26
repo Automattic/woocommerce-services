@@ -8,14 +8,15 @@ const reducers = {};
 reducers[ADD_PACKAGE] = ( state ) => {
 	return Object.assign( {}, state, {
 		showModal: true,
-		editPackage: null,
+		mode: 'add',
 	} );
 };
 
 reducers[EDIT_PACKAGE] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		showModal: true,
-		editPackage: action.package,
+		mode: 'edit',
+		packageData: action.package,
 	} );
 };
 
