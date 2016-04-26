@@ -75,6 +75,9 @@ module.exports = {
 		modulesDirectories: [ __dirname + '/node_modules' ]
 	},
 	plugins: [
+		new webpack.ProvidePlugin( {
+			'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
+		} ),
 		new ExtractTextPlugin( '[name].css' ),
 	],
 };
