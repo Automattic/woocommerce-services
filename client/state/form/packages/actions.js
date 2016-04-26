@@ -1,6 +1,8 @@
 export const ADD_PACKAGE = 'ADD_PACKAGE';
 export const EDIT_PACKAGE = 'EDIT_PACKAGE';
 export const DISMISS_MODAL = 'DISMISS_MODAL';
+export const SAVE_PACKAGE = 'SAVE_PACKAGE';
+export const UPDATE_PACKAGES_FIELD = 'UPDATE_PACKAGES_FIELD';
 
 export const addPackage = () => ( {
 	type: ADD_PACKAGE,
@@ -13,4 +15,14 @@ export const editPackage = ( packageToEdit ) => ( {
 
 export const dismissModal = () => ( {
 	type: DISMISS_MODAL,
+} );
+
+export const savePackage = ( settings_key ) => ( {
+	type: SAVE_PACKAGE,
+	settings_key,
+} );
+
+export const updatePackagesField = ( newValues ) => ( {
+	type: UPDATE_PACKAGES_FIELD,
+	values: newValues,
 } );

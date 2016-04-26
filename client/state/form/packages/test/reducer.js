@@ -4,6 +4,7 @@ import {
 	addPackage,
 	editPackage,
 	dismissModal,
+	updatePackagesField,
 } from '../actions';
 
 const initialState = {
@@ -56,6 +57,26 @@ describe( 'Packages form reducer', () => {
 
 		expect( state ).to.eql( {
 			showModal: false,
+		} );
+	} );
+
+	it( 'UPDATE_PACKAGES_FIELD', () => {
+		const packageData = {
+			name: 'Test Box',
+			is_letter: false,
+		};
+		const action = updatePackagesField( {
+			name: 'Box Test',
+			max_weight: '300',
+		} );
+		const state = reducer( { packageData }, action );
+
+		expect( state ).to.eql( {
+			packageData: {
+				name: 'Box Test',
+				max_weight: '300',
+				is_letter: false,
+			},
 		} );
 	} );
 } );
