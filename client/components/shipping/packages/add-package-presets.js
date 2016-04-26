@@ -50,8 +50,7 @@ const AddPackagePresets = ( { presets, onSelectDefault, onSelectPreset } ) => {
 			<FormLabel htmlFor="package_type">Type of package</FormLabel>
 			<SelectOptGroups
 				id="package_type"
-				onClick={ ( e ) => handleSelectEvent( e, onSelectDefault, onSelectPreset ) }
-				onChange={ () => {} }
+				onChange={ ( e ) => handleSelectEvent( e, onSelectDefault, onSelectPreset ) }
 				optGroups={ getOptionGroups( presets ) }
 				readOnly={ false }/>
 		</FormFieldset>
