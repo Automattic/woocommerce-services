@@ -76,7 +76,7 @@ class AddPackageDialog extends React.Component {
 					name="outer_dimensions"
 					placeholder="100.25 x 25.25 x 5.75"
 					value={ this.state.form.outer_dimensions }
-					onChange={ event => this.updateFormTextField( 'outer_dimensions', event.target.value ) }
+					onChange={ ( event ) => this.updateFormTextField( 'outer_dimensions', event.target.value ) }
 				/>
 			</FormFieldset>
 		);
@@ -123,8 +123,8 @@ class AddPackageDialog extends React.Component {
 				<FormSectionHeading>Add a package</FormSectionHeading>
 				<AddPackagePresets
 					presets={ this.props.presets }
-					onSelectDefault={ value => this.useDefaultField( value ) }
-					onSelectPreset={ idx => this.usePresetValues( idx ) }
+					onSelectDefault={ ( value ) => this.useDefaultField( value ) }
+					onSelectPreset={ ( idx ) => this.usePresetValues( idx ) }
 				/>
 				<FormFieldset>
 					<FormLabel htmlFor="package_name">Package name</FormLabel>
@@ -133,7 +133,7 @@ class AddPackageDialog extends React.Component {
 						name="package_name"
 						placeholder="The customer will see this during checkout"
 						value={ this.state.form.name }
-						onChange={ event => this.updateFormTextField( 'name', event.target.value ) }
+						onChange={ ( event ) => this.updateFormTextField( 'name', event.target.value ) }
 					/>
 				</FormFieldset>
 				<FormFieldset>
@@ -142,7 +142,7 @@ class AddPackageDialog extends React.Component {
 						name="inner_dimensions"
 						placeholder="100 x 25 x 5.5"
 						value={ this.state.form.inner_dimensions }
-						onChange={ event => this.updateFormTextField( 'inner_dimensions', event.target.value ) }
+						onChange={ ( event ) => this.updateFormTextField( 'inner_dimensions', event.target.value ) }
 					/>
 					{ this.renderOuterDimensionsToggle() }
 				</FormFieldset>
@@ -155,7 +155,7 @@ class AddPackageDialog extends React.Component {
 							name="package_weight"
 							placeholder="Weight of box"
 							value={ this.state.form.package_weight }
-							onChange={ event => this.updateFormTextField( 'package_weight', event.target.value ) }
+							onChange={ ( event ) => this.updateFormTextField( 'package_weight', event.target.value ) }
 						/>
 					</div>
 					<div className="wcc-shipping-add-package-weight">
@@ -165,7 +165,7 @@ class AddPackageDialog extends React.Component {
 							name="max_weight"
 							placeholder="Max weight"
 							value={ this.state.form.max_weight }
-							onChange={ event => this.updateFormTextField( 'max_weight', event.target.value ) }
+							onChange={ ( event ) => this.updateFormTextField( 'max_weight', event.target.value ) }
 						/>
 						{ this.props.weightUnit }
 					</div>
