@@ -76,12 +76,18 @@
   // Cards
   .card.is-compact {
       &.settings-group-card {
+          margin-left: 0;
+          margin-right: 0;
+          max-width: 100%;
           padding-top: 24px;
       }
 
       &.save-button-bar {
           background: $gray-light;
           padding: 16px 24px;
+          margin-right: 0;
+          margin-left: 0;
+          max-width: 100%;
       }
   }
 
@@ -120,13 +126,13 @@
 
   .wp-admin & {
 	select {
-	  height: initial;
+	  height: auto;
 	}
   }
 
   .wp-core-ui & {
 	.button {
-	  height: initial;
+	  height: auto;
 	}
   }
 
