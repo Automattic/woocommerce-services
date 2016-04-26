@@ -1,6 +1,7 @@
 import {
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
+	DISMISS_MODAL,
 } from './actions';
 
 const reducers = {};
@@ -17,6 +18,12 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 		showModal: true,
 		mode: 'edit',
 		packageData: action.package,
+	} );
+};
+
+reducers[DISMISS_MODAL] = ( state ) => {
+	return Object.assign( {}, state, {
+		showModal: false,
 	} );
 };
 

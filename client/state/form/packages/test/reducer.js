@@ -3,6 +3,7 @@ import reducer from '../reducer';
 import {
 	addPackage,
 	editPackage,
+	dismissModal,
 } from '../actions';
 
 const initialState = {
@@ -43,6 +44,18 @@ describe( 'Packages form reducer', () => {
 			showModal: true,
 			mode: 'edit',
 			packageData,
+		} );
+	} );
+
+	it( 'DISMISS_MODAL', () => {
+		const visibleModalState = {
+			showModal: true,
+		}
+		const action = dismissModal();
+		const state = reducer( visibleModalState, action );
+
+		expect( state ).to.eql( {
+			showModal: false,
 		} );
 	} );
 } );

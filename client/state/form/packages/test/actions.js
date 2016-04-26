@@ -2,8 +2,10 @@ import { expect } from 'chai';
 import {
 	addPackage,
 	editPackage,
+	dismissModal,
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
+	DISMISS_MODAL,
 } from '../actions';
 
 describe( 'Packages state actions', () => {
@@ -22,6 +24,12 @@ describe( 'Packages state actions', () => {
 		expect( editPackage( packageToEdit ) ).to.eql( {
 			type: EDIT_PACKAGE,
 			package: packageToEdit,
+		} );
+	} );
+
+	it( '#dismissModal()', () => {
+		expect( dismissModal() ).to.eql( {
+			type: DISMISS_MODAL,
 		} );
 	} );
 } );
