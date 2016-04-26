@@ -7,31 +7,24 @@ import { bindActionCreators } from 'redux';
 
 const PackagesListItem = ( {
 	index,
-	is_letter,
-	name,
-	dimensions,
+	data,
 	dimensionUnit,
 	onRemove,
 	packagesActions,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
-			<Gridicon icon={ is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
+			<Gridicon icon={ data.is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
 		</div>
 		<div className="package-name">
 			<a onClick={ () => {
-				packagesActions.editPackage( {
-					index,
-					name,
-					is_letter,
-					dimensions,
-				} );
+				packagesActions.editPackage( Object.assign( {}, data, { index } ) );
 			} }>
-				{ name }
+				{ data.name }
 			</a>
 		</div>
 		<div className="package-dimensions">
-			<span>{ dimensions } { dimensionUnit }</span>
+			<span>{ data.dimensions } { dimensionUnit }</span>
 		</div>
 		<div className="package-actions">
 			<Button compact borderless className="remove-package" onClick={ onRemove }>
