@@ -1,16 +1,13 @@
 import React from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
-import * as PackagesActions from 'state/form/packages/actions';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 
 const PackagesListItem = ( {
 	index,
 	data,
 	dimensionUnit,
 	onRemove,
-	packagesActions,
+	editPackage,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
@@ -18,7 +15,7 @@ const PackagesListItem = ( {
 		</div>
 		<div className="package-name">
 			<a onClick={ () => {
-				packagesActions.editPackage( Object.assign( {}, data, { index } ) );
+				editPackage( Object.assign( {}, data, { index } ) );
 			} }>
 				{ data.name }
 			</a>
@@ -43,11 +40,4 @@ PackagesListItem.propTypes = {
 	onRemove: React.PropTypes.func,
 };
 
-const mapDispatchToProps = ( dispatch ) => ( {
-	packagesActions: bindActionCreators( PackagesActions, dispatch ),
-} );
-
-export default connect(
-	null,
-	mapDispatchToProps
-)( PackagesListItem );
+export default PackagesListItem;

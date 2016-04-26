@@ -7,6 +7,7 @@ const PackagesList = ( {
 	packages,
 	dimensionUnit,
 	removePackage,
+	editPackage,
 } ) => {
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
@@ -22,6 +23,7 @@ const PackagesList = ( {
 					data={ pckg }
 					dimensionUnit={ dimensionUnit }
 					onRemove={ () => removePackage( idx ) }
+					editPackage={ editPackage }
 				/>
 			) ) }
 		</FormFieldset>
