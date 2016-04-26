@@ -29,7 +29,21 @@ module.exports = {
 			},
 			{
 				test: /\.jsx?$/,
-				loader: 'babel-loader'
+				loader: 'babel-loader',
+				include: /(client|wp-calypso)/,
+				exclude: /(wp-calypso\/node_modules)/,
+				query: {
+					cacheDirectory: true,
+					presets: [
+						'es2015',
+						'stage-1',
+						'react'
+					],
+					plugins: [
+						"add-module-exports",
+					],
+					babelrc: false,
+				}
 			}
 		]
 	},
@@ -56,6 +70,9 @@ module.exports = {
 		fallback: [
 			path.join( __dirname, 'node_modules', 'wp-calypso', 'node_modules' )
 		]
+	},
+	resolveLoader: {
+		modulesDirectories: [ __dirname + '/node_modules' ]
 	},
 	plugins: [
 		new ExtractTextPlugin( '[name].css' ),
