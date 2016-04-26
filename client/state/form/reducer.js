@@ -24,7 +24,7 @@ const childReducers = combineReducers( {
 	packages,
 } );
 
-export default function settings( state = {}, action ) {
+export default function form( state = {}, action ) {
 	const reducer = reducers[action.type];
 
 	if ( reducer ) {
