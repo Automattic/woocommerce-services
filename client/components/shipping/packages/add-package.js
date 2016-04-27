@@ -167,7 +167,7 @@ class AddPackageDialog extends React.Component {
 							value={ this.state.form.max_weight }
 							onChange={ ( event ) => this.updateFormTextField( 'max_weight', event.target.value ) }
 						/>
-						{ this.props.weightUnit }
+						<span className="wcc-shipping-add-package-weight-unit">{ this.props.weightUnit }</span>
 					</div>
 					<FormSettingExplanation> Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
 				</FormFieldset>
