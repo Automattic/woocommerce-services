@@ -35,7 +35,7 @@ PackagesListItem.propTypes = {
 	index: PropTypes.number.isRequired,
 	data: PropTypes.shape( {
 		name: PropTypes.string.isRequired,
-		is_letter: PropTypes.bool.isRequired,
+		is_letter: PropTypes.bool,
 		dimensions: PropTypes.string.isRequired,
 	} ).isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
