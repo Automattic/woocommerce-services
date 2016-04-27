@@ -108,7 +108,7 @@ class AddPackageDialog extends React.Component {
 
 	render() {
 		const {
-			onClose,
+			dismissModal,
 			mode,
 			presets,
 			weightUnit,
@@ -125,7 +125,7 @@ class AddPackageDialog extends React.Component {
 			<Dialog
 				isVisible={ true }
 				additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
-				onClose={ onClose }
+				onClose={ dismissModal }
 				buttons={ this.getDialogButtons() }>
 				<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
 				{ ( 'add' === mode ) ? (

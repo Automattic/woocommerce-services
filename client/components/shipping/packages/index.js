@@ -32,10 +32,7 @@ const Packages = React.createClass( {
 	renderAddPackage: function() {
 		if ( this.props.showModal ) {
 			return (
-				<AddPackageDialog
-					{ ...this.props }
-					onClose={ this.props.dismissModal }
-				/>
+				<AddPackageDialog { ...this.props } />
 			);
 		}
 	},
