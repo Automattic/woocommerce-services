@@ -5,8 +5,11 @@
     padding-bottom: 8px;
     border-bottom: 1px solid lighten( $gray, 30% );
   }
-  .package-type {
-	width: 10%;
+    .package-type {
+        width: 10%;
+        @include breakpoint( '<660px' ) {
+            width: 12%;
+        }
 
 	.gridicon {
 	  border-radius: 50%;
@@ -16,20 +19,29 @@
 	}
   }
 
-  .package-name {
-	width: 60%;
-  }
-
-  .package-dimensions {
-	width: 25%;
-    &.form-legend {
-        width: 30%;
+    .package-name {
+        width: 55%;
+        @include breakpoint( '<660px' ) {
+            width: 43%;
+        }
     }
-  }
 
-  .package-actions {
-	width: 5%;
-  }
+    .package-dimensions {
+        width: 30%;
+        @include breakpoint( '<660px' ) {
+            width: 40%;
+        }
+        &.form-legend {
+            width: 35%;
+            @include breakpoint( '<660px' ) {
+                width: 45%;
+            }
+        }
+    }
+
+    .package-actions {
+        width: 5%;
+    }
 }
 
 .wcc-shipping-packages-list-header {

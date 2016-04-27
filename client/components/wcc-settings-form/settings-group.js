@@ -12,15 +12,17 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 		case 'fieldset':
 			return (
 				<CompactCard className="settings-group-card">
-					<FormSectionHeading>{ group.title }</FormSectionHeading>
-					{ group.items.map( item => (
-						<SettingsItem
-							key={ item.key ? item.key : item }
-							layout={ item }
-							schema={ schema }
-							storeOptions={ storeOptions }
-						/>
-					) ) }
+					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
+					<div className="settings-group-content">
+						{ group.items.map( item => (
+							<SettingsItem
+								key={ item.key ? item.key : item }
+								layout={ item }
+								schema={ schema }
+								storeOptions={ storeOptions }
+							/>
+						) ) }
+					</div>
 				</CompactCard>
 			);
 
