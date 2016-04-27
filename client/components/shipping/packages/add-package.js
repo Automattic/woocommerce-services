@@ -72,7 +72,7 @@ class AddPackageDialog extends React.Component {
 			name: preset.name,
 			inner_dimensions: preset.inner_length + ' x ' + preset.inner_width + ' x ' + preset.inner_height,
 			outer_dimensions: preset.outer_length + ' x ' + preset.outer_width + ' x ' + preset.outer_height,
-			package_weight: preset.box_weight,
+			box_weight: preset.box_weight,
 			max_weight: preset.max_weight,
 			is_letter: preset.is_letter || false,
 		} );
@@ -92,7 +92,7 @@ class AddPackageDialog extends React.Component {
 			name: '',
 			inner_dimensions: '',
 			outer_dimensions: '',
-			package_weight: '',
+			box_weight: '',
 			max_weight: '',
 			is_letter: 'envelope' === value ? true : false,
 		} );
@@ -110,7 +110,7 @@ class AddPackageDialog extends React.Component {
 			name,
 			inner_dimensions,
 			outer_dimensions,
-			package_weight,
+			box_weight,
 			max_weight,
 		} = packageData;
 		return (
@@ -150,12 +150,12 @@ class AddPackageDialog extends React.Component {
 				{ this.renderOuterDimensions( outer_dimensions ) }
 				<FormFieldset className="wcc-shipping-add-package-weight-group">
 					<div className="wcc-shipping-add-package-weight">
-						<FormLabel htmlFor="package_weight">Package weight</FormLabel>
+						<FormLabel htmlFor="box_weight">Package weight</FormLabel>
 						<FormTextInput
-							id="package_weight"
-							name="package_weight"
+							id="box_weight"
+							name="box_weight"
 							placeholder="Weight of box"
-							value={ package_weight }
+							value={ box_weight }
 							onChange={ this.updateFormTextField }
 						/>
 					</div>
