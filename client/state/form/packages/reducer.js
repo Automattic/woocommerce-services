@@ -12,7 +12,7 @@ import isNull from 'lodash/isNull';
 const reducers = {};
 
 reducers[ADD_PACKAGE] = ( state ) => {
-	const newPackageData = omit( state.packageData, 'index' );
+	const newPackageData = ( 'edit' === state.mode ) ? {} : omit( state.packageData, 'index' );
 	return Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',

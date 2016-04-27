@@ -22,9 +22,35 @@ describe( 'Packages form reducer', () => {
 		} );
 	} );
 
-	it( 'ADD_PACKAGE', () => {
+	it( 'ADD_PACKAGE preserves form data', () => {
+		const existingAddState = {
+			showModal: false,
+			mode: 'add',
+			packageData: {
+				name: 'Package name here',
+			},
+		};
 		const action = addPackage();
-		const state = reducer( initialState, action );
+		const state = reducer( existingAddState, action );
+
+		expect( state ).to.eql( {
+			showModal: true,
+			mode: 'add',
+			packageData: existingAddState.packageData,
+		} );
+	} );
+
+	it( "ADD_PACKAGE clears previous 'edit' data", () => {
+		const existingEditState = {
+			showModal: false,
+			mode: 'edit',
+			packageData: {
+				index: 1,
+				name: 'Package name here',
+			},
+		};
+		const action = addPackage();
+		const state = reducer( existingEditState, action );
 
 		expect( state ).to.eql( {
 			showModal: true,
@@ -64,10 +90,12 @@ describe( 'Packages form reducer', () => {
 		const packageData = {
 			name: 'Test Box',
 			is_letter: false,
+			index: 1,
 		};
 		const action = updatePackagesField( {
 			name: 'Box Test',
 			max_weight: '300',
+			index: null,
 		} );
 		const state = reducer( { packageData }, action );
 
