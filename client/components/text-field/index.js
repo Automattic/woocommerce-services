@@ -17,7 +17,7 @@ const TextField = ( { id, schema, value, placeholder, updateValue } ) => {
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ handleChangeEvent } />
-			<FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( schema.description ) } } />
+			<FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( schema.description, { ADD_ATTR: [ 'target' ] } ) } } />
 		</FormFieldset>
 	);
 };
