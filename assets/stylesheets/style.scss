@@ -73,13 +73,38 @@
       }
   }
 
+  .settings-group-header {
+      width: 22%;
+      @include breakpoint( '<660px' ) {
+          width: 100%;
+      }
+  }
+
+  .settings-group-header h3{
+      font-size: 16px;
+      font-weight: 600;
+      color: darken( $gray, 20% );
+  }
+
+  .settings-group-content {
+      width: 78%;
+      @include breakpoint( '<660px' ) {
+          width: 100%;
+      }
+  }
+
   // Cards
   .card.is-compact {
       &.settings-group-card {
           margin-left: 0;
           margin-right: 0;
           max-width: 100%;
+          display: flex;
           padding-top: 24px;
+
+          @include breakpoint( '<660px' ) {
+               flex-wrap: wrap;
+           }
       }
 
       &.save-button-bar {
