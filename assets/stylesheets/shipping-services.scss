@@ -28,6 +28,15 @@
 	display: flex;
 	width: 100%;
 
+	@include breakpoint( '<480px' ) {
+		padding: 4px 0;
+		border-bottom: 1px solid $gray-light;
+
+		&:last-child {
+			border-bottom: 0;
+		}
+	}
+
 	.wcc-shipping-service-entry-title {
 		flex-grow: 1;
 	}
@@ -37,6 +46,7 @@
 		margin: 8px;
 		padding: 6px 12px;
 		font-size: 13px;
+		min-width: 42px;
 	}
 	.form-select {
 		padding: 6px 32px 5px 14px;
