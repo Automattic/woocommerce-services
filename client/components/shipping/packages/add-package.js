@@ -128,10 +128,10 @@ class AddPackageDialog extends React.Component {
 					/>
 				) : null }
 				<FormFieldset>
-					<FormLabel htmlFor="package_name">Package name</FormLabel>
+					<FormLabel htmlFor="name">Package name</FormLabel>
 					<FormTextInput
-						id="package_name"
-						name="package_name"
+						id="name"
+						name="name"
 						placeholder="The customer will see this during checkout"
 						value={ name }
 						onChange={ this.updateFormTextField }
