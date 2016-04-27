@@ -5,11 +5,13 @@ import {
 	dismissModal,
 	savePackage,
 	updatePackagesField,
+	toggleOuterDimensions,
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
 	SAVE_PACKAGE,
 	UPDATE_PACKAGES_FIELD,
+	TOGGLE_OUTER_DIMENSIONS,
 } from '../actions';
 
 describe( 'Packages state actions', () => {
@@ -60,6 +62,12 @@ describe( 'Packages state actions', () => {
 		expect( updatePackagesField( fieldsToUpdate ) ).to.eql( {
 			type: UPDATE_PACKAGES_FIELD,
 			values: fieldsToUpdate,
+		} );
+	} );
+
+	it( '#toggleOuterDimensions()', () => {
+		expect( toggleOuterDimensions() ).to.eql( {
+			type: TOGGLE_OUTER_DIMENSIONS,
 		} );
 	} );
 } );

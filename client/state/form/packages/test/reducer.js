@@ -5,6 +5,7 @@ import {
 	editPackage,
 	dismissModal,
 	updatePackagesField,
+	toggleOuterDimensions,
 } from '../actions';
 
 const initialState = {
@@ -64,13 +65,17 @@ describe( 'Packages form reducer', () => {
 			index: 1,
 			name: 'Test Box',
 		};
+		const initialStateVisibleOuterDimensions = Object.assign( {}, initialState, {
+			showOuterDimensions: true,
+		} );
 		const action = editPackage( packageData );
-		const state = reducer( initialState, action );
+		const state = reducer( initialStateVisibleOuterDimensions, action );
 
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'edit',
 			packageData,
+			showOuterDimensions: false,
 		} );
 	} );
 
@@ -105,6 +110,19 @@ describe( 'Packages form reducer', () => {
 				max_weight: '300',
 				is_letter: false,
 			},
+		} );
+	} );
+
+	it( 'TOGGLE_OUTER_DIMENSIONS', () => {
+		const visibleModalState = {
+			showModal: true,
+		}
+		const action = toggleOuterDimensions();
+		const state = reducer( visibleModalState, action );
+
+		expect( state ).to.eql( {
+			showModal: true,
+			showOuterDimensions: true,
 		} );
 	} );
 } );

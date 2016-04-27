@@ -4,6 +4,7 @@ import {
 	DISMISS_MODAL,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
+	TOGGLE_OUTER_DIMENSIONS,
 } from './actions';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
@@ -25,6 +26,7 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 		showModal: true,
 		mode: 'edit',
 		packageData: action.package,
+		showOuterDimensions: false,
 	} );
 };
 
@@ -47,8 +49,15 @@ reducers[SAVE_PACKAGE] = ( state ) => {
 		showModal: false,
 		mode: 'add',
 		packageData: {},
+		showOuterDimensions: false,
 	} );
 };
+
+reducers[TOGGLE_OUTER_DIMENSIONS] = ( state ) => {
+	return Object.assign( {}, state, {
+		showOuterDimensions: true,
+	} );
+}
 
 const packages = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {
