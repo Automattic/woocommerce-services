@@ -50,6 +50,7 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 					addPackage={ packagesActions.addPackage }
 					editPackage={ packagesActions.editPackage }
 					dismissModal={ packagesActions.dismissModal }
+					toggleOuterDimensions={ packagesActions.toggleOuterDimensions }
 					updatePackagesField={ packagesActions.updatePackagesField }
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }

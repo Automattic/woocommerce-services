@@ -14,9 +14,6 @@ class AddPackageDialog extends React.Component {
 
 	constructor() {
 		super();
-		this.state = {
-			hideOuterDimensions: true,
-		};
 		this.updateFormTextField = this.updateFormTextField.bind( this );
 	}
 
@@ -36,14 +33,20 @@ class AddPackageDialog extends React.Component {
 	}
 
 	renderOuterDimensionsToggle() {
-		if ( this.state.hideOuterDimensions ) {
+		const {
+			showOuterDimensions,
+			packageData,
+			toggleOuterDimensions,
+		} = this.props;
+
+		if ( ! showOuterDimensions && ! packageData.outer_dimensions ) {
 			return (
 				<a
 					href="#"
 					className="form-setting-explanation"
 					onClick={ ( evt ) => {
 						evt.preventDefault();
-						this.setState( { hideOuterDimensions: false } );
+						toggleOuterDimensions();
 					} }>
 					Define exterior dimensions
 				</a>
@@ -52,7 +55,12 @@ class AddPackageDialog extends React.Component {
 	}
 
 	renderOuterDimensions( value ) {
-		return this.state.hideOuterDimensions ? null : (
+		const {
+			showOuterDimensions,
+			packageData,
+		} = this.props;
+
+		return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 			<FormFieldset>
 				<FormLabel>Outer Dimensions (L x W x H)</FormLabel>
 				<FormTextInput
@@ -62,7 +70,7 @@ class AddPackageDialog extends React.Component {
 					onChange={ this.updateFormTextField }
 				/>
 			</FormFieldset>
-		);
+		) : null;
 	}
 
 	usePresetValues( idx ) {
@@ -183,6 +191,7 @@ AddPackageDialog.propTypes = {
 	weightUnit: PropTypes.string.isRequired,
 	mode: PropTypes.string.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
+	showOuterDimensions: PropTypes.bool,
 };
 
 AddPackageDialog.defaultProps = {
