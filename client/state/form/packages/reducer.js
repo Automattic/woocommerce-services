@@ -3,6 +3,7 @@ import {
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
 	UPDATE_PACKAGES_FIELD,
+	SAVE_PACKAGE,
 } from './actions';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
@@ -38,6 +39,14 @@ reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
 	const newPackageData = omitBy( mergedPackageData, isNull );
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
+	} );
+};
+
+reducers[SAVE_PACKAGE] = ( state ) => {
+	return Object.assign( {}, state, {
+		showModal: false,
+		mode: 'add',
+		packageData: {},
 	} );
 };
 

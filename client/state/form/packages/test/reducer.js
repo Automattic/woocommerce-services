@@ -29,7 +29,7 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'add',
-			packageData: null,
+			packageData: {},
 		} );
 	} );
 

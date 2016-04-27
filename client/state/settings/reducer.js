@@ -8,7 +8,11 @@ import {
 	REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
 	UPDATE_SETTINGS_ARRAY_FIELD_ITEM,
 } from './actions';
+import {
+	SAVE_PACKAGE,
+} from 'state/form/packages/actions';
 import cloneDeep from 'lodash/cloneDeep';
+import omit from 'lodash/omit';
 
 const reducers = {};
 
@@ -96,6 +100,29 @@ reducers[UPDATE_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
 		[action.settings_key]: updatedArray,
 	} );
 }
+
+reducers[SAVE_PACKAGE] = ( state, action ) => {
+	const {
+		settings_key,
+		packageData,
+	} = action;
+
+	if ( packageData.index ) {
+		const { index } = packageData;
+		const item = omit( packageData, 'index' );
+
+		return reducers[UPDATE_SETTINGS_ARRAY_FIELD_ITEM]( state, {
+			settings_key,
+			index,
+			item,
+		} );
+	}
+
+	return reducers[ADD_SETTINGS_ARRAY_FIELD_ITEM]( state, {
+		settings_key,
+		item: packageData,
+	} );
+};
 
 const settings = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {
