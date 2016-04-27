@@ -3,7 +3,7 @@ import {
 	SET_FIELD,
 } from './actions';
 import packages from './packages/reducer';
-import { combineReducers } from 'redux';
+import * as packagesActions from './packages/actions';
 
 const reducers = {};
 
@@ -20,16 +20,18 @@ reducers[SET_FIELD] = ( state, action ) => {
 	return Object.assign( {}, state, newObj );
 };
 
-const childReducers = combineReducers( {
-	packages,
-} );
-
 export default function form( state = {}, action ) {
-	const reducer = reducers[action.type];
+	let newState = Object.assign( {}, state );
 
-	if ( reducer ) {
-		return reducer( state, action );
+	if ( reducers.hasOwnProperty( action.type ) ) {
+		newState = reducers[action.type]( state, action );
 	}
 
-	return childReducers( state, action );
+	if ( state.hasOwnProperty( 'packages' ) || packagesActions.hasOwnProperty( action.type ) ) {
+		newState = Object.assign( {}, newState, {
+			packages: packages( state.packages || {}, action ),
+		} );
+	}
+
+	return newState;
 }
