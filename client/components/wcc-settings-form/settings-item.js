@@ -8,7 +8,7 @@ import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 import Packages from 'components/shipping/packages';
 
-const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions } ) => {
+const SettingsItem = ( { layout, schema, settings, settingsActions, form, formActions, storeOptions } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
@@ -46,6 +46,8 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 					removePackage={ removeArrayItem }
 					addPackage={ addArrayItem }
 					weightUnit={ storeOptions.weight_unit }
+					formState={ form[id] ? form[id] : {} }
+					updateFormState={ ( field, value ) => formActions.updateFormElementField( id, field, value ) }
 				/>
 			);
 
