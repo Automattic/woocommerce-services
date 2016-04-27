@@ -14,7 +14,7 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
-	const savePackage = () => packagesActions.savePackage( id );
+	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 
 	switch ( layout.type ) {
 		case 'radios':

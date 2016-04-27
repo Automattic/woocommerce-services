@@ -39,9 +39,15 @@ describe( 'Packages state actions', () => {
 
 	it( '#savePackage()', () => {
 		const settings_key = 'boxes';
-		expect( savePackage( settings_key ) ).to.eql( {
+		const packageData = {
+			name: 'Test box',
+			dimensions: '10 x 13 x 6',
+			is_letter: false,
+		};
+		expect( savePackage( settings_key, packageData ) ).to.eql( {
 			type: SAVE_PACKAGE,
 			settings_key,
+			packageData,
 		} );
 	} );
 

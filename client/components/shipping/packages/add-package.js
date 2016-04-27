@@ -24,13 +24,14 @@ class AddPackageDialog extends React.Component {
 		const {
 			mode,
 			savePackage,
+			packageData,
 		} = this.props;
 		return [
 			<FormLabel className="share-package-option">
 				<FormCheckbox checked={ true } readOnly={ true } />
 				<span>Save package to use in other shipping methods</span>
 			</FormLabel>,
-			<FormButton onClick={ () => savePackage() }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
+			<FormButton onClick={ () => savePackage( packageData ) }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
 		];
 	}
 

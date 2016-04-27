@@ -17,9 +17,10 @@ export const dismissModal = () => ( {
 	type: DISMISS_MODAL,
 } );
 
-export const savePackage = ( settings_key ) => ( {
+export const savePackage = ( settings_key, packageData ) => ( {
 	type: SAVE_PACKAGE,
 	settings_key,
+	packageData,
 } );
 
 export const updatePackagesField = ( newValues ) => ( {
