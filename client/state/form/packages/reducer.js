@@ -4,13 +4,18 @@ import {
 	DISMISS_MODAL,
 	UPDATE_PACKAGES_FIELD,
 } from './actions';
+import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import isNull from 'lodash/isNull';
 
 const reducers = {};
 
 reducers[ADD_PACKAGE] = ( state ) => {
+	const newPackageData = omit( state.packageData, 'index' );
 	return Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',
+		packageData: newPackageData,
 	} );
 };
 
@@ -29,7 +34,8 @@ reducers[DISMISS_MODAL] = ( state ) => {
 };
 
 reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
-	const newPackageData = Object.assign( {}, state.packageData, action.values );
+	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
+	const newPackageData = omitBy( mergedPackageData, isNull );
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
 	} );

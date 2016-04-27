@@ -68,6 +68,7 @@ class AddPackageDialog extends React.Component {
 	usePresetValues( idx ) {
 		const preset = this.props.presets.boxes[idx];
 		this.props.updatePackagesField( {
+			index: null,
 			name: preset.name,
 			inner_dimensions: preset.inner_length + ' x ' + preset.inner_width + ' x ' + preset.inner_height,
 			outer_dimensions: preset.outer_length + ' x ' + preset.outer_width + ' x ' + preset.outer_height,
@@ -87,6 +88,7 @@ class AddPackageDialog extends React.Component {
 
 	useDefaultField( value ) {
 		this.props.updatePackagesField( {
+			index: null,
 			name: '',
 			inner_dimensions: '',
 			outer_dimensions: '',
