@@ -58,8 +58,14 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			if ( ! $last_heartbeat ) {
 				$should_update = true;
 			} else {
-				$elapsed = $now - $last_heartbeat;
-				$should_update = $elapsed > DAY_IN_SECONDS;
+				$last_heartbeat = absint( $last_heartbeat );
+				if ( $last_heartbeat > $now ) {
+					// last heartbeat in the future? wacky
+					$should_update = true;
+				} else {
+					$elapsed = $now - $last_heartbeat;
+					$should_update = $elapsed > DAY_IN_SECONDS;
+				}
 			}
 
 			if ( $should_update ) {
