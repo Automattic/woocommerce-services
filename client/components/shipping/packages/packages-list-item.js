@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 
@@ -32,12 +32,15 @@ const PackagesListItem = ( {
 );
 
 PackagesListItem.propTypes = {
-	id: React.PropTypes.string,
-	type: React.PropTypes.string,
-	name: React.PropTypes.string,
-	dimensions: React.PropTypes.string,
-	dimensionUnit: React.PropTypes.string,
-	onRemove: React.PropTypes.func,
+	index: PropTypes.number.isRequired,
+	data: PropTypes.shape( {
+		name: PropTypes.string.isRequired,
+		is_letter: PropTypes.bool.isRequired,
+		dimensions: PropTypes.string.isRequired,
+	} ).isRequired,
+	dimensionUnit: PropTypes.string.isRequired,
+	onRemove: PropTypes.func.isRequired,
+	editPackage: PropTypes.func.isRequired,
 };
 
 export default PackagesListItem;

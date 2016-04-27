@@ -7,10 +7,9 @@ import AddPackageDialog from './add-package';
 const Packages = React.createClass( {
 	displayName: 'Packages',
 	propTypes: {
-		presets: PropTypes.object.isRequired,
-		packages: PropTypes.array.isRequired,
-		removePackage: PropTypes.func.isRequired,
 		addPackage: PropTypes.func.isRequired,
+		showModal: PropTypes.bool,
+		dismissModal: PropTypes.func.isRequired,
 	},
 	render: function() {
 		return (

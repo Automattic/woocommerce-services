@@ -37,7 +37,7 @@ const SaveForm = ( { saveForm, isSaving, success, error, dismissSuccess } ) => {
 
 SaveForm.propTypes = {
 	saveForm: PropTypes.func.isRequired,
-	isSaving: PropTypes.bool.isRequired,
+	isSaving: PropTypes.bool,
 	success: PropTypes.bool,
 	error: PropTypes.string,
 	dismissSuccess: PropTypes.func.isRequired,

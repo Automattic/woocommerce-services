@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
@@ -31,8 +31,10 @@ const PackagesList = ( {
 };
 
 PackagesList.propTypes = {
-	packages: React.PropTypes.array.isRequired,
-	removePackage: React.PropTypes.func.isRequired,
+	packages: PropTypes.array.isRequired,
+	removePackage: PropTypes.func.isRequired,
+	dimensionUnit: PropTypes.string.isRequired,
+	editPackage: PropTypes.func.isRequired,
 };
 
 export default PackagesList;
