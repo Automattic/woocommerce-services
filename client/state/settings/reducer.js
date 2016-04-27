@@ -115,7 +115,7 @@ reducers[SAVE_PACKAGE] = ( state, action ) => {
 		packageData.max_weight = Number.parseFloat( packageData.max_weight );
 	}
 
-	if ( packageData.index ) {
+	if ( packageData.hasOwnProperty( 'index' ) ) {
 		const { index } = packageData;
 		const item = omit( packageData, 'index' );
 
