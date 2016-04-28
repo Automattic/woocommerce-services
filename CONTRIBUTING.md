@@ -1,8 +1,8 @@
-# Contributing to the WooCommerce Connect Client
+# Contributing to the WooCommerce Connect 
 
-Hi! Thank you for your interest in contributing to the WooCommerce Connect Client. We appreciate it.
+Hi! Thank you for your interest in contributing to WooCommerce Connect. We appreciate it.
 
-Although what you see today is a plugin, the goal for  WooCommerce Connect Client is to be a fully integrated part of WooCommerce core. To get us from feature plugin to core, WooCommerce Connect Client development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
+Although what you see today is a plugin, the goal for  WooCommerce Connect is to be a fully integrated part of WooCommerce core. To get us from feature plugin to core, WooCommerce Connect development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
 
 **We do not recommend you use this ALPHA software on a production site.**
 
@@ -18,12 +18,12 @@ Open [a GitHub issue](https://github.com/Automattic/woocommerce-connect-client/i
 
 If you're filing a bug, specific steps to reproduce are helpful. Please include what you expected to see and what happened instead.
 
-## Setting up USPS shipping with the WooCommerce Connect Client
+## Setting up USPS shipping with the WooCommerce Connect 
 
 1. Install or update to [WordPress 4.5](https://wordpress.org/download/) or higher.
-2. Install and activate WooCommerce 2.6 or higher. The WooCommerce Connect Client will NOT work with WooCommerce 2.5 or older.  A plugin ZIP will be available soon, but for now you need to download a ZIP of the master branch or clone the WooCommerce plugin from its [repository on GitHub](https://github.com/woothemes/woocommerce).
+2. Install and activate WooCommerce 2.6 or higher. The WooCommerce Connect will NOT work with WooCommerce 2.5 or older.  A plugin ZIP will be available soon, but for now you need to download a ZIP of the master branch or clone the WooCommerce plugin from its [repository on GitHub](https://github.com/woothemes/woocommerce).
 3. Install and activate [Jetpack 3.9.6 or higher](https://wordpress.org/plugins/jetpack/).
-4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, the WooCommerce Connect Client requires the Jetpack connection to authenticate with the WooCommerce Connect server.
+4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, the WooCommerce Connect requires the Jetpack connection to authenticate with the WooCommerce Connect server.
 5. Install and activate this feature plugin.
 6. Add at least one product with weight and dimensions.
 7. Add at least one shipping zone, and add the WooCommerce Connect USPS shipping method to it.
@@ -36,11 +36,11 @@ We encourage you to ask for help. We want your first experience with WooCommerce
 
 ## License
 
-WooCommerce Connect Client is licensed under [GNU General Public License v2 (or later)](/LICENSE.md).
+WooCommerce Connect is licensed under [GNU General Public License v2 (or later)](/LICENSE.md).
 
 All materials contributed should be compatible with the GPLv2. This means that if you own the material, you agree to license it under the GPLv2 license. If you are contributing code that is not your own, such as adding a component from another Open Source project, or adding an `npm` package, you need to make sure you follow these steps:
 
 1. Check that the code has a license. If you can't find one, you can try to contact the original author and get permission to use, or ask them to release under a compatible Open Source license.
 2. Check the license is compatible with [GPLv2](http://www.gnu.org/licenses/license-list.en.html#GPLCompatibleLicenses), note that the Apache 2.0 license is *not* compatible.
-3. Add the code source URL (e.g. a GitHub URL), the files where it's used in the WooCommerce Connect Client and the full license terms to [`CREDITS.md`](/CREDITS.md)
+3. Add the code source URL (e.g. a GitHub URL), the files where it's used in the WooCommerce Connect and the full license terms to [`CREDITS.md`](/CREDITS.md)
 4. Add attribution to the code, if applicable. This line should include the copyright notice of the source, and a reference to the license contained in [`CREDITS.md`](/CREDITS.md)
