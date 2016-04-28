@@ -32,6 +32,8 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
 			$this->update_last_fetch_timestamp();
+			$this->maybe_update_heartbeat();
+
 			// If we made it this far, it is safe to store the object
 
 			$this->update_service_schemas( $response_body );
@@ -47,6 +49,28 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 		protected function update_last_fetch_timestamp() {
 			update_option( 'wc_connect_services_last_update', time() );
+		}
+
+		protected function maybe_update_heartbeat() {
+			$last_heartbeat = get_option( 'wc_connect_last_heartbeat' );
+			$now = time();
+
+			if ( ! $last_heartbeat ) {
+				$should_update = true;
+			} else {
+				$last_heartbeat = absint( $last_heartbeat );
+				if ( $last_heartbeat > $now ) {
+					// last heartbeat in the future? wacky
+					$should_update = true;
+				} else {
+					$elapsed = $now - $last_heartbeat;
+					$should_update = $elapsed > DAY_IN_SECONDS;
+				}
+			}
+
+			if ( $should_update ) {
+				update_option( 'wc_connect_last_heartbeat', $now );
+			}
 		}
 
 		/**
