@@ -79,11 +79,6 @@ module.exports = {
 	resolveLoader: {
 		modulesDirectories: [ __dirname + '/node_modules' ]
 	},
-	externals: [
-		nodeExternals( {
-			whitelist: [ 'wp-calypso' ]
-		} )
-	],
 	plugins: [
 		new webpack.ProvidePlugin( {
 			'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
