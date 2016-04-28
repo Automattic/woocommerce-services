@@ -21,7 +21,7 @@ const PackagesListItem = ( {
 			</a>
 		</div>
 		<div className="package-dimensions">
-			<span>{ data.dimensions } { dimensionUnit }</span>
+			<span>{ data.inner_dimensions } { dimensionUnit }</span>
 		</div>
 		<div className="package-actions">
 			<Button compact borderless className="remove-package" onClick={ onRemove }>
@@ -36,7 +36,7 @@ PackagesListItem.propTypes = {
 	data: PropTypes.shape( {
 		name: PropTypes.string.isRequired,
 		is_letter: PropTypes.bool,
-		dimensions: PropTypes.string.isRequired,
+		inner_dimensions: PropTypes.string.isRequired,
 	} ).isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	onRemove: PropTypes.func.isRequired,
