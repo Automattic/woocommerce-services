@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 import SaveForm from 'components/save-form';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActions, saveFormData } ) => {
 	switch ( group.type ) {
@@ -15,12 +16,21 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
 					<div className="settings-group-content">
 						{ group.items.map( item => (
-							<SettingsItem
+							// For Alpha only
+							// Never merge this ternary to master
+							// Master should always render a SettingsItem
+							( 'packing_method' !== item.key )
+							? <SettingsItem
 								key={ item.key ? item.key : item }
 								layout={ item }
 								schema={ schema }
 								storeOptions={ storeOptions }
 							/>
+							: <div
+								key={ item.key ? item.key : item }
+							>
+							{ __( 'Coming in Beta' ) }
+							</div>
 						) ) }
 					</div>
 				</CompactCard>

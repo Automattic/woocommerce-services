@@ -180,6 +180,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			if ( ! is_object( $service_settings ) ) {
 				$service_settings = new stdClass();
 			}
+
+			///////////////////////////////////////////////////////////////////////
+			// For the purposes of alpha, always initialize boxes to an empty array
+			// Never merge this to master
+			// BEGIN
+			if ( property_exists( $service_settings, 'boxes' ) ) {
+				$service_settings->boxes = array();
+			}
+			// END
+			///////////////////////////////////////////////////////////////////////
+
 			return $service_settings;
 		}
 

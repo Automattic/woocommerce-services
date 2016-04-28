@@ -6,14 +6,11 @@ import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
-import Packages from 'components/shipping/packages';
 
 const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
-	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
-	const addArrayItem = ( data ) => settingsActions.addSettingsArrayFieldItem( id, data );
 
 	switch ( layout.type ) {
 		case 'radios':
@@ -38,15 +35,11 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 			);
 
 		case 'packages':
+			// For Alpha only
+			// Never merge this empty div to master
+			// Master should render a Packages component
 			return (
-				<Packages
-					packages={ settings[id] }
-					presets={ schema.definitions.preset_boxes }
-					dimensionUnit={ storeOptions.dimension_unit }
-					removePackage={ removeArrayItem }
-					addPackage={ addArrayItem }
-					weightUnit={ storeOptions.weight_unit }
-				/>
+				<div/>
 			);
 
 		default:
