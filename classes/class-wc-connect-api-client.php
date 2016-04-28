@@ -182,7 +182,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$body['settings'] = wp_parse_args( $body['settings'], array(
 				'base_city' => WC()->countries->get_base_city(),
 				'base_country' => WC()->countries->get_base_country(),
-				'base_postcode' => WC()->countries->get_base_postcode(),
 				'base_state' => WC()->countries->get_base_state(),
 				'currency' => get_woocommerce_currency(),
 				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
