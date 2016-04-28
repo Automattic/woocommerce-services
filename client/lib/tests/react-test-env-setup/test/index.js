@@ -22,7 +22,7 @@ describe( 'react-test-env-setupEnvironment', function() {
 	} );
 
 	it( 'should accept a markup string to be used as the document body', function() {
-		var markup = '<html><head></head><body><div id="hello-world"></div></body></html>';
+		const markup = '<html><head></head><body><div id="hello-world"></div></body></html>';
 		setupEnvironment( markup );
 
 		expect( global.window ).to.not.be.undefined;

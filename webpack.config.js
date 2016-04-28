@@ -1,6 +1,20 @@
-var webpack = require( 'webpack' ),
+const webpack = require( 'webpack' ),
+	path = require( 'path' ),
 	ExtractTextPlugin = require( 'extract-text-webpack-plugin' ),
-	path = require( 'path' );
+	nodeExternals = require( 'webpack-node-externals' );
+
+const babelSettings = {
+	cacheDirectory: true,
+	presets: [
+		'es2015',
+		'stage-1',
+		'react'
+	],
+	plugins: [
+		"add-module-exports",
+	],
+	babelrc: false,
+};
 
 module.exports = {
 	cache: true,
@@ -29,21 +43,12 @@ module.exports = {
 			},
 			{
 				test: /\.jsx?$/,
-				loader: 'babel-loader',
+				loaders: [
+					'babel?' + JSON.stringify( babelSettings ),
+					'eslint'
+				],
 				include: /(client|wp-calypso)/,
 				exclude: /(wp-calypso\/node_modules)/,
-				query: {
-					cacheDirectory: true,
-					presets: [
-						'es2015',
-						'stage-1',
-						'react'
-					],
-					plugins: [
-						"add-module-exports",
-					],
-					babelrc: false,
-				}
 			}
 		]
 	},
@@ -74,6 +79,11 @@ module.exports = {
 	resolveLoader: {
 		modulesDirectories: [ __dirname + '/node_modules' ]
 	},
+	externals: [
+		nodeExternals( {
+			whitelist: [ 'wp-calypso' ]
+		} )
+	],
 	plugins: [
 		new webpack.ProvidePlugin( {
 			'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'

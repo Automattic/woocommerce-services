@@ -60,7 +60,8 @@ module.exports = {
 		'no-underscore-dangle': 0,
 		// Allows Chai `expect` expressions
 		'no-unused-expressions': 0,
-		'no-unused-vars': 1,
+		'no-unused-vars': 2,
+		'no-var': 2,
 		// Teach eslint about React+JSX
 		'react/jsx-uses-react': 1,
 		'react/jsx-uses-vars': 1,
