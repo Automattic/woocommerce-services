@@ -186,7 +186,7 @@ class AddPackageDialog extends React.Component {
 }
 
 AddPackageDialog.propTypes = {
-	onClose: PropTypes.func.isRequired,
+	dismissModal: PropTypes.func.isRequired,
 	presets: PropTypes.object.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	mode: PropTypes.string.isRequired,
