@@ -1,12 +1,12 @@
 .wcc-form-success {
-  animation: disappear .3s ease-in-out 2s;
+    animation: disappear .3s ease-in-out 2s;
 }
 
 @keyframes disappear {
-  0% {
-	opacity: 1;
-  }
-  100% {
-	opacity: 0;
-  }
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
