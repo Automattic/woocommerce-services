@@ -43,15 +43,11 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 			return (
 				<Packages
 					{ ...packagesState }
+					{ ...packagesActions }
 					packages={ settings[id] }
 					presets={ schema.definitions.preset_boxes }
 					dimensionUnit={ storeOptions.dimension_unit }
 					removePackage={ removeArrayItem }
-					addPackage={ packagesActions.addPackage }
-					editPackage={ packagesActions.editPackage }
-					dismissModal={ packagesActions.dismissModal }
-					toggleOuterDimensions={ packagesActions.toggleOuterDimensions }
-					updatePackagesField={ packagesActions.updatePackagesField }
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
 				/>
