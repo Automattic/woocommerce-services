@@ -58,8 +58,10 @@
 }
 
 .wcc-shipping-add-package-weight {
-    width: 200px;
-    float: left;
+    margin-bottom: 8px;
+    @include breakpoint( '>480px' ) {
+        float:left;
+    }
 
     .form-text-input {
         width: 88%;
@@ -70,9 +72,16 @@
     }
 }
 
+#package_type {
+    display: block;
+    width: 100%;
+}
+
 .wcc-shipping-add-package-weight-group {
     .form-setting-explanation {
-        margin-top: 68px;
+        @include breakpoint( '>480px' ) {
+            margin-top: 68px;
+        }
     }
 }
 
