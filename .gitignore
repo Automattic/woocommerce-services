@@ -4,3 +4,5 @@ node_modules
 .idea
 dist
 .tmp
+npm-debug.log
+release
