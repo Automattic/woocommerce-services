@@ -5,6 +5,7 @@ export const UPDATE_SETTINGS_OBJECT_SUB_FIELD = 'UPDATE_SETTINGS_OBJECT_SUB_FIEL
 export const REMOVE_SETTINGS_OBJECT_SUB_FIELD = 'REMOVE_SETTINGS_OBJECT_SUB_FIELD';
 export const ADD_SETTINGS_ARRAY_FIELD_ITEM = 'ADD_SETTINGS_ARRAY_FIELD_ITEM';
 export const REMOVE_SETTINGS_ARRAY_FIELD_ITEM = 'REMOVE_SETTINGS_ARRAY_FIELD_ITEM';
+export const UPDATE_SETTINGS_ARRAY_FIELD_ITEM = 'UPDATE_SETTINGS_ARRAY_FIELD_ITEM';
 
 export const updateSettingsField = ( key, value ) => ( {
 	type: UPDATE_SETTINGS_FIELD,
@@ -50,4 +51,11 @@ export const removeSettingsArrayFieldItem = ( settings_key, index ) => ( {
 	type: REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
 	settings_key,
 	index,
+} );
+
+export const updateSettingsArrayFieldItem = ( settings_key, index, item ) => ( {
+	type: UPDATE_SETTINGS_ARRAY_FIELD_ITEM,
+	settings_key,
+	index,
+	item,
 } );

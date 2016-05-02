@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
@@ -7,6 +7,7 @@ const PackagesList = ( {
 	packages,
 	dimensionUnit,
 	removePackage,
+	editPackage,
 } ) => {
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
@@ -18,11 +19,11 @@ const PackagesList = ( {
 			{ packages.map( ( pckg, idx ) => (
 				<PackagesListItem
 					key={ idx }
-					is_letter={ pckg.is_letter }
-					name={ pckg.name }
-					dimensions={ '(TODO: implement)' }
+					index={ idx }
+					data={ pckg }
 					dimensionUnit={ dimensionUnit }
 					onRemove={ () => removePackage( idx ) }
+					editPackage={ editPackage }
 				/>
 			) ) }
 		</FormFieldset>
@@ -30,8 +31,10 @@ const PackagesList = ( {
 };
 
 PackagesList.propTypes = {
-	packages: React.PropTypes.array.isRequired,
-	removePackage: React.PropTypes.func.isRequired,
+	packages: PropTypes.array.isRequired,
+	removePackage: PropTypes.func.isRequired,
+	dimensionUnit: PropTypes.string.isRequired,
+	editPackage: PropTypes.func.isRequired,
 };
 
 export default PackagesList;

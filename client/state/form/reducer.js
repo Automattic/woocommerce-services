@@ -2,6 +2,8 @@ import {
 	UPDATE_FORM_ELEMENT_FIELD,
 	SET_FIELD,
 } from './actions';
+import packages from './packages/reducer';
+import * as packagesActions from './packages/actions';
 
 const reducers = {};
 
@@ -18,12 +20,18 @@ reducers[SET_FIELD] = ( state, action ) => {
 	return Object.assign( {}, state, newObj );
 };
 
-export default function settings( state = {}, action ) {
-	const reducer = reducers[action.type];
+export default function form( state = {}, action ) {
+	let newState = Object.assign( {}, state );
 
-	if ( reducer ) {
-		return reducer( state, action );
+	if ( reducers.hasOwnProperty( action.type ) ) {
+		newState = reducers[action.type]( state, action );
 	}
 
-	return state;
+	if ( state.hasOwnProperty( 'packages' ) || packagesActions.hasOwnProperty( action.type ) ) {
+		newState = Object.assign( {}, newState, {
+			packages: packages( state.packages || {}, action ),
+		} );
+	}
+
+	return newState;
 }

@@ -6,16 +6,23 @@ import {
 	REMOVE_SETTINGS_OBJECT_SUB_FIELD,
 	ADD_SETTINGS_ARRAY_FIELD_ITEM,
 	REMOVE_SETTINGS_ARRAY_FIELD_ITEM,
+	UPDATE_SETTINGS_ARRAY_FIELD_ITEM,
 } from './actions';
+import {
+	SAVE_PACKAGE,
+} from 'state/form/packages/actions';
 import cloneDeep from 'lodash/cloneDeep';
+import omit from 'lodash/omit';
 
-const updateSettingField = ( state, action ) => {
+const reducers = {};
+
+reducers[UPDATE_SETTINGS_FIELD] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		[action.key]: action.value,
 	} );
 };
 
-const addSettingsObjectField = ( state, action ) => {
+reducers[ADD_SETTINGS_OBJECT_FIELD] = ( state, action ) => {
 	const originalObject = state[action.settings_key] || {};
 	const updatedObject = Object.assign( {}, originalObject, {
 		[action.key]: action.object,
@@ -26,7 +33,7 @@ const addSettingsObjectField = ( state, action ) => {
 	} );
 };
 
-const removeSettingsObjectField = ( state, action ) => {
+reducers[REMOVE_SETTINGS_OBJECT_FIELD] = ( state, action ) => {
 	const originalObject = state[action.settings_key] || {};
 	const updatedObject = Object.assign( {}, originalObject );
 	delete updatedObject[action.key];
@@ -36,7 +43,7 @@ const removeSettingsObjectField = ( state, action ) => {
 	} );
 };
 
-const updateSettingsObjectSubField = ( state, action ) => {
+reducers[UPDATE_SETTINGS_OBJECT_SUB_FIELD] = ( state, action ) => {
 	const originalObject = state[action.settings_key] || {};
 	const originalSubObject = originalObject[action.key] || {};
 	const updatedSubObject = Object.assign( {}, originalSubObject, {
@@ -51,7 +58,7 @@ const updateSettingsObjectSubField = ( state, action ) => {
 	} );
 };
 
-const removeSettingsObjectSubField = ( state, action ) => {
+reducers[REMOVE_SETTINGS_OBJECT_SUB_FIELD] = ( state, action ) => {
 	const originalObject = state[action.settings_key] || {};
 	const originalSubObject = originalObject[action.key] || {};
 	const updatedSubObject = Object.assign( {}, originalSubObject );
@@ -65,7 +72,7 @@ const removeSettingsObjectSubField = ( state, action ) => {
 	} );
 };
 
-const addSettingsArrayFieldItem = ( state, action ) => {
+reducers[ADD_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
 	const originalArray = state[action.settings_key] || [];
 	const updatedArray = cloneDeep( originalArray );
 	updatedArray.push( action.item );
@@ -75,7 +82,7 @@ const addSettingsArrayFieldItem = ( state, action ) => {
 	} );
 }
 
-const removeSettingsArrayFieldItem = ( state, action ) => {
+reducers[REMOVE_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
 	const originalArray = state[action.settings_key] || [];
 	const updatedArray = originalArray.filter( ( item, idx ) => ( idx !== action.index ) );
 
@@ -84,24 +91,51 @@ const removeSettingsArrayFieldItem = ( state, action ) => {
 	} );
 }
 
-const settings = ( state = {}, action ) => {
-	switch ( action.type ) {
-		case UPDATE_SETTINGS_FIELD:
-			return updateSettingField( state, action );
-		case ADD_SETTINGS_OBJECT_FIELD:
-			return addSettingsObjectField( state, action );
-		case REMOVE_SETTINGS_OBJECT_FIELD:
-			return removeSettingsObjectField( state, action );
-		case UPDATE_SETTINGS_OBJECT_SUB_FIELD:
-			return updateSettingsObjectSubField( state, action );
-		case REMOVE_SETTINGS_OBJECT_SUB_FIELD:
-			return removeSettingsObjectSubField( state, action );
-		case ADD_SETTINGS_ARRAY_FIELD_ITEM:
-			return addSettingsArrayFieldItem( state, action );
-		case REMOVE_SETTINGS_ARRAY_FIELD_ITEM:
-			return removeSettingsArrayFieldItem( state, action );
+reducers[UPDATE_SETTINGS_ARRAY_FIELD_ITEM] = ( state, action ) => {
+	const originalArray = state[action.settings_key] || [];
+	const updatedArray = cloneDeep( originalArray );
+	updatedArray[action.index] = action.item;
+
+	return Object.assign( {}, state, {
+		[action.settings_key]: updatedArray,
+	} );
+}
+
+reducers[SAVE_PACKAGE] = ( state, action ) => {
+	const {
+		settings_key,
+		packageData,
+	} = action;
+
+	if ( packageData.box_weight ) {
+		packageData.box_weight = Number.parseFloat( packageData.box_weight );
 	}
 
+	if ( packageData.max_weight ) {
+		packageData.max_weight = Number.parseFloat( packageData.max_weight );
+	}
+
+	if ( packageData.hasOwnProperty( 'index' ) ) {
+		const { index } = packageData;
+		const item = omit( packageData, 'index' );
+
+		return reducers[UPDATE_SETTINGS_ARRAY_FIELD_ITEM]( state, {
+			settings_key,
+			index,
+			item,
+		} );
+	}
+
+	return reducers[ADD_SETTINGS_ARRAY_FIELD_ITEM]( state, {
+		settings_key,
+		item: packageData,
+	} );
+};
+
+const settings = ( state = {}, action ) => {
+	if ( reducers.hasOwnProperty( action.type ) ) {
+		return reducers[action.type]( state, action );
+	}
 	return state;
 };
 

@@ -5,15 +5,16 @@ import ShippingServiceGroups from 'components/shipping/services';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
 import * as FormActions from 'state/form/actions';
+import * as PackagesActions from 'state/form/packages/actions';
 import { bindActionCreators } from 'redux';
 import Packages from 'components/shipping/packages';
 
-const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions } ) => {
+const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeOptions, packagesActions } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
-	const addArrayItem = ( data ) => settingsActions.addSettingsArrayFieldItem( id, data );
+	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 
 	switch ( layout.type ) {
 		case 'radios':
@@ -38,13 +39,16 @@ const SettingsItem = ( { layout, schema, settings, settingsActions, storeOptions
 			);
 
 		case 'packages':
+			const packagesState = form.packages;
 			return (
 				<Packages
+					{ ...packagesState }
+					{ ...packagesActions }
 					packages={ settings[id] }
 					presets={ schema.definitions.preset_boxes }
 					dimensionUnit={ storeOptions.dimension_unit }
 					removePackage={ removeArrayItem }
-					addPackage={ addArrayItem }
+					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
 				/>
 			);
@@ -81,6 +85,7 @@ function mapStateToProps( state ) {
 
 function mapDispatchToProps( dispatch ) {
 	return {
+		packagesActions: bindActionCreators( PackagesActions, dispatch ),
 		settingsActions: bindActionCreators( SettingsActions, dispatch ),
 		formActions: bindActionCreators( FormActions, dispatch ),
 	};

@@ -1,23 +1,27 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 
 const PackagesListItem = ( {
-	is_letter,
-	name,
-	dimensions,
+	index,
+	data,
 	dimensionUnit,
 	onRemove,
+	editPackage,
 } ) => (
 	<div className="wcc-shipping-packages-list-item">
 		<div className="package-type">
-			<Gridicon icon={ is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
+			<Gridicon icon={ data.is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
 		</div>
 		<div className="package-name">
-			<a href="#">{ name }</a>
+			<a onClick={ () => {
+				editPackage( Object.assign( {}, data, { index } ) );
+			} }>
+				{ data.name }
+			</a>
 		</div>
 		<div className="package-dimensions">
-			<span>{ dimensions } { dimensionUnit }</span>
+			<span>{ data.inner_dimensions } { dimensionUnit }</span>
 		</div>
 		<div className="package-actions">
 			<Button compact borderless className="remove-package" onClick={ onRemove }>
@@ -28,12 +32,15 @@ const PackagesListItem = ( {
 );
 
 PackagesListItem.propTypes = {
-	id: React.PropTypes.string,
-	type: React.PropTypes.string,
-	name: React.PropTypes.string,
-	dimensions: React.PropTypes.string,
-	dimensionUnit: React.PropTypes.string,
-	onRemove: React.PropTypes.func,
+	index: PropTypes.number.isRequired,
+	data: PropTypes.shape( {
+		name: PropTypes.string.isRequired,
+		is_letter: PropTypes.bool,
+		inner_dimensions: PropTypes.string.isRequired,
+	} ).isRequired,
+	dimensionUnit: PropTypes.string.isRequired,
+	onRemove: PropTypes.func.isRequired,
+	editPackage: PropTypes.func.isRequired,
 };
 
 export default PackagesListItem;

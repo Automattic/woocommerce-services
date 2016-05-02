@@ -8,59 +8,45 @@ import FormButton from 'components/forms/form-button';
 import FormCheckbox from 'components/forms/form-checkbox';
 import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
+import { translate as __ } from 'lib/mixins/i18n';
 
 class AddPackageDialog extends React.Component {
 
 	constructor() {
 		super();
-		this.state = {
-			hideOuterDimensions: true,
-			form: {
-				name: '',
-				outer_dimensions: '',
-				inner_dimensions: '',
-				package_weight: '',
-				max_weight: '',
-				is_letter: false,
-			},
-		};
-	}
-
-	addPackage() {
-		// TODO: dimensions are ignored for now
-		const form = this.state.form;
-		this.props.saveBox( {
-			name: form.name,
-			is_letter: form.is_letter,
-			outer_length: 0,
-			outer_width: 0,
-			outer_height: 0,
-			inner_length: 0,
-			inner_width: 0,
-			inner_height: 0,
-		} );
-		this.props.onClose();
+		this.updateFormTextField = this.updateFormTextField.bind( this );
 	}
 
 	getDialogButtons() {
+		const {
+			mode,
+			savePackage,
+			packageData,
+		} = this.props;
 		return [
 			<FormLabel className="share-package-option">
 				<FormCheckbox checked={ true } readOnly={ true } />
 				<span>Save package to use in other shipping methods</span>
 			</FormLabel>,
-			<FormButton onClick={ () => this.addPackage() }>Add package</FormButton>,
+			<FormButton onClick={ () => savePackage( packageData ) }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
 		];
 	}
 
 	renderOuterDimensionsToggle() {
-		if ( this.state.hideOuterDimensions ) {
+		const {
+			showOuterDimensions,
+			packageData,
+			toggleOuterDimensions,
+		} = this.props;
+
+		if ( ! showOuterDimensions && ! packageData.outer_dimensions ) {
 			return (
 				<a
 					href="#"
 					className="form-setting-explanation"
 					onClick={ ( evt ) => {
 						evt.preventDefault();
-						this.setState( { hideOuterDimensions: false } );
+						toggleOuterDimensions();
 					} }>
 					Define exterior dimensions
 				</a>
@@ -68,72 +54,90 @@ class AddPackageDialog extends React.Component {
 		}
 	}
 
-	renderOuterDimensions() {
-		return this.state.hideOuterDimensions ? null : (
+	renderOuterDimensions( value ) {
+		const {
+			showOuterDimensions,
+			packageData,
+		} = this.props;
+
+		return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 			<FormFieldset>
 				<FormLabel>Outer Dimensions (L x W x H)</FormLabel>
 				<FormTextInput
 					name="outer_dimensions"
 					placeholder="100.25 x 25.25 x 5.75"
-					value={ this.state.form.outer_dimensions }
-					onChange={ ( event ) => this.updateFormTextField( 'outer_dimensions', event.target.value ) }
+					value={ value }
+					onChange={ this.updateFormTextField }
 				/>
 			</FormFieldset>
-		);
+		) : null;
 	}
 
 	usePresetValues( idx ) {
 		const preset = this.props.presets.boxes[idx];
-		const newForm = {
-			name: preset.name,
-			inner_dimensions: preset.inner_length + ' x ' + preset.inner_width + ' x ' + preset.inner_height,
-			outer_dimensions: preset.outer_length + ' x ' + preset.outer_width + ' x ' + preset.outer_height,
-			package_weight: preset.box_weight,
-			max_weight: preset.max_weight,
-			is_letter: preset.is_letter || false,
-		};
-		this.setState( { form: newForm } );
+		this.props.updatePackagesField( {
+			index: null,
+			...preset,
+		} );
 	}
 
-	updateFormTextField( field, value ) {
-		const newForm = Object.assign( {}, this.state.form );
-		newForm[field] = value;
-		this.setState( { form: newForm } );
+	updateFormTextField( event ) {
+		const {
+			name,
+			value,
+		} = event.target;
+		this.props.updatePackagesField( { [name]: value } );
 	}
 
 	useDefaultField( value ) {
-		const newForm = {
+		this.props.updatePackagesField( {
+			index: null,
 			name: '',
 			inner_dimensions: '',
 			outer_dimensions: '',
-			package_weight: '',
+			box_weight: '',
 			max_weight: '',
 			is_letter: 'envelope' === value ? true : false,
-		};
-		this.setState( { form: newForm } );
+		} );
 	}
 
 	render() {
+		const {
+			dismissModal,
+			mode,
+			presets,
+			weightUnit,
+			packageData,
+		} = this.props;
+		const {
+			name,
+			inner_dimensions,
+			outer_dimensions,
+			box_weight,
+			max_weight,
+		} = packageData;
 		return (
 			<Dialog
 				isVisible={ true }
 				additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
-				onClose={ this.props.onClose }
+				onClose={ dismissModal }
 				buttons={ this.getDialogButtons() }>
-				<FormSectionHeading>Add a package</FormSectionHeading>
-				<AddPackagePresets
-					presets={ this.props.presets }
-					onSelectDefault={ ( value ) => this.useDefaultField( value ) }
-					onSelectPreset={ ( idx ) => this.usePresetValues( idx ) }
-				/>
+				<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
+				{ ( 'add' === mode ) ? (
+					<AddPackagePresets
+						presets={ presets }
+						onSelectDefault={ ( value ) => this.useDefaultField( value ) }
+						onSelectPreset={ ( idx ) => this.usePresetValues( idx ) }
+					/>
+				) : null }
 				<FormFieldset>
-					<FormLabel htmlFor="package_name">Package name</FormLabel>
+					<FormLabel htmlFor="name">Package name</FormLabel>
 					<FormTextInput
-						id="package_name"
-						name="package_name"
+						id="name"
+						name="name"
 						placeholder="The customer will see this during checkout"
-						value={ this.state.form.name }
-						onChange={ ( event ) => this.updateFormTextField( 'name', event.target.value ) }
+						value={ name }
+						onChange={ this.updateFormTextField }
 					/>
 				</FormFieldset>
 				<FormFieldset>
@@ -141,21 +145,21 @@ class AddPackageDialog extends React.Component {
 					<FormTextInput
 						name="inner_dimensions"
 						placeholder="100 x 25 x 5.5"
-						value={ this.state.form.inner_dimensions }
-						onChange={ ( event ) => this.updateFormTextField( 'inner_dimensions', event.target.value ) }
+						value={ inner_dimensions }
+						onChange={ this.updateFormTextField }
 					/>
 					{ this.renderOuterDimensionsToggle() }
 				</FormFieldset>
-				{ this.renderOuterDimensions() }
+				{ this.renderOuterDimensions( outer_dimensions ) }
 				<FormFieldset className="wcc-shipping-add-package-weight-group">
 					<div className="wcc-shipping-add-package-weight">
-						<FormLabel htmlFor="package_weight">Package weight</FormLabel>
+						<FormLabel htmlFor="box_weight">Package weight</FormLabel>
 						<FormTextInput
-							id="package_weight"
-							name="package_weight"
+							id="box_weight"
+							name="box_weight"
 							placeholder="Weight of box"
-							value={ this.state.form.package_weight }
-							onChange={ ( event ) => this.updateFormTextField( 'package_weight', event.target.value ) }
+							value={ box_weight }
+							onChange={ this.updateFormTextField }
 						/>
 					</div>
 					<div className="wcc-shipping-add-package-weight">
@@ -164,10 +168,10 @@ class AddPackageDialog extends React.Component {
 							id="max_weight"
 							name="max_weight"
 							placeholder="Max weight"
-							value={ this.state.form.max_weight }
-							onChange={ ( event ) => this.updateFormTextField( 'max_weight', event.target.value ) }
+							value={ max_weight }
+							onChange={ this.updateFormTextField }
 						/>
-						<span className="wcc-shipping-add-package-weight-unit">{ this.props.weightUnit }</span>
+						<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
 					</div>
 					<FormSettingExplanation> Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
 				</FormFieldset>
@@ -177,10 +181,16 @@ class AddPackageDialog extends React.Component {
 }
 
 AddPackageDialog.propTypes = {
-	onClose: PropTypes.func.isRequired,
-	saveBox: PropTypes.func.isRequired,
+	dismissModal: PropTypes.func.isRequired,
 	presets: PropTypes.object.isRequired,
 	weightUnit: PropTypes.string.isRequired,
+	mode: PropTypes.string.isRequired,
+	updatePackagesField: PropTypes.func.isRequired,
+	showOuterDimensions: PropTypes.bool,
+};
+
+AddPackageDialog.defaultProps = {
+	packageData: {},
 };
 
 export default AddPackageDialog;
