@@ -7,7 +7,7 @@ const reducers = {};
 
 reducers[UPDATE_FORM_ELEMENT_FIELD] = ( state, action ) => {
 	const newObj = {};
-	newObj[action.element] = {};
+	newObj[action.element] = Object.assign( {}, state[action.element] );
 	newObj[action.element][action.field] = action.value;
 	return Object.assign( {}, state, newObj );
 };
@@ -15,7 +15,8 @@ reducers[UPDATE_FORM_ELEMENT_FIELD] = ( state, action ) => {
 reducers[SET_FIELD] = ( state, action ) => {
 	const newObj = {};
 	newObj[action.field] = action.value;
-	return Object.assign( {}, state, newObj );
+	const newState = Object.assign( {}, state, newObj );
+	return newState;
 };
 
 export default function settings( state = {}, action ) {

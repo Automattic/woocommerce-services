@@ -6,28 +6,26 @@ import AddPackageDialog from './add-package';
 
 export default React.createClass( {
 	displayName: 'Packages',
-	getInitialState: function() {
-		return {
-			addingPackage: false,
-		};
-	},
 	propTypes: {
 		presets: PropTypes.object.isRequired,
 		packages: PropTypes.array.isRequired,
 		removePackage: PropTypes.func.isRequired,
 		addPackage: PropTypes.func.isRequired,
+		formState: PropTypes.object.isRequired,
+		updateFormState: PropTypes.func.isRequired,
 	},
 	render: function() {
+		const { packages, removePackage, updateFormState } = this.props;
 		return (
 			<div>
-				<PackagesList packages={ this.props.packages } removePackage={ this.props.removePackage } />
+				<PackagesList packages={ packages } removePackage={ removePackage } />
 				{ this.renderAddPackage() }
 				<FormFieldset className="add-package-button-field">
 					<FormButton
 						type="button"
 						isPrimary={ false }
 						compact
-						onClick={ () => this.setState( { addingPackage: true } ) }
+						onClick={ () => updateFormState( 'addingPackage', true ) }
 					>
 						Add a package
 					</FormButton>
@@ -36,13 +34,16 @@ export default React.createClass( {
 		);
 	},
 	renderAddPackage: function() {
-		if ( this.state.addingPackage ) {
+		const { presets, weightUnit, formState, updateFormState, addPackage } = this.props;
+		if ( formState.addingPackage ) {
 			return (
 				<AddPackageDialog
-					presets={ this.props.presets }
-					weightUnit={ this.props.weightUnit }
-					onClose={ () => this.setState( { addingPackage: false } ) }
-					saveBox={ this.props.addPackage }
+					presets={ presets }
+					weightUnit={ weightUnit }
+					onClose={ () => updateFormState( 'addingPackage', false ) }
+					saveBox={ addPackage }
+					formState={ formState.addPackageState || {} }
+					updateFormState={ ( value ) => updateFormState( 'addPackageState', value ) }
 				/>
 			);
 		}
