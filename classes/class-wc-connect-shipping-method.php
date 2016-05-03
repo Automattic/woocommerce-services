@@ -191,13 +191,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		public function is_valid_package_destination( $package ) {
 
-			$city     = isset( $package['destination']['city'] ) ? $package['destination']['city'] : '';
 			$country  = isset( $package['destination']['country'] ) ? $package['destination']['country'] : '';
 			$postcode = isset( $package['destination']['postcode'] ) ? $package['destination']['postcode'] : '';
 			$state    = isset( $package['destination']['state'] ) ? $package['destination']['state'] : '';
 
-			// Ensure that Country and City are specified
-			if ( empty( $country ) || empty( $city ) ) {
+			// Ensure that Country is specified
+			if ( empty( $country ) ) {
 				return false;
 			}
 
