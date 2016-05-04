@@ -90,8 +90,8 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @covers WC_Connect_Loader::get_services_store
-	 * @covers WC_Connect_Loader::set_services_store
+	 * @covers WC_Connect_Loader::get_service_schemas_store
+	 * @covers WC_Connect_Loader::set_service_schemas_store
 	 */
 	public function test_services_store_getter_setter() {
 
@@ -108,8 +108,8 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @covers WC_Connect_Loader::get_services_validator
-	 * @covers WC_Connect_Loader::set_services_validator
+	 * @covers WC_Connect_Loader::get_service_schemas_validator
+	 * @covers WC_Connect_Loader::set_service_schemas_validator
 	 */
 	public function test_services_validator_getter_setter() {
 
@@ -141,9 +141,9 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @covers WC_Connect_Loader::init_shipping_method
+	 * @covers WC_Connect_Loader::init_service
 	 */
-	public function test_init_shipping_method() {
+	public function test_init_service() {
 
 		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
 			->disableOriginalConstructor()
