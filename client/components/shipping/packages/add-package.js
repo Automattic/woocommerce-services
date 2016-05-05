@@ -92,11 +92,6 @@ class AddPackageDialog extends React.Component {
 	useDefaultField( value ) {
 		this.props.updatePackagesField( {
 			index: null,
-			name: '',
-			inner_dimensions: '',
-			outer_dimensions: '',
-			box_weight: '',
-			max_weight: '',
 			is_letter: 'envelope' === value ? true : false,
 		} );
 	}
