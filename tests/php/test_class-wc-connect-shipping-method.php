@@ -127,4 +127,36 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers WC_Connect_Shipping_Method::calculate_shipping
+	 */
+	public function test_invalid_service_settings_calculate_shipping() {
+
+		$loader = new WC_Connect_Loader();
+		$loader->load_dependencies();
+
+		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
+			->setConstructorArgs( array( 1 ) )
+			->setMethods( array( 'is_valid_package_destination', 'get_service_settings', 'log' ) )
+			->getMock();
+
+		$shipping_method->expects( $this->any() )
+			->method( 'is_valid_package_destination' )
+			->will( $this->returnValue( true ) );
+
+		$shipping_method->expects( $this->any() )
+			->method( 'get_service_settings' )
+			->will( $this->returnValue( new stdClass() ) );
+
+		$shipping_method->expects( $this->once() )
+			->method( 'log' )
+			->with(
+				$this->stringContains( 'Service settings empty.' ),
+				$this->anything()
+			);
+
+		$shipping_method->calculate_shipping();
+
+	}
+
 }
