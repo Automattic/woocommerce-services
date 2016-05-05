@@ -12,7 +12,7 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 					'state'    => 'UT',
 					'postcode' => '84068',
 				)
-			), false ),
+			), true ),
 			'empty country' => array( array(
 				'destination' => array(
 					'city'     => 'Park City',
