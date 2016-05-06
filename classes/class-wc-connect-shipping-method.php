@@ -227,13 +227,27 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			}
 
+			$service_settings = $this->get_service_settings();
+			$settings_keys    = get_object_vars( $service_settings );
+
+			if ( empty( $settings_keys ) ) {
+				return $this->log(
+					sprintf(
+						'Service settings empty. Skipping %s rate request (instance id %d).',
+						$this->id,
+						$this->instance_id
+					),
+					__FUNCTION__
+				);
+			}
+
 			// TODO: Request rates for all WooCommerce Connect powered methods in
 			// the current shipping zone to avoid each method making an independent request
 			$services = array(
 				array(
 					'id'               => $this->id,
 					'instance'         => $this->instance_id,
-					'service_settings' => $this->get_service_settings(),
+					'service_settings' => $service_settings,
 				),
 			);
 

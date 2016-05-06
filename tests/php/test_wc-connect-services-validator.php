@@ -155,7 +155,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 
 	/**
 	 * @dataProvider validate_services_errors_provider
-	 * @covers WC_Connect_Services_Validator::validate_services
+	 * @covers WC_Connect_Service_Schemas_Validator::validate_service_schemas
 	 */
 	public function test_validate_services_errors( $services, $expected ) {
 
@@ -167,7 +167,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @covers WC_Connect_Services_Validator::validate_services
+	 * @covers WC_Connect_Service_Schemas_Validator::validate_service_schemas
 	 */
 	public function test_validate_services() {
 
