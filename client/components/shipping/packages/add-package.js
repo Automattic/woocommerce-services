@@ -75,6 +75,11 @@ const useDefaultField = ( value, updatePackagesField, setModalReadOnly ) => {
 	updatePackagesField( {
 		index: null,
 		is_letter: 'envelope' === value ? true : false,
+		name: '',
+		outer_dimensions: '',
+		inner_dimensions: '',
+		box_weight: '',
+		max_weight: '',
 	} );
 	setModalReadOnly( false );
 };
