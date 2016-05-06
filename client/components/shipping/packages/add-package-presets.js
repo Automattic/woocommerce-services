@@ -32,10 +32,11 @@ const getOptionGroups = ( presets ) => {
 	]
 };
 
-const handleSelectEvent = ( e, selectDefault, selectPreset ) => {
+const handleSelectEvent = ( e, selectDefault, selectPreset, setSelectedPreset ) => {
 	const parts = e.target.value.split( '_' );
 	const type = parts[0];
 	const id = parts[1];
+	setSelectedPreset( e.target.value );
 	switch ( type ) {
 		case 'default':
 			return selectDefault( id );
@@ -44,13 +45,14 @@ const handleSelectEvent = ( e, selectDefault, selectPreset ) => {
 	}
 };
 
-const AddPackagePresets = ( { presets, onSelectDefault, onSelectPreset } ) => {
+const AddPackagePresets = ( { selectedPreset, setSelectedPreset, presets, onSelectDefault, onSelectPreset } ) => {
 	return (
 		<FormFieldset>
 			<FormLabel htmlFor="package_type">Type of package</FormLabel>
 			<SelectOptGroups
 				id="package_type"
-				onChange={ ( e ) => handleSelectEvent( e, onSelectDefault, onSelectPreset ) }
+				defaultValue={ selectedPreset }
+				onChange={ ( e ) => handleSelectEvent( e, onSelectDefault, onSelectPreset, setSelectedPreset ) }
 				optGroups={ getOptionGroups( presets ) }
 				readOnly={ false }/>
 		</FormFieldset>
@@ -58,6 +60,8 @@ const AddPackagePresets = ( { presets, onSelectDefault, onSelectPreset } ) => {
 };
 
 AddPackagePresets.propTypes = {
+	selectedPreset: PropTypes.string,
+	setSelectedPreset: PropTypes.func.isRequired,
 	presets: PropTypes.object.isRequired,
 	onSelectDefault: PropTypes.func.isRequired,
 	onSelectPreset: PropTypes.func.isRequired,
