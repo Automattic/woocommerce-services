@@ -3,6 +3,7 @@ import {
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
 	SET_MODAL_READONLY,
+	SET_SELECTED_PRESET,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
@@ -41,6 +42,12 @@ reducers[DISMISS_MODAL] = ( state ) => {
 reducers[SET_MODAL_READONLY] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		modalReadOnly: action.value,
+	} );
+};
+
+reducers[SET_SELECTED_PRESET] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		selectedPreset: action.value,
 	} );
 };
 

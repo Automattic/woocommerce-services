@@ -92,6 +92,8 @@ const AddPackageDialog = ( props ) => {
 		updatePackagesField,
 		modalReadOnly,
 		setModalReadOnly,
+		selectedPreset,
+		setSelectedPreset,
 	} = props;
 
 	const {
@@ -111,6 +113,8 @@ const AddPackageDialog = ( props ) => {
 			<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
 			{ ( 'add' === mode ) ? (
 				<AddPackagePresets
+					selectedPreset={ selectedPreset }
+					setSelectedPreset={ setSelectedPreset }
 					presets={ presets }
 					onSelectDefault={ ( value ) => useDefaultField( value, updatePackagesField, setModalReadOnly ) }
 					onSelectPreset={ ( idx ) => usePresetValues( presets.boxes[idx], updatePackagesField, setModalReadOnly ) }
@@ -180,6 +184,8 @@ AddPackageDialog.propTypes = {
 	packageData: PropTypes.object,
 	setModalReadOnly: PropTypes.func.isRequired,
 	modalReadOnly: PropTypes.bool,
+	setSelectedPreset: PropTypes.func.isRequired,
+	selectedPreset: PropTypes.string,
 };
 
 AddPackageDialog.defaultProps = {
