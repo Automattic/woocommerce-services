@@ -423,7 +423,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				if ( 'shipping' !== $tab || empty( $instance_id ) ) {
 					return;
 				}
-			} else if ( 'woocommerce_page_wc-connect' !== $hook ) {
+			} else if ( 'woocommerce_page_wc-status' === $hook ) {
+				// If we are on a system status page, make sure it is the connect tab
+				if ( 'connect' !== $tab ) {
+					return;
+				}
+			} else {
 				// Don't recognize the hook? Go no further
 				return;
 			}

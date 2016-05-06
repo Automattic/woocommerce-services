@@ -5,11 +5,16 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 	class WC_Connect_Help_Provider {
 
 		public function __construct() {
-			add_action( 'admin_menu', array( $this, 'admin_menu' ), 50 ); // 50 was chosen to have it appear after Reports but before Settings
+			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
+			add_action( 'woocommerce_admin_status_connect', array( $this, 'page' ) );
 		}
 
-		public function admin_menu() {
-			add_submenu_page( 'woocommerce', __( 'Connect', 'woocommerce' ),  __( 'Connect', 'woocommerce' ) , 'manage_woocommerce', 'wc-connect', array( $this, 'page' ) );
+		public function status_tabs( $tabs ) {
+			if ( ! is_array( $tabs ) ) {
+				$tabs = array();
+			}
+			$tabs[ 'connect' ] = _x( 'Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
+			return $tabs;
 		}
 
 		protected function get_form_schema() {
