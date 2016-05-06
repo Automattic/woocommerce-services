@@ -3,12 +3,16 @@ import {
 	addPackage,
 	editPackage,
 	dismissModal,
+	setModalReadOnly,
+	setSelectedPreset,
 	savePackage,
 	updatePackagesField,
 	toggleOuterDimensions,
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_MODAL_READONLY,
+	SET_SELECTED_PRESET,
 	SAVE_PACKAGE,
 	UPDATE_PACKAGES_FIELD,
 	TOGGLE_OUTER_DIMENSIONS,
@@ -36,6 +40,30 @@ describe( 'Packages state actions', () => {
 	it( '#dismissModal()', () => {
 		expect( dismissModal() ).to.eql( {
 			type: DISMISS_MODAL,
+		} );
+	} );
+
+	it( '#setModalReadOnly()', () => {
+		expect( setModalReadOnly( true ) ).to.eql( {
+			type: SET_MODAL_READONLY,
+			value: true,
+		} );
+
+		expect( setModalReadOnly( false ) ).to.eql( {
+			type: SET_MODAL_READONLY,
+			value: false,
+		} );
+	} );
+
+	it( '#setSelectedPreset()', () => {
+		expect( setSelectedPreset( 'a' ) ).to.eql( {
+			type: SET_SELECTED_PRESET,
+			value: 'a',
+		} );
+
+		expect( setSelectedPreset( 'ab' ) ).to.eql( {
+			type: SET_SELECTED_PRESET,
+			value: 'ab',
 		} );
 	} );
 

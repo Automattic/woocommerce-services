@@ -2,6 +2,8 @@ import {
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_MODAL_READONLY,
+	SET_SELECTED_PRESET,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
@@ -24,6 +26,7 @@ reducers[ADD_PACKAGE] = ( state ) => {
 reducers[EDIT_PACKAGE] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		showModal: true,
+		modalReadOnly: false,
 		mode: 'edit',
 		packageData: action.package,
 		showOuterDimensions: false,
@@ -33,6 +36,18 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 reducers[DISMISS_MODAL] = ( state ) => {
 	return Object.assign( {}, state, {
 		showModal: false,
+	} );
+};
+
+reducers[SET_MODAL_READONLY] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		modalReadOnly: action.value,
+	} );
+};
+
+reducers[SET_SELECTED_PRESET] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		selectedPreset: action.value,
 	} );
 };
 
@@ -57,7 +72,7 @@ reducers[TOGGLE_OUTER_DIMENSIONS] = ( state ) => {
 	return Object.assign( {}, state, {
 		showOuterDimensions: true,
 	} );
-}
+};
 
 const packages = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {
