@@ -10,170 +10,151 @@ import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 
-class AddPackageDialog extends React.Component {
+const getDialogButtons = ( mode, savePackage, packageData ) => {
+	return [
+		<FormLabel className="share-package-option">
+			<FormCheckbox checked={ true } readOnly={ true } />
+			<span>Save package to use in other shipping methods</span>
+		</FormLabel>,
+		<FormButton onClick={ () => savePackage( packageData ) }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
+	];
+};
 
-	constructor() {
-		super();
-		this.updateFormTextField = this.updateFormTextField.bind( this );
-	}
-
-	getDialogButtons() {
-		const {
-			mode,
-			savePackage,
-			packageData,
-		} = this.props;
-		return [
-			<FormLabel className="share-package-option">
-				<FormCheckbox checked={ true } readOnly={ true } />
-				<span>Save package to use in other shipping methods</span>
-			</FormLabel>,
-			<FormButton onClick={ () => savePackage( packageData ) }>{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }</FormButton>,
-		];
-	}
-
-	renderOuterDimensionsToggle() {
-		const {
-			showOuterDimensions,
-			packageData,
-			toggleOuterDimensions,
-		} = this.props;
-
-		if ( ! showOuterDimensions && ! packageData.outer_dimensions ) {
-			return (
-				<a
-					href="#"
-					className="form-setting-explanation"
-					onClick={ ( evt ) => {
-						evt.preventDefault();
-						toggleOuterDimensions();
-					} }>
-					Define exterior dimensions
-				</a>
-			);
-		}
-	}
-
-	renderOuterDimensions( value ) {
-		const {
-			showOuterDimensions,
-			packageData,
-		} = this.props;
-
-		return ( showOuterDimensions || packageData.outer_dimensions ) ? (
-			<FormFieldset>
-				<FormLabel>Outer Dimensions (L x W x H)</FormLabel>
-				<FormTextInput
-					name="outer_dimensions"
-					placeholder="100.25 x 25.25 x 5.75"
-					value={ value }
-					onChange={ this.updateFormTextField }
-				/>
-			</FormFieldset>
-		) : null;
-	}
-
-	usePresetValues( idx ) {
-		const preset = this.props.presets.boxes[idx];
-		this.props.updatePackagesField( {
-			index: null,
-			...preset,
-		} );
-	}
-
-	updateFormTextField( event ) {
-		const {
-			name,
-			value,
-		} = event.target;
-		this.props.updatePackagesField( { [name]: value } );
-	}
-
-	useDefaultField( value ) {
-		this.props.updatePackagesField( {
-			index: null,
-			is_letter: 'envelope' === value ? true : false,
-		} );
-	}
-
-	render() {
-		const {
-			dismissModal,
-			mode,
-			presets,
-			weightUnit,
-			packageData,
-		} = this.props;
-		const {
-			name,
-			inner_dimensions,
-			outer_dimensions,
-			box_weight,
-			max_weight,
-		} = packageData;
+const renderOuterDimensionsToggle = ( showOuterDimensions, packageData, toggleOuterDimensions ) => {
+	if ( ! showOuterDimensions && ! packageData.outer_dimensions ) {
 		return (
-			<Dialog
-				isVisible={ true }
-				additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
-				onClose={ dismissModal }
-				buttons={ this.getDialogButtons() }>
-				<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
-				{ ( 'add' === mode ) ? (
-					<AddPackagePresets
-						presets={ presets }
-						onSelectDefault={ ( value ) => this.useDefaultField( value ) }
-						onSelectPreset={ ( idx ) => this.usePresetValues( idx ) }
-					/>
-				) : null }
-				<FormFieldset>
-					<FormLabel htmlFor="name">Package name</FormLabel>
-					<FormTextInput
-						id="name"
-						name="name"
-						placeholder="The customer will see this during checkout"
-						value={ name }
-						onChange={ this.updateFormTextField }
-					/>
-				</FormFieldset>
-				<FormFieldset>
-					<FormLabel>Inner Dimensions (L x W x H)</FormLabel>
-					<FormTextInput
-						name="inner_dimensions"
-						placeholder="100 x 25 x 5.5"
-						value={ inner_dimensions }
-						onChange={ this.updateFormTextField }
-					/>
-					{ this.renderOuterDimensionsToggle() }
-				</FormFieldset>
-				{ this.renderOuterDimensions( outer_dimensions ) }
-				<FormFieldset className="wcc-shipping-add-package-weight-group">
-					<div className="wcc-shipping-add-package-weight">
-						<FormLabel htmlFor="box_weight">Package weight</FormLabel>
-						<FormTextInput
-							id="box_weight"
-							name="box_weight"
-							placeholder="Weight of box"
-							value={ box_weight }
-							onChange={ this.updateFormTextField }
-						/>
-					</div>
-					<div className="wcc-shipping-add-package-weight">
-						<FormLabel htmlFor="max_weight">Max weight</FormLabel>
-						<FormTextInput
-							id="max_weight"
-							name="max_weight"
-							placeholder="Max weight"
-							value={ max_weight }
-							onChange={ this.updateFormTextField }
-						/>
-						<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
-					</div>
-					<FormSettingExplanation> Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
-				</FormFieldset>
-			</Dialog>
+			<a
+				href="#"
+				className="form-setting-explanation"
+				onClick={ ( evt ) => {
+					evt.preventDefault();
+					toggleOuterDimensions();
+				} }>
+				Define exterior dimensions
+			</a>
 		);
 	}
-}
+};
+
+const updateFormTextField = ( event, updatePackagesField ) => {
+	const {
+		name,
+		value,
+	} = event.target;
+	updatePackagesField( { [name]: value } );
+};
+
+const renderOuterDimensions = ( showOuterDimensions, packageData, value, updatePackagesField ) => {
+	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
+		<FormFieldset>
+			<FormLabel>Outer Dimensions (L x W x H)</FormLabel>
+			<FormTextInput
+				name="outer_dimensions"
+				placeholder="100.25 x 25.25 x 5.75"
+				value={ value }
+				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+			/>
+		</FormFieldset>
+	) : null;
+};
+
+const usePresetValues = ( preset, updatePackagesField ) => {
+	updatePackagesField( {
+		index: null,
+		...preset,
+	} );
+};
+
+const useDefaultField = ( value, updatePackagesField ) => {
+	updatePackagesField( {
+		index: null,
+		is_letter: 'envelope' === value ? true : false,
+	} );
+};
+
+const AddPackageDialog = ( props ) => {
+	const {
+		dismissModal,
+		mode,
+		presets,
+		weightUnit,
+		packageData,
+		showOuterDimensions,
+		toggleOuterDimensions,
+		savePackage,
+		updatePackagesField,
+	} = props;
+
+	const {
+		name,
+		inner_dimensions,
+		outer_dimensions,
+		box_weight,
+		max_weight,
+	} = packageData;
+
+	return (
+		<Dialog
+			isVisible={ true }
+			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
+			onClose={ dismissModal }
+			buttons={ getDialogButtons( mode, savePackage, packageData ) }>
+			<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
+			{ ( 'add' === mode ) ? (
+				<AddPackagePresets
+					presets={ presets }
+					onSelectDefault={ ( value ) => useDefaultField( value, updatePackagesField ) }
+					onSelectPreset={ ( idx ) => usePresetValues( presets.boxes[idx], updatePackagesField ) }
+				/>
+			) : null }
+			<FormFieldset>
+				<FormLabel htmlFor="name">Package name</FormLabel>
+				<FormTextInput
+					id="name"
+					name="name"
+					placeholder="The customer will see this during checkout"
+					value={ name }
+					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+				/>
+			</FormFieldset>
+			<FormFieldset>
+				<FormLabel>Inner Dimensions (L x W x H)</FormLabel>
+				<FormTextInput
+					name="inner_dimensions"
+					placeholder="100 x 25 x 5.5"
+					value={ inner_dimensions }
+					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+				/>
+				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
+			</FormFieldset>
+			{ renderOuterDimensions( showOuterDimensions, packageData, outer_dimensions, updatePackagesField ) }
+			<FormFieldset className="wcc-shipping-add-package-weight-group">
+				<div className="wcc-shipping-add-package-weight">
+					<FormLabel htmlFor="box_weight">Package weight</FormLabel>
+					<FormTextInput
+						id="box_weight"
+						name="box_weight"
+						placeholder="Weight of box"
+						value={ box_weight }
+						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+					/>
+				</div>
+				<div className="wcc-shipping-add-package-weight">
+					<FormLabel htmlFor="max_weight">Max weight</FormLabel>
+					<FormTextInput
+						id="max_weight"
+						name="max_weight"
+						placeholder="Max weight"
+						value={ max_weight }
+						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+					/>
+					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
+				</div>
+				<FormSettingExplanation> Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
+			</FormFieldset>
+		</Dialog>
+	);
+};
 
 AddPackageDialog.propTypes = {
 	dismissModal: PropTypes.func.isRequired,
@@ -182,6 +163,10 @@ AddPackageDialog.propTypes = {
 	mode: PropTypes.string.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
 	showOuterDimensions: PropTypes.bool,
+	toggleOuterDimensions: PropTypes.func.isRequired,
+	savePackage: PropTypes.func.isRequired,
+	packageData: PropTypes.object,
+
 };
 
 AddPackageDialog.defaultProps = {
