@@ -73,6 +73,7 @@ describe( 'Packages form reducer', () => {
 
 		expect( state ).to.eql( {
 			showModal: true,
+			modalReadOnly: false,
 			mode: 'edit',
 			packageData,
 			showOuterDimensions: false,
