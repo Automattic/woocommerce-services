@@ -163,6 +163,10 @@ AddPackageDialog.propTypes = {
 	mode: PropTypes.string.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
 	showOuterDimensions: PropTypes.bool,
+	toggleOuterDimensions: PropTypes.func.isRequired,
+	savePackage: PropTypes.func.isRequired,
+	packageData: PropTypes.object,
+
 };
 
 AddPackageDialog.defaultProps = {
