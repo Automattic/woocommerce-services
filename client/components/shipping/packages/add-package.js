@@ -5,17 +5,19 @@ import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
-import FormCheckbox from 'components/forms/form-checkbox';
+// import FormCheckbox from 'components/forms/form-checkbox';
 import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const getDialogButtons = ( mode, savePackage, packageData ) => {
 	return [
+		/*
 		<FormLabel className="share-package-option">
 			<FormCheckbox checked={ true } readOnly={ true } />
 			<span>Save package to use in other shipping methods</span>
 		</FormLabel>,
+		*/
 		<FormButton onClick={ () => savePackage( packageData ) }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
