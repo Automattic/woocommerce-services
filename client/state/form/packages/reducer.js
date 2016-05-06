@@ -25,6 +25,7 @@ reducers[ADD_PACKAGE] = ( state ) => {
 reducers[EDIT_PACKAGE] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		showModal: true,
+		modalReadOnly: false,
 		mode: 'edit',
 		packageData: action.package,
 		showOuterDimensions: false,
