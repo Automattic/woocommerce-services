@@ -2,6 +2,7 @@ import {
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_MODAL_READONLY,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
@@ -36,6 +37,12 @@ reducers[DISMISS_MODAL] = ( state ) => {
 	} );
 };
 
+reducers[SET_MODAL_READONLY] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		modalReadOnly: action.value,
+	} );
+};
+
 reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
 	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
 	const newPackageData = omitBy( mergedPackageData, isNull );
@@ -57,7 +64,7 @@ reducers[TOGGLE_OUTER_DIMENSIONS] = ( state ) => {
 	return Object.assign( {}, state, {
 		showOuterDimensions: true,
 	} );
-}
+};
 
 const packages = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {
