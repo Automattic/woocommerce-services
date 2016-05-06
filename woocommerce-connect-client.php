@@ -61,6 +61,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $service_schemas_validator;
 
+		/**
+		 * @var WC_Connect_Help_Provider
+		 */
+		protected $help_provider;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -144,6 +149,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_schemas_validator = $validator;
 		}
 
+		public function get_help_provider() {
+			return $this->help_provider;
+		}
+
+		public function set_help_provider( WC_Connect_Help_Provider $help_provider ) {
+			$this->help_provider = $help_provider;
+		}
+
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
@@ -169,6 +182,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-help-provider.php' ) );
 
 			$logger         = new WC_Connect_Logger( new WC_Logger() );
 			$validator      = new WC_Connect_Service_Schemas_Validator();
@@ -176,6 +190,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$tracks         = new WC_Connect_Tracks( $logger );
+			$help_provider  = new WC_Connect_Help_Provider();
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -183,6 +198,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
 			$this->set_tracks( $tracks );
+			$this->set_help_provider( $help_provider );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
@@ -216,6 +232,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+
 		}
 
 		/**
@@ -245,6 +262,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_controller->register_routes();
 		}
 
+		/**
+		 * This function is added to the wc_connect_service_admin_options action by this class
+		 * (see attach_hooks) and then that action is fired by WC_Connect_Shipping_Method::admin_options
+		 * to get the service instance form layout and settings bundled inside wcConnectData
+		 * as the form container is emitted into the body's HTML
+		 */
 		public function localize_and_enqueue_service_script( $id, $instance = false ) {
 			if ( ! function_exists( 'get_rest_url' ) ) {
 				return;
@@ -269,9 +292,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 			);
 
-			wp_localize_script( 'wc_connect_service_admin', 'wcConnectData', $admin_array );
-			wp_enqueue_script( 'wc_connect_service_admin' );
-			wp_enqueue_style( 'wc_connect_service_admin' );
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_enqueue_script( 'wc_connect_admin' );
+			wp_enqueue_style( 'wc_connect_admin' );
 		}
 
 		/**
@@ -385,8 +408,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * When on an wp-admin shipping zone shipping method instance page, enqueues
-		 * the React UI bundle and shipping service instance form schema and settings
+		 * When on an wp-admin shipping zone shipping method instance page or
+		 * on our system status tab, registers the React UI bundle
 		 *
 		 * @param string $hook
 		 * @param string $tab
@@ -394,25 +417,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function enqueue_service_script( $hook, $tab, $instance_id ) {
 
-			if ( 'woocommerce_page_wc-settings' !== $hook ) {
-				return;
-			}
-
-			if ( 'shipping' !== $tab ) {
-				return;
-			}
-
-			if ( empty( $instance_id ) ) {
+			if ( 'woocommerce_page_wc-settings' === $hook ) {
+				// If we are on a settings page, make sure it is the shipping tab
+				// and that we have an instance id
+				if ( 'shipping' !== $tab || empty( $instance_id ) ) {
+					return;
+				}
+			} else if ( 'woocommerce_page_wc-connect' !== $hook ) {
+				// Don't recognize the hook? Go no further
 				return;
 			}
 
 			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
 			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
 
-
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
-			wp_register_style( 'wc_connect_service_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
-			wp_register_script( 'wc_connect_service_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
+			wp_register_style( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
+			wp_register_script( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
 		}
 
 		public function get_active_shipping_services() {
@@ -425,7 +446,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					"SELECT instance_id FROM wp_woocommerce_shipping_zone_methods WHERE is_enabled = 1 AND method_id = %s LIMIT 1;",
 					$shipping_service_id
 				) );
-				
+
 				if ( $is_active ) {
 					$active_shipping_services[] = $shipping_service_id;
 				}
