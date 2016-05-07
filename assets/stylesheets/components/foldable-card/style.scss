@@ -130,7 +130,8 @@ button.foldable-card__action {
 		fill: $gray;
 	}
 
-	&:hover .gridicon {
+	&:hover .gridicon,
+	&:focus .gridicon {
 		fill: $blue-medium;
 	}
 }
