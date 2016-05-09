@@ -65,6 +65,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $service_object_cache = array();
 
+		static function load_tracks_for_activation_hooks() {
+			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
+			$logger = new WC_Connect_Logger( new WC_Logger() );
+			return new WC_Connect_Tracks( $logger );
+
+		}
+
+		static function plugin_activation() {
+			$tracks = self::load_tracks_for_activation_hooks();
+			$tracks->opted_in();
+		}
+
+		static function plugin_deactivation() {
+			$tracks = self::load_tracks_for_activation_hooks();
+			$tracks->opted_out();
+
+		}
+
 		public function __construct() {
 			add_action( 'woocommerce_init', array( $this, 'init' ) );
 		}
@@ -99,6 +118,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_service_settings_store( WC_Connect_Service_Settings_Store $settings_store ) {
 			$this->service_settings_store = $settings_store;
+		}
+
+		public function get_tracks() {
+			return $this->tracks;
+		}
+
+		public function set_tracks( WC_Connect_Tracks $tracks ) {
+			$this->tracks = $tracks;
 		}
 
 		public function get_rest_controller() {
@@ -141,18 +168,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 
 			$logger         = new WC_Connect_Logger( new WC_Logger() );
 			$validator      = new WC_Connect_Service_Schemas_Validator();
 			$api_client     = new WC_Connect_API_Client( $validator, $this );
 			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$tracks         = new WC_Connect_Tracks( $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
 			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
+			$this->set_tracks( $tracks );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
@@ -414,3 +444,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		new WC_Connect_Loader();
 	}
 }
+
+// todo: update this once we merge into WC core
+register_activation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_activation' ) );
+register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
