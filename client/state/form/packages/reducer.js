@@ -7,19 +7,22 @@ import {
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
 } from './actions';
-import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import isNull from 'lodash/isNull';
 
 const reducers = {};
 
 reducers[ADD_PACKAGE] = ( state ) => {
-	const newPackageData = ( 'edit' === state.mode ) ? {} : omit( state.packageData, 'index' );
-	return Object.assign( {}, state, {
+	const newState = Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',
-		packageData: newPackageData,
 	} );
+
+	if ( 'edit' === state.mode || ! newState.packageData ) {
+		newState.packageData = { is_user_defined: true }
+	}
+
+	return newState;
 };
 
 reducers[EDIT_PACKAGE] = ( state, action ) => {

@@ -105,9 +105,8 @@ const AddPackageDialog = ( props ) => {
 		outer_dimensions,
 		box_weight,
 		max_weight,
+		is_user_defined,
 	} = packageData;
-
-	const is_user_defined = ! selectedPreset || packageData.is_user_defined;
 
 	return (
 		<Dialog
