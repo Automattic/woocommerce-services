@@ -54,7 +54,7 @@ const renderOuterDimensions = ( showOuterDimensions, packageData, value, updateP
 				name="outer_dimensions"
 				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
 				value={ value }
-				className="flat-rate-package__outer-dimensions__read-only"
+				className={ is_user_defined ? '' : 'flat-rate-package__outer-dimensions__read-only' }
 				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 				disabled={ ! is_user_defined }
 			/>
@@ -140,7 +140,7 @@ const AddPackageDialog = ( props ) => {
 					name="inner_dimensions"
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
 					value={ inner_dimensions }
-					className="flat-rate-package__inner-dimensions__read-only"
+					className={ is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only' }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 					disabled={ ! is_user_defined }
 				/>
@@ -155,7 +155,7 @@ const AddPackageDialog = ( props ) => {
 						name="box_weight"
 						placeholder={ __( 'Weight of box' ) }
 						value={ box_weight }
-						className="flat-rate-package__package-weight__read-only"
+						className={ is_user_defined ? '' : 'flat-rate-package__package-weight__read-only' }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ ! is_user_defined }
 					/>
@@ -167,7 +167,7 @@ const AddPackageDialog = ( props ) => {
 						name="max_weight"
 						placeholder={ __( 'Max weight' ) }
 						value={ max_weight }
-						className="flat-rate-package__max-weight__read-only"
+						className={ is_user_defined ? '' : 'flat-rate-package__max-weight__read-only' }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ ! is_user_defined }
 					/>
