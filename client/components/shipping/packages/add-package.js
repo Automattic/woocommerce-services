@@ -5,19 +5,12 @@ import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
-// import FormCheckbox from 'components/forms/form-checkbox';
 import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const getDialogButtons = ( mode, savePackage, packageData ) => {
 	return [
-		/*
-		<FormLabel className="share-package-option">
-			<FormCheckbox checked={ true } readOnly={ true } />
-			<span>Save package to use in other shipping methods</span>
-		</FormLabel>,
-		*/
 		<FormButton onClick={ () => savePackage( packageData ) }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
@@ -34,10 +27,15 @@ const renderOuterDimensionsToggle = ( showOuterDimensions, packageData, toggleOu
 					evt.preventDefault();
 					toggleOuterDimensions();
 				} }>
-				Define exterior dimensions
+				{ __( 'Define exterior dimensions' ) }
 			</a>
 		);
 	}
+};
+
+const exampleDimensions = ( length, width, height, locale ) => {
+	return length.toLocaleString( locale ) + ' x ' + width.toLocaleString( locale ) +
+		' x ' + height.toLocaleString( locale );
 };
 
 const updateFormTextField = ( event, updatePackagesField ) => {
@@ -51,10 +49,10 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 const renderOuterDimensions = ( showOuterDimensions, packageData, value, updatePackagesField, modalReadOnly ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
-			<FormLabel>Outer Dimensions (L x W x H)</FormLabel>
+			<FormLabel>{ __( 'Outer Dimensions (L x W x H)' ) }</FormLabel>
 			<FormTextInput
 				name="outer_dimensions"
-				placeholder="100.25 x 25.25 x 5.75"
+				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
 				value={ value }
 				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 				disabled={ modalReadOnly }
@@ -74,7 +72,7 @@ const usePresetValues = ( preset, updatePackagesField, setModalReadOnly ) => {
 const useDefaultField = ( value, updatePackagesField, setModalReadOnly ) => {
 	updatePackagesField( {
 		index: null,
-		is_letter: 'envelope' === value ? true : false,
+		is_letter: 'envelope' === value,
 		name: '',
 		outer_dimensions: '',
 		inner_dimensions: '',
@@ -86,6 +84,7 @@ const useDefaultField = ( value, updatePackagesField, setModalReadOnly ) => {
 
 const AddPackageDialog = ( props ) => {
 	const {
+		showModal,
 		dismissModal,
 		mode,
 		presets,
@@ -111,7 +110,7 @@ const AddPackageDialog = ( props ) => {
 
 	return (
 		<Dialog
-			isVisible={ true }
+			isVisible={ showModal }
 			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
 			onClose={ dismissModal }
 			buttons={ getDialogButtons( mode, savePackage, packageData ) }>
@@ -126,20 +125,20 @@ const AddPackageDialog = ( props ) => {
 				/>
 			) : null }
 			<FormFieldset>
-				<FormLabel htmlFor="name">Package name</FormLabel>
+				<FormLabel htmlFor="name">{ __( 'Package name' ) }</FormLabel>
 				<FormTextInput
 					id="name"
 					name="name"
-					placeholder="The customer will see this during checkout"
+					placeholder={ __( 'The customer will see this during checkout' ) }
 					value={ name }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 				/>
 			</FormFieldset>
 			<FormFieldset>
-				<FormLabel>Inner Dimensions (L x W x H)</FormLabel>
+				<FormLabel>{ __( 'Inner Dimensions (L x W x H)' ) }</FormLabel>
 				<FormTextInput
 					name="inner_dimensions"
-					placeholder="100 x 25 x 5.5"
+					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
 					value={ inner_dimensions }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 					disabled={ modalReadOnly }
@@ -149,29 +148,31 @@ const AddPackageDialog = ( props ) => {
 			{ renderOuterDimensions( showOuterDimensions, packageData, outer_dimensions, updatePackagesField, modalReadOnly ) }
 			<FormFieldset className="wcc-shipping-add-package-weight-group">
 				<div className="wcc-shipping-add-package-weight">
-					<FormLabel htmlFor="box_weight">Package weight</FormLabel>
+					<FormLabel htmlFor="box_weight">{ __( 'Package weight' ) }</FormLabel>
 					<FormTextInput
 						id="box_weight"
 						name="box_weight"
-						placeholder="Weight of box"
+						placeholder={ __( 'Weight of box' ) }
 						value={ box_weight }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ modalReadOnly }
 					/>
 				</div>
 				<div className="wcc-shipping-add-package-weight">
-					<FormLabel htmlFor="max_weight">Max weight</FormLabel>
+					<FormLabel htmlFor="max_weight">{ __( 'Max weight' ) }</FormLabel>
 					<FormTextInput
 						id="max_weight"
 						name="max_weight"
-						placeholder="Max weight"
+						placeholder={ __( 'Max weight' ) }
 						value={ max_weight }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ modalReadOnly }
 					/>
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
 				</div>
-				<FormSettingExplanation> Define both the weight of the empty box and the max weight it can hold</FormSettingExplanation>
+				<FormSettingExplanation>
+					{ __( 'Defines both the weight of the empty box and the max weight it can hold' ) }
+				</FormSettingExplanation>
 			</FormFieldset>
 		</Dialog>
 	);
@@ -195,6 +196,7 @@ AddPackageDialog.propTypes = {
 
 AddPackageDialog.defaultProps = {
 	packageData: {},
+	mode: 'add',
 };
 
 export default AddPackageDialog;
