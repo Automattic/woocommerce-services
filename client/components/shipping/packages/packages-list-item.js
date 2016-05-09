@@ -14,7 +14,7 @@ const PackagesListItem = ( {
 			<Gridicon icon={ data.is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
 		</div>
 		<div className="package-name">
-			<a onClick={ () => {
+			<a href="#" onClick={ () => {
 				editPackage( Object.assign( {}, data, { index } ) );
 			} }>
 				{ data.name }
