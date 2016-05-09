@@ -6,7 +6,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 		public function __construct() {
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
-			add_action( 'woocommerce_admin_status_connect', array( $this, 'page' ) );
+			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
 		}
 
 		public function status_tabs( $tabs ) {
