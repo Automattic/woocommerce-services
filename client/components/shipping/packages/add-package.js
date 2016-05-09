@@ -54,6 +54,7 @@ const renderOuterDimensions = ( showOuterDimensions, packageData, value, updateP
 				name="outer_dimensions"
 				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
 				value={ value }
+				className="flat-rate-package__outer-dimensions"
 				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 				disabled={ modalReadOnly }
 			/>
@@ -139,6 +140,7 @@ const AddPackageDialog = ( props ) => {
 					name="inner_dimensions"
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
 					value={ inner_dimensions }
+					className="flat-rate-package__inner-dimensions"
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 					disabled={ read_only }
 				/>
@@ -153,6 +155,7 @@ const AddPackageDialog = ( props ) => {
 						name="box_weight"
 						placeholder={ __( 'Weight of box' ) }
 						value={ box_weight }
+						className="flat-rate-package__package-weight"
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ read_only }
 					/>
@@ -164,6 +167,7 @@ const AddPackageDialog = ( props ) => {
 						name="max_weight"
 						placeholder={ __( 'Max weight' ) }
 						value={ max_weight }
+						className="flat-rate-package__max-weight"
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ read_only }
 					/>
