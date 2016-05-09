@@ -4,7 +4,6 @@ import {
 	addPackage,
 	editPackage,
 	dismissModal,
-	setModalReadOnly,
 	setSelectedPreset,
 	updatePackagesField,
 	toggleOuterDimensions,
@@ -91,25 +90,6 @@ describe( 'Packages form reducer', () => {
 
 		expect( state ).to.eql( {
 			showModal: false,
-		} );
-	} );
-
-	it( 'SET_MODAL_READONLY', () => {
-		let state = {};
-
-		state = reducer( state, setModalReadOnly( true ) );
-		expect( state ).to.eql( {
-			modalReadOnly: true,
-		} );
-
-		state = reducer( state, setModalReadOnly( true ) );
-		expect( state ).to.eql( {
-			modalReadOnly: true,
-		} );
-
-		state = reducer( state, setModalReadOnly( false ) );
-		expect( state ).to.eql( {
-			modalReadOnly: false,
 		} );
 	} );
 

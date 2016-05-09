@@ -61,25 +61,25 @@ const renderOuterDimensions = ( showOuterDimensions, packageData, value, updateP
 	) : null;
 };
 
-const usePresetValues = ( preset, updatePackagesField, setModalReadOnly ) => {
+const usePresetValues = ( preset, updatePackagesField ) => {
 	updatePackagesField( {
 		index: null,
+		read_only: true,
 		...preset,
 	} );
-	setModalReadOnly( true );
 };
 
-const useDefaultField = ( value, updatePackagesField, setModalReadOnly ) => {
+const useDefaultField = ( value, updatePackagesField ) => {
 	updatePackagesField( {
 		index: null,
 		is_letter: 'envelope' === value,
 		name: '',
+		read_only: false,
 		outer_dimensions: '',
 		inner_dimensions: '',
 		box_weight: '',
 		max_weight: '',
 	} );
-	setModalReadOnly( false );
 };
 
 const AddPackageDialog = ( props ) => {
@@ -94,8 +94,6 @@ const AddPackageDialog = ( props ) => {
 		toggleOuterDimensions,
 		savePackage,
 		updatePackagesField,
-		modalReadOnly,
-		setModalReadOnly,
 		selectedPreset,
 		setSelectedPreset,
 	} = props;
@@ -106,6 +104,7 @@ const AddPackageDialog = ( props ) => {
 		outer_dimensions,
 		box_weight,
 		max_weight,
+		read_only,
 	} = packageData;
 
 	return (
@@ -120,8 +119,8 @@ const AddPackageDialog = ( props ) => {
 					selectedPreset={ selectedPreset }
 					setSelectedPreset={ setSelectedPreset }
 					presets={ presets }
-					onSelectDefault={ ( value ) => useDefaultField( value, updatePackagesField, setModalReadOnly ) }
-					onSelectPreset={ ( idx ) => usePresetValues( presets.boxes[idx], updatePackagesField, setModalReadOnly ) }
+					onSelectDefault={ ( value ) => useDefaultField( value, updatePackagesField ) }
+					onSelectPreset={ ( idx ) => usePresetValues( presets.boxes[idx], updatePackagesField ) }
 				/>
 			) : null }
 			<FormFieldset>
@@ -141,11 +140,11 @@ const AddPackageDialog = ( props ) => {
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
 					value={ inner_dimensions }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
-					disabled={ modalReadOnly }
+					disabled={ read_only }
 				/>
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
 			</FormFieldset>
-			{ renderOuterDimensions( showOuterDimensions, packageData, outer_dimensions, updatePackagesField, modalReadOnly ) }
+			{ renderOuterDimensions( showOuterDimensions, packageData, outer_dimensions, updatePackagesField, read_only ) }
 			<FormFieldset className="wcc-shipping-add-package-weight-group">
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="box_weight">{ __( 'Package weight' ) }</FormLabel>
@@ -155,7 +154,7 @@ const AddPackageDialog = ( props ) => {
 						placeholder={ __( 'Weight of box' ) }
 						value={ box_weight }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
-						disabled={ modalReadOnly }
+						disabled={ read_only }
 					/>
 				</div>
 				<div className="wcc-shipping-add-package-weight">
@@ -166,7 +165,7 @@ const AddPackageDialog = ( props ) => {
 						placeholder={ __( 'Max weight' ) }
 						value={ max_weight }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
-						disabled={ modalReadOnly }
+						disabled={ read_only }
 					/>
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
 				</div>
@@ -188,8 +187,6 @@ AddPackageDialog.propTypes = {
 	toggleOuterDimensions: PropTypes.func.isRequired,
 	savePackage: PropTypes.func.isRequired,
 	packageData: PropTypes.object,
-	setModalReadOnly: PropTypes.func.isRequired,
-	modalReadOnly: PropTypes.bool,
 	setSelectedPreset: PropTypes.func.isRequired,
 	selectedPreset: PropTypes.string,
 };

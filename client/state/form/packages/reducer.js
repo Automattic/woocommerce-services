@@ -2,7 +2,6 @@ import {
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
-	SET_MODAL_READONLY,
 	SET_SELECTED_PRESET,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
@@ -36,12 +35,6 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 reducers[DISMISS_MODAL] = ( state ) => {
 	return Object.assign( {}, state, {
 		showModal: false,
-	} );
-};
-
-reducers[SET_MODAL_READONLY] = ( state, action ) => {
-	return Object.assign( {}, state, {
-		modalReadOnly: action.value,
 	} );
 };
 
