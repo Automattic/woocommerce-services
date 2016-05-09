@@ -57,7 +57,7 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'add',
-			packageData: {},
+			packageData: { is_user_defined: true },
 		} );
 	} );
 

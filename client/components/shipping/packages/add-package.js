@@ -9,10 +9,13 @@ import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 
-const getDialogButtons = ( mode, savePackage, packageData ) => {
+const getDialogButtons = ( mode, dismissModal, savePackage, packageData ) => {
 	return [
 		<FormButton onClick={ () => savePackage( packageData ) }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
+		</FormButton>,
+		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
+			{ __( 'Cancel' ) }
 		</FormButton>,
 	];
 };
@@ -27,7 +30,7 @@ const renderOuterDimensionsToggle = ( showOuterDimensions, packageData, toggleOu
 					evt.preventDefault();
 					toggleOuterDimensions();
 				} }>
-				{ __( 'Define exterior dimensions' ) }
+				{ __( 'View exterior dimensions' ) }
 			</a>
 		);
 	}
@@ -113,7 +116,7 @@ const AddPackageDialog = ( props ) => {
 			isVisible={ showModal }
 			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
 			onClose={ dismissModal }
-			buttons={ getDialogButtons( mode, savePackage, packageData ) }>
+			buttons={ getDialogButtons( mode, dismissModal, savePackage, packageData ) }>
 			<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
 			{ ( 'add' === mode ) ? (
 				<AddPackagePresets
