@@ -103,3 +103,23 @@
     float: left;
     margin-left: 0;
 }
+
+.form-text-input.flat-rate-package__inner-dimensions__read-only:disabled,
+.form-text-input.flat-rate-package__outer-dimensions__read-only:disabled,
+.form-text-input.flat-rate-package__package-weight__read-only:disabled,
+.form-text-input.flat-rate-package__max-weight__read-only:disabled {
+    border: 0;
+    background: white !important;
+    padding: 0 32px 0 0;
+    cursor: default;
+    color: $gray-dark;
+    -webkit-text-fill-color: $gray-dark;
+
+    @include placeholder {
+        color: $gray-dark;
+    }
+
+    &:focus {
+        box-shadow: none;
+    }
+}
