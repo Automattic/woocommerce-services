@@ -9,10 +9,12 @@ const defaultPackages = {
 		{
 			value: 'default_box',
 			label: 'Box',
+			is_user_defined: true,
 		},
 		{
 			value: 'default_envelope',
 			label: 'Envelope',
+			is_user_defined: true,
 		},
 	],
 };
