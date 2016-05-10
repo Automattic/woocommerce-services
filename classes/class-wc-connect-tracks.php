@@ -17,6 +17,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
 		public function __construct( WC_Connect_Logger $logger ) {
 			$this->logger = $logger;
+			add_action( 'wc_connect_saved_service_settings', array( $this, 'saved_service_settings' ), 10, 3 );
 		}
 
 		public function opted_in() {
@@ -25,6 +26,11 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
 		public function opted_out() {
 			return $this->record_user_event( 'opted_out' );
+		}
+
+		public function saved_service_settings( $id ) {
+			$this->record_user_event( 'saved_service_settings' );
+			$this->record_user_event( 'saved_' . $id . '_settings' );
 		}
 
 		public function record_user_event( $event_type, $data = array() ) {
