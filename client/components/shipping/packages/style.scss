@@ -10,13 +10,14 @@
         width: 10%;
         @include breakpoint( '<660px' ) {
             width: 12%;
-    }
+        }
 
-    .gridicon {
-        border-radius: 50%;
-        background-color: $gray;
-        fill: white;
-        padding: 4px;
+        .gridicon {
+            border-radius: 50%;
+            background-color: lighten( $gray, 10% );
+            fill: white;
+            padding: 4px;
+            margin-bottom: -4px;
         }
     }
 
@@ -99,7 +100,7 @@
     }
 
     &:focus {
-        box-shadow: 0 0 0 1px $blue-medium,0 0 2px 1px rgba(30,140,190,.8); 
+        box-shadow: 0 0 0 1px $blue-medium,0 0 2px 1px rgba(30,140,190,.8);
     }
 }
 
