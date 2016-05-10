@@ -113,4 +113,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->assertArrayHasKey( 'wp_version', $record[2] );
 	}
 
+	public function test_saved_service_settings() {
+
+		$this->logger->expects( $this->exactly(2) )
+			->method( 'log' )
+			->withConsecutive(
+				array(
+					$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
+					$this->anything(),
+				),
+				array(
+					$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
+					$this->anything(),
+				)
+			);
+
+		$this->tracks->saved_service_settings( 'usps' );
+	}
+
 }
