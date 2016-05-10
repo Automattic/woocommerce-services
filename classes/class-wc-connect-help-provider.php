@@ -5,7 +5,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 	class WC_Connect_Help_Provider {
 
 		/**
-		 * @var WC_Connect_Service_Schemas_Store
+		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $service_settings_store;
 
