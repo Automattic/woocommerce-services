@@ -179,4 +179,38 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	}
 
+	/**
+	 * @covers WC_Connect_Loader::is_wc_connect_shipping_service
+	 */
+	public function test_is_wc_connect_shipping_service() {
+
+		$service_data = array(
+			'test_method_that_is_from_wc_connect'
+		);
+
+		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_all_service_ids_of_type' ) )
+			->getMock();
+
+		$store->expects( $this->any() )
+			->method( 'get_all_service_ids_of_type' )
+			->will( $this->returnValue( $service_data ) );
+
+		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_service_schemas_store' ) )
+			->getMock();
+
+		$loader->expects( $this->any() )
+			->method( 'get_service_schemas_store' )
+			->will( $this->returnValue( $store ) );
+
+		$loader->load_dependencies();
+
+		$this->assertTrue( $loader->is_wc_connect_shipping_service( 'test_method_that_is_from_wc_connect' ) );
+		$this->assertFalse( $loader->is_wc_connect_shipping_service( 'test_method_that_is_not_from_wc_connect' ) );
+
+	}
+
 }
