@@ -30,6 +30,47 @@ If you're filing a bug, specific steps to reproduce are helpful. Please include 
 8. Configure the USPS shipping method origin ZIP code, and select at least one service.
 9. USPS rates will automatically display during checkout once a destination address is given.
 
+## Running PHPUnit Tests
+
+The WooCommerce Connect client tests use [WooCommerce's tests installer](https://github.com/woothemes/woocommerce/blob/master/tests/bin/install.sh) to get up and running.
+
+In order to successfully bootstrap your testing environment, you'll need the following:
+
+* `mysql`
+* `mysqladmin`
+* `svn`
+* `git`
+* `phpunit`
+
+Once you have the prerequisites, run the tests installer:
+
+`./tests/bin/install-wc-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version]`
+
+For example, if you had a `mysql` database running on `localhost` and with the default `root` user, you could run:
+
+`./tests/bin/install-wc-tests.sh wcc_tests root ''`
+
+After the tests installer has completed, simply run `phpunit` from the root of the `woocommerce-connect-client` plugin directory.
+
+If everything is running correctly, you'll see output like the following:
+
+```
+Installing...
+Running as single site... To run multisite, use -c tests/phpunit/multisite.xml
+Installing WooCommerce...
+Not running ajax tests. To execute these, use --group ajax.
+Not running ms-files tests. To execute these, use --group ms-files.
+Not running external-http tests. To execute these, use --group external-http.
+
+PHPUnit 4.8.24 by Sebastian Bergmann and contributors.
+
+...............................................
+
+Time: 2.55 seconds, Memory: 32.00Mb
+
+OK (47 tests, 105 assertions)
+```
+
 ## We're Here To Help
 
 We encourage you to ask for help. We want your first experience with WooCommerce Connect to be a good one, so don't be shy. If you're wondering why something is the way it is, or how a decision was made, you can tag issues with [Type] Question or prefix them with “Question:”
