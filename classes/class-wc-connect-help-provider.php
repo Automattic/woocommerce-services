@@ -29,7 +29,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
+			$tabs[ 'connect' ] = _x( 'WooCommerce Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
 			return $tabs;
 
 		}
@@ -56,7 +56,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			return array(
 				(object) array(
-					'title' => __( 'Health', 'woocommerce' ),
+					'title' => _x( 'Health', 'This section displays the overall health of WooCommerce Connect and the things it depends on', 'woocommerce' ),
 					'type' => 'fieldset',
 					'items' => array() // TODO
 				),
