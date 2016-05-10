@@ -39,6 +39,7 @@
 
     .package-dimensions {
         width: 34%;
+        cursor: default;
         @include breakpoint( '<660px' ) {
             width: 37%;
         }
