@@ -62,6 +62,7 @@
     "babel-preset-stage-1": "^6.5.0",
     "debug": "2.2.0",
     "dompurify": "^0.7.4",
+    "is-my-json-valid": "^2.13.1",
     "lodash": "4.5.1",
     "react": "0.14.7",
     "react-dom": "0.14.7",

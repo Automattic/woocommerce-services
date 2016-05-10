@@ -1,14 +1,15 @@
+import validator from 'is-my-json-valid';
+
 export const isFieldError = ( required, schema, value ) => {
 	if ( required && ! value ) {
 		return true;
 	}
 
-	if ( schema.pattern ) {
-		const pattern = new RegExp( schema.pattern );
-		if ( ! pattern.test( value ) ) {
-			return true;
-		}
+	if ( ! required && ! value ) {
+		return false;
 	}
 
-	return false;
+	const validate = validator( schema );
+
+	return ( false === validate( value ) );
 };
