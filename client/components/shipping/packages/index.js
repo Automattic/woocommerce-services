@@ -3,40 +3,32 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
+import { translate as __ } from 'lib/mixins/i18n';
 
-const Packages = React.createClass( {
-	displayName: 'Packages',
-	propTypes: {
-		addPackage: PropTypes.func.isRequired,
-		showModal: PropTypes.bool,
-		dismissModal: PropTypes.func.isRequired,
-	},
-	render: function() {
-		return (
-			<div>
-				<PackagesList { ...this.props } />
-				{ this.renderAddPackage() }
-				<FormFieldset className="add-package-button-field">
-					<FormButton
-						type="button"
-						isPrimary={ false }
-						compact
-						onClick={ this.props.addPackage }
-					>
-						Add a package
-					</FormButton>
-				</FormFieldset>
-			</div>
-		);
-	},
-	renderAddPackage: function() {
-		if ( this.props.showModal ) {
-			return (
-				<AddPackageDialog { ...this.props } />
-			);
-		}
-	},
-} );
+const Packages = ( props ) => {
+	return (
+		<div>
+			<PackagesList { ...props } />
+			<AddPackageDialog { ...props } />
+			<FormFieldset className="add-package-button-field">
+				<FormButton
+					type="button"
+					isPrimary={ false }
+					compact
+					onClick={ props.addPackage }
+				>
+					{ __( 'Add a package' ) }
+				</FormButton>
+			</FormFieldset>
+		</div>
+	);
+};
+
+Packages.propTypes = {
+	addPackage: PropTypes.func.isRequired,
+	showModal: PropTypes.bool,
+	dismissModal: PropTypes.func.isRequired,
+};
 
 export default Packages;
 

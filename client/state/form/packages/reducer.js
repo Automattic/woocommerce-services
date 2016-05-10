@@ -2,28 +2,33 @@ import {
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_SELECTED_PRESET,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
 } from './actions';
-import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import isNull from 'lodash/isNull';
 
 const reducers = {};
 
 reducers[ADD_PACKAGE] = ( state ) => {
-	const newPackageData = ( 'edit' === state.mode ) ? {} : omit( state.packageData, 'index' );
-	return Object.assign( {}, state, {
+	const newState = Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',
-		packageData: newPackageData,
 	} );
+
+	if ( 'edit' === state.mode || ! newState.packageData ) {
+		newState.packageData = { is_user_defined: true }
+	}
+
+	return newState;
 };
 
 reducers[EDIT_PACKAGE] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		showModal: true,
+		modalReadOnly: false,
 		mode: 'edit',
 		packageData: action.package,
 		showOuterDimensions: false,
@@ -33,6 +38,12 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 reducers[DISMISS_MODAL] = ( state ) => {
 	return Object.assign( {}, state, {
 		showModal: false,
+	} );
+};
+
+reducers[SET_SELECTED_PRESET] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		selectedPreset: action.value,
 	} );
 };
 
@@ -57,7 +68,7 @@ reducers[TOGGLE_OUTER_DIMENSIONS] = ( state ) => {
 	return Object.assign( {}, state, {
 		showOuterDimensions: true,
 	} );
-}
+};
 
 const packages = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {

@@ -4,6 +4,7 @@ import {
 	addPackage,
 	editPackage,
 	dismissModal,
+	setSelectedPreset,
 	updatePackagesField,
 	toggleOuterDimensions,
 } from '../actions';
@@ -56,7 +57,7 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'add',
-			packageData: {},
+			packageData: { is_user_defined: true },
 		} );
 	} );
 
@@ -73,6 +74,7 @@ describe( 'Packages form reducer', () => {
 
 		expect( state ).to.eql( {
 			showModal: true,
+			modalReadOnly: false,
 			mode: 'edit',
 			packageData,
 			showOuterDimensions: false,
@@ -88,6 +90,25 @@ describe( 'Packages form reducer', () => {
 
 		expect( state ).to.eql( {
 			showModal: false,
+		} );
+	} );
+
+	it( 'SET_SELECTED_PRESET', () => {
+		let state = {};
+
+		state = reducer( state, setSelectedPreset( 'a' ) );
+		expect( state ).to.eql( {
+			selectedPreset: 'a',
+		} );
+
+		state = reducer( state, setSelectedPreset( 'aaa' ) );
+		expect( state ).to.eql( {
+			selectedPreset: 'aaa',
+		} );
+
+		state = reducer( state, setSelectedPreset( '1112' ) );
+		expect( state ).to.eql( {
+			selectedPreset: '1112',
 		} );
 	} );
 
