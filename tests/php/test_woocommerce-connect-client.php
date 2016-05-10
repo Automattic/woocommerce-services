@@ -2,7 +2,7 @@
 
 class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
-	const SERVICE_SCRIPT_HANDLE = 'wc_connect_service_admin';
+	const SERVICE_SCRIPT_HANDLE = 'wc_connect_admin';
 
 	public function tearDown() {
 
