@@ -61,6 +61,8 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 					value={ settings[id] }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
+					validationHint={ layout.validation_hint }
+					required={ -1 !== schema.required.indexOf( id ) }
 				/>
 			);
 	}

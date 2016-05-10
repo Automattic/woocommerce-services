@@ -3,10 +3,25 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormInputValidation from 'components/forms/form-input-validation';
+import { isFieldError } from 'lib/utils/error';
 import { sanitize } from 'dompurify';
 
-const TextField = ( { id, schema, value, placeholder, updateValue } ) => {
+const renderFieldDescription = ( description ) => {
+	return (
+		<FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: ['target'] } ) } } />
+	);
+};
+
+const renderFieldError = ( validationHint ) => {
+	return (
+		<FormInputValidation isError text={ validationHint } />
+	);
+}
+
+const TextField = ( { id, schema, value, placeholder, updateValue, validationHint, required } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
+	const isError = isFieldError( required, schema, value );
 
 	return (
 		<FormFieldset>
@@ -16,8 +31,10 @@ const TextField = ( { id, schema, value, placeholder, updateValue } ) => {
 				name={ id }
 				placeholder={ placeholder }
 				value={ value }
-				onChange={ handleChangeEvent } />
-			<FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( schema.description, { ADD_ATTR: ['target'] } ) } } />
+				onChange={ handleChangeEvent }
+				isError={ isError }
+			/>
+			{ isError && validationHint ? renderFieldError( validationHint ) : renderFieldDescription( schema.description ) }
 		</FormFieldset>
 	);
 };
