@@ -1,5 +1,9 @@
 .wcc-shipping-packages-list {
 
+    div {
+        box-sizing: border-box;
+    }
+
     &.form-fieldset {
         margin-bottom: 12px;
         padding-bottom: 8px;
@@ -9,7 +13,7 @@
     .package-type {
         width: 10%;
         @include breakpoint( '<660px' ) {
-            width: 12%;
+            width: 11%;
         }
 
         .gridicon {
@@ -22,19 +26,24 @@
     }
 
     .package-name {
-        width: 55%;
+        width: 51%;
+        padding-right: 8px;
         @include breakpoint( '<660px' ) {
-            width: 43%;
+            width: 44%;
+        }
+
+        &.form-legend {
+            padding-right: 0;
         }
     }
 
     .package-dimensions {
-        width: 30%;
+        width: 34%;
         @include breakpoint( '<660px' ) {
-            width: 40%;
+            width: 37%;
         }
         &.form-legend {
-            width: 35%;
+            width: 39%;
             @include breakpoint( '<660px' ) {
                 width: 45%;
             }
@@ -43,6 +52,10 @@
 
     .package-actions {
         width: 5%;
+        text-align: right;
+        @include breakpoint( '<660px' ) {
+            width: 8%;
+        }
     }
 }
 
