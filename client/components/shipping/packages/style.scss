@@ -1,5 +1,9 @@
 .wcc-shipping-packages-list {
 
+    div {
+        box-sizing: border-box;
+    }
+
     &.form-fieldset {
         margin-bottom: 12px;
         padding-bottom: 8px;
@@ -9,31 +13,38 @@
     .package-type {
         width: 10%;
         @include breakpoint( '<660px' ) {
-            width: 12%;
-    }
+            width: 11%;
+        }
 
-    .gridicon {
-        border-radius: 50%;
-        background-color: $gray;
-        fill: white;
-        padding: 4px;
+        .gridicon {
+            border-radius: 50%;
+            background-color: lighten( $gray, 10% );
+            fill: white;
+            padding: 4px;
+            margin-bottom: -4px;
         }
     }
 
     .package-name {
-        width: 55%;
+        width: 51%;
+        padding-right: 8px;
         @include breakpoint( '<660px' ) {
-            width: 43%;
+            width: 44%;
+        }
+
+        &.form-legend {
+            padding-right: 0;
         }
     }
 
     .package-dimensions {
-        width: 30%;
+        width: 34%;
+        cursor: default;
         @include breakpoint( '<660px' ) {
-            width: 40%;
+            width: 37%;
         }
         &.form-legend {
-            width: 35%;
+            width: 39%;
             @include breakpoint( '<660px' ) {
                 width: 45%;
             }
@@ -42,6 +53,10 @@
 
     .package-actions {
         width: 5%;
+        text-align: right;
+        @include breakpoint( '<660px' ) {
+            width: 8%;
+        }
     }
 }
 
@@ -96,6 +111,10 @@
 
     &:hover {
         color: $alert-red;
+    }
+
+    &:focus {
+        box-shadow: 0 0 0 1px $blue-medium, 0 0 2px 1px rgba( $blue-medium, 0.8 );
     }
 }
 
