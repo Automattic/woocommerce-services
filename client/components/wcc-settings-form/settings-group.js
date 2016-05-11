@@ -23,6 +23,7 @@ const SettingsGroup = ( {
 	storeOptions,
 	form,
 	saveForm,
+	errors,
 } ) => {
 	switch ( group.type ) {
 		case 'fieldset':
@@ -41,6 +42,7 @@ const SettingsGroup = ( {
 					<SaveForm
 						saveForm={ saveForm }
 						isSaving={ form.isSaving }
+						formHasError={ errors && errors.length }
 					/>
 				</CompactCard>
 			);

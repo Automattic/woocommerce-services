@@ -19,6 +19,7 @@ const WCCSettingsForm = ( {
 	saveFormData,
 	formActions,
 	noticeActions,
+	errors,
 } ) => {
 	const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
 	const setSuccess = ( value ) => {
@@ -50,6 +51,7 @@ const WCCSettingsForm = ( {
 						storeOptions,
 						saveForm,
 						form,
+						errors,
 					} }
 				/>
 			) ) }
