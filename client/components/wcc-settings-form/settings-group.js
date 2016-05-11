@@ -2,13 +2,7 @@ import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
-import { connect } from 'react-redux';
-import * as FormActions from 'state/form/actions';
-import { bindActionCreators } from 'redux';
 import SaveForm from 'components/save-form';
-import { translate as __ } from 'lib/mixins/i18n';
-import { successNotice, errorNotice } from 'state/notices/actions';
-import isString from 'lodash/isString';
 
 const renderGroupItems = ( items, schema, storeOptions ) => {
 	return (
@@ -23,7 +17,13 @@ const renderGroupItems = ( items, schema, storeOptions ) => {
 	);
 };
 
-const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActions, noticeActions, saveFormData } ) => {
+const SettingsGroup = ( {
+	group,
+	schema,
+	storeOptions,
+	form,
+	saveForm,
+} ) => {
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
@@ -36,24 +36,6 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 			);
 
 		case 'actions':
-			const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
-			const setSuccess = ( value ) => {
-				formActions.setField( 'success', value );
-				if ( true === value ) {
-					noticeActions.successNotice( __( 'Your changes have been saved.' ), {
-						duration: 2250,
-					} );
-				}
-			};
-			const setError = ( value ) => {
-				formActions.setField( 'error', value );
-				if ( isString( value ) ) {
-					noticeActions.errorNotice( value, {
-						duration: 7000,
-					} );
-				}
-			}
-			const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
 			return (
 				<CompactCard className="save-button-bar">
 					<SaveForm
@@ -79,28 +61,8 @@ SettingsGroup.propTypes = {
 	} ),
 	schema: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
-	saveFormData: PropTypes.func.isRequired,
-	settings: PropTypes.object.isRequired,
+	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
-	formActions: PropTypes.object.isRequired,
-	noticeActions: PropTypes.object.isRequired,
 };
 
-function mapStateToProps( state ) {
-	return {
-		settings: state.settings,
-		form: state.form,
-	};
-}
-
-function mapDispatchToProps( dispatch ) {
-	return {
-		formActions: bindActionCreators( FormActions, dispatch ),
-		noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
-	};
-}
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)( SettingsGroup );
+export default SettingsGroup;
