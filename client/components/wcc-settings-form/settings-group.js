@@ -14,14 +14,14 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 				<CompactCard className="settings-group-card">
 					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
 					<div className="settings-group-content">
-						{ group.items.map( item => (
+						{ group.items ? group.items.map( item => (
 							<SettingsItem
 								key={ item.key ? item.key : item }
 								layout={ item }
 								schema={ schema }
 								storeOptions={ storeOptions }
 							/>
-						) ) }
+						) ) : null }
 					</div>
 				</CompactCard>
 			);
@@ -43,13 +43,19 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 					/>
 				</CompactCard>
 			);
+
+		default:
+			return (
+				<div>
+				</div>
+			)
 	}
 };
 
 SettingsGroup.propTypes = {
 	group: PropTypes.shape( {
 		title: PropTypes.string,
-		items: PropTypes.array.isRequired,
+		items: PropTypes.array,
 	} ),
 	schema: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
