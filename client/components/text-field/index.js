@@ -9,7 +9,7 @@ import { sanitize } from 'dompurify';
 
 const renderFieldDescription = ( description ) => {
 	return (
-		<FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: ['target'] } ) } } />
+		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: ['target'] } ) } } /> : null
 	);
 };
 
@@ -44,7 +44,7 @@ TextField.propTypes = {
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'string' ),
 		title: PropTypes.string.isRequired,
-		description: PropTypes.string.isRequired,
+		description: PropTypes.string,
 		default: PropTypes.string,
 	} ).isRequired,
 	value: PropTypes.string.isRequired,
