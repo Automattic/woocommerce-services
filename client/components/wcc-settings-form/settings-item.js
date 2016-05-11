@@ -5,7 +5,6 @@ import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
-import * as FormActions from 'state/form/actions';
 import * as PackagesActions from 'state/form/packages/actions';
 import { bindActionCreators } from 'redux';
 import Packages from 'components/shipping/packages';
@@ -99,7 +98,6 @@ function mapDispatchToProps( dispatch ) {
 	return {
 		packagesActions: bindActionCreators( PackagesActions, dispatch ),
 		settingsActions: bindActionCreators( SettingsActions, dispatch ),
-		formActions: bindActionCreators( FormActions, dispatch ),
 	};
 }
 
