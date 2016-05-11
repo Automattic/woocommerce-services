@@ -8,6 +8,7 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import isString from 'lodash/isString';
 import { translate as __ } from 'lib/mixins/i18n';
+import validator from 'is-my-json-valid';
 
 const WCCSettingsForm = ( {
 	storeOptions,
@@ -63,10 +64,14 @@ WCCSettingsForm.propTypes = {
 	saveFormData: PropTypes.func.isRequired,
 };
 
-function mapStateToProps( state ) {
+function mapStateToProps( state, props ) {
+	const validate = validator( props.schema );
+	validate( state.settings );
+
 	return {
 		settings: state.settings,
 		form: state.form,
+		errors: validate.errors,
 	};
 }
 
