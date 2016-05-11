@@ -7,6 +7,19 @@ import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 import SaveForm from 'components/save-form';
 
+const renderGroupItems = ( items, schema, storeOptions ) => {
+	return (
+		items.map( item => (
+			<SettingsItem
+				key={ item.key ? item.key : item }
+				layout={ item }
+				schema={ schema }
+				storeOptions={ storeOptions }
+			/>
+		) )
+	);
+};
+
 const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActions, saveFormData } ) => {
 	switch ( group.type ) {
 		case 'fieldset':
@@ -14,14 +27,7 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 				<CompactCard className="settings-group-card">
 					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
 					<div className="settings-group-content">
-						{ group.items ? group.items.map( item => (
-							<SettingsItem
-								key={ item.key ? item.key : item }
-								layout={ item }
-								schema={ schema }
-								storeOptions={ storeOptions }
-							/>
-						) ) : null }
+						{ group.items ? renderGroupItems( group.items, schema, storeOptions ) : null }
 					</div>
 				</CompactCard>
 			);
@@ -46,7 +52,8 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 
 		default:
 			return (
-				<div>
+				<div className="settings-group-default">
+					{ group.items ? renderGroupItems( group.items, schema, storeOptions ) : null }
 				</div>
 			)
 	}
