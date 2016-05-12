@@ -86,7 +86,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		static function plugin_deactivation() {
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
-
+			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 		}
 
 		public function __construct() {
