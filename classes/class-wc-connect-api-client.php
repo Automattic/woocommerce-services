@@ -189,9 +189,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'wc_version' => WC()->version,
 				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 				'wp_version' => get_bloginfo( 'version' ),
-				'last_services_update' => get_option( 'wc_connect_services_last_update', 0 ),
-				'last_heartbeat' => get_option( 'wc_connect_last_heartbeat', 0 ),
-				'last_rate_request' => get_option( 'wc_connect_last_rate_request', 0 ),
+				'last_services_update' => get_option( 'wc_connect_services_last_update' ),
+				'last_heartbeat' => get_option( 'wc_connect_last_heartbeat' ),
 				'active_services' => $this->wc_connect_loader->get_active_services(),
 			) );
 

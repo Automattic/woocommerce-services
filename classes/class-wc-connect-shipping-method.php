@@ -298,16 +298,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					$this->add_rate( $rate_to_add );
 				}
 			}
-
-			$this->update_last_rate_request_timestamp();
-		}
-
-		public function update_last_rate_request_timestamp() {
-			$previous_timestamp = get_option( 'wc_connect_last_rate_request' );
-			if ( false === $previous_timestamp ||
-				( time() - HOUR_IN_SECONDS ) > $previous_timestamp ) {
-				update_option( 'wc_connect_last_rate_request', time() );
-			}
 		}
 
 		public function admin_options() {
