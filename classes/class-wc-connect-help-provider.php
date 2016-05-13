@@ -9,12 +9,107 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		 */
 		protected $service_settings_store;
 
+		/**
+		 * @array
+		 */
+		protected $fieldsets;
+
 		public function __construct( WC_Connect_Service_Settings_Store $service_settings_store ) {
 
 			$this->service_settings_store = $service_settings_store;
+			$this->help_sections = array();
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
 			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
+
+			$this->add_fieldset(
+				'health',
+				_x( "Health", "This section displays the overall health of WooCommerce Connect and the things it depends on", "woocommerce" ),
+				$this->get_health_items()
+			);
+
+			$this->add_fieldset(
+				'services',
+				__( 'Services', 'woocommerce' ),
+				$this->get_services_items()
+			);
+
+			$this->add_fieldset(
+				'debug',
+				__( 'Debug', 'woocommerce' ),
+				$this->get_debug_items()
+			);
+
+			$this->add_fieldset(
+				'support',
+				__( 'Support', 'woocommerce' ),
+				$this->get_support_items()
+			);
+
+		}
+
+		protected function get_health_items() {
+			return array(
+					(object) array(
+						'key' => 'woocommerce_health_items',
+						'title' => __( 'WooCommerce' ),
+						'type' => 'indicators',
+						'items' => array(
+							'woocommerce_indicator_1' => (object) array(
+								'id' => 'woocommerce_indicator_1',
+								'state' => 'super-green',
+								'state_message' => 'WooCommerce is very much Good to Go',
+								'last_updated' => 'Sometime recently'
+							)
+						)
+					),
+					(object) array(
+						'key' => 'jetpack_health_items',
+						'title' => __( 'Jetpack' ),
+						'type' => 'indicators',
+						'items' => array(
+							'jetpack_indicator_1' => (object) array(
+								'id' => 'jetpack_indicator_1',
+								'state' => 'super-duper-green',
+								'state_message' => 'Jetpack is also very much Good to Go',
+								'last_updated' => 'Sometime recently'
+							)
+						)
+					),
+					(object) array(
+						'key' => 'wcc_health_items',
+						'title' => __( 'WooCommerce Connect' ),
+						'type' => 'indicators',
+						'items' => array(
+							'wcc_indicator_1' => (object) array(
+								'id' => 'wcc_indicator_1',
+								'state' => 'super-duper-duper-green',
+								'state_message' => 'WooCommerce Connect is also very very much Good to Go',
+								'last_updated' => 'Sometime recently'
+							)
+						)
+					)
+				);
+		}
+
+		protected function get_services_items() {
+			return array();
+		}
+
+		protected function get_debug_items() {
+			return array();
+		}
+
+		protected function get_support_items() {
+			return array();
+		}
+
+		protected function add_fieldset( $section_slug, $title, $items ) {
+
+			$this->fieldsets[ $section_slug ] = array(
+				'title' => $title,
+				'items' => $items
+			);
 
 		}
 
@@ -58,84 +153,78 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 		}
 
-		// TODO - refactor to accept scope as parameter or maybe use filtering?
-		protected function get_woocommerce_health_indicator_ids() {
-			return array(
-				(object) array(
-					"id" => "woocommerce",
-				)
-			);
-		}
-
-		protected function get_woocommerce_health_indicators() {
-			return array(
-				"woocommerce" => (object) array(
-					"id" => "woocommerce",
-					"state" => "purple",
-					"state_message" => "WooCommerce is Good to Go",
-					"last_updated" => "Sometime recently"
-				)
-			);
-		}
-
 		/**
 		 * Returns the form schema object for the entire help page
 		 *
 		 * @return object
 		 */
 		protected function get_form_schema() {
+
+			$form_properties = array();
+			$form_definitions = array();
+
+			// Iterate over the items in each fieldset to build a list of properties
+			foreach ( $this->fieldsets as $fieldset ) {
+				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
+
+					if ( 'indicators' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'title' => $fieldsetitem->title,
+							'type' => 'object',
+							'definition' => $fieldsetitem->key . '_definitions',
+							'items' => $this->get_indicator_schema()
+						);
+
+						foreach ( $fieldsetitem->items as $item ) {
+							$form_definitions[ $fieldsetitem->key . '_definitions' ][] = (object) array(
+								'id' => $item->id
+							);
+						}
+					}
+
+					// TODO - support other types like toggles, textareas
+				}
+			}
+
 			return (object) array(
 				"type" => "object",
 				"required" => array(),
 				// these definitions enumerate the specific indicator IDs for each
-				"definitions" => (object) array(
-					"woocommerce_health_indicators" => $this->get_woocommerce_health_indicator_ids()
-				),
-				"properties" => (object) array(
-					"woocommerce_health" => (object) array(
-						"title" => "WooCommerce Health",
-						"type" => "object",
-						"definition" => "woocommerce_health_indicators", // this tells the form which definition to select from definitions
-						"items" => $this->get_indicator_schema()
-					)
-				)
+				"definitions" => $form_definitions,
+				"properties" => $form_properties
 			);
 		}
 
 		/**
 		 * Returns the form layout array for the entire help page
+		 * Iterates over $this->fieldsets to build the form layout
 		 *
 		 * @return array
 		 */
 		protected function get_form_layout() {
 
-			return array(
-				(object) array(
-					"title" => _x( "Health", "This section displays the overall health of WooCommerce Connect and the things it depends on", "woocommerce" ),
-					"type" => "fieldset",
-					"items" => array(
-						(object) array(
-							"key" => "woocommerce_health",
-							"type" => "indicators",
-						)
-					)
-				),
-				(object) array(
-					'title' => __( 'Services', 'woocommerce' ),
-					'type' => 'fieldset',
-					'items' => array() // TODO
-				),
-				(object) array(
-					'title' => __( 'Debug', 'woocommerce' ),
-					'type' => 'fieldset',
-					'items' => array() // TODO
-				),
-				(object) array(
-					'title' => __( 'Support', 'woocommerce' ),
-					'type' => 'fieldset',
-					'items' => array() // TODO
-				)
-			);
+			$form_layout = array();
+
+			foreach ( $this->fieldsets as $fieldset ) {
+
+				// Filter the fieldset's items to only include key and type
+				// since that is all form layout items should have in them
+				$items = array();
+				foreach( $fieldset[ 'items' ] as $fieldsetitem ) {
+					$items[] = (object) array(
+						'key' => $fieldsetitem->key,
+						'type' => $fieldsetitem->type
+					);
+				}
+
+				$form_layout[] = (object) array(
+					'title' => $fieldset[ 'title' ],
+					'type'  => 'fieldset',
+					'items' => $items
+				);
+			}
+
+			return $form_layout;
 
 		}
 
@@ -146,10 +235,20 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		 */
 		protected function get_form_data() {
 
-			return array(
-				"woocommerce_health" => $this->get_woocommerce_health_indicators(),
-				"last_name" => "Snook",
-			);
+			// Iterate over the fieldsets, extracting the settable items
+
+			$form_data = array();
+
+			foreach ( $this->fieldsets as $fieldset ) {
+				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
+					if ( 'indicators' === $fieldsetitem->type ) {
+						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
+					}
+				}
+			}
+
+			return $form_data;
+
 		}
 
 		/**
