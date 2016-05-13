@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import Indicators from 'components/indicators';
 import TextField from 'components/text-field';
 import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
@@ -50,6 +51,15 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 					removePackage={ removeArrayItem }
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
+				/>
+			);
+
+		case 'indicators':
+			return (
+				<Indicators
+					layout={ layout }
+					schema={ schema.properties[id] }
+					indicators={ Object.values( settings[id] ) }
 				/>
 			);
 

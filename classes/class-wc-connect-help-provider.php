@@ -34,17 +34,72 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 		}
 
+		protected function get_indicator_schema() {
+
+			return (object) array(
+				"properties" => (object) array(
+					"id" => (object) array(
+						"type" => "string"
+					),
+					"state" => (object) array(
+						"type" => "string",
+						"default" => "bad"
+					),
+					"state_message" => (object) array(
+						"type" => "string",
+						"default" => "TBD",
+					),
+					"last_updated" => (object) array(
+						"type" => "string",
+						"default" => "Yesterday"
+					)
+				)
+			);
+
+		}
+
+		// TODO - refactor to accept scope as parameter or maybe use filtering?
+		protected function get_woocommerce_health_indicator_ids() {
+			return array(
+				(object) array(
+					"id" => "woocommerce",
+				)
+			);
+		}
+
+		protected function get_woocommerce_health_indicators() {
+			return array(
+				"woocommerce" => (object) array(
+					"id" => "woocommerce",
+					"state" => "purple",
+					"state_message" => "WooCommerce is Good to Go",
+					"last_updated" => "Sometime recently"
+				)
+			);
+		}
+
 		/**
 		 * Returns the form schema object for the entire help page
 		 *
 		 * @return object
 		 */
 		protected function get_form_schema() {
-
-			$form_schema = new stdClass();
-			$form_schema->properties = new stdClass();
-			return $form_schema;
-
+			return (object) array(
+				"type" => "object",
+				"required" => array(),
+				// these definitions enumerate the specific indicator IDs for each
+				"definitions" => (object) array(
+					"woocommerce_health_indicators" => $this->get_woocommerce_health_indicator_ids()
+				),
+				"properties" => (object) array(
+					"woocommerce_health" => (object) array(
+						"title" => "WooCommerce Health",
+						"type" => "object",
+						"definition" => "woocommerce_health_indicators", // this tells the form which definition to select from definitions
+						"items" => $this->get_indicator_schema()
+					)
+				)
+			);
 		}
 
 		/**
@@ -56,9 +111,14 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			return array(
 				(object) array(
-					'title' => _x( 'Health', 'This section displays the overall health of WooCommerce Connect and the things it depends on', 'woocommerce' ),
-					'type' => 'fieldset',
-					'items' => array() // TODO
+					"title" => _x( "Health", "This section displays the overall health of WooCommerce Connect and the things it depends on", "woocommerce" ),
+					"type" => "fieldset",
+					"items" => array(
+						(object) array(
+							"key" => "woocommerce_health",
+							"type" => "indicators",
+						)
+					)
 				),
 				(object) array(
 					'title' => __( 'Services', 'woocommerce' ),
@@ -86,8 +146,10 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		 */
 		protected function get_form_data() {
 
-			return array(); // TODO
-
+			return array(
+				"woocommerce_health" => $this->get_woocommerce_health_indicators(),
+				"last_name" => "Snook",
+			);
 		}
 
 		/**
