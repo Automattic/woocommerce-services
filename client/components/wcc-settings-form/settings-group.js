@@ -49,7 +49,7 @@ const SettingsGroup = ( {
 					<SaveForm
 						saveForm={ saveForm }
 						isSaving={ form.isSaving }
-						formHasError={ errors && errors.length }
+						formHasError={ ( 'undefined' !== typeof errors ) && ( 0 < errors.length ) }
 					/>
 				</CompactCard>
 			);
