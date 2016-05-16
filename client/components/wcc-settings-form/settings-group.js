@@ -4,19 +4,6 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import SaveForm from 'components/save-form';
 
-const renderGroupItems = ( items, schema, storeOptions ) => {
-	return (
-		items.map( item => (
-			<SettingsItem
-				key={ item.key ? item.key : item }
-				layout={ item }
-				schema={ schema }
-				storeOptions={ storeOptions }
-			/>
-		) )
-	);
-};
-
 const SettingsGroup = ( {
 	group,
 	schema,
@@ -25,13 +12,33 @@ const SettingsGroup = ( {
 	saveForm,
 	errors,
 } ) => {
+	const renderSettingsItem = ( item ) => {
+		const key = item.key ? item.key : item;
+		const itemErrors = errors.filter( ( error ) => {
+			const path = error.split( '.' );
+			return path[0] === key;
+		} );
+
+		return (
+			<SettingsItem
+				layout={ item }
+				{ ...{
+					key,
+					schema,
+					storeOptions,
+				} }
+				errors={ itemErrors }
+			/>
+		);
+	};
+
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
 				<CompactCard className="settings-group-card">
 					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
 					<div className="settings-group-content">
-						{ group.items ? renderGroupItems( group.items, schema, storeOptions ) : null }
+						{ group.items.map( renderSettingsItem ) }
 					</div>
 				</CompactCard>
 			);
@@ -50,7 +57,7 @@ const SettingsGroup = ( {
 		default:
 			return (
 				<div className="settings-group-default">
-					{ group.items ? renderGroupItems( group.items, schema, storeOptions ) : null }
+					{ group.items.map( renderSettingsItem ) }
 				</div>
 			)
 	}
