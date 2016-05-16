@@ -130,8 +130,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				// TODO - handle multiple error messages when the validation endpoint can return them
 				wp_send_json_error(
 					array(
-						'error' => 'validation_failure',
-					 	'message' => $response_body->get_error_message()
+						'error'   => 'validation_failure',
+					 	'message' => $response_body->get_error_message(),
+						'data'    => $response_body->get_error_data(),
 					)
 				);
 			}
