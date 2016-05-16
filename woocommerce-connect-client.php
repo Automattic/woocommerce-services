@@ -174,7 +174,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
-
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
@@ -229,6 +228,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
 				add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
 				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
+				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
+				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
+				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
@@ -462,6 +464,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function get_active_services() {
 			return $this->get_active_shipping_services();
+		}
+
+		public function is_wc_connect_shipping_service( $service_id ) {
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			return in_array( $service_id, $shipping_service_ids );
+		}
+
+		public function shipping_zone_method_added( $instance_id, $service_id, $zone_id ) {
+			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				do_action( 'wc_connect_shipping_zone_method_added', $instance_id, $service_id, $zone_id );
+			}
+		}
+
+		public function shipping_zone_method_deleted( $instance_id, $service_id, $zone_id ) {
+			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				do_action( 'wc_connect_shipping_zone_method_deleted', $instance_id, $service_id, $zone_id );
+			}
+		}
+
+		public function shipping_zone_method_status_toggled( $instance_id, $service_id, $zone_id, $enabled ) {
+			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				do_action( 'wc_connect_shipping_zone_method_status_toggled', $instance_id, $service_id, $zone_id, $enabled );
+			}
 		}
 
 	}

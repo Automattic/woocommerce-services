@@ -2,6 +2,10 @@
 
 class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
+	static function setUpBeforeClass()	{
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-method.php' );
+	}
+
 	public function is_valid_package_destination_provider() {
 
 		return array(
@@ -87,9 +91,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	 */
 	public function test_is_valid_package_destination( $package, $expected ) {
 
-		$loader = new WC_Connect_Loader();
-		$loader->load_dependencies();
-
 		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
 			->disableOriginalConstructor()
 			->setMethods( null )
@@ -103,9 +104,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	 * @covers WC_Connect_Shipping_Method::calculate_shipping
 	 */
 	public function test_invalid_destination_calculate_shipping() {
-
-		$loader = new WC_Connect_Loader();
-		$loader->load_dependencies();
 
 		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
 			->disableOriginalConstructor()
@@ -131,9 +129,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	 * @covers WC_Connect_Shipping_Method::calculate_shipping
 	 */
 	public function test_invalid_service_settings_calculate_shipping() {
-
-		$loader = new WC_Connect_Loader();
-		$loader->load_dependencies();
 
 		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
 			->setConstructorArgs( array( 1 ) )

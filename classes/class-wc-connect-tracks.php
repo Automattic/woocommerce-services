@@ -17,6 +17,9 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
 		public function __construct( WC_Connect_Logger $logger ) {
 			$this->logger = $logger;
+			add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
+			add_action( 'wc_connect_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
+			add_action( 'wc_connect_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 			add_action( 'wc_connect_saved_service_settings', array( $this, 'saved_service_settings' ), 10, 3 );
 		}
 
@@ -28,9 +31,29 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			return $this->record_user_event( 'opted_out' );
 		}
 
-		public function saved_service_settings( $id ) {
+		public function shipping_zone_method_added( $instance_id, $service_id ) {
+			$this->record_user_event( 'shipping_zone_method_added' );
+			$this->record_user_event( 'shipping_zone_' . $service_id . '_added' );
+		}
+
+		public function shipping_zone_method_deleted( $instance_id, $service_id ) {
+			$this->record_user_event( 'shipping_zone_method_deleted' );
+			$this->record_user_event( 'shipping_zone_' . $service_id . '_deleted' );
+		}
+
+		public function shipping_zone_method_status_toggled( $instance_id, $service_id, $zone_id, $enabled ) {
+			if ( $enabled ) {
+				$this->record_user_event( 'shipping_zone_method_enabled' );
+				$this->record_user_event( 'shipping_zone_' . $service_id . '_enabled' );
+			} else {
+				$this->record_user_event( 'shipping_zone_method_disabled' );
+				$this->record_user_event( 'shipping_zone_' . $service_id . '_disabled' );
+			}
+		}
+
+		public function saved_service_settings( $service_id ) {
 			$this->record_user_event( 'saved_service_settings' );
-			$this->record_user_event( 'saved_' . $id . '_settings' );
+			$this->record_user_event( 'saved_' . $service_id . '_settings' );
 		}
 
 		public function record_user_event( $event_type, $data = array() ) {
