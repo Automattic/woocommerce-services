@@ -66,15 +66,11 @@ WCCSettingsForm.propTypes = {
 	saveFormData: PropTypes.func.isRequired,
 };
 
-const validateForm = ( schema, data ) => {
-	const validate = validator( schema );
-	const result = validate( data );
+const getFormErrors = ( schema, data ) => {
+	const validate = validator( schema, { greedy: true } );
+	const success = validate( data );
 
-	if ( result ) {
-		return true;
-	}
-
-	if ( validate.errors && validate.errors.length ) {
+	if ( ! success && validate.errors && validate.errors.length ) {
 		return validate.errors.map( ( error ) => {
 			if ( 0 === error.field.indexOf( 'data.' ) ) {
 				return error.field.substr( 5 );
@@ -90,7 +86,7 @@ function mapStateToProps( state, props ) {
 	return {
 		settings: state.settings,
 		form: state.form,
-		errors: validateForm( props.schema, state.settings ),
+		errors: getFormErrors( props.schema, state.settings ),
 	};
 }
 
