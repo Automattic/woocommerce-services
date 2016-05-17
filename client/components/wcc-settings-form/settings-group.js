@@ -14,10 +14,15 @@ const SettingsGroup = ( {
 } ) => {
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
-		const itemErrors = errors.filter( ( error ) => {
+		const itemErrors = errors.length ? errors.filter( ( error ) => {
 			const path = error.split( '.' );
 			return path[0] === key;
-		} );
+		} ).map( ( path ) => {
+			if ( 0 === path.indexOf( key + '.' ) ) {
+				return path.substr( key.length +  1 );
+			}
+			return path;
+		} ) : false;
 
 		return (
 			<SettingsItem

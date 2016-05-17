@@ -49,7 +49,7 @@ const SettingsItem = ( {
 					currencySymbol={ storeOptions.currency_symbol }
 					updateValue={ updateSubSubValue }
 					settingsKey={ id }
-					error={ fieldError }
+					errors={ errors }
 				/>
 			);
 
@@ -65,7 +65,7 @@ const SettingsItem = ( {
 					removePackage={ removeArrayItem }
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
-					error={ fieldError }
+					errors={ errors }
 				/>
 			);
 
