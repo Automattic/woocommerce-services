@@ -8,7 +8,26 @@ const PackagesList = ( {
 	dimensionUnit,
 	removePackage,
 	editPackage,
+	errors,
 } ) => {
+	const renderPackageListItem = ( pckg, idx ) => {
+		const itemErrors = errors.length ? errors.filter( ( error ) => {
+			return ( 0 === error.indexOf( idx + '.' ) );
+		} ).map( ( error ) => error.substr( 2 ) ) : false;
+
+		return (
+			<PackagesListItem
+				key={ idx }
+				index={ idx }
+				data={ pckg }
+				dimensionUnit={ dimensionUnit }
+				onRemove={ () => removePackage( idx ) }
+				editPackage={ editPackage }
+				errors={ itemErrors }
+			/>
+		);
+	};
+
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
 			<div className="wcc-shipping-packages-list-header">
@@ -16,16 +35,7 @@ const PackagesList = ( {
 				<FormLegend className="package-name">Name</FormLegend>
 				<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
 			</div>
-			{ packages.map( ( pckg, idx ) => (
-				<PackagesListItem
-					key={ idx }
-					index={ idx }
-					data={ pckg }
-					dimensionUnit={ dimensionUnit }
-					onRemove={ () => removePackage( idx ) }
-					editPackage={ editPackage }
-				/>
-			) ) }
+			{ packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) ) }
 		</FormFieldset>
 	);
 };
