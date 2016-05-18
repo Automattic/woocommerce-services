@@ -1,0 +1,46 @@
+.indicator {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	.indicator-icon-and-message {
+		display: flex;
+		align-items: center;
+		.indicator-icon {
+			padding-right: 5px;
+		}
+		.indicator-message {
+			margin-top: -5px;
+		}
+	}
+	.indicator-lastupdated {
+		color: $gray;
+		font-style: italic;
+		font-weight: 200;
+	}
+}
+
+
+.indicator-success {
+	.indicator-icon-and-message {
+		color: $alert-green;
+		.gridicon {
+			fill: $alert-green;
+		}
+	}
+}
+
+.indicator-warning {
+	.indicator-icon-and-message {
+		color: $alert-yellow;
+		.gridicon {
+			fill: $alert-yellow;
+		}
+	}
+}
+.indicator-error {
+	.indicator-icon-and-message {
+		color: $alert-red;
+		.gridicon {
+			fill: $alert-red;
+		}
+	}
+}

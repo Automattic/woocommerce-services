@@ -69,7 +69,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			if ( version_compare( WC()->version, WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION, "<" ) ) {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
-					'red',
+					'notice',
+					'indicator-error',
 					sprintf(
 						__( 'WooCommerce %s or higher is required (You are running %s)', 'woocommerce' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
@@ -80,14 +81,16 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			} else if ( empty( $base_country ) ) {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
-					'red',
+					'notice',
+					'indicator-error',
 					__( 'Please set Base Location in WooCommerce Settings > General' ),
 					''
 				);
 			} else {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
-					'green',
+					'checkmark-circle',
+					'indicator-success',
 					sprintf(
 						__( 'WooCommerce %s is working correctly', 'woocommerce' ),
 						WC()->version
@@ -117,17 +120,19 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
-					'red',
+					'notice',
+					'indicator-error',
 					sprintf(
 						__( 'Please install and activate the Jetpack plugin, version %s or higher', 'woocommerce' ),
-						$minimum_jp_version
+						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION
 					),
 					''
 				);
 			} else if ( version_compare( JETPACK__VERSION, WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION, "<" ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
-					'red',
+					'notice',
+					'indicator-error',
 					sprintf(
 						__( 'Jetpack %s or higher is required (You are running %s)', 'woocommerce' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION,
@@ -138,17 +143,16 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			} else if ( ! $is_connected ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
-					'red',
-					sprintf(
-						__( 'Please connect Jetpack to WordPress.com', 'woocommerce' ),
-						$minimum_jp_version
-					),
+					'notice',
+					'indicator-error',
+					__( 'Please connect Jetpack to WordPress.com', 'woocommerce' ),
 					''
 				);
 			} else {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
-					'green',
+					'checkmark-circle',
+					'indicator-success',
 					sprintf(
 						__( 'Jetpack %s is connected and working correctly', 'woocommerce' ),
 						JETPACK__VERSION
@@ -172,7 +176,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
 			if ( ! is_null( $last_fetch_timestamp ) ) {
 				$last_fetch_timestamp_formatted = sprintf(
-					_x( 'Schemas last updated %s ago', '%s = human-readable time difference', 'woocommerce' ),
+					_x( 'Last updated %s ago', '%s = human-readable time difference', 'woocommerce' ),
 					human_time_diff( $last_fetch_timestamp )
 				);
 			} else {
@@ -181,36 +185,40 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			if ( is_null( $schemas ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
-					'red',
-					__( 'No service schemas available', 'woocommerce' ),
+					'notice',
+					'indicator-error',
+					__( 'No service data available', 'woocommerce' ),
 					''
 				);
 			} else if ( is_null( $last_fetch_timestamp ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
-					'yellow',
-					__( 'Service schemas were found, but they may be out of date', 'woocommerce' ),
+					'notice',
+					'indicator-warning',
+					__( 'Service data was found, but may be out of date', 'woocommerce' ),
 					''
 				);
 			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_MAXIMUM_SCHEMA_AGE_SECONDS ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
-					'yellow',
-					__( 'Service schemas were found, but they are out of date', 'woocommerce' ),
+					'notice',
+					'indicator-warning',
+					__( 'Service data was found, but is out of date', 'woocommerce' ),
 					$last_fetch_timestamp_formatted
 				);
 			} else {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
-					'green',
-					__( 'WooCommerce Connect is connected and working correctly', 'woocommerce' ),
+					'checkmark-circle',
+					'indicator-success',
+					__( 'Service data is up-to-date', 'woocommerce' ),
 					$last_fetch_timestamp_formatted
 				);
 			}
 
 			$health_items[] =	(object) array(
 				'key' => 'wcc_health_items',
-				'title' => __( 'WooCommerce Connect' ),
+				'title' => __( 'WooCommerce Connect Service Data' ),
 				'type' => 'indicators',
 				'items' => array(
 					'wcc_indicator' => $health_item
@@ -241,12 +249,13 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 		}
 
-		protected function build_indicator( $id, $state, $state_message, $last_updated ) {
+		protected function build_indicator( $id, $icon, $class, $message, $last_updated ) {
 
 			return (object) array(
 				'id' => $id,
-				'state' => $state,
-				'state_message' => $state_message,
+				'icon' => $icon,
+				'class' => $class,
+				'message' => $message,
 				'last_updated' => $last_updated
 			);
 
@@ -275,17 +284,21 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					"id" => (object) array(
 						"type" => "string"
 					),
-					"state" => (object) array(
+					"icon" => (object) array(
 						"type" => "string",
-						"default" => "bad"
+						"default" => "notice"
 					),
-					"state_message" => (object) array(
+					"class" => (object) array(
 						"type" => "string",
-						"default" => "TBD",
+						"default" => ""
+					),
+					"message" => (object) array(
+						"type" => "string",
+						"default" => "",
 					),
 					"last_updated" => (object) array(
 						"type" => "string",
-						"default" => "Yesterday"
+						"default" => ""
 					)
 				)
 			);

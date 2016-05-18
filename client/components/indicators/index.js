@@ -1,14 +1,26 @@
 import React, { PropTypes } from 'react';
+import classNames from 'classnames';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
+import Gridicon from 'components/gridicon';
 
 // TODO - proper markup
-const Indicator = ( { state, stateMessage, lastUpdated } ) => {
+const Indicator = ( { icon, className, message, lastUpdated } ) => {
 	return (
-		<div>
-			<span>{ state }</span>
-			<span>{ stateMessage }</span>
-			<span>{ lastUpdated }</span>
+		<div className={ classNames( 'indicator', className ) }>
+			<div className="indicator-icon-and-message">
+				<div className="indicator-icon">
+					<Gridicon icon={ icon }/>
+				</div>
+				<div className="indicator-message">
+					{ message }
+				</div>
+			</div>
+			{ lastUpdated
+				? <div className="indicator-lastupdated">
+						<span>{ lastUpdated }</span>
+					</div>
+				: null }
 		</div>
 	);
 };
@@ -20,8 +32,9 @@ const Indicators = ( { schema, indicators } ) => {
 			{ indicators.map( indicator => (
 				<Indicator
 					key={ indicator.id }
-					state={ indicator.state }
-					stateMessage={ indicator.state_message }
+					icon={ indicator.icon }
+					className={ indicator.class }
+					message={ indicator.message }
 					lastUpdated={ indicator.last_updated }
 				/>
 			) ) }
