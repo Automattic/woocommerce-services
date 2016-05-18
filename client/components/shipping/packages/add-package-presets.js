@@ -20,9 +20,9 @@ const defaultPackages = {
 };
 
 const getOptionGroups = ( presets ) => {
-	return [
-		defaultPackages,
-		{
+	const groups = [defaultPackages];
+	if ( presets ) {
+		groups.push( {
 			label: presets.title,
 			options: presets.boxes.map( ( box, idx ) => {
 				return {
@@ -30,8 +30,10 @@ const getOptionGroups = ( presets ) => {
 					label: box.name,
 				};
 			} ),
-		},
-	]
+		} );
+	};
+
+	return groups;
 };
 
 const handleSelectEvent = ( e, selectDefault, selectPreset, setSelectedPreset ) => {
@@ -64,7 +66,7 @@ const AddPackagePresets = ( { selectedPreset, setSelectedPreset, presets, onSele
 AddPackagePresets.propTypes = {
 	selectedPreset: PropTypes.string,
 	setSelectedPreset: PropTypes.func.isRequired,
-	presets: PropTypes.object.isRequired,
+	presets: PropTypes.object,
 	onSelectDefault: PropTypes.func.isRequired,
 	onSelectPreset: PropTypes.func.isRequired,
 };

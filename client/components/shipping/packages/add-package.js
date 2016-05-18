@@ -186,7 +186,7 @@ const AddPackageDialog = ( props ) => {
 
 AddPackageDialog.propTypes = {
 	dismissModal: PropTypes.func.isRequired,
-	presets: PropTypes.object.isRequired,
+	presets: PropTypes.object,
 	weightUnit: PropTypes.string.isRequired,
 	mode: PropTypes.string.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
