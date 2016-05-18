@@ -3,6 +3,13 @@ import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 import classNames from 'classnames';
 
+const renderIcon = ( isLetter, isError ) => {
+	const icon = isError ? 'notice' : ( isLetter ? 'mail' : 'flip-horizontal' );
+	return (
+		<Gridicon icon={ icon } size={ isError ? 29 : 18 } />
+	);
+}
+
 const PackagesListItem = ( {
 	index,
 	data,
@@ -11,13 +18,14 @@ const PackagesListItem = ( {
 	editPackage,
 	errors,
 } ) => {
+	const hasError = !! errors.length;
 	const classes = classNames( 'wcc-shipping-packages-list-item', {
-		error: !! errors.length,
+		'wcc-error': hasError,
 	} );
 	return (
 		<div className={ classes }>
 			<div className="package-type">
-				<Gridicon icon={ data.is_letter ? 'mail' : 'flip-horizontal' } size={ 18 } />
+				{ renderIcon( data.is_letter, hasError ) }
 			</div>
 			<div className="package-name">
 				<a href="#" onClick={ ( event ) => {

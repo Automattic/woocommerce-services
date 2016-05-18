@@ -70,13 +70,17 @@
     margin-top: 10px;
     display: flex;
     align-items: center;
-    &.error {
+    &.wcc-error {
         color: red;
         a {
             color: red;
         }
         .package-type .gridicon {
-            background-color: red;
+            background-color: unset;
+            border-radius: unset;
+            fill: red;
+            padding: unset;
+            margin-left: -1px;
         }
     }
 }
