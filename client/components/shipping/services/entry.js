@@ -2,6 +2,8 @@ import React, { PropTypes } from 'react';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
 import FormTextInput from 'components/forms/form-text-input';
+import Gridicon from 'components/gridicon';
+import classNames from 'classnames';
 
 const ShippingServiceEntry = ( {
 	enabled,
@@ -10,35 +12,44 @@ const ShippingServiceEntry = ( {
 	adjustment_type,
 	currencySymbol,
 	updateValue,
-} ) => (
-	<div className="wcc-shipping-service-entry">
-		<label className="wcc-shipping-service-entry-title">
-			<FormCheckbox
-				checked={ enabled }
-				onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
-			/>
-			{ title }
-		</label>
-		<FormTextInput
-			disabled={ ! enabled }
-			value={ adjustment }
-			onChange={ ( event ) => {
+	hasError,
+} ) => {
+	const classes = classNames( 'wcc-shipping-service-entry', {
+		'wcc-error': hasError,
+	} );
+
+	return (
+		<div className={ classes }>
+			<label className="wcc-shipping-service-entry-title">
+				<FormCheckbox
+					checked={ enabled }
+					onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
+				/>
+				{ title }
+			</label>
+			{ hasError ? <Gridicon icon="notice" /> : null }
+			<FormTextInput
+				disabled={ ! enabled }
+				value={ adjustment }
+				onChange={ ( event ) => {
 				const value = event.target.value ? event.target.value : 0;
 				if ( ! isNaN( value ) ) {
 					updateValue( 'adjustment', Number.parseFloat( value ) );
 				}
 			} }
-		/>
-		<FormSelect
-			disabled={ ! enabled }
-			value={ adjustment_type }
-			onChange={ ( event ) => updateValue( 'adjustment_type', event.target.value ) }
-		>
-			<option value="flat">{ currencySymbol }</option>
-			<option value="percentage">%</option>
-		</FormSelect>
-	</div>
-);
+				isError={ hasError }
+			/>
+			<FormSelect
+				disabled={ ! enabled }
+				value={ adjustment_type }
+				onChange={ ( event ) => updateValue( 'adjustment_type', event.target.value ) }
+			>
+				<option value="flat">{ currencySymbol }</option>
+				<option value="percentage">%</option>
+			</FormSelect>
+		</div>
+	);
+}
 
 ShippingServiceEntry.propTypes = {
 	enabled: PropTypes.bool.isRequired,
