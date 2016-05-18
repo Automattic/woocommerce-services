@@ -2,7 +2,16 @@
 
 if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
+	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
+	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '4.0.2' );
+	define( 'WOOCOMMERCE_CONNECT_MAXIMUM_SCHEMA_AGE_SECONDS', 3 * DAY_IN_SECONDS );
+
 	class WC_Connect_Help_Provider {
+
+		/**
+		 * @var WC_Connect_Service_Schemas_Store
+		 */
+		protected $service_schemas_store;
 
 		/**
 		 * @var WC_Connect_Service_Settings_Store
@@ -14,8 +23,9 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		 */
 		protected $fieldsets;
 
-		public function __construct( WC_Connect_Service_Settings_Store $service_settings_store ) {
+		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store, WC_Connect_Service_Settings_Store $service_settings_store ) {
 
+			$this->service_schemas_store = $service_schemas_store;
 			$this->service_settings_store = $service_settings_store;
 			$this->help_sections = array();
 
@@ -24,7 +34,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			$this->add_fieldset(
 				'health',
-				_x( "Health", "This section displays the overall health of WooCommerce Connect and the things it depends on", "woocommerce" ),
+				_x( 'Health', 'This section displays the overall health of WooCommerce Connect and the things it depends on', 'woocommerce' ),
 				$this->get_health_items()
 			);
 
@@ -49,47 +59,165 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		}
 
 		protected function get_health_items() {
-			return array(
-					(object) array(
-						'key' => 'woocommerce_health_items',
-						'title' => __( 'WooCommerce' ),
-						'type' => 'indicators',
-						'items' => array(
-							'woocommerce_indicator_1' => (object) array(
-								'id' => 'woocommerce_indicator_1',
-								'state' => 'super-green',
-								'state_message' => 'WooCommerce is very much Good to Go',
-								'last_updated' => 'Sometime recently'
-							)
-						)
+			$health_items = array();
+
+			// WooCommerce
+			// Only one of the following should present
+			// Check that WooCommerce is at least 2.6 or higher (feature-plugin only)
+			// Check that WooCommerce base_country is set
+			$base_country = WC()->countries->get_base_country();
+			if ( version_compare( WC()->version, WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION, "<" ) ) {
+				$health_item = $this->build_indicator(
+					'woocommerce_indicator',
+					'red',
+					sprintf(
+						__( 'WooCommerce %s or higher is required (You are running %s)', 'woocommerce' ),
+						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
+						WC()->version
 					),
-					(object) array(
-						'key' => 'jetpack_health_items',
-						'title' => __( 'Jetpack' ),
-						'type' => 'indicators',
-						'items' => array(
-							'jetpack_indicator_1' => (object) array(
-								'id' => 'jetpack_indicator_1',
-								'state' => 'super-duper-green',
-								'state_message' => 'Jetpack is also very much Good to Go',
-								'last_updated' => 'Sometime recently'
-							)
-						)
-					),
-					(object) array(
-						'key' => 'wcc_health_items',
-						'title' => __( 'WooCommerce Connect' ),
-						'type' => 'indicators',
-						'items' => array(
-							'wcc_indicator_1' => (object) array(
-								'id' => 'wcc_indicator_1',
-								'state' => 'super-duper-duper-green',
-								'state_message' => 'WooCommerce Connect is also very very much Good to Go',
-								'last_updated' => 'Sometime recently'
-							)
-						)
-					)
+					''
 				);
+			} else if ( empty( $base_country ) ) {
+				$health_item = $this->build_indicator(
+					'woocommerce_indicator',
+					'red',
+					__( 'Please set Base Location in WooCommerce Settings > General' ),
+					''
+				);
+			} else {
+				$health_item = $this->build_indicator(
+					'woocommerce_indicator',
+					'green',
+					sprintf(
+						__( 'WooCommerce %s is working correctly', 'woocommerce' ),
+						WC()->version
+					),
+					''
+				);
+			}
+			$health_items[] = (object) array(
+				'key' => 'woocommerce_health_items',
+				'title' => __( 'WooCommerce' ),
+				'type' => 'indicators',
+				'items' => array(
+					'woocommerce_indicator' => $health_item
+				)
+			);
+
+			// Jetpack
+			// Only one of the following should present
+			// Check that Jetpack is active
+			// Check that Jetpack is connected
+			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' ); // required for is_plugin_active
+			if ( method_exists( 'Jetpack', 'is_development_mode' ) && method_exists( 'Jetpack', 'is_active' ) ) {
+				$is_connected = Jetpack::is_development_mode() ? true : Jetpack::is_active();
+			} else {
+				$is_connected = false;
+			}
+			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
+				$health_item = $this->build_indicator(
+					'jetpack_indicator',
+					'red',
+					sprintf(
+						__( 'Please install and activate the Jetpack plugin, version %s or higher', 'woocommerce' ),
+						$minimum_jp_version
+					),
+					''
+				);
+			} else if ( version_compare( JETPACK__VERSION, WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION, "<" ) ) {
+				$health_item = $this->build_indicator(
+					'jetpack_indicator',
+					'red',
+					sprintf(
+						__( 'Jetpack %s or higher is required (You are running %s)', 'woocommerce' ),
+						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION,
+						JETPACK__VERSION
+					),
+					''
+				);
+			} else if ( ! $is_connected ) {
+				$health_item = $this->build_indicator(
+					'jetpack_indicator',
+					'red',
+					sprintf(
+						__( 'Please connect Jetpack to WordPress.com', 'woocommerce' ),
+						$minimum_jp_version
+					),
+					''
+				);
+			} else {
+				$health_item = $this->build_indicator(
+					'jetpack_indicator',
+					'green',
+					sprintf(
+						__( 'Jetpack %s is connected and working correctly', 'woocommerce' ),
+						JETPACK__VERSION
+					),
+					''
+				);
+			}
+			$health_items[] = (object) array(
+				'key' => 'jetpack_health_items',
+				'title' => __( 'Jetpack' ),
+				'type' => 'indicators',
+				'items' => array(
+					'jetpack_indicator' => $health_item
+				)
+			);
+
+			// Lastly, do the WooCommerce Connect health check
+			// Check that we have schema
+			// Check that we are able to talk to the WooCommerce Connect server
+			$schemas = $this->service_schemas_store->get_service_schemas();
+			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
+			if ( ! is_null( $last_fetch_timestamp ) ) {
+				$last_fetch_timestamp_formatted = sprintf(
+					_x( 'Schemas last updated %s ago', '%s = human-readable time difference', 'woocommerce' ),
+					human_time_diff( $last_fetch_timestamp )
+				);
+			} else {
+				$last_fetch_timestamp = '';
+			}
+			if ( is_null( $schemas ) ) {
+				$health_item = $this->build_indicator(
+					'wcc_indicator',
+					'red',
+					__( 'No service schemas available', 'woocommerce' ),
+					''
+				);
+			} else if ( is_null( $last_fetch_timestamp ) ) {
+				$health_item = $this->build_indicator(
+					'wcc_indicator',
+					'yellow',
+					__( 'Service schemas were found, but they may be out of date', 'woocommerce' ),
+					''
+				);
+			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_MAXIMUM_SCHEMA_AGE_SECONDS ) {
+				$health_item = $this->build_indicator(
+					'wcc_indicator',
+					'yellow',
+					__( 'Service schemas were found, but they are out of date', 'woocommerce' ),
+					$last_fetch_timestamp_formatted
+				);
+			} else {
+				$health_item = $this->build_indicator(
+					'wcc_indicator',
+					'green',
+					__( 'WooCommerce Connect is connected and working correctly', 'woocommerce' ),
+					$last_fetch_timestamp_formatted
+				);
+			}
+
+			$health_items[] =	(object) array(
+				'key' => 'wcc_health_items',
+				'title' => __( 'WooCommerce Connect' ),
+				'type' => 'indicators',
+				'items' => array(
+					'wcc_indicator' => $health_item
+				)
+			);
+
+			return $health_items;
 		}
 
 		protected function get_services_items() {
@@ -109,6 +237,17 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			$this->fieldsets[ $section_slug ] = array(
 				'title' => $title,
 				'items' => $items
+			);
+
+		}
+
+		protected function build_indicator( $id, $state, $state_message, $last_updated ) {
+
+			return (object) array(
+				'id' => $id,
+				'state' => $state,
+				'state_message' => $state_message,
+				'last_updated' => $last_updated
 			);
 
 		}

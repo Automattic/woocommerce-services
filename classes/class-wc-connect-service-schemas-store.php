@@ -47,6 +47,10 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			update_option( 'wc_connect_services', $service_schemas );
 		}
 
+		public function get_last_fetch_timestamp() {
+			return get_option( 'wc_connect_services_last_update', null );
+		}
+
 		protected function update_last_fetch_timestamp() {
 			update_option( 'wc_connect_services_last_update', time() );
 		}

@@ -190,7 +190,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$tracks         = new WC_Connect_Tracks( $logger );
-			$help_provider  = new WC_Connect_Help_Provider( $settings_store );
+			$help_provider  = new WC_Connect_Help_Provider( $schemas_store, $settings_store );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
