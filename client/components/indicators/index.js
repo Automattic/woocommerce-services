@@ -4,7 +4,6 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import Gridicon from 'components/gridicon';
 
-// TODO - proper markup
 const Indicator = ( { icon, className, message, lastUpdated } ) => {
 	return (
 		<div className={ classNames( 'indicator', className ) }>
