@@ -4,7 +4,12 @@ import Button from 'components/button';
 import classNames from 'classnames';
 
 const renderIcon = ( isLetter, isError ) => {
-	const icon = isError ? 'notice' : ( isLetter ? 'mail' : 'flip-horizontal' );
+	let icon;
+	if ( isError ) {
+		icon = 'notice';
+	} else {
+		icon = isLetter ? 'mail' : 'flip-horizontal';
+	}
 	return (
 		<Gridicon icon={ icon } size={ isError ? 29 : 18 } />
 	);
@@ -29,9 +34,9 @@ const PackagesListItem = ( {
 			</div>
 			<div className="package-name">
 				<a href="#" onClick={ ( event ) => {
-				event.preventDefault();
-				editPackage( Object.assign( {}, data, { index } ) );
-			} }>
+					event.preventDefault();
+					editPackage( Object.assign( {}, data, { index } ) );
+				} }>
 					{ data.name }
 				</a>
 			</div>

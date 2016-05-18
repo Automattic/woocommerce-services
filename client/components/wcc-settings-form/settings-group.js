@@ -19,7 +19,7 @@ const SettingsGroup = ( {
 			return path[0] === key;
 		} ).map( ( path ) => {
 			if ( 0 === path.indexOf( key + '.' ) ) {
-				return path.substr( key.length +  1 );
+				return path.substr( key.length + 1 );
 			}
 			return path;
 		} ) : false;
