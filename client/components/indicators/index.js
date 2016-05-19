@@ -7,16 +7,16 @@ import Gridicon from 'components/gridicon';
 const Indicator = ( { icon, className, message, lastUpdated } ) => {
 	return (
 		<div className={ classNames( 'indicator', className ) }>
-			<div className="indicator-icon-and-message">
-				<div className="indicator-icon">
+			<div className="indicator__icon-and-message">
+				<div className="indicator__icon">
 					<Gridicon icon={ icon }/>
 				</div>
-				<div className="indicator-message">
+				<div className="indicator__message">
 					{ message }
 				</div>
 			</div>
 			{ lastUpdated
-				? <div className="indicator-lastupdated">
+				? <div className="form-setting-explanation indicator__last-updated">
 						<span>{ lastUpdated }</span>
 					</div>
 				: null }
