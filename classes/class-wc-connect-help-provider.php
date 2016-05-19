@@ -2,10 +2,6 @@
 
 if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
-	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
-	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '4.0.2' );
-	define( 'WOOCOMMERCE_CONNECT_MAXIMUM_SCHEMA_AGE_SECONDS', 3 * DAY_IN_SECONDS );
-
 	class WC_Connect_Help_Provider {
 
 		/**
@@ -23,7 +19,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		 */
 		protected $fieldsets;
 
-		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store, WC_Connect_Service_Settings_Store $service_settings_store ) {
+		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store,
+			WC_Connect_Service_Settings_Store $service_settings_store ) {
 
 			$this->service_schemas_store = $service_schemas_store;
 			$this->service_settings_store = $service_settings_store;
@@ -92,7 +89,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					'checkmark-circle',
 					'indicator-success',
 					sprintf(
-						__( 'WooCommerce %s is working correctly', 'woocommerce' ),
+						__( 'WooCommerce %s is configured correctly', 'woocommerce' ),
 						WC()->version
 					),
 					''
@@ -198,12 +195,20 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					__( 'Service data was found, but may be out of date', 'woocommerce' ),
 					''
 				);
-			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_MAXIMUM_SCHEMA_AGE_SECONDS ) {
+			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD ) {
+				$health_item = $this->build_indicator(
+					'wcc_indicator',
+					'notice',
+					'indicator-error',
+					__( 'Service data was found, but is more than three days old', 'woocommerce' ),
+					$last_fetch_timestamp_formatted
+				);
+			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
 					'notice',
 					'indicator-warning',
-					__( 'Service data was found, but is out of date', 'woocommerce' ),
+					__( 'Service data was found, but is more than one day old', 'woocommerce' ),
 					$last_fetch_timestamp_formatted
 				);
 			} else {
