@@ -71,6 +71,13 @@ const getFormErrors = ( schema, data ) => {
 	const success = validate( data );
 
 	if ( ! success && validate.errors && validate.errors.length ) {
+		/*
+		 * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
+		 *
+		 * e.g.: `data.services.first_class_parcel.adjustment
+		 *
+		 * This removes the `data.` prepending all errors, to facilitate easier matching to form fields.
+		 */
 		return validate.errors.map( ( error ) => {
 			if ( 0 === error.field.indexOf( 'data.' ) ) {
 				return error.field.substr( 5 );
