@@ -21,9 +21,8 @@ const PackagesListItem = ( {
 	dimensionUnit,
 	onRemove,
 	editPackage,
-	errors,
+	hasError,
 } ) => {
-	const hasError = !! errors.length;
 	return (
 		<div className={ classNames( 'wcc-shipping-packages-list-item', { 'wcc-error': hasError } ) }>
 			<div className="package-type">
