@@ -40,23 +40,23 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 			const setSuccess = ( value ) => {
 				formActions.setField( 'success', value );
 				if ( true === value ) {
-					noticeActions.successNotice( __( 'Your changes have been saved.' ) );
+					noticeActions.successNotice( __( 'Your changes have been saved.' ), {
+						duration: 2250,
+					} );
 				}
 			};
 			const setError = ( value ) => {
 				formActions.setField( 'error', value );
 				if ( isString( value ) ) {
-					noticeActions.errorNotice( __( value ) );
+					noticeActions.errorNotice( value );
 				}
 			}
-			const dismissSuccess = () => formActions.setField( 'success', false );
 			const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
 			return (
 				<CompactCard className="save-button-bar">
 					<SaveForm
 						saveForm={ saveForm }
 						isSaving={ form.isSaving }
-						dismissSuccess={ dismissSuccess }
 					/>
 				</CompactCard>
 			);
