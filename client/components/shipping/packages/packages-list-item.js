@@ -24,11 +24,8 @@ const PackagesListItem = ( {
 	errors,
 } ) => {
 	const hasError = !! errors.length;
-	const classes = classNames( 'wcc-shipping-packages-list-item', {
-		'wcc-error': hasError,
-	} );
 	return (
-		<div className={ classes }>
+		<div className={ classNames( 'wcc-shipping-packages-list-item', { 'wcc-error': hasError } ) }>
 			<div className="package-type">
 				{ renderIcon( data.is_letter, hasError ) }
 			</div>

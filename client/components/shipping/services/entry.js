@@ -14,12 +14,8 @@ const ShippingServiceEntry = ( {
 	updateValue,
 	hasError,
 } ) => {
-	const classes = classNames( 'wcc-shipping-service-entry', {
-		'wcc-error': hasError,
-	} );
-
 	return (
-		<div className={ classes }>
+		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) }>
 			<label className="wcc-shipping-service-entry-title">
 				<FormCheckbox
 					checked={ enabled }
