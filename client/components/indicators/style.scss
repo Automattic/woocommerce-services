@@ -1,0 +1,45 @@
+.indicator {
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.indicator .indicator__icon-and-message {
+	display: flex;
+	align-items: center;
+
+	.indicator__icon {
+		margin-right: 6px;
+	}
+
+	.indicator__message {
+		margin-top: -4px;
+	}
+}
+
+.form-setting-explanation.indicator__last-updated {
+	margin-top: 0;
+}
+
+.indicator-success .indicator__icon-and-message {
+	color: $alert-green;
+
+	.gridicon {
+		fill: $alert-green;
+	}
+}
+
+.indicator-warning .indicator__icon-and-message {
+	color: $alert-yellow;
+
+	.gridicon {
+		fill: $alert-yellow;
+	}
+}
+
+.indicator-error .indicator__icon-and-message {
+	color: $alert-red;
+
+	.gridicon {
+		fill: $alert-red;
+	}
+}
