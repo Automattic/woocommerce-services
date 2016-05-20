@@ -6,6 +6,9 @@ import { connect } from 'react-redux';
 import * as FormActions from 'state/form/actions';
 import { bindActionCreators } from 'redux';
 import SaveForm from 'components/save-form';
+import { translate as __ } from 'lib/mixins/i18n';
+import { successNotice, errorNotice } from 'state/notices/actions';
+import isString from 'lodash/isString';
 
 const renderGroupItems = ( items, schema, storeOptions ) => {
 	return (
@@ -20,7 +23,7 @@ const renderGroupItems = ( items, schema, storeOptions ) => {
 	);
 };
 
-const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActions, saveFormData } ) => {
+const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActions, noticeActions, saveFormData } ) => {
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
@@ -34,8 +37,18 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 
 		case 'actions':
 			const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
-			const setSuccess = ( value ) => formActions.setField( 'success', value );
-			const setError = ( value ) => formActions.setField( 'error', value );
+			const setSuccess = ( value ) => {
+				formActions.setField( 'success', value );
+				if ( true === value ) {
+					noticeActions.successNotice( __( 'Your changes have been saved.' ) );
+				}
+			};
+			const setError = ( value ) => {
+				formActions.setField( 'error', value );
+				if ( isString( value ) ) {
+					noticeActions.errorNotice( __( value ) );
+				}
+			}
 			const dismissSuccess = () => formActions.setField( 'success', false );
 			const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
 			return (
@@ -43,8 +56,6 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 					<SaveForm
 						saveForm={ saveForm }
 						isSaving={ form.isSaving }
-						success={ form.success }
-						error={ form.error }
 						dismissSuccess={ dismissSuccess }
 					/>
 				</CompactCard>
@@ -70,6 +81,7 @@ SettingsGroup.propTypes = {
 	settings: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
 	formActions: PropTypes.object.isRequired,
+	noticeActions: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state ) {
@@ -82,6 +94,7 @@ function mapStateToProps( state ) {
 function mapDispatchToProps( dispatch ) {
 	return {
 		formActions: bindActionCreators( FormActions, dispatch ),
+		noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
 	};
 }
 
