@@ -11,7 +11,12 @@ const translate = ( text ) => {
 	return ( text in translations ) ? translations[text] : text;
 };
 
+const mixin = {
+	translate,
+};
+
 export default {
 	initialize,
 	translate,
+	mixin,
 };
