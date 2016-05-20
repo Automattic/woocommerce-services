@@ -40,7 +40,7 @@ const ShippingServiceGroup = ( {
 			compact
 			actionButton={ actionButton }
 			actionButtonExpanded={ actionButton }
-			expanded={ !! errors.length }
+			expanded={ Boolean( errors && errors.length ) }
 		>
 			{ services.map( service => {
 				return (
