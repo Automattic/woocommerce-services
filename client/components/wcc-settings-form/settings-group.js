@@ -48,7 +48,9 @@ const SettingsGroup = ( { group, schema, storeOptions, settings, form, formActio
 			const setError = ( value ) => {
 				formActions.setField( 'error', value );
 				if ( isString( value ) ) {
-					noticeActions.errorNotice( value );
+					noticeActions.errorNotice( value, {
+						duration: 7000,
+					} );
 				}
 			}
 			const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
