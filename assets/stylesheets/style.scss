@@ -31,6 +31,9 @@
     // Components
     @import 'components';
 
+    // Breakpoints
+    $breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
+
     // Buttons
     .button {
         background: $gray-light;
@@ -137,6 +140,31 @@
         margin-top: 8px;
         text-align: left;
         font-size: 13px;
+    }
+
+    // Global notices
+
+    .global-notices .notice,
+    .global-notices .notice {
+        margin-left: 164px;
+        max-width: 1040px;
+        
+        @include breakpoint( '<960px' ) {
+            margin-left: 36px;
+        }
+        @include breakpoint( '<780px' ) {
+            margin-left: 0;
+        }
+    }
+
+    // adjust until system fonts get in wp-admin
+    .global-notices .notice__text,
+    .global-notices .notice__text {
+        padding: 10px 8px 8px;
+
+        @include breakpoint( '<660px' ) {
+            padding: 16px;
+        }
     }
 
     // Custom styles

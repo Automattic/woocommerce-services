@@ -1,9 +1,12 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsGroup from './settings-group';
+import notices from 'notices';
+import GlobalNotices from 'components/global-notices';
 
 const WCCSettingsForm = ( { storeOptions, schema, layout, saveFormData } ) => {
 	return (
 		<div>
+			<GlobalNotices id="notices" notices={ notices.list } />
 			{ layout.map( ( group, idx ) => (
 				<WCCSettingsGroup
 					key={ idx }
