@@ -1,7 +1,6 @@
 const webpack = require( 'webpack' ),
 	path = require( 'path' ),
-	ExtractTextPlugin = require( 'extract-text-webpack-plugin' ),
-	nodeExternals = require( 'webpack-node-externals' );
+	ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 
 const babelSettings = {
 	cacheDirectory: true,
