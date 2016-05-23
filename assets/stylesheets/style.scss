@@ -31,6 +31,9 @@
     // Components
     @import 'components';
 
+    // Breakpoints
+    $breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
+
     // Buttons
     .button {
         background: $gray-light;
