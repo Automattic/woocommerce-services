@@ -5,7 +5,7 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "dist": "cross-env NODE_ENV=production webpack -p --config webpack.production.config.js",
     "eslint": "eslint tasks/ client/",
-    "test": "mocha-webpack --webpack-config webpack.test.config.js client/**/test/*.js && npm run eslint",
+    "test": "mocha-webpack --webpack-config webpack.test.config.js client/**/test/*.js",
     "release": "node tasks/release.js"
   },
   "repository": {
