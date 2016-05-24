@@ -49,10 +49,10 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 	updatePackagesField( { [name]: value } );
 };
 
-const renderOuterDimensions = ( showOuterDimensions, packageData, value, updatePackagesField, is_user_defined ) => {
+const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
-			<FormLabel>{ __( 'Outer Dimensions (L x W x H)' ) }</FormLabel>
+			<FormLabel>{ __( 'Outer Dimensions (L x W x H)' + ' ' + dimensionUnit ) }</FormLabel>
 			<FormTextInput
 				name="outer_dimensions"
 				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
@@ -92,6 +92,7 @@ const AddPackageDialog = ( props ) => {
 		dismissModal,
 		mode,
 		presets,
+		dimensionUnit,
 		weightUnit,
 		packageData,
 		showOuterDimensions,
@@ -138,7 +139,7 @@ const AddPackageDialog = ( props ) => {
 				/>
 			</FormFieldset>
 			<FormFieldset>
-				<FormLabel>{ __( 'Inner Dimensions (L x W x H)' ) }</FormLabel>
+				<FormLabel>{ __( 'Inner Dimensions (L x W x H)' ) + ' ' + dimensionUnit }</FormLabel>
 				<FormTextInput
 					name="inner_dimensions"
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
@@ -149,7 +150,7 @@ const AddPackageDialog = ( props ) => {
 				/>
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
 			</FormFieldset>
-			{ renderOuterDimensions( showOuterDimensions, packageData, outer_dimensions, updatePackagesField, is_user_defined ) }
+			{ renderOuterDimensions( showOuterDimensions, dimensionUnit, packageData, outer_dimensions, updatePackagesField, is_user_defined ) }
 			<FormFieldset className="wcc-shipping-add-package-weight-group">
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="box_weight">{ __( 'Package weight' ) }</FormLabel>
@@ -187,6 +188,7 @@ const AddPackageDialog = ( props ) => {
 AddPackageDialog.propTypes = {
 	dismissModal: PropTypes.func.isRequired,
 	presets: PropTypes.object,
+	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	mode: PropTypes.string.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
