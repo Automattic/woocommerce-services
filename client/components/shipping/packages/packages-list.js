@@ -3,6 +3,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
 import some from 'lodash/some';
+import Gridicon from 'components/gridicon';
 
 const PackagesList = ( {
 	packages,
@@ -45,7 +46,12 @@ const PackagesList = ( {
 				<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
 			</div>
 			{ 0 === packages.length
-				? <div>No Packages</div>
+				? <div className="packages-list-empty">
+					<div className="package-list-empty-icon">
+						<Gridicon icon="info" size={ 18 } />
+					</div>
+					<div className="packages-list-empty-description">Your packages will display here once they are added.</div>
+				</div>
 				: packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) )
 			}
 		</FormFieldset>
