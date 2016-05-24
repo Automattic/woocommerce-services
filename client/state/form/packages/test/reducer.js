@@ -7,6 +7,7 @@ import {
 	setSelectedPreset,
 	updatePackagesField,
 	toggleOuterDimensions,
+	savePackage,
 } from '../actions';
 
 const initialState = {
@@ -144,6 +145,32 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			showOuterDimensions: true,
+		} );
+	} );
+
+	it( 'SAVE_PACKAGE', () => {
+		const packageData = {
+			is_user_defined: true,
+			index: 1,
+			name: 'Test Box',
+		};
+		const initialSavePackageState = {
+			showModal: true,
+			mode: 'edit',
+			packageData,
+			showOuterDimensions: false,
+		};
+		const action = savePackage( 'boxes', packageData );
+		const state = reducer( initialSavePackageState, action );
+
+		expect( state ).to.eql( {
+			showModal: false,
+			mode: 'add',
+			packageData: {
+				is_user_defined: true,
+			},
+			showOuterDimensions: false,
+			selectedPreset: null,
 		} );
 	} );
 } );

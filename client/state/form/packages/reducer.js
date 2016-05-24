@@ -59,8 +59,11 @@ reducers[SAVE_PACKAGE] = ( state ) => {
 	return Object.assign( {}, state, {
 		showModal: false,
 		mode: 'add',
-		packageData: {},
+		packageData: {
+			is_user_defined: true,
+		},
 		showOuterDimensions: false,
+		selectedPreset: null,
 	} );
 };
 

@@ -77,12 +77,12 @@ const useDefaultField = ( value, updatePackagesField ) => {
 	updatePackagesField( {
 		index: null,
 		is_letter: 'envelope' === value,
-		name: '',
+		name: null,
 		is_user_defined: true,
-		outer_dimensions: '',
-		inner_dimensions: '',
-		box_weight: '',
-		max_weight: '',
+		outer_dimensions: null,
+		inner_dimensions: null,
+		box_weight: null,
+		max_weight: null,
 	} );
 };
 
