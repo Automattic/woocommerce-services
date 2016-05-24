@@ -44,7 +44,10 @@ const PackagesList = ( {
 				<FormLegend className="package-name">Name</FormLegend>
 				<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
 			</div>
-			{ packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) ) }
+			{ 0 === packages.length
+				? <div>No Packages</div>
+				: packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) )
+			}
 		</FormFieldset>
 	);
 };
