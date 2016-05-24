@@ -8,6 +8,7 @@ import FormButton from 'components/forms/form-button';
 import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
+import { sprintf } from 'sprintf-js';
 
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData ) => {
 	return [
@@ -52,7 +53,7 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
-			<FormLabel>{ __( 'Outer Dimensions (L x W x H)' + ' ' + dimensionUnit ) }</FormLabel>
+			<FormLabel>{ sprintf( __( 'Outer Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
 			<FormTextInput
 				name="outer_dimensions"
 				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
@@ -139,7 +140,7 @@ const AddPackageDialog = ( props ) => {
 				/>
 			</FormFieldset>
 			<FormFieldset>
-				<FormLabel>{ __( 'Inner Dimensions (L x W x H)' ) + ' ' + dimensionUnit }</FormLabel>
+				<FormLabel>{ sprintf( __( 'Inner Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
 				<FormTextInput
 					name="inner_dimensions"
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
