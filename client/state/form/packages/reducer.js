@@ -10,6 +10,10 @@ import {
 import omitBy from 'lodash/omitBy';
 import isNull from 'lodash/isNull';
 
+const isNullOrEmpty = ( value ) => {
+	return isNull( value ) || '' === value;
+};
+
 const reducers = {};
 
 reducers[ADD_PACKAGE] = ( state ) => {
@@ -49,7 +53,7 @@ reducers[SET_SELECTED_PRESET] = ( state, action ) => {
 
 reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
 	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
-	const newPackageData = omitBy( mergedPackageData, isNull );
+	const newPackageData = omitBy( mergedPackageData, isNullOrEmpty );
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
 	} );
