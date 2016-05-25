@@ -5,26 +5,39 @@ import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
 import { connect } from 'react-redux';
 import * as SettingsActions from 'state/settings/actions';
-import * as FormActions from 'state/form/actions';
 import * as PackagesActions from 'state/form/packages/actions';
 import { bindActionCreators } from 'redux';
 import Packages from 'components/shipping/packages';
 
-const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeOptions, packagesActions } ) => {
+const SettingsItem = ( {
+	form,
+	layout,
+	schema,
+	settings,
+	settingsActions,
+	storeOptions,
+	packagesActions,
+	errors,
+} ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
 	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
+	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
+	const fieldValue = settings[id];
+	const fieldSchema = schema.properties[id];
+	const fieldError = ( errors && errors.length ) ? ( layout.validation_hint || '' ) : false;
 
 	switch ( layout.type ) {
 		case 'radios':
 			return (
 				<RadioButtons
 					layout={ layout }
-					schema={ schema.properties[id] }
-					value={ settings[id] }
+					schema={ fieldSchema }
+					value={ fieldValue }
 					setValue={ updateValue }
+					error={ fieldError }
 				/>
 			);
 
@@ -32,10 +45,11 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 			return (
 				<ShippingServiceGroups
 					services={ schema.definitions.services }
-					settings={ settings[id] }
+					settings={ fieldValue }
 					currencySymbol={ storeOptions.currency_symbol }
 					updateValue={ updateSubSubValue }
 					settingsKey={ id }
+					errors={ errors }
 				/>
 			);
 
@@ -45,12 +59,13 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 				<Packages
 					{ ...packagesState }
 					{ ...packagesActions }
-					packages={ settings[id] }
+					packages={ fieldValue }
 					presets={ schema.definitions.preset_boxes }
 					dimensionUnit={ storeOptions.dimension_unit }
 					removePackage={ removeArrayItem }
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
+					errors={ errors }
 				/>
 			);
 
@@ -67,12 +82,12 @@ const SettingsItem = ( { form, layout, schema, settings, settingsActions, storeO
 			return (
 				<TextField
 					id={ id }
-					schema={ schema.properties[id] }
-					value={ settings[id] }
+					schema={ fieldSchema }
+					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
-					validationHint={ layout.validation_hint }
-					required={ schema.required && -1 !== schema.required.indexOf( id ) }
+					required={ fieldRequired }
+					error={ fieldError }
 				/>
 			);
 	}
@@ -99,7 +114,6 @@ function mapDispatchToProps( dispatch ) {
 	return {
 		packagesActions: bindActionCreators( PackagesActions, dispatch ),
 		settingsActions: bindActionCreators( SettingsActions, dispatch ),
-		formActions: bindActionCreators( FormActions, dispatch ),
 	};
 }
 

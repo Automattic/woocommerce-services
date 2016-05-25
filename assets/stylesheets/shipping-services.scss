@@ -60,4 +60,10 @@
 			border-color: lighten( $gray, 30% );
 		}
 	}
+
+  	&.wcc-error {
+	  input[type=text], .gridicon {
+		color: red;
+	  }
+	}
 }

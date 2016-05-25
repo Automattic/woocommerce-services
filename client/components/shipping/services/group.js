@@ -22,6 +22,7 @@ const ShippingServiceGroup = ( {
 	currencySymbol,
 	updateValue,
 	settingsKey,
+	errors,
 } ) => {
 	const summary = summaryLabel( services );
 	const actionButton = (
@@ -39,6 +40,7 @@ const ShippingServiceGroup = ( {
 			compact
 			actionButton={ actionButton }
 			actionButtonExpanded={ actionButton }
+			expanded={ Boolean( errors && errors.length ) }
 		>
 			{ services.map( service => {
 				return (
@@ -51,6 +53,7 @@ const ShippingServiceGroup = ( {
 						currencySymbol={ currencySymbol }
 						updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
 						settingsKey={ settingsKey }
+						hasError={ -1 < errors.indexOf( service.id ) }
 					/>
 				);
 			} ) }

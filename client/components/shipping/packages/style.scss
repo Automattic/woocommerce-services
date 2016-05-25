@@ -70,6 +70,19 @@
     margin-top: 10px;
     display: flex;
     align-items: center;
+    &.wcc-error {
+        color: red;
+        a {
+            color: red;
+        }
+        .package-type .gridicon {
+            background-color: unset;
+            border-radius: unset;
+            fill: red;
+            padding: unset;
+            margin-left: -1px;
+        }
+    }
 }
 
 .wcc-shipping-add-package-weight {

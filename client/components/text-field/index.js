@@ -4,7 +4,6 @@ import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormInputValidation from 'components/forms/form-input-validation';
-import { isFieldError } from 'lib/utils/error';
 import { sanitize } from 'dompurify';
 
 const renderFieldDescription = ( description ) => {
@@ -19,9 +18,8 @@ const renderFieldError = ( validationHint ) => {
 	);
 }
 
-const TextField = ( { id, schema, value, placeholder, updateValue, validationHint, required } ) => {
+const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
-	const isError = isFieldError( required, schema, value );
 
 	return (
 		<FormFieldset>
@@ -32,9 +30,9 @@ const TextField = ( { id, schema, value, placeholder, updateValue, validationHin
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ handleChangeEvent }
-				isError={ isError }
+				isError={ error }
 			/>
-			{ isError && validationHint ? renderFieldError( validationHint ) : renderFieldDescription( schema.description ) }
+			{ error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
 		</FormFieldset>
 	);
 };
@@ -49,6 +47,10 @@ TextField.propTypes = {
 	} ).isRequired,
 	value: PropTypes.string.isRequired,
 	updateValue: PropTypes.func,
+	error: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.bool,
+	] ),
 };
 
 export default TextField;

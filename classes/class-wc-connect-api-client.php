@@ -235,8 +235,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					);
 				}
 
-				$error = property_exists( $response_body, 'error' ) ? $response_body->error : '';
+				$error   = property_exists( $response_body, 'error' ) ? $response_body->error : '';
 				$message = property_exists( $response_body, 'message' ) ? $response_body->message : '';
+				$data    = property_exists( $response_body, 'data' ) ? $response_body->data : '';
 
 				return new WP_Error(
 					'wcc_server_error_response',
@@ -245,7 +246,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						$error,
 						$message,
 						$response_code
-					)
+					),
+					$data
 				);
 			}
 
