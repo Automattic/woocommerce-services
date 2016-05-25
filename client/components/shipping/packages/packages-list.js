@@ -5,6 +5,17 @@ import PackagesListItem from './packages-list-item';
 import some from 'lodash/some';
 import Gridicon from 'components/gridicon';
 
+const noPackages = () => {
+	return (
+		<div className="packages-list-empty">
+			<div className="package-list-empty-icon">
+				<Gridicon icon="info" size={ 18 } />
+			</div>
+			<div className="packages-list-empty-description">Your packages will display here once they are added.</div>
+		</div>
+	);
+};
+
 const PackagesList = ( {
 	packages,
 	dimensionUnit,
@@ -46,12 +57,7 @@ const PackagesList = ( {
 				<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
 			</div>
 			{ 0 === packages.length
-				? <div className="packages-list-empty">
-					<div className="package-list-empty-icon">
-						<Gridicon icon="info" size={ 18 } />
-					</div>
-					<div className="packages-list-empty-description">Your packages will display here once they are added.</div>
-				</div>
+				? noPackages()
 				: packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) )
 			}
 		</FormFieldset>
