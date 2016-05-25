@@ -3,7 +3,7 @@ import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 import classNames from 'classnames';
 
-const renderIcon = ( isLetter, isError ) => {
+const renderIcon = ( isLetter, isError, onClick ) => {
 	let icon;
 	if ( isError ) {
 		icon = 'notice';
@@ -11,9 +11,11 @@ const renderIcon = ( isLetter, isError ) => {
 		icon = isLetter ? 'mail' : 'flip-horizontal';
 	}
 	return (
-		<Gridicon icon={ icon } className="package-type-icon" size={ isError ? 29 : 18 } />
+		<a href="#" onClick={ onClick }>
+			<Gridicon icon={ icon } className="package-type-icon" size={ isError ? 29 : 18 } />
+		</a>
 	);
-}
+};
 
 const PackagesListItem = ( {
 	index,
@@ -23,16 +25,18 @@ const PackagesListItem = ( {
 	editPackage,
 	hasError,
 } ) => {
+	const openModal = ( event ) => {
+		event.preventDefault();
+		editPackage( Object.assign( {}, data, { index } ) );
+	};
+
 	return (
 		<div className={ classNames( 'wcc-shipping-packages-list-item', { 'wcc-error': hasError } ) }>
 			<div className="package-type">
-				{ renderIcon( data.is_letter, hasError ) }
+				{ renderIcon( data.is_letter, hasError, openModal ) }
 			</div>
 			<div className="package-name">
-				<a href="#" onClick={ ( event ) => {
-					event.preventDefault();
-					editPackage( Object.assign( {}, data, { index } ) );
-				} }>
+				<a href="#" onClick={ openModal }>
 					{ data.name }
 				</a>
 			</div>
@@ -46,7 +50,7 @@ const PackagesListItem = ( {
 			</div>
 		</div>
 	);
-}
+};
 
 PackagesListItem.propTypes = {
 	index: PropTypes.number.isRequired,
