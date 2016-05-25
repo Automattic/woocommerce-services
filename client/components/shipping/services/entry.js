@@ -28,9 +28,20 @@ const ShippingServiceEntry = ( {
 				disabled={ ! enabled }
 				value={ adjustment }
 				onChange={ ( event ) => {
-					const value = event.target.value ? event.target.value : 0;
-					if ( ! isNaN( value ) ) {
-						updateValue( 'adjustment', Number.parseFloat( value ) );
+					const value = event.target.value || null;
+					const floatValue = Number.parseFloat( value );
+
+					/*
+					 * If the adjustment value isn't a valid float, or ends in a non-integer, pass
+					 * the value through unmodified and let the schema validation catch it.
+					 *
+					 * If the adjustment *is* a valid float, update the settings value with the
+					 * parsed version so it doesn't fail schema validation.
+					 */
+					if ( isNaN( floatValue ) || value.match( /.*[^\d]$/ ) ) {
+						updateValue( 'adjustment', value );
+					} else {
+						updateValue( 'adjustment', floatValue );
 					}
 				} }
 				isError={ hasError }
