@@ -7,12 +7,10 @@ import SaveForm from 'components/save-form';
 const filterErrorsForItem = ( groupErrors, itemKey ) => {
 	let itemErrors = [];
 
-	groupErrors.forEach( ( error ) => {
-		// Errors are represented as a dot-notation path to a field
-		const path = error.split( '.' );
+	groupErrors.forEach( ( errorPath ) => {
 		// Collect errant fields that have the current item as a parent
-		if ( itemKey === path[0] ) {
-			itemErrors.push( path.slice( 1 ).join( '.' ) );
+		if ( itemKey === errorPath[0] ) {
+			itemErrors.push( errorPath.slice( 1 ) );
 		}
 	} );
 

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import groupBy from 'lodash/groupBy';
 import ShippingServiceGroup from './group';
 import map from 'lodash/map';
-import intersection from 'lodash/intersection';
 
 const ShippingServiceGroups = ( {
 	services,
@@ -20,7 +19,7 @@ const ShippingServiceGroups = ( {
 
 	const renderServiceGroup = ( serviceGroup ) => {
 		const groupFields = map( serviceGroups[serviceGroup], 'id' );
-		const groupErrors = intersection( groupFields, errors );
+		const groupErrors = errors.filter( ( error ) => ( -1 < groupFields.indexOf( error[0] ) ) );
 
 		return (
 			<ShippingServiceGroup

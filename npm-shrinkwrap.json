@@ -2429,6 +2429,11 @@
       "version": "2.0.0",
       "from": "object.omit@>=2.0.0 <3.0.0"
     },
+    "objectpath": {
+      "version": "1.2.1",
+      "from": "objectpath@latest",
+      "resolved": "https://registry.npmjs.org/objectpath/-/objectpath-1.2.1.tgz"
+    },
     "on-finished": {
       "version": "2.3.0",
       "from": "on-finished@>=2.3.0 <2.4.0"
