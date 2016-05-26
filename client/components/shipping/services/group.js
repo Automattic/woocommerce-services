@@ -53,7 +53,9 @@ const ShippingServiceGroup = ( {
 						currencySymbol={ currencySymbol }
 						updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
 						settingsKey={ settingsKey }
-						hasError={ -1 < errors.indexOf( service.id ) }
+						hasError={ errors.find( ( error ) => (
+							error.length && ( error[0] === service.id ) )
+						) }
 					/>
 				);
 			} ) }

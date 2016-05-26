@@ -9,6 +9,7 @@ import { successNotice, errorNotice } from 'state/notices/actions';
 import isString from 'lodash/isString';
 import { translate as __ } from 'lib/mixins/i18n';
 import validator from 'is-my-json-valid';
+import ObjectPath from 'objectpath';
 
 const WCCSettingsForm = ( {
 	storeOptions,
@@ -79,10 +80,11 @@ const getFormErrors = ( schema, data ) => {
 		 * This removes the `data.` prepending all errors, to facilitate easier matching to form fields.
 		 */
 		return validate.errors.map( ( error ) => {
-			if ( 0 === error.field.indexOf( 'data.' ) ) {
-				return error.field.substr( 5 );
+			const errorPath = ObjectPath.parse( error.field );
+			if ( 'data' === errorPath[0] ) {
+				return errorPath.slice( 1 );
 			}
-			return error.field;
+			return errorPath;
 		} );
 	}
 
