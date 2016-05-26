@@ -10,10 +10,11 @@ import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
+import modalErrors from './modal-errors';
 
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData, error ) => {
 	return [
-		<FormButton onClick={ () => savePackage( packageData ) } disabled={ ! ! error }>
+		<FormButton onClick={ () => savePackage( packageData ) } disabled={ error }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
 		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
@@ -103,6 +104,7 @@ const AddPackageDialog = ( props ) => {
 		updatePackagesField,
 		selectedPreset,
 		setSelectedPreset,
+		packages,
 	} = props;
 
 	const {
@@ -114,14 +116,15 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
-	const nameError = '' === name ? 'Name cannot be empty' : null;
+	const boxNames = packages.map( ( boxPackage ) => boxPackage.name );
+	const errors = modalErrors( packageData, boxNames );
 
 	return (
 		<Dialog
 			isVisible={ showModal }
 			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
 			onClose={ dismissModal }
-			buttons={ getDialogButtons( mode, dismissModal, savePackage, packageData, nameError ) }>
+			buttons={ getDialogButtons( mode, dismissModal, savePackage, packageData, errors.any ) }>
 			<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
 			{ ( 'add' === mode ) ? (
 				<AddPackagePresets
@@ -140,9 +143,9 @@ const AddPackageDialog = ( props ) => {
 					placeholder={ __( 'The customer will see this during checkout' ) }
 					value={ name }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
-					isError={ nameError }
+					isError={ errors.name }
 				/>
-				{ nameError ? <FormInputValidation isError text={ nameError } /> : '' }
+				{ errors.name ? <FormInputValidation isError text={ errors.name } /> : '' }
 			</FormFieldset>
 			<FormFieldset>
 				<FormLabel>{ sprintf( __( 'Inner Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
@@ -204,6 +207,7 @@ AddPackageDialog.propTypes = {
 	packageData: PropTypes.object,
 	setSelectedPreset: PropTypes.func.isRequired,
 	selectedPreset: PropTypes.string,
+	packages: PropTypes.array.isRequired,
 };
 
 AddPackageDialog.defaultProps = {
