@@ -13,7 +13,7 @@ import { sprintf } from 'sprintf-js';
 
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData, error ) => {
 	return [
-		<FormButton onClick={ () => savePackage( packageData ) } disabled={ error }>
+		<FormButton onClick={ () => savePackage( packageData ) } disabled={ ! ! error }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
 		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
