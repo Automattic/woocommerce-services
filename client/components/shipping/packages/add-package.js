@@ -3,6 +3,7 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
+import FormInputValidation from 'components/forms/form-input-validation';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
 import Dialog from 'components/dialog';
@@ -10,9 +11,9 @@ import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 
-const getDialogButtons = ( mode, dismissModal, savePackage, packageData ) => {
+const getDialogButtons = ( mode, dismissModal, savePackage, packageData, error ) => {
 	return [
-		<FormButton onClick={ () => savePackage( packageData ) }>
+		<FormButton onClick={ () => savePackage( packageData ) } disabled={ error }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
 		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
@@ -113,12 +114,14 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
+	const nameError = '' === name ? 'Name cannot be empty' : null;
+
 	return (
 		<Dialog
 			isVisible={ showModal }
 			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
 			onClose={ dismissModal }
-			buttons={ getDialogButtons( mode, dismissModal, savePackage, packageData ) }>
+			buttons={ getDialogButtons( mode, dismissModal, savePackage, packageData, nameError ) }>
 			<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
 			{ ( 'add' === mode ) ? (
 				<AddPackagePresets
@@ -137,7 +140,9 @@ const AddPackageDialog = ( props ) => {
 					placeholder={ __( 'The customer will see this during checkout' ) }
 					value={ name }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+					isError={ nameError }
 				/>
+				{ nameError ? <FormInputValidation isError text={ nameError } /> : '' }
 			</FormFieldset>
 			<FormFieldset>
 				<FormLabel>{ sprintf( __( 'Inner Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
