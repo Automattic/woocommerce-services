@@ -1,4 +1,5 @@
 import some from 'lodash/some';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const addError = ( key, message ) => {
 	return { [key]: message, any: true };
@@ -8,11 +9,11 @@ const isNullOrEmpty = ( value ) => ! value || '' === value;
 
 const checkNameField = ( value, boxNames ) => {
 	if ( isNullOrEmpty( value ) ) {
-		return addError( 'name', 'field is required' );
+		return addError( 'name', __( 'field is required' ) );
 	}
 
 	if ( some( boxNames, ( boxName ) => boxName === value ) ) {
-		return addError( 'name', 'a box with this name already exists' );
+		return addError( 'name', __( 'a box with this name already exists' ) );
 	}
 
 	return {};
@@ -24,7 +25,7 @@ const checkOuterDimensions = ( value, regex ) => {
 	}
 
 	if ( ! regex.test( value ) ) {
-		return addError( 'outer_dimensions', 'invalid dimension format' );
+		return addError( 'outer_dimensions', __( 'invalid dimension format' ) );
 	}
 
 	return {}
@@ -32,11 +33,11 @@ const checkOuterDimensions = ( value, regex ) => {
 
 const checkInnerDimensions = ( value, regex ) => {
 	if ( isNullOrEmpty( value ) ) {
-		return addError( 'inner_dimensions', 'field is required' );
+		return addError( 'inner_dimensions', __( 'field is required' ) );
 	}
 
 	if ( ! regex.test( value ) ) {
-		return addError( 'inner_dimensions', 'invalid dimension format' );
+		return addError( 'inner_dimensions', __( 'invalid dimension format' ) );
 	}
 
 	return {}
@@ -45,7 +46,7 @@ const checkInnerDimensions = ( value, regex ) => {
 const numberRegex = /^\d+(\.\d+)?$/;
 const checkWeightField = ( key, value ) => {
 	if ( ! numberRegex.test( value ) ) {
-		return addError( key, 'must be a number' );
+		return addError( key, __( 'must be a number' ) );
 	}
 
 	return {}
