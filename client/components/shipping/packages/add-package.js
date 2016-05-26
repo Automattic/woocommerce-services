@@ -52,7 +52,7 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 	updatePackagesField( { [name]: value } );
 };
 
-const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined ) => {
+const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined, error ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
 			<FormLabel>{ sprintf( __( 'Outer Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
@@ -63,6 +63,7 @@ const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData,
 				className={ is_user_defined ? '' : 'flat-rate-package__outer-dimensions__read-only' }
 				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 				disabled={ ! is_user_defined }
+				isError={ error }
 			/>
 		</FormFieldset>
 	) : null;
@@ -156,10 +157,11 @@ const AddPackageDialog = ( props ) => {
 					className={ is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only' }
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 					disabled={ ! is_user_defined }
+					isError={ errors.inner_dimensions }
 				/>
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
 			</FormFieldset>
-			{ renderOuterDimensions( showOuterDimensions, dimensionUnit, packageData, outer_dimensions, updatePackagesField, is_user_defined ) }
+			{ renderOuterDimensions( showOuterDimensions, dimensionUnit, packageData, outer_dimensions, updatePackagesField, is_user_defined, errors.outer_dimensions ) }
 			<FormFieldset className="wcc-shipping-add-package-weight-group">
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="box_weight">{ __( 'Package weight' ) }</FormLabel>

@@ -1,6 +1,6 @@
 import { some, values} from 'lodash';
 
-const getNameError = ( name, boxNames ) => {
+const checkName = ( name, boxNames ) => {
 	if ( ! name || '' === name ) {
 		return 'Name cannot be empty';
 	}
@@ -12,13 +12,36 @@ const getNameError = ( name, boxNames ) => {
 	return null;
 };
 
+const dimensionRegex = /^\d+ x \d+ x \d+$/
+const checkOuterDimensions = ( dimensions ) => {
+	if ( ! dimensions || '' === dimensions ) {
+		return null;
+	}
+
+	if ( ! dimensionRegex.test( dimensions ) ) {
+		return 'Invalid format for dimensions';
+	};
+
+	return null;
+};
+
+const checkInnerDimensions = ( dimensions ) => {
+	if ( ! dimensions || '' === dimensions ) {
+		return 'Cannot be blank';
+	}
+
+	return checkOuterDimensions( dimensions );
+};
+
 const anyErrors = ( errors ) => {
 	return some( values( errors ), ( value ) => null !== value );
 };
 
 const getErrors = ( packageData, boxNames ) => {
 	const errors = {
-		name: getNameError( packageData.name, boxNames ),
+		name: checkName( packageData.name, boxNames ),
+		inner_dimensions: checkInnerDimensions( packageData.inner_dimensions ),
+		outer_dimensions: checkOuterDimensions( packageData.outer_dimensions ),
 	};
 
 	return Object.assign( errors, { any: anyErrors( errors ) } );
