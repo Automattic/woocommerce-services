@@ -1,65 +1,65 @@
-import { some, values} from 'lodash';
+import some from 'lodash/some';
 
-const checkName = ( name, boxNames ) => {
-	if ( ! name || '' === name ) {
-		return 'Name cannot be empty';
-	}
-
-	if ( some( boxNames, ( boxName ) => boxName === name ) ) {
-		return 'This name is already in use in your package list';
-	}
-
-	return null;
+const addError = ( key, message ) => {
+	return { [key]: message, any: true };
 };
 
-const dimensionRegex = /^\d+ x \d+ x \d+$/
-const checkOuterDimensions = ( dimensions ) => {
-	if ( ! dimensions || '' === dimensions ) {
-		return null;
+const isNullOrEmpty = ( value ) => ! value || '' === value;
+
+const checkNameField = ( value, boxNames ) => {
+	if ( isNullOrEmpty( value ) ) {
+		return addError( 'name', 'field is required' );
 	}
 
-	if ( ! dimensionRegex.test( dimensions ) ) {
-		return 'Invalid format for dimensions';
-	};
-
-	return null;
-};
-
-const checkInnerDimensions = ( dimensions ) => {
-	if ( ! dimensions || '' === dimensions ) {
-		return 'Cannot be blank';
+	if ( some( boxNames, ( boxName ) => boxName === value ) ) {
+		return addError( 'name', 'a box with this name already exists' );
 	}
 
-	return checkOuterDimensions( dimensions );
+	return {};
 };
 
-const isNumber = ( value ) => /^\d+$/.test( value );
-const checkWeight = ( value ) => {
-	if ( ! value || '' === value ) {
-		return 'Cannot be blank';
+const checkOuterDimensions = ( value, regex ) => {
+	if ( isNullOrEmpty( value ) ) {
+		return {};
 	}
 
-	if ( ! isNumber( value ) ) {
-		return 'Must be a number';
+	if ( ! regex.test( value ) ) {
+		return addError( 'outer_dimensions', 'invalid dimension format' );
 	}
 
-	return null;
+	return {}
 };
 
-const anyErrors = ( errors ) => {
-	return some( values( errors ), ( value ) => null !== value );
+const checkInnerDimensions = ( value, regex ) => {
+	if ( isNullOrEmpty( value ) ) {
+		return addError( 'inner_dimensions', 'field is required' );
+	}
+
+	if ( ! regex.test( value ) ) {
+		return addError( 'inner_dimensions', 'invalid dimension format' );
+	}
+
+	return {}
 };
 
-const getErrors = ( packageData, boxNames ) => {
-	const errors = {
-		name: checkName( packageData.name, boxNames ),
-		inner_dimensions: checkInnerDimensions( packageData.inner_dimensions ),
-		outer_dimensions: checkOuterDimensions( packageData.outer_dimensions ),
-		box_weight: checkWeight( packageData.box_weight ),
-		max_weight: checkWeight( packageData.max_weight ),
-	};
+const numberRegex = /^\d+(\.\d+)?$/;
+const checkWeightField = ( key, value ) => {
+	if ( ! numberRegex.test( value ) ) {
+		return addError( key, 'must be a number' );
+	}
 
-	return Object.assign( errors, { any: anyErrors( errors ) } );
+	return {}
+};
+
+const getErrors = ( packageData, boxNames, schema ) => {
+	const regex = new RegExp( schema.properties.inner_dimensions.pattern );
+	return Object.assign( {}
+		, checkNameField( packageData.name, boxNames )
+		, checkInnerDimensions( packageData.inner_dimensions, regex )
+		, checkOuterDimensions( packageData.outer_dimensions, regex )
+		, checkWeightField( 'box_weight', packageData.box_weight )
+		, checkWeightField( 'max_weight', packageData.max_weight )
+	);
 };
 
 module.exports = getErrors;

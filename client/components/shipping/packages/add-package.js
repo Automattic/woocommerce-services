@@ -106,6 +106,7 @@ const AddPackageDialog = ( props ) => {
 		selectedPreset,
 		setSelectedPreset,
 		packages,
+		schema,
 	} = props;
 
 	const {
@@ -118,7 +119,7 @@ const AddPackageDialog = ( props ) => {
 	} = packageData;
 
 	const boxNames = packages.map( ( boxPackage ) => boxPackage.name );
-	const errors = modalErrors( packageData, boxNames );
+	const errors = modalErrors( packageData, boxNames, schema.items );
 
 	return (
 		<Dialog
@@ -212,6 +213,7 @@ AddPackageDialog.propTypes = {
 	setSelectedPreset: PropTypes.func.isRequired,
 	selectedPreset: PropTypes.string,
 	packages: PropTypes.array.isRequired,
+	schema: PropTypes.object.isRequired,
 };
 
 AddPackageDialog.defaultProps = {
