@@ -67,7 +67,10 @@ ShippingServiceGroup.propTypes = {
 		id: PropTypes.string.isRequired,
 		name: PropTypes.string.isRequired,
 		enabled: PropTypes.bool,
-		adjustment: PropTypes.number,
+		adjustment: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.number,
+		] ),
 		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
 	currencySymbol: PropTypes.string.isRequired,

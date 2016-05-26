@@ -61,7 +61,10 @@ const ShippingServiceEntry = ( {
 ShippingServiceEntry.propTypes = {
 	enabled: PropTypes.bool.isRequired,
 	title: PropTypes.string.isRequired,
-	adjustment: PropTypes.number.isRequired,
+	adjustment: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.number,
+	] ).isRequired,
 	adjustment_type: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
