@@ -11,6 +11,7 @@ import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import modalErrors from './modal-errors';
+import difference from 'lodash/difference';
 
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData, error ) => {
 	return [
@@ -118,7 +119,8 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
-	const boxNames = packages.map( ( boxPackage ) => boxPackage.name );
+	const editName = packageData.index ? packages[packageData.index].name : null;
+	const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
 	const errors = modalErrors( packageData, boxNames, schema.items );
 
 	return (
