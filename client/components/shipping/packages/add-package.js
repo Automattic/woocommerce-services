@@ -173,6 +173,7 @@ const AddPackageDialog = ( props ) => {
 						className={ is_user_defined ? '' : 'flat-rate-package__package-weight__read-only' }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ ! is_user_defined }
+						isError={ errors.box_weight }
 					/>
 				</div>
 				<div className="wcc-shipping-add-package-weight">
@@ -185,6 +186,7 @@ const AddPackageDialog = ( props ) => {
 						className={ is_user_defined ? '' : 'flat-rate-package__max-weight__read-only' }
 						onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 						disabled={ ! is_user_defined }
+						isError={ errors.max_weight }
 					/>
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
 				</div>
