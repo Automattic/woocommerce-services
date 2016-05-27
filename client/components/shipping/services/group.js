@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
+import CheckBox from 'components/forms/form-checkbox';
 import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
@@ -14,6 +15,10 @@ const summaryLabel = ( services ) => {
 	}
 	const format = ( 1 === numSelected ) ? __( '%d service selected' ) : __( '%d services selected' );
 	return sprintf( format, numSelected );
+};
+
+const getCheckbox = ( title ) => {
+	return <div><CheckBox />{ title }</div>
 };
 
 const ShippingServiceGroup = ( {
@@ -33,7 +38,7 @@ const ShippingServiceGroup = ( {
 	);
 	return (
 		<FoldableCard
-			header={ title }
+			header={ getCheckbox( title ) }
 			summary={ summary }
 			expandedSummary={ summary }
 			clickableHeader={ true }
