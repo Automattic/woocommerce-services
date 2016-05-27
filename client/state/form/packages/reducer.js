@@ -2,6 +2,7 @@ import {
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_MODAL_ERROR,
 	SET_SELECTED_PRESET,
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
@@ -39,7 +40,14 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 
 reducers[DISMISS_MODAL] = ( state ) => {
 	return Object.assign( {}, state, {
+		isModalError: false,
 		showModal: false,
+	} );
+};
+
+reducers[SET_MODAL_ERROR] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		isModalError: action.value,
 	} );
 };
 
