@@ -11,7 +11,7 @@ const renderIcon = ( isLetter, isError ) => {
 		icon = isLetter ? 'mail' : 'flip-horizontal';
 	}
 	return (
-		<Gridicon icon={ icon } size={ isError ? 29 : 18 } />
+		<Gridicon icon={ icon } className="package-type-icon" size={ isError ? 29 : 18 } />
 	);
 }
 
