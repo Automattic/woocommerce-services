@@ -17,27 +17,24 @@ const filterErrorsForItem = ( groupErrors, itemKey ) => {
 	return itemErrors;
 };
 
-const SettingsGroup = ( {
-	group,
-	schema,
-	storeOptions,
-	form,
-	saveForm,
-	errors,
-} ) => {
+const SettingsGroup = ( props ) => {
+	const {
+		group,
+		form,
+		saveForm,
+		errors,
+	} = props;
+
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
 		const itemErrors = filterErrorsForItem( errors, key );
 
 		return (
 			<SettingsItem
+				{ ...props }
+				{ ...{ key } }
 				layout={ item }
 				errors={ itemErrors }
-				{ ...{
-					key,
-					schema,
-					storeOptions,
-				} }
 			/>
 		);
 	};
@@ -82,6 +79,8 @@ SettingsGroup.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
+	errors: PropTypes.array,
+	settings: PropTypes.object.isRequired,
 };
 
 export default SettingsGroup;

@@ -10,18 +10,18 @@ import isString from 'lodash/isString';
 import { translate as __ } from 'lib/mixins/i18n';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
+import * as SettingsActions from 'state/settings/actions';
+import * as PackagesActions from 'state/form/packages/actions';
 
-const WCCSettingsForm = ( {
-	storeOptions,
-	schema,
-	layout,
-	settings,
-	form,
-	saveFormData,
-	formActions,
-	noticeActions,
-	errors,
-} ) => {
+const WCCSettingsForm = ( props ) => {
+	const {
+		layout,
+		settings,
+		saveFormData,
+		formActions,
+		noticeActions,
+	} = props;
+
 	const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
 	const setSuccess = ( value ) => {
 		formActions.setField( 'success', value );
@@ -38,22 +38,16 @@ const WCCSettingsForm = ( {
 				duration: 7000,
 			} );
 		}
-	}
+	};
 	const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			{ layout.map( ( group, idx ) => (
 				<WCCSettingsGroup
+					{ ...props }
+					{ ...{ group, saveForm } }
 					key={ idx }
-					{ ...{
-						group,
-						schema,
-						storeOptions,
-						saveForm,
-						form,
-						errors,
-					} }
 				/>
 			) ) }
 		</div>
@@ -103,6 +97,8 @@ function mapDispatchToProps( dispatch ) {
 	return {
 		formActions: bindActionCreators( FormActions, dispatch ),
 		noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
+		packagesActions: bindActionCreators( PackagesActions, dispatch ),
+		settingsActions: bindActionCreators( SettingsActions, dispatch ),
 	};
 }
 

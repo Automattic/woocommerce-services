@@ -3,10 +3,6 @@ import Indicators from 'components/indicators';
 import TextField from 'components/text-field';
 import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
-import { connect } from 'react-redux';
-import * as SettingsActions from 'state/settings/actions';
-import * as PackagesActions from 'state/form/packages/actions';
-import { bindActionCreators } from 'redux';
 import Packages from 'components/shipping/packages';
 
 const SettingsItem = ( {
@@ -101,23 +97,10 @@ SettingsItem.propTypes = {
 	schema: PropTypes.object.isRequired,
 	settings: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
+	form: PropTypes.object.isRequired,
+	settingsActions: PropTypes.object.isRequired,
+	packagesActions: PropTypes.object.isRequired,
+	errors: PropTypes.array,
 };
 
-function mapStateToProps( state ) {
-	return {
-		settings: state.settings,
-		form: state.form,
-	};
-}
-
-function mapDispatchToProps( dispatch ) {
-	return {
-		packagesActions: bindActionCreators( PackagesActions, dispatch ),
-		settingsActions: bindActionCreators( SettingsActions, dispatch ),
-	};
-}
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)( SettingsItem );
+export default SettingsItem;
