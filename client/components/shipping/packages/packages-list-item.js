@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 import classNames from 'classnames';
+import trim from 'lodash/trim';
 
 const renderIcon = ( isLetter, isError, onClick ) => {
 	let icon;
@@ -37,7 +38,11 @@ const PackagesListItem = ( {
 			</div>
 			<div className="package-name">
 				<a href="#" onClick={ openModal }>
-					{ data.name }
+					{
+						data.name && '' !== trim( data.name )
+						? data.name
+						: <span style={ { color: 'gray' } }>Untitled</span>
+					}
 				</a>
 			</div>
 			<div className="package-dimensions">
@@ -55,9 +60,9 @@ const PackagesListItem = ( {
 PackagesListItem.propTypes = {
 	index: PropTypes.number.isRequired,
 	data: PropTypes.shape( {
-		name: PropTypes.string.isRequired,
+		name: PropTypes.string,
 		is_letter: PropTypes.bool,
-		inner_dimensions: PropTypes.string.isRequired,
+		inner_dimensions: PropTypes.string,
 	} ).isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	onRemove: PropTypes.func.isRequired,
