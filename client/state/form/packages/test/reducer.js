@@ -89,6 +89,7 @@ describe( 'Packages form reducer', () => {
 		const state = reducer( visibleModalState, action );
 
 		expect( state ).to.eql( {
+			isModalError: false,
 			showModal: false,
 		} );
 	} );
