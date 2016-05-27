@@ -162,6 +162,16 @@ const AddPackageDialog = ( props ) => {
 		savePackage( filteredPackageData );
 	};
 
+	const onSave = () => {
+		errors = modalErrors( packageData, boxNames, schema.items );
+		if ( errors.any ) {
+			setModalError( true );
+			return;
+		}
+
+		savePackage( packageData );
+	};
+
 	return (
 		<Dialog
 			isVisible={ showModal }
