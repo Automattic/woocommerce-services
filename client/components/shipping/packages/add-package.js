@@ -73,7 +73,7 @@ const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData,
 				disabled={ ! is_user_defined }
 				isError={ error }
 			/>
-			{ fieldInfo( error, 'Outer dimensions of the box are required' ) }
+			{ fieldInfo( error, __( 'Outer dimensions of the box are required' ) ) }
 		</FormFieldset>
 	) : null;
 };
@@ -133,8 +133,8 @@ const AddPackageDialog = ( props ) => {
 	const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
 	let errors = isModalError ? modalErrors( packageData, boxNames, schema.items ) : {};
 	const nameFieldText = errors.name && 0 < trim( packageData.name ).length
-		? 'This package name must be unique'
-		: 'This field is required';
+		? __( 'This package name must be unique' )
+		: __( 'This field is required' );
 
 	const onSave = () => {
 		errors = modalErrors( packageData, boxNames, schema.items );
@@ -185,7 +185,7 @@ const AddPackageDialog = ( props ) => {
 					disabled={ ! is_user_defined }
 					isError={ errors.inner_dimensions }
 				/>
-				{ fieldInfo( errors.inner_dimensions, 'Inner dimensions of the box are required' ) }
+				{ fieldInfo( errors.inner_dimensions, __( 'Inner dimensions of the box are required' ) ) }
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
 			</FormFieldset>
 			{ renderOuterDimensions( showOuterDimensions, dimensionUnit, packageData, outer_dimensions, updatePackagesField, is_user_defined, errors.outer_dimensions ) }
@@ -202,7 +202,7 @@ const AddPackageDialog = ( props ) => {
 						disabled={ ! is_user_defined }
 						isError={ errors.box_weight }
 					/>
-					{ fieldInfo( errors.box_weight, 'This field is required' ) }
+					{ fieldInfo( errors.box_weight, __( 'This field is required' ) ) }
 				</div>
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="max_weight">{ __( 'Max weight' ) }</FormLabel>
@@ -217,7 +217,7 @@ const AddPackageDialog = ( props ) => {
 						isError={ errors.max_weight }
 					/>
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
-					{ fieldInfo( errors.max_weight, 'This field is required' ) }
+					{ fieldInfo( errors.max_weight, __( 'This field is required' ) ) }
 				</div>
 				<FormSettingExplanation>
 					{ __( 'Defines both the weight of the empty box and the max weight it can hold' ) }
