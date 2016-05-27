@@ -12,6 +12,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import modalErrors from './modal-errors';
 import difference from 'lodash/difference';
+import trim from 'lodash/trim';
 
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData, error ) => {
 	return [
@@ -53,6 +54,12 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 	updatePackagesField( { [name]: value } );
 };
 
+const FieldInfo = ( { isError, text } ) => {
+	return isError
+		? <FormInputValidation isError text={ text } />
+		: <FormInputValidation icon="info" text={ text } />;
+};
+
 const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined, error ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
@@ -66,6 +73,7 @@ const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData,
 				disabled={ ! is_user_defined }
 				isError={ error }
 			/>
+			<FieldInfo isError={ error } text="Outer dimensions of the box are required" />
 		</FormFieldset>
 	) : null;
 };
@@ -122,6 +130,9 @@ const AddPackageDialog = ( props ) => {
 	const editName = packageData.index ? packages[packageData.index].name : null;
 	const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
 	const errors = modalErrors( packageData, boxNames, schema.items );
+	const nameFieldText = 0 < trim( packageData.name ).length && errors.name
+		? 'This package name must be unique'
+		: 'This field is required';
 
 	return (
 		<Dialog
@@ -149,7 +160,7 @@ const AddPackageDialog = ( props ) => {
 					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 					isError={ errors.name }
 				/>
-				{ errors.name ? <FormInputValidation isError text={ errors.name } /> : '' }
+				<FieldInfo isError={ errors.name } text={ nameFieldText } />
 			</FormFieldset>
 			<FormFieldset>
 				<FormLabel>{ sprintf( __( 'Inner Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
@@ -162,6 +173,7 @@ const AddPackageDialog = ( props ) => {
 					disabled={ ! is_user_defined }
 					isError={ errors.inner_dimensions }
 				/>
+				<FieldInfo isError={ errors.inner_dimensions } text="Inner dimensions of the box are required" />
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
 			</FormFieldset>
 			{ renderOuterDimensions( showOuterDimensions, dimensionUnit, packageData, outer_dimensions, updatePackagesField, is_user_defined, errors.outer_dimensions ) }
@@ -178,6 +190,7 @@ const AddPackageDialog = ( props ) => {
 						disabled={ ! is_user_defined }
 						isError={ errors.box_weight }
 					/>
+					<FieldInfo isError={ errors.box_weight } text="This field is required" />
 				</div>
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="max_weight">{ __( 'Max weight' ) }</FormLabel>
@@ -192,6 +205,7 @@ const AddPackageDialog = ( props ) => {
 						isError={ errors.max_weight }
 					/>
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
+					<FieldInfo isError={ errors.max_weight } text="This field is required" />
 				</div>
 				<FormSettingExplanation>
 					{ __( 'Defines both the weight of the empty box and the max weight it can hold' ) }
