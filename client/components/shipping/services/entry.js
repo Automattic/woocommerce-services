@@ -64,7 +64,7 @@ ShippingServiceEntry.propTypes = {
 	adjustment: PropTypes.oneOfType( [
 		PropTypes.string,
 		PropTypes.number,
-	] ).isRequired,
+	] ),
 	adjustment_type: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
