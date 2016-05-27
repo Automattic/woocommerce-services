@@ -23,10 +23,15 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
+		settings,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
+		if ( 'packing_method' === key && ( ! settings.boxes || 0 === settings.boxes.length ) ) {
+			return '';
+		}
+
 		const itemErrors = filterErrorsForItem( errors, key );
 
 		return (
