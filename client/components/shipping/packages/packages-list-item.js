@@ -41,7 +41,7 @@ const PackagesListItem = ( {
 					{
 						data.name && '' !== trim( data.name )
 						? data.name
-						: <span style={ { color: 'gray' } }>Untitled</span>
+						: <span className="package-no-name">Untitled</span>
 					}
 				</a>
 			</div>
