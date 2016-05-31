@@ -4,6 +4,7 @@ import {
 } from './actions';
 import packages from './packages/reducer';
 import * as packagesActions from './packages/actions';
+import * as settingsActions from '../settings/actions';
 
 const reducers = {};
 
@@ -28,9 +29,14 @@ export default function form( state = {}, action ) {
 	}
 
 	if ( state.hasOwnProperty( 'packages' ) || packagesActions.hasOwnProperty( action.type ) ) {
-		newState = Object.assign( {}, newState, {
+		newState = Object.assign( newState, {
 			packages: packages( state.packages || {}, action ),
 		} );
+	}
+
+	// Allow client-side form validation to take over error state when inputs change
+	if ( settingsActions.hasOwnProperty( action.type ) && newState.hasOwnProperty( 'errors' ) ) {
+		delete newState.errors;
 	}
 
 	return newState;

@@ -1,4 +1,3 @@
-
 const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => {
 	setIsSaving( true );
 	const request = {
@@ -21,7 +20,7 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => 
 			}
 
 			if ( json.data && 'validation_failure' === json.data.error ) {
-				return setError( json.data.message );
+				return setError( json.data.data.fields );
 			}
 
 			return setError( JSON.stringify( json ) )
