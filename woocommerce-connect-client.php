@@ -59,7 +59,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * @var WC_REST_Connect_Services_Controller
 		 */
-		protected $rest_controller;
+		protected $rest_services_controller;
+
+		/**
+		 * @var WC_REST_Connect_Self_Help_Controller
+		 */
+		protected $rest_self_help_controller;
 
 		/**
 		 * @var WC_Connect_Service_Schemas_Validator
@@ -138,12 +143,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->tracks = $tracks;
 		}
 
-		public function get_rest_controller() {
-			return $this->rest_controller;
+		public function get_rest_services_controller() {
+			return $this->rest_services_controller;
 		}
 
-		public function set_rest_controller( WC_REST_Connect_Services_Controller $rest_controller ) {
-			$this->rest_controller = $rest_controller;
+		public function set_rest_services_controller( WC_REST_Connect_Services_Controller $rest_services_controller ) {
+			$this->rest_services_controller = $rest_services_controller;
+		}
+
+		public function get_rest_self_help_controller() {
+			return $this->rest_self_help_controller;
+		}
+
+		public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
+			$this->rest_self_help_controller = $rest_self_help_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -223,7 +236,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
 			$settings_store = $this->get_service_settings_store();
-			$rest_controller = $this->get_rest_controller();
+			$rest_services_controller = $this->get_rest_services_controller();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -265,9 +278,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
-			$rest_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );
-			$this->set_rest_controller( $rest_controller );
-			$rest_controller->register_routes();
+			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );
+			$this->set_rest_services_controller( $rest_services_controller );
+			$rest_services_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-self-help-controller.php' ) );
+			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller();
+			$this->set_rest_self_help_controller( $rest_self_help_controller );
+			$rest_self_help_controller->register_routes();
 		}
 
 		/**

@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			}
 			$health_items[] = (object) array(
 				'key' => 'woocommerce_health_items',
-				'title' => __( 'WooCommerce' ),
+				'title' => __( 'WooCommerce', 'woocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'woocommerce_indicator' => $health_item
@@ -159,7 +159,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			}
 			$health_items[] = (object) array(
 				'key' => 'jetpack_health_items',
-				'title' => __( 'Jetpack' ),
+				'title' => __( 'Jetpack', 'woocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'jetpack_indicator' => $health_item
@@ -223,7 +223,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			$health_items[] =	(object) array(
 				'key' => 'wcc_health_items',
-				'title' => __( 'WooCommerce Connect Service Data' ),
+				'title' => __( 'WooCommerce Connect Service Data', 'woocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'wcc_indicator' => $health_item
@@ -237,8 +237,46 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			return array();
 		}
 
+		/**
+		 * Gets the last 10 lines from the WooCommerce Connect log, if it exists
+		 */
+		protected function get_debug_log_tail() {
+
+			if ( ! method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
+				return __( 'Unable to retrieve log file contents', 'woocommerce' );
+			}
+
+			$logs = WC_Admin_Status::scan_log_files();
+
+			foreach ( $logs as $log_key => $log_file ) {
+				if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
+					$complete_log = file( WC_LOG_DIR . $log_file );
+					$log_tail = array_slice( $complete_log, -10 );
+					return implode( $log_tail, '\n' );
+				}
+			}
+
+			return __( 'Log is empty', 'woocommerce' );
+
+		}
+
 		protected function get_debug_items() {
-			return array();
+			$debug_items = array();
+
+			// add debug boolean
+
+			// add connect log tail
+			$debug_items[] =	(object) array(
+				'key' => 'wcc_debug_log_tail',
+				'title' => __( 'Debug Log', 'woocommerce' ),
+				'type' => 'textarea',
+				'description' => __( '' ),
+				'readonly' => true,
+				'value' => $this->get_debug_log_tail()
+			);
+
+
+			return $debug_items;
 		}
 
 		protected function get_support_items() {
@@ -339,7 +377,14 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 						}
 					}
 
-					// TODO - support other types like toggles, textareas
+					if ( 'textarea' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'title' => $fieldsetitem->title,
+							'type' => 'string' // textarea is a layout concept, not a schema concept
+						);
+					}
+
+					// TODO - support other types like toggles
 				}
 			}
 
@@ -365,13 +410,18 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			foreach ( $this->fieldsets as $fieldset ) {
 
 				// Filter the fieldset's items to only include key and type
-				// since that is all form layout items should have in them
+				// and possibly readonly since that is all form layout items
+				// should have in them
 				$items = array();
 				foreach( $fieldset[ 'items' ] as $fieldsetitem ) {
-					$items[] = (object) array(
+					$item = array(
 						'key' => $fieldsetitem->key,
 						'type' => $fieldsetitem->type
 					);
+					if ( property_exists( $fieldsetitem, 'readonly' ) ) {
+						$item['readonly'] = $fieldsetitem->readonly;
+					}
+					$items[] = (object) $item;
 				}
 
 				$form_layout[] = (object) array(
@@ -400,6 +450,9 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
 					if ( 'indicators' === $fieldsetitem->type ) {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
+					}
+					if ( 'textarea' === $fieldsetitem->type ) {
+						$form_data[ $fieldsetitem->key ] = $fieldsetitem->value;
 					}
 				}
 			}
