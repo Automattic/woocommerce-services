@@ -7,6 +7,7 @@ import { bindActionCreators } from 'redux';
 import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import isString from 'lodash/isString';
+import isArray from 'lodash/isArray';
 import { translate as __ } from 'lib/mixins/i18n';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
@@ -32,9 +33,16 @@ const WCCSettingsForm = ( props ) => {
 		}
 	};
 	const setError = ( value ) => {
-		formActions.setField( 'error', value );
+		formActions.setField( 'errors', value );
+
 		if ( isString( value ) ) {
 			noticeActions.errorNotice( value, {
+				duration: 7000,
+			} );
+		}
+
+		if ( isArray( value ) ) {
+			noticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
 				duration: 7000,
 			} );
 		}
@@ -61,25 +69,29 @@ WCCSettingsForm.propTypes = {
 	saveFormData: PropTypes.func.isRequired,
 };
 
+/*
+ * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
+ *
+ * e.g.: `data.services.first_class_parcel.adjustment
+ *
+ * This removes the `data.` prepending all errors, to facilitate easier matching to form fields.
+ */
+const removeErrorDataPathRoot = ( errantFields ) => {
+	return errantFields.map( ( field ) => {
+		const errorPath = ObjectPath.parse( field );
+		if ( 'data' === errorPath[0] ) {
+			return errorPath.slice( 1 );
+		}
+		return errorPath;
+	} );
+};
+
 const getFormErrors = ( schema, data ) => {
 	const validate = validator( schema, { greedy: true } );
 	const success = validate( data );
 
 	if ( ! success && validate.errors && validate.errors.length ) {
-		/*
-		 * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
-		 *
-		 * e.g.: `data.services.first_class_parcel.adjustment
-		 *
-		 * This removes the `data.` prepending all errors, to facilitate easier matching to form fields.
-		 */
-		return validate.errors.map( ( error ) => {
-			const errorPath = ObjectPath.parse( error.field );
-			if ( 'data' === errorPath[0] ) {
-				return errorPath.slice( 1 );
-			}
-			return errorPath;
-		} );
+		return validate.errors.map( ( error ) => error.field );
 	}
 
 	return [];
@@ -89,7 +101,7 @@ function mapStateToProps( state, props ) {
 	return {
 		settings: state.settings,
 		form: state.form,
-		errors: getFormErrors( props.schema, state.settings ),
+		errors: removeErrorDataPathRoot( state.form.errors || getFormErrors( props.schema, state.settings ) ),
 	};
 }
 

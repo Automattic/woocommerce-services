@@ -4,6 +4,7 @@ import {
 	updateFormElementField,
 	setField,
 } from '../actions';
+import { updateSettingsField } from '../../settings/actions';
 
 const initialState = {
 	textObj: {
@@ -67,5 +68,13 @@ describe( 'Settings reducer', () => {
 				newfield: 'some new value',
 			},
 		} );
+	} );
+
+	it( 'Clears errors on settings state change', () => {
+		const initialErrorState = Object.assign( { errors: ['data.title'] }, initialState );
+		const action = updateSettingsField( 'some_key', 'some value' );
+		const state = reducer( initialErrorState, action );
+
+		expect( state ).to.eql( initialState );
 	} );
 } );
