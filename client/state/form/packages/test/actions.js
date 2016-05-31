@@ -6,6 +6,7 @@ import {
 	savePackage,
 	updatePackagesField,
 	toggleOuterDimensions,
+	setModalError,
 	ADD_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
@@ -13,6 +14,7 @@ import {
 	SAVE_PACKAGE,
 	UPDATE_PACKAGES_FIELD,
 	TOGGLE_OUTER_DIMENSIONS,
+	SET_MODAL_ERROR,
 } from '../actions';
 
 describe( 'Packages state actions', () => {
@@ -81,6 +83,18 @@ describe( 'Packages state actions', () => {
 	it( '#toggleOuterDimensions()', () => {
 		expect( toggleOuterDimensions() ).to.eql( {
 			type: TOGGLE_OUTER_DIMENSIONS,
+		} );
+	} );
+
+	it( '#setModalError()', () => {
+		expect( setModalError( true ) ).to.eql( {
+			type: SET_MODAL_ERROR,
+			value: true,
+		} );
+
+		expect( setModalError( false ) ).to.eql( {
+			type: SET_MODAL_ERROR,
+			value: false,
 		} );
 	} );
 } );

@@ -7,6 +7,7 @@ import {
 	updatePackagesField,
 	toggleOuterDimensions,
 	savePackage,
+	setModalError,
 } from '../actions';
 
 const initialState = {
@@ -84,7 +85,7 @@ describe( 'Packages form reducer', () => {
 	it( 'DISMISS_MODAL', () => {
 		const visibleModalState = {
 			showModal: true,
-		}
+		};
 		const action = dismissModal();
 		const state = reducer( visibleModalState, action );
 
@@ -171,6 +172,31 @@ describe( 'Packages form reducer', () => {
 			},
 			showOuterDimensions: false,
 			selectedPreset: null,
+		} );
+	} );
+
+	it( 'SET_MODAL_ERROR', () => {
+		const initialSavePackageState = {
+			showModal: true,
+			mode: 'edit',
+			showOuterDimensions: false,
+		};
+		const action = setModalError( true );
+
+		const state = reducer( initialSavePackageState, action );
+		expect( state ).to.eql( {
+			showModal: true,
+			mode: 'edit',
+			showOuterDimensions: false,
+			isModalError: true,
+		} );
+
+		const newState = reducer( initialSavePackageState, setModalError( false ) );
+		expect( newState ).to.eql( {
+			showModal: true,
+			mode: 'edit',
+			showOuterDimensions: false,
+			isModalError: false,
 		} );
 	} );
 } );
