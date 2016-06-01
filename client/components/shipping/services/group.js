@@ -17,8 +17,19 @@ const summaryLabel = ( services ) => {
 	return sprintf( format, numSelected );
 };
 
-const getCheckbox = ( title ) => {
-	return <div><CheckBox />{ title }</div>
+const updateAll = ( updateValue, services, value ) => {
+	services.forEach( ( service ) => {
+		updateValue( service.id, 'enabled', value );
+	} )
+};
+
+const getCheckbox = ( title, updateValue, services ) => {
+	return (
+		<div>
+			<CheckBox onClick={ ( event ) => updateAll( updateValue, services, event.target.checked ) }/>
+			{ title }
+		</div>
+	);
 };
 
 const ShippingServiceGroup = ( {
@@ -38,7 +49,7 @@ const ShippingServiceGroup = ( {
 	);
 	return (
 		<FoldableCard
-			header={ getCheckbox( title ) }
+			header={ getCheckbox( title, updateValue, services ) }
 			summary={ summary }
 			expandedSummary={ summary }
 			clickableHeader={ true }
