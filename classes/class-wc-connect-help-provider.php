@@ -243,7 +243,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		protected function get_debug_log_tail() {
 
 			if ( ! method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
-				return __( 'Unable to retrieve log file contents', 'woocommerce' );
+				return array();
 			}
 
 			$logs = WC_Admin_Status::scan_log_files();
@@ -251,13 +251,11 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			foreach ( $logs as $log_key => $log_file ) {
 				if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
 					$complete_log = file( WC_LOG_DIR . $log_file );
-					$log_tail = array_slice( $complete_log, -10 );
-					return implode( $log_tail, '\n' );
+					return array_slice( $complete_log, -10 );
 				}
 			}
 
-			return __( 'Log is empty', 'woocommerce' );
-
+			return array();
 		}
 
 		protected function get_debug_items() {
@@ -266,13 +264,22 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			// add debug boolean
 
 			// add connect log tail
+			$log_tail = $this->get_debug_log_tail();
+			if ( count( $log_tail ) < 1 ) {
+				$description = '';
+				$log_tail = __( 'Log is empty', 'woocommerce' );
+			} else {
+				$description = sprintf( __( 'Last %d entries', 'woocommerce' ), count( $log_tail ) );
+				$log_tail = implode( $log_tail, '\n' );
+			}
+
 			$debug_items[] =	(object) array(
 				'key' => 'wcc_debug_log_tail',
 				'title' => __( 'Debug Log', 'woocommerce' ),
 				'type' => 'textarea',
-				'description' => __( '' ),
+				'description' => $description,
 				'readonly' => true,
-				'value' => $this->get_debug_log_tail()
+				'value' => $log_tail
 			);
 
 
@@ -380,7 +387,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					if ( 'textarea' === $fieldsetitem->type ) {
 						$form_properties[ $fieldsetitem->key ] = array(
 							'title' => $fieldsetitem->title,
-							'type' => 'string' // textarea is a layout concept, not a schema concept
+							'type' => 'string', // textarea is a layout concept, not a schema concept
+							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
 						);
 					}
 

@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import Indicators from 'components/indicators';
-import FormTextarea from 'components/forms/form-textarea';
+import TextArea from 'components/text-area';
 import TextField from 'components/text-field';
 import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
@@ -69,7 +69,6 @@ const SettingsItem = ( {
 		case 'indicators':
 			return (
 				<Indicators
-					layout={ layout }
 					schema={ schema.properties[id] }
 					indicators={ Object.values( settings[id] ) }
 				/>
@@ -77,10 +76,14 @@ const SettingsItem = ( {
 
 		case 'textarea':
 			return (
-				<FormTextarea
+				<TextArea
+					error={ fieldError }
 					id={ id }
 					layout={ layout }
-					readOnly
+					placeholder={ layout.placeholder }
+					required={ fieldRequired }
+					schema={ fieldSchema }
+					updateValue={ updateValue }
 					value={ fieldValue }
 				/>
 			);
