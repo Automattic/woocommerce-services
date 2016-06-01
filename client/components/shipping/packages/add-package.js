@@ -10,9 +10,26 @@ import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 
+const dimensionRegex = /^(\S+)\s*x\s*(\S+)\s*x\s*(\S+)$/;
+const dimensionStringFilter = ( dims ) => {
+	const result = dimensionRegex.exec( dims );
+	if ( result ) {
+		return result[1] + ' x ' + result[2] + ' x ' + result[3];
+	}
+
+	return dims;
+};
+
+const correctDimensions = ( packageData ) => {
+	return Object.assign( {}, packageData, {
+		inner_dimensions: dimensionStringFilter( packageData.inner_dimensions ),
+		outer_dimensions: dimensionStringFilter( packageData.outer_dimensions ),
+	} );
+};
+
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData ) => {
 	return [
-		<FormButton onClick={ () => savePackage( packageData ) }>
+		<FormButton onClick={ () => savePackage( correctDimensions( packageData ) ) }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
 		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
