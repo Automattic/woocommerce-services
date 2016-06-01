@@ -165,11 +165,12 @@ const AddPackageDialog = ( props ) => {
 	const onSave = () => {
 		errors = modalErrors( packageData, boxNames, schema.items );
 		if ( errors.any ) {
+			updatePackagesField( newPackage );
 			setModalError( true );
 			return;
 		}
 
-		savePackage( packageData );
+		savePackage( newPackage );
 	};
 
 	return (
