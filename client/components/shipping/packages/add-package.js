@@ -50,6 +50,24 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 	updatePackagesField( { [name]: value } );
 };
 
+const dimensionRegex = /^(\S+)\s*x\s*(\S+)\s*x\s*(\S+)$/;
+const dimensionStringFilter = ( dims ) => {
+	const result = dimensionRegex.exec( dims );
+	if ( result ) {
+		return result[1] + ' x ' + result[2] + ' x ' + result[3];
+	}
+
+	return dims;
+};
+
+const updateDimensionsField = ( event, updatePackagesField ) => {
+	const {
+		name,
+		value,
+	} = event.target;
+	updatePackagesField( { [name]: dimensionStringFilter( value ) } );
+};
+
 const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
@@ -59,7 +77,7 @@ const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData,
 				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
 				value={ value }
 				className={ is_user_defined ? '' : 'flat-rate-package__outer-dimensions__read-only' }
-				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+				onChange={ ( event ) => updateDimensionsField( event, updatePackagesField ) }
 				disabled={ ! is_user_defined }
 			/>
 		</FormFieldset>
@@ -146,7 +164,7 @@ const AddPackageDialog = ( props ) => {
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
 					value={ inner_dimensions }
 					className={ is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only' }
-					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
+					onChange={ ( event ) => updateDimensionsField( event, updatePackagesField ) }
 					disabled={ ! is_user_defined }
 				/>
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
