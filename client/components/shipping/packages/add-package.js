@@ -99,6 +99,16 @@ const useDefaultField = ( value, updatePackagesField ) => {
 	} );
 };
 
+const dimensionRegex = /^(\S+)\s*x\s*(\S+)\s*x\s*(\S+)$/;
+const dimensionStringFilter = ( dims ) => {
+	const result = dimensionRegex.exec( dims );
+	if ( result ) {
+		return result[1] + ' x ' + result[2] + ' x ' + result[3];
+	}
+
+	return dims;
+};
+
 const AddPackageDialog = ( props ) => {
 	const {
 		showModal,
@@ -129,7 +139,7 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
-	const editName = packageData.index ? packages[packageData.index].name : null;
+	const editName = 'number' === typeof packageData.index ? packages[packageData.index].name : null;
 	const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
 	let errors = isModalError ? modalErrors( packageData, boxNames, schema.items ) : {};
 	const nameFieldText = errors.name && 0 < trim( packageData.name ).length
@@ -137,13 +147,19 @@ const AddPackageDialog = ( props ) => {
 		: __( 'This field is required' );
 
 	const onSave = () => {
-		errors = modalErrors( packageData, boxNames, schema.items );
+		const newPackage = Object.assign( {}, packageData, {
+			inner_dimensions: dimensionStringFilter( packageData.inner_dimensions ),
+			outer_dimensions: dimensionStringFilter( packageData.outer_dimensions ),
+		} );
+
+		errors = modalErrors( newPackage, boxNames, schema.items );
 		if ( errors.any ) {
+			updatePackagesField( newPackage );
 			setModalError( true );
 			return;
 		}
 
-		savePackage( packageData );
+		savePackage( newPackage );
 	};
 
 	return (
