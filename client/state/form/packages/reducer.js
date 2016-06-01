@@ -8,7 +8,9 @@ import {
 	TOGGLE_OUTER_DIMENSIONS,
 } from './actions';
 import omitBy from 'lodash/omitBy';
-import isNull from 'lodash/isNull';
+import trim from 'lodash/trim';
+
+const isNullOrEmpty = ( value ) => null === value || '' === trim( value );
 
 const reducers = {};
 
@@ -49,7 +51,7 @@ reducers[SET_SELECTED_PRESET] = ( state, action ) => {
 
 reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
 	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
-	const newPackageData = omitBy( mergedPackageData, isNull );
+	const newPackageData = omitBy( mergedPackageData, isNullOrEmpty );
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
 	} );
