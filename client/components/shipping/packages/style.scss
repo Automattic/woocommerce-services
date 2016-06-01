@@ -125,6 +125,14 @@
     width: 100%;
 }
 
+.wcc-shipping-add-package-weight-group {
+    .form-setting-explanation {
+        @include breakpoint( '>480px' ) {
+            clear: both;
+        }
+    }
+}
+
 & .wcc-shipping-add-edit-package-dialog {
     .form-setting-explanation {
         display: inline-block;
