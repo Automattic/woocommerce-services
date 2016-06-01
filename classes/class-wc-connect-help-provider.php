@@ -240,22 +240,26 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		/**
 		 * Gets the last 10 lines from the WooCommerce Connect log, if it exists
 		 */
-		protected function get_debug_log_tail() {
+		protected function get_debug_log_data() {
+			$data = new stdClass;
+			$data->key = '';
+			$data->file = '';
+			$data->tail = array();
 
-			if ( ! method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
-				return array();
-			}
+			if ( method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
+				$logs = WC_Admin_Status::scan_log_files();
 
-			$logs = WC_Admin_Status::scan_log_files();
-
-			foreach ( $logs as $log_key => $log_file ) {
-				if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
-					$complete_log = file( WC_LOG_DIR . $log_file );
-					return array_slice( $complete_log, -10 );
+				foreach ( $logs as $log_key => $log_file ) {
+					if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
+						$complete_log = file( WC_LOG_DIR . $log_file );
+						$data->key = $log_key;
+						$data->file = $log_file;
+						$data->tail = array_slice( $complete_log, -10 );
+					}
 				}
 			}
 
-			return array();
+			return $data;
 		}
 
 		protected function get_debug_items() {
@@ -264,13 +268,20 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			// add debug boolean
 
 			// add connect log tail
-			$log_tail = $this->get_debug_log_tail();
-			if ( count( $log_tail ) < 1 ) {
+			$log_data = $this->get_debug_log_data();
+			if ( count( $log_data->tail ) < 1 ) {
 				$description = '';
 				$log_tail = __( 'Log is empty', 'woocommerce' );
 			} else {
-				$description = sprintf( __( 'Last %d entries', 'woocommerce' ), count( $log_tail ) );
-				$log_tail = implode( $log_tail, '\n' );
+				$url = admin_url( 'admin.php?page=wc-status&tab=logs&log_file=' . $log_data->key );
+				$description = sprintf(
+					wp_kses(
+						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce' ),
+						array(  'a' => array( 'href' => array() ) ) ),
+					count( $log_data->tail ),
+					esc_url( $url )
+				);
+				$log_tail = implode( $log_data->tail, '\n' );
 			}
 
 			$debug_items[] =	(object) array(
