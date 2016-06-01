@@ -10,9 +10,26 @@ import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 
+const dimensionRegex = /^(\S+)\s*x\s*(\S+)\s*x\s*(\S+)$/;
+const dimensionStringFilter = ( dims ) => {
+	const result = dimensionRegex.exec( dims );
+	if ( result ) {
+		return result[1] + ' x ' + result[2] + ' x ' + result[3];
+	}
+
+	return dims;
+};
+
+const correctDimensions = ( packageData ) => {
+	return Object.assign( {}, packageData, {
+		inner_dimensions: dimensionStringFilter( packageData.inner_dimensions ),
+		outer_dimensions: dimensionStringFilter( packageData.outer_dimensions ),
+	} );
+};
+
 const getDialogButtons = ( mode, dismissModal, savePackage, packageData ) => {
 	return [
-		<FormButton onClick={ () => savePackage( packageData ) }>
+		<FormButton onClick={ () => savePackage( correctDimensions( packageData ) ) }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
 		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
@@ -50,24 +67,6 @@ const updateFormTextField = ( event, updatePackagesField ) => {
 	updatePackagesField( { [name]: value } );
 };
 
-const dimensionRegex = /^(\S+)\s*x\s*(\S+)\s*x\s*(\S+)$/;
-const dimensionStringFilter = ( dims ) => {
-	const result = dimensionRegex.exec( dims );
-	if ( result ) {
-		return result[1] + ' x ' + result[2] + ' x ' + result[3];
-	}
-
-	return dims;
-};
-
-const updateDimensionsField = ( event, updatePackagesField ) => {
-	const {
-		name,
-		value,
-	} = event.target;
-	updatePackagesField( { [name]: dimensionStringFilter( value ) } );
-};
-
 const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updatePackagesField, is_user_defined ) => {
 	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
 		<FormFieldset>
@@ -77,7 +76,7 @@ const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData,
 				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
 				value={ value }
 				className={ is_user_defined ? '' : 'flat-rate-package__outer-dimensions__read-only' }
-				onChange={ ( event ) => updateDimensionsField( event, updatePackagesField ) }
+				onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 				disabled={ ! is_user_defined }
 			/>
 		</FormFieldset>
@@ -164,7 +163,7 @@ const AddPackageDialog = ( props ) => {
 					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
 					value={ inner_dimensions }
 					className={ is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only' }
-					onChange={ ( event ) => updateDimensionsField( event, updatePackagesField ) }
+					onChange={ ( event ) => updateFormTextField( event, updatePackagesField ) }
 					disabled={ ! is_user_defined }
 				/>
 				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
