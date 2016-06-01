@@ -96,6 +96,14 @@
         }
     }
 
+    .form-input-validation {
+        padding: 4px 0 4px 32px;
+        .gridicon {
+            float: none;
+            vertical-align: middle;
+        }
+    }
+
     // Cards
     .card.is-compact {
         &.settings-group-card {
