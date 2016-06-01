@@ -139,27 +139,27 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
+	const filteredPackageData = Object.assign( {}, packageData, {
+		inner_dimensions: dimensionStringFilter( packageData.inner_dimensions ),
+		outer_dimensions: dimensionStringFilter( packageData.outer_dimensions ),
+	} );
+
 	const editName = 'number' === typeof packageData.index ? packages[packageData.index].name : null;
 	const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
-	let errors = isModalError ? modalErrors( packageData, boxNames, schema.items ) : {};
+	let errors = isModalError ? modalErrors( filteredPackageData, boxNames, schema.items ) : {};
 	const nameFieldText = errors.name && 0 < trim( packageData.name ).length
 		? __( 'This package name must be unique' )
 		: __( 'This field is required' );
 
 	const onSave = () => {
-		const newPackage = Object.assign( {}, packageData, {
-			inner_dimensions: dimensionStringFilter( packageData.inner_dimensions ),
-			outer_dimensions: dimensionStringFilter( packageData.outer_dimensions ),
-		} );
-
-		errors = modalErrors( newPackage, boxNames, schema.items );
+		errors = modalErrors( filteredPackageData, boxNames, schema.items );
 		if ( errors.any ) {
-			updatePackagesField( newPackage );
+			updatePackagesField( filteredPackageData );
 			setModalError( true );
 			return;
 		}
 
-		savePackage( newPackage );
+		savePackage( filteredPackageData );
 	};
 
 	return (
