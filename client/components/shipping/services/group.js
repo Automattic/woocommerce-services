@@ -5,6 +5,7 @@ import CheckBox from 'components/forms/form-checkbox';
 import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
+import every from 'lodash/every';
 
 const summaryLabel = ( services ) => {
 	const numSelected = services.reduce( ( count, service ) => (
@@ -17,16 +18,21 @@ const summaryLabel = ( services ) => {
 	return sprintf( format, numSelected );
 };
 
-const updateAll = ( updateValue, services, value ) => {
+const updateAll = ( event, updateValue, services ) => {
 	services.forEach( ( service ) => {
-		updateValue( service.id, 'enabled', value );
+		updateValue( service.id, 'enabled', event.target.checked );
 	} )
 };
 
 const getCheckbox = ( title, updateValue, services ) => {
+	const allChecked = every( services, ( service ) => service.enabled );
 	return (
 		<div>
-			<CheckBox onClick={ ( event ) => updateAll( updateValue, services, event.target.checked ) }/>
+			<CheckBox
+				onClick={ ( event ) => event.stopPropagation() }
+				onChange={ ( event ) => updateAll( event, updateValue, services ) }
+				checked={ allChecked }
+			/>
 			{ title }
 		</div>
 	);
