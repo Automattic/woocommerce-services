@@ -14,9 +14,9 @@ import modalErrors from './modal-errors';
 import difference from 'lodash/difference';
 import trim from 'lodash/trim';
 
-const getDialogButtons = ( mode, dismissModal, savePackage, error ) => {
+const getDialogButtons = ( mode, dismissModal, savePackage ) => {
 	return [
-		<FormButton onClick={ () => savePackage() } disabled={ error }>
+		<FormButton onClick={ () => savePackage() }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
 		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
@@ -99,8 +99,17 @@ const useDefaultField = ( value, updatePackagesField ) => {
 	} );
 };
 
+const incompleteNumberRegex = /^\.\d+$/;
+const filterNumber = ( number ) => {
+	if ( incompleteNumberRegex.test( number ) ) {
+		number = '0' + number;
+	}
+
+	return number;
+};
+
 const dimensionRegex = /^(\S+)\s*x\s*(\S+)\s*x\s*(\S+)$/;
-const dimensionStringFilter = ( dims ) => {
+const filterDimensions = ( dims ) => {
 	const result = dimensionRegex.exec( dims );
 	if ( result ) {
 		return result[1] + ' x ' + result[2] + ' x ' + result[3];
@@ -140,8 +149,10 @@ const AddPackageDialog = ( props ) => {
 	} = packageData;
 
 	const filteredPackageData = Object.assign( {}, packageData, {
-		inner_dimensions: dimensionStringFilter( packageData.inner_dimensions ),
-		outer_dimensions: dimensionStringFilter( packageData.outer_dimensions ),
+		inner_dimensions: filterDimensions( packageData.inner_dimensions ),
+		outer_dimensions: filterDimensions( packageData.outer_dimensions ),
+		box_weight: filterNumber( packageData.box_weight ),
+		max_weight: filterNumber( packageData.max_weight ),
 	} );
 
 	const editName = 'number' === typeof packageData.index ? packages[packageData.index].name : null;
