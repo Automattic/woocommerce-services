@@ -107,12 +107,12 @@
 
 .wcc-shipping-add-package-weight {
     margin-bottom: 8px;
-    @include breakpoint( '>480px' ) {
+    @include breakpoint( '>660px' ) {
         float:left;
     }
 
     .form-text-input {
-        width: 88%;
+        width: 78%;
     }
 
     .wcc-shipping-add-package-weight-unit {
@@ -127,8 +127,9 @@
 
 .wcc-shipping-add-package-weight-group {
     .form-setting-explanation {
-        @include breakpoint( '>480px' ) {
+        @include breakpoint( '>660px' ) {
             clear: both;
+            margin-top: 68px;
         }
     }
 }
