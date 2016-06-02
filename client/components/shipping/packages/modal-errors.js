@@ -5,7 +5,6 @@ import reduce from 'lodash/reduce';
 import validator from 'is-my-json-valid';
 
 const processErrors = ( errors ) => {
-	console.log( 'errors', errors );
 	return reduce( errors, ( result, value ) => {
 		if ( value.field ) {
 			const key = value.field.replace( 'data.', '' );
@@ -49,7 +48,6 @@ const preProcessPackageData = ( data, boxNames ) => {
 const getErrors = ( packageData, boxNames, schema ) => {
 	const validate = validator( schema, { greedy: true } );
 	const data = preProcessPackageData( packageData, boxNames );
-	console.log( data );
 	validate( data );
 	return processErrors( validate.errors );
 };
