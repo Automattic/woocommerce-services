@@ -27,20 +27,17 @@ const getDialogButtons = ( mode, dismissModal, savePackage ) => {
 	];
 };
 
-const renderOuterDimensionsToggle = ( showOuterDimensions, toggleOuterDimensions ) => {
-	if ( ! showOuterDimensions ) {
-		return (
-			<a
-				href="#"
-				className="form-setting-explanation"
-				onClick={ ( evt ) => {
-					evt.preventDefault();
-					toggleOuterDimensions();
-				} }>
-				{ __( 'View exterior dimensions' ) }
-			</a>
-		);
-	}
+const OuterDimensionsToggle = ( { toggleOuterDimensions } ) => {
+	const onClick = ( evt ) => {
+		evt.preventDefault();
+		toggleOuterDimensions();
+	};
+
+	return (
+		<a href="#" className="form-setting-explanation" onClick={ onClick }>
+			{ __( 'View exterior dimensions' ) }
+		</a>
+	);
 };
 
 const AddPackageDialog = ( props ) => {
@@ -141,7 +138,7 @@ const AddPackageDialog = ( props ) => {
 					isError={ modalErrors.inner_dimensions }
 				/>
 				{ fieldInfo( 'inner_dimensions' ) }
-				{ renderOuterDimensionsToggle( isOuterDimensionsVisible, toggleOuterDimensions ) }
+				{ ! isOuterDimensionsVisible ? <OuterDimensionsToggle { ...{ toggleOuterDimensions } }/> : '' }
 			</FormFieldset>
 			{ isOuterDimensionsVisible
 				? ( <FormFieldset>
