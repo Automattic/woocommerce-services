@@ -58,7 +58,8 @@ const ShippingServiceGroup = ( props ) => {
 						onChange={ ( event ) => updateAll( event, updateValue, services ) }
 						checked={ allChecked }
 					/>
-				<span className="wcc-shipping-service-header">Service</span>
+					<span className="wcc-shipping-service-header">{ __( 'Service' ) }</span>
+					<span className="wcc-shipping-service-header">{ __( 'Price adjustment' ) }</span>
 				</label>
 			</div>
 
