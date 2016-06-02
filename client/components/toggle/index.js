@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormToggle from 'components/forms/form-toggle';
+import FormToggle from 'components/forms/form-toggle/compact';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import { sanitize } from 'dompurify';
 
