@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import Indicators from 'components/indicators';
 import TextArea from 'components/text-area';
 import TextField from 'components/text-field';
+import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
@@ -85,6 +86,16 @@ const SettingsItem = ( {
 					schema={ fieldSchema }
 					updateValue={ updateValue }
 					value={ fieldValue }
+				/>
+			);
+
+		case 'boolean':
+			return (
+				<Toggle
+					checked={ fieldValue }
+					id={ id }
+					schema={ fieldSchema }
+					updateValue={ updateValue }
 				/>
 			);
 

@@ -265,7 +265,15 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		protected function get_debug_items() {
 			$debug_items = array();
 
-			// add debug boolean
+			// add debug on/off boolean
+			$debug_items[] = (object) array(
+				'key' => 'wcc_debug_on',
+				'title' => 'Debug Logging',
+				'type' => 'boolean',
+				'text' => __( 'Enabled', 'woocommerce' ),
+				'description' => '',
+				'value' => true // TODO - connect to option
+			);
 
 			// add connect log tail
 			$log_data = $this->get_debug_log_data();
@@ -281,7 +289,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					count( $log_data->tail ),
 					esc_url( $url )
 				);
-				$log_tail = implode( $log_data->tail, '\n' );
+				$log_tail = implode( $log_data->tail, '' );
 			}
 
 			$debug_items[] =	(object) array(
@@ -292,7 +300,6 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'readonly' => true,
 				'value' => $log_tail
 			);
-
 
 			return $debug_items;
 		}
@@ -403,7 +410,14 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 						);
 					}
 
-					// TODO - support other types like toggles
+					if ( 'boolean' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'title' => $fieldsetitem->title,
+							'type' => 'boolean',
+							'text' => property_exists( $fieldsetitem, 'text' ) ? $fieldsetitem->text : '',
+							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
+						);
+					}
 				}
 			}
 
@@ -469,8 +483,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
 					if ( 'indicators' === $fieldsetitem->type ) {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
-					}
-					if ( 'textarea' === $fieldsetitem->type ) {
+					} else {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->value;
 					}
 				}
