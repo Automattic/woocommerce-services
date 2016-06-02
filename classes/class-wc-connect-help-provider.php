@@ -15,15 +15,22 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $logger;
+
+		/**
 		 * @array
 		 */
 		protected $fieldsets;
 
 		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_Service_Settings_Store $service_settings_store ) {
+			WC_Connect_Service_Settings_Store $service_settings_store,
+			WC_Connect_Logger $logger ) {
 
 			$this->service_schemas_store = $service_schemas_store;
 			$this->service_settings_store = $service_settings_store;
+			$this->logger = $logger;
 			$this->help_sections = array();
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
@@ -272,7 +279,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'type' => 'boolean',
 				'text' => __( 'Enabled', 'woocommerce' ),
 				'description' => '',
-				'value' => true // TODO - connect to option
+				'value' => $this->logger->is_logging_enabled()
 			);
 
 			// add connect log tail

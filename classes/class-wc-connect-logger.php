@@ -2,6 +2,8 @@
 
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
+	define( 'WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION', 'wcc_debug_logging_enabled' );
+
 	class WC_Connect_Logger {
 
 		/**
@@ -9,9 +11,12 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 */
 		private $logger;
 
+		private $is_logging_enabled = false;
+
 		public function __construct( WC_Logger $logger ) {
 
 			$this->logger = $logger;
+			$this->is_logging_enabled = ( 1 == get_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, 0 ) );
 
 		}
 
@@ -38,6 +43,20 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
 		}
 
+		public function enable_logging() {
+			update_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, true );
+			$this->is_logging_enabled = true;
+		}
+
+		public function disable_logging() {
+			update_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, false );
+			$this->is_logging_enabled = false;
+		}
+
+		public function is_logging_enabled() {
+			return $this->is_logging_enabled;
+		}
+
 		/**
 		 * Logs messages
 		 *
@@ -45,14 +64,15 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
 		public function log( $message, $context = '' ) {
-			// TODO add a debug control somewhere to turn logging on and off
 
-			$log_message = $this->format_message( $message, $context );
+			if ( $this->is_logging_enabled() ) {
 
-			$this->logger->add( 'wc-connect', $log_message );
+				$log_message = $this->format_message( $message, $context );
+				$this->logger->add( 'wc-connect', $log_message );
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( $log_message );
+				}
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( $log_message );
 			}
 
 		}
