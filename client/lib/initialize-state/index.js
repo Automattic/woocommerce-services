@@ -27,6 +27,9 @@ export default ( schema, values ) => {
 		settings: formValues,
 		form: {
 			isSaving: false,
+			packages: {
+				modalErrors: {},
+			},
 		},
 	};
 };

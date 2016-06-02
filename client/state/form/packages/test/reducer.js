@@ -7,7 +7,7 @@ import {
 	updatePackagesField,
 	toggleOuterDimensions,
 	savePackage,
-	setModalError,
+	setModalErrors,
 } from '../actions';
 
 const initialState = {
@@ -90,7 +90,7 @@ describe( 'Packages form reducer', () => {
 		const state = reducer( visibleModalState, action );
 
 		expect( state ).to.eql( {
-			isModalError: false,
+			modalErrors: {},
 			showModal: false,
 		} );
 	} );
@@ -181,22 +181,22 @@ describe( 'Packages form reducer', () => {
 			mode: 'edit',
 			showOuterDimensions: false,
 		};
-		const action = setModalError( true );
+		const action = setModalErrors( true );
 
 		const state = reducer( initialSavePackageState, action );
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'edit',
 			showOuterDimensions: false,
-			isModalError: true,
+			modalErrors: true,
 		} );
 
-		const newState = reducer( initialSavePackageState, setModalError( false ) );
+		const newState = reducer( initialSavePackageState, setModalErrors( { any: true } ) );
 		expect( newState ).to.eql( {
 			showModal: true,
 			mode: 'edit',
 			showOuterDimensions: false,
-			isModalError: false,
+			modalErrors: { any: true },
 		} );
 	} );
 } );
