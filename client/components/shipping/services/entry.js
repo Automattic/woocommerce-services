@@ -5,67 +5,68 @@ import FormTextInput from 'components/forms/form-text-input';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
 
-const ShippingServiceEntry = ( {
-	enabled,
-	title,
-	adjustment,
-	adjustment_type,
-	currencySymbol,
-	updateValue,
-	hasError,
-} ) => {
+const numberRegex = /^\d+(\.\d+)?$/;
+const parseNumber = ( value ) => {
+	return numberRegex.test( value ) ? Number.parseFloat( value ) : value;
+};
+
+const ShippingServiceEntry = ( props ) => {
+	const {
+		currencySymbol,
+		updateValue,
+		errors,
+		service,
+	} = props;
+
+	const {
+		enabled,
+		name,
+		adjustment,
+		adjustment_type,
+	} = service;
+
+	const updateField = ( key, value ) => updateValue( service.id, key, value );
+	const hasError = errors.find( ( error ) => error.length && ( error[0] === service.id ) );
+
 	return (
 		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) }>
 			<label className="wcc-shipping-service-entry-title">
 				<FormCheckbox
 					checked={ enabled }
-					onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
+					onChange={ ( event ) => updateField( 'enabled', event.target.checked ) }
 				/>
-				{ title }
+				{ name }
 			</label>
 			{ hasError ? <Gridicon icon="notice" /> : null }
 			<FormTextInput
 				disabled={ ! enabled }
 				value={ adjustment }
-				onChange={ ( event ) => {
-					const value = event.target.value || null;
-					const floatValue = Number.parseFloat( value );
-
-					/*
-					 * If the adjustment value isn't a valid float, or ends in a non-integer, pass
-					 * the value through unmodified and let the schema validation catch it.
-					 *
-					 * If the adjustment *is* a valid float, update the settings value with the
-					 * parsed version so it doesn't fail schema validation.
-					 */
-					if ( isNaN( floatValue ) || value.match( /.*[^\d]$/ ) ) {
-						updateValue( 'adjustment', value );
-					} else {
-						updateValue( 'adjustment', floatValue );
-					}
-				} }
+				onChange={ ( event ) => updateField( 'adjustment', parseNumber( event.target.value ) ) }
 				isError={ hasError }
 			/>
 			<FormSelect
 				disabled={ ! enabled }
 				value={ adjustment_type }
-				onChange={ ( event ) => updateValue( 'adjustment_type', event.target.value ) }
+				onChange={ ( event ) => updateField( 'adjustment_type', event.target.value ) }
 			>
 				<option value="flat">{ currencySymbol }</option>
 				<option value="percentage">%</option>
 			</FormSelect>
 		</div>
 	);
-}
+};
 
 ShippingServiceEntry.propTypes = {
-	enabled: PropTypes.bool.isRequired,
-	title: PropTypes.string.isRequired,
-	adjustment: PropTypes.oneOfType( [
-		PropTypes.string,
-		PropTypes.number,
-	] ),
-	adjustment_type: PropTypes.string.isRequired,
+	service: PropTypes.shape( {
+		id: PropTypes.string.isRequired,
+		name: PropTypes.string.isRequired,
+		enabled: PropTypes.bool,
+		adjustment: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.number,
+		] ),
+		adjustment_type: PropTypes.string,
+	} ),
 	currencySymbol: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,

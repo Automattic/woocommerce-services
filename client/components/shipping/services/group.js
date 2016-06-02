@@ -24,28 +24,13 @@ const updateAll = ( event, updateValue, services ) => {
 	} )
 };
 
-const getCheckbox = ( title, updateValue, services ) => {
-	const allChecked = every( services, ( service ) => service.enabled );
-	return (
-		<div>
-			<CheckBox
-				onClick={ ( event ) => event.stopPropagation() }
-				onChange={ ( event ) => updateAll( event, updateValue, services ) }
-				checked={ allChecked }
-			/>
-			{ title }
-		</div>
-	);
-};
-
-const ShippingServiceGroup = ( {
-	title,
-	services,
-	currencySymbol,
-	updateValue,
-	settingsKey,
-	errors,
-} ) => {
+const ShippingServiceGroup = ( props ) => {
+	const {
+		title,
+		services,
+		updateValue,
+		errors,
+	} = props;
 	const summary = summaryLabel( services );
 	const actionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
@@ -53,9 +38,11 @@ const ShippingServiceGroup = ( {
 			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
+	const allChecked = every( services, ( service ) => service.enabled );
+
 	return (
 		<FoldableCard
-			header={ getCheckbox( title, updateValue, services ) }
+			header={ title }
 			summary={ summary }
 			expandedSummary={ summary }
 			clickableHeader={ true }
@@ -64,23 +51,18 @@ const ShippingServiceGroup = ( {
 			actionButtonExpanded={ actionButton }
 			expanded={ Boolean( errors && errors.length ) }
 		>
-			{ services.map( service => {
-				return (
-					<ShippingServiceEntry
-						key={ service.id }
-						enabled={ service.enabled }
-						title={ service.name }
-						adjustment={ service.adjustment }
-						adjustment_type={ service.adjustment_type }
-						currencySymbol={ currencySymbol }
-						updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
-						settingsKey={ settingsKey }
-						hasError={ errors.find( ( error ) => (
-							error.length && ( error[0] === service.id ) )
-						) }
+			<div className="wcc-shipping-service-entry">
+				<label className="wcc-shipping-service-entry-title">
+					<CheckBox
+						onClick={ ( event ) => event.stopPropagation() }
+						onChange={ ( event ) => updateAll( event, updateValue, services ) }
+						checked={ allChecked }
 					/>
-				);
-			} ) }
+					<strong>Service</strong>
+				</label>
+			</div>
+
+			{ services.map( ( service, idx ) => <ShippingServiceEntry { ...props } { ...{ service } } key={ idx }/> ) }
 		</FoldableCard>
 	);
 };
@@ -97,9 +79,7 @@ ShippingServiceGroup.propTypes = {
 		] ),
 		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
-	currencySymbol: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
-	settingsKey: PropTypes.string.isRequired,
 };
 
 export default ShippingServiceGroup;
