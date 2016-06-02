@@ -49,7 +49,31 @@ const handleSelectEvent = ( e, selectDefault, selectPreset, setSelectedPreset ) 
 	}
 };
 
-const AddPackagePresets = ( { selectedPreset, setSelectedPreset, presets, onSelectDefault, onSelectPreset } ) => {
+const AddPackagePresets = ( { selectedPreset, setSelectedPreset, presets, setModalErrors, updatePackagesField } ) => {
+	const onSelectPreset = ( idx ) => {
+		const preset = presets.boxes[idx];
+		setModalErrors( {} );
+		updatePackagesField( {
+			index: null,
+			is_user_defined: false,
+			...preset,
+		} );
+	};
+
+	const onSelectDefault = ( value ) => {
+		setModalErrors( {} );
+		updatePackagesField( {
+			index: null,
+			is_letter: 'envelope' === value,
+			name: null,
+			is_user_defined: true,
+			outer_dimensions: null,
+			inner_dimensions: null,
+			box_weight: null,
+			max_weight: null,
+		} );
+	};
+
 	return (
 		<FormFieldset>
 			<FormLabel htmlFor="package_type">Type of package</FormLabel>
@@ -67,8 +91,8 @@ AddPackagePresets.propTypes = {
 	selectedPreset: PropTypes.string,
 	setSelectedPreset: PropTypes.func.isRequired,
 	presets: PropTypes.object,
-	onSelectDefault: PropTypes.func.isRequired,
-	onSelectPreset: PropTypes.func.isRequired,
+	setModalErrors: PropTypes.func.isRequired,
+	updatePackagesField: PropTypes.func.isRequired,
 };
 
 export default AddPackagePresets;

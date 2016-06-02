@@ -27,8 +27,8 @@ const getDialogButtons = ( mode, dismissModal, savePackage ) => {
 	];
 };
 
-const renderOuterDimensionsToggle = ( showOuterDimensions, packageData, toggleOuterDimensions ) => {
-	if ( ! showOuterDimensions && ! packageData.outer_dimensions ) {
+const renderOuterDimensionsToggle = ( showOuterDimensions, toggleOuterDimensions ) => {
+	if ( ! showOuterDimensions ) {
 		return (
 			<a
 				href="#"
@@ -43,42 +43,12 @@ const renderOuterDimensionsToggle = ( showOuterDimensions, packageData, toggleOu
 	}
 };
 
-const exampleDimensions = ( length, width, height, locale ) => {
-	return length.toLocaleString( locale ) + ' x ' + width.toLocaleString( locale ) +
-		' x ' + height.toLocaleString( locale );
-};
-
-const fieldInfo = ( isError, text ) => {
-	return isError
-		? <FormInputValidation isError text={ text } />
-		: '';
-};
-
-const renderOuterDimensions = ( showOuterDimensions, dimensionUnit, packageData, value, updateTextField, is_user_defined, error ) => {
-	return ( showOuterDimensions || packageData.outer_dimensions ) ? (
-		<FormFieldset>
-			<FormLabel>{ sprintf( __( 'Outer Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
-			<FormTextInput
-				name="outer_dimensions"
-				placeholder={ exampleDimensions( 100.25, 25.25, 5.75 ) }
-				value={ value }
-				className={ is_user_defined ? '' : 'flat-rate-package__outer-dimensions__read-only' }
-				onChange={ updateTextField }
-				disabled={ ! is_user_defined }
-				isError={ error }
-			/>
-			{ fieldInfo( error, __( 'Outer dimensions of the box are required' ) ) }
-		</FormFieldset>
-	) : null;
-};
-
 const AddPackageDialog = ( props ) => {
 	const {
 		showModal,
 		dismissModal,
 		modalErrors,
 		mode,
-		presets,
 		dimensionUnit,
 		weightUnit,
 		packageData,
@@ -87,8 +57,6 @@ const AddPackageDialog = ( props ) => {
 		setModalErrors,
 		savePackage,
 		updatePackagesField,
-		selectedPreset,
-		setSelectedPreset,
 		packages,
 		schema,
 	} = props;
@@ -102,9 +70,9 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
-	const nameFieldText = modalErrors && modalErrors.name && 0 < trim( packageData.name ).length
-		? __( 'This package name must be unique' )
-		: __( 'This field is required' );
+	const fieldClassName = is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only';
+	const isOuterDimensionsVisible = showOuterDimensions || outer_dimensions;
+	const exampleDimensions = [100.25, 25, 5.75].map( ( val ) => val.toLocaleString() ).join( ' x ' );
 
 	const onSave = () => {
 		const editName = 'number' === typeof packageData.index ? packages[packageData.index].name : null;
@@ -133,28 +101,10 @@ const AddPackageDialog = ( props ) => {
 		updatePackagesField( { [key]: value } );
 	};
 
-	const usePresetValues = ( idx ) => {
-		const preset = presets.boxes[idx];
-		setModalErrors( {} );
-		updatePackagesField( {
-			index: null,
-			is_user_defined: false,
-			...preset,
-		} );
-	};
-
-	const useDefaultField = ( value ) => {
-		setModalErrors( {} );
-		updatePackagesField( {
-			index: null,
-			is_letter: 'envelope' === value,
-			name: null,
-			is_user_defined: true,
-			outer_dimensions: null,
-			inner_dimensions: null,
-			box_weight: null,
-			max_weight: null,
-		} );
+	const fieldInfo = ( field, nonEmptyText ) => {
+		const altText = nonEmptyText || __( 'Invalid value' );
+		const text = '' === trim( packageData[field] ) ? __( 'This field is required' ) : altText;
+		return modalErrors[field] ? <FormInputValidation isError text={ text } /> : '';
 	};
 
 	return (
@@ -163,16 +113,10 @@ const AddPackageDialog = ( props ) => {
 			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
 			onClose={ dismissModal }
 			buttons={ getDialogButtons( mode, dismissModal, onSave ) }>
-			<FormSectionHeading>{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }</FormSectionHeading>
-			{ ( 'add' === mode ) ? (
-				<AddPackagePresets
-					selectedPreset={ selectedPreset }
-					setSelectedPreset={ setSelectedPreset }
-					presets={ presets }
-					onSelectDefault={ useDefaultField }
-					onSelectPreset={ usePresetValues }
-				/>
-			) : null }
+			<FormSectionHeading>
+				{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }
+			</FormSectionHeading>
+			{ ( 'add' === mode ) ? <AddPackagePresets { ...props } /> : null }
 			<FormFieldset>
 				<FormLabel htmlFor="name">{ __( 'Package name' ) }</FormLabel>
 				<FormTextInput
@@ -183,23 +127,38 @@ const AddPackageDialog = ( props ) => {
 					onChange={ updateTextField }
 					isError={ modalErrors.name }
 				/>
-				{ fieldInfo( modalErrors.name, nameFieldText ) }
+				{ fieldInfo( 'name', __( 'This field must be unique' ) ) }
 			</FormFieldset>
 			<FormFieldset>
 				<FormLabel>{ sprintf( __( 'Inner Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
 				<FormTextInput
 					name="inner_dimensions"
-					placeholder={ exampleDimensions( 100, 25, 5.5 ) }
+					placeholder={ exampleDimensions }
 					value={ inner_dimensions }
-					className={ is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only' }
+					className={ fieldClassName }
 					onChange={ updateTextField }
 					disabled={ ! is_user_defined }
 					isError={ modalErrors.inner_dimensions }
 				/>
-				{ fieldInfo( modalErrors.inner_dimensions, __( 'Inner dimensions of the box are required' ) ) }
-				{ renderOuterDimensionsToggle( showOuterDimensions, packageData, toggleOuterDimensions ) }
+				{ fieldInfo( 'inner_dimensions' ) }
+				{ renderOuterDimensionsToggle( isOuterDimensionsVisible, toggleOuterDimensions ) }
 			</FormFieldset>
-			{ renderOuterDimensions( showOuterDimensions, dimensionUnit, packageData, outer_dimensions, updateTextField, is_user_defined, modalErrors.outer_dimensions ) }
+			{ isOuterDimensionsVisible
+				? ( <FormFieldset>
+						<FormLabel>{ sprintf( __( 'Outer Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
+						<FormTextInput
+							name="outer_dimensions"
+							placeholder={ exampleDimensions }
+							value={ outer_dimensions }
+							className={ fieldClassName }
+							onChange={ updateTextField }
+							disabled={ ! is_user_defined }
+							isError={ modalErrors.outer_dimensions }
+						/>
+						{ fieldInfo( 'outer_dimensions' ) }
+					</FormFieldset> )
+				: ''
+			}
 			<FormFieldset className="wcc-shipping-add-package-weight-group">
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="box_weight">{ __( 'Package weight' ) }</FormLabel>
@@ -208,12 +167,12 @@ const AddPackageDialog = ( props ) => {
 						name="box_weight"
 						placeholder={ __( 'Weight of box' ) }
 						value={ box_weight }
-						className={ is_user_defined ? '' : 'flat-rate-package__package-weight__read-only' }
+						className={ fieldClassName }
 						onChange={ updateTextField }
 						disabled={ ! is_user_defined }
 						isError={ modalErrors.box_weight }
 					/>
-					{ fieldInfo( modalErrors.box_weight, __( 'This field is required' ) ) }
+					{ fieldInfo( 'box_weight' ) }
 				</div>
 				<div className="wcc-shipping-add-package-weight">
 					<FormLabel htmlFor="max_weight">{ __( 'Max weight' ) }</FormLabel>
@@ -222,13 +181,13 @@ const AddPackageDialog = ( props ) => {
 						name="max_weight"
 						placeholder={ __( 'Max weight' ) }
 						value={ max_weight }
-						className={ is_user_defined ? '' : 'flat-rate-package__max-weight__read-only' }
+						className={ fieldClassName }
 						onChange={ updateTextField }
 						disabled={ ! is_user_defined }
 						isError={ modalErrors.max_weight }
 					/>
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
-					{ fieldInfo( modalErrors.max_weight, __( 'This field is required' ) ) }
+					{ fieldInfo( 'max_weight' ) }
 				</div>
 				<FormSettingExplanation>
 					{ __( 'Defines both the weight of the empty box and the max weight it can hold' ) }
@@ -241,7 +200,6 @@ const AddPackageDialog = ( props ) => {
 AddPackageDialog.propTypes = {
 	dismissModal: PropTypes.func.isRequired,
 	modalErrors: PropTypes.object.isRequired,
-	presets: PropTypes.object,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	mode: PropTypes.string.isRequired,
@@ -251,8 +209,6 @@ AddPackageDialog.propTypes = {
 	savePackage: PropTypes.func.isRequired,
 	packageData: PropTypes.object,
 	setModalErrors: PropTypes.func.isRequired,
-	setSelectedPreset: PropTypes.func.isRequired,
-	selectedPreset: PropTypes.string,
 	packages: PropTypes.array.isRequired,
 	schema: PropTypes.object.isRequired,
 };
