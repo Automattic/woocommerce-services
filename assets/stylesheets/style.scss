@@ -120,15 +120,39 @@
 
     // Dialog
     &.dialog.card {
-        padding: 0;
-        width: 500px;
+    	position: absolute;
+    		top: 0;
+    		right: 0;
+    		bottom: 0;
+    		left: 0;
+    	max-width: none;
+
+    	@include breakpoint( ">480px" ) {
+            top: 10%;
+            right: calc(50% - 250px);
+            bottom: 10%;
+            left: calc(50% - 250px);
+            padding: 0;
+            width: 500px;
+    	}
     }
 
     .dialog__content {
+        position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 70px;
         padding: 32px 32px 8px;
+        overflow: auto;
     }
 
     .dialog__action-buttons {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        box-sizing: border-box;
+        width: 100%;
         padding: 16px 24px;
         text-align: left;
         background: $gray-light;
@@ -148,7 +172,7 @@
     .global-notices .notice {
         margin-left: 164px;
         max-width: 1040px;
-        
+
         @include breakpoint( '<960px' ) {
             margin-left: 36px;
         }
