@@ -125,12 +125,12 @@
 
     #max_weight {
         @include breakpoint( '>660px' ) {
-            width: 68%;
+            width: 66%;
         }
     }
 
     .wcc-shipping-add-package-weight-unit {
-        width: 32%;
+        width: 34%;
         padding-left: 8px;
     }
 }
