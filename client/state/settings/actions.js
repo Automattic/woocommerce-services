@@ -6,6 +6,8 @@ export const REMOVE_SETTINGS_OBJECT_SUB_FIELD = 'REMOVE_SETTINGS_OBJECT_SUB_FIEL
 export const ADD_SETTINGS_ARRAY_FIELD_ITEM = 'ADD_SETTINGS_ARRAY_FIELD_ITEM';
 export const REMOVE_SETTINGS_ARRAY_FIELD_ITEM = 'REMOVE_SETTINGS_ARRAY_FIELD_ITEM';
 export const UPDATE_SETTINGS_ARRAY_FIELD_ITEM = 'UPDATE_SETTINGS_ARRAY_FIELD_ITEM';
+export const SAVE_SETTINGS_TO_HOST = 'SAVE_SETTINGS_TO_HOST';
+export const SAVE_SETTINGS_TO_HOST_RESPONSE = 'SAVE_SETTINGS_TO_HOST_RESPONSE';
 
 export const updateSettingsField = ( key, value ) => ( {
 	type: UPDATE_SETTINGS_FIELD,
@@ -58,4 +60,13 @@ export const updateSettingsArrayFieldItem = ( settings_key, index, item ) => ( {
 	settings_key,
 	index,
 	item,
+} );
+
+export const saveSettingsToHost = () => ( {
+	type: SAVE_SETTINGS_TO_HOST,
+} );
+
+export const saveSettingsToHostResponse = ( json ) => ( {
+	type: SAVE_SETTINGS_TO_HOST_RESPONSE,
+	json: json,
 } );

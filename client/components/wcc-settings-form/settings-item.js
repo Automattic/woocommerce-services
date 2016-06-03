@@ -16,6 +16,7 @@ const SettingsItem = ( {
 	storeOptions,
 	packagesActions,
 	errors,
+	saveForm,
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
@@ -95,6 +96,7 @@ const SettingsItem = ( {
 					checked={ fieldValue }
 					id={ id }
 					schema={ fieldSchema }
+					saveForm={ saveForm }
 					updateValue={ updateValue }
 				/>
 			);
@@ -126,6 +128,7 @@ SettingsItem.propTypes = {
 	settingsActions: PropTypes.object.isRequired,
 	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.array,
+	saveForm: PropTypes.func,
 };
 
 export default SettingsItem;

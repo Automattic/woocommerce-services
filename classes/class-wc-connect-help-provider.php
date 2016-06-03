@@ -508,13 +508,15 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			$form_schema = new stdClass();
 			$form_schema->properties = new stdClass();
 
+			$path = "/wc/v1/connect/self-help";
+
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_shared_settings(),
 				'formSchema'   => $this->get_form_schema(),
 				'formLayout'   => $this->get_form_layout(),
 				'formData'     => $this->get_form_data(),
-				'callbackURL'  => '', // TODO
-				'nonce'        => '', // TODO
+				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/self-help" ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

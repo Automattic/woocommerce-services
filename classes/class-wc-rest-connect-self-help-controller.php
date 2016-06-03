@@ -4,6 +4,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'WOOCOMMERCE_CONNECT_MAX_SELF_HELP_DEPTH' ) ) {
+	define( 'WOOCOMMERCE_CONNECT_MAX_SELF_HELP_DEPTH', 32 );
+}
+
 if ( class_exists( 'WC_REST_Connect_Self_Help_Controller' ) ) {
 	return;
 }
@@ -24,7 +28,13 @@ class WC_REST_Connect_Self_Help_Controller extends WP_REST_Controller {
 	 */
 	protected $rest_base = 'connect/self-help';
 
-	public function __construct() {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_Logger $logger ) {
+		$this->logger = $logger;
 	}
 
 	/**
@@ -33,59 +43,46 @@ class WC_REST_Connect_Self_Help_Controller extends WP_REST_Controller {
 	public function register_routes() {
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '', array(
 			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_items' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'methods'             => WP_REST_Server::EDITABLE,
+				'callback'            => array( $this, 'update_items' ),
+				'permission_callback' => array( $this, 'update_items_permissions_check' ),
 			),
 		) );
 	}
 
-	/**
-	 * Gets the last 10 lines from the WooCommerce Connect log, if it exists
-	 */
-	protected function get_debug_log_tail() {
 
-		if ( ! method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
-			return array(
-				__( 'Unable to retrieve log file contents. (scan_log_files not found)', 'woocommerce' )
+	/**
+	 * Attempts to update the settings on a particular service and instance
+	 */
+	public function update_items( $request ) {
+
+		$request_params = $request->get_params();
+		$request_body = $request->get_body();
+		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_SELF_HELP_DEPTH );
+
+		if ( empty( $settings ) || ! is_object( $settings ) || ! property_exists( $settings, 'wcc_debug_on' ) ) {
+			return new WP_Error( 'bad_form_data',
+				__( 'Unable to update settings. The form data could not be read.', 'woocommerce' ),
+				array( 'status' => 400 )
 			);
 		}
 
-		$logs = WC_Admin_Status::scan_log_files();
-
-		foreach ( $logs as $log_key => $log_file ) {
-			if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
-				$complete_log = file( WC_LOG_DIR . $log_file );
-				$log_tail = array_slice( $complete_log, -10 );
-				error_log( $log_tail );
-				return $log_tail;
-			}
+		error_log( "WCC DEBUG ON = {$settings->wcc_debug_on}" );
+		if ( 1 == $settings->wcc_debug_on ) {
+			$this->logger->enable_logging();
+		} else {
+			$this->logger->disable_logging();
 		}
 
-		return array(
-			__( 'Log is empty', 'woocommerce' )
-		);
-
-	}
-
-	/**
-	 * Attempts to get the items for the self-help page
-	 */
-	public function get_items( $request ) {
-		$response = array(
-			'success' => true,
-			'debug' => ( 'true' === get_option( '', 'false' ) ),
-			'debug_log_tail' => $this->get_debug_log_tail()
-		);
-
-		return new WP_REST_Response( $response, 200 );
+		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
 
 	/**
 	* Validate the requestor's permissions
 	*/
-	public function get_items_permissions_check( $request ) {
-		return true; // DO NOT COMMIT return current_user_can( 'manage_woocommerce' );
+	public function update_items_permissions_check( $request ) {
+		return current_user_can( 'manage_woocommerce' );
 	}
+
 
 }

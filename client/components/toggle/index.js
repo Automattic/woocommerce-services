@@ -17,9 +17,12 @@ const renderFieldDescription = ( description ) => {
 	);
 };
 
-const Toggle = ( { id, schema, checked, placeholder, updateValue } ) => {
-	console.log( 'checked=', checked );
-	const handleChangeEvent = () => updateValue( ! checked );
+const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) => {
+	const handleChangeEvent = () => {
+		updateValue( ! checked );
+		// TODO - see if this toggle wants to kick off a form save on change
+		saveForm();
+	};
 
 	return (
 		<FormFieldset>
@@ -46,6 +49,7 @@ Toggle.propTypes = {
 		description: PropTypes.string,
 	} ).isRequired,
 	checked: PropTypes.bool,
+	saveForm: PropTypes.func,
 	updateValue: PropTypes.func,
 };
 

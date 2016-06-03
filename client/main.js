@@ -17,9 +17,9 @@ const {
 	nonce,
 } = wcConnectData;
 
-const saveFormData = ( isSaving, setSuccess, setError, data ) => saveForm( isSaving, setSuccess, setError, callbackURL, nonce, data );
-
 const store = configureStore( initializeState( formSchema, formData ) );
+
+const onSaveForm = () => store.dispatch( saveForm( store, callbackURL, nonce ) );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
@@ -31,7 +31,7 @@ let render = () => {
 				storeOptions={ storeOptions }
 				schema={ formSchema }
 				layout={ formLayout }
-				saveFormData={ saveFormData }
+				saveForm={ onSaveForm }
 			/>
 		</Provider>,
 		rootEl

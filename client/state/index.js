@@ -1,4 +1,5 @@
-import { createStore, combineReducers } from 'redux';
+import { createStore, applyMiddleware, compose, combineReducers } from 'redux';
+import thunkMiddleware from 'redux-thunk';
 import settings from './settings/reducer';
 import form from './form/reducer';
 
@@ -15,7 +16,10 @@ const configureStore = ( initialState ) => {
 	const store = createStore(
 		rootReducer,
 		initialState,
-		window.devToolsExtension ? window.devToolsExtension() : f => f
+		compose(
+			applyMiddleware( thunkMiddleware ),
+			window.devToolsExtension ? window.devToolsExtension() : f => f
+		)
 	);
 
 	if ( module.hot ) {

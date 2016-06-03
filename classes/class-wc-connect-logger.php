@@ -46,9 +46,11 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		public function enable_logging() {
 			update_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, true );
 			$this->is_logging_enabled = true;
+			$this->log( "Logging enabled" );
 		}
 
 		public function disable_logging() {
+			$this->log( "Logging disabled" );
 			update_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, false );
 			$this->is_logging_enabled = false;
 		}

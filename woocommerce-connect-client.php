@@ -264,6 +264,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function rest_api_init() {
 			$schemas_store = $this->get_service_schemas_store();
 			$settings_store = $this->get_service_settings_store();
+			$logger = $this->get_logger();
 
 			//////////////////////////////////////////////////////////////////////////////
 			// TODO - Remove this when woocommerce/pull/10435 lands
@@ -283,7 +284,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_services_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-self-help-controller.php' ) );
-			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller();
+			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $logger );
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
 			$rest_self_help_controller->register_routes();
 		}

@@ -134,7 +134,8 @@ reducers[SAVE_PACKAGE] = ( state, action ) => {
 
 const settings = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {
-		return reducers[action.type]( state, action );
+		const newstate = reducers[action.type]( state, action );
+		return newstate;
 	}
 	return state;
 };

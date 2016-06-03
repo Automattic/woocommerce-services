@@ -17,37 +17,9 @@ import * as PackagesActions from 'state/form/packages/actions';
 const WCCSettingsForm = ( props ) => {
 	const {
 		layout,
-		settings,
-		saveFormData,
-		formActions,
-		noticeActions,
+		saveForm,
 	} = props;
 
-	const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
-	const setSuccess = ( value ) => {
-		formActions.setField( 'success', value );
-		if ( true === value ) {
-			noticeActions.successNotice( __( 'Your changes have been saved.' ), {
-				duration: 2250,
-			} );
-		}
-	};
-	const setError = ( value ) => {
-		formActions.setField( 'errors', value );
-
-		if ( isString( value ) ) {
-			noticeActions.errorNotice( value, {
-				duration: 7000,
-			} );
-		}
-
-		if ( isArray( value ) ) {
-			noticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
-				duration: 7000,
-			} );
-		}
-	};
-	const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
@@ -66,7 +38,7 @@ WCCSettingsForm.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
-	saveFormData: PropTypes.func.isRequired,
+	saveForm: PropTypes.func.isRequired,
 };
 
 /*
