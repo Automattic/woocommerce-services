@@ -111,11 +111,26 @@
         float:left;
     }
 
-    .form-text-input {
-        width: 78%;
+    &:nth-child(2) {
+        width: 100%;
+        @include breakpoint( '>660px' ) {
+            width: 54%;
+        }
+    }
+
+    #box_weight,
+    #max_weight {
+        width: 82%;
+    }
+
+    #max_weight {
+        @include breakpoint( '>660px' ) {
+            width: 68%;
+        }
     }
 
     .wcc-shipping-add-package-weight-unit {
+        width: 32%;
         padding-left: 8px;
     }
 }
