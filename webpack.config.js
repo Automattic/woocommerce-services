@@ -15,6 +15,7 @@ const babelSettings = {
 };
 
 module.exports = {
+	babelSettings,
 	cache: true,
 	entry: {
 		'woocommerce-connect-client': [ 'babel-polyfill', './client/main.js' ],
