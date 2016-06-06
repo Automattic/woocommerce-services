@@ -7,6 +7,9 @@ module.exports = {
 		'mocha': true,
 		'commonjs': true
 	},
+	'globals': {
+		'expect': true,
+	},
 	'ecmaFeatures': {
 		'jsx': true,
 		'modules': true

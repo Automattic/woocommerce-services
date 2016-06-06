@@ -6,3 +6,4 @@ dist
 .tmp
 npm-debug.log
 release
+coverage

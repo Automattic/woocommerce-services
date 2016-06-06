@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import settings from '../reducer';
 import {
 	updateSettingsField,

@@ -3,7 +3,6 @@ const path = require( 'path' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 
 const babelSettings = {
-	cacheDirectory: true,
 	presets: [
 		'es2015',
 		'stage-1',
@@ -16,6 +15,7 @@ const babelSettings = {
 };
 
 module.exports = {
+	babelSettings,
 	cache: true,
 	entry: {
 		'woocommerce-connect-client': [ 'babel-polyfill', './client/main.js' ],
