@@ -67,7 +67,7 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
-	const fieldClassName = is_user_defined ? '' : 'flat-rate-package__inner-dimensions__read-only';
+	const fieldClassName = is_user_defined ? null : 'flat-rate-package__inner-dimensions__read-only';
 	const isOuterDimensionsVisible = showOuterDimensions || outer_dimensions;
 	const exampleDimensions = [100.25, 25, 5.75].map( ( val ) => val.toLocaleString() ).join( ' x ' );
 
@@ -101,7 +101,7 @@ const AddPackageDialog = ( props ) => {
 	const fieldInfo = ( field, nonEmptyText ) => {
 		const altText = nonEmptyText || __( 'Invalid value' );
 		const text = '' === trim( packageData[field] ) ? __( 'This field is required' ) : altText;
-		return modalErrors[field] ? <FormInputValidation isError text={ text } /> : '';
+		return modalErrors[field] ? <FormInputValidation isError text={ text } /> : null;
 	};
 
 	return (
@@ -138,7 +138,7 @@ const AddPackageDialog = ( props ) => {
 					isError={ modalErrors.inner_dimensions }
 				/>
 				{ fieldInfo( 'inner_dimensions' ) }
-				{ ! isOuterDimensionsVisible ? <OuterDimensionsToggle { ...{ toggleOuterDimensions } }/> : '' }
+				{ ! isOuterDimensionsVisible ? <OuterDimensionsToggle { ...{ toggleOuterDimensions } }/> : null }
 			</FormFieldset>
 			{ isOuterDimensionsVisible
 				? ( <FormFieldset>
@@ -154,7 +154,7 @@ const AddPackageDialog = ( props ) => {
 						/>
 						{ fieldInfo( 'outer_dimensions' ) }
 					</FormFieldset> )
-				: ''
+				: null
 			}
 			<FormFieldset className="wcc-shipping-add-package-weight-group">
 				<div className="wcc-shipping-add-package-weight">
