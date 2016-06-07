@@ -1,16 +1,22 @@
 var webpack = require( 'webpack' ),
-	webpackBaseConfig = require( './webpack.config.js' ),
-	plugins = webpackBaseConfig.plugins || [],
-	output = webpackBaseConfig.output || {};
+	config = require( './webpack.config.js' );
 
-delete output.publicPath;
+delete config.output.publicPath;
+delete config.devtool;
 
-var productionConfig = Object.assign( {}, webpackBaseConfig, {
-		output,
-		plugins
-	} );
+config.plugins.push( new webpack.DefinePlugin( {
+	'process.env.NODE_ENV': '"production"'
+} ) );
 
-productionConfig.plugins.push( new webpack.optimize.UglifyJsPlugin() );
-productionConfig.plugins.push( new webpack.optimize.DedupePlugin() );
+config.plugins.push( new webpack.optimize.OccurrenceOrderPlugin( false ) );
 
-module.exports = productionConfig;
+config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
+	compress: {
+		warnings: false,
+		unsafe: true,
+	},
+} ) );
+
+config.plugins.push( new webpack.optimize.DedupePlugin() );
+
+module.exports = config;
