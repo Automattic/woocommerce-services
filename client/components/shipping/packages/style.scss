@@ -144,7 +144,6 @@
     .form-setting-explanation {
         @include breakpoint( '>660px' ) {
             clear: both;
-            margin-top: 68px;
         }
     }
 }

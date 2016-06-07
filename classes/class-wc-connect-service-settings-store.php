@@ -182,7 +182,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				case 'yd':
 					return __('yd', 'woocommerce');
 				default:
-					error_log( 'Unexpected measurement unit: ' . $value );
+					$this->logger->log( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
 					return $value;
 			}
 		}
