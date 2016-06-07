@@ -62,6 +62,7 @@ const SettingsItem = ( {
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
 					errors={ errors }
+					schema={ fieldSchema }
 				/>
 			);
 

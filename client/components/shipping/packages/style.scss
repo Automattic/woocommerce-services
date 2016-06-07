@@ -128,7 +128,7 @@
 .wcc-shipping-add-package-weight-group {
     .form-setting-explanation {
         @include breakpoint( '>480px' ) {
-            margin-top: 68px;
+            clear: both;
         }
     }
 }
