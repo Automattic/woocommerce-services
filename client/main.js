@@ -56,7 +56,7 @@ const onError = ( value ) => {
 	}
 };
 
-const onSaveForm = () => saveForm( onSaving, onSuccess, onError, callbackURL, nonce, store );
+const onSaveForm = () => saveForm( onSaving, onSuccess, onError, callbackURL, nonce, store.getState().settings );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 

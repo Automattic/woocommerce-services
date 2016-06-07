@@ -1,4 +1,4 @@
-const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, store ) => {
+const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => {
 	setIsSaving( true );
 	const request = {
 		method: 'PUT',
@@ -6,7 +6,7 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, store ) => {
 		headers: {
 			'X-WP-Nonce': nonce,
 		},
-		body: JSON.stringify( store.getState().settings ),
+		body: JSON.stringify( formData ),
 	};
 
 	return fetch( url, request ).then( response => {
