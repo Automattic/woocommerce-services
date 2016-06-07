@@ -1,9 +1,11 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
+import CheckBox from 'components/forms/form-checkbox';
 import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
+import every from 'lodash/every';
 
 const summaryLabel = ( services ) => {
 	const numSelected = services.reduce( ( count, service ) => (
@@ -16,14 +18,19 @@ const summaryLabel = ( services ) => {
 	return sprintf( format, numSelected );
 };
 
-const ShippingServiceGroup = ( {
-	title,
-	services,
-	currencySymbol,
-	updateValue,
-	settingsKey,
-	errors,
-} ) => {
+const updateAll = ( event, updateValue, services ) => {
+	services.forEach( ( service ) => {
+		updateValue( service.id, 'enabled', event.target.checked );
+	} )
+};
+
+const ShippingServiceGroup = ( props ) => {
+	const {
+		title,
+		services,
+		updateValue,
+		errors,
+	} = props;
 	const summary = summaryLabel( services );
 	const actionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
@@ -31,6 +38,8 @@ const ShippingServiceGroup = ( {
 			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
+	const allChecked = every( services, ( service ) => service.enabled );
+
 	return (
 		<FoldableCard
 			header={ title }
@@ -42,23 +51,19 @@ const ShippingServiceGroup = ( {
 			actionButtonExpanded={ actionButton }
 			expanded={ Boolean( errors && errors.length ) }
 		>
-			{ services.map( service => {
-				return (
-					<ShippingServiceEntry
-						key={ service.id }
-						enabled={ service.enabled }
-						title={ service.name }
-						adjustment={ service.adjustment }
-						adjustment_type={ service.adjustment_type }
-						currencySymbol={ currencySymbol }
-						updateValue={ ( key, val ) => updateValue( service.id, key, val ) }
-						settingsKey={ settingsKey }
-						hasError={ errors.find( ( error ) => (
-							error.length && ( error[0] === service.id ) )
-						) }
+			<div className="wcc-shipping-service-entry multi-select-header">
+				<label className="wcc-shipping-service-entry-title">
+					<CheckBox
+						onClick={ ( event ) => event.stopPropagation() }
+						onChange={ ( event ) => updateAll( event, updateValue, services ) }
+						checked={ allChecked }
 					/>
-				);
-			} ) }
+				<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
+					<span className="wcc-shipping-service-header price-adjustment">{ __( 'Price adjustment' ) }</span>
+				</label>
+			</div>
+
+			{ services.map( ( service, idx ) => <ShippingServiceEntry { ...props } { ...{ service } } key={ idx }/> ) }
 		</FoldableCard>
 	);
 };
@@ -75,9 +80,7 @@ ShippingServiceGroup.propTypes = {
 		] ),
 		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
-	currencySymbol: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
-	settingsKey: PropTypes.string.isRequired,
 };
 
 export default ShippingServiceGroup;
