@@ -1,5 +1,9 @@
 import trim from 'lodash/trim';
 
+const string = ( value ) => {
+	return trim( value );
+};
+
 const leftPoint = /^\.\d+$/;
 const rightPoint = /^\d+\.$/;
 
@@ -26,6 +30,7 @@ const dimensions = ( value ) => {
 };
 
 export default {
+	string,
 	number,
 	dimensions,
 };

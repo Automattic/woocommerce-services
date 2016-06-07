@@ -75,6 +75,7 @@ const AddPackageDialog = ( props ) => {
 		const editName = 'number' === typeof packageData.index ? packages[packageData.index].name : null;
 		const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
 		const filteredPackageData = Object.assign( {}, packageData, {
+			name: inputFilters.string( packageData.name ),
 			inner_dimensions: inputFilters.dimensions( packageData.inner_dimensions ),
 			outer_dimensions: inputFilters.dimensions( packageData.outer_dimensions ),
 			box_weight: inputFilters.number( packageData.box_weight ),
