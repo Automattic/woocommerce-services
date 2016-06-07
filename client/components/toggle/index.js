@@ -20,8 +20,9 @@ const renderFieldDescription = ( description ) => {
 const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) => {
 	const handleChangeEvent = () => {
 		updateValue( ! checked );
-		// TODO - see if this toggle wants to kick off a form save on change
-		saveForm();
+		if ( schema.saveontoggle && saveForm ) {
+			saveForm();
+		}
 	};
 
 	return (

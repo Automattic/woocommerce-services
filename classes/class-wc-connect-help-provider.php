@@ -279,7 +279,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'type' => 'boolean',
 				'text' => __( 'Enabled', 'woocommerce' ),
 				'description' => '',
-				'value' => $this->logger->is_logging_enabled()
+				'value' => $this->logger->is_logging_enabled(),
+				'saveontoggle' => true
 			);
 
 			// add connect log tail
@@ -423,6 +424,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 							'type' => 'boolean',
 							'text' => property_exists( $fieldsetitem, 'text' ) ? $fieldsetitem->text : '',
 							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
+							'saveontoggle' => property_exists( $fieldsetitem, 'saveontoggle' ) ? $fieldsetitem->saveontoggle : '',
 						);
 					}
 				}
