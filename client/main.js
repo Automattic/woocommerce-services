@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import configureStore from 'state';
 import '../assets/stylesheets/style.scss';
 import initializeState from './lib/initialize-state';
-import saveForm from 'lib/save-form';
+import saveForm from './lib/save-form';
 import './lib/calypso-boot';
 
 const {
