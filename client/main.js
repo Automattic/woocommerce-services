@@ -5,7 +5,12 @@ import { Provider } from 'react-redux'
 import configureStore from 'state';
 import '../assets/stylesheets/style.scss';
 import initializeState from './lib/initialize-state';
-import saveForm from './lib/save-form';
+import { successNotice, errorNotice } from 'state/notices/actions';
+import isString from 'lodash/isString';
+import isArray from 'lodash/isArray';
+import { translate as __ } from 'lib/mixins/i18n';
+import { setField } from 'state/form/actions.js';
+import saveForm from 'lib/save-form';
 import './lib/calypso-boot';
 
 const {
@@ -19,7 +24,35 @@ const {
 
 const store = configureStore( initializeState( formSchema, formData ) );
 
-const onSaveForm = () => store.dispatch( saveForm( store, callbackURL, nonce ) );
+const onSaving = ( value ) => store.dispatch(
+	setField( 'isSaving', value )
+);
+
+const onSuccess = () => store.dispatch(
+	successNotice( __( 'Your changes have been saved.' ), { duration: 2250 } )
+);
+
+const onError = ( value ) => {
+	if ( isString( value ) ) {
+		store.dispatch(
+			errorNotice(
+				value,
+				{ duration: 7000 }
+			)
+		);
+	}
+
+	if ( isArray( value ) ) {
+		store.dispatch(
+			errorNotice(
+				__( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ),
+				{ duration: 7000 }
+			)
+		);
+	}
+};
+
+const onSaveForm = () => saveForm( onSaving, onSuccess, onError, callbackURL, nonce, store );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
