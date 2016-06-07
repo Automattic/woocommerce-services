@@ -8,6 +8,7 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
+import isEmpty from 'lodash/isEmpty';
 import { translate as __ } from 'lib/mixins/i18n';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
@@ -77,6 +78,10 @@ WCCSettingsForm.propTypes = {
  * This removes the `data.` prepending all errors, to facilitate easier matching to form fields.
  */
 const removeErrorDataPathRoot = ( errantFields ) => {
+	if ( isEmpty( errantFields ) || ! isArray( errantFields ) ) {
+		return [];
+	}
+
 	return errantFields.map( ( field ) => {
 		const errorPath = ObjectPath.parse( field );
 		if ( 'data' === errorPath[0] ) {
