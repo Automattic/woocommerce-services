@@ -314,11 +314,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// hide WP native save button on settings page
 			global $hide_save_button;
 			$hide_save_button = true;
+			$debug_page_uri = esc_url( add_query_arg(
+				array(
+					'page' => 'wc-status',
+					'tab' => 'connect'
+				),
+				admin_url( 'admin.php' )
+			) );
 
 			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
 
 			?>
-				<div id="wc-connect-admin-container"></div>
+				<div id="wc-connect-admin-container"><span class="form-troubles" style="opacity: 0"><?php printf( __( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?></span></div>
 			<?php
 		}
 
