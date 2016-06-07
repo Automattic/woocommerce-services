@@ -28,9 +28,13 @@ const onSaving = ( value ) => store.dispatch(
 	setField( 'isSaving', value )
 );
 
-const onSuccess = () => store.dispatch(
-	successNotice( __( 'Your changes have been saved.' ), { duration: 2250 } )
-);
+const onSuccess = ( value ) => {
+	if ( true === value ) {
+		store.dispatch(
+			successNotice( __( 'Your changes have been saved.' ), { duration: 2250 } )
+		);
+	}
+};
 
 const onError = ( value ) => {
 	if ( isString( value ) ) {
