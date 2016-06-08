@@ -289,7 +289,14 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				$description = '';
 				$log_tail = __( 'Log is empty', 'woocommerce' );
 			} else {
-				$url = admin_url( 'admin.php?page=wc-status&tab=logs&log_file=' . $log_data->key );
+				$url = add_query_arg(
+					array(
+						'page' => 'wc-status',
+						'tab' => 'logs',
+						'log_file' => $log_data->key
+					),
+					admin_url( 'admin.php' )
+				);
 				$description = sprintf(
 					wp_kses(
 						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce' ),
