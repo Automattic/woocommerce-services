@@ -19,8 +19,18 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => 
 				return setSuccess( true );
 			}
 
-			if ( json.data && 'validation_failure' === json.data.error ) {
-				return setError( json.data.data.fields );
+			if ( json.data &&
+				'validation_failure' === json.data.error &&
+				json.data.data &&
+				json.data.data.fields
+			) {
+				if ( json.data.data.fields ) {
+					return setError( json.data.data.fields );
+				}
+			}
+
+			if ( json.data.message ) {
+				return setError( json.data.message );
 			}
 
 			return setError( JSON.stringify( json ) )
