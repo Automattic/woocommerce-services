@@ -467,6 +467,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
 			wp_register_style( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
 			wp_register_script( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
+
+			require_once( plugin_basename( 'i18n/strings.php' ) );
+			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
 		}
 
 		public function get_active_shipping_services() {
