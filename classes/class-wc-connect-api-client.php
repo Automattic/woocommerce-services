@@ -193,6 +193,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'last_heartbeat' => get_option( 'wc_connect_last_heartbeat', 0 ),
 				'last_rate_request' => get_option( 'wc_connect_last_rate_request', 0 ),
 				'active_services' => $this->wc_connect_loader->get_active_services(),
+				'disable_stats' => Jetpack::is_staging_site(),
 			) );
 
 			$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );

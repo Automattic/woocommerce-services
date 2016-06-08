@@ -145,6 +145,14 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					__( 'Please connect Jetpack to WordPress.com', 'woocommerce' ),
 					''
 				);
+			} else if ( Jetpack::is_staging_site() ) {
+				$health_item = $this->build_indicator(
+					'jetpack_indicator',
+					'notice',
+					'indicator-warning',
+					__( 'This is a Jetpack staging site', 'woocommerce' ),
+					''
+				);
 			} else {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
