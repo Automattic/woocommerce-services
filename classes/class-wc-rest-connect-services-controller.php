@@ -4,10 +4,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH' ) ) {
-	define( 'WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH', 32 );
-}
-
 if ( class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 	return;
 }
@@ -74,7 +70,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 		}
 
 		$request_body = $request->get_body();
-		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_SETTINGS_DEPTH );
+		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
 		if ( empty( $settings ) ) {
 			return new WP_Error( 'bad_form_data',

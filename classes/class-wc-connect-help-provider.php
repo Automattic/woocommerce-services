@@ -285,7 +285,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			// add connect log tail
 			$log_data = $this->get_debug_log_data();
-			if ( count( $log_data->tail ) < 1 ) {
+			$log_tail_line_count = count( $log_data->tail );
+			if ( $log_tail_line_count < 1 ) {
 				$description = '';
 				$log_tail = __( 'Log is empty', 'woocommerce' );
 			} else {
@@ -301,13 +302,13 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					wp_kses(
 						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce' ),
 						array(  'a' => array( 'href' => array() ) ) ),
-					count( $log_data->tail ),
+					$log_tail_line_count,
 					esc_url( $url )
 				);
 				$log_tail = implode( $log_data->tail, '' );
 			}
 
-			$debug_items[] =	(object) array(
+			$debug_items[] = (object) array(
 				'key' => 'wcc_debug_log_tail',
 				'title' => __( 'Debug Log', 'woocommerce' ),
 				'type' => 'textarea',
@@ -431,7 +432,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 							'type' => 'boolean',
 							'text' => property_exists( $fieldsetitem, 'text' ) ? $fieldsetitem->text : '',
 							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
-							'saveontoggle' => property_exists( $fieldsetitem, 'saveontoggle' ) ? $fieldsetitem->saveontoggle : '',
+							'saveontoggle' => property_exists( $fieldsetitem, 'saveontoggle' ) ? $fieldsetitem->saveontoggle : false,
 						);
 					}
 				}
@@ -516,8 +517,6 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			$form_schema = new stdClass();
 			$form_schema->properties = new stdClass();
-
-			$path = "/wc/v1/connect/self-help";
 
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_shared_settings(),

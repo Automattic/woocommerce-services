@@ -16,7 +16,8 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		public function __construct( WC_Logger $logger ) {
 
 			$this->logger = $logger;
-			$this->is_logging_enabled = ( 1 == get_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, 0 ) );
+
+			$this->is_logging_enabled = ( '1' === get_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, '0' ) );
 
 		}
 
