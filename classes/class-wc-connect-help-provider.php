@@ -15,15 +15,22 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $logger;
+
+		/**
 		 * @array
 		 */
 		protected $fieldsets;
 
 		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_Service_Settings_Store $service_settings_store ) {
+			WC_Connect_Service_Settings_Store $service_settings_store,
+			WC_Connect_Logger $logger ) {
 
 			$this->service_schemas_store = $service_schemas_store;
 			$this->service_settings_store = $service_settings_store;
+			$this->logger = $logger;
 			$this->help_sections = array();
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
@@ -97,7 +104,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			}
 			$health_items[] = (object) array(
 				'key' => 'woocommerce_health_items',
-				'title' => __( 'WooCommerce' ),
+				'title' => __( 'WooCommerce', 'woocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'woocommerce_indicator' => $health_item
@@ -167,7 +174,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			}
 			$health_items[] = (object) array(
 				'key' => 'jetpack_health_items',
-				'title' => __( 'Jetpack' ),
+				'title' => __( 'Jetpack', 'woocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'jetpack_indicator' => $health_item
@@ -231,7 +238,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			$health_items[] =	(object) array(
 				'key' => 'wcc_health_items',
-				'title' => __( 'WooCommerce Connect Service Data' ),
+				'title' => __( 'WooCommerce Connect Service Data', 'woocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'wcc_indicator' => $health_item
@@ -245,8 +252,81 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			return array();
 		}
 
+		/**
+		 * Gets the last 10 lines from the WooCommerce Connect log, if it exists
+		 */
+		protected function get_debug_log_data() {
+			$data = new stdClass;
+			$data->key = '';
+			$data->file = '';
+			$data->tail = array();
+
+			if ( method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
+				$logs = WC_Admin_Status::scan_log_files();
+
+				foreach ( $logs as $log_key => $log_file ) {
+					if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
+						$complete_log = file( WC_LOG_DIR . $log_file );
+						$data->key = $log_key;
+						$data->file = $log_file;
+						$data->tail = array_slice( $complete_log, -10 );
+					}
+				}
+			}
+
+			return $data;
+		}
+
 		protected function get_debug_items() {
-			return array();
+			$debug_items = array();
+
+			// add debug on/off boolean
+			$debug_items[] = (object) array(
+				'key' => 'wcc_debug_on',
+				'title' => 'Debug Logging',
+				'type' => 'boolean',
+				'true_text' => __( 'Enabled', 'woocommerce' ),
+				'false_text' => __( 'Disabled', 'woocommerce' ),
+				'description' => '',
+				'value' => $this->logger->is_logging_enabled(),
+				'save_on_toggle' => true
+			);
+
+			// add connect log tail
+			$log_data = $this->get_debug_log_data();
+			$log_tail_line_count = count( $log_data->tail );
+			if ( $log_tail_line_count < 1 ) {
+				$description = '';
+				$log_tail = __( 'Log is empty', 'woocommerce' );
+			} else {
+				$url = add_query_arg(
+					array(
+						'page' => 'wc-status',
+						'tab' => 'logs',
+						'log_file' => $log_data->key
+					),
+					admin_url( 'admin.php' )
+				);
+				$description = sprintf(
+					wp_kses(
+						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce' ),
+						array(  'a' => array( 'href' => array() ) ) ),
+					$log_tail_line_count,
+					esc_url( $url )
+				);
+				$log_tail = implode( $log_data->tail, '' );
+			}
+
+			$debug_items[] = (object) array(
+				'key' => 'wcc_debug_log_tail',
+				'title' => __( 'Debug Log', 'woocommerce' ),
+				'type' => 'textarea',
+				'description' => $description,
+				'readonly' => true,
+				'value' => $log_tail
+			);
+
+			return $debug_items;
 		}
 
 		protected function get_support_items() {
@@ -347,7 +427,24 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 						}
 					}
 
-					// TODO - support other types like toggles, textareas
+					if ( 'textarea' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'title' => $fieldsetitem->title,
+							'type' => 'string', // textarea is a layout concept, not a schema concept
+							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
+						);
+					}
+
+					if ( 'boolean' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'title' => $fieldsetitem->title,
+							'type' => 'boolean',
+							'trueText' => property_exists( $fieldsetitem, 'true_text' ) ? $fieldsetitem->true_text : '',
+							'falseText' => property_exists( $fieldsetitem, 'false_text' ) ? $fieldsetitem->false_text : '',
+							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
+							'saveOnToggle' => property_exists( $fieldsetitem, 'save_on_toggle' ) ? $fieldsetitem->save_on_toggle : false,
+						);
+					}
 				}
 			}
 
@@ -373,13 +470,18 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			foreach ( $this->fieldsets as $fieldset ) {
 
 				// Filter the fieldset's items to only include key and type
-				// since that is all form layout items should have in them
+				// and possibly readonly since that is all form layout items
+				// should have in them
 				$items = array();
 				foreach( $fieldset[ 'items' ] as $fieldsetitem ) {
-					$items[] = (object) array(
+					$item = array(
 						'key' => $fieldsetitem->key,
 						'type' => $fieldsetitem->type
 					);
+					if ( property_exists( $fieldsetitem, 'readonly' ) ) {
+						$item['readonly'] = $fieldsetitem->readonly;
+					}
+					$items[] = (object) $item;
 				}
 
 				$form_layout[] = (object) array(
@@ -408,6 +510,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
 					if ( 'indicators' === $fieldsetitem->type ) {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
+					} else {
+						$form_data[ $fieldsetitem->key ] = $fieldsetitem->value;
 					}
 				}
 			}
@@ -429,8 +533,8 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'formSchema'   => $this->get_form_schema(),
 				'formLayout'   => $this->get_form_layout(),
 				'formData'     => $this->get_form_data(),
-				'callbackURL'  => '', // TODO
-				'nonce'        => '', // TODO
+				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/self-help" ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

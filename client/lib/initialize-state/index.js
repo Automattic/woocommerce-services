@@ -7,6 +7,7 @@ const getItemValue = ( schema, value, definitions ) => {
 		case 'number':
 			return value || schema.default || 0;
 		case 'string':
+		case 'textarea':
 			return value || schema.default || '';
 		case 'array':
 			return value || schema.default || [];

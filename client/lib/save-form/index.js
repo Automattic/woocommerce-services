@@ -33,7 +33,7 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => 
 				return setError( json.data.message );
 			}
 
-			return setError( JSON.stringify( json ) )
+			return setError( JSON.stringify( json ) );
 		} );
 	} ).catch( ( e ) => {
 		setIsSaving( false );

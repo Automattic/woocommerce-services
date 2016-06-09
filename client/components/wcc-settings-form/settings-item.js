@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 import Indicators from 'components/indicators';
+import TextArea from 'components/text-area';
 import TextField from 'components/text-field';
+import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
@@ -14,6 +16,7 @@ const SettingsItem = ( {
 	storeOptions,
 	packagesActions,
 	errors,
+	saveForm,
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
@@ -69,9 +72,33 @@ const SettingsItem = ( {
 		case 'indicators':
 			return (
 				<Indicators
-					layout={ layout }
 					schema={ schema.properties[id] }
 					indicators={ Object.values( settings[id] ) }
+				/>
+			);
+
+		case 'textarea':
+			return (
+				<TextArea
+					error={ fieldError }
+					id={ id }
+					layout={ layout }
+					placeholder={ layout.placeholder }
+					required={ fieldRequired }
+					schema={ fieldSchema }
+					updateValue={ updateValue }
+					value={ fieldValue }
+				/>
+			);
+
+		case 'boolean':
+			return (
+				<Toggle
+					checked={ fieldValue }
+					id={ id }
+					schema={ fieldSchema }
+					saveForm={ saveForm }
+					updateValue={ updateValue }
 				/>
 			);
 
@@ -102,6 +129,7 @@ SettingsItem.propTypes = {
 	settingsActions: PropTypes.object.isRequired,
 	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.array,
+	saveForm: PropTypes.func,
 };
 
 export default SettingsItem;

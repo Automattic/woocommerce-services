@@ -17,9 +17,9 @@ const {
 	nonce,
 } = wcConnectData;
 
-const saveFormData = ( isSaving, setSuccess, setError, data ) => saveForm( isSaving, setSuccess, setError, callbackURL, nonce, data );
-
 const store = configureStore( initializeState( formSchema, formData ) );
+
+const saveFormData = ( setIsSaving, setSuccess, setError, filterStoreOnSave ) => saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, filterStoreOnSave( store ) );
 
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 

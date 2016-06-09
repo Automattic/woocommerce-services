@@ -1,0 +1,10 @@
+.form-textarea {
+	font-size: 12px;
+	height: 195px;
+	resize: none;
+	white-space: pre;
+
+	&#wcc_debug_log_tail {
+		font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", Monaco, "Courier New", Courier, monospace;
+	}
+}

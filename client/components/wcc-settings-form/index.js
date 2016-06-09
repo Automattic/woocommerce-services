@@ -18,7 +18,6 @@ import * as PackagesActions from 'state/form/packages/actions';
 const WCCSettingsForm = ( props ) => {
 	const {
 		layout,
-		settings,
 		saveFormData,
 		formActions,
 		noticeActions,
@@ -48,7 +47,12 @@ const WCCSettingsForm = ( props ) => {
 			} );
 		}
 	};
-	const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, settings );
+
+	const filterStoreOnSave = ( store ) => {
+		return store.getState().settings;
+	};
+
+	const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, filterStoreOnSave );
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
