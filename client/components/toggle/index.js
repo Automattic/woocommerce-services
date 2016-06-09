@@ -20,7 +20,7 @@ const renderFieldDescription = ( description ) => {
 const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) => {
 	const handleChangeEvent = () => {
 		updateValue( ! checked );
-		if ( schema.saveontoggle && saveForm ) {
+		if ( schema.saveOnToggle && saveForm ) {
 			saveForm();
 		}
 	};
@@ -35,7 +35,7 @@ const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) =
 				checked={ checked }
 				onChange={ handleChangeEvent }
 			/>
-			{ renderToggleText( schema.text ) }
+		{ renderToggleText( checked ? schema.trueText : schema.falseText ) }
 			{ renderFieldDescription( schema.description ) }
 		</FormFieldset>
 	);
@@ -46,7 +46,9 @@ Toggle.propTypes = {
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'string' ),
 		title: PropTypes.string.isRequired,
-		text: PropTypes.string,
+		trueText: PropTypes.string,
+		falseText: PropTypes.string,
+		saveOnToggle: PropTypes.bool,
 		description: PropTypes.string,
 	} ).isRequired,
 	checked: PropTypes.bool,

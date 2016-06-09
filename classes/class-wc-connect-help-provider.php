@@ -277,10 +277,11 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'key' => 'wcc_debug_on',
 				'title' => 'Debug Logging',
 				'type' => 'boolean',
-				'text' => __( 'Enabled', 'woocommerce' ),
+				'true_text' => __( 'Enabled', 'woocommerce' ),
+				'false_text' => __( 'Disabled', 'woocommerce' ),
 				'description' => '',
 				'value' => $this->logger->is_logging_enabled(),
-				'saveontoggle' => true
+				'save_on_toggle' => true
 			);
 
 			// add connect log tail
@@ -430,9 +431,10 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 						$form_properties[ $fieldsetitem->key ] = array(
 							'title' => $fieldsetitem->title,
 							'type' => 'boolean',
-							'text' => property_exists( $fieldsetitem, 'text' ) ? $fieldsetitem->text : '',
+							'trueText' => property_exists( $fieldsetitem, 'true_text' ) ? $fieldsetitem->true_text : '',
+							'falseText' => property_exists( $fieldsetitem, 'false_text' ) ? $fieldsetitem->false_text : '',
 							'description' => property_exists( $fieldsetitem, 'description' ) ? $fieldsetitem->description : '',
-							'saveontoggle' => property_exists( $fieldsetitem, 'saveontoggle' ) ? $fieldsetitem->saveontoggle : false,
+							'saveOnToggle' => property_exists( $fieldsetitem, 'save_on_toggle' ) ? $fieldsetitem->save_on_toggle : false,
 						);
 					}
 				}
