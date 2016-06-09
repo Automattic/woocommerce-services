@@ -69,11 +69,11 @@ const AddPackageDialog = ( props ) => {
 
 	const fieldClassName = is_user_defined ? null : 'flat-rate-package__inner-dimensions__read-only';
 	const isOuterDimensionsVisible = showOuterDimensions || outer_dimensions;
-	const exampleDimensions = [100.25, 25, 5.75].map( ( val ) => val.toLocaleString() ).join( ' x ' );
+	const exampleDimensions = [ 100.25, 25, 5.75 ].map( ( val ) => val.toLocaleString() ).join( ' x ' );
 
 	const onSave = () => {
-		const editName = 'number' === typeof packageData.index ? packages[packageData.index].name : null;
-		const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [editName] );
+		const editName = 'number' === typeof packageData.index ? packages[ packageData.index ].name : null;
+		const boxNames = difference( packages.map( ( boxPackage ) => boxPackage.name ), [ editName ] );
 		const filteredPackageData = Object.assign( {}, packageData, {
 			name: inputFilters.string( packageData.name ),
 			inner_dimensions: inputFilters.dimensions( packageData.inner_dimensions ),
@@ -96,13 +96,13 @@ const AddPackageDialog = ( props ) => {
 		const key = event.target.name;
 		const value = event.target.value;
 		setModalErrors( omit( modalErrors, key ) );
-		updatePackagesField( { [key]: value } );
+		updatePackagesField( { [ key ]: value } );
 	};
 
 	const fieldInfo = ( field, nonEmptyText ) => {
 		const altText = nonEmptyText || __( 'Invalid value' );
-		const text = '' === trim( packageData[field] ) ? __( 'This field is required' ) : altText;
-		return modalErrors[field] ? <FormInputValidation isError text={ text } /> : null;
+		const text = '' === trim( packageData[ field ] ) ? __( 'This field is required' ) : altText;
+		return modalErrors[ field ] ? <FormInputValidation isError text={ text } /> : null;
 	};
 
 	return (

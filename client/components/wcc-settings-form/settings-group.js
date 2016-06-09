@@ -9,7 +9,7 @@ const filterErrorsForItem = ( groupErrors, itemKey ) => {
 
 	groupErrors.forEach( ( errorPath ) => {
 		// Collect errant fields that have the current item as a parent
-		if ( itemKey === errorPath[0] ) {
+		if ( itemKey === errorPath[ 0 ] ) {
 			itemErrors.push( errorPath.slice( 1 ) );
 		}
 	} );

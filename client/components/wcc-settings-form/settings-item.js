@@ -24,8 +24,8 @@ const SettingsItem = ( {
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
-	const fieldValue = settings[id];
-	const fieldSchema = schema.properties[id];
+	const fieldValue = settings[ id ];
+	const fieldSchema = schema.properties[ id ];
 	const fieldError = ( errors && errors.length ) ? ( layout.validation_hint || '' ) : false;
 
 	switch ( layout.type ) {
@@ -72,8 +72,8 @@ const SettingsItem = ( {
 		case 'indicators':
 			return (
 				<Indicators
-					schema={ schema.properties[id] }
-					indicators={ Object.values( settings[id] ) }
+					schema={ schema.properties[ id ] }
+					indicators={ Object.values( settings[ id ] ) }
 				/>
 			);
 

@@ -26,7 +26,7 @@ const ShippingServiceEntry = ( props ) => {
 	} = service;
 
 	const updateField = ( key, value ) => updateValue( service.id, key, value );
-	const hasError = errors.find( ( error ) => error.length && ( error[0] === service.id ) );
+	const hasError = errors.find( ( error ) => error.length && ( error[ 0 ] === service.id ) );
 
 	return (
 		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) }>

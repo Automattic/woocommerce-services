@@ -20,7 +20,7 @@ const defaultPackages = {
 };
 
 const getOptionGroups = ( presets ) => {
-	const groups = [defaultPackages];
+	const groups = [ defaultPackages ];
 	if ( presets ) {
 		groups.push( {
 			label: presets.title,
@@ -38,8 +38,8 @@ const getOptionGroups = ( presets ) => {
 
 const handleSelectEvent = ( e, selectDefault, selectPreset, setSelectedPreset ) => {
 	const parts = e.target.value.split( '_' );
-	const type = parts[0];
-	const id = parts[1];
+	const type = parts[ 0 ];
+	const id = parts[ 1 ];
 	setSelectedPreset( e.target.value );
 	switch ( type ) {
 		case 'default':
@@ -51,7 +51,7 @@ const handleSelectEvent = ( e, selectDefault, selectPreset, setSelectedPreset ) 
 
 const AddPackagePresets = ( { selectedPreset, setSelectedPreset, presets, setModalErrors, updatePackagesField } ) => {
 	const onSelectPreset = ( idx ) => {
-		const preset = presets.boxes[idx];
+		const preset = presets.boxes[ idx ];
 		setModalErrors( {} );
 		updatePackagesField( {
 			index: null,

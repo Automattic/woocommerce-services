@@ -8,7 +8,7 @@ import { sanitize } from 'dompurify';
 
 const renderFieldDescription = ( description ) => {
 	return (
-		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: ['target'] } ) } } /> : null
+		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: [ 'target' ] } ) } } /> : null
 	);
 };
 

@@ -21,7 +21,7 @@ const getItemValue = ( schema, value, definitions ) => {
 export default ( schema, values ) => {
 	const formValues = {};
 	Object.keys( schema.properties ).forEach( ( key ) => {
-		formValues[key] = getItemValue( schema.properties[key], values[key], schema.definitions );
+		formValues[ key ] = getItemValue( schema.properties[ key ], values[ key ], schema.definitions );
 	} );
 
 	return {

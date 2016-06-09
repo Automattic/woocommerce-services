@@ -24,7 +24,7 @@ const RadioButtons = ( { layout, schema, value, setValue } ) => {
 						value={ key }
 						currentValue={ value }
 						setValue={ setValue }
-						description={ layout.titleMap[key] }
+						description={ layout.titleMap[ key ] }
 					/>
 				);
 			} ) }

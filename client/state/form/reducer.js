@@ -8,16 +8,16 @@ import * as settingsActions from '../settings/actions';
 
 const reducers = {};
 
-reducers[UPDATE_FORM_ELEMENT_FIELD] = ( state, action ) => {
+reducers[ UPDATE_FORM_ELEMENT_FIELD ] = ( state, action ) => {
 	const newObj = {};
-	newObj[action.element] = {};
-	newObj[action.element][action.field] = action.value;
+	newObj[ action.element ] = {};
+	newObj[ action.element ][ action.field ] = action.value;
 	return Object.assign( {}, state, newObj );
 };
 
-reducers[SET_FIELD] = ( state, action ) => {
+reducers[ SET_FIELD ] = ( state, action ) => {
 	const newObj = {};
-	newObj[action.field] = action.value;
+	newObj[ action.field ] = action.value;
 	return Object.assign( {}, state, newObj );
 };
 
@@ -25,7 +25,7 @@ export default function form( state = {}, action ) {
 	let newState = Object.assign( {}, state );
 
 	if ( reducers.hasOwnProperty( action.type ) ) {
-		newState = reducers[action.type]( state, action );
+		newState = reducers[ action.type ]( state, action );
 	}
 
 	if ( state.hasOwnProperty( 'packages' ) || packagesActions.hasOwnProperty( action.type ) ) {

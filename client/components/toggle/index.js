@@ -13,7 +13,7 @@ const renderToggleText = ( text ) => {
 
 const renderFieldDescription = ( description ) => {
 	return (
-		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: ['target'] } ) } } /> : null
+		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: [ 'target' ] } ) } } /> : null
 	);
 };
 

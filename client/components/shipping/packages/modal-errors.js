@@ -8,7 +8,7 @@ const processErrors = ( errors ) => {
 	return reduce( errors, ( result, value ) => {
 		if ( value.field ) {
 			const key = value.field.replace( 'data.', '' );
-			Object.assign( result, { [key]: true, any: true } );
+			Object.assign( result, { [ key ]: true, any: true } );
 		}
 
 		return result;
