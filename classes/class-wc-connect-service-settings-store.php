@@ -43,6 +43,62 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
+		 * Returns the service type and id for each enabled WooCommerce Connect service
+		 *
+		 * Shipping services also include instance_id and shipping zone id
+		 *
+		 * Note that at this time, only shipping services exist, but this method will
+		 * return other services in the future
+		 *
+		 * @return array
+		 */
+		public function get_enabled_services() {
+
+			$enabled_services = array();
+
+			$shipping_services = $this->service_schemas_store->get_all_service_ids_of_type( 'shipping' );
+			if ( empty( $shipping_services ) ) {
+				return $enabled_services;
+			}
+
+			// Note: We use esc_sql here instead of prepare because we are using WHERE IN
+			// https://codex.wordpress.org/Function_Reference/esc_sql
+
+			$escaped_list = '';
+			foreach ( $shipping_services as $shipping_service ) {
+				if ( ! empty( $escaped_list ) ) {
+					$escaped_list .= ',';
+				}
+				$escaped_list .= "'" . esc_sql( $shipping_service ) . "'";
+			}
+
+			global $wpdb;
+			$methods = $wpdb->get_results(
+				"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
+				"INNER JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
+				"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
+				"WHERE method_id IN ({$escaped_list}) " .
+				"ORDER BY zone_order, method_order " .
+				";"
+			);
+
+			if ( empty( $methods ) ) {
+				return $enabled_services;
+			}
+
+			foreach ( (array) $methods as $method ) {
+				$method->service_type = 'shipping';
+				$enabled_services[] = $method;
+				// TODO - as a convenience to the caller, add method_title and title too
+			}
+
+			error_log( print_r( $enabled_services, true ) );
+
+			return $enabled_services;
+
+		}
+
+		/**
 		 * Given a service's id and optional instance, returns the settings for that
 		 * service or an empty array
 		 *
@@ -53,44 +109,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function get_service_settings( $service_id, $service_instance = false ) {
 			return get_option( $this->get_service_settings_key( $service_id, $service_instance ), array() );
-		}
-
-		/**
-		 * Returns a nonce action based on the service id and optional instance,
-		 * suitable for use in generating or validating nonces
-		 *
-		 * @param string $service_id
-		 * @param integer $service_instance
-		 *
-		 * @return string
-		 */
-		protected function get_wc_api_callback_nonce_action( $service_id, $service_instance = false ) {
-			if ( ! $service_instance ) {
-				return 'wc_connect_' . $service_id;
-			}
-			return 'wc_connect_' . $service_id . '_' . $service_instance;
-		}
-
-		/**
-		 * Returns a nonce based on the service id and optional instance
-		 *
-		 * @param string $service_id
-		 * @param integer $service_instance
-		 *
-		 * @return string
-		 */
-		public function get_wc_api_callback_nonce( $service_id, $service_instance = false ) {
-			return wp_create_nonce( $this->get_wc_api_callback_nonce_action( $service_id, $service_instance ) );
-		}
-
-		/**
-		 * Returns a WC_API compliant URL to our endpoint based on the class name that WC
-		 * should load to ensure our endpoint is hooked
-		 *
-		 * @return string
-		 */
-		public function get_wc_api_callback_url() {
-			return get_home_url( null, '/wc-api/wc_connect_loader', is_ssl() );
 		}
 
 		/**

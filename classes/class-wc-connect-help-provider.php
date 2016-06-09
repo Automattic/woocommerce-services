@@ -249,6 +249,17 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		}
 
 		protected function get_services_items() {
+
+			$enabled_services = $this->service_settings_store->get_enabled_services();
+
+			// Iterate over each shipping zone
+			// For each WCC shipping method found in a zone
+			// see if the most recent rate request succeeded or not
+			// if successful, display that it was successful (have some details maybe?)
+			// if not, display why it failed if we can figure it out with a link to the instance's settings
+			// if no rate request has ever been done and no settings have been saved, display that
+			// if no rate request has ever been done but settings exist, validate them and save that state
+
 			return array();
 		}
 
