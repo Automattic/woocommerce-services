@@ -37,8 +37,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			return array(
 				'currency_symbol' => $currency_symbol,
-				'dimension_unit' => $dimension_unit,
-				'weight_unit' => $weight_unit
+				'dimension_unit' => $this->translate_unit( $dimension_unit ),
+				'weight_unit' => $this->translate_unit( $weight_unit ),
 			);
 		}
 
@@ -159,6 +159,32 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return 'woocommerce_' . $service_id . '_' . $service_instance . '_form_settings';
+		}
+
+		private function translate_unit( $value ) {
+			switch ( $value ) {
+				case 'kg':
+					return __('kg', 'woocommerce');
+				case 'g':
+					return __('g', 'woocommerce');
+				case 'lbs':
+					return __('lbs', 'woocommerce');
+				case 'oz':
+					return __('oz', 'woocommerce');
+				case 'm':
+					return __('m', 'woocommerce');
+				case 'cm':
+					return __('cm', 'woocommerce');
+				case 'mm':
+					return __('mm', 'woocommerce');
+				case 'in':
+					return __('in', 'woocommerce');
+				case 'yd':
+					return __('yd', 'woocommerce');
+				default:
+					$this->logger->log( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
+					return $value;
+			}
 		}
 	}
 }

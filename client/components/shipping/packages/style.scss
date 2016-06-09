@@ -107,15 +107,30 @@
 
 .wcc-shipping-add-package-weight {
     margin-bottom: 8px;
-    @include breakpoint( '>480px' ) {
+    @include breakpoint( '>660px' ) {
         float:left;
     }
 
-    .form-text-input {
-        width: 88%;
+    &:nth-child(2) {
+        width: 100%;
+        @include breakpoint( '>660px' ) {
+            width: 54%;
+        }
+    }
+
+    #box_weight,
+    #max_weight {
+        width: 82%;
+    }
+
+    #max_weight {
+        @include breakpoint( '>660px' ) {
+            width: 66%;
+        }
     }
 
     .wcc-shipping-add-package-weight-unit {
+        width: 34%;
         padding-left: 8px;
     }
 }
@@ -127,7 +142,7 @@
 
 .wcc-shipping-add-package-weight-group {
     .form-setting-explanation {
-        @include breakpoint( '>480px' ) {
+        @include breakpoint( '>660px' ) {
             clear: both;
         }
     }
