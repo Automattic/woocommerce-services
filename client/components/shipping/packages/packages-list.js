@@ -32,7 +32,7 @@ const PackagesList = ( {
 		 * At this point, the errant field's parents have been stripped from the path, so we're
 		 * looking for paths that begin just with the index of this package.
 		 */
-		const hasError = some( errors, ( error ) => ( idx.toString() === error[0] ) );
+		const hasError = some( errors, ( error ) => ( idx.toString() === error[ 0 ] ) );
 
 		return (
 			<PackagesListItem

@@ -88,7 +88,7 @@ const removeErrorDataPathRoot = ( errantFields ) => {
 
 	return errantFields.map( ( field ) => {
 		const errorPath = ObjectPath.parse( field );
-		if ( 'data' === errorPath[0] ) {
+		if ( 'data' === errorPath[ 0 ] ) {
 			return errorPath.slice( 1 );
 		}
 		return errorPath;

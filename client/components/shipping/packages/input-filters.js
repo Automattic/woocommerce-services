@@ -22,7 +22,7 @@ const dimensionRegex = /^\s*(\S+)\s*x\s*(\S+)\s*x\s*(\S+)\s*$/;
 const dimensions = ( value ) => {
 	const result = dimensionRegex.exec( value );
 	if ( result ) {
-		const dims = [result[1], result[2], result[3]];
+		const dims = [ result[ 1 ], result[ 2 ], result[ 3 ] ];
 		return dims.map( number ).join( ' x ' );
 	}
 

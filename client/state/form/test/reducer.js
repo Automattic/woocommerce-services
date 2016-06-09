@@ -70,7 +70,7 @@ describe( 'Settings reducer', () => {
 	} );
 
 	it( 'Clears errors on settings state change', () => {
-		const initialErrorState = Object.assign( { errors: ['data.title'] }, initialState );
+		const initialErrorState = Object.assign( { errors: [ 'data.title' ] }, initialState );
 		const action = updateSettingsField( 'some_key', 'some value' );
 		const state = reducer( initialErrorState, action );
 

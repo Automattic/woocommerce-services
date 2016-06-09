@@ -19,7 +19,7 @@ const configureStore = ( initialState ) => {
 	);
 
 	if ( module.hot ) {
-		module.hot.accept( ['./settings/reducer', './form/reducer'], () => {
+		module.hot.accept( [ './settings/reducer', './form/reducer' ], () => {
 			const nextRootReducer = combineReducers( {
 				settings: require( './settings/reducer' ),
 				form: require( './form/reducer' ),

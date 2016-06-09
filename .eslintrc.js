@@ -1,37 +1,37 @@
 /*eslint-disable quote-props */
 module.exports = {
-	'parser': 'babel-eslint',
 	'env': {
 		'browser': true,
 		'es6': true,
 		'mocha': true,
-		'commonjs': true
+		'commonjs': true,
+	},
+	'ecmaFeatures': {
+		'jsx': true,
+		'modules': true,
 	},
 	'globals': {
 		'expect': true,
 	},
-	'ecmaFeatures': {
-		'jsx': true,
-		'modules': true
-	},
 	'plugins': [
-		'react'
+		'react',
 	],
+	'parser': 'babel-eslint',
 	'parserOptions': {
 		'ecmaVersion': 6,
 		'sourceType': 'module',
 		'ecmaFeatures': {
-			'modules': true
+			'modules': true,
 		},
 	},
 	'rules': {
-		'array-bracket-spacing': [ 1, 'never' ],
+		'array-bracket-spacing': [ 1, 'always' ],
 		'brace-style': [ 1, '1tbs' ],
 		// REST API objects include underscores
 		'camelcase': 0,
 		'comma-dangle': [ 1, 'always-multiline'] ,
 		'comma-spacing': 1,
-		'computed-property-spacing': [ 1, 'never' ],
+		'computed-property-spacing': [ 1, 'always' ],
 		// Allows returning early as undefined
 		'consistent-return': 0,
 		'dot-notation': 1,
@@ -40,12 +40,12 @@ module.exports = {
 		'indent': [ 1, 'tab', { 'SwitchCase': 1 } ],
 		'key-spacing': 1,
 		'keyword-spacing': [ 1 ],
+		'linebreak-style': [ 2, 'unix' ],
 		'new-cap': [ 1, { 'capIsNew': false, 'newIsCap': true } ],
 		'no-cond-assign': 2,
 		'no-dupe-keys': 2,
 		'no-else-return': 1,
 		'no-empty': 1,
-		// Flux stores use switch case fallthrough
 		'no-fallthrough': 0,
 		'no-lonely-if': 1,
 		'no-mixed-requires': 0,
@@ -61,25 +61,10 @@ module.exports = {
 		'no-trailing-spaces': 1,
 		'no-undef': 2,
 		'no-underscore-dangle': 0,
-		// Allows Chai `expect` expressions
 		'no-unused-expressions': 0,
 		'no-unused-vars': 2,
-		'no-var': 2,
-		// Teach eslint about React+JSX
-		'react/jsx-uses-react': 1,
-		'react/jsx-uses-vars': 1,
-		'react/jsx-no-undef': 2,
-		'react/jsx-no-duplicate-props': 1,
-		'react/react-in-jsx-scope': 2,
-		'react/no-danger': 2,
-		'react/no-did-mount-set-state': 1,
-		'react/no-did-update-set-state': 1,
-		'jsx-quotes': [ 1, 'prefer-double' ],
-		'react/jsx-no-bind': [ 1, { 'allowArrowFunctions': true } ],
-		'react/jsx-curly-spacing': [ 1, 'always' ],
-		// Allows function use before declaration
 		'no-use-before-define': [ 2, 'nofunc' ],
-		// We split external, internal, module variables
+		'no-var': 2,
 		'one-var': 0,
 		'operator-linebreak': [ 1, 'after', { 'overrides': {
 			'?': 'before',
@@ -91,17 +76,25 @@ module.exports = {
 		'semi-spacing': 1,
 		'space-before-blocks': [ 1, 'always' ],
 		'space-before-function-paren': [ 1, 'never' ],
-		// Our array literal index exception violates this rule
 		'space-in-brackets': 0,
 		'space-in-parens': [ 1, 'always' ],
 		'space-infix-ops': [ 1, { 'int32Hint': false } ],
-		// Ideal for '!' but not for '++'
 		'space-unary-ops': 0,
-		// Assumed by default with Babel
-		'strict': [ 2, 'never' ],
+		'strict': [ 2, 'never' ], // Assumed by default with Babel
 		'valid-jsdoc': [ 1, { 'requireReturn': false } ],
-		// Common top-of-file requires, expressions between external, interal
 		'vars-on-top': 1,
-		'yoda': [ 1, 'always' ]
-	}
+		'yoda': [ 1, 'always' ],
+		// Teach eslint about React+JSX
+		'jsx-quotes': [ 1, 'prefer-double' ],
+		'react/jsx-uses-react': 1,
+		'react/jsx-uses-vars': 1,
+		'react/jsx-no-undef': 2,
+		'react/jsx-no-duplicate-props': 1,
+		'react/react-in-jsx-scope': 2,
+		'react/no-danger': 2,
+		'react/no-did-mount-set-state': 1,
+		'react/no-did-update-set-state': 1,
+		'react/jsx-no-bind': [ 1, { 'allowArrowFunctions': true } ],
+		'react/jsx-curly-spacing': [ 1, 'always' ],
+	},
 };

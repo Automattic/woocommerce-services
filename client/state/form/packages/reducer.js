@@ -15,7 +15,7 @@ const isNullOrEmpty = ( value ) => null === value || '' === trim( value );
 
 const reducers = {};
 
-reducers[ADD_PACKAGE] = ( state ) => {
+reducers[ ADD_PACKAGE ] = ( state ) => {
 	const newState = Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',
@@ -28,7 +28,7 @@ reducers[ADD_PACKAGE] = ( state ) => {
 	return newState;
 };
 
-reducers[EDIT_PACKAGE] = ( state, action ) => {
+reducers[ EDIT_PACKAGE ] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		showModal: true,
 		modalReadOnly: false,
@@ -38,26 +38,26 @@ reducers[EDIT_PACKAGE] = ( state, action ) => {
 	} );
 };
 
-reducers[DISMISS_MODAL] = ( state ) => {
+reducers[ DISMISS_MODAL ] = ( state ) => {
 	return Object.assign( {}, state, {
 		modalErrors: {},
 		showModal: false,
 	} );
 };
 
-reducers[SET_MODAL_ERRORS] = ( state, action ) => {
+reducers[ SET_MODAL_ERRORS ] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		modalErrors: action.value,
 	} );
 };
 
-reducers[SET_SELECTED_PRESET] = ( state, action ) => {
+reducers[ SET_SELECTED_PRESET ] = ( state, action ) => {
 	return Object.assign( {}, state, {
 		selectedPreset: action.value,
 	} );
 };
 
-reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
+reducers[ UPDATE_PACKAGES_FIELD ] = ( state, action ) => {
 	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
 	const newPackageData = omitBy( mergedPackageData, isNullOrEmpty );
 	return Object.assign( {}, state, {
@@ -65,7 +65,7 @@ reducers[UPDATE_PACKAGES_FIELD] = ( state, action ) => {
 	} );
 };
 
-reducers[SAVE_PACKAGE] = ( state ) => {
+reducers[ SAVE_PACKAGE ] = ( state ) => {
 	return Object.assign( {}, state, {
 		showModal: false,
 		mode: 'add',
@@ -77,7 +77,7 @@ reducers[SAVE_PACKAGE] = ( state ) => {
 	} );
 };
 
-reducers[TOGGLE_OUTER_DIMENSIONS] = ( state ) => {
+reducers[ TOGGLE_OUTER_DIMENSIONS ] = ( state ) => {
 	return Object.assign( {}, state, {
 		showOuterDimensions: true,
 	} );
@@ -85,7 +85,7 @@ reducers[TOGGLE_OUTER_DIMENSIONS] = ( state ) => {
 
 const packages = ( state = {}, action ) => {
 	if ( reducers.hasOwnProperty( action.type ) ) {
-		return reducers[action.type]( state, action );
+		return reducers[ action.type ]( state, action );
 	}
 	return state;
 };
