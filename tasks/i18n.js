@@ -6,6 +6,7 @@
 var fs = require( 'fs' ),
 	Xgettext = require( 'xgettext-js' ),
 	preProcessXGettextJSMatch = require( '../node_modules/wp-calypso/server/i18n/preprocess-xgettextjs-match.js' ),
+	uniq = require( 'lodash/uniq' ),
 	parser;
 
 // parser object that buids a WordPress php string for every
@@ -61,9 +62,9 @@ function buildPhpOutput( data, arrayName ) {
 	// find matching instances of `translate()` and generate corresponding php output
 	var matches = parser.getMatches( data );
 
-	matches = matches.map( function( match ) {
+	matches = uniq( matches.map( function( match ) {
 		return match.string;
-	} );
+	} ) );
 
 	// prepend the matches array with this content to open the php file
 	matches.unshift( [
