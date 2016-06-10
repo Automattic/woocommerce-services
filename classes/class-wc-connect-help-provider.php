@@ -249,8 +249,56 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		}
 
 		protected function get_services_items() {
+			$service_items = array();
 
 			$enabled_services = $this->service_settings_store->get_enabled_services();
+
+			if ( empty( $enabled_services ) ) {
+				$service_items[] =	(object) array(
+					'key' => 'wcc_services_empty',
+					'type' => 'text',
+					'class' => 'form_text_body_copy',
+					'value' => __( 'No services have been enabled', 'woocommerce' )
+				);
+
+				return $service_items;
+			}
+
+			foreach ( (array) $enabled_services as $enabled_service ) {
+				$indicator_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_1";
+				$last_rate_request_timestamp_formatted = sprintf(
+					_x( 'Most recent rates request was %s ago and was successful', '%s = human-readable time difference', 'woocommerce' ),
+					human_time_diff( current_time( 'timestamp' ) - 1000 )
+				);
+
+				$indicator = $this->build_indicator(
+					$indicator_key,
+					'checkmark-circle',
+					'indicator-success',
+					__( 'Configured and working correctly', 'woocommerce' ),
+					$last_rate_request_timestamp_formatted
+				);
+
+				$items_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_items";
+				$items_title = sprintf(
+					_x( '%s (%s Shipping Zone)', 'e.g. US Post Office (Domestic Shipping Zone)', 'woocommerce' ),
+					$enabled_service->title,
+					$enabled_service->zone_name
+				);
+
+				$service_items[] = (object) array(
+					'key' => $items_key,
+					'title' => $items_title,
+					'type' => 'indicators',
+					'items' => array(
+						$indicator_key => $indicator
+					)
+				);
+				// Place it in a container
+			}
+
+			// For each zone in $enabled_services
+			// we're going to emit a set of indicators
 
 			// Iterate over each shipping zone
 			// For each WCC shipping method found in a zone
@@ -260,7 +308,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			// if no rate request has ever been done and no settings have been saved, display that
 			// if no rate request has ever been done but settings exist, validate them and save that state
 
-			return array();
+			return $service_items;
 		}
 
 		/**
@@ -438,6 +486,12 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 						}
 					}
 
+					if ( 'text' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'type' => 'string', // text is a layout concept, not a schema concept
+						);
+					}
+
 					if ( 'textarea' === $fieldsetitem->type ) {
 						$form_properties[ $fieldsetitem->key ] = array(
 							'title' => $fieldsetitem->title,
@@ -491,6 +545,9 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					);
 					if ( property_exists( $fieldsetitem, 'readonly' ) ) {
 						$item['readonly'] = $fieldsetitem->readonly;
+					}
+					if ( property_exists( $fieldsetitem, 'class' ) ) {
+						$item['class'] = $fieldsetitem->class;
 					}
 					$items[] = (object) $item;
 				}

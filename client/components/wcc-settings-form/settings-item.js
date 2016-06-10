@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import Indicators from 'components/indicators';
+import Text from 'components/text';
 import TextArea from 'components/text-area';
 import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
@@ -74,6 +75,15 @@ const SettingsItem = ( {
 				<Indicators
 					schema={ schema.properties[id] }
 					indicators={ Object.values( settings[id] ) }
+				/>
+			);
+
+		case 'text':
+			return (
+				<Text
+					id={ id }
+					layout={ layout }
+					value={ fieldValue }
 				/>
 			);
 

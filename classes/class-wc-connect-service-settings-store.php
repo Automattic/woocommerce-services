@@ -87,9 +87,18 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			foreach ( (array) $methods as $method ) {
+				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $method->method_id );
+				$service_settings = $this->get_service_settings( $method->method_id, $method->instance_id );
+				if ( is_object( $service_settings ) && property_exists( $service_settings, 'title' ) ) {
+					$title = $service_settings->title;
+				} else if ( is_object( $service_schema ) && property_exists( $service_schema, 'method_title' ) ) {
+					$title = $this->method_title;
+				} else {
+					$title = _x( 'Unknown', 'A service with an unknown title and unknown method_title', 'woocommerce' );
+				}
 				$method->service_type = 'shipping';
+				$method->title = $title;
 				$enabled_services[] = $method;
-				// TODO - as a convenience to the caller, add method_title and title too
 			}
 
 			error_log( print_r( $enabled_services, true ) );
