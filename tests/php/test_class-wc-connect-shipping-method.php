@@ -103,31 +103,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	/**
 	 * @covers WC_Connect_Shipping_Method::calculate_shipping
 	 */
-	public function test_invalid_destination_calculate_shipping() {
-
-		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
-			->disableOriginalConstructor()
-			->setMethods( array( 'is_valid_package_destination', 'log' ) )
-			->getMock();
-
-		$shipping_method->expects( $this->any() )
-			->method( 'is_valid_package_destination' )
-			->will( $this->returnValue( false ) );
-
-		$shipping_method->expects( $this->once() )
-			->method( 'log' )
-			->with(
-				$this->stringContains( 'Package destination failed validation.' ),
-				$this->anything()
-			);
-
-		$shipping_method->calculate_shipping();
-
-	}
-
-	/**
-	 * @covers WC_Connect_Shipping_Method::calculate_shipping
-	 */
 	public function test_invalid_service_settings_calculate_shipping() {
 
 		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )

@@ -219,12 +219,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function calculate_shipping( $package = array() ) {
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
-
-				return $this->log(
-					sprintf( 'Package destination failed validation. Skipping %s rate request.', $this->id ),
-					__FUNCTION__
-				);
-
+				return;
 			}
 
 			$service_settings = $this->get_service_settings();
