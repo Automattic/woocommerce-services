@@ -1,19 +1,9 @@
-import {
-	UPDATE_FORM_ELEMENT_FIELD,
-	SET_FIELD,
-} from './actions';
+import { SET_FIELD } from './actions';
 import packages from './packages/reducer';
 import * as packagesActions from './packages/actions';
 import * as settingsActions from '../settings/actions';
 
 const reducers = {};
-
-reducers[ UPDATE_FORM_ELEMENT_FIELD ] = ( state, action ) => {
-	const newObj = {};
-	newObj[ action.element ] = {};
-	newObj[ action.element ][ action.field ] = action.value;
-	return Object.assign( {}, state, newObj );
-};
 
 reducers[ SET_FIELD ] = ( state, action ) => {
 	const newObj = {};
