@@ -8,6 +8,9 @@ const reducers = {};
 reducers[ SET_FIELD ] = ( state, action ) => {
 	const newObj = {};
 	newObj[ action.field ] = action.value;
+	if ( 'success' === action.field && action.value ) {
+		newObj.pristine = true;
+	}
 	return Object.assign( {}, state, newObj );
 };
 
@@ -24,9 +27,13 @@ export default function form( state = {}, action ) {
 		} );
 	}
 
-	// Allow client-side form validation to take over error state when inputs change
-	if ( settingsActions.hasOwnProperty( action.type ) && newState.hasOwnProperty( 'errors' ) ) {
-		delete newState.errors;
+	if ( settingsActions.hasOwnProperty( action.type ) ) {
+		newState.pristine = false;
+
+		// Allow client-side form validation to take over error state when inputs change
+		if ( newState.hasOwnProperty( 'errors' ) ) {
+			delete newState.errors;
+		}
 	}
 
 	return newState;

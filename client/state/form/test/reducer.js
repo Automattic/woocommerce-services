@@ -54,6 +54,6 @@ describe( 'Settings reducer', () => {
 		const action = updateSettingsField( 'some_key', 'some value' );
 		const state = reducer( initialErrorState, action );
 
-		expect( state ).to.eql( initialState );
+		expect( state ).to.not.have.property( 'errors' );
 	} );
 } );

@@ -15,64 +15,84 @@ import ObjectPath from 'objectpath';
 import * as SettingsActions from 'state/settings/actions';
 import * as PackagesActions from 'state/form/packages/actions';
 
-const WCCSettingsForm = ( props ) => {
-	const {
-		layout,
-		saveFormData,
-		formActions,
-		noticeActions,
-	} = props;
+const WCCSettingsForm = React.createClass( {
+	propTypes: {
+		storeOptions: PropTypes.object.isRequired,
+		schema: PropTypes.object.isRequired,
+		layout: PropTypes.array.isRequired,
+		saveFormData: PropTypes.func.isRequired,
+	},
 
-	const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
-	const setSuccess = ( value ) => {
-		formActions.setField( 'success', value );
+	componentDidMount() {
+		window.addEventListener( 'beforeunload', this.warnIfChanged );
+	},
+
+	componentWillUnmount() {
+		window.removeEventListener( 'beforeunload', this.warnIfChanged );
+	},
+
+	warnIfChanged( event ) {
+		if ( this.props.form.pristine ) {
+			return;
+		}
+		const text = __( 'You have unsaved changes.' );
+		( event || window.event ).returnValue = text;
+		return text;
+	},
+
+	setIsSaving( value ) {
+		this.props.formActions.setField( 'isSaving', value );
+	},
+
+	setSuccess( value ) {
+		this.props.formActions.setField( 'success', value );
 		if ( true === value ) {
-			noticeActions.successNotice( __( 'Your changes have been saved.' ), {
+			this.props.noticeActions.successNotice( __( 'Your changes have been saved.' ), {
 				duration: 2250,
 			} );
 		}
-	};
-	const setError = ( value ) => {
-		formActions.setField( 'errors', value );
+	},
+
+	setError( value ) {
+		this.props.formActions.setField( 'errors', value );
 
 		if ( isString( value ) ) {
-			noticeActions.errorNotice( value, {
+			this.props.noticeActions.errorNotice( value, {
 				duration: 7000,
 			} );
 		}
 
 		if ( isArray( value ) ) {
-			noticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
+			this.props.noticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
 				duration: 7000,
 			} );
 		}
-	};
+	},
 
-	const filterStoreOnSave = ( store ) => {
+	filterStoreOnSave( store ) {
 		return store.getState().settings;
-	};
+	},
 
-	const saveForm = () => saveFormData( setIsSaving, setSuccess, setError, filterStoreOnSave );
-	return (
-		<div>
-			<GlobalNotices id="notices" notices={ notices.list } />
-			{ layout.map( ( group, idx ) => (
-				<WCCSettingsGroup
-					{ ...props }
-					{ ...{ group, saveForm } }
-					key={ idx }
-				/>
-			) ) }
-		</div>
-	);
-};
+	saveForm() {
+		this.props.saveFormData( this.setIsSaving, this.setSuccess, this.setError, this.filterStoreOnSave );
+	},
 
-WCCSettingsForm.propTypes = {
-	storeOptions: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
-	layout: PropTypes.array.isRequired,
-	saveFormData: PropTypes.func.isRequired,
-};
+	render() {
+		return (
+			<div>
+				<GlobalNotices id="notices" notices={ notices.list }/>
+				{ this.props.layout.map( ( group, idx ) => (
+					<WCCSettingsGroup
+						{ ...this.props }
+						group={ group }
+						saveForm={ this.saveForm }
+						key={ idx }
+					/>
+				) ) }
+			</div>
+		);
+	},
+} );
 
 /*
  * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
