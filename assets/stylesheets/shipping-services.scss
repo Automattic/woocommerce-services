@@ -8,6 +8,10 @@
 	}
 }
 
+.wcc-shipping-services-groups-inner.is-error {
+	border: 1px solid $alert-red;
+}
+
 .wcc-shipping-services-group {
 	border: 1px solid lighten( $gray, 20% );
 	margin-bottom: 16px;

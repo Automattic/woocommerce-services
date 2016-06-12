@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import some from 'lodash/some';
 import Indicators from 'components/indicators';
 import TextArea from 'components/text-area';
 import TextField from 'components/text-field';
@@ -26,7 +27,10 @@ const SettingsItem = ( {
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
 	const fieldValue = settings[ id ];
 	const fieldSchema = schema.properties[ id ];
-	const fieldError = ( errors && errors.length ) ? ( layout.validation_hint || '' ) : false;
+
+	// Check if the response has an error for this concrete field (not any subfields)
+	const hasDirectError = errors && some( errors, error => ! error.length );
+	const fieldError = hasDirectError ? ( layout.validation_hint || '' ) : false;
 
 	switch ( layout.type ) {
 		case 'radios':
@@ -49,6 +53,7 @@ const SettingsItem = ( {
 					updateValue={ updateSubSubValue }
 					settingsKey={ id }
 					errors={ errors }
+					generalError={ fieldError }
 				/>
 			);
 
