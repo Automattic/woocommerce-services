@@ -29,8 +29,8 @@ const SettingsItem = ( {
 	const fieldSchema = schema.properties[ id ];
 
 	// Check if the response has an error for this concrete field (not any subfields)
-	const hasDirectError = errors && some( errors, error => ! error.length );
-	const fieldError = hasDirectError ? ( layout.validation_hint || '' ) : false;
+	const hasFieldError = errors && some( errors, error => ! error.length );
+	const fieldError = hasFieldError ? ( layout.validation_hint || '' ) : false;
 
 	switch ( layout.type ) {
 		case 'radios':
