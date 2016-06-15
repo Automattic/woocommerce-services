@@ -319,7 +319,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$timestamp = time();
 			}
 
-			update_option( 'wc_connect_last_rate_request_failure', $timestamp );
+			update_option( $this->service_settings_store->get_service_failure_timestamp_key( $this->id, $this->instance_id ), $timestamp );
 		}
 
 		public function admin_options() {

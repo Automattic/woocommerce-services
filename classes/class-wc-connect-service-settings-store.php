@@ -197,6 +197,24 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return 'woocommerce_' . $service_id . '_' . $service_instance . '_form_settings';
 		}
 
+		/**
+		 * Based on the service id and optional instance, generates the options key that
+		 * should be used to get/set the service's last failure timestamp
+		 *
+		 * @param string $service_id
+		 * @param integer $service_instance
+		 *
+		 * @return string
+		 */
+		public function get_service_failure_timestamp_key( $service_id, $service_instance = false ) {
+			if ( ! $service_instance ) {
+				return 'woocommerce_' . $service_id . '_failure_timestamp';
+			}
+
+			return 'woocommerce_' . $service_id . '_' . $service_instance . '_failure_timestamp';
+		}
+
+
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
