@@ -73,12 +73,22 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			global $wpdb;
+			$zone_names = $wpdb->get_results(
+				"SELECT zone_id, zone_name FROM {$wpdb->prefix}woocommerce_shipping_zones " .
+				"ORDER BY zone_order " .
+				";",
+				OBJECT_K
+			);
+
+			$zone_names[0] = (object) array(
+				'zone_id' => 0,
+				'zone_name' => __( 'Rest of the World', 'woocommerce' )
+			);
+
 			$methods = $wpdb->get_results(
 				"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
-				"INNER JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
-				"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
 				"WHERE method_id IN ({$escaped_list}) " .
-				"ORDER BY zone_order, method_order " .
+				"ORDER BY method_order " .
 				";"
 			);
 
@@ -98,6 +108,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				}
 				$method->service_type = 'shipping';
 				$method->title = $title;
+				$method->zone_name = $zone_names[ $method->zone_id ]->zone_name;
 				$enabled_services[] = $method;
 			}
 
