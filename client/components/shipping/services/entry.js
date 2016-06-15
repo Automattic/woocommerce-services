@@ -5,9 +5,12 @@ import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
 import NumberInput from './number-input';
 
-const numberRegex = /^\d+(\.\d+)?$/;
 const parseNumber = ( value ) => {
-	return numberRegex.test( value ) ? Number.parseFloat( value ) : value;
+	if ( '' === value ) {
+		return 0;
+	}
+	const float = Number.parseFloat( value );
+	return isNaN( float ) ? value : float;
 };
 
 const ShippingServiceEntry = ( props ) => {
