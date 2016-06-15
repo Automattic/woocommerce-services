@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 
 const Text = ( { id, layout, value } ) => {
-	console.log( layout );
 	return (
 		<FormFieldset>
 			<p id={ id } className={ layout.class } >
