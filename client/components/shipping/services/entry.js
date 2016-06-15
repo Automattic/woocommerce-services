@@ -4,11 +4,7 @@ import FormSelect from 'components/forms/form-select';
 import FormTextInput from 'components/forms/form-text-input';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
-
-const numberRegex = /^\d+(\.\d+)?$/;
-const parseNumber = ( value ) => {
-	return numberRegex.test( value ) ? Number.parseFloat( value ) : value;
-};
+import parseNumber from 'lib/utils/parse-number';
 
 const ShippingServiceEntry = ( props ) => {
 	const {

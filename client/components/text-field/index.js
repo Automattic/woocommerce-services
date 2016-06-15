@@ -5,6 +5,7 @@ import FormTextInput from 'components/forms/form-text-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormInputValidation from 'components/forms/form-input-validation';
 import { sanitize } from 'dompurify';
+import parseNumber from 'lib/utils/parse-number';
 
 const renderFieldDescription = ( description ) => {
 	return (
@@ -19,7 +20,14 @@ const renderFieldError = ( validationHint ) => {
 }
 
 const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
+	const handleChangeEvent = ( event ) => {
+		let newValue = event.target.value;
+		if ( 'number' === schema.type ) {
+			// TODO: allow this value to be empty instead of zero
+			newValue = parseNumber( newValue ) || 0;
+		}
+		updateValue( newValue );
+	};
 
 	return (
 		<FormFieldset>
@@ -45,7 +53,10 @@ TextField.propTypes = {
 		description: PropTypes.string,
 		default: PropTypes.string,
 	} ).isRequired,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.number,
+	] ),
 	updateValue: PropTypes.func,
 	error: PropTypes.oneOfType( [
 		PropTypes.string,
