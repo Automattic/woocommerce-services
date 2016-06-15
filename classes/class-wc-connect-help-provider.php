@@ -304,8 +304,6 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 				// Figure out if the service has any settings saved at all
 				$service_settings = $this->service_settings_store->get_service_settings( $enabled_service->method_id, $enabled_service->instance_id );
-				error_log( "service settings:" );
-				error_log( print_r( $service_settings, true ) );
 				if ( empty( $service_settings ) ) {
 					$indicator = $this->build_indicator(
 						$indicator_key,
