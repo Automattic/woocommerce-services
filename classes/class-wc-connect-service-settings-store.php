@@ -92,7 +92,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				if ( is_object( $service_settings ) && property_exists( $service_settings, 'title' ) ) {
 					$title = $service_settings->title;
 				} else if ( is_object( $service_schema ) && property_exists( $service_schema, 'method_title' ) ) {
-					$title = $this->method_title;
+					$title = $service_schema->method_title;
 				} else {
 					$title = _x( 'Unknown', 'A service with an unknown title and unknown method_title', 'woocommerce' );
 				}
@@ -100,8 +100,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$method->title = $title;
 				$enabled_services[] = $method;
 			}
-
-			error_log( print_r( $enabled_services, true ) );
 
 			return $enabled_services;
 

@@ -266,18 +266,79 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			foreach ( (array) $enabled_services as $enabled_service ) {
 				$indicator_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_1";
-				$last_rate_request_timestamp_formatted = sprintf(
-					_x( 'Most recent rates request was %s ago and was successful', '%s = human-readable time difference', 'woocommerce' ),
-					human_time_diff( current_time( 'timestamp' ) - 1000 )
+				$last_failed_request_timestamp = intval( get_option( 'wc_connect_last_rate_request_failure', -1 ) );
+
+				$service_settings_url = esc_url( add_query_arg(
+					array(
+						'page' => 'wc-settings',
+						'tab' => 'shipping',
+						'instance_id' => $enabled_service->instance_id
+					),
+					admin_url( 'admin.php' )
+				) );
+
+				$review_link = sprintf(
+					wp_kses(
+						__( '<a href="%s">Review service settings</a>', 'woocommerce' ),
+						array(  'a' => array( 'href' => array() ) )
+					),
+					esc_url( $service_settings_url )
 				);
 
-				$indicator = $this->build_indicator(
-					$indicator_key,
-					'checkmark-circle',
-					'indicator-success',
-					__( 'Configured and working correctly', 'woocommerce' ),
-					$last_rate_request_timestamp_formatted
+				$edit_link = sprintf(
+					wp_kses(
+						__( '<a href="%s">Edit service settings</a>', 'woocommerce' ),
+						array(  'a' => array( 'href' => array() ) )
+					),
+					esc_url( $service_settings_url )
 				);
+
+				$ago_edit_link = sprintf(
+					wp_kses(
+						_x( 'Request was made %1$s ago - <a href="%2$s">edit service settings</a>', 'e.g. two hours', 'woocommerce' ),
+						array( 'a' => array( 'href' => array() ) )
+					),
+					esc_html( human_time_diff( current_time( 'timestamp' ) - $last_failed_request_timestamp ) ),
+					esc_url( $service_settings_url )
+				);
+
+				// Figure out if the service has any settings saved at all
+				$service_settings = $this->service_settings_store->get_service_settings( $enabled_service->method_id, $enabled_service->instance_id );
+				error_log( "service settings:" );
+				error_log( print_r( $service_settings, true ) );
+				if ( empty( $service_settings ) ) {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'notice',
+						'indicator-error',
+						__( 'Setup for this service has not yet been completed', 'woocommerce' ),
+						$edit_link
+					);
+				} else if ( -1 === $last_failed_request_timestamp ) {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'notice',
+						'indicator-warning',
+						__( 'No rate requests have yet been made for this service', 'woocommerce' ),
+						$review_link
+					);
+				} else if ( 0 === $last_failed_request_timestamp ) {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'checkmark-circle',
+						'indicator-success',
+						__( 'The most recent rate request was successful', 'woocommerce' ),
+						$edit_link
+					);
+				} else {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'notice',
+						'indicator-error',
+						__( 'The most recent rate request failed', 'woocommerce' ),
+						$ago_edit_link
+					);
+				}
 
 				$items_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_items";
 				$items_title = sprintf(
@@ -294,19 +355,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 						$indicator_key => $indicator
 					)
 				);
-				// Place it in a container
 			}
-
-			// For each zone in $enabled_services
-			// we're going to emit a set of indicators
-
-			// Iterate over each shipping zone
-			// For each WCC shipping method found in a zone
-			// see if the most recent rate request succeeded or not
-			// if successful, display that it was successful (have some details maybe?)
-			// if not, display why it failed if we can figure it out with a link to the instance's settings
-			// if no rate request has ever been done and no settings have been saved, display that
-			// if no rate request has ever been done but settings exist, validate them and save that state
 
 			return $service_items;
 		}
