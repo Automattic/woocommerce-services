@@ -37,10 +37,20 @@ const Indicator = ( { icon, className, message, lastUpdated } ) => {
 	);
 };
 
+const renderSubTitle = ( subtitle ) => {
+	if ( ! subtitle ) {
+		return null;
+	}
+
+	return (
+		<span className="indicators__subtitle">{ subtitle }</span>
+	);
+};
+
 const Indicators = ( { schema, indicators } ) => {
 	return (
 		<FormFieldset>
-			<FormLegend>{ schema.title }</FormLegend>
+			<FormLegend>{ schema.title }{ renderSubTitle( schema.subtitle ) }</FormLegend>
 			{ indicators.map( indicator => (
 				<Indicator
 					key={ indicator.id }

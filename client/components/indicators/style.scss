@@ -43,3 +43,14 @@
 		fill: $alert-red;
 	}
 }
+
+.indicators__subtitle {
+	background: $gray;
+	border-radius: 2px;
+	color: $gray-light;
+	font-size: 11px;
+	font-weight: 200;
+	margin-left: 5px;
+	padding: 1px 5px;
+	text-transform: uppercase;
+}

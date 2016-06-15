@@ -341,15 +341,15 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				}
 
 				$items_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_items";
-				$items_title = sprintf(
-					_x( '%s (%s Shipping Zone)', 'e.g. US Post Office (Domestic Shipping Zone)', 'woocommerce' ),
-					$enabled_service->title,
+				$subtitle = sprintf(
+					__( '%s Shipping Zone', 'woocommerce' ),
 					$enabled_service->zone_name
 				);
 
 				$service_items[] = (object) array(
 					'key' => $items_key,
-					'title' => $items_title,
+					'title' => $enabled_service->title,
+					'subtitle' => $subtitle,
 					'type' => 'indicators',
 					'items' => array(
 						$indicator_key => $indicator
@@ -527,6 +527,10 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 							'definition' => $fieldsetitem->key . '_definitions',
 							'items' => $this->get_indicator_schema()
 						);
+
+						if ( property_exists( $fieldsetitem, 'subtitle' ) ) {
+							$form_properties[ $fieldsetitem->key ][ 'subtitle' ] = $fieldsetitem->subtitle;
+						}
 
 						foreach ( $fieldsetitem->items as $item ) {
 							$form_definitions[ $fieldsetitem->key . '_definitions' ][] = (object) array(
