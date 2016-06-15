@@ -45,12 +45,11 @@
 }
 
 .indicators__subtitle {
-	background: $gray;
+	background: lighten( $gray, 30% );
 	border-radius: 2px;
-	color: $gray-light;
+	color: darken( $gray, 30% );
 	font-size: 11px;
-	font-weight: 200;
-	margin-left: 5px;
-	padding: 1px 5px;
-	text-transform: uppercase;
+	font-weight: 400;
+	margin-left: 8px;
+	padding: 2px 8px;
 }
