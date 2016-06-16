@@ -1,11 +1,11 @@
-import { SET_FIELD } from './actions';
+import { SET_FORM_PROPERTY } from './actions';
 import packages from './packages/reducer';
 import * as packagesActions from './packages/actions';
 import * as settingsActions from '../settings/actions';
 
 const reducers = {};
 
-reducers[ SET_FIELD ] = ( state, action ) => {
+reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	const newObj = {};
 	newObj[ action.field ] = action.value;
 	if ( 'success' === action.field && action.value ) {

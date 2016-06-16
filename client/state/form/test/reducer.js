@@ -1,5 +1,5 @@
 import reducer from '../reducer';
-import { setField } from '../actions';
+import { setFormProperty } from '../actions';
 import { updateSettingsField } from '../../settings/actions';
 
 const initialState = {
@@ -35,10 +35,10 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'SET_FIELD', () => {
+	it( 'SET_FORM_PROPERTY', () => {
 		const key = 'textObj';
 		const val = { id: 'newID', newfield: 'some new value' };
-		const action = setField( key, val );
+		const action = setFormProperty( key, val );
 		const state = reducer( initialState, action );
 
 		expect( state ).to.eql( {

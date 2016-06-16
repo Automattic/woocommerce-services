@@ -23,9 +23,9 @@ const WCCSettingsForm = ( props ) => {
 		noticeActions,
 	} = props;
 
-	const setIsSaving = ( value ) => formActions.setField( 'isSaving', value );
+	const setIsSaving = ( value ) => formActions.setFormProperty( 'isSaving', value );
 	const setSuccess = ( value ) => {
-		formActions.setField( 'success', value );
+		formActions.setFormProperty( 'success', value );
 		if ( true === value ) {
 			noticeActions.successNotice( __( 'Your changes have been saved.' ), {
 				duration: 2250,
@@ -33,7 +33,7 @@ const WCCSettingsForm = ( props ) => {
 		}
 	};
 	const setError = ( value ) => {
-		formActions.setField( 'errors', value );
+		formActions.setFormProperty( 'errors', value );
 
 		if ( isString( value ) ) {
 			noticeActions.errorNotice( value, {
