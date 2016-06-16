@@ -201,6 +201,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-provider.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 
 			$logger         = new WC_Connect_Logger( new WC_Logger() );
 			$validator      = new WC_Connect_Service_Schemas_Validator();
@@ -250,6 +251,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
+				add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
 			}
 
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
@@ -476,6 +478,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function shipping_zone_method_status_toggled( $instance_id, $service_id, $zone_id, $enabled ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
 				do_action( 'wc_connect_shipping_zone_method_status_toggled', $instance_id, $service_id, $zone_id, $enabled );
+			}
+		}
+
+		public function add_meta_boxes() {
+			$shipping_label = new WC_Connect_Shipping_Label( $this->service_settings_store );
+			foreach ( wc_get_order_types( 'order-meta-boxes' ) as $type ) {
+				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), $type, 'side', 'default' );
 			}
 		}
 
