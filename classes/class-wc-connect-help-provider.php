@@ -265,7 +265,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			}
 
 			foreach ( (array) $enabled_services as $enabled_service ) {
-				$indicator_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_1";
+				$indicator_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}";
 				$failure_timestamp_key = $this->service_settings_store->get_service_failure_timestamp_key( $enabled_service->method_id, $enabled_service->instance_id );
 				$last_failed_request_timestamp = intval( get_option( $failure_timestamp_key, -1 ) );
 
