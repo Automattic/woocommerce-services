@@ -1,13 +1,16 @@
 import React, { PropTypes } from 'react';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
-import FormTextInput from 'components/forms/form-text-input';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
+import NumberInput from './number-input';
 
-const numberRegex = /^\d+(\.\d+)?$/;
 const parseNumber = ( value ) => {
-	return numberRegex.test( value ) ? Number.parseFloat( value ) : value;
+	if ( '' === value ) {
+		return 0;
+	}
+	const float = Number.parseFloat( value );
+	return isNaN( float ) ? value : float;
 };
 
 const ShippingServiceEntry = ( props ) => {
@@ -38,7 +41,7 @@ const ShippingServiceEntry = ( props ) => {
 				{ name }
 			</label>
 			{ hasError ? <Gridicon icon="notice" /> : null }
-			<FormTextInput
+			<NumberInput
 				disabled={ ! enabled }
 				value={ adjustment }
 				onChange={ ( event ) => updateField( 'adjustment', parseNumber( event.target.value ) ) }
