@@ -16,6 +16,7 @@ const {
 	storeOptions,
 	callbackURL,
 	nonce,
+	rootView,
 } = wcConnectData;
 
 const store = configureStore( initializeState( formSchema, formData ), thunk.withExtraArgument( { callbackURL, nonce } ) );
@@ -32,10 +33,10 @@ window.addEventListener( 'beforeunload', ( event ) => {
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
-	const WCCShippingSettings = require( 'views/shipping' );
+	const RootView = require( 'views/root/' + rootView );
 	ReactDOM.render(
 		<Provider store={ store }>
-			<WCCShippingSettings
+			<RootView
 				storeOptions={ storeOptions }
 				schema={ formSchema }
 				layout={ formLayout }
@@ -65,7 +66,7 @@ if ( module.hot ) {
 		}
 	};
 
-	module.hot.accept( 'views/shipping', () => {
+	module.hot.accept( 'views/root/' + rootView, () => {
 		setTimeout( render );
 	} );
 }

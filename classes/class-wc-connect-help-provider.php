@@ -655,6 +655,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'formData'     => $this->get_form_data(),
 				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/self-help" ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'rootView'     => 'self-help',
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

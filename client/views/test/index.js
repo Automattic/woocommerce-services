@@ -2,9 +2,9 @@
 // in order to load the entire component tree
 // and get test coverage to work
 // TODO: add actual tests for the component tree
-import '../';
+import '../generic-settings-form';
 
-describe( 'Shipping Settings', () => {
+describe( 'Views', () => {
 	it( 'test suite should work', () => {
 		expect( true ).to.be.ok;
 	} );
