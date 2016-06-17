@@ -258,11 +258,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					__FUNCTION__
 				);
 
+				$this->set_last_request_failed();
+
 				$this->log( $response_body, __FUNCTION__ );
 				return;
 			}
 
 			if ( ! property_exists( $response_body, 'rates' ) ) {
+				$this->set_last_request_failed();
 				return;
 			}
 			$instances = $response_body->rates;
@@ -295,6 +298,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			$this->update_last_rate_request_timestamp();
+			$this->set_last_request_failed( 0 );
 		}
 
 		public function update_last_rate_request_timestamp() {
@@ -303,6 +307,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				( time() - HOUR_IN_SECONDS ) > $previous_timestamp ) {
 				update_option( 'wc_connect_last_rate_request', time() );
 			}
+		}
+
+		public function set_last_request_failed( $timestamp = null ) {
+			if ( is_null( $timestamp ) ) {
+				$timestamp = time();
+			}
+
+			update_option( $this->service_settings_store->get_service_failure_timestamp_key( $this->id, $this->instance_id ), $timestamp );
 		}
 
 		public function admin_options() {

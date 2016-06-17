@@ -249,7 +249,114 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		}
 
 		protected function get_services_items() {
-			return array();
+			$service_items = array();
+
+			$enabled_services = $this->service_settings_store->get_enabled_services();
+
+			if ( empty( $enabled_services ) ) {
+				$service_items[] =	(object) array(
+					'key' => 'wcc_services_empty',
+					'type' => 'text',
+					'class' => 'form_text_body_copy',
+					'value' => __( 'No services have been enabled', 'woocommerce' )
+				);
+
+				return $service_items;
+			}
+
+			foreach ( (array) $enabled_services as $enabled_service ) {
+				$indicator_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}";
+				$failure_timestamp_key = $this->service_settings_store->get_service_failure_timestamp_key( $enabled_service->method_id, $enabled_service->instance_id );
+				$last_failed_request_timestamp = intval( get_option( $failure_timestamp_key, -1 ) );
+
+				$service_settings_url = esc_url( add_query_arg(
+					array(
+						'page' => 'wc-settings',
+						'tab' => 'shipping',
+						'instance_id' => $enabled_service->instance_id
+					),
+					admin_url( 'admin.php' )
+				) );
+
+				$review_link = sprintf(
+					wp_kses(
+						__( '<a href="%s">Review service settings</a>', 'woocommerce' ),
+						array(  'a' => array( 'href' => array() ) )
+					),
+					esc_url( $service_settings_url )
+				);
+
+				$edit_link = sprintf(
+					wp_kses(
+						__( '<a href="%s">Edit service settings</a>', 'woocommerce' ),
+						array(  'a' => array( 'href' => array() ) )
+					),
+					esc_url( $service_settings_url )
+				);
+
+				$ago_edit_link = sprintf(
+					wp_kses(
+						_x( 'Request was made %1$s ago - <a href="%2$s">edit service settings</a>', 'e.g. two hours', 'woocommerce' ),
+						array( 'a' => array( 'href' => array() ) )
+					),
+					esc_html( human_time_diff( $last_failed_request_timestamp ) ),
+					esc_url( $service_settings_url )
+				);
+
+				// Figure out if the service has any settings saved at all
+				$service_settings = $this->service_settings_store->get_service_settings( $enabled_service->method_id, $enabled_service->instance_id );
+				if ( empty( $service_settings ) ) {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'notice',
+						'indicator-error',
+						__( 'Setup for this service has not yet been completed', 'woocommerce' ),
+						$edit_link
+					);
+				} else if ( -1 === $last_failed_request_timestamp ) {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'notice',
+						'indicator-warning',
+						__( 'No rate requests have yet been made for this service', 'woocommerce' ),
+						$review_link
+					);
+				} else if ( 0 === $last_failed_request_timestamp ) {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'checkmark-circle',
+						'indicator-success',
+						__( 'The most recent rate request was successful', 'woocommerce' ),
+						$edit_link
+					);
+				} else {
+					$indicator = $this->build_indicator(
+						$indicator_key,
+						'notice',
+						'indicator-error',
+						__( 'The most recent rate request failed', 'woocommerce' ),
+						$ago_edit_link
+					);
+				}
+
+				$items_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_items";
+				$subtitle = sprintf(
+					__( '%s Shipping Zone', 'woocommerce' ),
+					$enabled_service->zone_name
+				);
+
+				$service_items[] = (object) array(
+					'key' => $items_key,
+					'title' => $enabled_service->title,
+					'subtitle' => $subtitle,
+					'type' => 'indicators',
+					'items' => array(
+						$indicator_key => $indicator
+					)
+				);
+			}
+
+			return $service_items;
 		}
 
 		/**
@@ -420,11 +527,21 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 							'items' => $this->get_indicator_schema()
 						);
 
+						if ( property_exists( $fieldsetitem, 'subtitle' ) ) {
+							$form_properties[ $fieldsetitem->key ][ 'subtitle' ] = $fieldsetitem->subtitle;
+						}
+
 						foreach ( $fieldsetitem->items as $item ) {
 							$form_definitions[ $fieldsetitem->key . '_definitions' ][] = (object) array(
 								'id' => $item->id
 							);
 						}
+					}
+
+					if ( 'text' === $fieldsetitem->type ) {
+						$form_properties[ $fieldsetitem->key ] = array(
+							'type' => 'string', // text is a layout concept, not a schema concept
+						);
 					}
 
 					if ( 'textarea' === $fieldsetitem->type ) {
@@ -480,6 +597,9 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					);
 					if ( property_exists( $fieldsetitem, 'readonly' ) ) {
 						$item['readonly'] = $fieldsetitem->readonly;
+					}
+					if ( property_exists( $fieldsetitem, 'class' ) ) {
+						$item['class'] = $fieldsetitem->class;
 					}
 					$items[] = (object) $item;
 				}

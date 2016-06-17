@@ -18,6 +18,10 @@
 
 .form-setting-explanation.indicator__last-updated {
 	margin-top: 0;
+
+	a {
+		font-style: normal;
+	}
 }
 
 .indicator-success .indicator__icon-and-message {
@@ -42,4 +46,14 @@
 	.gridicon {
 		fill: $alert-red;
 	}
+}
+
+.indicators__subtitle {
+	background: lighten( $gray, 30% );
+	border-radius: 2px;
+	color: darken( $gray, 30% );
+	font-size: 11px;
+	font-weight: 400;
+	margin-left: 8px;
+	padding: 2px 8px;
 }
