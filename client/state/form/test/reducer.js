@@ -1,8 +1,5 @@
 import reducer from '../reducer';
-import {
-	updateFormElementField,
-	setField,
-} from '../actions';
+import { setFormProperty } from '../actions';
 import { updateSettingsField } from '../../settings/actions';
 
 const initialState = {
@@ -38,27 +35,10 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'UPDATE_FORM_ELEMENT_FIELD', () => {
-		const key = 'textObj';
-		const field = 'field';
-		const val = { id: 'newID', newfield: 'some new value' };
-		const action = updateFormElementField( key, field, val );
-		const state = reducer( initialState, action );
-
-		expect( state ).to.eql( {
-			textObj: {
-				field: {
-					id: 'newID',
-					newfield: 'some new value',
-				},
-			},
-		} );
-	} );
-
-	it( 'SET_FIELD', () => {
+	it( 'SET_FORM_PROPERTY', () => {
 		const key = 'textObj';
 		const val = { id: 'newID', newfield: 'some new value' };
-		const action = setField( key, val );
+		const action = setFormProperty( key, val );
 		const state = reducer( initialState, action );
 
 		expect( state ).to.eql( {
@@ -74,6 +54,6 @@ describe( 'Settings reducer', () => {
 		const action = updateSettingsField( 'some_key', 'some value' );
 		const state = reducer( initialErrorState, action );
 
-		expect( state ).to.eql( initialState );
+		expect( state ).to.not.have.property( 'errors' );
 	} );
 } );

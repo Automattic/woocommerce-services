@@ -1,23 +1,16 @@
-import {
-	UPDATE_FORM_ELEMENT_FIELD,
-	SET_FIELD,
-} from './actions';
+import { SET_FORM_PROPERTY } from './actions';
 import packages from './packages/reducer';
 import * as packagesActions from './packages/actions';
 import * as settingsActions from '../settings/actions';
 
 const reducers = {};
 
-reducers[ UPDATE_FORM_ELEMENT_FIELD ] = ( state, action ) => {
-	const newObj = {};
-	newObj[ action.element ] = {};
-	newObj[ action.element ][ action.field ] = action.value;
-	return Object.assign( {}, state, newObj );
-};
-
-reducers[ SET_FIELD ] = ( state, action ) => {
+reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	const newObj = {};
 	newObj[ action.field ] = action.value;
+	if ( 'success' === action.field && action.value ) {
+		newObj.pristine = true;
+	}
 	return Object.assign( {}, state, newObj );
 };
 
@@ -34,9 +27,13 @@ export default function form( state = {}, action ) {
 		} );
 	}
 
-	// Allow client-side form validation to take over error state when inputs change
-	if ( settingsActions.hasOwnProperty( action.type ) && newState.hasOwnProperty( 'errors' ) ) {
-		delete newState.errors;
+	if ( settingsActions.hasOwnProperty( action.type ) ) {
+		newState.pristine = false;
+
+		// Allow client-side form validation to take over error state when inputs change
+		if ( newState.hasOwnProperty( 'errors' ) ) {
+			delete newState.errors;
+		}
 	}
 
 	return newState;
