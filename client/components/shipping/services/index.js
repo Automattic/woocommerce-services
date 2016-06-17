@@ -2,6 +2,14 @@ import React, { PropTypes } from 'react';
 import groupBy from 'lodash/groupBy';
 import ShippingServiceGroup from './group';
 import map from 'lodash/map';
+import classNames from 'classnames';
+import FormInputValidation from 'components/forms/form-input-validation';
+
+const renderFieldError = ( validationHint ) => {
+	return (
+		<FormInputValidation isError text={ validationHint } />
+	);
+};
 
 const ShippingServiceGroups = ( {
 	services,
@@ -10,6 +18,7 @@ const ShippingServiceGroups = ( {
 	updateValue,
 	settingsKey,
 	errors,
+	generalError,
 } ) => {
 	// Some shippers have so many services that it is helpful to organize them
 	// into groups.  This code iterates over the services and extracts the group(s)
@@ -36,7 +45,10 @@ const ShippingServiceGroups = ( {
 
 	return (
 		<div className="wcc-shipping-services-groups">
-			{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
+			<div className={ classNames( 'wcc-shipping-services-groups-inner', { 'is-error': generalError } ) }>
+				{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
+			</div>
+			{ generalError ? renderFieldError( generalError ) : null }
 		</div>
 	);
 };
