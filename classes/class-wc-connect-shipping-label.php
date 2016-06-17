@@ -34,9 +34,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 				'formLayout'   => array(),
 				'formData'     => array(),
-				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/label" ),
+				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/shipping-label" ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'rootView'     => 'label',
+				'rootView'     => 'shipping-label',
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
