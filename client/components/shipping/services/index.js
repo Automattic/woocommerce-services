@@ -4,6 +4,15 @@ import ShippingServiceGroup from './group';
 import map from 'lodash/map';
 import classNames from 'classnames';
 import FormInputValidation from 'components/forms/form-input-validation';
+import FormLegend from 'components/forms/form-legend';
+import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import { sanitize } from 'dompurify';
+
+const renderFieldDescription = ( description ) => {
+	return (
+		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: [ 'target' ] } ) } } /> : null
+	);
+};
 
 const renderFieldError = ( validationHint ) => {
 	return (
@@ -12,6 +21,7 @@ const renderFieldError = ( validationHint ) => {
 };
 
 const ShippingServiceGroups = ( {
+	schema,
 	services,
 	settings,
 	currencySymbol,
@@ -45,6 +55,8 @@ const ShippingServiceGroups = ( {
 
 	return (
 		<div className="wcc-shipping-services-groups">
+			<FormLegend>{ schema.title }</FormLegend>
+			{ renderFieldDescription( schema.description ) }
 			<div className={ classNames( 'wcc-shipping-services-groups-inner', { 'is-error': generalError } ) }>
 				{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
 			</div>
@@ -54,6 +66,11 @@ const ShippingServiceGroups = ( {
 };
 
 ShippingServiceGroups.propTypes = {
+	schema: PropTypes.shape( {
+		type: PropTypes.string.valueOf( 'string' ),
+		title: PropTypes.string.isRequired,
+		description: PropTypes.string,
+	} ).isRequired,
 	services: PropTypes.array.isRequired,
 	settings: PropTypes.object.isRequired,
 	currencySymbol: PropTypes.string,
