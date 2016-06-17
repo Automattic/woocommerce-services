@@ -1,6 +1,8 @@
 import { SET_FORM_PROPERTY } from './actions';
 import packages from './packages/reducer';
 import * as packagesActions from './packages/actions';
+import shippingLabel from './shipping-label/reducer';
+import * as shippingLabelActions from './shipping-label/actions';
 import * as settingsActions from '../settings/actions';
 
 const reducers = {};
@@ -24,6 +26,12 @@ export default function form( state = {}, action ) {
 	if ( state.hasOwnProperty( 'packages' ) || packagesActions.hasOwnProperty( action.type ) ) {
 		newState = Object.assign( newState, {
 			packages: packages( state.packages || {}, action ),
+		} );
+	}
+
+	if ( state.hasOwnProperty( 'shippingLabel' ) || shippingLabelActions.hasOwnProperty( action.type ) ) {
+		newState = Object.assign( newState, {
+			shippingLabel: shippingLabel( state.shippingLabel || {}, action ),
 		} );
 	}
 
