@@ -9,7 +9,7 @@ const renderIcon = ( isLetter, isError, onClick ) => {
 	if ( isError ) {
 		icon = 'notice';
 	} else {
-		icon = isLetter ? 'mail' : 'flip-horizontal';
+		icon = isLetter ? 'mail' : 'product';
 	}
 	return (
 		<a href="#" onClick={ onClick }>
