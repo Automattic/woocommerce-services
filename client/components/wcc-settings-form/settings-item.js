@@ -50,6 +50,7 @@ const SettingsItem = ( {
 			return (
 				<ShippingServiceGroups
 					services={ schema.definitions.services }
+					schema={ fieldSchema }
 					settings={ fieldValue }
 					currencySymbol={ storeOptions.currency_symbol }
 					updateValue={ updateSubSubValue }
