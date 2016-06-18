@@ -3,6 +3,7 @@ import some from 'lodash/some';
 import Indicators from 'components/indicators';
 import Text from 'components/text';
 import TextArea from 'components/text-area';
+import NumberField from 'components/number-field';
 import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
@@ -118,17 +119,31 @@ const SettingsItem = ( {
 			);
 
 		default:
-			return (
-				<TextField
-					id={ id }
-					schema={ fieldSchema }
-					value={ fieldValue }
-					placeholder={ layout.placeholder }
-					updateValue={ updateValue }
-					required={ fieldRequired }
-					error={ fieldError }
-				/>
-			);
+			if ( 'number' === fieldSchema.type ) {
+				return (
+					<NumberField
+						id={ id }
+						schema={ fieldSchema }
+						value={ fieldValue }
+						placeholder={ layout.placeholder }
+						updateValue={ updateValue }
+						required={ fieldRequired }
+						error={ fieldError }
+					/>
+				);
+			} else {
+				return (
+					<TextField
+						id={ id }
+						schema={ fieldSchema }
+						value={ fieldValue }
+						placeholder={ layout.placeholder }
+						updateValue={ updateValue }
+						required={ fieldRequired }
+						error={ fieldError }
+					/>
+				);
+			}
 	}
 };
 

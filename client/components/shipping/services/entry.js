@@ -3,15 +3,8 @@ import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
-import NumberInput from './number-input';
-
-const parseNumber = ( value ) => {
-	if ( '' === value ) {
-		return 0;
-	}
-	const float = Number.parseFloat( value );
-	return isNaN( float ) ? value : float;
-};
+import NumberInput from 'components/number-field/number-input';
+import parseNumber from 'lib/utils/parse-number';
 
 const ShippingServiceEntry = ( props ) => {
 	const {

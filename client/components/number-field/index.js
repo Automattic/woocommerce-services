@@ -1,9 +1,10 @@
 import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormTextInput from 'components/forms/form-text-input';
+import NumberInput from './number-input';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormInputValidation from 'components/forms/form-input-validation';
+import parseNumber from 'lib/utils/parse-number';
 import { sanitize } from 'dompurify';
 
 const renderFieldDescription = ( description ) => {
@@ -18,18 +19,16 @@ const renderFieldError = ( validationHint ) => {
 	);
 };
 
-const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
-
+const NumberField = ( { id, schema, value, placeholder, updateValue, error } ) => {
 	return (
 		<FormFieldset>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
-			<FormTextInput
+			<NumberInput
 				id={ id }
 				name={ id }
 				placeholder={ placeholder }
 				value={ value }
-				onChange={ handleChangeEvent }
+				onChange={ ( event ) => updateValue( parseNumber( event.target.value ) ) }
 				isError={ error }
 			/>
 			{ error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
@@ -37,15 +36,18 @@ const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => 
 	);
 };
 
-TextField.propTypes = {
+NumberField.propTypes = {
 	id: PropTypes.string.isRequired,
 	schema: PropTypes.shape( {
-		type: PropTypes.string.valueOf( 'string' ),
+		type: PropTypes.string.valueOf( 'number' ),
 		title: PropTypes.string.isRequired,
 		description: PropTypes.string,
 		default: PropTypes.string,
 	} ).isRequired,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.number,
+	] ).isRequired,
 	updateValue: PropTypes.func,
 	error: PropTypes.oneOfType( [
 		PropTypes.string,
@@ -53,4 +55,4 @@ TextField.propTypes = {
 	] ),
 };
 
-export default TextField;
+export default NumberField;
