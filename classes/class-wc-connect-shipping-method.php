@@ -339,7 +339,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 								__( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ),
 								array( 'a' => array( 'href' => array() ) )
 							),
-						$debug_page_uri
+							$debug_page_uri
 						); ?>
 					</span>
 				</div>
