@@ -7,13 +7,13 @@ const reducers = {};
 
 reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
 	return Object.assign( {}, state, {
-		showDialog: true
+		showDialog: true,
 	} );
 };
 
 reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
 	return Object.assign( {}, state, {
-		showDialog: false
+		showDialog: false,
 	} );
 };
 
