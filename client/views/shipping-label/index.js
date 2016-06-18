@@ -7,7 +7,6 @@ import PrintLabelDialog from 'components/shipping-label';
 import * as ShippingLabelActions from 'state/form/shipping-label/actions';
 
 const RootView = ( props ) => {
-	console.log(props.form);
 	return (
 		<p className="wcc-metabox-button-container">
 			<PrintLabelDialog
@@ -37,7 +36,7 @@ function mapStateToProps( state ) {
 
 function mapDispatchToProps( dispatch ) {
 	return {
-		labelActions: bindActionCreators( ShippingLabelActions, dispatch )
+		labelActions: bindActionCreators( ShippingLabelActions, dispatch ),
 	};
 }
 
