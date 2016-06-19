@@ -42,3 +42,5 @@ We support the latest two versions of all major browsers, except  IE, where we c
 ## License
 
 WooCommerce Connect is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).
+
+For information on what data is transferred as part of your use of the Woo Commerce Connect Client Alpha Release, please see the Readme in the 'Legal' folder contained within this repository.
