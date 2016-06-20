@@ -8,12 +8,10 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
-import isEmpty from 'lodash/isEmpty';
 import { translate as __ } from 'lib/mixins/i18n';
-import validator from 'is-my-json-valid';
-import ObjectPath from 'objectpath';
 import * as SettingsActions from 'state/settings/actions';
 import * as PackagesActions from 'state/form/packages/actions';
+import { getFormErrors } from 'state/selectors';
 
 const WCCSettingsForm = ( props ) => {
 	const {
@@ -74,43 +72,11 @@ WCCSettingsForm.propTypes = {
 	saveFormData: PropTypes.func.isRequired,
 };
 
-/*
- * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
- *
- * e.g.: `data.services.first_class_parcel.adjustment
- *
- * This removes the `data.` prepending all errors, to facilitate easier matching to form fields.
- */
-const removeErrorDataPathRoot = ( errantFields ) => {
-	if ( isEmpty( errantFields ) || ! isArray( errantFields ) ) {
-		return [];
-	}
-
-	return errantFields.map( ( field ) => {
-		const errorPath = ObjectPath.parse( field );
-		if ( 'data' === errorPath[ 0 ] ) {
-			return errorPath.slice( 1 );
-		}
-		return errorPath;
-	} );
-};
-
-const getFormErrors = ( schema, data ) => {
-	const validate = validator( schema, { greedy: true } );
-	const success = validate( data );
-
-	if ( ! success && validate.errors && validate.errors.length ) {
-		return validate.errors.map( ( error ) => error.field );
-	}
-
-	return [];
-};
-
-function mapStateToProps( state, props ) {
+function mapStateToProps( state ) {
 	return {
 		settings: state.settings,
 		form: state.form,
-		errors: removeErrorDataPathRoot( state.form.errors || getFormErrors( props.schema, state.settings ) ),
+		errors: getFormErrors( state ),
 	};
 }
 
