@@ -254,7 +254,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			$enabled_services = $this->service_settings_store->get_enabled_services();
 
 			if ( empty( $enabled_services ) ) {
-				$service_items[] =	(object) array(
+				$service_items[] = (object) array(
 					'key' => 'wcc_services_empty',
 					'type' => 'text',
 					'class' => 'form_text_body_copy',
@@ -437,7 +437,26 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		}
 
 		protected function get_support_items() {
-			return array();
+			$support_items = array();
+
+			$doc_link = sprintf(
+				wp_kses(
+					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>', 'woocommerce' ),
+					array(  'a' => array( 'href' => array() ) )
+				),
+				esc_url( 'https://docs.woothemes.com/document/woocommerce-connect-faq/' ),
+				esc_url( 'https://github.com/Automattic/woocommerce-connect-client/issues/new' )
+			);
+
+			$support_items[] = (object) array(
+				'key' => 'wcc_support_item',
+				'type' => 'text',
+				'class' => 'form_text_body_copy',
+				'title' => __( 'Need help?', 'woocommerce' ),
+				'value' => $doc_link
+			);
+
+			return $support_items;
 		}
 
 		protected function add_fieldset( $section_slug, $title, $items ) {
@@ -540,6 +559,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 					if ( 'text' === $fieldsetitem->type ) {
 						$form_properties[ $fieldsetitem->key ] = array(
+							'title' => property_exists( $fieldsetitem, 'title' ) ? $fieldsetitem->title : '',
 							'type' => 'string', // text is a layout concept, not a schema concept
 						);
 					}
@@ -587,8 +607,11 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			foreach ( $this->fieldsets as $fieldset ) {
 
 				// Filter the fieldset's items to only include key and type
-				// and possibly readonly since that is all form layout items
+				// and possibly readonly and class since that is all form layout items
 				// should have in them
+
+				// Note that non interactive form elements, like type text, may also
+				// pass a title through layout since they do not exist in the schema
 				$items = array();
 				foreach( $fieldset[ 'items' ] as $fieldsetitem ) {
 					$item = array(
@@ -600,6 +623,9 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 					}
 					if ( property_exists( $fieldsetitem, 'class' ) ) {
 						$item['class'] = $fieldsetitem->class;
+					}
+					if ( 'text' === $fieldsetitem->type && property_exists( $fieldsetitem, 'title' ) ) {
+						$item['title'] = $fieldsetitem->title;
 					}
 					$items[] = (object) $item;
 				}
