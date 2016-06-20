@@ -83,15 +83,15 @@ export const submit = ( silent ) => ( dispatch, getState, { callbackURL, nonce }
 
 		if ( ! silent ) {
 			if ( isString( value ) ) {
-				NoticeActions.errorNotice( value, {
+				dispatch( NoticeActions.errorNotice( value, {
 					duration: 7000,
-				} );
+				} ) );
 			}
 
 			if ( isArray( value ) ) {
-				NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
+				dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
 					duration: 7000,
-				} );
+				} ) );
 			}
 		}
 	};
