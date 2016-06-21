@@ -419,48 +419,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Wrapper for enqueuing scripts based on page hook and GET parameters.
-		 *
-		 * @codeCoverageIgnore
-		 * @see 'admin_enqueue_scripts'
-		 * @see self::enqueue_shipping_script
-		 * @param string $hook
+		 * Registers the React UI bundle
 		 */
-		public function admin_enqueue_scripts( $hook ) {
-
-			$tab      = isset( $_GET['tab'] ) ? $_GET['tab'] : null;
-			$instance = isset( $_GET['instance_id'] ) ? $_GET['instance_id'] : null;
-
-			$this->enqueue_service_script( $hook, $tab, $instance );
-
-		}
-
-		/**
-		 * When on an wp-admin shipping zone shipping method instance page or
-		 * on our system status tab, registers the React UI bundle
-		 *
-		 * @param string $hook
-		 * @param string $tab
-		 * @param int    $instance_id
-		 */
-		public function enqueue_service_script( $hook, $tab, $instance_id ) {
-
-			if ( 'woocommerce_page_wc-settings' === $hook ) {
-				// If we are on a settings page, make sure it is the shipping tab
-				// and that we have an instance id
-				if ( 'shipping' !== $tab || empty( $instance_id ) ) {
-					return;
-				}
-			} else if ( 'woocommerce_page_wc-status' === $hook ) {
-				// If we are on a system status page, make sure it is the connect tab
-				if ( 'connect' !== $tab ) {
-					return;
-				}
-			} else {
-				// Don't recognize the hook? Go no further
-				return;
-			}
-
+		public function admin_enqueue_scripts() {
 			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
 			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
 

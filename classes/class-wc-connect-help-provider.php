@@ -31,35 +31,9 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 			$this->service_schemas_store = $service_schemas_store;
 			$this->service_settings_store = $service_settings_store;
 			$this->logger = $logger;
-			$this->help_sections = array();
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
 			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
-
-			$this->add_fieldset(
-				'health',
-				_x( 'Health', 'This section displays the overall health of WooCommerce Connect and the things it depends on', 'woocommerce' ),
-				$this->get_health_items()
-			);
-
-			$this->add_fieldset(
-				'services',
-				__( 'Services', 'woocommerce' ),
-				$this->get_services_items()
-			);
-
-			$this->add_fieldset(
-				'debug',
-				__( 'Debug', 'woocommerce' ),
-				$this->get_debug_items()
-			);
-
-			$this->add_fieldset(
-				'support',
-				__( 'Support', 'woocommerce' ),
-				$this->get_support_items()
-			);
-
 		}
 
 		protected function get_health_items() {
@@ -644,9 +618,31 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 		 * Localizes the bootstrap, enqueues the script and styles for the help page
 		 */
 		public function page() {
+			$this->help_sections = array();
 
-			$form_schema = new stdClass();
-			$form_schema->properties = new stdClass();
+			$this->add_fieldset(
+				'health',
+				_x( 'Health', 'This section displays the overall health of WooCommerce Connect and the things it depends on', 'woocommerce' ),
+				$this->get_health_items()
+			);
+
+			$this->add_fieldset(
+				'services',
+				__( 'Services', 'woocommerce' ),
+				$this->get_services_items()
+			);
+
+			$this->add_fieldset(
+				'debug',
+				__( 'Debug', 'woocommerce' ),
+				$this->get_debug_items()
+			);
+
+			$this->add_fieldset(
+				'support',
+				__( 'Support', 'woocommerce' ),
+				$this->get_support_items()
+			);
 
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_shared_settings(),
