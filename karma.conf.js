@@ -31,14 +31,6 @@ module.exports = function( config ) {
 						include: /client/i,
 						exclude: /(test|node_modules)/i,
 					},
-					{
-						test: /\.jsx?$/,
-						loaders: [
-							'eslint',
-						],
-						include: /client/i,
-						exclude: /node_modules/i,
-					},
 				],
 				loaders: [
 					{

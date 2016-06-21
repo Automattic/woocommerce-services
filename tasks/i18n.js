@@ -3,25 +3,24 @@
 /**
  * Module dependencies/
  */
-var fs = require( 'fs' ),
+const fs = require( 'fs' ),
 	Xgettext = require( 'xgettext-js' ),
 	preProcessXGettextJSMatch = require( '../node_modules/wp-calypso/server/i18n/preprocess-xgettextjs-match.js' ),
-	uniq = require( 'lodash/uniq' ),
-	parser;
+	uniq = require( 'lodash/uniq' );
 
 // parser object that buids a WordPress php string for every
 // occurence of `translate()` in a file
-parser = new Xgettext( {
+const parser = new Xgettext( {
 	keywords: {
 		translate: function( match ) {
-			var finalProps = preProcessXGettextJSMatch( match );
+			const finalProps = preProcessXGettextJSMatch( match );
 
 			if ( ! finalProps ) {
 				return; // invalid input, skip this match
 			}
 			return buildWordPressString( finalProps );
 		},
-	}
+	},
 } );
 
 /**
@@ -31,7 +30,7 @@ parser = new Xgettext( {
  * @return {string}            the equivalent php code for each translation request
  */
 function buildWordPressString( properties ) {
-	var wpFunc = properties.context ? '_x' : '__',
+	const wpFunc = properties.context ? '_x' : '__',
 		response = [],
 		stringFromFunc = {
 			__: '__( ' + properties.single + ' )',
@@ -60,7 +59,7 @@ function buildWordPressString( properties ) {
  */
 function buildPhpOutput( data, arrayName ) {
 	// find matching instances of `translate()` and generate corresponding php output
-	var matches = parser.getMatches( data );
+	let matches = parser.getMatches( data );
 
 	matches = uniq( matches.map( function( match ) {
 		return match.string;
@@ -70,7 +69,7 @@ function buildPhpOutput( data, arrayName ) {
 	matches.unshift( [
 		'<?php',
 		'\n/* THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY */',
-		'\n$' + arrayName + ' = array('
+		'\n$' + arrayName + ' = array(',
 	].join( '' ) );
 
 	// append the generated file comment to the bottom of the array as well

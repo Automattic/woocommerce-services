@@ -132,19 +132,19 @@ const SettingsItem = ( {
 						error={ fieldError }
 					/>
 				);
-			} else {
-				return (
-					<TextField
-						id={ id }
-						schema={ fieldSchema }
-						value={ fieldValue }
-						placeholder={ layout.placeholder }
-						updateValue={ updateValue }
-						required={ fieldRequired }
-						error={ fieldError }
-					/>
-				);
 			}
+
+			return (
+				<TextField
+					id={ id }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					placeholder={ layout.placeholder }
+					updateValue={ updateValue }
+					required={ fieldRequired }
+					error={ fieldError }
+				/>
+			);
 	}
 };
 
