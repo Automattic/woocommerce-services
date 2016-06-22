@@ -78,6 +78,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'key' => 'country',
 				),
 			);
+			$address_summary = '{first_name} {last_name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';
 
 			$orig_address_fields = $address_fields;
 			$dest_address_fields = $address_fields;
@@ -87,19 +88,30 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$layout[] = array(
-				'type' => 'fieldset',
-				'title' => 'Origin address',
+				'type' => 'step',
+				'tab_title' => 'Origin',
+				'title' => 'Generate shipping label: Address verification (origin)',
+				'description' => 'asdfghjkjhgfdsaASDFGHJJHGFDSA',
 				'items' => $orig_address_fields,
+				'bypass_suggestion_flag' => 'orig_bypass_suggestion',
+				'summary' => str_replace( '{', '{orig_', $address_summary ),
+				'sugggestion_hint' => 'vnkdjfitysncgkgse,jhxccvnaluerghsldjfvbzdj',
 			);
 
 			$layout[] = array(
-				'type' => 'fieldset',
-				'title' => 'Destination address',
+				'type' => 'step',
+				'tab_title' => 'Destination',
+				'title' => 'Generate shipping label: Address verification',
+				'description' => 'asdfghjkjhgfdsaASDFGHJJHGFDSA',
 				'items' => $dest_address_fields,
+				'bypass_suggestion_flag' => 'dest_bypass_suggestion',
+				'summary' => str_replace( '{', '{dest_', $address_summary ),
+				'sugggestion_hint' => 'qwertyuiopqwertyuiopqwerty uiopqwertyuiopqwertyuiop',
 			);
 
 			$layout[] = array(
-				'type' => 'fieldset',
+				'type' => 'step',
+				'tab_title' => 'Packages',
 				'title' => 'Shopping cart contents',
 				'items' => array(
 					array(
@@ -107,6 +119,32 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'type' => 'shopping_cart',
 					),
 				),
+				'summary' => '{cart}',
+			);
+
+			$layout[] = array(
+				'type' => 'step',
+				'tab_title' => 'Rates',
+				'title' => 'Select a shipping service',
+				'items' => array(
+					array(
+						'key' => 'rate',
+						'type' => 'radios',
+						'titleMap' => array(
+							'media' => 'Media Mail ($1.00)',
+							'pri_1' => 'Priority 1-day ($9.99)',
+						),
+					),
+				),
+				'summary' => '{rate}',
+			);
+
+			$layout[] = array(
+				'type' => 'summary',
+				'tab_title' => 'Preview',
+				'title' => 'dfhdfghdfgh',
+				'action_label' => 'Print',
+				'confirmation_flag' => 'confirm',
 			);
 
 			return $layout;
@@ -153,10 +191,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'title' => 'Country',
 				),
 			);
+			$required_address_fields = ['first_name', 'address_1', 'city', 'state', 'postcode', 'country'];
 
 			foreach( $address_fields as $key => $value ) {
 				$properties[ 'orig_' . $key ] = $value;
 				$properties[ 'dest_' . $key ] = $value;
+			}
+
+			$required_fields = [];
+
+			foreach( $required_address_fields as $field_name ) {
+				$required_fields[] = 'orig_' . $field_name;
+				$required_fields[] = 'dest_' . $field_name;
 			}
 
 			$itemDefinition = array(
@@ -195,9 +241,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'title' => 'Items to send',
 				'items' => $itemDefinition,
 			);
+			$required_fields[] = 'cart';
+
+			$properties[ 'rate' ] = array(
+				'type' => 'string',
+				'title' => 'Shipping rate',
+				'enum' => array( 'pri_1', 'media' ),
+			);
+			$required_fields[] = 'rate';
 
 			return array(
-				'required' => array(),
+				'required' => $required_fields,
 				'properties' => $properties,
 			);
 		}
