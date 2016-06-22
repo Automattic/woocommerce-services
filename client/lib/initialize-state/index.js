@@ -27,7 +27,6 @@ export default ( schema, values ) => {
 	return {
 		settings: formValues,
 		form: {
-			schema,
 			isSaving: false,
 			pristine: true,
 			packages: {

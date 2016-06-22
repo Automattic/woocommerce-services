@@ -32,11 +32,11 @@ WCCSettingsForm.propTypes = {
 	layout: PropTypes.array.isRequired,
 };
 
-function mapStateToProps( state ) {
+function mapStateToProps( state, props ) {
 	return {
 		settings: state.settings,
 		form: state.form,
-		errors: getFormErrors( state ),
+		errors: getFormErrors( state, props ),
 	};
 }
 
