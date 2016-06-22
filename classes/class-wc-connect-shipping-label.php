@@ -92,7 +92,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'tab_title' => 'Origin',
 				'title' => 'Generate shipping label: Address verification (origin)',
 				'description' => 'asdfghjkjhgfdsaASDFGHJJHGFDSA',
-				'items' => $orig_address_fields,
+				'items' => array( array( 'items' => $orig_address_fields ) ),
 				'bypass_suggestion_flag' => 'orig_bypass_suggestion',
 				'summary' => str_replace( '{', '{orig_', $address_summary ),
 				'sugggestion_hint' => 'vnkdjfitysncgkgse,jhxccvnaluerghsldjfvbzdj',
@@ -103,7 +103,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'tab_title' => 'Destination',
 				'title' => 'Generate shipping label: Address verification',
 				'description' => 'asdfghjkjhgfdsaASDFGHJJHGFDSA',
-				'items' => $dest_address_fields,
+				'items' => array( array( 'items' => $dest_address_fields ) ),
 				'bypass_suggestion_flag' => 'dest_bypass_suggestion',
 				'summary' => str_replace( '{', '{dest_', $address_summary ),
 				'sugggestion_hint' => 'qwertyuiopqwertyuiopqwerty uiopqwertyuiopqwertyuiop',
@@ -115,8 +115,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'title' => 'Shopping cart contents',
 				'items' => array(
 					array(
-						'key' => 'cart',
-						'type' => 'shopping_cart',
+						'items' => array(
+							array(
+								'key' => 'cart',
+								'type' => 'shopping_cart',
+							),
+						),
 					),
 				),
 				'summary' => '{cart}',
@@ -128,11 +132,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'title' => 'Select a shipping service',
 				'items' => array(
 					array(
-						'key' => 'rate',
-						'type' => 'radios',
-						'titleMap' => array(
-							'media' => 'Media Mail ($1.00)',
-							'pri_1' => 'Priority 1-day ($9.99)',
+						'items' => array(
+							array(
+								'key' => 'rate',
+								'type' => 'radios',
+								'titleMap' => array(
+									'media' => 'Media Mail ($1.00)',
+									'pri_1' => 'Priority 1-day ($9.99)',
+								),
+							),
 						),
 					),
 				),

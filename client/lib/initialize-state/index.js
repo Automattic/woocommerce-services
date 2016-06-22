@@ -29,9 +29,11 @@ export default ( schema, values ) => {
 		form: {
 			isSaving: false,
 			pristine: true,
+			currentStep: -1,
 			packages: {
 				modalErrors: {},
 			},
+			shippingLabel: {},
 		},
 	};
 };
