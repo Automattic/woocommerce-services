@@ -11,7 +11,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_data( WC_Order $order ) {
-			$formData = [];
+			$formData = array();
 			$contents = array();
 
 			foreach( $order->get_items() as $item ) {
@@ -47,7 +47,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_layout() {
-			$layout = [];
+			$layout = array();
 
 			$address_fields = array(
 				array(
@@ -159,7 +159,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_schema() {
-			$properties = [];
+			$properties = array();
 
 			$address_fields = array(
 				'first_name' => array(
@@ -205,14 +205,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'minLength' => 1,
 				),
 			);
-			$required_address_fields = ['first_name', 'address_1', 'city', 'state', 'postcode', 'country'];
+			$required_address_fields = array('first_name', 'address_1', 'city', 'state', 'postcode', 'country');
 
 			foreach( $address_fields as $key => $value ) {
 				$properties[ 'orig_' . $key ] = $value;
 				$properties[ 'dest_' . $key ] = $value;
 			}
 
-			$required_fields = [];
+			$required_fields = array();
 
 			foreach( $required_address_fields as $field_name ) {
 				$required_fields[] = 'orig_' . $field_name;
