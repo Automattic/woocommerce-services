@@ -24,6 +24,7 @@ const SettingsGroup = ( props ) => {
 		saveForm,
 		errors,
 		settings,
+		schema,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
@@ -59,6 +60,7 @@ const SettingsGroup = ( props ) => {
 			return (
 				<CompactCard className="save-button-bar">
 					<SaveForm
+						schema={ schema }
 						saveForm={ saveForm }
 						isSaving={ form.isSaving }
 						formHasError={ ( 'undefined' !== typeof errors ) && ( 0 < errors.length ) }
