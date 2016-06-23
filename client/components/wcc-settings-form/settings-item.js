@@ -29,12 +29,13 @@ const SettingsItem = ( {
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
 	const fieldValue = settings[ id ];
 	const fieldSchema = schema.properties[ id ];
+	const fieldType = layout.type || fieldSchema.type || '';
 
 	// Check if the response has an error for this concrete field (not any subfields)
 	const hasFieldError = errors && some( errors, error => ! error.length );
 	const fieldError = hasFieldError ? ( layout.validation_hint || '' ) : false;
 
-	switch ( layout.type ) {
+	switch ( fieldType ) {
 		case 'radios':
 			return (
 				<RadioButtons
@@ -119,21 +120,20 @@ const SettingsItem = ( {
 				/>
 			);
 
-		default:
-			if ( 'number' === fieldSchema.type ) {
-				return (
-					<NumberField
-						id={ id }
-						schema={ fieldSchema }
-						value={ fieldValue }
-						placeholder={ layout.placeholder }
-						updateValue={ updateValue }
-						required={ fieldRequired }
-						error={ fieldError }
-					/>
-				);
-			}
+		case 'number':
+			return (
+				<NumberField
+					id={ id }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					placeholder={ layout.placeholder }
+					updateValue={ updateValue }
+					required={ fieldRequired }
+					error={ fieldError }
+				/>
+			);
 
+		default:
 			return (
 				<TextField
 					id={ id }
