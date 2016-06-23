@@ -3,6 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import isArray from 'lodash/isArray';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
+import coerceFormValues from 'lib/utils/coerce-values';
 
 /*
  * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
@@ -27,7 +28,8 @@ const removeErrorDataPathRoot = ( errantFields ) => {
 
 const getRawFormErrors = ( schema, data ) => {
 	const validate = validator( schema, { greedy: true } );
-	const success = validate( data );
+	const coerced = coerceFormValues( schema, data );
+	const success = validate( coerced );
 
 	if ( ! success && validate.errors && validate.errors.length ) {
 		return validate.errors.map( ( error ) => error.field );
