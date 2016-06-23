@@ -14,7 +14,6 @@ const SettingsItem = ( {
 	form,
 	layout,
 	schema,
-	settings,
 	settingsActions,
 	storeOptions,
 	packagesActions,
@@ -27,7 +26,7 @@ const SettingsItem = ( {
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
-	const fieldValue = settings[ id ];
+	const fieldValue = form.settings[ id ];
 	const fieldSchema = schema.properties[ id ];
 	const fieldType = layout.type || fieldSchema.type || '';
 
@@ -82,7 +81,7 @@ const SettingsItem = ( {
 			return (
 				<Indicators
 					schema={ schema.properties[ id ] }
-					indicators={ Object.values( settings[ id ] ) }
+					indicators={ Object.values( form.settings[ id ] ) }
 				/>
 			);
 
@@ -154,7 +153,6 @@ SettingsItem.propTypes = {
 		PropTypes.object.isRequired,
 	] ).isRequired,
 	schema: PropTypes.object.isRequired,
-	settings: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
 	settingsActions: PropTypes.object.isRequired,

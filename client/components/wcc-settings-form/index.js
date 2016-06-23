@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
-import * as SettingsActions from 'state/settings/actions';
+import * as SettingsActions from 'state/form/settings/actions';
 import * as PackagesActions from 'state/form/packages/actions';
 import { getFormErrors } from 'state/selectors';
 
@@ -34,7 +34,6 @@ WCCSettingsForm.propTypes = {
 
 function mapStateToProps( state, props ) {
 	return {
-		settings: state.settings,
 		form: state.form,
 		errors: getFormErrors( state, props ),
 	};

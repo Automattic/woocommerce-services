@@ -1,6 +1,6 @@
 import reducer from '../reducer';
 import { setFormProperty } from '../actions';
-import { updateSettingsField } from '../../settings/actions';
+import { updateSettingsField } from '../settings/actions';
 
 const initialState = {
 	textObj: {

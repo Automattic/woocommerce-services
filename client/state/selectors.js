@@ -41,6 +41,6 @@ const getRawFormErrors = ( schema, data ) => {
 export const getFormErrors = createSelector(
 	( state ) => state.form.errors,
 	( state, props ) => props.schema,
-	( state ) => state.settings,
+	( state ) => state.form.settings,
 	( errors, schema, data ) => removeErrorDataPathRoot( errors || getRawFormErrors( schema, data ) )
 );

@@ -25,13 +25,13 @@ export default ( schema, values ) => {
 	} );
 
 	return {
-		settings: formValues,
 		form: {
 			isSaving: false,
 			pristine: true,
 			packages: {
 				modalErrors: {},
 			},
+			settings: formValues,
 		},
 	};
 };

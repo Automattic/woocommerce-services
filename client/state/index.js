@@ -1,12 +1,10 @@
 import { applyMiddleware, createStore, combineReducers, compose } from 'redux';
-import settings from './settings/reducer';
 import form from './form/reducer';
 
 // from calypso
 import notices from 'state/notices/reducer';
 
 const rootReducer = combineReducers( {
-	settings,
 	form,
 	notices,
 } );
@@ -22,9 +20,8 @@ const configureStore = ( initialState, thunk ) => {
 	);
 
 	if ( module.hot ) {
-		module.hot.accept( [ './settings/reducer', './form/reducer' ], () => {
+		module.hot.accept( [ './form/reducer' ], () => {
 			const nextRootReducer = combineReducers( {
-				settings: require( './settings/reducer' ),
 				form: require( './form/reducer' ),
 				notices: require( 'state/notices/reducer' ),
 			} );

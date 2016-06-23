@@ -23,13 +23,12 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
-		settings,
 		schema,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
-		if ( 'packing_method' === key && ( ! settings.boxes || 0 === settings.boxes.length ) ) {
+		if ( 'packing_method' === key && ( ! form.settings.boxes || 0 === form.settings.boxes.length ) ) {
 			return '';
 		}
 
@@ -87,7 +86,6 @@ SettingsGroup.propTypes = {
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
 	errors: PropTypes.array,
-	settings: PropTypes.object.isRequired,
 };
 
 export default SettingsGroup;

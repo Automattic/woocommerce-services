@@ -96,7 +96,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 			}
 		}
 	};
-	const coercedValues = coerceFormValues( schema, getState().settings );
+	const coercedValues = coerceFormValues( schema, getState().form.settings );
 
 	saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, coercedValues );
 };
