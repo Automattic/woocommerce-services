@@ -1,4 +1,5 @@
 import saveForm from 'lib/save-form';
+import coerceFormValues from 'lib/utils/coerce-values';
 import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -67,7 +68,7 @@ export const updateSettingsArrayFieldItem = ( settings_key, index, item ) => ( {
 	item,
 } );
 
-export const submit = ( silent ) => ( dispatch, getState, { callbackURL, nonce } ) => {
+export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce } ) => {
 	silent = ( true === silent );
 	const setIsSaving = ( value ) => dispatch( FormActions.setFormProperty( 'isSaving', value ) );
 	const setSuccess = ( value ) => {
@@ -95,6 +96,7 @@ export const submit = ( silent ) => ( dispatch, getState, { callbackURL, nonce }
 			}
 		}
 	};
+	const coercedValues = coerceFormValues( schema, getState().settings );
 
-	saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, getState().settings );
+	saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, coercedValues );
 };
