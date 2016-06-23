@@ -1,9 +1,5 @@
 import coerce from 'type-coerce';
 
-const coerceTypeMap = {
-	number: 'float',
-};
-
 const coerceFormValues = ( schema, values, definitions = null ) => {
 	let coerced = {};
 	if ( ( null === definitions ) && schema.hasOwnProperty( 'definitions' ) ) {
@@ -16,9 +12,14 @@ const coerceFormValues = ( schema, values, definitions = null ) => {
 
 			if ( fieldSchema.hasOwnProperty( 'type' ) ) {
 				const fieldType = fieldSchema.type;
-				const coerceType = coerceTypeMap.hasOwnProperty( fieldType ) ? coerceTypeMap[ fieldType ] : fieldType;
-				if ( coerce.hasOwnProperty( coerceType ) ) {
-					coercedValue = coerce[ coerceType ]( values[ key ] );
+				if ( 'number' === fieldType ) {
+					if ( isNaN( values[key] ) ) {
+						coercedValue = values[key];
+					} else {
+						coercedValue = parseFloat( values[key] );
+					}
+				} else if ( coerce.hasOwnProperty( fieldType ) ) {
+					coercedValue = coerce[ fieldType ]( values[ key ] );
 				}
 
 				if ( 'object' === fieldType ) {
