@@ -29,9 +29,9 @@ const NumberField = ( { id, schema, value, placeholder, updateValue, error } ) =
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ ( event ) => updateValue( parseNumber( event.target.value ) ) }
-				isError={ error }
+				isError={ false !== error }
 			/>
-			{ error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
+			{ false !== error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
 		</FormFieldset>
 	);
 };

@@ -32,9 +32,9 @@ const TextArea = ( { id, schema, value, placeholder, layout, updateValue, error 
 				readOnly={ readOnly }
 				value={ value }
 				onChange={ handleChangeEvent }
-				isError={ error }
+				isError={ false !== error }
 			/>
-			{ error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
+			{ false !== error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
 		</FormFieldset>
 	);
 };
