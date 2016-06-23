@@ -4,7 +4,6 @@ import FormSelect from 'components/forms/form-select';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
 import NumberInput from 'components/number-field/number-input';
-import parseNumber from 'lib/utils/parse-number';
 
 const ShippingServiceEntry = ( props ) => {
 	const {
@@ -37,7 +36,7 @@ const ShippingServiceEntry = ( props ) => {
 			<NumberInput
 				disabled={ ! enabled }
 				value={ adjustment }
-				onChange={ ( event ) => updateField( 'adjustment', parseNumber( event.target.value ) ) }
+				onChange={ ( event ) => updateField( 'adjustment', event.target.value ) }
 				isError={ hasError }
 			/>
 			<FormSelect
