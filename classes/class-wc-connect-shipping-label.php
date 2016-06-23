@@ -165,6 +165,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'first_name' => array(
 					'type' => 'string',
 					'title' => 'First name',
+					'minLength' => 1,
 				),
 				'last_name' => array(
 					'type' => 'string',
@@ -177,6 +178,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'address_1' => array(
 					'type' => 'string',
 					'title' => 'Address',
+					'minLength' => 1,
 				),
 				'address_2' => array(
 					'type' => 'string',
@@ -185,18 +187,22 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'city' => array(
 					'type' => 'string',
 					'title' => 'City',
+					'minLength' => 1,
 				),
 				'state' => array(
 					'type' => 'string',
 					'title' => 'State',
+					'minLength' => 1,
 				),
 				'postcode' => array(
 					'type' => 'string',
 					'title' => 'Postal code',
+					'minLength' => 1,
 				),
 				'country' => array(
 					'type' => 'string',
 					'title' => 'Country',
+					'minLength' => 1,
 				),
 			);
 			$required_address_fields = ['first_name', 'address_1', 'city', 'state', 'postcode', 'country'];

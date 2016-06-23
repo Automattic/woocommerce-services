@@ -30,9 +30,9 @@ const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => 
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ handleChangeEvent }
-				isError={ error }
+				isError={ false !== error }
 			/>
-			{ error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
+			{ false !== error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
 		</FormFieldset>
 	);
 };
