@@ -25,7 +25,7 @@ reducers[ NEXT_STEP ] = ( state ) => {
 };
 
 reducers[ GO_TO_STEP ] = ( state, action ) => {
-	return Object.assign( {}, state, { currentStep: action.stepIndex } );
+	return Object.assign( {}, state, { currentStep: action.step } );
 };
 
 export default function form( state = {}, action ) {

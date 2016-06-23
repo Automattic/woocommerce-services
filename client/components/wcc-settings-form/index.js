@@ -19,7 +19,7 @@ const WCCSettingsForm = ( props ) => {
 
 	const renderCurrentStep = () => {
 		if ( ! currentStepLayout ) {
-			return <span>...</span>;
+			return <span>... spinner or something ...</span>;
 		}
 
 		return (
@@ -42,15 +42,26 @@ const WCCSettingsForm = ( props ) => {
 		)
 	};
 
+	const renderTab = ( label, index ) => {
+		if ( index === currentStep ) {
+			return <b>{ label }</b>;
+		} else if ( index < currentStep ) {
+			return <a onClick={ () => props.formActions.goToStep( index ) }>{ label }</a>;
+		}
+		return <span>{ label }</span>;
+	};
+
 	const renderMultiStepForm = () => {
 		return (
 			<div>
 				<div>
-					{ props.layout.map( ( step, idx ) => (
-						<span key={ idx }>
-							{ step.tab_title }
-						</span>
-					) ) }
+					<ul>
+						{ props.layout.map( ( step, index ) => (
+							<li>
+								{ renderTab( step.tab_title, index ) }
+							</li>
+						) ) }
+					</ul>
 				</div>
 				{ renderCurrentStep() }
 				{ renderActionButton() }
