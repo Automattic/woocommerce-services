@@ -22,8 +22,8 @@ const SettingsItem = ( {
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
-	const updateSubValue = ( key, val ) => settingsActions.updateSettingsField( id + '.' + key, val );
-	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
+	const updateSubValue = ( key, val ) => settingsActions.updateSettingsField( [ id ].concat( key ), val );
+	const removeArrayItem = ( idx ) => settingsActions.removeSettingsField( [ id, idx ] );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
 	const fieldValue = form.settings[ id ];

@@ -67,7 +67,7 @@ const ShippingServiceGroup = ( props ) => {
 				<ShippingServiceEntry
 					{ ...props }
 					{ ...{ service } }
-					updateValue={ ( key, val ) => updateValue( service.id + '.' + key, val ) }
+					updateValue={ ( key, val ) => updateValue( [ service.id ].concat( key ), val ) }
 					key={ idx }
 				/>
 			) ) }
