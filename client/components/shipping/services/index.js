@@ -60,7 +60,7 @@ const ShippingServiceGroups = ( {
 			<div className={ classNames( 'wcc-shipping-services-groups-inner', { 'is-error': generalError } ) }>
 				{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
 			</div>
-			{ false !== generalError ? renderFieldError( generalError ) : null }
+			{ generalError ? renderFieldError( generalError ) : null }
 		</div>
 	);
 };
