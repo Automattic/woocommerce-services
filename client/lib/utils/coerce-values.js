@@ -27,6 +27,10 @@ const getFieldSchema = ( fieldSchema, definitions ) => {
  */
 const coerceValue = ( value, type ) => {
 	if ( 'number' === type ) {
+		if ( '' === value ) {
+			return undefined;
+		}
+
 		if ( ! isNaN( value ) ) {
 			return parseFloat( value );
 		}
@@ -54,7 +58,7 @@ const coerceFormValues = ( schema, values, definitions = null ) => {
 
 	// Coerce each form value
 	Object.keys( values ).forEach( ( key ) => {
-		// If the value is undefine or we don't have a schema type to reference, leave it be.
+		// If the value is undefined or we don't have a schema type to reference, leave it be.
 		if ( ( undefined === values[ key ] ) || ! schema.properties.hasOwnProperty( key ) ) {
 			coerced[ key ] = values[ key ];
 			return;
