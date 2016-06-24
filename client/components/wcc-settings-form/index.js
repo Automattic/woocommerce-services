@@ -57,7 +57,7 @@ const WCCSettingsForm = ( props ) => {
 				<div>
 					<ul>
 						{ props.layout.map( ( step, index ) => (
-							<li>
+							<li key={ index }>
 								{ renderTab( step.tab_title, index ) }
 							</li>
 						) ) }

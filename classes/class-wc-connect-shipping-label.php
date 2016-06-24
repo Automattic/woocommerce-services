@@ -52,6 +52,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$address_fields = array(
 				array(
 					'key' => 'first_name',
+					'validation_hint' => 'This field is required.',
 				),
 				array(
 					'key' => 'last_name',
@@ -61,21 +62,26 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 				array(
 					'key' => 'address_1',
+					'validation_hint' => 'This field is required.',
 				),
 				array(
 					'key' => 'address_2',
 				),
 				array(
 					'key' => 'city',
+					'validation_hint' => 'This field is required.',
 				),
 				array(
 					'key' => 'state',
+					'validation_hint' => 'This field is required.',
 				),
 				array(
 					'key' => 'postcode',
+					'validation_hint' => 'This field is required.',
 				),
 				array(
 					'key' => 'country',
+					'validation_hint' => 'This field is required.',
 				),
 			);
 			$address_summary = '{first_name} {last_name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';
