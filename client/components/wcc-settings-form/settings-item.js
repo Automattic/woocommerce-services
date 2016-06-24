@@ -22,7 +22,7 @@ const SettingsItem = ( {
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
-	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
+	const updateSubValue = ( key, val ) => settingsActions.updateSettingsField( id + '.' + key, val );
 	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
@@ -53,7 +53,7 @@ const SettingsItem = ( {
 					schema={ fieldSchema }
 					settings={ fieldValue }
 					currencySymbol={ storeOptions.currency_symbol }
-					updateValue={ updateSubSubValue }
+					updateValue={ updateSubValue }
 					settingsKey={ id }
 					errors={ errors }
 					generalError={ fieldError }
