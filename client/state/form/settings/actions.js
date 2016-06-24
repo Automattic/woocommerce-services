@@ -15,9 +15,9 @@ export const ADD_SETTINGS_ARRAY_FIELD_ITEM = 'ADD_SETTINGS_ARRAY_FIELD_ITEM';
 export const REMOVE_SETTINGS_ARRAY_FIELD_ITEM = 'REMOVE_SETTINGS_ARRAY_FIELD_ITEM';
 export const UPDATE_SETTINGS_ARRAY_FIELD_ITEM = 'UPDATE_SETTINGS_ARRAY_FIELD_ITEM';
 
-export const updateSettingsField = ( key, value ) => ( {
+export const updateSettingsField = ( path, value ) => ( {
 	type: UPDATE_SETTINGS_FIELD,
-	key,
+	path,
 	value,
 } );
 

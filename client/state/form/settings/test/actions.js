@@ -14,14 +14,14 @@ import {
 
 describe( 'Settings actions', () => {
 	it( '#updateSettingsField()', () => {
-		const key = 'testField';
+		const path = 'testField';
 		const value = 'testValue';
 
-		const action = updateSettingsField( key, value );
+		const action = updateSettingsField( path, value );
 
 		expect( action ).to.eql( {
 			type: 'UPDATE_SETTINGS_FIELD',
-			key: 'testField',
+			path: 'testField',
 			value: 'testValue',
 		} );
 	} );

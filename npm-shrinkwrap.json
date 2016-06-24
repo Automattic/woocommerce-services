@@ -3189,6 +3189,11 @@
       "version": "2.0.0",
       "from": "object.omit@>=2.0.0 <3.0.0"
     },
+    "object-path-immutable": {
+      "version": "0.4.0",
+      "from": "object-path-immutable@0.4.0",
+      "resolved": "https://registry.npmjs.org/object-path-immutable/-/object-path-immutable-0.4.0.tgz"
+    },
     "objectpath": {
       "version": "1.2.1",
       "from": "objectpath@1.2.1",

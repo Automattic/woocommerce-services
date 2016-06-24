@@ -13,13 +13,12 @@ import {
 } from 'state/form/packages/actions';
 import cloneDeep from 'lodash/cloneDeep';
 import omit from 'lodash/omit';
+import objectPath from 'object-path-immutable';
 
 const reducers = {};
 
 reducers[ UPDATE_SETTINGS_FIELD ] = ( state, action ) => {
-	return Object.assign( {}, state, {
-		[ action.key ]: action.value,
-	} );
+	return objectPath.set( state, action.path, action.value );
 };
 
 reducers[ ADD_SETTINGS_OBJECT_FIELD ] = ( state, action ) => {

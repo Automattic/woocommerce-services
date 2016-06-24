@@ -76,6 +76,7 @@
     "dompurify": "^0.8.0",
     "is-my-json-valid": "^2.13.1",
     "lodash": "4.13.1",
+    "object-path-immutable": "^0.4.0",
     "objectpath": "^1.2.1",
     "react": "0.14.7",
     "react-dom": "0.14.7",
