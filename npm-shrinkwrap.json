@@ -4324,7 +4324,7 @@
     "wp-calypso": {
       "version": "0.17.0",
       "from": "automattic/wp-calypso",
-      "resolved": "git://github.com/automattic/wp-calypso.git#d8e00f0ad45193172e82a296d18f80e46e1f8604",
+      "resolved": "git://github.com/automattic/wp-calypso.git#2db6c43aee4832ca02d86331c2acd2e35cb8c07a",
       "dependencies": {
         "abbrev": {
           "version": "1.0.7",
