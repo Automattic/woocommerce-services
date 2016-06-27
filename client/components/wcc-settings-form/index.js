@@ -13,6 +13,12 @@ import { translate as __ } from 'lib/mixins/i18n';
 import FormButton from 'components/forms/form-button';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
 
+const getStepFormErrors = ( allErrors, stepLayout ) => {
+	const stepFields = {};
+	stepLayout.items.forEach( group => group.items.forEach( item => stepFields[ item.key ] = true ) );
+	return allErrors.filter( elem => stepFields[ elem[0] ] );
+};
+
 const WCCSettingsForm = ( props ) => {
 	const currentStep = props.form.currentStep;
 	const currentStepLayout = props.layout[ currentStep ];
@@ -35,7 +41,15 @@ const WCCSettingsForm = ( props ) => {
 		const label = ( currentStepLayout || {} ).action_label || __( 'Next' );
 		return (
 			<FormButtonsBar>
-				<FormButton type="button" onClick={ props.formActions.nextStep }>
+				<FormButton
+					type="button"
+					disabled={ ! currentStepLayout || getStepFormErrors( props.errors, currentStepLayout ).length > 0 }
+					onClick={ () => {
+						if ( currentStepLayout.confirmation_flag ) {
+							props.settingsActions.updateSettingsField( currentStepLayout.confirmation_flag, true );
+						}
+						props.formActions.nextStep( props.schema, currentStepLayout );
+					} }>
 					{ label }
 				</FormButton>
 			</FormButtonsBar>
