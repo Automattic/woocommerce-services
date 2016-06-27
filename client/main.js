@@ -19,7 +19,7 @@ const {
 	rootView,
 } = wcConnectData;
 
-const store = configureStore( initializeState( formSchema, formData ), thunk.withExtraArgument( { callbackURL, nonce } ) );
+const store = configureStore( initializeState( formSchema, formData ), thunk.withExtraArgument( { callbackURL, nonce, formSchema, formLayout } ) );
 
 window.addEventListener( 'beforeunload', ( event ) => {
 	if ( store.getState().form.pristine ) {
