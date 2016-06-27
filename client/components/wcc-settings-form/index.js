@@ -8,16 +8,10 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as SettingsActions from 'state/settings/actions';
 import * as PackagesActions from 'state/form/packages/actions';
-import { getFormErrors } from 'state/selectors';
+import { getFormErrors, getStepFormErrors } from 'state/selectors';
 import { translate as __ } from 'lib/mixins/i18n';
 import FormButton from 'components/forms/form-button';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
-
-const getStepFormErrors = ( allErrors, stepLayout ) => {
-	const stepFields = {};
-	stepLayout.items.forEach( group => group.items.forEach( item => stepFields[ item.key ] = true ) );
-	return allErrors.filter( elem => stepFields[ elem[0] ] );
-};
 
 const WCCSettingsForm = ( props ) => {
 	const currentStep = props.form.currentStep;
@@ -43,13 +37,8 @@ const WCCSettingsForm = ( props ) => {
 			<FormButtonsBar>
 				<FormButton
 					type="button"
-					disabled={ ! currentStepLayout || getStepFormErrors( props.errors, currentStepLayout ).length > 0 }
-					onClick={ () => {
-						if ( currentStepLayout.confirmation_flag ) {
-							props.settingsActions.updateSettingsField( currentStepLayout.confirmation_flag, true );
-						}
-						props.formActions.nextStep( props.schema, currentStepLayout );
-					} }>
+					disabled={ ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving }
+					onClick={ props.formActions.nextStep }>
 					{ label }
 				</FormButton>
 			</FormButtonsBar>
@@ -107,7 +96,8 @@ function mapStateToProps( state, props ) {
 	return {
 		settings: state.settings,
 		form: state.form,
-		errors: getFormErrors( state, props ),
+		errors: getFormErrors( state, props.schema ),
+		stepErrors: getStepFormErrors( state, props.schema, props.layout ),
 	};
 }
 

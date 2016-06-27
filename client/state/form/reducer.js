@@ -1,6 +1,5 @@
 import {
 	SET_FORM_PROPERTY,
-	NEXT_STEP,
 	GO_TO_STEP,
 } from './actions';
 import packages from './packages/reducer';
@@ -18,10 +17,6 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 		newObj.pristine = true;
 	}
 	return Object.assign( {}, state, newObj );
-};
-
-reducers[ NEXT_STEP ] = ( state ) => {
-	return Object.assign( {}, state, { currentStep: state.currentStep + 1 } );
 };
 
 reducers[ GO_TO_STEP ] = ( state, action ) => {

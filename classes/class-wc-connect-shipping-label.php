@@ -157,6 +157,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'type' => 'summary',
 				'tab_title' => 'Preview',
 				'title' => 'dfhdfghdfgh',
+				'items' => array(),
 				'action_label' => 'Print',
 				'confirmation_flag' => 'confirm',
 			);
