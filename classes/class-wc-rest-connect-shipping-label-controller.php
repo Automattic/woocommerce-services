@@ -37,14 +37,33 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		) );
 	}
 
-	public function update_items( $request ) {
+	private function validation_error( $fields ) {
+		return new WP_Error('validation_failed',
+			'Error!!!',
+			array(
+				'status' => 400,
+				'error' => 'validation_failure',
+				'data' => array(
+					'fields' => $fields,
+				),
+			)
+		);
+	}
 
+	public function update_items( $request ) {
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		var_dump( $settings );
+		if ( $settings->orig_address_1 !== 'Hawk St' ) {
+			return $this->validation_error( array( 'orig_address_1' ) );
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		}
+
+		if ( $settings->dest_address_1 !== 'Hawk St' ) {
+			return $this->validation_error( array( 'dest_address_1' ) );
+		}
+
+		return $this->validation_error( array( 'cart', 'rate' ) );
 	}
 
 	/**
