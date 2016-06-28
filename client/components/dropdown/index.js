@@ -10,7 +10,7 @@ const renderFieldError = ( validationHint ) => {
 	);
 };
 
-const Dropdown = ( { id, layout, schema, value, setValue, error } ) => {
+const Dropdown = ( { id, layout, schema, value, updateValue, error } ) => {
 	return (
 		<FormFieldset>
 			<FormLegend>{ schema.title }</FormLegend>
@@ -18,7 +18,7 @@ const Dropdown = ( { id, layout, schema, value, setValue, error } ) => {
 				id={ id }
 				name={ id }
 				value={ value }
-				onChange={ ( event ) => setValue( event.target.value ) }
+				onChange={ ( event ) => updateValue( event.target.value ) }
 				isError={ error } >
 				{ Object.keys( layout.titleMap ).map( key => {
 					return (
@@ -36,10 +36,15 @@ const Dropdown = ( { id, layout, schema, value, setValue, error } ) => {
 };
 
 Dropdown.propTypes = {
+	id: PropTypes.string.isRequired,
 	layout: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	value: PropTypes.string.isRequired,
-	setValue: PropTypes.func.isRequired,
+	updateValue: PropTypes.func.isRequired,
+	error: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.bool,
+	] ),
 };
 
 export default Dropdown;

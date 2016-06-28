@@ -8,6 +8,7 @@ import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
+import StateDropdown from 'components/state-dropdown';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -54,8 +55,21 @@ const SettingsItem = ( {
 					layout={ layout }
 					schema={ fieldSchema }
 					value={ fieldValue }
-					setValue={ updateValue }
+					updateValue={ updateValue }
 					error={ fieldError }
+				/>
+			);
+
+		case 'state':
+			return (
+				<StateDropdown
+					id={ id }
+					layout={ layout }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					updateValue={ updateValue }
+					error={ fieldError }
+					countryCode={ settings[ layout.country_field ] }
 				/>
 			);
 

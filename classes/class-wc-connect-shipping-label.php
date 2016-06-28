@@ -73,7 +73,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 				array(
 					'key' => 'state',
-					'validation_hint' => 'This field is required.',
+					'type' => 'state',
+					'dataset' => WC()->countries->get_states(),
 				),
 				array(
 					'key' => 'postcode',
@@ -93,6 +94,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			foreach( $address_fields as $index => $_ ) {
 				$orig_address_fields[ $index ][ 'key' ] = 'orig_' . $address_fields[ $index ][ 'key' ];
 				$dest_address_fields[ $index ][ 'key' ] = 'dest_' . $address_fields[ $index ][ 'key' ];
+				if ( 'state' === $address_fields[ $index ][ 'key' ] ) {
+					$orig_address_fields[ $index ][ 'country_field' ] = 'orig_country';
+					$dest_address_fields[ $index ][ 'country_field' ] = 'dest_country';
+				}
 			}
 
 			$layout[] = array(
@@ -193,7 +198,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'state' => array(
 					'type' => 'string',
 					'title' => 'State',
-					'minLength' => 1,
 				),
 				'postcode' => array(
 					'type' => 'string',
@@ -207,7 +211,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'default' => 'US',
 				),
 			);
-			$required_address_fields = array( 'first_name', 'address_1', 'city', 'state', 'postcode', 'country' );
+			$required_address_fields = array( 'first_name', 'address_1', 'city', 'postcode', 'country' );
 
 			foreach( $address_fields as $key => $value ) {
 				$properties[ 'orig_' . $key ] = $value;
