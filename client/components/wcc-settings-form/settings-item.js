@@ -114,7 +114,7 @@ const SettingsItem = ( {
 					checked={ fieldValue }
 					id={ id }
 					schema={ fieldSchema }
-					saveForm={ saveForm }
+					saveForm={ () => saveForm( schema ) }
 					updateValue={ updateValue }
 				/>
 			);
