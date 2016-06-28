@@ -1,6 +1,6 @@
 import reducer from '../reducer';
 import { setFormProperty } from '../actions';
-import { updateSettingsField } from '../settings/actions';
+import { updateField } from '../values/actions';
 
 const initialState = {
 	textObj: {
@@ -51,7 +51,7 @@ describe( 'Settings reducer', () => {
 
 	it( 'Clears errors on settings state change', () => {
 		const initialErrorState = Object.assign( { errors: [ 'data.title' ] }, initialState );
-		const action = updateSettingsField( 'some_key', 'some value' );
+		const action = updateField( 'some_key', 'some value' );
 		const state = reducer( initialErrorState, action );
 
 		expect( state ).to.not.have.property( 'errors' );

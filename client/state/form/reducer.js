@@ -1,8 +1,8 @@
 import { SET_FORM_PROPERTY } from './actions';
 import packages from './packages/reducer';
-import settings from './settings/reducer';
+import values from './values/reducer';
 import * as packagesActions from './packages/actions';
-import * as settingsActions from './settings/actions';
+import * as formValueActions from './values/actions';
 
 const reducers = {};
 
@@ -28,7 +28,7 @@ export default function form( state = {}, action ) {
 		} );
 	}
 
-	if ( settingsActions[ action.type ] || ( packagesActions.SAVE_PACKAGE === action.type ) ) {
+	if ( formValueActions[ action.type ] || ( packagesActions.SAVE_PACKAGE === action.type ) ) {
 		newState.pristine = false;
 
 		// Allow client-side form validation to take over error state when inputs change
@@ -37,7 +37,7 @@ export default function form( state = {}, action ) {
 		}
 
 		newState = Object.assign( newState, {
-			settings: settings( state.settings || {}, action ),
+			values: values( state.values || {}, action ),
 		} );
 	}
 

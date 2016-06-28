@@ -28,7 +28,7 @@ const SettingsGroup = ( props ) => {
 
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
-		if ( 'packing_method' === key && ( ! form.settings.boxes || 0 === form.settings.boxes.length ) ) {
+		if ( 'packing_method' === key && ( ! form.values.boxes || 0 === form.values.boxes.length ) ) {
 			return '';
 		}
 

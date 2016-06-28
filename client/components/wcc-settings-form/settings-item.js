@@ -14,19 +14,19 @@ const SettingsItem = ( {
 	form,
 	layout,
 	schema,
-	settingsActions,
+	formValueActions,
 	storeOptions,
 	packagesActions,
 	errors,
 	saveForm,
 } ) => {
 	const id = layout.key ? layout.key : layout;
-	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
-	const updateSubValue = ( key, val ) => settingsActions.updateSettingsField( [ id ].concat( key ), val );
-	const removeArrayItem = ( idx ) => settingsActions.removeSettingsField( [ id, idx ] );
+	const updateValue = ( value ) => formValueActions.updateField( id, value );
+	const updateSubValue = ( key, val ) => formValueActions.updateField( [ id ].concat( key ), val );
+	const removeArrayItem = ( idx ) => formValueActions.removeField( [ id ].concat( idx ) );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
-	const fieldValue = form.settings[ id ];
+	const fieldValue = form.values[ id ];
 	const fieldSchema = schema.properties[ id ];
 	const fieldType = layout.type || fieldSchema.type || '';
 
@@ -81,7 +81,7 @@ const SettingsItem = ( {
 			return (
 				<Indicators
 					schema={ schema.properties[ id ] }
-					indicators={ Object.values( form.settings[ id ] ) }
+					indicators={ Object.values( fieldValue ) }
 				/>
 			);
 
@@ -155,7 +155,7 @@ SettingsItem.propTypes = {
 	schema: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
-	settingsActions: PropTypes.object.isRequired,
+	formValueActions: PropTypes.object.isRequired,
 	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.array,
 	saveForm: PropTypes.func,

@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
-import * as SettingsActions from 'state/form/settings/actions';
+import * as FormValueActions from 'state/form/values/actions';
 import * as PackagesActions from 'state/form/packages/actions';
 import { getFormErrors } from 'state/selectors';
 
@@ -18,7 +18,7 @@ const WCCSettingsForm = ( props ) => {
 				<WCCSettingsGroup
 					{ ...props }
 					group={ group }
-					saveForm={ props.settingsActions.submit }
+					saveForm={ props.formValueActions.submit }
 					key={ idx }
 				/>
 			) ) }
@@ -44,7 +44,7 @@ function mapDispatchToProps( dispatch ) {
 		formActions: bindActionCreators( FormActions, dispatch ),
 		noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
 		packagesActions: bindActionCreators( PackagesActions, dispatch ),
-		settingsActions: bindActionCreators( SettingsActions, dispatch ),
+		formValueActions: bindActionCreators( FormValueActions, dispatch ),
 	};
 }
 

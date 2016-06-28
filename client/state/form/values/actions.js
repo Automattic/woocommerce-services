@@ -6,24 +6,24 @@ import { translate as __ } from 'lib/mixins/i18n';
 import * as FormActions from 'state/form/actions';
 import * as NoticeActions from 'state/notices/actions';
 
-export const UPDATE_SETTINGS_FIELD = 'UPDATE_SETTINGS_FIELD';
-export const REMOVE_SETTINGS_FIELD = 'REMOVE_SETTINGS_FIELD';
-export const ADD_SETTINGS_ARRAY_FIELD_ITEM = 'ADD_SETTINGS_ARRAY_FIELD_ITEM';
+export const UPDATE_FIELD = 'UPDATE_FIELD';
+export const REMOVE_FIELD = 'REMOVE_FIELD';
+export const ADD_ARRAY_FIELD_ITEM = 'ADD_ARRAY_FIELD_ITEM';
 
-export const updateSettingsField = ( path, value ) => ( {
-	type: UPDATE_SETTINGS_FIELD,
+export const updateField = ( path, value ) => ( {
+	type: UPDATE_FIELD,
 	path,
 	value,
 } );
 
-export const removeSettingsField = ( path ) => ( {
-	type: REMOVE_SETTINGS_FIELD,
+export const removeField = ( path ) => ( {
+	type: REMOVE_FIELD,
 	path,
 } );
 
-export const addSettingsArrayFieldItem = ( settings_key, item ) => ( {
-	type: ADD_SETTINGS_ARRAY_FIELD_ITEM,
-	settings_key,
+export const addArrayFieldItem = ( path, item ) => ( {
+	type: ADD_ARRAY_FIELD_ITEM,
+	path,
 	item,
 } );
 
@@ -55,7 +55,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 			}
 		}
 	};
-	const coercedValues = coerceFormValues( schema, getState().form.settings );
+	const coercedValues = coerceFormValues( schema, getState().form.values );
 
 	saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, coercedValues );
 };

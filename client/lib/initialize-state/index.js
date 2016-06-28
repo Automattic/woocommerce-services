@@ -31,7 +31,7 @@ export default ( schema, values ) => {
 			packages: {
 				modalErrors: {},
 			},
-			settings: formValues,
+			values: formValues,
 		},
 	};
 };
