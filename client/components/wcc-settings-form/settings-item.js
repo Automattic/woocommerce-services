@@ -7,6 +7,7 @@ import NumberField from 'components/number-field';
 import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
+import Dropdown from 'components/dropdown';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -38,6 +39,18 @@ const SettingsItem = ( {
 		case 'radios':
 			return (
 				<RadioButtons
+					layout={ layout }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					setValue={ updateValue }
+					error={ fieldError }
+				/>
+			);
+
+		case 'dropdown':
+			return (
+				<Dropdown
+					id={ id }
 					layout={ layout }
 					schema={ fieldSchema }
 					value={ fieldValue }

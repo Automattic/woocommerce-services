@@ -82,6 +82,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				array(
 					'key' => 'country',
 					'validation_hint' => 'This field is required.',
+					'type' => 'dropdown',
+					'titleMap' => WC()->countries->get_countries(),
 				),
 			);
 			$address_summary = '{first_name} {last_name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';
@@ -201,7 +203,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'country' => array(
 					'type' => 'string',
 					'title' => 'Country',
-					'minLength' => 1,
+					'enum' => array_keys( WC()->countries->get_countries() ),
+					'default' => 'US',
 				),
 			);
 			$required_address_fields = array( 'first_name', 'address_1', 'city', 'state', 'postcode', 'country' );
