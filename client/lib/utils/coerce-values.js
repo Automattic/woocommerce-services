@@ -8,10 +8,10 @@ import coerce from 'type-coerce';
  * @returns {Object} - Schema object for field, potentially pulled from $ref's definition.
  */
 const getFieldSchema = ( fieldSchema, definitions ) => {
-	if ( fieldSchema.hasOwnProperty( '$ref' ) ) {
+	if ( fieldSchema.$ref ) {
 		const definitionKey = fieldSchema.$ref.match( /^#\/definitions\/(.+)/ );
 
-		if ( definitionKey && definitions.hasOwnProperty( definitionKey[ 1 ] ) ) {
+		if ( definitionKey && definitions[ definitionKey[ 1 ] ] ) {
 			fieldSchema = definitions[ definitionKey[ 1 ] ];
 		}
 	}
@@ -34,7 +34,7 @@ const coerceValue = ( value, type ) => {
 		if ( ! isNaN( value ) ) {
 			return parseFloat( value );
 		}
-	} else if ( coerce.hasOwnProperty( type ) ) {
+	} else if ( 'function' === typeof coerce[ type ] ) {
 		return coerce[ type ]( value );
 	}
 	return value;
@@ -52,14 +52,14 @@ const coerceFormValues = ( schema, values, definitions = null ) => {
 	let coerced = {};
 
 	// Pull definitions from schema if not passed explicitly.
-	if ( ( null === definitions ) && schema.hasOwnProperty( 'definitions' ) ) {
+	if ( ( null === definitions ) && schema.definitions ) {
 		definitions = schema.definitions;
 	}
 
 	// Coerce each form value
 	Object.keys( values ).forEach( ( key ) => {
 		// If the value is undefined or we don't have a schema type to reference, leave it be.
-		if ( ( undefined === values[ key ] ) || ! schema.properties.hasOwnProperty( key ) ) {
+		if ( ( undefined === values[ key ] ) || ! schema.properties || ! schema.properties[ key ] ) {
 			coerced[ key ] = values[ key ];
 			return;
 		}

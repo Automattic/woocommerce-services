@@ -18,21 +18,21 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 export default function form( state = {}, action ) {
 	let newState = Object.assign( {}, state );
 
-	if ( reducers.hasOwnProperty( action.type ) ) {
+	if ( 'function' === typeof reducers[ action.type ] ) {
 		newState = reducers[ action.type ]( state, action );
 	}
 
-	if ( state.hasOwnProperty( 'packages' ) || packagesActions.hasOwnProperty( action.type ) ) {
+	if ( state.packages || packagesActions[ action.type ] ) {
 		newState = Object.assign( newState, {
 			packages: packages( state.packages || {}, action ),
 		} );
 	}
 
-	if ( settingsActions.hasOwnProperty( action.type ) || ( packagesActions.SAVE_PACKAGE === action.type ) ) {
+	if ( settingsActions[ action.type ] || ( packagesActions.SAVE_PACKAGE === action.type ) ) {
 		newState.pristine = false;
 
 		// Allow client-side form validation to take over error state when inputs change
-		if ( newState.hasOwnProperty( 'errors' ) ) {
+		if ( newState.errors ) {
 			delete newState.errors;
 		}
 

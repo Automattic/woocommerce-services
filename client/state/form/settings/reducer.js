@@ -37,7 +37,7 @@ reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 		packageData.max_weight = Number.parseFloat( packageData.max_weight );
 	}
 
-	if ( packageData.hasOwnProperty( 'index' ) ) {
+	if ( packageData.index ) {
 		const { index } = packageData;
 		const item = omit( packageData, 'index' );
 
@@ -54,7 +54,7 @@ reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 };
 
 const settings = ( state = {}, action ) => {
-	if ( reducers.hasOwnProperty( action.type ) ) {
+	if ( 'function' === typeof reducers[ action.type ] ) {
 		return reducers[ action.type ]( state, action );
 	}
 	return state;
