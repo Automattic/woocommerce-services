@@ -66,11 +66,7 @@ if ( module.hot ) {
 		}
 	};
 
-	module.hot.accept( 'views/shipping', () => {
-		setTimeout( render );
-	} );
-
-	module.hot.accept( 'views/shipping-label', () => {
+	module.hot.accept( [ 'views/shipping', 'views/shipping-label' ], () => {
 		setTimeout( render );
 	} );
 }

@@ -68,6 +68,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_self_help_controller;
 
 		/**
+		 * @var WC_REST_Connect_Shipping_Label_Controller
+		 */
+		protected $rest_shipping_label_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -158,6 +163,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
 			$this->rest_self_help_controller = $rest_self_help_controller;
+		}
+
+		public function get_rest_shipping_label_controller() {
+			return $this->rest_shipping_label_controller;
+		}
+
+		public function set_rest_shipping_label_controller( WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller ) {
+			$this->rest_shipping_label_controller = $rest_shipping_label_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -290,6 +303,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $logger );
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
 			$rest_self_help_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-controller.php' ) );
+			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $logger );
+			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
+			$rest_shipping_label_controller->register_routes();
 		}
 
 		/**
