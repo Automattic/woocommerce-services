@@ -36,8 +36,7 @@ const WCCSettingsForm = ( props ) => {
 		);
 	};
 
-	const renderActionButton = () => {
-		// TODO: extend <SaveForm> and use it in place of this
+	const renderActionButtons = () => {
 		const label = ( currentStepLayout || {} ).action_label || __( 'Next' );
 		return (
 			<FormButtonsBar>
@@ -52,6 +51,15 @@ const WCCSettingsForm = ( props ) => {
 					} }>
 					{ label }
 				</FormButton>
+				{ props.onCancel ? (
+					<FormButton
+						type="button"
+						isPrimary={ false }
+						onClick={ props.onCancel }>
+						{ __( 'Cancel' ) }
+					</FormButton>
+				) : null
+				}
 			</FormButtonsBar>
 		)
 	};
@@ -77,8 +85,12 @@ const WCCSettingsForm = ( props ) => {
 						) ) }
 					</ul>
 				</div>
-				{ renderCurrentStep() }
-				{ renderActionButton() }
+				<div>
+					{ renderCurrentStep() }
+				</div>
+				<div>
+					{ renderActionButtons() }
+				</div>
 			</div>
 		);
 	};

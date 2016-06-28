@@ -11,6 +11,7 @@ const PrintLabelDialog = ( props ) => {
 		>
 			<WCCSettingsForm
 				{ ...props }
+				onCancel={ props.labelActions.exitPrintingFlow }
 			/>
 		</Dialog>
 	);
