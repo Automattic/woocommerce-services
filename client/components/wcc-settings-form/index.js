@@ -33,11 +33,12 @@ const WCCSettingsForm = ( props ) => {
 	const renderActionButton = () => {
 		// TODO: extend <SaveForm> and use it in place of this
 		const label = ( currentStepLayout || {} ).action_label || __( 'Next' );
+		const isDisabled = ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving;
 		return (
 			<FormButtonsBar>
 				<FormButton
 					type="button"
-					disabled={ ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving }
+					disabled={ isDisabled }
 					onClick={ props.formActions.nextStep }>
 					{ label }
 				</FormButton>
