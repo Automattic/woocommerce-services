@@ -25,7 +25,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	protected $rest_base = 'connect/shipping-label';
 
 	/**
-	 * Register the routes for order notes.
+	 * Register the routes for shipping labels printing.
 	 */
 	public function register_routes() {
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '', array(
@@ -37,6 +37,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		) );
 	}
 
+	// TODO: remove this when the real server-side validation is implemented
 	private function validation_error( $fields ) {
 		return new WP_Error('validation_failed',
 			'Error!!!',
@@ -54,6 +55,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
+		// TODO: use the real WCC server endpoint to validate
 		if ( $settings->orig_address_1 !== 'Hawk St' ) {
 			return $this->validation_error( array( 'orig_address_1' ) );
 
@@ -70,7 +72,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	 * Validate the requester's permissions
 	 */
 	public function update_items_permissions_check( $request ) {
-		return current_user_can( 'manage_woocommerce' );
+		return current_user_can( 'edit_shop_order' );
 	}
 
 }

@@ -38,17 +38,13 @@ const WCCSettingsForm = ( props ) => {
 
 	const renderActionButtons = () => {
 		const label = ( currentStepLayout || {} ).action_label || __( 'Next' );
+		const isDisabled = ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving;
 		return (
 			<FormButtonsBar>
 				<FormButton
 					type="button"
-					disabled={ ! currentStepLayout || getStepFormErrors( props.errors, currentStepLayout ).length > 0 }
-					onClick={ () => {
-						if ( currentStepLayout.confirmation_flag ) {
-							props.settingsActions.updateSettingsField( currentStepLayout.confirmation_flag, true );
-						}
-						props.formActions.nextStep( props.schema, currentStepLayout );
-					} }>
+					disabled={ isDisabled }
+					onClick={ props.formActions.nextStep }>
 					{ label }
 				</FormButton>
 				{ props.onCancel ? (
