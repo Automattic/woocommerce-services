@@ -23,12 +23,12 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
-		settings,
+		schema,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
-		if ( 'packing_method' === key && ( ! settings.boxes || 0 === settings.boxes.length ) ) {
+		if ( 'packing_method' === key && ( ! form.values.boxes || 0 === form.values.boxes.length ) ) {
 			return '';
 		}
 
@@ -59,6 +59,7 @@ const SettingsGroup = ( props ) => {
 			return (
 				<CompactCard className="save-button-bar">
 					<SaveForm
+						schema={ schema }
 						saveForm={ saveForm }
 						isSaving={ form.isSaving }
 						formHasError={ ( 'undefined' !== typeof errors ) && ( 0 < errors.length ) }
@@ -85,7 +86,6 @@ SettingsGroup.propTypes = {
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
 	errors: PropTypes.array,
-	settings: PropTypes.object.isRequired,
 };
 
 export default SettingsGroup;

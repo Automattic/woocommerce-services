@@ -14,27 +14,27 @@ const SettingsItem = ( {
 	form,
 	layout,
 	schema,
-	settings,
-	settingsActions,
+	formValueActions,
 	storeOptions,
 	packagesActions,
 	errors,
 	saveForm,
 } ) => {
 	const id = layout.key ? layout.key : layout;
-	const updateValue = ( value ) => settingsActions.updateSettingsField( id, value );
-	const updateSubSubValue = ( key, subKey, val ) => settingsActions.updateSettingsObjectSubField( id, key, subKey, val );
-	const removeArrayItem = ( idx ) => settingsActions.removeSettingsArrayFieldItem( id, idx );
+	const updateValue = ( value ) => formValueActions.updateField( id, value );
+	const updateSubValue = ( key, val ) => formValueActions.updateField( [ id ].concat( key ), val );
+	const removeArrayItem = ( idx ) => formValueActions.removeField( [ id ].concat( idx ) );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
-	const fieldValue = settings[ id ];
+	const fieldValue = form.values[ id ];
 	const fieldSchema = schema.properties[ id ];
+	const fieldType = layout.type || fieldSchema.type || '';
 
 	// Check if the response has an error for this concrete field (not any subfields)
 	const hasFieldError = errors && some( errors, error => ! error.length );
 	const fieldError = hasFieldError ? ( layout.validation_hint || '' ) : false;
 
-	switch ( layout.type ) {
+	switch ( fieldType ) {
 		case 'radios':
 			return (
 				<RadioButtons
@@ -53,7 +53,7 @@ const SettingsItem = ( {
 					schema={ fieldSchema }
 					settings={ fieldValue }
 					currencySymbol={ storeOptions.currency_symbol }
-					updateValue={ updateSubSubValue }
+					updateValue={ updateSubValue }
 					settingsKey={ id }
 					errors={ errors }
 					generalError={ fieldError }
@@ -81,7 +81,7 @@ const SettingsItem = ( {
 			return (
 				<Indicators
 					schema={ schema.properties[ id ] }
-					indicators={ Object.values( settings[ id ] ) }
+					indicators={ Object.values( fieldValue ) }
 				/>
 			);
 
@@ -114,26 +114,25 @@ const SettingsItem = ( {
 					checked={ fieldValue }
 					id={ id }
 					schema={ fieldSchema }
-					saveForm={ saveForm }
+					saveForm={ () => saveForm( schema ) }
 					updateValue={ updateValue }
 				/>
 			);
 
-		default:
-			if ( 'number' === fieldSchema.type ) {
-				return (
-					<NumberField
-						id={ id }
-						schema={ fieldSchema }
-						value={ fieldValue }
-						placeholder={ layout.placeholder }
-						updateValue={ updateValue }
-						required={ fieldRequired }
-						error={ fieldError }
-					/>
-				);
-			}
+		case 'number':
+			return (
+				<NumberField
+					id={ id }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					placeholder={ layout.placeholder }
+					updateValue={ updateValue }
+					required={ fieldRequired }
+					error={ fieldError }
+				/>
+			);
 
+		default:
 			return (
 				<TextField
 					id={ id }
@@ -154,10 +153,9 @@ SettingsItem.propTypes = {
 		PropTypes.object.isRequired,
 	] ).isRequired,
 	schema: PropTypes.object.isRequired,
-	settings: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
-	settingsActions: PropTypes.object.isRequired,
+	formValueActions: PropTypes.object.isRequired,
 	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.array,
 	saveForm: PropTypes.func,

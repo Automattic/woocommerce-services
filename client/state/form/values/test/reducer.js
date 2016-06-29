@@ -1,13 +1,8 @@
-import settings from '../reducer';
+import formValues from '../reducer';
 import {
-	updateSettingsField,
-	addSettingsObjectField,
-	removeSettingsObjectField,
-	updateSettingsObjectSubField,
-	removeSettingsObjectSubField,
-	addSettingsArrayFieldItem,
-	removeSettingsArrayFieldItem,
-	updateSettingsArrayFieldItem,
+	updateField,
+	removeField,
+	addArrayFieldItem,
 } from '../actions';
 import {
 	savePackage,
@@ -38,7 +33,7 @@ const initialState = {
 	},
 };
 
-describe( 'Settings reducer', () => {
+describe( 'Form values reducer', () => {
 	afterEach( () => {
 		// make sure the state hasn't been mutated
 		// after each test
@@ -68,11 +63,11 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'UPDATE_SETTINGS_FIELD', () => {
-		const key = 'testField';
+	it( 'UPDATE_FIELD', () => {
+		const path = 'testField';
 		const val = 'testValue2';
-		const action = updateSettingsField( key, val );
-		const state = settings( initialState, action );
+		const action = updateField( path, val );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
 			testField: 'testValue2',
@@ -100,11 +95,11 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'UPDATE_SETTINGS_FIELD (add field)', () => {
-		const key = 'testField2';
+	it( 'UPDATE_FIELD (add field)', () => {
+		const path = 'testField2';
 		const val = 'FOO_BAR';
-		const action = updateSettingsField( key, val );
-		const state = settings( initialState, action );
+		const action = updateField( path, val );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
 			testField: 'testValue',
@@ -133,23 +128,13 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'ADD_SETTINGS_OBJECT_FIELD', () => {
-		const settingsKey = 'testPckgs';
-		const key = 'PCKG_B';
-		const obj = {
-			id: key,
-			dimensions: {
-				width: 12,
-				length: 13,
-				height: 11,
-			},
-			value: 1234,
-		};
-		const action = addSettingsObjectField( settingsKey, key, obj );
-		const state = settings( initialState, action );
+	it( 'REMOVE_FIELD', () => {
+		const path = 'testField';
+
+		const action = removeField( path );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
-			testField: 'testValue',
 			testArrayKey: [
 				{
 					id: 'ALPHA',
@@ -170,115 +155,19 @@ describe( 'Settings reducer', () => {
 					},
 					value: 1122,
 				},
-				PCKG_B: {
-					id: 'PCKG_B',
-					dimensions: {
-						width: 12,
-						length: 13,
-						height: 11,
-					},
-					value: 1234,
-				},
 			},
 		} );
 	} );
 
-	it( 'REMOVE_SETTINGS_OBJECT_FIELD', () => {
-		const settingsKey = 'testPckgs';
-		const key = 'PCKG_A';
-
-		const action = removeSettingsObjectField( settingsKey, key );
-		const state = settings( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-				{
-					id: 'BETA',
-					testItemField: 'BEE',
-				},
-			],
-			testPckgs: {},
-		} );
-	} );
-
-	it( 'UPDATE_SETTINGS_OBJECT_SUB_FIELD', () => {
-		const settingsKey = 'testPckgs';
-		const key = 'PCKG_A';
-		const subFieldKey = 'value';
-		const val = 12345;
-
-		const action = updateSettingsObjectSubField( settingsKey, key, subFieldKey, val );
-		const state = settings( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-				{
-					id: 'BETA',
-					testItemField: 'BEE',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 12345,
-				},
-			},
-		} );
-	} );
-
-	it( 'REMOVE_SETTINGS_OBJECT_SUB_FIELD', () => {
-		const settingsKey = 'testPckgs';
-		const key = 'PCKG_A';
-		const subFieldKey = 'dimensions';
-
-		const action = removeSettingsObjectSubField( settingsKey, key, subFieldKey );
-		const state = settings( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-				{
-					id: 'BETA',
-					testItemField: 'BEE',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
-	it( 'ADD_SETTINGS_ARRAY_FIELD_ITEM', () => {
-		const settingsKey = 'testArrayKey';
+	it( 'ADD_ARRAY_FIELD_ITEM', () => {
+		const path = 'testArrayKey';
 		const item = {
 			id: 'OMEGA',
 			testItemField: 'OHH',
 		};
 
-		const action = addSettingsArrayFieldItem( settingsKey, item );
-		const state = settings( initialState, action );
+		const action = addArrayFieldItem( path, item );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
 			testField: 'testValue',
@@ -290,72 +179,6 @@ describe( 'Settings reducer', () => {
 				{
 					id: 'BETA',
 					testItemField: 'BEE',
-				},
-				{
-					id: 'OMEGA',
-					testItemField: 'OHH',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
-	it( 'REMOVE_SETTINGS_ARRAY_FIELD_ITEM', () => {
-		const settingsKey = 'testArrayKey';
-		const index = 1;
-
-		const action = removeSettingsArrayFieldItem( settingsKey, index );
-		const state = settings( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
-	it( 'UPDATE_SETTINGS_ARRAY_FIELD_ITEM', () => {
-		const settingsKey = 'testArrayKey';
-		const index = 1;
-		const item = {
-			id: 'OMEGA',
-			testItemField: 'OHH',
-		};
-
-		const action = updateSettingsArrayFieldItem( settingsKey, index, item );
-		const state = settings( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
 				},
 				{
 					id: 'OMEGA',
@@ -384,7 +207,7 @@ describe( 'Settings reducer', () => {
 		};
 
 		const action = savePackage( settingsKey, item );
-		const state = settings( initialState, action );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
 			testField: 'testValue',
@@ -425,7 +248,7 @@ describe( 'Settings reducer', () => {
 		};
 
 		const action = savePackage( settingsKey, item );
-		const state = settings( initialState, action );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
 			testField: 'testValue',
@@ -463,7 +286,7 @@ describe( 'Settings reducer', () => {
 		};
 
 		const action = savePackage( settingsKey, item );
-		const state = settings( initialState, action );
+		const state = formValues( initialState, action );
 
 		expect( state ).to.eql( {
 			testField: 'testValue',

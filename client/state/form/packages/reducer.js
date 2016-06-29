@@ -84,7 +84,7 @@ reducers[ TOGGLE_OUTER_DIMENSIONS ] = ( state ) => {
 };
 
 const packages = ( state = {}, action ) => {
-	if ( reducers.hasOwnProperty( action.type ) ) {
+	if ( 'function' === typeof reducers[ action.type ] ) {
 		return reducers[ action.type ]( state, action );
 	}
 	return state;

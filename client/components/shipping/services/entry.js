@@ -4,7 +4,6 @@ import FormSelect from 'components/forms/form-select';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
 import NumberInput from 'components/number-field/number-input';
-import parseNumber from 'lib/utils/parse-number';
 
 const ShippingServiceEntry = ( props ) => {
 	const {
@@ -21,7 +20,6 @@ const ShippingServiceEntry = ( props ) => {
 		adjustment_type,
 	} = service;
 
-	const updateField = ( key, value ) => updateValue( service.id, key, value );
 	const hasError = errors.find( ( error ) => error.length && ( error[ 0 ] === service.id ) );
 
 	return (
@@ -29,7 +27,7 @@ const ShippingServiceEntry = ( props ) => {
 			<label className="wcc-shipping-service-entry-title">
 				<FormCheckbox
 					checked={ enabled }
-					onChange={ ( event ) => updateField( 'enabled', event.target.checked ) }
+					onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
 				/>
 				{ name }
 			</label>
@@ -37,13 +35,13 @@ const ShippingServiceEntry = ( props ) => {
 			<NumberInput
 				disabled={ ! enabled }
 				value={ adjustment }
-				onChange={ ( event ) => updateField( 'adjustment', parseNumber( event.target.value ) ) }
+				onChange={ ( event ) => updateValue( 'adjustment', event.target.value ) }
 				isError={ hasError }
 			/>
 			<FormSelect
 				disabled={ ! enabled }
 				value={ adjustment_type }
-				onChange={ ( event ) => updateField( 'adjustment_type', event.target.value ) }
+				onChange={ ( event ) => updateValue( 'adjustment_type', event.target.value ) }
 			>
 				<option value="flat">{ currencySymbol }</option>
 				<option value="percentage">%</option>
