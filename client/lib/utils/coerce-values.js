@@ -1,5 +1,3 @@
-import coerce from 'type-coerce';
-
 /**
  * Retrieve a field's schema, handling referenced schema definitions if need be.
  *
@@ -26,18 +24,38 @@ const getFieldSchema = ( fieldSchema, definitions ) => {
  * @returns {*} - Coerced value.
  */
 const coerceValue = ( value, type ) => {
-	if ( 'number' === type ) {
-		if ( '' === value ) {
-			return undefined;
-		}
+	switch ( type ) {
+		case 'number':
+			if ( '' === value ) {
+				return undefined;
+			}
 
-		if ( ! isNaN( value ) ) {
-			return parseFloat( value );
-		}
-	} else if ( 'function' === typeof coerce[ type ] ) {
-		return coerce[ type ]( value );
+			if ( ! isNaN( value ) ) {
+				return parseFloat( value );
+			}
+
+			return value;
+
+		case 'boolean':
+			const truthy = [ 'true', 'True', 'TRUE', '1', 1, true ];
+			const falsy = [ 'false', 'False', 'FALSE', '0', 0, false ];
+
+			if ( -1 !== truthy.indexOf( value ) ) {
+				return true;
+			}
+
+			if ( -1 !== falsy.indexOf( value ) ) {
+				return false;
+			}
+
+			return undefined;
+
+		case 'string':
+			return value.toString();
+
+		default:
+			return value;
 	}
-	return value;
 };
 
 /**

@@ -85,7 +85,6 @@
     "redux-thunk": "^2.1.0",
     "reselect": "^2.5.1",
     "sprintf-js": "1.0.3",
-    "type-coerce": "^0.1.0",
     "wp-calypso": "github:automattic/wp-calypso"
   }
 }

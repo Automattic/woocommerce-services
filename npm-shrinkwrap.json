@@ -4111,11 +4111,6 @@
       "version": "0.3.2",
       "from": "type-check@>=0.3.2 <0.4.0"
     },
-    "type-coerce": {
-      "version": "0.1.0",
-      "from": "type-coerce@0.1.0",
-      "resolved": "https://registry.npmjs.org/type-coerce/-/type-coerce-0.1.0.tgz"
-    },
     "type-detect": {
       "version": "1.0.0",
       "from": "type-detect@>=1.0.0 <2.0.0",
