@@ -24,7 +24,6 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
-		schema,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {

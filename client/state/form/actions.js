@@ -1,5 +1,4 @@
-import * as SettingsActions from 'state/settings/actions';
-import * as FormActions from 'state/form/actions';
+import * as FormValueActions from 'state/form/values/actions';
 import * as NoticeActions from 'state/notices/actions';
 import { getStepFormErrors } from 'state/selectors';
 import saveForm from 'lib/save-form';
@@ -26,16 +25,16 @@ export const goToStep = ( stepIndex ) => {
 export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, formSchema, formLayout } ) => {
 	const submitForm = ( callback ) => {
 		const setIsSaving = ( value ) => {
-			dispatch( FormActions.setFormProperty( 'isSaving', value ) );
+			dispatch( setFormProperty( 'isSaving', value ) );
 			if ( false === value ) {
 				callback();
 			}
 		};
-		const setSuccess = ( value ) => dispatch( FormActions.setFormProperty( 'success', value ) );
-		const setError = ( value ) => dispatch( FormActions.setFormProperty( 'errors', value ) );
+		const setSuccess = ( value ) => dispatch( setFormProperty( 'success', value ) );
+		const setError = ( value ) => dispatch( setFormProperty( 'errors', value ) );
 
-		dispatch( FormActions.setFormProperty( 'pristine', true ) );
-		saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, getState().settings );
+		dispatch( setFormProperty( 'pristine', true ) );
+		saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, getState().form.values );
 	};
 
 	const tryAutoAdvance = ( isManualAction ) => {
@@ -69,7 +68,7 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, formSc
 			}
 
 			if ( isManualAction && currentStepLayout.confirmation_flag ) {
-				dispatch( SettingsActions.updateSettingsField( currentStepLayout.confirmation_flag, true ) );
+				dispatch( FormValueActions.updateField( currentStepLayout.confirmation_flag, true ) );
 			}
 
 			dispatch( goToStep( currentStep + 1 ) );

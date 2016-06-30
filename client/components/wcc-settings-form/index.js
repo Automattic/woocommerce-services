@@ -8,15 +8,9 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'state/form/values/actions';
 import * as PackagesActions from 'state/form/packages/actions';
-import { getFormErrors } from 'state/selectors';
+import { getFormErrors, getStepFormErrors } from 'state/selectors';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
-
-const getStepFormErrors = ( allErrors, stepLayout ) => {
-	const stepFields = {};
-	stepLayout.items.forEach( group => group.items.forEach( item => stepFields[ item.key ] = true ) );
-	return allErrors.filter( elem => stepFields[ elem[0] ] );
-};
 
 const WCCSettingsForm = ( props ) => {
 	const currentStep = props.form.currentStep;
@@ -31,7 +25,7 @@ const WCCSettingsForm = ( props ) => {
 			<WCCSettingsGroup
 				{ ...props }
 				group={ currentStepLayout }
-				saveForm={ props.settingsActions.submit }
+				saveForm={ props.formValueActions.submit }
 			/>
 		);
 	};
@@ -88,7 +82,7 @@ const WCCSettingsForm = ( props ) => {
 					<WCCSettingsGroup
 						{ ...props }
 						group={ group }
-						saveForm={ props.settingsActions.submit }
+						saveForm={ props.formValueActions.submit }
 						key={ idx }
 					/>
 				) ) }
@@ -116,7 +110,8 @@ WCCSettingsForm.propTypes = {
 function mapStateToProps( state, props ) {
 	return {
 		form: state.form,
-		errors: getFormErrors( state, props ),
+		errors: getFormErrors( state, props.schema ),
+		stepErrors: getStepFormErrors( state, props.schema, props.layout ),
 	};
 }
 
