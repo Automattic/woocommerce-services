@@ -10,8 +10,7 @@ import * as FormValueActions from 'state/form/values/actions';
 import * as PackagesActions from 'state/form/packages/actions';
 import { getFormErrors } from 'state/selectors';
 import { translate as __ } from 'lib/mixins/i18n';
-import FormButton from 'components/forms/form-button';
-import FormButtonsBar from 'components/forms/form-buttons-bar';
+import ActionButtons from 'components/action-buttons';
 
 const getStepFormErrors = ( allErrors, stepLayout ) => {
 	const stepFields = {};
@@ -37,30 +36,6 @@ const WCCSettingsForm = ( props ) => {
 		);
 	};
 
-	const renderActionButtons = () => {
-		const label = ( currentStepLayout || {} ).action_label || __( 'Next' );
-		const isDisabled = ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving;
-		return (
-			<FormButtonsBar>
-				<FormButton
-					type="button"
-					disabled={ isDisabled }
-					onClick={ props.formActions.nextStep }>
-					{ label }
-				</FormButton>
-				{ props.onCancel ? (
-					<FormButton
-						type="button"
-						isPrimary={ false }
-						onClick={ props.onCancel }>
-						{ __( 'Cancel' ) }
-					</FormButton>
-				) : null
-				}
-			</FormButtonsBar>
-		)
-	};
-
 	const renderTab = ( label, index ) => {
 		if ( index === currentStep ) {
 			return <b>{ label }</b>;
@@ -71,6 +46,20 @@ const WCCSettingsForm = ( props ) => {
 	};
 
 	const renderMultiStepForm = () => {
+		const buttons = [];
+		buttons.push( {
+			label: ( currentStepLayout || {} ).action_label || __( 'Next' ),
+			onClick: props.formActions.nextStep,
+			isDisabled: ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving,
+			isPrimary: true,
+		} );
+		if ( props.onCancel ) {
+			buttons.push( {
+				label: __( 'Cancel' ),
+				onClick: props.onCancel,
+			} );
+		}
+
 		return (
 			<div>
 				<div>
@@ -86,7 +75,7 @@ const WCCSettingsForm = ( props ) => {
 					{ renderCurrentStep() }
 				</div>
 				<div>
-					{ renderActionButtons() }
+					<ActionButtons buttons={ buttons } />
 				</div>
 			</div>
 		);

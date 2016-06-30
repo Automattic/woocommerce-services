@@ -72,7 +72,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	 * Validate the requester's permissions
 	 */
 	public function update_items_permissions_check( $request ) {
-		return current_user_can( 'edit_shop_order' );
+		return current_user_can( 'manage_woocommerce' );
 	}
 
 }

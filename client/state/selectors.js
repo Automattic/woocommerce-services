@@ -54,7 +54,7 @@ export const getStepFormErrors = createSelector(
 		const stepLayout = layout[ state.form.currentStep ];
 		const stepFields = {};
 		if ( stepLayout ) {
-			stepLayout.items.forEach( group => group.items.forEach( item => stepFields[ item.key ] = true ) );
+			stepLayout.items.forEach( item => stepFields[ item.key ] = true );
 		}
 		return allErrors.filter( elem => stepFields[ elem[ 0 ] ] );
 	}
