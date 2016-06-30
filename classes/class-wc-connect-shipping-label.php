@@ -120,8 +120,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'tab_title' => 'Packages',
 				'title' => 'Shopping cart contents',
 				'items' => array(
-					'key' => 'cart',
-					'type' => 'shopping_cart',
+					array(
+						'key' => 'cart',
+						'type' => 'shopping_cart',
+					),
 				),
 				'summary' => '{cart}',
 			);
@@ -131,11 +133,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'tab_title' => 'Rates',
 				'title' => 'Select a shipping service',
 				'items' => array(
-					'key' => 'rate',
-					'type' => 'radios',
-					'titleMap' => array(
-						'media' => 'Media Mail ($1.00)',
-						'pri_1' => 'Priority 1-day ($9.99)',
+					array(
+						'key' => 'rate',
+						'type' => 'radios',
+						'titleMap' => array(
+							'media' => 'Media Mail ($1.00)',
+							'pri_1' => 'Priority 1-day ($9.99)',
+						),
 					),
 				),
 				'summary' => '{rate}',
