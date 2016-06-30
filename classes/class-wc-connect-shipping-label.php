@@ -46,6 +46,25 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $formData;
 		}
 
+		protected function get_states_map() {
+			$result = array();
+			foreach( WC()->countries->get_states() as $country => $states ) {
+				$result[ $country ] = array();
+				foreach ( $states as $code => $name ) {
+					$result[ $country ][ $code ] = html_entity_decode( $name );
+				}
+			}
+			return $result;
+		}
+
+		protected function get_countries() {
+			$result = array();
+			foreach( WC()->countries->get_countries() as $code => $name ) {
+				$result[ $code ] = html_entity_decode( $name );
+			}
+			return $result;
+		}
+
 		protected function get_form_layout() {
 			$layout = array();
 
@@ -74,7 +93,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				array(
 					'key' => 'state',
 					'type' => 'state',
-					'dataset' => WC()->countries->get_states(),
+					'dataset' => $this->get_states_map(),
 				),
 				array(
 					'key' => 'postcode',
@@ -84,7 +103,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'key' => 'country',
 					'validation_hint' => 'This field is required.',
 					'type' => 'dropdown',
-					'titleMap' => WC()->countries->get_countries(),
+					'titleMap' => $this->get_countries(),
 				),
 			);
 			$address_summary = '{first_name} {last_name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';
