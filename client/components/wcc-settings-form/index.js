@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import WCCSettingsStep from './settings-step';
+import WCCSettingsGroup from './settings-group';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import { connect } from 'react-redux';
@@ -29,9 +29,10 @@ const WCCSettingsForm = ( props ) => {
 		}
 
 		return (
-			<WCCSettingsStep
+			<WCCSettingsGroup
 				{ ...props }
-				layout={ currentStepLayout }
+				group={ currentStepLayout }
+				saveForm={ props.settingsActions.submit }
 			/>
 		);
 	};
@@ -91,15 +92,27 @@ const WCCSettingsForm = ( props ) => {
 		);
 	};
 
+	const renderSingleStepForm = () => {
+		return (
+			<div>
+				{ props.layout.map( ( group, idx ) => (
+					<WCCSettingsGroup
+						{ ...props }
+						group={ group }
+						saveForm={ props.settingsActions.submit }
+						key={ idx }
+					/>
+				) ) }
+			</div>
+		);
+	};
+
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			{ 'step' === props.layout[ 0 ].type
 				? renderMultiStepForm()
-				: <WCCSettingsStep
-					{ ...props }
-					layout={ { items: props.layout } }
-					/>
+				: renderSingleStepForm()
 			}
 		</div>
 	);
