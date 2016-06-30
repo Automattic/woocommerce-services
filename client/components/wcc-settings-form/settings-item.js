@@ -69,7 +69,7 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					updateValue={ updateValue }
 					error={ fieldError }
-					countryCode={ settings[ layout.country_field ] }
+					countryCode={ form.values[ layout.country_field ] }
 				/>
 			);
 

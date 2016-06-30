@@ -1,11 +1,12 @@
 import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 import TextField from 'components/text-field';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const StateDropdown = ( props ) => {
 	const statesMap = props.layout.dataset[ props.countryCode ];
 
-	if ( ! statesMap || ! Object.keys( statesMap ).length ) {
+	if ( ! statesMap ) { // We don't have a list of states for this country
 		return (
 			<TextField
 				{ ...props }
@@ -15,10 +16,14 @@ const StateDropdown = ( props ) => {
 		);
 	}
 
+	if ( ! Object.keys( statesMap ).length ) { // This country has no states
+		return null;
+	}
+
 	return (
 		<Dropdown
 			{ ...props }
-			layout={ { titleMap: statesMap } }
+			layout={ { titleMap: { '': __( 'Select one...' ), ...statesMap } } }
 			/>
 	);
 };
