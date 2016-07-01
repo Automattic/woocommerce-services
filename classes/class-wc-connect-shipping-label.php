@@ -11,7 +11,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_data( WC_Order $order ) {
-			$formData = array();
+			$form_data = array();
 			$contents = array();
 
 			foreach( $order->get_items() as $item ) {
@@ -36,14 +36,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'width' => $width
 				);
 			}
-			$formData[ 'cart' ] = $contents;
+			$form_data[ 'cart' ] = $contents;
 
-			foreach( $order->get_address( 'shipping' ) as $key => $value ) {
-				$formData[ 'orig_' . $key ] = '';
-				$formData[ 'dest_' . $key ] = $value;
-			}
+			$dest_address = $order->get_address( 'shipping' );
+			$form_data[ 'dest_name' ] = trim( $dest_address[ 'first_name' ] . ' ' . $dest_address[ 'last_name' ] );
+			$form_data[ 'dest_company' ] = $dest_address[ 'company' ];
+			$form_data[ 'dest_address_1' ] = $dest_address[ 'address_1' ];
+			$form_data[ 'dest_address_2' ] = $dest_address[ 'address_2' ];
+			$form_data[ 'dest_city' ] = $dest_address[ 'city' ];
+			$form_data[ 'dest_state' ] = $dest_address[ 'state' ];
+			$form_data[ 'dest_postcode' ] = $dest_address[ 'postcode' ];
+			$form_data[ 'dest_country' ] = $dest_address[ 'country' ];
 
-			return $formData;
+			return $form_data;
 		}
 
 		protected function get_states_map() {
@@ -70,43 +75,41 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$address_fields = array(
 				array(
-					'key' => 'first_name',
-					'validation_hint' => 'This field is required.',
-				),
-				array(
-					'key' => 'last_name',
+					'key' => 'name',
+					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'company',
 				),
 				array(
 					'key' => 'address_1',
-					'validation_hint' => 'This field is required.',
+					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'address_2',
 				),
 				array(
 					'key' => 'city',
-					'validation_hint' => 'This field is required.',
+					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'state',
 					'type' => 'state',
 					'dataset' => $this->get_states_map(),
+					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'postcode',
-					'validation_hint' => 'This field is required.',
+					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'country',
-					'validation_hint' => 'This field is required.',
+					'validation_hint' => __( 'Required.', 'woocommerce' ),
 					'type' => 'dropdown',
 					'titleMap' => $this->get_countries(),
 				),
 			);
-			$address_summary = '{first_name} {last_name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';
+			$address_summary = '{name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';
 
 			$orig_address_fields = $address_fields;
 			$dest_address_fields = $address_fields;
@@ -121,30 +124,30 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$layout[] = array(
 				'type' => 'step',
-				'tab_title' => 'Origin',
-				'title' => 'Generate shipping label: Address verification (origin)',
-				'description' => 'asdfghjkjhgfdsaASDFGHJJHGFDSA',
+				'tab_title' => __( 'Origin', 'woocommerce' ),
+				'title' => __( 'Generate shipping label: Origin address', 'woocommerce' ),
+				'description' => __( 'Confirm the address of the recipient is correct to ensure the package will get to the correct destination', 'woocommerce' ),
 				'items' => $orig_address_fields,
 				'bypass_suggestion_flag' => 'orig_bypass_suggestion',
 				'summary' => str_replace( '{', '{orig_', $address_summary ),
-				'sugggestion_hint' => 'vnkdjfitysncgkgse,jhxccvnaluerghsldjfvbzdj',
+				'sugggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
 			);
 
 			$layout[] = array(
 				'type' => 'step',
-				'tab_title' => 'Destination',
-				'title' => 'Generate shipping label: Address verification',
-				'description' => 'asdfghjkjhgfdsaASDFGHJJHGFDSA',
+				'tab_title' =>  __( 'Destination', 'woocommerce' ),
+				'title' => __( 'Generate shipping label: Address verification', 'woocommerce' ),
+				'description' => __( 'Confirm the address of the recipient is correct to ensure the package will get to the correct destination', 'woocommerce' ),
 				'items' => $dest_address_fields,
 				'bypass_suggestion_flag' => 'dest_bypass_suggestion',
 				'summary' => str_replace( '{', '{dest_', $address_summary ),
-				'sugggestion_hint' => 'qwertyuiopqwertyuiopqwerty uiopqwertyuiopqwertyuiop',
+				'sugggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
 			);
 
 			$layout[] = array(
 				'type' => 'step',
-				'tab_title' => 'Packages',
-				'title' => 'Shopping cart contents',
+				'tab_title' => __( 'Packages', 'woocommerce' ),
+				'title' => 'TODO: Not implemented yet',
 				'items' => array(
 					array(
 						'key' => 'cart',
@@ -156,8 +159,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$layout[] = array(
 				'type' => 'step',
-				'tab_title' => 'Rates',
-				'title' => 'Select a shipping service',
+				'tab_title' => __( 'Rates', 'woocommerce' ),
+				'title' => 'TODO: Not implemented yet',
 				'items' => array(
 					array(
 						'key' => 'rate',
@@ -165,6 +168,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'titleMap' => array(
 							'media' => 'Media Mail ($1.00)',
 							'pri_1' => 'Priority 1-day ($9.99)',
+							'todo' => 'TODO: These are NOT real rates',
 						),
 					),
 				),
@@ -173,10 +177,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$layout[] = array(
 				'type' => 'summary',
-				'tab_title' => 'Preview',
-				'title' => 'dfhdfghdfgh',
+				'tab_title' => __( 'Buy & Print', 'woocommerce' ),
+				'title' => 'TODO: Not implemented yet',
 				'items' => array(),
-				'action_label' => 'Print',
+				'action_label' => __( 'Print', 'woocommerce' ),
 				'confirmation_flag' => 'confirm',
 			);
 
@@ -187,50 +191,45 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$properties = array();
 
 			$address_fields = array(
-				'first_name' => array(
+				'name' => array(
 					'type' => 'string',
-					'title' => 'First name',
+					'title' => __( 'Name', 'woocommerce' ),
 					'minLength' => 1,
-				),
-				'last_name' => array(
-					'type' => 'string',
-					'title' => 'Last name',
 				),
 				'company' => array(
 					'type' => 'string',
-					'title' => 'Company',
+					'title' => __( 'Company', 'woocommerce' ),
 				),
 				'address_1' => array(
 					'type' => 'string',
-					'title' => 'Address',
+					'title' => __( 'Street address', 'woocommerce' ),
 					'minLength' => 1,
 				),
 				'address_2' => array(
-					'type' => 'string',
-					'title' => 'Address line 2',
+					'type' => 'string'
 				),
 				'city' => array(
 					'type' => 'string',
-					'title' => 'City',
+					'title' => __( 'City', 'woocommerce' ),
 					'minLength' => 1,
 				),
 				'state' => array(
 					'type' => 'string',
-					'title' => 'State',
+					'title' => __( 'State', 'woocommerce' ),
 				),
 				'postcode' => array(
 					'type' => 'string',
-					'title' => 'Postal code',
+					'title' => __( 'Postal code', 'woocommerce' ),
 					'minLength' => 1,
 				),
 				'country' => array(
 					'type' => 'string',
-					'title' => 'Country',
+					'title' => __( 'Country', 'woocommerce' ),
 					'enum' => array_keys( WC()->countries->get_countries() ),
 					'default' => 'US',
 				),
 			);
-			$required_address_fields = array( 'first_name', 'address_1', 'city', 'postcode', 'country' );
+			$required_address_fields = array( 'name', 'address_1', 'city', 'postcode', 'country' );
 
 			foreach( $address_fields as $key => $value ) {
 				$properties[ 'orig_' . $key ] = $value;
@@ -250,42 +249,42 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'properties' => array(
 					'height' => array(
 						'type' => 'number',
-						'title' => 'Height',
+						'title' => __( 'Height', 'woocommerce' ),
 					),
 					'product_id' => array(
 						'type' => 'string',
-						'title' => 'Product ID',
+						'title' => __( 'Product ID', 'woocommerce' ),
 					),
 					'length' => array(
 						'type' => 'number',
-						'title' => 'Length',
+						'title' => __( 'Length', 'woocommerce' ),
 					),
 					'quantity' => array(
 						'type' => 'number',
-						'title' => 'Quantity',
+						'title' => __( 'Quantity', 'woocommerce' ),
 					),
 					'weight' => array(
 						'type' => 'number',
-						'title' => 'Weight',
+						'title' => __( 'Weight', 'woocommerce' ),
 					),
 					'width' => array(
 						'type' => 'number',
-						'title' => 'Width',
+						'title' => __( 'Width', 'woocommerce' ),
 					),
 				),
 			);
 
 			$properties[ 'cart' ] = array(
 				'type' => 'array',
-				'title' => 'Items to send',
+				'title' => __( 'Items to send', 'woocommerce' ),
 				'items' => $itemDefinition,
 			);
 			$required_fields[] = 'cart';
 
 			$properties[ 'rate' ] = array(
 				'type' => 'string',
-				'title' => 'Shipping rate',
-				'enum' => array( 'pri_1', 'media' ),
+				'title' => __( 'Shipping rate', 'woocommerce' ),
+				'enum' => array( 'pri_1', 'media', 'todo' ),
 			);
 			$required_fields[] = 'rate';
 
