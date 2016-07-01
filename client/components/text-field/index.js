@@ -41,7 +41,7 @@ TextField.propTypes = {
 	id: PropTypes.string.isRequired,
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'string' ),
-		title: PropTypes.string.isRequired,
+		title: PropTypes.string,
 		description: PropTypes.string,
 		default: PropTypes.string,
 	} ).isRequired,

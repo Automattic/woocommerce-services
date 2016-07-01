@@ -45,7 +45,7 @@ Toggle.propTypes = {
 	id: PropTypes.string.isRequired,
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'string' ),
-		title: PropTypes.string.isRequired,
+		title: PropTypes.string,
 		trueText: PropTypes.string,
 		falseText: PropTypes.string,
 		saveOnToggle: PropTypes.bool,
