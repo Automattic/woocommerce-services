@@ -181,7 +181,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 				'address_2' => array(
 					'type' => 'string',
-					'title' => 'Address (cont.)',
+					'title' => 'Address line 2',
 				),
 				'city' => array(
 					'type' => 'string',
