@@ -23,7 +23,7 @@ const TextArea = ( { id, schema, value, placeholder, layout, updateValue, error 
 	const readOnly = 'undefined' === typeof layout.readonly ? false : layout.readonly;
 
 	return (
-		<FormFieldset>
+		<FormFieldset id={ id + '_container' }>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<FormTextarea
 				id={ id }

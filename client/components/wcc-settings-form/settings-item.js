@@ -40,6 +40,7 @@ const SettingsItem = ( {
 		case 'radios':
 			return (
 				<RadioButtons
+					id={ id }
 					layout={ layout }
 					schema={ fieldSchema }
 					value={ fieldValue }
@@ -107,6 +108,7 @@ const SettingsItem = ( {
 		case 'indicators':
 			return (
 				<Indicators
+					id={ id }
 					schema={ schema.properties[ id ] }
 					indicators={ Object.values( fieldValue ) }
 				/>
