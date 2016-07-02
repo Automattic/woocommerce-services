@@ -24,6 +24,7 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
+		schema,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
@@ -67,7 +68,7 @@ const SettingsGroup = ( props ) => {
 						isDisabled = true;
 						label = button.progressTitle || label;
 					} else {
-						onClick = saveForm;
+						onClick = () => saveForm( schema );
 						isDisabled = ( 'undefined' !== typeof errors ) && ( 0 < errors.length );
 					}
 				}
