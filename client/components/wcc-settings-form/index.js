@@ -8,9 +8,10 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'state/form/values/actions';
 import * as PackagesActions from 'state/form/packages/actions';
-import { getFormErrors, getStepFormErrors } from 'state/selectors';
+import { getFormErrors, getStepFormErrors } from 'state/selectors/errors';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
+import isEmpty from 'lodash/isEmpty';
 
 const WCCSettingsForm = ( props ) => {
 	const currentStep = props.form.currentStep;
@@ -44,7 +45,7 @@ const WCCSettingsForm = ( props ) => {
 		buttons.push( {
 			label: ( currentStepLayout || {} ).action_label || __( 'Next' ),
 			onClick: props.formActions.nextStep,
-			isDisabled: ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving,
+			isDisabled: ! currentStepLayout || ! isEmpty( props.stepErrors ) || props.form.isSaving,
 			isPrimary: true,
 		} );
 		if ( props.onCancel ) {

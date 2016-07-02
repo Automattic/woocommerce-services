@@ -1,8 +1,9 @@
 import * as FormValueActions from 'state/form/values/actions';
 import * as NoticeActions from 'state/notices/actions';
-import { getStepFormErrors } from 'state/selectors';
+import { getStepFormErrors } from 'state/selectors/errors';
 import saveForm from 'lib/save-form';
-import isArray from 'lodash/isArray';
+import isObject from 'lodash/isObject';
+import isEmpty from 'lodash/isEmpty';
 
 export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
 export const GO_TO_STEP = 'GO_TO_STEP';
@@ -45,7 +46,7 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 			return;
 		}
 
-		if ( getStepFormErrors( getState(), formSchema, formLayout ).length ) {
+		if ( ! isEmpty( getStepFormErrors( getState(), formSchema, formLayout ) ) ) {
 			return;
 		}
 
@@ -56,14 +57,14 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 		}
 
 		submitForm( () => {
-			if ( getState().form.errors && ! isArray( getState().form.errors ) ) {
+			if ( getState().form.errors && ! isObject( getState().form.errors ) ) {
 				dispatch( NoticeActions.errorNotice( getState().form.errors, {
 					duration: 7000,
 				} ) );
 				return;
 			}
 
-			if ( getStepFormErrors( getState(), formSchema, formLayout ).length ) {
+			if ( ! isEmpty( getStepFormErrors( getState(), formSchema, formLayout ) ) ) {
 				return;
 			}
 

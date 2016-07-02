@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
-import some from 'lodash/some';
 import Gridicon from 'components/gridicon';
 
 const noPackages = () => {
@@ -25,14 +24,14 @@ const PackagesList = ( {
 } ) => {
 	const renderPackageListItem = ( pckg, idx ) => {
 		/*
-		 * Errors found in array items contain the array item index in their dot-notation path
+		 * Errors found in array items contain the array item index in their path
 		 *
-		 * e.g.: data.boxes.0.inner_dimensions
+		 * e.g.: { 'boxes': { '0': { 'inner_dimensions': {...} } } }
 		 *
 		 * At this point, the errant field's parents have been stripped from the path, so we're
 		 * looking for paths that begin just with the index of this package.
 		 */
-		const hasError = some( errors, ( error ) => ( idx.toString() === error[ 0 ] ) );
+		const hasError = errors[ idx ];
 
 		return (
 			<PackagesListItem

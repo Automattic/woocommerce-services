@@ -38,7 +38,12 @@ const ShippingServiceGroups = ( {
 
 	const renderServiceGroup = ( serviceGroup ) => {
 		const groupFields = map( serviceGroups[ serviceGroup ], 'id' );
-		const groupErrors = errors.filter( ( error ) => ( -1 < groupFields.indexOf( error[ 0 ] ) ) );
+		const groupErrors = {};
+		groupFields.forEach( ( fieldName ) => {
+			if ( errors[ fieldName ] ) {
+				groupErrors[ fieldName ] = errors[ fieldName ];
+			}
+		} );
 
 		return (
 			<ShippingServiceGroup

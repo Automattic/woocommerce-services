@@ -4,19 +4,7 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
 import noop from 'lodash/noop';
-
-const filterErrorsForItem = ( groupErrors, itemKey ) => {
-	let itemErrors = [];
-
-	groupErrors.forEach( ( errorPath ) => {
-		// Collect errant fields that have the current item as a parent
-		if ( itemKey === errorPath[ 0 ] ) {
-			itemErrors.push( errorPath.slice( 1 ) );
-		}
-	} );
-
-	return itemErrors;
-};
+import isEmpty from 'lodash/isEmpty';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -33,14 +21,12 @@ const SettingsGroup = ( props ) => {
 			return '';
 		}
 
-		const itemErrors = filterErrorsForItem( errors, key );
-
 		return (
 			<SettingsItem
 				{ ...props }
 				{ ...{ key } }
 				layout={ item }
-				errors={ itemErrors }
+				errors={ errors[ key ] || {} }
 			/>
 		);
 	};
@@ -78,7 +64,7 @@ const SettingsGroup = ( props ) => {
 						label = button.progressTitle || label;
 					} else {
 						onClick = () => saveForm( schema );
-						isDisabled = ( 'undefined' !== typeof errors ) && ( 0 < errors.length );
+						isDisabled = ! isEmpty( errors );
 					}
 				}
 				return { label, onClick, isDisabled, isPrimary };
@@ -107,7 +93,7 @@ SettingsGroup.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
-	errors: PropTypes.array,
+	errors: PropTypes.object,
 };
 
 export default SettingsGroup;

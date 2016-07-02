@@ -1,3 +1,6 @@
+import isArray from 'lodash/isArray';
+import { EMPTY_ERROR } from 'state/selectors/errors';
+
 const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );
 	const request = {
@@ -23,9 +26,13 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, submitMethod, 
 				json.data.data &&
 				json.data.data.fields
 			) {
-				if ( json.data.data.fields ) {
-					return setError( json.data.data.fields );
+				let errors = json.data.data.fields;
+				// Some services still give the field errors in an array, keep backwards-compatibility
+				if ( isArray( errors ) ) {
+					errors = {};
+					json.data.data.fields.forEach( ( fieldName ) => errors[ fieldName ] = EMPTY_ERROR );
 				}
+				return setError( errors );
 			}
 
 			if ( json.data.message ) {

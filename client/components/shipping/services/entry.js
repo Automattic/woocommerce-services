@@ -20,7 +20,7 @@ const ShippingServiceEntry = ( props ) => {
 		adjustment_type,
 	} = service;
 
-	const hasError = errors.find( ( error ) => error.length && ( error[ 0 ] === service.id ) );
+	const hasError = errors[ service.id ];
 
 	return (
 		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) }>
