@@ -95,16 +95,36 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function send_shipping_label_request( $label_settings ) {
 			// TODO: use the real WCC server endpoint to validate
-			if ( $label_settings->orig_address_1 !== 'Hawk St' ) {
-				return $this->validation_error( array( 'orig_address_1' ) );
-
+			if ( $label_settings->orig_address_1 === 'Awk St' ) {
+				if ( ! $label_settings->orig_bypass_suggestion ) {
+					$errors[ 'orig_address_1' ] = array(
+						'value' => 'Hawk St',
+						'level' => 'suggestion',
+					);
+				}
+			} else if ( $label_settings->orig_address_1 !== 'Hawk St' ) {
+				$errors[ 'orig_address_1' ] = array(
+					'value' => 'The server doesn\'t like that street!',
+				);
 			}
 
-			if ( $label_settings->dest_address_1 !== 'Hawk St' ) {
-				return $this->validation_error( array( 'dest_address_1' ) );
+			if ( $label_settings->dest_address_1 === 'Awk St' ) {
+				if ( ! $label_settings->dest_bypass_suggestion ) {
+					$errors[ 'dest_address_1' ] = array(
+						'value' => 'Hawk St',
+						'level' => 'suggestion',
+					);
+				}
+			} else if ( $label_settings->dest_address_1 !== 'Hawk St' ) {
+				$errors[ 'dest_address_1' ] = array(
+					'value' => 'The server doesn\'t like that street!',
+				);
 			}
 
-			return $this->validation_error( array( 'cart', 'rate' ) );
+			$errors[ 'cart' ] = array( 'value' => '' );
+			$errors[ 'rate' ] = array( 'value' => '' );
+
+			return $this->validation_error( $errors );
 		}
 
 

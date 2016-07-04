@@ -8,7 +8,7 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'state/form/values/actions';
 import * as PackagesActions from 'state/form/packages/actions';
-import { getFormErrors, getStepFormErrors } from 'state/selectors/errors';
+import { getFormErrors, getStepFormErrors, getStepFormSuggestions } from 'state/selectors/errors';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
 import isEmpty from 'lodash/isEmpty';
@@ -42,10 +42,14 @@ const WCCSettingsForm = ( props ) => {
 
 	const renderMultiStepForm = () => {
 		const buttons = [];
+		let submitEnabled = currentStepLayout && isEmpty( props.stepErrors ) && ! props.form.isSaving;
+		if ( ! isEmpty( props.stepSuggestions ) ) {
+			submitEnabled = true;
+		}
 		buttons.push( {
 			label: ( currentStepLayout || {} ).action_label || __( 'Next' ),
 			onClick: props.formActions.nextStep,
-			isDisabled: ! currentStepLayout || ! isEmpty( props.stepErrors ) || props.form.isSaving,
+			isDisabled: ! submitEnabled,
 			isPrimary: true,
 		} );
 		if ( props.onCancel ) {
@@ -113,6 +117,7 @@ function mapStateToProps( state, props ) {
 		form: state.form,
 		errors: getFormErrors( state, props.schema ),
 		stepErrors: getStepFormErrors( state, props.schema, props.layout ),
+		stepSuggestions: getStepFormSuggestions( state, props.schema, props.layout ),
 	};
 }
 

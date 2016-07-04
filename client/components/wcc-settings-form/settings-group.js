@@ -3,8 +3,23 @@ import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
+import Notice from 'components/notice';
 import noop from 'lodash/noop';
 import isEmpty from 'lodash/isEmpty';
+import omit from 'lodash/omit';
+import FormLabel from 'components/forms/form-label';
+import FormRadio from 'components/forms/form-radio';
+import Button from 'components/button';
+import { translate as __ } from 'lib/mixins/i18n';
+
+const RadioButton = ( props ) => {
+	return (
+		<FormLabel>
+			<FormRadio { ...omit( props, 'children' ) } />
+			{ props.children }
+		</FormLabel>
+	);
+};
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -14,6 +29,30 @@ const SettingsGroup = ( props ) => {
 		errors,
 		schema,
 	} = props;
+
+	const renderSuggestion = ( suggestions ) => {
+		return (
+			<div>
+				<RadioButton
+					checked={ ! form.acceptSuggestion }
+					onChange={ () => props.formActions.setFormProperty( 'acceptSuggestion', false ) } >
+					{ group.suggestion_original_title }
+					<Button onClick={ () => {
+						props.formActions.setFormProperty( 'errors', {} );
+						props.formActions.setFormProperty( 'acceptSuggestion', undefined );
+						props.formActions.setFormProperty( 'pristine', false );
+					} } >
+						{ __( 'Edit' ) }
+					</Button>
+				</RadioButton>
+				<RadioButton
+					checked={ !! form.acceptSuggestion }
+					onChange={ () => props.formActions.setFormProperty( 'acceptSuggestion', true ) } >
+					{ group.suggestion_corrected_title }
+				</RadioButton>
+			</div>
+		);
+	};
 
 	const renderSettingsItem = ( item ) => {
 		const key = item.key ? item.key : item;
@@ -43,6 +82,21 @@ const SettingsGroup = ( props ) => {
 			);
 
 		case 'step':
+			if ( undefined !== form.acceptSuggestion ) {
+				return (
+					<div className="settings-group-default">
+						<Notice
+							status="is-warning"
+							text={ group.suggestion_hint }
+							showDismiss={ false }
+						/>
+						<FormSectionHeading>{ group.title }</FormSectionHeading>
+						{ group.description ? <p>{ group.description }</p> : null }
+						{ renderSuggestion( props.stepSuggestions ) }
+					</div>
+				);
+			}
+
 			return (
 				<div className="settings-group-default">
 					<FormSectionHeading>{ group.title }</FormSectionHeading>

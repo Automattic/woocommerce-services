@@ -1,6 +1,6 @@
 import * as FormValueActions from 'state/form/values/actions';
 import * as NoticeActions from 'state/notices/actions';
-import { getStepFormErrors } from 'state/selectors/errors';
+import { getStepFormErrors, getStepFormSuggestions } from 'state/selectors/errors';
 import saveForm from 'lib/save-form';
 import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
@@ -16,14 +16,33 @@ export const setFormProperty = ( field, value ) => {
 	};
 };
 
-export const goToStep = ( stepIndex ) => {
-	return {
+export const goToStep = ( stepIndex ) => ( dispatch, getState, { formLayout } ) => {
+	const stepLayout = formLayout[ stepIndex ] || {};
+
+	// Clear the "bypass suggestion" flag if the user is coming *back* to this step
+	if ( getState().form.currentStep > stepIndex && stepLayout.bypass_suggestion_flag ) {
+		dispatch( FormValueActions.updateField( stepLayout.bypass_suggestion_flag, false ) );
+	}
+
+	dispatch( {
 		type: GO_TO_STEP,
 		step: stepIndex,
-	};
+	} );
 };
 
 export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submitMethod, formSchema, formLayout } ) => {
+	const stepLayout = formLayout[ getState().form.currentStep ] || {};
+	const suggestions = getStepFormSuggestions( getState(), formSchema, formLayout );
+	if ( ! isEmpty( suggestions ) ) {
+		if ( getState().form.acceptSuggestion ) {
+			Object.keys( suggestions ).forEach( ( fieldName ) => {
+				dispatch( FormValueActions.updateField( fieldName, suggestions[ fieldName ] ) );
+			} );
+		} else {
+			dispatch( FormValueActions.updateField( stepLayout.bypass_suggestion_flag, true ) );
+		}
+	}
+
 	const submitForm = ( callback ) => {
 		const setIsSaving = ( value ) => {
 			dispatch( setFormProperty( 'isSaving', value ) );
@@ -47,7 +66,14 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 		}
 
 		if ( ! isEmpty( getStepFormErrors( getState(), formSchema, formLayout ) ) ) {
+			if ( ! isEmpty( getStepFormSuggestions( getState(), formSchema, formLayout ) ) ) {
+				dispatch( setFormProperty( 'acceptSuggestion', true ) );
+			}
 			return;
+		}
+
+		if ( isManualAction && currentStepLayout.confirmation_flag ) {
+			dispatch( FormValueActions.updateField( currentStepLayout.confirmation_flag, true ) );
 		}
 
 		if ( getState().form.pristine ) {
@@ -57,6 +83,7 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 		}
 
 		submitForm( () => {
+			dispatch( setFormProperty( 'acceptSuggestion', undefined ) );
 			if ( getState().form.errors && ! isObject( getState().form.errors ) ) {
 				dispatch( NoticeActions.errorNotice( getState().form.errors, {
 					duration: 7000,
@@ -65,11 +92,10 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 			}
 
 			if ( ! isEmpty( getStepFormErrors( getState(), formSchema, formLayout ) ) ) {
+				if ( ! isEmpty( getStepFormSuggestions( getState(), formSchema, formLayout ) ) ) {
+					dispatch( setFormProperty( 'acceptSuggestion', true ) );
+				}
 				return;
-			}
-
-			if ( isManualAction && currentStepLayout.confirmation_flag ) {
-				dispatch( FormValueActions.updateField( currentStepLayout.confirmation_flag, true ) );
 			}
 
 			dispatch( goToStep( currentStep + 1 ) );

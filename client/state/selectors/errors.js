@@ -103,3 +103,20 @@ export const getStepFormErrors = createSelector(
 		return stepErrors;
 	}
 );
+
+export const getStepFormSuggestions = createSelector(
+	( state ) => state,
+	( state, schema ) => schema,
+	( state, schema, layout ) => layout,
+	( state, schema, layout ) => {
+		const stepErrors = getStepFormErrors( state, schema, layout );
+		const suggestions = {};
+		Object.keys( stepErrors ).forEach( ( fieldName ) => {
+			const fieldError = stepErrors[ fieldName ][ '' ];
+			if ( fieldError && 'suggestion' === fieldError.level ) {
+				suggestions[ fieldName ] = fieldError.value;
+			}
+		} );
+		return suggestions;
+	}
+);
