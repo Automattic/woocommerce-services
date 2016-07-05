@@ -11,37 +11,30 @@ import * as PackagesActions from 'state/form/packages/actions';
 import { getFormErrors, getStepFormErrors, getStepFormSuggestions } from 'state/selectors/errors';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
+import Tabs from 'components/tabs';
 import isEmpty from 'lodash/isEmpty';
 
 const WCCSettingsForm = ( props ) => {
 	const currentStep = props.form.currentStep;
-	const currentStepLayout = props.layout[ currentStep ];
 
-	const renderCurrentStep = () => {
-		if ( ! currentStepLayout ) {
-			return <span>... spinner or something ...</span>;
+	const renderGroup = ( stepIndex ) => {
+		if ( ! props.layout[ stepIndex ] ) {
+			return null; // TODO: display a spinner here
 		}
 
 		return (
 			<WCCSettingsGroup
 				{ ...props }
-				group={ currentStepLayout }
+				group={ props.layout[ stepIndex ] }
 				saveForm={ props.formValueActions.submit }
+				key={ stepIndex }
 			/>
 		);
 	};
 
-	const renderTab = ( label, index ) => {
-		if ( index === currentStep ) {
-			return <b>{ label }</b>;
-		} else if ( index < currentStep ) {
-			return <a onClick={ () => props.formActions.goToStep( index ) }>{ label }</a>;
-		}
-		return <span>{ label }</span>;
-	};
-
-	const renderMultiStepForm = () => {
+	const getActionButtons = () => {
 		const buttons = [];
+		const currentStepLayout = props.layout[ currentStep ];
 		let submitEnabled = currentStepLayout && isEmpty( props.stepErrors ) && ! props.form.isSaving;
 		if ( ! isEmpty( props.stepSuggestions ) ) {
 			submitEnabled = true;
@@ -58,23 +51,23 @@ const WCCSettingsForm = ( props ) => {
 				onClick: props.onCancel,
 			} );
 		}
+		return buttons;
+	};
 
+	const renderMultiStepForm = () => {
 		return (
 			<div>
 				<div>
-					<ul>
-						{ props.layout.map( ( step, index ) => (
-							<li key={ index }>
-								{ renderTab( step.tab_title, index ) }
-							</li>
-						) ) }
-					</ul>
+					<Tabs
+						layout={ props.layout }
+						currentStep={ currentStep }
+						onTabClick={ props.formActions.goToStep } />
 				</div>
 				<div>
-					{ renderCurrentStep() }
+					{ renderGroup( currentStep ) }
 				</div>
 				<div>
-					<ActionButtons buttons={ buttons } />
+					<ActionButtons buttons={ getActionButtons() } />
 				</div>
 			</div>
 		);
@@ -83,14 +76,7 @@ const WCCSettingsForm = ( props ) => {
 	const renderSingleStepForm = () => {
 		return (
 			<div>
-				{ props.layout.map( ( group, idx ) => (
-					<WCCSettingsGroup
-						{ ...props }
-						group={ group }
-						saveForm={ props.formValueActions.submit }
-						key={ idx }
-					/>
-				) ) }
+				{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }
 			</div>
 		);
 	};
