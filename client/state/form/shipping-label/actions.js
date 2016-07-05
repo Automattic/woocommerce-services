@@ -9,6 +9,7 @@ export const openPrintingFlow = () => ( dispatch ) => {
 	dispatch( FormActions.nextStep() );
 };
 
-export const exitPrintingFlow = () => ( {
-	type: EXIT_PRINTING_FLOW,
-} );
+export const exitPrintingFlow = () => ( dispatch ) => {
+	dispatch( { type: EXIT_PRINTING_FLOW } );
+	dispatch( FormActions.resetFlow() );
+};

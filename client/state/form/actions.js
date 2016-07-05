@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 import { submitForm, autoAdvanceForm } from 'state/form/auto-advance';
 
 export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
+export const BACK_FROM_SUGGESTION = 'BACK_FROM_SUGGESTION';
 export const GO_TO_STEP = 'GO_TO_STEP';
 
 export const setFormProperty = ( field, value ) => {
@@ -14,6 +15,10 @@ export const setFormProperty = ( field, value ) => {
 		value,
 	};
 };
+
+export const backFromSuggestion = () => ( {
+	type: BACK_FROM_SUGGESTION,
+} );
 
 export const goToStep = ( stepIndex ) => ( dispatch, getState, { formLayout } ) => {
 	const stepLayout = formLayout[ stepIndex ] || {};
@@ -27,6 +32,12 @@ export const goToStep = ( stepIndex ) => ( dispatch, getState, { formLayout } ) 
 		type: GO_TO_STEP,
 		step: stepIndex,
 	} );
+};
+
+export const resetFlow = () => ( dispatch ) => {
+	dispatch( setFormProperty( 'pristine', true ) );
+	dispatch( goToStep( -1 ) );
+	dispatch( setFormProperty( 'acceptSuggestion', undefined ) );
 };
 
 export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submitMethod, formSchema, formLayout } ) => {
@@ -45,7 +56,7 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 		getFormState: getFormState,
 		submit: () => submitForm( callbackURL, nonce, submitMethod, getFormState().values, bindActionCreators( setFormProperty, dispatch ) ),
 		setConfirmationFlag: () => getCurrentStepLayout().confirmation_flag && updateField( getCurrentStepLayout().confirmation_flag, true ),
-		setBypassSuggestionFlag: () => updateField( getCurrentStepLayout().bypass_suggestion_flag ),
+		setBypassSuggestionFlag: () => updateField( getCurrentStepLayout().bypass_suggestion_flag, true ),
 		isLastStep: () => getFormState().currentStep >= formLayout.length - 1,
 	} );
 };
