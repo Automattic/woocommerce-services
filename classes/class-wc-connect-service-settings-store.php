@@ -42,6 +42,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			);
 		}
 
+		public function get_origin_address() {
+			return get_option( 'woocommerce_connect_origin_address', array() );
+		}
+
+		public function update_origin_address( $address ) {
+			return update_option( 'woocommerce_connect_origin_address', $address );
+		}
+
 		protected function sort_services( $a, $b ) {
 
 			if ( $a->zone_order === $b->zone_order ) {

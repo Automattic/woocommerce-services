@@ -29,8 +29,14 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	 */
 	protected $api_client;
 
-	public function __construct( WC_Connect_API_Client $api_client ) {
+	/**
+	 * @var WC_Connect_Service_Settings_Store
+	 */
+	protected $settings_store;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
 		$this->api_client = $api_client;
+		$this->settings_store = $settings_store;
 	}
 
 	/**
@@ -46,11 +52,32 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		) );
 	}
 
+	private function starts_with( $haystack, $needle ) {
+		 return $needle === substr( $haystack, 0, strlen( $needle ) );
+	}
+
+	private function store_origin_address( $settings ) {
+		$address = array();
+		foreach( $settings as $key => $value ) {
+			if ( $this->starts_with( $key, 'orig_' ) ) {
+				$raw_field_name = substr( $key, strlen( 'orig_' ) );
+				$address[ $raw_field_name ] = $value;
+			}
+		}
+		$this->settings_store->update_origin_address( $address );
+	}
+
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		return $this->api_client->send_shipping_label_request( $settings );
+		$response = $this->api_client->send_shipping_label_request( $settings );
+
+		if ( true /* TODO: Trigger this only when the label was correctly purchased */ ) {
+			$this->store_origin_address( $settings );
+		}
+
+		return $response;
 	}
 
 	/**
