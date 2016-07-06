@@ -20,7 +20,7 @@ const summaryLabel = ( services ) => {
 
 const updateAll = ( event, updateValue, services ) => {
 	services.forEach( ( service ) => {
-		updateValue( service.id + '.enabled', event.target.checked );
+		updateValue( [ service.id, 'enabled' ], event.target.checked );
 	} )
 };
 
