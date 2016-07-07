@@ -10,12 +10,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->settings_store = $settings_store;
 		}
 
-		protected function get_form_data( WC_Order $order ) {
-			$form_data = array();
-			$contents = array();
-
+		protected function get_individual_packages( $order ) {
+			$packages = array();
 			foreach( $order->get_items() as $item ) {
 				$product = $order->get_product_from_item( $item );
+				if ( ! $product ) {
+					continue;
+				}
 				$height = 0;
 				$length = 0;
 				$weight = $product->get_weight();
@@ -26,17 +27,57 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					$length = $product->get_length();
 					$width  = $product->get_width();
 				}
+				$name = $product->get_formatted_name();
 
-				$contents[] = array(
-					'height' => $height,
-					'product_id' => $item['product_id'],
-					'length' => $length,
-					'quantity' => $item['qty'],
-					'weight' => $weight,
-					'width' => $width
-				);
+				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
+					$packages[] = array(
+						'height' => $height,
+						'length' => $length,
+						'weight' => $weight,
+						'width' => $width,
+						'items' => array(
+							array(
+								'height' => $height,
+								'product_id' => $item['product_id'], // TODO: Make this work with product variations
+								'length' => $length,
+								'quantity' => 1,
+								'weight' => $weight,
+								'width' => $width,
+								'name' => $name,
+							),
+						),
+					);
+				}
 			}
-			$form_data[ 'cart' ] = $contents;
+			return $packages;
+		}
+
+		protected function get_packaging_data( WC_Order $order ) {
+			$shipping_methods = $order->get_shipping_methods();
+			if ( empty( $shipping_methods ) || ! isset( $shipping_methods[ 0 ][ 'wc_connect_packages' ] ) ) {
+				return $this->get_individual_packages( $order );
+			}
+
+			$packages = json_decode( $shipping_methods[ 0 ][ 'wc_connect_packages' ], true );
+
+			foreach( $packages as $package_index => $package ) {
+				foreach( $package[ 'items' ] as $item_index => $item ) {
+					// TODO: Make this work with product variations (make the WCC server handle and return 'variation_id' as well as 'product_id')
+					$product = $order->get_product_from_item( $item );
+					if ( ! $product ) {
+						continue;
+					}
+					$packages[ $package_index ][ 'items' ][ $item_index ][ 'name' ] = $product->get_formatted_name();
+				}
+			}
+
+			return $packages;
+		}
+
+		protected function get_form_data( WC_Order $order ) {
+			$form_data = array();
+
+			$form_data[ 'cart' ] = $this->get_packaging_data( $order );
 
 			foreach( $this->settings_store->get_origin_address() as $key => $value ) {
 				$form_data[ 'orig_' . $key ] = $value;
@@ -152,7 +193,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'items' => array(
 					array(
 						'key' => 'cart',
-						'type' => 'shopping_cart',
+						'type' => 'cart',
 					),
 				),
 				'summary' => '{cart}',
