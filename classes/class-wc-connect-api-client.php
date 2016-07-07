@@ -121,7 +121,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			$errors[ 'cart' ] = array( 'value' => '' );
 			$errors[ 'rate' ] = array( 'value' => '' );
 
 			return $this->validation_error( $errors );

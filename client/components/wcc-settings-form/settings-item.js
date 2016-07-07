@@ -9,6 +9,7 @@ import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
+import ShoppingCart from 'components/shopping-cart';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -166,6 +167,17 @@ const SettingsItem = ( {
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
 					error={ fieldError }
+				/>
+			);
+
+		case 'cart':
+			return (
+				<ShoppingCart
+					packages={ fieldValue }
+					updateValue={ updateSubValue }
+					dimensionUnit={ storeOptions.dimension_unit }
+					weightUnit={ storeOptions.weight_unit }
+					errors={ errors }
 				/>
 			);
 
