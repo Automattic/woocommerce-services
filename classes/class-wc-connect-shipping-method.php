@@ -290,7 +290,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							)
 						),
 						'cost'     => $rate->rate,
-						'calc_tax' => 'per_item'
+						'calc_tax' => 'per_item',
+						'meta_data' => array( 'wc_connect_packages' => json_encode( $rate->packages ) ),
 					);
 
 					$this->add_rate( $rate_to_add );
