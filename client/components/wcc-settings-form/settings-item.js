@@ -27,7 +27,6 @@ const SettingsItem = ( {
 	const updateSubValue = ( key, val ) => formValueActions.updateField( [ id ].concat( key ), val );
 	const removeArrayItem = ( idx ) => formValueActions.removeField( [ id ].concat( idx ) );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
-	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
 	const fieldValue = form.values[ id ];
 	const fieldSchema = schema.properties[ id ];
 	const fieldType = layout.type || fieldSchema.type || '';
@@ -141,7 +140,6 @@ const SettingsItem = ( {
 					id={ id }
 					layout={ layout }
 					placeholder={ layout.placeholder }
-					required={ fieldRequired }
 					schema={ fieldSchema }
 					updateValue={ updateValue }
 					value={ fieldValue }
@@ -167,7 +165,6 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
-					required={ fieldRequired }
 					error={ fieldError }
 				/>
 			);
@@ -180,7 +177,6 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
-					required={ fieldRequired }
 					error={ fieldError }
 				/>
 			);
