@@ -4,7 +4,7 @@ import TextField from 'components/text-field';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const StateDropdown = ( props ) => {
-	const statesMap = props.layout.dataset[ props.countryCode ];
+	const statesMap = ( props.countriesData[ props.countryCode ] || {} ).states;
 
 	if ( ! statesMap ) { // We don't have a list of states for this country
 		return (
@@ -30,6 +30,7 @@ const StateDropdown = ( props ) => {
 
 StateDropdown.propTypes = {
 	id: PropTypes.string.isRequired,
+	countriesData: PropTypes.object.isRequired,
 	layout: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	value: PropTypes.string.isRequired,

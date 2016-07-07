@@ -53,19 +53,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_states_map() {
 			$result = array();
-			foreach( WC()->countries->get_states() as $country => $states ) {
-				$result[ $country ] = array();
-				foreach ( $states as $code => $name ) {
-					$result[ $country ][ $code ] = html_entity_decode( $name );
-				}
-			}
-			return $result;
-		}
-
-		protected function get_countries() {
-			$result = array();
 			foreach( WC()->countries->get_countries() as $code => $name ) {
-				$result[ $code ] = html_entity_decode( $name );
+				$result[ $code ] = array( 'name' => html_entity_decode( $name ) );
+			}
+			foreach( WC()->countries->get_states() as $country => $states ) {
+				$result[ $country ][ 'states' ] = array();
+				foreach ( $states as $code => $name ) {
+					$result[ $country ][ 'states' ][ $code ] = html_entity_decode( $name );
+				}
 			}
 			return $result;
 		}
@@ -95,7 +90,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				array(
 					'key' => 'state',
 					'type' => 'state',
-					'dataset' => $this->get_states_map(),
 					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
@@ -105,8 +99,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				array(
 					'key' => 'country',
 					'validation_hint' => __( 'Required.', 'woocommerce' ),
-					'type' => 'dropdown',
-					'titleMap' => $this->get_countries(),
+					'type' => 'country',
 				),
 			);
 			$address_summary = '{name}\\n{address_1} {address_2}\\n{city}, {postcode} {state}, {country}';

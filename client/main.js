@@ -18,6 +18,7 @@ const {
 	nonce,
 	submitMethod,
 	rootView,
+	countriesData,
 } = wcConnectData;
 
 const thunkArgs = { callbackURL, nonce, submitMethod, formSchema, formLayout };
@@ -42,6 +43,7 @@ let render = () => {
 				storeOptions={ storeOptions }
 				schema={ formSchema }
 				layout={ formLayout }
+				countriesData={ countriesData }
 			/>
 		</Provider>,
 		rootEl

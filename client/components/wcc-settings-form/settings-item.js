@@ -8,6 +8,7 @@ import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
+import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
@@ -21,6 +22,7 @@ const SettingsItem = ( {
 	packagesActions,
 	errors,
 	saveForm,
+	countriesData,
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => formValueActions.updateField( id, value );
@@ -61,6 +63,19 @@ const SettingsItem = ( {
 				/>
 			);
 
+		case 'country':
+			return (
+				<CountryDropdown
+					id={ id }
+					layout={ layout }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					updateValue={ updateValue }
+					error={ fieldError }
+					countriesData={ countriesData }
+				/>
+			);
+
 		case 'state':
 			return (
 				<StateDropdown
@@ -71,6 +86,7 @@ const SettingsItem = ( {
 					updateValue={ updateValue }
 					error={ fieldError }
 					countryCode={ form.values[ layout.country_field ] }
+					countriesData={ countriesData }
 				/>
 			);
 
@@ -188,6 +204,7 @@ SettingsItem.propTypes = {
 	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.array,
 	saveForm: PropTypes.func,
+	countriesData: PropTypes.object,
 };
 
 export default SettingsItem;
