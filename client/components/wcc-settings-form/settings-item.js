@@ -22,7 +22,6 @@ const SettingsItem = ( {
 	packagesActions,
 	errors,
 	saveForm,
-	countriesData,
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => formValueActions.updateField( id, value );
@@ -72,7 +71,7 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					updateValue={ updateValue }
 					error={ fieldError }
-					countriesData={ countriesData }
+					countriesData={ storeOptions.countriesData }
 				/>
 			);
 
@@ -86,7 +85,7 @@ const SettingsItem = ( {
 					updateValue={ updateValue }
 					error={ fieldError }
 					countryCode={ form.values[ layout.country_field ] }
-					countriesData={ countriesData }
+					countriesData={ storeOptions.countriesData }
 				/>
 			);
 

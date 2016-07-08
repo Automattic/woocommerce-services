@@ -119,7 +119,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'type' => 'step',
 				'tab_title' => __( 'Origin', 'woocommerce' ),
 				'title' => __( 'Generate shipping label: Origin address', 'woocommerce' ),
-				'description' => __( 'Confirm the address of the recipient is correct to ensure the package will get to the correct destination', 'woocommerce' ),
+				'description' => __( 'Confirm the address you are shipping from is correct to ensure the package will get to the correct destination', 'woocommerce' ),
 				'items' => $orig_address_fields,
 				'bypass_suggestion_flag' => 'orig_bypass_suggestion',
 				'summary' => str_replace( '{', '{orig_', $address_summary ),
@@ -302,8 +302,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				admin_url( 'admin.php' )
 			) );
 
+			$store_options = $this->settings_store->get_shared_settings();
+			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$admin_array = array(
-				'storeOptions' => $this->settings_store->get_shared_settings(),
+				'storeOptions' => $store_options,
 				'formSchema'   => $this->get_form_schema(),
 				'formLayout'   => $this->get_form_layout(),
 				'formData'     => $this->get_form_data( $theorder ),
