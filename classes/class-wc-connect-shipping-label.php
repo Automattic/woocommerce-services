@@ -39,7 +39,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$form_data[ 'cart' ] = $contents;
 
 			foreach( $this->settings_store->get_origin_address() as $key => $value ) {
-				$formData[ 'orig_' . $key ] = $value;
+				$form_data[ 'orig_' . $key ] = $value;
 			}
 
 			$dest_address = $order->get_address( 'shipping' );

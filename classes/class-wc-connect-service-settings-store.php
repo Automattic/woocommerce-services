@@ -43,11 +43,19 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function get_origin_address() {
-			return get_option( 'woocommerce_connect_origin_address', array() );
+			$wc_address_fields = array();
+			$wc_address_fields[ 'company' ] = get_bloginfo( 'name' );
+			$wc_address_fields[ 'name' ] = wp_get_current_user()->display_name;
+			$base_location = wc_get_base_location();
+			$wc_address_fields[ 'country' ] = $base_location[ 'country' ];
+			$wc_address_fields[ 'state' ] = $base_location[ 'state' ];
+
+			$stored_address_fields = get_option( 'wc_connect_origin_address', array() );
+			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
 		public function update_origin_address( $address ) {
-			return update_option( 'woocommerce_connect_origin_address', $address );
+			return update_option( 'wc_connect_origin_address', $address );
 		}
 
 		protected function sort_services( $a, $b ) {

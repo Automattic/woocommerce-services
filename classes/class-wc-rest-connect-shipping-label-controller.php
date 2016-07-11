@@ -73,7 +73,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 
 		$response = $this->api_client->send_shipping_label_request( $settings );
 
-		if ( true /* TODO: Trigger this only when the label was correctly purchased */ ) {
+		if ( true /* TODO: Trigger this only if the origin address correctly validates */ ) {
 			$this->store_origin_address( $settings );
 		}
 
