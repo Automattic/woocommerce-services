@@ -1,7 +1,7 @@
-const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => {
+const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );
 	const request = {
-		method: 'PUT',
+		method: submitMethod || 'PUT',
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,
@@ -10,7 +10,6 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => 
 	};
 
 	return fetch( url, request ).then( response => {
-		setIsSaving( false );
 		setError( null );
 		setSuccess( false );
 
@@ -34,7 +33,7 @@ const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => 
 			}
 
 			return setError( JSON.stringify( json ) );
-		} );
+		} ).then( () => setIsSaving( false ) );
 	} ).catch( ( e ) => {
 		setIsSaving( false );
 		setError( e );

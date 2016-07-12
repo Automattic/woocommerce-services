@@ -68,6 +68,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_self_help_controller;
 
 		/**
+		 * @var WC_REST_Connect_Shipping_Label_Controller
+		 */
+		protected $rest_shipping_label_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -160,6 +165,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_self_help_controller = $rest_self_help_controller;
 		}
 
+		public function get_rest_shipping_label_controller() {
+			return $this->rest_shipping_label_controller;
+		}
+
+		public function set_rest_shipping_label_controller( WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller ) {
+			$this->rest_shipping_label_controller = $rest_shipping_label_controller;
+		}
+
 		public function get_service_schemas_validator() {
 			return $this->service_schemas_validator;
 		}
@@ -201,6 +214,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-provider.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 
 			$logger         = new WC_Connect_Logger( new WC_Logger() );
 			$validator      = new WC_Connect_Service_Schemas_Validator();
@@ -250,6 +264,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
+				add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
 			}
 
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
@@ -288,6 +303,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $logger );
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
 			$rest_self_help_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-controller.php' ) );
+			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client );
+			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
+			$rest_shipping_label_controller->register_routes();
 		}
 
 		/**
@@ -476,6 +496,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function shipping_zone_method_status_toggled( $instance_id, $service_id, $zone_id, $enabled ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
 				do_action( 'wc_connect_shipping_zone_method_status_toggled', $instance_id, $service_id, $zone_id, $enabled );
+			}
+		}
+
+		public function add_meta_boxes() {
+			$shipping_label = new WC_Connect_Shipping_Label( $this->service_settings_store );
+			foreach ( wc_get_order_types( 'order-meta-boxes' ) as $type ) {
+				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), $type, 'side', 'default' );
 			}
 		}
 

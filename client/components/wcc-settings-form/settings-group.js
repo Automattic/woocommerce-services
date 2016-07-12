@@ -2,7 +2,8 @@ import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
-import SaveForm from 'components/save-form';
+import ActionButtons from 'components/action-buttons';
+import noop from 'lodash/noop';
 
 const filterErrorsForItem = ( groupErrors, itemKey ) => {
 	let itemErrors = [];
@@ -56,14 +57,26 @@ const SettingsGroup = ( props ) => {
 			);
 
 		case 'actions':
+			const buttons = group.items.map( ( button ) => {
+				let onClick = noop;
+				let isDisabled = false;
+				let label = button.title;
+				let isPrimary = false;
+				if ( 'submit' === button.type ) {
+					isPrimary = true;
+					if ( form.isSaving ) {
+						isDisabled = true;
+						label = button.progressTitle || label;
+					} else {
+						onClick = () => saveForm( schema );
+						isDisabled = ( 'undefined' !== typeof errors ) && ( 0 < errors.length );
+					}
+				}
+				return { label, onClick, isDisabled, isPrimary };
+			} );
 			return (
 				<CompactCard className="save-button-bar">
-					<SaveForm
-						schema={ schema }
-						saveForm={ saveForm }
-						isSaving={ form.isSaving }
-						formHasError={ ( 'undefined' !== typeof errors ) && ( 0 < errors.length ) }
-					/>
+					<ActionButtons buttons={ buttons } />
 				</CompactCard>
 			);
 

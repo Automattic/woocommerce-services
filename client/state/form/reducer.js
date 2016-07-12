@@ -1,8 +1,14 @@
-import { SET_FORM_PROPERTY } from './actions';
+import {
+	SET_FORM_PROPERTY,
+	NEXT_STEP,
+	GO_TO_STEP,
+} from './actions';
 import packages from './packages/reducer';
 import values from './values/reducer';
 import * as packagesActions from './packages/actions';
 import * as formValueActions from './values/actions';
+import shippingLabel from './shipping-label/reducer';
+import * as shippingLabelActions from './shipping-label/actions';
 
 const reducers = {};
 
@@ -15,6 +21,14 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	return Object.assign( {}, state, newObj );
 };
 
+reducers[ NEXT_STEP ] = ( state ) => {
+	return Object.assign( {}, state, { currentStep: state.currentStep + 1 } );
+};
+
+reducers[ GO_TO_STEP ] = ( state, action ) => {
+	return Object.assign( {}, state, { currentStep: action.step } );
+};
+
 export default function form( state = {}, action ) {
 	let newState = Object.assign( {}, state );
 
@@ -25,6 +39,12 @@ export default function form( state = {}, action ) {
 	if ( state.packages || packagesActions[ action.type ] ) {
 		newState = Object.assign( newState, {
 			packages: packages( state.packages || {}, action ),
+		} );
+	}
+
+	if ( state.shippingLabel || shippingLabelActions[ action.type ] ) {
+		newState = Object.assign( newState, {
+			shippingLabel: shippingLabel( state.shippingLabel || {}, action ),
 		} );
 	}
 

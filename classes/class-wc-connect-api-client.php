@@ -71,6 +71,42 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'POST', "/services/{$service_slug}/settings", array( 'service_settings' => $service_settings ) );
 		}
 
+		// TODO: Remove this when the real server-side validation is implemented for the shipping labels endpoint
+		private function validation_error( $fields ) {
+			return new WP_Error( 'validation_failed',
+				__( 'One or more fields of your request are invalid.', 'woocommerce' ),
+				array(
+					'status' => 400,
+					'error' => 'validation_failure',
+					'data' => array(
+						'fields' => $fields,
+					),
+				)
+			);
+		}
+
+		/**
+		 * Sends a shipping label printing request to the server. That request can be a dry-run for validation purposes,
+		 * or an actual shipping label purchase, depending on the request contents.
+		 *
+		 * @param $label_settings
+		 *
+		 * @return mixed|WP_Error
+		 */
+		public function send_shipping_label_request( $label_settings ) {
+			// TODO: use the real WCC server endpoint to validate
+			if ( $label_settings->orig_address_1 !== 'Hawk St' ) {
+				return $this->validation_error( array( 'orig_address_1' ) );
+
+			}
+
+			if ( $label_settings->dest_address_1 !== 'Hawk St' ) {
+				return $this->validation_error( array( 'dest_address_1' ) );
+			}
+
+			return $this->validation_error( array( 'cart', 'rate' ) );
+		}
+
 
 		/**
 		 * Gets the shipping rates from the WooCommerce Connect Server

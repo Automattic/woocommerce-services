@@ -43,7 +43,22 @@ const getRawFormErrors = ( schema, data ) => {
 
 export const getFormErrors = createSelector(
 	( state ) => state.form.errors,
-	( state, props ) => props.schema,
+	( state, schema ) => schema,
 	( state ) => state.form.values,
 	( errors, schema, data ) => removeErrorDataPathRoot( errors || getRawFormErrors( schema, data ) )
+);
+
+export const getStepFormErrors = createSelector(
+	( state ) => state,
+	( state, schema ) => schema,
+	( state, schema, layout ) => layout,
+	( state, schema, layout ) => {
+		const allErrors = getFormErrors( state, schema );
+		const stepLayout = layout[ state.form.currentStep ];
+		const stepFields = {};
+		if ( stepLayout ) {
+			stepLayout.items.forEach( item => stepFields[ item.key ] = true );
+		}
+		return allErrors.filter( elem => stepFields[ elem[ 0 ] ] );
+	}
 );
