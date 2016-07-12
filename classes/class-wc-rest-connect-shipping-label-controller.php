@@ -25,10 +25,19 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	protected $rest_base = 'connect/shipping-label';
 
 	/**
+	 * @var WC_Connect_API_Client
+	 */
+	protected $api_client;
+
+	public function __construct( WC_Connect_API_Client $api_client ) {
+		$this->api_client = $api_client;
+	}
+
+	/**
 	 * Register the routes for shipping labels printing.
 	 */
 	public function register_routes() {
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'             => WP_REST_Server::EDITABLE,
 				'callback'            => array( $this, 'update_items' ),
@@ -37,35 +46,11 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		) );
 	}
 
-	// TODO: remove this when the real server-side validation is implemented
-	private function validation_error( $fields ) {
-		return new WP_Error( 'validation_failed',
-			__( 'One or more fields of your request are invalid.', 'woocommerce' ),
-			array(
-				'status' => 400,
-				'error' => 'validation_failure',
-				'data' => array(
-					'fields' => $fields,
-				),
-			)
-		);
-	}
-
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		// TODO: use the real WCC server endpoint to validate
-		if ( $settings->orig_address_1 !== 'Hawk St' ) {
-			return $this->validation_error( array( 'orig_address_1' ) );
-
-		}
-
-		if ( $settings->dest_address_1 !== 'Hawk St' ) {
-			return $this->validation_error( array( 'dest_address_1' ) );
-		}
-
-		return $this->validation_error( array( 'cart', 'rate' ) );
+		return $this->api_client->send_shipping_label_request( $settings );
 	}
 
 	/**
