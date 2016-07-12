@@ -291,6 +291,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'formData'     => $this->get_form_data( $theorder ),
 				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'submitMethod' => 'POST',
 				'rootView'     => 'shipping-label',
 			);
 

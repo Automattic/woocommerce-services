@@ -22,7 +22,7 @@ export const goToStep = ( stepIndex ) => {
 	};
 };
 
-export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, formSchema, formLayout } ) => {
+export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submitMethod, formSchema, formLayout } ) => {
 	const submitForm = ( callback ) => {
 		const setIsSaving = ( value ) => {
 			dispatch( setFormProperty( 'isSaving', value ) );
@@ -34,7 +34,7 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, formSc
 		const setError = ( value ) => dispatch( setFormProperty( 'errors', value ) );
 
 		dispatch( setFormProperty( 'pristine', true ) );
-		saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, getState().form.values );
+		saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, submitMethod, getState().form.values );
 	};
 
 	const tryAutoAdvance = ( isManualAction ) => {

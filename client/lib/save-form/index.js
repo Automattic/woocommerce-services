@@ -1,7 +1,7 @@
-const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, formData ) => {
+const saveForm = ( setIsSaving, setSuccess, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );
 	const request = {
-		method: 'PUT',
+		method: submitMethod || 'PUT',
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,

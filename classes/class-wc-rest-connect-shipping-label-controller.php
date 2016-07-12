@@ -39,7 +39,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	public function register_routes() {
 		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
+				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'update_items' ),
 				'permission_callback' => array( $this, 'update_items_permissions_check' ),
 			),
