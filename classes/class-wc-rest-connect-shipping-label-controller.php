@@ -39,8 +39,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 
 	// TODO: remove this when the real server-side validation is implemented
 	private function validation_error( $fields ) {
-		return new WP_Error('validation_failed',
-			'Error!!!',
+		return new WP_Error( 'validation_failed',
+			__( 'One or more fields of your request are invalid.', 'woocommerce' ),
 			array(
 				'status' => 400,
 				'error' => 'validation_failure',

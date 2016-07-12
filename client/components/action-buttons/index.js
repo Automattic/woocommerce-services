@@ -11,7 +11,7 @@ const ActionButtons = ( { buttons } ) => {
 					key={ idx }
 					disabled={ button.isDisabled }
 					onClick={ button.onClick }
-					isPrimary={ !! button.isPrimary }>
+					isPrimary={ Boolean( button.isPrimary ) }>
 					{ button.label }
 				</FormButton>
 			) ) }

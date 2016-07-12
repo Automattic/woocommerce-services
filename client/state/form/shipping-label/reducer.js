@@ -18,7 +18,7 @@ reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
 };
 
 export default ( state = {}, action ) => {
-	if ( reducers.hasOwnProperty( action.type ) ) {
+	if ( reducers[ action.type ] ) {
 		return reducers[ action.type ]( state, action );
 	}
 	return state;

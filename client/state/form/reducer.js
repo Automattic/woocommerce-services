@@ -42,7 +42,7 @@ export default function form( state = {}, action ) {
 		} );
 	}
 
-	if ( state.hasOwnProperty( 'shippingLabel' ) || shippingLabelActions.hasOwnProperty( action.type ) ) {
+	if ( state.shippingLabel || shippingLabelActions[ action.type ] ) {
 		newState = Object.assign( newState, {
 			shippingLabel: shippingLabel( state.shippingLabel || {}, action ),
 		} );

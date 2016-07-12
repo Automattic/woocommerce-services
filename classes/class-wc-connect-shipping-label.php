@@ -204,7 +204,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'minLength' => 1,
 				),
 			);
-			$required_address_fields = array('first_name', 'address_1', 'city', 'state', 'postcode', 'country');
+			$required_address_fields = array( 'first_name', 'address_1', 'city', 'state', 'postcode', 'country' );
 
 			foreach( $address_fields as $key => $value ) {
 				$properties[ 'orig_' . $key ] = $value;
@@ -276,8 +276,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$theorder = wc_get_order( $post->ID );
 			}
 
-			$order = $theorder;
-
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
 					'page' => 'wc-status',
@@ -290,8 +288,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'storeOptions' => $this->settings_store->get_shared_settings(),
 				'formSchema'   => $this->get_form_schema(),
 				'formLayout'   => $this->get_form_layout(),
-				'formData'     => $this->get_form_data( $order ),
-				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/shipping-label" ),
+				'formData'     => $this->get_form_data( $theorder ),
+				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'rootView'     => 'shipping-label',
 			);
