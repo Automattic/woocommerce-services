@@ -21,7 +21,7 @@ const renderFieldError = ( validationHint ) => {
 
 const NumberField = ( { id, schema, value, placeholder, updateValue, error } ) => {
 	return (
-		<FormFieldset>
+		<FormFieldset id={ id + '_container' }>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<NumberInput
 				id={ id }
@@ -40,7 +40,7 @@ NumberField.propTypes = {
 	id: PropTypes.string.isRequired,
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'number' ),
-		title: PropTypes.string.isRequired,
+		title: PropTypes.string,
 		description: PropTypes.string,
 		default: PropTypes.string,
 	} ).isRequired,

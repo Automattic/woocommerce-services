@@ -1,12 +1,10 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsForm from 'components/wcc-settings-form';
 
-const Settings = ( { storeOptions, schema, layout } ) => {
+const Settings = ( props ) => {
 	return (
 		<WCCSettingsForm
-			storeOptions={ storeOptions }
-			schema={ schema }
-			layout={ layout }
+			{ ...props }
 		/>
 	);
 };

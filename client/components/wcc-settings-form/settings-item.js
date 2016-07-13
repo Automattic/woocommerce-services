@@ -7,6 +7,9 @@ import NumberField from 'components/number-field';
 import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
+import Dropdown from 'components/dropdown';
+import CountryDropdown from 'components/country-dropdown';
+import StateDropdown from 'components/state-dropdown';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -38,11 +41,51 @@ const SettingsItem = ( {
 		case 'radios':
 			return (
 				<RadioButtons
+					id={ id }
 					layout={ layout }
 					schema={ fieldSchema }
 					value={ fieldValue }
 					setValue={ updateValue }
 					error={ fieldError }
+				/>
+			);
+
+		case 'dropdown':
+			return (
+				<Dropdown
+					id={ id }
+					layout={ layout }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					updateValue={ updateValue }
+					error={ fieldError }
+				/>
+			);
+
+		case 'country':
+			return (
+				<CountryDropdown
+					id={ id }
+					layout={ layout }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					updateValue={ updateValue }
+					error={ fieldError }
+					countriesData={ storeOptions.countriesData }
+				/>
+			);
+
+		case 'state':
+			return (
+				<StateDropdown
+					id={ id }
+					layout={ layout }
+					schema={ fieldSchema }
+					value={ fieldValue }
+					updateValue={ updateValue }
+					error={ fieldError }
+					countryCode={ form.values[ layout.country_field ] }
+					countriesData={ storeOptions.countriesData }
 				/>
 			);
 
@@ -80,6 +123,7 @@ const SettingsItem = ( {
 		case 'indicators':
 			return (
 				<Indicators
+					id={ id }
 					schema={ schema.properties[ id ] }
 					indicators={ Object.values( fieldValue ) }
 				/>
@@ -159,6 +203,7 @@ SettingsItem.propTypes = {
 	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.array,
 	saveForm: PropTypes.func,
+	countriesData: PropTypes.object,
 };
 
 export default SettingsItem;

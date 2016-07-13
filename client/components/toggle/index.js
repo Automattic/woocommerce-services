@@ -26,7 +26,7 @@ const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) =
 	};
 
 	return (
-		<FormFieldset>
+		<FormFieldset id={ id + '_container' }>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<FormToggle
 				id={ id }
@@ -45,7 +45,7 @@ Toggle.propTypes = {
 	id: PropTypes.string.isRequired,
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'string' ),
-		title: PropTypes.string.isRequired,
+		title: PropTypes.string,
 		trueText: PropTypes.string,
 		falseText: PropTypes.string,
 		saveOnToggle: PropTypes.bool,
