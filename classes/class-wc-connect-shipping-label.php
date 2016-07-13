@@ -38,6 +38,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 			$form_data[ 'cart' ] = $contents;
 
+			foreach( $this->settings_store->get_origin_address() as $key => $value ) {
+				$form_data[ 'orig_' . $key ] = $value;
+			}
+
 			$dest_address = $order->get_address( 'shipping' );
 			$form_data[ 'dest_name' ] = trim( $dest_address[ 'first_name' ] . ' ' . $dest_address[ 'last_name' ] );
 			$form_data[ 'dest_company' ] = $dest_address[ 'company' ];
