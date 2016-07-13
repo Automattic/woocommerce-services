@@ -1,9 +1,12 @@
 import { createSelector } from 'reselect';
 import isEmpty from 'lodash/isEmpty';
 import isArray from 'lodash/isArray';
+import memoize from 'lodash/memoize';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
 import coerceFormValues from 'lib/utils/coerce-values';
+
+const memoizedValidator = memoize( ( schema ) => validator( schema, { greedy: true } ) );
 
 /*
  * Errors from `is-my-json-valid` are paths to fields, all using `data` as the root.
@@ -27,7 +30,7 @@ const removeErrorDataPathRoot = ( errantFields ) => {
 };
 
 const getRawFormErrors = ( schema, data ) => {
-	const validate = validator( schema, { greedy: true } );
+	const validate = memoizedValidator( schema );
 	const coerced = coerceFormValues( schema, data );
 	const success = validate( coerced );
 

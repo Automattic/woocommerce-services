@@ -22,7 +22,7 @@ const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => 
 	const handleChangeEvent = event => updateValue( event.target.value );
 
 	return (
-		<FormFieldset>
+		<FormFieldset id={ id + '_container' }>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<FormTextInput
 				id={ id }
@@ -41,7 +41,7 @@ TextField.propTypes = {
 	id: PropTypes.string.isRequired,
 	schema: PropTypes.shape( {
 		type: PropTypes.string.valueOf( 'string' ),
-		title: PropTypes.string.isRequired,
+		title: PropTypes.string,
 		description: PropTypes.string,
 		default: PropTypes.string,
 	} ).isRequired,

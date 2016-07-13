@@ -3,6 +3,9 @@ import trim from 'lodash/trim';
 import omitBy from 'lodash/omitBy';
 import reduce from 'lodash/reduce';
 import validator from 'is-my-json-valid';
+import memoize from 'lodash/memoize';
+
+const memoizedValidator = memoize( ( schema ) => validator( schema, { greedy: true } ) );
 
 const processErrors = ( errors ) => {
 	return reduce( errors, ( result, value ) => {
@@ -46,7 +49,7 @@ const preProcessPackageData = ( data, boxNames ) => {
 };
 
 const getErrors = ( packageData, boxNames, schema ) => {
-	const validate = validator( schema, { greedy: true } );
+	const validate = memoizedValidator( schema );
 	const data = preProcessPackageData( packageData, boxNames );
 	validate( data );
 	return processErrors( validate.errors );

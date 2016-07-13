@@ -47,9 +47,9 @@ const renderSubTitle = ( subtitle ) => {
 	);
 };
 
-const Indicators = ( { schema, indicators } ) => {
+const Indicators = ( { id, schema, indicators } ) => {
 	return (
-		<FormFieldset>
+		<FormFieldset id={ id + '_container' }>
 			<FormLegend>{ schema.title }{ renderSubTitle( schema.subtitle ) }</FormLegend>
 			{ indicators.map( indicator => (
 				<Indicator
@@ -65,6 +65,7 @@ const Indicators = ( { schema, indicators } ) => {
 };
 
 Indicators.propTypes = {
+	id: PropTypes.string.isRequired,
 	schema: PropTypes.object.isRequired,
 	indicators: PropTypes.array.isRequired,
 };
