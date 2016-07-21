@@ -17,6 +17,7 @@ const SettingsGroup = ( props ) => {
 		schema,
 		formActions,
 		stepSuggestions,
+		storeOptions,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
@@ -62,7 +63,8 @@ const SettingsGroup = ( props ) => {
 							formValues={ form.values }
 							formActions={ formActions }
 							layout={ group }
-							suggestions={ stepSuggestions }/>
+							suggestions={ stepSuggestions }
+							countriesData={ storeOptions.countriesData } />
 					</div>
 				);
 			}

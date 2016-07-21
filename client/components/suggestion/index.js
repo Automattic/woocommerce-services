@@ -15,7 +15,7 @@ const RadioButton = ( props ) => {
 	);
 };
 
-const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, suggestions } ) => {
+const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, suggestions, countriesData } ) => {
 	return (
 		<div>
 			<RadioButton
@@ -25,7 +25,8 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 				<Summary
 					formValues={ formValues }
 					layoutItems={ layout.items }
-					summaryTemplate={ layout.template } />
+					summaryTemplate={ layout.summary }
+					countriesData={ countriesData } />
 				<Button onClick={ formActions.backFromSuggestion } >
 					{ __( 'Edit' ) }
 				</Button>
@@ -37,8 +38,9 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 				<Summary
 					formValues={ formValues }
 					layoutItems={ layout.items }
-					summaryTemplate={ layout.template }
-					overrideFields={ suggestions } />
+					summaryTemplate={ layout.summary }
+					overrideFields={ suggestions }
+					countriesData={ countriesData } />
 			</RadioButton>
 		</div>
 	);
@@ -46,12 +48,13 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 
 Suggestion.propTypes = {
 	layout: PropTypes.shape( {
-		template: PropTypes.string,
+		summary: PropTypes.string,
 		items: PropTypes.array,
 		suggestion_original_title: PropTypes.string,
 		suggestion_corrected_title: PropTypes.string,
 	} ).isRequired,
 	acceptSuggestion: PropTypes.bool.isRequired,
+	countriesData: PropTypes.object.isRequired,
 	formValues: PropTypes.object.isRequired,
 	formActions: PropTypes.object.isRequired,
 	suggestions: PropTypes.object.isRequired,

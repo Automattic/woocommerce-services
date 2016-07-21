@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import find from 'lodash/find';
 
-const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate } ) => {
+const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, countriesData } ) => {
 	if ( ! overrideFields ) {
 		overrideFields = {};
 	}
@@ -27,9 +27,12 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate } )
 			case 'dropdown':
 				return layout.titleMap[ fieldRawValue ] || fieldRawValue;
 
+			case 'country':
+				return ( countriesData[ fieldRawValue ] || {} ).name || fieldRawValue;
+
 			case 'state':
 				const countryCode = fieldRawValues[ layout.country_field ].value;
-				const statesMap = layout.dataset[ countryCode ];
+				const statesMap = ( countriesData[ countryCode ] || {} ).states;
 				if ( ! statesMap ) {
 					return fieldRawValue;
 				}
@@ -91,6 +94,7 @@ Summary.propTypes = {
 	formValues: PropTypes.object.isRequired,
 	layoutItems: PropTypes.array.isRequired,
 	summaryTemplate: PropTypes.string.isRequired,
+	countriesData: PropTypes.object.isRequired,
 };
 
 export default Summary;
