@@ -1,6 +1,35 @@
 import React, { PropTypes } from 'react';
 import find from 'lodash/find';
 
+/*
+ * Renders the field values of the given step in a non-editable manner.
+ *
+ * The "summaryTemplate" parameter will be a string with this format:
+ * "{fieldName1}, {fieldName2}\\n{fieldName4}"
+ * The characters outside of the "{}" brackets will be printed literally. Line-breaks will be
+ * replaced with paragraphs. "{fieldNameX}" will be replaced with the textual representation
+ * of fieldNameX value.
+ *
+ * When parsing the template string and replacing each field placeholder for its value, the
+ * value of the field will be obtained from "formValues". However, if the field is also present
+ * in the "overrideFields" map, then that value will be used instead, and the field value
+ * will be highlighted.
+ *
+ * Example:
+ * summaryTemplate = 'Mr. {name} {surname}\\n{profession}'
+ * formValues = {
+ *     name: 'Indiana',
+ *     surname: 'Jones',
+ *     profession: 'Spaceship pilot',
+ * }
+ * overrideFields = {
+ *     profession: 'Archeologist',
+ * }
+ *
+ * Result:
+ * Mr. Indiana Jones
+ * Archeologist <--- highlighted
+ */
 const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, countriesData } ) => {
 	if ( ! overrideFields ) {
 		overrideFields = {};
@@ -19,6 +48,9 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 		}
 	} );
 
+	// Some kind of fields (for example, radio buttons) have a value that's
+	// not adequate to print as-is. This function will transform the raw value
+	// of a field to its textual representation.
 	const getPrintableValue = ( fieldName ) => {
 		const fieldRawValue = fieldRawValues[ fieldName ].value;
 		const layout = find( layoutItems, [ 'key', fieldName ] );

@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-const Tabs = ( { layout, currentStep, onTabClick } ) => {
+const TabBar = ( { layout, currentStep, onTabClick } ) => {
 	const renderTab = ( label, index ) => {
 		if ( index === currentStep ) {
 			return <b>{ label }</b>;
@@ -21,10 +21,10 @@ const Tabs = ( { layout, currentStep, onTabClick } ) => {
 	);
 };
 
-Tabs.propTypes = {
+TabBar.propTypes = {
 	layout: PropTypes.array.isRequired,
 	currentStep: PropTypes.number.isRequired,
 	onTabClick: PropTypes.func.isRequired,
 };
 
-export default Tabs;
+export default TabBar;

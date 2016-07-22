@@ -11,7 +11,7 @@ import * as PackagesActions from 'state/form/packages/actions';
 import { getFormErrors, getStepFormErrors, getStepFormSuggestions } from 'state/selectors/errors';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
-import Tabs from 'components/tabs';
+import TabBar from 'components/tab-bar';
 import isEmpty from 'lodash/isEmpty';
 
 const WCCSettingsForm = ( props ) => {
@@ -36,6 +36,8 @@ const WCCSettingsForm = ( props ) => {
 		const buttons = [];
 		const currentStepLayout = props.layout[ currentStep ];
 		let submitEnabled = currentStepLayout && isEmpty( props.stepErrors ) && ! props.form.isSaving;
+		// If the user has been presented with a suggestion, then the submit button is always enabled,
+		// because any options the user chooses ("original value" or "suggested value") are valid
 		if ( ! isEmpty( props.stepSuggestions ) ) {
 			submitEnabled = true;
 		}
@@ -58,7 +60,7 @@ const WCCSettingsForm = ( props ) => {
 		return (
 			<div>
 				<div>
-					<Tabs
+					<TabBar
 						layout={ props.layout }
 						currentStep={ currentStep }
 						onTabClick={ props.formActions.goToStep } />
