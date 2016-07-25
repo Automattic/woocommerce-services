@@ -14,7 +14,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$packages = array();
 			foreach( $order->get_items() as $item ) {
 				$product = $order->get_product_from_item( $item );
-				if ( ! $product ) {
+				if ( ! $product || ! $product->needs_shipping() ) {
 					continue;
 				}
 				$height = 0;
@@ -53,12 +53,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_packaging_data( WC_Order $order ) {
-			$shipping_methods = $order->get_shipping_methods();
-			if ( empty( $shipping_methods ) || ! isset( $shipping_methods[ 0 ][ 'wc_connect_packages' ] ) ) {
+			$shipping_method = reset( $order->get_shipping_methods() );
+			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
 				return $this->get_individual_packages( $order );
 			}
 
-			$packages = json_decode( $shipping_methods[ 0 ][ 'wc_connect_packages' ], true );
+			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
 
 			foreach( $packages as $package_index => $package ) {
 				foreach( $package[ 'items' ] as $item_index => $item ) {
