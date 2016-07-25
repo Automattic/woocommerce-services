@@ -91,7 +91,6 @@ module.exports = {
 		'react/jsx-no-undef': 2,
 		'react/jsx-no-duplicate-props': 1,
 		'react/react-in-jsx-scope': 2,
-		'react/no-danger': 2,
 		'react/no-did-mount-set-state': 1,
 		'react/no-did-update-set-state': 1,
 		'react/jsx-no-bind': [ 1, { 'allowArrowFunctions': true } ],

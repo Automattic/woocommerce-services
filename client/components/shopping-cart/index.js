@@ -1,11 +1,12 @@
 import React, { PropTypes } from 'react';
 import NumberInput from 'components/number-field/number-input';
 import Gridicon from 'components/gridicon';
+import { sanitize } from 'dompurify';
 
 const ShoppingCart = ( { packages, updateValue, dimensionUnit, weightUnit, errors } ) => {
 	const renderItemInfo = ( item, itemIndex ) => (
 		<li key={ itemIndex }>
-			{ item.name }
+			<span dangerouslySetInnerHTML={ { __html: sanitize( item.name ) } } />
 			{ 1 < item.quantity ? ' (x' + item.quantity + ')' : null }
 		</li>
 	);

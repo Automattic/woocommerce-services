@@ -10,15 +10,12 @@ const renderLastUpdated = ( lastUpdated ) => {
 		return null;
 	}
 
-	/* for dangerouslySetInnerHTML we need to pause linting for a narrow scope */
-	/* eslint-disable */
 	return (
 		<div className="form-setting-explanation indicator__last-updated">
-			<span dangerouslySetInnerHTML={ { __html: sanitize( lastUpdated, { ADD_ATTR: ['target'] } ) } } >
+			<span dangerouslySetInnerHTML={ { __html: sanitize( lastUpdated, { ADD_ATTR: [ 'target' ] } ) } } >
 			</span>
 		</div>
 	);
-	/* eslint-enable */
 };
 
 const Indicator = ( { icon, className, message, lastUpdated } ) => {
