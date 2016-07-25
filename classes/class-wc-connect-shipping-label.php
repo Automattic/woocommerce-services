@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'items' => array(
 							array(
 								'height' => $height,
-								'product_id' => $item['product_id'], // TODO: Make this work with product variations
+								'product_id' => $item['product_id'],
 								'length' => $length,
 								'quantity' => 1,
 								'weight' => $weight,
@@ -62,7 +62,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			foreach( $packages as $package_index => $package ) {
 				foreach( $package[ 'items' ] as $item_index => $item ) {
-					// TODO: Make this work with product variations (make the WCC server handle and return 'variation_id' as well as 'product_id')
 					$product = $order->get_product_from_item( $item );
 					if ( ! $product ) {
 						continue;
