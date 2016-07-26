@@ -96,7 +96,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function send_shipping_label_request( $label_settings ) {
 			// TODO: use the real WCC server endpoint to validate
 			if ( $label_settings->orig_address_1 === 'Awk St' ) {
-				if ( ! $label_settings->orig_bypass_suggestion ) {
+				if ( ! isset( $label_settings->orig_bypass_suggestion ) || ! $label_settings->orig_bypass_suggestion ) {
 					$errors[ 'orig_address_1' ] = array(
 						'value' => 'Hawk St',
 						'level' => 'suggestion',
@@ -109,7 +109,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			if ( $label_settings->dest_address_1 === 'Awk St' ) {
-				if ( ! $label_settings->dest_bypass_suggestion ) {
+				if ( ! isset( $label_settings->dest_bypass_suggestion ) || ! $label_settings->dest_bypass_suggestion ) {
 					$errors[ 'dest_address_1' ] = array(
 						'value' => 'Hawk St',
 						'level' => 'suggestion',
