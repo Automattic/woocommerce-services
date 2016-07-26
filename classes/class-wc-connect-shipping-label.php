@@ -10,7 +10,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->settings_store = $settings_store;
 		}
 
-		protected function get_individual_packages( $order ) {
+		protected function get_items_as_individual_packages( $order ) {
 			$packages = array();
 			foreach( $order->get_items() as $item ) {
 				$product = $order->get_product_from_item( $item );
@@ -55,7 +55,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_packaging_data( WC_Order $order ) {
 			$shipping_method = reset( $order->get_shipping_methods() );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return $this->get_individual_packages( $order );
+				return $this->get_items_as_individual_packages( $order );
 			}
 
 			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );

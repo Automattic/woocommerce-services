@@ -3,7 +3,7 @@ import NumberInput from 'components/number-field/number-input';
 import Gridicon from 'components/gridicon';
 import { sanitize } from 'dompurify';
 
-const ShoppingCart = ( { packages, updateValue, dimensionUnit, weightUnit, errors } ) => {
+const OrderPackages = ( { packages, updateValue, dimensionUnit, weightUnit, errors } ) => {
 	const renderItemInfo = ( item, itemIndex ) => (
 		<li key={ itemIndex }>
 			<span dangerouslySetInnerHTML={ { __html: sanitize( item.name ) } } />
@@ -43,7 +43,7 @@ const ShoppingCart = ( { packages, updateValue, dimensionUnit, weightUnit, error
 	);
 };
 
-ShoppingCart.propTypes = {
+OrderPackages.propTypes = {
 	packages: PropTypes.array.isRequired,
 	updateValue: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
@@ -51,4 +51,4 @@ ShoppingCart.propTypes = {
 	errors: PropTypes.object,
 };
 
-export default ShoppingCart;
+export default OrderPackages;

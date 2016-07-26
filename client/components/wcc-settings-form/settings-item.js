@@ -9,7 +9,7 @@ import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
-import ShoppingCart from 'components/shopping-cart';
+import OrderPackages from 'components/order-packages';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -172,7 +172,7 @@ const SettingsItem = ( {
 
 		case 'cart':
 			return (
-				<ShoppingCart
+				<OrderPackages
 					packages={ fieldValue }
 					updateValue={ updateSubValue }
 					dimensionUnit={ storeOptions.dimension_unit }
