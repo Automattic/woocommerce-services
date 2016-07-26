@@ -8,43 +8,43 @@ import * as FormActions from 'state/form/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'state/form/values/actions';
 import * as PackagesActions from 'state/form/packages/actions';
-import { getFormErrors, getStepFormErrors } from 'state/selectors';
+import { getFormErrors, getStepFormErrors, getStepFormSuggestions } from 'state/selectors/errors';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
+import TabBar from 'components/tab-bar';
+import isEmpty from 'lodash/isEmpty';
 
 const WCCSettingsForm = ( props ) => {
 	const currentStep = props.form.currentStep;
-	const currentStepLayout = props.layout[ currentStep ];
 
-	const renderCurrentStep = () => {
-		if ( ! currentStepLayout ) {
-			return <span>... spinner or something ...</span>;
+	const renderGroup = ( stepIndex ) => {
+		if ( ! props.layout[ stepIndex ] ) {
+			return null; // TODO: display a spinner here
 		}
 
 		return (
 			<WCCSettingsGroup
 				{ ...props }
-				group={ currentStepLayout }
+				group={ props.layout[ stepIndex ] }
 				saveForm={ props.formValueActions.submit }
+				key={ stepIndex }
 			/>
 		);
 	};
 
-	const renderTab = ( label, index ) => {
-		if ( index === currentStep ) {
-			return <b>{ label }</b>;
-		} else if ( index < currentStep ) {
-			return <a onClick={ () => props.formActions.goToStep( index ) }>{ label }</a>;
-		}
-		return <span>{ label }</span>;
-	};
-
-	const renderMultiStepForm = () => {
+	const getActionButtons = () => {
 		const buttons = [];
+		const currentStepLayout = props.layout[ currentStep ];
+		let submitEnabled = currentStepLayout && isEmpty( props.stepErrors ) && ! props.form.isSaving;
+		// If the user has been presented with a suggestion, then the submit button is always enabled,
+		// because any options the user chooses ("original value" or "suggested value") are valid
+		if ( ! isEmpty( props.stepSuggestions ) ) {
+			submitEnabled = true;
+		}
 		buttons.push( {
 			label: ( currentStepLayout || {} ).action_label || __( 'Next' ),
 			onClick: props.formActions.nextStep,
-			isDisabled: ! currentStepLayout || 0 < props.stepErrors.length || props.form.isSaving,
+			isDisabled: ! submitEnabled,
 			isPrimary: true,
 		} );
 		if ( props.onCancel ) {
@@ -53,23 +53,23 @@ const WCCSettingsForm = ( props ) => {
 				onClick: props.onCancel,
 			} );
 		}
+		return buttons;
+	};
 
+	const renderMultiStepForm = () => {
 		return (
 			<div>
 				<div>
-					<ul>
-						{ props.layout.map( ( step, index ) => (
-							<li key={ index }>
-								{ renderTab( step.tab_title, index ) }
-							</li>
-						) ) }
-					</ul>
+					<TabBar
+						layout={ props.layout }
+						currentStep={ currentStep }
+						onTabClick={ props.formActions.goToStep } />
 				</div>
 				<div>
-					{ renderCurrentStep() }
+					{ renderGroup( currentStep ) }
 				</div>
 				<div>
-					<ActionButtons buttons={ buttons } />
+					<ActionButtons buttons={ getActionButtons() } />
 				</div>
 			</div>
 		);
@@ -78,14 +78,7 @@ const WCCSettingsForm = ( props ) => {
 	const renderSingleStepForm = () => {
 		return (
 			<div>
-				{ props.layout.map( ( group, idx ) => (
-					<WCCSettingsGroup
-						{ ...props }
-						group={ group }
-						saveForm={ props.formValueActions.submit }
-						key={ idx }
-					/>
-				) ) }
+				{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }
 			</div>
 		);
 	};
@@ -112,6 +105,7 @@ function mapStateToProps( state, props ) {
 		form: state.form,
 		errors: getFormErrors( state, props.schema ),
 		stepErrors: getStepFormErrors( state, props.schema, props.layout ),
+		stepSuggestions: getStepFormSuggestions( state, props.schema, props.layout ),
 	};
 }
 

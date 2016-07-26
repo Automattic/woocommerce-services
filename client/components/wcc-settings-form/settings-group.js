@@ -3,20 +3,10 @@ import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
+import Notice from 'components/notice';
 import noop from 'lodash/noop';
-
-const filterErrorsForItem = ( groupErrors, itemKey ) => {
-	let itemErrors = [];
-
-	groupErrors.forEach( ( errorPath ) => {
-		// Collect errant fields that have the current item as a parent
-		if ( itemKey === errorPath[ 0 ] ) {
-			itemErrors.push( errorPath.slice( 1 ) );
-		}
-	} );
-
-	return itemErrors;
-};
+import isEmpty from 'lodash/isEmpty';
+import Suggestion from 'components/suggestion';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -25,6 +15,9 @@ const SettingsGroup = ( props ) => {
 		saveForm,
 		errors,
 		schema,
+		formActions,
+		stepSuggestions,
+		storeOptions,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
@@ -33,14 +26,12 @@ const SettingsGroup = ( props ) => {
 			return '';
 		}
 
-		const itemErrors = filterErrorsForItem( errors, key );
-
 		return (
 			<SettingsItem
 				{ ...props }
 				{ ...{ key } }
 				layout={ item }
-				errors={ itemErrors }
+				errors={ errors[ key ] || {} }
 			/>
 		);
 	};
@@ -57,6 +48,27 @@ const SettingsGroup = ( props ) => {
 			);
 
 		case 'step':
+			if ( undefined !== form.acceptSuggestion ) {
+				return (
+					<div className="settings-group-default">
+						<Notice
+							status="is-warning"
+							text={ group.suggestion_hint }
+							showDismiss={ false }
+						/>
+						<FormSectionHeading>{ group.title }</FormSectionHeading>
+						{ group.description ? <p>{ group.description }</p> : null }
+						<Suggestion
+							acceptSuggestion={ Boolean( form.acceptSuggestion ) }
+							formValues={ form.values }
+							formActions={ formActions }
+							layout={ group }
+							suggestions={ stepSuggestions }
+							countriesData={ storeOptions.countriesData } />
+					</div>
+				);
+			}
+
 			return (
 				<div className="settings-group-default">
 					<FormSectionHeading>{ group.title }</FormSectionHeading>
@@ -78,7 +90,7 @@ const SettingsGroup = ( props ) => {
 						label = button.progressTitle || label;
 					} else {
 						onClick = () => saveForm( schema );
-						isDisabled = ( 'undefined' !== typeof errors ) && ( 0 < errors.length );
+						isDisabled = ! isEmpty( errors );
 					}
 				}
 				return { label, onClick, isDisabled, isPrimary };
@@ -107,7 +119,9 @@ SettingsGroup.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
-	errors: PropTypes.array,
+	formActions: PropTypes.object.isRequired,
+	stepSuggestions: PropTypes.object,
+	errors: PropTypes.object,
 };
 
 export default SettingsGroup;

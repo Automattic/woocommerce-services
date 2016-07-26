@@ -6,6 +6,7 @@ import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import every from 'lodash/every';
+import isEmpty from 'lodash/isEmpty';
 
 const summaryLabel = ( services ) => {
 	const numSelected = services.reduce( ( count, service ) => (
@@ -49,7 +50,7 @@ const ShippingServiceGroup = ( props ) => {
 			compact
 			actionButton={ actionButton }
 			actionButtonExpanded={ actionButton }
-			expanded={ Boolean( errors && errors.length ) }
+			expanded={ ! isEmpty( errors ) }
 		>
 			<div className="wcc-shipping-service-entry multi-select-header">
 				<label className="wcc-shipping-service-entry-title">

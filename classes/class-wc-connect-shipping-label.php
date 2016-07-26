@@ -127,7 +127,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'items' => $orig_address_fields,
 				'bypass_suggestion_flag' => 'orig_bypass_suggestion',
 				'summary' => str_replace( '{', '{orig_', $address_summary ),
-				'sugggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
+				'suggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
+				'suggestion_original_title' => __( 'Address entered', 'woocommerce' ),
+				'suggestion_corrected_title' => __( 'Suggested address', 'woocommerce' ),
 			);
 
 			$layout[] = array(
@@ -138,7 +140,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'items' => $dest_address_fields,
 				'bypass_suggestion_flag' => 'dest_bypass_suggestion',
 				'summary' => str_replace( '{', '{dest_', $address_summary ),
-				'sugggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
+				'suggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
+				'suggestion_original_title' => __( 'Address entered', 'woocommerce' ),
+				'suggestion_corrected_title' => __( 'Suggested address', 'woocommerce' ),
 			);
 
 			$layout[] = array(

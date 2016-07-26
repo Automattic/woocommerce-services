@@ -1,5 +1,4 @@
 import React, { PropTypes } from 'react';
-import some from 'lodash/some';
 import Indicators from 'components/indicators';
 import Text from 'components/text';
 import TextArea from 'components/text-area';
@@ -32,10 +31,7 @@ const SettingsItem = ( {
 	const fieldValue = form.values[ id ];
 	const fieldSchema = schema.properties[ id ];
 	const fieldType = layout.type || fieldSchema.type || '';
-
-	// Check if the response has an error for this concrete field (not any subfields)
-	const hasFieldError = errors && some( errors, error => ! error.length );
-	const fieldError = hasFieldError ? ( layout.validation_hint || '' ) : false;
+	const fieldError = errors[ '' ] ? ( errors[ '' ].value || layout.validation_hint || '' ) : false;
 
 	switch ( fieldType ) {
 		case 'radios':
@@ -201,7 +197,7 @@ SettingsItem.propTypes = {
 	form: PropTypes.object.isRequired,
 	formValueActions: PropTypes.object.isRequired,
 	packagesActions: PropTypes.object.isRequired,
-	errors: PropTypes.array,
+	errors: PropTypes.object,
 	saveForm: PropTypes.func,
 	countriesData: PropTypes.object,
 };
