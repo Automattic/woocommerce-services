@@ -23,9 +23,12 @@ export const backFromSuggestion = () => ( {
 export const goToStep = ( stepIndex ) => ( dispatch, getState, { formLayout } ) => {
 	const stepLayout = formLayout[ stepIndex ] || {};
 
-	// Clear the "bypass suggestion" flag if the user is coming *back* to this step
-	if ( getState().form.currentStep > stepIndex && stepLayout.bypass_suggestion_flag ) {
-		dispatch( FormValueActions.updateField( stepLayout.bypass_suggestion_flag, false ) );
+	if ( getState().form.currentStep > stepIndex ) {
+		dispatch( setFormProperty( 'acceptSuggestion', undefined ) );
+		// Clear the "bypass suggestion" flag if the user is coming *back* to this step
+		if ( stepLayout.bypass_suggestion_flag ) {
+			dispatch( FormValueActions.updateField( stepLayout.bypass_suggestion_flag, false ) );
+		}
 	}
 
 	dispatch( {
