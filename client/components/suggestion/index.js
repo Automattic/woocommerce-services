@@ -28,7 +28,7 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 					layoutItems={ layout.items }
 					summaryTemplate={ layout.summary }
 					countriesData={ countriesData } />
-				<Button
+				<Button compact
 					onClick={ formActions.backFromSuggestion }
 					className="suggestion-edit-button">
 					{ __( 'Edit' ) }
