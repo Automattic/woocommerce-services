@@ -3,32 +3,34 @@
 	display: flex;
 	margin: 0;
 	list-style: none;
-	min-height: 44px;
+	min-height: 52px;
+}
 
-	li {
-		flex-grow: 1;
-		text-align: center;
-		padding-top: 12px;
+.wcc-dialog-tabs li {
+	flex-grow: 1;
+	text-align: center;
+	padding-top: 16px;
+	border-bottom: 2px solid lighten( $gray, 20 );
+	color: $gray;
+
+	&.is-active {
+		border-bottom-color: $blue-medium;
+		color: $blue-medium;
 		font-weight: bold;
-		border-bottom: 2px solid lighten( $gray, 20 );
-		color: $gray;
+	}
 
-		&.is-active {
-			border-bottom-color: $blue-medium;
-			color: $blue-medium;
+	&.is-completed {
+		border-bottom-color: $blue-dark;
+		color: $blue-dark;
+		font-weight: bold;
+
+		.gridicon {
+			margin: -8px auto;
+			margin-right: 4px;
 		}
 
-		&.is-completed {
-			border-bottom-color: $blue-dark;
-			color: $blue-dark;
-
-			.gridicon {
-				margin: -8px auto;
-			}
-
-			a {
-				cursor: pointer;
-			}
+		a {
+			cursor: pointer;
 		}
 	}
 }
