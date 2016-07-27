@@ -99,6 +99,19 @@
         }
     }
 
+	.form-row {
+		display: flex;
+
+		.form-fieldset {
+			flex-grow: 1;
+			margin-right: 16px;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
+
     // Cards
     .card.is-compact {
         &.settings-group-card {

@@ -129,15 +129,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 				array(
 					'key' => 'city',
+					'inline' => true,
 					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'state',
 					'type' => 'state',
+					'inline' => true,
 					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(
 					'key' => 'postcode',
+					'inline' => true,
 					'validation_hint' => __( 'Required.', 'woocommerce' ),
 				),
 				array(

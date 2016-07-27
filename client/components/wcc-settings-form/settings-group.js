@@ -36,13 +36,31 @@ const SettingsGroup = ( props ) => {
 		);
 	};
 
+	const renderSettingsItems = () => {
+		const rows = [];
+		let currentRowItems = [];
+		group.items.forEach( ( item ) => {
+			if ( item.inline ) {
+				currentRowItems.push( renderSettingsItem( item ) );
+			} else {
+				rows.push( currentRowItems );
+				currentRowItems = [];
+				rows.push( [ renderSettingsItem( item ) ] );
+			}
+		} );
+		rows.push( currentRowItems );
+		return rows.filter( ( arr ) => arr.length ).map( ( items, idx ) => (
+			<div className="form-row" key={ idx }>{ items }</div>
+		) );
+	};
+
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
 				<CompactCard className="settings-group-card">
 					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
 					<div className="settings-group-content">
-						{ group.items.map( renderSettingsItem ) }
+						{ renderSettingsItems() }
 					</div>
 				</CompactCard>
 			);
@@ -73,7 +91,7 @@ const SettingsGroup = ( props ) => {
 				<div className="settings-group-default">
 					<FormSectionHeading>{ group.title }</FormSectionHeading>
 					{ group.description ? <p>{ group.description }</p> : null }
-					{ group.items.map( renderSettingsItem ) }
+					{ renderSettingsItems() }
 				</div>
 			);
 
@@ -104,7 +122,7 @@ const SettingsGroup = ( props ) => {
 		default:
 			return (
 				<div className="settings-group-default">
-					{ group.items.map( renderSettingsItem ) }
+					{ renderSettingsItems() }
 				</div>
 			)
 	}
