@@ -150,6 +150,20 @@
         overflow: auto;
     }
 
+	&.wcc-shipping-label-dialog {
+		&.card {
+			right: calc(50% - 300px);
+			left: calc(50% - 300px);
+			width: 600px;
+		}
+
+		.dialog__content {
+			padding: 0;
+			bottom: 0;
+			overflow: hidden;
+		}
+	}
+
     .dialog__action-buttons {
         position: absolute;
         left: 0;
@@ -219,7 +233,8 @@
     // WCC Components
     @import '../../client/components/shipping/packages/style';
     @import '../../client/components/indicators/style';
-    @import '../../client/components/text/style';
+	@import '../../client/components/tab-bar/style';
+	@import '../../client/components/text/style';
     @import '../../client/components/text-area/style';
     @import '../../client/components/toggle/style';
 
