@@ -245,7 +245,9 @@
 
     // WCC Components
     @import '../../client/components/shipping/packages/style';
-    @import '../../client/components/indicators/style';
+	@import '../../client/components/indicators/style';
+	@import '../../client/components/suggestion/style';
+	@import '../../client/components/summary/style';
 	@import '../../client/components/tab-bar/style';
 	@import '../../client/components/text/style';
     @import '../../client/components/text-area/style';

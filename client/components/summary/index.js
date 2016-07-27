@@ -106,7 +106,7 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 				{ children.map( ( field, index ) => (
 					<span
 						key={ index }
-						style={ field.override ? { backgroundColor: 'cyan' } : {} } >
+						className={ field.override ? 'highlight' : '' } >
 						{ field.value }
 					</span>
 				) ) }
@@ -115,7 +115,7 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 	};
 
 	return (
-		<div>
+		<div className="summary">
 			{ summaryTemplate.split( '\\n' ).map( renderSummaryLine ) }
 		</div>
 	)

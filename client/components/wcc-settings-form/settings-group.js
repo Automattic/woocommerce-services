@@ -68,21 +68,23 @@ const SettingsGroup = ( props ) => {
 		case 'step':
 			if ( undefined !== form.acceptSuggestion ) {
 				return (
-					<div className="settings-group-default">
+					<div>
 						<Notice
 							status="is-warning"
 							text={ group.suggestion_hint }
 							showDismiss={ false }
 						/>
-						<FormSectionHeading>{ group.title }</FormSectionHeading>
-						{ group.description ? <p>{ group.description }</p> : null }
-						<Suggestion
-							acceptSuggestion={ Boolean( form.acceptSuggestion ) }
-							formValues={ form.values }
-							formActions={ formActions }
-							layout={ group }
-							suggestions={ stepSuggestions }
-							countriesData={ storeOptions.countriesData } />
+						<div className="settings-group-default">
+							<FormSectionHeading>{ group.title }</FormSectionHeading>
+							{ group.description ? <p>{ group.description }</p> : null }
+							<Suggestion
+								acceptSuggestion={ Boolean( form.acceptSuggestion ) }
+								formValues={ form.values }
+								formActions={ formActions }
+								layout={ group }
+								suggestions={ stepSuggestions }
+								countriesData={ storeOptions.countriesData } />
+						</div>
 					</div>
 				);
 			}
