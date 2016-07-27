@@ -250,8 +250,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
-			$settings_store = $this->get_service_settings_store();
-			$rest_services_controller = $this->get_rest_services_controller();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -269,6 +267,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wcc_meta_data' ) );
 
 		}
 
@@ -504,6 +503,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			foreach ( wc_get_order_types( 'order-meta-boxes' ) as $type ) {
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), $type, 'side', 'default' );
 			}
+		}
+
+		public function hide_wcc_meta_data( $hidden_keys ) {
+			$hidden_keys[] = 'wc_connect_packages';
+			return $hidden_keys;
 		}
 
 	}

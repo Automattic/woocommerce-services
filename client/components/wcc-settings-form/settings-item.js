@@ -9,6 +9,7 @@ import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
+import OrderPackages from 'components/order-packages';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -27,7 +28,6 @@ const SettingsItem = ( {
 	const updateSubValue = ( key, val ) => formValueActions.updateField( [ id ].concat( key ), val );
 	const removeArrayItem = ( idx ) => formValueActions.removeField( [ id ].concat( idx ) );
 	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
-	const fieldRequired = ( -1 !== schema.required.indexOf( id ) );
 	const fieldValue = form.values[ id ];
 	const fieldSchema = schema.properties[ id ];
 	const fieldType = layout.type || fieldSchema.type || '';
@@ -141,7 +141,6 @@ const SettingsItem = ( {
 					id={ id }
 					layout={ layout }
 					placeholder={ layout.placeholder }
-					required={ fieldRequired }
 					schema={ fieldSchema }
 					updateValue={ updateValue }
 					value={ fieldValue }
@@ -167,8 +166,18 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
-					required={ fieldRequired }
 					error={ fieldError }
+				/>
+			);
+
+		case 'cart':
+			return (
+				<OrderPackages
+					packages={ fieldValue }
+					updateValue={ updateSubValue }
+					dimensionUnit={ storeOptions.dimension_unit }
+					weightUnit={ storeOptions.weight_unit }
+					errors={ errors }
 				/>
 			);
 
@@ -180,7 +189,6 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
-					required={ fieldRequired }
 					error={ fieldError }
 				/>
 			);

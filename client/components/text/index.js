@@ -14,14 +14,11 @@ const renderTitle = ( title ) => {
 };
 
 const renderText = ( text ) => {
-	/* for dangerouslySetInnerHTML we need to pause linting for a narrow scope */
-	/* eslint-disable */
 	return (
-		<span dangerouslySetInnerHTML={ { __html: sanitize( text, { ADD_ATTR: ['target'] } ) } }>
+		<span dangerouslySetInnerHTML={ { __html: sanitize( text, { ADD_ATTR: [ 'target' ] } ) } }>
 		</span>
 	);
-	/* eslint-enable */
-}
+};
 
 const Text = ( { id, layout, value } ) => {
 	return (

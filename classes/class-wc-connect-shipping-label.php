@@ -10,12 +10,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->settings_store = $settings_store;
 		}
 
-		protected function get_form_data( WC_Order $order ) {
-			$form_data = array();
-			$contents = array();
-
+		protected function get_items_as_individual_packages( $order ) {
+			$packages = array();
 			foreach( $order->get_items() as $item ) {
 				$product = $order->get_product_from_item( $item );
+				if ( ! $product || ! $product->needs_shipping() ) {
+					continue;
+				}
 				$height = 0;
 				$length = 0;
 				$weight = $product->get_weight();
@@ -26,17 +27,56 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					$length = $product->get_length();
 					$width  = $product->get_width();
 				}
+				$name = html_entity_decode( $product->get_formatted_name() );
 
-				$contents[] = array(
-					'height' => $height,
-					'product_id' => $item['product_id'],
-					'length' => $length,
-					'quantity' => $item['qty'],
-					'weight' => $weight,
-					'width' => $width
-				);
+				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
+					$packages[] = array(
+						'height' => $height,
+						'length' => $length,
+						'weight' => $weight,
+						'width' => $width,
+						'items' => array(
+							array(
+								'height' => $height,
+								'product_id' => $item[ 'product_id' ],
+								'length' => $length,
+								'quantity' => 1,
+								'weight' => $weight,
+								'width' => $width,
+								'name' => $name,
+							),
+						),
+					);
+				}
 			}
-			$form_data[ 'cart' ] = $contents;
+			return $packages;
+		}
+
+		protected function get_packaging_data( WC_Order $order ) {
+			$shipping_method = reset( $order->get_shipping_methods() );
+			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+				return $this->get_items_as_individual_packages( $order );
+			}
+
+			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+
+			foreach( $packages as $package_index => $package ) {
+				foreach( $package[ 'items' ] as $item_index => $item ) {
+					$product = $order->get_product_from_item( $item );
+					if ( ! $product ) {
+						continue;
+					}
+					$packages[ $package_index ][ 'items' ][ $item_index ][ 'name' ] = html_entity_decode( $product->get_formatted_name() );
+				}
+			}
+
+			return $packages;
+		}
+
+		protected function get_form_data( WC_Order $order ) {
+			$form_data = array();
+
+			$form_data[ 'cart' ] = $this->get_packaging_data( $order );
 
 			foreach( $this->settings_store->get_origin_address() as $key => $value ) {
 				$form_data[ 'orig_' . $key ] = $value;
@@ -152,7 +192,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'items' => array(
 					array(
 						'key' => 'cart',
-						'type' => 'shopping_cart',
+						'type' => 'cart',
 					),
 				),
 				'summary' => '{cart}',
@@ -246,7 +286,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$itemDefinition = array(
 				'type' => 'object',
-				'required' => array(),
+				'required' => array( 'height', 'product_id', 'name', 'length', 'quantity', 'weight', 'width' ),
 				'properties' => array(
 					'height' => array(
 						'type' => 'number',
@@ -255,6 +295,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'product_id' => array(
 						'type' => 'string',
 						'title' => __( 'Product ID', 'woocommerce' ),
+					),
+					'name' => array(
+						'type' => 'string',
+						'title' => __( 'Product Name', 'woocommerce' ),
 					),
 					'length' => array(
 						'type' => 'number',
@@ -275,10 +319,38 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 			);
 
+			$packageDefinition = array(
+				'type' => 'object',
+				'required' => array( 'height', 'length', 'weight', 'width', 'items' ),
+				'properties' => array(
+					'height' => array(
+						'type' => 'number',
+						'title' => __( 'Height', 'woocommerce' ),
+					),
+					'length' => array(
+						'type' => 'number',
+						'title' => __( 'Length', 'woocommerce' ),
+					),
+					'weight' => array(
+						'type' => 'number',
+						'title' => __( 'Weight', 'woocommerce' ),
+					),
+					'width' => array(
+						'type' => 'number',
+						'title' => __( 'Width', 'woocommerce' ),
+					),
+					'items' => array(
+						'type' => 'array',
+						'title' => __( 'Items', 'woocommerce' ),
+						'items' => $itemDefinition,
+					),
+				),
+			);
+
 			$properties[ 'cart' ] = array(
 				'type' => 'array',
-				'title' => __( 'Items to send', 'woocommerce' ),
-				'items' => $itemDefinition,
+				'title' => __( 'Packages to send', 'woocommerce' ),
+				'items' => $packageDefinition,
 			);
 			$required_fields[] = 'cart';
 

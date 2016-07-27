@@ -121,7 +121,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			$errors[ 'cart' ] = array( 'value' => '' );
 			$errors[ 'rate' ] = array( 'value' => '' );
 
 			return $this->validation_error( $errors );
@@ -167,7 +166,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 					$contents[] = array(
 						'height' => $height,
-						'product_id' => $values['data']->id,
+						'product_id' => isset( $values['data']->variation_id ) ? $values['data']->variation_id : $values['data']->id,
 						'length' => $length,
 						'quantity' => $values['quantity'],
 						'weight' => $weight,

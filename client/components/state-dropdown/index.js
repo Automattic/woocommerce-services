@@ -11,7 +11,6 @@ const StateDropdown = ( props ) => {
 			<TextField
 				{ ...props }
 				placeholder={ props.layout.placeholder }
-				required={ false }
 			/>
 		);
 	}
