@@ -5,10 +5,13 @@ import Button from 'components/button';
 import { translate as __ } from 'lib/mixins/i18n';
 import PrintLabelDialog from 'components/shipping-label';
 import * as ShippingLabelActions from 'state/form/shipping-label/actions';
+import notices from 'notices';
+import GlobalNotices from 'components/global-notices';
 
 const RootView = ( props ) => {
 	return (
 		<p className="wcc-metabox-button-container">
+			<GlobalNotices id="notices" notices={ notices.list } />
 			<PrintLabelDialog
 				{ ...( props.form.shippingLabel ) }
 				{ ...props }

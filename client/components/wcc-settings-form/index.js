@@ -1,7 +1,5 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsGroup from './settings-group';
-import notices from 'notices';
-import GlobalNotices from 'components/global-notices';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as FormActions from 'state/form/actions';
@@ -58,19 +56,15 @@ const WCCSettingsForm = ( props ) => {
 
 	const renderMultiStepForm = () => {
 		return (
-			<div>
-				<div>
-					<TabBar
-						layout={ props.layout }
-						currentStep={ currentStep }
-						onTabClick={ props.formActions.goToStep } />
-				</div>
-				<div>
+			<div className="multistep-form-container">
+				<TabBar
+					layout={ props.layout }
+					currentStep={ currentStep }
+					onTabClick={ props.formActions.goToStep } />
+				<div className="step-content">
 					{ renderGroup( currentStep ) }
 				</div>
-				<div>
-					<ActionButtons buttons={ getActionButtons() } />
-				</div>
+				<ActionButtons buttons={ getActionButtons() } />
 			</div>
 		);
 	};
@@ -83,15 +77,9 @@ const WCCSettingsForm = ( props ) => {
 		);
 	};
 
-	return (
-		<div>
-			<GlobalNotices id="notices" notices={ notices.list } />
-			{ 'step' === props.layout[ 0 ].type
+	return 'step' === props.layout[ 0 ].type
 				? renderMultiStepForm()
-				: renderSingleStepForm()
-			}
-		</div>
-	);
+				: renderSingleStepForm();
 };
 
 WCCSettingsForm.propTypes = {

@@ -1,11 +1,16 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsForm from 'components/wcc-settings-form';
+import notices from 'notices';
+import GlobalNotices from 'components/global-notices';
 
 const Settings = ( props ) => {
 	return (
-		<WCCSettingsForm
-			{ ...props }
-		/>
+		<div>
+			<GlobalNotices id="notices" notices={ notices.list } />
+			<WCCSettingsForm
+				{ ...props }
+			/>
+		</div>
 	);
 };
 
