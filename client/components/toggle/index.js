@@ -26,7 +26,7 @@ const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) =
 	};
 
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<FormToggle
 				id={ id }

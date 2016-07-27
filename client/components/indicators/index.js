@@ -44,9 +44,9 @@ const renderSubTitle = ( subtitle ) => {
 	);
 };
 
-const Indicators = ( { id, schema, indicators } ) => {
+const Indicators = ( { schema, indicators } ) => {
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			<FormLegend>{ schema.title }{ renderSubTitle( schema.subtitle ) }</FormLegend>
 			{ indicators.map( indicator => (
 				<Indicator

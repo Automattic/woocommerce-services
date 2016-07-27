@@ -22,7 +22,7 @@ const renderText = ( text ) => {
 
 const Text = ( { id, layout, value } ) => {
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			{ renderTitle( layout.title ) }
 			<p id={ id } className={ layout.class } >
 				{ renderText( value ) }

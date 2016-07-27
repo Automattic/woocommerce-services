@@ -21,7 +21,7 @@ const renderFieldError = ( validationHint ) => {
 
 const NumberField = ( { id, schema, value, placeholder, updateValue, error } ) => {
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<NumberInput
 				id={ id }

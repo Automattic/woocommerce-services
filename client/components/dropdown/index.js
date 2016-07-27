@@ -12,7 +12,7 @@ const renderFieldError = ( validationHint ) => {
 
 const Dropdown = ( { id, layout, schema, value, updateValue, error } ) => {
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			<FormLegend>{ schema.title }</FormLegend>
 			<FormSelect
 				id={ id }

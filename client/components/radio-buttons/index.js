@@ -13,9 +13,9 @@ const RadioButton = ( { value, currentValue, setValue, description } ) => {
 	);
 };
 
-const RadioButtons = ( { id, layout, schema, value, setValue } ) => {
+const RadioButtons = ( { layout, schema, value, setValue } ) => {
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			<FormLegend>{ schema.title }</FormLegend>
 			{ Object.keys( layout.titleMap ).map( key => {
 				return (

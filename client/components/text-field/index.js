@@ -22,7 +22,7 @@ const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => 
 	const handleChangeEvent = event => updateValue( event.target.value );
 
 	return (
-		<FormFieldset id={ id + '_container' }>
+		<FormFieldset>
 			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
 			<FormTextInput
 				id={ id }
