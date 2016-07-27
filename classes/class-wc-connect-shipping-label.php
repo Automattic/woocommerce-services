@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'items' => array(
 							array(
 								'height' => $height,
-								'product_id' => $item['product_id'],
+								'product_id' => $item[ 'product_id' ],
 								'length' => $length,
 								'quantity' => 1,
 								'weight' => $weight,
