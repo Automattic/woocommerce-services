@@ -165,21 +165,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$layout[] = array(
 				'type' => 'step',
 				'tab_title' => __( 'Origin', 'woocommerce' ),
-				'title' => __( 'Generate shipping label: Origin address', 'woocommerce' ),
-				'description' => __( 'Confirm the address you are shipping from is correct to ensure the package will get to the correct destination', 'woocommerce' ),
+				'title' => __( 'Create shipping label: Origin address', 'woocommerce' ),
+				'description' => __( 'Enter the address you are shipping from to ensure the package will get to the correct destination', 'woocommerce' ),
 				'items' => $orig_address_fields,
 				'bypass_suggestion_flag' => 'orig_bypass_suggestion',
 				'summary' => str_replace( '{', '{orig_', $address_summary ),
 				'suggestion_hint' => __( 'To ensure accurate delivery, we have slightly modified the address you entered. Select the address you wish to use before continuing to the next step.', 'woocommerce' ),
-				'suggestion_original_title' => __( 'Address entered', 'woocommerce' ),
-				'suggestion_corrected_title' => __( 'Suggested address', 'woocommerce' ),
+				'suggestion_original_title' => __( 'Use address entered', 'woocommerce' ),
+				'suggestion_corrected_title' => __( 'Use suggested address', 'woocommerce' ),
 			);
 
 			$layout[] = array(
 				'type' => 'step',
 				'tab_title' =>  __( 'Destination', 'woocommerce' ),
-				'title' => __( 'Generate shipping label: Address verification', 'woocommerce' ),
-				'description' => __( 'Confirm the address of the recipient is correct to ensure the package will get to the correct destination', 'woocommerce' ),
+				'title' => __( 'Create shipping label: Destination address', 'woocommerce' ),
+				'description' => __( 'Enter the address of the recipient to ensure the package will get to the correct destination', 'woocommerce' ),
 				'items' => $dest_address_fields,
 				'bypass_suggestion_flag' => 'dest_bypass_suggestion',
 				'summary' => str_replace( '{', '{dest_', $address_summary ),
