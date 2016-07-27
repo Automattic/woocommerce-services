@@ -1,22 +1,34 @@
 import React, { PropTypes } from 'react';
+import Gridicon from 'components/gridicon';
 
 const TabBar = ( { layout, currentStep, onTabClick } ) => {
 	const renderTab = ( label, index ) => {
+		let labelElement;
+		let className = '';
 		if ( index === currentStep ) {
-			return <b>{ label }</b>;
+			labelElement = <span>{ label }</span>;
+			className = 'is-active';
 		} else if ( index < currentStep ) {
-			return <a onClick={ () => onTabClick( index ) }>{ label }</a>;
+			labelElement = (
+				<div>
+					<Gridicon icon="checkmark-circle"/>
+					<a onClick={ () => onTabClick( index ) }>{ label }</a>
+				</div>
+			);
+			className = 'is-completed';
+		} else {
+			labelElement = <span>{ label }</span>;
 		}
-		return <span>{ label }</span>;
+		return (
+			<li key={ index } className={ className }>
+				{ labelElement }
+			</li>
+		);
 	};
 
 	return (
-		<ul>
-			{ layout.map( ( step, index ) => (
-				<li key={ index }>
-					{ renderTab( step.tab_title, index ) }
-				</li>
-			) ) }
+		<ul className="wcc-dialog-tabs">
+			{ layout.map( ( step, index ) => renderTab( step.tab_title, index ) ) }
 		</ul>
 	);
 };

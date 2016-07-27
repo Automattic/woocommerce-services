@@ -1,0 +1,34 @@
+.wcc-dialog-tabs {
+	width: 100%;
+	display: flex;
+	margin: 0;
+	list-style: none;
+	min-height: 44px;
+
+	li {
+		flex-grow: 1;
+		text-align: center;
+		padding-top: 12px;
+		font-weight: bold;
+		border-bottom: 2px solid lighten( $gray, 20 );
+		color: $gray;
+
+		&.is-active {
+			border-bottom-color: $blue-medium;
+			color: $blue-medium;
+		}
+
+		&.is-completed {
+			border-bottom-color: $blue-dark;
+			color: $blue-dark;
+
+			.gridicon {
+				margin: -8px auto;
+			}
+
+			a {
+				cursor: pointer;
+			}
+		}
+	}
+}
