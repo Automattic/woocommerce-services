@@ -52,6 +52,7 @@
     "mocha-loader": "^0.7.1",
     "node-sass": "^3.7.0",
     "null-loader": "^0.1.1",
+    "postcss-loader": "^0.9.1",
     "react-addons-test-utils": "0.14.7",
     "redbox-react": "^1.2.2",
     "sass-loader": "^3.1.2",
