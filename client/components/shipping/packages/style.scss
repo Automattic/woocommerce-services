@@ -182,7 +182,7 @@
     color: $gray-dark;
     -webkit-text-fill-color: $gray-dark;
 
-    @include placeholder {
+    &::placeholder {
         color: $gray-dark;
     }
 

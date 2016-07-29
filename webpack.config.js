@@ -1,6 +1,7 @@
 const webpack = require( 'webpack' );
 const path = require( 'path' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
+const autoprefixer = require( 'autoprefixer' );
 
 const babelSettings = {
 	presets: [
@@ -34,7 +35,7 @@ module.exports = {
 			},
 			{
 				test: /\.scss$/,
-				loader: ExtractTextPlugin.extract( 'style', 'css!sass' )
+				loader: ExtractTextPlugin.extract( 'style', 'css!postcss!sass' )
 			},
 			{
 				test: /\.html$/,
@@ -84,4 +85,7 @@ module.exports = {
 		} ),
 		new ExtractTextPlugin( '[name].css' ),
 	],
+	postcss: function () {
+		return [ autoprefixer ];
+	},
 };
