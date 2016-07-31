@@ -99,10 +99,10 @@
         }
     }
 
-	.form-row {
+	.settings-form-row {
 		display: flex;
 
-		.form-fieldset {
+		& > * {
 			flex-grow: 1;
 			margin-right: 16px;
 
