@@ -3,22 +3,10 @@ import groupBy from 'lodash/groupBy';
 import ShippingServiceGroup from './group';
 import map from 'lodash/map';
 import classNames from 'classnames';
-import FormInputValidation from 'components/forms/form-input-validation';
 import FormLegend from 'components/forms/form-legend';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
-import { sanitize } from 'dompurify';
-
-const renderFieldDescription = ( description ) => {
-	return (
-		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: [ 'target' ] } ) } } /> : null
-	);
-};
-
-const renderFieldError = ( validationHint ) => {
-	return (
-		<FormInputValidation isError text={ validationHint } />
-	);
-};
+import FieldError from 'components/field-error';
+import FieldDescription from 'components/field-description';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const ShippingServiceGroups = ( {
 	schema,
@@ -60,12 +48,12 @@ const ShippingServiceGroups = ( {
 
 	return (
 		<div className="wcc-shipping-services-groups">
-			<FormLegend>{ schema.title }</FormLegend>
-			{ renderFieldDescription( schema.description ) }
+			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
+			<FieldDescription text={ schema.description } />
 			<div className={ classNames( 'wcc-shipping-services-groups-inner', { 'is-error': generalError } ) }>
 				{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
 			</div>
-			{ generalError ? renderFieldError( generalError ) : null }
+			{ generalError ? <FieldError text={ generalError } /> : null }
 		</div>
 	);
 };

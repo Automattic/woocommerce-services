@@ -3,12 +3,13 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
 import FormRadio from 'components/forms/form-radio';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const RadioButton = ( { value, currentValue, setValue, description } ) => {
 	return (
 		<FormLabel>
 			<FormRadio value={ value } checked={ value === currentValue } onChange={ () => setValue( value ) } />
-			<span>{ description }</span>
+			<span dangerouslySetInnerHTML={ sanitizeHTML( description ) } />
 		</FormLabel>
 	);
 };
@@ -16,7 +17,7 @@ const RadioButton = ( { value, currentValue, setValue, description } ) => {
 const RadioButtons = ( { layout, schema, value, setValue } ) => {
 	return (
 		<FormFieldset>
-			<FormLegend>{ schema.title }</FormLegend>
+			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
 			{ Object.keys( layout.titleMap ).map( key => {
 				return (
 					<RadioButton

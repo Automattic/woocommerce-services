@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import Gridicon from 'components/gridicon';
-import { sanitize } from 'dompurify';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const renderLastUpdated = ( lastUpdated ) => {
 	if ( ! lastUpdated ) {
@@ -12,8 +12,7 @@ const renderLastUpdated = ( lastUpdated ) => {
 
 	return (
 		<div className="form-setting-explanation indicator__last-updated">
-			<span dangerouslySetInnerHTML={ { __html: sanitize( lastUpdated, { ADD_ATTR: [ 'target' ] } ) } } >
-			</span>
+			<span dangerouslySetInnerHTML={ sanitizeHTML( lastUpdated ) } />
 		</div>
 	);
 };
@@ -40,14 +39,17 @@ const renderSubTitle = ( subtitle ) => {
 	}
 
 	return (
-		<span className="indicators__subtitle">{ subtitle }</span>
+		<span className="indicators__subtitle" dangerouslySetInnerHTML={ sanitizeHTML( subtitle ) } />
 	);
 };
 
 const Indicators = ( { schema, indicators } ) => {
 	return (
 		<FormFieldset>
-			<FormLegend>{ schema.title }{ renderSubTitle( schema.subtitle ) }</FormLegend>
+			<FormLegend>
+				<span dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
+				{ renderSubTitle( schema.subtitle ) }
+			</FormLegend>
 			{ indicators.map( indicator => (
 				<Indicator
 					key={ indicator.id }

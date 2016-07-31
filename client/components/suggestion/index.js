@@ -6,6 +6,7 @@ import Button from 'components/button';
 import Summary from 'components/summary';
 import { translate as __ } from 'lib/mixins/i18n';
 import classNames from 'classnames';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const RadioButton = ( props ) => {
 	return (
@@ -22,7 +23,7 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 			<RadioButton
 				checked={ ! acceptSuggestion }
 				onChange={ () => formActions.setFormProperty( 'acceptSuggestion', false ) } >
-				<span className="suggestion-title">{ layout.suggestion_original_title }</span>
+				<span className="suggestion-title" dangerouslySetInnerHTML={ sanitizeHTML( layout.suggestion_original_title ) } />
 				<Summary
 					formValues={ formValues }
 					layoutItems={ layout.items }
@@ -37,7 +38,7 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 			<RadioButton
 				checked={ acceptSuggestion }
 				onChange={ () => formActions.setFormProperty( 'acceptSuggestion', true ) } >
-				<span className="suggestion-title">{ layout.suggestion_corrected_title }</span>
+				<span className="suggestion-title" dangerouslySetInnerHTML={ sanitizeHTML( layout.suggestion_corrected_title ) } />
 				<Summary
 					formValues={ formValues }
 					layoutItems={ layout.items }

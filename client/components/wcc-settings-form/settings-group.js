@@ -7,6 +7,7 @@ import Notice from 'components/notice';
 import noop from 'lodash/noop';
 import isEmpty from 'lodash/isEmpty';
 import Suggestion from 'components/suggestion';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -58,7 +59,7 @@ const SettingsGroup = ( props ) => {
 		case 'fieldset':
 			return (
 				<CompactCard className="settings-group-card">
-					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
+					<FormSectionHeading className="settings-group-header" dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
 					<div className="settings-group-content">
 						{ renderSettingsItems() }
 					</div>
@@ -71,12 +72,12 @@ const SettingsGroup = ( props ) => {
 					<div>
 						<Notice
 							status="is-warning"
-							text={ group.suggestion_hint }
-							showDismiss={ false }
-						/>
+							showDismiss={ false } >
+							<span dangerouslySetInnerHTML={ sanitizeHTML( group.suggestion_hint ) } />
+						</Notice>
 						<div className="settings-group-default">
-							<FormSectionHeading>{ group.title }</FormSectionHeading>
-							{ group.description ? <p>{ group.description }</p> : null }
+							<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
+							{ group.description ? <p dangerouslySetInnerHTML={ sanitizeHTML( group.description ) } /> : null }
 							<Suggestion
 								acceptSuggestion={ Boolean( form.acceptSuggestion ) }
 								formValues={ form.values }
@@ -91,8 +92,8 @@ const SettingsGroup = ( props ) => {
 
 			return (
 				<div className="settings-group-default">
-					<FormSectionHeading>{ group.title }</FormSectionHeading>
-					{ group.description ? <p>{ group.description }</p> : null }
+					<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
+					{ group.description ? <p dangerouslySetInnerHTML={ sanitizeHTML( group.description ) } /> : null }
 					{ renderSettingsItems() }
 				</div>
 			);

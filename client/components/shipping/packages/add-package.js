@@ -3,8 +3,6 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
-import FormInputValidation from 'components/forms/form-input-validation';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
 import Dialog from 'components/dialog';
 import AddPackagePresets from './add-package-presets';
@@ -15,6 +13,8 @@ import difference from 'lodash/difference';
 import trim from 'lodash/trim';
 import omit from 'lodash/omit';
 import inputFilters from './input-filters';
+import FieldError from 'components/field-error';
+import FieldDescription from 'components/field-description';
 
 const getDialogButtons = ( mode, dismissModal, savePackage ) => {
 	return [
@@ -102,7 +102,7 @@ const AddPackageDialog = ( props ) => {
 	const fieldInfo = ( field, nonEmptyText ) => {
 		const altText = nonEmptyText || __( 'Invalid value' );
 		const text = '' === trim( packageData[ field ] ) ? __( 'This field is required' ) : altText;
-		return modalErrors[ field ] ? <FormInputValidation isError text={ text } /> : null;
+		return modalErrors[ field ] ? <FieldError text={ text } /> : null;
 	};
 
 	return (
@@ -187,9 +187,7 @@ const AddPackageDialog = ( props ) => {
 					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
 					{ fieldInfo( 'max_weight' ) }
 				</div>
-				<FormSettingExplanation>
-					{ __( 'Defines both the weight of the empty box and the max weight it can hold' ) }
-				</FormSettingExplanation>
+				<FieldDescription text={ __( 'Defines both the weight of the empty box and the max weight it can hold' ) } />
 			</FormFieldset>
 		</Dialog>
 	);

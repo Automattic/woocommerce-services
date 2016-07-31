@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import find from 'lodash/find';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 /*
  * Renders the field values of the given step in a non-editable manner.
@@ -57,7 +58,9 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 		switch ( layout.type ) {
 			case 'radios':
 			case 'dropdown':
-				return layout.titleMap[ fieldRawValue ] || fieldRawValue;
+				return layout.titleMap[ fieldRawValue ]
+					? <span dangerouslySetInnerHTML={ sanitizeHTML( layout.titleMap[ fieldRawValue ] ) } />
+					: fieldRawValue;
 
 			case 'country':
 				return ( countriesData[ fieldRawValue ] || {} ).name || fieldRawValue;

@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
-import { sanitize } from 'dompurify';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const renderTitle = ( title ) => {
 	if ( ! title ) {
@@ -9,14 +9,13 @@ const renderTitle = ( title ) => {
 	}
 
 	return (
-		<FormLegend>{ title }</FormLegend>
+		<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 	);
 };
 
 const renderText = ( text ) => {
 	return (
-		<span dangerouslySetInnerHTML={ { __html: sanitize( text, { ADD_ATTR: [ 'target' ] } ) } }>
-		</span>
+		<span dangerouslySetInnerHTML={ sanitizeHTML( text ) } />
 	);
 };
 
