@@ -61,7 +61,6 @@
 		.wcc-shipping-service-header {
 			display: inline-block;
 			margin-left: 0;
-			padding: 0 0 0 8px;
 			font-weight: bold;
 		}
 
@@ -71,6 +70,10 @@
 				padding-right: 8px;
 			}
 		}
+	}
+
+	.form-checkbox {
+		margin-right: 8px;
 	}
 
 	.wcc-shipping-service-entry-title {
