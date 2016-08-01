@@ -1,3 +1,5 @@
+let coerceFormValues;
+
 /**
  * Retrieve a field's schema, handling referenced schema definitions if need be.
  *
@@ -19,12 +21,19 @@ const getFieldSchema = ( fieldSchema, definitions ) => {
 /**
  * Coerces a value into a type.
  *
+ * @param {Object} schema - Schema containing type declarations.
  * @param {*} value - Value to coerce.
- * @param {string} type - Type to coerce value to.
+ * @param {Object} definitions - Schema definitions.
  * @returns {*} - Coerced value.
  */
-const coerceValue = ( value, type ) => {
-	switch ( type ) {
+const coerceValue = ( schema, value, definitions ) => {
+	// If the value is undefined or we don't have a schema type to reference, leave it be.
+	if ( ( undefined === value ) || ! schema ) {
+		return value;
+	}
+	schema = getFieldSchema( schema, definitions );
+
+	switch ( schema.type ) {
 		case 'number':
 			if ( '' === value ) {
 				return undefined;
@@ -51,7 +60,13 @@ const coerceValue = ( value, type ) => {
 			return undefined;
 
 		case 'string':
-			return value.toString();
+			return value ? value.toString() : '';
+
+		case 'object':
+			return coerceFormValues( schema, value, definitions );
+
+		case 'array':
+			return value.map( ( arrayItem ) => coerceValue( schema.items, arrayItem, definitions ) );
 
 		default:
 			return value;
@@ -66,7 +81,7 @@ const coerceValue = ( value, type ) => {
  * @param {Object} [definitions=null] - Optional. Schema definitions, parsed from schema if omitted.
  * @returns {Object} - Coerced values based on schema.
  */
-const coerceFormValues = ( schema, values, definitions = null ) => {
+coerceFormValues = ( schema, values, definitions = null ) => {
 	let coerced = {};
 
 	// Pull definitions from schema if not passed explicitly.
@@ -76,25 +91,8 @@ const coerceFormValues = ( schema, values, definitions = null ) => {
 
 	// Coerce each form value
 	Object.keys( values ).forEach( ( key ) => {
-		// If the value is undefined or we don't have a schema type to reference, leave it be.
-		if ( ( undefined === values[ key ] ) || ! schema.properties || ! schema.properties[ key ] ) {
-			coerced[ key ] = values[ key ];
-			return;
-		}
-
-		// Coerce this form value
-		const fieldSchema = getFieldSchema( schema.properties[ key ], definitions );
-		const fieldType = fieldSchema.type;
-		let coercedValue = coerceValue( values[ key ], fieldType );
-
-		// If the value is complex, coerce all nested values
-		if ( 'object' === fieldType ) {
-			coercedValue = coerceFormValues( fieldSchema, coercedValue, definitions );
-		} else if ( 'array' === fieldType ) {
-			coercedValue = coercedValue.map( ( arrayItem ) => coerceFormValues( fieldSchema.items, arrayItem, definitions ) );
-		}
-
-		coerced[ key ] = coercedValue;
+		const fieldSchema = ( schema.properties || {} )[ key ];
+		coerced[ key ] = coerceValue( fieldSchema, values[ key ], definitions );
 	} );
 
 	return coerced;
