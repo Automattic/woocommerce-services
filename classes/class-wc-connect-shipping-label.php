@@ -73,10 +73,31 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $packages;
 		}
 
+		protected function get_selected_rates( WC_Order $order ) {
+			$shipping_method = reset( $order->get_shipping_methods() );
+			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+				return array();
+			}
+
+			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			$rates = array();
+
+			foreach( $packages as $package ) {
+				if ( ! $package[ 'service_id' ] ) {
+					return array();
+				}
+				$rates[] = $package[ 'service_id' ];
+			}
+
+			return $rates;
+		}
+
 		protected function get_form_data( WC_Order $order ) {
 			$form_data = array();
 
 			$form_data[ 'cart' ] = $this->get_packaging_data( $order );
+
+			$form_data[ 'rates' ] = $this->get_selected_rates( $order );
 
 			foreach( $this->settings_store->get_origin_address() as $key => $value ) {
 				$form_data[ 'orig_' . $key ] = $value;
@@ -207,16 +228,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'title' => 'TODO: Not implemented yet',
 				'items' => array(
 					array(
-						'key' => 'rate',
-						'type' => 'radios',
-						'titleMap' => array(
-							'media' => 'Media Mail ($1.00)',
-							'pri_1' => 'Priority 1-day ($9.99)',
-							'todo' => 'TODO: These are NOT real rates',
-						),
+						'key' => 'rates',
+						'type' => 'rates',
+						'packages_field' => 'cart',
 					),
 				),
-				'summary' => '{rate}',
+				'summary' => '{rates}',
 			);
 
 			$layout[] = array(
@@ -357,12 +374,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			);
 			$required_fields[] = 'cart';
 
-			$properties[ 'rate' ] = array(
-				'type' => 'string',
-				'title' => __( 'Shipping rate', 'woocommerce' ),
-				'enum' => array( 'pri_1', 'media', 'todo' ),
+			$properties[ 'rates' ] = array(
+				'type' => 'array',
+				'title' => __( 'Shipping rates', 'woocommerce' ),
+				'items' => array(
+					'type' => 'string',
+					'title' => __( 'Shipping rate', 'woocommerce' ),
+				),
 			);
-			$required_fields[] = 'rate';
+			$required_fields[] = 'rates';
 
 			return array(
 				'required' => $required_fields,

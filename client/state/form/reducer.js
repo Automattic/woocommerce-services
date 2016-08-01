@@ -18,6 +18,15 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	newObj[ action.field ] = action.value;
 	if ( 'success' === action.field && action.value ) {
 		newObj.pristine = true;
+	} else if ( 'errors' === action.field && action.value ) {
+		Object.keys( action.value ).forEach( ( errorPath ) => {
+			const error = action.value[ errorPath ];
+			if ( 'overwrite' === error.level ) {
+				const overwriteAction = formValueActions.updateField( errorPath, error.value );
+				newObj.values = values( newObj.values || state.values || {}, overwriteAction );
+				delete action.value[ errorPath ];
+			}
+		} );
 	}
 	return Object.assign( {}, state, newObj );
 };

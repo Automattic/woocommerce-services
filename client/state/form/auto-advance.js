@@ -11,10 +11,11 @@ export const submitForm = ( callbackURL, nonce, submitMethod, formValues, setFor
 			}
 		};
 		const setSuccess = ( value ) => setFormProperty( 'success', value );
+		const setFieldOptions = ( value ) => setFormProperty( 'field_options', value );
 		const setError = ( value ) => setFormProperty( 'errors', value );
 
 		setFormProperty( 'pristine', true );
-		saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, submitMethod, formValues );
+		saveForm( setIsSaving, setSuccess, setFieldOptions, setError, callbackURL, nonce, submitMethod, formValues );
 	} );
 };
 
