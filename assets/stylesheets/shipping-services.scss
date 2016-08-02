@@ -100,9 +100,10 @@
 		}
 	}
 
-  	&.wcc-error {
-	  input[type=text], .gridicon {
-		color: red;
-	  }
+	&.wcc-error {
+		input[type=text],
+		.gridicon {
+			color: red;
+		}
 	}
 }
