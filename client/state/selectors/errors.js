@@ -4,7 +4,9 @@ import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
 import coerceFormValues from 'lib/utils/coerce-values';
 
-export const EMPTY_ERROR = {};
+export const EMPTY_ERROR = {
+	level: 'error',
+};
 Object.freeze( EMPTY_ERROR );
 
 /*
@@ -77,10 +79,10 @@ const getRawFormErrors = ( schema, data ) => {
 };
 
 export const getFormErrors = createSelector(
-	( state ) => state.form.errors,
+	( state ) => state.form.fieldsStatus,
 	( state, schema ) => schema,
 	( state ) => state.form.values,
-	( errors, schema, data ) => parseErrorsList( errors || getRawFormErrors( schema, data ) )
+	( fieldsStatus, schema, data ) => parseErrorsList( fieldsStatus || getRawFormErrors( schema, data ) )
 );
 
 export const getStepFormErrors = createSelector(

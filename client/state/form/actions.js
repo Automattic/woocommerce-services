@@ -55,7 +55,7 @@ export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submit
 		uncheckAcceptSuggestion: () => dispatch( setFormProperty( 'acceptSuggestion', undefined ) ),
 		goToNextStep: () => dispatch( goToStep( getFormState().currentStep + 1 ) ),
 		updateField: updateField,
-		showErrorNotice: ( errors ) => dispatch( NoticeActions.errorNotice( errors, { duration: 7000 } ) ),
+		showErrorNotice: ( error ) => dispatch( NoticeActions.errorNotice( error, { duration: 7000 } ) ),
 		getFormState: getFormState,
 		submit: () => submitForm( callbackURL, nonce, submitMethod, getFormState().values, bindActionCreators( setFormProperty, dispatch ) ),
 		setConfirmationFlag: () => getCurrentStepLayout().confirmation_flag && updateField( getCurrentStepLayout().confirmation_flag, true ),

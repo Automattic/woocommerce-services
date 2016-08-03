@@ -2,7 +2,7 @@ import isArray from 'lodash/isArray';
 import Get from 'lodash/get';
 import { EMPTY_ERROR } from 'state/selectors/errors';
 
-const saveForm = ( setIsSaving, setSuccess, setFieldOptions, setError, url, nonce, submitMethod, formData ) => {
+const saveForm = ( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );
 	const request = {
 		method: submitMethod || 'PUT',
@@ -22,18 +22,18 @@ const saveForm = ( setIsSaving, setSuccess, setFieldOptions, setError, url, nonc
 				return setSuccess( true );
 			}
 
-			if ( Get( json, 'data.data.field_options' ) ) {
-				setFieldOptions( json.data.data.field_options );
+			if ( Get( json, 'data.data.fieldsOptions' ) ) {
+				setFieldsOptions( json.data.data.fieldsOptions );
 			}
 
 			if ( 'validation_failure' === Get( json, 'data.error' ) && Get( json, 'data.data.fields' ) ) {
-				let errors = json.data.data.fields;
+				let fieldsStatus = json.data.data.fields;
 				// Some services still give the field errors in an array, keep backwards-compatibility
-				if ( isArray( errors ) ) {
-					errors = {};
-					json.data.data.fields.forEach( ( fieldName ) => errors[ fieldName ] = EMPTY_ERROR );
+				if ( isArray( fieldsStatus ) ) {
+					fieldsStatus = {};
+					json.data.data.fields.forEach( ( fieldName ) => fieldsStatus[ fieldName ] = EMPTY_ERROR );
 				}
-				return setError( errors );
+				return setFieldsStatus( fieldsStatus );
 			}
 
 			if ( json.data.message ) {

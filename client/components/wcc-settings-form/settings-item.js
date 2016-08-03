@@ -186,7 +186,7 @@ const SettingsItem = ( {
 			return (
 				<ShippingRates
 					selectedRates={ fieldValue }
-					availableRates={ form.field_options[ id ] }
+					availableRates={ form.fieldsOptions[ id ] }
 					packages={ form.values[ layout.packages_field ] }
 					updateValue={ updateSubValue }
 					dimensionUnit={ storeOptions.dimension_unit }

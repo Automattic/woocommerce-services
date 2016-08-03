@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		// TODO: Remove this when the real server-side validation is implemented for the shipping labels endpoint
-		private function validation_error( $fields, $field_options ) {
+		private function validation_error( $fields, $fields_options ) {
 			return new WP_Error( 'validation_failed',
 				__( 'One or more fields of your request are invalid.', 'woocommerce' ),
 				array(
@@ -80,7 +80,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					'error' => 'validation_failure',
 					'data' => array(
 						'fields' => $fields,
-						'field_options' => $field_options,
+						'fieldsOptions' => $fields_options,
 					),
 				)
 			);
@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function send_shipping_label_request( $label_settings ) {
 			// TODO: use the real WCC server endpoint to validate
 			$errors = array();
-			$field_options = array();
+			$fields_options = array();
 			if ( $label_settings->orig_address_1 === 'Awk St' ) {
 				if ( ! isset( $label_settings->orig_bypass_suggestion ) || ! $label_settings->orig_bypass_suggestion ) {
 					$errors[ 'orig_address_1' ] = array(
@@ -108,6 +108,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			} else if ( $label_settings->orig_address_1 !== 'Hawk St' ) {
 				$errors[ 'orig_address_1' ] = array(
 					'value' => 'The server doesn\'t like that street!',
+					'level' => 'error',
 				);
 			}
 
@@ -121,12 +122,13 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			} else if ( $label_settings->dest_address_1 !== 'Hawk St' ) {
 				$errors[ 'dest_address_1' ] = array(
 					'value' => 'The server doesn\'t like that street!',
+					'level' => 'error',
 				);
 			}
 
-			$field_options[ 'rates' ] = array();
+			$fields_options[ 'rates' ] = array();
 			foreach ( $label_settings->cart as $index => $package ) {
-				$field_options[ 'rates' ][] = array(
+				$fields_options[ 'rates' ][] = array(
 					'pri_1day' => array(
 						'name' => 'Priority 1 Day',
 						'rate' => 1.1 + ( 0.01 * $index ),
@@ -150,7 +152,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				}
 			}
 
-			return $this->validation_error( $errors, $field_options );
+			return $this->validation_error( $errors, $fields_options );
 		}
 
 

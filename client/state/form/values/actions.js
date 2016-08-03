@@ -29,7 +29,9 @@ export const addArrayFieldItem = ( path, item ) => ( {
 
 export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
 	silent = ( true === silent );
+
 	const setIsSaving = ( value ) => dispatch( FormActions.setFormProperty( 'isSaving', value ) );
+
 	const setSuccess = ( value ) => {
 		dispatch( FormActions.setFormProperty( 'success', value ) );
 		if ( ! silent && true === value ) {
@@ -38,9 +40,21 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 			} ) );
 		}
 	};
-	const setFieldOptions = ( value ) => FormActions.setFormProperty( 'field_options', value );
+
+	const setFieldsOptions = ( value ) => FormActions.setFormProperty( 'fieldsOptions', value );
+
+	const setFieldsStatus = ( value ) => {
+		dispatch( FormActions.setFormProperty( 'fieldsStatus', value ) );
+
+		if ( ! silent ) {
+			dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
+				duration: 7000,
+			} ) );
+		}
+	};
+
 	const setError = ( value ) => {
-		dispatch( FormActions.setFormProperty( 'errors', value ) );
+		dispatch( FormActions.setFormProperty( 'error', value ) );
 
 		if ( ! silent ) {
 			if ( isString( value ) ) {
@@ -56,7 +70,8 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 			}
 		}
 	};
+
 	const coercedValues = coerceFormValues( schema, getState().form.values );
 
-	saveForm( setIsSaving, setSuccess, setFieldOptions, setError, callbackURL, nonce, submitMethod, coercedValues );
+	saveForm( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
 };
