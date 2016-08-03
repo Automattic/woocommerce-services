@@ -143,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					),
 				);
 
-				if ( ! $label_settings->rates[ $index ] ) {
+				if ( ! isset( $label_settings->rates[ $index ] ) || ! $label_settings->rates[ $index ] ) {
 					// If the client didn't select any rate, make it pre-select the cheapest one by default
 					$errors[ 'rates.' . $index ] = array(
 						'level' => 'overwrite',

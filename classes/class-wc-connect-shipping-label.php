@@ -53,7 +53,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_packaging_data( WC_Order $order ) {
-			$shipping_method = reset( $order->get_shipping_methods() );
+			$shipping_methods = $order->get_shipping_methods();
+			$shipping_method = reset( $shipping_methods );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
 				return $this->get_items_as_individual_packages( $order );
 			}
@@ -74,7 +75,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_selected_rates( WC_Order $order ) {
-			$shipping_method = reset( $order->get_shipping_methods() );
+			$shipping_methods = $order->get_shipping_methods();
+			$shipping_method = reset( $shipping_methods );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
 				return array();
 			}
