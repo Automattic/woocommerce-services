@@ -1,0 +1,32 @@
+.suggestion-container {
+	display: flex;
+	align-items: flex-start;
+
+	.suggestion {
+		border: 1px solid transparent;
+		border-radius: 4px;
+		padding: 16px;
+		flex-grow: 1;
+
+		&:first-child {
+			margin-right: 16px;
+		}
+
+		&.is-selected {
+			border-color: $blue-medium;
+		}
+
+		.suggestion-title {
+			font-weight: bold;
+		}
+
+		.summary {
+			margin: 8px 0 8px 24px;
+		}
+	}
+
+	.suggestion-edit-button {
+		margin-left: 24px;
+		text-transform: uppercase;
+	}
+}

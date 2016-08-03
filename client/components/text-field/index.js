@@ -2,28 +2,16 @@ import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
-import FormInputValidation from 'components/forms/form-input-validation';
-import { sanitize } from 'dompurify';
-
-const renderFieldDescription = ( description ) => {
-	return (
-		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: [ 'target' ] } ) } } /> : null
-	);
-};
-
-const renderFieldError = ( validationHint ) => {
-	return (
-		<FormInputValidation isError text={ validationHint } />
-	);
-};
+import FieldError from 'components/field-error';
+import FieldDescription from 'components/field-description';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
 
 	return (
-		<FormFieldset id={ id + '_container' }>
-			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
+		<FormFieldset>
+			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
 			<FormTextInput
 				id={ id }
 				name={ id }
@@ -32,7 +20,7 @@ const TextField = ( { id, schema, value, placeholder, updateValue, error } ) => 
 				onChange={ handleChangeEvent }
 				isError={ error }
 			/>
-			{ error ? renderFieldError( error ) : renderFieldDescription( schema.description ) }
+			{ error ? <FieldError text={ error } /> : <FieldDescription text={ schema.description } /> }
 		</FormFieldset>
 	);
 };

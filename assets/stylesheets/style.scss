@@ -8,32 +8,31 @@
 
 #wc-connect-admin-container,
 .wcc-modal {
+	// Shared
+	@import 'shared/reset'; // css reset before the rest of the styles are defined
+	@import 'shared/utilities'; // Helper classes
+	@import 'shared/typography'; // all the typographic rules, variables, etc.
+	@import 'shared/mixins/mixins'; // sass mixins for gradients, bordius radii, etc.
+	@import 'shared/extends'; // sass extends for commonly used styles
+	@import 'shared/animation'; // all UI animation
+	@import 'shared/forms'; // form styling
+	@import 'shared/dropdowns'; // dropdown styling
+	//@import 'shared/toolbar-bulk'; // The toolbar used for bulk actions including bulk selecting and deselecting
+	//@import 'shared/livechat'; // styles for the popup livechat box
+	//@import 'shared/welcome'; // welcome messages
+	//@import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
 
-    // Shared
-    @import 'shared/reset'; // css reset before the rest of the styles are defined
-    @import 'shared/utilities'; // Helper classes
-    @import 'shared/typography'; // all the typographic rules, variables, etc.
-    @import 'shared/mixins/mixins'; // sass mixins for gradients, bordius radii, etc.
-    @import 'shared/extends'; // sass extends for commonly used styles
-    @import 'shared/animation'; // all UI animation
-    @import 'shared/forms'; // form styling
-    @import 'shared/dropdowns'; // dropdown styling
-    //@import 'shared/toolbar-bulk'; // The toolbar used for bulk actions including bulk selecting and deselecting
-    //@import 'shared/livechat'; // styles for the popup livechat box
-    //@import 'shared/welcome'; // welcome messages
-    //@import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
+	@import 'shipping-services'; // Shipping Services Groups, Group and Entry Component styles
+	@import 'shipping-label'; // Shipping Labels specific styles
 
-    @import 'shipping-services'; // Shipping Services Groups, Group and Entry Component styles
-    @import 'shipping-label'; // Shipping Labels specific styles
+	// Main
+	@import 'main'; // global layout and responsive styles
 
-    // Main
-    @import 'main'; // global layout and responsive styles
+	// Components
+	@import 'components';
 
-    // Components
-    @import 'components';
-
-    // Breakpoints
-    $breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
+	// Breakpoints
+	$breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
 
     // Buttons
     .button {
@@ -64,164 +63,199 @@
         @extend %form-field;
     }
 
-    %form-field {
-        box-shadow: none;
-        &::placeholder {
-            color: lighten( $gray, 10% );
-        }
-    }
+	%form-field {
+		box-shadow: none;
+		&::placeholder {
+			color: lighten( $gray, 10% );
+		}
+	}
 
-    .settings-group-header {
-        width: 22%;
-        @include breakpoint( '<660px' ) {
-            width: 100%;
-        }
-    }
+	.settings-group-header {
+		width: 22%;
+		@include breakpoint( '<660px' ) {
+			width: 100%;
+		}
+	}
 
-    .settings-group-header {
-        font-size: 16px;
-        font-weight: 600;
-        color: darken( $gray, 20% );
-    }
+	.settings-group-header {
+		font-size: 16px;
+		font-weight: 600;
+		color: darken( $gray, 20% );
+	}
 
-    .settings-group-content {
-        width: 78%;
-        @include breakpoint( '<660px' ) {
-            width: 100%;
-        }
-    }
+	.settings-group-content {
+		width: 78%;
+		@include breakpoint( '<660px' ) {
+			width: 100%;
+		}
+	}
 
-    .form-input-validation {
-        padding: 4px 0 4px 32px;
-        .gridicon {
-            float: none;
-            vertical-align: middle;
-        }
-    }
+	.form-input-validation {
+		padding: 4px 0 4px 32px;
+		.gridicon {
+			float: none;
+			vertical-align: middle;
+		}
+	}
 
-    // Cards
-    .card.is-compact {
-        &.settings-group-card {
-            margin-left: 0;
-            margin-right: 0;
-            max-width: 100%;
-            display: flex;
-            padding-top: 24px;
+	.settings-form-row {
+		display: flex;
 
-        @include breakpoint( '<660px' ) {
-            flex-wrap: wrap;
-        }
-    }
-        &.save-button-bar {
-            background: $gray-light;
-            padding: 16px 24px;
-            margin-right: 0;
-            margin-left: 0;
-            max-width: 100%;
-        }
-    }
+		& > * {
+			flex-grow: 1;
+			margin-right: 16px;
 
-    // Dialog
-    &.dialog.card {
-    	position: absolute;
-    		top: 0;
-    		right: 0;
-    		bottom: 0;
-    		left: 0;
-    	max-width: none;
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
 
-    	@include breakpoint( ">480px" ) {
-            top: 10%;
-            right: calc(50% - 250px);
-            bottom: 10%;
-            left: calc(50% - 250px);
-            padding: 0;
-            width: 500px;
-    	}
-    }
+	// Cards
+	.card.is-compact {
+		&.settings-group-card {
+			margin-left: 0;
+			margin-right: 0;
+			max-width: 100%;
+			display: flex;
+			padding-top: 24px;
 
-    .dialog__content {
-        position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 70px;
-        padding: 32px 32px 8px;
-        overflow: auto;
-    }
+			@include breakpoint( '<660px' ) {
+				flex-wrap: wrap;
+			}
+		}
+		&.save-button-bar {
+			background: $gray-light;
+			padding: 16px 24px;
+			margin-right: 0;
+			margin-left: 0;
+			max-width: 100%;
+		}
+	}
 
-    .dialog__action-buttons {
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        box-sizing: border-box;
-        width: 100%;
-        padding: 16px 24px;
-        text-align: left;
-        background: $gray-light;
-        border-top: 1px solid lighten( $gray, 30% );
-    }
+	// Dialog
+	&.dialog.card {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		max-width: none;
 
-    .share-package-option {
-        display: inline-block;
-        margin-top: 8px;
-        text-align: left;
-        font-size: 13px;
-    }
+		@include breakpoint( ">480px" ) {
+			top: 10%;
+			right: calc(50% - 250px);
+			bottom: 10%;
+			left: calc(50% - 250px);
+			padding: 0;
+			width: 500px;
+			}
+		}
 
-    // Global notices
+	.dialog__content {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 70px;
+		padding: 32px 32px 8px;
+		overflow: auto;
+	}
 
-    .global-notices .notice,
-    .global-notices .notice {
-        margin-left: 164px;
-        max-width: 1040px;
+	&.wcc-shipping-label-dialog {
+		&.card {
+			right: calc(50% - 300px);
+			left: calc(50% - 300px);
+			width: 600px;
+		}
 
-        @include breakpoint( '<960px' ) {
-            margin-left: 36px;
-        }
-        @include breakpoint( '<780px' ) {
-            margin-left: 0;
-        }
-    }
+		.dialog__content {
+			padding: 0;
+			bottom: 0;
+			overflow: hidden;
+		}
+	}
 
-    // adjust until system fonts get in wp-admin
-    .global-notices .notice__text,
-    .global-notices .notice__text {
-        padding: 10px 8px 8px;
+	.dialog__action-buttons {
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		box-sizing: border-box;
+		width: 100%;
+		padding: 16px 24px;
+		text-align: left;
+		background: $gray-light;
+		border-top: 1px solid lighten( $gray, 30% );
+	}
 
-        @include breakpoint( '<660px' ) {
-            padding: 16px;
-        }
-    }
+	.share-package-option {
+		display: inline-block;
+		margin-top: 8px;
+		text-align: left;
+		font-size: 13px;
+	}
 
-    // Custom styles
-    max-width: 700px;
+	// Global notices
 
-    // WP style conflict resets
-    .card {
-        min-width: initial;
-        max-width: initial;
-    }
+	.notice.is-warning {
+		margin-bottom: 0;
+	}
 
-    .wp-admin & {
-        select {
-            height: auto;
-            box-shadow: none;
-        }
-    }
+	.global-notices .notice,
+	.global-notices .notice {
+		margin-left: 164px;
+		max-width: 1040px;
 
-    .wp-core-ui & {
-        .button {
-            height: auto;
-        }
-    }
+		@include breakpoint( '<960px' ) {
+			margin-left: 36px;
+		}
 
-    // WCC Components
-    @import '../../client/components/shipping/packages/style';
-    @import '../../client/components/indicators/style';
-    @import '../../client/components/text/style';
-    @import '../../client/components/text-area/style';
-    @import '../../client/components/toggle/style';
+		@include breakpoint( '<780px' ) {
+			margin-left: 0;
+		}
+	}
+
+	// adjust until system fonts get in wp-admin
+	.global-notices .notice__text,
+	.global-notices .notice__text {
+		padding: 10px 8px 8px;
+
+		@include breakpoint( '<660px' ) {
+			padding: 16px;
+		}
+	}
+
+	// Custom styles
+	max-width: 700px;
+
+	// WP style conflict resets
+	.card {
+		min-width: initial;
+		max-width: initial;
+	}
+
+	.wp-admin & {
+		select {
+			height: auto;
+			box-shadow: none;
+		}
+	}
+
+	.wp-core-ui & {
+		.button {
+			height: auto;
+		}
+	}
+
+	// WCC Components
+	@import '../../client/components/shipping/packages/style';
+	@import '../../client/components/indicators/style';
+	@import '../../client/components/suggestion/style';
+	@import '../../client/components/summary/style';
+	@import '../../client/components/tab-bar/style';
+	@import '../../client/components/text/style';
+	@import '../../client/components/text-area/style';
+	@import '../../client/components/toggle/style';
 
 }
 

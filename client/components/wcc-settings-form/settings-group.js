@@ -7,6 +7,7 @@ import Notice from 'components/notice';
 import noop from 'lodash/noop';
 import isEmpty from 'lodash/isEmpty';
 import Suggestion from 'components/suggestion';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -36,13 +37,31 @@ const SettingsGroup = ( props ) => {
 		);
 	};
 
+	const renderSettingsItems = () => {
+		const rows = [];
+		let currentRowItems = [];
+		group.items.forEach( ( item ) => {
+			if ( item.inline ) {
+				currentRowItems.push( renderSettingsItem( item ) );
+			} else {
+				rows.push( currentRowItems );
+				currentRowItems = [];
+				rows.push( [ renderSettingsItem( item ) ] );
+			}
+		} );
+		rows.push( currentRowItems );
+		return rows.filter( ( arr ) => arr.length ).map( ( items, idx ) => (
+			<div className="settings-form-row" key={ idx }>{ items }</div>
+		) );
+	};
+
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
 				<CompactCard className="settings-group-card">
-					<FormSectionHeading className="settings-group-header">{ group.title }</FormSectionHeading>
+					<FormSectionHeading className="settings-group-header" dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
 					<div className="settings-group-content">
-						{ group.items.map( renderSettingsItem ) }
+						{ renderSettingsItems() }
 					</div>
 				</CompactCard>
 			);
@@ -50,30 +69,32 @@ const SettingsGroup = ( props ) => {
 		case 'step':
 			if ( undefined !== form.acceptSuggestion ) {
 				return (
-					<div className="settings-group-default">
+					<div>
 						<Notice
 							status="is-warning"
-							text={ group.suggestion_hint }
-							showDismiss={ false }
-						/>
-						<FormSectionHeading>{ group.title }</FormSectionHeading>
-						{ group.description ? <p>{ group.description }</p> : null }
-						<Suggestion
-							acceptSuggestion={ Boolean( form.acceptSuggestion ) }
-							formValues={ form.values }
-							formActions={ formActions }
-							layout={ group }
-							suggestions={ stepSuggestions }
-							countriesData={ storeOptions.countriesData } />
+							showDismiss={ false } >
+							<span dangerouslySetInnerHTML={ sanitizeHTML( group.suggestion_hint ) } />
+						</Notice>
+						<div className="settings-group-default">
+							<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
+							{ group.description ? <p dangerouslySetInnerHTML={ sanitizeHTML( group.description ) } /> : null }
+							<Suggestion
+								acceptSuggestion={ Boolean( form.acceptSuggestion ) }
+								formValues={ form.values }
+								formActions={ formActions }
+								layout={ group }
+								suggestions={ stepSuggestions }
+								countriesData={ storeOptions.countriesData } />
+						</div>
 					</div>
 				);
 			}
 
 			return (
 				<div className="settings-group-default">
-					<FormSectionHeading>{ group.title }</FormSectionHeading>
-					{ group.description ? <p>{ group.description }</p> : null }
-					{ group.items.map( renderSettingsItem ) }
+					<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
+					{ group.description ? <p dangerouslySetInnerHTML={ sanitizeHTML( group.description ) } /> : null }
+					{ renderSettingsItems() }
 				</div>
 			);
 
@@ -104,7 +125,7 @@ const SettingsGroup = ( props ) => {
 		default:
 			return (
 				<div className="settings-group-default">
-					{ group.items.map( renderSettingsItem ) }
+					{ renderSettingsItems() }
 				</div>
 			)
 	}

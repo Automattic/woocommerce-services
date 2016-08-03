@@ -5,10 +5,12 @@ import FormRadio from 'components/forms/form-radio';
 import Button from 'components/button';
 import Summary from 'components/summary';
 import { translate as __ } from 'lib/mixins/i18n';
+import classNames from 'classnames';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const RadioButton = ( props ) => {
 	return (
-		<FormLabel>
+		<FormLabel className={ classNames( 'suggestion', { 'is-selected': props.checked } ) }>
 			<FormRadio { ...omit( props, 'children' ) } />
 			{ props.children }
 		</FormLabel>
@@ -17,24 +19,26 @@ const RadioButton = ( props ) => {
 
 const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, suggestions, countriesData } ) => {
 	return (
-		<div>
+		<div className="suggestion-container">
 			<RadioButton
 				checked={ ! acceptSuggestion }
 				onChange={ () => formActions.setFormProperty( 'acceptSuggestion', false ) } >
-				{ layout.suggestion_original_title }
+				<span className="suggestion-title" dangerouslySetInnerHTML={ sanitizeHTML( layout.suggestion_original_title ) } />
 				<Summary
 					formValues={ formValues }
 					layoutItems={ layout.items }
 					summaryTemplate={ layout.summary }
 					countriesData={ countriesData } />
-				<Button onClick={ formActions.backFromSuggestion } >
+				<Button compact
+					onClick={ formActions.backFromSuggestion }
+					className="suggestion-edit-button">
 					{ __( 'Edit' ) }
 				</Button>
 			</RadioButton>
 			<RadioButton
 				checked={ acceptSuggestion }
 				onChange={ () => formActions.setFormProperty( 'acceptSuggestion', true ) } >
-				{ layout.suggestion_corrected_title }
+				<span className="suggestion-title" dangerouslySetInnerHTML={ sanitizeHTML( layout.suggestion_corrected_title ) } />
 				<Summary
 					formValues={ formValues }
 					layoutItems={ layout.items }

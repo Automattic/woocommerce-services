@@ -2,18 +2,12 @@ import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormToggle from 'components/forms/form-toggle/compact';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
-import { sanitize } from 'dompurify';
+import FieldDescription from 'components/field-description';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const renderToggleText = ( text ) => {
 	return (
-		text ? <span className="toggle__text">{ text }</span> : null
-	);
-};
-
-const renderFieldDescription = ( description ) => {
-	return (
-		description ? <FormSettingExplanation dangerouslySetInnerHTML={ { __html: sanitize( description, { ADD_ATTR: [ 'target' ] } ) } } /> : null
+		text ? <span className="toggle__text" dangerouslySetInnerHTML={ sanitizeHTML( text ) } /> : null
 	);
 };
 
@@ -26,8 +20,8 @@ const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) =
 	};
 
 	return (
-		<FormFieldset id={ id + '_container' }>
-			<FormLabel htmlFor={ id }>{ schema.title }</FormLabel>
+		<FormFieldset>
+			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
 			<FormToggle
 				id={ id }
 				name={ id }
@@ -35,8 +29,8 @@ const Toggle = ( { id, schema, checked, placeholder, saveForm, updateValue } ) =
 				checked={ checked }
 				onChange={ handleChangeEvent }
 			/>
-		{ renderToggleText( checked ? schema.trueText : schema.falseText ) }
-			{ renderFieldDescription( schema.description ) }
+			{ renderToggleText( checked ? schema.trueText : schema.falseText ) }
+			<FieldDescription text={ schema.description } />
 		</FormFieldset>
 	);
 };

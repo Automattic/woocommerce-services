@@ -3,3 +3,24 @@
 	margin-bottom: 0;
 	text-align: center;
 }
+
+.multistep-form-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+
+	.step-content {
+		flex-grow: 1;
+		overflow: auto;
+
+		.settings-group-default {
+			padding: 32px;
+		}
+	}
+
+	.form-buttons-bar {
+		padding: 12px 16px;
+		background-color: $gray-light;
+		border-top: 1px solid lighten( $gray, 20 );
+	}
+}

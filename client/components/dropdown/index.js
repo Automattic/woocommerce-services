@@ -2,18 +2,13 @@ import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormSelect from 'components/forms/form-select';
 import FormLegend from 'components/forms/form-legend';
-import FormInputValidation from 'components/forms/form-input-validation';
-
-const renderFieldError = ( validationHint ) => {
-	return (
-		<FormInputValidation isError text={ validationHint } />
-	);
-};
+import FieldError from 'components/field-error';
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const Dropdown = ( { id, layout, schema, value, updateValue, error } ) => {
 	return (
-		<FormFieldset id={ id + '_container' }>
-			<FormLegend>{ schema.title }</FormLegend>
+		<FormFieldset>
+			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
 			<FormSelect
 				id={ id }
 				name={ id }
@@ -29,7 +24,7 @@ const Dropdown = ( { id, layout, schema, value, updateValue, error } ) => {
 						</option>
 					);
 				} ) }
-				{ error ? renderFieldError( error ) : null }
+				{ error ? <FieldError text={ error } /> : null }
 			</FormSelect>
 		</FormFieldset>
 	);
