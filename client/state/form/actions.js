@@ -6,7 +6,6 @@ import { bindActionCreators } from 'redux';
 import { submitForm, autoAdvanceForm } from 'state/form/auto-advance';
 
 export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
-export const BACK_FROM_SUGGESTION = 'BACK_FROM_SUGGESTION';
 export const GO_TO_STEP = 'GO_TO_STEP';
 
 export const setFormProperty = ( field, value ) => ( dispatch, getState ) => {
@@ -20,9 +19,11 @@ export const setFormProperty = ( field, value ) => ( dispatch, getState ) => {
 	}
 };
 
-export const backFromSuggestion = () => ( {
-	type: BACK_FROM_SUGGESTION,
-} );
+export const backFromSuggestion = () => ( dispatch ) => {
+	dispatch( setFormProperty( 'fieldsStatus', {} ) );
+	dispatch( setFormProperty( 'acceptSuggestion', undefined ) );
+	dispatch( setFormProperty( 'pristine', false ) );
+};
 
 export const goToStep = ( stepIndex ) => ( dispatch, getState, { formLayout } ) => {
 	const stepLayout = formLayout[ stepIndex ] || {};
