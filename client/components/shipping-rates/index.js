@@ -1,11 +1,11 @@
 import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 
-const ShippingRates = ( { selectedRates, availableRates, packages, updateValue, dimensionUnit, weightUnit, currencySymbol, errors, layout } ) => {
+const ShippingRates = ( { id, selectedRates, availableRates, packages, updateValue, dimensionUnit, weightUnit, currencySymbol, errors, layout } ) => {
 	const renderTitle = ( pckg ) => {
 		const dimensions = [ pckg.length, pckg.width, pckg.height ].map( dim => dim + ' ' + dimensionUnit ).join( ' x ' );
 		const weight = pckg.weight + ' ' + weightUnit;
-		return <span>{ dimensions + ' ' + weight }</span>;
+		return dimensions + ' ' + weight;
 	};
 
 	const renderSinglePackage = ( pckg, index ) => {
@@ -22,7 +22,7 @@ const ShippingRates = ( { selectedRates, availableRates, packages, updateValue, 
 		return (
 			<li key={ index }>
 				<Dropdown
-					id={ 'rates_' + index } // TODO: remove when #469 lands
+					id={ id + '_' + index }
 					layout={ { titleMap: titleMap } }
 					schema={ { title: renderTitle( pckg ) } }
 					value={ selectedRate }
@@ -40,6 +40,7 @@ const ShippingRates = ( { selectedRates, availableRates, packages, updateValue, 
 };
 
 ShippingRates.propTypes = {
+	id: PropTypes.string.isRequired,
 	selectedRates: PropTypes.array.isRequired,
 	availableRates: PropTypes.array.isRequired,
 	packages: PropTypes.array.isRequired,

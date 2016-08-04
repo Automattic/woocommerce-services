@@ -185,6 +185,7 @@ const SettingsItem = ( {
 		case 'rates':
 			return (
 				<ShippingRates
+					id={ id }
 					selectedRates={ fieldValue }
 					availableRates={ form.fieldsOptions[ id ] }
 					packages={ form.values[ layout.packages_field ] }
