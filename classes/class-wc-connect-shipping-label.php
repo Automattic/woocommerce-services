@@ -242,8 +242,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'type' => 'summary',
 				'tab_title' => __( 'Buy & Print', 'woocommerce' ),
 				'title' => 'TODO: Not implemented yet',
-				'items' => array(),
-				'action_label' => __( 'Print', 'woocommerce' ),
+				'items' => array(
+					array(
+						'key' => 'paper_size',
+						'type' => 'dropdown',
+						'titleMap' => array(
+							'a4' => 'A4',
+							'4x6' => '4" x 6"',
+						),
+					),
+				),
+				'action_label' => __( 'Buy & Print', 'woocommerce' ),
 				'confirmation_flag' => 'confirm',
 			);
 
@@ -385,6 +394,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 			);
 			$required_fields[] = 'rates';
+
+			$properties[ 'paper_size' ] = array(
+				'type' => 'string',
+				'title' => __( 'Paper size', 'woocommerce' ),
+				'enum' => array( 'a4', '4x6' ),
+				'default' => 'a4',
+			);
+			$required_fields[] = 'paper_size';
 
 			return array(
 				'required' => $required_fields,

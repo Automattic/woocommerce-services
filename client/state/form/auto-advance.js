@@ -9,7 +9,12 @@ export const submitForm = ( callbackURL, nonce, submitMethod, formValues, setFor
 				resolve();
 			}
 		};
-		const setSuccess = ( value ) => setFormProperty( 'success', value );
+		const setSuccess = ( success, response ) => {
+			if ( success ) {
+				setFormProperty( 'response', response );
+			}
+			setFormProperty( 'success', success );
+		};
 		const setFieldsOptions = ( value ) => setFormProperty( 'fieldsOptions', value );
 		const setFieldsStatus = ( value ) => setFormProperty( 'fieldsStatus', value );
 		const setError = ( value ) => setFormProperty( 'error', value );
@@ -45,10 +50,6 @@ export const autoAdvanceForm = ( {
 	}
 
 	const tryAutoAdvance = ( isManualAction ) => {
-		if ( isLastStep() ) {
-			return;
-		}
-
 		if ( ! isEmpty( getStepFormErrors() ) ) {
 			if ( ! isEmpty( getStepFormSuggestions() ) ) {
 				checkAcceptSuggestion();
@@ -61,8 +62,10 @@ export const autoAdvanceForm = ( {
 		}
 
 		if ( getFormState().pristine ) {
-			goToNextStep();
-			tryAutoAdvance( false );
+			if ( ! isLastStep() ) {
+				goToNextStep();
+				tryAutoAdvance( false );
+			}
 			return;
 		}
 
@@ -77,6 +80,10 @@ export const autoAdvanceForm = ( {
 				if ( ! isEmpty( getStepFormSuggestions() ) ) {
 					checkAcceptSuggestion();
 				}
+				return;
+			}
+
+			if ( isLastStep() ) {
 				return;
 			}
 

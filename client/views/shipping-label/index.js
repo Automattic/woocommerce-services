@@ -9,6 +9,18 @@ import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 
 const RootView = ( props ) => {
+	const renderPrintLabelFlow = () => {
+		return (
+			<Button onClick={ props.labelActions.openPrintingFlow } >
+				{ __( 'Create label' ) }
+			</Button>
+		);
+	};
+
+	const renderSuccessNotice = () => {
+		return <span>{ __( 'The shipping label has been successfully purchased.' ) }</span>
+	};
+
 	return (
 		<p className="wcc-metabox-button-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
@@ -16,11 +28,7 @@ const RootView = ( props ) => {
 				{ ...( props.form.shippingLabel ) }
 				{ ...props }
 			/>
-			<Button
-				onClick={ props.labelActions.openPrintingFlow }
-				>
-				{ __( 'Create label' ) }
-			</Button>
+			{ props.form.success ? renderSuccessNotice() : renderPrintLabelFlow() }
 		</p>
 	);
 };

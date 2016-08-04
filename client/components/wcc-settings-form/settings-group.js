@@ -98,6 +98,15 @@ const SettingsGroup = ( props ) => {
 				</div>
 			);
 
+		case 'summary':
+			return (
+				<div className="settings-group-default">
+					<FormSectionHeading>{ group.title }</FormSectionHeading>
+					{ group.description ? <p>{ group.description }</p> : null }
+					{ group.items.map( renderSettingsItem ) }
+				</div>
+			);
+
 		case 'actions':
 			const buttons = group.items.map( ( button ) => {
 				let onClick = noop;

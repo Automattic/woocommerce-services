@@ -152,6 +152,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				}
 			}
 
+			if ( empty( $errors ) && $label_settings->confirm ) {
+				return array(
+					'success' => true,
+					'label_id' => '4815162342',
+					'tracking_code' => '4-8-15-16-23-42',
+					'url' => plugins_url( '../assets/sample_label.png', __FILE__ ),
+				);
+			}
+
 			return $this->validation_error( $errors, $fields_options );
 		}
 
