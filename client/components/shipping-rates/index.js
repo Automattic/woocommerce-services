@@ -3,9 +3,7 @@ import Dropdown from 'components/dropdown';
 
 const ShippingRates = ( { id, selectedRates, availableRates, packages, updateValue, dimensionUnit, weightUnit, currencySymbol, errors, layout } ) => {
 	const renderTitle = ( pckg ) => {
-		const dimensions = [ pckg.length, pckg.width, pckg.height ].map( dim => dim + ' ' + dimensionUnit ).join( ' x ' );
-		const weight = pckg.weight + ' ' + weightUnit;
-		return dimensions + ' ' + weight;
+		return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit} (${pckg.weight} ${weightUnit})`;
 	};
 
 	const renderSinglePackage = ( pckg, index ) => {

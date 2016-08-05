@@ -12,7 +12,7 @@ const OrderPackages = ( { packages, updateValue, dimensionUnit, weightUnit, erro
 	);
 
 	const renderPackageDimensions = ( pckg ) => {
-		return [ pckg.length, pckg.width, pckg.height ].map( dim => dim + ' ' + dimensionUnit ).join( ' x ' );
+		return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
 	};
 
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
