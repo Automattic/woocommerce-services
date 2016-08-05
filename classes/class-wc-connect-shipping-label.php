@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$form_data = array();
 
-			$form_data[ 'cart' ] = $this->get_packaging_data( $order );
+			$form_data[ 'packages' ] = $this->get_packaging_data( $order );
 
 			$form_data[ 'rates' ] = $this->get_selected_rates( $order );
 
@@ -217,11 +217,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'title' => 'TODO: Not implemented yet',
 				'items' => array(
 					array(
-						'key' => 'cart',
-						'type' => 'cart',
+						'key' => 'packages',
+						'type' => 'order_packages',
 					),
 				),
-				'summary' => '{cart}',
+				'summary' => '{packages}',
 			);
 
 			$layout[] = array(
@@ -232,7 +232,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					array(
 						'key' => 'rates',
 						'type' => 'rates',
-						'packages_field' => 'cart',
+						'packages_field' => 'packages',
 					),
 				),
 				'summary' => '{rates}',
@@ -378,12 +378,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				),
 			);
 
-			$properties[ 'cart' ] = array(
+			$properties[ 'packages' ] = array(
 				'type' => 'array',
 				'title' => __( 'Packages to send', 'woocommerce' ),
 				'items' => $packageDefinition,
 			);
-			$required_fields[] = 'cart';
+			$required_fields[] = 'packages';
 
 			$properties[ 'rates' ] = array(
 				'type' => 'array',

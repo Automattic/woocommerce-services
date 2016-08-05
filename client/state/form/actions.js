@@ -45,7 +45,6 @@ export const goToStep = ( stepIndex ) => ( dispatch, getState, { formLayout } ) 
 export const resetFlow = () => ( dispatch ) => {
 	dispatch( setFormProperty( 'pristine', true ) );
 	dispatch( goToStep( -1 ) );
-	dispatch( setFormProperty( 'acceptSuggestion', undefined ) );
 };
 
 export const nextStep = () => ( dispatch, getState, { callbackURL, nonce, submitMethod, formSchema, formLayout } ) => {

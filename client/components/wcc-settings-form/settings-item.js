@@ -171,7 +171,7 @@ const SettingsItem = ( {
 				/>
 			);
 
-		case 'cart':
+		case 'order_packages':
 			return (
 				<OrderPackages
 					packages={ fieldValue }

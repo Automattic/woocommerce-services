@@ -127,7 +127,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$fields_options[ 'rates' ] = array();
-			foreach ( $label_settings->cart as $index => $package ) {
+			foreach ( $label_settings->packages as $index => $package ) {
 				$fields_options[ 'rates' ][] = array(
 					'pri_1day' => array(
 						'name' => 'Priority 1 Day',
