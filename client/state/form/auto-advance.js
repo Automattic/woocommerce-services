@@ -1,5 +1,4 @@
 import saveForm from 'lib/save-form';
-import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
 
 export const submitForm = ( callbackURL, nonce, submitMethod, formValues, setFormProperty ) => {
@@ -11,10 +10,12 @@ export const submitForm = ( callbackURL, nonce, submitMethod, formValues, setFor
 			}
 		};
 		const setSuccess = ( value ) => setFormProperty( 'success', value );
-		const setError = ( value ) => setFormProperty( 'errors', value );
+		const setFieldsOptions = ( value ) => setFormProperty( 'fieldsOptions', value );
+		const setFieldsStatus = ( value ) => setFormProperty( 'fieldsStatus', value );
+		const setError = ( value ) => setFormProperty( 'error', value );
 
 		setFormProperty( 'pristine', true );
-		saveForm( setIsSaving, setSuccess, setError, callbackURL, nonce, submitMethod, formValues );
+		saveForm( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, setError, callbackURL, nonce, submitMethod, formValues );
 	} );
 };
 
@@ -67,8 +68,8 @@ export const autoAdvanceForm = ( {
 
 		submit().then( () => {
 			uncheckAcceptSuggestion();
-			if ( getFormState().errors && ! isObject( getFormState().errors ) ) {
-				showErrorNotice( getFormState().errors );
+			if ( getFormState().error ) {
+				showErrorNotice( getFormState().error );
 				return;
 			}
 

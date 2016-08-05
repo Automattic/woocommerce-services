@@ -24,8 +24,8 @@ const Dropdown = ( { id, layout, schema, value, updateValue, error } ) => {
 						</option>
 					);
 				} ) }
-				{ error ? <FieldError text={ error } /> : null }
 			</FormSelect>
+			{ error ? <FieldError text={ error } /> : null }
 		</FormFieldset>
 	);
 };

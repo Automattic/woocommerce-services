@@ -49,11 +49,11 @@ describe( 'Settings reducer', () => {
 		} );
 	} );
 
-	it( 'Clears errors on settings state change', () => {
-		const initialErrorState = Object.assign( { errors: [ 'data.title' ] }, initialState );
+	it( 'Clears fields status on settings state change', () => {
+		const initialErrorState = Object.assign( { fieldsStatus: [ 'data.title' ] }, initialState );
 		const action = updateField( 'some_key', 'some value' );
 		const state = reducer( initialErrorState, action );
 
-		expect( state ).to.not.have.property( 'errors' );
+		expect( state ).to.not.have.property( 'fieldsStatus' );
 	} );
 } );

@@ -21,7 +21,7 @@ reducers[ REMOVE_FIELD ] = ( state, action ) => {
 
 reducers[ ADD_ARRAY_FIELD_ITEM ] = ( state, action ) => {
 	return objectPath.push( state, action.path, action.item );
-}
+};
 
 reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 	const {

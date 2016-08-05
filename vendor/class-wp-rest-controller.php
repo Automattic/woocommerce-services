@@ -311,13 +311,13 @@ abstract class WP_REST_Controller {
 
 		$additional_fields = $this->get_additional_fields();
 
-		foreach ( $additional_fields as $field_name => $field_options ) {
+		foreach ( $additional_fields as $field_name => $fields_options ) {
 
-			if ( ! $field_options['get_callback'] ) {
+			if ( ! $fields_options['get_callback'] ) {
 				continue;
 			}
 
-			$object[ $field_name ] = call_user_func( $field_options['get_callback'], $object, $field_name, $request, $this->get_object_type() );
+			$object[ $field_name ] = call_user_func( $fields_options['get_callback'], $object, $field_name, $request, $this->get_object_type() );
 		}
 
 		return $object;
@@ -333,9 +333,9 @@ abstract class WP_REST_Controller {
 
 		$additional_fields = $this->get_additional_fields();
 
-		foreach ( $additional_fields as $field_name => $field_options ) {
+		foreach ( $additional_fields as $field_name => $fields_options ) {
 
-			if ( ! $field_options['update_callback'] ) {
+			if ( ! $fields_options['update_callback'] ) {
 				continue;
 			}
 
@@ -344,7 +344,7 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			call_user_func( $field_options['update_callback'], $request[ $field_name ], $object, $field_name, $request, $this->get_object_type() );
+			call_user_func( $fields_options['update_callback'], $request[ $field_name ], $object, $field_name, $request, $this->get_object_type() );
 		}
 	}
 
@@ -367,12 +367,12 @@ abstract class WP_REST_Controller {
 
 		$additional_fields = $this->get_additional_fields( $object_type );
 
-		foreach ( $additional_fields as $field_name => $field_options ) {
-			if ( ! $field_options['schema'] ) {
+		foreach ( $additional_fields as $field_name => $fields_options ) {
+			if ( ! $fields_options['schema'] ) {
 				continue;
 			}
 
-			$schema['properties'][ $field_name ] = $field_options['schema'];
+			$schema['properties'][ $field_name ] = $fields_options['schema'];
 		}
 
 		return $schema;

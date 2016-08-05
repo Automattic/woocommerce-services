@@ -72,14 +72,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		// TODO: Remove this when the real server-side validation is implemented for the shipping labels endpoint
-		private function validation_error( $fields ) {
+		private function validation_error( $fields, $fields_options ) {
 			return new WP_Error( 'validation_failed',
 				__( 'One or more fields of your request are invalid.', 'woocommerce' ),
 				array(
-					'status' => 400,
+					'status' => 200,
 					'error' => 'validation_failure',
 					'data' => array(
 						'fields' => $fields,
+						'fieldsOptions' => $fields_options,
 					),
 				)
 			);
@@ -95,6 +96,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function send_shipping_label_request( $label_settings ) {
 			// TODO: use the real WCC server endpoint to validate
+			$errors = array();
+			$fields_options = array();
 			if ( $label_settings->orig_address_1 === 'Awk St' ) {
 				if ( ! isset( $label_settings->orig_bypass_suggestion ) || ! $label_settings->orig_bypass_suggestion ) {
 					$errors[ 'orig_address_1' ] = array(
@@ -105,6 +108,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			} else if ( $label_settings->orig_address_1 !== 'Hawk St' ) {
 				$errors[ 'orig_address_1' ] = array(
 					'value' => 'The server doesn\'t like that street!',
+					'level' => 'error',
 				);
 			}
 
@@ -118,12 +122,37 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			} else if ( $label_settings->dest_address_1 !== 'Hawk St' ) {
 				$errors[ 'dest_address_1' ] = array(
 					'value' => 'The server doesn\'t like that street!',
+					'level' => 'error',
 				);
 			}
 
-			$errors[ 'rate' ] = array( 'value' => '' );
+			$fields_options[ 'rates' ] = array();
+			foreach ( $label_settings->cart as $index => $package ) {
+				$fields_options[ 'rates' ][] = array(
+					'pri_1day' => array(
+						'name' => 'Priority 1 Day',
+						'rate' => 1.1 + ( 0.01 * $index ),
+					),
+					'media' => array(
+						'name' => 'Media Mail',
+						'rate' => 2.2 + ( 0.01 * $index ),
+					),
+					'library' => array(
+						'name' => 'Library Mail',
+						'rate' => 3.3 + ( 0.01 * $index ),
+					),
+				);
 
-			return $this->validation_error( $errors );
+				if ( ! isset( $label_settings->rates[ $index ] ) || ! $label_settings->rates[ $index ] ) {
+					// If the client didn't select any rate, make it pre-select the cheapest one by default
+					$errors[ 'rates.' . $index ] = array(
+						'level' => 'overwrite',
+						'value' => 'pri_1day',
+					);
+				}
+			}
+
+			return $this->validation_error( $errors, $fields_options );
 		}
 
 

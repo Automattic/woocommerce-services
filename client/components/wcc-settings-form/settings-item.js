@@ -10,6 +10,7 @@ import Dropdown from 'components/dropdown';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
 import OrderPackages from 'components/order-packages';
+import ShippingRates from 'components/shipping-rates';
 import ShippingServiceGroups from 'components/shipping/services';
 import Packages from 'components/shipping/packages';
 
@@ -177,6 +178,22 @@ const SettingsItem = ( {
 					updateValue={ updateSubValue }
 					dimensionUnit={ storeOptions.dimension_unit }
 					weightUnit={ storeOptions.weight_unit }
+					errors={ errors }
+				/>
+			);
+
+		case 'rates':
+			return (
+				<ShippingRates
+					id={ id }
+					selectedRates={ fieldValue }
+					availableRates={ form.fieldsOptions[ id ] }
+					packages={ form.values[ layout.packages_field ] }
+					updateValue={ updateSubValue }
+					dimensionUnit={ storeOptions.dimension_unit }
+					weightUnit={ storeOptions.weight_unit }
+					currencySymbol={ storeOptions.currency_symbol }
+					layout={ layout }
 					errors={ errors }
 				/>
 			);
