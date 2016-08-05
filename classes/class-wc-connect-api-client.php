@@ -76,7 +76,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return new WP_Error( 'validation_failed',
 				__( 'One or more fields of your request are invalid.', 'woocommerce' ),
 				array(
-					'status' => 400,
+					'status' => 200,
 					'error' => 'validation_failure',
 					'data' => array(
 						'fields' => $fields,
