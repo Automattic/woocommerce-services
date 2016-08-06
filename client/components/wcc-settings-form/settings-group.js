@@ -106,7 +106,7 @@ const SettingsGroup = ( props ) => {
 
 		case 'summary':
 			const renderStepSummary = ( step, stepIndex ) => (
-				<div key={ stepIndex }>
+				<div key={ stepIndex } className="settings-step-summary">
 					<h4>{ step.tab_title }</h4>
 					<Summary
 						formValues={ form.values }
@@ -125,7 +125,9 @@ const SettingsGroup = ( props ) => {
 				<div className="settings-group-default">
 					<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
 					{ group.description ? <p>{ group.description }</p> : null }
-					{ layout.slice( 0, index ).map( renderStepSummary ) }
+					<div className="settings-steps-summary">
+						{ layout.slice( 0, index ).map( renderStepSummary ) }
+					</div>
 					{ group.items.map( renderSettingsItem ) }
 				</div>
 			);

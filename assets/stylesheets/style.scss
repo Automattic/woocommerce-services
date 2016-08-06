@@ -111,6 +111,25 @@
 		}
 	}
 
+	.settings-steps-summary {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+
+		.settings-step-summary {
+			background-color: $gray-light;
+			border-radius: 5px;
+			border: 1px $gray-dark solid;
+			padding: 12px;
+			margin-bottom: 12px;
+			flex-basis: 44%;
+
+			h4 {
+				font-weight: bold;
+			}
+		}
+	}
+
 	// Cards
 	.card.is-compact {
 		&.settings-group-card {
