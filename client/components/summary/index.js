@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 import find from 'lodash/find';
 import sanitizeHTML from 'lib/utils/sanitize-html';
+import { Summary as OrderPackagesSummary } from 'components/order-packages';
+import { Summary as ShippingRatesSummary } from 'components/shipping-rates';
 
 /*
  * Renders the field values of the given step in a non-editable manner.
@@ -31,7 +33,7 @@ import sanitizeHTML from 'lib/utils/sanitize-html';
  * Mr. Indiana Jones
  * Archeologist <--- highlighted
  */
-const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, countriesData } ) => {
+const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, storeOptions, fieldsOptions } ) => {
 	if ( ! overrideFields ) {
 		overrideFields = {};
 	}
@@ -63,11 +65,11 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 					: fieldRawValue;
 
 			case 'country':
-				return ( countriesData[ fieldRawValue ] || {} ).name || fieldRawValue;
+				return ( storeOptions.countriesData[ fieldRawValue ] || {} ).name || fieldRawValue;
 
 			case 'state':
 				const countryCode = fieldRawValues[ layout.country_field ].value;
-				const statesMap = ( countriesData[ countryCode ] || {} ).states;
+				const statesMap = ( storeOptions.countriesData[ countryCode ] || {} ).states;
 				if ( ! statesMap ) {
 					return fieldRawValue;
 				}
@@ -75,6 +77,23 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 					return null;
 				}
 				return statesMap[ fieldRawValue ] || fieldRawValue;
+
+			case 'order_packages':
+				return (
+					<OrderPackagesSummary
+						packages={ fieldRawValue }
+						dimensionUnit={ storeOptions.dimension_unit }
+						weightUnit={ storeOptions.weight_unit } />
+				);
+
+			case 'rates':
+				return (
+					<ShippingRatesSummary
+						selectedRates={ fieldRawValue }
+						availableRates={ fieldsOptions[ fieldName ] }
+						packages={ formValues[ layout.packages_field ] }
+						currencySymbol={ storeOptions.currency_symbol } />
+				);
 
 			default:
 				return fieldRawValue;
@@ -105,7 +124,7 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 			children.push( { value: line } );
 		}
 		return (
-			<p key={ idx }>
+			<div key={ idx }>
 				{ children.map( ( field, index ) => (
 					<span
 						key={ index }
@@ -113,7 +132,7 @@ const Summary = ( { overrideFields, formValues, layoutItems, summaryTemplate, co
 						{ field.value }
 					</span>
 				) ) }
-			</p>
+			</div>
 		);
 	};
 
@@ -129,7 +148,8 @@ Summary.propTypes = {
 	formValues: PropTypes.object.isRequired,
 	layoutItems: PropTypes.array.isRequired,
 	summaryTemplate: PropTypes.string.isRequired,
-	countriesData: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
+	fieldsOptions: PropTypes.object.isRequired,
 };
 
 export default Summary;

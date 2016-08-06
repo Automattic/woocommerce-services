@@ -8,6 +8,9 @@ import noop from 'lodash/noop';
 import isEmpty from 'lodash/isEmpty';
 import Suggestion from 'components/suggestion';
 import sanitizeHTML from 'lib/utils/sanitize-html';
+import Button from 'components/button';
+import Summary from 'components/summary';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -15,24 +18,26 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
+		layout,
 		schema,
 		formActions,
 		stepSuggestions,
 		storeOptions,
+		index,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
-		const key = item.key ? item.key : item;
-		if ( 'packing_method' === key && ( ! form.values.boxes || 0 === form.values.boxes.length ) ) {
-			return '';
+		const itemKey = item.key ? item.key : item;
+		if ( 'packing_method' === itemKey && ( ! form.values.boxes || 0 === form.values.boxes.length ) ) {
+			return null;
 		}
 
 		return (
 			<SettingsItem
 				{ ...props }
-				{ ...{ key } }
+				key={ itemKey }
 				layout={ item }
-				errors={ errors[ key ] || {} }
+				errors={ errors[ itemKey ] || {} }
 			/>
 		);
 	};
@@ -84,7 +89,8 @@ const SettingsGroup = ( props ) => {
 								formActions={ formActions }
 								layout={ group }
 								suggestions={ stepSuggestions }
-								countriesData={ storeOptions.countriesData } />
+								storeOptions={ storeOptions }
+								fieldsOptions={ form.fieldsOptions } />
 						</div>
 					</div>
 				);
@@ -99,10 +105,27 @@ const SettingsGroup = ( props ) => {
 			);
 
 		case 'summary':
+			const renderStepSummary = ( step, stepIndex ) => (
+				<div key={ stepIndex }>
+					<h4>{ step.tab_title }</h4>
+					<Summary
+						formValues={ form.values }
+						layoutItems={ step.items }
+						summaryTemplate={ step.summary }
+						storeOptions={ storeOptions }
+						fieldsOptions={ form.fieldsOptions } />
+					<Button compact
+							onClick={ () => formActions.goToStep( stepIndex ) } >
+						{ __( 'Edit' ) }
+					</Button>
+				</div>
+			);
+
 			return (
 				<div className="settings-group-default">
-					<FormSectionHeading>{ group.title }</FormSectionHeading>
+					<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
 					{ group.description ? <p>{ group.description }</p> : null }
+					{ layout.slice( 0, index ).map( renderStepSummary ) }
 					{ group.items.map( renderSettingsItem ) }
 				</div>
 			);
