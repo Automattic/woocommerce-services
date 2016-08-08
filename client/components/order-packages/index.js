@@ -54,9 +54,10 @@ export default OrderPackages;
 
 export const Summary = ( { packages, dimensionUnit, weightUnit } ) => {
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
+		const dimensions = renderPackageDimensions( pckg, dimensionUnit );
 		return (
 			<li key={ pckgIndex }>
-				{ `${renderPackageDimensions( pckg, dimensionUnit )} (${pckg.weight} ${weightUnit})` }
+				{ `${dimensions} (${pckg.weight} ${weightUnit})` }
 				<ul>
 					{ pckg.items.map( renderItemInfo ) }
 				</ul>
