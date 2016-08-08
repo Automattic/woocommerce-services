@@ -152,7 +152,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				}
 			}
 
-			if ( empty( $errors ) && $label_settings->confirm ) {
+			if ( empty( $errors ) && isset( $label_settings->confirm ) && $label_settings->confirm ) {
 				return array(
 					'success' => true,
 					'label_id' => '4815162342',
