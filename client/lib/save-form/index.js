@@ -19,7 +19,7 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, s
 
 		return response.json().then( json => {
 			if ( json.success ) {
-				return setSuccess( true );
+				return setSuccess( true, json );
 			}
 
 			if ( Get( json, 'data.data.fieldsOptions' ) ) {

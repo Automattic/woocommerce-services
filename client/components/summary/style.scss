@@ -1,6 +1,6 @@
 .summary {
-	p {
-		margin-bottom: 0;
+	& > div {
+		margin-bottom: 2px;
 		font-weight: normal;
 	}
 

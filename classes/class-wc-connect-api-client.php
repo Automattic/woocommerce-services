@@ -127,7 +127,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$fields_options[ 'rates' ] = array();
-			foreach ( $label_settings->cart as $index => $package ) {
+			foreach ( $label_settings->packages as $index => $package ) {
 				$fields_options[ 'rates' ][] = array(
 					'pri_1day' => array(
 						'name' => 'Priority 1 Day',
@@ -150,6 +150,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						'value' => 'pri_1day',
 					);
 				}
+			}
+
+			if ( empty( $errors ) && isset( $label_settings->confirm ) && $label_settings->confirm ) {
+				return array(
+					'success' => true,
+					'label_id' => '4815162342',
+					'tracking_code' => '4-8-15-16-23-42',
+					'url' => plugins_url( '../assets/sample_label.png', __FILE__ ),
+				);
 			}
 
 			return $this->validation_error( $errors, $fields_options );

@@ -1,8 +1,6 @@
 import {
 	SET_FORM_PROPERTY,
-	BACK_FROM_SUGGESTION,
 	GO_TO_STEP,
-	setFormProperty,
 } from './actions';
 import packages from './packages/reducer';
 import values from './values/reducer';
@@ -29,14 +27,6 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 		} );
 	}
 	return Object.assign( {}, state, newObj );
-};
-
-reducers[ BACK_FROM_SUGGESTION ] = ( state ) => {
-	return [
-		setFormProperty( 'errors', {} ),
-		setFormProperty( 'acceptSuggestion', undefined ),
-		setFormProperty( 'pristine', false ),
-	].reduce( form, state );
 };
 
 reducers[ GO_TO_STEP ] = ( state, action ) => {

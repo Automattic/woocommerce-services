@@ -17,7 +17,7 @@ const RadioButton = ( props ) => {
 	);
 };
 
-const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, suggestions, countriesData } ) => {
+const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, suggestions, storeOptions, fieldsOptions } ) => {
 	return (
 		<div className="suggestion-container">
 			<RadioButton
@@ -28,7 +28,8 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 					formValues={ formValues }
 					layoutItems={ layout.items }
 					summaryTemplate={ layout.summary }
-					countriesData={ countriesData } />
+					storeOptions={ storeOptions }
+					fieldsOptions={ fieldsOptions } />
 				<Button compact
 					onClick={ formActions.backFromSuggestion }
 					className="suggestion-edit-button">
@@ -44,7 +45,8 @@ const Suggestion = ( { acceptSuggestion, formValues, formActions, layout, sugges
 					layoutItems={ layout.items }
 					summaryTemplate={ layout.summary }
 					overrideFields={ suggestions }
-					countriesData={ countriesData } />
+					storeOptions={ storeOptions }
+					fieldsOptions={ fieldsOptions } />
 			</RadioButton>
 		</div>
 	);
@@ -58,10 +60,11 @@ Suggestion.propTypes = {
 		suggestion_corrected_title: PropTypes.string,
 	} ).isRequired,
 	acceptSuggestion: PropTypes.bool.isRequired,
-	countriesData: PropTypes.object.isRequired,
 	formValues: PropTypes.object.isRequired,
 	formActions: PropTypes.object.isRequired,
 	suggestions: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
+	fieldsOptions: PropTypes.object.isRequired,
 };
 
 export default Suggestion;

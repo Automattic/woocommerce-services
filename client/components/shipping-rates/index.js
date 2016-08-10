@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
+import sum from 'lodash/sum';
 
 const ShippingRates = ( { id, selectedRates, availableRates, packages, updateValue, dimensionUnit, weightUnit, currencySymbol, errors, layout } ) => {
 	const renderTitle = ( pckg ) => {
@@ -51,3 +52,38 @@ ShippingRates.propTypes = {
 };
 
 export default ShippingRates;
+
+export const Summary = ( { selectedRates, availableRates, packages, currencySymbol } ) => {
+	const rates = [];
+
+	const renderSinglePackage = ( pckg, index ) => {
+		const selectedRateId = selectedRates[ index ] || '';
+		const selectedRateObject = availableRates[ index ][ selectedRateId ];
+		if ( ! selectedRateObject ) {
+			return null;
+		}
+		rates.push( selectedRateObject.rate );
+
+		return (
+			<li key={ index }>
+				{ selectedRateObject.name + ' (' + currencySymbol + selectedRateObject.rate.toFixed( 2 ) + ')' }
+			</li>
+		);
+	};
+
+	return (
+		<div>
+			<ul>
+				{ packages.map( renderSinglePackage ) }
+			</ul>
+			<span>Total: { currencySymbol + sum( rates ).toFixed( 2 ) }</span>
+		</div>
+	);
+};
+
+Summary.propTypes = {
+	selectedRates: PropTypes.array.isRequired,
+	availableRates: PropTypes.array.isRequired,
+	packages: PropTypes.array.isRequired,
+	currencySymbol: PropTypes.string.isRequired,
+};

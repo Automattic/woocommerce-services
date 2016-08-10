@@ -25,6 +25,7 @@ const WCCSettingsForm = ( props ) => {
 				{ ...props }
 				group={ props.layout[ stepIndex ] }
 				saveForm={ props.formValueActions.submit }
+				index={ stepIndex }
 				key={ stepIndex }
 			/>
 		);
