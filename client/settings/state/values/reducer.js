@@ -5,7 +5,7 @@ import {
 } from './actions';
 import {
 	SAVE_PACKAGE,
-} from 'state/form/packages/actions';
+} from '../packages/actions';
 import omit from 'lodash/omit';
 import objectPath from 'object-path-immutable';
 

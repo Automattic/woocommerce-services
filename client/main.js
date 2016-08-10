@@ -1,30 +1,35 @@
 /*global wcConnectData */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux'
+import { applyMiddleware, createStore, compose } from 'redux';
 import thunk from 'redux-thunk';
-import configureStore from 'state';
+import { Provider } from 'react-redux';
 import '../assets/stylesheets/style.scss';
-import initializeState from './lib/initialize-state';
 import './lib/calypso-boot';
 import { translate as __ } from 'lib/mixins/i18n';
+import Settings from './settings';
+//import ShippingLabel from './shipping-label';
 
-const {
-	formData,
-	formSchema,
-	formLayout,
-	storeOptions,
-	callbackURL,
-	nonce,
-	submitMethod,
-	rootView,
-} = wcConnectData;
+const Route = ( ( rootView ) => {
+	switch ( rootView ) {
+		//case 'shipping-label':
+		//	return ShippingLabel;
+		default:
+			return Settings;
+	}
+} )( wcConnectData.rootView )( wcConnectData );
 
-const thunkArgs = { callbackURL, nonce, submitMethod, formSchema, formLayout };
-const store = configureStore( initializeState( formSchema, formData ), thunk.withExtraArgument( thunkArgs ) );
+const store = createStore(
+	Route.getReducer(),
+	Route.getInitialState(),
+	compose(
+		applyMiddleware( thunk.withExtraArgument( wcConnectData ) ),
+		window.devToolsExtension ? window.devToolsExtension() : f => f
+	)
+);
 
 window.addEventListener( 'beforeunload', ( event ) => {
-	if ( store.getState().form.pristine ) {
+	if ( store.getState().form && store.getState().form.pristine ) {
 		return;
 	}
 	const text = __( 'You have unsaved changes.' );
@@ -35,14 +40,9 @@ window.addEventListener( 'beforeunload', ( event ) => {
 const rootEl = document.getElementById( 'wc-connect-admin-container' );
 
 let render = () => {
-	const RootView = 'shipping-label' === rootView ? require( 'views/shipping-label' ) : require( 'views/shipping' );
 	ReactDOM.render(
 		<Provider store={ store }>
-			<RootView
-				storeOptions={ storeOptions }
-				schema={ formSchema }
-				layout={ formLayout }
-			/>
+			<Route.View />
 		</Provider>,
 		rootEl
 	);
@@ -68,8 +68,18 @@ if ( module.hot ) {
 		}
 	};
 
-	module.hot.accept( [ 'views/shipping', 'views/shipping-label' ], () => {
+	module.hot.accept( [
+		'./settings/views',
+		'./shipping-label/views',
+	], () => {
 		setTimeout( render );
+	} );
+
+	module.hot.accept( [
+		'./settings/state/reducer',
+		'./shipping-label/state/reducer',
+	], () => {
+		store.replaceReducer( Route.getHotReducer() );
 	} );
 }
 

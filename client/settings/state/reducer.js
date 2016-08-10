@@ -6,8 +6,6 @@ import packages from './packages/reducer';
 import values from './values/reducer';
 import * as packagesActions from './packages/actions';
 import * as formValueActions from './values/actions';
-import shippingLabel from './shipping-label/reducer';
-import * as shippingLabelActions from './shipping-label/actions';
 
 const reducers = {};
 
@@ -43,12 +41,6 @@ export default function form( state = {}, action ) {
 	if ( state.packages || packagesActions[ action.type ] ) {
 		newState = Object.assign( newState, {
 			packages: packages( state.packages || {}, action ),
-		} );
-	}
-
-	if ( state.shippingLabel || shippingLabelActions[ action.type ] ) {
-		newState = Object.assign( newState, {
-			shippingLabel: shippingLabel( state.shippingLabel || {}, action ),
 		} );
 	}
 

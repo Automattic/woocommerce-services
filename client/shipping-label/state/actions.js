@@ -1,4 +1,4 @@
-import * as FormActions from 'state/form/actions';
+import * as FormActions from 'settings/state/actions';
 import printDocument from 'lib/utils/print-document';
 
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';

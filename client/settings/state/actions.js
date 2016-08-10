@@ -1,22 +1,18 @@
-import * as FormValueActions from 'state/form/values/actions';
+import * as FormValueActions from './values/actions';
 import * as NoticeActions from 'state/notices/actions';
-import * as ShippingLabelActions from 'state/form/shipping-label/actions';
-import { getStepFormErrors, getStepFormSuggestions } from 'state/selectors/errors';
+import { getStepFormErrors, getStepFormSuggestions } from './selectors/errors';
 import { bindActionCreators } from 'redux';
-import { submitForm, autoAdvanceForm } from 'state/form/auto-advance';
+import { submitForm, autoAdvanceForm } from './auto-advance';
 
 export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
 export const GO_TO_STEP = 'GO_TO_STEP';
 
-export const setFormProperty = ( field, value ) => ( dispatch, getState ) => {
-	dispatch( {
+export const setFormProperty = ( field, value ) => {
+	return {
 		type: SET_FORM_PROPERTY,
 		field,
 		value,
-	} );
-	if ( 'success' === field && value && getState().form.shippingLabel.showDialog ) {
-		dispatch( ShippingLabelActions.finishPrintingFlow() );
-	}
+	};
 };
 
 export const backFromSuggestion = () => ( dispatch ) => {

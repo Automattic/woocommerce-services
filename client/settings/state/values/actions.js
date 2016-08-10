@@ -3,7 +3,7 @@ import coerceFormValues from 'lib/utils/coerce-values';
 import isString from 'lodash/isString';
 import isObject from 'lodash/isObject';
 import { translate as __ } from 'lib/mixins/i18n';
-import * as FormActions from 'state/form/actions';
+import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
 
 export const UPDATE_FIELD = 'UPDATE_FIELD';

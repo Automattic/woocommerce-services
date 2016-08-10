@@ -6,7 +6,7 @@ import {
 } from '../actions';
 import {
 	savePackage,
-} from 'state/form/packages/actions';
+} from '../../packages/actions';
 
 const initialState = {
 	testField: 'testValue',

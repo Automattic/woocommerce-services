@@ -1,6 +1,6 @@
 import isArray from 'lodash/isArray';
 import Get from 'lodash/get';
-import { EMPTY_ERROR } from 'state/selectors/errors';
+import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 
 const saveForm = ( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );

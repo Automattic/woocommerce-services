@@ -1,5 +1,5 @@
 import reducer from '../reducer';
-import { setFormProperty, SET_FORM_PROPERTY } from '../actions';
+import { setFormProperty } from '../actions';
 import { updateField } from '../values/actions';
 
 const initialState = {
@@ -39,19 +39,7 @@ describe( 'Settings reducer', () => {
 		const key = 'textObj';
 		const val = { id: 'newID', newfield: 'some new value' };
 		const action = setFormProperty( key, val );
-		const plainAction = {
-			type: SET_FORM_PROPERTY,
-			field: key,
-			value: val,
-		};
-		let calledAction = null;
-
-		expect( action ).to.be.a( 'function' );
-		const dispatch = ( _calledAction ) => calledAction = _calledAction;
-		action( dispatch );
-		expect( calledAction ).to.eql( plainAction );
-
-		const state = reducer( initialState, plainAction );
+		const state = reducer( initialState, action );
 
 		expect( state ).to.eql( {
 			textObj: {

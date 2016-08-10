@@ -4,11 +4,11 @@ import { bindActionCreators } from 'redux';
 import Button from 'components/button';
 import { translate as __ } from 'lib/mixins/i18n';
 import PrintLabelDialog from 'components/shipping-label';
-import * as ShippingLabelActions from 'state/form/shipping-label/actions';
+import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 
-const RootView = ( props ) => {
+const ShippingLabelRootView = ( props ) => {
 	const renderPrintLabelFlow = () => {
 		return (
 			<Button onClick={ props.labelActions.openPrintingFlow } >
@@ -33,7 +33,7 @@ const RootView = ( props ) => {
 	);
 };
 
-RootView.propTypes = {
+ShippingLabelRootView.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
@@ -54,4 +54,4 @@ function mapDispatchToProps( dispatch ) {
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)( RootView );
+)( ShippingLabelRootView );
