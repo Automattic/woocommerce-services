@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Button from 'components/button';
 import { translate as __ } from 'lib/mixins/i18n';
-import PrintLabelDialog from 'components/shipping-label';
+import PrintLabelDialog from './dialog';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
