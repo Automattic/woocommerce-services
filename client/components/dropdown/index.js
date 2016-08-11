@@ -4,36 +4,38 @@ import FormSelect from 'components/forms/form-select';
 import FormLegend from 'components/forms/form-legend';
 import FieldError from 'components/field-error';
 import sanitizeHTML from 'lib/utils/sanitize-html';
+import FieldDescription from 'components/field-description';
 
-const Dropdown = ( { id, layout, schema, value, updateValue, error } ) => {
+const Dropdown = ( { id, valuesMap, title, description, value, updateValue, error } ) => {
 	return (
 		<FormFieldset>
-			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
+			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FormSelect
 				id={ id }
 				name={ id }
 				value={ value }
 				onChange={ ( event ) => updateValue( event.target.value ) }
 				isError={ error } >
-				{ Object.keys( layout.titleMap ).map( key => {
+				{ Object.keys( valuesMap ).map( key => {
 					return (
 						<option
 							key={ key }
 							value={ key }>
-							{ layout.titleMap[ key ] }
+							{ valuesMap[ key ] }
 						</option>
 					);
 				} ) }
 			</FormSelect>
-			{ error ? <FieldError text={ error } /> : null }
+			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
 		</FormFieldset>
 	);
 };
 
 Dropdown.propTypes = {
 	id: PropTypes.string.isRequired,
-	layout: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
+	valuesMap: PropTypes.object.isRequired,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	value: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
 	error: PropTypes.oneOfType( [

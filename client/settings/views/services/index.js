@@ -9,7 +9,8 @@ import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const ShippingServiceGroups = ( {
-	schema,
+	title,
+	description,
 	services,
 	settings,
 	currencySymbol,
@@ -48,8 +49,8 @@ const ShippingServiceGroups = ( {
 
 	return (
 		<div className="wcc-shipping-services-groups">
-			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
-			<FieldDescription text={ schema.description } />
+			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+			<FieldDescription text={ description } />
 			<div className={ classNames( 'wcc-shipping-services-groups-inner', { 'is-error': generalError } ) }>
 				{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
 			</div>
@@ -59,11 +60,8 @@ const ShippingServiceGroups = ( {
 };
 
 ShippingServiceGroups.propTypes = {
-	schema: PropTypes.shape( {
-		type: PropTypes.string.valueOf( 'string' ),
-		title: PropTypes.string.isRequired,
-		description: PropTypes.string,
-	} ).isRequired,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	services: PropTypes.array.isRequired,
 	settings: PropTypes.object.isRequired,
 	currencySymbol: PropTypes.string,

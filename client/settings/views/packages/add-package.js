@@ -55,7 +55,7 @@ const AddPackageDialog = ( props ) => {
 		savePackage,
 		updatePackagesField,
 		packages,
-		schema,
+		packageSchema,
 	} = props;
 
 	const {
@@ -82,7 +82,7 @@ const AddPackageDialog = ( props ) => {
 			max_weight: inputFilters.number( packageData.max_weight ),
 		} );
 
-		const errors = checkInputs( filteredPackageData, boxNames, schema.items );
+		const errors = checkInputs( filteredPackageData, boxNames, packageSchema );
 		if ( errors.any ) {
 			updatePackagesField( filteredPackageData );
 			setModalErrors( errors );

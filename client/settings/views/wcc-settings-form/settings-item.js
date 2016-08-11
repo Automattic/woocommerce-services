@@ -36,9 +36,9 @@ const SettingsItem = ( {
 		case 'radios':
 			return (
 				<RadioButtons
-					id={ id }
-					layout={ layout }
-					schema={ fieldSchema }
+					valuesMap={ layout.titleMap }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					value={ fieldValue }
 					setValue={ updateValue }
 					error={ fieldError }
@@ -49,8 +49,9 @@ const SettingsItem = ( {
 			return (
 				<Dropdown
 					id={ id }
-					layout={ layout }
-					schema={ fieldSchema }
+					valuesMap={ layout.titleMap }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					value={ fieldValue }
 					updateValue={ updateValue }
 					error={ fieldError }
@@ -61,8 +62,9 @@ const SettingsItem = ( {
 			return (
 				<CountryDropdown
 					id={ id }
-					layout={ layout }
-					schema={ fieldSchema }
+					valuesMap={ layout.titleMap }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					value={ fieldValue }
 					updateValue={ updateValue }
 					error={ fieldError }
@@ -74,8 +76,10 @@ const SettingsItem = ( {
 			return (
 				<StateDropdown
 					id={ id }
-					layout={ layout }
-					schema={ fieldSchema }
+					valuesMap={ layout.titleMap }
+					placeholder={ layout.placeholder }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					value={ fieldValue }
 					updateValue={ updateValue }
 					error={ fieldError }
@@ -88,7 +92,8 @@ const SettingsItem = ( {
 			return (
 				<ShippingServiceGroups
 					services={ schema.definitions.services }
-					schema={ fieldSchema }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					settings={ fieldValue }
 					currencySymbol={ storeOptions.currency_symbol }
 					updateValue={ updateSubValue }
@@ -111,15 +116,15 @@ const SettingsItem = ( {
 					savePackage={ savePackage }
 					weightUnit={ storeOptions.weight_unit }
 					errors={ errors }
-					schema={ fieldSchema }
+					packageSchema={ fieldSchema.items }
 				/>
 			);
 
 		case 'indicators':
 			return (
 				<Indicators
-					id={ id }
-					schema={ schema.properties[ id ] }
+					title={ fieldSchema.title }
+					subtitle={ fieldSchema.subtitle }
 					indicators={ Object.values( fieldValue ) }
 				/>
 			);
@@ -128,7 +133,8 @@ const SettingsItem = ( {
 			return (
 				<Text
 					id={ id }
-					layout={ layout }
+					title={ layout.title }
+					className={ layout.class }
 					value={ fieldValue }
 				/>
 			);
@@ -138,9 +144,10 @@ const SettingsItem = ( {
 				<TextArea
 					error={ fieldError }
 					id={ id }
-					layout={ layout }
+					readonly={ Boolean( layout.readonly ) }
 					placeholder={ layout.placeholder }
-					schema={ fieldSchema }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					updateValue={ updateValue }
 					value={ fieldValue }
 				/>
@@ -151,7 +158,11 @@ const SettingsItem = ( {
 				<Toggle
 					checked={ fieldValue }
 					id={ id }
-					schema={ fieldSchema }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
+					trueText={ fieldSchema.trueText }
+					falseText={ fieldSchema.falseText }
+					saveOnToggle={ Boolean( fieldSchema.saveOnToggle ) }
 					saveForm={ () => saveForm( schema ) }
 					updateValue={ updateValue }
 				/>
@@ -161,7 +172,8 @@ const SettingsItem = ( {
 			return (
 				<NumberField
 					id={ id }
-					schema={ fieldSchema }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }
@@ -173,7 +185,8 @@ const SettingsItem = ( {
 			return (
 				<TextField
 					id={ id }
-					schema={ fieldSchema }
+					title={ fieldSchema.title }
+					description={ fieldSchema.description }
 					value={ fieldValue }
 					placeholder={ layout.placeholder }
 					updateValue={ updateValue }

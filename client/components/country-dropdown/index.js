@@ -2,14 +2,14 @@ import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 
 const CountryDropdown = ( props ) => {
-	const titleMap = {};
+	const valuesMap = {};
 	Object.keys( props.countriesData ).forEach( ( countryCode ) => {
-		titleMap[ countryCode ] = props.countriesData[ countryCode ].name;
+		valuesMap[ countryCode ] = props.countriesData[ countryCode ].name;
 	} );
 	return (
 		<Dropdown
 			{ ...props }
-			layout={ { titleMap } }
+			valuesMap={ valuesMap }
 			/>
 	);
 };
@@ -17,8 +17,9 @@ const CountryDropdown = ( props ) => {
 CountryDropdown.propTypes = {
 	id: PropTypes.string.isRequired,
 	countriesData: PropTypes.object.isRequired,
-	layout: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
+	valuesMap: PropTypes.object.isRequired,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	value: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
 	error: PropTypes.oneOfType( [

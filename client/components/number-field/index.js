@@ -7,10 +7,10 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const NumberField = ( { id, schema, value, placeholder, updateValue, error } ) => {
+const NumberField = ( { id, title, description, value, placeholder, updateValue, error } ) => {
 	return (
 		<FormFieldset>
-			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
+			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<NumberInput
 				id={ id }
 				name={ id }
@@ -19,19 +19,15 @@ const NumberField = ( { id, schema, value, placeholder, updateValue, error } ) =
 				onChange={ ( event ) => updateValue( parseNumber( event.target.value ) ) }
 				isError={ error }
 			/>
-			{ error ? <FieldError text={ error } /> : <FieldDescription text={ schema.description } /> }
+			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
 		</FormFieldset>
 	);
 };
 
 NumberField.propTypes = {
 	id: PropTypes.string.isRequired,
-	schema: PropTypes.shape( {
-		type: PropTypes.string.valueOf( 'number' ),
-		title: PropTypes.string,
-		description: PropTypes.string,
-		default: PropTypes.string,
-	} ).isRequired,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	value: PropTypes.oneOfType( [
 		PropTypes.string,
 		PropTypes.number,

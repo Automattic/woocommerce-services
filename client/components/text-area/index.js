@@ -6,36 +6,31 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const TextArea = ( { id, schema, value, placeholder, layout, updateValue, error } ) => {
+const TextArea = ( { id, readonly, title, description, value, placeholder, updateValue, error } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
-	const readOnly = 'undefined' === typeof layout.readonly ? false : layout.readonly;
 
 	return (
 		<FormFieldset>
-			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
+			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FormTextarea
 				id={ id }
 				name={ id }
 				placeholder={ placeholder }
-				readOnly={ readOnly }
+				readOnly={ readonly }
 				value={ value }
 				onChange={ handleChangeEvent }
 				isError={ error }
 			/>
-			{ error ? <FieldError text={ error } /> : <FieldDescription text={ schema.description } /> }
+			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
 		</FormFieldset>
 	);
 };
 
 TextArea.propTypes = {
 	id: PropTypes.string.isRequired,
-	layout: PropTypes.object.isRequired,
-	schema: PropTypes.shape( {
-		type: PropTypes.string.valueOf( 'string' ),
-		title: PropTypes.string,
-		description: PropTypes.string,
-		default: PropTypes.string,
-	} ).isRequired,
+	readonly: PropTypes.bool,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	value: PropTypes.string.isRequired,
 	updateValue: PropTypes.func,
 	error: PropTypes.oneOfType( [

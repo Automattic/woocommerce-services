@@ -4,6 +4,7 @@ import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
 import FormRadio from 'components/forms/form-radio';
 import sanitizeHTML from 'lib/utils/sanitize-html';
+import FieldDescription from 'components/field-description';
 
 const RadioButton = ( { value, currentValue, setValue, description } ) => {
 	return (
@@ -14,18 +15,19 @@ const RadioButton = ( { value, currentValue, setValue, description } ) => {
 	);
 };
 
-const RadioButtons = ( { layout, schema, value, setValue } ) => {
+const RadioButtons = ( { valuesMap, title, description, value, setValue } ) => {
 	return (
 		<FormFieldset>
-			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
-			{ Object.keys( layout.titleMap ).map( key => {
+			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+			<FieldDescription text={ description } />
+			{ Object.keys( valuesMap ).map( ( key ) => {
 				return (
 					<RadioButton
 						key={ key }
 						value={ key }
 						currentValue={ value }
 						setValue={ setValue }
-						description={ layout.titleMap[ key ] }
+						description={ valuesMap[ key ] }
 					/>
 				);
 			} ) }
@@ -35,8 +37,9 @@ const RadioButtons = ( { layout, schema, value, setValue } ) => {
 
 RadioButtons.propTypes = {
 	id: PropTypes.string.isRequired,
-	layout: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
+	valuesMap: PropTypes.object.isRequired,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	value: PropTypes.string.isRequired,
 	setValue: PropTypes.func.isRequired,
 };
