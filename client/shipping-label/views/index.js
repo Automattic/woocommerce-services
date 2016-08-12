@@ -25,23 +25,21 @@ const ShippingLabelRootView = ( props ) => {
 		<p className="wcc-metabox-button-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<PrintLabelDialog
-				{ ...( props.form.shippingLabel ) }
+				{ ...( props.shippingLabel ) }
 				{ ...props }
 			/>
-			{ props.form.success ? renderSuccessNotice() : renderPrintLabelFlow() }
+			{ props.shippingLabel.success ? renderSuccessNotice() : renderPrintLabelFlow() }
 		</p>
 	);
 };
 
 ShippingLabelRootView.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
-	layout: PropTypes.array.isRequired,
 };
 
 function mapStateToProps( state ) {
 	return {
-		form: state.form,
+		shippingLabel: state.shippingLabel,
 	};
 }
 

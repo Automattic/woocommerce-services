@@ -1,6 +1,5 @@
 import React from 'react';
 import Dialog from 'components/dialog';
-import WCCSettingsForm from 'components/wcc-settings-form';
 
 const PrintLabelDialog = ( props ) => {
 	return (
@@ -9,10 +8,7 @@ const PrintLabelDialog = ( props ) => {
 			onClose={ props.labelActions.exitPrintingFlow }
 			additionalClassNames="wcc-modal wcc-shipping-label-dialog"
 		>
-			<WCCSettingsForm
-				{ ...props }
-				onCancel={ props.labelActions.exitPrintingFlow }
-			/>
+			<span>Not implemented yet</span>
 		</Dialog>
 	);
 };

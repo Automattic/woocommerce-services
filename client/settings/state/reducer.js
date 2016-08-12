@@ -1,7 +1,4 @@
-import {
-	SET_FORM_PROPERTY,
-	GO_TO_STEP,
-} from './actions';
+import { SET_FORM_PROPERTY } from './actions';
 import packages from './packages/reducer';
 import values from './values/reducer';
 import * as packagesActions from './packages/actions';
@@ -25,10 +22,6 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 		} );
 	}
 	return Object.assign( {}, state, newObj );
-};
-
-reducers[ GO_TO_STEP ] = ( state, action ) => {
-	return Object.assign( {}, state, { currentStep: action.step } );
 };
 
 export default function form( state = {}, action ) {

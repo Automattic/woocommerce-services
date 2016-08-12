@@ -6,81 +6,25 @@ import * as FormActions from 'settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'settings/state/values/actions';
 import * as PackagesActions from 'settings/state/packages/actions';
-import { getFormErrors, getStepFormErrors, getStepFormSuggestions } from 'settings/state/selectors/errors';
-import { translate as __ } from 'lib/mixins/i18n';
-import ActionButtons from 'components/action-buttons';
-import TabBar from 'components/tab-bar';
-import isEmpty from 'lodash/isEmpty';
+import getFormErrors from 'settings/state/selectors/errors';
 
 const WCCSettingsForm = ( props ) => {
-	const currentStep = props.form.currentStep;
-
-	const renderGroup = ( stepIndex ) => {
-		if ( ! props.layout[ stepIndex ] ) {
-			return null; // TODO: display a spinner here
-		}
-
+	const renderGroup = ( index ) => {
 		return (
 			<WCCSettingsGroup
 				{ ...props }
-				group={ props.layout[ stepIndex ] }
+				group={ props.layout[ index ] }
 				saveForm={ props.formValueActions.submit }
-				index={ stepIndex }
-				key={ stepIndex }
+				key={ index }
 			/>
 		);
 	};
 
-	const getActionButtons = () => {
-		const buttons = [];
-		const currentStepLayout = props.layout[ currentStep ];
-		let submitEnabled = currentStepLayout && isEmpty( props.stepErrors ) && ! props.form.isSaving;
-		// If the user has been presented with a suggestion, then the submit button is always enabled,
-		// because any options the user chooses ("original value" or "suggested value") are valid
-		if ( ! isEmpty( props.stepSuggestions ) ) {
-			submitEnabled = true;
-		}
-		buttons.push( {
-			label: ( currentStepLayout || {} ).action_label || __( 'Next' ),
-			onClick: props.formActions.nextStep,
-			isDisabled: ! submitEnabled,
-			isPrimary: true,
-		} );
-		if ( props.onCancel ) {
-			buttons.push( {
-				label: __( 'Cancel' ),
-				onClick: props.onCancel,
-			} );
-		}
-		return buttons;
-	};
-
-	const renderMultiStepForm = () => {
-		return (
-			<div className="multistep-form-container">
-				<TabBar
-					layout={ props.layout }
-					currentStep={ currentStep }
-					onTabClick={ props.formActions.goToStep } />
-				<div className="step-content">
-					{ renderGroup( currentStep ) }
-				</div>
-				<ActionButtons buttons={ getActionButtons() } />
-			</div>
-		);
-	};
-
-	const renderSingleStepForm = () => {
-		return (
-			<div>
-				{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }
-			</div>
-		);
-	};
-
-	return 'step' === props.layout[ 0 ].type
-				? renderMultiStepForm()
-				: renderSingleStepForm();
+	return (
+		<div>
+			{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }
+		</div>
+	);
 };
 
 WCCSettingsForm.propTypes = {
@@ -93,8 +37,6 @@ function mapStateToProps( state, props ) {
 	return {
 		form: state.form,
 		errors: getFormErrors( state, props.schema ),
-		stepErrors: getStepFormErrors( state, props.schema, props.layout ),
-		stepSuggestions: getStepFormSuggestions( state, props.schema, props.layout ),
 	};
 }
 

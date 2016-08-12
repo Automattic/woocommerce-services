@@ -3,14 +3,9 @@ import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
-import Notice from 'components/notice';
 import noop from 'lodash/noop';
 import isEmpty from 'lodash/isEmpty';
-import Suggestion from 'components/suggestion';
 import sanitizeHTML from 'lib/utils/sanitize-html';
-import Button from 'components/button';
-import Summary from 'components/summary';
-import { translate as __ } from 'lib/mixins/i18n';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -18,17 +13,12 @@ const SettingsGroup = ( props ) => {
 		form,
 		saveForm,
 		errors,
-		layout,
 		schema,
-		formActions,
-		stepSuggestions,
-		storeOptions,
-		index,
 	} = props;
 
 	const renderSettingsItem = ( item ) => {
 		const itemKey = item.key ? item.key : item;
-		if ( 'packing_method' === itemKey && ( ! form.values.boxes || 0 === form.values.boxes.length ) ) {
+		if ( 'packing_method' === itemKey && isEmpty( form.values.boxes ) ) {
 			return null;
 		}
 
@@ -69,67 +59,6 @@ const SettingsGroup = ( props ) => {
 						{ renderSettingsItems() }
 					</div>
 				</CompactCard>
-			);
-
-		case 'step':
-			if ( undefined !== form.acceptSuggestion ) {
-				return (
-					<div>
-						<Notice
-							status="is-warning"
-							showDismiss={ false } >
-							<span dangerouslySetInnerHTML={ sanitizeHTML( group.suggestion_hint ) } />
-						</Notice>
-						<div className="settings-group-default">
-							<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
-							{ group.description ? <p dangerouslySetInnerHTML={ sanitizeHTML( group.description ) } /> : null }
-							<Suggestion
-								acceptSuggestion={ Boolean( form.acceptSuggestion ) }
-								formValues={ form.values }
-								formActions={ formActions }
-								layout={ group }
-								suggestions={ stepSuggestions }
-								storeOptions={ storeOptions }
-								fieldsOptions={ form.fieldsOptions } />
-						</div>
-					</div>
-				);
-			}
-
-			return (
-				<div className="settings-group-default">
-					<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
-					{ group.description ? <p dangerouslySetInnerHTML={ sanitizeHTML( group.description ) } /> : null }
-					{ renderSettingsItems() }
-				</div>
-			);
-
-		case 'summary':
-			const renderStepSummary = ( step, stepIndex ) => (
-				<div key={ stepIndex } className="settings-step-summary">
-					<h4>{ step.tab_title }</h4>
-					<Summary
-						formValues={ form.values }
-						layoutItems={ step.items }
-						summaryTemplate={ step.summary }
-						storeOptions={ storeOptions }
-						fieldsOptions={ form.fieldsOptions } />
-					<Button compact
-							onClick={ () => formActions.goToStep( stepIndex ) } >
-						{ __( 'Edit' ) }
-					</Button>
-				</div>
-			);
-
-			return (
-				<div className="settings-group-default">
-					<FormSectionHeading dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
-					{ group.description ? <p>{ group.description }</p> : null }
-					<div className="settings-steps-summary">
-						{ layout.slice( 0, index ).map( renderStepSummary ) }
-					</div>
-					{ group.items.map( renderSettingsItem ) }
-				</div>
 			);
 
 		case 'actions':
@@ -175,7 +104,6 @@ SettingsGroup.propTypes = {
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
 	formActions: PropTypes.object.isRequired,
-	stepSuggestions: PropTypes.object,
 	errors: PropTypes.object,
 };
 

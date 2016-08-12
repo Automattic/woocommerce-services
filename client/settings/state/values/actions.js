@@ -41,8 +41,6 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		}
 	};
 
-	const setFieldsOptions = ( value ) => FormActions.setFormProperty( 'fieldsOptions', value );
-
 	const setFieldsStatus = ( value ) => {
 		dispatch( FormActions.setFormProperty( 'fieldsStatus', value ) );
 
@@ -73,5 +71,5 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 
 	const coercedValues = coerceFormValues( schema, getState().form.values );
 
-	saveForm( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
+	saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
 };

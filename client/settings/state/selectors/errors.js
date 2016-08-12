@@ -78,47 +78,9 @@ const getRawFormErrors = ( schema, data ) => {
 	return {};
 };
 
-export const getFormErrors = createSelector(
+export default createSelector(
 	( state ) => state.form.fieldsStatus,
 	( state, schema ) => schema,
 	( state ) => state.form.values,
 	( fieldsStatus, schema, data ) => parseErrorsList( fieldsStatus || getRawFormErrors( schema, data ) )
-);
-
-export const getStepFormErrors = createSelector(
-	( state ) => state,
-	( state, schema ) => schema,
-	( state, schema, layout ) => layout,
-	( state, schema, layout ) => {
-		const allErrors = getFormErrors( state, schema );
-		const stepLayout = layout[ state.form.currentStep ];
-		const stepFields = {};
-		if ( stepLayout ) {
-			stepLayout.items.forEach( item => stepFields[ item.key ] = true );
-		}
-		const stepErrors = {};
-		Object.keys( allErrors ).forEach( fieldName => {
-			if ( stepFields[ fieldName ] ) {
-				stepErrors[ fieldName ] = allErrors[ fieldName ];
-			}
-		} );
-		return stepErrors;
-	}
-);
-
-export const getStepFormSuggestions = createSelector(
-	( state ) => state,
-	( state, schema ) => schema,
-	( state, schema, layout ) => layout,
-	( state, schema, layout ) => {
-		const stepErrors = getStepFormErrors( state, schema, layout );
-		const suggestions = {};
-		Object.keys( stepErrors ).forEach( ( fieldName ) => {
-			const fieldError = stepErrors[ fieldName ][ '' ];
-			if ( fieldError && 'suggestion' === fieldError.level ) {
-				suggestions[ fieldName ] = fieldError.value;
-			}
-		} );
-		return suggestions;
-	}
 );

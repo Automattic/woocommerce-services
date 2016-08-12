@@ -8,12 +8,12 @@ import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
 import { translate as __ } from 'lib/mixins/i18n';
 import Settings from './settings';
-//import ShippingLabel from './shipping-label';
+import ShippingLabel from './shipping-label';
 
 const Route = ( ( rootView ) => {
 	switch ( rootView ) {
-		//case 'shipping-label':
-		//	return ShippingLabel;
+		case 'shipping-label':
+			return ShippingLabel;
 		default:
 			return Settings;
 	}

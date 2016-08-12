@@ -1,5 +1,4 @@
 import * as FormActions from 'settings/state/actions';
-import printDocument from 'lib/utils/print-document';
 
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
@@ -13,9 +12,4 @@ export const openPrintingFlow = () => ( dispatch ) => {
 export const exitPrintingFlow = () => ( dispatch ) => {
 	dispatch( { type: EXIT_PRINTING_FLOW } );
 	dispatch( FormActions.resetFlow() );
-};
-
-export const finishPrintingFlow = () => ( dispatch, getState ) => {
-	dispatch( exitPrintingFlow() );
-	printDocument( getState().form.response.url );
 };

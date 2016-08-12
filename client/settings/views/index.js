@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import WCCSettingsForm from 'components/wcc-settings-form';
+import WCCSettingsForm from './wcc-settings-form';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 

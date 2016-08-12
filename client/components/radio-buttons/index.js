@@ -36,7 +36,6 @@ const RadioButtons = ( { valuesMap, title, description, value, setValue } ) => {
 };
 
 RadioButtons.propTypes = {
-	id: PropTypes.string.isRequired,
 	valuesMap: PropTypes.object.isRequired,
 	title: PropTypes.string,
 	description: PropTypes.string,
