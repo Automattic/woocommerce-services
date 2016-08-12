@@ -206,7 +206,7 @@ AddPackageDialog.propTypes = {
 	packageData: PropTypes.object,
 	setModalErrors: PropTypes.func.isRequired,
 	packages: PropTypes.array.isRequired,
-	schema: PropTypes.object.isRequired,
+	packageSchema: PropTypes.object.isRequired,
 };
 
 AddPackageDialog.defaultProps = {

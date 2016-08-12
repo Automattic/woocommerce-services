@@ -149,13 +149,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$store_options = $this->settings_store->get_shared_settings();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
+			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(
 				'storeOptions' => $store_options,
 				'formData'     => $this->get_form_data( $theorder ),
 				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'submitMethod' => 'POST',
-				'rootView'     => 'shipping-label',
+				'rootView'     => $root_view,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
@@ -163,7 +164,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			wp_enqueue_style( 'wc_connect_admin' );
 
 			?>
-			<div id="wc-connect-admin-container"><span class="form-troubles" style="opacity: 0"><?php printf( __( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?></span></div>
+			<div class="wc-connect-container" id="<?= $root_view ?>"><span class="form-troubles" style="opacity: 0"><?php printf( __( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?></span></div>
 			<?php
 		}
 

@@ -6,7 +6,7 @@
 //@import 'shared/colors'; // import all of our wpcom colors
 @import 'components/dialog/style';
 
-#wc-connect-admin-container,
+.wc-connect-container,
 .wcc-modal {
 	// Shared
 	@import 'shared/reset'; // css reset before the rest of the styles are defined
@@ -277,7 +277,7 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-#wc-connect-admin-container .form-troubles {
+.wc-connect-container .form-troubles {
 	opacity: 0;
 	animation: fadeIn ease-in 1;
 	animation-fill-mode: forwards;

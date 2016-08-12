@@ -337,6 +337,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'formData'     => $settings_store->get_service_settings( $id, $instance ),
 				'callbackURL'  => get_rest_url( null, $path ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'rootView'     => 'wc-connect-settings',
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

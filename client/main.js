@@ -12,9 +12,10 @@ import ShippingLabel from './shipping-label';
 
 const Route = ( ( rootView ) => {
 	switch ( rootView ) {
-		case 'shipping-label':
+		case 'wc-connect-create-shipping-label':
 			return ShippingLabel;
-		default:
+		case 'wc-connect-settings':
+		case 'wc-connect-help':
 			return Settings;
 	}
 } )( wcConnectData.rootView )( wcConnectData );
@@ -37,7 +38,7 @@ window.addEventListener( 'beforeunload', ( event ) => {
 	return text;
 } );
 
-const rootEl = document.getElementById( 'wc-connect-admin-container' );
+const rootEl = document.getElementById( wcConnectData.rootView );
 
 let render = () => {
 	ReactDOM.render(
