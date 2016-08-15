@@ -15,7 +15,7 @@ const Route = ( ( rootView ) => {
 		case 'wc-connect-create-shipping-label':
 			return ShippingLabel;
 		case 'wc-connect-settings':
-		case 'wc-connect-help':
+		case 'wc-connect-admin-help':
 			return Settings;
 	}
 } )( wcConnectData.rootView )( wcConnectData );

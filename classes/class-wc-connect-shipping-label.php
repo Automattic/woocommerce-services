@@ -164,7 +164,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			wp_enqueue_style( 'wc_connect_admin' );
 
 			?>
-			<div class="wc-connect-container" id="<?= $root_view ?>"><span class="form-troubles" style="opacity: 0"><?php printf( __( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?></span></div>
+			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"><span class="form-troubles" style="opacity: 0"><?php printf( __( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?></span></div>
 			<?php
 		}
 

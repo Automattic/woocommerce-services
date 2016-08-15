@@ -670,7 +670,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				$this->get_support_items()
 			);
 
-			$root_view = 'wc-connect-help';
+			$root_view = 'wc-connect-admin-help';
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_shared_settings(),
 				'formSchema'   => $this->get_form_schema(),
@@ -689,7 +689,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				<h2>
 					<?php _e( 'WooCommerce Connect Status', 'woocommerce' ); ?>
 				</h2>
-				<div class="wc-connect-container" id="<?= $root_view ?>"></div>
+				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php
 		}
 
