@@ -8,10 +8,7 @@ const StateDropdown = ( props ) => {
 
 	if ( ! statesMap ) { // We don't have a list of states for this country
 		return (
-			<TextField
-				{ ...props }
-				placeholder={ props.layout.placeholder }
-			/>
+			<TextField { ...props } />
 		);
 	}
 
@@ -22,7 +19,7 @@ const StateDropdown = ( props ) => {
 	return (
 		<Dropdown
 			{ ...props }
-			layout={ { titleMap: { '': __( 'Select one...' ), ...statesMap } } }
+			valuesMap={ { '': __( 'Select one...' ), ...statesMap } }
 			/>
 	);
 };
@@ -30,8 +27,9 @@ const StateDropdown = ( props ) => {
 StateDropdown.propTypes = {
 	id: PropTypes.string.isRequired,
 	countriesData: PropTypes.object.isRequired,
-	layout: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
+	valuesMap: PropTypes.object.isRequired,
+	title: PropTypes.string,
+	description: PropTypes.string,
 	value: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
 	error: PropTypes.oneOfType( [

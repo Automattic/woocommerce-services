@@ -19,11 +19,11 @@ const renderText = ( text ) => {
 	);
 };
 
-const Text = ( { id, layout, value } ) => {
+const Text = ( { id, title, className, value } ) => {
 	return (
 		<FormFieldset>
-			{ renderTitle( layout.title ) }
-			<p id={ id } className={ layout.class } >
+			{ renderTitle( title ) }
+			<p id={ id } className={ className } >
 				{ renderText( value ) }
 			</p>
 		</FormFieldset>
@@ -32,10 +32,8 @@ const Text = ( { id, layout, value } ) => {
 
 Text.propTypes = {
 	id: PropTypes.string.isRequired,
-	layout: PropTypes.shape( {
-		class: PropTypes.string,
-		title: PropTypes.string,
-	} ),
+	title: PropTypes.string.isRequired,
+	className: PropTypes.string,
 	value: PropTypes.string.isRequired,
 };
 

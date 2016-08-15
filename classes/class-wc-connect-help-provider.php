@@ -670,6 +670,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				$this->get_support_items()
 			);
 
+			$root_view = 'wc-connect-admin-help';
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_shared_settings(),
 				'formSchema'   => $this->get_form_schema(),
@@ -677,6 +678,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				'formData'     => $this->get_form_data(),
 				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/self-help" ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'rootView'     => $root_view,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
@@ -687,7 +689,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 				<h2>
 					<?php _e( 'WooCommerce Connect Status', 'woocommerce' ); ?>
 				</h2>
-				<div id="wc-connect-admin-container"></div>
+				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php
 		}
 

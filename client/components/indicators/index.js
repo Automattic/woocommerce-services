@@ -43,12 +43,12 @@ const renderSubTitle = ( subtitle ) => {
 	);
 };
 
-const Indicators = ( { schema, indicators } ) => {
+const Indicators = ( { title, subtitle, indicators } ) => {
 	return (
 		<FormFieldset>
 			<FormLegend>
-				<span dangerouslySetInnerHTML={ sanitizeHTML( schema.title ) } />
-				{ renderSubTitle( schema.subtitle ) }
+				<span dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+				{ renderSubTitle( subtitle ) }
 			</FormLegend>
 			{ indicators.map( indicator => (
 				<Indicator
@@ -64,8 +64,8 @@ const Indicators = ( { schema, indicators } ) => {
 };
 
 Indicators.propTypes = {
-	id: PropTypes.string.isRequired,
-	schema: PropTypes.object.isRequired,
+	title: PropTypes.string.isRequired,
+	subtitle: PropTypes.string,
 	indicators: PropTypes.array.isRequired,
 };
 

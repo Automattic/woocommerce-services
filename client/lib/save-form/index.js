@@ -1,8 +1,8 @@
 import isArray from 'lodash/isArray';
 import Get from 'lodash/get';
-import { EMPTY_ERROR } from 'state/selectors/errors';
+import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 
-const saveForm = ( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
+const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );
 	const request = {
 		method: submitMethod || 'PUT',
@@ -20,10 +20,6 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsOptions, setFieldsStatus, s
 		return response.json().then( json => {
 			if ( json.success ) {
 				return setSuccess( true, json );
-			}
-
-			if ( Get( json, 'data.data.fieldsOptions' ) ) {
-				setFieldsOptions( json.data.data.fieldsOptions );
 			}
 
 			if ( 'validation_failure' === Get( json, 'data.error' ) && Get( json, 'data.data.fields' ) ) {
