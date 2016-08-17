@@ -27,7 +27,6 @@ const StateDropdown = ( props ) => {
 StateDropdown.propTypes = {
 	id: PropTypes.string.isRequired,
 	countriesData: PropTypes.object.isRequired,
-	valuesMap: PropTypes.object.isRequired,
 	title: PropTypes.string,
 	description: PropTypes.string,
 	value: PropTypes.string.isRequired,

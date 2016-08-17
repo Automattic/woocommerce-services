@@ -6,7 +6,7 @@ import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, storeOptions } ) => ( {
+export default ( { formData, labelData, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			shippingLabel,
@@ -16,13 +16,40 @@ export default ( { formData, storeOptions } ) => ( {
 
 	getHotReducer() {
 		return combineReducers( {
-			shippingLabel: require( './state/reducer' ),
+			shippingLabel: require( './state/reducer' ).default,
 			notices,
 		} );
 	},
 
 	getInitialState() {
-		return { shippingLabel: { formData } };
+		return {
+			shippingLabel: {
+				labels: labelData || {},
+				form: {
+					origin: {
+						values: formData.origin,
+						allowChangeCountry: false,
+					},
+					destination: {
+						values: formData.destination,
+						allowChangeCountry: false,
+					},
+					packages: {
+						values: formData.packages,
+						isPacked: formData.is_packed,
+					},
+					rates: {
+						values: formData.rates,
+						available: formData.rates.map( ( service ) => ( { [ service ]: { name: service, rate: 9.99 } } ) ),
+					},
+					preview: {
+						values: {
+							paper_size: formData.paper_size || '4x6',
+						},
+					},
+				},
+			},
+		};
 	},
 
 	View: () => (

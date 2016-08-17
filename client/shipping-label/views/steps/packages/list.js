@@ -14,7 +14,7 @@ const renderPackageDimensions = ( pckg, dimensionUnit ) => {
 	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
 };
 
-const OrderPackages = ( { packages, updateValue, dimensionUnit, weightUnit, errors } ) => {
+const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, errors } ) => {
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
 		const pckgErrors = errors[ pckgIndex ] || {};
 		return (
@@ -22,8 +22,8 @@ const OrderPackages = ( { packages, updateValue, dimensionUnit, weightUnit, erro
 				{ renderPackageDimensions( pckg, dimensionUnit ) }
 				{ pckgErrors.weight ? <Gridicon icon="notice" /> : null }
 				<NumberInput
-					value={ pckg.weight }
-					onChange={ ( event ) => updateValue( [ pckgIndex, 'weight' ], event.target.value ) }
+					value={ pckg.weight || 0 }
+					onChange={ ( event ) => updateWeight( pckgIndex, event.target.value ) }
 					isError={ Boolean( pckgErrors.weight ) }
 					style={ { width: 60, marginLeft: 16 } }
 				/> { weightUnit }
@@ -44,36 +44,10 @@ const OrderPackages = ( { packages, updateValue, dimensionUnit, weightUnit, erro
 
 OrderPackages.propTypes = {
 	packages: PropTypes.array.isRequired,
-	updateValue: PropTypes.func.isRequired,
+	updateWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	errors: PropTypes.object,
 };
 
 export default OrderPackages;
-
-export const Summary = ( { packages, dimensionUnit, weightUnit } ) => {
-	const renderPackageInfo = ( pckg, pckgIndex ) => {
-		const dimensions = renderPackageDimensions( pckg, dimensionUnit );
-		return (
-			<li key={ pckgIndex }>
-				{ `${dimensions} (${pckg.weight} ${weightUnit})` }
-				<ul>
-					{ pckg.items.map( renderItemInfo ) }
-				</ul>
-			</li>
-		);
-	};
-
-	return (
-		<ul>
-			{ packages.map( renderPackageInfo ) }
-		</ul>
-	);
-};
-
-Summary.propTypes = {
-	packages: PropTypes.array.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
-	weightUnit: PropTypes.string.isRequired,
-};

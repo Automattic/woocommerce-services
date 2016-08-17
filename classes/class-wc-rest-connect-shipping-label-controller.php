@@ -69,7 +69,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
-		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$settings = json_decode( $request_body, TRUE, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
 		$response = $this->api_client->send_shipping_label_request( $settings );
 
@@ -77,7 +77,26 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 			$this->store_origin_address( $settings );
 		}
 
-		return $response;
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$labels_data = array();
+		foreach ( $response->labels as $index => $label_data ) {
+			if ( isset( $label_data->error ) ) {
+				return new WP_Error(
+					$label_data->error->code,
+					$label_data->error->message,
+					array( 'message' => $label_data->error->message )
+				);
+			}
+			$labels_data[] = $label_data->label;
+		}
+
+		return array(
+			'labels' => $labels_data,
+			'success' => TRUE,
+		);
 	}
 
 	/**

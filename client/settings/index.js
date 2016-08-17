@@ -17,7 +17,7 @@ export default ( { formData, formSchema, formLayout, storeOptions } ) => ( {
 
 	getHotReducer() {
 		return combineReducers( {
-			form: require( './state/reducer' ),
+			form: require( './state/reducer' ).default,
 			notices,
 		} );
 	},

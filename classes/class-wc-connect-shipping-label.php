@@ -56,7 +56,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return $this->get_items_as_individual_packages( $order );
+				return array( FALSE, $this->get_items_as_individual_packages( $order ) );
 			}
 
 			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
@@ -71,7 +71,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 			}
 
-			return $packages;
+			return array( TRUE, $packages );
 		}
 
 		protected function get_selected_rates( WC_Order $order ) {
@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$form_data = array();
 
-			$form_data[ 'packages' ] = $this->get_packaging_data( $order );
+			list( $form_data[ 'is_packed' ], $form_data[ 'packages' ] ) = $this->get_packaging_data( $order );
 
 			$form_data[ 'rates' ] = $this->get_selected_rates( $order );
 
@@ -107,7 +107,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$form_data[ 'destination' ] = array(
 				'name' => trim( $dest_address[ 'first_name' ] . ' ' . $dest_address[ 'last_name' ] ),
 				'company' => $dest_address[ 'company' ],
-				'address_1' => $dest_address[ 'address_1' ],
+				'address' => $dest_address[ 'address_1' ],
 				'address_2' => $dest_address[ 'address_2' ],
 				'city' => $dest_address[ 'city' ],
 				'state' => $dest_address[ 'state' ],

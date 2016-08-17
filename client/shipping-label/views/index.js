@@ -25,10 +25,10 @@ const ShippingLabelRootView = ( props ) => {
 		<p className="wcc-metabox-button-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<PrintLabelDialog
-				{ ...( props.shippingLabel ) }
+				{ ...props.shippingLabel }
 				{ ...props }
 			/>
-			{ props.shippingLabel.success ? renderSuccessNotice() : renderPrintLabelFlow() }
+			{ props.shippingLabel.labels.purchased_time ? renderSuccessNotice() : renderPrintLabelFlow() }
 		</p>
 	);
 };

@@ -62,7 +62,6 @@ const SettingsItem = ( {
 			return (
 				<CountryDropdown
 					id={ id }
-					valuesMap={ layout.titleMap }
 					title={ fieldSchema.title }
 					description={ fieldSchema.description }
 					value={ fieldValue }
@@ -76,7 +75,6 @@ const SettingsItem = ( {
 			return (
 				<StateDropdown
 					id={ id }
-					valuesMap={ layout.titleMap }
 					placeholder={ layout.placeholder }
 					title={ fieldSchema.title }
 					description={ fieldSchema.description }

@@ -30,7 +30,7 @@ const store = createStore(
 );
 
 window.addEventListener( 'beforeunload', ( event ) => {
-	if ( store.getState().form && store.getState().form.pristine ) {
+	if ( ! store.getState().form || store.getState().form.pristine ) {
 		return;
 	}
 	const text = __( 'You have unsaved changes.' );
@@ -54,7 +54,7 @@ if ( module.hot ) {
 	// and display an overlay for runtime errors
 	const renderApp = render;
 	const renderError = ( error ) => {
-		const RedBox = require( 'redbox-react' );
+		const RedBox = require( 'redbox-react' ).default;
 		ReactDOM.render(
 			<RedBox error={ error } />,
 			rootEl

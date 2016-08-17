@@ -133,6 +133,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'POST', '/shipping/rates', $body );
 		}
 
+		public function send_shipping_label_request( $body ) {
+			return $this->request( 'POST', '/shipping/label', $body );
+		}
 
 		/**
 		 * Tests the connection to the WooCommerce Connect Server
