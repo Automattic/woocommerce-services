@@ -78,7 +78,7 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
 			// Fire up the view
-			$root_view = 'wc-connect-admin-settings';
+			$root_view = 'wc-connect-shared-settings';
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_store_options(),
 				'formData'     => $this->get_form_data(),
@@ -87,8 +87,6 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'rootView'     => $root_view,
 			);
-
-			print_r( $admin_array );
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
 			wp_enqueue_script( 'wc_connect_admin' );

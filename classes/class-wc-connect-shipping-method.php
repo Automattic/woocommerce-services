@@ -333,7 +333,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
 
 			?>
-				<div class="wc-connect-admin-container" id="wc-connect-settings">
+				<div class="wc-connect-admin-container" id="wc-connect-service-settings">
 					<span class="form-troubles" style="opacity: 0">
 						<?php printf(
 							wp_kses(
