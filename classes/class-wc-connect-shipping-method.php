@@ -337,7 +337,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					<span class="form-troubles" style="opacity: 0">
 						<?php printf(
 							wp_kses(
-								__( 'Settings not loading? Visit the WooCommerce Connect <a href="%s">debug page</a> to get some troubleshooting steps.', 'woocommerce' ),
+								__( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce' ),
 								array( 'a' => array( 'href' => array() ) )
 							),
 							$debug_page_uri
