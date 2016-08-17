@@ -58,6 +58,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_REST_Connect_Settings_Controller
+		 */
+		protected $rest_settings_controller;
+
+		/**
 		 * @var WC_REST_Connect_Services_Controller
 		 */
 		protected $rest_services_controller;
@@ -78,9 +83,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_schemas_validator;
 
 		/**
-		 * @var WC_Connect_Help_Provider
+		 * @var WC_Connect_Settings_View
 		 */
-		protected $help_provider;
+		protected $settings_view;
+
+		/**
+		 * @var WC_Connect_Help_View
+		 */
+		protected $help_view;
 
 		protected $services = array();
 
@@ -149,6 +159,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->tracks = $tracks;
 		}
 
+		public function get_rest_settings_controller() {
+			return $this->rest_settings_controller;
+		}
+
+		public function set_rest_settings_controller( WC_REST_Connect_Settings_Controller $rest_settings_controller ) {
+			$this->$rest_settings_controller = $rest_settings_controller;
+		}
+
 		public function get_rest_services_controller() {
 			return $this->rest_services_controller;
 		}
@@ -181,12 +199,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_schemas_validator = $validator;
 		}
 
-		public function get_help_provider() {
-			return $this->help_provider;
+		public function get_settings_view() {
+			return $this->settings_page;
 		}
 
-		public function set_help_provider( WC_Connect_Help_Provider $help_provider ) {
-			$this->help_provider = $help_provider;
+		public function set_settings_view( WC_Connect_Settings_View $settings_view ) {
+			$this->settings_view = $settings_view;
+		}
+
+		public function get_help_view() {
+			return $this->help_view;
+		}
+
+		public function set_help_view( WC_Connect_Help_View $help_view ) {
+			$this->help_view = $help_view;
 		}
 
 		/**
@@ -213,7 +239,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-help-provider.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-settings-view.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 
 			$logger         = new WC_Connect_Logger( new WC_Logger() );
@@ -222,7 +249,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$tracks         = new WC_Connect_Tracks( $logger );
-			$help_provider  = new WC_Connect_Help_Provider( $schemas_store, $settings_store, $logger );
+			$settings_view  = new WC_Connect_Settings_View( $settings_store, $logger );
+			$help_view      = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -230,7 +258,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
 			$this->set_tracks( $tracks );
-			$this->set_help_provider( $help_provider );
+			$this->set_settings_view( $settings_view );
+			$this->set_help_view( $help_view );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
@@ -292,6 +321,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$this->logger->log( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
 				return;
 			}
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-settings-controller.php' ) );
+			$rest_settings_controller = new WC_REST_Connect_Settings_Controller( $settings_store );
+			$this->set_rest_settings_controller( $rest_settings_controller );
+			$rest_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
 			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );

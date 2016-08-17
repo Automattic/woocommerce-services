@@ -1,8 +1,8 @@
 <?php
 
-if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
+if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
-	class WC_Connect_Help_Provider {
+	class WC_Connect_Help_View {
 
 		/**
 		 * @var WC_Connect_Service_Schemas_Store
@@ -672,7 +672,7 @@ if ( ! class_exists( 'WC_Connect_Help_Provider' ) ) {
 
 			$root_view = 'wc-connect-admin-help';
 			$admin_array = array(
-				'storeOptions' => $this->service_settings_store->get_shared_settings(),
+				'storeOptions' => $this->service_settings_store->get_store_options(),
 				'formSchema'   => $this->get_form_schema(),
 				'formLayout'   => $this->get_form_layout(),
 				'formData'     => $this->get_form_data(),
