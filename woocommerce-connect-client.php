@@ -58,6 +58,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_Connect_Payment_Methods_Store
+		 */
+		protected $payment_methods_store;
+
+		/**
 		 * @var WC_REST_Connect_Settings_Controller
 		 */
 		protected $rest_settings_controller;
@@ -151,6 +156,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_settings_store = $settings_store;
 		}
 
+		public function get_payment_methods_store() {
+			return $this->payment_methods_store;
+		}
+
+		public function set_payment_methods_store( WC_Connect_Payment_Methods_Store $payment_methods_store ) {
+			$this->payment_methods_store = $payment_methods_store;
+		}
+
 		public function get_tracks() {
 			return $this->tracks;
 		}
@@ -238,25 +251,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-payment-methods-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 
-			$logger         = new WC_Connect_Logger( new WC_Logger() );
-			$validator      = new WC_Connect_Service_Schemas_Validator();
-			$api_client     = new WC_Connect_API_Client( $validator, $this );
-			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
-			$tracks         = new WC_Connect_Tracks( $logger );
-			$settings_view  = new WC_Connect_Settings_View( $settings_store, $logger );
-			$help_view      = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
+			$logger                = new WC_Connect_Logger( new WC_Logger() );
+			$validator             = new WC_Connect_Service_Schemas_Validator();
+			$api_client            = new WC_Connect_API_Client( $validator, $this );
+			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $api_client, $logger );
+			$tracks                = new WC_Connect_Tracks( $logger );
+			$settings_view         = new WC_Connect_Settings_View( $payment_methods_store, $settings_store, $logger );
+			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
 			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
+			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
 			$this->set_settings_view( $settings_view );
 			$this->set_help_view( $help_view );

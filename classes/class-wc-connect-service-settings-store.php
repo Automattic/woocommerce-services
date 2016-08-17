@@ -48,7 +48,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_shared_settings() {
-			return get_option( 'wc_connect_shared_settings', array() );
+			$default = array(
+				'selected_payment_method_id' => false
+			);
+			return get_option( 'wc_connect_shared_settings', $default );
 		}
 
 		/**
