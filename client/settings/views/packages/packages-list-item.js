@@ -3,6 +3,7 @@ import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 import classNames from 'classnames';
 import trim from 'lodash/trim';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const renderIcon = ( isLetter, isError, onClick ) => {
 	let icon;
@@ -41,7 +42,7 @@ const PackagesListItem = ( {
 					{
 						data.name && '' !== trim( data.name )
 						? data.name
-						: <span className="package-no-name">Untitled</span>
+						: <span className="package-no-name">{ __( 'Untitled' ) }</span>
 					}
 				</a>
 			</div>
