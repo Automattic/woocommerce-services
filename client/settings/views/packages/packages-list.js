@@ -3,6 +3,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
 import Gridicon from 'components/gridicon';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const noPackages = () => {
 	return (
@@ -10,7 +11,7 @@ const noPackages = () => {
 			<div className="package-list-empty-icon">
 				<Gridicon icon="info" size={ 18 } />
 			</div>
-			<div className="packages-list-empty-description">Your packages will display here once they are added.</div>
+			<div className="packages-list-empty-description">{ __( 'Your packages will display here once they are added.' ) }</div>
 		</div>
 	);
 };
@@ -51,9 +52,9 @@ const PackagesList = ( {
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
 			<div className="wcc-shipping-packages-list-header">
-				<FormLegend className="package-type">Type</FormLegend>
-				<FormLegend className="package-name">Name</FormLegend>
-				<FormLegend className="package-dimensions">Dimensions (L x W x H)</FormLegend>
+				<FormLegend className="package-type">{ __( 'Type' ) }</FormLegend>
+				<FormLegend className="package-name">{ __( 'Name' ) }</FormLegend>
+				<FormLegend className="package-dimensions">{ __( 'Dimensions (L x W x H)' ) }</FormLegend>
 			</div>
 			{ 0 === packages.length
 				? noPackages()
