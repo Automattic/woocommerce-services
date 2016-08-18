@@ -1,17 +1,30 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import CompactCard from 'components/card/compact';
 import Button from 'components/button';
+import CompactCard from 'components/card/compact';
+import GlobalNotices from 'components/global-notices';
+import notices from 'notices';
 import PaymentMethodSelector from 'components/payment-method-selector';
+import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
 import * as SharedSettingsActions from 'shared-settings/state/actions';
-import notices from 'notices';
-import GlobalNotices from 'components/global-notices';
 
 const SharedSettingsRootView = ( props ) => {
 	const setValue = ( ) => {
+		// TODO
 	};
+
+	const paymentMethodDescriptionFormat = __( 'Manage your payment methods on %(startLink)sWordPress.com%(endLink)s' );
+	const paymentMethodDescription = sprintf(
+		paymentMethodDescriptionFormat,
+		{
+			startLink: '<a href="https://wordpress.com/me/billing" target="_blank">',
+			endLink: '</a>',
+		}
+	);
+
+	console.log( paymentMethodDescription );
 
 	return (
 		<div className="wcc-container">
@@ -20,8 +33,8 @@ const SharedSettingsRootView = ( props ) => {
 				<PaymentMethodSelector
 					paymentMethods={ props.formMeta.payment_methods }
 					title={ __( 'Payment Method' ) }
-					description={ __( 'Used for purchases of shipping labels. Add or edit your payment methods on WordPress.com' ) }
-					value={ props.formData.selected_payment_method_id ? props.formData.selected_payment_method_id : 0 }
+					description={ paymentMethodDescription }
+					value={ props.formData.selected_payment_method_id }
 					setValue={ setValue }
 				/>
 			</CompactCard>

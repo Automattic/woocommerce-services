@@ -49,7 +49,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function get_shared_settings() {
 			$default = array(
-				'selected_payment_method_id' => false
+				'selected_payment_method_id' => 0
 			);
 			return get_option( 'wc_connect_shared_settings', $default );
 		}
@@ -69,6 +69,22 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return update_option( 'wc_connect_shared_settings', $settings );;
+		}
+
+		public function get_selected_payment_method_id() {
+			$shared_settings = $this->get_shared_settings();
+			return intval( $shared_settings[ 'selected_payment_method_id' ] );
+		}
+
+		public function set_selected_payment_method_id( $new_payment_method_id ) {
+			$new_payment_method_id = intval( $new_payment_method_id );
+			$shared_settings = $this->get_shared_settings();
+			$old_payment_method_id = intval( $shared_settings[ 'selected_payment_method_id' ] );
+			if ( $old_payment_method_id === $new_payment_method_id ) {
+				return;
+			}
+			$shared_settings[ 'selected_payment_method_id' ] = $new_payment_method_id;
+			$this->update_shared_settings( $shared_settings );
 		}
 
 		public function get_origin_address() {

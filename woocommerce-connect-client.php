@@ -262,7 +262,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$api_client            = new WC_Connect_API_Client( $validator, $this );
 			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
-			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $api_client, $logger );
+			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger );
 			$settings_view         = new WC_Connect_Settings_View( $payment_methods_store, $settings_store, $logger );
 			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
