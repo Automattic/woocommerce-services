@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+'use strict';
 
 /**
  * Module dependencies/
  */
 const fs = require( 'fs' ),
 	Xgettext = require( 'xgettext-js' ),
-	preProcessXGettextJSMatch = require( '../node_modules/wp-calypso/server/i18n/preprocess-xgettextjs-match.js' ),
+	preProcessXGettextJSMatch = require( 'i18n-calypso/cli/preprocess-xgettextjs-match.js' ),
 	uniq = require( 'lodash/uniq' );
 
 // parser object that buids a WordPress php string for every
