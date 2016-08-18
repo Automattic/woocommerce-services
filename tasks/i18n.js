@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict';
+'use strict'; /* eslint strict: 0 */
 
 /**
  * Module dependencies/
@@ -60,11 +60,7 @@ function buildWordPressString( properties ) {
  */
 function buildPhpOutput( data, arrayName ) {
 	// find matching instances of `translate()` and generate corresponding php output
-	let matches = parser.getMatches( data );
-
-	matches = uniq( matches.map( function( match ) {
-		return match.string;
-	} ) );
+	const matches = uniq( parser.getMatches( data ).map( ( match ) => match.string ) );
 
 	// prepend the matches array with this content to open the php file
 	matches.unshift( [
