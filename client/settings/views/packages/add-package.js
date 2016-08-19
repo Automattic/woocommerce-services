@@ -121,7 +121,7 @@ const AddPackageDialog = ( props ) => {
 					id="name"
 					name="name"
 					placeholder={ __( 'The customer will see this during checkout' ) }
-					value={ name }
+					value={ name || '' }
 					onChange={ updateTextField }
 					isError={ modalErrors.name }
 				/>
@@ -132,7 +132,7 @@ const AddPackageDialog = ( props ) => {
 				<FormTextInput
 					name="inner_dimensions"
 					placeholder={ exampleDimensions }
-					value={ inner_dimensions }
+					value={ inner_dimensions || '' }
 					className={ fieldClassName }
 					onChange={ updateTextField }
 					disabled={ ! is_user_defined }
@@ -147,7 +147,7 @@ const AddPackageDialog = ( props ) => {
 						<FormTextInput
 							name="outer_dimensions"
 							placeholder={ exampleDimensions }
-							value={ outer_dimensions }
+							value={ outer_dimensions || '' }
 							className={ fieldClassName }
 							onChange={ updateTextField }
 							disabled={ ! is_user_defined }
@@ -164,7 +164,7 @@ const AddPackageDialog = ( props ) => {
 						id="box_weight"
 						name="box_weight"
 						placeholder={ __( 'Weight of box' ) }
-						value={ box_weight }
+						value={ box_weight || '' }
 						className={ fieldClassName }
 						onChange={ updateTextField }
 						disabled={ ! is_user_defined }
@@ -178,7 +178,7 @@ const AddPackageDialog = ( props ) => {
 						id="max_weight"
 						name="max_weight"
 						placeholder={ __( 'Max weight' ) }
-						value={ max_weight }
+						value={ max_weight || '' }
 						className={ fieldClassName }
 						onChange={ updateTextField }
 						disabled={ ! is_user_defined }
