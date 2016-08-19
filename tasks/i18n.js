@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+'use strict'; /* eslint strict: 0 */
 
 /**
  * Module dependencies/
  */
 const fs = require( 'fs' ),
 	Xgettext = require( 'xgettext-js' ),
-	preProcessXGettextJSMatch = require( '../node_modules/wp-calypso/server/i18n/preprocess-xgettextjs-match.js' ),
+	preProcessXGettextJSMatch = require( 'i18n-calypso/cli/preprocess-xgettextjs-match.js' ),
 	uniq = require( 'lodash/uniq' );
 
 // parser object that buids a WordPress php string for every
@@ -59,11 +60,7 @@ function buildWordPressString( properties ) {
  */
 function buildPhpOutput( data, arrayName ) {
 	// find matching instances of `translate()` and generate corresponding php output
-	let matches = parser.getMatches( data );
-
-	matches = uniq( matches.map( function( match ) {
-		return match.string;
-	} ) );
+	const matches = uniq( parser.getMatches( data ).map( ( match ) => match.string ) );
 
 	// prepend the matches array with this content to open the php file
 	matches.unshift( [

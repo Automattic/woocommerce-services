@@ -1,4 +1,5 @@
-/*eslint no-process-exit: 0, no-undef: 0 */
+/*eslint no-process-exit: 0, no-undef: 0, strict: 0 */
+'use strict';
 require( 'shelljs/global' );
 const colors = require( 'colors' );
 const confirm = require( 'confirm-simple' );
