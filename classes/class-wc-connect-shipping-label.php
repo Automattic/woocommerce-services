@@ -132,6 +132,42 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $result;
 		}
 
+		public function should_show_meta_box() {
+			global $post, $theorder;
+
+			if ( ! is_object( $post ) ) {
+				return FALSE;
+			}
+
+			if ( ! is_object( $theorder ) ) {
+				$theorder = wc_get_order( $post->ID );
+			}
+
+			if ( ! $theorder ) {
+				return FALSE;
+			}
+
+			// TODO: return TRUE if the order has already label meta-data
+
+			$base_location = wc_get_base_location();
+			if ( 'US' !== $base_location[ 'country' ] ) {
+				return FALSE;
+			}
+
+			$dest_address = $theorder->get_address( 'shipping' );
+			if ( $dest_address[ 'country' ] && 'US' !== $dest_address[ 'country' ] ) {
+				return FALSE;
+			}
+
+			foreach( $theorder->get_items() as $item ) {
+				$product = $theorder->get_product_from_item( $item );
+				if ( $product && $product->needs_shipping() ) {
+					return TRUE;
+				}
+			}
+			return FALSE;
+		}
+
 		public function meta_box( $post ) {
 			global $theorder;
 
