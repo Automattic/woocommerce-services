@@ -36,6 +36,14 @@ const Destination = ( props ) => {
 	);
 };
 
+Origin.propTypes = Destination.propTypes = {
+	form: PropTypes.object.isRequired,
+	group: PropTypes.string.isRequired,
+	labelActions: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
+	errors: PropTypes.object.isRequired,
+};
+
 export default {
 	Origin,
 	Destination,

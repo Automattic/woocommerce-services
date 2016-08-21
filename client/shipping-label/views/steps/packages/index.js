@@ -23,4 +23,11 @@ const PackagesStep = ( { form, storeOptions, labelActions, errors } ) => {
 	);
 };
 
+PackagesStep.propTypes = {
+	form: PropTypes.object.isRequired,
+	labelActions: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
+	errors: PropTypes.object.isRequired,
+};
+
 export default PackagesStep;

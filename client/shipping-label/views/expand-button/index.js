@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 

@@ -27,4 +27,11 @@ const RatesStep = ( { form, storeOptions, labelActions, errors } ) => {
 	);
 };
 
+RatesStep.propTypes = {
+	form: PropTypes.object.isRequired,
+	labelActions: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
+	errors: PropTypes.object.isRequired,
+};
+
 export default RatesStep;

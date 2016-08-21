@@ -23,4 +23,10 @@ const PreviewStep = ( { form, labelActions } ) => {
 	);
 };
 
+PreviewStep.propTypes = {
+	form: PropTypes.object.isRequired,
+	labelActions: PropTypes.object.isRequired,
+	errors: PropTypes.object.isRequired,
+};
+
 export default PreviewStep;
