@@ -7,6 +7,7 @@ import PrintLabelDialog from './dialog';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
+import getFormErrors from 'shipping-label/state/selectors/errors';
 
 const ShippingLabelRootView = ( props ) => {
 	const renderPrintLabelFlow = () => {
@@ -37,9 +38,10 @@ ShippingLabelRootView.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 };
 
-function mapStateToProps( state ) {
+function mapStateToProps( state, { storeOptions } ) {
 	return {
 		shippingLabel: state.shippingLabel,
+		errors: getFormErrors( state, storeOptions ),
 	};
 }
 

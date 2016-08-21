@@ -4,7 +4,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
 import ExpandButton from 'shipping-label/views/expand-button';
 
-const RatesStep = ( { form, storeOptions, labelActions } ) => {
+const RatesStep = ( { form, storeOptions, labelActions, errors } ) => {
 	return (
 		<FoldableCard
 			header={ __( 'Rates' ) }
@@ -22,7 +22,7 @@ const RatesStep = ( { form, storeOptions, labelActions } ) => {
 				dimensionUnit={ storeOptions.dimension_unit }
 				weightUnit={ storeOptions.weight_unit }
 				currencySymbol={ storeOptions.currency_symbol }
-				errors={ {} } />
+				errors={ errors } />
 		</FoldableCard>
 	);
 };

@@ -24,7 +24,7 @@ reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
 };
 
 reducers[ UPDATE_ADDRESS_VALUE ] = ( state, { group, name, value } ) => {
-	return { ...state,
+	const newState = { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
 				values: { ...state.form[ group ].values,
@@ -35,6 +35,10 @@ reducers[ UPDATE_ADDRESS_VALUE ] = ( state, { group, name, value } ) => {
 			},
 		},
 	};
+	if ( 'country' === name ) {
+		return reducers[ UPDATE_ADDRESS_VALUE ]( newState, { group, name: 'state', value: '' } );
+	}
+	return newState;
 };
 
 reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageIndex, value } ) => {

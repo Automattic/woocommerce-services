@@ -2,15 +2,23 @@ import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 import { translate as __ } from 'lib/mixins/i18n';
 
-const ShippingRates = ( { id, selectedRates, availableRates, packages, updateRate, dimensionUnit, weightUnit, currencySymbol, errors } ) => {
+const ShippingRates = ( {
+		id,
+		selectedRates,
+		availableRates,
+		packages,
+		updateRate,
+		dimensionUnit,
+		weightUnit,
+		currencySymbol,
+		errors,
+	} ) => {
 	const renderTitle = ( pckg ) => {
 		return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit} (${pckg.weight} ${weightUnit})`;
 	};
 
 	const renderSinglePackage = ( pckg, index ) => {
 		const selectedRate = selectedRates[ index ] || '';
-		const errorObject = ( errors[ index ] || {} )[ '' ];
-		const error = errorObject ? errorObject.value : null;
 
 		const valuesMap = { '': __( 'Select one...' ) };
 		Object.keys( availableRates[ index ] ).forEach( ( serviceId ) => {
@@ -26,7 +34,7 @@ const ShippingRates = ( { id, selectedRates, availableRates, packages, updateRat
 					title={ renderTitle( pckg ) }
 					value={ selectedRate }
 					updateValue={ ( value ) => updateRate( index, value ) }
-					error={ error } />
+					error={ errors[ index ] } />
 			</li>
 		);
 	};

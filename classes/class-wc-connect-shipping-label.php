@@ -112,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'city' => $dest_address[ 'city' ],
 				'state' => $dest_address[ 'state' ],
 				'postcode' => $dest_address[ 'postcode' ],
-				'country' => $dest_address[ 'country' ],
+				'country' => $dest_address[ 'country' ] ? $dest_address[ 'country' ] : 'US',
 			);
 
 			return $form_data;
