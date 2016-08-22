@@ -73,6 +73,7 @@ module.exports = {
 		'padded-blocks': [ 1, 'never' ],
 		'quote-props': [ 1, 'as-needed' ],
 		'quotes': [ 1, 'single', 'avoid-escape' ],
+		'semi': [ 'error', 'always' ],
 		'semi-spacing': 1,
 		'space-before-blocks': [ 1, 'always' ],
 		'space-before-function-paren': [ 1, 'never' ],

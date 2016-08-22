@@ -139,7 +139,7 @@ describe( 'Packages form reducer', () => {
 	it( 'TOGGLE_OUTER_DIMENSIONS', () => {
 		const visibleModalState = {
 			showModal: true,
-		}
+		};
 		const action = toggleOuterDimensions();
 		const state = reducer( visibleModalState, action );
 

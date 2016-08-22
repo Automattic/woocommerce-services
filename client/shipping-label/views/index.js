@@ -18,7 +18,7 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderSuccessNotice = () => {
-		return <span>{ __( 'The shipping label has been successfully purchased.' ) }</span>
+		return <span>{ __( 'The shipping label has been successfully purchased.' ) }</span>;
 	};
 
 	return (

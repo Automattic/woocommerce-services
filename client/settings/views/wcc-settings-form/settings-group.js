@@ -90,7 +90,7 @@ const SettingsGroup = ( props ) => {
 				<div className="settings-group-default">
 					{ renderSettingsItems() }
 				</div>
-			)
+			);
 	}
 };
 
