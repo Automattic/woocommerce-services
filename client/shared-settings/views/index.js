@@ -24,8 +24,6 @@ const SharedSettingsRootView = ( props ) => {
 		}
 	);
 
-	console.log( paymentMethodDescription );
-
 	return (
 		<div className="wcc-container">
 			<GlobalNotices id="notices" notices={ notices.list } />

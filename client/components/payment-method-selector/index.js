@@ -34,10 +34,12 @@ const PaymentMethodSelector = ( { paymentMethods, title, description, value, set
 	const hasMethods = 0 < paymentMethods.length;
 
 	return (
-		<FormFieldset>
+		<FormFieldset className="payment-method-selector">
 			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FieldDescription text={ description } />
-			{ hasMethods ? renderPaymentMethods() : renderNoMethods() }
+			<div className="payment-method-selector__payment-methods">
+				{ hasMethods ? renderPaymentMethods() : renderNoMethods() }
+			</div>
 		</FormFieldset>
 	);
 };

@@ -16,6 +16,7 @@
 		color: $gray-dark;
 		flex-basis: 100%;
 		font-weight: 600;
+		text-transform: uppercase;
 	}
 
 	.payment-method__expiration-date {
@@ -24,6 +25,10 @@
 		opacity: 0.7;
 		white-space: nowrap;
 	}
+}
+
+input[type=radio].payment-method__radio.form-radio {
+	margin-top: 25px;
 }
 
 .payment-method.visa {
