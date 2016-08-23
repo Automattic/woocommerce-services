@@ -52,14 +52,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $packages;
 		}
 
-		protected function get_packaging_data( WC_Order $order ) {
+		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return array( FALSE, $this->get_items_as_individual_packages( $order ) );
+				return FALSE;
 			}
 
-			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			return json_decode( $shipping_method[ 'wc_connect_packages' ], TRUE );
+		}
+
+		protected function get_packages( WC_Order $order ) {
+			$packages = $this->get_packaging_metadata( $order );
+			if ( ! $packages ) {
+				return $this->get_items_as_individual_packages( $order );
+			}
 
 			foreach( $packages as $package_index => $package ) {
 				foreach( $package[ 'items' ] as $item_index => $item ) {
@@ -71,7 +78,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 			}
 
-			return array( TRUE, $packages );
+			return $packages;
 		}
 
 		protected function get_selected_rates( WC_Order $order ) {
@@ -97,7 +104,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$form_data = array();
 
-			list( $form_data[ 'is_packed' ], $form_data[ 'packages' ] ) = $this->get_packaging_data( $order );
+			$form_data[ 'is_packed' ] = FALSE !== $this->get_packaging_metadata( $order );
+			$form_data[ 'packages' ] = $this->get_packages( $order );
 
 			$form_data[ 'rates' ] = $this->get_selected_rates( $order );
 
