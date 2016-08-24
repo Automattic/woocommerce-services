@@ -1,18 +1,24 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import Button from 'components/button';
+import ActionButtons from 'components/action-buttons';
 import CompactCard from 'components/card/compact';
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
 import PaymentMethodSelector from 'components/payment-method-selector';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
-import * as SharedSettingsActions from 'shared-settings/state/actions';
+import * as actions from 'lib/form-base/actions';
 
 const SharedSettingsRootView = ( props ) => {
-	const setValue = ( ) => {
-		// TODO
+	const onChange = ( value ) => {
+		console.log( 'in onChange, value=', value );
+	};
+
+	const saveForm = ( key, value ) => {
+		console.log( 'in SharedSettingsRootView saveForm, key=', key );
+		console.log( 'in SharedSettingsRootView saveForm, value=', value );
+		// todo - set state and initiate save
 	};
 
 	const paymentMethodDescriptionFormat = __( 'Manage your payment methods on %(startLink)sWordPress.com%(endLink)s' );
@@ -24,41 +30,51 @@ const SharedSettingsRootView = ( props ) => {
 		}
 	);
 
+	const buttons = [
+		{
+			label: __( 'Save changes' ),
+			onClick: saveForm,
+			isPrimary: true,
+			isDisabled: false,
+		},
+	];
+
 	return (
 		<div className="wcc-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<CompactCard>
 				<PaymentMethodSelector
-					paymentMethods={ props.formMeta.payment_methods }
-					title={ __( 'Payment Method' ) }
 					description={ paymentMethodDescription }
+					paymentMethods={ props.formMeta.payment_methods }
+					onChange={ onChange }
+					title={ __( 'Payment Method' ) }
 					value={ props.formData.selected_payment_method_id }
-					setValue={ setValue }
 				/>
 			</CompactCard>
 			<CompactCard className="save-button-bar">
-				<Button>
-					{ __( 'Save' ) }
-				</Button>
+				<ActionButtons
+					buttons={ buttons }
+				/>
 			</CompactCard>
 		</div>
 	);
 };
 
 SharedSettingsRootView.propTypes = {
+	saveForm: PropTypes.func,
 	storeOptions: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state ) {
 	return {
-		formData: state.formData,
-		formMeta: state.formMeta,
+		formData: state.form.data,
+		formMeta: state.form.meta,
 	};
 }
 
 function mapDispatchToProps( dispatch ) {
 	return {
-		actions: bindActionCreators( SharedSettingsActions, dispatch ),
+		actions: bindActionCreators( actions, dispatch ),
 	};
 }
 

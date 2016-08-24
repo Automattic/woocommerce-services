@@ -98,7 +98,7 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 
 			?>
 				<h2>
-					<?php _e( 'Settings', 'woocommerce' ); ?>
+					<?php _e( 'Account', 'woocommerce' ); ?>
 				</h2>
 				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php

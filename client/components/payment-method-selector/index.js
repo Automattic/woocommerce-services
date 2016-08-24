@@ -6,7 +6,7 @@ import PaymentMethod from '../payment-method';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 import { translate as __ } from 'lib/mixins/i18n';
 
-const PaymentMethodSelector = ( { paymentMethods, title, description, value, setValue } ) => {
+const PaymentMethodSelector = ( { paymentMethods, title, description, value, onChange } ) => {
 	const renderNoMethods = () => (
 		<p>
 			{ __( 'No payment methods available' ) }
@@ -21,7 +21,7 @@ const PaymentMethodSelector = ( { paymentMethods, title, description, value, set
 					key={ paymentMethod.payment_method_id }
 					value={ methodValue }
 					currentValue={ value }
-					setValue={ setValue }
+					onChange={ () => onChange( methodValue ) }
 					name={ paymentMethod.name }
 					cardType={ paymentMethod.card_type }
 					cardDigits={ paymentMethod.card_digits }
@@ -47,9 +47,9 @@ const PaymentMethodSelector = ( { paymentMethods, title, description, value, set
 PaymentMethodSelector.propTypes = {
 	description: PropTypes.string,
 	paymentMethods: PropTypes.array.isRequired,
+	onChange: PropTypes.func.isRequired,
 	title: PropTypes.string,
 	value: PropTypes.number.isRequired,
-	setValue: PropTypes.func.isRequired,
 };
 
 export default PaymentMethodSelector;

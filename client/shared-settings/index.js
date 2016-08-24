@@ -1,30 +1,34 @@
 import React from 'react';
 import { combineReducers } from 'redux';
 import SharedSettingsRootView from './views';
-import reducer from './state/reducer';
+import reducer from 'lib/form-base/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formMeta, formData, storeOptions } ) => ( {
+export default ( { formData, formMeta, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
-			formData: reducer,
-			formMeta: reducer,
+			form: reducer,
 			notices,
 		} );
 	},
 
 	getHotReducer() {
 		return combineReducers( {
-			formData: require( './state/reducer' ),
+			form: reducer,
 			notices,
 		} );
 	},
 
 	getInitialState() {
+		const initialMeta = require( 'lib/form-base/reducer' ).initialState.meta;
+		const combinedMeta = Object.assign( {}, initialMeta, formMeta );
+
 		return {
-			formData: formData,
-			formMeta: formMeta,
+			form: {
+				data: formData,
+				meta: combinedMeta,
+			},
 		};
 	},
 

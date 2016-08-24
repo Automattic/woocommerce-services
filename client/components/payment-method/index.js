@@ -7,7 +7,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 // TODO - create PaymentMethod like https://github.com/Automattic/wp-calypso/blob/29984e5677960bdba231577a253cf864d4f17796/client/my-sites/upgrades/checkout/stored-card.jsx
 // or https://github.com/Automattic/wp-calypso/tree/29984e5677960bdba231577a253cf864d4f17796/client/my-sites/upgrades/checkout
 
-const PaymentMethod = ( { value, currentValue, setValue, name, cardType, cardDigits, expiry } ) => {
+const PaymentMethod = ( { value, currentValue, onChange, name, cardType, cardDigits, expiry } ) => {
 	const cardClasses = 'payment-method ' + cardType.toLowerCase();
 	const expirationDate = sprintf( __( 'Expires %(monthAndYear)s' ),
 		{
@@ -17,7 +17,12 @@ const PaymentMethod = ( { value, currentValue, setValue, name, cardType, cardDig
 
 	return (
 		<FormLabel className="payment-method__label">
-			<FormRadio className="payment-method__radio" value={ value } checked={ value === currentValue } onChange={ () => setValue( value ) } />
+			<FormRadio
+				className="payment-method__radio"
+				value={ value }
+				checked={ value === currentValue }
+				onChange={ () => onChange( value ) }
+			/>
 			<div className={ cardClasses }>
 				<span className="payment-method__number">{ cardType } ****{ cardDigits }</span>
 				<span className="payment-method__name">{ name }</span>
@@ -35,7 +40,7 @@ PaymentMethod.propTypes = {
 	cardType: PropTypes.string.isRequired,
 	expiry: PropTypes.string,
 	name: PropTypes.string,
-	setValue: PropTypes.func.isRequired,
+	onChange: PropTypes.func.isRequired,
 	value: PropTypes.number.isRequired,
 };
 
