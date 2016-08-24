@@ -83,7 +83,7 @@ if ( module.hot ) {
 	module.hot.accept( [
 		'./settings/state/reducer',
 		'./shipping-label/state/reducer',
-		'./shared-settings/state/reducer',
+		'./lib/form-base/reducer',
 	], () => {
 		store.replaceReducer( Route.getHotReducer() );
 	} );

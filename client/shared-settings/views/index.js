@@ -9,18 +9,13 @@ import PaymentMethodSelector from 'components/payment-method-selector';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
 import * as actions from 'lib/form-base/actions';
+import * as NoticeActions from 'state/notices/actions';
 
 const SharedSettingsRootView = ( props ) => {
 	const onPaymentMethodChange = ( value ) => props.actions.setFormDataValue( 'selected_payment_method_id', value );
 
-	const onSaveSuccess = () => {
-		console.log( 'in SharedSettingsRootView onSaveSuccess' );
-	}
-
-	const onSaveFailure = () => {
-		console.log( 'in SharedSettingsRootView onSaveFailure' );
-	}
-
+	const onSaveSuccess = () => props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 2250 } );
+	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to update your payment method. Please try again.' ), { duration: 7000 } );
 	const onSaveChanges = () => props.actions.saveForm( onSaveSuccess, onSaveFailure );
 
 	const paymentMethodDescriptionFormat = __( 'Manage your payment methods on %(startLink)sWordPress.com%(endLink)s' );
@@ -77,6 +72,7 @@ function mapStateToProps( state ) {
 function mapDispatchToProps( dispatch ) {
 	return {
 		actions: bindActionCreators( actions, dispatch ),
+		noticeActions: bindActionCreators( NoticeActions, dispatch ),
 	};
 }
 
