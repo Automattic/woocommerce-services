@@ -16,7 +16,7 @@ const PreviewStep = ( { form, labelActions } ) => {
 			<Dropdown
 				id="paper_size"
 				title={ __( 'Paper size' ) }
-				valuesMap={ { a4: 'A4', '4x6': '4"x6"' } }
+				valuesMap={ { letter: 'Letter', '4x6': '4"x6"' } }
 				value={ form.preview.values.paper_size }
 				updateValue={ labelActions.updatePaperSize } />
 		</FoldableCard>

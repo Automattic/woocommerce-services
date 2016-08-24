@@ -69,7 +69,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
-		$settings = json_decode( $request_body, TRUE, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
 		$response = $this->api_client->send_shipping_label_request( $settings );
 
@@ -95,7 +95,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 
 		return array(
 			'labels' => $labels_data,
-			'success' => TRUE,
+			'success' => true,
 		);
 	}
 

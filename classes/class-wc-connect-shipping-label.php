@@ -56,10 +56,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return FALSE;
+				return false;
 			}
 
-			return json_decode( $shipping_method[ 'wc_connect_packages' ], TRUE );
+			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
 		}
 
 		protected function get_packages( WC_Order $order ) {
@@ -104,7 +104,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$form_data = array();
 
-			$form_data[ 'is_packed' ] = FALSE !== $this->get_packaging_metadata( $order );
+			$form_data[ 'is_packed' ] = false !== $this->get_packaging_metadata( $order );
 			$form_data[ 'packages' ] = $this->get_packages( $order );
 
 			$form_data[ 'rates' ] = $this->get_selected_rates( $order );

@@ -71,11 +71,10 @@ export const purchaseLabel = () => ( dispatch, getState, { callbackURL, nonce, s
 		} else {
 			dispatch( { type: PURCHASE_LABEL_RESPONSE, response, error } );
 			if ( error ) {
-				dispatch( NoticeActions.errorNotice( error.toString(), {
-					duration: 7000,
-				} ) );
+				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
 				printDocument( 'data:application/pdf;base64,' + response[ 0 ].image ); // TODO: Figure out how to print multiple PDFs
+				dispatch( exitPrintingFlow() );
 			}
 		}
 	};
