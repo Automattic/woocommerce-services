@@ -11,9 +11,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import * as actions from 'lib/form-base/actions';
 
 const SharedSettingsRootView = ( props ) => {
-	const onChange = ( value ) => {
-		console.log( 'in onChange, value=', value );
-	};
+	const onPaymentMethodChange = ( value ) => props.actions.setFormDataValue( 'selected_payment_method_id', value );
 
 	const saveForm = ( key, value ) => {
 		console.log( 'in SharedSettingsRootView saveForm, key=', key );
@@ -46,7 +44,7 @@ const SharedSettingsRootView = ( props ) => {
 				<PaymentMethodSelector
 					description={ paymentMethodDescription }
 					paymentMethods={ props.formMeta.payment_methods }
-					onChange={ onChange }
+					onChange={ onPaymentMethodChange }
 					title={ __( 'Payment Method' ) }
 					value={ props.formData.selected_payment_method_id }
 				/>

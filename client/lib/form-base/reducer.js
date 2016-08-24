@@ -14,34 +14,21 @@ export const initialState = {
 const reducers = {};
 
 reducers[ SET_FORM_DATA_VALUE ] = ( state, action ) => {
-	return Object.assign( {}, state, {
-		meta: [
-			...state.meta,
-			{
-				pristine: false,
-			},
-		],
-		data: [
-			...state.data,
-			{
-				[ action.key ]: action.value,
-			},
-		],
-	} );
+	const data = Object.assign( {}, state.data, { [ action.key ]: action.value } );
+	const meta = Object.assign( {}, state.meta, { pristine: false } );
+	return {
+		meta: meta,
+		data: data,
+	};
 };
 
 reducers[ SET_FORM_META_PROPERTY ] = ( state, action ) => {
-	return Object.assign( {}, state, {
-		meta: [
-			...state.meta,
-			{
-				[ action.key ]: action.value,
-			},
-		],
-		data: [
-			...state.data,
-		],
-	} );
+	const data = Object.assign( {}, state.data );
+	const meta = Object.assign( {}, state.meta, { [ action.key ]: action.value } );
+	return {
+		meta: meta,
+		data: data,
+	};
 };
 
 const reducer = ( state, action ) => {
