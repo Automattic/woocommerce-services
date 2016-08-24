@@ -13,11 +13,15 @@ import * as actions from 'lib/form-base/actions';
 const SharedSettingsRootView = ( props ) => {
 	const onPaymentMethodChange = ( value ) => props.actions.setFormDataValue( 'selected_payment_method_id', value );
 
-	const saveForm = ( key, value ) => {
-		console.log( 'in SharedSettingsRootView saveForm, key=', key );
-		console.log( 'in SharedSettingsRootView saveForm, value=', value );
-		// todo - set state and initiate save
-	};
+	const onSaveSuccess = () => {
+		console.log( 'in SharedSettingsRootView onSaveSuccess' );
+	}
+
+	const onSaveFailure = () => {
+		console.log( 'in SharedSettingsRootView onSaveFailure' );
+	}
+
+	const onSaveChanges = () => props.actions.saveForm( onSaveSuccess, onSaveFailure );
 
 	const paymentMethodDescriptionFormat = __( 'Manage your payment methods on %(startLink)sWordPress.com%(endLink)s' );
 	const paymentMethodDescription = sprintf(
@@ -31,7 +35,7 @@ const SharedSettingsRootView = ( props ) => {
 	const buttons = [
 		{
 			label: __( 'Save changes' ),
-			onClick: saveForm,
+			onClick: onSaveChanges,
 			isPrimary: true,
 			isDisabled: false,
 		},

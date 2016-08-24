@@ -17,3 +17,68 @@ export const setFormMetaProperty = ( key, value ) => {
 		value,
 	};
 };
+
+export const SAVE_FORM = 'SAVE_FORM';
+
+// The callbackURL, nonce and submitMethod are extracted from wcConnectData
+// courtesy thunk.withExtraArgument in main.js
+export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+	dispatch( setFormMetaProperty( 'isSaving', true ) );
+
+	const request = {
+		method: submitMethod || 'PUT',
+		credentials: 'same-origin',
+		headers: {
+			'X-WP-Nonce': nonce,
+		},
+		body: JSON.stringify( getState().form.data ),
+	};
+
+	return fetch( callbackURL, request ).then( response => {
+		dispatch( setFormMetaProperty( 'isSaving', false ) );
+
+		return response.json().then( json => {
+			if ( json.success ) {
+				console.log( 'success' );
+				onSaveSuccess();
+			} else {
+				console.log( 'failure' );
+				onSaveFailure();
+			}
+		} );
+	} );
+};
+
+	//
+	// 		return fetch( url, request ).then( response => {
+	// 			setError( null );
+	// 			setSuccess( false );
+	//
+	// 			return response.json().then( json => {
+	// 				if ( json.success ) {
+	// 					return setSuccess( true, json );
+	// 				}
+	//
+	// 				if ( 'validation_failure' === Get( json, 'data.error' ) && Get( json, 'data.data.fields' ) ) {
+	// 					let fieldsStatus = json.data.data.fields;
+	// 					// Some services still give the field errors in an array, keep backwards-compatibility
+	// 					if ( isArray( fieldsStatus ) ) {
+	// 						fieldsStatus = {};
+	// 						json.data.data.fields.forEach( ( fieldName ) => fieldsStatus[ fieldName ] = EMPTY_ERROR );
+	// 					}
+	// 					return setFieldsStatus( fieldsStatus );
+	// 				}
+	//
+	// 				if ( json.data.message ) {
+	// 					return setError( json.data.message );
+	// 				}
+	//
+	// 				return setError( JSON.stringify( json ) );
+	// 			} ).then( () => setIsSaving( false ) );
+	// 		} ).catch( ( e ) => {
+	// 			setError( e );
+	// 			setIsSaving( false );
+	// 		} );
+	// 	};
+	// };
+//};

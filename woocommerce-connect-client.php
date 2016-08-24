@@ -177,7 +177,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function set_rest_settings_controller( WC_REST_Connect_Settings_Controller $rest_settings_controller ) {
-			$this->$rest_settings_controller = $rest_settings_controller;
+			$this->rest_settings_controller = $rest_settings_controller;
 		}
 
 		public function get_rest_services_controller() {
@@ -339,7 +339,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-settings-controller.php' ) );
-			$rest_settings_controller = new WC_REST_Connect_Settings_Controller( $settings_store );
+			$rest_settings_controller = new WC_REST_Connect_Settings_Controller( $this->api_client, $settings_store );
 			$this->set_rest_settings_controller( $rest_settings_controller );
 			$rest_settings_controller->register_routes();
 
