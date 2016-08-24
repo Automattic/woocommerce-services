@@ -32,7 +32,7 @@ const SharedSettingsRootView = ( props ) => {
 			label: __( 'Save changes' ),
 			onClick: onSaveChanges,
 			isPrimary: true,
-			isDisabled: false,
+			isDisabled: props.formMeta.pristine || props.formMeta.isSaving,
 		},
 	];
 
