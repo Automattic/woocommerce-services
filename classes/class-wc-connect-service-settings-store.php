@@ -287,6 +287,24 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return 'woocommerce_' . $service_id . '_' . $service_instance . '_failure_timestamp';
 		}
 
+		/**
+		 * Returns a global list of packages
+		 *
+		 * @return array
+		 */
+		public function get_packages() {
+			return get_option( 'wc_connect_packages', array() );
+		}
+
+		/**
+		 * Updates the global list of packages
+		 *
+		 * @param array packages
+		 */
+		public function update_packages( $packages ) {
+			update_option( 'wc_connect_packages', $packages );
+		}
+
 
 		private function translate_unit( $value ) {
 			switch ( $value ) {

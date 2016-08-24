@@ -1,7 +1,9 @@
 import {
 	ADD_PACKAGE,
+	REMOVE_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_IS_SAVING,
 	SET_MODAL_ERRORS,
 	SET_SELECTED_PRESET,
 	UPDATE_PACKAGES_FIELD,
@@ -10,6 +12,11 @@ import {
 } from './actions';
 import omitBy from 'lodash/omitBy';
 import trim from 'lodash/trim';
+import omit from 'lodash/omit';
+
+export const initialState = {
+	modalErrors: {},
+};
 
 const isNullOrEmpty = ( value ) => null === value || '' === trim( value );
 
@@ -62,18 +69,41 @@ reducers[ UPDATE_PACKAGES_FIELD ] = ( state, action ) => {
 	const newPackageData = omitBy( mergedPackageData, isNullOrEmpty );
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
+		pristine: false,
 	} );
 };
 
-reducers[ SAVE_PACKAGE ] = ( state ) => {
+reducers[ SAVE_PACKAGE ] = ( state, action ) => {
+	const packageData = action.packageData;
+	const packages = state.packages || [];
+
+	if ( packageData.box_weight ) {
+		packageData.box_weight = Number.parseFloat( packageData.box_weight );
+	}
+
+	if ( packageData.max_weight ) {
+		packageData.max_weight = Number.parseFloat( packageData.max_weight );
+	}
+
+	if ( 'index' in packageData ) {
+		const { index } = packageData;
+		const item = omit( packageData, 'index' );
+
+		packages[ index ] = item;
+	} else {
+		packages.push( packageData );
+	}
+
 	return Object.assign( {}, state, {
 		showModal: false,
 		mode: 'add',
 		packageData: {
 			is_user_defined: true,
 		},
+		packages,
 		showOuterDimensions: false,
 		selectedPreset: null,
+		pristine: false,
 	} );
 };
 
@@ -83,7 +113,23 @@ reducers[ TOGGLE_OUTER_DIMENSIONS ] = ( state ) => {
 	} );
 };
 
-const packages = ( state = {}, action ) => {
+reducers[ REMOVE_PACKAGE ] = ( state, action ) => {
+	const packages = ( state.packages || [] ).slice();
+	packages.splice( action.index, 1 );
+	return Object.assign( {}, state, {
+		packages,
+		pristine: false,
+	} );
+};
+
+reducers[ SET_IS_SAVING ] = ( state, action ) => {
+	return Object.assign( {}, state, {
+		isSaving: action.isSaving,
+		pristine: ! action.isSaving, //set pristine after the form has been saved
+	} );
+};
+
+const packages = ( state = initialState, action ) => {
 	if ( 'function' === typeof reducers[ action.type ] ) {
 		return reducers[ action.type ]( state, action );
 	}

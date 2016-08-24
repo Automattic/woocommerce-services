@@ -10,7 +10,9 @@ import Dropdown from 'components/dropdown';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
 import ShippingServiceGroups from 'settings/views/services';
-import Packages from 'settings/views/packages';
+import FormLegend from 'components/forms/form-legend';
+import { sprintf } from 'sprintf-js';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const SettingsItem = ( {
 	form,
@@ -18,15 +20,12 @@ const SettingsItem = ( {
 	schema,
 	formValueActions,
 	storeOptions,
-	packagesActions,
 	errors,
 	saveForm,
 } ) => {
 	const id = layout.key ? layout.key : layout;
 	const updateValue = ( value ) => formValueActions.updateField( id, value );
 	const updateSubValue = ( key, val ) => formValueActions.updateField( [ id ].concat( key ), val );
-	const removeArrayItem = ( idx ) => formValueActions.removeField( [ id ].concat( idx ) );
-	const savePackage = ( packageData ) => packagesActions.savePackage( id, packageData );
 	const fieldValue = form.values[ id ];
 	const fieldSchema = schema.properties[ id ];
 	const fieldType = layout.type || fieldSchema.type || '';
@@ -102,20 +101,18 @@ const SettingsItem = ( {
 			);
 
 		case 'packages':
-			const packagesState = form.packages;
+			const packagesMsg = sprintf(
+				__( 'Add and edit saved packages using the <a href="%(url)s" target="_blank">Packaging Manager</a>.' ),
+				{
+					url: 'admin.php?page=wc-settings&tab=connect&section=packages',
+				}
+			);
+
 			return (
-				<Packages
-					{ ...packagesState }
-					{ ...packagesActions }
-					packages={ fieldValue }
-					presets={ schema.definitions.preset_boxes }
-					dimensionUnit={ storeOptions.dimension_unit }
-					removePackage={ removeArrayItem }
-					savePackage={ savePackage }
-					weightUnit={ storeOptions.weight_unit }
-					errors={ errors }
-					packageSchema={ fieldSchema.items }
-				/>
+				<div>
+					<FormLegend>{ __( 'Saved Packages' ) }</FormLegend>
+					<div dangerouslySetInnerHTML={ { __html: packagesMsg } } />
+				</div>
 			);
 
 		case 'indicators':
@@ -203,7 +200,6 @@ SettingsItem.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
 	formValueActions: PropTypes.object.isRequired,
-	packagesActions: PropTypes.object.isRequired,
 	errors: PropTypes.object,
 	saveForm: PropTypes.func,
 	countriesData: PropTypes.object,

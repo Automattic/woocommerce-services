@@ -163,5 +163,19 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			return null;
 		}
+
+		/**
+		 * Returns packages schema
+		 *
+		 * @return object|null Packages schema on success, null on failure
+		 */
+		public function get_packages_schema() {
+			$service_schemas = $this->get_service_schemas();
+			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'boxes' ) ) {
+				return null;
+			}
+
+			return $service_schemas->boxes;
+		}
 	}
 }

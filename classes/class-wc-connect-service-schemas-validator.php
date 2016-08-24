@@ -20,38 +20,38 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 				);
 			}
 
-			foreach ( $service_schemas as $service_type => $service_type_service_schemas ) {
-				if ( ! is_array( $service_type_service_schemas ) ) {
+			if ( ! isset( $service_schemas->shipping ) || ! is_array( $service_schemas->shipping ) ) {
+				return new WP_Error(
+					'service_type_not_ref_array',
+					'Malformed service schemas. \'shipping\' does not reference an array.'
+				);
+			}
+
+			$service_counter = 0;
+			foreach ( $service_schemas->shipping as $service_schema ) {
+				if ( ! is_object( $service_schema ) ) {
 					return new WP_Error(
-						'service_type_not_ref_array',
+						'service_not_ref_object',
 						sprintf(
-							'Malformed service schemas. Service type \'%s\' does not reference an array.',
-							$service_type
+							'Malformed service schema. Service type \'shipping\' [%d] does not reference an object.',
+							$service_counter
 						)
 					);
 				}
 
-				$service_counter = 0;
-				foreach ( $service_type_service_schemas as $service_schema ) {
-					if ( ! is_object( $service_schema ) ) {
-						return new WP_Error(
-							'service_not_ref_object',
-							sprintf(
-								'Malformed service schema. Service type \'%s\' [%d] does not reference an object.',
-								$service_type,
-								$service_counter
-							)
-						);
-					}
-
-					$result = $this->validate_service_schema( $service_type, $service_counter, $service_schema );
-					if ( is_wp_error( $result ) ) {
-						return $result;
-					}
-
-					$service_counter ++;
+				$result = $this->validate_service_schema( 'shipping', $service_counter, $service_schema );
+				if ( is_wp_error( $result ) ) {
+					return $result;
 				}
 
+				$service_counter ++;
+			}
+
+			if ( ! isset( $service_schemas->boxes ) || ! is_object( $service_schemas->boxes ) ) {
+				return new WP_Error(
+					'boxes_not_object',
+					'Malformed service schemas. \'boxes\' is not an object.'
+				);
 			}
 
 			return true;
@@ -103,7 +103,6 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 						)
 					);
 				}
-
 			}
 
 			return $this->validate_service_schema_settings( $service_schema->id, $service_schema->service_settings );

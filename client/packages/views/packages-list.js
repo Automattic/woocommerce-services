@@ -16,24 +16,13 @@ const noPackages = () => {
 	);
 };
 
-const PackagesList = ( {
-	packages,
-	dimensionUnit,
-	removePackage,
-	editPackage,
-	errors,
-} ) => {
-	const renderPackageListItem = ( pckg, idx ) => {
-		/*
-		 * Errors found in array items contain the array item index in their path
-		 *
-		 * e.g.: { 'boxes': { '0': { 'inner_dimensions': {...} } } }
-		 *
-		 * At this point, the errant field's parents have been stripped from the path, so we're
-		 * looking for paths that begin just with the index of this package.
-		 */
-		const hasError = errors[ idx ];
+const PackagesList = ( { form, removePackage, editPackage } ) => {
+	const {
+		packages,
+		dimensionUnit,
+	} = form;
 
+	const renderPackageListItem = ( pckg, idx ) => {
 		return (
 			<PackagesListItem
 				key={ idx }
@@ -43,7 +32,6 @@ const PackagesList = ( {
 				{ ...{
 					dimensionUnit,
 					editPackage,
-					hasError,
 				} }
 			/>
 		);
@@ -65,9 +53,8 @@ const PackagesList = ( {
 };
 
 PackagesList.propTypes = {
-	packages: PropTypes.array.isRequired,
+	form: PropTypes.object.isRequired,
 	removePackage: PropTypes.func.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
 	editPackage: PropTypes.func.isRequired,
 };
 
