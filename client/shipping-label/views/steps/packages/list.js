@@ -47,7 +47,7 @@ OrderPackages.propTypes = {
 	updateWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
-	errors: PropTypes.object,
+	errors: PropTypes.array.isRequired,
 };
 
 export default OrderPackages;

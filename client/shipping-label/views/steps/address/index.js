@@ -37,7 +37,8 @@ const Destination = ( props ) => {
 };
 
 Origin.propTypes = Destination.propTypes = {
-	form: PropTypes.object.isRequired,
+	values: PropTypes.object.isRequired,
+	allowChangeCountry: PropTypes.bool.isRequired,
 	group: PropTypes.string.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,

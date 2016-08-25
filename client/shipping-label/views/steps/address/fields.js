@@ -4,9 +4,9 @@ import TextField from 'components/text-field';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
 
-const AddressFields = ( { form, group, labelActions, storeOptions, errors } ) => {
+const AddressFields = ( { values, allowChangeCountry, group, labelActions, storeOptions, errors } ) => {
 	const getId = ( fieldName ) => group + '_' + fieldName;
-	const getValue = ( fieldName ) => form[ group ].values[ fieldName ] || '';
+	const getValue = ( fieldName ) => values[ fieldName ] || '';
 	const updateValue = ( fieldName, newValue ) => labelActions.updateAddressValue( group, fieldName, newValue );
 
 	return (
@@ -58,7 +58,7 @@ const AddressFields = ( { form, group, labelActions, storeOptions, errors } ) =>
 				id={ getId( 'country' ) }
 				title={ __( 'Country' ) }
 				value={ getValue( 'country' ) }
-				disabled={ ! form[ group ].allowChangeCountry }
+				disabled={ ! allowChangeCountry }
 				countriesData={ storeOptions.countriesData }
 				updateValue={ ( value ) => updateValue( 'country', value ) }
 				error={ errors.country } />
@@ -67,7 +67,8 @@ const AddressFields = ( { form, group, labelActions, storeOptions, errors } ) =>
 };
 
 AddressFields.propTypes = {
-	form: PropTypes.object.isRequired,
+	values: PropTypes.object.isRequired,
+	allowChangeCountry: PropTypes.bool.isRequired,
 	group: PropTypes.string.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,

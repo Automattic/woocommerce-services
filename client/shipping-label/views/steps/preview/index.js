@@ -4,7 +4,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import ExpandButton from 'shipping-label/views/expand-button';
 import Dropdown from 'components/dropdown';
 
-const PreviewStep = ( { form, labelActions } ) => {
+const PreviewStep = ( { values, labelActions } ) => {
 	return (
 		<FoldableCard
 			header={ __( 'Preview' ) }
@@ -17,14 +17,14 @@ const PreviewStep = ( { form, labelActions } ) => {
 				id="paper_size"
 				title={ __( 'Paper size' ) }
 				valuesMap={ { letter: 'Letter', '4x6': '4"x6"' } }
-				value={ form.preview.values.paper_size }
+				value={ values.paper_size }
 				updateValue={ labelActions.updatePaperSize } />
 		</FoldableCard>
 	);
 };
 
 PreviewStep.propTypes = {
-	form: PropTypes.object.isRequired,
+	values: PropTypes.object.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	errors: PropTypes.object.isRequired,
 };

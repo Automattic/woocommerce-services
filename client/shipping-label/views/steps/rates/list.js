@@ -55,7 +55,7 @@ ShippingRates.propTypes = {
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
-	errors: PropTypes.object,
+	errors: PropTypes.array.isRequired,
 };
 
 export default ShippingRates;
