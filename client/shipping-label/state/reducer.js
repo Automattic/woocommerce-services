@@ -4,7 +4,6 @@ import {
 	UPDATE_ADDRESS_VALUE,
 	UPDATE_PACKAGE_WEIGHT,
 	UPDATE_RATE,
-	UPDATE_PAPER_SIZE,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
 } from './actions';
@@ -62,18 +61,6 @@ reducers[ UPDATE_RATE ] = ( state, { packageIndex, value } ) => {
 		form: { ...state.form,
 			rates: { ...state.form.rates,
 				values: newRates,
-			},
-		},
-	};
-};
-
-reducers[ UPDATE_PAPER_SIZE ] = ( state, { value } ) => {
-	return { ...state,
-		form: { ...state.form,
-			preview: { ...state.form.preview,
-				values: {
-					paper_size: value,
-				},
 			},
 		},
 	};

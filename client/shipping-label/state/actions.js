@@ -11,7 +11,6 @@ export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const UPDATE_ADDRESS_VALUE = 'UPDATE_ADDRESS_VALUE';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
-export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 
@@ -48,13 +47,6 @@ export const updateRate = ( packageIndex, value ) => {
 	};
 };
 
-export const updatePaperSize = ( value ) => {
-	return {
-		type: UPDATE_PAPER_SIZE,
-		value,
-	};
-};
-
 export const purchaseLabel = () => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
 	let error = null;
 	let response = null;
@@ -82,7 +74,6 @@ export const purchaseLabel = () => ( dispatch, getState, { callbackURL, nonce, s
 	const formData = {
 		origin: form.origin.values,
 		destination: form.destination.values,
-		label_size: form.preview.values.paper_size,
 		payment_method_id: '123456789',
 		carrier: 'usps',
 		packages: form.packages.values.map( ( pckg, index ) => ( {

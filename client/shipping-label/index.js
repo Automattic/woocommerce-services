@@ -43,9 +43,7 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 						available: formData.rates.map( ( service ) => ( { [ service ]: { name: service, rate: 9.99 } } ) ),
 					},
 					preview: {
-						values: {
-							paper_size: formData.paper_size || '4x6',
-						},
+						values: {},
 					},
 				},
 			},

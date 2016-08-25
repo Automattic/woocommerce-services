@@ -67,6 +67,10 @@ const PrintLabelDialog = ( props ) => {
 					isPrimary: true,
 					label: __( 'Purchase' ) + ( canPurchase ? ' (' + currencySymbol + getTotalCost() + ')' : '' ),
 				},
+				{
+					onClick: props.labelActions.exitPrintingFlow,
+					label: __( 'Cancel' ),
+				},
 			] } />
 		</Dialog>
 	);
