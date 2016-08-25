@@ -3,7 +3,6 @@ import noop from 'lodash/noop';
 import fill from 'lodash/fill';
 import flatten from 'lodash/flatten';
 import omit from 'lodash/omit';
-import moment from 'moment';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 
@@ -84,7 +83,6 @@ export const purchaseLabel = () => ( dispatch, getState, { callbackURL, nonce, s
 		origin: form.origin.values,
 		destination: form.destination.values,
 		label_size: form.preview.values.paper_size,
-		ship_date: moment().add( 1, 'days' ).format( 'YYYY-MM-DD' ),
 		payment_method_id: '123456789',
 		carrier: 'usps',
 		packages: form.packages.values.map( ( pckg, index ) => ( {
