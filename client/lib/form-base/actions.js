@@ -39,10 +39,8 @@ export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState
 
 		return response.json().then( json => {
 			if ( json.success ) {
-				console.log( 'success' );
 				onSaveSuccess();
 			} else {
-				console.log( 'failure' );
 				onSaveFailure();
 			}
 		} );
