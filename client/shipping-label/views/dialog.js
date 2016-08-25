@@ -40,38 +40,49 @@ const PrintLabelDialog = ( props ) => {
 			isVisible={ props.showDialog }
 			onClose={ props.labelActions.exitPrintingFlow }
 			additionalClassNames="wcc-modal wcc-shipping-label-dialog" >
-			<AddressStep.Origin
-				{ ...props }
-				{ ...props.origin }
-				errors={ props.errors.origin } />
-			<AddressStep.Destination
-				{ ...props }
-				{ ...props.destination }
-				errors={ props.errors.destination } />
-			<PackagesStep
-				{ ...props }
-				{ ...props.packages }
-				errors={ props.errors.packages } />
-			<RatesStep
-				{ ...props }
-				{ ...props.rates }
-				errors={ props.errors.rates } />
-			<PreviewStep
-				{ ...props }
-				{ ...props.preview }
-				errors={ props.errors.preview } />
-			<ActionButtons buttons={ [
-				{
-					isDisabled: ! canPurchase,
-					onClick: props.labelActions.purchaseLabel,
-					isPrimary: true,
-					label: __( 'Purchase' ) + ( canPurchase ? ' (' + currencySymbol + getTotalCost() + ')' : '' ),
-				},
-				{
-					onClick: props.labelActions.exitPrintingFlow,
-					label: __( 'Cancel' ),
-				},
-			] } />
+			<div className="wcc-shipping-label-dialog__content">
+				<h3>
+					{ 1 === props.form.packages.values.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
+				</h3>
+				<div className="wcc-shipping-label-dialog__body">
+					<div className="wcc-shipping-label-dialog__main-section">
+						<AddressStep.Origin
+							{ ...props }
+							{ ...props.form.origin }
+							errors={ props.errors.origin } />
+						<AddressStep.Destination
+							{ ...props }
+							{ ...props.form.destination }
+							errors={ props.errors.destination } />
+						<PackagesStep
+							{ ...props }
+							{ ...props.form.packages }
+							errors={ props.errors.packages } />
+						<RatesStep
+							{ ...props }
+							{ ...props.form.rates }
+							errors={ props.errors.rates } />
+					</div>
+					<div className="wcc-shipping-label-dialog__sidebar">
+						<PreviewStep
+							{ ...props }
+							{ ...props.form.preview }
+							errors={ props.errors.preview } />
+					</div>
+				</div>
+				<ActionButtons buttons={ [
+					{
+						isDisabled: ! canPurchase,
+						onClick: props.labelActions.purchaseLabel,
+						isPrimary: true,
+						label: __( 'Purchase' ) + ( canPurchase ? ' (' + currencySymbol + getTotalCost() + ')' : '' ),
+					},
+					{
+						onClick: props.labelActions.exitPrintingFlow,
+						label: __( 'Cancel' ),
+					},
+				] } />
+			</div>
 		</Dialog>
 	);
 };

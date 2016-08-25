@@ -173,9 +173,13 @@
 
 	&.wcc-shipping-label-dialog {
 		&.card {
-			right: calc(50% - 400px);
-			left: calc(50% - 400px);
-			width: 800px;
+			right: calc(50% - 450px);
+			left: calc(50% - 450px);
+			width: 900px;
+		}
+
+		.dialog__content {
+			height: 100%;
 		}
 	}
 

@@ -3,3 +3,41 @@
 	margin-bottom: 0;
 	text-align: center;
 }
+
+.wcc-shipping-label-dialog__content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+
+	h3 {
+		font-size: 2em;
+		margin: 32px;
+	}
+
+	.wcc-shipping-label-dialog__body {
+		flex-grow: 1;
+		display: flex;
+	}
+
+	.wcc-shipping-label-dialog__main-section {
+		flex-basis: 70%;
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+
+	.wcc-shipping-label-dialog__sidebar {
+		flex-basis: 30%;
+	}
+
+	.form-buttons-bar {
+		padding: 12px 16px;
+		background-color: $gray-light;
+		border-top: 1px solid lighten( $gray, 20 );
+	}
+
+	.preview-placeholder {
+		background-color: $gray-light;
+		height: 300px;
+		margin: 24px;
+	}
+}
