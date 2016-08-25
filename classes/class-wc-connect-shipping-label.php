@@ -132,12 +132,36 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $result;
 		}
 
-		public function meta_box( $post ) {
-			global $theorder;
+		public function should_show_meta_box() {
+			$order = wc_get_order();
 
-			if ( ! is_object( $theorder ) ) {
-				$theorder = wc_get_order( $post->ID );
+			if ( ! $order ) {
+				return false;
 			}
+
+			// TODO: return true if the order has already label meta-data
+
+			$base_location = wc_get_base_location();
+			if ( 'US' !== $base_location[ 'country' ] ) {
+				return false;
+			}
+
+			$dest_address = $order->get_address( 'shipping' );
+			if ( $dest_address[ 'country' ] && 'US' !== $dest_address[ 'country' ] ) {
+				return false;
+			}
+
+			foreach( $order->get_items() as $item ) {
+				$product = $order->get_product_from_item( $item );
+				if ( $product && $product->needs_shipping() ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public function meta_box( $post ) {
+			$order = wc_get_order( $post );
 
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
@@ -152,7 +176,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(
 				'storeOptions' => $store_options,
-				'formData'     => $this->get_form_data( $theorder ),
+				'formData'     => $this->get_form_data( $order ),
 				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'submitMethod' => 'POST',

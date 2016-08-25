@@ -262,12 +262,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
-				add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
 			}
 
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wcc_meta_data' ) );
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
 
 		}
 
@@ -501,8 +501,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function add_meta_boxes() {
 			$shipping_label = new WC_Connect_Shipping_Label( $this->service_settings_store );
-			foreach ( wc_get_order_types( 'order-meta-boxes' ) as $type ) {
-				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), $type, 'side', 'default' );
+			if ( $shipping_label->should_show_meta_box() ) {
+				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
 		}
 
