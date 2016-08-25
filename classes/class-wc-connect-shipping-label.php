@@ -31,18 +31,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
 					$packages[] = array(
-						'height' => $height,
-						'length' => $length,
-						'weight' => $weight,
-						'width' => $width,
+						'height' => ( float ) $height,
+						'length' => ( float ) $length,
+						'weight' => ( float ) $weight,
+						'width' => ( float ) $width,
 						'items' => array(
 							array(
-								'height' => $height,
+								'height' => ( float ) $height,
 								'product_id' => $item[ 'product_id' ],
-								'length' => $length,
+								'length' => ( float ) $length,
 								'quantity' => 1,
-								'weight' => $weight,
-								'width' => $width,
+								'weight' => ( float ) $weight,
+								'width' => ( float ) $width,
 								'name' => $name,
 							),
 						),
