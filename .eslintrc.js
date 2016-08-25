@@ -29,7 +29,7 @@ module.exports = {
 		'brace-style': [ 1, '1tbs' ],
 		// REST API objects include underscores
 		'camelcase': 0,
-		'comma-dangle': [ 1, 'always-multiline'] ,
+		'comma-dangle': [ 1, 'always-multiline' ] ,
 		'comma-spacing': 1,
 		'computed-property-spacing': [ 1, 'always' ],
 		// Allows returning early as undefined
@@ -68,11 +68,12 @@ module.exports = {
 		'one-var': 0,
 		'operator-linebreak': [ 1, 'after', { 'overrides': {
 			'?': 'before',
-			':': 'before'
+			':': 'before',
 		} } ],
 		'padded-blocks': [ 1, 'never' ],
 		'quote-props': [ 1, 'as-needed' ],
 		'quotes': [ 1, 'single', 'avoid-escape' ],
+		'semi': [ 'error', 'always' ],
 		'semi-spacing': 1,
 		'space-before-blocks': [ 1, 'always' ],
 		'space-before-function-paren': [ 1, 'never' ],

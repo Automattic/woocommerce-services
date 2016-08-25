@@ -22,7 +22,7 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 	} );
 
 	if ( 'edit' === state.mode || ! newState.packageData ) {
-		newState.packageData = { is_user_defined: true }
+		newState.packageData = { is_user_defined: true };
 	}
 
 	return newState;
