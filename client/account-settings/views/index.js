@@ -8,10 +8,10 @@ import notices from 'notices';
 import PaymentMethodSelector from 'components/payment-method-selector';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
-import * as actions from 'lib/form-base/actions';
+import * as actions from '../state/actions';
 import * as NoticeActions from 'state/notices/actions';
 
-const SharedSettingsRootView = ( props ) => {
+const AccountSettingsRootView = ( props ) => {
 	const onPaymentMethodChange = ( value ) => props.actions.setFormDataValue( 'selected_payment_method_id', value );
 
 	const onSaveSuccess = () => props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 2250 } );
@@ -57,7 +57,7 @@ const SharedSettingsRootView = ( props ) => {
 	);
 };
 
-SharedSettingsRootView.propTypes = {
+AccountSettingsRootView.propTypes = {
 	saveForm: PropTypes.func,
 	storeOptions: PropTypes.object.isRequired,
 };
@@ -79,4 +79,4 @@ function mapDispatchToProps( dispatch ) {
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)( SharedSettingsRootView );
+)( AccountSettingsRootView );

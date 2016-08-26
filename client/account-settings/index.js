@@ -1,7 +1,7 @@
 import React from 'react';
 import { combineReducers } from 'redux';
-import SharedSettingsRootView from './views';
-import reducer from 'lib/form-base/reducer';
+import AccountSettingsRootView from './views';
+import reducer from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
@@ -15,13 +15,13 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 
 	getHotReducer() {
 		return combineReducers( {
-			form: require( 'lib/form-base/reducer' ),
+			form: require( './state/reducer' ),
 			notices,
 		} );
 	},
 
 	getInitialState() {
-		const initialMeta = require( 'lib/form-base/reducer' ).initialState.meta;
+		const initialMeta = require( './state/reducer' ).initialState.meta;
 		const combinedMeta = Object.assign( {}, initialMeta, formMeta );
 
 		return {
@@ -33,7 +33,7 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 	},
 
 	View: () => (
-		<SharedSettingsRootView
+		<AccountSettingsRootView
 			storeOptions={ storeOptions } />
 	),
 } );
