@@ -41,7 +41,7 @@ const PrintLabelDialog = ( props ) => {
 			onClose={ props.labelActions.exitPrintingFlow }
 			additionalClassNames="wcc-modal wcc-shipping-label-dialog" >
 			<div className="wcc-shipping-label-dialog__content">
-				<h3>
+				<h3 className="form-section-heading">
 					{ 1 === props.form.packages.values.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
 				</h3>
 				<div className="wcc-shipping-label-dialog__body">
