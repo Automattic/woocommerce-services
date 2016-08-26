@@ -4,7 +4,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 const PreviewStep = () => {
 	return (
 		<div>
-			<h4>{ __( 'Preview' ) }</h4>
+			<span className="preview-title">{ __( 'Preview' ) }</span>
 			<div className="preview-placeholder"></div>
 		</div>
 	);

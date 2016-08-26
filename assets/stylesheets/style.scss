@@ -171,15 +171,40 @@
 		}
 	}
 
-	&.wcc-shipping-label-dialog {
-		&.card {
-			right: calc(50% - 450px);
-			left: calc(50% - 450px);
-			width: 900px;
+	&.wcc-shipping-label-dialog.card {
+		position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+		max-width: none;
+		width: 100%;
+		padding: 0;
+
+		@include breakpoint( ">660px" ) {
+			top: 5%;
+			bottom: 5%;
+			left: 5%;
+			right: 5%;
+			width: 90%;
+		}
+
+		@include breakpoint( ">960px" ) {
+			left: 12.5%;
+			right: 12.5%;
+			width: 75%;
 		}
 
 		.dialog__content {
 			height: 100%;
+		}
+
+		.form-buttons-bar {
+			position: absolute;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			margin: 0;
 		}
 	}
 
