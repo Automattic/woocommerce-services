@@ -75,7 +75,7 @@ if ( module.hot ) {
 	module.hot.accept( [
 		'./settings/views',
 		'./shipping-label/views',
-		'./shared-settings/views',
+		'./account-settings/views',
 	], () => {
 		setTimeout( render );
 	} );
@@ -83,7 +83,7 @@ if ( module.hot ) {
 	module.hot.accept( [
 		'./settings/state/reducer',
 		'./shipping-label/state/reducer',
-		'./shared-settings/state/reducer',
+		'./account-settings/state/reducer',
 	], () => {
 		store.replaceReducer( Route.getHotReducer() );
 	} );

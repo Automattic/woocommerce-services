@@ -5,7 +5,7 @@ import ActionButtons from 'components/action-buttons';
 import CompactCard from 'components/card/compact';
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
-import PaymentMethodSelector from 'components/payment-method-selector';
+import PaymentMethodSelector from './payment-method-selector';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
 import * as actions from '../state/actions';
