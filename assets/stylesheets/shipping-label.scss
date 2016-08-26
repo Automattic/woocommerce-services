@@ -18,6 +18,8 @@
 		display: flex;
 		flex-wrap: wrap;
 		flex-grow: 1;
+		overflow-y: auto;
+		height: 100%;
 
 		@include breakpoint( ">660px" ) {
 			flex-wrap: nowrap;
@@ -26,12 +28,11 @@
 
 	.wcc-shipping-label-dialog__main-section {
 		flex-basis: 100%;
-		overflow-x: hidden;
-		overflow-y: auto;
 		padding: 8px 0;
 
 		@include breakpoint( ">660px" ) {
 			flex-basis: 60%;
+			overflow-y: auto;
 			padding: 8px 16px 8px 32px;
 			margin-bottom: 61px;
 		}
@@ -43,13 +44,12 @@
 
 	.wcc-shipping-label-dialog__sidebar {
 		flex-basis: 100%;
-		padding: 8px 32px;
+		padding: 32px;
 		margin-bottom: 61px;
 
 		@include breakpoint( ">660px" ) {
 			flex-basis: 40%;
-			padding-left: 16px;
-			padding-right: 32px;
+			padding: 8px 32px 8px 16px;
 		}
 
 		@include breakpoint( ">960px" ) {
