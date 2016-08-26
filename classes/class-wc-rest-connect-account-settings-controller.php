@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_REST_Connect_Settings_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Account_Settings_Controller' ) ) {
 	return;
 }
 
-class WC_REST_Connect_Settings_Controller extends WP_REST_Controller {
+class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 
 	/**
 	 * Endpoint namespace.
@@ -22,7 +22,7 @@ class WC_REST_Connect_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'connect/settings';
+	protected $rest_base = 'connect/account/settings';
 
 	/**
 	 * @var WC_Connect_API_Client
@@ -56,7 +56,7 @@ class WC_REST_Connect_Settings_Controller extends WP_REST_Controller {
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		$result = $this->settings_store->update_shared_settings( $settings );
+		$result = $this->settings_store->update_account_settings( $settings );
 
 		if ( is_wp_error( $result ) ) {
 			return new WP_Error( 'save_failed',

@@ -43,13 +43,9 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 				return;
 			}
 
-			$this->logger->log( 'Successfully loaded payment methods from server response.', __FUNCTION__ );
-			$this->update_last_fetch_timestamp();
-
 			// If we made it this far, it is safe to store the object
 			$this->update_payment_methods( $payment_methods );
 
-			// Potentially auto-update the selected method
 			$this->potentially_update_selected_payment_method_from_payment_methods( $payment_methods );
 		}
 
@@ -89,14 +85,6 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 
 		protected function update_payment_methods( $payment_methods ) {
 			update_option( 'wc_connect_payment_methods', $payment_methods );
-		}
-
-		public function get_last_fetch_timestamp() {
-			return get_option( 'wc_connect_payment_methods_last_update', null );
-		}
-
-		protected function update_last_fetch_timestamp() {
-			update_option( 'wc_connect_payment_methods_last_update', time() );
 		}
 
 		protected function get_payment_methods_from_response_body( $response_body ) {

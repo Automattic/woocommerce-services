@@ -1,8 +1,8 @@
 <?php
 
-if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
+if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
-	class WC_Connect_Settings_View {
+	class WC_Connect_Settings_Pages {
 
 		/**
 		 * @var WC_Connect_Payment_Methods_Store
@@ -28,12 +28,17 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 			WC_Connect_Service_Settings_Store $service_settings_store,
 			WC_Connect_Logger $logger ) {
 
+			$this->id    = 'connect';
+			$this->label = _x( 'WooCommerce Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
+
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
 			$this->logger = $logger;
 
 			add_filter( 'woocommerce_settings_tabs_array', array( $this, 'tabs' ), 30 ); // 30 positions connect as the last tab
-			add_action( 'woocommerce_settings_connect', array( $this, 'page' ) );
+			add_filter( 'woocommerce_get_sections_connect', array( $this, 'get_sections' ) );
+			add_action( 'woocommerce_sections_connect', array( $this, 'output_section_tabs') );
+			add_action( 'woocommerce_settings_connect', array( $this, 'output_settings_screen' ) );
 		}
 
 		/**
@@ -43,13 +48,42 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 		 * @return array
 		 */
 		public function tabs( $tabs ) {
-
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
 			$tabs[ 'connect' ] = _x( 'WooCommerce Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
 			return $tabs;
+		}
 
+		/**
+		 * Get sections.
+		 *
+		 * @return array
+		 */
+		public function get_sections() {
+			return array(
+				'' => __( 'Account Settings', 'woocommerce' ),
+				'packages' => __( 'Packages', 'woocommerce' ),
+			);
+		}
+
+		/**
+		 * Outputs the section tabs. Based on WC_Settings_Page::output_sections.
+		 * We can't derive readily from WC_Settings_Page because we use
+		 * dependency injection and WC expects to simply include each settings page
+		 * instance
+		 */
+
+		public function output_section_tabs() {
+			global $current_section;
+			$sections = $this->get_sections();
+
+			echo '<ul class="subsubsub">';
+			$array_keys = array_keys( $sections );
+			foreach ( $sections as $id => $label ) {
+				echo '<li><a href="' . admin_url( 'admin.php?page=wc-settings&tab=connect&section=' . sanitize_title( $id ) ) . '" class="' . ( $current_section == $id ? 'current' : '' ) . '">' . $label . '</a> ' . ( end( $array_keys ) == $id ? '' : '|' ) . ' </li>';
+			}
+			echo '</ul><br class="clear" /><br/>';
 		}
 
 		/**
@@ -67,23 +101,36 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 		 * GET /connect/settings endpoint (see callbackURL below)
 		 */
 		public function get_form_data() {
-			return $this->service_settings_store->get_shared_settings();
+			return $this->service_settings_store->get_account_settings();
+		}
+
+		/**
+		 * Output the settings.
+		 */
+		public function output_settings_screen() {
+			global $current_section;
+
+			if ( '' === $current_section ) {
+				$this->output_account_screen();
+			} else if ( 'packages' == $current_section ) {
+				$this->output_packages_screen();
+			}
 		}
 
 		/**
 		 * Localizes the bootstrap, enqueues the script and styles for the settings page
 		 */
-		public function page() {
+		public function output_account_screen() {
 			// Always get a fresh copy when loading this view
 			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
 			// Fire up the view
-			$root_view = 'wc-connect-shared-settings';
+			$root_view = 'wc-connect-account-settings';
 			$admin_array = array(
 				'storeOptions' => $this->service_settings_store->get_store_options(),
 				'formData'     => $this->get_form_data(),
 				'formMeta'     => $this->get_form_meta(),
-				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/settings" ),
+				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/account/settings" ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'rootView'     => $root_view,
 			);
@@ -97,10 +144,12 @@ if ( ! class_exists( 'WC_Connect_Settings_View' ) ) {
 			$hide_save_button = true;
 
 			?>
-				<h2>
-					<?php _e( 'Account', 'woocommerce' ); ?>
-				</h2>
 				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
+			<?php
+		}
+
+		public function output_packages_screen() {
+			?>
 			<?php
 		}
 

@@ -4,9 +4,6 @@ import FormRadio from 'components/forms/form-radio';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
 
-// TODO - create PaymentMethod like https://github.com/Automattic/wp-calypso/blob/29984e5677960bdba231577a253cf864d4f17796/client/my-sites/upgrades/checkout/stored-card.jsx
-// or https://github.com/Automattic/wp-calypso/tree/29984e5677960bdba231577a253cf864d4f17796/client/my-sites/upgrades/checkout
-
 const PaymentMethod = ( { value, currentValue, onChange, name, cardType, cardDigits, expiry } ) => {
 	const cardClasses = 'payment-method ' + cardType.toLowerCase();
 	const expirationDate = sprintf( __( 'Expires %(monthAndYear)s' ),
@@ -21,7 +18,7 @@ const PaymentMethod = ( { value, currentValue, onChange, name, cardType, cardDig
 				className="payment-method__radio"
 				value={ value }
 				checked={ value === currentValue }
-				onChange={ () => onChange( value ) }
+				onChange={ onChange }
 			/>
 			<div className={ cardClasses }>
 				<span className="payment-method__number">{ cardType } ****{ cardDigits }</span>

@@ -15,7 +15,7 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 
 	getHotReducer() {
 		return combineReducers( {
-			form: reducer,
+			form: require( 'lib/form-base/reducer' ),
 			notices,
 		} );
 	},

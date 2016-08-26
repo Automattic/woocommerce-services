@@ -3,7 +3,6 @@ import FieldDescription from 'components/field-description';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PaymentMethod from '../payment-method';
-import sanitizeHTML from 'lib/utils/sanitize-html';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const PaymentMethodSelector = ( { paymentMethods, title, description, value, onChange } ) => {
@@ -35,7 +34,9 @@ const PaymentMethodSelector = ( { paymentMethods, title, description, value, onC
 
 	return (
 		<FormFieldset className="payment-method-selector">
-			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+			<FormLegend>
+				{ title }
+			</FormLegend>
 			<FieldDescription text={ description } />
 			<div className="payment-method-selector__payment-methods">
 				{ hasMethods ? renderPaymentMethods() : renderNoMethods() }

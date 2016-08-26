@@ -18,7 +18,7 @@ const Route = ( ( rootView ) => {
 		case 'wc-connect-service-settings':
 		case 'wc-connect-admin-help':
 			return Settings;
-		case 'wc-connect-shared-settings':
+		case 'wc-connect-account-settings':
 			return SharedSettings;
 	}
 } )( wcConnectData.rootView )( wcConnectData );

@@ -43,48 +43,48 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
-		 * Gets connect shared settings
+		 * Gets connect account settings (e.g. payment method)
 		 *
 		 * @return array
 		 */
-		public function get_shared_settings() {
+		public function get_account_settings() {
 			$default = array(
 				'selected_payment_method_id' => 0
 			);
-			return get_option( 'wc_connect_shared_settings', $default );
+			return get_option( 'wc_connect_account_settings', $default );
 		}
 
 		/**
-		 * Updates connect shared settings
+		 * Updates connect account settings (e.g. payment method)
 		 *
 		 * @param array $settings
 		 *
 		 * @return true
 		 */
-		public function update_shared_settings( $settings ) {
+		public function update_account_settings( $settings ) {
 			// simple validation for now
 			if ( ! is_array( $settings ) ) {
 				$this->logger->log( 'Array expected but not received', __FUNCTION__ );
 				return false;
 			}
 
-			return update_option( 'wc_connect_shared_settings', $settings );;
+			return update_option( 'wc_connect_account_settings', $settings );;
 		}
 
 		public function get_selected_payment_method_id() {
-			$shared_settings = $this->get_shared_settings();
-			return intval( $shared_settings[ 'selected_payment_method_id' ] );
+			$account_settings = $this->get_account_settings();
+			return intval( $account_settings[ 'selected_payment_method_id' ] );
 		}
 
 		public function set_selected_payment_method_id( $new_payment_method_id ) {
 			$new_payment_method_id = intval( $new_payment_method_id );
-			$shared_settings = $this->get_shared_settings();
-			$old_payment_method_id = intval( $shared_settings[ 'selected_payment_method_id' ] );
+			$account_settings = $this->get_account_settings();
+			$old_payment_method_id = intval( $account_settings[ 'selected_payment_method_id' ] );
 			if ( $old_payment_method_id === $new_payment_method_id ) {
 				return;
 			}
-			$shared_settings[ 'selected_payment_method_id' ] = $new_payment_method_id;
-			$this->update_shared_settings( $shared_settings );
+			$account_settings[ 'selected_payment_method_id' ] = $new_payment_method_id;
+			$this->update_account_settings( $account_settings );
 		}
 
 		public function get_origin_address() {

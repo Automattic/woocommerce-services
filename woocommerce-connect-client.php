@@ -63,9 +63,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $payment_methods_store;
 
 		/**
-		 * @var WC_REST_Connect_Settings_Controller
+		 * @var WC_REST_Connect_Account_Settings_Controller
 		 */
-		protected $rest_settings_controller;
+		protected $rest_account_settings_controller;
 
 		/**
 		 * @var WC_REST_Connect_Services_Controller
@@ -88,9 +88,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_schemas_validator;
 
 		/**
-		 * @var WC_Connect_Settings_View
+		 * @var WC_Connect_Settings_Page
 		 */
-		protected $settings_view;
+		protected $settings_page;
 
 		/**
 		 * @var WC_Connect_Help_View
@@ -172,12 +172,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->tracks = $tracks;
 		}
 
-		public function get_rest_settings_controller() {
-			return $this->rest_settings_controller;
+		public function get_rest_account_settings_controller() {
+			return $this->rest_account_settings_controller;
 		}
 
-		public function set_rest_settings_controller( WC_REST_Connect_Settings_Controller $rest_settings_controller ) {
-			$this->rest_settings_controller = $rest_settings_controller;
+		public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
+			$this->rest_account_settings_controller = $rest_account_settings_controller;
 		}
 
 		public function get_rest_services_controller() {
@@ -212,12 +212,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_schemas_validator = $validator;
 		}
 
-		public function get_settings_view() {
-			return $this->settings_page;
+		public function get_settings_pages() {
+			return $this->settings_pages;
 		}
 
-		public function set_settings_view( WC_Connect_Settings_View $settings_view ) {
-			$this->settings_view = $settings_view;
+		public function set_settings_pages( WC_Connect_Settings_Pages $settings_pages ) {
+			$this->settings_pages = $settings_pages;
 		}
 
 		public function get_help_view() {
@@ -253,7 +253,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-payment-methods-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-settings-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 
@@ -264,7 +263,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger );
-			$settings_view         = new WC_Connect_Settings_View( $payment_methods_store, $settings_store, $logger );
 			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 
 			$this->set_logger( $logger );
@@ -274,7 +272,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_service_settings_store( $settings_store );
 			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
-			$this->set_settings_view( $settings_view );
 			$this->set_help_view( $help_view );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
@@ -286,6 +283,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function load_admin_dependencies() {
 			require_once( plugin_basename( 'classes/class-wc-connect-debug-tools.php' ) );
 			new WC_Connect_Debug_Tools( $this->api_client );
+
+			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
+			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->logger );
+			$this->set_settings_pages( $settings_pages );
 		}
 
 		/**
@@ -338,10 +339,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-settings-controller.php' ) );
-			$rest_settings_controller = new WC_REST_Connect_Settings_Controller( $this->api_client, $settings_store );
-			$this->set_rest_settings_controller( $rest_settings_controller );
-			$rest_settings_controller->register_routes();
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-account-settings-controller.php' ) );
+			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store );
+			$this->set_rest_account_settings_controller( $rest_account_settings_controller );
+			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
 			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );
