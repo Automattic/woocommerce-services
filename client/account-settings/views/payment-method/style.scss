@@ -1,5 +1,5 @@
 .payment-method {
-	background-image: url('/calypso/images/upgrades/cc-visa-disabled.svg');
+	background-image: url('../images/cc-visa-disabled.svg');
 	background-position: 18px center;
 	background-repeat: no-repeat;
 	background-size: 60px auto;
@@ -32,35 +32,35 @@ input[type=radio].payment-method__radio.form-radio {
 }
 
 .payment-method.visa {
-	background-image: url('/calypso/images/upgrades/cc-visa-disabled.svg');
+	background-image: url('../images/cc-visa-disabled.svg');
 }
 
 .payment-method.mastercard {
-	background-image: url('/calypso/images/upgrades/cc-mastercard-disabled.svg');
+	background-image: url('../images/cc-mastercard-disabled.svg');
 }
 
 .payment-method.amex {
-	background-image: url('/calypso/images/upgrades/cc-amex-disabled.svg');
+	background-image: url('../images/cc-amex-disabled.svg');
 }
 
 .payment-method.discover {
-	background-image: url('/calypso/images/upgrades/cc-discover-disabled.svg');
+	background-image: url('../images/cc-discover-disabled.svg');
 }
 
-.selected > .payment-box-section-inner {
+.payment-method__label.selected {
 	.payment-method.visa {
-		background-image: url('/calypso/images/upgrades/cc-visa.svg');
+		background-image: url('../images/cc-visa.svg');
 	}
 
 	.payment-method.mastercard {
-		background-image: url('/calypso/images/upgrades/cc-mastercard.svg');
+		background-image: url('../images/cc-mastercard.svg');
 	}
 
 	.payment-method.amex {
-		background-image: url('/calypso/images/upgrades/cc-amex.svg');
+		background-image: url('../images/cc-amex.svg');
 	}
 
 	.payment-method.discover {
-		background-image: url('/calypso/images/upgrades/cc-discover.svg');
+		background-image: url('../images/cc-discover.svg');
 	}
 }

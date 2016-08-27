@@ -5,6 +5,8 @@ import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const PaymentMethod = ( { value, currentValue, onChange, name, cardType, cardDigits, expiry } ) => {
+	const selected = ( value === currentValue );
+	const containerClasses = selected ? 'payment-method__label selected' : 'payment-method__label';
 	const cardClasses = 'payment-method ' + cardType.toLowerCase();
 	const expirationDate = sprintf( __( 'Expires %(monthAndYear)s' ),
 		{
@@ -13,11 +15,11 @@ const PaymentMethod = ( { value, currentValue, onChange, name, cardType, cardDig
 	);
 
 	return (
-		<FormLabel className="payment-method__label">
+		<FormLabel className={ containerClasses }>
 			<FormRadio
 				className="payment-method__radio"
 				value={ value }
-				checked={ value === currentValue }
+				checked={ selected }
 				onChange={ onChange }
 			/>
 			<div className={ cardClasses }>
