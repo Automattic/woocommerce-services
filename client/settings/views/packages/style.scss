@@ -1,5 +1,4 @@
 .wcc-shipping-packages-list {
-
     div {
         box-sizing: border-box;
     }
@@ -149,9 +148,13 @@
 }
 
 & .wcc-shipping-add-edit-package-dialog {
-    .form-setting-explanation {
-        display: inline-block;
-    }
+	width: 500px;
+}
+
+& .wcc-shipping-add-edit-package-dialog {
+	.form-setting-explanation {
+		display: inline-block;
+	}
 }
 
 .button.is-borderless.remove-package {

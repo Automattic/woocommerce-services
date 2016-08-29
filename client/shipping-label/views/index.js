@@ -7,6 +7,7 @@ import PrintLabelDialog from './dialog';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
+import getFormErrors from 'shipping-label/state/selectors/errors';
 
 const ShippingLabelRootView = ( props ) => {
 	const renderPrintLabelFlow = () => {
@@ -25,10 +26,10 @@ const ShippingLabelRootView = ( props ) => {
 		<p className="wcc-metabox-button-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<PrintLabelDialog
-				{ ...( props.shippingLabel ) }
+				{ ...props.shippingLabel }
 				{ ...props }
 			/>
-			{ props.shippingLabel.success ? renderSuccessNotice() : renderPrintLabelFlow() }
+			{ props.shippingLabel.labels.purchased_time ? renderSuccessNotice() : renderPrintLabelFlow() }
 		</p>
 	);
 };
@@ -37,9 +38,10 @@ ShippingLabelRootView.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 };
 
-function mapStateToProps( state ) {
+function mapStateToProps( state, { storeOptions } ) {
 	return {
 		shippingLabel: state.shippingLabel,
+		errors: getFormErrors( state, storeOptions ),
 	};
 }
 

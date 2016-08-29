@@ -31,18 +31,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
 					$packages[] = array(
-						'height' => $height,
-						'length' => $length,
-						'weight' => $weight,
-						'width' => $width,
+						'height' => ( float ) $height,
+						'length' => ( float ) $length,
+						'weight' => ( float ) $weight,
+						'width' => ( float ) $width,
 						'items' => array(
 							array(
-								'height' => $height,
+								'height' => ( float ) $height,
 								'product_id' => $item[ 'product_id' ],
-								'length' => $length,
+								'length' => ( float ) $length,
 								'quantity' => 1,
-								'weight' => $weight,
-								'width' => $width,
+								'weight' => ( float ) $weight,
+								'width' => ( float ) $width,
 								'name' => $name,
 							),
 						),
@@ -52,14 +52,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $packages;
 		}
 
-		protected function get_packaging_data( WC_Order $order ) {
+		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return $this->get_items_as_individual_packages( $order );
+				return false;
 			}
 
-			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+		}
+
+		protected function get_packages( WC_Order $order ) {
+			$packages = $this->get_packaging_metadata( $order );
+			if ( ! $packages ) {
+				return $this->get_items_as_individual_packages( $order );
+			}
 
 			foreach( $packages as $package_index => $package ) {
 				foreach( $package[ 'items' ] as $item_index => $item ) {
@@ -97,7 +104,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$form_data = array();
 
-			$form_data[ 'packages' ] = $this->get_packaging_data( $order );
+			$form_data[ 'is_packed' ] = false !== $this->get_packaging_metadata( $order );
+			$form_data[ 'packages' ] = $this->get_packages( $order );
 
 			$form_data[ 'rates' ] = $this->get_selected_rates( $order );
 
@@ -107,12 +115,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$form_data[ 'destination' ] = array(
 				'name' => trim( $dest_address[ 'first_name' ] . ' ' . $dest_address[ 'last_name' ] ),
 				'company' => $dest_address[ 'company' ],
-				'address_1' => $dest_address[ 'address_1' ],
+				'address' => $dest_address[ 'address_1' ],
 				'address_2' => $dest_address[ 'address_2' ],
 				'city' => $dest_address[ 'city' ],
 				'state' => $dest_address[ 'state' ],
 				'postcode' => $dest_address[ 'postcode' ],
-				'country' => $dest_address[ 'country' ],
+				'country' => $dest_address[ 'country' ] ? $dest_address[ 'country' ] : 'US',
 			);
 
 			return $form_data;

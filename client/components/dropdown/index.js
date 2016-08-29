@@ -6,7 +6,7 @@ import FieldError from 'components/field-error';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 import FieldDescription from 'components/field-description';
 
-const Dropdown = ( { id, valuesMap, title, description, value, updateValue, error } ) => {
+const Dropdown = ( { id, valuesMap, title, description, value, updateValue, error, disabled } ) => {
 	return (
 		<FormFieldset>
 			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
@@ -15,6 +15,7 @@ const Dropdown = ( { id, valuesMap, title, description, value, updateValue, erro
 				name={ id }
 				value={ value }
 				onChange={ ( event ) => updateValue( event.target.value ) }
+				disabled={ Boolean( disabled ) }
 				isError={ error } >
 				{ Object.keys( valuesMap ).map( key => {
 					return (
@@ -42,6 +43,7 @@ Dropdown.propTypes = {
 		PropTypes.string,
 		PropTypes.bool,
 	] ),
+	disabled: PropTypes.bool,
 };
 
 export default Dropdown;

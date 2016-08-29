@@ -160,51 +160,66 @@
 		bottom: 0;
 		left: 0;
 		max-width: none;
+		padding: 0;
 
-		@include breakpoint( ">480px" ) {
-			top: 10%;
-			right: calc(50% - 250px);
-			bottom: 10%;
-			left: calc(50% - 250px);
-			padding: 0;
-			width: 500px;
+		&.wcc-shipping-add-edit-package-dialog {
+			@include breakpoint( ">480px" ) {
+				top: 10%;
+				right: calc(50% - 250px);
+				bottom: 10%;
+				left: calc(50% - 250px);
+				width: 500px;
 			}
 		}
 
-	.dialog__content {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 70px;
-		padding: 32px 32px 8px;
-		overflow: auto;
-	}
+		@include breakpoint( ">480px" ) {
+			top: 5%;
+			bottom: 5%;
+			left: 5%;
+			right: 5%;
+			width: 90%;
+		}
 
-	&.wcc-shipping-label-dialog {
-		&.card {
-			right: calc(50% - 300px);
-			left: calc(50% - 300px);
-			width: 600px;
+		@include breakpoint( ">960px" ) {
+			left: 12.5%;
+			right: 12.5%;
+			width: 75%;
+		}
+
+		.form-section-heading {
+			padding: 24px 16px 0;
+			@include breakpoint( ">480px" ) {
+				padding: 0;
+			}
+		}
+
+		&.wcc-shipping-add-edit-package-dialog .form-section-heading {
+			padding: 0;
 		}
 
 		.dialog__content {
-			padding: 0;
-			bottom: 0;
-			overflow: hidden;
-		}
-	}
+			height: 100%;
 
-	.dialog__action-buttons {
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		box-sizing: border-box;
-		width: 100%;
-		padding: 16px 24px;
-		text-align: left;
-		background: $gray-light;
-		border-top: 1px solid lighten( $gray, 30% );
+			@include breakpoint( ">480px" ) {
+				padding: 32px;
+			}
+		}
+
+		&.wcc-shipping-add-edit-package-dialog .dialog__content {
+			padding: 32px;
+		}
+
+		.form-buttons-bar,
+		.dialog__action-buttons {
+			position: absolute;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			margin: 0;
+			padding: 12px 16px;
+			background-color: $gray-light;
+			border-top: 1px solid lighten( $gray, 20 );
+		}
 	}
 
 	.share-package-option {
