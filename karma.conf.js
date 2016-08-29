@@ -10,6 +10,9 @@ module.exports = function( config ) {
 		preprocessors: {
 			'client/**/test/*.js': [ 'webpack', 'sourcemap' ]
 		},
+		client: {
+			captureConsole: true
+		},
 		reporters: [ 'mocha', 'coverage' ],
 		coverageReporter: {
 			dir: 'coverage/',
