@@ -135,6 +135,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 
 		/**
+		 * Asks the WooCommerce connect server for an array of payment methods
+		 *
+		 * @return mixed|WP_Error
+		 */
+		public function get_payment_methods() {
+			return $this->request( 'POST', '/payment/methods' );
+		}
+
+		/**
 		 * Tests the connection to the WooCommerce Connect Server
 		 *
 		 * @return true|WP_Error

@@ -58,6 +58,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_Connect_Payment_Methods_Store
+		 */
+		protected $payment_methods_store;
+
+		/**
+		 * @var WC_REST_Connect_Account_Settings_Controller
+		 */
+		protected $rest_account_settings_controller;
+
+		/**
 		 * @var WC_REST_Connect_Services_Controller
 		 */
 		protected $rest_services_controller;
@@ -78,9 +88,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_schemas_validator;
 
 		/**
-		 * @var WC_Connect_Help_Provider
+		 * @var WC_Connect_Settings_Page
 		 */
-		protected $help_provider;
+		protected $settings_page;
+
+		/**
+		 * @var WC_Connect_Help_View
+		 */
+		protected $help_view;
 
 		protected $services = array();
 
@@ -141,12 +156,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_settings_store = $settings_store;
 		}
 
+		public function get_payment_methods_store() {
+			return $this->payment_methods_store;
+		}
+
+		public function set_payment_methods_store( WC_Connect_Payment_Methods_Store $payment_methods_store ) {
+			$this->payment_methods_store = $payment_methods_store;
+		}
+
 		public function get_tracks() {
 			return $this->tracks;
 		}
 
 		public function set_tracks( WC_Connect_Tracks $tracks ) {
 			$this->tracks = $tracks;
+		}
+
+		public function get_rest_account_settings_controller() {
+			return $this->rest_account_settings_controller;
+		}
+
+		public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
+			$this->rest_account_settings_controller = $rest_account_settings_controller;
 		}
 
 		public function get_rest_services_controller() {
@@ -181,12 +212,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_schemas_validator = $validator;
 		}
 
-		public function get_help_provider() {
-			return $this->help_provider;
+		public function get_settings_pages() {
+			return $this->settings_pages;
 		}
 
-		public function set_help_provider( WC_Connect_Help_Provider $help_provider ) {
-			$this->help_provider = $help_provider;
+		public function set_settings_pages( WC_Connect_Settings_Pages $settings_pages ) {
+			$this->settings_pages = $settings_pages;
+		}
+
+		public function get_help_view() {
+			return $this->help_view;
+		}
+
+		public function set_help_view( WC_Connect_Help_View $help_view ) {
+			$this->help_view = $help_view;
 		}
 
 		/**
@@ -212,25 +251,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-payment-methods-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-help-provider.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 
-			$logger         = new WC_Connect_Logger( new WC_Logger() );
-			$validator      = new WC_Connect_Service_Schemas_Validator();
-			$api_client     = new WC_Connect_API_Client( $validator, $this );
-			$schemas_store  = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
-			$tracks         = new WC_Connect_Tracks( $logger );
-			$help_provider  = new WC_Connect_Help_Provider( $schemas_store, $settings_store, $logger );
+			$logger                = new WC_Connect_Logger( new WC_Logger() );
+			$validator             = new WC_Connect_Service_Schemas_Validator();
+			$api_client            = new WC_Connect_API_Client( $validator, $this );
+			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
+			$tracks                = new WC_Connect_Tracks( $logger );
+			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
 			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
+			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
-			$this->set_help_provider( $help_provider );
+			$this->set_help_view( $help_view );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
@@ -241,6 +283,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function load_admin_dependencies() {
 			require_once( plugin_basename( 'classes/class-wc-connect-debug-tools.php' ) );
 			new WC_Connect_Debug_Tools( $this->api_client );
+
+			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
+			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->logger );
+			$this->set_settings_pages( $settings_pages );
 		}
 
 		/**
@@ -292,6 +338,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$this->logger->log( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
 				return;
 			}
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-account-settings-controller.php' ) );
+			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store );
+			$this->set_rest_account_settings_controller( $rest_account_settings_controller );
+			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
 			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );

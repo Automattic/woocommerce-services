@@ -171,7 +171,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				admin_url( 'admin.php' )
 			) );
 
-			$store_options = $this->settings_store->get_shared_settings();
+			$store_options = $this->settings_store->get_store_options();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(

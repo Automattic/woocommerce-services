@@ -26,11 +26,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
-		 * Gets woocommerce settings useful for all connect services
+		 * Gets woocommerce store options that are useful for all connect services
 		 *
 		 * @return object|array
 		 */
-		public function get_shared_settings() {
+		public function get_store_options() {
 			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ), array() );
 			$dimension_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ), array() );
 			$weight_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ), array() );
@@ -40,6 +40,51 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				'dimension_unit' => $this->translate_unit( $dimension_unit ),
 				'weight_unit' => $this->translate_unit( $weight_unit ),
 			);
+		}
+
+		/**
+		 * Gets connect account settings (e.g. payment method)
+		 *
+		 * @return array
+		 */
+		public function get_account_settings() {
+			$default = array(
+				'selected_payment_method_id' => 0
+			);
+			return get_option( 'wc_connect_account_settings', $default );
+		}
+
+		/**
+		 * Updates connect account settings (e.g. payment method)
+		 *
+		 * @param array $settings
+		 *
+		 * @return true
+		 */
+		public function update_account_settings( $settings ) {
+			// simple validation for now
+			if ( ! is_array( $settings ) ) {
+				$this->logger->log( 'Array expected but not received', __FUNCTION__ );
+				return false;
+			}
+
+			return update_option( 'wc_connect_account_settings', $settings );;
+		}
+
+		public function get_selected_payment_method_id() {
+			$account_settings = $this->get_account_settings();
+			return intval( $account_settings[ 'selected_payment_method_id' ] );
+		}
+
+		public function set_selected_payment_method_id( $new_payment_method_id ) {
+			$new_payment_method_id = intval( $new_payment_method_id );
+			$account_settings = $this->get_account_settings();
+			$old_payment_method_id = intval( $account_settings[ 'selected_payment_method_id' ] );
+			if ( $old_payment_method_id === $new_payment_method_id ) {
+				return;
+			}
+			$account_settings[ 'selected_payment_method_id' ] = $new_payment_method_id;
+			$this->update_account_settings( $account_settings );
 		}
 
 		public function get_origin_address() {

@@ -49,6 +49,11 @@ module.exports = {
 				],
 				include: /(client|wp-calypso)/,
 				exclude: /(wp-calypso\/node_modules)/,
+			},
+			{
+				test: /\.svg$/,
+				loader: 'svg-url-loader',
+				include: /(client)/,
 			}
 		]
 	},

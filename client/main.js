@@ -9,14 +9,17 @@ import './lib/calypso-boot';
 import { translate as __ } from 'lib/mixins/i18n';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';
+import AccountSettings from './account-settings';
 
 const Route = ( ( rootView ) => {
 	switch ( rootView ) {
 		case 'wc-connect-create-shipping-label':
 			return ShippingLabel;
-		case 'wc-connect-settings':
+		case 'wc-connect-service-settings':
 		case 'wc-connect-admin-help':
 			return Settings;
+		case 'wc-connect-account-settings':
+			return AccountSettings;
 	}
 } )( wcConnectData.rootView )( wcConnectData );
 
@@ -72,6 +75,7 @@ if ( module.hot ) {
 	module.hot.accept( [
 		'./settings/views',
 		'./shipping-label/views',
+		'./account-settings/views',
 	], () => {
 		setTimeout( render );
 	} );
@@ -79,6 +83,7 @@ if ( module.hot ) {
 	module.hot.accept( [
 		'./settings/state/reducer',
 		'./shipping-label/state/reducer',
+		'./account-settings/state/reducer',
 	], () => {
 		store.replaceReducer( Route.getHotReducer() );
 	} );
