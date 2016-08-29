@@ -55,16 +55,25 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 	/**
 	 * Expected in request body:
 	 * array(
-	 *	'instance' => 30,
 	 *	'contents' => array(
 	 *		array(
-	 * 			'data' => array(
-	 *				'id' => 1,
-	 *				'variation_id' => 2,
-	 *			),
+	 * 			'product_id' => 403,
+	 *			'height' => 10,
+	 *			'length' => 10,
+	 *			'width' => 10,
+	 *			'weight' => 10,
 	 *			'quantity' => 1,
 	 *		),
+	 *		...
 	 * 	),
+	 *	'origin' => array(
+	 *		'address' => '132 Hawthorne St',
+	 *		'address_2' => '',
+	 *		'city' => 'San Francisco',
+	 *		'state' => 'CA',
+	 *		'postcode' => '94107',
+	 *		'country' => 'US',
+	 *	),
 	 *	'destination' => array(
 	 *		'address' => '1550 Snow Creek Dr',
 	 *		'address_2' => '',
@@ -82,32 +91,53 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		$request_body = $request->get_body();
 		$settings     = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		// Get shipping method instance id
-		$instance_id  = absint( $settings[ 'instance' ] );
-
-		// WC_Shipping_Method::calculate_rates() expects 'data' to be an object
+		// WC_Connect_API_Client::get_shipping_rates() expects 'data' to be an object
 		foreach ( $settings[ 'contents' ] as $i => $content ) {
 			$settings[ 'contents' ][ $i ][ 'data' ] = (object) $settings[ 'contents' ][ $i ][ 'data' ];
 		}
 
-		// Instantiate Connect Shipping Method and get rates
-		$connect_shipping_method = new WC_Connect_Shipping_Method( $instance_id );
-		$rates = $connect_shipping_method->get_rates_for_package( $settings );
+		// Force USPS for now
+		$services = array(
+			array(
+				'id'               => 'usps',
+				'instance'         => -1,
+				'service_settings' => array(
+					'title'      => 'USPS rates (for labels)',
+					'account_id' => '',
+					'origin'     => (string) $settings[ 'origin' ][ 'postcode' ]
+				),
+			),
+		);
 
+		$response        = $this->api_client->get_shipping_rates( $services, $settings );
 		$processed_rates = array();
 
 		// Add `service_id` to rates for selection purposes
-		foreach ( $rates as $rate ) {
-			$rate_meta = $rate->get_meta_data();
-			$rate_packages = json_decode( $rate_meta[ 'wc_connect_packages' ], true );
+		// TODO: refactor this, it's copy-pasta from WC_Connect_Shipping_Method::calculate_shipping()
+		foreach ( (array) $response->rates as $instance ) {
+			if ( ! property_exists( $instance, 'rates' ) ) {
+				continue;
+			}
 
-			$processed_rates[] = array(
-				'id'         => $rate->id,
-				'label'      => $rate->label,
-				'cost'       => $rate->cost,
-				'method_id'  => $rate->method_id,
-				'service_id' => $rate_packages[ 0 ][ 'service_id' ],
-			);
+			foreach ( (array) $instance->rates as $rate_idx => $rate ) {
+				$processed_rates[] = array(
+					'id'         => sprintf( '%s:%d:%d', $instance->id, $instance->instance, $rate_idx ),
+					'label'      => wp_kses(
+						html_entity_decode( $rate->title ),
+						array(
+							'sup' => array(),
+							'del' => array(),
+							'small' => array(),
+							'em' => array(),
+							'i' => array(),
+							'strong' => array(),
+						)
+					),
+					'cost'       => $rate->rate,
+					'method_id'  => 'usps',
+					'service_id' => $rate->packages[ 0 ]->service_id,
+				);
+			}
 		}
 
 		return array(
