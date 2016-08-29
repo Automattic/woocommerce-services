@@ -418,7 +418,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>', 'woocommerce' ),
 					array(  'a' => array( 'href' => array() ) )
 				),
-				esc_url( 'https://docs.woothemes.com/document/woocommerce-connect-faq/' ),
+				esc_url( 'https://docs.woocommerce.com/document/woocommerce-connect-faq/' ),
 				esc_url( 'https://github.com/Automattic/woocommerce-connect-client/issues/new' )
 			);
 
