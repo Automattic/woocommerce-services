@@ -26,7 +26,7 @@ module.exports = {
 		filename: '[name].js',
 		publicPath: 'http://localhost:8085/',
 	},
-	devtool: '#eval-source-map',
+	devtool: '#inline-source-map',
 	module: {
 		loaders: [
 			{
