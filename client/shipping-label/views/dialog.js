@@ -3,27 +3,11 @@ import Dialog from 'components/dialog';
 import ActionButtons from 'components/action-buttons';
 import { translate as __ } from 'lib/mixins/i18n';
 import sum from 'lodash/sum';
-import isArray from 'lodash/isArray';
-import isPlainObject from 'lodash/isPlainObject';
-import some from 'lodash/some';
-import values from 'lodash/values';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
 import PreviewStep from './steps/preview';
-
-const hasErrors = ( tree ) => {
-	if ( ! tree ) {
-		return false;
-	}
-	if ( isArray( tree ) ) {
-		return some( tree, hasErrors );
-	}
-	if ( isPlainObject( tree ) ) {
-		return some( values( tree ), hasErrors );
-	}
-	return true;
-};
+import { hasNonEmptyLeaves } from 'lib/utils/tree';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
@@ -34,7 +18,10 @@ const PrintLabelDialog = ( props ) => {
 		return sum( ratesCost ).toFixed( 2 );
 	};
 
-	const canPurchase = ! props.form.isSubmitting && ! hasErrors( props.errors );
+	const canPurchase = ! props.form.isSubmitting &&
+		! hasNonEmptyLeaves( props.errors ) &&
+		! props.form.origin.validationInProgress &&
+		! props.form.destination.validationInProgress;
 	return (
 		<Dialog
 			isVisible={ props.showDialog }
@@ -75,7 +62,7 @@ const PrintLabelDialog = ( props ) => {
 						isDisabled: ! canPurchase,
 						onClick: props.labelActions.purchaseLabel,
 						isPrimary: true,
-						label: __( 'Purchase' ) + ( canPurchase ? ' (' + currencySymbol + getTotalCost() + ')' : '' ),
+						label: __( 'Print & Purchase' ) + ( canPurchase ? ' (' + currencySymbol + getTotalCost() + ')' : '' ),
 					},
 					{
 						onClick: props.labelActions.exitPrintingFlow,

@@ -28,10 +28,18 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 				form: {
 					origin: {
 						values: formData.origin,
+						isValidated: Boolean( formData.origin.address ), // If the address field is filled, we assume it's an already validated address
+						normalized: formData.origin.address ? formData.origin : null,
+						pickNormalized: true,
+						validationInProgress: false,
 						allowChangeCountry: false,
 					},
 					destination: {
 						values: formData.destination,
+						isValidated: false,
+						normalized: null,
+						pickNormalized: true,
+						validationInProgress: false,
 						allowChangeCountry: false,
 					},
 					packages: {

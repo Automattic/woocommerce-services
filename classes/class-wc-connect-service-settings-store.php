@@ -100,7 +100,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function update_origin_address( $address ) {
-			return update_option( 'wc_connect_origin_address', $address );
+			return update_option( 'wc_connect_origin_address', ( array ) $address );
 		}
 
 		protected function sort_services( $a, $b ) {

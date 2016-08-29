@@ -3,8 +3,24 @@ import { translate as __ } from 'lib/mixins/i18n';
 import TextField from 'components/text-field';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
+import isObject from 'lodash/isObject';
+import isEqual from 'lodash/isEqual';
+import AddressSuggestion from './suggestion';
 
-const AddressFields = ( { values, allowChangeCountry, group, labelActions, storeOptions, errors } ) => {
+const AddressFields = ( { values, isValidated, normalized, pickNormalized, allowChangeCountry, group, labelActions, storeOptions, errors } ) => {
+	if ( isValidated && normalized && ! isEqual( normalized, values ) ) {
+		return (
+			<AddressSuggestion
+				values={ values }
+				normalized={ normalized }
+				pickNormalized={ pickNormalized }
+				pickNormalizedAddress={ ( pick ) => labelActions.pickNormalizedAddress( group, pick ) }
+				editOriginalAddress={ () => labelActions.editOriginalAddress( group ) }
+				countriesData={ storeOptions.countriesData } />
+		);
+	}
+
+	errors = isObject( errors ) ? errors : {};
 	const getId = ( fieldName ) => group + '_' + fieldName;
 	const getValue = ( fieldName ) => values[ fieldName ] || '';
 	const updateValue = ( fieldName, newValue ) => labelActions.updateAddressValue( group, fieldName, newValue );
@@ -68,11 +84,16 @@ const AddressFields = ( { values, allowChangeCountry, group, labelActions, store
 
 AddressFields.propTypes = {
 	values: PropTypes.object.isRequired,
+	isValidated: PropTypes.bool.isRequired,
+	normalized: PropTypes.object,
+	pickNormalized: PropTypes.bool.isRequired,
 	allowChangeCountry: PropTypes.bool.isRequired,
-	group: PropTypes.string.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
-	errors: PropTypes.object.isRequired,
+	errors: PropTypes.oneOfType( [
+		PropTypes.object,
+		PropTypes.bool,
+	] ).isRequired,
 };
 
 export default AddressFields;

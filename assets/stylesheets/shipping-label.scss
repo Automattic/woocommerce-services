@@ -66,4 +66,54 @@
 		margin-bottom: 4px;
 		text-transform: uppercase;
 	}
+
+	.gridicon.is-success {
+		color: $alert-green;
+	}
+
+	.is-warning {
+		color: $alert-yellow;
+	}
+
+	.is-error {
+		color: $alert-red;
+	}
+
+	.suggestion-container {
+		display: flex;
+		align-items: flex-start;
+
+		.suggestion-title {
+			font-weight: bold;
+		}
+
+		.suggestion {
+			border: 1px solid transparent;
+			border-radius: 4px;
+			padding: 16px;
+			flex-grow: 1;
+
+			&:first-child {
+				margin-right: 16px;
+			}
+
+			&.is-selected {
+				border-color: $blue-medium;
+			}
+		}
+
+		.summary {
+			margin: 8px 0 8px 24px;
+			font-weight: normal;
+
+			p {
+				margin-bottom: 2px;
+			}
+		}
+
+		.suggestion-edit-button {
+			margin-left: 24px;
+			text-transform: uppercase;
+		}
+	}
 }
