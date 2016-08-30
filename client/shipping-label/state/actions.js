@@ -100,15 +100,15 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressV
 	};
 
 	let form = getState().shippingLabel.form;
-	const addressesValidation = [];
+	const addressValidationQueue = [];
 	if ( ! form.origin.isValidated ) {
-		addressesValidation.push( validateAddress( dispatch, form.origin.values, 'origin', addressValidationURL, nonce ) );
+		addressValidationQueue.push( validateAddress( dispatch, form.origin.values, 'origin', addressValidationURL, nonce ) );
 	}
 	if ( ! form.destination.isValidated ) {
-		addressesValidation.push( validateAddress( dispatch, form.destination.values, 'destination', addressValidationURL, nonce ) );
+		addressValidationQueue.push( validateAddress( dispatch, form.destination.values, 'destination', addressValidationURL, nonce ) );
 	}
 
-	Promise.all( addressesValidation ).then( () => {
+	Promise.all( addressValidationQueue ).then( () => {
 		form = getState().shippingLabel.form;
 		const formData = {
 			origin: form.origin.pickNormalized ? form.origin.normalized : form.origin.values,
