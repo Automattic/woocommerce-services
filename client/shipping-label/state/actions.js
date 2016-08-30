@@ -74,8 +74,6 @@ export const purchaseLabel = () => ( dispatch, getState, { callbackURL, nonce, s
 	const formData = {
 		origin: form.origin.values,
 		destination: form.destination.values,
-		payment_method_id: '123456789',
-		carrier: 'usps',
 		packages: form.packages.values.map( ( pckg, index ) => ( {
 			...omit( pckg, [ 'items', 'id' ] ),
 			service_id: form.rates.values[ index ],

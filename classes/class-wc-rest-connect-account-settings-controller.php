@@ -66,7 +66,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 				),
 				array_merge(
 					array( 'status' => 400 ),
-					$validation_result->get_error_data()
+					$result->get_error_data()
 				)
 			);
 		}
