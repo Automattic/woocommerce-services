@@ -4,7 +4,7 @@ import {
 	UPDATE_ADDRESS_VALUE,
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
 	ADDRESS_NORMALIZATION_COMPLETED,
-	PICK_NORMALIZED_ADDRESS,
+	SELECT_NORMALIZED_ADDRESS,
 	EDIT_ORIGINAL_ADDRESS,
 	UPDATE_PACKAGE_WEIGHT,
 	UPDATE_RATE,
@@ -60,18 +60,18 @@ reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized } ) =
 			[ group ]: { ...state.form[ group ],
 				normalizationInProgress: false,
 				isnormalized: true,
-				pickNormalized: true,
+				selectNormalized: true,
 				normalized,
 			},
 		},
 	};
 };
 
-reducers[ PICK_NORMALIZED_ADDRESS ] = ( state, { group, pickNormalized } ) => {
+reducers[ SELECT_NORMALIZED_ADDRESS ] = ( state, { group, selectNormalized } ) => {
 	return { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
-				pickNormalized,
+				selectNormalized,
 			},
 		},
 	};
@@ -81,7 +81,7 @@ reducers[ EDIT_ORIGINAL_ADDRESS ] = ( state, { group } ) => {
 	return { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
-				pickNormalized: false,
+				selectNormalized: false,
 				normalized: null,
 				isnormalized: false,
 			},

@@ -7,14 +7,14 @@ import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
 import AddressSuggestion from './suggestion';
 
-const AddressFields = ( { values, isnormalized, normalized, pickNormalized, allowChangeCountry, group, labelActions, storeOptions, errors } ) => {
+const AddressFields = ( { values, isnormalized, normalized, selectNormalized, allowChangeCountry, group, labelActions, storeOptions, errors } ) => {
 	if ( isnormalized && normalized && ! isEqual( normalized, values ) ) {
 		return (
 			<AddressSuggestion
 				values={ values }
 				normalized={ normalized }
-				pickNormalized={ pickNormalized }
-				pickNormalizedAddress={ ( pick ) => labelActions.pickNormalizedAddress( group, pick ) }
+				selectNormalized={ selectNormalized }
+				selectNormalizedAddress={ ( select ) => labelActions.selectNormalizedAddress( group, select ) }
 				editOriginalAddress={ () => labelActions.editOriginalAddress( group ) }
 				countriesData={ storeOptions.countriesData } />
 		);
@@ -86,7 +86,7 @@ AddressFields.propTypes = {
 	values: PropTypes.object.isRequired,
 	isnormalized: PropTypes.bool.isRequired,
 	normalized: PropTypes.object,
-	pickNormalized: PropTypes.bool.isRequired,
+	selectNormalized: PropTypes.bool.isRequired,
 	allowChangeCountry: PropTypes.bool.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,

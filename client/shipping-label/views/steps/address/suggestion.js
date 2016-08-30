@@ -32,14 +32,14 @@ const AddressSummary = ( { values, countriesData } ) => {
 	);
 };
 
-const AddressSuggestion = ( { values, normalized, pickNormalized, pickNormalizedAddress, editOriginalAddress, countriesData } ) => {
+const AddressSuggestion = ( { values, normalized, selectNormalized, selectNormalizedAddress, editOriginalAddress, countriesData } ) => {
 	return (
 		<div>
 			<span>{ __( 'To ensure accurate delivery, we have slightly modified the address entered.' ) }</span>
 			<div className="suggestion-container">
 				<RadioButton
-					checked={ ! pickNormalized }
-					onChange={ () => pickNormalizedAddress( false ) } >
+					checked={ ! selectNormalized }
+					onChange={ () => selectNormalizedAddress( false ) } >
 					<span className="suggestion-title">{ __( 'Address entered' ) }</span>
 					<AddressSummary
 						values={ values }
@@ -49,8 +49,8 @@ const AddressSuggestion = ( { values, normalized, pickNormalized, pickNormalized
 					</a>
 				</RadioButton>
 				<RadioButton
-					checked={ pickNormalized }
-					onChange={ () => pickNormalizedAddress( true ) } >
+					checked={ selectNormalized }
+					onChange={ () => selectNormalizedAddress( true ) } >
 					<span className="suggestion-title">{ __( 'Suggested address' ) }</span>
 					<AddressSummary
 						values={ normalized }
@@ -64,8 +64,8 @@ const AddressSuggestion = ( { values, normalized, pickNormalized, pickNormalized
 AddressSuggestion.propTypes = {
 	values: PropTypes.object.isRequired,
 	normalized: PropTypes.object,
-	pickNormalized: PropTypes.bool.isRequired,
-	pickNormalizedAddress: PropTypes.func.isRequired,
+	selectNormalized: PropTypes.bool.isRequired,
+	selectNormalizedAddress: PropTypes.func.isRequired,
 	editOriginalAddress: PropTypes.func.isRequired,
 	countriesData: PropTypes.object.isRequired,
 };

@@ -5,12 +5,12 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import Card from 'shipping-label/views/card';
 import isEqual from 'lodash/isEqual';
 
-const renderSummary = ( { values, isnormalized, normalized, pickNormalized, storeOptions, errors } ) => {
+const renderSummary = ( { values, isnormalized, normalized, selectNormalized, storeOptions, errors } ) => {
 	if ( hasNonEmptyLeaves( errors ) || ( isnormalized && ! normalized ) ) {
 		return __( 'Invalid address' );
 	}
 	const { countriesData } = storeOptions;
-	const { city, postcode, state, country } = ( normalized && pickNormalized ) ? normalized : values;
+	const { city, postcode, state, country } = ( normalized && selectNormalized ) ? normalized : values;
 	// Summary format: "city, postcode state, country"
 	let str = city + ', ';
 	str += ( 'US' === country ? postcode.split( '-' )[ 0 ] : postcode ) + ' ';
@@ -65,7 +65,7 @@ Origin.propTypes = Destination.propTypes = {
 	values: PropTypes.object.isRequired,
 	isnormalized: PropTypes.bool.isRequired,
 	normalized: PropTypes.object,
-	pickNormalized: PropTypes.bool.isRequired,
+	selectNormalized: PropTypes.bool.isRequired,
 	normalizationInProgress: PropTypes.bool.isRequired,
 	allowChangeCountry: PropTypes.bool.isRequired,
 	labelActions: PropTypes.object.isRequired,

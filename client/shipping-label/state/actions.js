@@ -13,7 +13,7 @@ export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const UPDATE_ADDRESS_VALUE = 'UPDATE_ADDRESS_VALUE';
 export const ADDRESS_NORMALIZATION_IN_PROGRESS = 'ADDRESS_NORMALIZATION_IN_PROGRESS';
 export const ADDRESS_NORMALIZATION_COMPLETED = 'ADDRESS_NORMALIZATION_COMPLETED';
-export const PICK_NORMALIZED_ADDRESS = 'PICK_NORMALIZED_ADDRESS';
+export const SELECT_NORMALIZED_ADDRESS = 'SELECT_NORMALIZED_ADDRESS';
 export const EDIT_ORIGINAL_ADDRESS = 'EDIT_ORIGINAL_ADDRESS';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
@@ -45,11 +45,11 @@ export const updateAddressValue = ( group, name, value ) => {
 	};
 };
 
-export const pickNormalizedAddress = ( group, pickNormalized ) => {
+export const selectNormalizedAddress = ( group, selectNormalized ) => {
 	return {
-		type: PICK_NORMALIZED_ADDRESS,
+		type: SELECT_NORMALIZED_ADDRESS,
 		group,
-		pickNormalized,
+		selectNormalized,
 	};
 };
 
@@ -111,8 +111,8 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 	Promise.all( addressNormalizationQueue ).then( () => {
 		form = getState().shippingLabel.form;
 		const formData = {
-			origin: form.origin.pickNormalized ? form.origin.normalized : form.origin.values,
-			destination: form.destination.pickNormalized ? form.destination.normalized : form.destination.values,
+			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
+			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
 			packages: form.packages.values.map( ( pckg, index ) => ( {
 				...omit( pckg, [ 'items', 'id' ] ),
 				service_id: form.rates.values[ index ],
