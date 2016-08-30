@@ -66,7 +66,7 @@ AddressSuggestion.propTypes = {
 	normalized: PropTypes.object,
 	selectNormalized: PropTypes.bool.isRequired,
 	selectNormalizedAddress: PropTypes.func.isRequired,
-	editOriginalAddress: PropTypes.func.isRequired,
+	editAddress: PropTypes.func.isRequired,
 	countriesData: PropTypes.object.isRequired,
 };
 

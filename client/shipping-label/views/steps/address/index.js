@@ -5,20 +5,22 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import Card from 'shipping-label/views/card';
 import isEqual from 'lodash/isEqual';
 
-const renderSummary = ( { values, isNormalized, normalized, selectNormalized, storeOptions, errors } ) => {
+const renderSummary = ( { values, isNormalized, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {
 	if ( hasNonEmptyLeaves( errors ) || ( isNormalized && ! normalized ) ) {
 		return __( 'Invalid address' );
 	}
 	const { countriesData } = storeOptions;
 	const { city, postcode, state, country } = ( normalized && selectNormalized ) ? normalized : values;
-	// Summary format: "city, postcode state, country"
+	// Summary format: "city, state postcode [, country]"
 	let str = city + ', ';
-	str += ( 'US' === country ? postcode.split( '-' )[ 0 ] : postcode ) + ' ';
 	if ( state ) {
 		const statesMap = ( countriesData[ country ] || {} ).states || {};
-		str += ( statesMap[ state ] || state ) + ', ';
+		str += ( statesMap[ state ] || state ) + ' ';
 	}
-	str += countriesData[ country ].name;
+	str += ( 'US' === country ? postcode.split( '-' )[ 0 ] : postcode );
+	if ( showCountry ) {
+		str += ', ' + countriesData[ country ].name;
+	}
 	return str;
 };
 
@@ -36,10 +38,11 @@ const getNormalizationStatus = ( { normalizationInProgress, errors, isNormalized
 };
 
 const Origin = ( props ) => {
+	const showCountryInSummary = false;
 	return (
 		<Card
 			title={ __( 'Origin address' ) }
-			summary={ renderSummary( props ) }
+			summary={ renderSummary( props, showCountryInSummary ) }
 			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
@@ -49,10 +52,11 @@ const Origin = ( props ) => {
 };
 
 const Destination = ( props ) => {
+	const showCountryInSummary = props.form.origin.values.country !== props.values.country;
 	return (
 		<Card
 			title={ __( 'Destination address' ) }
-			summary={ renderSummary( props ) }
+			summary={ renderSummary( props, showCountryInSummary ) }
 			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
