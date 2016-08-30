@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_REST_Connect_Address_Validation_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Address_Normalization_Controller' ) ) {
 	return;
 }
 
-class WC_REST_Connect_Address_Validation_Controller extends WP_REST_Controller {
+class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controller {
 
 	/**
 	 * Endpoint namespace.
@@ -22,7 +22,7 @@ class WC_REST_Connect_Address_Validation_Controller extends WP_REST_Controller {
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'connect/validate-address';
+	protected $rest_base = 'connect/normalize-address';
 
 	/**
 	 * @var WC_Connect_API_Client
@@ -63,7 +63,7 @@ class WC_REST_Connect_Address_Validation_Controller extends WP_REST_Controller {
 			'destination' => $request->address,
 			'carrier' => 'usps',
 		);
-		$response = $this->api_client->send_address_validation_request( $body );
+		$response = $this->api_client->send_address_normalization_request( $body );
 
 		if ( isset( $response->error ) ) {
 			return new WP_Error(
@@ -92,7 +92,7 @@ class WC_REST_Connect_Address_Validation_Controller extends WP_REST_Controller {
 	public function update_items_permissions_check( $request ) {
 		$request = json_decode( $request->get_body(), false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 		if ( 'origin' === $request->type ) {
-			return current_user_can( 'manage_woocommerce' ); // Only an admin can validate the origin address
+			return current_user_can( 'manage_woocommerce' ); // Only an admin can normalize the origin address
 		}
 		return true; // non-authenticated service for the 'destination' address
 	}

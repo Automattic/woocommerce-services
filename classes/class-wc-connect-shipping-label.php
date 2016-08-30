@@ -183,12 +183,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(
-				'storeOptions'         => $store_options,
-				'formData'             => $this->get_form_data( $order ),
-				'purchaseURL'          => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
-				'addressValidationURL' => get_rest_url( null, '/wc/v1/connect/validate-address' ),
-				'nonce'                => wp_create_nonce( 'wp_rest' ),
-				'rootView'             => $root_view,
+				'storeOptions'            => $store_options,
+				'formData'                => $this->get_form_data( $order ),
+				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
+				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
+				'nonce'                   => wp_create_nonce( 'wp_rest' ),
+				'rootView'                => $root_view,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

@@ -1,12 +1,12 @@
 import saveForm from 'lib/save-form';
 import noop from 'lodash/noop';
 import {
-	ADDRESS_VALIDATION_IN_PROGRESS,
-	ADDRESS_VALIDATION_COMPLETED,
+	ADDRESS_NORMALIZATION_IN_PROGRESS,
+	ADDRESS_NORMALIZATION_COMPLETED,
 } from './actions';
 
-export default ( dispatch, address, type, addressValidationURL, nonce ) => {
-	dispatch( { type: ADDRESS_VALIDATION_IN_PROGRESS, group: type } );
+export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
+	dispatch( { type: ADDRESS_NORMALIZATION_IN_PROGRESS, group: type } );
 	return new Promise( ( resolve, reject ) => {
 		let error = null;
 		let response = null;
@@ -19,7 +19,7 @@ export default ( dispatch, address, type, addressValidationURL, nonce ) => {
 		const setIsSaving = ( saving ) => {
 			if ( ! saving ) {
 				dispatch( {
-					type: ADDRESS_VALIDATION_COMPLETED,
+					type: ADDRESS_NORMALIZATION_COMPLETED,
 					group: type,
 					normalized: ( response || {} ).normalized,
 					error,
@@ -31,6 +31,6 @@ export default ( dispatch, address, type, addressValidationURL, nonce ) => {
 				}
 			}
 		};
-		saveForm( setIsSaving, setSuccess, noop, setError, addressValidationURL, nonce, 'POST', { address, type } );
+		saveForm( setIsSaving, setSuccess, noop, setError, addressNormalizationURL, nonce, 'POST', { address, type } );
 	} );
 };

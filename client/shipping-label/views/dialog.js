@@ -20,8 +20,8 @@ const PrintLabelDialog = ( props ) => {
 
 	const canPurchase = ! props.form.isSubmitting &&
 		! hasNonEmptyLeaves( props.errors ) &&
-		! props.form.origin.validationInProgress &&
-		! props.form.destination.validationInProgress;
+		! props.form.origin.normalizationInProgress &&
+		! props.form.destination.normalizationInProgress;
 	return (
 		<Dialog
 			isVisible={ props.showDialog }

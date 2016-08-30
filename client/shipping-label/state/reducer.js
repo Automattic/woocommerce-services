@@ -2,8 +2,8 @@ import {
 	OPEN_PRINTING_FLOW,
 	EXIT_PRINTING_FLOW,
 	UPDATE_ADDRESS_VALUE,
-	ADDRESS_VALIDATION_IN_PROGRESS,
-	ADDRESS_VALIDATION_COMPLETED,
+	ADDRESS_NORMALIZATION_IN_PROGRESS,
+	ADDRESS_NORMALIZATION_COMPLETED,
 	PICK_NORMALIZED_ADDRESS,
 	EDIT_ORIGINAL_ADDRESS,
 	UPDATE_PACKAGE_WEIGHT,
@@ -33,7 +33,7 @@ reducers[ UPDATE_ADDRESS_VALUE ] = ( state, { group, name, value } ) => {
 				values: { ...state.form[ group ].values,
 					[ name ]: value,
 				},
-				isValidated: false,
+				isnormalized: false,
 				normalized: null,
 			},
 		},
@@ -44,22 +44,22 @@ reducers[ UPDATE_ADDRESS_VALUE ] = ( state, { group, name, value } ) => {
 	return newState;
 };
 
-reducers[ ADDRESS_VALIDATION_IN_PROGRESS ] = ( state, { group } ) => {
+reducers[ ADDRESS_NORMALIZATION_IN_PROGRESS ] = ( state, { group } ) => {
 	return { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
-				validationInProgress: true,
+				normalizationInProgress: true,
 			},
 		},
 	};
 };
 
-reducers[ ADDRESS_VALIDATION_COMPLETED ] = ( state, { group, normalized } ) => {
+reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized } ) => {
 	return { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
-				validationInProgress: false,
-				isValidated: true,
+				normalizationInProgress: false,
+				isnormalized: true,
 				pickNormalized: true,
 				normalized,
 			},
@@ -83,7 +83,7 @@ reducers[ EDIT_ORIGINAL_ADDRESS ] = ( state, { group } ) => {
 			[ group ]: { ...state.form[ group ],
 				pickNormalized: false,
 				normalized: null,
-				isValidated: false,
+				isnormalized: false,
 			},
 		},
 	};

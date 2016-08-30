@@ -2,13 +2,13 @@ import { createSelector } from 'reselect';
 import { translate as __ } from 'lib/mixins/i18n';
 import isEmpty from 'lodash/isEmpty';
 
-const getAddressErrors = ( { values, isValidated, normalized, pickNormalized }, countriesData ) => {
-	if ( isValidated && ! normalized ) {
-		// If the address is validated but the server didn't return a normalized address, then it's
+const getAddressErrors = ( { values, isnormalized, normalized, pickNormalized }, countriesData ) => {
+	if ( isnormalized && ! normalized ) {
+		// If the address is normalized but the server didn't return a normalized address, then it's
 		// invalid and must register as an error, but no concrete field is erroneous, so return a truthy value
 		return true;
 	}
-	const { postcode, state, country } = ( isValidated && pickNormalized ) ? normalized : values;
+	const { postcode, state, country } = ( isnormalized && pickNormalized ) ? normalized : values;
 	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
 	const errors = {};
 	requiredFields.forEach( ( field ) => {

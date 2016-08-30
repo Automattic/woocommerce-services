@@ -88,9 +88,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_shipping_rates_controller;
 
 		/**
-		 * @var WC_REST_Connect_Address_Validation_Controller
+		 * @var WC_REST_Connect_Address_Normalization_Controller
 		 */
-		protected $rest_address_validation_controller;
+		protected $rest_address_normalization_controller;
 
 		/**
 		 * @var WC_Connect_Service_Schemas_Validator
@@ -218,8 +218,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_shipping_rates_controller = $rest_shipping_rates_controller;
 		}
 
-		public function set_rest_address_validation_controller( WC_REST_Connect_Address_Validation_Controller $rest_address_validation_controller ) {
-			$this->rest_address_validation_controller = $rest_address_validation_controller;
+		public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
+			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -382,10 +382,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_shipping_rates_controller( $rest_shipping_rates_controller );
 			$rest_shipping_rates_controller->register_routes();
 
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-address-validation-controller.php' ) );
-			$rest_address_validation_controller = new WC_REST_Connect_Address_Validation_Controller( $this->api_client, $settings_store );
-			$this->set_rest_address_validation_controller( $rest_address_validation_controller );
-			$rest_address_validation_controller->register_routes();
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-address-normalization-controller.php' ) );
+			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store );
+			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
+			$rest_address_normalization_controller->register_routes();
 		}
 
 		/**

@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'POST', '/shipping/label', $body );
 		}
 
-		public function send_address_validation_request( $body ) {
+		public function send_address_normalization_request( $body ) {
 			return $this->request( 'POST', '/shipping/address/normalize', $body );
 		}
 

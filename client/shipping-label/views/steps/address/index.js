@@ -5,8 +5,8 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import Card from 'shipping-label/views/card';
 import isEqual from 'lodash/isEqual';
 
-const renderSummary = ( { values, isValidated, normalized, pickNormalized, storeOptions, errors } ) => {
-	if ( hasNonEmptyLeaves( errors ) || ( isValidated && ! normalized ) ) {
+const renderSummary = ( { values, isnormalized, normalized, pickNormalized, storeOptions, errors } ) => {
+	if ( hasNonEmptyLeaves( errors ) || ( isnormalized && ! normalized ) ) {
 		return __( 'Invalid address' );
 	}
 	const { countriesData } = storeOptions;
@@ -22,14 +22,14 @@ const renderSummary = ( { values, isValidated, normalized, pickNormalized, store
 	return str;
 };
 
-const getValidationStatus = ( { validationInProgress, errors, isValidated, values, normalized } ) => {
-	if ( validationInProgress ) {
+const getNormalizationStatus = ( { normalizationInProgress, errors, isnormalized, values, normalized } ) => {
+	if ( normalizationInProgress ) {
 		return { isProgress: true };
 	}
-	if ( hasNonEmptyLeaves( errors ) || ( isValidated && ! normalized ) ) {
+	if ( hasNonEmptyLeaves( errors ) || ( isnormalized && ! normalized ) ) {
 		return { isError: true };
 	}
-	if ( isValidated ) {
+	if ( isnormalized ) {
 		return isEqual( values, normalized ) ? { isSuccess: true } : { isWarning: true };
 	}
 	return {};
@@ -40,7 +40,7 @@ const Origin = ( props ) => {
 		<Card
 			title={ __( 'Origin address' ) }
 			summary={ renderSummary( props ) }
-			{ ...getValidationStatus( props ) } >
+			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
 				group="origin" />
@@ -53,7 +53,7 @@ const Destination = ( props ) => {
 		<Card
 			title={ __( 'Destination address' ) }
 			summary={ renderSummary( props ) }
-			{ ...getValidationStatus( props ) } >
+			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
 				group="destination" />
@@ -63,10 +63,10 @@ const Destination = ( props ) => {
 
 Origin.propTypes = Destination.propTypes = {
 	values: PropTypes.object.isRequired,
-	isValidated: PropTypes.bool.isRequired,
+	isnormalized: PropTypes.bool.isRequired,
 	normalized: PropTypes.object,
 	pickNormalized: PropTypes.bool.isRequired,
-	validationInProgress: PropTypes.bool.isRequired,
+	normalizationInProgress: PropTypes.bool.isRequired,
 	allowChangeCountry: PropTypes.bool.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
