@@ -113,26 +113,18 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		$processed_rates = array();
 
 		// Add `service_id` to rates for selection purposes
-		// TODO: refactor this, it's copy-pasta from WC_Connect_Shipping_Method::calculate_shipping()
 		foreach ( (array) $response->rates as $instance ) {
 			if ( ! property_exists( $instance, 'rates' ) ) {
 				continue;
 			}
 
 			foreach ( (array) $instance->rates as $rate_idx => $rate ) {
+				$rate_id    = WC_Connect_Shipping_Method::format_rate_id( $instance->id, $instance->instance, $rate_idx );
+				$rate_label = WC_Connect_Shipping_Method::format_rate_title( $rate->title );
+
 				$processed_rates[] = array(
-					'id'         => sprintf( '%s:%d:%d', $instance->id, $instance->instance, $rate_idx ),
-					'label'      => wp_kses(
-						html_entity_decode( $rate->title ),
-						array(
-							'sup' => array(),
-							'del' => array(),
-							'small' => array(),
-							'em' => array(),
-							'i' => array(),
-							'strong' => array(),
-						)
-					),
+					'id'         => $rate_id,
+					'label'      => $rate_label,
 					'cost'       => $rate->rate,
 					'method_id'  => 'usps',
 					'service_id' => $rate->packages[ 0 ]->service_id,
