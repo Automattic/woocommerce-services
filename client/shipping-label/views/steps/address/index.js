@@ -5,8 +5,8 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import Card from 'shipping-label/views/card';
 import isEqual from 'lodash/isEqual';
 
-const renderSummary = ( { values, isnormalized, normalized, selectNormalized, storeOptions, errors } ) => {
-	if ( hasNonEmptyLeaves( errors ) || ( isnormalized && ! normalized ) ) {
+const renderSummary = ( { values, isNormalized, normalized, selectNormalized, storeOptions, errors } ) => {
+	if ( hasNonEmptyLeaves( errors ) || ( isNormalized && ! normalized ) ) {
 		return __( 'Invalid address' );
 	}
 	const { countriesData } = storeOptions;
@@ -22,14 +22,14 @@ const renderSummary = ( { values, isnormalized, normalized, selectNormalized, st
 	return str;
 };
 
-const getNormalizationStatus = ( { normalizationInProgress, errors, isnormalized, values, normalized } ) => {
+const getNormalizationStatus = ( { normalizationInProgress, errors, isNormalized, values, normalized } ) => {
 	if ( normalizationInProgress ) {
 		return { isProgress: true };
 	}
-	if ( hasNonEmptyLeaves( errors ) || ( isnormalized && ! normalized ) ) {
+	if ( hasNonEmptyLeaves( errors ) || ( isNormalized && ! normalized ) ) {
 		return { isError: true };
 	}
-	if ( isnormalized ) {
+	if ( isNormalized ) {
 		return isEqual( values, normalized ) ? { isSuccess: true } : { isWarning: true };
 	}
 	return {};
@@ -63,7 +63,7 @@ const Destination = ( props ) => {
 
 Origin.propTypes = Destination.propTypes = {
 	values: PropTypes.object.isRequired,
-	isnormalized: PropTypes.bool.isRequired,
+	isNormalized: PropTypes.bool.isRequired,
 	normalized: PropTypes.object,
 	selectNormalized: PropTypes.bool.isRequired,
 	normalizationInProgress: PropTypes.bool.isRequired,

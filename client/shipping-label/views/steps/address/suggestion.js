@@ -32,7 +32,7 @@ const AddressSummary = ( { values, countriesData } ) => {
 	);
 };
 
-const AddressSuggestion = ( { values, normalized, selectNormalized, selectNormalizedAddress, editOriginalAddress, countriesData } ) => {
+const AddressSuggestion = ( { values, normalized, selectNormalized, selectNormalizedAddress, editAddress, countriesData } ) => {
 	return (
 		<div>
 			<span>{ __( 'To ensure accurate delivery, we have slightly modified the address entered.' ) }</span>
@@ -44,7 +44,7 @@ const AddressSuggestion = ( { values, normalized, selectNormalized, selectNormal
 					<AddressSummary
 						values={ values }
 						countriesData={ countriesData } />
-					<a onClick={ editOriginalAddress } >
+					<a onClick={ editAddress } >
 						{ __( 'Edit address' ) }
 					</a>
 				</RadioButton>

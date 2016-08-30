@@ -28,7 +28,7 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 				form: {
 					origin: {
 						values: formData.origin,
-						isnormalized: Boolean( formData.origin.address ), // If the address field is filled, we assume it's an already normalized address
+						isNormalized: Boolean( formData.origin.address ), // If the address field is filled, we assume it's an already normalized address
 						normalized: formData.origin.address ? formData.origin : null,
 						selectNormalized: true,
 						normalizationInProgress: false,
@@ -36,7 +36,7 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 					},
 					destination: {
 						values: formData.destination,
-						isnormalized: false,
+						isNormalized: false,
 						normalized: null,
 						selectNormalized: true,
 						normalizationInProgress: false,

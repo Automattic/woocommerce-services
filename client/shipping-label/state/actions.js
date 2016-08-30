@@ -14,7 +14,7 @@ export const UPDATE_ADDRESS_VALUE = 'UPDATE_ADDRESS_VALUE';
 export const ADDRESS_NORMALIZATION_IN_PROGRESS = 'ADDRESS_NORMALIZATION_IN_PROGRESS';
 export const ADDRESS_NORMALIZATION_COMPLETED = 'ADDRESS_NORMALIZATION_COMPLETED';
 export const SELECT_NORMALIZED_ADDRESS = 'SELECT_NORMALIZED_ADDRESS';
-export const EDIT_ORIGINAL_ADDRESS = 'EDIT_ORIGINAL_ADDRESS';
+export const EDIT_ADDRESS = 'EDIT_ADDRESS';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
@@ -23,10 +23,10 @@ export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, nonce } ) => {
 	const { origin, destination } = getState().shippingLabel.form;
 	const errors = getFormErrors( getState(), storeOptions );
-	if ( ! hasNonEmptyLeaves( errors.origin ) && ! origin.isnormalized && ! origin.normalizationInProgress ) {
+	if ( ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
 		normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ).catch( noop );
 	}
-	if ( ! hasNonEmptyLeaves( errors.destination ) && ! destination.isnormalized && ! destination.normalizationInProgress ) {
+	if ( ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
 		normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ).catch( noop );
 	}
 	dispatch( { type: OPEN_PRINTING_FLOW } );
@@ -53,9 +53,9 @@ export const selectNormalizedAddress = ( group, selectNormalized ) => {
 	};
 };
 
-export const editOriginalAddress = ( group ) => {
+export const editAddress = ( group ) => {
 	return {
-		type: EDIT_ORIGINAL_ADDRESS,
+		type: EDIT_ADDRESS,
 		group,
 	};
 };
@@ -101,10 +101,10 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 
 	let form = getState().shippingLabel.form;
 	const addressNormalizationQueue = [];
-	if ( ! form.origin.isnormalized ) {
+	if ( ! form.origin.isNormalized ) {
 		addressNormalizationQueue.push( normalizeAddress( dispatch, form.origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
-	if ( ! form.destination.isnormalized ) {
+	if ( ! form.destination.isNormalized ) {
 		addressNormalizationQueue.push( normalizeAddress( dispatch, form.destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
