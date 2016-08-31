@@ -3,6 +3,7 @@ import noop from 'lodash/noop';
 import fill from 'lodash/fill';
 import flatten from 'lodash/flatten';
 import omit from 'lodash/omit';
+import isEqual from 'lodash/isEqual';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
@@ -16,6 +17,7 @@ export const ADDRESS_NORMALIZATION_IN_PROGRESS = 'ADDRESS_NORMALIZATION_IN_PROGR
 export const ADDRESS_NORMALIZATION_COMPLETED = 'ADDRESS_NORMALIZATION_COMPLETED';
 export const SELECT_NORMALIZED_ADDRESS = 'SELECT_NORMALIZED_ADDRESS';
 export const EDIT_ADDRESS = 'EDIT_ADDRESS';
+export const CONFIRM_ADDRESS_SUGGESTION = 'CONFIRM_ADDRESS_SUGGESTION';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
@@ -66,6 +68,23 @@ export const editAddress = ( group ) => {
 		type: EDIT_ADDRESS,
 		group,
 	};
+};
+
+export const confirmAddressSuggestion = ( group ) => {
+	return {
+		type: CONFIRM_ADDRESS_SUGGESTION,
+		group,
+	};
+};
+
+export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, nonce } ) => {
+	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
+		.then( () => {
+			const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
+			if ( expanded && isEqual( values, normalized ) ) {
+				dispatch( toggleStep( group ) );
+			}
+		} ).catch( noop );
 };
 
 export const updatePackageWeight = ( packageIndex, value ) => {

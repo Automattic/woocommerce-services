@@ -7,6 +7,7 @@ import {
 	ADDRESS_NORMALIZATION_COMPLETED,
 	SELECT_NORMALIZED_ADDRESS,
 	EDIT_ADDRESS,
+	CONFIRM_ADDRESS_SUGGESTION,
 	UPDATE_PACKAGE_WEIGHT,
 	UPDATE_RATE,
 	PURCHASE_LABEL_REQUEST,
@@ -96,6 +97,23 @@ reducers[ EDIT_ADDRESS ] = ( state, { group } ) => {
 				normalized: null,
 				isNormalized: false,
 			},
+		},
+	};
+};
+
+reducers[ CONFIRM_ADDRESS_SUGGESTION ] = ( state, { group } ) => {
+	const groupState = {
+		...state.form[ group ],
+		expanded: false,
+	};
+	if ( groupState.selectNormalized ) {
+		groupState.values = groupState.normalized;
+	} else {
+		groupState.normalized = groupState.values;
+	}
+	return { ...state,
+		form: { ...state.form,
+			[ group ]: groupState,
 		},
 	};
 };

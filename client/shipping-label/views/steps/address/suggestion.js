@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import omit from 'lodash/omit';
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'components/forms/form-radio';
+import FormButton from 'components/forms/form-button';
 
 const RadioButton = ( props ) => {
 	return (
@@ -32,7 +33,15 @@ const AddressSummary = ( { values, countriesData } ) => {
 	);
 };
 
-const AddressSuggestion = ( { values, normalized, selectNormalized, selectNormalizedAddress, editAddress, countriesData } ) => {
+const AddressSuggestion = ( {
+		values,
+		normalized,
+		selectNormalized,
+		selectNormalizedAddress,
+		editAddress,
+		confirmAddressSuggestion,
+		countriesData,
+	} ) => {
 	return (
 		<div>
 			<span>{ __( 'To ensure accurate delivery, we have slightly modified the address entered.' ) }</span>
@@ -57,6 +66,12 @@ const AddressSuggestion = ( { values, normalized, selectNormalized, selectNormal
 						countriesData={ countriesData } />
 				</RadioButton>
 			</div>
+			<FormButton
+				type="button"
+				onClick={ confirmAddressSuggestion }
+				isPrimary >
+				{ __( 'Confirm' ) }
+			</FormButton>
 		</div>
 	);
 };
@@ -66,6 +81,7 @@ AddressSuggestion.propTypes = {
 	normalized: PropTypes.object,
 	selectNormalized: PropTypes.bool.isRequired,
 	selectNormalizedAddress: PropTypes.func.isRequired,
+	confirmAddressSuggestion: PropTypes.func.isRequired,
 	editAddress: PropTypes.func.isRequired,
 	countriesData: PropTypes.object.isRequired,
 };
