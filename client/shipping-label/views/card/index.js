@@ -23,7 +23,7 @@ const Card = ( { isSuccess, isWarning, isError, isProgress, title, summary, chil
 			return 'notice-outline';
 		}
 		if ( isError ) {
-			return 'cross';
+			return 'notice-outline';
 		}
 		return '';
 	};
