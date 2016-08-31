@@ -5,7 +5,10 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import Card from 'shipping-label/views/card';
 import isEqual from 'lodash/isEqual';
 
-const renderSummary = ( { values, isNormalized, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {
+const renderSummary = ( { values, isNormalized, normalizationInProgress, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {
+	if ( normalizationInProgress ) {
+		return __( 'Validating address...' );
+	}
 	if ( hasNonEmptyLeaves( errors ) || ( isNormalized && ! normalized ) ) {
 		return __( 'Invalid address' );
 	}

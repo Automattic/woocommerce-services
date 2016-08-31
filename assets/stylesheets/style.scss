@@ -281,6 +281,17 @@
 		}
 	}
 
+	// .spinner is used both for the Calypso <Spinner> component and WP-admin. This rules revert the WP-Admin ones
+	.spinner {
+		background: none;
+		visibility: visible;
+		float: none;
+		vertical-align: inherit;
+		opacity: 1;
+		width: inherit;
+		height: inherit;
+	}
+
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';

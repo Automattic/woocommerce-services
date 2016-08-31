@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
+import Spinner from 'components/spinner';
 import FoldableCard from 'components/foldable-card';
 import { translate as __ } from 'lib/mixins/i18n';
 import classNames from 'classnames';
@@ -13,9 +14,6 @@ const ExpandButton = () => (
 
 const Card = ( { isSuccess, isWarning, isError, isProgress, title, summary, children, expanded } ) => {
 	const getIcon = () => {
-		if ( isProgress ) {
-			return 'sync';
-		}
 		if ( isSuccess ) {
 			return 'checkmark';
 		}
@@ -37,7 +35,7 @@ const Card = ( { isSuccess, isWarning, isError, isProgress, title, summary, chil
 	summary = <span className={ className }>{ summary }</span>;
 	const header = (
 		<div>
-			<Gridicon icon={ getIcon() } className={ className } size={ 24 } />
+			{ isProgress ? <Spinner size={ 24 } /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }
 			{ title }
 		</div>
 	);
