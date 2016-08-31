@@ -1,20 +1,22 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import OrderPackages from './list';
-import Card from 'shipping-label/views/card';
+import StepContainer from 'shipping-label/views/step-container';
 
-const PackagesStep = ( { values, storeOptions, labelActions, errors } ) => {
+const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
 	return (
-		<Card
+		<StepContainer
 			title={ __( 'Packages' ) }
-			summary={ __( '' ) } >
+			summary={ __( '' ) }
+			expanded={ expanded }
+			toggleStep={ () => labelActions.toggleStep( 'packages' ) } >
 			<OrderPackages
 				packages={ values }
 				updateWeight={ labelActions.updatePackageWeight }
 				dimensionUnit={ storeOptions.dimension_unit }
 				weightUnit={ storeOptions.weight_unit }
 				errors={ errors } />
-		</Card>
+		</StepContainer>
 	);
 };
 

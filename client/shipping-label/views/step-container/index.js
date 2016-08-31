@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 import Spinner from 'components/spinner';
-import FoldableCard from 'components/foldable-card';
+import Card from 'components/card';
 import { translate as __ } from 'lib/mixins/i18n';
 import classNames from 'classnames';
 
@@ -12,7 +12,7 @@ const ExpandButton = () => (
 	</button>
 );
 
-const Card = ( { isSuccess, isWarning, isError, isProgress, title, summary, children, expanded } ) => {
+const StepContainer = ( { isSuccess, isWarning, isError, isProgress, title, summary, children, expanded, toggleStep } ) => {
 	const getIcon = () => {
 		if ( isSuccess ) {
 			return 'checkmark';
@@ -40,20 +40,38 @@ const Card = ( { isSuccess, isWarning, isError, isProgress, title, summary, chil
 		</div>
 	);
 
+	const renderHeader = () => {
+		return (
+			<div className="foldable-card__header is-clickable has-border" onClick={ toggleStep }>
+				<span className="foldable-card__main">{ header } </span>
+				<span className="foldable-card__secondary">
+					<span className="foldable-card__summary">{ summary } </span>
+					<span className="foldable-card__summary_expanded">{ summary } </span>
+					<div className="foldable-card__action">
+						<ExpandButton/>
+					</div>
+				</span>
+			</div>
+		);
+	};
+
+	const renderContent = () => {
+		return (
+			<div className="foldable-card__content">
+				{ children }
+			</div>
+		);
+	};
+
 	return (
-		<FoldableCard
-			header={ header }
-			summary={ summary }
-			expandedSummary={ summary }
-			clickableHeader={ true }
-			actionButton={ <ExpandButton/> }
-			expanded={ Boolean( expanded ) } >
-			{ children }
-		</FoldableCard>
+		<Card className={ classNames( 'foldable-card', 'has-expanded-summary', { 'is-expanded': expanded } ) }>
+			{ renderHeader() }
+			{ expanded && renderContent() }
+		</Card>
 	);
 };
 
-Card.propTypes = {
+StepContainer.propTypes = {
 	isSuccess: PropTypes.bool,
 	isWarning: PropTypes.bool,
 	isError: PropTypes.bool,
@@ -63,4 +81,4 @@ Card.propTypes = {
 	expanded: PropTypes.bool,
 };
 
-export default Card;
+export default StepContainer;

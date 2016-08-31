@@ -1,6 +1,7 @@
 import {
 	OPEN_PRINTING_FLOW,
 	EXIT_PRINTING_FLOW,
+	TOGGLE_STEP,
 	UPDATE_ADDRESS_VALUE,
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
 	ADDRESS_NORMALIZATION_COMPLETED,
@@ -23,6 +24,16 @@ reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
 reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
 	return { ...state,
 		showDialog: false,
+	};
+};
+
+reducers[ TOGGLE_STEP ] = ( state, { stepName } ) => {
+	return { ...state,
+		form: { ...state.form,
+			[ stepName ]: { ...state.form[ stepName ],
+				expanded: ! state.form[ stepName ].expanded,
+			},
+		},
 	};
 };
 

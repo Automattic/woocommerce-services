@@ -1,13 +1,15 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
-import Card from 'shipping-label/views/card';
+import StepContainer from 'shipping-label/views/step-container';
 
-const RatesStep = ( { form, values, available, storeOptions, labelActions, errors } ) => {
+const RatesStep = ( { form, values, available, storeOptions, labelActions, errors, expanded } ) => {
 	return (
-		<Card
+		<StepContainer
 			title={ __( 'Rates' ) }
-			summary={ __( '' ) } >
+			summary={ __( '' ) }
+			expanded={ expanded }
+			toggleStep={ () => labelActions.toggleStep( 'rates' ) } >
 			<ShippingRates
 				id="rates"
 				packages={ form.packages.values }
@@ -18,7 +20,7 @@ const RatesStep = ( { form, values, available, storeOptions, labelActions, error
 				weightUnit={ storeOptions.weight_unit }
 				currencySymbol={ storeOptions.currency_symbol }
 				errors={ errors } />
-		</Card>
+		</StepContainer>
 	);
 };
 

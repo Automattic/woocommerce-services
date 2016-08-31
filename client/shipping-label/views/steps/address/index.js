@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import AddressFields from './fields';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
-import Card from 'shipping-label/views/card';
+import StepContainer from 'shipping-label/views/step-container';
 import isEqual from 'lodash/isEqual';
 
 const renderSummary = ( { values, isNormalized, normalizationInProgress, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {
@@ -43,28 +43,32 @@ const getNormalizationStatus = ( { normalizationInProgress, errors, isNormalized
 const Origin = ( props ) => {
 	const showCountryInSummary = false;
 	return (
-		<Card
+		<StepContainer
 			title={ __( 'Origin address' ) }
 			summary={ renderSummary( props, showCountryInSummary ) }
+			expanded={ props.expanded }
+			toggleStep={ () => props.labelActions.toggleStep( 'origin' ) }
 			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
 				group="origin" />
-		</Card>
+		</StepContainer>
 	);
 };
 
 const Destination = ( props ) => {
 	const showCountryInSummary = props.form.origin.values.country !== props.values.country;
 	return (
-		<Card
+		<StepContainer
 			title={ __( 'Destination address' ) }
 			summary={ renderSummary( props, showCountryInSummary ) }
+			expanded={ props.expanded }
+			toggleStep={ () => props.labelActions.toggleStep( 'destination' ) }
 			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
 				group="destination" />
-		</Card>
+		</StepContainer>
 	);
 };
 

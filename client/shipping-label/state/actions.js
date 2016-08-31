@@ -10,6 +10,7 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
+export const TOGGLE_STEP = 'TOGGLE_STEP';
 export const UPDATE_ADDRESS_VALUE = 'UPDATE_ADDRESS_VALUE';
 export const ADDRESS_NORMALIZATION_IN_PROGRESS = 'ADDRESS_NORMALIZATION_IN_PROGRESS';
 export const ADDRESS_NORMALIZATION_COMPLETED = 'ADDRESS_NORMALIZATION_COMPLETED';
@@ -34,6 +35,13 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 
 export const exitPrintingFlow = () => {
 	return { type: EXIT_PRINTING_FLOW };
+};
+
+export const toggleStep = ( stepName ) => {
+	return {
+		type: TOGGLE_STEP,
+		stepName,
+	};
 };
 
 export const updateAddressValue = ( group, name, value ) => {
