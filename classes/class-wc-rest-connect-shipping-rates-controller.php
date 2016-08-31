@@ -53,88 +53,19 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Expected in request body:
-	 * array(
-	 *	'contents' => array(
-	 *		array(
-	 * 			'product_id' => 403,
-	 *			'height' => 10,
-	 *			'length' => 10,
-	 *			'width' => 10,
-	 *			'weight' => 10,
-	 *			'quantity' => 1,
-	 *		),
-	 *		...
-	 * 	),
-	 *	'origin' => array(
-	 *		'address' => '132 Hawthorne St',
-	 *		'address_2' => '',
-	 *		'city' => 'San Francisco',
-	 *		'state' => 'CA',
-	 *		'postcode' => '94107',
-	 *		'country' => 'US',
-	 *	),
-	 *	'destination' => array(
-	 *		'address' => '1550 Snow Creek Dr',
-	 *		'address_2' => '',
-	 *		'city' => 'Park City',
-	 *		'state' => 'UT',
-	 *		'postcode' => '84060',
-	 *		'country' => 'US',
-	 *	),
-	 * )
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request - See WC_Connect_API_Client::get_label_rates()
 	 * @return array
 	 */
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
-		$settings     = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$payload      = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		// WC_Connect_API_Client::get_shipping_rates() expects 'data' to be an object
-		foreach ( $settings[ 'contents' ] as $i => $content ) {
-			$settings[ 'contents' ][ $i ][ 'data' ] = (object) $settings[ 'contents' ][ $i ][ 'data' ];
-		}
-
-		// Force USPS for now
-		$services = array(
-			array(
-				'id'               => 'usps',
-				'instance'         => -1,
-				'service_settings' => array(
-					'title'      => 'USPS rates (for labels)',
-					'account_id' => '',
-					'origin'     => (string) $settings[ 'origin' ][ 'postcode' ]
-				),
-			),
-		);
-
-		$response        = $this->api_client->get_shipping_rates( $services, $settings );
-		$processed_rates = array();
-
-		// Add `service_id` to rates for selection purposes
-		foreach ( (array) $response->rates as $instance ) {
-			if ( ! property_exists( $instance, 'rates' ) ) {
-				continue;
-			}
-
-			foreach ( (array) $instance->rates as $rate_idx => $rate ) {
-				$rate_id    = WC_Connect_Shipping_Method::format_rate_id( $instance->id, $instance->instance, $rate_idx );
-				$rate_label = WC_Connect_Shipping_Method::format_rate_title( $rate->title );
-
-				$processed_rates[] = array(
-					'id'         => $rate_id,
-					'label'      => $rate_label,
-					'cost'       => $rate->rate,
-					'method_id'  => 'usps',
-					'service_id' => $rate->packages[ 0 ]->service_id,
-				);
-			}
-		}
+		$response = $this->api_client->get_label_rates( $payload );
 
 		return array(
 			'success' => true,
-			'rates'   => $processed_rates,
+			'rates'   => $response,
 		);
 	}
 
