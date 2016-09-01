@@ -6,9 +6,9 @@ import FieldError from 'components/field-error';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 import FieldDescription from 'components/field-description';
 
-const Dropdown = ( { id, valuesMap, title, description, value, updateValue, error, disabled } ) => {
+const Dropdown = ( { id, valuesMap, title, description, value, updateValue, error, disabled, className } ) => {
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FormSelect
 				id={ id }
@@ -44,6 +44,7 @@ Dropdown.propTypes = {
 		PropTypes.bool,
 	] ),
 	disabled: PropTypes.bool,
+	className: PropTypes.string,
 };
 
 export default Dropdown;

@@ -15,9 +15,9 @@ const RadioButton = ( { value, currentValue, setValue, description } ) => {
 	);
 };
 
-const RadioButtons = ( { valuesMap, title, description, value, setValue } ) => {
+const RadioButtons = ( { valuesMap, title, description, value, setValue, className } ) => {
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FieldDescription text={ description } />
 			{ Object.keys( valuesMap ).map( ( key ) => {
@@ -41,6 +41,7 @@ RadioButtons.propTypes = {
 	description: PropTypes.string,
 	value: PropTypes.string.isRequired,
 	setValue: PropTypes.func.isRequired,
+	className: PropTypes.string,
 };
 
 export default RadioButtons;

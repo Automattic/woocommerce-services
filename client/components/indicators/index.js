@@ -43,9 +43,9 @@ const renderSubTitle = ( subtitle ) => {
 	);
 };
 
-const Indicators = ( { title, subtitle, indicators } ) => {
+const Indicators = ( { title, subtitle, indicators, className } ) => {
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLegend>
 				<span dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 				{ renderSubTitle( subtitle ) }
@@ -67,6 +67,7 @@ Indicators.propTypes = {
 	title: PropTypes.string.isRequired,
 	subtitle: PropTypes.string,
 	indicators: PropTypes.array.isRequired,
+	className: PropTypes.string,
 };
 
 export default Indicators;

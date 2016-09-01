@@ -6,11 +6,11 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const TextField = ( { id, title, description, value, placeholder, updateValue, error } ) => {
+const TextField = ( { id, title, description, value, placeholder, updateValue, error, className } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
 
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FormTextInput
 				id={ id }
@@ -35,6 +35,7 @@ TextField.propTypes = {
 		PropTypes.string,
 		PropTypes.bool,
 	] ),
+	className: PropTypes.string,
 };
 
 export default TextField;
