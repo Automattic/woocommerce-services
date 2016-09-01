@@ -92,13 +92,16 @@ const AddressFields = ( {
 				countriesData={ storeOptions.countriesData }
 				updateValue={ ( value ) => updateValue( 'country', value ) }
 				error={ fieldErrors.country } />
-			<FormButton
-				type="button"
-				disabled={ hasNonEmptyLeaves( errors ) || normalizationInProgress }
-				onClick={ () => labelActions.submitAddressForNormalization( group ) }
-				isPrimary >
-				{ __( 'Confirm' ) }
-			</FormButton>
+			<div className="address__confirmation-container">
+				<FormButton
+					type="button"
+					className="address__confirmation"
+					disabled={ hasNonEmptyLeaves( errors ) || normalizationInProgress }
+					onClick={ () => labelActions.submitAddressForNormalization( group ) }
+					isPrimary >
+					{ __( 'Use this address' ) }
+				</FormButton>
+			</div>
 		</div>
 	);
 };
