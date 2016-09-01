@@ -33,7 +33,9 @@ const store = createStore(
 );
 
 window.addEventListener( 'beforeunload', ( event ) => {
-	if ( ! store.getState().form || store.getState().form.pristine ) {
+	const state = store.getState();
+
+	if ( ! state.form || state.form.pristine || ( state.form.meta && state.form.meta.pristine ) ) {
 		return;
 	}
 	const text = __( 'You have unsaved changes.' );
