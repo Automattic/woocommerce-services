@@ -34,9 +34,9 @@ const StepContainer = ( { isSuccess, isWarning, isError, isProgress, title, summ
 
 	summary = <span className={ className }>{ summary }</span>;
 	const header = (
-		<div>
-			{ isProgress ? <Spinner size={ 24 } /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }
-			{ title }
+		<div className="foldable-card__title-status">
+			<div className="foldable-card__status">{ isProgress ? <Spinner size={ 24 } /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }</div>
+			<div className="foldable-card__title">{ title }</div>
 		</div>
 	);
 
