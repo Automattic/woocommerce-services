@@ -63,6 +63,10 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 
 		$response = $this->api_client->get_label_rates( $payload );
 
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
 		return array(
 			'success' => true,
 			'rates'   => $response,
