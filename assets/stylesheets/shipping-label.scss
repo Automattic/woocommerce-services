@@ -138,7 +138,6 @@
 	width: 100%;
 
 	@include breakpoint( ">960px" ) {
-		width: 33%;
 		margin-left: 24px;
 	}
 }
