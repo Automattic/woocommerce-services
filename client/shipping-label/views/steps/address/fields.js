@@ -58,17 +58,20 @@ const AddressFields = ( {
 				title={ __( 'Address' ) }
 				value={ getValue( 'address' ) }
 				updateValue={ ( value ) => updateValue( 'address', value ) }
+				className="address__address-1"
 				error={ fieldErrors.address } />
 			<TextField
 				id={ getId( 'address_2' ) }
 				value={ getValue( 'address_2' ) }
 				updateValue={ ( value ) => updateValue( 'address_2', value ) }
 				error={ fieldErrors.address_2 } />
+			<div className="address__city-state-postal-code">
 			<TextField
 				id={ getId( 'city' ) }
 				title={ __( 'City' ) }
 				value={ getValue( 'city' ) }
 				updateValue={ ( value ) => updateValue( 'city', value ) }
+				className='address__city'
 				error={ fieldErrors.city } />
 			<StateDropdown
 				id={ getId( 'state' ) }
@@ -77,13 +80,16 @@ const AddressFields = ( {
 				countryCode={ getValue( 'country' ) }
 				countriesData={ storeOptions.countriesData }
 				updateValue={ ( value ) => updateValue( 'state', value ) }
+				className="address__state"
 				error={ fieldErrors.state } />
 			<TextField
 				id={ getId( 'postcode' ) }
 				title={ __( 'Postal code' ) }
 				value={ getValue( 'postcode' ) }
 				updateValue={ ( value ) => updateValue( 'postcode', value ) }
+				className="address__postal-code"
 				error={ fieldErrors.postcode } />
+		</div>
 			<CountryDropdown
 				id={ getId( 'country' ) }
 				title={ __( 'Country' ) }

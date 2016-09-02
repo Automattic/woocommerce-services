@@ -119,6 +119,33 @@
 
 // Address
 
+.address__city-state-postal-code {
+	display: flex;
+	flex-direction: column;
+
+	@include breakpoint( ">960px" ) {
+		flex-direction: row;
+	}
+}
+
+.address__address-1.form-fieldset {
+	margin-bottom: 8px;
+}
+
+.address__city,
+.address__state,
+.address__postal-code {
+	width: 100%;
+
+	@include breakpoint( ">960px" ) {
+		width: 33%;
+		margin-left: 24px;
+	}
+}
+
+.address__city {
+	margin-left: 0;
+}
 
 .address__confirmation.form-button {
 	float: none;
