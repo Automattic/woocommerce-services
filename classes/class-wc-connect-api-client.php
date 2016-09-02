@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Gets the shipping rates from the WooCommerce Connect Server
+		 * Gets shipping rates (for checkout) from the WooCommerce Connect Server
 		 *
 		 * @param $services All settings for all services we want rates for
 		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
@@ -144,6 +144,49 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function get_payment_methods() {
 			return $this->request( 'POST', '/payment/methods' );
+		}
+
+		/**
+		 * Gets shipping rates (for labels) from the WooCommerce Connect Server
+		 *
+		 * @param array $request - array(
+		 *	'packages' => array(
+		 *		array(
+		 * 			'id' => 'box_1',
+		 *			'height' => 10,
+		 *			'length' => 10,
+		 *			'width' => 10,
+		 *			'weight' => 10,
+		 *		),
+		 *		array(
+		 *			'id' => 'box_2',
+		 *			'template' => 'medium_flat_box_top',
+		 *			'weight' => 5,
+		 *		),
+		 *		...
+		 * 	),
+		 *	'carrier' => 'usps',
+		 *	'origin' => array(
+		 *		'address' => '132 Hawthorne St',
+		 *		'address_2' => '',
+		 *		'city' => 'San Francisco',
+		 *		'state' => 'CA',
+		 *		'postcode' => '94107',
+		 *		'country' => 'US',
+		 *	),
+		 *	'destination' => array(
+		 *		'address' => '1550 Snow Creek Dr',
+		 *		'address_2' => '',
+		 *		'city' => 'Park City',
+		 *		'state' => 'UT',
+		 *		'postcode' => '84060',
+		 *		'country' => 'US',
+		 *	),
+		 * )
+		 * @return object|WP_Error
+		 */
+		public function get_label_rates( $request ) {
+			return $this->request( 'POST', '/shipping/label/rates', $request );
 		}
 
 		/**

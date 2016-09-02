@@ -83,6 +83,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_shipping_label_controller;
 
 		/**
+		 * @var WC_REST_Connect_Shipping_Rates_Controller
+		 */
+		protected $rest_shipping_rates_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -202,6 +207,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_shipping_label_controller( WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller ) {
 			$this->rest_shipping_label_controller = $rest_shipping_label_controller;
+		}
+
+		public function set_rest_shipping_rates_controller( WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller ) {
+			$this->rest_shipping_rates_controller = $rest_shipping_rates_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -358,6 +367,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store );
 			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
 			$rest_shipping_label_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-rates-controller.php' ) );
+			$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store );
+			$this->set_rest_shipping_rates_controller( $rest_shipping_rates_controller );
+			$rest_shipping_rates_controller->register_routes();
 		}
 
 		/**

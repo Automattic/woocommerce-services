@@ -277,18 +277,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
 					$rate_to_add = array(
-						'id'       => sprintf( '%s:%d:%d', $instance->id, $instance->instance, $rate_idx ),
-						'label'    => wp_kses(
-							html_entity_decode( $rate->title ),
-							array(
-								'sup' => array(),
-								'del' => array(),
-								'small' => array(),
-								'em' => array(),
-								'i' => array(),
-								'strong' => array(),
-							)
-						),
+						'id'       => self::format_rate_id( $instance->id, $instance->instance, $rate_idx ),
+						'label'    => self::format_rate_title( $rate->title ),
 						'cost'     => $rate->rate,
 						'calc_tax' => 'per_item',
 						'meta_data' => array( 'wc_connect_packages' => json_encode( $rate->packages ) ),
@@ -345,6 +335,26 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					</span>
 				</div>
 			<?php
+		}
+
+		public static function format_rate_id( $method_id, $instance, $rate_idx ) {
+			return sprintf( '%s:%d:%d', $method_id, $instance, $rate_idx );
+		}
+
+		public static function format_rate_title( $rate_title ) {
+			$formatted_title = wp_kses(
+				html_entity_decode( $rate_title ),
+				array(
+					'sup' => array(),
+					'del' => array(),
+					'small' => array(),
+					'em' => array(),
+					'i' => array(),
+					'strong' => array(),
+				)
+			);
+
+			return $formatted_title;
 		}
 
 	}
