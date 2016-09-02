@@ -4,9 +4,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 	class WC_Connect_Shipping_Label {
 
-		private $settings_store;
+		/**
+		 * @var WC_Connect_API_Client
+		 */
+		protected $api_client;
 
-		public function __construct( WC_Connect_Service_Settings_Store $settings_store ) {
+		/**
+		 * @var WC_Connect_Service_Settings_Store
+		 */
+		protected $settings_store;
+
+		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
 		}
 
@@ -106,47 +115,103 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
 			$rates = array();
 
-			foreach( $packages as $package ) {
+			foreach( $packages as $idx => $package ) {
 				if ( ! $package[ 'service_id' ] ) {
 					return array();
 				}
-				$rates[] = $package[ 'service_id' ];
+				$id = isset( $package[ 'id' ] ) ? $package[ 'id' ] : "box_{$idx}";
+				$rates[ $id ] = $package[ 'service_id' ];
 			}
 
 			return $rates;
 		}
 
+		protected function get_available_rates( $origin, $destination, $packages ) {
+			$formatted_packages = array();
+
+			foreach ( $packages as $idx => $package ) {
+				$formatted_packages[] = array(
+					'id'     => $package[ 'id' ],
+					'length' => $package[ 'length' ],
+					'width'  => $package[ 'width' ],
+					'height' => $package[ 'height' ],
+					'weight' => $package[ 'weight' ],
+				);
+			}
+
+			$request = array(
+				'carrier'     => 'usps',
+				'origin'      => $origin,
+				'destination' => $destination,
+				'packages'    => $formatted_packages,
+			);
+
+			$rates = $this->api_client->get_label_rates( $request );
+
+			if ( is_wp_error( $rates ) ) {
+				// TODO: log?
+				return array();
+			}
+
+			if ( ! property_exists( $rates, 'rates' ) ) {
+				return array();
+			}
+
+			$processed_rates = array();
+
+			foreach ( $rates->rates as $package_id => $result ) {
+				if ( property_exists( $result, 'rates' ) ) {
+					$processed_rates[ $package_id ] = $result->rates;
+				}
+			}
+
+			return $processed_rates;
+		}
+
+		protected function format_address_for_server( $address ) {
+			// Combine first and last name
+			if ( ! isset( $address[ 'name' ] ) ) {
+				$first_name = isset( $address[ 'first_name' ] ) ? trim( $address[ 'first_name' ] ) : '';
+				$last_name  = isset( $address[ 'last_name' ] ) ? trim( $address[ 'last_name' ] ) : '';
+
+				$address[ 'name' ] = $first_name . ' ' . $last_name;
+			}
+
+			// Rename address_1 to address
+			$address[ 'address' ] = $address[ 'address_1' ];
+
+			// Remove now defunct keys
+			unset( $address[ 'first_name' ], $address[ 'last_name' ], $address[ 'address_1' ] );
+
+			return $address;
+		}
+
+		protected function get_origin_address() {
+			$origin = $this->format_address_for_server( $this->settings_store->get_origin_address() );
+
+			return $origin;
+		}
+
+		protected function get_destination_address( WC_Order $order ) {
+			$order_address = $order->get_address( 'shipping' );
+			$destination   = $this->format_address_for_server( $order_address );
+
+			return $destination;
+		}
+
 		protected function get_form_data( WC_Order $order ) {
-			$form_data = array();
-
-			$form_data[ 'is_packed' ] = false !== $this->get_packaging_metadata( $order );
-			$form_data[ 'packages' ] = $this->get_packages( $order );
-
+			$packages        = $this->get_packages( $order );
+			$is_packed       = ( false !== $this->get_packaging_metadata( $order ) );
+			$origin          = $this->get_origin_address();
 			$selected_rates  = $this->get_selected_rates( $order );
+			$destination     = $this->get_destination_address( $order );
+			$available_rates = $this->get_available_rates( $origin, $destination, $packages );
 
-			// Fake some available rates for now
-			$available_rates = array_fill_keys( $selected_rates, array(
-				'name' => 'Shipping Service Name',
-				'rate' => 9.99,
-			) );
+			$form_data = compact( 'is_packed', 'packages', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => $selected_rates,
-				'available' => array_fill( 0, count( $selected_rates ), $available_rates ),
-			);
-
-			$form_data[ 'origin' ] = $this->settings_store->get_origin_address();
-
-			$dest_address = $order->get_address( 'shipping' );
-			$form_data[ 'destination' ] = array(
-				'name' => trim( $dest_address[ 'first_name' ] . ' ' . $dest_address[ 'last_name' ] ),
-				'company' => $dest_address[ 'company' ],
-				'address' => $dest_address[ 'address_1' ],
-				'address_2' => $dest_address[ 'address_2' ],
-				'city' => $dest_address[ 'city' ],
-				'state' => $dest_address[ 'state' ],
-				'postcode' => $dest_address[ 'postcode' ],
-				'country' => $dest_address[ 'country' ] ? $dest_address[ 'country' ] : 'US',
+				'available' => $available_rates,
 			);
 
 			return $form_data;

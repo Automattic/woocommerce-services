@@ -579,7 +579,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function add_meta_boxes() {
-			$shipping_label = new WC_Connect_Shipping_Label( $this->service_settings_store );
+			$shipping_label = new WC_Connect_Shipping_Label( $this->api_client, $this->service_settings_store );
 			if ( $shipping_label->should_show_meta_box() ) {
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
