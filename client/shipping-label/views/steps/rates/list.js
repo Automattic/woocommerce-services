@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
+import Notice from 'components/notice';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 
@@ -43,6 +44,12 @@ const ShippingRates = ( {
 
 	return (
 		<div>
+		<Notice
+			status="is-info"
+			icon="info-outline"
+			showDismiss={ false }
+			text={ __( 'The service and rate chosen by the customer at checkout is not available. A similar one has been applied instead.' ) }
+		/>
 			{ packages.map( renderSinglePackage ) }
 		</div>
 	);
