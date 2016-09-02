@@ -122,7 +122,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$form_data[ 'is_packed' ] = false !== $this->get_packaging_metadata( $order );
 			$form_data[ 'packages' ] = $this->get_packages( $order );
 
-			$form_data[ 'rates' ] = $this->get_selected_rates( $order );
+			$selected_rates  = $this->get_selected_rates( $order );
+
+			// Fake some available rates for now
+			$available_rates = array_fill_keys( $selected_rates, array(
+				'name' => 'Shipping Service Name',
+				'rate' => 9.99,
+			) );
+
+			$form_data[ 'rates' ] = array(
+				'selected'  => $selected_rates,
+				'available' => array_fill( 0, count( $selected_rates ), $available_rates ),
+			);
 
 			$form_data[ 'origin' ] = $this->settings_store->get_origin_address();
 

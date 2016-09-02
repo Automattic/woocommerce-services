@@ -47,8 +47,8 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 						isPacked: formData.is_packed,
 					},
 					rates: {
-						values: formData.rates,
-						available: formData.rates.map( ( service ) => ( { [ service ]: { name: service, rate: 9.99 } } ) ),
+						values: formData.rates.selected,
+						available: formData.rates.available,
 					},
 					preview: {
 						values: {},
