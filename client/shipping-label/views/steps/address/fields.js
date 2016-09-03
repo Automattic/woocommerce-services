@@ -71,7 +71,7 @@ const AddressFields = ( {
 				title={ __( 'City' ) }
 				value={ getValue( 'city' ) }
 				updateValue={ ( value ) => updateValue( 'city', value ) }
-				className='address__city'
+				className="address__city"
 				error={ fieldErrors.city } />
 			<StateDropdown
 				id={ getId( 'state' ) }

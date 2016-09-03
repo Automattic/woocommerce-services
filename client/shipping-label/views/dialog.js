@@ -8,6 +8,7 @@ import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
 import PreviewStep from './steps/preview';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
+import { sprintf } from 'sprintf-js';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
@@ -22,6 +23,19 @@ const PrintLabelDialog = ( props ) => {
 		! hasNonEmptyLeaves( props.errors ) &&
 		! props.form.origin.normalizationInProgress &&
 		! props.form.destination.normalizationInProgress;
+
+	const getPurchaseButtonLabel = () => {
+		let label = __( 'Buy & Print' );
+		const nPackages = props.form.packages.values.length;
+		if ( nPackages ) {
+			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
+		}
+		if ( canPurchase ) {
+			label += ' (' + currencySymbol + getTotalCost() + ')';
+		}
+		return label;
+	};
+
 	return (
 		<Dialog
 			isVisible={ props.showDialog }
@@ -62,7 +76,7 @@ const PrintLabelDialog = ( props ) => {
 						isDisabled: ! canPurchase,
 						onClick: props.labelActions.purchaseLabel,
 						isPrimary: true,
-						label: __( 'Print & Purchase' ) + ( canPurchase ? ' (' + currencySymbol + getTotalCost() + ')' : '' ),
+						label: getPurchaseButtonLabel,
 					},
 					{
 						onClick: props.labelActions.exitPrintingFlow,
