@@ -129,16 +129,24 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 };
 
 export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, nonce, storeOptions } ) => {
-	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
-		.then( () => {
-			const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
-			if ( isEqual( values, normalized ) ) {
-				if ( expanded ) {
-					dispatch( toggleStep( group ) );
-				}
-				expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+	const handleResponse = () => {
+		const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
+		if ( isEqual( values, normalized ) ) {
+			if ( expanded ) {
+				dispatch( toggleStep( group ) );
 			}
-		} ).catch( noop );
+			expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+		}
+	};
+
+	const state = getState().shippingLabel.form[ group ];
+	if ( state.isNormalized && isEqual( state.values, state.normalized ) ) {
+		handleResponse();
+		return;
+	}
+	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
+		.then( handleResponse )
+		.catch( noop );
 };
 
 export const updatePackageWeight = ( packageIndex, value ) => {
