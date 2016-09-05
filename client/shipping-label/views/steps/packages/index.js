@@ -4,7 +4,6 @@ import OrderPackages from './list';
 import StepContainer from 'shipping-label/views/step-container';
 
 const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
-	console.dir( labelActions );
 	return (
 		<StepContainer
 			title={ __( 'Packages' ) }

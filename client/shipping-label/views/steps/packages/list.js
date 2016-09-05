@@ -22,9 +22,7 @@ const getPackages = ( dimensionUnit ) => {
 	return result;
 };
 
-const OrderPackages = ( props ) => {
-	const { packages, dimensionUnit, weightUnit, errors } = props;
-	console.dir( props );
+const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, errors } ) => {
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
 		const pckgErrors = errors[ pckgIndex ] || {};
 		return (
@@ -44,7 +42,7 @@ const OrderPackages = ( props ) => {
 					id={ `weight_${pckgIndex}` }
 					title={ __( 'Total Weight' ) }
 					value={ pckg.weight }
-					updateValue={ () => {} }
+					updateValue={ ( value ) => updateWeight( pckgIndex, value ) }
 					error={ pckgErrors.weight }
 				/>
 
