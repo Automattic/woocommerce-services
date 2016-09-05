@@ -4,6 +4,7 @@ import fill from 'lodash/fill';
 import flatten from 'lodash/flatten';
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
+import some from 'lodash/some';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
@@ -23,15 +24,64 @@ export const UPDATE_RATE = 'UPDATE_RATE';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 
+const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
+
+const waitForAllPromises = ( promises ) => {
+	// Thin wrapper over Promise.all, that makes the Promise chain wait for all the promises
+	// to be completed, even if one of them is rejected.
+	return Promise.all( promises.map( ( p ) => p.catch( ( e ) => e ) ) );
+};
+
+const getNextErroneousStep = ( state, errors, currentStep ) => {
+	const firstStepToCheck = FORM_STEPS[ FORM_STEPS.indexOf( currentStep ) + 1 ];
+	const form = state.shippingLabel.form;
+	switch ( firstStepToCheck ) {
+		case 'origin':
+			if ( ! form.origin.isNormalized || ! isEqual( form.origin.values, form.origin.normalized ) ) {
+				return 'origin';
+			}
+		case 'destination':
+			if ( ! form.destination.isNormalized || ! isEqual( form.destination.values, form.destination.normalized ) ) {
+				return 'destination';
+			}
+		case 'packages':
+			if ( hasNonEmptyLeaves( errors.packages ) ) {
+				return 'packages';
+			}
+		case 'rates':
+			if ( hasNonEmptyLeaves( errors.rates ) ) {
+				return 'rates';
+			}
+	}
+	return null;
+};
+
+const expandFirstErroneousStep = ( dispatch, getState, storeOptions, currentStep = null ) => {
+	const step = getNextErroneousStep( getState(), getFormErrors( getState(), storeOptions ), currentStep );
+	if ( step && ! getState().shippingLabel.form[ step ].expanded ) {
+		dispatch( toggleStep( step ) );
+	}
+};
+
 export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, nonce } ) => {
-	const { origin, destination } = getState().shippingLabel.form;
-	const errors = getFormErrors( getState(), storeOptions );
+	let form = getState().shippingLabel.form;
+	const { origin, destination } = form;
+	let errors = getFormErrors( getState(), storeOptions );
+	const addressNormalizationQueue = [];
 	if ( ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
-		normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ).catch( noop );
+		addressNormalizationQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
 	if ( ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
-		normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ).catch( noop );
+		addressNormalizationQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
+	waitForAllPromises( addressNormalizationQueue ).then( () => {
+		// If the user already interacted with the form, don't change anything
+		form = getState().shippingLabel.form;
+		if ( some( FORM_STEPS.map( ( step ) => form[ step ].expanded ) ) ) {
+			return;
+		}
+		expandFirstErroneousStep( dispatch, getState, storeOptions );
+	} );
 	dispatch( { type: OPEN_PRINTING_FLOW } );
 };
 
@@ -70,19 +120,23 @@ export const editAddress = ( group ) => {
 	};
 };
 
-export const confirmAddressSuggestion = ( group ) => {
-	return {
+export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions } ) => {
+	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
 		group,
-	};
+	} );
+	expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 };
 
-export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, nonce } ) => {
+export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, nonce, storeOptions } ) => {
 	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
 		.then( () => {
 			const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
-			if ( expanded && isEqual( values, normalized ) ) {
-				dispatch( toggleStep( group ) );
+			if ( isEqual( values, normalized ) ) {
+				if ( expanded ) {
+					dispatch( toggleStep( group ) );
+				}
+				expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 			}
 		} ).catch( noop );
 };
