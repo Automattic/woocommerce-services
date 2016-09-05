@@ -37,7 +37,7 @@ const ShippingRates = ( {
 					title={ renderTitle( pckg, index ) }
 					value={ selectedRate }
 					updateValue={ ( value ) => updateRate( pckg.id, value ) }
-					error={ errors[ index ] } />
+					error={ errors[ pckg.id ] } />
 			</div>
 		);
 	};
