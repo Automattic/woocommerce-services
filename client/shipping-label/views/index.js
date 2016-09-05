@@ -8,6 +8,23 @@ import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
+import sum from 'lodash/sum';
+import map from 'lodash/map';
+import find from 'lodash/find';
+
+// TODO: Look into turning this into a memoized selector
+const getRatesTotal = ( selectedRates, availableRates ) => {
+	const ratesCost = map( selectedRates, ( rateId, boxId ) => {
+		if ( availableRates[ boxId ] ) {
+			const foundRate = find( availableRates[ boxId ], [ 'service_id', rateId ] );
+
+			return foundRate ? foundRate.rate : 0;
+		}
+		return 0;
+	} );
+
+	return sum( ratesCost ).toFixed( 2 );
+};
 
 const ShippingLabelRootView = ( props ) => {
 	const renderPrintLabelFlow = () => {
@@ -42,6 +59,7 @@ function mapStateToProps( state, { storeOptions } ) {
 	return {
 		shippingLabel: state.shippingLabel,
 		errors: getFormErrors( state, storeOptions ),
+		ratesTotal: getRatesTotal( state.shippingLabel.form.rates.values, state.shippingLabel.form.rates.available ),
 	};
 }
 

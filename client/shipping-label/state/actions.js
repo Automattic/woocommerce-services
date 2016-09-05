@@ -165,10 +165,10 @@ export const updatePackageWeight = ( packageIndex, value ) => {
 	};
 };
 
-export const updateRate = ( packageIndex, value ) => {
+export const updateRate = ( packageId, value ) => {
 	return {
 		type: UPDATE_RATE,
-		packageIndex,
+		packageId,
 		value,
 	};
 };

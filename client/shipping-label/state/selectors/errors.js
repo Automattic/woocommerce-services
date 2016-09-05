@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { translate as __ } from 'lib/mixins/i18n';
 import isEmpty from 'lodash/isEmpty';
+import mapValues from 'lodash/mapValues';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
 	if ( isNormalized && ! normalized ) {
@@ -40,7 +41,7 @@ const getPackagesErrors = ( values ) => values.map( ( pckg ) => {
 	return errors;
 } );
 
-const getRatesErrors = ( values ) => values.map( ( rate ) => rate ? null : __( 'Please choose a rate' ) );
+const getRatesErrors = ( values ) => mapValues( values, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) );
 
 export default createSelector(
 	( state ) => state.shippingLabel.form,

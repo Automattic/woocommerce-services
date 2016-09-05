@@ -3,16 +3,20 @@ import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
 import StepContainer from 'shipping-label/views/step-container';
 import { sprintf } from 'sprintf-js';
-import get from 'lodash/get';
+import find from 'lodash/find';
 
-const ratesSummary = ( selectedRates, availableRates, currencySymbol ) => {
+const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
+	const packageIds = Object.keys( selectedRates );
+
 	// Show the service name and cost when only one service/package exists
-	if ( 1 === selectedRates.length ) {
-		const rateInfo = get( availableRates[ 0 ], selectedRates[ 0 ] );
+	if ( 1 === packageIds.length ) {
+		const packageId = packageIds[ 0 ];
+		const selectedRate = selectedRates[ packageId ];
+		const rateInfo = find( availableRates[ packageId ], [ 'service_id', selectedRate ] );
 
 		if ( rateInfo ) {
 			return sprintf( __( '%(serviceName)s: %(currencySymbol)s%(rate).2f' ), {
-				serviceName: rateInfo.name,
+				serviceName: rateInfo.title,
 				rate: rateInfo.rate,
 				currencySymbol,
 			} );
@@ -21,25 +25,15 @@ const ratesSummary = ( selectedRates, availableRates, currencySymbol ) => {
 		return __( '' );
 	}
 
-	let total = 0;
-
 	// Otherwise, just show the total
-	selectedRates.forEach( ( selectedRate, idx ) => {
-		const selectedInfo = get( availableRates, [ idx, selectedRate ] );
-
-		if ( selectedInfo ) {
-			total += selectedInfo.rate;
-		}
-	} );
-
 	return sprintf( __( 'Total rate: %(currencySymbol)s%(total).2f' ), {
 		total,
 		currencySymbol,
 	} );
 };
 
-const RatesStep = ( { form, values, available, storeOptions, labelActions, errors, expanded } ) => {
-	const summary = ratesSummary( values, available, storeOptions.currency_symbol );
+const RatesStep = ( { form, values, available, ratesTotal, storeOptions, labelActions, errors, expanded } ) => {
+	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
 
 	return (
 		<StepContainer
@@ -64,11 +58,11 @@ const RatesStep = ( { form, values, available, storeOptions, labelActions, error
 
 RatesStep.propTypes = {
 	form: PropTypes.object.isRequired,
-	values: PropTypes.array.isRequired,
-	available: PropTypes.array.isRequired,
+	values: PropTypes.object.isRequired,
+	available: PropTypes.object.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
-	errors: PropTypes.array.isRequired,
+	errors: PropTypes.object.isRequired,
 };
 
 export default RatesStep;

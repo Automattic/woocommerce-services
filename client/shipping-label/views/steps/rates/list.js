@@ -21,12 +21,12 @@ const ShippingRates = ( {
 	};
 
 	const renderSinglePackage = ( pckg, index ) => {
-		const selectedRate = selectedRates[ index ] || '';
-
+		const selectedRate = selectedRates[ pckg.id ] || '';
+		const packageRates = availableRates[ pckg.id ] || [];
 		const valuesMap = { '': __( 'Select one...' ) };
-		Object.keys( availableRates[ index ] ).forEach( ( serviceId ) => {
-			const rateObject = availableRates[ index ][ serviceId ];
-			valuesMap[ serviceId ] = rateObject.name + ' (' + currencySymbol + rateObject.rate.toFixed( 2 ) + ')';
+
+		packageRates.forEach( ( rateObject ) => {
+			valuesMap[ rateObject.service_id ] = rateObject.title + ' (' + currencySymbol + rateObject.rate.toFixed( 2 ) + ')';
 		} );
 
 		return (
@@ -36,7 +36,7 @@ const ShippingRates = ( {
 					valuesMap={ valuesMap }
 					title={ renderTitle( pckg, index ) }
 					value={ selectedRate }
-					updateValue={ ( value ) => updateRate( index, value ) }
+					updateValue={ ( value ) => updateRate( pckg.id, value ) }
 					error={ errors[ index ] } />
 			</div>
 		);
@@ -57,14 +57,14 @@ const ShippingRates = ( {
 
 ShippingRates.propTypes = {
 	id: PropTypes.string.isRequired,
-	selectedRates: PropTypes.array.isRequired,
-	availableRates: PropTypes.array.isRequired,
+	selectedRates: PropTypes.object.isRequired,
+	availableRates: PropTypes.object.isRequired,
 	packages: PropTypes.array.isRequired,
 	updateRate: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
-	errors: PropTypes.array.isRequired,
+	errors: PropTypes.object.isRequired,
 };
 
 export default ShippingRates;

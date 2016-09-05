@@ -123,6 +123,7 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageIndex, value } ) => {
 	newPackages[ packageIndex ] = { ...newPackages[ packageIndex ],
 		weight: parseFloat( value ),
 	};
+
 	return { ...state,
 		form: { ...state.form,
 			packages: { ...state.form.packages,
@@ -132,9 +133,10 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageIndex, value } ) => {
 	};
 };
 
-reducers[ UPDATE_RATE ] = ( state, { packageIndex, value } ) => {
-	const newRates = [ ...state.form.rates.values ];
-	newRates[ packageIndex ] = value;
+reducers[ UPDATE_RATE ] = ( state, { packageId, value } ) => {
+	const newRates = { ...state.form.rates.values };
+	newRates[ packageId ] = value;
+
 	return { ...state,
 		form: { ...state.form,
 			rates: { ...state.form.rates,

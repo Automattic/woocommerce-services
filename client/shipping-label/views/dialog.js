@@ -2,7 +2,6 @@ import React from 'react';
 import Dialog from 'components/dialog';
 import ActionButtons from 'components/action-buttons';
 import { translate as __ } from 'lib/mixins/i18n';
-import sum from 'lodash/sum';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
@@ -12,12 +11,6 @@ import { sprintf } from 'sprintf-js';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
-
-	const getTotalCost = () => {
-		const ratesInfo = props.form.rates;
-		const ratesCost = ratesInfo.values.map( ( rateId, index ) => ratesInfo.available[ index ][ rateId ].rate );
-		return sum( ratesCost ).toFixed( 2 );
-	};
 
 	const canPurchase = ! props.form.isSubmitting &&
 		! hasNonEmptyLeaves( props.errors ) &&
@@ -31,7 +24,7 @@ const PrintLabelDialog = ( props ) => {
 			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
 		}
 		if ( canPurchase ) {
-			label += ' (' + currencySymbol + getTotalCost() + ')';
+			label += ' (' + currencySymbol + props.ratesTotal + ')';
 		}
 		return label;
 	};
