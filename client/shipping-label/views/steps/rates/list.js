@@ -4,6 +4,19 @@ import Notice from 'components/notice';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 
+const renderRateNotice = ( show ) => {
+	if ( show ) {
+		return (
+			<Notice
+				status="is-info"
+				icon="info-outline"
+				showDismiss={ false }
+				text={ __( 'The service and rate chosen by the customer at checkout is not available. A similar one has been applied instead.' ) }
+			/>
+		);
+	}
+};
+
 const ShippingRates = ( {
 		id,
 		selectedRates,
@@ -12,6 +25,7 @@ const ShippingRates = ( {
 		updateRate,
 		currencySymbol,
 		errors,
+		showRateNotice,
 	} ) => {
 	const renderTitle = ( pckg, idx ) => {
 		if ( 1 === packages.length ) {
@@ -44,12 +58,7 @@ const ShippingRates = ( {
 
 	return (
 		<div>
-		<Notice
-			status="is-info"
-			icon="info-outline"
-			showDismiss={ false }
-			text={ __( 'The service and rate chosen by the customer at checkout is not available. A similar one has been applied instead.' ) }
-		/>
+			{ renderRateNotice( showRateNotice ) }
 			{ packages.map( renderSinglePackage ) }
 		</div>
 	);

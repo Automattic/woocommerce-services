@@ -32,8 +32,22 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 	} );
 };
 
+const hasUnselectableRate = ( selectedRates, availableRates ) => {
+	let rateNotSelectable = false;
+
+	Object.keys( selectedRates ).forEach( ( packageId ) => {
+		const selectedRate = selectedRates[ packageId ];
+		if ( ! availableRates[ packageId ] || ! find( availableRates[ packageId ], [ 'service_id', selectedRate ] ) ) {
+			rateNotSelectable = true;
+		}
+	} );
+
+	return rateNotSelectable;
+};
+
 const RatesStep = ( { form, values, available, ratesTotal, storeOptions, labelActions, errors, expanded } ) => {
 	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
+	const showRateNotice = hasUnselectableRate( values, available );
 
 	return (
 		<StepContainer
@@ -44,6 +58,7 @@ const RatesStep = ( { form, values, available, ratesTotal, storeOptions, labelAc
 			toggleStep={ () => labelActions.toggleStep( 'rates' ) } >
 			<ShippingRates
 				id="rates"
+				showRateNotice={ showRateNotice }
 				packages={ form.packages.values }
 				selectedRates={ values }
 				availableRates={ available }
