@@ -1,37 +1,64 @@
 import React, { PropTypes } from 'react';
-import NumberInput from 'components/number-field/number-input';
-import Gridicon from 'components/gridicon';
-import { sanitize } from 'dompurify';
-
-const renderItemInfo = ( item, itemIndex ) => (
-	<li key={ itemIndex }>
-		<span dangerouslySetInnerHTML={ { __html: sanitize( item.name ) } } />
-		{ 1 < item.quantity ? ' (x' + item.quantity + ')' : null }
-	</li>
-);
+import { translate as __ } from 'lib/mixins/i18n';
+import Dropdown from 'components/dropdown';
+import NumberField from 'components/number-field';
+import FormButton from 'components/forms/form-button';
 
 const renderPackageDimensions = ( pckg, dimensionUnit ) => {
 	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
 };
 
-const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, errors } ) => {
+const getPackages = ( dimensionUnit ) => {
+	const packages = [
+		{ id: 'bike', length: 1, width: 2, height: 3, name: __( 'Bike Box' ) },
+		{ id: 'bike2', length: 12, width: 12, height: 13, name: __( 'Bike Box2' ) },
+	];
+
+	const result = {};
+	packages.forEach( ( pckg ) => {
+		result[ pckg.id ] = pckg.name + ': ' + renderPackageDimensions( pckg, dimensionUnit );
+	} );
+
+	return result;
+};
+
+const OrderPackages = ( props ) => {
+	const { packages, dimensionUnit, weightUnit, errors } = props;
+	console.dir( props );
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
 		const pckgErrors = errors[ pckgIndex ] || {};
 		return (
-			<li key={ pckgIndex }>
-				{ renderPackageDimensions( pckg, dimensionUnit ) }
-				{ pckgErrors.weight ? <Gridicon icon="notice" /> : null }
-				<NumberInput
-					value={ pckg.weight || 0 }
-					onChange={ ( event ) => updateWeight( pckgIndex, event.target.value ) }
-					isError={ Boolean( pckgErrors.weight ) }
-					style={ { width: 60, marginLeft: 16 } }
-				/> { weightUnit }
+			<div key={ `package_${pckgIndex}` }>
+				<div> { __( 'Package' ) } { pckgIndex + 1 } { __( 'of' ) } { packages.length }</div>
+				<Dropdown
+					id={ `package_select_${pckgIndex}` }
+					title={ __( 'Choose a package' ) }
+					description={ __( 'Go to the packaging manager to add or edit a saved package.' ) }
+					valuesMap={ getPackages( dimensionUnit ) }
+					value={ pckg.package_id || '' }
+					updateValue={ () => {} }
+					error={ pckgErrors.package }
+				/>
 
-				<ul>
-					{ pckg.items.map( renderItemInfo ) }
-				</ul>
-			</li>
+				<NumberField
+					id={ `weight_${pckgIndex}` }
+					title={ __( 'Total Weight' ) }
+					value={ pckg.weight }
+					updateValue={ () => {} }
+					error={ pckgErrors.weight }
+				/>
+
+				<div>
+					{ weightUnit }
+				</div>
+
+				<div className="address__confirmation-container">
+					<FormButton type="button" disabled={ true } isPrimary >
+						{ __( 'Weigh using scale' ) }
+					</FormButton>
+				</div>
+
+			</div>
 		);
 	};
 
