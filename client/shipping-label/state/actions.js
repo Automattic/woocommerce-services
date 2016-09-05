@@ -26,6 +26,13 @@ export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
+export const toggleStep = ( stepName ) => {
+	return {
+		type: TOGGLE_STEP,
+		stepName,
+	};
+};
+
 const waitForAllPromises = ( promises ) => {
 	// Thin wrapper over Promise.all, that makes the Promise chain wait for all the promises
 	// to be completed, even if one of them is rejected.
@@ -87,13 +94,6 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 
 export const exitPrintingFlow = () => {
 	return { type: EXIT_PRINTING_FLOW };
-};
-
-export const toggleStep = ( stepName ) => {
-	return {
-		type: TOGGLE_STEP,
-		stepName,
-	};
 };
 
 export const updateAddressValue = ( group, name, value ) => {

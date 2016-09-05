@@ -76,7 +76,7 @@ const PrintLabelDialog = ( props ) => {
 						isDisabled: ! canPurchase,
 						onClick: props.labelActions.purchaseLabel,
 						isPrimary: true,
-						label: getPurchaseButtonLabel,
+						label: getPurchaseButtonLabel(),
 					},
 					{
 						onClick: props.labelActions.exitPrintingFlow,
