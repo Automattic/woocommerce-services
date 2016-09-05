@@ -1,18 +1,15 @@
 import React, { PropTypes } from 'react';
-import FoldableCard from 'components/foldable-card';
 import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
-import ExpandButton from 'shipping-label/views/expand-button';
+import StepContainer from 'shipping-label/views/step-container';
 
-const RatesStep = ( { form, values, available, storeOptions, labelActions, errors } ) => {
+const RatesStep = ( { form, values, available, storeOptions, labelActions, errors, expanded } ) => {
 	return (
-		<FoldableCard
-			header={ __( 'Rates' ) }
+		<StepContainer
+			title={ __( 'Rates' ) }
 			summary={ __( '' ) }
-			expandedSummary={ __( '' ) }
-			clickableHeader={ true }
-			actionButton={ <ExpandButton/> }
-			expanded={ false } >
+			expanded={ expanded }
+			toggleStep={ () => labelActions.toggleStep( 'rates' ) } >
 			<ShippingRates
 				id="rates"
 				packages={ form.packages.values }
@@ -23,7 +20,7 @@ const RatesStep = ( { form, values, available, storeOptions, labelActions, error
 				weightUnit={ storeOptions.weight_unit }
 				currencySymbol={ storeOptions.currency_symbol }
 				errors={ errors } />
-		</FoldableCard>
+		</StepContainer>
 	);
 };
 

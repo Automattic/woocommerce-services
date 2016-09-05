@@ -106,6 +106,15 @@ button.foldable-card__action {
 	}
 }
 
+.foldable-card__title,
+.foldable-card__status {
+	float: left;
+}
+
+.foldable-card__title {
+	margin: 4px 0 0 8px;
+}
+
 .foldable-card__secondary {
 	display: flex;
 	align-items: center;
@@ -152,7 +161,7 @@ button.foldable-card__action {
 .foldable-card.is-expanded {
 	.foldable-card__content {
 		display: block;
-		padding: 8px 16px;
+		padding: 24px;
 		border-top: 1px solid $gray-light;
 	}
 }

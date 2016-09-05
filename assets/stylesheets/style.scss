@@ -272,6 +272,7 @@
 		select {
 			height: auto;
 			box-shadow: none;
+			width: 100%;
 		}
 	}
 
@@ -279,6 +280,17 @@
 		.button {
 			height: auto;
 		}
+	}
+
+	// .spinner is used both for the Calypso <Spinner> component and WP-admin. This rules revert the WP-Admin ones
+	.spinner {
+		background: none;
+		visibility: visible;
+		float: none;
+		vertical-align: inherit;
+		opacity: 1;
+		width: inherit;
+		height: inherit;
 	}
 
 	// WCC Components

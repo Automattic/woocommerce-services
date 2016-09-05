@@ -2,9 +2,9 @@ import React, { PropTypes } from 'react';
 import FormButton from 'components/forms/form-button';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
 
-const ActionButtons = ( { buttons } ) => {
+const ActionButtons = ( { buttons, className } ) => {
 	return (
-		<FormButtonsBar>
+		<FormButtonsBar className={ className }>
 			{ buttons.map( ( button, idx ) => (
 				<FormButton
 					type="button"
@@ -28,6 +28,7 @@ ActionButtons.propTypes = {
 			isDisabled: PropTypes.bool,
 		} )
 	).isRequired,
+	className: PropTypes.string,
 };
 
 export default ActionButtons;

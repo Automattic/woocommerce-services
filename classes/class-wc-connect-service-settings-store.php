@@ -94,13 +94,17 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$base_location = wc_get_base_location();
 			$wc_address_fields[ 'country' ] = $base_location[ 'country' ];
 			$wc_address_fields[ 'state' ] = $base_location[ 'state' ];
+			$wc_address_fields[ 'address' ] = '';
+			$wc_address_fields[ 'address_2' ] = '';
+			$wc_address_fields[ 'city' ] = '';
+			$wc_address_fields[ 'postcode' ] = '';
 
 			$stored_address_fields = get_option( 'wc_connect_origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
 		public function update_origin_address( $address ) {
-			return update_option( 'wc_connect_origin_address', $address );
+			return update_option( 'wc_connect_origin_address', ( array ) $address );
 		}
 
 		protected function sort_services( $a, $b ) {

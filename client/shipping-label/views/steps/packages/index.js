@@ -1,25 +1,22 @@
 import React, { PropTypes } from 'react';
-import FoldableCard from 'components/foldable-card';
 import { translate as __ } from 'lib/mixins/i18n';
 import OrderPackages from './list';
-import ExpandButton from 'shipping-label/views/expand-button';
+import StepContainer from 'shipping-label/views/step-container';
 
-const PackagesStep = ( { values, storeOptions, labelActions, errors } ) => {
+const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
 	return (
-		<FoldableCard
-			header={ __( 'Packages' ) }
+		<StepContainer
+			title={ __( 'Packages' ) }
 			summary={ __( '' ) }
-			expandedSummary={ __( '' ) }
-			clickableHeader={ true }
-			actionButton={ <ExpandButton/> }
-			expanded={ false } >
+			expanded={ expanded }
+			toggleStep={ () => labelActions.toggleStep( 'packages' ) } >
 			<OrderPackages
 				packages={ values }
 				updateWeight={ labelActions.updatePackageWeight }
 				dimensionUnit={ storeOptions.dimension_unit }
 				weightUnit={ storeOptions.weight_unit }
 				errors={ errors } />
-		</FoldableCard>
+		</StepContainer>
 	);
 };
 

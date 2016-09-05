@@ -25,6 +25,7 @@ CountryDropdown.propTypes = {
 		PropTypes.string,
 		PropTypes.bool,
 	] ),
+	className: PropTypes.string,
 };
 
 export default CountryDropdown;

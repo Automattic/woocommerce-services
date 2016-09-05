@@ -35,6 +35,7 @@ StateDropdown.propTypes = {
 		PropTypes.string,
 		PropTypes.bool,
 	] ),
+	className: PropTypes.string,
 };
 
 export default StateDropdown;

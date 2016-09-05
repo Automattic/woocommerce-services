@@ -11,7 +11,7 @@ const renderToggleText = ( text ) => {
 	);
 };
 
-const Toggle = ( { id, title, description, trueText, falseText, saveOnToggle, checked, placeholder, saveForm, updateValue } ) => {
+const Toggle = ( { id, title, description, trueText, falseText, saveOnToggle, checked, placeholder, saveForm, updateValue, className } ) => {
 	const handleChangeEvent = () => {
 		updateValue( ! checked );
 		if ( saveOnToggle && saveForm ) {
@@ -20,7 +20,7 @@ const Toggle = ( { id, title, description, trueText, falseText, saveOnToggle, ch
 	};
 
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FormToggle
 				id={ id }
@@ -45,6 +45,7 @@ Toggle.propTypes = {
 	checked: PropTypes.bool,
 	saveForm: PropTypes.func,
 	updateValue: PropTypes.func,
+	className: PropTypes.string,
 };
 
 Toggle.defaultProps = {

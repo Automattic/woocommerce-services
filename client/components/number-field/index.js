@@ -7,9 +7,9 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const NumberField = ( { id, title, description, value, placeholder, updateValue, error } ) => {
+const NumberField = ( { id, title, description, value, placeholder, updateValue, error, className } ) => {
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<NumberInput
 				id={ id }
@@ -37,6 +37,7 @@ NumberField.propTypes = {
 		PropTypes.string,
 		PropTypes.bool,
 	] ),
+	className: PropTypes.string,
 };
 
 export default NumberField;

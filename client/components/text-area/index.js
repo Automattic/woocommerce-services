@@ -6,11 +6,11 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const TextArea = ( { id, readonly, title, description, value, placeholder, updateValue, error } ) => {
+const TextArea = ( { id, readonly, title, description, value, placeholder, updateValue, error, className } ) => {
 	const handleChangeEvent = event => updateValue( event.target.value );
 
 	return (
-		<FormFieldset>
+		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FormTextarea
 				id={ id }
@@ -37,6 +37,7 @@ TextArea.propTypes = {
 		PropTypes.string,
 		PropTypes.bool,
 	] ),
+	className: PropTypes.string,
 };
 
 export default TextArea;
