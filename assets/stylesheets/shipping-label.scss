@@ -78,6 +78,12 @@
 		color: $alert-red;
 	}
 
+	.validation-message {
+		padding-bottom: 16px;
+		font-size: 14px;
+		line-height: 1.6em;
+	}
+
 	.suggestion-container {
 		display: flex;
 		align-items: flex-start;
@@ -94,11 +100,16 @@
 
 			&:first-child {
 				margin-right: 16px;
+				margin-bottom: 24px;
 			}
 
 			&.is-selected {
 				border-color: $blue-medium;
 			}
+		}
+
+		.suggestion-edit {
+			margin-left: 24px;
 		}
 
 		.summary {

@@ -44,7 +44,7 @@ const AddressSuggestion = ( {
 	} ) => {
 	return (
 		<div>
-			<span>{ __( 'To ensure accurate delivery, we have slightly modified the address entered.' ) }</span>
+			<div className="validation-message">{ __( 'We have slightly modified the entered address. If that looks correct, please use the suggested address to ensure accurate delivery.' ) }</div>
 			<div className="suggestion-container">
 				<RadioButton
 					checked={ ! selectNormalized }
@@ -53,7 +53,7 @@ const AddressSuggestion = ( {
 					<AddressSummary
 						values={ values }
 						countriesData={ countriesData } />
-					<a onClick={ editAddress } >
+					<a className="suggestion-edit" onClick={ editAddress } >
 						{ __( 'Edit address' ) }
 					</a>
 				</RadioButton>
@@ -66,12 +66,15 @@ const AddressSuggestion = ( {
 						countriesData={ countriesData } />
 				</RadioButton>
 			</div>
-			<FormButton
-				type="button"
-				onClick={ confirmAddressSuggestion }
-				isPrimary >
-				{ __( 'Confirm' ) }
-			</FormButton>
+			<div className="address__confirmation-container">
+				<FormButton
+					type="button"
+					className="address__confirmation"
+					onClick={ confirmAddressSuggestion }
+					isPrimary >
+					{ __( 'Use selected address' ) }
+				</FormButton>
+			</div>
 		</div>
 	);
 };
