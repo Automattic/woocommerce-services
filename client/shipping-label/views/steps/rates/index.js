@@ -37,7 +37,8 @@ const hasUnselectableRate = ( selectedRates, availableRates ) => {
 
 	Object.keys( selectedRates ).forEach( ( packageId ) => {
 		const selectedRate = selectedRates[ packageId ];
-		if ( ! availableRates[ packageId ] || ! find( availableRates[ packageId ], [ 'service_id', selectedRate ] ) ) {
+
+		if ( ( '' !== selectedRate ) && ( ! availableRates[ packageId ] || ! find( availableRates[ packageId ], [ 'service_id', selectedRate ] ) ) ) {
 			rateNotSelectable = true;
 		}
 	} );
