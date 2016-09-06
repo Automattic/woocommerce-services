@@ -4,11 +4,20 @@ import OrderPackages from './list';
 import StepContainer from 'shipping-label/views/step-container';
 
 const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
+	const isValid = 0 < values[ 0 ].weight;
+	const renderSummary = () => {
+		if ( ! isValid ) {
+			return __( 'Weight not entered' );
+		}
+		return values[ 0 ].weight + storeOptions.weight_unit;
+	};
+
 	return (
 		<StepContainer
 			title={ __( 'Packages' ) }
-			isSuccess={ true }
-			summary={ __( '' ) }
+			isSuccess={ isValid }
+			isError={ ! isValid }
+			summary={ renderSummary() }
 			expanded={ expanded }
 			toggleStep={ () => labelActions.toggleStep( 'packages' ) } >
 			<OrderPackages

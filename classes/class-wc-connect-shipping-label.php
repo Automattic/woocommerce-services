@@ -62,6 +62,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
 		}
 
+		protected function get_name( WC_Product $product ) {
+			if ( $product->get_sku() ) {
+				$identifier = $product->get_sku();
+			} else {
+				$identifier = '#' . ( isset( $product->variation_id ) ? $product->variation_id : $product->id );
+			}
+			return sprintf( '%s - %s', $identifier, $product->get_title() );
+		}
+
 		protected function get_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
@@ -74,7 +83,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					if ( ! $product ) {
 						continue;
 					}
-					$packages[ $package_index ][ 'items' ][ $item_index ][ 'name' ] = html_entity_decode( $product->get_formatted_name() );
+					$product_data = $packages[ $package_index ][ 'items' ][ $item_index ];
+					$product_data[ 'name' ] = $this->get_name( $product );
+					$product_data[ 'url' ] = admin_url( 'post.php?post=' . $product->id . '&action=edit' );
+					if ( isset( $product->variation_id ) ) {
+						$product_data[ 'attributes' ] = $product->get_formatted_variation_attributes( true );
+					}
+					$packages[ $package_index ][ 'items' ][ $item_index ] = $product_data;
 				}
 			}
 

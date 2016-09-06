@@ -1,69 +1,59 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
-import Dropdown from 'components/dropdown';
 import NumberField from 'components/number-field';
-import FormButton from 'components/forms/form-button';
+import FormLegend from 'components/forms/form-legend';
+import { sprintf } from 'sprintf-js';
 
 const renderPackageDimensions = ( pckg, dimensionUnit ) => {
 	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
 };
 
-const getPackages = ( dimensionUnit ) => {
-	const packages = [
-		{ id: 'bike', length: 1, width: 2, height: 3, name: __( 'Bike Box' ) },
-		{ id: 'bike2', length: 12, width: 12, height: 13, name: __( 'Bike Box2' ) },
-	];
-
-	const result = {};
-	packages.forEach( ( pckg ) => {
-		result[ pckg.id ] = pckg.name + ': ' + renderPackageDimensions( pckg, dimensionUnit );
-	} );
-
-	return result;
-};
-
 const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, errors } ) => {
+	const renderItemInfo = ( item, itemIndex ) => {
+		return (
+			<div key={ itemIndex } className="wcc-package-item">
+				<div className="item-name">
+					<p>
+						<a href={ item.url } target="_blank">{ item.name }</a>
+					</p>
+					{ item.attributes && <p>{ item.attributes }</p> }
+				</div>
+				<div className="item-quantity">{ item.quantity }</div>
+			</div>
+		);
+	};
+
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
 		const pckgErrors = errors[ pckgIndex ] || {};
 		return (
-			<div key={ `package_${pckgIndex}` }>
-				<div> { __( 'Package' ) } { pckgIndex + 1 } { __( 'of' ) } { packages.length }</div>
-				<Dropdown
-					id={ `package_select_${pckgIndex}` }
-					title={ __( 'Choose a package' ) }
-					description={ __( 'Go to the packaging manager to add or edit a saved package.' ) }
-					valuesMap={ getPackages( dimensionUnit ) }
-					value={ pckg.package_id || '' }
-					updateValue={ () => {} }
-					error={ pckgErrors.package }
-				/>
+			<div key={ pckgIndex }>
+				<p>
+					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex + 1, packages.length ) }
+				</p>
+
+				<p>{ renderPackageDimensions( pckg, dimensionUnit ) }</p>
+
+				<div className="wcc-package-items-header">
+					<FormLegend className="item-name">{ __( 'Package contents' ) }</FormLegend>
+					<FormLegend className="item-quantity">{ __( 'Quantity' ) }</FormLegend>
+				</div>
+				{ pckg.items.map( renderItemInfo ) }
 
 				<NumberField
 					id={ `weight_${pckgIndex}` }
 					title={ __( 'Total Weight' ) }
 					value={ pckg.weight }
 					updateValue={ ( value ) => updateWeight( pckgIndex, value ) }
-					error={ pckgErrors.weight }
-				/>
-
-				<div>
-					{ weightUnit }
-				</div>
-
-				<div className="address__confirmation-container">
-					<FormButton type="button" disabled={ true } isPrimary >
-						{ __( 'Weigh using scale' ) }
-					</FormButton>
-				</div>
-
+					error={ pckgErrors.weight } />
+				<span>{ weightUnit } </span>
 			</div>
 		);
 	};
 
 	return (
-		<ul>
+		<div>
 			{ packages.map( renderPackageInfo ) }
-		</ul>
+		</div>
 	);
 };
 
