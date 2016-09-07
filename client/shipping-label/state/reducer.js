@@ -15,6 +15,7 @@ import {
 	RATES_RETRIEVAL_IN_PROGRESS,
 	RATES_RETRIEVAL_COMPLETED,
 } from './actions';
+import mapValues from 'lodash/mapValues';
 
 const reducers = {};
 
@@ -182,7 +183,8 @@ reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {
 reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
 	return { ...state,
 		form: { ...state.form,
-			rates: { ...state.form.rates,
+			rates: {
+				values: mapValues( state.form.rates.values, () => '' ),
 				retrievalInProgress: false,
 				available: rates,
 			},
