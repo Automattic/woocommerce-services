@@ -15,20 +15,41 @@ const RadioButton = ( props ) => {
 	);
 };
 
-const AddressSummary = ( { values, countriesData } ) => {
-	const { name, address, address_2, city, postcode, state, country } = values;
+const AddressSummary = ( { values, originalValues, countriesData } ) => {
+	originalValues = originalValues || {};
+	const { state, country } = values;
+
 	let stateStr = '';
 	if ( state ) {
 		const statesMap = ( countriesData[ country ] || {} ).states || {};
 		stateStr = statesMap[ state ] || state;
 	}
 	const countryStr = countriesData[ country ].name;
+
+	const getValue = ( fieldName ) => {
+		const rawValue = values[ fieldName ];
+		if ( ! rawValue ) {
+			return '';
+		}
+		const originalValue = originalValues[ fieldName ];
+		const highlight = originalValue && originalValue.toLowerCase() !== rawValue.toLowerCase();
+		let value = rawValue;
+		switch ( fieldName ) {
+			case 'state':
+				value = stateStr;
+				break;
+			case 'country':
+				value = countryStr;
+		}
+		return <span className={ highlight ? 'highlight' : '' }>{ value }</span>;
+	};
+
 	return (
 		<div className="summary">
-			<p>{ name }</p>
-			<p>{ `${address} ${address_2}`.trim() }</p>
-			<p>{ `${city}, ${postcode} ${stateStr}`.trim() }</p>
-			<p>{ countryStr }</p>
+			<p>{ getValue( 'name' ) }</p>
+			<p>{ getValue( 'address' ) } { getValue( 'address_2' ) }</p>
+			<p>{ getValue( 'city' ) }, { getValue( 'postcode' ) } { getValue( 'state' ) }</p>
+			<p>{ getValue( 'country' ) }</p>
 		</div>
 	);
 };
@@ -63,6 +84,7 @@ const AddressSuggestion = ( {
 					<span className="suggestion-title">{ __( 'Suggested address' ) }</span>
 					<AddressSummary
 						values={ normalized }
+						originalValues={ values }
 						countriesData={ countriesData } />
 				</RadioButton>
 			</div>
