@@ -64,10 +64,6 @@ const getRatesStatus = ( { retrievalInProgress, errors, available } ) => {
 		return { isError: true };
 	}
 
-	if ( showRateNotice ) {
-		return { isWarning: true };
-	}
-
 	if ( isEmpty( available ) ) {
 		return {};
 	}
