@@ -5,6 +5,7 @@ import flatten from 'lodash/flatten';
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
 import some from 'lodash/some';
+import isEmpty from 'lodash/isEmpty';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
@@ -100,7 +101,8 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 		! destination.normalizationInProgress &&
 		origin.isNormalized &&
 		! origin.normalizationInProgress &&
-		! rates.retrievalInProgress
+		! rates.retrievalInProgress &&
+		isEmpty( rates.available )
 	) {
 		promisesQueue.push( getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce ) );
 	}
