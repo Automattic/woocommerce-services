@@ -1,10 +1,10 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import OrderPackages from './list';
-import StepContainer from 'shipping-label/views/step-container';
 import FormButton from 'components/forms/form-button';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
+import StepContainer from '../../step-container';
 
 const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
 	const isValid = 0 < values[ 0 ].weight;

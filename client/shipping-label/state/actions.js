@@ -12,6 +12,7 @@ import getFormErrors from 'shipping-label/state/selectors/errors';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
+import { sprintf } from 'sprintf-js';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -27,6 +28,14 @@ export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
+export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
+export const CLOSE_REFUND_DIALOG = 'CLOSE_REFUND_DIALOG';
+export const REFUND_STATUS_RESPONSE = 'REFUND_STATUS_RESPONSE';
+export const REFUND_REQUEST = 'REFUND_REQUEST';
+export const REFUND_RESPONSE = 'REFUND_RESPONSE';
+export const OPEN_REPRINT_DIALOG = 'OPEN_REPRINT_DIALOG';
+export const CLOSE_REPRINT_DIALOG = 'CLOSE_REPRINT_DIALOG';
+export const CONFIRM_REPRINT = 'CONFIRM_REPRINT';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
@@ -280,4 +289,69 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
 	} ).catch( noop );
+};
+
+export const openRefundDialog = ( labelId ) => ( dispatch, getState, { labelStatusURL, nonce } ) => {
+	dispatch( { type: OPEN_REFUND_DIALOG, labelId } );
+
+	let error = null;
+	let response = null;
+	const setError = ( err ) => error = err;
+	const setSuccess = ( success, json ) => {
+		if ( success ) {
+			response = json.status;
+		}
+	};
+	const setIsSaving = ( saving ) => {
+		if ( ! saving ) {
+			dispatch( { type: REFUND_STATUS_RESPONSE, response, error } );
+			if ( error ) {
+				dispatch( NoticeActions.errorNotice( error.toString() ) );
+			}
+		}
+	};
+
+	saveForm( setIsSaving, setSuccess, noop, setError, labelStatusURL, nonce, 'POST', labelId );
+};
+
+export const closeRefundDialog = () => {
+	return { type: CLOSE_REFUND_DIALOG };
+};
+
+export const confirmRefund = ( labelId ) => ( dispatch, getState, { labelRefundURL, nonce } ) => {
+	let error = null;
+	let response = null;
+	const setError = ( err ) => error = err;
+	const setSuccess = ( success, json ) => {
+		if ( success ) {
+			response = json.result;
+		}
+	};
+	const setIsSaving = ( saving ) => {
+		if ( saving ) {
+			dispatch( { type: REFUND_REQUEST } );
+		} else {
+			dispatch( { type: REFUND_RESPONSE, response, error } );
+			if ( error ) {
+				dispatch( NoticeActions.errorNotice( error.toString() ) );
+			}
+		}
+	};
+
+	saveForm( setIsSaving, setSuccess, noop, setError, labelRefundURL, nonce, 'POST', labelId );
+};
+
+export const openReprintDialog = ( labelId ) => {
+	return { type: OPEN_REPRINT_DIALOG, labelId };
+};
+
+export const closeReprintDialog = () => {
+	return { type: CLOSE_REPRINT_DIALOG };
+};
+
+export const confirmReprint = ( labelId ) => ( dispatch, getState, { labelImageURL } ) => {
+	dispatch( { type: CONFIRM_REPRINT } );
+	printDocument( sprintf( labelImageURL, labelId ) )
+		.then( closeReprintDialog )
+		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

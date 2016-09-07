@@ -34,7 +34,7 @@ const PrintLabelDialog = ( props ) => {
 
 	return (
 		<Dialog
-			isVisible={ props.showDialog }
+			isVisible={ props.showPurchaseDialog }
 			onClose={ props.labelActions.exitPrintingFlow }
 			additionalClassNames="wcc-modal wcc-shipping-label-dialog" >
 			<div className="wcc-shipping-label-dialog__content">

@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
-import StepContainer from 'shipping-label/views/step-container';
+import StepContainer from '../../step-container';
 import { sprintf } from 'sprintf-js';
 import find from 'lodash/find';
 import get from 'lodash/get';

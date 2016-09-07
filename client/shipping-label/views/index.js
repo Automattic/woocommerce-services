@@ -3,7 +3,10 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Button from 'components/button';
 import { translate as __ } from 'lib/mixins/i18n';
-import PrintLabelDialog from './dialog';
+import PurchaseLabelDialog from './purchase';
+import RefundDialog from './refund';
+import ReprintDialog from './reprint';
+import TrackingLink from './tracking-link';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
@@ -30,27 +33,76 @@ const getRatesTotal = ( selectedRates, availableRates ) => {
 };
 
 const ShippingLabelRootView = ( props ) => {
-	const renderPrintLabelFlow = () => {
+	const renderPurchaseLabelFlow = () => {
 		return (
-			<Button onClick={ props.labelActions.openPrintingFlow } >
-				{ __( 'Create label' ) }
-			</Button>
+			<div>
+				<PurchaseLabelDialog
+					{ ...props.shippingLabel }
+					{ ...props } />
+				<Button onClick={ props.labelActions.openPrintingFlow } >
+					{ __( 'Create label' ) }
+				</Button>
+			</div>
 		);
 	};
 
-	const renderSuccessNotice = () => {
-		return <span>{ __( 'The shipping label has been successfully purchased.' ) }</span>;
+	const renderLabelActions = ( label, index ) => {
+		return (
+			<div key={ index }>
+				<dl>
+					<dt>{ __( 'Tracking' ) }</dt>
+					<dd><TrackingLink { ...label }/></dd>
+
+					<dt>{ __( 'Ship via' ) }</dt>
+					<dd>{ label.service_name }</dd>
+
+					<dt>{ __( 'Purchase date' ) }</dt>
+					<dd>{
+						// Safari ignores the 'locale' and 'options' argument. It will display
+						// the full date (with timezone and everything) in the browser's locale (instead of WP lang)
+						new Date( label.created ).toLocaleDateString( document.documentElement.lang, {
+							day: 'numeric',
+							month: 'long',
+							year: 'numeric',
+							hour: 'numeric',
+							minute: 'numeric',
+						} )
+					}</dd>
+				</dl>
+				<p>
+					<ReprintDialog
+						reprintDialog={ props.shippingLabel.reprintDialog }
+						{ ...props }
+						{ ...label } />
+					<Button onClick={ () => props.labelActions.openReprintDialog( label.label_id ) } >
+						{ __( 'Reprint label' ) }
+					</Button>
+
+					<RefundDialog
+						refundDialog={ props.shippingLabel.refundDialog }
+						{ ...props }
+						{ ...label } />
+					<Button onClick={ () => props.labelActions.openRefundDialog( label.label_id ) } >
+						{ __( 'Refund label' ) }
+					</Button>
+				</p>
+			</div>
+		);
+	};
+
+	const renderLabelsActions = () => {
+		return (
+			<div>
+				{ props.shippingLabel.labels.map( renderLabelActions ) }
+			</div>
+		);
 	};
 
 	return (
-		<p className="wcc-metabox-button-container">
+		<div className="wcc-metabox-button-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
-			<PrintLabelDialog
-				{ ...props.shippingLabel }
-				{ ...props }
-			/>
-			{ props.shippingLabel.labels.purchased_time ? renderSuccessNotice() : renderPrintLabelFlow() }
-		</p>
+			{ props.shippingLabel.labels.length ? renderLabelsActions() : renderPurchaseLabelFlow() }
+		</div>
 	);
 };
 
