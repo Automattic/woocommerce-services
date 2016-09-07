@@ -5,8 +5,10 @@ import isEmpty from 'lodash/isEmpty';
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
 	if ( isNormalized && ! normalized ) {
 		// If the address is normalized but the server didn't return a normalized address, then it's
-		// invalid and must register as an error, but no concrete field is erroneous, so return a truthy value
-		return true;
+		// invalid and must register as an error
+		return {
+			address: __( 'This address was not recognized' ),
+		};
 	}
 	const { postcode, state, country } = ( isNormalized && selectNormalized ) ? normalized : values;
 	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
