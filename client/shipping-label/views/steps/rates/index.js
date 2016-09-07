@@ -15,7 +15,8 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 	if ( 1 === packageIds.length ) {
 		const packageId = packageIds[ 0 ];
 		const selectedRate = selectedRates[ packageId ];
-		const rateInfo = find( availableRates[ packageId ], [ 'service_id', selectedRate ] );
+		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
+		const rateInfo = find( packageRates, [ 'service_id', selectedRate ] );
 
 		if ( rateInfo ) {
 			return sprintf( __( '%(serviceName)s: %(currencySymbol)s%(rate).2f' ), {
@@ -54,7 +55,7 @@ const hasUnselectableRate = ( customerRateChoices, availableRates ) => {
 	return rateNotSelectable;
 };
 
-const getRatesStatus = ( { retrievalInProgress, errors, showRateNotice, available } ) => {
+const getRatesStatus = ( { retrievalInProgress, errors, available } ) => {
 	if ( retrievalInProgress ) {
 		return { isProgress: true };
 	}
@@ -93,10 +94,9 @@ const RatesStep = ( props ) => {
 		<StepContainer
 			title={ __( 'Rates' ) }
 			summary={ summary }
-			expandedSummary={ summary }
 			expanded={ expanded }
 			toggleStep={ () => labelActions.toggleStep( 'rates' ) }
-			{ ...getRatesStatus( { ...props, showRateNotice } ) } >
+			{ ...getRatesStatus( props ) } >
 			<ShippingRates
 				id="rates"
 				showRateNotice={ showRateNotice }
