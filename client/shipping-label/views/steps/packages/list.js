@@ -31,13 +31,18 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex + 1, packages.length ) }
 				</p>
 
-				<p>{ renderPackageDimensions( pckg, dimensionUnit ) }</p>
-
-				<div className="wcc-package-items-header">
-					<FormLegend className="item-name">{ __( 'Package contents' ) }</FormLegend>
-					<FormLegend className="item-quantity">{ __( 'Quantity' ) }</FormLegend>
+				<div>
+					<FormLegend>{ __( 'Package dimensions' ) }</FormLegend>
+					<span>{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
 				</div>
-				{ pckg.items.map( renderItemInfo ) }
+
+				<div>
+					<div className="wcc-package-items-header">
+						<FormLegend className="item-name">{ __( 'Package contents' ) }</FormLegend>
+						<FormLegend className="item-quantity">{ __( 'Quantity' ) }</FormLegend>
+					</div>
+					{ pckg.items.map( renderItemInfo ) }
+				</div>
 
 				<NumberField
 					id={ `weight_${pckgIndex}` }
@@ -45,7 +50,7 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 					value={ pckg.weight }
 					updateValue={ ( value ) => updateWeight( pckgIndex, value ) }
 					error={ pckgErrors.weight } />
-				<span>{ weightUnit } </span>
+				<span>{ weightUnit }</span>
 			</div>
 		);
 	};

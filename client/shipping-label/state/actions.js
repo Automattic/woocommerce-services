@@ -70,6 +70,14 @@ const expandFirstErroneousStep = ( dispatch, getState, storeOptions, currentStep
 	}
 };
 
+export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions } ) => {
+	dispatch( {
+		type: TOGGLE_STEP,
+		stepName,
+	} );
+	expandFirstErroneousStep( dispatch, getState, storeOptions, stepName );
+};
+
 export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, nonce } ) => {
 	let form = getState().shippingLabel.form;
 	const { origin, destination } = form;
