@@ -5,6 +5,7 @@ import StepContainer from 'shipping-label/views/step-container';
 import { sprintf } from 'sprintf-js';
 import find from 'lodash/find';
 import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 
 const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
@@ -37,6 +38,10 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 const hasUnselectableRate = ( selectedRates, availableRates ) => {
 	let rateNotSelectable = false;
 
+	if ( isEmpty( availableRates ) ) {
+		return false;
+	}
+
 	Object.keys( selectedRates ).forEach( ( packageId ) => {
 		const selectedRate = selectedRates[ packageId ];
 		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
@@ -49,16 +54,23 @@ const hasUnselectableRate = ( selectedRates, availableRates ) => {
 	return rateNotSelectable;
 };
 
-const getRatesStatus = ( { retrievalInProgress, errors, showRateNotice } ) => {
+const getRatesStatus = ( { retrievalInProgress, errors, showRateNotice, available } ) => {
 	if ( retrievalInProgress ) {
 		return { isProgress: true };
 	}
+
 	if ( hasNonEmptyLeaves( errors ) ) {
 		return { isError: true };
 	}
+
 	if ( showRateNotice ) {
 		return { isWarning: true };
 	}
+
+	if ( isEmpty( available ) ) {
+		return {};
+	}
+
 	return { isSuccess: true };
 };
 
