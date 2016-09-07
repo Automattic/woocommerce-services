@@ -98,10 +98,10 @@ const AddressFields = ( {
 				countriesData={ storeOptions.countriesData }
 				updateValue={ ( value ) => updateValue( 'country', value ) }
 				error={ fieldErrors.country } />
-			<div className="address__confirmation-container">
+			<div className="step__confirmation-container">
 				<FormButton
 					type="button"
-					className="address__confirmation"
+					className="step__confirmation"
 					disabled={ hasNonEmptyLeaves( errors ) || normalizationInProgress }
 					onClick={ () => labelActions.submitAddressForNormalization( group ) }
 					isPrimary >

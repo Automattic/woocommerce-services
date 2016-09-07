@@ -1,44 +1,65 @@
 import React, { PropTypes } from 'react';
-import NumberInput from 'components/number-field/number-input';
-import Gridicon from 'components/gridicon';
-import { sanitize } from 'dompurify';
-
-const renderItemInfo = ( item, itemIndex ) => (
-	<li key={ itemIndex }>
-		<span dangerouslySetInnerHTML={ { __html: sanitize( item.name ) } } />
-		{ 1 < item.quantity ? ' (x' + item.quantity + ')' : null }
-	</li>
-);
+import { translate as __ } from 'lib/mixins/i18n';
+import NumberField from 'components/number-field';
+import FormLegend from 'components/forms/form-legend';
+import { sprintf } from 'sprintf-js';
 
 const renderPackageDimensions = ( pckg, dimensionUnit ) => {
 	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
 };
 
 const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, errors } ) => {
+	const renderItemInfo = ( item, itemIndex ) => {
+		return (
+			<div key={ itemIndex } className="wcc-package-item">
+				<div className="wcc-package-item__name">
+					<span className="wcc-package-item__title">
+						<a href={ item.url } target="_blank">{ item.name }</a>
+					</span>
+					{ item.attributes && <p>{ item.attributes }</p> }
+				</div>
+				<div className="wcc-package-item__quantity">{ item.quantity }</div>
+			</div>
+		);
+	};
+
 	const renderPackageInfo = ( pckg, pckgIndex ) => {
 		const pckgErrors = errors[ pckgIndex ] || {};
 		return (
-			<li key={ pckgIndex }>
-				{ renderPackageDimensions( pckg, dimensionUnit ) }
-				{ pckgErrors.weight ? <Gridicon icon="notice" /> : null }
-				<NumberInput
-					value={ pckg.weight || 0 }
-					onChange={ ( event ) => updateWeight( pckgIndex, event.target.value ) }
-					isError={ Boolean( pckgErrors.weight ) }
-					style={ { width: 60, marginLeft: 16 } }
-				/> { weightUnit }
+			<div key={ pckgIndex }>
+				<div className="wcc-package-package-number">
+					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex + 1, packages.length ) }
+				</div>
 
-				<ul>
+				<div>
+					<div className="wcc-package-items-header">
+						<FormLegend className="wcc-package-item__name">{ __( 'Package contents' ) }</FormLegend>
+						<FormLegend className="wcc-package-item__quantity">{ __( 'Quantity' ) }</FormLegend>
+					</div>
 					{ pckg.items.map( renderItemInfo ) }
-				</ul>
-			</li>
+				</div>
+
+				<NumberField
+					id={ `weight_${pckgIndex}` }
+					className="wcc-package-weight"
+					title={ __( 'Total Weight' ) }
+					value={ pckg.weight }
+					updateValue={ ( value ) => updateWeight( pckgIndex, value ) }
+					error={ pckgErrors.weight } />
+				<span className="wcc-package-weight-unit">{ weightUnit }</span>
+
+				<div className="wcc-package-package-dimension">
+					<FormLegend>{ __( 'Package dimensions' ) }</FormLegend>
+					<span className="wcc-package-package-dimension__unit">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
+				</div>
+			</div>
 		);
 	};
 
 	return (
-		<ul>
+		<div>
 			{ packages.map( renderPackageInfo ) }
-		</ul>
+		</div>
 	);
 };
 

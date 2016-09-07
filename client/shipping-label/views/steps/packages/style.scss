@@ -1,0 +1,62 @@
+.wcc-package-package-number {
+	margin-bottom: 16px;
+	color: $gray;
+	text-transform: uppercase;
+}
+
+.wcc-package-items-header {
+	display: flex;
+	border-bottom: 1px solid lighten( $gray, 30% );
+	margin-top: 24px;
+}
+
+.wcc-package-item {
+	display: flex;
+	padding: 8px 0;
+}
+
+.wcc-package-item__name {
+	margin-bottom: 8px;
+}
+
+.wcc-package-item__name,
+.wcc-package-item__title {
+	width: 80%;
+}
+
+.wcc-package-item__quantity {
+	width: 20%;
+}
+
+.wcc-package-weight {
+	display: inline-block;
+	width: 140px;
+	margin-top: 16px;
+}
+
+.wcc-package-weight-unit {
+	position: absolute;
+	margin-top: 50px;
+	margin-left: 8px;
+}
+
+.wcc-package-package-dimension {
+	vertical-align: top;
+
+	@include breakpoint( ">960px" ) {
+		display: inline-block;
+		margin-top: 16px;
+		margin-left: 80px;
+	}
+}
+
+.wcc-package-package-dimension__unit {
+	border: 1px solid lighten( $gray, 20% );
+	background: $gray-light;
+	color: $gray;
+	display: inline-block;
+	padding: 7px 14px;
+	width: 160px;
+	font-size: 16px;
+	line-height: 1.5;
+}
