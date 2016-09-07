@@ -301,7 +301,7 @@
 	@import '../../client/components/text-area/style';
 	@import '../../client/components/toggle/style';
 	@import '../../client/settings/views/packages/style';
-
+	@import '../../client/shipping-label/views/steps/packages/style.scss';
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

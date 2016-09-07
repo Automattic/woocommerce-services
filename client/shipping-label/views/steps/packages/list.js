@@ -13,9 +13,9 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 		return (
 			<div key={ itemIndex } className="wcc-package-item">
 				<div className="item-name">
-					<p>
+					<span className="item-name__title">
 						<a href={ item.url } target="_blank">{ item.name }</a>
-					</p>
+					</span>
 					{ item.attributes && <p>{ item.attributes }</p> }
 				</div>
 				<div className="item-quantity">{ item.quantity }</div>
@@ -27,13 +27,8 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 		const pckgErrors = errors[ pckgIndex ] || {};
 		return (
 			<div key={ pckgIndex }>
-				<p>
+				<div className="wcc-package-package-number">
 					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex + 1, packages.length ) }
-				</p>
-
-				<div>
-					<FormLegend>{ __( 'Package dimensions' ) }</FormLegend>
-					<span>{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
 				</div>
 
 				<div>
@@ -46,11 +41,17 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 
 				<NumberField
 					id={ `weight_${pckgIndex}` }
+					className="wcc-package-weight"
 					title={ __( 'Total Weight' ) }
 					value={ pckg.weight }
 					updateValue={ ( value ) => updateWeight( pckgIndex, value ) }
 					error={ pckgErrors.weight } />
-				<span>{ weightUnit }</span>
+				<span className="wcc-package-weight-unit">{ weightUnit }</span>
+
+				<div className="wcc-package-package-dimension">
+					<FormLegend>{ __( 'Package dimensions' ) }</FormLegend>
+					<span className="wcc-package-package-dimension__unit">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
+				</div>
 			</div>
 		);
 	};

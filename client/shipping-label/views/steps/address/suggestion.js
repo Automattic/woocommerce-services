@@ -66,10 +66,10 @@ const AddressSuggestion = ( {
 						countriesData={ countriesData } />
 				</RadioButton>
 			</div>
-			<div className="address__confirmation-container">
+			<div className="step__confirmation-container">
 				<FormButton
 					type="button"
-					className="address__confirmation"
+					className="step__confirmation"
 					onClick={ confirmAddressSuggestion }
 					isPrimary >
 					{ __( 'Use selected address' ) }

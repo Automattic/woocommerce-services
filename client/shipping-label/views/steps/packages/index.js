@@ -28,14 +28,16 @@ const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } 
 				dimensionUnit={ storeOptions.dimension_unit }
 				weightUnit={ storeOptions.weight_unit }
 				errors={ errors } />
-			<FormButton
-				type="button"
-				className="packages__confirmation"
-				disabled={ hasNonEmptyLeaves( errors ) }
-				onClick={ () => labelActions.submitStep( 'packages' ) }
-				isPrimary >
-				{ __( 'Confirm' ) }
-			</FormButton>
+			<div className="step__confirmation-container">
+				<FormButton
+					type="button"
+					className="packages__confirmation step__confirmation"
+					disabled={ hasNonEmptyLeaves( errors ) }
+					onClick={ () => labelActions.submitStep( 'packages' ) }
+					isPrimary >
+					{ __( 'Use this package' ) }
+				</FormButton>
+			</div>
 		</StepContainer>
 	);
 };
