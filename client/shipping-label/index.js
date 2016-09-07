@@ -6,7 +6,7 @@ import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, labelData, storeOptions } ) => ( {
+export default ( { formData, labelsData, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			shippingLabel,
@@ -24,8 +24,9 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 	getInitialState() {
 		return {
 			shippingLabel: {
-				labels: labelData || {},
-				form: {
+				labels: labelsData || [],
+				form: labelsData ? {} : {
+					orderId: formData.order_id,
 					origin: {
 						values: formData.origin,
 						isNormalized: Boolean( formData.origin.address ), // If the address field is filled, we assume it's an already normalized address

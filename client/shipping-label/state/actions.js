@@ -240,7 +240,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 	const setError = ( err ) => error = err;
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
-			response = json;
+			response = json.labels;
 		}
 	};
 	const setIsSaving = ( saving ) => {
@@ -276,6 +276,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				service_id: form.rates.values[ index ],
 				products: flatten( pckg.items.map( ( item ) => fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
+			order_id: form.orderId,
 		};
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
