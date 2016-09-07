@@ -9,10 +9,10 @@ const renderRateNotice = ( show ) => {
 	if ( show ) {
 		return (
 			<Notice
-				status="is-info"
+				className="rate-not-available"
 				icon="info-outline"
 				showDismiss={ false }
-				text={ __( 'The service and rate chosen by the customer at checkout is not available.' ) }
+				text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
 			/>
 		);
 	}
