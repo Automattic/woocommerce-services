@@ -136,7 +136,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			// Rename address_1 to address
-			$address[ 'address' ] = $address[ 'address_1' ];
+			if ( ! isset( $address[ 'address' ] ) && isset( $address[ 'address_1' ] ) ) {
+				$address[ 'address' ] = $address[ 'address_1' ];
+			}
 
 			// Remove now defunct keys
 			unset( $address[ 'first_name' ], $address[ 'last_name' ], $address[ 'address_1' ] );
