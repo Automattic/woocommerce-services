@@ -236,3 +236,20 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
 	} ).catch( noop );
 };
+
+export const getLabelRates = () => ( dispatch, getState, { getRatesURL, nonce, storeOptions } ) => {
+	const handleResponse = () => {
+		expandFirstErroneousStep( dispatch, getState, storeOptions );
+	};
+
+	const formState = getState().shippingLabel.form;
+	const {
+		origin,
+		destination,
+		packages,
+	} = formState;
+
+	getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
+		.then( handleResponse )
+		.catch( noop );
+};
