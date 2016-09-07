@@ -12,6 +12,8 @@ import {
 	UPDATE_RATE,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
+	RATES_RETRIEVAL_IN_PROGRESS,
+	RATES_RETRIEVAL_COMPLETED,
 } from './actions';
 
 const reducers = {};
@@ -165,6 +167,27 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 		newState.showDialog = false;
 	}
 	return newState;
+};
+
+reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {
+	return { ...state,
+		form: { ...state.form,
+			rates: { ...state.form.rates,
+				retrievalInProgress: true,
+			},
+		},
+	};
+};
+
+reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
+	return { ...state,
+		form: { ...state.form,
+			rates: { ...state.form.rates,
+				retrievalInProgress: false,
+				available: rates,
+			},
+		},
+	};
 };
 
 export default ( state = {}, action ) => {
