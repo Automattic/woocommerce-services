@@ -278,6 +278,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'formData'                => $this->get_form_data( $order ),
 				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
+				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 			);
