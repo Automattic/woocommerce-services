@@ -3,6 +3,7 @@ import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
+import get from 'lodash/get';
 
 const renderRateNotice = ( show ) => {
 	if ( show ) {
@@ -36,7 +37,7 @@ const ShippingRates = ( {
 
 	const renderSinglePackage = ( pckg, index ) => {
 		const selectedRate = selectedRates[ pckg.id ] || '';
-		const packageRates = availableRates[ pckg.id ] || [];
+		const packageRates = get( availableRates, [ pckg.id, 'rates' ], [] );
 		const valuesMap = { '': __( 'Select one...' ) };
 
 		packageRates.forEach( ( rateObject ) => {

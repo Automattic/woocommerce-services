@@ -4,6 +4,7 @@ import ShippingRates from './list';
 import StepContainer from 'shipping-label/views/step-container';
 import { sprintf } from 'sprintf-js';
 import find from 'lodash/find';
+import get from 'lodash/get';
 
 const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
 	const packageIds = Object.keys( selectedRates );
@@ -37,8 +38,9 @@ const hasUnselectableRate = ( selectedRates, availableRates ) => {
 
 	Object.keys( selectedRates ).forEach( ( packageId ) => {
 		const selectedRate = selectedRates[ packageId ];
+		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
 
-		if ( ( '' !== selectedRate ) && ( ! availableRates[ packageId ] || ! find( availableRates[ packageId ], [ 'service_id', selectedRate ] ) ) ) {
+		if ( ( '' !== selectedRate ) && ( ! packageRates || ! find( packageRates, [ 'service_id', selectedRate ] ) ) ) {
 			rateNotSelectable = true;
 		}
 	} );
