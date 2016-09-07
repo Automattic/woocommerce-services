@@ -12,7 +12,7 @@ const renderRateNotice = ( show ) => {
 				status="is-info"
 				icon="info-outline"
 				showDismiss={ false }
-				text={ __( 'The service and rate chosen by the customer at checkout is not available. A similar one has been applied instead.' ) }
+				text={ __( 'The service and rate chosen by the customer at checkout is not available.' ) }
 			/>
 		);
 	}

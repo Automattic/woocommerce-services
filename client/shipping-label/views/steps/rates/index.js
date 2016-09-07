@@ -35,15 +35,15 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 	} );
 };
 
-const hasUnselectableRate = ( selectedRates, availableRates ) => {
+const hasUnselectableRate = ( customerRateChoices, availableRates ) => {
 	let rateNotSelectable = false;
 
 	if ( isEmpty( availableRates ) ) {
 		return false;
 	}
 
-	Object.keys( selectedRates ).forEach( ( packageId ) => {
-		const selectedRate = selectedRates[ packageId ];
+	Object.keys( customerRateChoices ).forEach( ( packageId ) => {
+		const selectedRate = customerRateChoices[ packageId ];
 		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
 
 		if ( ( '' !== selectedRate ) && ( ! packageRates || ! find( packageRates, [ 'service_id', selectedRate ] ) ) ) {
@@ -84,9 +84,10 @@ const RatesStep = ( props ) => {
 		labelActions,
 		errors,
 		expanded,
+		customerRateChoices,
 	} = props;
 	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
-	const showRateNotice = hasUnselectableRate( values, available );
+	const showRateNotice = hasUnselectableRate( customerRateChoices, available );
 
 	return (
 		<StepContainer
