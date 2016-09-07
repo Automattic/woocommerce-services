@@ -251,8 +251,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				printDocument( 'data:application/pdf;base64,' + response[ 0 ].image ); // TODO: Figure out how to print multiple PDFs
-				dispatch( exitPrintingFlow() );
+				printDocument( response[ 0 ].image ); // TODO: Figure out how to print multiple PDFs
 			}
 		}
 	};

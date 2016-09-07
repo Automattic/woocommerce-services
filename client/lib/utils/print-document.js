@@ -3,14 +3,24 @@
  * To do that, an invisible <iframe> is created, added to the current page, and "print()" is invoked
  * for just that iframe. After that, the iframe is removed.
  * @param {string} url URL of the document to print
+ * @returns {Promise} Promise that resolves when the document is loaded, and rejected if there's an error fetching it
  */
 export default ( url ) => {
-	const iframe = document.createElement( 'iframe' );
-	iframe.src = url;
-	iframe.style.display = 'none';
-	iframe.onload = () => {
-		iframe.contentWindow.print();
-		setTimeout( () => document.body.removeChild( iframe ), 1000 );
-	};
-	document.body.appendChild( iframe );
+	return fetch( url )
+		.then( ( response ) => {
+			if ( 200 !== response.status ) {
+				throw new Error( response.statusText );
+			}
+			return response.blob().then( ( blob ) => URL.createObjectURL( blob ) );
+		} )
+		.then( ( dataUrl ) => {
+			const iframe = document.createElement( 'iframe' );
+			iframe.src = dataUrl;
+			iframe.style.display = 'none';
+			iframe.onload = () => {
+				iframe.contentWindow.print();
+				setTimeout( () => document.body.removeChild( iframe ), 1000 );
+			};
+			document.body.appendChild( iframe );
+		} );
 };
