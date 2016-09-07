@@ -12,13 +12,13 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 	const renderItemInfo = ( item, itemIndex ) => {
 		return (
 			<div key={ itemIndex } className="wcc-package-item">
-				<div className="item-name">
-					<span className="item-name__title">
+				<div className="wcc-package-item__name">
+					<span className="wcc-package-item__title">
 						<a href={ item.url } target="_blank">{ item.name }</a>
 					</span>
 					{ item.attributes && <p>{ item.attributes }</p> }
 				</div>
-				<div className="item-quantity">{ item.quantity }</div>
+				<div className="wcc-package-item__quantity">{ item.quantity }</div>
 			</div>
 		);
 	};
@@ -33,8 +33,8 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 
 				<div>
 					<div className="wcc-package-items-header">
-						<FormLegend className="item-name">{ __( 'Package contents' ) }</FormLegend>
-						<FormLegend className="item-quantity">{ __( 'Quantity' ) }</FormLegend>
+						<FormLegend className="wcc-package-item__name">{ __( 'Package contents' ) }</FormLegend>
+						<FormLegend className="wcc-package-item__quantity">{ __( 'Quantity' ) }</FormLegend>
 					</div>
 					{ pckg.items.map( renderItemInfo ) }
 				</div>

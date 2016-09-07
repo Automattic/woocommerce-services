@@ -4,6 +4,7 @@ import OrderPackages from './list';
 import StepContainer from 'shipping-label/views/step-container';
 import FormButton from 'components/forms/form-button';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
+import { sprintf } from 'sprintf-js';
 
 const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
 	const isValid = 0 < values[ 0 ].weight;
@@ -11,7 +12,10 @@ const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } 
 		if ( ! isValid ) {
 			return __( 'Weight not entered' );
 		}
-		return values[ 0 ].weight + storeOptions.weight_unit;
+		if ( 1 < values.length ) {
+			return sprintf( __( '%d packages' ), values.length );
+		}
+		return values[ 0 ].weight + ' ' + storeOptions.weight_unit;
 	};
 
 	return (

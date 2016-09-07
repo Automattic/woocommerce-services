@@ -15,17 +15,16 @@
 	padding: 8px 0;
 }
 
-.item-name {
+.wcc-package-item__name {
 	margin-bottom: 8px;
 }
 
-.item-name,
-.item-name__title {
+.wcc-package-item__name,
+.wcc-package-item__title {
 	width: 80%;
 }
 
-.item-quantity,
-.item-name__quantity {
+.wcc-package-item__quantity {
 	width: 20%;
 }
 
