@@ -48,7 +48,7 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 					},
 					rates: {
 						values: formData.rates.selected,
-						available: formData.rates.available,
+						available: {},
 						retrievalInProgress: false,
 					},
 					preview: {

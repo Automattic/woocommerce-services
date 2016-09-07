@@ -126,48 +126,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $rates;
 		}
 
-		protected function get_available_rates( $origin, $destination, $packages ) {
-			$formatted_packages = array();
-
-			foreach ( $packages as $idx => $package ) {
-				$formatted_packages[] = array(
-					'id'     => $package[ 'id' ],
-					'length' => $package[ 'length' ],
-					'width'  => $package[ 'width' ],
-					'height' => $package[ 'height' ],
-					'weight' => $package[ 'weight' ],
-				);
-			}
-
-			$request = array(
-				'carrier'     => 'usps',
-				'origin'      => $origin,
-				'destination' => $destination,
-				'packages'    => $formatted_packages,
-			);
-
-			$rates = $this->api_client->get_label_rates( $request );
-
-			if ( is_wp_error( $rates ) ) {
-				// TODO: log?
-				return array();
-			}
-
-			if ( ! property_exists( $rates, 'rates' ) ) {
-				return array();
-			}
-
-			$processed_rates = array();
-
-			foreach ( $rates->rates as $package_id => $result ) {
-				if ( property_exists( $result, 'rates' ) ) {
-					$processed_rates[ $package_id ] = $result->rates;
-				}
-			}
-
-			return $processed_rates;
-		}
-
 		protected function format_address_for_server( $address ) {
 			// Combine first and last name
 			if ( ! isset( $address[ 'name' ] ) ) {
@@ -205,13 +163,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$origin          = $this->get_origin_address();
 			$selected_rates  = $this->get_selected_rates( $order );
 			$destination     = $this->get_destination_address( $order );
-			$available_rates = $this->get_available_rates( $origin, $destination, $packages );
 
 			$form_data = compact( 'is_packed', 'packages', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => $selected_rates,
-				'available' => $available_rates,
 			);
 
 			return $form_data;
