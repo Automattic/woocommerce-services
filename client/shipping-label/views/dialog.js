@@ -15,7 +15,8 @@ const PrintLabelDialog = ( props ) => {
 	const canPurchase = ! props.form.isSubmitting &&
 		! hasNonEmptyLeaves( props.errors ) &&
 		! props.form.origin.normalizationInProgress &&
-		! props.form.destination.normalizationInProgress;
+		! props.form.destination.normalizationInProgress &&
+		! props.form.rates.retrievalInProgress;
 
 	const getPurchaseButtonLabel = () => {
 		let label = __( 'Buy & Print' );
