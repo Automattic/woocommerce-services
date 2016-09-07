@@ -11,12 +11,15 @@ import getFormErrors from 'shipping-label/state/selectors/errors';
 import sum from 'lodash/sum';
 import map from 'lodash/map';
 import find from 'lodash/find';
+import get from 'lodash/get';
 
 // TODO: Look into turning this into a memoized selector
 const getRatesTotal = ( selectedRates, availableRates ) => {
 	const ratesCost = map( selectedRates, ( rateId, boxId ) => {
-		if ( availableRates[ boxId ] ) {
-			const foundRate = find( availableRates[ boxId ], [ 'service_id', rateId ] );
+		const packageRates = get( availableRates, [ boxId, 'rates' ], false );
+
+		if ( packageRates ) {
+			const foundRate = find( packageRates, [ 'service_id', rateId ] );
 
 			return foundRate ? foundRate.rate : 0;
 		}
