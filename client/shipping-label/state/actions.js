@@ -10,6 +10,7 @@ import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
+import getRates from './get-rates';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -80,18 +81,31 @@ export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions }
 	expandFirstErroneousStep( dispatch, getState, storeOptions, stepName );
 };
 
-export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, nonce } ) => {
+export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, getRatesURL, nonce } ) => {
 	let form = getState().shippingLabel.form;
-	const { origin, destination } = form;
+	const { origin, destination, packages, rates } = form;
 	let errors = getFormErrors( getState(), storeOptions );
-	const addressNormalizationQueue = [];
+	const promisesQueue = [];
+
 	if ( ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
+
 	if ( ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
-	waitForAllPromises( addressNormalizationQueue ).then( () => {
+
+	if (
+		destination.isNormalized &&
+		! destination.normalizationInProgress &&
+		origin.isNormalized &&
+		! origin.normalizationInProgress &&
+		! rates.retrievalInProgress
+	) {
+		promisesQueue.push( getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce ) );
+	}
+
+	waitForAllPromises( promisesQueue ).then( () => {
 		// If the user already interacted with the form, don't change anything
 		form = getState().shippingLabel.form;
 		if ( some( FORM_STEPS.map( ( step ) => form[ step ].expanded ) ) ) {
