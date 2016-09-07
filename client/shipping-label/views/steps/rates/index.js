@@ -5,6 +5,7 @@ import StepContainer from 'shipping-label/views/step-container';
 import { sprintf } from 'sprintf-js';
 import find from 'lodash/find';
 import get from 'lodash/get';
+import { hasNonEmptyLeaves } from 'lib/utils/tree';
 
 const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
 	const packageIds = Object.keys( selectedRates );
@@ -48,7 +49,30 @@ const hasUnselectableRate = ( selectedRates, availableRates ) => {
 	return rateNotSelectable;
 };
 
-const RatesStep = ( { form, values, available, ratesTotal, storeOptions, labelActions, errors, expanded } ) => {
+const getRatesStatus = ( { retrievalInProgress, errors, showRateNotice } ) => {
+	if ( retrievalInProgress ) {
+		return { isProgress: true };
+	}
+	if ( hasNonEmptyLeaves( errors ) ) {
+		return { isError: true };
+	}
+	if ( showRateNotice ) {
+		return { isWarning: true };
+	}
+	return { isSuccess: true };
+};
+
+const RatesStep = ( props ) => {
+	const {
+		form,
+		values,
+		available,
+		ratesTotal,
+		storeOptions,
+		labelActions,
+		errors,
+		expanded,
+	} = props;
 	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
 	const showRateNotice = hasUnselectableRate( values, available );
 
@@ -58,7 +82,8 @@ const RatesStep = ( { form, values, available, ratesTotal, storeOptions, labelAc
 			summary={ summary }
 			expandedSummary={ summary }
 			expanded={ expanded }
-			toggleStep={ () => labelActions.toggleStep( 'rates' ) } >
+			toggleStep={ () => labelActions.toggleStep( 'rates' ) }
+			{ ...getRatesStatus( { ...props, showRateNotice } ) } >
 			<ShippingRates
 				id="rates"
 				showRateNotice={ showRateNotice }
