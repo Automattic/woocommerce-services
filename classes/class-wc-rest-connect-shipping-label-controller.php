@@ -62,6 +62,13 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		$settings[ 'label_size' ] = 'default';
 		$settings[ 'ship_date' ] = date( 'Y-m-d', time() + 86400 ); // tomorrow
 
+		$service_names = array();
+		foreach ( $settings[ 'packages' ] as $index => $package ) {
+			$service_names[] = $package[ 'service_name' ];
+			unset( $package[ 'service_name' ] );
+			$settings[ 'packages' ][ $index ] = $package;
+		}
+
 		$response = $this->api_client->send_shipping_label_request( $settings );
 
 		if ( is_wp_error( $response ) ) {
@@ -89,7 +96,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 				'refundable_amount' => $label_data->label->refundable_amount,
 				'created' => $label_data->label->created,
 				'carrier_id' => $settings[ 'carrier' ],
-				'service_name' => $settings[ 'carrier' ], // TODO: Get the used service name from the request
+				'service_name' => $service_names[ $index ],
 			);
 		}
 
