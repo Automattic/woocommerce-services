@@ -36,6 +36,7 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 				{
 					onClick: labelActions.confirmRefund,
 					isPrimary: true,
+					isDisabled: refundDialog && refundDialog.isSubmitting,
 					label: sprintf( __( 'Refund label (-%s)' ), getRefundableAmount() ),
 				},
 				{

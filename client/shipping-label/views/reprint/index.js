@@ -17,6 +17,7 @@ const ReprintDialog = ( { reprintDialog, labelActions } ) => {
 				{
 					onClick: labelActions.confirmReprint,
 					isPrimary: true,
+					isDisabled: reprintDialog && reprintDialog.isFetching,
 					label: __( 'Print' ),
 				},
 				{

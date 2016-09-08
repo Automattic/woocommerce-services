@@ -13,6 +13,7 @@ import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
+import { translate as __ } from 'lib/mixins/i18n';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -263,7 +264,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				// TODO: Figure out how to print multiple labels
 				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
 					.then( () => dispatch( exitPrintingFlow() ) )
-					.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
+					.catch( ( err ) => dispatch( NoticeActions.errorNotice( err.toString() ) ) );
 			}
 		}
 	};
@@ -328,7 +329,7 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 	const setError = ( err ) => error = err;
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
-			response = json.result;
+			response = json.label;
 		}
 	};
 	const setIsSaving = ( saving ) => {
@@ -338,6 +339,8 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 			dispatch( { type: REFUND_RESPONSE, response, error } );
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
+			} else {
+				dispatch( NoticeActions.successNotice( __( 'The refund request has been sent correctly' ), { duration: 5000 } ) );
 			}
 		}
 	};

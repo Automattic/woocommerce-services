@@ -24,6 +24,7 @@ import {
 	CONFIRM_REPRINT,
 } from './actions';
 import mapValues from 'lodash/mapValues';
+import findIndex from 'lodash/findIndex';
 
 const reducers = {};
 
@@ -209,19 +210,34 @@ reducers[ OPEN_REFUND_DIALOG ] = ( state, { labelId } ) => {
 };
 
 reducers[ CLOSE_REFUND_DIALOG ] = ( state ) => {
+	if ( state.refundDialog.isSubmitting ) {
+		return state;
+	}
 	return { ...state,
 		refundDialog: null,
 	};
 };
 
 reducers[ REFUND_STATUS_RESPONSE ] = ( state, { response, error } ) => {
-	return { ...state,
-		refundDialog: { ...state.refundDialog,
+	const newState = { ...state,
+		refundDialog: {
+			...state.refundDialog,
 			isFetching: false,
-			status: response,
-			error,
 		},
 	};
+	if ( error ) {
+		return newState;
+	}
+
+	const labelIndex = findIndex( state.labels, { 'label_id': state.refundDialog.labelId } );
+	const labelData = {
+		...state.labels[ labelIndex ],
+		...response,
+	};
+
+	newState.labels = [ ...state.labels ];
+	newState.labels[ labelIndex ] = labelData;
+	return newState;
 };
 
 reducers[ REFUND_REQUEST ] = ( state ) => {
@@ -233,14 +249,28 @@ reducers[ REFUND_REQUEST ] = ( state ) => {
 };
 
 reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
-	return { ...state,
-		refundDialog: { ...state.refundDialog,
-			isSubmitting: false,
-			isRefunded: ! error,
-			refundResult: response,
-			error,
-		},
+	if ( error ) {
+		return { ...state,
+			refundDialog: {
+				...state.refundDialog,
+				isSubmitting: false,
+			},
+		};
+	}
+
+	const labelIndex = findIndex( state.labels, { 'label_id': state.refundDialog.labelId } );
+	const labelData = {
+		...state.labels[ labelIndex ],
+		...response,
 	};
+
+	const newState = { ...state,
+		refundDialog: null,
+		labels: [ ...state.labels ],
+	};
+	newState.refundDialog = null;
+	newState.labels[ labelIndex ] = labelData;
+	return newState;
 };
 
 reducers[ OPEN_REPRINT_DIALOG ] = ( state, { labelId } ) => {

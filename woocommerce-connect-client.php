@@ -432,12 +432,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_shipping_label_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-status-controller.php' ) );
-			$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client );
+			$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $settings_store );
 			$this->set_rest_shipping_label_status_controller( $rest_shipping_label_status_controller );
 			$rest_shipping_label_status_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-refund-controller.php' ) );
-			$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client );
+			$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $settings_store );
 			$this->set_rest_shipping_label_refund_controller( $rest_shipping_label_refund_controller );
 			$rest_shipping_label_refund_controller->register_routes();
 

@@ -103,6 +103,17 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
+		public function update_label_order_meta_data( $order_id, $new_label_data ) {
+			$raw_labels_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
+			$labels_data = json_decode( $raw_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			foreach( $labels_data as $index => $label_data ) {
+				if ( $label_data[ 'label_id' ] === $new_label_data->label_id ) {
+					$labels_data[ $index ] = array_merge( $label_data, (array) $new_label_data );
+				}
+			}
+			update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_data ) );
+		}
+
 		public function update_origin_address( $address ) {
 			return update_option( 'wc_connect_origin_address', ( array ) $address );
 		}
