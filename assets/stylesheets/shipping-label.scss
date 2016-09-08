@@ -121,7 +121,7 @@
 			}
 
 			.highlight {
-				background-color: $blue-light;
+				background-color: lighten( $blue-light, 15 );
 			}
 		}
 
