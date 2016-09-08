@@ -74,6 +74,7 @@ if ( module.hot ) {
 			renderApp();
 		} catch ( error ) {
 			renderError( error );
+			throw error;
 		}
 	};
 

@@ -7,6 +7,7 @@ import find from 'lodash/find';
 import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
+import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
 	const packageIds = Object.keys( selectedRates );
@@ -57,13 +58,12 @@ const RatesStep = ( props ) => {
 		form,
 		values,
 		available,
-		ratesTotal,
 		storeOptions,
 		labelActions,
 		errors,
 		expanded,
 	} = props;
-	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
+	const summary = ratesSummary( values, available, getRatesTotal( form.rates ), storeOptions.currency_symbol );
 
 	return (
 		<StepContainer

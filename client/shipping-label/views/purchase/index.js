@@ -9,6 +9,7 @@ import PreviewStep from './steps/preview';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
 import isEmpty from 'lodash/isEmpty';
+import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
@@ -27,7 +28,7 @@ const PrintLabelDialog = ( props ) => {
 			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
 		}
 		if ( canPurchase ) {
-			label += ' (' + currencySymbol + props.ratesTotal + ')';
+			label += ' (' + currencySymbol + getRatesTotal( props.form.rates ) + ')';
 		}
 		return label;
 	};
