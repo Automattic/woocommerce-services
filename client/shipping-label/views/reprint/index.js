@@ -29,4 +29,9 @@ const ReprintDialog = ( { reprintDialog, labelActions } ) => {
 	);
 };
 
+ReprintDialog.propTypes = {
+	reprintDialog: PropTypes.object,
+	labelActions: PropTypes.object.isRequired,
+};
+
 export default ReprintDialog;

@@ -43,4 +43,12 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 	);
 };
 
+RefundDialog.propTypes = {
+	refundDialog: PropTypes.object,
+	labelActions: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object.isRequired,
+	created: PropTypes.number,
+	refundable_amount: PropTypes.number,
+};
+
 export default RefundDialog;

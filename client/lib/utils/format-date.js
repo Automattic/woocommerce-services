@@ -8,4 +8,4 @@ export default ( timestamp ) => {
 		hour: 'numeric',
 		minute: 'numeric',
 	} );
-}
+};

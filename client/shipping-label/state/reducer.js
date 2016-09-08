@@ -222,7 +222,7 @@ reducers[ LABEL_STATUS_RESPONSE ] = ( state, { labelId, response, error } ) => {
 		response = {};
 	}
 
-	const labelIndex = findIndex( state.labels, { 'label_id': labelId } );
+	const labelIndex = findIndex( state.labels, { label_id: labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
 		...response,
@@ -254,7 +254,7 @@ reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
 		};
 	}
 
-	const labelIndex = findIndex( state.labels, { 'label_id': state.refundDialog.labelId } );
+	const labelIndex = findIndex( state.labels, { label_id: state.refundDialog.labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
 		...response,
