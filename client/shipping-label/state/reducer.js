@@ -12,7 +12,10 @@ import {
 	UPDATE_RATE,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
+	RATES_RETRIEVAL_IN_PROGRESS,
+	RATES_RETRIEVAL_COMPLETED,
 } from './actions';
+import mapValues from 'lodash/mapValues';
 
 const reducers = {};
 
@@ -123,6 +126,7 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageIndex, value } ) => {
 	newPackages[ packageIndex ] = { ...newPackages[ packageIndex ],
 		weight: parseFloat( value ),
 	};
+
 	return { ...state,
 		form: { ...state.form,
 			packages: { ...state.form.packages,
@@ -132,9 +136,10 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageIndex, value } ) => {
 	};
 };
 
-reducers[ UPDATE_RATE ] = ( state, { packageIndex, value } ) => {
-	const newRates = [ ...state.form.rates.values ];
-	newRates[ packageIndex ] = value;
+reducers[ UPDATE_RATE ] = ( state, { packageId, value } ) => {
+	const newRates = { ...state.form.rates.values };
+	newRates[ packageId ] = value;
+
 	return { ...state,
 		form: { ...state.form,
 			rates: { ...state.form.rates,
@@ -163,6 +168,28 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 		newState.showDialog = false;
 	}
 	return newState;
+};
+
+reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {
+	return { ...state,
+		form: { ...state.form,
+			rates: { ...state.form.rates,
+				retrievalInProgress: true,
+			},
+		},
+	};
+};
+
+reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
+	return { ...state,
+		form: { ...state.form,
+			rates: {
+				values: mapValues( state.form.rates.values, () => '' ),
+				retrievalInProgress: false,
+				available: rates,
+			},
+		},
+	};
 };
 
 export default ( state = {}, action ) => {

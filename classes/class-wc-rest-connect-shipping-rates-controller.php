@@ -61,6 +61,16 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		$request_body = $request->get_body();
 		$payload      = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
+		// Hardcode USPS rates for now
+		$payload[ 'carrier' ] = 'usps';
+
+		// Exclude extraneous package fields
+		$whitelist = array_fill_keys( array( 'id', 'length', 'width', 'height', 'weight', 'template' ), true );
+
+		foreach ( $payload[ 'packages' ] as $idx => $package ) {
+			$payload[ 'packages' ][ $idx ] = array_intersect_key( $package, $whitelist );
+		}
+
 		$response = $this->api_client->get_label_rates( $payload );
 
 		if ( is_wp_error( $response ) ) {
@@ -69,7 +79,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 
 		return array(
 			'success' => true,
-			'rates'   => $response,
+			'rates'   => property_exists( $response, 'rates' ) ? $response->rates : new stdClass(),
 		);
 	}
 

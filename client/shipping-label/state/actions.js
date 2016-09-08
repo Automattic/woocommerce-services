@@ -5,11 +5,13 @@ import flatten from 'lodash/flatten';
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
 import some from 'lodash/some';
+import isEmpty from 'lodash/isEmpty';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
+import getRates from './get-rates';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -23,6 +25,8 @@ export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
+export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
+export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
@@ -78,25 +82,61 @@ export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions }
 	expandFirstErroneousStep( dispatch, getState, storeOptions, stepName );
 };
 
-export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, nonce } ) => {
+const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
+	const formState = getState().shippingLabel.form;
+	const {
+		origin,
+		destination,
+		packages,
+	} = formState;
+
+	return getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
+		.then( handleResponse )
+		.catch( noop );
+};
+
+export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, getRatesURL, nonce } ) => {
 	let form = getState().shippingLabel.form;
 	const { origin, destination } = form;
 	let errors = getFormErrors( getState(), storeOptions );
-	const addressNormalizationQueue = [];
+	const promisesQueue = [];
+
 	if ( ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
+
 	if ( ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
-	waitForAllPromises( addressNormalizationQueue ).then( () => {
-		// If the user already interacted with the form, don't change anything
+
+	waitForAllPromises( promisesQueue ).then( () => {
 		form = getState().shippingLabel.form;
+
+		const expandStepAfterAction = () => {
+			expandFirstErroneousStep( dispatch, getState, storeOptions );
+		};
+
+		// If origin and destination are normalized, get rates
+		if (
+			form.origin.isNormalized &&
+			isEqual( form.origin.values, form.origin.normalized ) &&
+			form.destination.isNormalized &&
+			isEqual( form.destination.values, form.destination.normalized ) &&
+			isEmpty( form.rates.available )
+			// TODO: make sure packages are valid as well
+		) {
+			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
+		}
+
+		// Otherwise, just expand the next errant step unless the
+		// user already interacted with the form
 		if ( some( FORM_STEPS.map( ( step ) => form[ step ].expanded ) ) ) {
 			return;
 		}
-		expandFirstErroneousStep( dispatch, getState, storeOptions );
+
+		expandStepAfterAction();
 	} );
+
 	dispatch( { type: OPEN_PRINTING_FLOW } );
 };
 
@@ -128,32 +168,43 @@ export const editAddress = ( group ) => {
 	};
 };
 
-export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions } ) => {
+export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce } ) => {
 	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
 		group,
 	} );
-	expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+
+	const handleResponse = () => {
+		expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+	};
+
+	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, nonce, storeOptions } ) => {
-	const handleResponse = () => {
+export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, getRatesURL, nonce, storeOptions } ) => {
+	const handleNormalizeResponse = () => {
 		const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
+
 		if ( isEqual( values, normalized ) ) {
 			if ( expanded ) {
 				dispatch( toggleStep( group ) );
 			}
-			expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+
+			const handleRatesResponse = () => {
+				expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+			};
+
+			getLabelRates( dispatch, getState, handleRatesResponse, { getRatesURL, nonce } );
 		}
 	};
 
 	const state = getState().shippingLabel.form[ group ];
 	if ( state.isNormalized && isEqual( state.values, state.normalized ) ) {
-		handleResponse();
+		handleNormalizeResponse();
 		return;
 	}
 	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
-		.then( handleResponse )
+		.then( handleNormalizeResponse )
 		.catch( noop );
 };
 
@@ -165,10 +216,20 @@ export const updatePackageWeight = ( packageIndex, value ) => {
 	};
 };
 
-export const updateRate = ( packageIndex, value ) => {
+export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeOptions, nonce } ) => {
+	dispatch( toggleStep( 'packages' ) );
+
+	const handleResponse = () => {
+		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
+	};
+
+	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
+};
+
+export const updateRate = ( packageId, value ) => {
 	return {
 		type: UPDATE_RATE,
-		packageIndex,
+		packageId,
 		value,
 	};
 };

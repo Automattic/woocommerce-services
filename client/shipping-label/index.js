@@ -47,8 +47,9 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 						isPacked: formData.is_packed,
 					},
 					rates: {
-						values: formData.rates,
-						available: formData.rates.map( ( service ) => ( { [ service ]: { name: service, rate: 9.99 } } ) ),
+						values: formData.rates.selected,
+						available: {},
+						retrievalInProgress: false,
 					},
 					preview: {
 						values: {},
@@ -60,6 +61,7 @@ export default ( { formData, labelData, storeOptions } ) => ( {
 
 	View: () => (
 		<ShippingLabelRootView
+			customerRateChoices={ formData.rates.selected }
 			storeOptions={ storeOptions } />
 	),
 } );
