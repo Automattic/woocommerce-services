@@ -37,7 +37,7 @@ const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } 
 					type="button"
 					className="packages__confirmation step__confirmation"
 					disabled={ hasNonEmptyLeaves( errors ) }
-					onClick={ () => labelActions.submitStep( 'packages' ) }
+					onClick={ labelActions.confirmPackages }
 					isPrimary >
 					{ __( 'Use this package' ) }
 				</FormButton>

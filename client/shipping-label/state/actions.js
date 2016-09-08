@@ -82,9 +82,22 @@ export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions }
 	expandFirstErroneousStep( dispatch, getState, storeOptions, stepName );
 };
 
+const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
+	const formState = getState().shippingLabel.form;
+	const {
+		origin,
+		destination,
+		packages,
+	} = formState;
+
+	return getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
+		.then( handleResponse )
+		.catch( noop );
+};
+
 export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, getRatesURL, nonce } ) => {
 	let form = getState().shippingLabel.form;
-	const { origin, destination, packages, rates } = form;
+	const { origin, destination } = form;
 	let errors = getFormErrors( getState(), storeOptions );
 	const promisesQueue = [];
 
@@ -96,25 +109,34 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
-	if (
-		destination.isNormalized &&
-		! destination.normalizationInProgress &&
-		origin.isNormalized &&
-		! origin.normalizationInProgress &&
-		! rates.retrievalInProgress &&
-		isEmpty( rates.available )
-	) {
-		promisesQueue.push( getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce ) );
-	}
-
 	waitForAllPromises( promisesQueue ).then( () => {
-		// If the user already interacted with the form, don't change anything
 		form = getState().shippingLabel.form;
+
+		const expandStepAfterAction = () => {
+			expandFirstErroneousStep( dispatch, getState, storeOptions );
+		};
+
+		// If origin and destination are normalized, get rates
+		if (
+			form.origin.isNormalized &&
+			isEqual( form.origin.values, form.origin.normalized ) &&
+			form.destination.isNormalized &&
+			isEqual( form.destination.values, form.destination.normalized ) &&
+			isEmpty( form.rates.available )
+			// TODO: make sure packages are valid as well
+		) {
+			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
+		}
+
+		// Otherwise, just expand the next errant step unless the
+		// user already interacted with the form
 		if ( some( FORM_STEPS.map( ( step ) => form[ step ].expanded ) ) ) {
 			return;
 		}
-		expandFirstErroneousStep( dispatch, getState, storeOptions );
+
+		expandStepAfterAction();
 	} );
+
 	dispatch( { type: OPEN_PRINTING_FLOW } );
 };
 
@@ -146,32 +168,43 @@ export const editAddress = ( group ) => {
 	};
 };
 
-export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions } ) => {
+export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce } ) => {
 	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
 		group,
 	} );
-	expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+
+	const handleResponse = () => {
+		expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+	};
+
+	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, nonce, storeOptions } ) => {
-	const handleResponse = () => {
+export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, getRatesURL, nonce, storeOptions } ) => {
+	const handleNormalizeResponse = () => {
 		const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
+
 		if ( isEqual( values, normalized ) ) {
 			if ( expanded ) {
 				dispatch( toggleStep( group ) );
 			}
-			expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+
+			const handleRatesResponse = () => {
+				expandFirstErroneousStep( dispatch, getState, storeOptions, group );
+			};
+
+			getLabelRates( dispatch, getState, handleRatesResponse, { getRatesURL, nonce } );
 		}
 	};
 
 	const state = getState().shippingLabel.form[ group ];
 	if ( state.isNormalized && isEqual( state.values, state.normalized ) ) {
-		handleResponse();
+		handleNormalizeResponse();
 		return;
 	}
 	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
-		.then( handleResponse )
+		.then( handleNormalizeResponse )
 		.catch( noop );
 };
 
@@ -181,6 +214,16 @@ export const updatePackageWeight = ( packageIndex, value ) => {
 		packageIndex,
 		value,
 	};
+};
+
+export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeOptions, nonce } ) => {
+	dispatch( toggleStep( 'packages' ) );
+
+	const handleResponse = () => {
+		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
+	};
+
+	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
 export const updateRate = ( packageId, value ) => {
@@ -237,21 +280,4 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
 	} ).catch( noop );
-};
-
-export const getLabelRates = () => ( dispatch, getState, { getRatesURL, nonce, storeOptions } ) => {
-	const handleResponse = () => {
-		expandFirstErroneousStep( dispatch, getState, storeOptions );
-	};
-
-	const formState = getState().shippingLabel.form;
-	const {
-		origin,
-		destination,
-		packages,
-	} = formState;
-
-	getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
-		.then( handleResponse )
-		.catch( noop );
 };
