@@ -20,7 +20,7 @@ const renderRateNotice = ( show ) => {
 
 const ShippingRates = ( {
 		id,
-		selectedRates,
+		selectedRates, // Store owner selected rates, not customer
 		availableRates,
 		packages,
 		updateRate,

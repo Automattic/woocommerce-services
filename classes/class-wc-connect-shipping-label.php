@@ -116,17 +116,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$rates = array();
 
 			foreach( $packages as $idx => $package ) {
-				if ( ! $package[ 'service_id' ] ) {
+				// Abort if the package data is malformed
+				if ( ! $package[ 'id' ] || ! $package[ 'service_id' ] ) {
 					return array();
 				}
-				$id = isset( $package[ 'id' ] ) ? $package[ 'id' ] : "box_{$idx}";
-				$rates[ $id ] = $package[ 'service_id' ];
+
+				$rates[ $package[ 'id' ] ] = $package[ 'service_id' ];
 			}
 
 			return $rates;
 		}
 
-		protected function format_address_for_server( $address ) {
+		protected function format_address_for_api( $address ) {
 			// Combine first and last name
 			if ( ! isset( $address[ 'name' ] ) ) {
 				$first_name = isset( $address[ 'first_name' ] ) ? trim( $address[ 'first_name' ] ) : '';
@@ -147,14 +148,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_origin_address() {
-			$origin = $this->format_address_for_server( $this->settings_store->get_origin_address() );
+			$origin = $this->format_address_for_api( $this->settings_store->get_origin_address() );
 
 			return $origin;
 		}
 
 		protected function get_destination_address( WC_Order $order ) {
 			$order_address = $order->get_address( 'shipping' );
-			$destination   = $this->format_address_for_server( $order_address );
+			$destination   = $this->format_address_for_api( $order_address );
 
 			return $destination;
 		}
