@@ -62,7 +62,6 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 
 	View: () => (
 		<ShippingLabelRootView
-			customerRateChoices={ formData.rates.selected }
 			storeOptions={ storeOptions } />
 	),
 } );

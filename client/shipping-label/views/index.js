@@ -124,7 +124,6 @@ const ShippingLabelRootView = ( props ) => {
 
 ShippingLabelRootView.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
-	customerRateChoices: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state, { storeOptions } ) {
