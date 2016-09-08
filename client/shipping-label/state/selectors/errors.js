@@ -7,7 +7,7 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 		// If the address is normalized but the server didn't return a normalized address, then it's
 		// invalid and must register as an error
 		return {
-			address: __( 'This address was not recognized' ),
+			address: __( 'This address is not recognized. Please try another.' ),
 		};
 	}
 	const { postcode, state, country } = ( isNormalized && selectNormalized ) ? normalized : values;
