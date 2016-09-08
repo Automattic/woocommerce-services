@@ -9,7 +9,7 @@ const renderRateNotice = ( show ) => {
 	if ( show ) {
 		return (
 			<Notice
-				className="rate-not-available"
+				className="wcc-label-rates__notice"
 				icon="info-outline"
 				showDismiss={ false }
 				text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
