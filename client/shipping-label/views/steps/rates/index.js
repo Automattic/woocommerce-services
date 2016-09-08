@@ -115,6 +115,7 @@ RatesStep.propTypes = {
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	errors: PropTypes.object.isRequired,
+	customerRateChoices: PropTypes.object.isRequired,
 };
 
 export default RatesStep;
