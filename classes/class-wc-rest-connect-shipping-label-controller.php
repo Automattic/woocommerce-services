@@ -86,6 +86,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 			$labels_order_meta[] = array(
 				'label_id' => $label_data->label->label_id,
 				'provider_label_id' => $label_data->label->provider_label_id,
+				'refundable_amount' => $label_data->label->refundable_amount,
 				'created' => $label_data->label->created,
 				'carrier_id' => $settings[ 'carrier' ],
 				'service_name' => 'TODO: Not implemented yet',

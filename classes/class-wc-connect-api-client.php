@@ -213,6 +213,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$args = array(
 				'headers' => $headers,
 				'compress' => true,
+				'timeout' => 20,
 			);
 			$args = apply_filters( 'wc_connect_request_args', $args );
 
@@ -327,6 +328,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'body' => $body,
 				'redirection' => 0,
 				'compress' => true,
+				'timeout' => 20,
 			);
 			$args = apply_filters( 'wc_connect_request_args', $args );
 
