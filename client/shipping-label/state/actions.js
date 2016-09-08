@@ -243,7 +243,7 @@ export const updateRate = ( packageId, value ) => {
 	};
 };
 
-export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, nonce } ) => {
+export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {
 	let error = null;
 	let response = null;
 	const setError = ( err ) => error = err;
@@ -260,7 +260,10 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				printDocument( response[ 0 ].image, nonce ); // TODO: Figure out how to print multiple PDFs
+				// TODO: Figure out how to print multiple labels
+				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
+					.then( () => dispatch( exitPrintingFlow() ) )
+					.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 			}
 		}
 	};
@@ -354,6 +357,6 @@ export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
 	printDocument( sprintf( labelImageURL, labelId ), nonce )
-		.then( closeReprintDialog )
+		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

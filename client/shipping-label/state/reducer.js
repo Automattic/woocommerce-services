@@ -173,7 +173,6 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 	};
 	if ( ! error ) {
 		newState.labels = response;
-		newState.showPurchaseDialog = false;
 	}
 	return newState;
 };

@@ -53,9 +53,9 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 			return $raw_response;
 		}
 
-		$response = new WP_REST_Response( $raw_response[ 'body' ] );
-		$response->header( 'content-type', $raw_response[ 'headers' ][ 'content-type' ] );
-		return $response;
+		header( 'content-type: ' . $raw_response[ 'headers' ][ 'content-type' ] );
+		echo $raw_response[ 'body' ];
+		die();
 	}
 
 	/**
