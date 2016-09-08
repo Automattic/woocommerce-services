@@ -16,7 +16,7 @@ import {
 	RATES_RETRIEVAL_COMPLETED,
 	OPEN_REFUND_DIALOG,
 	CLOSE_REFUND_DIALOG,
-	REFUND_STATUS_RESPONSE,
+	LABEL_STATUS_RESPONSE,
 	REFUND_REQUEST,
 	REFUND_RESPONSE,
 	OPEN_REPRINT_DIALOG,
@@ -204,7 +204,6 @@ reducers[ OPEN_REFUND_DIALOG ] = ( state, { labelId } ) => {
 	return { ...state,
 		refundDialog: {
 			labelId,
-			isFetching: true,
 		},
 	};
 };
@@ -218,24 +217,21 @@ reducers[ CLOSE_REFUND_DIALOG ] = ( state ) => {
 	};
 };
 
-reducers[ REFUND_STATUS_RESPONSE ] = ( state, { response, error } ) => {
-	const newState = { ...state,
-		refundDialog: {
-			...state.refundDialog,
-			isFetching: false,
-		},
-	};
+reducers[ LABEL_STATUS_RESPONSE ] = ( state, { labelId, response, error } ) => {
 	if ( error ) {
-		return newState;
+		response = {};
 	}
 
-	const labelIndex = findIndex( state.labels, { 'label_id': state.refundDialog.labelId } );
+	const labelIndex = findIndex( state.labels, { 'label_id': labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
 		...response,
+		statusUpdated: true,
 	};
 
-	newState.labels = [ ...state.labels ];
+	const newState = { ...state,
+		labels: [ ...state.labels ],
+	};
 	newState.labels[ labelIndex ] = labelData;
 	return newState;
 };

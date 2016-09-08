@@ -89,14 +89,14 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 				'refundable_amount' => $label_data->label->refundable_amount,
 				'created' => $label_data->label->created,
 				'carrier_id' => $settings[ 'carrier' ],
-				'service_name' => 'TODO: Not implemented yet',
+				'service_name' => $settings[ 'carrier' ], // TODO: Get the used service name from the request
 			);
 		}
 
 		update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_order_meta ) );
 
 		return array(
-			'labels' => $labels_data,
+			'labels' => $labels_order_meta,
 			'success' => true,
 		);
 	}

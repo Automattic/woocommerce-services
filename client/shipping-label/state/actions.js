@@ -31,7 +31,7 @@ export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
 export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
 export const CLOSE_REFUND_DIALOG = 'CLOSE_REFUND_DIALOG';
-export const REFUND_STATUS_RESPONSE = 'REFUND_STATUS_RESPONSE';
+export const LABEL_STATUS_RESPONSE = 'LABEL_STATUS_RESPONSE';
 export const REFUND_REQUEST = 'REFUND_REQUEST';
 export const REFUND_RESPONSE = 'REFUND_RESPONSE';
 export const OPEN_REPRINT_DIALOG = 'OPEN_REPRINT_DIALOG';
@@ -295,27 +295,35 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 	} ).catch( noop );
 };
 
-export const openRefundDialog = ( labelId ) => ( dispatch, getState, { labelStatusURL, nonce } ) => {
-	dispatch( { type: OPEN_REFUND_DIALOG, labelId } );
-
-	let error = null;
-	let response = null;
-	const setError = ( err ) => error = err;
-	const setSuccess = ( success, json ) => {
-		if ( success ) {
-			response = json.status;
-		}
+export const openRefundDialog = ( labelId ) => {
+	return {
+		type: OPEN_REFUND_DIALOG,
+		labelId,
 	};
-	const setIsSaving = ( saving ) => {
-		if ( ! saving ) {
-			dispatch( { type: REFUND_STATUS_RESPONSE, response, error } );
-			if ( error ) {
-				dispatch( NoticeActions.errorNotice( error.toString() ) );
+};
+
+export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, nonce } ) => {
+	getState().shippingLabel.labels.forEach( ( label ) => {
+		const labelId = label.label_id;
+		let error = null;
+		let response = null;
+		const setError = ( err ) => error = err;
+		const setSuccess = ( success, json ) => {
+			if ( success ) {
+				response = json.status;
 			}
-		}
-	};
+		};
+		const setIsSaving = ( saving ) => {
+			if ( ! saving ) {
+				dispatch( { type: LABEL_STATUS_RESPONSE, labelId, response, error } );
+				if ( error ) {
+					dispatch( NoticeActions.errorNotice( error.toString() ) );
+				}
+			}
+		};
 
-	saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
+		saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
+	} );
 };
 
 export const closeRefundDialog = () => {

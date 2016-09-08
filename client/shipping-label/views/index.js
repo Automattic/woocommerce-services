@@ -7,6 +7,8 @@ import PurchaseLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
+import Spinner from 'components/spinner';
+import formatDate from 'lib/utils/format-date';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
@@ -32,6 +34,8 @@ const getRatesTotal = ( selectedRates, availableRates ) => {
 	return sum( ratesCost ).toFixed( 2 );
 };
 
+let labelsStatusUpdateTriggered = false;
+
 const ShippingLabelRootView = ( props ) => {
 	const renderPurchaseLabelFlow = () => {
 		return (
@@ -47,6 +51,24 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderLabelActions = ( label, index ) => {
+		if ( ! label.statusUpdated ) {
+			return <Spinner key={ index } size={ 24 } />;
+		}
+
+		if ( label.refunded_time ) {
+			return (
+				<div key={ index }>
+					<dl>
+						<dt>{ __( 'Refund status' ) }</dt>
+						<dd>{ __( 'Refund submitted' ) }</dd>
+
+						<dt>{ __( 'Refunded request date' ) }</dt>
+						<dd>{ formatDate( label.refunded_time ) }</dd>
+					</dl>
+				</div>
+			);
+		}
+
 		return (
 			<div key={ index }>
 				<dl>
@@ -57,17 +79,7 @@ const ShippingLabelRootView = ( props ) => {
 					<dd>{ label.service_name }</dd>
 
 					<dt>{ __( 'Purchase date' ) }</dt>
-					<dd>{
-						// Safari ignores the 'locale' and 'options' argument. It will display
-						// the full date (with timezone and everything) in the browser's locale (instead of WP lang)
-						new Date( label.created ).toLocaleDateString( document.documentElement.lang, {
-							day: 'numeric',
-							month: 'long',
-							year: 'numeric',
-							hour: 'numeric',
-							minute: 'numeric',
-						} )
-					}</dd>
+					<dd>{ formatDate( label.created ) }</dd>
 				</dl>
 				<p>
 					<ReprintDialog
@@ -91,6 +103,10 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderLabelsActions = () => {
+		if ( ! labelsStatusUpdateTriggered ) {
+			labelsStatusUpdateTriggered = true;
+			props.labelActions.fetchLabelsStatus();
+		}
 		return (
 			<div>
 				{ props.shippingLabel.labels.map( renderLabelActions ) }

@@ -3,6 +3,7 @@ import Dialog from 'components/dialog';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
 import { sprintf } from 'sprintf-js';
+import formatDate from 'lib/utils/format-date';
 
 const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refundable_amount } ) => {
 	const getRefundableAmount = () => {
@@ -21,13 +22,7 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 			<hr/>
 			<dl>
 				<dt>{ __( 'Purchase date' ) }</dt>
-				<dd>{
-					new Date( created ).toLocaleDateString( document.documentElement.lang, {
-						day: 'numeric',
-						month: 'long',
-						year: 'numeric',
-					} )
-				}</dd>
+				<dd>{ formatDate( created ) }</dd>
 
 				<dt>{ __( 'Amount eligible for refund' ) }</dt>
 				<dd>{ getRefundableAmount() }</dd>
