@@ -18,9 +18,6 @@ const SettingsGroup = ( props ) => {
 
 	const renderSettingsItem = ( item ) => {
 		const itemKey = item.key ? item.key : item;
-		if ( 'packing_method' === itemKey && isEmpty( form.values.boxes ) ) {
-			return null;
-		}
 
 		return (
 			<SettingsItem

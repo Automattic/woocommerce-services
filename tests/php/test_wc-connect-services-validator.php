@@ -34,7 +34,8 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 						)
 					)
 				)
-			)
+			),
+			'boxes' => new stdClass()
 		);
 
 	}
@@ -130,6 +131,10 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		$service_settings_title_required = self::get_golden_services();
 		unset( $service_settings_title_required->shipping[0]->service_settings->properties->title );
 
+		// schema should have boxes set
+		$service_settings_boxes_required = self::get_golden_services();
+		unset( $service_settings_boxes_required->boxes );
+
 		return array(
 			'services should be an object' => array( array(), 'outermost_container_not_object' ),
 			'service type should reference an array' => array( $service_type_array, 'service_type_not_ref_array' ),
@@ -149,6 +154,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 			'service settings should have properties' => array( $service_settings_properties_required, 'service_settings_missing_required_property' ),
 			'service settings properties should be an object' => array( $service_settings_properties_object, 'service_settings_property_wrong_type' ),
 			'service settings properties should have title' => array( $service_settings_title_required, 'service_properties_missing_required_property' ),
+			'boxes should be an object' => array( $service_settings_boxes_required, 'boxes_not_object' ),
 		);
 
 	}

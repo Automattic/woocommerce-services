@@ -1,6 +1,7 @@
 import reducer from '../reducer';
 import {
 	addPackage,
+	removePackage,
 	editPackage,
 	dismissModal,
 	setSelectedPreset,
@@ -8,11 +9,15 @@ import {
 	toggleOuterDimensions,
 	savePackage,
 	setModalErrors,
+	setIsSaving,
 } from '../actions';
 
 const initialState = {
 	showModal: false,
 	packageData: null,
+	packages: [ 1, 2, 3 ],
+	pristine: true,
+	isSaving: false,
 };
 
 describe( 'Packages form reducer', () => {
@@ -22,6 +27,9 @@ describe( 'Packages form reducer', () => {
 		expect( initialState ).to.eql( {
 			showModal: false,
 			packageData: null,
+			packages: [ 1, 2, 3 ],
+			pristine: true,
+			isSaving: false,
 		} );
 	} );
 
@@ -73,13 +81,15 @@ describe( 'Packages form reducer', () => {
 		const action = editPackage( packageData );
 		const state = reducer( initialStateVisibleOuterDimensions, action );
 
-		expect( state ).to.eql( {
-			showModal: true,
-			modalReadOnly: false,
-			mode: 'edit',
-			packageData,
-			showOuterDimensions: false,
+		expect( state.packageData ).to.eql( {
+			index: 1,
+			name: 'Test Box',
 		} );
+		expect( state.showModal ).to.eql( true );
+		expect( state.modalReadOnly ).to.eql( false );
+		expect( state.mode ).to.eql( 'edit' );
+		expect( state.showOuterDimensions ).to.eql( false );
+		expect( state.pristine ).to.eql( true );
 	} );
 
 	it( 'DISMISS_MODAL', () => {
@@ -133,6 +143,7 @@ describe( 'Packages form reducer', () => {
 				max_weight: '300',
 				is_letter: false,
 			},
+			pristine: false,
 		} );
 	} );
 
@@ -149,6 +160,49 @@ describe( 'Packages form reducer', () => {
 		} );
 	} );
 
+	it( 'SAVE_PACKAGE adds new package', () => {
+		const packageData = {
+			is_user_defined: true,
+			name: 'Test Box',
+		};
+		const initialSavePackageState = {
+			showModal: true,
+			mode: 'add',
+			packageData,
+			showOuterDimensions: false,
+			packages: [ 1, 2, 3 ],
+		};
+		const action = savePackage( packageData );
+		const state = reducer( initialSavePackageState, action );
+
+		expect( state.packages[ 3 ] ).to.eql( {
+			is_user_defined: true,
+			name: 'Test Box',
+		} );
+	} );
+
+	it( 'SAVE_PACKAGE updates an exisitng package', () => {
+		const packageData = {
+			is_user_defined: true,
+			index: 1,
+			name: 'Test Box',
+		};
+		const initialSavePackageState = {
+			showModal: true,
+			mode: 'edit',
+			packageData,
+			showOuterDimensions: false,
+			packages: [ 1, 2, 3 ],
+		};
+		const action = savePackage( packageData );
+		const state = reducer( initialSavePackageState, action );
+
+		expect( state.packages[ 1 ] ).to.eql( {
+			is_user_defined: true,
+			name: 'Test Box',
+		} );
+	} );
+
 	it( 'SAVE_PACKAGE', () => {
 		const packageData = {
 			is_user_defined: true,
@@ -160,19 +214,23 @@ describe( 'Packages form reducer', () => {
 			mode: 'edit',
 			packageData,
 			showOuterDimensions: false,
+			packages: [ 1, 2, 3 ],
 		};
-		const action = savePackage( 'boxes', packageData );
+		const action = savePackage( packageData );
 		const state = reducer( initialSavePackageState, action );
 
-		expect( state ).to.eql( {
-			showModal: false,
-			mode: 'add',
-			packageData: {
-				is_user_defined: true,
-			},
-			showOuterDimensions: false,
-			selectedPreset: null,
+		expect( state.showModal ).to.eql( false );
+		expect( state.packageData ).to.eql( {
+			is_user_defined: true,
 		} );
+		expect( state.mode ).to.eql( 'add' );
+		expect( state.packages[ 1 ] ).to.eql( {
+			is_user_defined: true,
+			name: 'Test Box',
+		} );
+		expect( state.showOuterDimensions ).to.eql( false );
+		expect( state.selectedPreset ).to.eql( null );
+		expect( state.pristine ).to.eql( false );
 	} );
 
 	it( 'SET_MODAL_ERROR', () => {
@@ -198,5 +256,20 @@ describe( 'Packages form reducer', () => {
 			showOuterDimensions: false,
 			modalErrors: { any: true },
 		} );
+	} );
+
+	it( 'REMOVE_PACKAGE', () => {
+		const action = removePackage( 1 );
+
+		const state = reducer( initialState, action );
+		expect( state.packages ).to.eql( [ 1, 3 ] );
+	} );
+
+	it( 'SET_IS_SAVING', () => {
+		const action = setIsSaving( false );
+
+		const state = reducer( initialState, action );
+		expect( state.isSaving ).to.eql( false );
+		expect( state.pristine ).to.eql( true );
 	} );
 } );

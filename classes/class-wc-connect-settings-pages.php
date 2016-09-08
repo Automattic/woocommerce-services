@@ -15,6 +15,11 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		protected $service_settings_store;
 
 		/**
+		 * @var WC_Connect_Service_Schemas_Store
+		 */
+		protected $service_schemas_store;
+
+		/**
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
@@ -26,6 +31,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		public function __construct( WC_Connect_Payment_Methods_Store $payment_methods_store,
 			WC_Connect_Service_Settings_Store $service_settings_store,
+			WC_Connect_Service_Schemas_Store $service_schemas_store,
 			WC_Connect_Logger $logger ) {
 
 			$this->id    = 'connect';
@@ -33,6 +39,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
+			$this->service_schemas_store = $service_schemas_store;
 			$this->logger = $logger;
 
 			add_filter( 'woocommerce_settings_tabs_array', array( $this, 'tabs' ), 30 ); // 30 positions connect as the last tab
@@ -63,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		public function get_sections() {
 			return array(
 				'' => __( 'Account Settings', 'woocommerce' ),
-				'packages' => __( 'Packages', 'woocommerce' ),
+				'packages' => __( 'Packaging Manager', 'woocommerce' ),
 			);
 		}
 
@@ -149,7 +156,40 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		public function output_packages_screen() {
+			$debug_page_uri = esc_url( add_query_arg(
+				array(
+					'page' => 'wc-status',
+					'tab' => 'connect'
+				),
+				admin_url( 'admin.php' )
+			) );
+			$store_options = $this->service_settings_store->get_store_options();
+			$root_view = 'wc-connect-packages';
+
+			$admin_array = array(
+				'storeOptions' => $store_options,
+				'formSchema'   => $this->service_schemas_store->get_packages_schema(),
+				'formData'     => $this->service_settings_store->get_packages(),
+				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'submitMethod' => 'POST',
+				'rootView'     => $root_view,
+			);
+
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_enqueue_script( 'wc_connect_admin' );
+			wp_enqueue_style( 'wc_connect_admin' );
+
+			// hiding the save button because the react container has its own
+			global $hide_save_button;
+			$hide_save_button = true;
+
 			?>
+			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>">
+				<span class="form-troubles" style="opacity: 0">
+					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?>
+				</span>
+			</div>
 			<?php
 		}
 

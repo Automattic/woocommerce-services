@@ -68,6 +68,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_account_settings_controller;
 
 		/**
+		 * @var WC_REST_Connect_Packages_Controller
+		 */
+		protected $rest_packages_controller;
+
+		/**
 		 * @var WC_REST_Connect_Services_Controller
 		 */
 		protected $rest_services_controller;
@@ -184,6 +189,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function get_rest_account_settings_controller() {
 			return $this->rest_account_settings_controller;
+		}
+
+		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
+			$this->rest_packages_controller = $rest_packages_controller;
 		}
 
 		public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
@@ -303,7 +312,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			new WC_Connect_Debug_Tools( $this->api_client );
 
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
-			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->logger );
+			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store, $this->logger );
 			$this->set_settings_pages( $settings_pages );
 		}
 
@@ -356,6 +365,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$this->logger->log( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
 				return;
 			}
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-packages-controller.php' ) );
+			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $settings_store );
+			$this->set_rest_packages_controller( $rest_packages_controller );
+			$rest_packages_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-account-settings-controller.php' ) );
 			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store );

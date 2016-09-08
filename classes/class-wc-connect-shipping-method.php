@@ -246,7 +246,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				),
 			);
 
-			$response_body = $this->api_client->get_shipping_rates( $services, $package );
+			$boxes = $this->service_settings_store->get_packages();
+
+			$response_body = $this->api_client->get_shipping_rates( $services, $package, $boxes );
 
 			if ( is_wp_error( $response_body ) ) {
 				$this->log(

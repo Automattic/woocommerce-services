@@ -10,6 +10,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';
 import AccountSettings from './account-settings';
+import Packages from './packages';
 
 const Route = ( ( rootView ) => {
 	switch ( rootView ) {
@@ -20,6 +21,8 @@ const Route = ( ( rootView ) => {
 			return Settings;
 		case 'wc-connect-account-settings':
 			return AccountSettings;
+		case 'wc-connect-packages':
+			return Packages;
 	}
 } )( wcConnectData.rootView )( wcConnectData );
 

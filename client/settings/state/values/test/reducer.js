@@ -4,9 +4,6 @@ import {
 	removeField,
 	addArrayFieldItem,
 } from '../actions';
-import {
-	savePackage,
-} from '../../packages/actions';
 
 const initialState = {
 	testField: 'testValue',
@@ -183,127 +180,6 @@ describe( 'Form values reducer', () => {
 				{
 					id: 'OMEGA',
 					testItemField: 'OHH',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
-	it( 'SAVE_PACKAGE add new', () => {
-		const settingsKey = 'testArrayKey';
-		const item = {
-			id: 'OMEGA',
-			testItemField: 'OHH',
-		};
-
-		const action = savePackage( settingsKey, item );
-		const state = formValues( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-				{
-					id: 'BETA',
-					testItemField: 'BEE',
-				},
-				{
-					id: 'OMEGA',
-					testItemField: 'OHH',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
-	it( 'SAVE_PACKAGE update existing', () => {
-		const settingsKey = 'testArrayKey';
-		const item = {
-			index: 1,
-			id: 'OMEGA',
-			testItemField: 'OHH',
-		};
-
-		const action = savePackage( settingsKey, item );
-		const state = formValues( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-				{
-					id: 'OMEGA',
-					testItemField: 'OHH',
-				},
-			],
-			testPckgs: {
-				PCKG_A: {
-					id: 'PCKG_A',
-					dimensions: {
-						width: 10,
-						length: 11,
-						height: 23,
-					},
-					value: 1122,
-				},
-			},
-		} );
-	} );
-
-	it( 'SAVE_PACKAGE parses floats', () => {
-		const settingsKey = 'testArrayKey';
-		const item = {
-			id: 'OMEGA',
-			testItemField: 'OHH',
-			box_weight: '10',
-			max_weight: '500.25',
-		};
-
-		const action = savePackage( settingsKey, item );
-		const state = formValues( initialState, action );
-
-		expect( state ).to.eql( {
-			testField: 'testValue',
-			testArrayKey: [
-				{
-					id: 'ALPHA',
-					testItemField: 'AYE',
-				},
-				{
-					id: 'BETA',
-					testItemField: 'BEE',
-				},
-				{
-					id: 'OMEGA',
-					testItemField: 'OHH',
-					box_weight: 10,
-					max_weight: 500.25,
 				},
 			],
 			testPckgs: {

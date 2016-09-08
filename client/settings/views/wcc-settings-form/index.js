@@ -5,7 +5,6 @@ import { bindActionCreators } from 'redux';
 import * as FormActions from 'settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'settings/state/values/actions';
-import * as PackagesActions from 'settings/state/packages/actions';
 import getFormErrors from 'settings/state/selectors/errors';
 
 const WCCSettingsForm = ( props ) => {
@@ -44,7 +43,6 @@ function mapDispatchToProps( dispatch ) {
 	return {
 		formActions: bindActionCreators( FormActions, dispatch ),
 		noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
-		packagesActions: bindActionCreators( PackagesActions, dispatch ),
 		formValueActions: bindActionCreators( FormValueActions, dispatch ),
 	};
 }

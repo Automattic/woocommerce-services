@@ -1,5 +1,6 @@
 import {
 	addPackage,
+	removePackage,
 	editPackage,
 	dismissModal,
 	setSelectedPreset,
@@ -7,9 +8,12 @@ import {
 	updatePackagesField,
 	toggleOuterDimensions,
 	setModalErrors,
+	setIsSaving,
 	ADD_PACKAGE,
+	REMOVE_PACKAGE,
 	EDIT_PACKAGE,
 	DISMISS_MODAL,
+	SET_IS_SAVING,
 	SET_SELECTED_PRESET,
 	SAVE_PACKAGE,
 	UPDATE_PACKAGES_FIELD,
@@ -55,15 +59,16 @@ describe( 'Packages state actions', () => {
 	} );
 
 	it( '#savePackage()', () => {
-		const settings_key = 'boxes';
 		const packageData = {
 			name: 'Test box',
 			dimensions: '10 x 13 x 6',
 			is_letter: false,
 		};
-		expect( savePackage( settings_key, packageData ) ).to.eql( {
+
+		const state = savePackage( packageData );
+
+		expect( state ).to.eql( {
 			type: SAVE_PACKAGE,
-			settings_key,
 			packageData,
 		} );
 	} );
@@ -100,6 +105,20 @@ describe( 'Packages state actions', () => {
 		expect( setModalErrors( { any: true } ) ).to.eql( {
 			type: SET_MODAL_ERRORS,
 			value: { any: true },
+		} );
+	} );
+
+	it( '#removePackage', () => {
+		expect( removePackage( 0 ) ).to.eql( {
+			type: REMOVE_PACKAGE,
+			index: 0,
+		} );
+	} );
+
+	it( '#setIsSaving', () => {
+		expect( setIsSaving( true ) ).to.eql( {
+			type: SET_IS_SAVING,
+			isSaving: true,
 		} );
 	} );
 } );

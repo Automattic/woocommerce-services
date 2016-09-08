@@ -42,21 +42,25 @@ const OuterDimensionsToggle = ( { toggleOuterDimensions } ) => {
 
 const AddPackageDialog = ( props ) => {
 	const {
-		showModal,
+		form,
 		dismissModal,
-		modalErrors,
-		mode,
-		dimensionUnit,
-		weightUnit,
-		packageData,
-		showOuterDimensions,
 		toggleOuterDimensions,
 		setModalErrors,
 		savePackage,
 		updatePackagesField,
+	} = props;
+
+	const {
+		showModal,
+		mode,
+		modalErrors,
+		dimensionUnit,
+		weightUnit,
 		packages,
 		packageSchema,
-	} = props;
+		packageData,
+		showOuterDimensions,
+	} = form;
 
 	const {
 		name,
@@ -195,25 +199,13 @@ const AddPackageDialog = ( props ) => {
 
 AddPackageDialog.propTypes = {
 	dismissModal: PropTypes.func.isRequired,
-	modalErrors: PropTypes.object.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
-	weightUnit: PropTypes.string.isRequired,
-	mode: PropTypes.string.isRequired,
+	form: PropTypes.object.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
 	showOuterDimensions: PropTypes.bool,
 	toggleOuterDimensions: PropTypes.func.isRequired,
 	savePackage: PropTypes.func.isRequired,
 	packageData: PropTypes.object,
 	setModalErrors: PropTypes.func.isRequired,
-	packages: PropTypes.array.isRequired,
-	packageSchema: PropTypes.object.isRequired,
-};
-
-AddPackageDialog.defaultProps = {
-	packageData: {
-		is_user_defined: true,
-	},
-	mode: 'add',
 };
 
 export default AddPackageDialog;

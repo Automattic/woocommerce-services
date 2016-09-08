@@ -78,7 +78,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
 		 * @return object|WP_Error
 		 */
-		public function get_shipping_rates( $services, $package ) {
+		public function get_shipping_rates( $services, $package, $boxes ) {
 
 			// First, build the contents array
 			// each item needs to specify quantity, weight, length, width and height
@@ -127,7 +127,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$body = array(
 				'contents' => $contents,
 				'destination' => $package['destination'],
-				'services' => $services
+				'services' => $services,
+				'boxes' => $boxes
 			);
 
 			return $this->request( 'POST', '/shipping/rates', $body );

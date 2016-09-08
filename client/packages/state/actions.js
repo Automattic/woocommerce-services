@@ -1,6 +1,8 @@
 export const ADD_PACKAGE = 'ADD_PACKAGE';
+export const REMOVE_PACKAGE = 'REMOVE_PACKAGE';
 export const EDIT_PACKAGE = 'EDIT_PACKAGE';
 export const DISMISS_MODAL = 'DISMISS_MODAL';
+export const SET_IS_SAVING = 'SET_IS_SAVING';
 export const SET_MODAL_ERRORS = 'SET_MODAL_ERROR';
 export const SET_SELECTED_PRESET = 'SET_SELECTED_PRESET';
 export const SAVE_PACKAGE = 'SAVE_PACKAGE';
@@ -9,6 +11,11 @@ export const TOGGLE_OUTER_DIMENSIONS = 'TOGGLE_OUTER_DIMENSIONS';
 
 export const addPackage = () => ( {
 	type: ADD_PACKAGE,
+} );
+
+export const removePackage = ( index ) => ( {
+	type: REMOVE_PACKAGE,
+	index,
 } );
 
 export const editPackage = ( packageToEdit ) => ( {
@@ -25,9 +32,8 @@ export const setSelectedPreset = ( value ) => ( {
 	value,
 } );
 
-export const savePackage = ( settings_key, packageData ) => ( {
+export const savePackage = ( packageData ) => ( {
 	type: SAVE_PACKAGE,
-	settings_key,
 	packageData,
 } );
 
@@ -44,3 +50,37 @@ export const setModalErrors = ( value ) => ( {
 	type: SET_MODAL_ERRORS,
 	value,
 } );
+
+export const setIsSaving = ( isSaving ) => ( {
+	type: SET_IS_SAVING,
+	isSaving,
+} );
+
+// The callbackURL, nonce and submitMethod are extracted from wcConnectData
+// courtesy thunk.withExtraArgument in main.js
+export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+	dispatch( setIsSaving( true ) );
+
+	const request = {
+		method: submitMethod || 'PUT',
+		credentials: 'same-origin',
+		headers: {
+			'X-WP-Nonce': nonce,
+		},
+		body: JSON.stringify( getState().form.packages ),
+	};
+
+	return fetch( callbackURL, request ).then( response => {
+		dispatch( setIsSaving( false ) );
+
+		return response.json().then( json => {
+			if ( json.success ) {
+				onSaveSuccess();
+			} else {
+				onSaveFailure();
+			}
+		} );
+	} ).catch( ( e ) => {
+		onSaveFailure( e );
+	} );
+};
