@@ -22,7 +22,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'connect/shipping-label';
+	protected $rest_base = 'connect/label/purchase';
 
 	/**
 	 * @var WC_Connect_API_Client
@@ -87,6 +87,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 				'label_id' => $label_data->label->label_id,
 				'provider_label_id' => $label_data->label->provider_label_id,
 				'created' => $label_data->label->created,
+				'carrier_id' => $settings[ 'carrier' ],
+				'service_name' => 'TODO: Not implemented yet',
 			);
 		}
 

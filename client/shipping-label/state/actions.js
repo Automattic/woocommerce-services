@@ -311,7 +311,7 @@ export const openRefundDialog = ( labelId ) => ( dispatch, getState, { labelStat
 		}
 	};
 
-	saveForm( setIsSaving, setSuccess, noop, setError, labelStatusURL, nonce, 'POST', labelId );
+	saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
 };
 
 export const closeRefundDialog = () => {
@@ -338,7 +338,7 @@ export const confirmRefund = ( labelId ) => ( dispatch, getState, { labelRefundU
 		}
 	};
 
-	saveForm( setIsSaving, setSuccess, noop, setError, labelRefundURL, nonce, 'POST', labelId );
+	saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelRefundURL, labelId ), nonce, 'POST' );
 };
 
 export const openReprintDialog = ( labelId ) => {

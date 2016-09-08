@@ -234,12 +234,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$store_options = $this->settings_store->get_store_options();
 			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(
-				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
+				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
-				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label-status' ),
-				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/%d' ),
-				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/refund-label' ),
+				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
+				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/image' ),
+				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 			);

@@ -195,6 +195,59 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Gets the actual image/PDF for the given shipping label
+		 *
+		 * @param $label_id integer
+		 * @return object|WP_Error
+		 */
+		public function get_label_image( $label_id ) {
+			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
+			$url = apply_filters( 'wc_connect_server_url', $url );
+			$url = trailingslashit( $url ) . 'shipping/label/' . $label_id . '/image';
+
+			$headers = $this->request_headers();
+			if ( is_wp_error( $headers ) ) {
+				return $headers;
+			}
+
+			$args = array(
+				'headers' => $headers,
+				'compress' => true,
+			);
+			$args = apply_filters( 'wc_connect_request_args', $args );
+
+			$response = wp_remote_get( $url, $args );
+			$code = wp_remote_retrieve_response_code( $response );
+			if ( 200 != $code ) {
+				return new WP_Error(
+					'wcc_server_error',
+					sprintf( 'Error: The WooCommerce Connect server returned HTTP code: %d', $code )
+				);
+			}
+			return $response;
+		}
+
+		/**
+		 * Gets the shipping label status (refund status, tracking code, etc)
+		 *
+		 * @param $label_id integer
+		 * @return object|WP_Error
+		 */
+		public function get_label_status( $label_id ) {
+			return $this->request( 'GET', '/shipping/label/' . $label_id );
+		}
+
+		/**
+		 * Request a refund for a given shipping label
+		 *
+		 * @param $label_id integer
+		 * @return object|WP_Error
+		 */
+		public function send_shipping_label_refund_request( $label_id ) {
+			return $this->request( 'POST', '/shipping/label/' . $label_id . '/refund' );
+		}
+
+		/**
 		 * Tests the connection to the WooCommerce Connect Server
 		 *
 		 * @return true|WP_Error
@@ -318,7 +371,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Generates headers for our request to the WooCommerce Connect Server
 		 *
-		 * @return array
+		 * @return array|WP_Error
 		 */
 		protected function request_headers() {
 			$authorization = $this->authorization_header();
