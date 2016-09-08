@@ -8,6 +8,7 @@ import RatesStep from './steps/rates';
 import PreviewStep from './steps/preview';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
+import isEmpty from 'lodash/isEmpty';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
@@ -16,7 +17,8 @@ const PrintLabelDialog = ( props ) => {
 		! hasNonEmptyLeaves( props.errors ) &&
 		! props.form.origin.normalizationInProgress &&
 		! props.form.destination.normalizationInProgress &&
-		! props.form.rates.retrievalInProgress;
+		! props.form.rates.retrievalInProgress &&
+		! isEmpty( props.form.rates.available );
 
 	const getPurchaseButtonLabel = () => {
 		let label = __( 'Buy & Print' );
