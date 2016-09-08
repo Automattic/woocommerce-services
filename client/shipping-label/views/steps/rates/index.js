@@ -36,25 +36,6 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 	} );
 };
 
-const hasUnselectableRate = ( customerRateChoices, availableRates ) => {
-	let rateNotSelectable = false;
-
-	if ( isEmpty( availableRates ) ) {
-		return false;
-	}
-
-	Object.keys( customerRateChoices ).forEach( ( packageId ) => {
-		const selectedRate = customerRateChoices[ packageId ];
-		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
-
-		if ( ( '' !== selectedRate ) && ( ! packageRates || ! find( packageRates, [ 'service_id', selectedRate ] ) ) ) {
-			rateNotSelectable = true;
-		}
-	} );
-
-	return rateNotSelectable;
-};
-
 const getRatesStatus = ( { retrievalInProgress, errors, available } ) => {
 	if ( retrievalInProgress ) {
 		return { isProgress: true };
@@ -81,10 +62,8 @@ const RatesStep = ( props ) => {
 		labelActions,
 		errors,
 		expanded,
-		customerRateChoices,
 	} = props;
 	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
-	const showRateNotice = hasUnselectableRate( customerRateChoices, available );
 
 	return (
 		<StepContainer
@@ -95,7 +74,7 @@ const RatesStep = ( props ) => {
 			{ ...getRatesStatus( props ) } >
 			<ShippingRates
 				id="rates"
-				showRateNotice={ showRateNotice }
+				showRateNotice={ false }
 				packages={ form.packages.values }
 				selectedRates={ values }
 				availableRates={ available }
