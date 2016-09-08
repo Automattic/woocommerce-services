@@ -3,10 +3,17 @@
  * To do that, an invisible <iframe> is created, added to the current page, and "print()" is invoked
  * for just that iframe. After that, the iframe is removed.
  * @param {string} url URL of the document to print
+ * @param {string} nonce
  * @returns {Promise} Promise that resolves when the document is loaded, and rejected if there's an error fetching it
  */
-export default ( url ) => {
-	return fetch( url )
+export default ( url, nonce ) => {
+	const request = {
+		credentials: 'same-origin',
+		headers: {
+			'X-WP-Nonce': nonce,
+		},
+	};
+	return fetch( url, request )
 		.then( ( response ) => {
 			if ( 200 !== response.status ) {
 				throw new Error( response.statusText );

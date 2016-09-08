@@ -260,7 +260,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				printDocument( response[ 0 ].image ); // TODO: Figure out how to print multiple PDFs
+				printDocument( response[ 0 ].image, nonce ); // TODO: Figure out how to print multiple PDFs
 			}
 		}
 	};
@@ -318,7 +318,8 @@ export const closeRefundDialog = () => {
 	return { type: CLOSE_REFUND_DIALOG };
 };
 
-export const confirmRefund = ( labelId ) => ( dispatch, getState, { labelRefundURL, nonce } ) => {
+export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce } ) => {
+	const labelId = getState().shippingLabel.refundDialog.labelId;
 	let error = null;
 	let response = null;
 	const setError = ( err ) => error = err;
@@ -349,9 +350,10 @@ export const closeReprintDialog = () => {
 	return { type: CLOSE_REPRINT_DIALOG };
 };
 
-export const confirmReprint = ( labelId ) => ( dispatch, getState, { labelImageURL } ) => {
+export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
-	printDocument( sprintf( labelImageURL, labelId ) )
+	const labelId = getState().shippingLabel.reprintDialog.labelId;
+	printDocument( sprintf( labelImageURL, labelId ), nonce )
 		.then( closeReprintDialog )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
