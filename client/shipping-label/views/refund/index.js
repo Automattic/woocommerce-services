@@ -47,7 +47,7 @@ RefundDialog.propTypes = {
 	refundDialog: PropTypes.object,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
-	created: PropTypes.number,
+	created: PropTypes.string,
 	refundable_amount: PropTypes.number,
 };
 
