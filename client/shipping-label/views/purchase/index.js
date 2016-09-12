@@ -14,8 +14,7 @@ import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
 
-	const canPurchase = ! props.form.isSubmitting &&
-		! hasNonEmptyLeaves( props.errors ) &&
+	const canPurchase = ! hasNonEmptyLeaves( props.errors ) &&
 		! props.form.origin.normalizationInProgress &&
 		! props.form.destination.normalizationInProgress &&
 		! props.form.rates.retrievalInProgress &&
@@ -65,12 +64,13 @@ const PrintLabelDialog = ( props ) => {
 						<PreviewStep
 							{ ...props }
 							{ ...props.form.preview }
-							errors={ props.errors.preview } />
+							errors={ props.errors.preview }
+							showPreview={ canPurchase }/>
 					</div>
 				</div>
 				<ActionButtons buttons={ [
 					{
-						isDisabled: ! canPurchase,
+						isDisabled: ! canPurchase || props.form.isSubmitting,
 						onClick: props.labelActions.purchaseLabel,
 						isPrimary: true,
 						label: getPurchaseButtonLabel(),
