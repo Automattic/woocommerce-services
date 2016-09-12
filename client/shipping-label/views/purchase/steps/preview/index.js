@@ -5,9 +5,9 @@ const PreviewStep = ( { labelPreviewURL, showPreview } ) => {
 	return (
 		<div>
 			<span className="preview-title">{ __( 'Preview' ) }</span>
-			{ showPreview
-				? <img src={ labelPreviewURL } className="preview-placeholder" />
-				: <div className="preview-placeholder" /> }
+			<div className="preview-placeholder">
+				{ showPreview && <img src={ labelPreviewURL } /> }
+			</div>
 		</div>
 	);
 };
