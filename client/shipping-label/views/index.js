@@ -42,7 +42,7 @@ const ShippingLabelRootView = ( props ) => {
 						<dt>{ __( 'Refund status' ) }</dt>
 						<dd>{ __( 'Refund submitted' ) }</dd>
 
-						<dt>{ __( 'Refunded request date' ) }</dt>
+						<dt>{ __( 'Refund request date' ) }</dt>
 						<dd>{ formatDate( label.refunded_time ) }</dd>
 					</dl>
 				</div>
@@ -61,7 +61,7 @@ const ShippingLabelRootView = ( props ) => {
 					<dt>{ __( 'Purchase date' ) }</dt>
 					<dd>{ formatDate( label.created ) }</dd>
 				</dl>
-				<p>
+				<div className="wcc-meta-box-action-buttons">
 					<ReprintDialog
 						reprintDialog={ props.shippingLabel.reprintDialog }
 						{ ...props }
@@ -77,7 +77,7 @@ const ShippingLabelRootView = ( props ) => {
 					<Button onClick={ () => props.labelActions.openRefundDialog( label.label_id ) } >
 						{ __( 'Refund label' ) }
 					</Button>
-				</p>
+				</div>
 			</div>
 		);
 	};
@@ -95,7 +95,7 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	return (
-		<div className="wcc-metabox-button-container">
+		<div className="wcc-metabox-shipping-label-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			{ props.shippingLabel.labels.length ? renderLabelsActions() : renderPurchaseLabelFlow() }
 		</div>

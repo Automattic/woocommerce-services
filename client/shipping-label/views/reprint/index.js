@@ -8,23 +8,30 @@ const ReprintDialog = ( { reprintDialog, labelActions } ) => {
 		<Dialog
 			isVisible={ Boolean( reprintDialog ) }
 			onClose={ labelActions.closeReprintDialog }
-			additionalClassNames="wcc-modal" >
-			<h3 className="form-section-heading">
-				{ __( 'Print shipping label' ) }
-			</h3>
-			{ __( 'If there was a printing error when you purchased the label, you can print it again. NOTE: If you already used the label in a package, printing it and using it again will be considered a felony.' ) }
-			<ActionButtons buttons={ [
-				{
-					onClick: labelActions.confirmReprint,
-					isPrimary: true,
-					isDisabled: reprintDialog && reprintDialog.isFetching,
-					label: __( 'Print' ),
-				},
-				{
-					onClick: labelActions.closeReprintDialog,
-					label: __( 'Cancel' ),
-				},
-			] } />
+			additionalClassNames="wcc-modal wcc-shipping-label-reprint">
+			<div className="wcc-shipping-label-reprint__content">
+				<h3 className="form-section-heading">
+					{ __( 'Print shipping label' ) }
+				</h3>
+				<p>
+					{ __( 'If there was a printing error when you purchased the label, you can print it again.' ) }
+				</p>
+				<p className="reprint-notice">
+					{ __( 'NOTE: If you already used the label in a package, printing and using it again is a violation of our terms of service and may result in criminal charges.' ) }
+				</p>
+				<ActionButtons buttons={ [
+					{
+						onClick: labelActions.confirmReprint,
+						isPrimary: true,
+						isDisabled: reprintDialog && reprintDialog.isFetching,
+						label: __( 'Print' ),
+					},
+					{
+						onClick: labelActions.closeReprintDialog,
+						label: __( 'Cancel' ),
+					},
+				] } />
+			</div>
 		</Dialog>
 	);
 };

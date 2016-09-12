@@ -14,31 +14,35 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 		<Dialog
 			isVisible={ Boolean( refundDialog ) }
 			onClose={ labelActions.closeRefundDialog }
-			additionalClassNames="wcc-modal" >
-			<h3 className="form-section-heading">
-				{ __( 'Request a refund' ) }
-			</h3>
-			{ __( 'You can request a refund for a shipping label that has not been used to ship a package. Note that it may take up to 14 days to process.' ) }
-			<hr/>
-			<dl>
-				<dt>{ __( 'Purchase date' ) }</dt>
-				<dd>{ formatDate( created ) }</dd>
+			additionalClassNames="wcc-modal wcc-shipping-label-refund">
+			<div className="wcc-shipping-label-refund__content">
+				<h3 className="form-section-heading">
+					{ __( 'Request a refund' ) }
+				</h3>
+				<p>
+					{ __( 'You can request a refund for a shipping label that has not been used to ship a package. Note that it may take up to 14 days to process.' ) }
+				</p>
+				<hr/>
+				<dl>
+					<dt>{ __( 'Purchase date' ) }</dt>
+					<dd>{ formatDate( created ) }</dd>
 
-				<dt>{ __( 'Amount eligible for refund' ) }</dt>
-				<dd>{ getRefundableAmount() }</dd>
-			</dl>
-			<ActionButtons buttons={ [
-				{
-					onClick: labelActions.confirmRefund,
-					isPrimary: true,
-					isDisabled: refundDialog && refundDialog.isSubmitting,
-					label: sprintf( __( 'Refund label (-%s)' ), getRefundableAmount() ),
-				},
-				{
-					onClick: labelActions.closeRefundDialog,
-					label: __( 'Cancel' ),
-				},
-			] } />
+					<dt>{ __( 'Amount eligible for refund' ) }</dt>
+					<dd>{ getRefundableAmount() }</dd>
+				</dl>
+				<ActionButtons buttons={ [
+					{
+						onClick: labelActions.confirmRefund,
+						isPrimary: true,
+						isDisabled: refundDialog && refundDialog.isSubmitting,
+						label: sprintf( __( 'Refund label (-%s)' ), getRefundableAmount() ),
+					},
+					{
+						onClick: labelActions.closeRefundDialog,
+						label: __( 'Cancel' ),
+					},
+				] } />
+			</div>
 		</Dialog>
 	);
 };

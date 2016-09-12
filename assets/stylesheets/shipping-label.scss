@@ -1,7 +1,34 @@
-.wcc-metabox-button-container {
+.wcc-metabox-shipping-label-container {
 	padding-top: 8px;
 	margin-bottom: 0;
 	text-align: center;
+
+	dl {
+		text-align: left;
+		margin-left: 8px;
+
+		dd {
+			margin-left: 0;
+		}
+	}
+
+	.wcc-meta-box-action-buttons {
+		display: flex;
+		justify-content: space-around;
+	}
+}
+
+.wcc-shipping-label-refund__content {
+	dd {
+		margin-left: 0;
+	}
+}
+
+.wcc-shipping-label-reprint__content {
+	.reprint-notice {
+		color: darken($gray, 10);
+		font-style: italic;
+	}
 }
 
 .wcc-shipping-label-dialog__content {
