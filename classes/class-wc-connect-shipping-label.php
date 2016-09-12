@@ -173,6 +173,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'selected'  => $selected_rates,
 			);
 
+			$form_data[ 'order_id' ] = $order->id;
+
 			return $form_data;
 		}
 
@@ -230,17 +232,25 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			) );
 
 			$store_options = $this->settings_store->get_store_options();
-			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(
-				'storeOptions'            => $store_options,
-				'formData'                => $this->get_form_data( $order ),
-				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/shipping-label' ),
+				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
+				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
+				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/image' ),
+				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 			);
+			$labels_data = get_post_meta( $order->id, 'wc_connect_labels', true );
+			if ( $labels_data ) {
+				$admin_array[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			} else {
+				$store_options[ 'countriesData' ] = $this->get_states_map();
+				$admin_array[ 'formData' ] = $this->get_form_data( $order );
+			}
+			$admin_array[ 'storeOptions' ] = $store_options;
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
 			wp_enqueue_script( 'wc_connect_admin' );

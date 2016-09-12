@@ -49,6 +49,9 @@ export default createSelector(
 	( state ) => state.shippingLabel.form,
 	( state, { countriesData } ) => countriesData,
 	( form, countriesData ) => {
+		if ( isEmpty( form ) ) {
+			return;
+		}
 		return {
 			origin: getAddressErrors( form.origin, countriesData ),
 			destination: getAddressErrors( form.destination, countriesData ),

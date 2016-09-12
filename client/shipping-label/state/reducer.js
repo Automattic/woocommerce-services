@@ -14,20 +14,29 @@ import {
 	PURCHASE_LABEL_RESPONSE,
 	RATES_RETRIEVAL_IN_PROGRESS,
 	RATES_RETRIEVAL_COMPLETED,
+	OPEN_REFUND_DIALOG,
+	CLOSE_REFUND_DIALOG,
+	LABEL_STATUS_RESPONSE,
+	REFUND_REQUEST,
+	REFUND_RESPONSE,
+	OPEN_REPRINT_DIALOG,
+	CLOSE_REPRINT_DIALOG,
+	CONFIRM_REPRINT,
 } from './actions';
 import mapValues from 'lodash/mapValues';
+import findIndex from 'lodash/findIndex';
 
 const reducers = {};
 
 reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
 	return { ...state,
-		showDialog: true,
+		showPurchaseDialog: true,
 	};
 };
 
 reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
 	return { ...state,
-		showDialog: false,
+		showPurchaseDialog: false,
 	};
 };
 
@@ -165,7 +174,6 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 	};
 	if ( ! error ) {
 		newState.labels = response;
-		newState.showDialog = false;
 	}
 	return newState;
 };
@@ -188,6 +196,97 @@ reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
 				retrievalInProgress: false,
 				available: rates,
 			},
+		},
+	};
+};
+
+reducers[ OPEN_REFUND_DIALOG ] = ( state, { labelId } ) => {
+	return { ...state,
+		refundDialog: {
+			labelId,
+		},
+	};
+};
+
+reducers[ CLOSE_REFUND_DIALOG ] = ( state ) => {
+	if ( state.refundDialog.isSubmitting ) {
+		return state;
+	}
+	return { ...state,
+		refundDialog: null,
+	};
+};
+
+reducers[ LABEL_STATUS_RESPONSE ] = ( state, { labelId, response, error } ) => {
+	if ( error ) {
+		response = {};
+	}
+
+	const labelIndex = findIndex( state.labels, { label_id: labelId } );
+	const labelData = {
+		...state.labels[ labelIndex ],
+		...response,
+		statusUpdated: true,
+	};
+
+	const newState = { ...state,
+		labels: [ ...state.labels ],
+	};
+	newState.labels[ labelIndex ] = labelData;
+	return newState;
+};
+
+reducers[ REFUND_REQUEST ] = ( state ) => {
+	return { ...state,
+		refundDialog: { ...state.refundDialog,
+			isSubmitting: true,
+		},
+	};
+};
+
+reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
+	if ( error ) {
+		return { ...state,
+			refundDialog: {
+				...state.refundDialog,
+				isSubmitting: false,
+			},
+		};
+	}
+
+	const labelIndex = findIndex( state.labels, { label_id: state.refundDialog.labelId } );
+	const labelData = {
+		...state.labels[ labelIndex ],
+		...response,
+	};
+
+	const newState = { ...state,
+		refundDialog: null,
+		labels: [ ...state.labels ],
+	};
+	newState.refundDialog = null;
+	newState.labels[ labelIndex ] = labelData;
+	return newState;
+};
+
+reducers[ OPEN_REPRINT_DIALOG ] = ( state, { labelId } ) => {
+	return { ...state,
+		reprintDialog: {
+			labelId,
+		},
+	};
+};
+
+reducers[ CLOSE_REPRINT_DIALOG ] = ( state ) => {
+	return { ...state,
+		reprintDialog: null,
+	};
+};
+
+reducers[ CONFIRM_REPRINT ] = ( state ) => {
+	return { ...state,
+		reprintDialog: { ...state.reprintDialog,
+			isFetching: true,
 		},
 	};
 };

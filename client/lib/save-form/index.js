@@ -10,7 +10,7 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 		headers: {
 			'X-WP-Nonce': nonce,
 		},
-		body: JSON.stringify( formData ),
+		body: formData ? JSON.stringify( formData ) : null,
 	};
 
 	return fetch( url, request ).then( response => {

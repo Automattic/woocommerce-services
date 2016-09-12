@@ -1,12 +1,13 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
-import StepContainer from 'shipping-label/views/step-container';
+import StepContainer from '../../step-container';
 import { sprintf } from 'sprintf-js';
 import find from 'lodash/find';
 import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
+import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
 	const packageIds = Object.keys( selectedRates );
@@ -57,13 +58,12 @@ const RatesStep = ( props ) => {
 		form,
 		values,
 		available,
-		ratesTotal,
 		storeOptions,
 		labelActions,
 		errors,
 		expanded,
 	} = props;
-	const summary = ratesSummary( values, available, ratesTotal, storeOptions.currency_symbol );
+	const summary = ratesSummary( values, available, getRatesTotal( form.rates ), storeOptions.currency_symbol );
 
 	return (
 		<StepContainer
@@ -94,7 +94,6 @@ RatesStep.propTypes = {
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	errors: PropTypes.object.isRequired,
-	customerRateChoices: PropTypes.object.isRequired,
 };
 
 export default RatesStep;

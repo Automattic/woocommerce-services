@@ -88,6 +88,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_shipping_label_controller;
 
 		/**
+		 * @var WC_REST_Connect_Shipping_Label_Status_Controller
+		 */
+		protected $rest_shipping_label_status_controller;
+
+		/**
+		 * @var WC_REST_Connect_Shipping_Label_Refund_Controller
+		 */
+		protected $rest_shipping_label_refund_controller;
+
+		/**
+		 * @var WC_REST_Connect_Shipping_Label_Image_Controller
+		 */
+		protected $rest_shipping_label_image_controller;
+
+		/**
 		 * @var WC_REST_Connect_Shipping_Rates_Controller
 		 */
 		protected $rest_shipping_rates_controller;
@@ -223,6 +238,30 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_shipping_label_controller = $rest_shipping_label_controller;
 		}
 
+		public function get_rest_shipping_label_status_controller() {
+			return $this->rest_shipping_label_status_controller;
+		}
+
+		public function set_rest_shipping_label_status_controller( WC_REST_Connect_Shipping_Label_Status_Controller $rest_shipping_label_status_controller ) {
+			$this->rest_shipping_label_status_controller = $rest_shipping_label_status_controller;
+		}
+
+		public function get_rest_shipping_label_refund_controller() {
+			return $this->rest_shipping_label_refund_controller;
+		}
+
+		public function set_rest_shipping_label_refund_controller( WC_REST_Connect_Shipping_Label_Refund_Controller $rest_shipping_label_refund_controller ) {
+			$this->rest_shipping_label_refund_controller = $rest_shipping_label_refund_controller;
+		}
+
+		public function get_rest_shipping_label_image_controller() {
+			return $this->rest_shipping_label_image_controller;
+		}
+
+		public function set_rest_shipping_label_image_controller( WC_REST_Connect_Shipping_Label_Image_Controller $rest_shipping_label_image_controller ) {
+			$this->rest_shipping_label_image_controller = $rest_shipping_label_image_controller;
+		}
+
 		public function set_rest_shipping_rates_controller( WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller ) {
 			$this->rest_shipping_rates_controller = $rest_shipping_rates_controller;
 		}
@@ -339,7 +378,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
-			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wcc_meta_data' ) );
+			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
+			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
 
 		}
@@ -387,9 +427,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_self_help_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-controller.php' ) );
-			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client );
+			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store );
 			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
 			$rest_shipping_label_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-status-controller.php' ) );
+			$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $settings_store );
+			$this->set_rest_shipping_label_status_controller( $rest_shipping_label_status_controller );
+			$rest_shipping_label_status_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-refund-controller.php' ) );
+			$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $settings_store );
+			$this->set_rest_shipping_label_refund_controller( $rest_shipping_label_refund_controller );
+			$rest_shipping_label_refund_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-image-controller.php' ) );
+			$rest_shipping_label_image_controller = new WC_REST_Connect_Shipping_Label_Image_Controller( $this->api_client );
+			$this->set_rest_shipping_label_image_controller( $rest_shipping_label_image_controller );
+			$rest_shipping_label_image_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-rates-controller.php' ) );
 			$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store );
@@ -599,9 +654,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
-		public function hide_wcc_meta_data( $hidden_keys ) {
+		public function hide_wc_connect_package_meta_data( $hidden_keys ) {
 			$hidden_keys[] = 'wc_connect_packages';
 			return $hidden_keys;
+		}
+
+		function hide_wc_connect_order_meta_data( $protected, $meta_key, $meta_type ) {
+			if ( 'wc_connect_labels' === $meta_key ) {
+				$protected = true;
+			}
+			return $protected;
 		}
 
 	}

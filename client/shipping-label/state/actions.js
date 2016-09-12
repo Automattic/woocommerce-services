@@ -5,6 +5,7 @@ import flatten from 'lodash/flatten';
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
 import some from 'lodash/some';
+import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
@@ -12,6 +13,8 @@ import getFormErrors from 'shipping-label/state/selectors/errors';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
+import { sprintf } from 'sprintf-js';
+import { translate as __ } from 'lib/mixins/i18n';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -27,6 +30,14 @@ export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
+export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
+export const CLOSE_REFUND_DIALOG = 'CLOSE_REFUND_DIALOG';
+export const LABEL_STATUS_RESPONSE = 'LABEL_STATUS_RESPONSE';
+export const REFUND_REQUEST = 'REFUND_REQUEST';
+export const REFUND_RESPONSE = 'REFUND_RESPONSE';
+export const OPEN_REPRINT_DIALOG = 'OPEN_REPRINT_DIALOG';
+export const CLOSE_REPRINT_DIALOG = 'CLOSE_REPRINT_DIALOG';
+export const CONFIRM_REPRINT = 'CONFIRM_REPRINT';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
@@ -234,13 +245,13 @@ export const updateRate = ( packageId, value ) => {
 	};
 };
 
-export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, nonce } ) => {
+export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {
 	let error = null;
 	let response = null;
 	const setError = ( err ) => error = err;
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
-			response = json;
+			response = json.labels;
 		}
 	};
 	const setIsSaving = ( saving ) => {
@@ -251,8 +262,10 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				printDocument( 'data:application/pdf;base64,' + response[ 0 ].image ); // TODO: Figure out how to print multiple PDFs
-				dispatch( exitPrintingFlow() );
+				// TODO: Figure out how to print multiple labels
+				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
+					.then( () => dispatch( exitPrintingFlow() ) )
+					.catch( ( err ) => dispatch( NoticeActions.errorNotice( err.toString() ) ) );
 			}
 		}
 	};
@@ -271,13 +284,92 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
-			packages: form.packages.values.map( ( pckg, index ) => ( {
+			packages: form.packages.values.map( ( pckg ) => ( {
 				...omit( pckg, [ 'items', 'id' ] ),
-				service_id: form.rates.values[ index ],
+				service_id: form.rates.values[ pckg.id ],
+				service_name: find( form.rates.available[ pckg.id ].rates, { service_id: form.rates.values[ pckg.id ] } ).title,
 				products: flatten( pckg.items.map( ( item ) => fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
+			order_id: form.orderId,
 		};
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
 	} ).catch( noop );
+};
+
+export const openRefundDialog = ( labelId ) => {
+	return {
+		type: OPEN_REFUND_DIALOG,
+		labelId,
+	};
+};
+
+export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, nonce } ) => {
+	getState().shippingLabel.labels.forEach( ( label ) => {
+		const labelId = label.label_id;
+		let error = null;
+		let response = null;
+		const setError = ( err ) => error = err;
+		const setSuccess = ( success, json ) => {
+			if ( success ) {
+				response = json.status;
+			}
+		};
+		const setIsSaving = ( saving ) => {
+			if ( ! saving ) {
+				dispatch( { type: LABEL_STATUS_RESPONSE, labelId, response, error } );
+				if ( error ) {
+					dispatch( NoticeActions.errorNotice( error.toString() ) );
+				}
+			}
+		};
+
+		saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
+	} );
+};
+
+export const closeRefundDialog = () => {
+	return { type: CLOSE_REFUND_DIALOG };
+};
+
+export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce } ) => {
+	const labelId = getState().shippingLabel.refundDialog.labelId;
+	let error = null;
+	let response = null;
+	const setError = ( err ) => error = err;
+	const setSuccess = ( success, json ) => {
+		if ( success ) {
+			response = json.label;
+		}
+	};
+	const setIsSaving = ( saving ) => {
+		if ( saving ) {
+			dispatch( { type: REFUND_REQUEST } );
+		} else {
+			dispatch( { type: REFUND_RESPONSE, response, error } );
+			if ( error ) {
+				dispatch( NoticeActions.errorNotice( error.toString() ) );
+			} else {
+				dispatch( NoticeActions.successNotice( __( 'The refund request has been sent correctly' ), { duration: 5000 } ) );
+			}
+		}
+	};
+
+	saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelRefundURL, labelId ), nonce, 'POST' );
+};
+
+export const openReprintDialog = ( labelId ) => {
+	return { type: OPEN_REPRINT_DIALOG, labelId };
+};
+
+export const closeReprintDialog = () => {
+	return { type: CLOSE_REPRINT_DIALOG };
+};
+
+export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
+	dispatch( { type: CONFIRM_REPRINT } );
+	const labelId = getState().shippingLabel.reprintDialog.labelId;
+	printDocument( sprintf( labelImageURL, labelId ), nonce )
+		.then( () => dispatch( closeReprintDialog() ) )
+		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

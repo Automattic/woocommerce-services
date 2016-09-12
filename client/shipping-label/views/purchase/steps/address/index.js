@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import AddressFields from './fields';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
-import StepContainer from 'shipping-label/views/step-container';
+import StepContainer from '../../step-container';
 import isEqual from 'lodash/isEqual';
 
 const renderSummary = ( { values, isNormalized, normalizationInProgress, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {

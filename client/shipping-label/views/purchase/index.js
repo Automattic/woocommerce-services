@@ -9,6 +9,7 @@ import PreviewStep from './steps/preview';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
 import isEmpty from 'lodash/isEmpty';
+import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
@@ -27,16 +28,16 @@ const PrintLabelDialog = ( props ) => {
 			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
 		}
 		if ( canPurchase ) {
-			label += ' (' + currencySymbol + props.ratesTotal + ')';
+			label += ' (' + currencySymbol + getRatesTotal( props.form.rates ) + ')';
 		}
 		return label;
 	};
 
 	return (
 		<Dialog
-			isVisible={ props.showDialog }
+			isVisible={ props.showPurchaseDialog }
 			onClose={ props.labelActions.exitPrintingFlow }
-			additionalClassNames="wcc-modal wcc-shipping-label-dialog" >
+			additionalClassNames="wcc-modal" >
 			<div className="wcc-shipping-label-dialog__content">
 				<h3 className="form-section-heading">
 					{ 1 === props.form.packages.values.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }

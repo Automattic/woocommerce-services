@@ -197,6 +197,28 @@
 			padding: 0;
 		}
 
+		&.wcc-shipping-label-refund {
+			@include breakpoint( ">480px" ) {
+				top: calc(50% - 175px);
+				right: calc(50% - 250px);
+				bottom: calc(50% - 175px);
+				left: calc(50% - 250px);
+				width: 500px;
+				height: 350px;
+			}
+		}
+
+		&.wcc-shipping-label-reprint {
+			@include breakpoint( ">480px" ) {
+				top: calc(50% - 150px);
+				right: calc(50% - 250px);
+				bottom: calc(50% - 150px);
+				left: calc(50% - 250px);
+				width: 500px;
+				height: 300px;
+			}
+		}
+
 		.dialog__content {
 			height: 100%;
 
@@ -300,7 +322,7 @@
 	@import '../../client/components/text/style';
 	@import '../../client/components/text-area/style';
 	@import '../../client/components/toggle/style';
-	@import '../../client/shipping-label/views/steps/packages/style.scss';
+	@import '../../client/shipping-label/views/purchase/steps/packages/style.scss';
 	@import '../../client/packages/views/style';
 }
 
