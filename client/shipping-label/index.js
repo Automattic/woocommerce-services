@@ -6,7 +6,7 @@ import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, labelsData, storeOptions } ) => ( {
+export default ( { formData, labelsData, storeOptions, labelPreviewURL } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			shippingLabel,
@@ -53,7 +53,7 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 						retrievalInProgress: false,
 					},
 					preview: {
-						values: {},
+						labelPreviewURL,
 					},
 				},
 			},

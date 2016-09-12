@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 
-const PreviewStep = () => {
+const PreviewStep = ( { labelPreviewURL } ) => {
 	return (
 		<div>
 			<span className="preview-title">{ __( 'Preview' ) }</span>
-			<div className="preview-placeholder"></div>
+			<img
+				src={ labelPreviewURL }
+				className="preview-placeholder" />
 		</div>
 	);
+};
+
+PreviewStep.propTypes = {
+	labelPreviewURL: PropTypes.string.isRequired,
 };
 
 export default PreviewStep;

@@ -240,6 +240,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
 				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/image' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
+				'labelPreviewURL'         => plugins_url( 'assets/fake_label.png', dirname( __FILE__ ) ),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 			);
