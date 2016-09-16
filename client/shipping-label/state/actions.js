@@ -219,10 +219,10 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		.catch( noop );
 };
 
-export const updatePackageWeight = ( packageIndex, value ) => {
+export const updatePackageWeight = ( packageId, value ) => {
 	return {
 		type: UPDATE_PACKAGE_WEIGHT,
-		packageIndex,
+		packageId,
 		value,
 	};
 };

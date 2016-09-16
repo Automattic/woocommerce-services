@@ -7,15 +7,18 @@ import { sprintf } from 'sprintf-js';
 import StepContainer from '../../step-container';
 
 const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } ) => {
-	const isValid = 0 < values[ 0 ].weight;
+	const packageIds = Object.keys( values );
+	const firstPackageId = packageIds[ 0 ];
+	const firstPackage = values[ firstPackageId ];
+	const isValid = 0 < firstPackage.weight;
 	const renderSummary = () => {
 		if ( ! isValid ) {
 			return __( 'Weight not entered' );
 		}
 		if ( 1 < values.length ) {
-			return sprintf( __( '%d packages' ), values.length );
+			return sprintf( __( '%d packages' ), packageIds.length );
 		}
-		return values[ 0 ].weight + ' ' + storeOptions.weight_unit;
+		return firstPackage.weight + ' ' + storeOptions.weight_unit;
 	};
 
 	return (
@@ -47,10 +50,10 @@ const PackagesStep = ( { values, storeOptions, labelActions, errors, expanded } 
 };
 
 PackagesStep.propTypes = {
-	values: PropTypes.array.isRequired,
+	values: PropTypes.object.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
-	errors: PropTypes.array.isRequired,
+	errors: PropTypes.object.isRequired,
 };
 
 export default PackagesStep;

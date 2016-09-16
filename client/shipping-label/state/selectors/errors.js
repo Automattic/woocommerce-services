@@ -35,7 +35,7 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 	return errors;
 };
 
-const getPackagesErrors = ( values ) => values.map( ( pckg ) => {
+const getPackagesErrors = ( values ) => mapValues( values, ( pckg ) => {
 	const errors = {};
 	if ( ! pckg.weight || 'number' !== typeof pckg.weight || 0 > pckg.weight ) {
 		errors.weight = __( 'Invalid weight' );

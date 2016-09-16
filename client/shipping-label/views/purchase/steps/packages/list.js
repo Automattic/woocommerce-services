@@ -3,6 +3,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';
 import { sprintf } from 'sprintf-js';
+import mapValues from 'lodash/mapValues';
 
 const renderPackageDimensions = ( pckg, dimensionUnit ) => {
 	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
@@ -23,12 +24,15 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 		);
 	};
 
-	const renderPackageInfo = ( pckg, pckgIndex ) => {
-		const pckgErrors = errors[ pckgIndex ] || {};
+	const numPackages = Object.keys( packages ).length;
+	let pckgIndex = 1;
+
+	const renderPackageInfo = ( pckg, pckgId ) => {
+		const pckgErrors = errors[ pckgId ] || {};
 		return (
-			<div key={ pckgIndex }>
+			<div key={ pckgId }>
 				<div className="wcc-package-package-number">
-					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex + 1, packages.length ) }
+					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex++, numPackages ) }
 				</div>
 
 				<div>
@@ -44,7 +48,7 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 					className="wcc-package-weight"
 					title={ __( 'Total Weight' ) }
 					value={ pckg.weight }
-					updateValue={ ( value ) => updateWeight( pckgIndex, value ) }
+					updateValue={ ( value ) => updateWeight( pckgId, value ) }
 					error={ pckgErrors.weight } />
 				<span className="wcc-package-weight-unit">{ weightUnit }</span>
 
@@ -58,17 +62,17 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 
 	return (
 		<div>
-			{ packages.map( renderPackageInfo ) }
+			{ Object.values( mapValues( packages, renderPackageInfo ) ) }
 		</div>
 	);
 };
 
 OrderPackages.propTypes = {
-	packages: PropTypes.array.isRequired,
+	packages: PropTypes.object.isRequired,
 	updateWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
-	errors: PropTypes.array.isRequired,
+	errors: PropTypes.object.isRequired,
 };
 
 export default OrderPackages;
