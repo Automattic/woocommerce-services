@@ -170,7 +170,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$form_data = compact( 'is_packed', 'packages', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
-				'selected'  => $selected_rates,
+				'selected'  => (object) $selected_rates,
 			);
 
 			$form_data[ 'order_id' ] = $order->id;
