@@ -7,6 +7,7 @@ import isEqual from 'lodash/isEqual';
 import some from 'lodash/some';
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
+import map from 'lodash/map';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
@@ -284,10 +285,10 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
-			packages: form.packages.values.map( ( pckg ) => ( {
+			packages: map( form.packages.values, ( pckg, pckgId ) => ( {
 				...omit( pckg, [ 'items', 'id' ] ),
-				service_id: form.rates.values[ pckg.id ],
-				service_name: find( form.rates.available[ pckg.id ].rates, { service_id: form.rates.values[ pckg.id ] } ).title,
+				service_id: form.rates.values[ pckgId ],
+				service_name: find( form.rates.available[ pckgId ].rates, { service_id: form.rates.values[ pckgId ] } ).title,
 				products: flatten( pckg.items.map( ( item ) => fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
 			order_id: form.orderId,
