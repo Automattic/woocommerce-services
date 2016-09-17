@@ -130,9 +130,11 @@ reducers[ CONFIRM_ADDRESS_SUGGESTION ] = ( state, { group } ) => {
 	};
 };
 
-reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageIndex, value } ) => {
-	const newPackages = [ ...state.form.packages.values ];
-	newPackages[ packageIndex ] = { ...newPackages[ packageIndex ],
+reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageId, value } ) => {
+	const newPackages = { ...state.form.packages.values };
+
+	newPackages[ packageId ] = {
+		...newPackages[ packageId ],
 		weight: parseFloat( value ),
 	};
 

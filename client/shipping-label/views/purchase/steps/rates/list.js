@@ -4,6 +4,7 @@ import Notice from 'components/notice';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import get from 'lodash/get';
+import mapValues from 'lodash/mapValues';
 
 const renderRateNotice = ( show ) => {
 	if ( show ) {
@@ -28,16 +29,18 @@ const ShippingRates = ( {
 		errors,
 		showRateNotice,
 	} ) => {
-	const renderTitle = ( pckg, idx ) => {
-		if ( 1 === packages.length ) {
+	const renderTitle = ( pckg, index ) => {
+		if ( 1 === Object.keys( packages ).length ) {
 			return __( 'Choose rate' );
 		}
-		return sprintf( __( 'Choose rate: Package %(index)d' ), { index: idx + 1 } );
+		return sprintf( __( 'Choose rate: Package %(index)d' ), { index } );
 	};
 
-	const renderSinglePackage = ( pckg, index ) => {
-		const selectedRate = selectedRates[ pckg.id ] || '';
-		const packageRates = get( availableRates, [ pckg.id, 'rates' ], [] );
+	let packageNum = 1;
+
+	const renderSinglePackage = ( pckg, pckgId ) => {
+		const selectedRate = selectedRates[ pckgId ] || '';
+		const packageRates = get( availableRates, [ pckgId, 'rates' ], [] );
 		const valuesMap = { '': __( 'Select one...' ) };
 
 		packageRates.forEach( ( rateObject ) => {
@@ -45,14 +48,14 @@ const ShippingRates = ( {
 		} );
 
 		return (
-			<div key={ index }>
+			<div key={ packageNum }>
 				<Dropdown
-					id={ id + '_' + index }
+					id={ id + '_' + packageNum }
 					valuesMap={ valuesMap }
-					title={ renderTitle( pckg, index ) }
+					title={ renderTitle( pckg, packageNum++ ) }
 					value={ selectedRate }
-					updateValue={ ( value ) => updateRate( pckg.id, value ) }
-					error={ errors[ pckg.id ] } />
+					updateValue={ ( value ) => updateRate( pckgId, value ) }
+					error={ errors[ pckgId ] } />
 			</div>
 		);
 	};
@@ -60,7 +63,7 @@ const ShippingRates = ( {
 	return (
 		<div>
 			{ renderRateNotice( showRateNotice ) }
-			{ packages.map( renderSinglePackage ) }
+			{ Object.values( mapValues( packages, renderSinglePackage ) ) }
 		</div>
 	);
 };
@@ -69,7 +72,7 @@ ShippingRates.propTypes = {
 	id: PropTypes.string.isRequired,
 	selectedRates: PropTypes.object.isRequired,
 	availableRates: PropTypes.object.isRequired,
-	packages: PropTypes.array.isRequired,
+	packages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,

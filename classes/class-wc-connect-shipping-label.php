@@ -39,7 +39,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$name = html_entity_decode( $product->get_formatted_name() );
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
-					$packages[] = array(
+					$packages[ "weight_{$i}_individual" ] = array(
 						'height' => ( float ) $height,
 						'length' => ( float ) $length,
 						'weight' => ( float ) $weight,
@@ -86,23 +86,28 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return $this->get_items_as_individual_packages( $order );
 			}
 
-			foreach( $packages as $package_index => $package ) {
+			$formatted_packages = array();
+
+			foreach( $packages as $package ) {
+				$package_id = $package[ 'id' ];
+				$formatted_packages[ $package_id ] = $package;
+
 				foreach( $package[ 'items' ] as $item_index => $item ) {
 					$product = $order->get_product_from_item( $item );
 					if ( ! $product ) {
 						continue;
 					}
-					$product_data = $packages[ $package_index ][ 'items' ][ $item_index ];
+					$product_data = $package[ 'items' ][ $item_index ];
 					$product_data[ 'name' ] = $this->get_name( $product );
 					$product_data[ 'url' ] = admin_url( 'post.php?post=' . $product->id . '&action=edit' );
 					if ( isset( $product->variation_id ) ) {
 						$product_data[ 'attributes' ] = $product->get_formatted_variation_attributes( true );
 					}
-					$packages[ $package_index ][ 'items' ][ $item_index ] = $product_data;
+					$formatted_packages[ $package_id ][ 'items' ][ $item_index ] = $product_data;
 				}
 			}
 
-			return $packages;
+			return $formatted_packages;
 		}
 
 		protected function get_selected_rates( WC_Order $order ) {
@@ -170,7 +175,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$form_data = compact( 'is_packed', 'packages', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
-				'selected'  => $selected_rates,
+				'selected'  => (object) $selected_rates,
 			);
 
 			$form_data[ 'order_id' ] = $order->id;
