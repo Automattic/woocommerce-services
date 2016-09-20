@@ -49,6 +49,7 @@ reducers[ DISMISS_MODAL ] = ( state ) => {
 	return Object.assign( {}, state, {
 		modalErrors: {},
 		showModal: false,
+		showOuterDimensions: false,
 	} );
 };
 
