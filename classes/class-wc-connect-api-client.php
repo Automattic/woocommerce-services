@@ -287,34 +287,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$url = apply_filters( 'wc_connect_server_url', $url );
 			$url = trailingslashit( $url ) . ltrim( $path, '/' );
 
-			// Add interesting fields to the body of each request
-			if ( ! array_key_exists( 'settings', $body ) ) {
-				$body['settings'] = array();
-			}
+			// Add useful system information to requests that contain bodies
+			if ( in_array( $method, array( 'POST', 'PUT' ) ) ) {
+				$body = $this->request_body( $body );
+				$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
 
-			$body['settings'] = wp_parse_args( $body['settings'], array(
-				'base_city' => WC()->countries->get_base_city(),
-				'base_country' => WC()->countries->get_base_country(),
-				'base_state' => WC()->countries->get_base_state(),
-				'currency' => get_woocommerce_currency(),
-				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
-				'jetpack_version' => JETPACK__VERSION,
-				'wc_version' => WC()->version,
-				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
-				'wp_version' => get_bloginfo( 'version' ),
-				'last_services_update' => get_option( 'wc_connect_services_last_update', 0 ),
-				'last_heartbeat' => get_option( 'wc_connect_last_heartbeat', 0 ),
-				'last_rate_request' => get_option( 'wc_connect_last_rate_request', 0 ),
-				'active_services' => $this->wc_connect_loader->get_active_services(),
-				'disable_stats' => Jetpack::is_staging_site(),
-			) );
-
-			$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
-			if ( ! $body ) {
-				return new WP_Error(
-					'unable_to_json_encode_body',
-					'Unable to encode body for request to WooCommerce Connect server.'
-				);
+				if ( ! $body ) {
+					return new WP_Error(
+						'unable_to_json_encode_body',
+						'Unable to encode body for request to WooCommerce Connect server.'
+					);
+				}
 			}
 
 			$headers = $this->request_headers();
@@ -369,6 +352,38 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $response_body;
 		}
 
+		/**
+		 * Adds useful WP/WC/WCC information to request bodies
+		 *
+		 * @param array $initial_body
+		 * @return array
+		 */
+		protected function request_body( $initial_body = array() ) {
+			$default_body = array(
+				'settings' => array(),
+			);
+			$body = array_merge( $default_body, $initial_body );
+
+			// Add interesting fields to the body of each request
+			$body['settings'] = wp_parse_args( $body['settings'], array(
+				'base_city' => WC()->countries->get_base_city(),
+				'base_country' => WC()->countries->get_base_country(),
+				'base_state' => WC()->countries->get_base_state(),
+				'currency' => get_woocommerce_currency(),
+				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+				'jetpack_version' => JETPACK__VERSION,
+				'wc_version' => WC()->version,
+				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
+				'wp_version' => get_bloginfo( 'version' ),
+				'last_services_update' => get_option( 'wc_connect_services_last_update', 0 ),
+				'last_heartbeat' => get_option( 'wc_connect_last_heartbeat', 0 ),
+				'last_rate_request' => get_option( 'wc_connect_last_rate_request', 0 ),
+				'active_services' => $this->wc_connect_loader->get_active_services(),
+				'disable_stats' => Jetpack::is_staging_site(),
+			) );
+
+			return $body;
+		}
 
 		/**
 		 * Generates headers for our request to the WooCommerce Connect Server
