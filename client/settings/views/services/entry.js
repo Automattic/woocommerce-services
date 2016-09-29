@@ -29,7 +29,7 @@ const ShippingServiceEntry = ( props ) => {
 					checked={ enabled }
 					onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
 				/>
-				{ name }
+				<span>{ name }</span>
 			</label>
 			{ hasError ? <Gridicon icon="notice" /> : null }
 			<NumberInput

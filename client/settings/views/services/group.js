@@ -53,13 +53,13 @@ const ShippingServiceGroup = ( props ) => {
 			expanded={ ! isEmpty( errors ) }
 		>
 			<div className="wcc-shipping-service-entry multi-select-header">
-				<label className="wcc-shipping-service-entry-title">
+				<label className="wcc-shipping-service-header-container">
 					<CheckBox
 						onClick={ ( event ) => event.stopPropagation() }
 						onChange={ ( event ) => updateAll( event, updateValue, services ) }
 						checked={ allChecked }
 					/>
-				<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
+					<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
 					<span className="wcc-shipping-service-header price-adjustment">{ __( 'Price adjustment' ) }</span>
 				</label>
 			</div>
