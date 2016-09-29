@@ -103,8 +103,7 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 	} = formState;
 
 	return getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
-		.then( handleResponse )
-		.catch( noop );
+		.then( handleResponse );
 };
 
 export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, getRatesURL, nonce } ) => {
@@ -216,8 +215,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		return;
 	}
 	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
-		.then( handleNormalizeResponse )
-		.catch( noop );
+		.then( handleNormalizeResponse );
 };
 
 export const updatePackageWeight = ( packageId, value ) => {
@@ -295,7 +293,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		};
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
-	} ).catch( noop );
+	} );
 };
 
 export const openRefundDialog = ( labelId ) => {
