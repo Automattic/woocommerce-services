@@ -65,6 +65,14 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 		);
 		$response = $this->api_client->send_address_normalization_request( $body );
 
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message(),
+				array( 'message' => $response->get_error_message() )
+			);
+		}
+
 		if ( isset( $response->error ) ) {
 			return new WP_Error(
 				$response->error->code,

@@ -8,6 +8,7 @@ import some from 'lodash/some';
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
 import map from 'lodash/map';
+import every from 'lodash/every';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
@@ -103,7 +104,11 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 	} = formState;
 
 	return getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
-		.then( handleResponse );
+		.then( handleResponse )
+		.catch( ( error ) => {
+			console.error( error );
+			dispatch( NoticeActions.errorNotice( error.toString() ) );
+		} );
 };
 
 export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, getRatesURL, nonce } ) => {
@@ -193,7 +198,10 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 };
 
 export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, getRatesURL, nonce, storeOptions } ) => {
-	const handleNormalizeResponse = () => {
+	const handleNormalizeResponse = ( success ) => {
+		if ( ! success ) {
+			return;
+		}
 		const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
 
 		if ( isEqual( values, normalized ) ) {
@@ -215,7 +223,11 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		return;
 	}
 	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
-		.then( handleNormalizeResponse );
+		.then( handleNormalizeResponse )
+		.catch( ( error ) => {
+			console.error( error );
+			dispatch( NoticeActions.errorNotice( error.toString() ) );
+		} );
 };
 
 export const updatePackageWeight = ( packageId, value ) => {
@@ -259,12 +271,16 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		} else {
 			dispatch( { type: PURCHASE_LABEL_RESPONSE, response, error } );
 			if ( error ) {
+				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
 				// TODO: Figure out how to print multiple labels
 				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
 					.then( () => dispatch( exitPrintingFlow() ) )
-					.catch( ( err ) => dispatch( NoticeActions.errorNotice( err.toString() ) ) );
+					.catch( ( err ) => {
+						console.error( err );
+						dispatch( NoticeActions.errorNotice( err.toString() ) );
+					} );
 			}
 		}
 	};
@@ -278,7 +294,10 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		addressNormalizationQueue.push( normalizeAddress( dispatch, form.destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
-	Promise.all( addressNormalizationQueue ).then( () => {
+	Promise.all( addressNormalizationQueue ).then( ( normalizationResults ) => {
+		if ( ! every( normalizationResults ) ) {
+			return;
+		}
 		form = getState().shippingLabel.form;
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
@@ -293,6 +312,9 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		};
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
+	} ).catch( ( err ) => {
+		console.error( err );
+		dispatch( NoticeActions.errorNotice( err.toString() ) );
 	} );
 };
 
