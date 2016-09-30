@@ -29,8 +29,14 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	 */
 	protected $api_client;
 
-	public function __construct( WC_Connect_API_Client $api_client ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -50,6 +56,7 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 		$raw_response = $this->api_client->get_label_image( $request[ 'label_id' ] );
 
 		if ( is_wp_error( $raw_response ) ) {
+			$this->logger->log( $raw_response, __CLASS__ );
 			return $raw_response;
 		}
 

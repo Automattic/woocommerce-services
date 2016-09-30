@@ -34,9 +34,15 @@ class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 	 */
 	protected $settings_store;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
 		$this->settings_store = $settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -59,7 +65,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 		$result = $this->settings_store->update_account_settings( $settings );
 
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( 'save_failed',
+			$error = new WP_Error( 'save_failed',
 				sprintf(
 					__( 'Unable to update settings. %s', 'woocommerce' ),
 					$result->get_error_message()
@@ -69,6 +75,8 @@ class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 					$result->get_error_data()
 				)
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );

@@ -57,10 +57,12 @@ class WC_REST_Connect_Self_Help_Controller extends WP_REST_Controller {
 		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
 		if ( empty( $settings ) || ! is_object( $settings ) || ! property_exists( $settings, 'wcc_debug_on' ) ) {
-			return new WP_Error( 'bad_form_data',
+			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update settings. The form data could not be read.', 'woocommerce' ),
 				array( 'status' => 400 )
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		error_log( "WCC DEBUG ON = {$settings->wcc_debug_on}" );

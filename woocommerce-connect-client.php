@@ -407,17 +407,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-packages-controller.php' ) );
-			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $settings_store );
+			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $settings_store, $logger );
 			$this->set_rest_packages_controller( $rest_packages_controller );
 			$rest_packages_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-account-settings-controller.php' ) );
-			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store );
+			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_account_settings_controller( $rest_account_settings_controller );
 			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
-			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store );
+			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store, $logger );
 			$this->set_rest_services_controller( $rest_services_controller );
 			$rest_services_controller->register_routes();
 
@@ -427,32 +427,32 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_self_help_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-controller.php' ) );
-			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store );
+			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
 			$rest_shipping_label_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-status-controller.php' ) );
-			$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $settings_store );
+			$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_shipping_label_status_controller( $rest_shipping_label_status_controller );
 			$rest_shipping_label_status_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-refund-controller.php' ) );
-			$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $settings_store );
+			$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_shipping_label_refund_controller( $rest_shipping_label_refund_controller );
 			$rest_shipping_label_refund_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-image-controller.php' ) );
-			$rest_shipping_label_image_controller = new WC_REST_Connect_Shipping_Label_Image_Controller( $this->api_client );
+			$rest_shipping_label_image_controller = new WC_REST_Connect_Shipping_Label_Image_Controller( $this->api_client, $logger );
 			$this->set_rest_shipping_label_image_controller( $rest_shipping_label_image_controller );
 			$rest_shipping_label_image_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-rates-controller.php' ) );
-			$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store );
+			$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_shipping_rates_controller( $rest_shipping_rates_controller );
 			$rest_shipping_rates_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-address-normalization-controller.php' ) );
-			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store );
+			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
 		}
