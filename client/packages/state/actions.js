@@ -1,3 +1,5 @@
+import parseJson from 'lib/utils/parse-json';
+
 export const ADD_PACKAGE = 'ADD_PACKAGE';
 export const REMOVE_PACKAGE = 'REMOVE_PACKAGE';
 export const EDIT_PACKAGE = 'EDIT_PACKAGE';
@@ -70,10 +72,10 @@ export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState
 		body: JSON.stringify( getState().form.packages ),
 	};
 
-	return fetch( callbackURL, request ).then( response => {
+	return fetch( callbackURL, request ).then( ( response ) => {
 		dispatch( setIsSaving( false ) );
 
-		return response.json().then( json => {
+		return parseJson( response ).then( ( json ) => {
 			if ( json.success ) {
 				onSaveSuccess();
 			} else {

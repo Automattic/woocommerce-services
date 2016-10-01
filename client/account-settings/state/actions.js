@@ -1,3 +1,5 @@
+import parseJson from 'lib/utils/parse-json';
+
 // SET_FORM_DATA_VALUE is used to update a form field's underlying setting, e.g. selected_payment_method_id
 export const SET_FORM_DATA_VALUE = 'SET_FORM_DATA_VALUE';
 
@@ -34,10 +36,10 @@ export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState
 		body: JSON.stringify( getState().form.data ),
 	};
 
-	return fetch( callbackURL, request ).then( response => {
+	return fetch( callbackURL, request ).then( ( response ) => {
 		dispatch( setFormMetaProperty( 'isSaving', false ) );
 
-		return response.json().then( json => {
+		return parseJson( response ).then( ( json ) => {
 			if ( json.success ) {
 				onSaveSuccess();
 			} else {
