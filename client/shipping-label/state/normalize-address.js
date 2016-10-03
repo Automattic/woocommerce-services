@@ -7,7 +7,7 @@ import {
 
 export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
 	dispatch( { type: ADDRESS_NORMALIZATION_IN_PROGRESS, group: type } );
-	return new Promise( ( resolve, reject ) => {
+	return new Promise( ( resolve ) => {
 		let error = null;
 		let response = null;
 		const setError = ( err ) => error = err;
@@ -25,10 +25,9 @@ export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
 					error,
 				} );
 				if ( error ) {
-					setTimeout( () => reject( error ), 0 );
-				} else {
-					setTimeout( resolve, 0 );
+					console.error( error );
 				}
+				setTimeout( () => resolve( ! error ), 0 );
 			}
 		};
 		saveForm( setIsSaving, setSuccess, noop, setError, addressNormalizationURL, nonce, 'POST', { address, type } );

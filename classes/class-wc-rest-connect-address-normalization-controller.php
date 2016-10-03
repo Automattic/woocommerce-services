@@ -34,9 +34,15 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 	 */
 	protected $settings_store;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
 		$this->settings_store = $settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -65,12 +71,24 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 		);
 		$response = $this->api_client->send_address_normalization_request( $body );
 
+		if ( is_wp_error( $response ) ) {
+			$error = new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message(),
+				array( 'message' => $response->get_error_message() )
+			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
+		}
+
 		if ( isset( $response->error ) ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				$response->error->code,
 				$response->error->message,
 				array( 'message' => $response->error->message )
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		$response->normalized->name = $name;

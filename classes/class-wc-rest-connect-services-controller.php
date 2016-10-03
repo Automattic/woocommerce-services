@@ -34,9 +34,15 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 	 */
 	protected $service_settings_store;
 
-	public function __construct( WC_Connect_Service_Schemas_Store $schemas_store, WC_Connect_Service_Settings_Store $settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_Service_Schemas_Store $schemas_store, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->service_schemas_store  = $schemas_store;
 		$this->service_settings_store = $settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -63,26 +69,30 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 		$instance = array_key_exists( 'instance', $request_params ) ? absint( $request_params['instance'] ) : false;
 
 		if ( empty( $id ) ) {
-			return new WP_Error( 'service_id_missing',
+			$error = new WP_Error( 'service_id_missing',
 				__( 'Unable to update service settings. Form data is missing service ID.', 'woocommerce' ),
 				array( 'status' => 400 )
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
 		if ( empty( $settings ) ) {
-			return new WP_Error( 'bad_form_data',
+			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update service settings. The form data could not be read.', 'woocommerce' ),
 				array( 'status' => 400 )
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		$validation_result = $this->service_settings_store->validate_and_possibly_update_settings( $settings, $id, $instance );
 
 		if ( is_wp_error( $validation_result ) ) {
-			return new WP_Error( 'validation_failed',
+			$error = new WP_Error( 'validation_failed',
 				sprintf(
 					__( 'Unable to update service settings. Validation failed. %s', 'woocommerce' ),
 					$validation_result->get_error_message()
@@ -92,6 +102,8 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 					$validation_result->get_error_data()
 				)
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );

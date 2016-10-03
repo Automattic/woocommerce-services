@@ -34,9 +34,15 @@ class WC_REST_Connect_Shipping_Label_Status_Controller extends WP_REST_Controlle
 	 */
 	protected $settings_store;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
 		$this->settings_store = $settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -56,11 +62,13 @@ class WC_REST_Connect_Shipping_Label_Status_Controller extends WP_REST_Controlle
 		$response = $this->api_client->get_label_status( $request[ 'label_id' ] );
 
 		if ( is_wp_error( $response ) ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				$response->get_error_code(),
 				$response->get_error_message(),
 				array( 'message' => $response->get_error_message() )
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		$this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $response->label );

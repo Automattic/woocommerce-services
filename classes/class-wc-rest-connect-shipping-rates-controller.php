@@ -34,9 +34,15 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 	 */
 	protected $settings_store;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
 		$this->settings_store = $settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -55,7 +61,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 	/**
 	 *
 	 * @param WP_REST_Request $request - See WC_Connect_API_Client::get_label_rates()
-	 * @return array
+	 * @return array|WP_Error
 	 */
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
@@ -80,7 +86,13 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		$response = $this->api_client->get_label_rates( $payload );
 
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			$error = new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message(),
+				array( 'message' => $response->get_error_message() )
+			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		return array(

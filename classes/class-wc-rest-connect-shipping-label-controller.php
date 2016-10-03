@@ -34,9 +34,15 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	 */
 	protected $settings_store;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
 		$this->settings_store = $settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -72,22 +78,26 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		$response = $this->api_client->send_shipping_label_request( $settings );
 
 		if ( is_wp_error( $response ) ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				$response->get_error_code(),
 				$response->get_error_message(),
 				array( 'message' => $response->get_error_message() )
 			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
 		}
 
 		$labels_order_meta = array();
 		$labels_data = array();
 		foreach ( $response->labels as $index => $label_data ) {
 			if ( isset( $label_data->error ) ) {
-				return new WP_Error(
+				$error = new WP_Error(
 					$label_data->error->code,
 					$label_data->error->message,
 					array( 'message' => $label_data->error->message )
 				);
+				$this->logger->log( $error, __CLASS__ );
+				return $error;
 			}
 			$labels_data[] = $label_data->label;
 			$labels_order_meta[] = array(

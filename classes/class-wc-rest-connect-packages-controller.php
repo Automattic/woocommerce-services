@@ -29,8 +29,14 @@ class WC_REST_Connect_Packages_Controller extends WP_REST_Controller {
 	 */
 	protected $service_settings_store;
 
-	public function __construct( WC_Connect_Service_Settings_Store $service_settings_store ) {
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	public function __construct( WC_Connect_Service_Settings_Store $service_settings_store, WC_Connect_Logger $logger ) {
 		$this->service_settings_store = $service_settings_store;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -50,7 +56,7 @@ class WC_REST_Connect_Packages_Controller extends WP_REST_Controller {
 		$request_body = $request->get_body();
 		$packages = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
-		$result = $this->service_settings_store->update_packages( $packages );
+		$this->service_settings_store->update_packages( $packages );
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
