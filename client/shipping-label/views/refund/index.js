@@ -20,7 +20,7 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 					{ __( 'Request a refund' ) }
 				</h3>
 				<p>
-					{ __( 'You can request a refund for a shipping label that has not been used to ship a package. Note that it may take up to 14 days to process.' ) }
+					{ __( 'You may request a refund for a shipping label that has not been used to ship a package. Note that it will take at least 14 days to process.' ) }
 				</p>
 				<hr/>
 				<dl>
