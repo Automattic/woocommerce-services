@@ -1,5 +1,6 @@
 import isArray from 'lodash/isArray';
 import Get from 'lodash/get';
+import parseJson from 'lib/utils/parse-json';
 import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 
 const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
@@ -13,11 +14,11 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 		body: formData ? JSON.stringify( formData ) : null,
 	};
 
-	return fetch( url, request ).then( response => {
+	return fetch( url, request ).then( ( response ) => {
 		setError( null );
 		setSuccess( false );
 
-		return response.json().then( json => {
+		return parseJson( response ).then( ( json ) => {
 			if ( json.success ) {
 				return setSuccess( true, json );
 			}
