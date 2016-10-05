@@ -293,8 +293,10 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
+
 			packages: _.map( form.packages.values, ( pckg, pckgId ) => ( {
 				..._.omit( pckg, [ 'items', 'id', 'box_id' ] ),
+				shipment_id: form.rates.available[ pckgId ].shipment_id,
 				service_id: form.rates.values[ pckgId ],
 				service_name: _.find( form.rates.available[ pckgId ].rates, { service_id: form.rates.values[ pckgId ] } ).title,
 				products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
