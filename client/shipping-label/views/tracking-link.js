@@ -6,19 +6,19 @@ const TRACKING_URL_MAP = {
 	usps: 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=%s',
 };
 
-const TrackingLink = ( { provider_label_id, carrier_id } ) => {
-	if ( ! provider_label_id ) {
+const TrackingLink = ( { tracking, carrier_id } ) => {
+	if ( ! tracking ) {
 		return <span>{ __( 'N/A' ) }</span>;
 	}
 	const url = TRACKING_URL_MAP[ carrier_id ];
 	if ( ! url ) {
-		return <span>{ provider_label_id }</span>;
+		return <span>{ tracking }</span>;
 	}
-	return <a target="_blank" href={ sprintf( url, provider_label_id ) }>{ provider_label_id }</a>;
+	return <a target="_blank" href={ sprintf( url, tracking ) }>{ tracking }</a>;
 };
 
 TrackingLink.propTypes = {
-	provider_label_id: PropTypes.string,
+	tracking: PropTypes.string,
 	carrier_id: PropTypes.string,
 };
 
