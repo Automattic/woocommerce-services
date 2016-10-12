@@ -59,22 +59,20 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WP_REST_Controlle
 	}
 
 	public function update_items( $request ) {
-		// TODO: Uncomment this when the refund server endpoint is implemented
-		// $response = $this->api_client->send_shipping_label_refund_request( $request[ 'label_id' ] );
-		$response = new stdClass();
-		$response->label = (object) array(
-			'label_id' => ( int ) $request[ 'label_id' ],
-			'refunded_time' => time() * 1000,
-		);
+		$response = $this->api_client->send_shipping_label_refund_request( $request[ 'label_id' ] );
+
+		if ( isset( $response->error ) ) {
+			$response = new WP_Error(
+				property_exists( $response->error, 'code' ) ? $response->error->code : 'refund_error',
+				property_exists( $response->error, 'message' ) ? $response->error->message : ''
+			);
+		}
 
 		if ( is_wp_error( $response ) ) {
-			$error = new WP_Error(
-				$response->get_error_code(),
-				$response->get_error_message(),
-				array( 'message' => $response->get_error_message() )
-			);
-			$this->logger->log( $error, __CLASS__ );
-			return $error;
+			$response->add_data( array( 'message' => $response->get_error_message() ), $response->get_error_code() );
+
+			$this->logger->log( $response, __CLASS__ );
+			return $response;
 		}
 
 		$this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $response->label );
