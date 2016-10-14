@@ -8,7 +8,7 @@ const fs = require( 'fs' );
 
 // some config
 const releaseFolder = 'release';
-const targetFolder = 'release/wocommerce-connect';
+const targetFolder = 'release/woocommerce-connect';
 const dirsToCopy = [
 	'assets',
 	'classes',
