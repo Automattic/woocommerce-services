@@ -19,9 +19,9 @@ const dirsToCopy = [
 
 confirm( colors.cyan( 'Howdy! This script is going to create a release folder with a compiled ' +
 	'zipped up plugin ready for release. This script assumes you\'ve already checked out the correct branch, ' +
-	'are running the latest code, and have run tests as needed. You good with that?' ), ( ok ) => {
+	'are running the latest code, and have run tests as needed. Sound good?' ), ( ok ) => {
 	if ( ! ok ) {
-		console.log( 'OK. Abandoning ship'.magenta );
+		console.log( 'Okay. Abandoning ship'.magenta );
 		process.exit( 0 );
 	}
 
