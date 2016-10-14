@@ -75,11 +75,17 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WP_REST_Controlle
 			return $response;
 		}
 
-		$this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $response->label );
+		// TODO: use $response->refund->amount ?
+		$label_refund = (object) array(
+			'label_id'      => (int) $response->label->id,
+			'refunded_time' => time() * 1000,
+		);
+
+		$this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $label_refund );
 
 		return array(
 			'success' => true,
-			'label' => $response->label,
+			'label'   => $label_refund,
 		);
 	}
 
