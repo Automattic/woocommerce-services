@@ -102,7 +102,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 			$labels_data[] = $label_data->label;
 			$labels_order_meta[] = array(
 				'label_id' => $label_data->label->label_id,
-				'tracking' => $label_data->label->tracking,
+				'tracking' => $label_data->label->tracking_id,
 				'refundable_amount' => $label_data->label->refundable_amount,
 				'created' => $label_data->label->created,
 				'carrier_id' => $settings[ 'carrier' ],
