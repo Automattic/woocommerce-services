@@ -1,10 +1,10 @@
-# WooCommerce Connect
+# Connect for WooCommerce
 
-What you see today is a plugin, though the goal for  WooCommerce Connect is to be a fully integrated part of WooCommerce core. To get us from feature plugin to core, WooCommerce Connect development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
+What you see today is a plugin, though the goal for  Connect for WooCommerce is to be a fully integrated part of WooCommerce core. To get us from feature plugin to core, Connect for WooCommerce development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
 
 **We do not recommend you use this ALPHA software on a production site.**
 
-The emphasis for initial release of WooCommerce Connect is shipping simplified. We are providing a Shipping Zones-compatible USPS shipping method and, coming soon, a Shipping Zones compatible Canada Post shipping method. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
+The emphasis for initial release of Connect for WooCommerce is shipping simplified. We are providing a Shipping Zones-compatible USPS shipping method and, coming soon, a Shipping Zones compatible Canada Post shipping method. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
 
 Our USPS shipping method pulls rates for customers' carts in real time from the USPS server. No USPS account is needed - use the default one if you like.
 
@@ -41,4 +41,4 @@ We support the latest two versions of all major browsers, except  IE, where we c
 
 ## License
 
-WooCommerce Connect is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).
+Connect for WooCommerce is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).

@@ -35,7 +35,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			WC_Connect_Logger $logger ) {
 
 			$this->id    = 'connect';
-			$this->label = _x( 'WooCommerce Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
+			$this->label = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce' );
 
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
@@ -58,7 +58,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'WooCommerce Connect', 'The WooCommerce Connect brandname', 'woocommerce' );
+			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce' );
 			return $tabs;
 		}
 

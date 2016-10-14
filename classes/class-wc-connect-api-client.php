@@ -34,7 +34,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Requests the available services for this site from the WooCommerce Connect Server
+		 * Requests the available services for this site from the Connect for WooCommerce Server
 		 *
 		 * @return array|WP_Error
 		 */
@@ -54,7 +54,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Validates the settings for a given service with the WooCommerce Connect Server
+		 * Validates the settings for a given service with the Connect for WooCommerce Server
 		 *
 		 * @param $service_slug
 		 * @param $service_settings
@@ -65,14 +65,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			// Make sure the service slug only contains underscores or letters
 			if ( 1 === preg_match( '/[^a-z_]/i', $service_slug ) ) {
-				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Connect service slug provided' );
+				return new WP_Error( 'invalid_service_slug', 'Invalid Connect for WooCommerce service slug provided' );
 			}
 
 			return $this->request( 'POST', "/services/{$service_slug}/settings", array( 'service_settings' => $service_settings ) );
 		}
 
 		/**
-		 * Gets shipping rates (for checkout) from the WooCommerce Connect Server
+		 * Gets shipping rates (for checkout) from the Connect for WooCommerce Server
 		 *
 		 * @param $services All settings for all services we want rates for
 		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
@@ -143,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Asks the WooCommerce connect server for an array of payment methods
+		 * Asks the Connect for WooCommerce server for an array of payment methods
 		 *
 		 * @return mixed|WP_Error
 		 */
@@ -152,7 +152,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Gets shipping rates (for labels) from the WooCommerce Connect Server
+		 * Gets shipping rates (for labels) from the Connect for WooCommerce Server
 		 *
 		 * @param array $request - array(
 		 *	'packages' => array(
@@ -222,7 +222,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			if ( 200 != $code ) {
 				return new WP_Error(
 					'wcc_server_error',
-					sprintf( 'Error: The WooCommerce Connect server returned HTTP code: %d', $code )
+					sprintf( 'Error: The Connect for WooCommerce server returned HTTP code: %d', $code )
 				);
 			}
 			return $response;
@@ -249,7 +249,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Tests the connection to the WooCommerce Connect Server
+		 * Tests the connection to the Connect for WooCommerce Server
 		 *
 		 * @return true|WP_Error
 		 */
@@ -258,7 +258,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Sends a request to the WooCommerce Connect Server
+		 * Sends a request to the Connect for WooCommerce Server
 		 *
 		 * @param $method
 		 * @param $path
@@ -269,17 +269,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			// TODO - incorporate caching for repeated identical requests
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				return new WP_Error( 'jetpack_data_class_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack_Data was not found.' );
+				return new WP_Error( 'jetpack_data_class_not_found', 'Unable to send request to Connect for WooCommerce server. Jetpack_Data was not found.' );
 			}
 
 			if ( ! method_exists( 'Jetpack_Data', 'get_access_token' ) ) {
-				return new WP_Error( 'jetpack_data_get_access_token_not_found', 'Unable to send request to WooCommerce Connect server. Jetpack_Data does not implement get_access_token.' );
+				return new WP_Error( 'jetpack_data_get_access_token_not_found', 'Unable to send request to Connect for WooCommerce server. Jetpack_Data does not implement get_access_token.' );
 			}
 
 			if ( ! is_array( $body ) ) {
 				return new WP_Error(
 					'request_body_should_be_array',
-					'Unable to send request to WooCommerce Connect server. Body must be an array.'
+					'Unable to send request to Connect for WooCommerce server. Body must be an array.'
 				);
 			}
 
@@ -295,7 +295,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				if ( ! $body ) {
 					return new WP_Error(
 						'unable_to_json_encode_body',
-						'Unable to encode body for request to WooCommerce Connect server.'
+						'Unable to encode body for request to Connect for WooCommerce server.'
 					);
 				}
 			}
@@ -327,7 +327,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
-							'Error: The WooCommerce Connect server returned ( %d ) and an empty response body.',
+							'Error: The Connect for WooCommerce server returned ( %d ) and an empty response body.',
 							$response_code
 						)
 					);
@@ -340,7 +340,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return new WP_Error(
 					'wcc_server_error_response',
 					sprintf(
-						'Error: The WooCommerce Connect server returned: %s %s ( %d )',
+						'Error: The Connect for WooCommerce server returned: %s %s ( %d )',
 						$error,
 						$message,
 						$response_code
@@ -386,7 +386,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Generates headers for our request to the WooCommerce Connect Server
+		 * Generates headers for our request to the Connect for WooCommerce Server
 		 *
 		 * @return array|WP_Error
 		 */
@@ -409,11 +409,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$token = Jetpack_Data::get_access_token( 0 );
 			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
-				return new WP_Error( 'missing_token', 'Unable to send request to WooCommerce Connect server. Jetpack Token is missing' );
+				return new WP_Error( 'missing_token', 'Unable to send request to Connect for WooCommerce server. Jetpack Token is missing' );
 			}
 
 			if ( false === strpos( $token->secret, '.' ) ) {
-				return new WP_Error( 'invalid_token', 'Unable to send request to WooCommerce Connect server. Jetpack Token is malformed.' );
+				return new WP_Error( 'invalid_token', 'Unable to send request to Connect for WooCommerce server. Jetpack Token is malformed.' );
 			}
 
 			list( $token_key, $token_secret ) = explode( '.', $token->secret );
@@ -446,7 +446,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		protected function request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff ) {
 			$local_time = $timestamp - $time_diff;
 			if ( $local_time < time() - 600 || $local_time > time() + 300 ) {
-				return new WP_Error( 'invalid_signature', 'Unable to send request to WooCommerce Connect server. The timestamp generated for the signature is too old.' );
+				return new WP_Error( 'invalid_signature', 'Unable to send request to Connect for WooCommerce server. The timestamp generated for the signature is too old.' );
 			}
 
 			$normalized_request_string = join( "\n", array(
