@@ -40,7 +40,7 @@
       {
         id : "usps",
         method_description : "Obtains rates dynamically from the USPS API during cart/checkout.",
-        method_title : "USPS (WooCommerce Connect)",
+        method_title : "USPS (Connect for WooCommerce)",
         service_settings : {
           type : "object",
           required : [
@@ -121,7 +121,7 @@
       {
         id : "canada_post",
         method_description : "Obtains rates dynamically from the Canada Post API during cart/checkout.",
-        method_title : "Canada Post (WooCommerce Connect)",
+        method_title : "Canada Post (Connect for WooCommerce)",
         service_settings : {
           type : "object",
           required : [
@@ -368,8 +368,8 @@
 		{
 			"id": "connect-your-jetpack",
 			"location": "global",
-			"title": "WooCommerce Connect Rocks",
-			"message": "You should connect your Jetpack and enable WooCommerce Connect.",
+			"title": "Connect for WooCommerce Rocks",
+			"message": "You should connect your Jetpack and enable Connect for WooCommerce.",
 			"button_text": "Connect",
 			"button_action": "/wp-admin/admin.php?page=wc-settings&action=connect"
 		},
@@ -377,7 +377,7 @@
 			"id": "enable-usps-shipping",
 			"location": "shipping",
 			"title": "USPS Now Available",
-			"message": "USPS shipping is now available through WooCommerce Connect.",
+			"message": "USPS shipping is now available through Connect for WooCommerce.",
 			"button_text": "Enable USPS",
 			"button_action": "/wp-admin/admin.php?page=wc-settings&action=enable-usps"
 		}

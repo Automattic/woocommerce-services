@@ -17,9 +17,9 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 
         function woocommerce_debug_tools( $tools ) {
             $tools['test_wcc_connection'] = array(
-                'name'    => __( 'Test your WooCommerce Connect Connection', 'woocommerce' ),
+                'name'    => __( 'Test your Connect for WooCommerce connection', 'woocommerce' ),
                 'button'  => __( 'Test Connection', 'woocommerce' ),
-                'desc'    => __( 'This will test your WooCommerce Connect Connection to ensure everything is working correctly', 'woocommerce' ),
+                'desc'    => __( 'This will test your Connect for WooCommerce connection to ensure everything is working correctly', 'woocommerce' ),
                 'callback' => array( $this, 'test_connection' ),
             );
             return $tools;
@@ -28,9 +28,9 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
         function test_connection() {
             $test_request = $this->api_client->auth_test();
             if ( $test_request && ! is_wp_error( $test_request ) && $test_request->authorized ) {
-                echo '<div class="updated inline"><p>' . __( 'Your site is succesfully communicating to the WooCommerce Connect API.', 'woocommerce' ) . '</p></div>';
+                echo '<div class="updated inline"><p>' . __( 'Your site is succesfully communicating to the Connect for WooCommerce API.', 'woocommerce' ) . '</p></div>';
             } else {
-                echo '<div class="error inline"><p>' . __( 'ERROR: Your site has a problem connecting to the WooCommerce Connect API. Please make sure your Jetpack connection is working.', 'woocommerce' ) . '</p></div>';
+                echo '<div class="error inline"><p>' . __( 'ERROR: Your site has a problem connecting to the Connect for WooCommerce API. Please make sure your Jetpack connection is working.', 'woocommerce' ) . '</p></div>';
             }
         }
 
