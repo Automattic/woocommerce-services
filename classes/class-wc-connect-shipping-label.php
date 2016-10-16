@@ -172,6 +172,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$selected_rates  = $this->get_selected_rates( $order );
 			$destination     = $this->get_destination_address( $order );
 
+			if ( ! $destination[ 'country' ] ) {
+				$destination[ 'country' ] = $origin[ 'country' ];
+			}
+
 			$form_data = compact( 'is_packed', 'packages', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
