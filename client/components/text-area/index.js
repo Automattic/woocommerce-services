@@ -19,7 +19,7 @@ const TextArea = ( { id, readonly, title, description, value, placeholder, updat
 				readOnly={ readonly }
 				value={ value }
 				onChange={ handleChangeEvent }
-				isError={ error }
+				isError={ Boolean( error ) }
 			/>
 			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
 		</FormFieldset>

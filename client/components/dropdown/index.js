@@ -16,7 +16,7 @@ const Dropdown = ( { id, valuesMap, title, description, value, updateValue, erro
 				value={ value }
 				onChange={ ( event ) => updateValue( event.target.value ) }
 				disabled={ Boolean( disabled ) }
-				isError={ error } >
+				isError={ Boolean( error ) } >
 				{ Object.keys( valuesMap ).map( key => {
 					return (
 						<option
