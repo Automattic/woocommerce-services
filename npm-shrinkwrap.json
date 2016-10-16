@@ -3223,9 +3223,9 @@
       }
     },
     "lodash": {
-      "version": "4.13.1",
-      "from": "lodash@4.13.1",
-      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.13.1.tgz"
+      "version": "4.16.4",
+      "from": "lodash@4.16.4",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.16.4.tgz"
     },
     "lodash-es": {
       "version": "4.16.4",
