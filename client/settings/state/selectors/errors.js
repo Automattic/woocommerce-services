@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import isObject from 'lodash/isObject';
+import _ from 'lodash';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
 import coerceFormValues from 'lib/utils/coerce-values';
@@ -41,7 +41,7 @@ Object.freeze( EMPTY_ERROR );
  * }
  */
 const parseErrorsList = ( errantFields ) => {
-	if ( ! isObject( errantFields ) ) {
+	if ( ! _.isObject( errantFields ) ) {
 		return {};
 	}
 

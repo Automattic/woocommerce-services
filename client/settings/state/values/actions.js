@@ -1,7 +1,6 @@
 import saveForm from 'lib/save-form';
 import coerceFormValues from 'lib/utils/coerce-values';
-import isString from 'lodash/isString';
-import isObject from 'lodash/isObject';
+import _ from 'lodash';
 import { translate as __ } from 'lib/mixins/i18n';
 import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
@@ -55,13 +54,13 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		dispatch( FormActions.setFormProperty( 'error', value ) );
 
 		if ( ! silent ) {
-			if ( isString( value ) ) {
+			if ( _.isString( value ) ) {
 				dispatch( NoticeActions.errorNotice( value, {
 					duration: 7000,
 				} ) );
 			}
 
-			if ( isObject( value ) ) {
+			if ( _.isObject( value ) ) {
 				dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
 					duration: 7000,
 				} ) );

@@ -1,24 +1,21 @@
 import { createSelector } from 'reselect';
-import sum from 'lodash/sum';
-import map from 'lodash/map';
-import find from 'lodash/find';
-import get from 'lodash/get';
+import _ from 'lodash';
 
 export const getRatesTotal = createSelector(
 	( rates ) => rates.values,
 	( rates ) => rates.available,
 	( selectedRates, availableRates ) => {
-		const ratesCost = map( selectedRates, ( rateId, boxId ) => {
-			const packageRates = get( availableRates, [ boxId, 'rates' ], false );
+		const ratesCost = _.map( selectedRates, ( rateId, boxId ) => {
+			const packageRates = _.get( availableRates, [ boxId, 'rates' ], false );
 
 			if ( packageRates ) {
-				const foundRate = find( packageRates, [ 'service_id', rateId ] );
+				const foundRate = _.find( packageRates, [ 'service_id', rateId ] );
 
 				return foundRate ? foundRate.rate : 0;
 			}
 			return 0;
 		} );
 
-		return sum( ratesCost ).toFixed( 2 );
+		return _.sum( ratesCost ).toFixed( 2 );
 	}
 );

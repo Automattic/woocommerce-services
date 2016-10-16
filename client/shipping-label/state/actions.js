@@ -1,14 +1,5 @@
 import saveForm from 'lib/save-form';
-import noop from 'lodash/noop';
-import fill from 'lodash/fill';
-import flatten from 'lodash/flatten';
-import omit from 'lodash/omit';
-import isEqual from 'lodash/isEqual';
-import some from 'lodash/some';
-import find from 'lodash/find';
-import isEmpty from 'lodash/isEmpty';
-import map from 'lodash/map';
-import every from 'lodash/every';
+import _ from 'lodash';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
@@ -61,11 +52,11 @@ const getNextErroneousStep = ( state, errors, currentStep ) => {
 	const form = state.shippingLabel.form;
 	switch ( firstStepToCheck ) {
 		case 'origin':
-			if ( ! form.origin.isNormalized || ! isEqual( form.origin.values, form.origin.normalized ) ) {
+			if ( ! form.origin.isNormalized || ! _.isEqual( form.origin.values, form.origin.normalized ) ) {
 				return 'origin';
 			}
 		case 'destination':
-			if ( ! form.destination.isNormalized || ! isEqual( form.destination.values, form.destination.normalized ) ) {
+			if ( ! form.destination.isNormalized || ! _.isEqual( form.destination.values, form.destination.normalized ) ) {
 				return 'destination';
 			}
 		case 'packages':
@@ -135,10 +126,10 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 		// If origin and destination are normalized, get rates
 		if (
 			form.origin.isNormalized &&
-			isEqual( form.origin.values, form.origin.normalized ) &&
+			_.isEqual( form.origin.values, form.origin.normalized ) &&
 			form.destination.isNormalized &&
-			isEqual( form.destination.values, form.destination.normalized ) &&
-			isEmpty( form.rates.available )
+			_.isEqual( form.destination.values, form.destination.normalized ) &&
+			_.isEmpty( form.rates.available )
 			// TODO: make sure packages are valid as well
 		) {
 			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
@@ -146,7 +137,7 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 
 		// Otherwise, just expand the next errant step unless the
 		// user already interacted with the form
-		if ( some( FORM_STEPS.map( ( step ) => form[ step ].expanded ) ) ) {
+		if ( _.some( FORM_STEPS.map( ( step ) => form[ step ].expanded ) ) ) {
 			return;
 		}
 
@@ -204,7 +195,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		}
 		const { values, normalized, expanded } = getState().shippingLabel.form[ group ];
 
-		if ( isEqual( values, normalized ) ) {
+		if ( _.isEqual( values, normalized ) ) {
 			if ( expanded ) {
 				dispatch( toggleStep( group ) );
 			}
@@ -218,7 +209,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 	};
 
 	const state = getState().shippingLabel.form[ group ];
-	if ( state.isNormalized && isEqual( state.values, state.normalized ) ) {
+	if ( state.isNormalized && _.isEqual( state.values, state.normalized ) ) {
 		handleNormalizeResponse();
 		return;
 	}
@@ -295,23 +286,23 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 	}
 
 	Promise.all( addressNormalizationQueue ).then( ( normalizationResults ) => {
-		if ( ! every( normalizationResults ) ) {
+		if ( ! _.every( normalizationResults ) ) {
 			return;
 		}
 		form = getState().shippingLabel.form;
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
-			packages: map( form.packages.values, ( pckg, pckgId ) => ( {
-				...omit( pckg, [ 'items', 'id' ] ),
+			packages: _.map( form.packages.values, ( pckg, pckgId ) => ( {
+				..._.omit( pckg, [ 'items', 'id' ] ),
 				service_id: form.rates.values[ pckgId ],
-				service_name: find( form.rates.available[ pckgId ].rates, { service_id: form.rates.values[ pckgId ] } ).title,
-				products: flatten( pckg.items.map( ( item ) => fill( new Array( item.quantity ), item.product_id ) ) ),
+				service_name: _.find( form.rates.available[ pckgId ].rates, { service_id: form.rates.values[ pckgId ] } ).title,
+				products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
 			order_id: form.orderId,
 		};
 
-		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, purchaseURL, nonce, 'POST', formData );
 	} ).catch( ( err ) => {
 		console.error( err );
 		dispatch( NoticeActions.errorNotice( err.toString() ) );
@@ -345,7 +336,7 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 			}
 		};
 
-		saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
 	} );
 };
 
@@ -376,7 +367,7 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 		}
 	};
 
-	saveForm( setIsSaving, setSuccess, noop, setError, sprintf( labelRefundURL, labelId ), nonce, 'POST' );
+	saveForm( setIsSaving, setSuccess, _.noop, setError, sprintf( labelRefundURL, labelId ), nonce, 'POST' );
 };
 
 export const openReprintDialog = ( labelId ) => {

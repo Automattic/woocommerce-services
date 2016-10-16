@@ -4,8 +4,7 @@ import TextField from 'components/text-field';
 import FormButton from 'components/forms/form-button';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
-import isObject from 'lodash/isObject';
-import isEqual from 'lodash/isEqual';
+import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import AddressSuggestion from './suggestion';
 
@@ -21,7 +20,7 @@ const AddressFields = ( {
 		storeOptions,
 		errors,
 	} ) => {
-	if ( isNormalized && normalized && ! isEqual( normalized, values ) ) {
+	if ( isNormalized && normalized && ! _.isEqual( normalized, values ) ) {
 		return (
 			<AddressSuggestion
 				values={ values }
@@ -34,7 +33,7 @@ const AddressFields = ( {
 		);
 	}
 
-	const fieldErrors = isObject( errors ) ? errors : {};
+	const fieldErrors = _.isObject( errors ) ? errors : {};
 	const getId = ( fieldName ) => group + '_' + fieldName;
 	const getValue = ( fieldName ) => values[ fieldName ] || '';
 	const updateValue = ( fieldName, newValue ) => labelActions.updateAddressValue( group, fieldName, newValue );

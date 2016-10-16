@@ -3,8 +3,7 @@ import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
-import noop from 'lodash/noop';
-import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const SettingsGroup = ( props ) => {
@@ -60,7 +59,7 @@ const SettingsGroup = ( props ) => {
 
 		case 'actions':
 			const buttons = group.items.map( ( button ) => {
-				let onClick = noop;
+				let onClick = _.noop;
 				let isDisabled = false;
 				let label = button.title;
 				let isPrimary = false;
@@ -71,7 +70,7 @@ const SettingsGroup = ( props ) => {
 						label = button.progressTitle || label;
 					} else {
 						onClick = () => saveForm( schema );
-						isDisabled = ! isEmpty( errors );
+						isDisabled = ! _.isEmpty( errors );
 					}
 				}
 				return { label, onClick, isDisabled, isPrimary };

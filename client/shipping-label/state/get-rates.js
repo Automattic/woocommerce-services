@@ -1,5 +1,5 @@
 import saveForm from 'lib/save-form';
-import noop from 'lodash/noop';
+import _ from 'lodash';
 import {
 	RATES_RETRIEVAL_IN_PROGRESS,
 	RATES_RETRIEVAL_COMPLETED,
@@ -30,6 +30,6 @@ export default ( dispatch, origin, destination, packages, getRatesURL, nonce ) =
 				}
 			}
 		};
-		saveForm( setIsSaving, setSuccess, noop, setError, getRatesURL, nonce, 'POST', { origin, destination, packages } );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, getRatesURL, nonce, 'POST', { origin, destination, packages } );
 	} );
 };

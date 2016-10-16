@@ -1,14 +1,14 @@
-import trim from 'lodash/trim';
+import _ from 'lodash';
 
 const string = ( value ) => {
-	return trim( value );
+	return _.trim( value );
 };
 
 const leftPoint = /^\.\d+$/;
 const rightPoint = /^\d+\.$/;
 
 const number = ( value ) => {
-	value = trim( value );
+	value = _.trim( value );
 	if ( leftPoint.test( value ) ) {
 		value = '0' + value;
 	} else if ( rightPoint.test( value ) ) {

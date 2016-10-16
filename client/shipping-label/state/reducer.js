@@ -23,8 +23,7 @@ import {
 	CLOSE_REPRINT_DIALOG,
 	CONFIRM_REPRINT,
 } from './actions';
-import mapValues from 'lodash/mapValues';
-import findIndex from 'lodash/findIndex';
+import _ from 'lodash';
 
 const reducers = {};
 
@@ -194,7 +193,7 @@ reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
 	return { ...state,
 		form: { ...state.form,
 			rates: {
-				values: mapValues( state.form.rates.values, () => '' ),
+				values: _.mapValues( state.form.rates.values, () => '' ),
 				retrievalInProgress: false,
 				available: rates,
 			},
@@ -224,7 +223,7 @@ reducers[ LABEL_STATUS_RESPONSE ] = ( state, { labelId, response, error } ) => {
 		response = {};
 	}
 
-	const labelIndex = findIndex( state.labels, { label_id: labelId } );
+	const labelIndex = _.findIndex( state.labels, { label_id: labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
 		...response,
@@ -256,7 +255,7 @@ reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
 		};
 	}
 
-	const labelIndex = findIndex( state.labels, { label_id: state.refundDialog.labelId } );
+	const labelIndex = _.findIndex( state.labels, { label_id: state.refundDialog.labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
 		...response,

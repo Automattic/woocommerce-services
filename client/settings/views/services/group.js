@@ -5,8 +5,7 @@ import CheckBox from 'components/forms/form-checkbox';
 import Gridicon from 'components/gridicon';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
-import every from 'lodash/every';
-import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 
 const summaryLabel = ( services ) => {
 	const numSelected = services.reduce( ( count, service ) => (
@@ -39,7 +38,7 @@ const ShippingServiceGroup = ( props ) => {
 			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
-	const allChecked = every( services, ( service ) => service.enabled );
+	const allChecked = _.every( services, ( service ) => service.enabled );
 
 	return (
 		<FoldableCard
@@ -50,7 +49,7 @@ const ShippingServiceGroup = ( props ) => {
 			compact
 			actionButton={ actionButton }
 			actionButtonExpanded={ actionButton }
-			expanded={ ! isEmpty( errors ) }
+			expanded={ ! _.isEmpty( errors ) }
 		>
 			<div className="wcc-shipping-service-entry multi-select-header">
 				<label className="wcc-shipping-service-header-container">

@@ -1,14 +1,10 @@
-import some from 'lodash/some';
-import trim from 'lodash/trim';
-import omitBy from 'lodash/omitBy';
-import reduce from 'lodash/reduce';
+import _ from 'lodash';
 import validator from 'is-my-json-valid';
-import memoize from 'lodash/memoize';
 
-const memoizedValidator = memoize( ( schema ) => validator( schema, { greedy: true } ) );
+const memoizedValidator = _.memoize( ( schema ) => validator( schema, { greedy: true } ) );
 
 const processErrors = ( errors ) => {
-	return reduce( errors, ( result, value ) => {
+	return _.reduce( errors, ( result, value ) => {
 		if ( value.field ) {
 			const key = value.field.replace( 'data.', '' );
 			Object.assign( result, { [ key ]: true, any: true } );
@@ -19,12 +15,12 @@ const processErrors = ( errors ) => {
 };
 
 const checkNullOrWhitespace = ( value ) => {
-	return value && '' !== trim( value ) ? value : null;
+	return value && '' !== _.trim( value ) ? value : null;
 };
 
 const checkDuplicateName = ( name, boxNames ) => {
 	name = checkNullOrWhitespace( name );
-	return some( boxNames, ( boxName ) => boxName === name ) ? null : name;
+	return _.some( boxNames, ( boxName ) => boxName === name ) ? null : name;
 };
 
 const numberRegex = /^\d+(\.\d+)?$/;
@@ -45,7 +41,7 @@ const preProcessPackageData = ( data, boxNames ) => {
 		max_weight: checkAndConvertNumber( data.max_weight ),
 	};
 
-	return omitBy( result, ( value ) => null === value );
+	return _.omitBy( result, ( value ) => null === value );
 };
 
 const getErrors = ( packageData, boxNames, schema ) => {

@@ -3,7 +3,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import AddressFields from './fields';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import StepContainer from '../../step-container';
-import isEqual from 'lodash/isEqual';
+import _ from 'lodash';
 
 const renderSummary = ( { values, isNormalized, normalizationInProgress, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {
 	if ( normalizationInProgress ) {
@@ -35,7 +35,7 @@ const getNormalizationStatus = ( { normalizationInProgress, errors, isNormalized
 		return { isError: true };
 	}
 	if ( isNormalized ) {
-		return isEqual( values, normalized ) ? { isSuccess: true } : { isWarning: true };
+		return _.isEqual( values, normalized ) ? { isSuccess: true } : { isWarning: true };
 	}
 	return {};
 };

@@ -10,15 +10,13 @@ import {
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
 } from './actions';
-import omitBy from 'lodash/omitBy';
-import trim from 'lodash/trim';
-import omit from 'lodash/omit';
+import _ from 'lodash';
 
 export const initialState = {
 	modalErrors: {},
 };
 
-const isNullOrEmpty = ( value ) => null === value || '' === trim( value );
+const isNullOrEmpty = ( value ) => null === value || '' === _.trim( value );
 
 const reducers = {};
 
@@ -67,7 +65,7 @@ reducers[ SET_SELECTED_PRESET ] = ( state, action ) => {
 
 reducers[ UPDATE_PACKAGES_FIELD ] = ( state, action ) => {
 	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
-	const newPackageData = omitBy( mergedPackageData, isNullOrEmpty );
+	const newPackageData = _.omitBy( mergedPackageData, isNullOrEmpty );
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
 		pristine: false,
@@ -88,7 +86,7 @@ reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 
 	if ( 'index' in packageData ) {
 		const { index } = packageData;
-		const item = omit( packageData, 'index' );
+		const item = _.omit( packageData, 'index' );
 
 		packages[ index ] = item;
 	} else {
