@@ -17,7 +17,7 @@ const NumberField = ( { id, title, description, value, placeholder, updateValue,
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ ( event ) => updateValue( parseNumber( event.target.value ) ) }
-				isError={ error }
+				isError={ Boolean( error ) }
 			/>
 			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
 		</FormFieldset>

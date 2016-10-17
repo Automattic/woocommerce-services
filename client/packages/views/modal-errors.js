@@ -48,11 +48,9 @@ const preProcessPackageData = ( data, boxNames ) => {
 	return omitBy( result, ( value ) => null === value );
 };
 
-const getErrors = ( packageData, boxNames, schema ) => {
+export default ( packageData, boxNames, schema ) => {
 	const validate = memoizedValidator( schema );
 	const data = preProcessPackageData( packageData, boxNames );
 	validate( data );
 	return processErrors( validate.errors );
 };
-
-module.exports = getErrors;

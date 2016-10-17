@@ -18,7 +18,7 @@ const TextField = ( { id, title, description, value, placeholder, updateValue, e
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ handleChangeEvent }
-				isError={ error }
+				isError={ Boolean( error ) }
 			/>
 			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
 		</FormFieldset>
