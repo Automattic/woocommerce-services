@@ -63,6 +63,9 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 		$order_id = $settings[ 'order_id' ];
 
+		$this->settings_store->set_preferred_paper_size( $settings[ 'paper_size' ] );
+		unset( $settings[ 'paper_size' ] );
+
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
 		$settings[ 'carrier' ] = 'usps';
 		$settings[ 'label_size' ] = 'default';

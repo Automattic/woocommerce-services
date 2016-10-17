@@ -202,6 +202,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$form_data[ 'order_id' ] = $order->id;
 
+			$form_data[ 'paper_size' ] = $this->settings_store->get_preferred_paper_size();
+
 			return $form_data;
 		}
 

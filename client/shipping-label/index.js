@@ -57,7 +57,7 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 						retrievalInProgress: false,
 					},
 					preview: {
-						paperSize: '', // TODO: remember this setting in the merchant host
+						paperSize: formData.paper_size,
 					},
 				},
 				openedPackageId: labelsData ? '' : Object.keys( formData.selected_packages )[ 0 ] || '',

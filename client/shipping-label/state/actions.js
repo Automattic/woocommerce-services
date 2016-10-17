@@ -389,23 +389,23 @@ export const updateRate = ( packageId, value ) => {
 	};
 };
 
-export const updatePaperSize = ( value ) => ( dispatch, getState, { labelPreviewURL } ) => {
+const refreshPreview = ( dispatch, getState, { labelPreviewURL } ) => {
 	const form = getState().shippingLabel.form;
-	if ( form.preview.paperSize === value ) {
-		return;
-	}
-
-	dispatch( {
-		type: UPDATE_PAPER_SIZE,
-		value,
-	} );
-
 	let pckgIndex = 1;
 	const labels = _.map( form.packages.values, () => ( {
 		text: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
 		imageURL: labelPreviewURL,
 	} ) );
-	generatePDF( value, labels ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
+	generatePDF( form.preview.paperSize, labels ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
+};
+
+export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
+	dispatch( {
+		type: UPDATE_PAPER_SIZE,
+		value,
+	} );
+
+	refreshPreview( dispatch, getState, context );
 };
 
 export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {
@@ -462,6 +462,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
 			order_id: form.orderId,
+			paper_size: form.preview.paperSize,
 		};
 
 		saveForm( setIsSaving, setSuccess, _.noop, setError, purchaseURL, nonce, 'POST', formData );

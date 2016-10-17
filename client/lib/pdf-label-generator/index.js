@@ -7,12 +7,24 @@ const LABEL_SIZE = {
 	height: 6 * PDF_DENSITY,
 };
 
-// Measures from https://github.com/devongovett/pdfkit/blob/master/lib/page.coffee#L72
+// Dimensions from https://github.com/devongovett/pdfkit/blob/master/lib/page.coffee#L72
 export const PAPER_SIZES = {
-	[ __( 'A4' ) ]: [ 595.28, 841.89 ],
-	[ __( 'Letter' ) ]: [ 612.00, 792.00 ],
-	[ __( 'Legal' ) ]: [ 612.00, 1008.00 ],
-	[ __( 'Label (4"x6")' ) ]: [ LABEL_SIZE.width, LABEL_SIZE.height ],
+	a4: {
+		name: __( 'A4' ),
+		dimensions: [ 595.28, 841.89 ],
+	},
+	letter: {
+		name: __( 'Letter' ),
+		dimensions: [ 612.00, 792.00 ],
+	},
+	legal: {
+		name: __( 'Legal' ),
+		dimensions: [ 612.00, 1008.00 ],
+	},
+	label: {
+		name: __( 'Label (4"x6")' ),
+		dimensions: [ LABEL_SIZE.width, LABEL_SIZE.height ],
+	},
 };
 
 export default ( paperSize, labels ) => {
