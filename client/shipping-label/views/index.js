@@ -13,6 +13,7 @@ import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
+import canPurchase from 'shipping-label/state/selectors/can-purchase';
 
 let labelsStatusUpdateTriggered = false;
 
@@ -110,6 +111,7 @@ function mapStateToProps( state, { storeOptions } ) {
 	return {
 		shippingLabel: state.shippingLabel,
 		errors: getFormErrors( state, storeOptions ),
+		canPurchase: canPurchase( state, storeOptions ),
 	};
 }
 
