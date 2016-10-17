@@ -12,9 +12,8 @@
 }
 
 .foldable-card__header {
-	min-height: 64px;
 	width: 100%;
-	padding: 16px;
+	padding: 12px 16px;
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
@@ -39,7 +38,7 @@
 
 .foldable-card.is-compact {
 	.foldable-card__header {
-		padding: 16px;
+		padding: 12px 16px;
 		min-height: 40px;
 	}
 }
@@ -48,7 +47,6 @@
 	.foldable-card__header {
 		margin-bottom: 0px;
 		height: inherit;
-		min-height: 64px;
 	}
 }
 

@@ -113,14 +113,17 @@
 	}
 
 	.validation-message {
-		padding-bottom: 16px;
-		font-size: 14px;
-		line-height: 1.6em;
+		margin: -24px -24px 24px -24px;
+
+		 .notice__icon {
+			 display: none;
+		 }
 	}
 
 	.suggestion-container {
 		display: flex;
 		align-items: flex-start;
+		margin-top: 24px;
 
 		.suggestion-title {
 			font-weight: bold;

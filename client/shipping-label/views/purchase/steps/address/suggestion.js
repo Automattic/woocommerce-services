@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import omit from 'lodash/omit';
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'components/forms/form-radio';
+import Notice from 'components/notice';
 import FormButton from 'components/forms/form-button';
 
 const RadioButton = ( props ) => {
@@ -65,7 +66,11 @@ const AddressSuggestion = ( {
 	} ) => {
 	return (
 		<div>
-			<div className="validation-message">{ __( 'We have slightly modified the entered address. If that looks correct, please use the suggested address to ensure accurate delivery.' ) }</div>
+			<Notice
+				className="validation-message"
+				status="is-warning"
+				showDismiss={ false }
+				text={ __( 'We have slightly modified the address entered. If correct, please use the suggested address to ensure accurate delivery.' ) } />
 			<div className="suggestion-container">
 				<RadioButton
 					checked={ ! selectNormalized }
