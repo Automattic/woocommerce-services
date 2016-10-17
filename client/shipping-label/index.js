@@ -55,7 +55,7 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 						retrievalInProgress: false,
 					},
 					preview: {
-						paperSize: '', // TODO: remember this setting in the merchant host
+						paperSize: formData.paper_size,
 					},
 				},
 			},

@@ -15,8 +15,6 @@ const PreviewStep = ( { labelPreviewURL, showPreview, paperSize, labelActions, e
 		}
 	}
 
-	const paperSizeOptions = _.mapValues( PAPER_SIZES, ( value, key ) => key );
-
 	return (
 		<div>
 			<span className="preview-title">{ __( 'Preview' ) }</span>
@@ -25,7 +23,7 @@ const PreviewStep = ( { labelPreviewURL, showPreview, paperSize, labelActions, e
 			</div>
 			<Dropdown
 				id={ 'paper_size' }
-				valuesMap={ { '': __( 'Select one...' ), ...paperSizeOptions } }
+				valuesMap={ { '': __( 'Select one...' ), ..._.mapValues( PAPER_SIZES, 'name' ) } }
 				title={ __( 'Paper size' ) }
 				value={ paperSize }
 				updateValue={ labelActions.updatePaperSize }

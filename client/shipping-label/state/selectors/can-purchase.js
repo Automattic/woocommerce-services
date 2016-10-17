@@ -7,6 +7,7 @@ export default createSelector(
 	getErrors,
 	( state ) => state.shippingLabel.form,
 	( errors, form ) => (
+		! _.isEmpty( form ) &&
 		! hasNonEmptyLeaves( errors ) &&
 		! form.origin.normalizationInProgress &&
 		! form.destination.normalizationInProgress &&

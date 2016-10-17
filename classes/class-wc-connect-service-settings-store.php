@@ -103,6 +103,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
+		public function get_preferred_paper_size() {
+			return get_option( 'wc_connect_paper_size', '' );
+		}
+
+		public function set_preferred_paper_size( $size ) {
+			return update_option( 'wc_connect_paper_size', $size );
+		}
+
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
 			$raw_labels_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
 			$labels_data = json_decode( $raw_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
