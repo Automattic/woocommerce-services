@@ -69,6 +69,7 @@ const AddressSuggestion = ( {
 			<Notice
 				className="validation-message"
 				status="is-warning"
+				showDismiss={ false }
 				text={ __( 'We have slightly modified the address entered. If correct, please use the suggested address to ensure accurate delivery.' ) } />
 			<div className="suggestion-container">
 				<RadioButton
