@@ -8,6 +8,7 @@ import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
+import generatePDF from 'lib/pdf-label-generator';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -19,6 +20,8 @@ export const EDIT_ADDRESS = 'EDIT_ADDRESS';
 export const CONFIRM_ADDRESS_SUGGESTION = 'CONFIRM_ADDRESS_SUGGESTION';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
+export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
+export const UPDATE_PREVIEW = 'UPDATE_PREVIEW';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
@@ -384,6 +387,25 @@ export const updateRate = ( packageId, value ) => {
 		packageId,
 		value,
 	};
+};
+
+export const updatePaperSize = ( value ) => ( dispatch, getState, { labelPreviewURL } ) => {
+	const form = getState().shippingLabel.form;
+	if ( form.preview.paperSize === value ) {
+		return;
+	}
+
+	dispatch( {
+		type: UPDATE_PAPER_SIZE,
+		value,
+	} );
+
+	let pckgIndex = 1;
+	const labels = _.map( form.packages.values, () => ( {
+		text: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
+		imageURL: labelPreviewURL,
+	} ) );
+	generatePDF( value, labels ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
 };
 
 export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {

@@ -6,19 +6,11 @@ import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
 import PreviewStep from './steps/preview';
-import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
-import _ from 'lodash';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
-
-	const canPurchase = ! hasNonEmptyLeaves( props.errors ) &&
-		! props.form.origin.normalizationInProgress &&
-		! props.form.destination.normalizationInProgress &&
-		! props.form.rates.retrievalInProgress &&
-		! _.isEmpty( props.form.rates.available );
 
 	const getPurchaseButtonLabel = () => {
 		let label = __( 'Buy & Print' );
@@ -26,7 +18,7 @@ const PrintLabelDialog = ( props ) => {
 		if ( nPackages ) {
 			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
 		}
-		if ( canPurchase ) {
+		if ( props.canPurchase ) {
 			label += ' (' + currencySymbol + getRatesTotal( props.form.rates ) + ')';
 		}
 		return label;
@@ -65,12 +57,12 @@ const PrintLabelDialog = ( props ) => {
 							{ ...props }
 							{ ...props.form.preview }
 							errors={ props.errors.preview }
-							showPreview={ canPurchase }/>
+							showPreview={ props.canPurchase } />
 					</div>
 				</div>
 				<ActionButtons buttons={ [
 					{
-						isDisabled: ! canPurchase || props.form.isSubmitting,
+						isDisabled: ! props.canPurchase || props.form.isSubmitting,
 						onClick: props.labelActions.purchaseLabel,
 						isPrimary: true,
 						label: getPurchaseButtonLabel(),
