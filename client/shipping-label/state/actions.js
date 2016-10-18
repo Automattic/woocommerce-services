@@ -260,14 +260,14 @@ export const updateRate = ( packageId, value ) => {
 	};
 };
 
-const refreshPreview = ( dispatch, getState, { labelPreviewURL } ) => {
+const refreshPreview = ( dispatch, getState, { labelPreviewURL, nonce } ) => {
 	const form = getState().shippingLabel.form;
 	let pckgIndex = 1;
 	const labels = _.map( form.packages.values, () => ( {
-		text: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
+		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
 		imageURL: labelPreviewURL,
 	} ) );
-	generatePDF( form.preview.paperSize, labels ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
+	generatePDF( form.preview.paperSize, labels, nonce ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
 };
 
 export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
