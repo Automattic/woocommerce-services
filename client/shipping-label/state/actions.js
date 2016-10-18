@@ -3,6 +3,7 @@ import _ from 'lodash';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
+import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
@@ -381,12 +382,18 @@ export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeO
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const updateRate = ( packageId, value ) => {
-	return {
+export const updateRate = ( packageId, value ) => ( dispatch, getState, context ) => {
+	const couldPurchase = canPurchase( getState(), context.storeOptions );
+
+	dispatch( {
 		type: UPDATE_RATE,
 		packageId,
 		value,
-	};
+	} );
+
+	if ( ! couldPurchase && canPurchase( getState(), context.storeOptions ) ) {
+		refreshPreview( dispatch, getState, context );
+	}
 };
 
 const refreshPreview = ( dispatch, getState, { labelPreviewURL, nonce } ) => {
