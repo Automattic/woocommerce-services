@@ -10,6 +10,8 @@ import {
 	CONFIRM_ADDRESS_SUGGESTION,
 	UPDATE_PACKAGE_WEIGHT,
 	UPDATE_RATE,
+	UPDATE_PAPER_SIZE,
+	UPDATE_PREVIEW,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
 	RATES_RETRIEVAL_IN_PROGRESS,
@@ -155,6 +157,30 @@ reducers[ UPDATE_RATE ] = ( state, { packageId, value } ) => {
 		form: { ...state.form,
 			rates: { ...state.form.rates,
 				values: newRates,
+			},
+		},
+	};
+};
+
+reducers[ UPDATE_PAPER_SIZE ] = ( state, { value } ) => {
+	if ( state.form.preview.labelPreviewURL ) {
+		URL.revokeObjectURL( state.form.preview.labelPreviewURL );
+	}
+	return { ...state,
+		paperSize: value,
+		form: { ...state.form,
+			preview: { ...state.form.preview,
+				labelPreviewURL: null,
+			},
+		},
+	};
+};
+
+reducers[ UPDATE_PREVIEW ] = ( state, { url } ) => {
+	return { ...state,
+		form: { ...state.form,
+			preview: { ...state.form.preview,
+				labelPreviewURL: url,
 			},
 		},
 	};

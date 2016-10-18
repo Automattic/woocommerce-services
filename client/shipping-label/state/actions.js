@@ -9,14 +9,17 @@ import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
 import map from 'lodash/map';
 import every from 'lodash/every';
+import _ from 'lodash';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
+import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
+import generatePDF from 'lib/pdf-label-generator';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -28,6 +31,8 @@ export const EDIT_ADDRESS = 'EDIT_ADDRESS';
 export const CONFIRM_ADDRESS_SUGGESTION = 'CONFIRM_ADDRESS_SUGGESTION';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
+export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
+export const UPDATE_PREVIEW = 'UPDATE_PREVIEW';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
@@ -248,12 +253,38 @@ export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeO
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const updateRate = ( packageId, value ) => {
-	return {
+export const updateRate = ( packageId, value ) => ( dispatch, getState, context ) => {
+	const couldPurchase = canPurchase( getState(), context.storeOptions );
+
+	dispatch( {
 		type: UPDATE_RATE,
 		packageId,
 		value,
-	};
+	} );
+
+	if ( ! couldPurchase && canPurchase( getState(), context.storeOptions ) ) {
+		refreshPreview( dispatch, getState, context );
+	}
+};
+
+const refreshPreview = ( dispatch, getState, { labelPreviewURL, nonce } ) => {
+	const state = getState().shippingLabel;
+	const { form, paperSize } = state;
+	let pckgIndex = 1;
+	const labels = _.map( form.packages.values, () => ( {
+		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
+		imageURL: labelPreviewURL,
+	} ) );
+	generatePDF( paperSize, labels, nonce ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
+};
+
+export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
+	dispatch( {
+		type: UPDATE_PAPER_SIZE,
+		value,
+	} );
+
+	refreshPreview( dispatch, getState, context );
 };
 
 export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {
@@ -274,8 +305,13 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				// TODO: Figure out how to print multiple labels
-				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
+				let pckgIndex = 1;
+				const labels = response.map( ( label ) => ( {
+					caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, response.length ).toUpperCase(),
+					imageURL: sprintf( labelImageURL, label.label_id ),
+				} ) );
+				generatePDF( getState().shippingLabel.paperSize, labels, nonce )
+					.then( printDocument )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -298,7 +334,9 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		if ( ! every( normalizationResults ) ) {
 			return;
 		}
-		form = getState().shippingLabel.form;
+		const state = getState().shippingLabel;
+		const { paperSize } = state;
+		form = state.form;
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
@@ -309,6 +347,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				products: flatten( pckg.items.map( ( item ) => fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
 			order_id: form.orderId,
+			paper_size: paperSize,
 		};
 
 		saveForm( setIsSaving, setSuccess, noop, setError, purchaseURL, nonce, 'POST', formData );
@@ -390,7 +429,9 @@ export const closeReprintDialog = () => {
 export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	printDocument( sprintf( labelImageURL, labelId ), nonce )
+	const imageURL = sprintf( labelImageURL, labelId );
+	generatePDF( getState().shippingLabel.paperSize, [ { imageURL } ], nonce )
+		.then( printDocument )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
