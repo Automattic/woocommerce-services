@@ -22,8 +22,29 @@ import {
 	OPEN_REPRINT_DIALOG,
 	CLOSE_REPRINT_DIALOG,
 	CONFIRM_REPRINT,
+	OPEN_PACKAGE,
+	OPEN_ITEM_MOVE,
+	MOVE_ITEM,
+	CLOSE_ITEM_MOVE,
+	SET_TARGET_PACKAGE,
+	ADD_PACKAGE,
+	REMOVE_PACKAGE,
+	SET_PACKAGE_TYPE,
+	SAVE_PACKAGES,
+	OPEN_ADD_ITEM,
+	CLOSE_ADD_ITEM,
+	SET_ADDED_ITEM,
 } from './actions';
+import getBoxDimensions from 'lib/utils/get-box-dimensions';
 import _ from 'lodash';
+
+const generateUniqueBoxId = ( keyBase, boxIds ) => {
+	for ( let i = 0; i <= boxIds.length; i++ ) {
+		if ( -1 === boxIds.indexOf( keyBase + i ) ) {
+			return keyBase + i;
+		}
+	}
+};
 
 const reducers = {};
 
@@ -130,7 +151,7 @@ reducers[ CONFIRM_ADDRESS_SUGGESTION ] = ( state, { group } ) => {
 };
 
 reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageId, value } ) => {
-	const newPackages = { ...state.form.packages.values };
+	const newPackages = { ...state.form.packages.selected };
 
 	newPackages[ packageId ] = {
 		...newPackages[ packageId ],
@@ -140,7 +161,242 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageId, value } ) => {
 	return { ...state,
 		form: { ...state.form,
 			packages: { ...state.form.packages,
-				values: newPackages,
+				selected: newPackages,
+				saved: false,
+			},
+		},
+	};
+};
+
+reducers[ OPEN_PACKAGE ] = ( state, { openedPackageId } ) => {
+	return { ...state,
+		openedPackageId,
+	};
+};
+
+reducers[ OPEN_ITEM_MOVE ] = ( state, { movedItemIndex } ) => {
+	return {
+		...state,
+		showItemMoveDialog: true,
+		targetPackageId: state.openedPackageId,
+		movedItemIndex,
+	};
+};
+
+reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackageId } ) => {
+	if ( -1 === movedItemIndex || openedPackageId === targetPackageId || undefined === openedPackageId ) {
+		return state;
+	}
+
+	const newPackages = { ...state.form.packages.selected };
+	const newUnpacked = [ ...state.form.packages.unpacked ];
+	let movedItem;
+	let addedPackageId = '';
+
+	if ( '' === openedPackageId ) {
+		//move from unpacked
+		movedItem = newUnpacked.splice( movedItemIndex, 1 )[ 0 ];
+	} else {
+		//move from packed
+		const originItems = [ ...newPackages[ openedPackageId ].items ];
+		movedItem = originItems.splice( movedItemIndex, 1 )[ 0 ];
+
+		newPackages[ openedPackageId ] = {
+			...newPackages[ openedPackageId ],
+			items: originItems,
+			weight: newPackages[ openedPackageId ].weight - movedItem.weight,
+		};
+	}
+
+	if ( 'individual' === targetPackageId ) {
+		//move to an individual packaging
+		const packageKeys = Object.keys( newPackages );
+		addedPackageId = generateUniqueBoxId( 'client_individual_', packageKeys );
+		const { height, length, width, weight } = movedItem;
+		newPackages[ addedPackageId ] = {
+			height, length, width, weight,
+			box_id: 'individual',
+			items: [ movedItem ],
+		};
+	} else if ( '' === targetPackageId ) {
+		//move to unpacked
+		newUnpacked.push( movedItem );
+	} else {
+		//move to a custom package
+		const targetItems = [ ...newPackages[ targetPackageId ].items ];
+		targetItems.push( movedItem );
+		newPackages[ targetPackageId ] = {
+			...newPackages[ targetPackageId ],
+			items: targetItems,
+			weight: newPackages[ targetPackageId ].weight + movedItem.weight,
+		};
+	}
+
+	return {
+		...state,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: newPackages,
+				unpacked: newUnpacked,
+				saved: false,
+			},
+			rates: {
+				...state.form.rates,
+				values: _.mapValues( newPackages, () => '' ),
+				available: {},
+			},
+		},
+		addedPackageId,
+	};
+};
+
+reducers[ CLOSE_ITEM_MOVE ] = ( state ) => {
+	return {
+		...state,
+		movedItemIndex: -1,
+		showItemMoveDialog: false,
+	};
+};
+
+reducers[ SET_TARGET_PACKAGE ] = ( state, { targetPackageId } ) => {
+	return {
+		...state,
+		targetPackageId,
+	};
+};
+
+reducers[ OPEN_ADD_ITEM ] = ( state ) => {
+	return {
+		...state,
+		showAddItemDialog: true,
+	};
+};
+
+reducers[ CLOSE_ADD_ITEM ] = ( state ) => {
+	return {
+		...state,
+		movedItemIndex: -1,
+		showAddItemDialog: false,
+	};
+};
+
+reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex } ) => {
+	return {
+		...state,
+		sourcePackageId,
+		movedItemIndex,
+	};
+};
+
+reducers[ ADD_PACKAGE ] = ( state ) => {
+	const newPackages = {...state.form.packages.selected};
+	const packageKeys = Object.keys( newPackages );
+	const boxesKeys = Object.keys( state.form.packages.all );
+	if ( ! boxesKeys.length ) {
+		return state;
+	}
+
+	const boxId = boxesKeys[ 0 ];
+	const box = state.form.packages.all[ boxId ];
+	const { height, length, width } = getBoxDimensions( box );
+	const addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
+	const openedPackageId = addedPackageId;
+	newPackages[ addedPackageId ] = {
+		height, length, width,
+		id: addedPackageId,
+		weight: box.box_weight,
+		box_id: boxId,
+		items: [],
+	};
+
+	return {
+		...state,
+		openedPackageId,
+		addedPackageId,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: newPackages,
+				saved: false,
+			},
+			rates: {
+				...state.form.rates,
+				values: _.mapValues( newPackages, () => '' ),
+				available: {},
+			},
+		},
+	};
+};
+
+reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
+	const newPackages = {...state.form.packages.selected};
+	const pckg = newPackages[ packageId ];
+	const newUnpacked = state.form.packages.unpacked.concat( pckg.items );
+	delete newPackages[ packageId ];
+	const openedPackageId = Object.keys( newPackages )[ 0 ] || '';
+
+	return {
+		...state,
+		openedPackageId,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: newPackages,
+				unpacked: newUnpacked,
+				saved: false,
+			},
+			rates: {
+				...state.form.rates,
+				values: _.mapValues( newPackages, () => '' ),
+				available: {},
+			},
+		},
+	};
+};
+
+reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
+	const box = state.form.packages.all[ boxTypeId ];
+	const newPackages = {...state.form.packages.selected};
+	const { length, width, height } = getBoxDimensions( box );
+	const oldPackage = newPackages[ packageId ];
+
+	newPackages[ packageId ] = {
+		...oldPackage,
+		height, length, width,
+		weight: box.box_weight + _.sumBy( oldPackage.items, 'weight' ),
+		box_id: boxTypeId,
+	};
+
+	return {
+		...state,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: newPackages,
+				saved: false,
+			},
+			rates: {
+				...state.form.rates,
+				values: _.mapValues( newPackages, () => '' ),
+				available: {},
+			},
+		},
+	};
+};
+
+reducers[ SAVE_PACKAGES ] = ( state ) => {
+	return {
+		...state,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				saved: true,
 			},
 		},
 	};

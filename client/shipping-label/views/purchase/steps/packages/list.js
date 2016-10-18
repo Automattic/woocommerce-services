@@ -1,78 +1,92 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
-import NumberField from 'components/number-field';
-import FormLegend from 'components/forms/form-legend';
-import { sprintf } from 'sprintf-js';
-import _ from 'lodash';
+import Gridicon from 'components/gridicon';
+import classNames from 'classnames';
+import getPackageDescriptions from './get-package-descriptions';
 
-const renderPackageDimensions = ( pckg, dimensionUnit ) => {
-	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
-};
+const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPackage } ) => {
+	const renderUnpackedLink = () => {
+		if ( ! unpacked.length ) {
+			return null;
+		}
 
-const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, errors } ) => {
-	const renderItemInfo = ( item, itemIndex ) => {
 		return (
-			<div key={ itemIndex } className="wcc-package-item">
-				<div className="wcc-package-item__name">
-					<span className="wcc-package-item__title">
-						<a href={ item.url } target="_blank">{ item.name }</a>
-					</span>
-					{ item.attributes && <p>{ item.attributes }</p> }
-				</div>
-				<div className="wcc-package-item__quantity">{ item.quantity }</div>
+			<div className="wcc-packages-list__unpacked">
+				<a href="#" className="wcc-packages-list__link" onClick={ () => ( openPackage( '' ) ) }>
+					{ __( 'Saved for later' ) }
+				</a>
+				<span className="wcc-packages-list-package__count">{ unpacked.length }</span>
 			</div>
 		);
 	};
 
-	const numPackages = Object.keys( packages ).length;
-	let pckgIndex = 1;
+	const renderAddPackage = () => {
+		const boxesKeys = Object.keys( all );
+		if ( ! boxesKeys.length ) {
+			return null;
+		}
 
-	const renderPackageInfo = ( pckg, pckgId ) => {
-		const pckgErrors = errors[ pckgId ] || {};
+		return ( <div className="wcc-packages-list__add-container">
+			<a href="#" className="wcc-packages-list__link" onClick={ () => ( addPackage() ) }>
+				<Gridicon icon="add-outline" size={ 18 } /> { __( 'Add package' ) }
+			</a>
+		</div> );
+	};
+
+	const renderPackageListItem = ( pckgId, name, count ) => {
 		return (
-			<div key={ pckgId }>
-				<div className="wcc-package-package-number">
-					{ sprintf( __( 'Package %d (of %d)' ), pckgIndex++, numPackages ) }
-				</div>
-
-				<div>
-					<div className="wcc-package-items-header">
-						<FormLegend className="wcc-package-item__name">{ __( 'Package contents' ) }</FormLegend>
-						<FormLegend className="wcc-package-item__quantity">{ __( 'Quantity' ) }</FormLegend>
-					</div>
-					{ pckg.items.map( renderItemInfo ) }
-				</div>
-
-				<NumberField
-					id={ `weight_${pckgIndex}` }
-					className="wcc-package-weight"
-					title={ __( 'Total Weight' ) }
-					value={ pckg.weight }
-					updateValue={ ( value ) => updateWeight( pckgId, value ) }
-					error={ pckgErrors.weight } />
-				<span className="wcc-package-weight-unit">{ weightUnit }</span>
-
-				<div className="wcc-package-package-dimension">
-					<FormLegend>{ __( 'Package dimensions' ) }</FormLegend>
-					<span className="wcc-package-package-dimension__unit">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
+			<div className="wcc-packages-list__item" key={ pckgId }>
+				<div
+					className={ classNames( 'wcc-packages-list-package', { selected: packageId === pckgId } ) }
+					onClick={ () => ( openPackage( pckgId ) ) } >
+					<span className="wcc-packages-list-package__name">{ name }</span>
+					{ undefined !== count ? <span className="wcc-packages-list-package__count">{ count }</span> : null }
 				</div>
 			</div>
 		);
 	};
+
+	const renderPackageListHeader = ( key, text ) => {
+		return ( <div className="wcc-packages-list__item wcc-packages-list__header" key={ key }>{ text }</div> );
+	};
+
+	const packageLabels = getPackageDescriptions( selected, all, false );
+	const packed = [];
+	const individual = [];
+
+	Object.keys( selected ).forEach( ( pckgId ) => {
+		const pckg = selected[ pckgId ];
+
+		if ( 'individual' === pckg.box_id ) {
+			individual.push( renderPackageListItem( pckgId, pckg.items[ 0 ].name ) );
+		} else {
+			packed.push( renderPackageListItem( pckgId, packageLabels[ pckgId ], pckg.items.length ) );
+		}
+	} );
+
+	if ( packed.length ) {
+		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Boxed' ) ) );
+	}
+
+	if ( individual.length ) {
+		individual.unshift( renderPackageListHeader( 'individual-header', __( 'Original packaging' ) ) );
+	}
 
 	return (
-		<div>
-			{ Object.values( _.mapValues( packages, renderPackageInfo ) ) }
+		<div className="wcc-packages-list">
+			{ packed }
+			{ renderAddPackage() }
+			{ individual }
+			{ renderUnpackedLink() }
 		</div>
 	);
 };
 
-OrderPackages.propTypes = {
-	packages: PropTypes.object.isRequired,
-	updateWeight: PropTypes.func.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
-	weightUnit: PropTypes.string.isRequired,
-	errors: PropTypes.object.isRequired,
+PackageList.propTypes = {
+	selected: PropTypes.object.isRequired,
+	all: PropTypes.object.isRequired,
+	unpacked: PropTypes.array.isRequired,
+	packageId: PropTypes.string.isRequired,
 };
 
-export default OrderPackages;
+export default PackageList;

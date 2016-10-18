@@ -22,7 +22,7 @@ const PrintLabelDialog = ( props ) => {
 
 	const getPurchaseButtonLabel = () => {
 		let label = __( 'Buy & Print' );
-		const nPackages = props.form.packages.values.length;
+		const nPackages = props.form.packages.selected.length;
 		if ( nPackages ) {
 			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
 		}
@@ -39,7 +39,7 @@ const PrintLabelDialog = ( props ) => {
 			additionalClassNames="wcc-modal" >
 			<div className="wcc-shipping-label-dialog__content">
 				<h3 className="form-section-heading">
-					{ 1 === props.form.packages.values.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
+					{ 1 === props.form.packages.selected.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
 				</h3>
 				<div className="wcc-shipping-label-dialog__body">
 					<div className="wcc-shipping-label-dialog__main-section">

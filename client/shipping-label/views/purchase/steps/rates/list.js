@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
+import getPackageDescriptions from '../packages/get-package-descriptions';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
@@ -22,20 +23,21 @@ const ShippingRates = ( {
 		id,
 		selectedRates, // Store owner selected rates, not customer
 		availableRates,
-		packages,
+		selectedPackages,
+		allPackages,
 		updateRate,
 		currencySymbol,
 		errors,
 		showRateNotice,
 	} ) => {
-	const renderTitle = ( pckg, index ) => {
-		if ( 1 === Object.keys( packages ).length ) {
+	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
+
+	const renderTitle = ( pckg, pckgId ) => {
+		if ( 1 === Object.keys( selectedPackages ).length ) {
 			return __( 'Choose rate' );
 		}
-		return sprintf( __( 'Choose rate: Package %(index)d' ), { index } );
+		return sprintf( __( 'Choose rate: %s' ), packageNames[ pckgId ] );
 	};
-
-	let packageNum = 1;
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
 		const selectedRate = selectedRates[ pckgId ] || '';
@@ -47,11 +49,11 @@ const ShippingRates = ( {
 		} );
 
 		return (
-			<div key={ packageNum }>
+			<div key={ pckgId }>
 				<Dropdown
-					id={ id + '_' + packageNum }
+					id={ id + '_' + pckgId }
 					valuesMap={ valuesMap }
-					title={ renderTitle( pckg, packageNum++ ) }
+					title={ renderTitle( pckg, pckgId ) }
 					value={ selectedRate }
 					updateValue={ ( value ) => updateRate( pckgId, value ) }
 					error={ errors[ pckgId ] } />
@@ -62,7 +64,7 @@ const ShippingRates = ( {
 	return (
 		<div>
 			{ renderRateNotice( showRateNotice ) }
-			{ Object.values( _.mapValues( packages, renderSinglePackage ) ) }
+			{ Object.values( _.mapValues( selectedPackages, renderSinglePackage ) ) }
 		</div>
 	);
 };
@@ -71,7 +73,8 @@ ShippingRates.propTypes = {
 	id: PropTypes.string.isRequired,
 	selectedRates: PropTypes.object.isRequired,
 	availableRates: PropTypes.object.isRequired,
-	packages: PropTypes.object.isRequired,
+	selectedPackages: PropTypes.object.isRequired,
+	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,

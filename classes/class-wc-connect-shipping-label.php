@@ -80,7 +80,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
 
-		protected function get_packages( WC_Order $order ) {
+		protected function get_selected_packages(WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
 				return $this->get_items_as_individual_packages( $order );
@@ -105,6 +105,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					}
 					$formatted_packages[ $package_id ][ 'items' ][ $item_index ] = $product_data;
 				}
+			}
+
+			return $formatted_packages;
+		}
+
+		protected function get_all_packages() {
+			$packages = $this->settings_store->get_packages();
+
+			if ( ! $packages ) {
+				return new stdClass();
+			}
+
+			$formatted_packages = array();
+
+			foreach( $packages as $package ) {
+				$package_id = $package[ 'name' ];
+				$formatted_packages[ $package_id ] = $package;
 			}
 
 			return $formatted_packages;
@@ -166,17 +183,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_data( WC_Order $order ) {
-			$packages        = $this->get_packages( $order );
-			$is_packed       = ( false !== $this->get_packaging_metadata( $order ) );
-			$origin          = $this->get_origin_address();
-			$selected_rates  = $this->get_selected_rates( $order );
-			$destination     = $this->get_destination_address( $order );
+			$selected_packages = $this->get_selected_packages( $order );
+			$all_packages      = $this->get_all_packages();
+			$is_packed         = ( false !== $this->get_packaging_metadata( $order ) );
+			$origin            = $this->get_origin_address();
+			$selected_rates    = $this->get_selected_rates( $order );
+			$destination       = $this->get_destination_address( $order );
 
 			if ( ! $destination[ 'country' ] ) {
 				$destination[ 'country' ] = $origin[ 'country' ];
 			}
 
-			$form_data = compact( 'is_packed', 'packages', 'origin', 'destination' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => (object) $selected_rates,
