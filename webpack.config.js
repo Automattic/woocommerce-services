@@ -46,6 +46,7 @@ module.exports = {
 			{
 				test: /\.jsx?$/,
 				loaders: [
+					'transform/cacheable?brfs',
 					'babel?' + JSON.stringify( babelSettings ),
 					'eslint'
 				],
