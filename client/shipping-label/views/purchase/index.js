@@ -56,8 +56,7 @@ const PrintLabelDialog = ( props ) => {
 						<PreviewStep
 							{ ...props }
 							{ ...props.form.preview }
-							errors={ props.errors.preview }
-							showPreview={ props.canPurchase } />
+							errors={ props.errors.preview } />
 					</div>
 				</div>
 				<ActionButtons buttons={ [

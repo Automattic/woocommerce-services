@@ -45,18 +45,19 @@ const getPackagesErrors = ( values ) => mapValues( values, ( pckg ) => {
 
 const getRatesErrors = ( values ) => mapValues( values, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) );
 
-const getPreviewErrors = ( previewData ) => {
+const getPreviewErrors = ( paperSize ) => {
 	const errors = {};
-	if ( ! previewData.paperSize ) {
+	if ( ! paperSize ) {
 		errors.paperSize = __( 'This field is required' );
 	}
 	return errors;
 };
 
 export default createSelector(
-	( state ) => state.shippingLabel.form,
+	( state ) => state.shippingLabel,
 	( state, { countriesData } ) => countriesData,
-	( form, countriesData ) => {
+	( shippingLabel, countriesData ) => {
+		const { form, paperSize } = shippingLabel;
 		if ( isEmpty( form ) ) {
 			return;
 		}
@@ -65,7 +66,7 @@ export default createSelector(
 			destination: getAddressErrors( form.destination, countriesData ),
 			packages: getPackagesErrors( form.packages.values ),
 			rates: getRatesErrors( form.rates.values ),
-			preview: getPreviewErrors( form.preview ),
+			preview: getPreviewErrors( paperSize ),
 		};
 	}
 );
