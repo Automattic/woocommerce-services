@@ -390,13 +390,14 @@ export const updateRate = ( packageId, value ) => {
 };
 
 const refreshPreview = ( dispatch, getState, { labelPreviewURL, nonce } ) => {
-	const form = getState().shippingLabel.form;
+	const state = getState().shippingLabel;
+	const { form, paperSize } = state;
 	let pckgIndex = 1;
 	const labels = _.map( form.packages.values, () => ( {
 		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
 		imageURL: labelPreviewURL,
 	} ) );
-	generatePDF( form.preview.paperSize, labels, nonce ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
+	generatePDF( paperSize, labels, nonce ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
 };
 
 export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
@@ -426,8 +427,13 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				// TODO: Figure out how to print multiple labels
-				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
+				let pckgIndex = 1;
+				const labels = response.map( ( label ) => ( {
+					caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, response.length ).toUpperCase(),
+					imageURL: sprintf( labelImageURL, label.label_id ),
+				} ) );
+				generatePDF( getState().shippingLabel.paperSize, labels, nonce )
+					.then( printDocument )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -450,7 +456,9 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		if ( ! _.every( normalizationResults ) ) {
 			return;
 		}
-		form = getState().shippingLabel.form;
+		const state = getState().shippingLabel;
+		const { paperSize } = state;
+		form = state.form;
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
@@ -462,7 +470,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
 			order_id: form.orderId,
-			paper_size: form.preview.paperSize,
+			paper_size: paperSize,
 		};
 
 		saveForm( setIsSaving, setSuccess, _.noop, setError, purchaseURL, nonce, 'POST', formData );
@@ -544,7 +552,9 @@ export const closeReprintDialog = () => {
 export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	printDocument( sprintf( labelImageURL, labelId ), nonce )
+	const imageURL = sprintf( labelImageURL, labelId );
+	generatePDF( getState().shippingLabel.paperSize, [ { imageURL } ], nonce )
+		.then( printDocument )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

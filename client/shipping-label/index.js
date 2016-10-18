@@ -26,6 +26,7 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 		return {
 			shippingLabel: {
 				labels: labelsData || [],
+				paperSize: formData.paper_size,
 				form: labelsData ? {} : {
 					orderId: formData.order_id,
 					origin: {
@@ -56,9 +57,7 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 						available: {},
 						retrievalInProgress: false,
 					},
-					preview: {
-						paperSize: formData.paper_size,
-					},
+					preview: {},
 				},
 				openedPackageId: labelsData ? '' : Object.keys( formData.selected_packages )[ 0 ] || '',
 			},

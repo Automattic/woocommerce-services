@@ -5,9 +5,9 @@ import Spinner from 'components/spinner';
 import { PAPER_SIZES } from 'lib/pdf-label-generator';
 import _ from 'lodash';
 
-const PreviewStep = ( { labelPreviewURL, showPreview, paperSize, labelActions, errors } ) => {
+const PreviewStep = ( { labelPreviewURL, canPurchase, paperSize, labelActions, errors } ) => {
 	let preview = null;
-	if ( showPreview ) {
+	if ( canPurchase ) {
 		if ( labelPreviewURL ) {
 			preview = <iframe src={ labelPreviewURL } />;
 		} else {
@@ -34,7 +34,7 @@ const PreviewStep = ( { labelPreviewURL, showPreview, paperSize, labelActions, e
 
 PreviewStep.propTypes = {
 	labelPreviewURL: PropTypes.string,
-	showPreview: PropTypes.bool.isRequired,
+	canPurchase: PropTypes.bool.isRequired,
 };
 
 export default PreviewStep;
