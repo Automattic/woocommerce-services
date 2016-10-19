@@ -55,8 +55,8 @@ cache:
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
 install:
     - . $HOME/.nvm/nvm.sh
-    - nvm install 6.7.0
-    - nvm use 6.7.0
+    - nvm install 6.9.0
+    - nvm use 6.9.0
     - npm install
 
 # Clones WordPress and configures our testing environment.

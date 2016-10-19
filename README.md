@@ -24,7 +24,7 @@ If you'd just like to check out the latest alpha release and not contribute code
 
 If you'd just like to check out the latest code and/or wish to contribute code, then perform the following:
 
-* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `5.11.1` and `npm` version 3+
+* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `6.9.0` and `npm` version 3+
 * Clone this repository into the `plugins` folder of the WordPress installation.
 * Run `npm install` to set up all the dependencies
 * You now have two choices:
