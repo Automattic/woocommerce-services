@@ -19,7 +19,7 @@ module.exports = {
 	babelSettings,
 	cache: true,
 	entry: {
-		'woocommerce-connect-client': [ 'babel-polyfill', './client/main.js' ],
+		'woocommerce-connect-client': [ './client/main.js' ],
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),

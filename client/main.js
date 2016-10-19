@@ -1,3 +1,7 @@
+if ( ! global._babelPolyfill ) {
+	require( 'babel-polyfill' );
+}
+
 /*global wcConnectData */
 import React from 'react';
 import ReactDOM from 'react-dom';
