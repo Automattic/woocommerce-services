@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import classNames from 'classnames';
-import omit from 'lodash/omit';
+import _ from 'lodash';
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'components/forms/form-radio';
 import Notice from 'components/notice';
@@ -10,7 +10,7 @@ import FormButton from 'components/forms/form-button';
 const RadioButton = ( props ) => {
 	return (
 		<FormLabel className={ classNames( 'suggestion', { 'is-selected': props.checked } ) }>
-			<FormRadio { ...omit( props, 'children' ) } />
+			<FormRadio { ..._.omit( props, 'children' ) } />
 			{ props.children }
 		</FormLabel>
 	);

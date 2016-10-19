@@ -8,7 +8,7 @@ import RatesStep from './steps/rates';
 import PreviewStep from './steps/preview';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
-import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
@@ -18,7 +18,7 @@ const PrintLabelDialog = ( props ) => {
 		! props.form.origin.normalizationInProgress &&
 		! props.form.destination.normalizationInProgress &&
 		! props.form.rates.retrievalInProgress &&
-		! isEmpty( props.form.rates.available );
+		! _.isEmpty( props.form.rates.available );
 
 	const getPurchaseButtonLabel = () => {
 		let label = __( 'Buy & Print' );

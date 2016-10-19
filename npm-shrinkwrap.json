@@ -408,6 +408,20 @@
       "from": "babel-plugin-check-es2015-constants@^6.3.13",
       "resolved": "https://registry.npmjs.org/babel-plugin-check-es2015-constants/-/babel-plugin-check-es2015-constants-6.8.0.tgz"
     },
+    "babel-plugin-lodash": {
+      "version": "3.2.9",
+      "from": "babel-plugin-lodash@latest",
+      "resolved": "https://registry.npmjs.org/babel-plugin-lodash/-/babel-plugin-lodash-3.2.9.tgz",
+      "dev": true,
+      "dependencies": {
+        "lodash": {
+          "version": "4.16.4",
+          "from": "lodash@>=4.15.0 <5.0.0",
+          "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.16.4.tgz",
+          "dev": true
+        }
+      }
+    },
     "babel-plugin-syntax-async-functions": {
       "version": "6.13.0",
       "from": "babel-plugin-syntax-async-functions@^6.8.0",
@@ -749,6 +763,12 @@
       "from": "batch@^0.5.3",
       "resolved": "https://registry.npmjs.org/batch/-/batch-0.5.3.tgz",
       "dev": true
+    },
+    "bcrypt-pbkdf": {
+      "version": "1.0.0",
+      "from": "bcrypt-pbkdf@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.0.tgz",
+      "optional": true
     },
     "benchmark": {
       "version": "1.0.0",
@@ -1494,6 +1514,12 @@
       "from": "dompurify@>=0.8.0 <0.9.0",
       "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-0.8.3.tgz"
     },
+    "ecc-jsbn": {
+      "version": "0.1.1",
+      "from": "ecc-jsbn@>=0.1.1 <0.2.0",
+      "resolved": "https://registry.npmjs.org/ecc-jsbn/-/ecc-jsbn-0.1.1.tgz",
+      "optional": true
+    },
     "ee-first": {
       "version": "1.1.1",
       "from": "ee-first@1.1.1",
@@ -1658,6 +1684,13 @@
           "from": "estraverse@>=1.9.1 <2.0.0",
           "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-1.9.3.tgz",
           "dev": true
+        },
+        "source-map": {
+          "version": "0.2.0",
+          "from": "source-map@>=0.2.0 <0.3.0",
+          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.2.0.tgz",
+          "dev": true,
+          "optional": true
         }
       }
     },
@@ -2893,6 +2926,12 @@
       "from": "jade-walk@>=0.0.3 <0.0.4",
       "resolved": "https://registry.npmjs.org/jade-walk/-/jade-walk-0.0.3.tgz"
     },
+    "jodid25519": {
+      "version": "1.0.2",
+      "from": "jodid25519@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/jodid25519/-/jodid25519-1.0.2.tgz",
+      "optional": true
+    },
     "js-base64": {
       "version": "2.1.9",
       "from": "js-base64@^2.1.9",
@@ -2914,6 +2953,12 @@
       "from": "js-yaml@~3.6.1",
       "resolved": "https://registry.npmjs.org/js-yaml/-/js-yaml-3.6.1.tgz",
       "dev": true
+    },
+    "jsbn": {
+      "version": "0.1.0",
+      "from": "jsbn@>=0.1.0 <0.2.0",
+      "resolved": "https://registry.npmjs.org/jsbn/-/jsbn-0.1.0.tgz",
+      "optional": true
     },
     "jsdom": {
       "version": "9.2.1",
@@ -3178,9 +3223,9 @@
       }
     },
     "lodash": {
-      "version": "4.13.1",
-      "from": "lodash@4.13.1",
-      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.13.1.tgz"
+      "version": "4.16.4",
+      "from": "lodash@4.16.4",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.16.4.tgz"
     },
     "lodash-es": {
       "version": "4.16.4",
@@ -5142,6 +5187,12 @@
       "from": "tunnel-agent@~0.4.1",
       "resolved": "https://registry.npmjs.org/tunnel-agent/-/tunnel-agent-0.4.3.tgz",
       "dev": true
+    },
+    "tweetnacl": {
+      "version": "0.14.3",
+      "from": "tweetnacl@>=0.14.0 <0.15.0",
+      "resolved": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.3.tgz",
+      "optional": true
     },
     "type-check": {
       "version": "0.3.2",

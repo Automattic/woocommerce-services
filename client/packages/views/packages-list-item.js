@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
 import classNames from 'classnames';
-import trim from 'lodash/trim';
+import _ from 'lodash';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const renderIcon = ( isLetter, isError, onClick ) => {
@@ -40,7 +40,7 @@ const PackagesListItem = ( {
 			<div className="package-name">
 				<a href="#" onClick={ openModal }>
 					{
-						data.name && '' !== trim( data.name )
+						data.name && '' !== _.trim( data.name )
 						? data.name
 						: <span className="package-no-name">{ __( 'Untitled' ) }</span>
 					}

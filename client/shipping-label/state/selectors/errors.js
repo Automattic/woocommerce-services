@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { translate as __ } from 'lib/mixins/i18n';
-import isEmpty from 'lodash/isEmpty';
-import mapValues from 'lodash/mapValues';
+import _ from 'lodash';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
 	if ( isNormalized && ! normalized ) {
@@ -28,14 +27,14 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 			break;
 	}
 
-	if ( ! isEmpty( countriesData[ country ] ) && ! state ) {
+	if ( ! _.isEmpty( countriesData[ country ] ) && ! state ) {
 		errors.state = __( 'This field is required' );
 	}
 
 	return errors;
 };
 
-const getPackagesErrors = ( values ) => mapValues( values, ( pckg ) => {
+const getPackagesErrors = ( values ) => _.mapValues( values, ( pckg ) => {
 	const errors = {};
 	if ( ! pckg.weight || 'number' !== typeof pckg.weight || 0 > pckg.weight ) {
 		errors.weight = __( 'Invalid weight' );
@@ -43,13 +42,13 @@ const getPackagesErrors = ( values ) => mapValues( values, ( pckg ) => {
 	return errors;
 } );
 
-const getRatesErrors = ( values ) => mapValues( values, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) );
+const getRatesErrors = ( values ) => _.mapValues( values, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) );
 
 export default createSelector(
 	( state ) => state.shippingLabel.form,
 	( state, { countriesData } ) => countriesData,
 	( form, countriesData ) => {
-		if ( isEmpty( form ) ) {
+		if ( _.isEmpty( form ) ) {
 			return;
 		}
 		return {

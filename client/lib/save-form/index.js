@@ -1,5 +1,4 @@
-import isArray from 'lodash/isArray';
-import Get from 'lodash/get';
+import _ from 'lodash';
 import parseJson from 'lib/utils/parse-json';
 import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 
@@ -23,10 +22,10 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 				return setSuccess( true, json );
 			}
 
-			if ( 'validation_failure' === Get( json, 'data.error' ) && Get( json, 'data.data.fields' ) ) {
+			if ( 'validation_failure' === _.get( json, 'data.error' ) && _.get( json, 'data.data.fields' ) ) {
 				let fieldsStatus = json.data.data.fields;
 				// Some services still give the field errors in an array, keep backwards-compatibility
-				if ( isArray( fieldsStatus ) ) {
+				if ( _.isArray( fieldsStatus ) ) {
 					fieldsStatus = {};
 					json.data.data.fields.forEach( ( fieldName ) => fieldsStatus[ fieldName ] = EMPTY_ERROR );
 				}

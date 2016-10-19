@@ -1,5 +1,5 @@
 import saveForm from 'lib/save-form';
-import noop from 'lodash/noop';
+import _ from 'lodash';
 import {
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
 	ADDRESS_NORMALIZATION_COMPLETED,
@@ -30,6 +30,6 @@ export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
 				setTimeout( () => resolve( ! error ), 0 );
 			}
 		};
-		saveForm( setIsSaving, setSuccess, noop, setError, addressNormalizationURL, nonce, 'POST', { address, type } );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, addressNormalizationURL, nonce, 'POST', { address, type } );
 	} );
 };

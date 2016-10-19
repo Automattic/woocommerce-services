@@ -10,7 +10,8 @@ const babelSettings = {
 		'react'
 	],
 	plugins: [
-		"add-module-exports",
+		'add-module-exports',
+		'lodash',
 	],
 	babelrc: false,
 };

@@ -3,9 +3,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import ShippingRates from './list';
 import StepContainer from '../../step-container';
 import { sprintf } from 'sprintf-js';
-import find from 'lodash/find';
-import get from 'lodash/get';
-import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
@@ -16,8 +14,8 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 	if ( 1 === packageIds.length ) {
 		const packageId = packageIds[ 0 ];
 		const selectedRate = selectedRates[ packageId ];
-		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
-		const rateInfo = find( packageRates, [ 'service_id', selectedRate ] );
+		const packageRates = _.get( availableRates, [ packageId, 'rates' ], [] );
+		const rateInfo = _.find( packageRates, [ 'service_id', selectedRate ] );
 
 		if ( rateInfo ) {
 			return sprintf( __( '%(serviceName)s: %(currencySymbol)s%(rate).2f' ), {
@@ -46,7 +44,7 @@ const getRatesStatus = ( { retrievalInProgress, errors, available } ) => {
 		return { isError: true };
 	}
 
-	if ( isEmpty( available ) ) {
+	if ( _.isEmpty( available ) ) {
 		return {};
 	}
 

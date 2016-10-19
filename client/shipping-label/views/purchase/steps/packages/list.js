@@ -3,7 +3,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';
 import { sprintf } from 'sprintf-js';
-import mapValues from 'lodash/mapValues';
+import _ from 'lodash';
 
 const renderPackageDimensions = ( pckg, dimensionUnit ) => {
 	return `${pckg.length} ${dimensionUnit} x ${pckg.width} ${dimensionUnit} x ${pckg.height} ${dimensionUnit}`;
@@ -62,7 +62,7 @@ const OrderPackages = ( { packages, updateWeight, dimensionUnit, weightUnit, err
 
 	return (
 		<div>
-			{ Object.values( mapValues( packages, renderPackageInfo ) ) }
+			{ Object.values( _.mapValues( packages, renderPackageInfo ) ) }
 		</div>
 	);
 };

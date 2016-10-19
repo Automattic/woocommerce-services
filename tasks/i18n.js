@@ -7,7 +7,7 @@
 const fs = require( 'fs' ),
 	Xgettext = require( 'xgettext-js' ),
 	preProcessXGettextJSMatch = require( 'i18n-calypso/cli/preprocess-xgettextjs-match.js' ),
-	uniq = require( 'lodash/uniq' );
+	_ = require( 'lodash' );
 
 // parser object that buids a WordPress php string for every
 // occurence of `translate()` in a file
@@ -60,7 +60,7 @@ function buildWordPressString( properties ) {
  */
 function buildPhpOutput( data, arrayName ) {
 	// find matching instances of `translate()` and generate corresponding php output
-	const matches = uniq( parser.getMatches( data ).map( ( match ) => match.string ) );
+	const matches = _.uniq( parser.getMatches( data ).map( ( match ) => match.string ) );
 
 	// prepend the matches array with this content to open the php file
 	matches.unshift( [

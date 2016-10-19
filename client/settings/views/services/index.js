@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
-import groupBy from 'lodash/groupBy';
+import _ from 'lodash';
 import ShippingServiceGroup from './group';
-import map from 'lodash/map';
 import classNames from 'classnames';
 import FormLegend from 'components/forms/form-legend';
 import FieldError from 'components/field-error';
@@ -23,10 +22,10 @@ const ShippingServiceGroups = ( {
 	// into groups.  This code iterates over the services and extracts the group(s)
 	// it finds.  When rendering, we can then iterate over the group(s).
 	const servicesWithSettings = services.map( svc => Object.assign( {}, svc, settings[ svc.id ] ) );
-	const serviceGroups = groupBy( servicesWithSettings, svc => svc.group );
+	const serviceGroups = _.groupBy( servicesWithSettings, svc => svc.group );
 
 	const renderServiceGroup = ( serviceGroup ) => {
-		const groupFields = map( serviceGroups[ serviceGroup ], 'id' );
+		const groupFields = _.map( serviceGroups[ serviceGroup ], 'id' );
 		const groupErrors = {};
 		groupFields.forEach( ( fieldName ) => {
 			if ( errors[ fieldName ] ) {

@@ -2,8 +2,7 @@ import React from 'react';
 import { combineReducers } from 'redux';
 import ShippingLabelRootView from './views';
 import shippingLabel from './state/reducer';
-import isEmpty from 'lodash/isEmpty';
-import mapValues from 'lodash/mapValues';
+import _ from 'lodash';
 
 // from calypso
 import notices from 'state/notices/reducer';
@@ -50,7 +49,7 @@ export default ( { formData, labelsData, storeOptions, labelPreviewURL } ) => ( 
 						isPacked: formData.is_packed,
 					},
 					rates: {
-						values: isEmpty( formData.rates.selected ) ? mapValues( formData.packages, () => ( '' ) ) : formData.rates.selected,
+						values: _.isEmpty( formData.rates.selected ) ? _.mapValues( formData.packages, () => ( '' ) ) : formData.rates.selected,
 						available: {},
 						retrievalInProgress: false,
 					},
