@@ -65,6 +65,7 @@ const ShippingLabelRootView = ( props ) => {
 				<div className="wcc-meta-box-action-buttons">
 					<ReprintDialog
 						reprintDialog={ props.shippingLabel.reprintDialog }
+						{ ...props.shippingLabel }
 						{ ...props }
 						{ ...label } />
 					<Button onClick={ () => props.labelActions.openReprintDialog( label.label_id ) } >
@@ -73,6 +74,7 @@ const ShippingLabelRootView = ( props ) => {
 
 					<RefundDialog
 						refundDialog={ props.shippingLabel.refundDialog }
+						{ ...props.shippingLabel }
 						{ ...props }
 						{ ...label } />
 					<Button onClick={ () => props.labelActions.openRefundDialog( label.label_id ) } >

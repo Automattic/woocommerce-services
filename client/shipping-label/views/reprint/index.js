@@ -2,8 +2,11 @@ import React, { PropTypes } from 'react';
 import Dialog from 'components/dialog';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
+import Dropdown from 'components/dropdown';
+import { PAPER_SIZES } from 'lib/pdf-label-generator';
+import _ from 'lodash';
 
-const ReprintDialog = ( { reprintDialog, labelActions } ) => {
+const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 	return (
 		<Dialog
 			isVisible={ Boolean( reprintDialog ) }
@@ -19,6 +22,12 @@ const ReprintDialog = ( { reprintDialog, labelActions } ) => {
 				<p className="reprint-notice">
 					{ __( 'NOTE: If you already used the label in a package, printing and using it again is a violation of our terms of service and may result in criminal charges.' ) }
 				</p>
+				<Dropdown
+					id={ 'paper_size' }
+					valuesMap={ _.mapValues( PAPER_SIZES, 'name' ) }
+					title={ __( 'Paper size' ) }
+					value={ paperSize }
+					updateValue={ labelActions.updatePaperSize } />
 				<ActionButtons buttons={ [
 					{
 						onClick: labelActions.confirmReprint,
@@ -39,6 +48,7 @@ const ReprintDialog = ( { reprintDialog, labelActions } ) => {
 ReprintDialog.propTypes = {
 	reprintDialog: PropTypes.object,
 	labelActions: PropTypes.object.isRequired,
+	paperSize: PropTypes.string.isRequired,
 };
 
 export default ReprintDialog;
