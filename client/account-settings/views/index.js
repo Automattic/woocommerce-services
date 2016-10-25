@@ -14,7 +14,10 @@ import * as NoticeActions from 'state/notices/actions';
 const AccountSettingsRootView = ( props ) => {
 	const onPaymentMethodChange = ( value ) => props.actions.setFormDataValue( 'selected_payment_method_id', value );
 
-	const onSaveSuccess = () => props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 2250 } );
+	const onSaveSuccess = () => {
+		props.actions.setFormMetaProperty( 'pristine', true );
+		props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 2250 } );
+	};
 	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to update your payment method. Please try again.' ), { duration: 7000 } );
 	const onSaveChanges = () => props.actions.saveForm( onSaveSuccess, onSaveFailure );
 
