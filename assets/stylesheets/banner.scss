@@ -1,0 +1,28 @@
+@import 'colors';
+
+.wcc-tos-banner {
+	border-left-color: $purple-light !important;
+	background: url( '../images/tos-notice-bg.png' ) no-repeat bottom right $white;
+	background-size: contain;
+
+	a {
+		color: $purple-light;
+
+		&:hover {
+			color: $purple-dark;
+		}
+	}
+
+    .button-primary {
+		background: $purple-light;
+		border-color: $purple-dark;
+		box-shadow: 0 1px 0 $purple-dark;
+		text-shadow: none;
+		color: $white;
+
+		&:hover {
+			background:  $purple;
+			border-color: $purple-dark;
+		}
+    }
+}

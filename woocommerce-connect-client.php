@@ -300,11 +300,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
+			if ( ! $this->check_tos() ) {
+				return;
+			}
 
 			$this->load_dependencies();
 			$this->attach_hooks();
 			$this->schedule_service_schemas_fetch();
-
 		}
 
 		/**
@@ -359,7 +361,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Hook plugin classes into WP/WC core.
 		 */
 		public function attach_hooks() {
-
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
 
@@ -381,7 +382,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
-
 		}
 
 		/**
@@ -620,6 +620,59 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $active_shipping_services;
 		}
 
+		public function check_tos() {
+			if ( get_option( 'wc_connect_tos_accepted', false ) ) {
+				return true;
+			}
+
+			add_action( 'admin_init', array( $this, 'dismiss_tos_notice' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
+			add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
+
+			return false;
+		}
+
+		public function admin_banner_styles() {
+			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
+			wp_enqueue_style( 'wc_connect_banner', $wc_connect_base_url . 'woocommerce-connect-client-banner.css' );
+		}
+
+		public function show_tos_notice() {
+			$accept_url = admin_url( 'plugins.php?wc-connect-notice=accept' );
+
+			?>
+			<div class="notice wcc-tos-banner">
+				<h1><?php _e( 'Connect for WooCommerce is almost ready!' ) ?></h1>
+				<p>
+					<?php
+					printf(
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how Connect for WooCommerce handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce' ),
+						esc_url( 'https://woocommerce.com/terms-conditions/connect-terms' ),
+						esc_url( 'https://woocommerce.com/terms-conditions/connect-privacy' )
+					);
+					?>
+				</p>
+				<p>
+					<a href="<?php echo( esc_url( $accept_url ) ) ?>" class="button-primary"><?php _e( 'Connect' ) ?></a>
+				</p>
+			</div>
+			<?php
+		}
+
+		public function dismiss_tos_notice() {
+			if ( ! isset( $_GET['wc-connect-notice'] ) || $_GET['wc-connect-notice'] !== 'accept' ) {
+				return;
+			}
+
+			update_option( 'wc_connect_tos_accepted', true );
+
+			if ( wp_get_referer() ) {
+				wp_safe_redirect( wp_get_referer() );
+			} else {
+				wp_safe_redirect( admin_url( 'plugins.php' ) );
+			}
+		}
+
 		public function get_active_services() {
 			return $this->get_active_shipping_services();
 		}
@@ -665,7 +718,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 			return $protected;
 		}
-
 	}
 
 	if ( ! defined( 'WC_UNIT_TESTING' ) ) {
