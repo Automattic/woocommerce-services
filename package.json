@@ -78,6 +78,7 @@
     "classnames": "^2.2.5",
     "debug": "^2.2.0",
     "dompurify": "^0.8.0",
+    "i18n-calypso": "^1.6.2",
     "is-my-json-valid": "^2.13.1",
     "lodash": "^4.16.4",
     "object-path-immutable": "^0.4.0",
