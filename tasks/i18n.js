@@ -34,8 +34,8 @@ function buildWordPressString( properties ) {
 	const wpFunc = properties.context ? '_x' : '__',
 		response = [],
 		stringFromFunc = {
-			__: '__( ' + properties.single + ' )',
-			_x: '_x( ' + [ properties.single, properties.context ].join( ', ' ) + ' )',
+			__: '__( ' + properties.single + ', "connectforwoocommerce" )',
+			_x: '_x( ' + [ properties.single, properties.context ].join( ', ' ) + ', "connectforwoocommerce" )',
 		};
 
 	// translations with comments get a preceding comment in the php code
