@@ -13,7 +13,7 @@ const fs = require( 'fs' ),
 // occurence of `translate()` in a file
 const parser = new Xgettext( {
 	keywords: {
-		translate: function( match ) {
+		'(0, _i18n.translate)': function( match ) {
 			const finalProps = preProcessXGettextJSMatch( match );
 
 			if ( ! finalProps ) {
