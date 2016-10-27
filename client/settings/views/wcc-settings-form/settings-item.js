@@ -130,7 +130,7 @@ const SettingsItem = ( {
 					id={ id }
 					title={ layout.title }
 					className={ layout.class }
-					value={ fieldValue }
+					value={ fieldValue || layout.description }
 				/>
 			);
 
