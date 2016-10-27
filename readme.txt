@@ -4,13 +4,15 @@ Donate link: http://woocommerce.com/
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
-Stable tag: 0.9
+Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Free real-time USPS and Canada Post rates and discounted USPS shipping labels for WooCommerce.
+Free real-time USPS and Canada Post rates and discounted USPS shipping labels for WooCommerce. (BETA)
 
 == Description ==
+
+**This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
 Much of the power in WooCommerce lies in the ability to customize and add anything.
 
@@ -30,9 +32,7 @@ This section describes how to install the plugin and get it working.
 1. Install and activate WooCommerce if you haven't already done so
 1. Install, activate and connect Jetpack if you haven't already done so
 1. Add a USPS or Canada Post shipping method instance to any shipping zone
-1. Want to buy shipping labels? First, add your credit card to wordpress.com/me/billing
-1. and then print labels for orders right from the Edit Order page
-
+1. Want to buy shipping labels? First, add your credit card to wordpress.com/me/billing and then print labels for orders right from the Edit Order page
 
 == Frequently Asked Questions ==
 
@@ -56,18 +56,27 @@ Yep! WooCommerce version 2.6 or newer, please.
 
 We use the Jetpack connection to authenticate each request and, if you use the shipping label service, to charge your credit card on file.
 
+= Are there Terms of Service and data usage policies? =
+
+Absolutely! You can read our Terms of Service here (TBD link) and our data policy here (TBD link).
+
 == Screenshots ==
 
-1. This is the first screen shot
-2. This is the second screen shot
+1. Buying a USPS shipping label for a package
+2. Setting up real-time USPS rates
+3. Setting up real-time Canada Post rates
+4. Real-time rate display in checkout
+5. Setting up custom packages
+6. Selecting your preferred payment method
+7. Managing your saved cards on WordPress.com
+8. Checking on the health of Connect for WooCommerce
 
 == Changelog ==
 
-= 0.9 =
+= 0.9.0 =
 * Beta release
 
 == Upgrade Notice ==
 
-= 0.9 =
+= 0.9.0 =
 Beta release
-
