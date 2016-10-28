@@ -1,6 +1,5 @@
 === Connect for WooCommerce ===
 Contributors: Automattic, WooThemes, allendav, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
-Donate link: http://woocommerce.com/
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
@@ -8,19 +7,24 @@ Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Free real-time USPS and Canada Post rates and discounted USPS shipping labels for WooCommerce. (BETA)
+Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels. (BETA)
 
 == Description ==
 
 **This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
-Much of the power in WooCommerce lies in the ability to customize and add anything.
+Connect for WooCommerce makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure. 
 
-But with all that power comes great responsibility: to make it as simple as possible to do the basic things. Unfortunately, right now, doing basic things like adding a shipping option can be kind of complicated.
+With Connect, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-With Connect, we're simplifying shipping. In addition to supporting USPS and Canada Post real-time shipping rates in checkout, we've also made managing settings for those features to make them more user-friendly.
+To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler. 
 
-And we're very excited to announce that our flagship release of Connect doesn't just include real-time shipping rates but also includes discounted USPS shipping labels. Buy and print labels for all your domestic USPS shipping needs.
+*Show live rates for USPS and Canada Post*
+Show your customers accurate shipping rates automatically for both USPS, the largest delivery network in the US, and Canada Post. 
+
+
+*Print shipping labels for USPS at a discounted rate*
+Give customers lower rates on their shipping. Create ready-to-print shipping labels for USPS directly in WooCommerce and take advantage of our special discount rate. 
 
 == Installation ==
 
