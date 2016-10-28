@@ -267,9 +267,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
-				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/image' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
-				'labelPreviewURL'         => plugins_url( 'assets/usps_fake_label.png', dirname( __FILE__ ) ),
+				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/pdf' ),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 			);

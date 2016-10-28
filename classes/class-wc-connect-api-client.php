@@ -197,13 +197,13 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets the actual image/PDF for the given shipping label
 		 *
-		 * @param $label_id integer
+		 * @param $params
 		 * @return object|WP_Error
 		 */
-		public function get_label_image( $label_id ) {
+		public function get_label_pdf( $params ) {
 			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
 			$url = apply_filters( 'wc_connect_server_url', $url );
-			$url = trailingslashit( $url ) . "shipping/label/{$label_id}/image";
+			$url = trailingslashit( $url ) . 'shipping/label/pdf?' . http_build_query( $params, '', '&' );
 
 			$headers = $this->request_headers();
 			if ( is_wp_error( $headers ) ) {

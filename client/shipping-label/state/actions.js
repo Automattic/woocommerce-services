@@ -9,7 +9,7 @@ import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
-import generatePDF from 'lib/pdf-label-generator';
+import { getPDFUrl } from 'lib/pdf-label-utils';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -371,40 +371,54 @@ export const confirmAddItem = ( sourcePackageId, itemIndex, targetPackageId ) =>
 	dispatch( closeAddItem() );
 };
 
-export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeOptions, nonce } ) => {
+const refreshPreview = ( dispatch, getState, context ) => {
+	if ( ! canPurchase( getState(), context.storeOptions ) ) {
+		return;
+	}
+	const state = getState().shippingLabel;
+	const { form, paperSize } = state;
+	let pckgIndex = 1;
+	const labels = _.map( form.packages.values, () => ( {
+		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
+	} ) );
+
+	const pdfUrl = getPDFUrl( paperSize, labels, context.labelImageURL, true );
+	fetch( pdfUrl, { credentials: 'same-origin', headers: { 'X-WP-Nonce': context.nonce } } )
+		.then( ( response ) => {
+			if ( 200 !== response.status ) {
+				throw new Error( response.statusText );
+			}
+			return response.blob();
+		} )
+		.then( URL.createObjectURL )
+		.then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) )
+		.catch( ( error ) => {
+			console.error( error );
+			dispatch( { type: UPDATE_PREVIEW, url: null } );
+		} );
+};
+
+export const confirmPackages = () => ( dispatch, getState, context ) => {
+	const { getRatesURL, storeOptions, nonce } = context;
 	dispatch( toggleStep( 'packages' ) );
 	dispatch( savePackages() );
 
 	const handleResponse = () => {
 		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
+		refreshPreview( dispatch, getState, context );
 	};
 
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
 export const updateRate = ( packageId, value ) => ( dispatch, getState, context ) => {
-	const couldPurchase = canPurchase( getState(), context.storeOptions );
-
 	dispatch( {
 		type: UPDATE_RATE,
 		packageId,
 		value,
 	} );
 
-	if ( ! couldPurchase && canPurchase( getState(), context.storeOptions ) ) {
-		refreshPreview( dispatch, getState, context );
-	}
-};
-
-const refreshPreview = ( dispatch, getState, { labelPreviewURL, nonce } ) => {
-	const state = getState().shippingLabel;
-	const { form, paperSize } = state;
-	let pckgIndex = 1;
-	const labels = _.map( form.packages.values, () => ( {
-		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
-		imageURL: labelPreviewURL,
-	} ) );
-	generatePDF( paperSize, labels, nonce ).then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) );
+	refreshPreview( dispatch, getState, context );
 };
 
 export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
@@ -437,10 +451,9 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				let pckgIndex = 1;
 				const labels = response.map( ( label ) => ( {
 					caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, response.length ).toUpperCase(),
-					imageURL: sprintf( labelImageURL, label.label_id ),
+					labelId: label.label_id,
 				} ) );
-				generatePDF( getState().shippingLabel.paperSize, labels, nonce )
-					.then( printDocument )
+				printDocument( getPDFUrl( getState().shippingLabel.paperSize, labels, labelImageURL ), nonce )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -559,9 +572,7 @@ export const closeReprintDialog = () => {
 export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	const imageURL = sprintf( labelImageURL, labelId );
-	generatePDF( getState().shippingLabel.paperSize, [ { imageURL } ], nonce )
-		.then( printDocument )
+	printDocument( getPDFUrl( getState().shippingLabel.paperSize, [ { labelId } ], labelImageURL ), nonce )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

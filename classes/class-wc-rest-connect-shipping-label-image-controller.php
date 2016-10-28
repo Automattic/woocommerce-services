@@ -22,7 +22,7 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'connect/label/(?P<order_id>\d+)-(?P<label_id>\d+)/image';
+	protected $rest_base = 'connect/label/pdf';
 
 	/**
 	 * @var WC_Connect_API_Client
@@ -53,7 +53,9 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	}
 
 	public function get_item( $request ) {
-		$raw_response = $this->api_client->get_label_image( $request[ 'label_id' ] );
+		$params = $request->get_params();
+		$params[ 'carrier' ] = 'usps';
+		$raw_response = $this->api_client->get_label_pdf( $params );
 
 		if ( is_wp_error( $raw_response ) ) {
 			$this->logger->log( $raw_response, __CLASS__ );

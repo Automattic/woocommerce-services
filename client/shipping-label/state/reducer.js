@@ -418,20 +418,18 @@ reducers[ UPDATE_RATE ] = ( state, { packageId, value } ) => {
 };
 
 reducers[ UPDATE_PAPER_SIZE ] = ( state, { value } ) => {
-	if ( state.form.preview.labelPreviewURL ) {
-		URL.revokeObjectURL( state.form.preview.labelPreviewURL );
-	}
 	return { ...state,
 		paperSize: value,
-		form: { ...state.form,
-			preview: { ...state.form.preview,
-				labelPreviewURL: null,
-			},
-		},
 	};
 };
 
 reducers[ UPDATE_PREVIEW ] = ( state, { url } ) => {
+	if ( state.form.preview.labelPreviewURL === url ) {
+		return state;
+	}
+	if ( state.form.preview.labelPreviewURL ) {
+		URL.revokeObjectURL( state.form.preview.labelPreviewURL );
+	}
 	return { ...state,
 		form: { ...state.form,
 			preview: { ...state.form.preview,
