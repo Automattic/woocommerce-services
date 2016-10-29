@@ -197,35 +197,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets the actual image/PDF for the given shipping label
 		 *
-		 * @param $params
+		 * @param $request
 		 * @return object|WP_Error
 		 */
-		public function get_label_pdf( $params ) {
-			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
-			$url = apply_filters( 'wc_connect_server_url', $url );
-			$url = trailingslashit( $url ) . 'shipping/label/pdf?' . http_build_query( $params, '', '&' );
-
-			$headers = $this->request_headers();
-			if ( is_wp_error( $headers ) ) {
-				return $headers;
-			}
-
-			$args = array(
-				'headers' => $headers,
-				'compress' => true,
-				'timeout' => 20,
-			);
-			$args = apply_filters( 'wc_connect_request_args', $args );
-
-			$response = wp_remote_get( $url, $args );
-			$code = wp_remote_retrieve_response_code( $response );
-			if ( 200 != $code ) {
-				return new WP_Error(
-					'wcc_server_error',
-					sprintf( 'Error: The Connect for WooCommerce server returned HTTP code: %d', $code )
-				);
-			}
-			return $response;
+		public function get_label_pdf( $request ) {
+			return $this->request( 'POST', 'shipping/label/pdf', $request, true );
 		}
 
 		/**
@@ -263,9 +239,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $method
 		 * @param $path
 		 * @param $body
+		 * @param $return_raw_response
 		 * @return mixed|WP_Error
 		 */
-		protected function request( $method, $path, $body = array() ) {
+		protected function request( $method, $path, $body = array(), $return_raw_response = false ) {
 
 			// TODO - incorporate caching for repeated identical requests
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
@@ -317,6 +294,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$response = wp_remote_request( $url, $args );
 			$response_code = wp_remote_retrieve_response_code( $response );
+
+			if ( $return_raw_response ) {
+				if ( 200 != $response_code ) {
+					return new WP_Error(
+						'wcc_server_error',
+						sprintf( 'Error: The Connect for WooCommerce server returned HTTP code: %d', $response_code )
+					);
+				}
+				return $response;
+			}
+
 			$response_body = wp_remote_retrieve_body( $response );
 			if ( ! empty( $response_body ) ) {
 				$response_body = json_decode( $response_body );
