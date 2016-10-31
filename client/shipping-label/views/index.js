@@ -15,10 +15,11 @@ import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
 
-let labelsStatusUpdateTriggered = false;
+let needToFetchLabelsStatus = true;
 
 const ShippingLabelRootView = ( props ) => {
 	const renderPurchaseLabelFlow = () => {
+		needToFetchLabelsStatus = false;
 		return (
 			<div>
 				<PurchaseLabelDialog
@@ -86,8 +87,8 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderLabelsActions = () => {
-		if ( ! labelsStatusUpdateTriggered ) {
-			labelsStatusUpdateTriggered = true;
+		if ( needToFetchLabelsStatus ) {
+			needToFetchLabelsStatus = false;
 			props.labelActions.fetchLabelsStatus();
 		}
 		return (
