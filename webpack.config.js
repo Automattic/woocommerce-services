@@ -66,12 +66,6 @@ module.exports = {
 		]
 	},
 	resolve: {
-		alias: {
-			'react': path.join( __dirname, 'node_modules', 'react' ),
-			'react-dom': path.join( __dirname, 'node_modules', 'react-dom' ),
-			'redux': path.join( __dirname, 'node_modules', 'redux' ),
-			'lib/mixins/i18n': path.join( __dirname, 'client', 'lib', 'mixins', 'i18n' )
-		},
 		extensions: [ '', '.json', '.js', '.jsx' ],
 		root: [
 			path.join( __dirname, 'client' ),
