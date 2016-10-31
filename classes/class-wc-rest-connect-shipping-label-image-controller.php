@@ -30,12 +30,18 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	protected $api_client;
 
 	/**
+	 * @var WC_Connect_Service_Settings_Store
+	 */
+	protected $settings_store;
+
+	/**
 	 * @var WC_Connect_Logger
 	 */
 	protected $logger;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
+		$this->settings_store = $settings_store;
 		$this->logger = $logger;
 	}
 
@@ -55,8 +61,10 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	public function get_item( $request ) {
 		$raw_params = $request->get_params();
 		$params = array();
+
+		$params[ 'paper_size' ] = $raw_params[ 'paper_size' ];
+		$this->settings_store->set_preferred_paper_size( $params[ 'paper_size' ] );
 		$params[ 'carrier' ] = 'usps';
-		$params[ 'preview' ] = 'true' == $raw_params[ 'preview' ];
 
 		$n_label_ids = isset( $raw_params[ 'label_ids' ] ) ? count( $raw_params[ 'label_ids' ] ) : 0;
 		$n_captions = isset( $raw_params[ 'captions' ] ) ? count( $raw_params[ 'captions' ] ) : 0;

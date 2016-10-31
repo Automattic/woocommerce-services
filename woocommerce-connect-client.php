@@ -452,7 +452,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_shipping_label_refund_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-image-controller.php' ) );
-			$rest_shipping_label_image_controller = new WC_REST_Connect_Shipping_Label_Image_Controller( $this->api_client, $logger );
+			$rest_shipping_label_image_controller = new WC_REST_Connect_Shipping_Label_Image_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_shipping_label_image_controller( $rest_shipping_label_image_controller );
 			$rest_shipping_label_image_controller->register_routes();
 

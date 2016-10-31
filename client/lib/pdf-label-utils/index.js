@@ -2,17 +2,17 @@ import { translate as __ } from 'lib/mixins/i18n';
 
 export const PAPER_SIZES = {
 	a4: __( 'A4' ),
-	letter: __( 'Letter' ),
-	legal: __( 'Legal' ),
 	label: __( 'Label (4"x6")' ),
+	legal: __( 'Legal' ),
+	letter: __( 'Letter' ),
 };
 
-export const getPDFUrl = ( paperSize, labels, baseUrl, isPreview = false ) => {
+export const getPDFUrl = ( paperSize, labels, baseUrl, nonce ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
 		throw new Error( `Invalid paper size: ${paperSize}` );
 	}
 	const params = [];
-	params.push( `preview=${isPreview}` );
+	params.push( `_wpnonce=${nonce}` );
 	params.push( `paper_size=${encodeURIComponent( paperSize )}` );
 	labels.forEach( ( { caption, labelId } ) => {
 		if ( labelId ) {

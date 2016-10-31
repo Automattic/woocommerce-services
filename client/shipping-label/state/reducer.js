@@ -424,12 +424,6 @@ reducers[ UPDATE_PAPER_SIZE ] = ( state, { value } ) => {
 };
 
 reducers[ UPDATE_PREVIEW ] = ( state, { url } ) => {
-	if ( state.form.preview.labelPreviewURL === url ) {
-		return state;
-	}
-	if ( state.form.preview.labelPreviewURL ) {
-		URL.revokeObjectURL( state.form.preview.labelPreviewURL );
-	}
 	return { ...state,
 		form: { ...state.form,
 			preview: { ...state.form.preview,

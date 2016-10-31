@@ -382,20 +382,10 @@ const refreshPreview = ( dispatch, getState, context ) => {
 		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
 	} ) );
 
-	const pdfUrl = getPDFUrl( paperSize, labels, context.labelImageURL, true );
-	fetch( pdfUrl, { credentials: 'same-origin', headers: { 'X-WP-Nonce': context.nonce } } )
-		.then( ( response ) => {
-			if ( 200 !== response.status ) {
-				throw new Error( response.statusText );
-			}
-			return response.blob();
-		} )
-		.then( URL.createObjectURL )
-		.then( ( url ) => dispatch( { type: UPDATE_PREVIEW, url } ) )
-		.catch( ( error ) => {
-			console.error( error );
-			dispatch( { type: UPDATE_PREVIEW, url: null } );
-		} );
+	dispatch( {
+		type: UPDATE_PREVIEW,
+		url: getPDFUrl( paperSize, labels, context.labelImageURL, context.nonce ),
+	} );
 };
 
 export const confirmPackages = () => ( dispatch, getState, context ) => {
@@ -453,7 +443,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 					caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, response.length ).toUpperCase(),
 					labelId: label.label_id,
 				} ) );
-				printDocument( getPDFUrl( getState().shippingLabel.paperSize, labels, labelImageURL ), nonce )
+				printDocument( getPDFUrl( getState().shippingLabel.paperSize, labels, labelImageURL, nonce ) )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -477,7 +467,6 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 			return;
 		}
 		const state = getState().shippingLabel;
-		const { paperSize } = state;
 		form = state.form;
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
@@ -490,7 +479,6 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
 			} ) ),
 			order_id: form.orderId,
-			paper_size: paperSize,
 		};
 
 		saveForm( setIsSaving, setSuccess, _.noop, setError, purchaseURL, nonce, 'POST', formData );
@@ -572,7 +560,7 @@ export const closeReprintDialog = () => {
 export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	printDocument( getPDFUrl( getState().shippingLabel.paperSize, [ { labelId } ], labelImageURL ), nonce )
+	printDocument( getPDFUrl( getState().shippingLabel.paperSize, [ { labelId } ], labelImageURL, nonce ) )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
