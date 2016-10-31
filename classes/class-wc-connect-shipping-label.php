@@ -202,8 +202,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$form_data[ 'order_id' ] = $order->id;
 
-			$form_data[ 'paper_size' ] = $this->settings_store->get_preferred_paper_size();
-
 			return $form_data;
 		}
 
@@ -269,6 +267,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
 				'labelImageURL'           => get_rest_url( null, '/wc/v1/connect/label/pdf' ),
+				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 			);

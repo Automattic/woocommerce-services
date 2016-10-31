@@ -442,15 +442,17 @@ reducers[ PURCHASE_LABEL_REQUEST ] = ( state ) => {
 };
 
 reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
-	const newState = { ...state,
-		form: { ...state.form,
-			isSubmitting: false,
-		},
-	};
-	if ( ! error ) {
-		newState.labels = response;
+	if ( error ) {
+		return { ...state,
+			form: { ...state.form,
+				isSubmitting: false,
+			},
+		};
+	} else {
+		return { ...state,
+			labels: response,
+		};
 	}
-	return newState;
 };
 
 reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {

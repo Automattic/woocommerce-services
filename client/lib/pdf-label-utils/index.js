@@ -1,7 +1,8 @@
 import { translate as __ } from 'lib/mixins/i18n';
 
 export const PAPER_SIZES = {
-	a4: __( 'A4' ),
+	// a4: __( 'A4' ),
+	// a5: __( 'A5' ),
 	label: __( 'Label (4"x6")' ),
 	legal: __( 'Legal' ),
 	letter: __( 'Letter' ),

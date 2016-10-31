@@ -7,7 +7,7 @@ import _ from 'lodash';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, labelsData, storeOptions } ) => ( {
+export default ( { formData, labelsData, paperSize, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			shippingLabel,
@@ -26,7 +26,7 @@ export default ( { formData, labelsData, storeOptions } ) => ( {
 		return {
 			shippingLabel: {
 				labels: labelsData || [],
-				paperSize: formData.paper_size,
+				paperSize,
 				form: labelsData ? {} : {
 					orderId: formData.order_id,
 					origin: {
