@@ -448,11 +448,10 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 				isSubmitting: false,
 			},
 		};
-	} else {
-		return { ...state,
-			labels: response,
-		};
 	}
+	return { ...state,
+		labels: response,
+	};
 };
 
 reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {
