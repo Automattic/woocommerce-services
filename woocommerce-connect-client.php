@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Connect for WooCommerce
- * Plugin URI: http://woothemes.com/
- * Description: Connect for WooCommerce: Shipping, Simplified. Powered by Jetpack, this feature plugin provides a Shipping Zones compatible USPS shipping method for your WooCommerce powered store.
+ * Plugin URI: http://woocommerce.com/
+ * Description: Connect for WooCommerce: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
- * Author URI: http://woothemes.com/
- * Version: 0.3
+ * Author URI: http://woocommerce.com/
+ * Version: 0.9.0
  *
  * Copyright (c) 2016 Automattic
  *
