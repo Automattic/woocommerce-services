@@ -151,6 +151,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function __construct() {
+			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 			add_action( 'woocommerce_init', array( $this, 'init' ) );
 		}
 
@@ -292,6 +293,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_help_view( WC_Connect_Help_View $help_view ) {
 			$this->help_view = $help_view;
+		}
+
+		/**
+		 * Load our textdomain
+		 *
+		 * @codeCoverageIgnore
+		 */
+		public function load_textdomain() {
+			load_plugin_textdomain( 'connectforwoocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
 		}
 
 		/**
@@ -650,7 +660,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function add_meta_boxes() {
 			$shipping_label = new WC_Connect_Shipping_Label( $this->api_client, $this->service_settings_store );
 			if ( $shipping_label->should_show_meta_box() ) {
-				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce' ), array( $shipping_label, 'meta_box' ), null, 'side', 'default' );
+				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'connectforwoocommerce' ), array( $shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
 		}
 
@@ -673,6 +683,5 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	}
 }
 
-// todo: update this once we merge into WC core
 register_activation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_activation' ) );
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );

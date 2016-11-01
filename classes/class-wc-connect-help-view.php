@@ -50,7 +50,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'notice',
 					'indicator-error',
 					sprintf(
-						__( 'WooCommerce %s or higher is required (You are running %s)', 'woocommerce' ),
+						__( 'WooCommerce %s or higher is required (You are running %s)', 'connectforwoocommerce' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
 						WC()->version
 					),
@@ -61,7 +61,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'woocommerce_indicator',
 					'notice',
 					'indicator-error',
-					__( 'Please set Base Location in WooCommerce Settings > General' ),
+					__( 'Please set Base Location in WooCommerce Settings > General', 'connectforwoocommerce' ),
 					''
 				);
 			} else {
@@ -70,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'checkmark-circle',
 					'indicator-success',
 					sprintf(
-						__( 'WooCommerce %s is configured correctly', 'woocommerce' ),
+						__( 'WooCommerce %s is configured correctly', 'connectforwoocommerce' ),
 						WC()->version
 					),
 					''
@@ -78,7 +78,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 			$health_items[] = (object) array(
 				'key' => 'woocommerce_health_items',
-				'title' => __( 'WooCommerce', 'woocommerce' ),
+				'title' => __( 'WooCommerce', 'connectforwoocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'woocommerce_indicator' => $health_item
@@ -101,7 +101,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'notice',
 					'indicator-error',
 					sprintf(
-						__( 'Please install and activate the Jetpack plugin, version %s or higher', 'woocommerce' ),
+						__( 'Please install and activate the Jetpack plugin, version %s or higher', 'connectforwoocommerce' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION
 					),
 					''
@@ -112,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'notice',
 					'indicator-error',
 					sprintf(
-						__( 'Jetpack %s or higher is required (You are running %s)', 'woocommerce' ),
+						__( 'Jetpack %s or higher is required (You are running %s)', 'connectforwoocommerce' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION,
 						JETPACK__VERSION
 					),
@@ -123,7 +123,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'jetpack_indicator',
 					'notice',
 					'indicator-error',
-					__( 'Please connect Jetpack to WordPress.com', 'woocommerce' ),
+					__( 'Please connect Jetpack to WordPress.com', 'connectforwoocommerce' ),
 					''
 				);
 			} else if ( Jetpack::is_staging_site() ) {
@@ -131,7 +131,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'jetpack_indicator',
 					'notice',
 					'indicator-warning',
-					__( 'This is a Jetpack staging site', 'woocommerce' ),
+					__( 'This is a Jetpack staging site', 'connectforwoocommerce' ),
 					''
 				);
 			} else {
@@ -140,7 +140,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'checkmark-circle',
 					'indicator-success',
 					sprintf(
-						__( 'Jetpack %s is connected and working correctly', 'woocommerce' ),
+						__( 'Jetpack %s is connected and working correctly', 'connectforwoocommerce' ),
 						JETPACK__VERSION
 					),
 					''
@@ -148,7 +148,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 			$health_items[] = (object) array(
 				'key' => 'jetpack_health_items',
-				'title' => __( 'Jetpack', 'woocommerce' ),
+				'title' => __( 'Jetpack', 'connectforwoocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'jetpack_indicator' => $health_item
@@ -162,7 +162,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
 			if ( ! is_null( $last_fetch_timestamp ) ) {
 				$last_fetch_timestamp_formatted = sprintf(
-					_x( 'Last updated %s ago', '%s = human-readable time difference', 'woocommerce' ),
+					_x( 'Last updated %s ago', '%s = human-readable time difference', 'connectforwoocommerce' ),
 					human_time_diff( $last_fetch_timestamp )
 				);
 			} else {
@@ -173,7 +173,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'wcc_indicator',
 					'notice',
 					'indicator-error',
-					__( 'No service data available', 'woocommerce' ),
+					__( 'No service data available', 'connectforwoocommerce' ),
 					''
 				);
 			} else if ( is_null( $last_fetch_timestamp ) ) {
@@ -181,7 +181,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'wcc_indicator',
 					'notice',
 					'indicator-warning',
-					__( 'Service data was found, but may be out of date', 'woocommerce' ),
+					__( 'Service data was found, but may be out of date', 'connectforwoocommerce' ),
 					''
 				);
 			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD ) {
@@ -189,7 +189,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'wcc_indicator',
 					'notice',
 					'indicator-error',
-					__( 'Service data was found, but is more than three days old', 'woocommerce' ),
+					__( 'Service data was found, but is more than three days old', 'connectforwoocommerce' ),
 					$last_fetch_timestamp_formatted
 				);
 			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD ) {
@@ -197,7 +197,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'wcc_indicator',
 					'notice',
 					'indicator-warning',
-					__( 'Service data was found, but is more than one day old', 'woocommerce' ),
+					__( 'Service data was found, but is more than one day old', 'connectforwoocommerce' ),
 					$last_fetch_timestamp_formatted
 				);
 			} else {
@@ -205,14 +205,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'wcc_indicator',
 					'checkmark-circle',
 					'indicator-success',
-					__( 'Service data is up-to-date', 'woocommerce' ),
+					__( 'Service data is up-to-date', 'connectforwoocommerce' ),
 					$last_fetch_timestamp_formatted
 				);
 			}
 
 			$health_items[] =	(object) array(
 				'key' => 'wcc_health_items',
-				'title' => __( 'Connect for WooCommerce Service Data', 'woocommerce' ),
+				'title' => __( 'Connect for WooCommerce Service Data', 'connectforwoocommerce' ),
 				'type' => 'indicators',
 				'items' => array(
 					'wcc_indicator' => $health_item
@@ -232,7 +232,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'key' => 'wcc_services_empty',
 					'type' => 'text',
 					'class' => 'form_text_body_copy',
-					'value' => __( 'No services have been enabled', 'woocommerce' )
+					'value' => __( 'No services have been enabled', 'connectforwoocommerce' )
 				);
 
 				return $service_items;
@@ -254,7 +254,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 				$review_link = sprintf(
 					wp_kses(
-						__( '<a href="%s">Review service settings</a>', 'woocommerce' ),
+						__( '<a href="%s">Review service settings</a>', 'connectforwoocommerce' ),
 						array(  'a' => array( 'href' => array() ) )
 					),
 					esc_url( $service_settings_url )
@@ -262,7 +262,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 				$edit_link = sprintf(
 					wp_kses(
-						__( '<a href="%s">Edit service settings</a>', 'woocommerce' ),
+						__( '<a href="%s">Edit service settings</a>', 'connectforwoocommerce' ),
 						array(  'a' => array( 'href' => array() ) )
 					),
 					esc_url( $service_settings_url )
@@ -270,7 +270,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 				$ago_edit_link = sprintf(
 					wp_kses(
-						_x( 'Request was made %1$s ago - <a href="%2$s">edit service settings</a>', 'e.g. two hours', 'woocommerce' ),
+						_x( 'Request was made %1$s ago - <a href="%2$s">edit service settings</a>', 'e.g. two hours', 'connectforwoocommerce' ),
 						array( 'a' => array( 'href' => array() ) )
 					),
 					esc_html( human_time_diff( $last_failed_request_timestamp ) ),
@@ -284,7 +284,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 						$indicator_key,
 						'notice',
 						'indicator-error',
-						__( 'Setup for this service has not yet been completed', 'woocommerce' ),
+						__( 'Setup for this service has not yet been completed', 'connectforwoocommerce' ),
 						$edit_link
 					);
 				} else if ( -1 === $last_failed_request_timestamp ) {
@@ -292,7 +292,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 						$indicator_key,
 						'notice',
 						'indicator-warning',
-						__( 'No rate requests have yet been made for this service', 'woocommerce' ),
+						__( 'No rate requests have yet been made for this service', 'connectforwoocommerce' ),
 						$review_link
 					);
 				} else if ( 0 === $last_failed_request_timestamp ) {
@@ -300,7 +300,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 						$indicator_key,
 						'checkmark-circle',
 						'indicator-success',
-						__( 'The most recent rate request was successful', 'woocommerce' ),
+						__( 'The most recent rate request was successful', 'connectforwoocommerce' ),
 						$edit_link
 					);
 				} else {
@@ -308,14 +308,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 						$indicator_key,
 						'notice',
 						'indicator-error',
-						__( 'The most recent rate request failed', 'woocommerce' ),
+						__( 'The most recent rate request failed', 'connectforwoocommerce' ),
 						$ago_edit_link
 					);
 				}
 
 				$items_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}_items";
 				$subtitle = sprintf(
-					__( '%s Shipping Zone', 'woocommerce' ),
+					__( '%s Shipping Zone', 'connectforwoocommerce' ),
 					$enabled_service->zone_name
 				);
 
@@ -366,8 +366,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'key' => 'wcc_debug_on',
 				'title' => 'Debug Logging',
 				'type' => 'boolean',
-				'true_text' => __( 'Enabled', 'woocommerce' ),
-				'false_text' => __( 'Disabled', 'woocommerce' ),
+				'true_text' => __( 'Enabled', 'connectforwoocommerce' ),
+				'false_text' => __( 'Disabled', 'connectforwoocommerce' ),
 				'description' => '',
 				'value' => $this->logger->is_logging_enabled(),
 				'save_on_toggle' => true
@@ -378,7 +378,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$log_tail_line_count = count( $log_data->tail );
 			if ( $log_tail_line_count < 1 ) {
 				$description = '';
-				$log_tail = __( 'Log is empty', 'woocommerce' );
+				$log_tail = __( 'Log is empty', 'connectforwoocommerce' );
 			} else {
 				$url = add_query_arg(
 					array(
@@ -390,7 +390,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				);
 				$description = sprintf(
 					wp_kses(
-						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce' ),
+						__( 'Last %d entries <a href="%s">Show full log</a>', 'connectforwoocommerce' ),
 						array(  'a' => array( 'href' => array() ) ) ),
 					$log_tail_line_count,
 					esc_url( $url )
@@ -400,7 +400,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$debug_items[] = (object) array(
 				'key' => 'wcc_debug_log_tail',
-				'title' => __( 'Debug Log', 'woocommerce' ),
+				'title' => __( 'Debug Log', 'connectforwoocommerce' ),
 				'type' => 'textarea',
 				'description' => $description,
 				'readonly' => true,
@@ -415,7 +415,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$doc_link = sprintf(
 				wp_kses(
-					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>', 'woocommerce' ),
+					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>', 'connectforwoocommerce' ),
 					array(  'a' => array( 'href' => array() ) )
 				),
 				esc_url( 'https://docs.woocommerce.com/document/woocommerce-connect-faq/' ),
@@ -426,7 +426,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'key' => 'wcc_support_item',
 				'type' => 'text',
 				'class' => 'form_text_body_copy',
-				'title' => __( 'Need help?', 'woocommerce' ),
+				'title' => __( 'Need help?', 'connectforwoocommerce' ),
 				'value' => $doc_link
 			);
 
@@ -465,7 +465,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce' );
+			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'connectforwoocommerce' );
 			return $tabs;
 
 		}
@@ -648,25 +648,25 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$this->add_fieldset(
 				'health',
-				_x( 'Health', 'This section displays the overall health of Connect for WooCommerce and the things it depends on', 'woocommerce' ),
+				_x( 'Health', 'This section displays the overall health of Connect for WooCommerce and the things it depends on', 'connectforwoocommerce' ),
 				$this->get_health_items()
 			);
 
 			$this->add_fieldset(
 				'services',
-				__( 'Services', 'woocommerce' ),
+				__( 'Services', 'connectforwoocommerce' ),
 				$this->get_services_items()
 			);
 
 			$this->add_fieldset(
 				'debug',
-				__( 'Debug', 'woocommerce' ),
+				__( 'Debug', 'connectforwoocommerce' ),
 				$this->get_debug_items()
 			);
 
 			$this->add_fieldset(
 				'support',
-				__( 'Support', 'woocommerce' ),
+				__( 'Support', 'connectforwoocommerce' ),
 				$this->get_support_items()
 			);
 

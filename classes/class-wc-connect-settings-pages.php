@@ -35,7 +35,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			WC_Connect_Logger $logger ) {
 
 			$this->id    = 'connect';
-			$this->label = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce' );
+			$this->label = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'connectforwoocommerce' );
 
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
@@ -58,7 +58,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce' );
+			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'connectforwoocommerce' );
 			return $tabs;
 		}
 
@@ -69,8 +69,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		public function get_sections() {
 			return array(
-				'' => __( 'Account Settings', 'woocommerce' ),
-				'packages' => __( 'Packaging Manager', 'woocommerce' ),
+				'' => __( 'Account Settings', 'connectforwoocommerce' ),
+				'packages' => __( 'Packaging Manager', 'connectforwoocommerce' ),
 			);
 		}
 
@@ -187,7 +187,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			?>
 			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>">
 				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce' ), $debug_page_uri ); ?>
+					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'connectforwoocommerce' ), $debug_page_uri ); ?>
 				</span>
 			</div>
 			<?php
