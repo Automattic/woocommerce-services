@@ -316,7 +316,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			update_option( 'wc_connect_packages', $packages );
 		}
 
-
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
