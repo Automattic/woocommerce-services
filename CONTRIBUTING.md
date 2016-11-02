@@ -1,4 +1,4 @@
-# Contributing to the Connect for WooCommerce 
+# Contributing to the Connect for WooCommerce
 
 Hi! Thank you for your interest in contributing to Connect for WooCommerce. We appreciate it.
 
@@ -18,10 +18,10 @@ Open [a GitHub issue](https://github.com/Automattic/woocommerce-connect-client/i
 
 If you're filing a bug, specific steps to reproduce are helpful. Please include what you expected to see and what happened instead.
 
-## Setting up USPS shipping with the Connect for WooCommerce 
+## Setting up USPS shipping with the Connect for WooCommerce
 
 1. Install or update to [WordPress 4.5](https://wordpress.org/download/) or higher.
-2. Install and activate WooCommerce 2.6 or higher. The Connect for WooCommerce will NOT work with WooCommerce 2.5 or older.  A plugin ZIP will be available soon, but for now you need to download a ZIP of the master branch or clone the WooCommerce plugin from its [repository on GitHub](https://github.com/woothemes/woocommerce).
+2. Install and activate WooCommerce 2.6 or higher. The Connect for WooCommerce will NOT work with WooCommerce 2.5 or older.  A plugin ZIP will be available soon, but for now you need to download a ZIP of the master branch or clone the WooCommerce plugin from its [repository on GitHub](https://github.com/woocommerce/woocommerce).
 3. Install and activate [Jetpack 3.9.6 or higher](https://wordpress.org/plugins/jetpack/).
 4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, the Connect for WooCommerce requires the Jetpack connection to authenticate with the Connect for WooCommerce server.
 5. Install and activate this feature plugin.
@@ -32,7 +32,7 @@ If you're filing a bug, specific steps to reproduce are helpful. Please include 
 
 ## Running PHPUnit Tests
 
-The Connect for WooCommerce client tests use [WooCommerce's tests installer](https://github.com/woothemes/woocommerce/blob/master/tests/bin/install.sh) to get up and running.
+The Connect for WooCommerce client tests use [WooCommerce's tests installer](https://github.com/woocommerce/woocommerce/blob/master/tests/bin/install.sh) to get up and running.
 
 In order to successfully bootstrap your testing environment, you'll need the following:
 
