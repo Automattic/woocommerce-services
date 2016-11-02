@@ -497,6 +497,9 @@ export const openRefundDialog = ( labelId ) => {
 
 export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, nonce } ) => {
 	getState().shippingLabel.labels.forEach( ( label ) => {
+		if ( label.statusUpdated ) {
+			return;
+		}
 		const labelId = label.label_id;
 		let error = null;
 		let response = null;

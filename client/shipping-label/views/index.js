@@ -14,12 +14,12 @@ import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
+import _ from 'lodash';
 
 let needToFetchLabelsStatus = true;
 
 const ShippingLabelRootView = ( props ) => {
 	const renderPurchaseLabelFlow = () => {
-		needToFetchLabelsStatus = false;
 		return (
 			<div>
 				<PurchaseLabelDialog
@@ -33,10 +33,6 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderLabelActions = ( label, index ) => {
-		if ( ! label.statusUpdated ) {
-			return <Spinner key={ index } size={ 24 } />;
-		}
-
 		if ( label.refunded_time ) {
 			return (
 				<div key={ index }>
@@ -90,6 +86,9 @@ const ShippingLabelRootView = ( props ) => {
 		if ( needToFetchLabelsStatus ) {
 			needToFetchLabelsStatus = false;
 			props.labelActions.fetchLabelsStatus();
+		}
+		if ( ! _.every( props.shippingLabel.labels, 'statusUpdated' ) ) {
+			return <Spinner size={ 24 } />;
 		}
 		return (
 			<div>
