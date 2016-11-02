@@ -366,6 +366,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			// Add interesting fields to the body of each request
 			$body['settings'] = wp_parse_args( $body['settings'], array(
+				'store_guid' => $this->get_guid(),
 				'base_city' => WC()->countries->get_base_city(),
 				'base_country' => WC()->countries->get_base_country(),
 				'base_state' => WC()->countries->get_base_state(),
@@ -456,6 +457,36 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				) ) . "\n";
 
 			return base64_encode( hash_hmac( 'sha1', $normalized_request_string, $token_secret, true ) );
+		}
+
+		private function get_guid() {
+			$guid = get_option( 'wc_connect_store_guid', false );
+			if ( false === $guid ) {
+				$guid = $this->generate_guid();
+				update_option( 'wc_connect_store_guid', $guid );
+			}
+
+			return $guid;
+		}
+
+		/**
+		 * Generates a GUID.
+		 * This code is based of a snippet found in https://github.com/alixaxel/phunction,
+		 * which was referenced in http://php.net/manual/en/function.com-create-guid.php
+		 *
+		 * @return string
+		 */
+		private function generate_guid() {
+			return strtolower( sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
+				mt_rand( 0, 65535 ),
+				mt_rand( 0, 65535 ),
+				mt_rand( 0, 65535 ),
+				mt_rand( 16384, 20479 ),
+				mt_rand( 32768, 49151 ),
+				mt_rand( 0, 65535 ),
+				mt_rand( 0, 65535 ),
+				mt_rand( 0, 65535 )
+			) );
 		}
 	}
 
