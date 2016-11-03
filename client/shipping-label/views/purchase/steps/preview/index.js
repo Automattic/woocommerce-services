@@ -6,9 +6,11 @@ import { PAPER_SIZES } from 'lib/pdf-label-utils';
 const PreviewStep = ( { labelPreviewURL, canPurchase, paperSize, labelActions, errors } ) => {
 	return (
 		<div>
-			<span className="preview-title">{ __( 'Preview' ) }</span>
-			<div className="preview-placeholder">
-				{ canPurchase && labelPreviewURL && <iframe src={ labelPreviewURL } /> }
+			<div className="preview-container">
+				<span className="preview-title">{ __( 'Preview' ) }</span>
+				<div className="preview-placeholder">
+					{ canPurchase && labelPreviewURL && <iframe src={ labelPreviewURL } /> }
+				</div>
 			</div>
 			<Dropdown
 				id={ 'paper_size' }
