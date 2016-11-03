@@ -13,18 +13,18 @@ Hosted services for WooCommerce, including free real-time USPS and Canada Post r
 
 **This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
-Connect for WooCommerce makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure. 
+Connect for WooCommerce makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
 With Connect, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler. 
+To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
 *Show live rates for USPS and Canada Post*
-Show your customers accurate shipping rates automatically for both USPS, the largest delivery network in the US, and Canada Post. 
+Show your customers accurate shipping rates automatically for both USPS, the largest delivery network in the US, and Canada Post.
 
 
 *Print shipping labels for USPS at a discounted rate*
-Give customers lower rates on their shipping. Create ready-to-print shipping labels for USPS directly in WooCommerce and take advantage of our special discount rate. 
+Give customers lower rates on their shipping. Create ready-to-print shipping labels for USPS directly in WooCommerce and take advantage of our special discount rate.
 
 == Installation ==
 
@@ -62,7 +62,7 @@ We use the Jetpack connection to authenticate each request and, if you use the s
 
 = Are there Terms of Service and data usage policies? =
 
-Absolutely! You can read our Terms of Service here (TBD link) and our data policy here (TBD link).
+Absolutely! You can read our Terms of Service [here](https://woocommerce.com/terms-conditions/) and our data policy [here](https://woocommerce.com/terms-conditions/connect-privacy).
 
 == Screenshots ==
 
