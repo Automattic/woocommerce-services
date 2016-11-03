@@ -195,13 +195,23 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Gets the actual image/PDF for the given shipping label
+		 * Gets a PDF with the set of dummy labels specified in the request
 		 *
 		 * @param $request
 		 * @return object|WP_Error
 		 */
-		public function get_label_pdf( $request ) {
-			return $this->request( 'POST', 'shipping/label/pdf', $request );
+		public function get_labels_preview_pdf( $request ) {
+			return $this->request( 'POST', 'shipping/labels/preview', $request );
+		}
+
+		/**
+		 * Gets a PDF with the requested shipping labels in it
+		 *
+		 * @param $request
+		 * @return object|WP_Error
+		 */
+		public function get_labels_print_pdf( $request ) {
+			return $this->request( 'POST', 'shipping/labels/print', $request );
 		}
 
 		/**

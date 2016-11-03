@@ -8,7 +8,7 @@ export const PAPER_SIZES = {
 	letter: __( 'Letter' ),
 };
 
-export const getPDFUrl = ( paperSize, labels, baseUrl, nonce ) => {
+const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
 		throw new Error( `Invalid paper size: ${paperSize}` );
 	}
@@ -23,5 +23,13 @@ export const getPDFUrl = ( paperSize, labels, baseUrl, nonce ) => {
 			params.push( `captions[]=${encodeURIComponent( caption )}` );
 		}
 	} );
-	return baseUrl + '?' + params.join( '&' );
+	return baseURL + '?' + params.join( '&' );
+};
+
+export const getPrintURL = ( paperSize, labels, { labelsPrintURL, nonce } ) => {
+	return _getPDFURL( paperSize, labels, labelsPrintURL, nonce );
+};
+
+export const getPreviewURL = ( paperSize, labels, { labelsPreviewURL, nonce } ) => {
+	return _getPDFURL( paperSize, labels, labelsPreviewURL, nonce );
 };

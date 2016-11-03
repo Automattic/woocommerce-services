@@ -9,7 +9,7 @@ import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
-import { getPDFUrl } from 'lib/pdf-label-utils';
+import { getPreviewURL, getPrintURL } from 'lib/pdf-label-utils';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -384,7 +384,7 @@ const refreshPreview = ( dispatch, getState, context ) => {
 
 	dispatch( {
 		type: UPDATE_PREVIEW,
-		url: getPDFUrl( paperSize, labels, context.labelImageURL, context.nonce ),
+		url: getPreviewURL( paperSize, labels, context ),
 	} );
 };
 
@@ -420,7 +420,8 @@ export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
 	refreshPreview( dispatch, getState, context );
 };
 
-export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {
+export const purchaseLabel = () => ( dispatch, getState, context ) => {
+	const { purchaseURL, addressNormalizationURL, nonce } = context;
 	let error = null;
 	let response = null;
 	const setError = ( err ) => error = err;
@@ -442,7 +443,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
 					labelId: label.label_id,
 				} ) );
-				printDocument( getPDFUrl( getState().shippingLabel.paperSize, labels, labelImageURL, nonce ) )
+				printDocument( getPrintURL( getState().shippingLabel.paperSize, labels, context ) )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -559,10 +560,10 @@ export const closeReprintDialog = () => {
 	return { type: CLOSE_REPRINT_DIALOG };
 };
 
-export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
+export const confirmReprint = () => ( dispatch, getState, context ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	printDocument( getPDFUrl( getState().shippingLabel.paperSize, [ { labelId } ], labelImageURL, nonce ) )
+	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ) )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

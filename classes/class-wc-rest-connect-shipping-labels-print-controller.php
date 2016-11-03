@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_REST_Connect_Shipping_Label_Image_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Shipping_Labels_Print_Controller' ) ) {
 	return;
 }
 
-class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller {
+class WC_REST_Connect_Shipping_Labels_Print_Controller extends WP_REST_Controller {
 
 	/**
 	 * Endpoint namespace.
@@ -22,7 +22,7 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'connect/label/pdf';
+	protected $rest_base = 'connect/labels/print';
 
 	/**
 	 * @var WC_Connect_API_Client
@@ -64,11 +64,11 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 
 		$params[ 'paper_size' ] = $raw_params[ 'paper_size' ];
 		$this->settings_store->set_preferred_paper_size( $params[ 'paper_size' ] );
-		$params[ 'carrier' ] = 'usps';
 
 		$n_label_ids = isset( $raw_params[ 'label_ids' ] ) ? count( $raw_params[ 'label_ids' ] ) : 0;
 		$n_captions = isset( $raw_params[ 'captions' ] ) ? count( $raw_params[ 'captions' ] ) : 0;
-		if ( ( ! $n_captions && ! $n_label_ids ) || ( $n_captions && $n_label_ids && $n_captions !== $n_label_ids ) ) {
+		// Either there are the same number of captions as labels, or no captions at all
+		if ( ! $n_label_ids || ( $n_captions && $n_captions !== $n_label_ids ) ) {
 			$message = __( 'Invalid PDF request.', 'woocommerce' );
 			$error = new WP_Error(
 				'invalid_pdf_request',
@@ -81,19 +81,17 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 			$this->logger->log( $error, __CLASS__ );
 			return $error;
 		}
-		$n = max( $n_captions, $n_label_ids );
 		$params[ 'labels' ] = array();
-		for ( $i = 0; $i < $n; $i++ ) {
+		for ( $i = 0; $i < $n_label_ids; $i++ ) {
 			$params[ 'labels' ][ $i ] = array();
-			if ( $n_label_ids ) {
-				$params[ 'labels' ][ $i ][ 'label_id' ] = (int) $raw_params[ 'label_ids' ][ $i ];
-			}
+			$params[ 'labels' ][ $i ][ 'label_id' ] = (int) $raw_params[ 'label_ids' ][ $i ];
+
 			if ( $n_captions ) {
 				$params[ 'labels' ][ $i ][ 'caption' ] = $raw_params[ 'captions' ][ $i ];
 			}
 		}
 
-		$raw_response = $this->api_client->get_label_pdf( $params );
+		$raw_response = $this->api_client->get_labels_print_pdf( $params );
 
 		if ( is_wp_error( $raw_response ) ) {
 			$this->logger->log( $raw_response, __CLASS__ );
