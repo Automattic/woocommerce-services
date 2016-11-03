@@ -177,5 +177,23 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			return $service_schemas->boxes;
 		}
+
+		public function get_predefined_packages_schema() {
+			$service_schemas = $this->get_service_schemas();
+			if ( ! is_object( $service_schemas ) ) {
+				return null;
+			}
+
+			$predefined_packages = array();
+			foreach( $service_schemas->shipping as $service_schema ) {
+				if ( ! isset( $service_schema->packages ) ) {
+					continue;
+				}
+
+				$predefined_packages[ $service_schema->id ] = $service_schema->packages;
+			}
+
+			return ( object ) $predefined_packages;
+		}
 	}
 }

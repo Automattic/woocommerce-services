@@ -316,6 +316,39 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			update_option( 'wc_connect_packages', $packages );
 		}
 
+		/**
+		 * Returns a global list of enabled predefined packages for all services
+		 *
+		 * @return array
+		 */
+		public function get_predefined_packages() {
+			return get_option( 'wc_connect_predefined_packages', array() );
+		}
+
+		/**
+		 * Returns a list of enabled predefined packages for the specified service
+		 *
+		 * @param $service_id
+		 * @return array
+		 */
+		public function get_predefined_packages_for_service( $service_id ) {
+			$packages = $this->get_predefined_packages();
+			if ( ! isset( $packages[ $service_id ] ) ) {
+				return array();
+			}
+
+			return $packages[ $service_id ];
+		}
+
+		/**
+		 * Updates the global list of enabled predefined packages for all services
+		 *
+		 * @param array packages
+		 */
+		public function update_predefined_packages( $packages ) {
+			update_option( 'wc_connect_predefined_packages', $packages );
+		}
+
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':

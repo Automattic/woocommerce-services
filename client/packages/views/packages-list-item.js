@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 import Button from 'components/button';
+import FormCheckbox from 'components/forms/form-checkbox';
 import classNames from 'classnames';
 import _ from 'lodash';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -12,10 +13,44 @@ const renderIcon = ( isLetter, isError, onClick ) => {
 	} else {
 		icon = isLetter ? 'mail' : 'product';
 	}
+
+	const gridicon = <Gridicon icon={ icon } className="package-type-icon" size={ isError ? 29 : 18 } />;
+	if ( ! onClick ) {
+		return gridicon;
+	}
+
 	return (
-		<a href="#" onClick={ onClick }>
-			<Gridicon icon={ icon } className="package-type-icon" size={ isError ? 29 : 18 } />
-		</a>
+		<a href="#" onClick={ onClick }>{ gridicon }</a>
+	);
+};
+
+const renderName = ( name, openModal ) => {
+	const nameEl = name && '' !== _.trim( name )
+		? name
+		: <span className="package-no-name">{ __( 'Untitled' ) }</span>;
+
+	if ( ! openModal ) {
+		return nameEl;
+	}
+
+	return ( <a href="#" onClick={ openModal }>{ nameEl }</a> );
+};
+
+const renderSelect = ( selected, onToggle ) => {
+	return (
+		<div className="package-actions">
+			<FormCheckbox checked={ selected } onChange={ onToggle } />
+		</div>
+	);
+};
+
+const renderActions = ( onRemove ) => {
+	return (
+		<div className="package-actions">
+			<Button compact borderless className="remove-package" onClick={ onRemove }>
+				<Gridicon icon="cross-small" size={ 18 } />
+			</Button>
+		</div>
 	);
 };
 
@@ -23,37 +58,31 @@ const PackagesListItem = ( {
 	index,
 	data,
 	dimensionUnit,
+	editable,
+	selected,
+	onToggle,
 	onRemove,
 	editPackage,
 	hasError,
 } ) => {
-	const openModal = ( event ) => {
+	const openModal = editable ? ( event ) => {
 		event.preventDefault();
 		editPackage( Object.assign( {}, data, { index } ) );
-	};
+	} : null;
 
 	return (
 		<div className={ classNames( 'wcc-shipping-packages-list-item', { 'wcc-error': hasError } ) }>
+			{ editable ? null : renderSelect( selected, onToggle ) }
 			<div className="package-type">
 				{ renderIcon( data.is_letter, hasError, openModal ) }
 			</div>
 			<div className="package-name">
-				<a href="#" onClick={ openModal }>
-					{
-						data.name && '' !== _.trim( data.name )
-						? data.name
-						: <span className="package-no-name">{ __( 'Untitled' ) }</span>
-					}
-				</a>
+				{ renderName( data.name, openModal ) }
 			</div>
 			<div className="package-dimensions">
 				<span>{ data.inner_dimensions } { dimensionUnit }</span>
 			</div>
-			<div className="package-actions">
-				<Button compact borderless className="remove-package" onClick={ onRemove }>
-					<Gridicon icon="cross-small" size={ 18 } />
-				</Button>
-			</div>
+			{ editable ? renderActions( onRemove ) : null }
 		</div>
 	);
 };
@@ -65,9 +94,12 @@ PackagesListItem.propTypes = {
 		is_letter: PropTypes.bool,
 		inner_dimensions: PropTypes.string,
 	} ).isRequired,
+	editable: PropTypes.bool.isRequired,
+	selected: PropTypes.bool,
 	dimensionUnit: PropTypes.string.isRequired,
-	onRemove: PropTypes.func.isRequired,
-	editPackage: PropTypes.func.isRequired,
+	onToggle: PropTypes.func,
+	onRemove: PropTypes.func,
+	editPackage: PropTypes.func,
 };
 
 export default PackagesListItem;

@@ -9,6 +9,8 @@ import {
 	UPDATE_PACKAGES_FIELD,
 	SAVE_PACKAGE,
 	TOGGLE_OUTER_DIMENSIONS,
+	TOGGLE_ALL,
+	TOGGLE_PACKAGE,
 } from './actions';
 import _ from 'lodash';
 
@@ -74,7 +76,7 @@ reducers[ UPDATE_PACKAGES_FIELD ] = ( state, action ) => {
 
 reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 	const packageData = action.packageData;
-	const packages = state.packages || [];
+	const custom = state.packages.custom || [];
 
 	if ( packageData.box_weight ) {
 		packageData.box_weight = Number.parseFloat( packageData.box_weight );
@@ -88,37 +90,88 @@ reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 		const { index } = packageData;
 		const item = _.omit( packageData, 'index' );
 
-		packages[ index ] = item;
+		custom[ index ] = item;
 	} else {
-		packages.push( packageData );
+		custom.push( packageData );
 	}
 
-	return Object.assign( {}, state, {
+	return {
+		...state,
 		showModal: false,
 		mode: 'add',
 		packageData: {
 			is_user_defined: true,
 		},
-		packages,
+		packages: {
+			...state.packages,
+			custom,
+		},
 		showOuterDimensions: false,
 		selectedPreset: null,
 		pristine: false,
-	} );
+	};
 };
 
 reducers[ TOGGLE_OUTER_DIMENSIONS ] = ( state ) => {
-	return Object.assign( {}, state, {
+	return {
+		...state,
 		showOuterDimensions: true,
-	} );
+	};
 };
 
 reducers[ REMOVE_PACKAGE ] = ( state, action ) => {
-	const packages = ( state.packages || [] ).slice();
-	packages.splice( action.index, 1 );
-	return Object.assign( {}, state, {
-		packages,
+	const custom = [ ...state.packages.custom ];
+	custom.splice( action.index, 1 );
+	return {
+		...state,
+		packages: {
+			...state.packages,
+			custom,
+		},
 		pristine: false,
-	} );
+	};
+};
+
+reducers[ TOGGLE_ALL ] = ( state, { serviceId, groupId } ) => {
+	const groupPackages = state.predefinedSchema[ serviceId ][ groupId ].definitions.map( ( def ) => def.id );
+	const selected = state.packages.predefined[ serviceId ];
+	const selectedAll = 0 === _.difference( groupPackages, selected ).length;
+	const newSelected = selectedAll ? _.difference( selected, groupPackages ) : _.uniq( _.concat( selected, groupPackages ) );
+
+	const newPredefined = {	...state.packages.predefined };
+	newPredefined[ serviceId ] = newSelected;
+
+	return {
+		...state,
+		packages: {
+			...state.packages,
+			predefined: newPredefined,
+		},
+		pristine: false,
+	};
+};
+
+reducers[ TOGGLE_PACKAGE ] = ( state, { serviceId, packageId } ) => {
+	const newPredefined = {	...state.packages.predefined };
+	const newSelected = [ ...( newPredefined[ serviceId ] || [] ) ];
+	const packageIndex = newSelected.indexOf( packageId );
+
+	if ( -1 === packageIndex ) {
+		newSelected.push( packageId );
+	} else {
+		newSelected.splice( packageIndex, 1 );
+	}
+
+	newPredefined[ serviceId ] = newSelected;
+
+	return {
+		...state,
+		packages: {
+			...state.packages,
+			predefined: newPredefined,
+		},
+		pristine: false,
+	};
 };
 
 reducers[ SET_IS_SAVING ] = ( state, action ) => {

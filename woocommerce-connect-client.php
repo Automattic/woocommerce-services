@@ -489,13 +489,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
 
 			$admin_array = array(
-				'storeOptions' => $settings_store->get_store_options(),
-				'formSchema'   => $service_schema->service_settings,
-				'formLayout'   => $service_schema->form_layout,
-				'formData'     => $settings_store->get_service_settings( $id, $instance ),
-				'callbackURL'  => get_rest_url( null, $path ),
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'rootView'     => 'wc-connect-service-settings',
+				'storeOptions'       => $settings_store->get_store_options(),
+				'formSchema'         => $service_schema->service_settings,
+				'formLayout'         => $service_schema->form_layout,
+				'formData'           => $settings_store->get_service_settings( $id, $instance ),
+				'predefinedPackages' => $settings_store->get_predefined_packages_for_service( $id ),
+				'callbackURL'        => get_rest_url( null, $path ),
+				'nonce'              => wp_create_nonce( 'wp_rest' ),
+				'rootView'           => 'wc-connect-service-settings',
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

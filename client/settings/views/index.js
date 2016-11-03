@@ -18,6 +18,7 @@ Settings.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
+	predefinedPackages: PropTypes.array.isRequired,
 };
 
 export default Settings;

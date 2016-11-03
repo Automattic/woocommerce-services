@@ -18,6 +18,7 @@ const SettingsItem = ( {
 	form,
 	layout,
 	schema,
+	predefinedPackages,
 	formValueActions,
 	storeOptions,
 	errors,
@@ -91,6 +92,7 @@ const SettingsItem = ( {
 					services={ schema.definitions.services }
 					title={ fieldSchema.title }
 					description={ fieldSchema.description }
+					predefinedPackages={ predefinedPackages }
 					settings={ fieldValue }
 					currencySymbol={ storeOptions.currency_symbol }
 					updateValue={ updateSubValue }
@@ -197,6 +199,7 @@ SettingsItem.propTypes = {
 		PropTypes.object.isRequired,
 	] ).isRequired,
 	schema: PropTypes.object.isRequired,
+	predefinedPackages: PropTypes.array.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
 	formValueActions: PropTypes.object.isRequired,

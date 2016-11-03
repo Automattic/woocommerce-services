@@ -155,6 +155,20 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			<?php
 		}
 
+		public function get_packages_form_data() {
+			return array(
+				'custom' => $this->service_settings_store->get_packages(),
+				'predefined' => $this->service_settings_store->get_predefined_packages()
+			);
+		}
+
+		public function get_packages_form_schema() {
+			return array(
+				'custom' => $this->service_schemas_store->get_packages_schema(),
+				'predefined' => $this->service_schemas_store->get_predefined_packages_schema()
+			);
+		}
+
 		public function output_packages_screen() {
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
@@ -168,8 +182,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			$admin_array = array(
 				'storeOptions' => $store_options,
-				'formSchema'   => $this->service_schemas_store->get_packages_schema(),
-				'formData'     => $this->service_settings_store->get_packages(),
+				'formSchema'   => $this->get_packages_form_schema(),
+				'formData'     => $this->get_packages_form_data(),
 				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'submitMethod' => 'POST',
