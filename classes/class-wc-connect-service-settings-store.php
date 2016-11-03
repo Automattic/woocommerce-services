@@ -31,9 +31,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return object|array
 		 */
 		public function get_store_options() {
-			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ), array() );
-			$dimension_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ), array() );
-			$weight_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ), array() );
+			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ) );
+			$dimension_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ) );
+			$weight_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ) );
 
 			return array(
 				'currency_symbol' => $currency_symbol,
@@ -315,7 +315,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function update_packages( $packages ) {
 			update_option( 'wc_connect_packages', $packages );
 		}
-
 
 		private function translate_unit( $value ) {
 			switch ( $value ) {
