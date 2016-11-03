@@ -21,6 +21,7 @@ module.exports = {
 	cache: true,
 	entry: {
 		'woocommerce-connect-client': [ './client/main.js' ],
+		'woocommerce-connect-client-banner': [ './assets/stylesheets/banner.scss' ],
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
@@ -55,6 +56,10 @@ module.exports = {
 				test: /\.svg$/,
 				loader: 'svg-url-loader',
 				include: /(client)/,
+			},
+			{
+				test: /\.png$/,
+				loader: 'url-loader?limit=10000',
 			}
 		]
 	},
