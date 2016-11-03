@@ -379,7 +379,7 @@ const refreshPreview = ( dispatch, getState, context ) => {
 	const { form, paperSize } = state;
 	let pckgIndex = 1;
 	const labels = _.map( form.packages.values, () => ( {
-		caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ).toUpperCase(),
+		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ),
 	} ) );
 
 	dispatch( {
@@ -438,9 +438,8 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				let pckgIndex = 1;
-				const labels = response.map( ( label ) => ( {
-					caption: sprintf( __( 'Package %d (of %d)' ), pckgIndex++, response.length ).toUpperCase(),
+				const labels = response.map( ( label, index ) => ( {
+					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
 					labelId: label.label_id,
 				} ) );
 				printDocument( getPDFUrl( getState().shippingLabel.paperSize, labels, labelImageURL, nonce ) )

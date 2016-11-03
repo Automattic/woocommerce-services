@@ -201,7 +201,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return object|WP_Error
 		 */
 		public function get_label_pdf( $request ) {
-			return $this->request( 'POST', 'shipping/label/pdf', $request, true );
+			return $this->request( 'POST', 'shipping/label/pdf', $request );
 		}
 
 		/**
@@ -239,10 +239,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $method
 		 * @param $path
 		 * @param $body
-		 * @param $return_raw_response
 		 * @return mixed|WP_Error
 		 */
-		protected function request( $method, $path, $body = array(), $return_raw_response = false ) {
+		protected function request( $method, $path, $body = array() ) {
 
 			// TODO - incorporate caching for repeated identical requests
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
@@ -295,7 +294,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$response = wp_remote_request( $url, $args );
 			$response_code = wp_remote_retrieve_response_code( $response );
 
-			if ( $return_raw_response ) {
+			// If the received response is not JSON, return the raw response
+			$content_type = wp_remote_retrieve_header( $response, 'content-type' );
+			if ( false === strpos( $content_type, 'application/json' ) ) {
 				if ( 200 != $response_code ) {
 					return new WP_Error(
 						'wcc_server_error',
