@@ -656,7 +656,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<?php
 					printf(
-						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how Connect for WooCommerce handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce' ),
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how Connect for WooCommerce handles your store\'s data <a target="_blank" href="%s">here</a>.', 'connectforwoocommerce' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/connect-privacy' )
 					);
