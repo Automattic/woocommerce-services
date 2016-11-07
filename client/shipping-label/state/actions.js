@@ -31,6 +31,18 @@ export const REFUND_RESPONSE = 'REFUND_RESPONSE';
 export const OPEN_REPRINT_DIALOG = 'OPEN_REPRINT_DIALOG';
 export const CLOSE_REPRINT_DIALOG = 'CLOSE_REPRINT_DIALOG';
 export const CONFIRM_REPRINT = 'CONFIRM_REPRINT';
+export const OPEN_PACKAGE = 'OPEN_PACKAGE';
+export const OPEN_ITEM_MOVE = 'OPEN_ITEM_MOVE';
+export const MOVE_ITEM = 'MOVE_ITEM';
+export const CLOSE_ITEM_MOVE = 'CLOSE_ITEM_MOVE';
+export const SET_TARGET_PACKAGE = 'SET_TARGET_PACKAGE';
+export const ADD_PACKAGE = 'ADD_PACKAGE';
+export const REMOVE_PACKAGE = 'REMOVE_PACKAGE';
+export const SET_PACKAGE_TYPE = 'SET_PACKAGE_TYPE';
+export const SAVE_PACKAGES = 'SAVE_PACKAGES';
+export const OPEN_ADD_ITEM = 'OPEN_ADD_ITEM';
+export const CLOSE_ADD_ITEM = 'CLOSE_ADD_ITEM';
+export const SET_ADDED_ITEM = 'SET_ADDED_ITEM';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
@@ -94,7 +106,7 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 		packages,
 	} = formState;
 
-	return getRates( dispatch, origin.values, destination.values, packages.values, getRatesURL, nonce )
+	return getRates( dispatch, origin.values, destination.values, packages.selected, getRatesURL, nonce )
 		.then( handleResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -229,8 +241,135 @@ export const updatePackageWeight = ( packageId, value ) => {
 	};
 };
 
+export const openPackage = ( openedPackageId ) => {
+	return {
+		type: OPEN_PACKAGE,
+		openedPackageId,
+	};
+};
+
+export const openItemMove = ( movedItemIndex ) => {
+	return {
+		type: OPEN_ITEM_MOVE,
+		movedItemIndex,
+	};
+};
+
+export const moveItem = ( openedPackageId, movedItemIndex, targetPackageId ) => {
+	return {
+		type: MOVE_ITEM,
+		openedPackageId,
+		movedItemIndex,
+		targetPackageId,
+	};
+};
+
+export const closeItemMove = () => {
+	return {
+		type: CLOSE_ITEM_MOVE,
+	};
+};
+
+export const setTargetPackage = ( targetPackageId ) => {
+	return {
+		type: SET_TARGET_PACKAGE,
+		targetPackageId,
+	};
+};
+
+export const openAddItem = () => {
+	return {
+		type: OPEN_ADD_ITEM,
+	};
+};
+
+export const closeAddItem = () => {
+	return {
+		type: CLOSE_ADD_ITEM,
+	};
+};
+
+export const setAddedItem = ( sourcePackageId, movedItemIndex ) => {
+	return {
+		type: SET_ADDED_ITEM,
+		sourcePackageId,
+		movedItemIndex,
+	};
+};
+
+export const addPackage = () => {
+	return {
+		type: ADD_PACKAGE,
+	};
+};
+
+export const removePackage = ( packageId ) => {
+	return {
+		type: REMOVE_PACKAGE,
+		packageId,
+	};
+};
+
+export const setPackageType = ( packageId, boxTypeId ) => {
+	return {
+		type: SET_PACKAGE_TYPE,
+		packageId,
+		boxTypeId,
+	};
+};
+
+export const savePackages = () => {
+	return {
+		type: SAVE_PACKAGES,
+	};
+};
+
+export const removeItem = ( packageId, itemIndex ) => ( dispatch, getState ) => {
+	dispatch( moveItem( packageId, itemIndex, '' ) );
+
+	const selected = getState().shippingLabel.form.packages.selected;
+	if ( selected[ packageId ] && 'individual' === selected[ packageId ].box_id ) {
+		dispatch( removePackage( packageId ) );
+		dispatch( openPackage( '' ) );
+	}
+};
+
+export const confirmItemMove = ( packageId, itemIndex, targetPackageId ) => ( dispatch, getState ) => {
+	dispatch( moveItem( packageId, itemIndex, targetPackageId ) );
+
+	const state = getState().shippingLabel;
+	const packages = state.form.packages;
+	const selected = packages.selected;
+	const unpacked = packages.unpacked;
+	if ( selected[ packageId ] && 'individual' === selected[ packageId ].box_id ) {
+		dispatch( removePackage( packageId ) );
+		dispatch( openPackage( '' ) );
+	} else if ( '' === packageId && ! unpacked.length ) {
+		if ( 'individual' === targetPackageId ) {
+			dispatch( openPackage( state.addedPackageId ) );
+		} else {
+			dispatch( openPackage( targetPackageId ) );
+		}
+	}
+
+	dispatch( closeItemMove() );
+};
+
+export const confirmAddItem = ( sourcePackageId, itemIndex, targetPackageId ) => ( dispatch, getState ) => {
+	dispatch( moveItem( sourcePackageId, itemIndex, targetPackageId ) );
+
+	const state = getState().shippingLabel;
+	const selected = state.form.packages.selected;
+	if ( selected[ sourcePackageId ] && 'individual' === selected[ sourcePackageId ].box_id ) {
+		dispatch( removePackage( sourcePackageId ) );
+	}
+
+	dispatch( closeAddItem() );
+};
+
 export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeOptions, nonce } ) => {
 	dispatch( toggleStep( 'packages' ) );
+	dispatch( savePackages() );
 
 	const handleResponse = () => {
 		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
@@ -293,8 +432,7 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
-
-			packages: _.map( form.packages.values, ( pckg, pckgId ) => ( {
+			packages: _.map( form.packages.selected, ( pckg, pckgId ) => ( {
 				..._.omit( pckg, [ 'items', 'id', 'box_id' ] ),
 				shipment_id: form.rates.available[ pckgId ].shipment_id,
 				service_id: form.rates.values[ pckgId ],

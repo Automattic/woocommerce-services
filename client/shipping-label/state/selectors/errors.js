@@ -54,7 +54,7 @@ export default createSelector(
 		return {
 			origin: getAddressErrors( form.origin, countriesData ),
 			destination: getAddressErrors( form.destination, countriesData ),
-			packages: getPackagesErrors( form.packages.values ),
+			packages: getPackagesErrors( form.packages.selected ),
 			rates: getRatesErrors( form.rates.values ),
 			preview: {},
 		};

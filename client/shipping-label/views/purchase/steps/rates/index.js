@@ -7,7 +7,11 @@ import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
-const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) => {
+const ratesSummary = ( selectedRates, availableRates, total, currencySymbol, packagesSaved ) => {
+	if ( ! packagesSaved ) {
+		return __( 'Unsaved changes made to packages' );
+	}
+
 	const packageIds = Object.keys( selectedRates );
 
 	// Show the service name and cost when only one service/package exists
@@ -35,7 +39,7 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol ) =>
 	} );
 };
 
-const getRatesStatus = ( { retrievalInProgress, errors, available } ) => {
+const getRatesStatus = ( { retrievalInProgress, errors, available, form } ) => {
 	if ( retrievalInProgress ) {
 		return { isProgress: true };
 	}
@@ -46,6 +50,10 @@ const getRatesStatus = ( { retrievalInProgress, errors, available } ) => {
 
 	if ( _.isEmpty( available ) ) {
 		return {};
+	}
+
+	if ( ! form.packages.saved ) {
+		return { isWarning: true };
 	}
 
 	return { isSuccess: true };
@@ -61,7 +69,7 @@ const RatesStep = ( props ) => {
 		errors,
 		expanded,
 	} = props;
-	const summary = ratesSummary( values, available, getRatesTotal( form.rates ), storeOptions.currency_symbol );
+	const summary = ratesSummary( values, available, getRatesTotal( form.rates ), storeOptions.currency_symbol, form.packages.saved );
 
 	return (
 		<StepContainer
@@ -73,7 +81,8 @@ const RatesStep = ( props ) => {
 			<ShippingRates
 				id="rates"
 				showRateNotice={ false }
-				packages={ form.packages.values }
+				selectedPackages={ form.packages.selected }
+				allPackages={ form.packages.all }
 				selectedRates={ values }
 				availableRates={ available }
 				updateRate={ labelActions.updateRate }

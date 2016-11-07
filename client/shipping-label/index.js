@@ -45,8 +45,11 @@ export default ( { formData, labelsData, storeOptions, labelPreviewURL } ) => ( 
 						allowChangeCountry: false,
 					},
 					packages: {
-						values: formData.packages,
+						all: formData.all_packages,
+						selected: formData.selected_packages,
+						unpacked: [],
 						isPacked: formData.is_packed,
+						saved: true,
 					},
 					rates: {
 						values: _.isEmpty( formData.rates.selected ) ? _.mapValues( formData.packages, () => ( '' ) ) : formData.rates.selected,
@@ -57,6 +60,7 @@ export default ( { formData, labelsData, storeOptions, labelPreviewURL } ) => ( 
 						labelPreviewURL,
 					},
 				},
+				openedPackageId: labelsData ? '' : Object.keys( formData.selected_packages )[ 0 ] || '',
 			},
 		};
 	},
