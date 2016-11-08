@@ -1,9 +1,9 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
 import Dropdown from 'components/dropdown';
-import { PAPER_SIZES } from 'lib/pdf-label-utils';
+import { getPaperSizes } from 'lib/pdf-label-utils';
 
-const PreviewStep = ( { labelPreviewURL, canPurchase, paperSize, labelActions, errors } ) => {
+const PreviewStep = ( { labelPreviewURL, canPurchase, paperSize, labelActions, errors, form } ) => {
 	return (
 		<div>
 			<div className="preview-container">
@@ -14,7 +14,7 @@ const PreviewStep = ( { labelPreviewURL, canPurchase, paperSize, labelActions, e
 			</div>
 			<Dropdown
 				id={ 'paper_size' }
-				valuesMap={ { '': __( 'Select one...' ), ...PAPER_SIZES } }
+				valuesMap={ getPaperSizes( form.origin.values.country ) }
 				title={ __( 'Paper size' ) }
 				value={ paperSize }
 				updateValue={ labelActions.updatePaperSize }

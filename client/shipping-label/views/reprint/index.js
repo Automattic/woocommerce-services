@@ -3,7 +3,7 @@ import Dialog from 'components/dialog';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
 import Dropdown from 'components/dropdown';
-import { PAPER_SIZES } from 'lib/pdf-label-utils';
+import { getPaperSizes } from 'lib/pdf-label-utils';
 
 const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 	return (
@@ -23,7 +23,7 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 				</p>
 				<Dropdown
 					id={ 'paper_size' }
-					valuesMap={ PAPER_SIZES }
+					valuesMap={ getPaperSizes() }
 					title={ __( 'Paper size' ) }
 					value={ paperSize }
 					updateValue={ labelActions.updatePaperSize } />

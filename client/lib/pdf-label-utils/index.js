@@ -1,12 +1,30 @@
 import { translate as __ } from 'lib/mixins/i18n';
+import _ from 'lodash';
 
-export const PAPER_SIZES = {
-	// a4: __( 'A4' ),
-	// a5: __( 'A5' ),
-	label: __( 'Label (4"x6")' ),
-	legal: __( 'Legal' ),
-	letter: __( 'Letter' ),
+const PAPER_SIZES = {
+	a4: {
+		name: __( 'A4' ),
+		exclude: ( country ) => [ 'US', 'CA', 'MX', 'DO' ].includes( country ),
+	},
+	label: {
+		name: __( 'Label (4"x6")' ),
+	},
+	legal: {
+		name: __( 'Legal' ),
+	},
+	letter: {
+		name: __( 'Letter' ),
+	},
 };
+
+export const getPaperSizes = ( country ) => (
+	_.reduce( PAPER_SIZES, ( result, { name, exclude }, key ) => {
+		if ( ! exclude || ! exclude( country ) ) {
+			result[ key ] = name;
+		}
+		return result;
+	}, {} )
+);
 
 const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
