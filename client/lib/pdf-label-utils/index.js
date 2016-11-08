@@ -1,4 +1,5 @@
 import { translate as __ } from 'lib/mixins/i18n';
+import querystring from 'querystring';
 import _ from 'lodash';
 
 const PAPER_SIZES = {
@@ -30,18 +31,13 @@ const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
 		throw new Error( `Invalid paper size: ${paperSize}` );
 	}
-	const params = [];
-	params.push( `_wpnonce=${nonce}` );
-	params.push( `paper_size=${encodeURIComponent( paperSize )}` );
-	labels.forEach( ( { caption, labelId } ) => {
-		if ( labelId ) {
-			params.push( `label_ids[]=${labelId}` );
-		}
-		if ( caption ) {
-			params.push( `captions[]=${encodeURIComponent( caption )}` );
-		}
-	} );
-	return baseURL + '?' + params.join( '&' );
+	const params = {
+		_wpnonce: nonce,
+		paper_size: paperSize,
+		'label_ids[]': _.filter( _.map( labels, 'labelId' ) ),
+		'captions[]': _.filter( _.map( labels, 'caption' ) ),
+	};
+	return baseURL + '?' + querystring.stringify( params );
 };
 
 export const getPrintURL = ( paperSize, labels, { labelsPrintURL, nonce } ) => {
