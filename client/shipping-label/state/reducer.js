@@ -10,6 +10,8 @@ import {
 	CONFIRM_ADDRESS_SUGGESTION,
 	UPDATE_PACKAGE_WEIGHT,
 	UPDATE_RATE,
+	UPDATE_PAPER_SIZE,
+	UPDATE_PREVIEW,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
 	RATES_RETRIEVAL_IN_PROGRESS,
@@ -415,6 +417,22 @@ reducers[ UPDATE_RATE ] = ( state, { packageId, value } ) => {
 	};
 };
 
+reducers[ UPDATE_PAPER_SIZE ] = ( state, { value } ) => {
+	return { ...state,
+		paperSize: value,
+	};
+};
+
+reducers[ UPDATE_PREVIEW ] = ( state, { url } ) => {
+	return { ...state,
+		form: { ...state.form,
+			preview: { ...state.form.preview,
+				labelPreviewURL: url,
+			},
+		},
+	};
+};
+
 reducers[ PURCHASE_LABEL_REQUEST ] = ( state ) => {
 	return { ...state,
 		form: { ...state.form,
@@ -424,15 +442,16 @@ reducers[ PURCHASE_LABEL_REQUEST ] = ( state ) => {
 };
 
 reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
-	const newState = { ...state,
-		form: { ...state.form,
-			isSubmitting: false,
-		},
-	};
-	if ( ! error ) {
-		newState.labels = response;
+	if ( error ) {
+		return { ...state,
+			form: { ...state.form,
+				isSubmitting: false,
+			},
+		};
 	}
-	return newState;
+	return { ...state,
+		labels: response.map( ( label ) => ( { ...label, statusUpdated: true } ) ),
+	};
 };
 
 reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {

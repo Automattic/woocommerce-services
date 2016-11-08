@@ -2407,7 +2407,8 @@
     "inherits": {
       "version": "2.0.3",
       "from": "inherits@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz"
+      "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz",
+      "dev": true
     },
     "inquirer": {
       "version": "0.12.0",
@@ -9076,6 +9077,36 @@
               "version": "1.0.0",
               "from": "assert-plus@1.0.0",
               "resolved": "https://registry.npmjs.org/assert-plus/-/assert-plus-1.0.0.tgz"
+            },
+            "bcrypt-pbkdf": {
+              "version": "1.0.0",
+              "from": "bcrypt-pbkdf@>=1.0.0 <2.0.0",
+              "resolved": "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.0.tgz",
+              "optional": true
+            },
+            "ecc-jsbn": {
+              "version": "0.1.1",
+              "from": "ecc-jsbn@>=0.1.1 <0.2.0",
+              "resolved": "https://registry.npmjs.org/ecc-jsbn/-/ecc-jsbn-0.1.1.tgz",
+              "optional": true
+            },
+            "jodid25519": {
+              "version": "1.0.2",
+              "from": "jodid25519@>=1.0.0 <2.0.0",
+              "resolved": "https://registry.npmjs.org/jodid25519/-/jodid25519-1.0.2.tgz",
+              "optional": true
+            },
+            "jsbn": {
+              "version": "0.1.0",
+              "from": "jsbn@>=0.1.0 <0.2.0",
+              "resolved": "https://registry.npmjs.org/jsbn/-/jsbn-0.1.0.tgz",
+              "optional": true
+            },
+            "tweetnacl": {
+              "version": "0.14.3",
+              "from": "tweetnacl@>=0.14.0 <0.15.0",
+              "resolved": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.3.tgz",
+              "optional": true
             }
           }
         },

@@ -222,12 +222,12 @@
 
 		&.wcc-shipping-label-reprint {
 			@include breakpoint( ">480px" ) {
-				top: calc(50% - 150px);
+				top: calc(50% - 175px);
 				right: calc(50% - 250px);
-				bottom: calc(50% - 150px);
+				bottom: calc(50% - 175px);
 				left: calc(50% - 250px);
 				width: 500px;
-				height: 300px;
+				height: 350px;
 			}
 		}
 

@@ -3,11 +3,13 @@ import _ from 'lodash';
 import printDocument from 'lib/utils/print-document';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
+import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
+import { getPreviewURL, getPrintURL } from 'lib/pdf-label-utils';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -19,6 +21,8 @@ export const EDIT_ADDRESS = 'EDIT_ADDRESS';
 export const CONFIRM_ADDRESS_SUGGESTION = 'CONFIRM_ADDRESS_SUGGESTION';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
+export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
+export const UPDATE_PREVIEW = 'UPDATE_PREVIEW';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
@@ -367,26 +371,57 @@ export const confirmAddItem = ( sourcePackageId, itemIndex, targetPackageId ) =>
 	dispatch( closeAddItem() );
 };
 
-export const confirmPackages = () => ( dispatch, getState, { getRatesURL, storeOptions, nonce } ) => {
+const refreshPreview = ( dispatch, getState, context ) => {
+	if ( ! canPurchase( getState(), context.storeOptions ) ) {
+		return;
+	}
+	const state = getState().shippingLabel;
+	const { form, paperSize } = state;
+	let pckgIndex = 1;
+	const labels = _.map( form.packages.values, () => ( {
+		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ),
+	} ) );
+
+	dispatch( {
+		type: UPDATE_PREVIEW,
+		url: getPreviewURL( paperSize, labels, context ),
+	} );
+};
+
+export const confirmPackages = () => ( dispatch, getState, context ) => {
+	const { getRatesURL, storeOptions, nonce } = context;
 	dispatch( toggleStep( 'packages' ) );
 	dispatch( savePackages() );
 
 	const handleResponse = () => {
 		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
+		refreshPreview( dispatch, getState, context );
 	};
 
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const updateRate = ( packageId, value ) => {
-	return {
+export const updateRate = ( packageId, value ) => ( dispatch, getState, context ) => {
+	dispatch( {
 		type: UPDATE_RATE,
 		packageId,
 		value,
-	};
+	} );
+
+	refreshPreview( dispatch, getState, context );
 };
 
-export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressNormalizationURL, labelImageURL, nonce } ) => {
+export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
+	dispatch( {
+		type: UPDATE_PAPER_SIZE,
+		value,
+	} );
+
+	refreshPreview( dispatch, getState, context );
+};
+
+export const purchaseLabel = () => ( dispatch, getState, context ) => {
+	const { purchaseURL, addressNormalizationURL, nonce } = context;
 	let error = null;
 	let response = null;
 	const setError = ( err ) => error = err;
@@ -404,8 +439,11 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				// TODO: Figure out how to print multiple labels
-				printDocument( sprintf( labelImageURL, response[ 0 ].label_id ), nonce )
+				const labels = response.map( ( label, index ) => ( {
+					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
+					labelId: label.label_id,
+				} ) );
+				printDocument( getPrintURL( getState().shippingLabel.paperSize, labels, context ) )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -428,7 +466,8 @@ export const purchaseLabel = () => ( dispatch, getState, { purchaseURL, addressN
 		if ( ! _.every( normalizationResults ) ) {
 			return;
 		}
-		form = getState().shippingLabel.form;
+		const state = getState().shippingLabel;
+		form = state.form;
 		const formData = {
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
@@ -458,6 +497,9 @@ export const openRefundDialog = ( labelId ) => {
 
 export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, nonce } ) => {
 	getState().shippingLabel.labels.forEach( ( label ) => {
+		if ( label.statusUpdated ) {
+			return;
+		}
 		const labelId = label.label_id;
 		let error = null;
 		let response = null;
@@ -518,10 +560,10 @@ export const closeReprintDialog = () => {
 	return { type: CLOSE_REPRINT_DIALOG };
 };
 
-export const confirmReprint = () => ( dispatch, getState, { labelImageURL, nonce } ) => {
+export const confirmReprint = () => ( dispatch, getState, context ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	printDocument( sprintf( labelImageURL, labelId ), nonce )
+	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ) )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

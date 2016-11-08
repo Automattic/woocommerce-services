@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_REST_Connect_Shipping_Label_Image_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Shipping_Labels_Preview_Controller' ) ) {
 	return;
 }
 
-class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller {
+class WC_REST_Connect_Shipping_Labels_Preview_Controller extends WP_REST_Controller {
 
 	/**
 	 * Endpoint namespace.
@@ -22,7 +22,7 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'connect/label/(?P<order_id>\d+)-(?P<label_id>\d+)/image';
+	protected $rest_base = 'connect/labels/preview';
 
 	/**
 	 * @var WC_Connect_API_Client
@@ -30,12 +30,18 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	protected $api_client;
 
 	/**
+	 * @var WC_Connect_Service_Settings_Store
+	 */
+	protected $settings_store;
+
+	/**
 	 * @var WC_Connect_Logger
 	 */
 	protected $logger;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
+		$this->settings_store = $settings_store;
 		$this->logger = $logger;
 	}
 
@@ -53,7 +59,18 @@ class WC_REST_Connect_Shipping_Label_Image_Controller extends WP_REST_Controller
 	}
 
 	public function get_item( $request ) {
-		$raw_response = $this->api_client->get_label_image( $request[ 'label_id' ] );
+		$raw_params = $request->get_params();
+		$params = array();
+
+		$params[ 'paper_size' ] = $raw_params[ 'paper_size' ];
+		$this->settings_store->set_preferred_paper_size( $params[ 'paper_size' ] );
+		$params[ 'carrier' ] = 'usps';
+		$params[ 'labels' ] = array();
+		foreach ( $raw_params[ 'captions' ] as $caption ) {
+			$params[ 'labels' ][] = array( 'caption' => $caption );
+		}
+
+		$raw_response = $this->api_client->get_labels_preview_pdf( $params );
 
 		if ( is_wp_error( $raw_response ) ) {
 			$this->logger->log( $raw_response, __CLASS__ );

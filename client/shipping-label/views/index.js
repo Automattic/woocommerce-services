@@ -13,8 +13,10 @@ import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
+import canPurchase from 'shipping-label/state/selectors/can-purchase';
+import _ from 'lodash';
 
-let labelsStatusUpdateTriggered = false;
+let needToFetchLabelsStatus = true;
 
 const ShippingLabelRootView = ( props ) => {
 	const renderPurchaseLabelFlow = () => {
@@ -31,10 +33,6 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderLabelActions = ( label, index ) => {
-		if ( ! label.statusUpdated ) {
-			return <Spinner key={ index } size={ 24 } />;
-		}
-
 		if ( label.refunded_time ) {
 			return (
 				<div key={ index }>
@@ -64,6 +62,7 @@ const ShippingLabelRootView = ( props ) => {
 				<div className="wcc-meta-box-action-buttons">
 					<ReprintDialog
 						reprintDialog={ props.shippingLabel.reprintDialog }
+						{ ...props.shippingLabel }
 						{ ...props }
 						{ ...label } />
 					<Button onClick={ () => props.labelActions.openReprintDialog( label.label_id ) } >
@@ -72,6 +71,7 @@ const ShippingLabelRootView = ( props ) => {
 
 					<RefundDialog
 						refundDialog={ props.shippingLabel.refundDialog }
+						{ ...props.shippingLabel }
 						{ ...props }
 						{ ...label } />
 					<Button onClick={ () => props.labelActions.openRefundDialog( label.label_id ) } >
@@ -83,9 +83,12 @@ const ShippingLabelRootView = ( props ) => {
 	};
 
 	const renderLabelsActions = () => {
-		if ( ! labelsStatusUpdateTriggered ) {
-			labelsStatusUpdateTriggered = true;
+		if ( needToFetchLabelsStatus ) {
+			needToFetchLabelsStatus = false;
 			props.labelActions.fetchLabelsStatus();
+		}
+		if ( ! _.every( props.shippingLabel.labels, 'statusUpdated' ) ) {
+			return <Spinner size={ 24 } />;
 		}
 		return (
 			<div>
@@ -110,6 +113,7 @@ function mapStateToProps( state, { storeOptions } ) {
 	return {
 		shippingLabel: state.shippingLabel,
 		errors: getFormErrors( state, storeOptions ),
+		canPurchase: canPurchase( state, storeOptions ),
 	};
 }
 
