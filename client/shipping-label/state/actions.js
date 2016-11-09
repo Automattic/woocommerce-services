@@ -481,7 +481,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 					carrier_id: rate.carrier_id,
 					service_name: rate.title,
 					products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
-				}
+				};
 			} ),
 			order_id: form.orderId,
 		};
