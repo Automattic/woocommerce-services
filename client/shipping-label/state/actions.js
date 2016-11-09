@@ -378,8 +378,8 @@ const refreshPreview = ( dispatch, getState, context ) => {
 	const state = getState().shippingLabel;
 	const { form, paperSize } = state;
 	let pckgIndex = 1;
-	const labels = _.map( form.packages.values, () => ( {
-		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.values ).length ),
+	const labels = _.map( form.packages.selected, () => ( {
+		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.selected ).length ),
 	} ) );
 
 	dispatch( {
