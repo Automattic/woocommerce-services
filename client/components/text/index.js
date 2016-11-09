@@ -32,7 +32,7 @@ const Text = ( { id, title, className, value } ) => {
 
 Text.propTypes = {
 	id: PropTypes.string.isRequired,
-	title: PropTypes.string.isRequired,
+	title: PropTypes.string,
 	className: PropTypes.string,
 	value: PropTypes.string.isRequired,
 };
