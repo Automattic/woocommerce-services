@@ -56,9 +56,12 @@ const AddPackageDialog = ( props ) => {
 		weightUnit,
 		packages,
 		packageSchema,
+		predefinedSchema,
 		packageData,
 		showOuterDimensions,
 	} = form;
+
+	const customPackages = packages.custom;
 
 	const {
 		name,
@@ -74,8 +77,15 @@ const AddPackageDialog = ( props ) => {
 	const exampleDimensions = [ 100.25, 25, 5.75 ].map( ( val ) => val.toLocaleString() ).join( ' x ' );
 
 	const onSave = () => {
-		const editName = 'number' === typeof packageData.index ? packages[ packageData.index ].name : null;
-		const boxNames = _.difference( packages.map( ( boxPackage ) => boxPackage.name ), [ editName ] );
+		const editName = 'number' === typeof packageData.index ? customPackages[ packageData.index ].name : null;
+
+		//get reserved box names:
+		const boxNames = _.concat(
+			_.difference( customPackages.map( ( boxPackage ) => boxPackage.name ), [ editName ] ), //existing custom boxes
+			_.flatten( _.map( predefinedSchema, predef => _.map( predef, group => group.definitions ) ) ), //predefined boxes
+			[ 'individual' ] //reserved for items shipping in original packaging
+		);
+
 		const filteredPackageData = Object.assign( {}, packageData, {
 			name: inputFilters.string( packageData.name ),
 			inner_dimensions: inputFilters.dimensions( packageData.inner_dimensions ),

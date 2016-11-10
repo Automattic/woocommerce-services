@@ -10,6 +10,8 @@ export const SET_SELECTED_PRESET = 'SET_SELECTED_PRESET';
 export const SAVE_PACKAGE = 'SAVE_PACKAGE';
 export const UPDATE_PACKAGES_FIELD = 'UPDATE_PACKAGES_FIELD';
 export const TOGGLE_OUTER_DIMENSIONS = 'TOGGLE_OUTER_DIMENSIONS';
+export const TOGGLE_ALL = 'TOGGLE_ALL';
+export const TOGGLE_PACKAGE = 'TOGGLE_PACKAGE';
 
 export const addPackage = () => ( {
 	type: ADD_PACKAGE,
@@ -46,6 +48,18 @@ export const updatePackagesField = ( newValues ) => ( {
 
 export const toggleOuterDimensions = () => ( {
 	type: TOGGLE_OUTER_DIMENSIONS,
+} );
+
+export const toggleAll = ( serviceId, groupId ) => ( {
+	type: TOGGLE_ALL,
+	serviceId,
+	groupId,
+} );
+
+export const togglePackage = ( serviceId, packageId ) => ( {
+	type: TOGGLE_PACKAGE,
+	serviceId,
+	packageId,
 } );
 
 export const setModalErrors = ( value ) => ( {

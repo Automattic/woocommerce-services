@@ -33,7 +33,8 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 				packageData: {
 					is_user_defined: true,
 				},
-				packageSchema: formSchema.items,
+				packageSchema: formSchema.custom.items,
+				predefinedSchema: formSchema.predefined,
 			},
 		};
 	},

@@ -30,6 +30,7 @@ WCCSettingsForm.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
+	predefinedPackages: PropTypes.array.isRequired,
 };
 
 function mapStateToProps( state, props ) {

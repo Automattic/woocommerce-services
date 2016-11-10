@@ -30,6 +30,7 @@ const ShippingServiceGroup = ( props ) => {
 		services,
 		updateValue,
 		errors,
+		predefinedPackages,
 	} = props;
 	const summary = summaryLabel( services );
 	const actionButton = (
@@ -63,14 +64,18 @@ const ShippingServiceGroup = ( props ) => {
 				</label>
 			</div>
 
-			{ services.map( ( service, idx ) => (
-				<ShippingServiceEntry
+			{ services.map( ( service, idx ) => {
+				if ( service.predefined_package && ! predefinedPackages.includes( service.predefined_package ) ) {
+					return null;
+				}
+
+				return <ShippingServiceEntry
 					{ ...props }
 					{ ...{ service } }
 					updateValue={ ( key, val ) => updateValue( [ service.id ].concat( key ), val ) }
 					key={ idx }
-				/>
-			) ) }
+				/>;
+			} ) }
 		</FoldableCard>
 	);
 };
@@ -88,6 +93,7 @@ ShippingServiceGroup.propTypes = {
 		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
 	updateValue: PropTypes.func.isRequired,
+	predefinedPackages: PropTypes.array.isRequired,
 };
 
 export default ShippingServiceGroup;

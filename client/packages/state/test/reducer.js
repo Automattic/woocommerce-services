@@ -15,7 +15,7 @@ import {
 const initialState = {
 	showModal: false,
 	packageData: null,
-	packages: [ 1, 2, 3 ],
+	packages: { custom: [ 1, 2, 3 ] },
 	pristine: true,
 	isSaving: false,
 };
@@ -27,7 +27,7 @@ describe( 'Packages form reducer', () => {
 		expect( initialState ).to.eql( {
 			showModal: false,
 			packageData: null,
-			packages: [ 1, 2, 3 ],
+			packages: { custom: [ 1, 2, 3 ] },
 			pristine: true,
 			isSaving: false,
 		} );
@@ -171,12 +171,12 @@ describe( 'Packages form reducer', () => {
 			mode: 'add',
 			packageData,
 			showOuterDimensions: false,
-			packages: [ 1, 2, 3 ],
+			packages: { custom: [ 1, 2, 3 ] },
 		};
 		const action = savePackage( packageData );
 		const state = reducer( initialSavePackageState, action );
 
-		expect( state.packages[ 3 ] ).to.eql( {
+		expect( state.packages.custom[ 3 ] ).to.eql( {
 			is_user_defined: true,
 			name: 'Test Box',
 		} );
@@ -193,12 +193,12 @@ describe( 'Packages form reducer', () => {
 			mode: 'edit',
 			packageData,
 			showOuterDimensions: false,
-			packages: [ 1, 2, 3 ],
+			packages: { custom: [ 1, 2, 3 ] },
 		};
 		const action = savePackage( packageData );
 		const state = reducer( initialSavePackageState, action );
 
-		expect( state.packages[ 1 ] ).to.eql( {
+		expect( state.packages.custom[ 1 ] ).to.eql( {
 			is_user_defined: true,
 			name: 'Test Box',
 		} );
@@ -215,7 +215,7 @@ describe( 'Packages form reducer', () => {
 			mode: 'edit',
 			packageData,
 			showOuterDimensions: false,
-			packages: [ 1, 2, 3 ],
+			packages: { custom: [ 1, 2, 3 ] },
 		};
 		const action = savePackage( packageData );
 		const state = reducer( initialSavePackageState, action );
@@ -225,7 +225,7 @@ describe( 'Packages form reducer', () => {
 			is_user_defined: true,
 		} );
 		expect( state.mode ).to.eql( 'add' );
-		expect( state.packages[ 1 ] ).to.eql( {
+		expect( state.packages.custom[ 1 ] ).to.eql( {
 			is_user_defined: true,
 			name: 'Test Box',
 		} );
@@ -263,7 +263,7 @@ describe( 'Packages form reducer', () => {
 		const action = removePackage( 1 );
 
 		const state = reducer( initialState, action );
-		expect( state.packages ).to.eql( [ 1, 3 ] );
+		expect( state.packages.custom ).to.eql( [ 1, 3 ] );
 	} );
 
 	it( 'SET_IS_SAVING', () => {
