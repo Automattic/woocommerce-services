@@ -1,10 +1,16 @@
 # Connect for WooCommerce
 
-What you see today is a plugin, though the goal for  Connect for WooCommerce is to be a fully integrated part of WooCommerce core. To get us from feature plugin to core, Connect for WooCommerce development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
+Connect for WooCommerce development is now in BETA - this means that you should expect frequent and sometimes large changes as we improve the service. During BETA testing, we'll be fixing problems and working to launch a feature-complete MVP.
 
-**We do not recommend you use this ALPHA software on a production site.**
+**This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
-The emphasis for initial release of Connect for WooCommerce is shipping simplified. We are providing a Shipping Zones-compatible USPS shipping method and, coming soon, a Shipping Zones compatible Canada Post shipping method. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
+Connect for WooCommerce makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+
+With Connect, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
+
+The emphasis for initial release of Connect for WooCommerce is shipping simplified. We are providing Shipping Zones-compatible USPS and Canada Post shipping methods and USPS shipping labels (stamps). Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
+
+To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
 Our USPS shipping method pulls rates for customers' carts in real time from the USPS server. No USPS account is needed - use the default one if you like.
 
@@ -16,9 +22,9 @@ You need:
 * WooCommerce 2.6+
 * Installation of [Jetpack](https://wordpress.org/plugins/jetpack/), activate and connect it to your WordPress.com account
 
-### Working with alpha
+### Working with the Beta
 
-If you'd just like to check out the latest alpha release and not contribute code back, then [download the latest release](https://github.com/Automattic/woocommerce-connect-client/releases) and install as a plugin on your WordPress site.
+If you'd just like to check out the latest beta release and not contribute code back, then [download the latest release](https://wordpress.org/plugins/connect-for-woocommerce/) and install as a plugin on your WordPress site.
 
 ### Working with `master`
 
@@ -37,7 +43,7 @@ Need to report a security vulnerability? Go to [https://automattic.com/security/
 
 ## Browser Support
 
-We support the latest two versions of all major browsers, except  IE, where we currently only support 11 and Edge.  (see [Browse Happy](http://browsehappy.com) for current latest versions).
+We support the latest two versions of all major browsers, except IE, where we currently only support 11 and Edge.  (see [Browse Happy](http://browsehappy.com) for current latest versions).
 
 ## License
 
