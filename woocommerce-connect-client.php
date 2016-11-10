@@ -405,6 +405,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 40 );
+			add_filter( 'woocommerce_shipping_fields' , array( $this, 'add_shipping_phone_to_checkout' ) );
+			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
+			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
 		}
 
 		/**
@@ -746,6 +749,38 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$protected = true;
 			}
 			return $protected;
+		}
+
+		function add_shipping_phone_to_checkout( $fields ) {
+			$fields[ 'shipping_phone' ] = array(
+				'label'        => __( 'Phone', 'woocommerce' ),
+				'type'         => 'tel',
+				'required'     => false,
+				'class'        => array( 'form-row-wide' ),
+				'clear'        => true,
+				'validate'     => array( 'phone' ),
+				'autocomplete' => 'tel',
+			);
+			return $fields;
+		}
+
+		function add_shipping_phone_to_order_fields( $fields ) {
+			$fields[ 'phone' ] = array(
+				'label' => __( 'Phone', 'woocommerce' ),
+			);
+			return $fields;
+		}
+
+		function get_shipping_phone_from_order( $fields, $address_type, $order ) {
+			if ( 'shipping' === $address_type ) {
+				$shipping_phone = get_post_meta( $order->id, '_shipping_phone', true );
+				if ( ! $shipping_phone ) {
+					$billing_address = $order->get_address( 'billing' );
+					$shipping_phone = $billing_address[ 'phone' ];
+				}
+				$fields[ 'phone' ] =  $shipping_phone;
+			}
+			return $fields;
 		}
 	}
 
