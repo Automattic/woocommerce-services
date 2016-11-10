@@ -14,9 +14,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 */
 		protected $settings_store;
 
-		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store ) {
+		/**
+		 * @var WC_Connect_Service_Schemas_Store
+		 */
+		protected $service_schemas_store;
+
+		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Service_Schemas_Store $service_schemas_store ) {
 			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
+			$this->service_schemas_store = $service_schemas_store;
 		}
 
 		protected function get_items_as_individual_packages( $order ) {
@@ -111,20 +117,42 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_all_packages() {
-			$packages = $this->settings_store->get_packages();
-
-			if ( ! $packages ) {
-				return new stdClass();
-			}
+			$custom_packages = $this->settings_store->get_packages();
 
 			$formatted_packages = array();
 
-			foreach( $packages as $package ) {
+			foreach( $custom_packages as $package ) {
 				$package_id = $package[ 'name' ];
 				$formatted_packages[ $package_id ] = $package;
 			}
 
+			$service_id = 'usps'; //TODO: remove hardcoding
+			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema_for_service( $service_id );
+			$enabled_predefined_packages = $this->settings_store->get_predefined_packages_for_service( $service_id );
+
+			foreach ( $predefined_packages_schema as $group ) {
+				foreach ( $group->definitions as $package ) {
+					if ( ! in_array( $package->id, $enabled_predefined_packages ) ) {
+						continue;
+					}
+
+					$formatted_packages[ $package->id ] = $package;
+				}
+			}
+
 			return $formatted_packages;
+		}
+
+		protected function get_flat_rate_packages_groups() {
+			$service_id = 'usps'; //TODO: remove hardcoding
+			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema_for_service( $service_id );
+			$groups = array();
+
+			foreach ( $predefined_packages_schema as $group_id => $group ) {
+				$groups[ $group_id ] = $group->title;
+			}
+
+			return $groups;
 		}
 
 		protected function get_selected_rates( WC_Order $order ) {
@@ -185,6 +213,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$selected_packages = $this->get_selected_packages( $order );
 			$all_packages      = $this->get_all_packages();
+			$flat_rate_groups  = $this->get_flat_rate_packages_groups();
 			$is_packed         = ( false !== $this->get_packaging_metadata( $order ) );
 			$origin            = $this->get_origin_address();
 			$selected_rates    = $this->get_selected_rates( $order );
@@ -194,7 +223,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$destination[ 'country' ] = $origin[ 'country' ];
 			}
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'origin', 'destination' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => (object) $selected_rates,

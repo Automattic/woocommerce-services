@@ -13,7 +13,7 @@ const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 	return `${dimensions.length} ${dimensionUnit} x ${dimensions.width} ${dimensionUnit} x ${dimensions.height} ${dimensionUnit}`;
 };
 
-const PackageInfo = ( { packageId, selected, all, unpacked, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
+const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
 	if ( ! packageId ) {
 		return null;
 	}
@@ -68,11 +68,25 @@ const PackageInfo = ( { packageId, selected, all, unpacked, dimensionUnit, weigh
 			return ( <div className="wcc-package__desc"><span className="wcc-package__desc-name">Package - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span></div> );
 		}
 
-		const packageOptions = _.map( all, renderPackageOption );
+		const groups = _.reduce( flatRateGroups, ( result, groupTitle, groupId ) => {
+			const definitions = _.pickBy( all, { group_id: groupId } );
+			if ( _.isEmpty( definitions ) ) {
+				return result;
+			}
+
+			result[ groupId ] = { title: groupTitle, definitions };
+			return result;
+		}, {
+			custom: { title: __( 'Custom Packages' ), definitions: _.pickBy( all, p => ! p.group_id ) },
+		} );
 
 		return (
 			<FormSelect onChange={ packageOptionChange } value={ pckg.box_id }>
-				{ packageOptions }
+				{ _.map( groups, ( group, groupId ) => (
+					<optgroup label={ group.title } key={ groupId } >
+						{ _.map( group.definitions, renderPackageOption ) }
+					</optgroup>
+				) ) }
 			</FormSelect>
 		);
 	};
@@ -114,6 +128,7 @@ PackageInfo.propTypes = {
 	packageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
+	flatRateGroups: PropTypes.object.isRequired,
 	unpacked: PropTypes.array.isRequired,
 	updateWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,

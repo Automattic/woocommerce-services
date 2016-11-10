@@ -102,6 +102,10 @@ export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions }
 	expandFirstErroneousStep( dispatch, getState, storeOptions, stepName );
 };
 
+const convertToApiPackage = ( pckg ) => {
+	return _.pick( pckg, [ 'id', 'box_id', 'service_id', 'length', 'width', 'height', 'weight' ] );
+};
+
 const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
 	const formState = getState().shippingLabel.form;
 	const {
@@ -110,7 +114,7 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 		packages,
 	} = formState;
 
-	return getRates( dispatch, origin.values, destination.values, packages.selected, getRatesURL, nonce )
+	return getRates( dispatch, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
 		.then( handleResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -474,7 +478,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 			packages: _.map( form.packages.selected, ( pckg, pckgId ) => {
 				const rate = _.find( form.rates.available[ pckgId ].rates, { service_id: form.rates.values[ pckgId ] } );
 				return {
-					..._.omit( pckg, [ 'items', 'id', 'box_id' ] ),
+					...convertToApiPackage( pckg ),
 					shipment_id: form.rates.available[ pckgId ].shipment_id,
 					rate_id: rate.rate_id,
 					service_id: form.rates.values[ pckgId ],

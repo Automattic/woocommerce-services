@@ -47,6 +47,7 @@ export default ( { formData, labelsData, paperSize, storeOptions } ) => ( {
 					},
 					packages: {
 						all: formData.all_packages,
+						flatRateGroups: formData.flat_rate_groups,
 						selected: formData.selected_packages,
 						unpacked: [],
 						isPacked: formData.is_packed,

@@ -195,5 +195,16 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			return ( object ) $predefined_packages;
 		}
+
+		public function get_predefined_packages_schema_for_service( $service_id ) {
+			$package_schemas = $this->get_predefined_packages_schema();
+
+			if ( is_null( $package_schemas )
+			     || ! property_exists( $package_schemas, $service_id ) ) {
+				return array();
+			}
+
+			return $package_schemas->{ $service_id };
+		}
 	}
 }
