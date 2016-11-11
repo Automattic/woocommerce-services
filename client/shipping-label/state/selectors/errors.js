@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { translate as __ } from 'lib/mixins/i18n';
-import { PhoneNumberUtil } from 'google-libphonenumber';
+import { isValidPhone } from 'lib/utils/phone-format';
 import _ from 'lodash';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
@@ -20,13 +20,7 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 		}
 	} );
 
-	const phoneUtil = PhoneNumberUtil.getInstance();
-	try {
-		const parsedPhone = phoneUtil.parse( phone, country );
-		if ( ! phoneUtil.isValidNumber( parsedPhone ) ) {
-			errors.phone = __( 'Invalid phone number' );
-		}
-	} catch ( e ) {
+	if ( ! isValidPhone( phone, country ) ) {
 		errors.phone = __( 'Invalid phone number' );
 	}
 

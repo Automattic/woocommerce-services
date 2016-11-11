@@ -7,29 +7,7 @@ import StateDropdown from 'components/state-dropdown';
 import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import AddressSuggestion from './suggestion';
-import { PhoneNumberUtil, AsYouTypeFormatter } from 'google-libphonenumber';
-
-const getPlainPhoneNumber = ( phoneNumber, countryCode ) => {
-	try {
-		const phoneUtil = PhoneNumberUtil.getInstance();
-		const parsedPhone = phoneUtil.parse( phoneNumber, countryCode );
-		if ( ! phoneUtil.isValidNumber( parsedPhone ) ) {
-			return phoneNumber;
-		}
-		return '' + parsedPhone.getNationalNumber();
-	} catch ( e ) {
-		return phoneNumber;
-	}
-};
-
-const formatPhoneForDisplay = ( rawNumber, countryCode ) => {
-	const formatter = new AsYouTypeFormatter( countryCode );
-	let phoneNumber = '';
-	rawNumber.split( '' ).forEach( ( char ) => {
-		phoneNumber = formatter.inputDigit( char );
-	} );
-	return phoneNumber;
-};
+import { getPlainPhoneNumber, formatPhoneForDisplay } from 'lib/utils/phone-format';
 
 const AddressFields = ( {
 		values,
