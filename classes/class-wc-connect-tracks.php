@@ -70,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 				$wc_version = WC()->version;
 			}
 
-			$jp_version = "unavailable";
+			$jp_version = 'unavailable';
 			if ( defined( 'JETPACK__VERSION' ) ) {
 				$jp_version = JETPACK__VERSION;
 			}
