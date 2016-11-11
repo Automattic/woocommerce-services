@@ -65,11 +65,13 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$user = wp_get_current_user();
 			$site_url = get_option( 'siteurl' );
 
+			// Check for WooCommerce
 			$wc_version = 'unavailable';
 			if ( function_exists( 'WC' ) ) {
 				$wc_version = WC()->version;
 			}
 
+			// Check for Jetpack
 			$jp_version = 'unavailable';
 			if ( defined( 'JETPACK__VERSION' ) ) {
 				$jp_version = JETPACK__VERSION;
