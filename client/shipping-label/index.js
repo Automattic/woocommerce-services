@@ -31,8 +31,8 @@ export default ( { formData, labelsData, paperSize, storeOptions } ) => ( {
 					orderId: formData.order_id,
 					origin: {
 						values: formData.origin,
-						isNormalized: Boolean( formData.origin.address ), // If the address field is filled, we assume it's an already normalized address
-						normalized: formData.origin.address ? formData.origin : null,
+						isNormalized: Boolean( formData.origin.phone ), // If the phone field is filled, we assume it's an already normalized address
+						normalized: formData.origin.phone ? formData.origin : null,
 						selectNormalized: true,
 						normalizationInProgress: false,
 						allowChangeCountry: false,

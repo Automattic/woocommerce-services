@@ -46,12 +46,22 @@ const AddressFields = ( {
 				value={ getValue( 'name' ) }
 				updateValue={ ( value ) => updateValue( 'name', value ) }
 				error={ fieldErrors.name } />
-			<TextField
-				id={ getId( 'company' ) }
-				title={ __( 'Company' ) }
-				value={ getValue( 'company' ) }
-				updateValue={ ( value ) => updateValue( 'company', value ) }
-				error={ fieldErrors.company } />
+			<div className="address__company-phone">
+				<TextField
+					id={ getId( 'company' ) }
+					title={ __( 'Company' ) }
+					value={ getValue( 'company' ) }
+					updateValue={ ( value ) => updateValue( 'company', value ) }
+					className="address__company"
+					error={ fieldErrors.company } />
+				<TextField
+					id={ getId( 'phone' ) }
+					title={ __( 'Phone' ) }
+					value={ getValue( 'phone' ) }
+					updateValue={ ( value ) => updateValue( 'phone', value ) }
+					className="address__phone"
+					error={ fieldErrors.phone } />
+			</div>
 			<TextField
 				id={ getId( 'address' ) }
 				title={ __( 'Address' ) }
@@ -65,30 +75,30 @@ const AddressFields = ( {
 				updateValue={ ( value ) => updateValue( 'address_2', value ) }
 				error={ fieldErrors.address_2 } />
 			<div className="address__city-state-postal-code">
-			<TextField
-				id={ getId( 'city' ) }
-				title={ __( 'City' ) }
-				value={ getValue( 'city' ) }
-				updateValue={ ( value ) => updateValue( 'city', value ) }
-				className="address__city"
-				error={ fieldErrors.city } />
-			<StateDropdown
-				id={ getId( 'state' ) }
-				title={ __( 'State' ) }
-				value={ getValue( 'state' ) }
-				countryCode={ getValue( 'country' ) }
-				countriesData={ storeOptions.countriesData }
-				updateValue={ ( value ) => updateValue( 'state', value ) }
-				className="address__state"
-				error={ fieldErrors.state } />
-			<TextField
-				id={ getId( 'postcode' ) }
-				title={ __( 'Postal code' ) }
-				value={ getValue( 'postcode' ) }
-				updateValue={ ( value ) => updateValue( 'postcode', value ) }
-				className="address__postal-code"
-				error={ fieldErrors.postcode } />
-		</div>
+				<TextField
+					id={ getId( 'city' ) }
+					title={ __( 'City' ) }
+					value={ getValue( 'city' ) }
+					updateValue={ ( value ) => updateValue( 'city', value ) }
+					className="address__city"
+					error={ fieldErrors.city } />
+				<StateDropdown
+					id={ getId( 'state' ) }
+					title={ __( 'State' ) }
+					value={ getValue( 'state' ) }
+					countryCode={ getValue( 'country' ) }
+					countriesData={ storeOptions.countriesData }
+					updateValue={ ( value ) => updateValue( 'state', value ) }
+					className="address__state"
+					error={ fieldErrors.state } />
+				<TextField
+					id={ getId( 'postcode' ) }
+					title={ __( 'Postal code' ) }
+					value={ getValue( 'postcode' ) }
+					updateValue={ ( value ) => updateValue( 'postcode', value ) }
+					className="address__postal-code"
+					error={ fieldErrors.postcode } />
+			</div>
 			<CountryDropdown
 				id={ getId( 'country' ) }
 				title={ __( 'Country' ) }

@@ -64,6 +64,8 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 		unset( $request->address->name );
 		$company = $request->address->company;
 		unset( $request->address->company );
+		$phone = $request->address->phone;
+		unset( $request->address->phone );
 
 		$body = array(
 			'destination' => $request->address,
@@ -93,6 +95,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 
 		$response->normalized->name = $name;
 		$response->normalized->company = $company;
+		$response->normalized->phone = $phone;
 
 		if ( 'origin' === $request->type ) {
 			$this->settings_store->update_origin_address( $response->normalized );

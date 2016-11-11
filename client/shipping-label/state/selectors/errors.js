@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { translate as __ } from 'lib/mixins/i18n';
+import { PhoneNumberUtil } from 'google-libphonenumber';
 import _ from 'lodash';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
@@ -10,14 +11,24 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 			address: __( 'This address is not recognized. Please try another.' ),
 		};
 	}
-	const { postcode, state, country } = ( isNormalized && selectNormalized ) ? normalized : values;
-	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
+	const { phone, postcode, state, country } = ( isNormalized && selectNormalized ) ? normalized : values;
+	const requiredFields = [ 'name', 'phone', 'address', 'city', 'postcode', 'country' ];
 	const errors = {};
 	requiredFields.forEach( ( field ) => {
 		if ( ! values[ field ] ) {
 			errors[ field ] = __( 'This field is required' );
 		}
 	} );
+
+	const phoneUtil = PhoneNumberUtil.getInstance();
+	try {
+		const parsedPhone = phoneUtil.parse( phone, country );
+		if ( ! phoneUtil.isValidNumber( parsedPhone ) ) {
+			errors.phone = __( 'Invalid phone number' );
+		}
+	} catch ( e ) {
+		errors.phone = __( 'Invalid phone number' );
+	}
 
 	switch ( country ) {
 		case 'US':
