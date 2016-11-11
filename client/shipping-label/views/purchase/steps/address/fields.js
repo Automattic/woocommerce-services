@@ -7,6 +7,29 @@ import StateDropdown from 'components/state-dropdown';
 import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import AddressSuggestion from './suggestion';
+import { PhoneNumberUtil, AsYouTypeFormatter } from 'google-libphonenumber';
+
+const getPlainPhoneNumber = ( phoneNumber, countryCode ) => {
+	try {
+		const phoneUtil = PhoneNumberUtil.getInstance();
+		const parsedPhone = phoneUtil.parse( phoneNumber, countryCode );
+		if ( ! phoneUtil.isValidNumber( parsedPhone ) ) {
+			return phoneNumber;
+		}
+		return '' + parsedPhone.getNationalNumber();
+	} catch ( e ) {
+		return phoneNumber;
+	}
+};
+
+const formatPhoneForDisplay = ( rawNumber, countryCode ) => {
+	const formatter = new AsYouTypeFormatter( countryCode );
+	let phoneNumber = '';
+	rawNumber.split( '' ).forEach( ( char ) => {
+		phoneNumber = formatter.inputDigit( char );
+	} );
+	return phoneNumber;
+};
 
 const AddressFields = ( {
 		values,
@@ -57,8 +80,8 @@ const AddressFields = ( {
 				<TextField
 					id={ getId( 'phone' ) }
 					title={ __( 'Phone' ) }
-					value={ getValue( 'phone' ) }
-					updateValue={ ( value ) => updateValue( 'phone', value ) }
+					value={ formatPhoneForDisplay( getValue( 'phone' ), getValue( 'country' ) ) }
+					updateValue={ ( value ) => updateValue( 'phone', getPlainPhoneNumber( value, getValue( 'country' ) ) ) }
 					className="address__phone"
 					error={ fieldErrors.phone } />
 			</div>
