@@ -468,7 +468,14 @@ reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
 	return { ...state,
 		form: { ...state.form,
 			rates: {
-				values: _.mapValues( state.form.rates.values, () => '' ),
+				values: _.mapValues( rates, ( rate ) => {
+					const selected = rate.rates.find( ( r ) => r.is_selected );
+					if ( selected ) {
+						return selected.service_id;
+					}
+
+					return '';
+				} ),
 				retrievalInProgress: false,
 				available: rates,
 			},

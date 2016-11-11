@@ -300,7 +300,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			wp_enqueue_style( 'wc_connect_admin' );
 
 			?>
-			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"><span class="form-troubles" style="opacity: 0"><?php printf( __( 'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'connectforwoocommerce' ), $debug_page_uri ); ?></span></div>
+			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>">
+				<span class="form-troubles" style="opacity: 0">
+					<?php printf( __(
+						'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.',
+						'connectforwoocommerce' ),
+						$debug_page_uri
+					); ?>
+				</span>
+			</div>
 			<?php
 		}
 

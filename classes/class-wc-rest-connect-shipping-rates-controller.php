@@ -71,7 +71,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		$payload[ 'carrier' ] = 'usps';
 
 		// Exclude extraneous package fields
-		$whitelist = array_fill_keys( array( 'length', 'width', 'height', 'weight', 'template' ), true );
+		$whitelist = array_fill_keys( array( 'length', 'width', 'height', 'weight', 'template', 'service_id' ), true );
 		$formatted_packages = array();
 
 		foreach ( $payload[ 'packages' ] as $package_id => $package ) {
