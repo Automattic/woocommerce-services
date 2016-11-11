@@ -3,7 +3,7 @@ Contributors: Automattic, WooThemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
-Stable tag: 0.9.1
+Stable tag: 0.9.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,10 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of Connect for WooCommerce
 
 == Changelog ==
+
+= 0.9.2 =
+* Fix a fatal error that could happen on activation if WooCommerce or Jetpack were not present
+* Send order shipping information with label rate requests to allow for pre-selection
 
 = 0.9.1 =
 * Update contributors to include a few we missed
