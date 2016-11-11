@@ -139,9 +139,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		static function load_tracks_for_activation_hooks() {
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
-			$logger = new WC_Connect_Logger( new WC_Logger() );
+			$logger = null;
+			if ( class_exists( 'WC_Logger' ) ) {
+				$logger = new WC_Connect_Logger( new WC_Logger() );
+			}
 			return new WC_Connect_Tracks( $logger );
-
 		}
 
 		static function plugin_activation() {
