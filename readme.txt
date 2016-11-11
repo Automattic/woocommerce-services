@@ -1,9 +1,9 @@
 === Connect for WooCommerce ===
-Contributors: Automattic, WooThemes, allendav, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
+Contributors: Automattic, WooThemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
-Stable tag: 0.9.0
+Stable tag: 0.9.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,13 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of Connect for WooCommerce
 
 == Changelog ==
+
+= 0.9.1 =
+* Update contributors to include a few we missed
+* Add USPS flat-rate packaging support to the packaging manager
+* Improvements to label preview
+* Ensure self-help works even if connect is unable to download the service schemas
+* Switch to PDF based multi-page labels
 
 = 0.9.0 =
 * Beta release
