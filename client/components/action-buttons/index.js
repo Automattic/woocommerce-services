@@ -22,7 +22,7 @@ const ActionButtons = ( { buttons, className } ) => {
 ActionButtons.propTypes = {
 	buttons: PropTypes.arrayOf(
 		PropTypes.shape( {
-			label: PropTypes.string.isRequired,
+			label: PropTypes.node.isRequired,
 			onClick: PropTypes.func.isRequired,
 			isPrimary: PropTypes.bool,
 			isDisabled: PropTypes.bool,
