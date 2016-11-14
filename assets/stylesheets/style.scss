@@ -269,27 +269,29 @@
 		margin-bottom: 0;
 	}
 
-	.global-notices .notice,
-	.global-notices .notice {
-		margin-left: 164px;
-		max-width: 1040px;
+	.global-notices {
+		z-index: 999999; // Make sure notices are shown on top of modals
 
-		@include breakpoint( '<960px' ) {
-			margin-left: 36px;
+		.notice {
+			margin-left: 164px;
+			max-width: 1040px;
+
+			@include breakpoint( '<960px' ) {
+				margin-left: 36px;
+			}
+
+			@include breakpoint( '<780px' ) {
+				margin-left: 0;
+			}
 		}
 
-		@include breakpoint( '<780px' ) {
-			margin-left: 0;
-		}
-	}
+		// adjust until system fonts get in wp-admin
+		.notice__text {
+			padding: 10px 8px 8px;
 
-	// adjust until system fonts get in wp-admin
-	.global-notices .notice__text,
-	.global-notices .notice__text {
-		padding: 10px 8px 8px;
-
-		@include breakpoint( '<660px' ) {
-			padding: 16px;
+			@include breakpoint( '<660px' ) {
+				padding: 16px;
+			}
 		}
 	}
 
