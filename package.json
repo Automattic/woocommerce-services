@@ -76,6 +76,7 @@
     "babel-preset-react": "^6.5.0",
     "babel-preset-stage-1": "^6.5.0",
     "classnames": "^2.2.5",
+    "component-closest": "^1.0.1",
     "debug": "^2.2.0",
     "dompurify": "^0.8.0",
     "google-libphonenumber": "^2.0.4",

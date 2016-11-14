@@ -4,7 +4,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
 import FormButton from 'components/forms/form-button';
-import Dialog from 'components/dialog';
+import Modal from 'components/modal';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
@@ -118,9 +118,9 @@ const AddPackageDialog = ( props ) => {
 	};
 
 	return (
-		<Dialog
+		<Modal
 			isVisible={ showModal }
-			additionalClassNames="wcc-modal wcc-shipping-add-edit-package-dialog"
+			additionalClassNames="wcc-shipping-add-edit-package-dialog"
 			onClose={ dismissModal }
 			buttons={ getDialogButtons( mode, dismissModal, onSave ) }>
 			<FormSectionHeading>
@@ -201,7 +201,7 @@ const AddPackageDialog = ( props ) => {
 				</div>
 				<FieldDescription text={ __( 'Defines both the weight of the empty box and the max weight it can hold' ) } />
 			</FormFieldset>
-		</Dialog>
+		</Modal>
 	);
 };
 

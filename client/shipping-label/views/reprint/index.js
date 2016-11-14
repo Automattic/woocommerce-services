@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Dialog from 'components/dialog';
+import Modal from 'components/modal';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
 import Dropdown from 'components/dropdown';
@@ -7,10 +7,10 @@ import { getPaperSizes } from 'lib/pdf-label-utils';
 
 const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 	return (
-		<Dialog
+		<Modal
 			isVisible={ Boolean( reprintDialog ) }
 			onClose={ labelActions.closeReprintDialog }
-			additionalClassNames="wcc-modal wcc-shipping-label-reprint">
+			additionalClassNames="wcc-shipping-label-reprint">
 			<div className="wcc-shipping-label-reprint__content">
 				<h3 className="form-section-heading">
 					{ __( 'Print shipping label' ) }
@@ -40,7 +40,7 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 					},
 				] } />
 			</div>
-		</Dialog>
+		</Modal>
 	);
 };
 
