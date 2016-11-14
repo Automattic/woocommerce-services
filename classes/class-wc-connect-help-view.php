@@ -123,7 +123,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'jetpack_indicator',
 					'notice',
 					'indicator-error',
-					__( 'Please connect Jetpack to WordPress.com', 'connectforwoocommerce' ),
+					__( 'Jetpack is not connected to WordPress.com. Make sure the Jetpack plugin is installed, activated, and connected.', 'connectforwoocommerce' ),
 					''
 				);
 			} else if ( Jetpack::is_staging_site() ) {
