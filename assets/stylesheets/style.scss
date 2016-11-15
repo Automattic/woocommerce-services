@@ -271,10 +271,16 @@
 
 	.global-notices {
 		z-index: 999999; // Make sure notices are shown on top of modals
+		top: 16px;
+		right: 16px;
+		@include breakpoint( '<660px' ) {
+			top: -4px;
+			right: 0;
+		}
 
 		.notice {
 			margin-left: 164px;
-			max-width: 1040px;
+			max-width: 740px;
 
 			@include breakpoint( '<960px' ) {
 				margin-left: 36px;
