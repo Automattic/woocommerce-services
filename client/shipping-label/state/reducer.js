@@ -367,7 +367,7 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 	const oldPackage = newPackages[ packageId ];
 
 	newPackages[ packageId ] = {
-		...oldPackage,
+		..._.omit( oldPackage, 'service_id' ),
 		height, length, width,
 		weight: box.box_weight + _.sumBy( oldPackage.items, 'weight' ),
 		box_id: boxTypeId,

@@ -14,6 +14,7 @@ const PackagesStep = ( {
 	openedPackageId,
 	selected,
 	all,
+	flatRateGroups,
 	unpacked,
 	storeOptions,
 	labelActions,
@@ -73,6 +74,7 @@ const PackagesStep = ( {
 					packageId={ openedPackageId }
 					selected={ selected }
 					all={ all }
+					flatRateGroups={ flatRateGroups }
 					unpacked={ unpacked }
 					dimensionUnit={ storeOptions.dimension_unit }
 					weightUnit={ storeOptions.weight_unit }
@@ -151,6 +153,7 @@ PackagesStep.propTypes = {
 	showItemMoveDialog: PropTypes.bool,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
+	flatRateGroups: PropTypes.object.isRequired,
 	labelActions: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	errors: PropTypes.object.isRequired,

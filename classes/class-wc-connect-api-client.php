@@ -165,7 +165,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *		),
 		 *		array(
 		 *			'id' => 'box_2',
-		 *			'template' => 'medium_flat_box_top',
+		 *			'box_id' => 'medium_flat_box_top',
 		 *			'weight' => 5,
 		 *		),
 		 *		...

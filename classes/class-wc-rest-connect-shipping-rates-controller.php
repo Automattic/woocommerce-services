@@ -70,19 +70,6 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		// Hardcode USPS rates for now
 		$payload[ 'carrier' ] = 'usps';
 
-		// Exclude extraneous package fields
-		$whitelist = array_fill_keys( array( 'length', 'width', 'height', 'weight', 'template', 'service_id' ), true );
-		$formatted_packages = array();
-
-		foreach ( $payload[ 'packages' ] as $package_id => $package ) {
-			$formatted_package = array_intersect_key( $package, $whitelist );
-			$formatted_package[ 'id' ] = $package_id;
-
-			$formatted_packages[] = $formatted_package;
-		}
-
-		$payload[ 'packages' ] = $formatted_packages;
-
 		$response = $this->api_client->get_label_rates( $payload );
 
 		if ( is_wp_error( $response ) ) {
