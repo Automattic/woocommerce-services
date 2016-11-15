@@ -1,5 +1,7 @@
 import { createSelector } from 'reselect';
 import { translate as __ } from 'lib/mixins/i18n';
+import { isValidPhone } from 'lib/utils/phone-format';
+import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
@@ -10,8 +12,8 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 			address: __( 'This address is not recognized. Please try another.' ),
 		};
 	}
-	const { postcode, state, country } = ( isNormalized && selectNormalized ) ? normalized : values;
-	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
+	const { phone, postcode, state, country } = ( isNormalized && selectNormalized ) ? normalized : values;
+	const requiredFields = [ 'name', 'phone', 'address', 'city', 'postcode', 'country' ];
 	const errors = {};
 	requiredFields.forEach( ( field ) => {
 		if ( ! values[ field ] ) {
@@ -19,16 +21,22 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 		}
 	} );
 
-	switch ( country ) {
-		case 'US':
-			if ( ! /^\d{5}(?:-\d{4})?$/.test( postcode ) ) {
-				errors.postcode = __( 'Invalid ZIP code format' );
-			}
-			break;
-	}
+	if ( countriesData[ country ] ) {
+		if ( ! isValidPhone( phone, country ) ) {
+			errors.phone = sprintf( __( 'Invalid phone number for %s' ), countriesData[ country ].name );
+		}
 
-	if ( ! _.isEmpty( countriesData[ country ] ) && ! state ) {
-		errors.state = __( 'This field is required' );
+		switch ( country ) {
+			case 'US':
+				if ( ! /^\d{5}(?:-\d{4})?$/.test( postcode ) ) {
+					errors.postcode = __( 'Invalid ZIP code format' );
+				}
+				break;
+		}
+
+		if ( ! _.isEmpty( countriesData[ country ].states ) && ! state ) {
+			errors.state = __( 'This field is required' );
+		}
 	}
 
 	return errors;

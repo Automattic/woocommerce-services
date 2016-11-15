@@ -61,7 +61,9 @@ module.exports = {
 				test: /\.png$/,
 				loader: 'url-loader?limit=10000',
 			}
-		]
+		],
+		// google-libphonenumber is pre-compiled, suppress the warning for that module
+		noParse: /.*google-libphonenumber.*/,
 	},
 	sassLoader: {
 		includePaths: [

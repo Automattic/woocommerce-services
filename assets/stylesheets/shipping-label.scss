@@ -183,7 +183,8 @@
 
 // Address
 
-.address__city-state-postal-code {
+.address__city-state-postal-code,
+.address__company-phone {
 	display: flex;
 	flex-direction: column;
 
@@ -198,7 +199,9 @@
 
 .address__city,
 .address__state,
-.address__postal-code {
+.address__postal-code,
+.address__company,
+.address__phone {
 	width: 100%;
 
 	@include breakpoint( ">960px" ) {
@@ -206,7 +209,8 @@
 	}
 }
 
-.address__city {
+.address__city,
+.address__company {
 	margin-left: 0;
 }
 
