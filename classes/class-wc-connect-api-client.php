@@ -291,14 +291,13 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return $headers;
 			}
 
-			set_time_limit( 0 ); // Disable PHP timeout (30 seconds default)
 			$args = array(
 				'headers' => $headers,
 				'method' => $method,
 				'body' => $body,
 				'redirection' => 0,
 				'compress' => true,
-				'timeout' => 60,
+				'timeout' => 20,
 			);
 			$args = apply_filters( 'wc_connect_request_args', $args );
 
