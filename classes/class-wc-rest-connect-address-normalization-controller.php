@@ -100,6 +100,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 		return array(
 			'success' => true,
 			'normalized' => $response->normalized,
+			'is_trivial_normalization' => isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false,
 		);
 	}
 

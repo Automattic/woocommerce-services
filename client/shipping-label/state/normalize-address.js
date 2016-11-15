@@ -22,6 +22,7 @@ export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
 					type: ADDRESS_NORMALIZATION_COMPLETED,
 					group: type,
 					normalized: ( response || {} ).normalized,
+					isTrivialNormalization: ( response || {} ).is_trivial_normalization,
 					error,
 				} );
 				if ( error ) {

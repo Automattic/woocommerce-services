@@ -100,8 +100,8 @@ reducers[ ADDRESS_NORMALIZATION_IN_PROGRESS ] = ( state, { group } ) => {
 	};
 };
 
-reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized } ) => {
-	return { ...state,
+reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized, isTrivialNormalization } ) => {
+	const newState = { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
 				normalizationInProgress: false,
@@ -111,6 +111,10 @@ reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized } ) =
 			},
 		},
 	};
+	if ( isTrivialNormalization ) {
+		newState.form[ group ].values = normalized;
+	}
+	return newState;
 };
 
 reducers[ SELECT_NORMALIZED_ADDRESS ] = ( state, { group, selectNormalized } ) => {
