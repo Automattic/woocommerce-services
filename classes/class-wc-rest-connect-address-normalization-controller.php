@@ -97,10 +97,6 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 		$response->normalized->company = $company;
 		$response->normalized->phone = $phone;
 
-		if ( 'origin' === $request->type ) {
-			$this->settings_store->update_origin_address( $response->normalized );
-		}
-
 		return array(
 			'success' => true,
 			'normalized' => $response->normalized,
