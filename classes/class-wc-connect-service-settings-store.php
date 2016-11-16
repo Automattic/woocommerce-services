@@ -357,6 +357,28 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			update_option( 'wc_connect_predefined_packages', $packages );
 		}
 
+		public function get_package_lookup_for_service( $service_id ) {
+			$lookup = array();
+
+			$custom_packages =  $this->get_packages();
+			foreach ( $custom_packages as $custom_package ) {
+				$lookup[ $custom_package[ 'name' ] ] = $custom_package;
+			}
+
+			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema_for_service( $service_id );
+			if ( is_null( $predefined_packages_schema ) ) {
+				return $lookup;
+			}
+
+			foreach ( $predefined_packages_schema as $group ) {
+				foreach ( $group->definitions as $predefined ) {
+					$lookup[ $predefined->id ] = ( array ) $predefined;
+				}
+			}
+
+			return $lookup;
+		}
+
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
