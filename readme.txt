@@ -1,5 +1,5 @@
 === Connect for WooCommerce ===
-Contributors: Automattic, WooThemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
+Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
