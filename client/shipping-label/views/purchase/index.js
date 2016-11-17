@@ -14,7 +14,7 @@ const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
 
 	const getPurchaseButtonLabel = () => {
-		if ( true || props.form.isSubmitting ) {
+		if ( props.form.isSubmitting ) {
 			return (
 				<div>
 					<Spinner size={ 24 } className="wcc-shipping-label-dialog__button-spinner" />

@@ -185,12 +185,12 @@
 
 	.wcc-shipping-label-dialog__purchasing-label {
 		color: $blue-wordpress;
-		-webkit-animation: pulsate 2s ease-out;
-		-webkit-animation-iteration-count: infinite;
+		animation: pulsate 2s ease-out;
+		animation-iteration-count: infinite;
 		opacity: 0.5;
 	}
 
-	@-webkit-keyframes pulsate {
+	@keyframes pulsate {
 		0% {
 			opacity: 0.5;
 		}
