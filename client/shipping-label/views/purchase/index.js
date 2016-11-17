@@ -1,6 +1,7 @@
 import React from 'react';
 import Dialog from 'components/dialog';
 import ActionButtons from 'components/action-buttons';
+import Spinner from 'components/spinner';
 import { translate as __ } from 'lib/mixins/i18n';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
@@ -13,6 +14,14 @@ const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
 
 	const getPurchaseButtonLabel = () => {
+		if ( props.form.isSubmitting ) {
+			return (
+				<div>
+					<Spinner size={ 24 } className="wcc-shipping-label-dialog__button-spinner" />
+					<span className="wcc-shipping-label-dialog__purchasing-label">{ __( 'Purchasing...' ) }</span>
+				</div>
+			);
+		}
 		let label = __( 'Buy & Print' );
 		const nPackages = props.form.packages.selected.length;
 		if ( nPackages ) {

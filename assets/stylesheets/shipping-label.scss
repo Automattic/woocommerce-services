@@ -173,6 +173,34 @@
 			text-transform: uppercase;
 		}
 	}
+
+	.wcc-shipping-label-dialog__button-spinner {
+		margin-right: 6px;
+		margin-bottom: -8px;
+
+		.spinner__border {
+			fill: transparent;
+		}
+	}
+
+	.wcc-shipping-label-dialog__purchasing-label {
+		color: $blue-wordpress;
+		animation: pulsate 2s ease-out;
+		animation-iteration-count: infinite;
+		opacity: 0.5;
+	}
+
+	@keyframes pulsate {
+		0% {
+			opacity: 0.5;
+		}
+		50% {
+			opacity: 1.0;
+		}
+		100% {
+			opacity: 0.5;
+		}
+	}
 }
 
 // Notice

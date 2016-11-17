@@ -41,13 +41,21 @@
         padding: 5px 14px 7px;
     }
 
-    .button.is-primary {
-        background: $blue-wordpress;
-        border-color: $blue-dark;
-        &:hover {
-            background: $button-hover;
-        }
-    }
+	.button.is-primary {
+		background: $blue-wordpress;
+		border-color: $blue-dark;
+		&:hover {
+			background: $button-hover;
+		}
+		// overwrite core styles
+		&:disabled {
+			background: tint( $blue-light, 50% ) !important;
+			border-color: tint( $blue-wordpress, 55% ) !important;
+			color: $white !important;
+			text-shadow: none !important;
+		}
+
+	}
 
     // Forms
     input[type="text"],
