@@ -243,6 +243,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
+		private function lookup_product( $package, $product_id ) {
+			foreach ( $package[ 'contents' ] as $item ) {
+				if ( $item[ 'product_id' ] === $product_id ) {
+					return $item[ 'data' ];
+				}
+			}
+
+			return false;
+		}
+
 		public function calculate_shipping( $package = array() ) {
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
@@ -304,13 +314,44 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					continue;
 				}
 
+				$packaging_lookup = $this->service_settings_store->get_package_lookup_for_service( $instance->id );
+
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
+					$package_names = array();
+					foreach ( $rate->packages as $rate_package ) {
+						$package_format = '';
+						$items = array();
+
+						foreach ( $rate_package->items as $package_item ) {
+							$product = $this->lookup_product( $package, $package_item->product_id );
+							if ( $product ) {
+								$items[] = $product->get_title();
+							}
+						}
+
+						if ( ! property_exists( $rate_package, 'box_id' ) ) {
+							$package_format = __( 'Unknown package (%s)', 'connectforwoocommerce' );
+						} else if ( 'individual' === $rate_package->box_id ) {
+							$package_format = __( 'Individual packaging (%s)', 'connectforwoocommerce' );
+						} else if ( isset( $packaging_lookup[ $rate_package->box_id ] )
+							&& isset( $packaging_lookup[ $rate_package->box_id ][ 'name' ] ) ) {
+							$package_format = $packaging_lookup[ $rate_package->box_id ][ 'name' ] . ' (%s)';
+						}
+
+						$package_names[] = sprintf( $package_format, implode( ', ', $items ) );
+					}
+
+					$packaging_info = implode( ', ', $package_names );
+
 					$rate_to_add = array(
-						'id'       => self::format_rate_id( $instance->id, $instance->instance, $rate_idx ),
-						'label'    => self::format_rate_title( $rate->title ),
-						'cost'     => $rate->rate,
-						'calc_tax' => 'per_item',
-						'meta_data' => array( 'wc_connect_packages' => json_encode( $rate->packages ) ),
+						'id'        => self::format_rate_id( $instance->id, $instance->instance, $rate_idx ),
+						'label'     => self::format_rate_title( $rate->title ),
+						'cost'      => $rate->rate,
+						'calc_tax'  => 'per_item',
+						'meta_data' => array(
+							'wc_connect_packages' => json_encode( $rate->packages ),
+							__( 'Packaging', 'connectforwoocommerce' ) => $packaging_info
+						),
 					);
 
 					$this->add_rate( $rate_to_add );
