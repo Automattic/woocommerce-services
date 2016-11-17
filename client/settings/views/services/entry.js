@@ -4,6 +4,7 @@ import FormSelect from 'components/forms/form-select';
 import Gridicon from 'components/gridicon';
 import classNames from 'classnames';
 import NumberInput from 'components/number-field/number-input';
+import { translate as __ } from 'lib/mixins/i18n';
 
 const ShippingServiceEntry = ( props ) => {
 	const {
@@ -11,6 +12,7 @@ const ShippingServiceEntry = ( props ) => {
 		updateValue,
 		errors,
 		service,
+		isManageable,
 	} = props;
 
 	const {
@@ -23,23 +25,24 @@ const ShippingServiceEntry = ( props ) => {
 	const hasError = errors[ service.id ];
 
 	return (
-		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) }>
+		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) } title={ isManageable ? '' : __( 'You can manage this service after enabling the corresponding package in the Packaging Manager' ) }>
 			<label className="wcc-shipping-service-entry-title">
 				<FormCheckbox
-					checked={ enabled }
+					checked={ enabled && isManageable }
+					disabled={ ! isManageable }
 					onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
 				/>
 				<span>{ name }</span>
 			</label>
 			{ hasError ? <Gridicon icon="notice" /> : null }
 			<NumberInput
-				disabled={ ! enabled }
+				disabled={ ! enabled || ! isManageable }
 				value={ adjustment }
 				onChange={ ( event ) => updateValue( 'adjustment', event.target.value ) }
 				isError={ hasError }
 			/>
 			<FormSelect
-				disabled={ ! enabled }
+				disabled={ ! enabled || ! isManageable }
 				value={ adjustment_type }
 				onChange={ ( event ) => updateValue( 'adjustment_type', event.target.value ) }
 			>
@@ -64,6 +67,7 @@ ShippingServiceEntry.propTypes = {
 	currencySymbol: PropTypes.string.isRequired,
 	updateValue: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,
+	isManageable: PropTypes.bool.isRequired,
 };
 
 ShippingServiceEntry.defaultProps = {
