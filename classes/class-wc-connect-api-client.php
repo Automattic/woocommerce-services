@@ -292,7 +292,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$http_timeout = 60; // 1 minute
-			wc_set_time_limit( $http_timeout + 10 );
+			if ( function_exists( 'wc_set_time_limit' ) ) {
+				wc_set_time_limit( $http_timeout + 10 );
+			}
 			$args = array(
 				'headers' => $headers,
 				'method' => $method,
