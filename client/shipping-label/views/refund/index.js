@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Dialog from 'components/dialog';
+import Modal from 'components/modal';
 import { translate as __ } from 'lib/mixins/i18n';
 import ActionButtons from 'components/action-buttons';
 import { sprintf } from 'sprintf-js';
@@ -11,10 +11,10 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 	};
 
 	return (
-		<Dialog
+		<Modal
 			isVisible={ Boolean( refundDialog ) }
 			onClose={ labelActions.closeRefundDialog }
-			additionalClassNames="wcc-modal wcc-shipping-label-refund">
+			additionalClassNames="wcc-shipping-label-refund">
 			<div className="wcc-shipping-label-refund__content">
 				<h3 className="form-section-heading">
 					{ __( 'Request a refund' ) }
@@ -43,7 +43,7 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 					},
 				] } />
 			</div>
-		</Dialog>
+		</Modal>
 	);
 };
 

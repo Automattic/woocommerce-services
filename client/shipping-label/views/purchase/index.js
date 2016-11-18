@@ -1,5 +1,5 @@
 import React from 'react';
-import Dialog from 'components/dialog';
+import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import Spinner from 'components/spinner';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -34,10 +34,9 @@ const PrintLabelDialog = ( props ) => {
 	};
 
 	return (
-		<Dialog
+		<Modal
 			isVisible={ props.showPurchaseDialog }
-			onClose={ props.labelActions.exitPrintingFlow }
-			additionalClassNames="wcc-modal" >
+			onClose={ props.labelActions.exitPrintingFlow } >
 			<div className="wcc-shipping-label-dialog__content">
 				<h3 className="form-section-heading">
 					{ 1 === props.form.packages.selected.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
@@ -81,7 +80,7 @@ const PrintLabelDialog = ( props ) => {
 					},
 				] } />
 			</div>
-		</Dialog>
+		</Modal>
 	);
 };
 
