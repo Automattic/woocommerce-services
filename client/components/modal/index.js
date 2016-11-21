@@ -5,7 +5,7 @@ import classnames from 'classnames';
 
 const Modal = ( props ) => {
 	// Only close the modal if the click was in the dialog backdrop, *not* in any other element like global notices
-	const shouldStayOpen = ( event ) => ! closest( event.target, '.dialog__backdrop' );
+	const shouldStayOpen = ( event ) => ! closest( event.target, '.dialog__backdrop', true );
 
 	return (
 		<Dialog
