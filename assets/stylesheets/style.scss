@@ -174,7 +174,7 @@
 			@include breakpoint( ">480px" ) {
 				top: 10%;
 				right: calc(50% - 250px);
-				bottom: 40%;
+				bottom: 10%;
 				left: calc(50% - 250px);
 				width: 500px;
 			}
@@ -240,7 +240,8 @@
 		}
 
 		.dialog__content {
-			height: 100%;
+			height: calc( 100% - 90px );
+			overflow-y: auto;
 
 			@include breakpoint( ">480px" ) {
 				padding: 32px;
