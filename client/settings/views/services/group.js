@@ -32,14 +32,16 @@ const ShippingServiceGroup = ( props ) => {
 		errors,
 		predefinedPackages,
 	} = props;
-	const summary = summaryLabel( services );
 	const actionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
 			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
 			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
-	const allChecked = _.every( services, ( service ) => service.enabled );
+	//filter out the services that have a disabled corresponding predefined package
+	const manageableServices = services.filter( ( service ) => ! service.predefined_package || predefinedPackages.includes( service.predefined_package ) );
+	const allChecked = _.every( manageableServices, ( service ) => service.enabled );
+	const summary = summaryLabel( manageableServices );
 
 	return (
 		<FoldableCard
@@ -56,7 +58,7 @@ const ShippingServiceGroup = ( props ) => {
 				<label className="wcc-shipping-service-header-container">
 					<CheckBox
 						onClick={ ( event ) => event.stopPropagation() }
-						onChange={ ( event ) => updateAll( event, updateValue, services ) }
+						onChange={ ( event ) => updateAll( event, updateValue, manageableServices ) }
 						checked={ allChecked }
 					/>
 					<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
@@ -64,18 +66,15 @@ const ShippingServiceGroup = ( props ) => {
 				</label>
 			</div>
 
-			{ services.map( ( service, idx ) => {
-				if ( service.predefined_package && ! predefinedPackages.includes( service.predefined_package ) ) {
-					return null;
-				}
-
-				return <ShippingServiceEntry
+			{ services.map( ( service, idx ) => (
+				<ShippingServiceEntry
 					{ ...props }
 					{ ...{ service } }
+					isManageable={ manageableServices.includes( service ) }
 					updateValue={ ( key, val ) => updateValue( [ service.id ].concat( key ), val ) }
 					key={ idx }
-				/>;
-			} ) }
+				/>
+				) ) }
 		</FoldableCard>
 	);
 };
