@@ -158,23 +158,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$is_authenticated = get_option( 'wc_connect_test_wpcom_auth', false );
 			echo '<h3>WPCOM AUTH</h3>';
 			if ( false === $is_authenticated ) {
-				define( 'CLIENT_ID', 50573 );
-				define( 'CLIENT_SECRET', 'XXXXXXXXXXXX' );
-				define( 'REDIRECT_URL', 'http://localhost:5000/auth/redirect' );
-				define( 'REQUEST_TOKEN_URL', 'https://public-api.wordpress.com/oauth2/token' );
-				define( 'AUTHENTICATE_URL', 'https://public-api.wordpress.com/oauth2/authenticate' );
-				session_start();
-				$wpcc_state = md5( mt_rand() );
-				$_SESSION[ 'wpcc_state' ] = $wpcc_state;
-
-				$url_to = AUTHENTICATE_URL . '?' . http_build_query( array(
-						'response_type' => 'code',
-						'client_id'     => CLIENT_ID,
-						'state'         => $wpcc_state,
-						'redirect_uri'  => REDIRECT_URL
-					) );
 				echo '<p>Not Authenticated</p>';
-				echo '<p><a href="' . $url_to . '"><img src="//s0.wp.com/i/wpcc-button.png" width="231" /></a></p>';
+				echo '<p><a href="http://localhost:5000/auth/authenticate"><img src="//s0.wp.com/i/wpcc-button.png" width="231" /></a></p>';
 			} else {
 				echo '<p>Authenticated</p>';
 				echo '<p><a target="_blank" href="http://bing.com" class="button form-button is-primary">Clear</a></p>';
