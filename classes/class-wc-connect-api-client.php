@@ -97,9 +97,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						);
 					}
 
+					$weight = $product->get_weight();
+
 					$height = 0;
 					$length = 0;
-					$weight = $product->get_weight();
 					$width = 0;
 
 					if ( $product->has_dimensions() ) {
@@ -109,12 +110,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					}
 
 					$contents[] = array(
-						'height' => $height,
+						'height' => ( float ) $height,
 						'product_id' => isset( $values['data']->variation_id ) ? $values['data']->variation_id : $values['data']->id,
-						'length' => $length,
+						'length' => ( float ) $length,
 						'quantity' => $values['quantity'],
-						'weight' => $weight,
-						'width' => $width
+						'weight' => ( float ) $weight,
+						'width' => ( float ) $width,
 					);
 				}
 			}
