@@ -103,9 +103,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					$width = 0;
 
 					if ( $product->has_dimensions() ) {
-						$height = $product->get_height();
-						$length = $product->get_length();
-						$width  = $product->get_width();
+						$height = floatval( $product->get_height() );
+						$length = floatval( $product->get_length() );
+						$width  = floatval( $product->get_width() );
 					}
 
 					$contents[] = array(
