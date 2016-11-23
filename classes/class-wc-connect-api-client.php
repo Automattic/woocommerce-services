@@ -97,9 +97,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						);
 					}
 
+					$weight = floatval( $product->get_weight() );
+
 					$height = 0;
 					$length = 0;
-					$weight = $product->get_weight();
 					$width = 0;
 
 					if ( $product->has_dimensions() ) {
