@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
-Stable tag: 0.9.2
+Stable tag: 0.9.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,22 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of Connect for WooCommerce
 
 == Changelog ==
+
+= 0.9.3 =
+* Improvements for phone validation error messages
+* Increase the remote request timeout
+* Adds USPS flat rate packages to the packaging manager
+* Store the origin address when the label is purchased
+* Clean-up a few React errors in the console
+* Tweak the Jetpack status message
+* Auto-accept address normalizations in labels UI if they are trivial
+* Make sure notices appear on top of (not beneath) the labels UI
+* CSS clean-up
+* Fix an error where clicking outside the labels UI modal did not always close it
+* Fix incorrect service counts in shipping method instance group headers
+* Remove inappropriate target blank in certain anchors
+* Fix timestamp presentation for label refunds
+* Fix empty dimension handling and dimension casting
 
 = 0.9.2 =
 * Fix a fatal error that could happen on activation if WooCommerce or Jetpack were not present
