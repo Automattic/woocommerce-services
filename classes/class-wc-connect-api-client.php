@@ -97,25 +97,25 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						);
 					}
 
-					$weight = floatval( $product->get_weight() );
+					$weight = $product->get_weight();
 
 					$height = 0;
 					$length = 0;
 					$width = 0;
 
 					if ( $product->has_dimensions() ) {
-						$height = floatval( $product->get_height() );
-						$length = floatval( $product->get_length() );
-						$width  = floatval( $product->get_width() );
+						$height = $product->get_height();
+						$length = $product->get_length();
+						$width  = $product->get_width();
 					}
 
 					$contents[] = array(
-						'height' => $height,
+						'height' => ( float ) $height,
 						'product_id' => isset( $values['data']->variation_id ) ? $values['data']->variation_id : $values['data']->id,
-						'length' => $length,
+						'length' => ( float ) $length,
 						'quantity' => $values['quantity'],
-						'weight' => $weight,
-						'width' => $width
+						'weight' => ( float ) $weight,
+						'width' => ( float ) $width,
 					);
 				}
 			}
