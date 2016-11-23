@@ -61,6 +61,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	public function update_items( $request ) {
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$this->settings_store->update_origin_address( $settings[ 'origin' ] );
+
 		$order_id = $settings[ 'order_id' ];
 
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
