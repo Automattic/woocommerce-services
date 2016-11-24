@@ -14,7 +14,7 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 	};
 
 	return fetch( url, request ).then( ( response ) => {
-		setError( null );
+		setError( null, null );
 		setSuccess( false );
 
 		return parseJson( response ).then( ( json ) => {
@@ -33,10 +33,10 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 			}
 
 			if ( json.data.message ) {
-				return setError( json.data.message );
+				return setError( json.data.message, json );
 			}
 
-			return setError( JSON.stringify( json ) );
+			return setError( JSON.stringify( json ), json );
 		} ).then( () => setIsSaving( false ) );
 	} ).catch( ( e ) => {
 		setError( e );

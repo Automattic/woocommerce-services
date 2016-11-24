@@ -738,6 +738,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label = new WC_Connect_Shipping_Label( $this->api_client, $this->service_settings_store, $this->service_schemas_store );
 			if ( $shipping_label->should_show_meta_box() ) {
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'connectforwoocommerce' ), array( $shipping_label, 'meta_box' ), null, 'side', 'default' );
+				add_meta_box( 'woocommerce-order-label-history-box', __( 'Shipping Labels History', 'connectforwoocommerce' ), array( $shipping_label, 'history_meta_box' ), null, 'side', 'default' );
 			}
 		}
 
@@ -747,9 +748,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function hide_wc_connect_order_meta_data( $protected, $meta_key, $meta_type ) {
-			if ( 'wc_connect_labels' === $meta_key ) {
-				$protected = true;
+			switch ( $meta_key ) {
+				case 'wc_connect_labels':
+				case 'wc_connect_label_history':
+					$protected = true;
+					break;
 			}
+
 			return $protected;
 		}
 

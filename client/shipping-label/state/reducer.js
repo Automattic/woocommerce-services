@@ -445,7 +445,7 @@ reducers[ PURCHASE_LABEL_REQUEST ] = ( state ) => {
 	};
 };
 
-reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
+reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, historyEntry, error } ) => {
 	if ( error ) {
 		return { ...state,
 			form: { ...state.form,
@@ -453,8 +453,19 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 			},
 		};
 	}
+
+	const newHistory = [ ...state.labelsHistory ];
+	if ( historyEntry ) {
+		newHistory.unshift( historyEntry );
+	}
+
 	return { ...state,
 		labels: response.map( ( label ) => ( { ...label, statusUpdated: true } ) ),
+		labelsHistory: newHistory,
+		form: {
+			...state.form,
+			isSubmitting: false,
+		},
 	};
 };
 
@@ -531,7 +542,7 @@ reducers[ REFUND_REQUEST ] = ( state ) => {
 	};
 };
 
-reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
+reducers[ REFUND_RESPONSE ] = ( state, { response, historyEntry, error } ) => {
 	if ( error ) {
 		return { ...state,
 			refundDialog: {
@@ -544,7 +555,7 @@ reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
 	const labelIndex = _.findIndex( state.labels, { label_id: state.refundDialog.labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
-		...response,
+		refund: response,
 	};
 
 	const newState = { ...state,
@@ -553,6 +564,13 @@ reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
 	};
 	newState.refundDialog = null;
 	newState.labels[ labelIndex ] = labelData;
+
+	if ( historyEntry ) {
+		const newHistory = [ ...state.labelsHistory ];
+		newHistory.unshift( historyEntry );
+		newState.labelsHistory = newHistory;
+	}
+
 	return newState;
 };
 
@@ -571,7 +589,16 @@ reducers[ CLOSE_REPRINT_DIALOG ] = ( state ) => {
 };
 
 reducers[ CONFIRM_REPRINT ] = ( state ) => {
+	const newHistory = [ ...state.labelsHistory ];
+	newHistory.unshift( {
+		...state.userData,
+		entry_type: 'reprint',
+		label_ids: [ state.reprintDialog.labelId ],
+		time: new Date().getTime(),
+	} );
+
 	return { ...state,
+		labelsHistory: newHistory,
 		reprintDialog: { ...state.reprintDialog,
 			isFetching: true,
 		},

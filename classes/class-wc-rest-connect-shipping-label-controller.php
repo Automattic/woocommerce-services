@@ -59,6 +59,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	}
 
 	public function update_items( $request ) {
+		$carrier = 'usps'; //TODO: remove hardcoding
+
 		$request_body = $request->get_body();
 		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 		$this->settings_store->update_origin_address( $settings[ 'origin' ] );
@@ -66,7 +68,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		$order_id = $settings[ 'order_id' ];
 
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
-		$settings[ 'carrier' ] = 'usps';
+		$settings[ 'carrier' ] = $carrier;
 		$settings[ 'label_size' ] = 'default';
 		$settings[ 'ship_date' ] = date( 'Y-m-d', time() + 86400 ); // tomorrow
 
@@ -89,8 +91,13 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 			return $error;
 		}
 
+		$label_ids = array();
 		$labels_order_meta = array();
-		$labels_data = array();
+		$existing_labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );
+		if ( $existing_labels_data ) {
+			$labels_order_meta = json_decode( $existing_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		}
+		$package_lookup = $this->settings_store->get_package_lookup_for_service( $carrier );
 		foreach ( $response->labels as $index => $label_data ) {
 			if ( isset( $label_data->error ) ) {
 				$error = new WP_Error(
@@ -101,8 +108,9 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 				$this->logger->log( $error, __CLASS__ );
 				return $error;
 			}
-			$labels_data[] = $label_data->label;
-			$labels_order_meta[] = array(
+			$label_ids[] = $label_data->label->label_id;
+
+			$label_meta = array(
 				'label_id' => $label_data->label->label_id,
 				'tracking' => $label_data->label->tracking_id,
 				'refundable_amount' => $label_data->label->refundable_amount,
@@ -110,12 +118,38 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 				'carrier_id' => $settings[ 'carrier' ],
 				'service_name' => $service_names[ $index ],
 			);
+
+			$package = $settings[ 'packages' ][ $index ];
+			$box_id = $package[ 'box_id' ];
+			if ( 'individual' === $box_id ) {
+				$label_meta[ 'package_name' ] = __( 'Individual packaging', 'connectforwoocommerce' );
+			} else if ( isset( $package_lookup[ $box_id ] ) ) {
+				$label_meta[ 'package_name' ] = $package_lookup[ $box_id ][ 'name' ];
+			} else {
+				$label_meta[ 'package_name' ] = __( 'Unknown package', 'connectforwoocommerce' );
+			}
+
+			$product_names = array();
+			foreach ( $package[ 'products' ] as $product_id ) {
+				$product =  wc_get_product( $product_id );
+				if ( ! isset( $product ) ) {
+					continue;
+				}
+
+				$product_names[] = $product->get_title();
+			}
+
+			$label_meta[ 'product_names' ] = $product_names;
+
+			array_unshift( $labels_order_meta, $label_meta );
 		}
 
 		update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_order_meta ) );
+		$history_entry = $this->settings_store->update_label_order_history( $order_id, $label_ids, 'purchase' );
 
 		return array(
 			'labels' => $labels_order_meta,
+			'historyEntry' => $history_entry,
 			'success' => true,
 		);
 	}

@@ -428,26 +428,33 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 	const { purchaseURL, addressNormalizationURL, nonce } = context;
 	let error = null;
 	let response = null;
+	let historyEntry = null;
+
+	const oldLabels = getState().shippingLabel.labels;
+
 	const setError = ( err ) => error = err;
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
 			response = json.labels;
+			historyEntry = json.historyEntry;
 		}
 	};
 	const setIsSaving = ( saving ) => {
 		if ( saving ) {
 			dispatch( { type: PURCHASE_LABEL_REQUEST } );
 		} else {
-			dispatch( { type: PURCHASE_LABEL_RESPONSE, response, error } );
+			dispatch( { type: PURCHASE_LABEL_RESPONSE, response, historyEntry, error } );
 			if ( error ) {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				const labels = response.map( ( label, index ) => ( {
-					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
+				const purchasedLabels = _.differenceBy( response, oldLabels, 'label_id' );
+				const labelsToPrint = purchasedLabels.map( ( label, index ) => ( {
+					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, purchasedLabels.length ),
 					labelId: label.label_id,
 				} ) );
-				printDocument( getPrintURL( getState().shippingLabel.paperSize, labels, context ) )
+				const state = getState().shippingLabel;
+				printDocument( getPrintURL( state.paperSize, labelsToPrint, state.form.orderId, false, context ) )
 					.then( () => dispatch( exitPrintingFlow() ) )
 					.catch( ( err ) => {
 						console.error( err );
@@ -515,7 +522,7 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 		const setError = ( err ) => error = err;
 		const setSuccess = ( success, json ) => {
 			if ( success ) {
-				response = json.status;
+				response = json.label;
 			}
 		};
 		const setIsSaving = ( saving ) => {
@@ -527,7 +534,12 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 			}
 		};
 
-		saveForm( setIsSaving, setSuccess, _.noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
+		let url = sprintf( labelStatusURL, labelId );
+		if ( label.refund && 'pending' === label.refund.status ) {
+			url += '?get_refund=1';
+		}
+
+		saveForm( setIsSaving, setSuccess, _.noop, setError, url, nonce, 'GET' );
 	} );
 };
 
@@ -539,17 +551,22 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 	const labelId = getState().shippingLabel.refundDialog.labelId;
 	let error = null;
 	let response = null;
-	const setError = ( err ) => error = err;
+	let historyEntry = null;
+	const setError = ( err, json ) => {
+		error = err;
+		historyEntry = json && json.data ? json.data.historyEntry : null;
+	};
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
-			response = json.label;
+			response = json.refund;
+			historyEntry = json.historyEntry;
 		}
 	};
 	const setIsSaving = ( saving ) => {
 		if ( saving ) {
 			dispatch( { type: REFUND_REQUEST } );
 		} else {
-			dispatch( { type: REFUND_RESPONSE, response, error } );
+			dispatch( { type: REFUND_RESPONSE, response, historyEntry, error } );
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
@@ -571,8 +588,10 @@ export const closeReprintDialog = () => {
 
 export const confirmReprint = () => ( dispatch, getState, context ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
-	const labelId = getState().shippingLabel.reprintDialog.labelId;
-	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ) )
+	const state = getState().shippingLabel;
+	const labelId = state.reprintDialog.labelId;
+	const orderId = state.form.orderId;
+	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], orderId, true, context ) )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

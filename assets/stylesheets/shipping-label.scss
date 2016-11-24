@@ -1,20 +1,80 @@
 .wcc-metabox-shipping-label-container {
-	padding-top: 8px;
 	margin-bottom: 0;
 	text-align: center;
 
-	dl {
-		text-align: left;
-		margin-left: 8px;
+	.wcc-metabox-label-item {
+		padding: 10px;
+		border-bottom: 1px solid #eee;
 
-		dd {
-			margin-left: 0;
+		&:last-child {
+			border: none;
+		}
+
+		p {
+			margin-bottom: 3px;
+			text-align: left;
+
+			&.wcc-metabox-label-item__tracking {
+				margin-bottom: 8px;
+				font-size: 11px;
+				color: $gray;
+
+				a:focus {
+					outline: none;
+					box-shadow: none;
+				}
+			}
+
+			& .wcc-metabox-label-item__detail {
+				border-bottom: 1px dashed $gray;
+				cursor: help;
+			}
+		}
+
+		.wcc-metabox-label-item__actions {
+			display: flex;
+			justify-content: space-between;
+			font-size: 11px;
+			margin-bottom: 0;
+
+			span svg,
+			a svg {
+				position: relative;
+				top: 2px;
+				margin-right: 2px;
+			}
+
+			.wcc-metabox-label-item__refund-pending {
+				color: $alert-yellow;
+			}
+
+			.wcc-metabox-label-item__refund-complete {
+				color: $alert-green;
+			}
+
+			.wcc-metabox-label-item__refund-rejected {
+				color: $alert-red;
+			}
 		}
 	}
+}
 
-	.wcc-meta-box-action-buttons {
+.wcc-metabox-shipping-label-history-container {
+	.wcc-metabox-label-item {
 		display: flex;
-		justify-content: space-around;
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 10px;
+		border-bottom: 1px solid #eee;
+
+		&:last-child {
+			border: none;
+		}
+
+		p {
+			margin-bottom: 3px;
+			text-align: left;
+		}
 	}
 }
 

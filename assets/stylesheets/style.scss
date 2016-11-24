@@ -5,6 +5,8 @@
 @import 'colors'; // import wcc colors
 //@import 'shared/colors'; // import all of our wpcom colors
 @import 'components/dialog/style';
+@import 'components/popover/style';
+@import 'components/tooltip/style';
 
 .wc-connect-admin-container,
 .wcc-modal {
@@ -371,3 +373,44 @@
 	background: $white;
 	padding: 20px;
 }
+
+#woocommerce-order-label-history-box {
+	display: none;
+
+	&.visible {
+		display: block;
+	}
+}
+
+#woocommerce-order-label .inside,
+#woocommerce-order-label-history-box .inside {
+	margin: 0;
+	padding: 0;
+}
+
+.tooltip.popover.wc-connect-popover {
+	.popover__inner {
+		background: $gray-dark;
+	}
+
+	.popover__arrow {
+		border-top-color: $gray-dark;
+	}
+
+	.wc-connect-popover-contents {
+		color: $white;
+		h1, h2, h3 {
+			margin: 0;
+			color: $white;
+		}
+		p {
+			margin-top: 0;
+			margin-bottom: 5px;
+		}
+		ul {
+			list-style: disc;
+			padding-left: 15px;
+		}
+	}
+}
+
