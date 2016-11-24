@@ -154,15 +154,41 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php
 
+			if ( isset( $_GET[ 'code' ] ) && isset( $_GET[ 'state' ] ) ) {
+				if ( get_option( 'wc_connect_test_wcc_state', false ) === $_GET[ 'state' ] ) {
+					$token_url = 'http://localhost:5000/auth/token?code=' . $_GET['code'];
+					$response = wp_remote_get( $token_url );
+					error_log( json_encode( $response ) );
+					update_option( 'wc_connect_test_wpcom_auth', json_decode( $response[ 'body' ], true )[ 'access_token' ] );
+					wp_redirect( home_url( remove_query_arg( array( 'code', 'state' ) ) ) );
+					die();
+				} else {
+					error_log( 'invalid state! ' . $_GET['state'] );
+				}
+			}
 
-			$is_authenticated = get_option( 'wc_connect_test_wpcom_auth', false );
+			if ( isset( $_GET[ 'clear' ] ) && $_GET[ 'clear' ] === '1' ) {
+				delete_option( 'wc_connect_test_wpcom_auth' );
+				wp_redirect( home_url( remove_query_arg( 'clear' ) ) );
+				die();
+			}
+
+			$token = get_option( 'wc_connect_test_wpcom_auth', false );
 			echo '<h3>WPCOM AUTH</h3>';
-			if ( false === $is_authenticated ) {
+			if ( false === $token ) {
+				$wpcc_state = md5( mt_rand() );
+				$url = "http://localhost:5000/auth/authenticate?state=$wpcc_state&return=";
+				update_option( 'wc_connect_test_wcc_state', $wpcc_state );
+				$url .= urlencode( home_url( add_query_arg( null, null ) ) );
 				echo '<p>Not Authenticated</p>';
-				echo '<p><a href="http://localhost:5000/auth/authenticate"><img src="//s0.wp.com/i/wpcc-button.png" width="231" /></a></p>';
+				echo "<p><a href='$url'><img src='//s0.wp.com/i/wpcc-button.png' width='231' /></a></p>";
 			} else {
 				echo '<p>Authenticated</p>';
-				echo '<p><a target="_blank" href="http://bing.com" class="button form-button is-primary">Clear</a></p>';
+				$clear_url = home_url( add_query_arg( 'clear', 1 ) );
+				$me_url = 'http://localhost:5000/auth/me?token=' . urlencode( $token );
+				$response = json_encode( wp_remote_get( $me_url ) );
+				echo "<p>Token: $response</p>";
+				echo "<p><a href='$clear_url' class='button form-button is-primary'>Clear</a></p>";
 			}
 		}
 
