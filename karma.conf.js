@@ -1,4 +1,5 @@
 const baseWebpackConfig = require( './webpack.config' );
+const path = require( 'path' );
 
 module.exports = function( config ) {
 	config.set({
@@ -22,8 +23,8 @@ module.exports = function( config ) {
 				{ type: 'text-summary' },
 			]
 		},
-		webpack: {
-			module: {
+		webpack: Object.assign( baseWebpackConfig, {
+			module: Object.assign( baseWebpackConfig.module, {
 				preLoaders: [
 					{
 						test: /\.jsx?$/,
@@ -31,32 +32,12 @@ module.exports = function( config ) {
 						query: {
 							babel: baseWebpackConfig.babelSettings,
 						},
-						include: /client/i,
-						exclude: /(test|node_modules)/i,
+						include: path.resolve( __dirname, 'client' ),
 					},
 				],
-				loaders: [
-					{
-						test: /\.scss$/,
-						loader: 'null'
-					},
-					{
-						test: /\.json$/,
-						loader: 'json'
-					},
-					{
-						test: /\.jsx?$/,
-						loader: 'babel',
-						query: baseWebpackConfig.babelSettings,
-						include: /(client|node_modules\/wp-calypso\/client)/i,
-						exclude: /(node_modules\/(?!wp-calypso\/client)|wp-calypso\/node_modules)/i,
-					},
-				]
-			},
+			} ),
 			devtool: 'eval',
-			resolve: baseWebpackConfig.resolve,
-			resolveLoader: baseWebpackConfig.resolveLoader,
-		},
+		} ),
 		webpackMiddleware: {
 			noInfo: true
 		}

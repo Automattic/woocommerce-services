@@ -30,6 +30,13 @@ module.exports = {
 	},
 	devtool: '#inline-source-map',
 	module: {
+		preLoaders: [
+			{
+				test: /\.jsx?$/,
+				loader: 'eslint',
+				include: path.resolve( __dirname, 'client' ),
+			},
+		],
 		loaders: [
 			{
 				test: /\.json$/,
@@ -45,12 +52,11 @@ module.exports = {
 			},
 			{
 				test: /\.jsx?$/,
-				loaders: [
-					'babel?' + JSON.stringify( babelSettings ),
-					'eslint'
+				loader: 'babel?' + JSON.stringify( babelSettings ),
+				include: [
+					path.resolve( __dirname, 'client' ),
+					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 				],
-				include: /(client|wp-calypso)/,
-				exclude: /(wp-calypso\/node_modules)/,
 			},
 			{
 				test: /\.svg$/,
@@ -67,24 +73,17 @@ module.exports = {
 	},
 	sassLoader: {
 		includePaths: [
-			path.resolve( __dirname, './client' ),
-			path.resolve( __dirname, './node_modules/wp-calypso/client' ),
-			path.resolve( __dirname, './node_modules/wp-calypso/assets/stylesheets' ),
+			path.resolve( __dirname, 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
 		]
 	},
 	resolve: {
 		extensions: [ '', '.json', '.js', '.jsx' ],
 		root: [
-			path.join( __dirname, 'client' ),
-			path.join( __dirname, 'node_modules' ),
-			path.join( __dirname, 'node_modules', 'wp-calypso', 'client' )
+			path.resolve( __dirname, 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 		],
-		fallback: [
-			path.join( __dirname, 'node_modules', 'wp-calypso', 'node_modules' )
-		]
-	},
-	resolveLoader: {
-		modulesDirectories: [ __dirname + '/node_modules' ]
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
