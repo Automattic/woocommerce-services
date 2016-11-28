@@ -51,14 +51,6 @@ module.exports = {
 				loader: 'html-loader'
 			},
 			{
-				test: /\.jsx?$/,
-				loader: 'babel?' + JSON.stringify( babelSettings ),
-				include: [
-					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
-				],
-			},
-			{
 				test: /\.svg$/,
 				loader: 'svg-url-loader',
 				include: /(client)/,
@@ -67,6 +59,16 @@ module.exports = {
 				test: /\.png$/,
 				loader: 'url-loader?limit=10000',
 			}
+		],
+		postLoaders: [
+			{
+				test: /\.jsx?$/,
+				loader: 'babel?' + JSON.stringify( babelSettings ),
+				include: [
+					path.resolve( __dirname, 'client' ),
+					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+				],
+			},
 		],
 		// google-libphonenumber is pre-compiled, suppress the warning for that module
 		noParse: /.*google-libphonenumber.*/,
