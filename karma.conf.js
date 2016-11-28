@@ -13,7 +13,7 @@ module.exports = function( config ) {
 		frameworks: [ 'mocha', 'chai' ],
 		files: [ testFile ],
 		preprocessors: {
-			[ testFile ]: 'webpack',
+			[ testFile ]: [ 'webpack', 'sourcemap' ],
 		},
 		client: {
 			captureConsole: true
@@ -52,7 +52,7 @@ module.exports = function( config ) {
 					},
 				],
 			} ),
-			devtool: 'eval',
+			devtool: 'inline-source-map',
 		} ),
 		webpackMiddleware: {
 			noInfo: true
