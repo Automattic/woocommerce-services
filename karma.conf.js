@@ -1,14 +1,19 @@
 const baseWebpackConfig = require( './webpack.config' );
+const path = require( 'path' );
+const escapeStringRegexp = require( 'escape-string-regexp' );
+
+const testDirMatcher = new RegExp( escapeStringRegexp( path.resolve( __dirname, 'client' ) ) + '.*' + escapeStringRegexp( path.sep + 'test' + path.sep ) );
+
+// Run single test: npm test --test=FILE_OR_GLOB
+const testFile = (process.env.npm_config_test) ? process.env.npm_config_test : 'client/test/runner.js';
 
 module.exports = function( config ) {
 	config.set({
 		browsers: [ 'jsdom' ],
 		frameworks: [ 'mocha', 'chai' ],
-		files: [
-			'client/**/test/*.js',
-		],
+		files: [ testFile ],
 		preprocessors: {
-			'client/**/test/*.js': [ 'webpack', 'sourcemap' ]
+			[ testFile ]: [ 'webpack', 'sourcemap' ],
 		},
 		client: {
 			captureConsole: true
@@ -22,41 +27,33 @@ module.exports = function( config ) {
 				{ type: 'text-summary' },
 			]
 		},
-		webpack: {
-			module: {
-				preLoaders: [
+		webpack: Object.assign( baseWebpackConfig, {
+			entry: {},
+			isparta: {
+				embedSource: true,
+				noAutoWrap: true,
+				babel: baseWebpackConfig.babelSettings,
+			},
+			module: Object.assign( baseWebpackConfig.module, {
+				postLoaders: [
 					{
 						test: /\.jsx?$/,
-						loader: 'isparta-instrumenter',
-						query: {
-							babel: baseWebpackConfig.babelSettings,
-						},
-						include: /client/i,
-						exclude: /(test|node_modules)/i,
+						loader: 'babel?' + JSON.stringify( baseWebpackConfig.babelSettings ),
+						include: [
+							testDirMatcher,
+							path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+						]
+					},
+					{
+						test: /\.jsx?$/,
+						loader: 'isparta',
+						include: path.resolve( __dirname, 'client' ),
+						exclude: testDirMatcher,
 					},
 				],
-				loaders: [
-					{
-						test: /\.scss$/,
-						loader: 'null'
-					},
-					{
-						test: /\.json$/,
-						loader: 'json'
-					},
-					{
-						test: /\.jsx?$/,
-						loader: 'babel',
-						query: baseWebpackConfig.babelSettings,
-						include: /(client|node_modules\/wp-calypso\/client)/i,
-						exclude: /(node_modules\/(?!wp-calypso\/client)|wp-calypso\/node_modules)/i,
-					},
-				]
-			},
-			devtool: 'eval',
-			resolve: baseWebpackConfig.resolve,
-			resolveLoader: baseWebpackConfig.resolveLoader,
-		},
+			} ),
+			devtool: 'inline-source-map',
+		} ),
 		webpackMiddleware: {
 			noInfo: true
 		}
