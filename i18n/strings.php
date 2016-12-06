@@ -110,7 +110,7 @@ $i18nStrings = array(
 	"There was a problem with one or more entries. Please fix the errors below and try saving again." => __( "There was a problem with one or more entries. Please fix the errors below and try saving again.", "connectforwoocommerce" ),
 	"Your changes have been saved." => __( "Your changes have been saved.", "connectforwoocommerce" ),
 	"Unexpected server error." => __( "Unexpected server error.", "connectforwoocommerce" ),
-	"The refund request has been sent correctly" => __( "The refund request has been sent correctly", "connectforwoocommerce" ),
+	"The refund request has been sent successfully." => __( "The refund request has been sent successfully", "connectforwoocommerce" ),
 	"Save Settings" => __( "Save Settings", "connectforwoocommerce" ),
 	"Saving…" => __( "Saving…", "connectforwoocommerce" ),
 );

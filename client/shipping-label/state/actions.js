@@ -553,7 +553,7 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 			if ( error ) {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				dispatch( NoticeActions.successNotice( __( 'The refund request has been sent correctly' ), { duration: 5000 } ) );
+				dispatch( NoticeActions.successNotice( __( 'The refund request has been sent successfully.' ), { duration: 5000 } ) );
 			}
 		}
 	};
