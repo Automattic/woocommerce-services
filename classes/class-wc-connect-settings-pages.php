@@ -112,13 +112,37 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		/**
+		 * Helper method to get the Jetpack master user id, IF we are connected
+		 */
+		protected function get_master_user() {
+			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
+			if ( method_exists( 'Jetpack', 'is_development_mode' ) && method_exists( 'Jetpack', 'is_active' ) ) {
+				$jetpack_is_connected = Jetpack::is_development_mode() ? true : Jetpack::is_active();
+			} else {
+				$jetpack_is_connected = false;
+			}
+
+			if ( $jetpack_is_connected && method_exists( 'Jetpack_Options', 'get_option' ) ) {
+				$master_user_id = Jetpack_Options::get_option( 'master_user' );
+				return get_userdata( $master_user_id );
+			}
+
+			return false;
+		}
+
+		/**
 		 * Output the settings.
 		 */
 		public function output_settings_screen() {
 			global $current_section;
+			global $current_user;
 
 			if ( '' === $current_section ) {
-				$this->output_account_screen();
+				if ( $current_user->ID == $this->get_master_user() ) {
+					$this->output_account_screen();
+				} else {
+					$this->output_no_priv_account_screen();
+				}
 			} else if ( 'packages' == $current_section ) {
 				$this->output_packages_screen();
 			}
@@ -152,6 +176,36 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			?>
 				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
+			<?php
+		}
+
+		public function output_no_priv_account_screen() {
+			// hiding the save button because nothing can be saved
+			global $hide_save_button;
+			$hide_save_button = true;
+
+			wp_enqueue_style( 'wc_connect_admin' );
+
+			$master_user = $this->get_master_user();
+			if ( is_a( $master_user, 'WP_User' ) ) {
+				$message = sprintf(
+					__( 'Only the primary Jetpack user can manage shipping label payment methods. Please login as %1$s (%2$s) to manage payment methods.', 'connectforwoocommerce' ),
+					$master_user->display_name,
+					$master_user->user_login
+				);
+			} else {
+				$message = __( 'You must first connect your Jetpack before you can manage your shipping label payment method.', 'connectforwoocommerce' );
+			}
+
+			?>
+				<div class="wc-connect-admin-container">
+					<div class="wc-connect-no-priv-settings">
+						<h3 class="settings-group-header form-section-heading">
+							<?php echo esc_html( __( 'Payment Method', 'connectforwoocommerce' ) ); ?>
+						</h3>
+						<?php echo esc_html( $message ) ?>
+					</div>
+				</div>
 			<?php
 		}
 
