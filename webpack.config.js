@@ -84,6 +84,7 @@ module.exports = {
 		extensions: [ '', '.json', '.js', '.jsx' ],
 		root: [
 			path.resolve( __dirname, 'client' ),
+			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 		],
 	},
