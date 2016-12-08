@@ -80,7 +80,7 @@ class ShippingLabelRootView extends Component {
 				<PurchaseLabelDialog
 					{ ...this.props.shippingLabel }
 					{ ...this.props } />
-				<Button onClick={ this.props.labelActions.openPrintingFlow } >
+				<Button className="wcc-metabox__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
 					{ __( 'Create new label' ) }
 				</Button>
 			</div>
@@ -131,7 +131,7 @@ class ShippingLabelRootView extends Component {
 		}
 
 		return (
-			<span className={ className } ><Gridicon icon="help-outline" size={ 12 }/>{ text }</span>
+			<span className={ className } ><Gridicon icon="time" size={ 12 }/>{ text }</span>
 		);
 	}
 
@@ -189,8 +189,8 @@ class ShippingLabelRootView extends Component {
 
 		return (
 			<div key={ index } className="wcc-metabox-label-item" >
-				<p>{ this.renderLabelDetails( label, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
-				<p className="wcc-metabox-label-item__tracking">{ __( 'Tracking no:' ) } <TrackingLink { ...label }/></p>
+				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
+				<p className="wcc-metabox-label-item__tracking">{ __( 'Tracking #:' ) } <TrackingLink { ...label }/></p>
 				<p className="wcc-metabox-label-item__actions" >
 					{ this.renderRefund( label ) }
 					{ this.renderReprint( label ) }

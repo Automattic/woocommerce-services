@@ -13,7 +13,7 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 			additionalClassNames="wcc-shipping-label-reprint">
 			<div className="wcc-shipping-label-reprint__content">
 				<h3 className="form-section-heading">
-					{ __( 'Print shipping label' ) }
+					{ __( 'Reprint shipping label' ) }
 				</h3>
 				<p>
 					{ __( 'If there was a printing error when you purchased the label, you can print it again.' ) }
@@ -26,7 +26,8 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 					valuesMap={ getPaperSizes() }
 					title={ __( 'Paper size' ) }
 					value={ paperSize }
-					updateValue={ labelActions.updatePaperSize } />
+					updateValue={ labelActions.updatePaperSize }
+					className="reprint-paper_size" />
 				<ActionButtons buttons={ [
 					{
 						onClick: labelActions.confirmReprint,
