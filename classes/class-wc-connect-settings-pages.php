@@ -112,7 +112,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		/**
-		 * Helper method to get the Jetpack master user id, IF we are connected
+		 * Helper method to get the Jetpack master user, IF we are connected
+		 * @return WP_User | false
 		 */
 		protected function get_master_user() {
 			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -138,7 +139,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			global $current_user;
 
 			if ( '' === $current_section ) {
-				if ( $current_user->ID == $this->get_master_user() ) {
+				$master_user = $this->get_master_user();
+				if ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) {
 					$this->output_account_screen();
 				} else {
 					$this->output_no_priv_account_screen();
