@@ -5,7 +5,7 @@
  * Description: Connect for WooCommerce: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
  * Author URI: http://woocommerce.com/
- * Version: 0.9.3
+ * Version: 0.9.4
  *
  * Copyright (c) 2016 Automattic
  *

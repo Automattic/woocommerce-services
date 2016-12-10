@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.6.1
-Stable tag: 0.9.3
+Stable tag: 0.9.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,13 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of Connect for WooCommerce
 
 == Changelog ==
+
+= 0.9.4 =
+* Fix a bug that caused a packages error in the labels UI when checkout used free shipping
+* Tweak to the refund request success message
+* Fix to avoid a WP_User error notice when editing payment methods
+* Fix a React version error that was happening when editing shipping settings
+* Only allow the primary Jetpack user to select payment method
 
 = 0.9.3 =
 * Improvements for phone validation error messages
