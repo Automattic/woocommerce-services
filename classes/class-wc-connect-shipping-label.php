@@ -45,7 +45,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$name = html_entity_decode( $product->get_formatted_name() );
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
-					$packages[ "weight_{$i}_individual" ] = array(
+					$id = "weight_{$i}_individual";
+					$packages[ $id ] = array(
+						'id' => $id,
+						'box_id' => 'individual',
 						'height' => ( float ) $height,
 						'length' => ( float ) $length,
 						'weight' => ( float ) $weight,
