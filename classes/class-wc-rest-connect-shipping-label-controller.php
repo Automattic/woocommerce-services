@@ -145,11 +145,9 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 		}
 
 		update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_order_meta ) );
-		$history_entry = $this->settings_store->update_label_order_history( $order_id, $label_ids, 'purchase' );
 
 		return array(
 			'labels' => $labels_order_meta,
-			'historyEntry' => $history_entry,
 			'success' => true,
 		);
 	}

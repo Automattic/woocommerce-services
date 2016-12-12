@@ -65,10 +65,6 @@ class WC_REST_Connect_Shipping_Labels_Print_Controller extends WP_REST_Controlle
 		$params[ 'paper_size' ] = $raw_params[ 'paper_size' ];
 		$this->settings_store->set_preferred_paper_size( $params[ 'paper_size' ] );
 
-		if ( 'true' === $raw_params[ 'is_reprint' ] ) {
-			$this->settings_store->update_label_order_history( $raw_params[ 'order_id' ], $raw_params['label_ids'], 'reprint', time() * 1000 );
-		}
-
 		$n_label_ids = isset( $raw_params[ 'label_ids' ] ) ? count( $raw_params[ 'label_ids' ] ) : 0;
 		$n_captions = isset( $raw_params[ 'captions' ] ) ? count( $raw_params[ 'captions' ] ) : 0;
 		// Either there are the same number of captions as labels, or no captions at all

@@ -77,25 +77,6 @@
 	}
 }
 
-.wcc-metabox-shipping-label-history-container {
-	.wcc-metabox-label-item {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		padding: 10px;
-		border-bottom: 1px solid #eee;
-
-		&:last-child {
-			border: none;
-		}
-
-		p {
-			margin-bottom: 3px;
-			text-align: left;
-		}
-	}
-}
-
 .wcc-shipping-label-refund__content {
 	dd {
 		margin-left: 0;

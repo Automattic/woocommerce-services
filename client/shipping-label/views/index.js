@@ -1,10 +1,8 @@
-import ReactDom from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Button from 'components/button';
 import { translate as __ } from 'lib/mixins/i18n';
-import LabelHistory from './history';
 import PurchaseLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
@@ -35,29 +33,6 @@ class ShippingLabelRootView extends Component {
 		this.state = {
 			showTooltips: props.shippingLabel.labels.map( () => false ),
 		};
-	}
-
-	componentDidMount() {
-		this.historyMetaBox = document.getElementById( 'woocommerce-order-label-history-box' );
-		this.historyBoxContents = document.getElementById( 'wc-connect-shipping-label-history' );
-		this.renderHistory();
-	}
-
-	componentDidUpdate() {
-		this.renderHistory();
-	}
-
-	componentWillUnmount() {
-		ReactDom.unmountComponentAtNode( this.historyBoxContents );
-	}
-
-	renderHistory() {
-		const labelsHistory = this.props.shippingLabel.labelsHistory;
-		if ( ! labelsHistory || ! labelsHistory.length ) {
-			return;
-		}
-		this.historyMetaBox.classList.add( 'visible' );
-		ReactDom.render( <LabelHistory labelsHistory={ labelsHistory } />, this.historyBoxContents );
 	}
 
 	openTooltip( index ) {

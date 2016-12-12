@@ -27,25 +27,23 @@ export const getPaperSizes = ( country ) => (
 	}, {} )
 );
 
-const _getPDFURL = ( paperSize, labels, orderId, isReprint, baseURL, nonce ) => {
+const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
 		throw new Error( `Invalid paper size: ${paperSize}` );
 	}
 	const params = {
 		_wpnonce: nonce,
 		paper_size: paperSize,
-		order_id: orderId,
-		is_reprint: isReprint || false,
 		'label_ids[]': _.filter( _.map( labels, 'labelId' ) ),
 		'captions[]': _.filter( _.map( labels, 'caption' ) ),
 	};
 	return baseURL + '?' + querystring.stringify( params );
 };
 
-export const getPrintURL = ( paperSize, labels, orderId, isReprint, { labelsPrintURL, nonce } ) => {
-	return _getPDFURL( paperSize, labels, orderId, isReprint, labelsPrintURL, nonce );
+export const getPrintURL = ( paperSize, labels, { labelsPrintURL, nonce } ) => {
+	return _getPDFURL( paperSize, labels, labelsPrintURL, nonce );
 };
 
 export const getPreviewURL = ( paperSize, labels, { labelsPreviewURL, nonce } ) => {
-	return _getPDFURL( paperSize, labels, 0, false, labelsPreviewURL, nonce );
+	return _getPDFURL( paperSize, labels, labelsPreviewURL, nonce );
 };

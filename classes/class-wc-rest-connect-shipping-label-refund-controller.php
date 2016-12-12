@@ -69,10 +69,8 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WP_REST_Controlle
 		}
 
 		if ( is_wp_error( $response ) ) {
-			$history_entry = $this->settings_store->update_label_order_history( $request[ 'order_id' ], $request[ 'label_id' ], 'refund_error' );
 			$response->add_data( array(
-				'message' => $response->get_error_message() ,
-				'historyEntry' => $history_entry,
+				'message' => $response->get_error_message(),
 			), $response->get_error_code() );
 
 			$this->logger->log( $response, __CLASS__ );
@@ -84,11 +82,9 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WP_REST_Controlle
 			'refund'   => $response->refund ,
 		);
 		$this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $label_refund );
-		$history_entry = $this->settings_store->update_label_order_history( $request[ 'order_id' ], $request[ 'label_id' ], 'refund_success' );
 
 		return array(
 			'success' => true,
-			'historyEntry' => $history_entry,
 			'refund'   => $response->refund,
 		);
 	}

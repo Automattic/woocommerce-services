@@ -314,17 +314,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
-				'userData'                => $this->settings_store->get_current_user_data(),
 			);
 
 			$labels_data = get_post_meta( $order->id, 'wc_connect_labels', true );
 			if ( $labels_data ) {
 				$admin_array[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-			}
-
-			$labels_history = $this->settings_store->get_label_history( $order->id, true );
-			if ( $labels_history ) {
-				$admin_array[ 'labelsHistory' ] = $labels_history;
 			}
 
 			$store_options = $this->settings_store->get_store_options();
@@ -344,13 +338,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						$debug_page_uri
 					); ?>
 				</span>
-			</div>
-			<?php
-		}
-
-		public function history_meta_box() {
-			?>
-			<div class="wc-connect-admin-container" id="wc-connect-shipping-label-history">
 			</div>
 			<?php
 		}

@@ -374,16 +374,7 @@
 	padding: 20px;
 }
 
-#woocommerce-order-label-history-box {
-	display: none;
-
-	&.visible {
-		display: block;
-	}
-}
-
-#woocommerce-order-label .inside,
-#woocommerce-order-label-history-box .inside {
+#woocommerce-order-label .inside {
 	margin: 0;
 	padding: 0;
 }
