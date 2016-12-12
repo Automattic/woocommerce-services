@@ -185,28 +185,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return $service_settings;
 			}
 
-			//mark the services with predefined packages as disabled if the corresponding package has been also disabled
-			$schema = $this->get_service_schema();
-			if ( ! property_exists( $schema, 'service_settings' ) ||
-				! property_exists( $schema->service_settings, 'definitions' ) ||
-				! property_exists( $schema->service_settings->definitions, 'services' ) ) {
-				return $service_settings;
-			}
-
-			$enabled_packages = $this->service_settings_store->get_predefined_packages_for_service( $this->id );
-			foreach ( $schema->service_settings->definitions->services as $service_schema ) {
-				$service_id = $service_schema->id;
-
-				if ( ! property_exists( $service_schema, 'predefined_package' ) ||
-					! property_exists( $service_settings->services, $service_id ) ) {
-					continue;
-				}
-
-				if ( false === in_array( $service_schema->predefined_package, $enabled_packages ) ) {
-					$service_settings->services->$service_id->enabled = false;
-				}
-			}
-
 			return $service_settings;
 		}
 
@@ -253,6 +231,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return false;
 		}
 
+		private function filter_preset_boxes( $preset_id ) {
+			return is_string( $preset_id );
+		}
+
 		public function calculate_shipping( $package = array() ) {
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
@@ -283,9 +265,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				),
 			);
 
-			$boxes = $this->service_settings_store->get_packages();
+			$custom_boxes = $this->service_settings_store->get_packages();
+			$predefined_boxes = $this->service_settings_store->get_predefined_packages_for_service( $this->id );
+			$predefined_boxes = array_values( array_filter( $predefined_boxes, array( $this, 'filter_preset_boxes' ) ) );
 
-			$response_body = $this->api_client->get_shipping_rates( $services, $package, $boxes );
+			$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
 
 			if ( is_wp_error( $response_body ) ) {
 				$this->log(
