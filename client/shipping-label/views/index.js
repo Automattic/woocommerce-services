@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Button from 'components/button';
@@ -8,105 +8,197 @@ import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
 import Spinner from 'components/spinner';
+import Gridicon from 'components/gridicon';
+import Tooltip from 'components/tooltip';
 import formatDate from 'lib/utils/format-date';
+import timeAgo from 'lib/utils/time-ago';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import _ from 'lodash';
+import { sprintf } from 'sprintf-js';
 
-let needToFetchLabelsStatus = true;
+class ShippingLabelRootView extends Component {
+	constructor( props ) {
+		super( props );
 
-const ShippingLabelRootView = ( props ) => {
-	const renderPurchaseLabelFlow = () => {
+		this.renderLabel = this.renderLabel.bind( this );
+		this.openTooltip = this.openTooltip.bind( this );
+		this.closeTooltip = this.closeTooltip.bind( this );
+
+		this.needToFetchLabelsStatus = true;
+
+		this.state = {
+			showTooltips: props.shippingLabel.labels.map( () => false ),
+		};
+	}
+
+	openTooltip( index ) {
+		const showTooltips = [ ...this.state.showTooltips ];
+		showTooltips[ index ] = true;
+
+		this.setState( { showTooltips } );
+	}
+
+	closeTooltip( index ) {
+		const showTooltips = [ ...this.state.showTooltips ];
+		showTooltips[ index ] = false;
+
+		this.setState( { showTooltips } );
+	}
+
+	renderPurchaseLabelFlow() {
 		return (
-			<div>
+			<div className="wcc-metabox-label-item" >
 				<PurchaseLabelDialog
-					{ ...props.shippingLabel }
-					{ ...props } />
-				<Button onClick={ props.labelActions.openPrintingFlow } >
-					{ __( 'Create label' ) }
+					{ ...this.props.shippingLabel }
+					{ ...this.props } />
+				<Button className="wcc-metabox__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
+					{ __( 'Create new label' ) }
 				</Button>
 			</div>
 		);
-	};
+	}
 
-	const renderLabelActions = ( label, index ) => {
-		if ( label.refunded_time ) {
-			return (
-				<div key={ index }>
-					<dl>
-						<dt>{ __( 'Refund status' ) }</dt>
-						<dd>{ __( 'Refund submitted' ) }</dd>
-
-						<dt>{ __( 'Refund request date' ) }</dt>
-						<dd>{ formatDate( label.refunded_time ) }</dd>
-					</dl>
-				</div>
-			);
+	renderRefundLink( label ) {
+		const today = new Date();
+		const thirtyDaysAgo = new Date().setDate( today.getDate() - 30 );
+		if ( ( label.used_date && label.used_date < today.getTime() ) || ( label.created_date && label.created_date < thirtyDaysAgo ) ) {
+			return null;
 		}
 
 		return (
-			<div key={ index }>
-				<dl>
-					<dt>{ __( 'Tracking' ) }</dt>
-					<dd><TrackingLink { ...label }/></dd>
+			<span>
+				<RefundDialog
+					refundDialog={ this.props.shippingLabel.refundDialog }
+					{ ...this.props.shippingLabel }
+					{ ...this.props }
+					{ ...label } />
+				<a href="#" onClick={ () => this.props.labelActions.openRefundDialog( label.label_id ) } ><Gridicon icon="refund" size={ 12 }/>{ __( 'Request refund' ) }</a>
+			</span>
+		);
+	}
 
-					<dt>{ __( 'Ship via' ) }</dt>
-					<dd>{ label.service_name }</dd>
+	renderRefund( label ) {
+		if ( ! label.refund ) {
+			return this.renderRefundLink( label );
+		}
 
-					<dt>{ __( 'Purchase date' ) }</dt>
-					<dd>{ formatDate( label.created ) }</dd>
-				</dl>
-				<div className="wcc-meta-box-action-buttons">
-					<ReprintDialog
-						reprintDialog={ props.shippingLabel.reprintDialog }
-						{ ...props.shippingLabel }
-						{ ...props }
-						{ ...label } />
-					<Button onClick={ () => props.labelActions.openReprintDialog( label.label_id ) } >
-						{ __( 'Reprint label' ) }
-					</Button>
+		let text = '';
+		let className = '';
+		switch ( label.refund.status ) {
+			case 'pending':
+				className = 'wcc-metabox-label-item__refund-pending';
+				text = __( 'Refund pending' );
+				break;
+			case 'complete':
+				className = 'wcc-metabox-label-item__refund-complete';
+				text = sprintf( __( 'Refunded on %s' ), formatDate( label.refund.refund_date ) );
+				break;
+			case 'rejected':
+				className = 'wcc-metabox-label-item__refund-rejected';
+				text = __( 'Refund rejected' );
+				break;
+			default:
+				return this.renderRefundLink( label );
+		}
 
-					<RefundDialog
-						refundDialog={ props.shippingLabel.refundDialog }
-						{ ...props.shippingLabel }
-						{ ...props }
-						{ ...label } />
-					<Button onClick={ () => props.labelActions.openRefundDialog( label.label_id ) } >
-						{ __( 'Refund label' ) }
-					</Button>
-				</div>
+		return (
+			<span className={ className } ><Gridicon icon="time" size={ 12 }/>{ text }</span>
+		);
+	}
+
+	renderReprint( label ) {
+		const todayTime = new Date().getTime();
+		if ( label.refund || ( label.used_date && label.used_date < todayTime ) || ( label.expiry_date && label.expiry_date < todayTime ) ) {
+			return null;
+		}
+
+		return (
+			<span>
+				<ReprintDialog
+					reprintDialog={ this.props.shippingLabel.reprintDialog }
+					{ ...this.props.shippingLabel }
+					{ ...this.props }
+					{ ...label } />
+				<a href="#" onClick={ () => this.props.labelActions.openReprintDialog( label.label_id ) } ><Gridicon icon="print" size={ 12 }/>{ __( 'Reprint' ) }</a>
+			</span>
+		);
+	}
+
+	renderLabelDetails( label, index ) {
+		if ( ! label.package_name || ! label.product_names ) {
+			return null;
+		}
+
+		return (
+			<span>
+				<span className="wcc-metabox-label-item__detail"
+						onMouseEnter={ () => this.openTooltip( index ) }
+						onMouseLeave={ () => this.closeTooltip( index ) }
+						ref={ 'label-details-' + index }>
+					{ sprintf( __( 'Label #%s' ), label.label_id ) }
+				</span>
+				<Tooltip
+					className="wc-connect-popover"
+					isVisible={ this.state.showTooltips[ index ] }
+					onClose={ () => this.closeTooltip( index ) }
+					position="top"
+					context={ this.refs && this.refs[ 'label-details-' + index ] } >
+					<div className="wc-connect-popover-contents">
+						<h3>{ label.package_name }</h3>
+						<p>{ label.service_name }</p>
+						<ul>
+							{ label.product_names.map( ( productName, productIdx ) => <li key={ productIdx }>{ productName }</li> ) }
+						</ul>
+					</div>
+				</Tooltip>
+			</span>
+		);
+	}
+
+	renderLabel( label, index ) {
+		const purchased = timeAgo( label.created );
+
+		return (
+			<div key={ index } className="wcc-metabox-label-item" >
+				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
+				<p className="wcc-metabox-label-item__tracking">{ __( 'Tracking #:' ) } <TrackingLink { ...label }/></p>
+				<p className="wcc-metabox-label-item__actions" >
+					{ this.renderRefund( label ) }
+					{ this.renderReprint( label ) }
+				</p>
 			</div>
 		);
-	};
+	}
 
-	const renderLabelsActions = () => {
-		if ( needToFetchLabelsStatus ) {
-			needToFetchLabelsStatus = false;
-			props.labelActions.fetchLabelsStatus();
+	renderLabels() {
+		if ( this.needToFetchLabelsStatus ) {
+			this.needToFetchLabelsStatus = false;
+			this.props.labelActions.fetchLabelsStatus();
 		}
-		if ( ! _.every( props.shippingLabel.labels, 'statusUpdated' ) ) {
+		if ( ! _.every( this.props.shippingLabel.labels, 'statusUpdated' ) ) {
 			return <Spinner size={ 24 } />;
 		}
+		return this.props.shippingLabel.labels.map( this.renderLabel );
+	}
+
+	render() {
 		return (
-			<div>
-				{ props.shippingLabel.labels.map( renderLabelActions ) }
+			<div className="wcc-metabox-shipping-label-container">
+				<GlobalNotices id="notices" notices={ notices.list }/>
+				{ this.renderPurchaseLabelFlow() }
+				{ this.props.shippingLabel.labels.length ? this.renderLabels() : null }
 			</div>
 		);
-	};
-
-	return (
-		<div className="wcc-metabox-shipping-label-container">
-			<GlobalNotices id="notices" notices={ notices.list } />
-			{ props.shippingLabel.labels.length ? renderLabelsActions() : renderPurchaseLabelFlow() }
-		</div>
-	);
-};
+	}
+}
 
 ShippingLabelRootView.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
+	shippingLabel: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state, { storeOptions } ) {

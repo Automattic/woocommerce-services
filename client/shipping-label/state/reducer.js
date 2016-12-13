@@ -453,8 +453,13 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 			},
 		};
 	}
+
 	return { ...state,
 		labels: response.map( ( label ) => ( { ...label, statusUpdated: true } ) ),
+		form: {
+			...state.form,
+			isSubmitting: false,
+		},
 	};
 };
 
@@ -544,7 +549,7 @@ reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
 	const labelIndex = _.findIndex( state.labels, { label_id: state.refundDialog.labelId } );
 	const labelData = {
 		...state.labels[ labelIndex ],
-		...response,
+		refund: response,
 	};
 
 	const newState = { ...state,
@@ -553,6 +558,7 @@ reducers[ REFUND_RESPONSE ] = ( state, { response, error } ) => {
 	};
 	newState.refundDialog = null;
 	newState.labels[ labelIndex ] = labelData;
+
 	return newState;
 };
 

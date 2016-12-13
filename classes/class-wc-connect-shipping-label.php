@@ -304,7 +304,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				admin_url( 'admin.php' )
 			) );
 
-			$store_options = $this->settings_store->get_store_options();
 			$root_view = 'wc-connect-create-shipping-label';
 			$admin_array = array(
 				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
@@ -317,14 +316,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'paperSize'               => $this->get_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
+				'formData'                => $this->get_form_data( $order ),
 			);
+
 			$labels_data = get_post_meta( $order->id, 'wc_connect_labels', true );
 			if ( $labels_data ) {
 				$admin_array[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-			} else {
-				$store_options[ 'countriesData' ] = $this->get_states_map();
-				$admin_array[ 'formData' ] = $this->get_form_data( $order );
 			}
+
+			$store_options = $this->settings_store->get_store_options();
+			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$admin_array[ 'storeOptions' ] = $store_options;
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

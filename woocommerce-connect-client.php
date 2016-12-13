@@ -750,6 +750,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( 'wc_connect_labels' === $meta_key ) {
 				$protected = true;
 			}
+
 			return $protected;
 		}
 

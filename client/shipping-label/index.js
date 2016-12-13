@@ -27,7 +27,7 @@ export default ( { formData, labelsData, paperSize, storeOptions } ) => ( {
 			shippingLabel: {
 				labels: labelsData || [],
 				paperSize,
-				form: labelsData ? {} : {
+				form: {
 					orderId: formData.order_id,
 					origin: {
 						values: formData.origin,

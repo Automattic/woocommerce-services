@@ -1,20 +1,79 @@
 .wcc-metabox-shipping-label-container {
-	padding-top: 8px;
 	margin-bottom: 0;
 	text-align: center;
 
-	dl {
-		text-align: left;
-		margin-left: 8px;
+	.wcc-metabox-label-item {
+		padding: 16px;
+		border-bottom: 1px solid #eee;
 
-		dd {
-			margin-left: 0;
+		.wcc-metabox-label-item__created {
+			color: $gray;
+			font-size: 12px;
 		}
-	}
 
-	.wcc-meta-box-action-buttons {
-		display: flex;
-		justify-content: space-around;
+		&:last-child {
+			border: none;
+		}
+
+		p {
+			margin-bottom: 3px;
+			text-align: left;
+
+			&.wcc-metabox-label-item__tracking {
+				margin-bottom: 16px;
+				font-size: 12px;
+
+				a:focus {
+					outline: none;
+					box-shadow: none;
+				}
+			}
+
+			& .wcc-metabox-label-item__detail {
+				font-weight: bold;
+				font-size: 14px;
+				color: $gray-dark;
+				cursor: help;
+			}
+		}
+
+		.wcc-metabox__new-label-button {
+			width: 100%;
+		}
+
+		.wcc-metabox-label-item__actions {
+			display: flex;
+			justify-content: space-between;
+			font-size: 12px;
+			margin-bottom: 0;
+
+			a {
+				text-decoration: none;
+			}
+
+			.gridicon {
+				margin-right: 4px;
+			}
+
+			span svg,
+			a svg {
+				position: relative;
+				top: 2px;
+				margin-right: 2px;
+			}
+
+			.wcc-metabox-label-item__refund-pending {
+				color: $alert-yellow;
+			}
+
+			.wcc-metabox-label-item__refund-complete {
+				color: $alert-green;
+			}
+
+			.wcc-metabox-label-item__refund-rejected {
+				color: $alert-red;
+			}
+		}
 	}
 }
 
