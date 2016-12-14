@@ -112,18 +112,36 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		/**
+		 * Helper method to get if Jetpack is in development mode
+		 * @return bool
+		 */
+		protected function is_jetpack_dev_mode() {
+			if ( method_exists( 'Jetpack', 'is_development_mode' ) ) {
+				return Jetpack::is_development_mode();
+			}
+
+			return false;
+		}
+
+		/**
+		 * Helper method to get if Jetpack is connected (aka active)
+		 * @return bool
+		 */
+		protected function is_jetpack_connected() {
+			if ( method_exists( 'Jetpack', 'is_active' ) ) {
+				return Jetpack::is_active();
+			}
+
+			return false;
+		}
+
+		/**
 		 * Helper method to get the Jetpack master user, IF we are connected
 		 * @return WP_User | false
 		 */
 		protected function get_master_user() {
 			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
-			if ( method_exists( 'Jetpack', 'is_development_mode' ) && method_exists( 'Jetpack', 'is_active' ) ) {
-				$jetpack_is_connected = Jetpack::is_development_mode() ? true : Jetpack::is_active();
-			} else {
-				$jetpack_is_connected = false;
-			}
-
-			if ( $jetpack_is_connected && method_exists( 'Jetpack_Options', 'get_option' ) ) {
+			if ( $this->is_jetpack_connected() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$master_user_id = Jetpack_Options::get_option( 'master_user' );
 				return get_userdata( $master_user_id );
 			}
@@ -140,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			if ( '' === $current_section ) {
 				$master_user = $this->get_master_user();
-				if ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) {
+				if ( $this->is_jetpack_dev_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) ) {
 					$this->output_account_screen();
 				} else {
 					$this->output_no_priv_account_screen();
@@ -179,6 +197,21 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			?>
 				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php
+
+			if ( $this->is_jetpack_dev_mode() ) {
+				if ( $this->is_jetpack_connected() ) {
+					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'connectforwoocommerce' );
+				} else {
+					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from Connect for WooCommerce production servers.', 'connectforwoocommerce' );
+				}
+				?>
+					<div class="wc-connect-admin-dev-notice">
+						<p>
+							<?php echo esc_html( $message ); ?>
+						</p>
+					</div>
+				<?php
+			}
 		}
 
 		public function output_no_priv_account_screen() {
