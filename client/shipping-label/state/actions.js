@@ -76,7 +76,7 @@ const getNextErroneousStep = ( state, errors, currentStep ) => {
 				return 'destination';
 			}
 		case 'packages':
-			if ( hasNonEmptyLeaves( errors.packages ) ) {
+			if ( hasNonEmptyLeaves( errors.packages ) || ! form.packages.all || ! Object.keys( form.packages.all ).length ) {
 				return 'packages';
 			}
 		case 'rates':
@@ -149,8 +149,8 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 			_.isEqual( form.origin.values, form.origin.normalized ) &&
 			form.destination.isNormalized &&
 			_.isEqual( form.destination.values, form.destination.normalized ) &&
-			_.isEmpty( form.rates.available )
-			// TODO: make sure packages are valid as well
+			_.isEmpty( form.rates.available ) &&
+			form.packages.all && Object.keys( form.packages.all ).length
 		) {
 			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
 		}
