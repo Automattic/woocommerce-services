@@ -6,6 +6,7 @@ import MoveItemDialog from './move-item';
 import AddItemDialog from './add-item';
 import Unpacked from './unpacked';
 import FormButton from 'components/forms/form-button';
+import Notice from 'components/notice';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { sprintf } from 'sprintf-js';
 import StepContainer from '../../step-container';
@@ -30,25 +31,58 @@ const PackagesStep = ( {
 	const totalWeight = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].weight ), 0 );
 	const isValidWeight = packageIds.reduce( ( result, pId ) => ( result && 0 < selected[ pId ].weight ), true );
 	const isValidPackages = 0 < packageIds.length;
+	const hasAnyPackagesConfigured = all && Object.keys( all ).length;
 
-	const renderSummary = () => {
+	const getContainerState = () => {
 		if ( ! isValidPackages ) {
-			return __( 'No packages selected' );
+			return {
+				isError: true,
+				summary: __( 'No packages selected' ),
+			};
 		}
 
 		if ( ! isValidWeight ) {
-			return __( 'Weight not entered' );
+			return {
+				isError: true,
+				summary: __( 'Weight not entered' ),
+			};
 		}
+
+		let summary = '';
 
 		if ( 1 === packageIds.length && 1 === itemsCount ) {
-			return sprintf( __( '1 item in 1 package: %f %s total' ), totalWeight, storeOptions.weight_unit );
+			summary = sprintf( __( '1 item in 1 package: %f %s total' ), totalWeight, storeOptions.weight_unit );
+		} else if ( 1 === packageIds.length ) {
+			summary = sprintf( __( '%d items in 1 package: %f %s total' ), itemsCount, totalWeight, storeOptions.weight_unit );
+		} else {
+			summary = sprintf( __( '%d items in %d packages: %f %s total' ), itemsCount, packageIds.length, totalWeight, storeOptions.weight_unit );
 		}
 
-		if ( 1 === packageIds.length ) {
-			return sprintf( __( '%d items in 1 package: %f %s total' ), itemsCount, totalWeight, storeOptions.weight_unit );
+		if ( ! hasAnyPackagesConfigured ) {
+			return { isWarning: true, summary };
 		}
 
-		return sprintf( __( '%d items in %d packages: %f %s total' ), itemsCount, packageIds.length, totalWeight, storeOptions.weight_unit );
+		return { isSuccess: true, summary };
+	};
+
+	const renderWarning = () => {
+		if ( ! hasAnyPackagesConfigured ) {
+			const packagesMsg = sprintf(
+				__( 'There are no packages configured. The items have been packed individually. You can add or enable packages using the <a href="%(url)s">Packaging Manager</a>.' ),
+				{
+					url: 'admin.php?page=wc-settings&tab=connect&section=packages',
+				}
+			);
+
+			return <Notice
+				className="validation-message"
+				status="is-warning"
+				showDismiss={ false }>
+				<span dangerouslySetInnerHTML={ { __html: packagesMsg } } />
+			</Notice>;
+		}
+
+		return null;
 	};
 
 	const renderContents = () => {
@@ -106,11 +140,10 @@ const PackagesStep = ( {
 	return (
 		<StepContainer
 			title={ __( 'Packages' ) }
-			isSuccess={ isValidWeight && isValidPackages }
-			isError={ ! isValidWeight || ! isValidPackages }
-			summary={ renderSummary() }
+			{ ...getContainerState() }
 			expanded={ expanded }
 			toggleStep={ () => labelActions.toggleStep( 'packages' ) } >
+			{ renderWarning() }
 			{ renderContents() }
 			<div className="step__confirmation-container">
 				<FormButton
@@ -119,7 +152,7 @@ const PackagesStep = ( {
 					disabled={ hasNonEmptyLeaves( errors ) || ! packageIds.length }
 					onClick={ labelActions.confirmPackages }
 					isPrimary >
-					{ __( 'Save packages' ) }
+					{ __( 'Use these packages' ) }
 				</FormButton>
 			</div>
 			<MoveItemDialog

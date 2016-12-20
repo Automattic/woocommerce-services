@@ -143,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 			}
 
-			return $formatted_packages;
+			return ( object ) $formatted_packages;
 		}
 
 		protected function get_flat_rate_packages_groups() {
