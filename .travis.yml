@@ -51,6 +51,7 @@ cache:
     - node_modules
     - "$HOME/.nvm"
     - "$HOME/node_utils"
+    - "$HOME/.yarn-cache"
 
 # Use an updated Node runtime
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
