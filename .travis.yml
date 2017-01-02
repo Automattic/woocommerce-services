@@ -50,14 +50,16 @@ cache:
   directories:
     - node_modules
     - "$HOME/.nvm"
+    - "$HOME/node_utils"
 
 # Use an updated Node runtime
 # See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
 install:
     - . $HOME/.nvm/nvm.sh
-    - nvm install 6.9.0
-    - nvm use 6.9.0
-    - npm install
+    - nvm install 6.9.2
+    - nvm use 6.9.2
+    - npm install yarn@0.18.1 --global --prefix $HOME/node_utils
+    - $HOME/node_utils/bin/yarn install
 
 # Clones WordPress and configures our testing environment.
 before_script:

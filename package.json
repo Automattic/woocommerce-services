@@ -8,8 +8,7 @@
     "test": "karma start --single-run --no-auto-watch && npm run eslint",
     "test-watch": "karma start --auto-watch --no-single-run",
     "release": "node tasks/release.js",
-    "i18n": "npm run dist && node tasks/i18n",
-    "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install --no-optional && npm install --no-optional && npm prune && npm shrinkwrap --dev"
+    "i18n": "npm run dist && node tasks/i18n"
   },
   "repository": {
     "type": "git",
