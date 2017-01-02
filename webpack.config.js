@@ -30,7 +30,7 @@ module.exports = {
 	},
 	devtool: '#inline-source-map',
 	module: {
-		preLoaders: [
+		preLoaders: [ // NOTE: This preLoaders prop will be removed in the webpack production config
 			{
 				test: /\.jsx?$/,
 				loader: 'eslint',

@@ -1,7 +1,8 @@
-var webpack = require( 'webpack' ),
-	config = require( './webpack.config.js' );
+const webpack = require( 'webpack' );
+const config = require( './webpack.config.js' );
 
 delete config.output.publicPath;
+delete config.module.preLoaders;
 delete config.devtool;
 
 config.plugins.push( new webpack.DefinePlugin( {
