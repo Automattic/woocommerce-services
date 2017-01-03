@@ -5,10 +5,10 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "dist": "cross-env NODE_ENV=production webpack --config webpack.production.config.js",
     "eslint": "eslint tasks/ client/",
-    "test": "karma start --single-run --no-auto-watch && npm run eslint",
+    "test": "karma start --single-run --no-auto-watch && yarn run eslint",
     "test-watch": "karma start --auto-watch --no-single-run",
     "release": "node tasks/release.js",
-    "i18n": "npm run dist && node tasks/i18n"
+    "i18n": "yarn run dist && node tasks/i18n"
   },
   "repository": {
     "type": "git",
@@ -37,9 +37,10 @@
     "karma-webpack": "^1.7.0",
     "mocha": "^2.5.3",
     "mocha-loader": "^0.7.1",
-    "react-addons-test-utils": "~15.1.0",
+    "react-addons-test-utils": "~15.3.0",
     "redbox-react": "^1.2.2",
-    "webpack-dev-server": "^1.14.1"
+    "webpack-dev-server": "^1.14.1",
+    "yargs": "^6.6.0"
   },
   "dependencies": {
     "archiver": "^1.0.0",
@@ -75,8 +76,8 @@
     "object-path-immutable": "^0.4.0",
     "objectpath": "^1.2.1",
     "postcss-loader": "^0.9.1",
-    "react": "~15.1.0",
-    "react-dom": "~15.1.0",
+    "react": "~15.3.0",
+    "react-dom": "~15.3.0",
     "react-redux": "^4.4.1",
     "redux": "^3.3.1",
     "redux-thunk": "^2.1.0",

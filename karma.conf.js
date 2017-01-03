@@ -1,11 +1,12 @@
 const baseWebpackConfig = require( './webpack.config' );
 const path = require( 'path' );
 const escapeStringRegexp = require( 'escape-string-regexp' );
+const argv = require( 'yargs' ).argv;
 
 const testDirMatcher = new RegExp( escapeStringRegexp( path.resolve( __dirname, 'client' ) ) + '.*' + escapeStringRegexp( path.sep + 'test' + path.sep ) );
 
-// Run single test: npm test --test=FILE_OR_GLOB
-const testFile = (process.env.npm_config_test) ? process.env.npm_config_test : 'client/test/runner.js';
+// To run single test: yarn test -- --test=FILE_OR_GLOB
+const testFile = argv.test || 'client/test/runner.js';
 
 module.exports = function( config ) {
 	config.set({

@@ -60,7 +60,7 @@ install:
     - nvm install 6.9.2
     - nvm use 6.9.2
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.8.1
-    - yarn install
+    - yarn install --no-progress
 
 # Clones WordPress and configures our testing environment.
 before_script:

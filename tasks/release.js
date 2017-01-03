@@ -25,8 +25,8 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 		process.exit( 0 );
 	}
 
-	// run npm dist
-	exec( 'npm run dist' );
+	// run yarn dist
+	exec( 'yarn run dist' );
 
 	// start with a clean release folder
 	rm( '-rf', releaseFolder );
