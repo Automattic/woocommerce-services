@@ -48,7 +48,6 @@ matrix:
 # Cache the NPM dependencies
 cache:
   directories:
-    - node_modules
     - "$HOME/.nvm"
     - "$HOME/.yarn-cache"
 
