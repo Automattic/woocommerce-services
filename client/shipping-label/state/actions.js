@@ -122,7 +122,25 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 		} );
 };
 
-export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addressNormalizationURL, getRatesURL, nonce } ) => {
+const refreshPreview = ( dispatch, getState, context ) => {
+	if ( ! canPurchase( getState(), context.storeOptions ) ) {
+		return;
+	}
+	const state = getState().shippingLabel;
+	const { form, paperSize } = state;
+	let pckgIndex = 1;
+	const labels = _.map( form.packages.selected, () => ( {
+		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.selected ).length ),
+	} ) );
+
+	dispatch( {
+		type: UPDATE_PREVIEW,
+		url: getPreviewURL( paperSize, labels, context ),
+	} );
+};
+
+export const openPrintingFlow = () => ( dispatch, getState, context ) => {
+	const { storeOptions, addressNormalizationURL, getRatesURL, nonce } = context;
 	let form = getState().shippingLabel.form;
 	const { origin, destination } = form;
 	let errors = getFormErrors( getState(), storeOptions );
@@ -143,6 +161,11 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 			expandFirstErroneousStep( dispatch, getState, storeOptions );
 		};
 
+		const showPreviewAfterRateFetch = () => {
+			refreshPreview( dispatch, getState, context );
+			expandStepAfterAction();
+		};
+
 		// If origin and destination are normalized, get rates
 		if (
 			form.origin.isNormalized &&
@@ -152,7 +175,7 @@ export const openPrintingFlow = () => ( dispatch, getState, { storeOptions, addr
 			_.isEmpty( form.rates.available ) &&
 			form.packages.all && Object.keys( form.packages.all ).length
 		) {
-			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
+			return getLabelRates( dispatch, getState, showPreviewAfterRateFetch, { getRatesURL, nonce } );
 		}
 
 		// Otherwise, just expand the next errant step unless the
@@ -373,23 +396,6 @@ export const confirmAddItem = ( sourcePackageId, itemIndex, targetPackageId ) =>
 	}
 
 	dispatch( closeAddItem() );
-};
-
-const refreshPreview = ( dispatch, getState, context ) => {
-	if ( ! canPurchase( getState(), context.storeOptions ) ) {
-		return;
-	}
-	const state = getState().shippingLabel;
-	const { form, paperSize } = state;
-	let pckgIndex = 1;
-	const labels = _.map( form.packages.selected, () => ( {
-		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.selected ).length ),
-	} ) );
-
-	dispatch( {
-		type: UPDATE_PREVIEW,
-		url: getPreviewURL( paperSize, labels, context ),
-	} );
 };
 
 export const confirmPackages = () => ( dispatch, getState, context ) => {
