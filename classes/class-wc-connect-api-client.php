@@ -72,6 +72,61 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Build the server's expected contents array, for rates requests.
+		 *
+		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
+		 *
+		 * @return array|WP_Error {
+		 * 		@type float $height Product height.
+		 * 		@type float $width Product width.
+		 * 		@type float $length Product length.
+		 * 		@type int $product_id Product ID (or Variation ID).
+		 * 		@type int $quantity Quantity of product in shipment.
+		 * 		@type float $weight Product weight.
+		 * }
+		 */
+		protected function build_shipment_contents( $package ) {
+			$contents = array();
+
+			foreach ( $package[ 'contents' ] as $package_item ) {
+				$product  = $package_item[ 'data' ];
+				$quantity = $package_item[ 'quantity' ];
+
+				if ( ( $quantity > 0 ) && $product->needs_shipping() ) {
+
+					if ( ! $product->has_weight() ) {
+						return new WP_Error(
+							'product_missing_weight',
+							sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product->get_id() )
+						);
+					}
+
+					$weight = $product->get_weight();
+					$height = 0;
+					$length = 0;
+					$width  = 0;
+
+					if ( $product->has_dimensions() ) {
+						$height = $product->get_height();
+						$length = $product->get_length();
+						$width  = $product->get_width();
+					}
+
+					$contents[] = array(
+						'height'     => ( float ) $height,
+						'product_id' => $product->get_id(),
+						'length'     => ( float ) $length,
+						'quantity'   => $package_item[ 'quantity' ],
+						'weight'     => ( float ) $weight,
+						'width'      => ( float ) $width,
+					);
+				}
+			}
+
+			return $contents;
+		}
+
+		/**
 		 * Gets shipping rates (for checkout) from the Connect for WooCommerce Server
 		 *
 		 * @param $services All settings for all services we want rates for
@@ -82,46 +137,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return object|WP_Error
 		 */
 		public function get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes ) {
-
 			// First, build the contents array
 			// each item needs to specify quantity, weight, length, width and height
-			$contents = array();
-			foreach ( $package['contents'] as $item_id => $values ) {
-
-				$product_id = absint( $values['data']->id );
-				$product = wc_get_product( $product_id );
-
-				if ( $values['quantity'] > 0 && $product->needs_shipping() ) {
-
-					if ( ! $product->has_weight() ) {
-						return new WP_Error(
-							'product_missing_weight',
-							sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product_id )
-						);
-					}
-
-					$weight = $product->get_weight();
-
-					$height = 0;
-					$length = 0;
-					$width = 0;
-
-					if ( $product->has_dimensions() ) {
-						$height = $product->get_height();
-						$length = $product->get_length();
-						$width  = $product->get_width();
-					}
-
-					$contents[] = array(
-						'height' => ( float ) $height,
-						'product_id' => isset( $values['data']->variation_id ) ? $values['data']->variation_id : $values['data']->id,
-						'length' => ( float ) $length,
-						'quantity' => $values['quantity'],
-						'weight' => ( float ) $weight,
-						'width' => ( float ) $width,
-					);
-				}
-			}
+			$contents = $this->build_shipment_contents( $package );
 
 			if ( empty( $contents ) ) {
 				return new WP_Error( 'nothing_to_ship', 'No shipping rate could be calculated. No items in the package are shippable.' );
@@ -129,10 +147,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			// Then, make the request
 			$body = array(
-				'contents' => $contents,
-				'destination' => $package['destination'],
-				'services' => $services,
-				'boxes' => $custom_boxes,
+				'contents'         => $contents,
+				'destination'      => $package[ 'destination' ],
+				'services'         => $services,
+				'boxes'            => $custom_boxes,
 				'predefined_boxes' => $predefined_boxes,
 			);
 
