@@ -73,11 +73,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+			if ( ! $shipping_method ) {
 				return false;
 			}
 
-			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			if ( isset( $shipping_method[ '_wc_connect_packages' ] ) ) {
+				return json_decode( $shipping_method[ '_wc_connect_packages' ], true );
+			}
+
+			if ( isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+				return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			}
+
+			return false;
 		}
 
 		protected function get_name( WC_Product $product ) {
@@ -159,13 +167,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_selected_rates( WC_Order $order ) {
-			$shipping_methods = $order->get_shipping_methods();
-			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+			$packages = $this->get_packaging_metadata( $order );
+			if ( ! $packages ) {
 				return array();
 			}
 
-			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
 			$rates = array();
 
 			foreach( $packages as $idx => $package ) {

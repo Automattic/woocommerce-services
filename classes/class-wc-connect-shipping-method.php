@@ -333,7 +333,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'cost'      => $rate->rate,
 						'calc_tax'  => 'per_item',
 						'meta_data' => array(
-							'wc_connect_packages' => json_encode( $rate->packages ),
+							'_wc_connect_packages' => json_encode( $rate->packages ),
 							__( 'Packaging', 'connectforwoocommerce' ) => $packaging_info
 						),
 					);

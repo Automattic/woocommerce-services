@@ -742,7 +742,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function hide_wc_connect_package_meta_data( $hidden_keys ) {
-			$hidden_keys[] = 'wc_connect_packages';
+			array_push( $hidden_keys, 'wc_connect_packages', '_wc_connect_packages' );
 			return $hidden_keys;
 		}
 
