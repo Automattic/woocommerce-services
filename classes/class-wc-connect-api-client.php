@@ -85,7 +85,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * 		@type float $weight Product weight.
 		 * }
 		 */
-		protected function build_shipment_contents( $package ) {
+		public function build_shipment_contents( $package ) {
 			$contents = array();
 
 			foreach ( $package[ 'contents' ] as $package_item ) {
