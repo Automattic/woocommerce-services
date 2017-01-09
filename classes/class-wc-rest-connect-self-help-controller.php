@@ -65,7 +65,6 @@ class WC_REST_Connect_Self_Help_Controller extends WP_REST_Controller {
 			return $error;
 		}
 
-		error_log( "WCC DEBUG ON = {$settings->wcc_debug_on}" );
 		if ( 1 == $settings->wcc_debug_on ) {
 			$this->logger->enable_logging();
 		} else {
