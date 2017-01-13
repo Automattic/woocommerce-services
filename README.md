@@ -30,7 +30,7 @@ If you'd just like to check out the latest beta release and not contribute code 
 
 If you'd just like to check out the latest code and/or wish to contribute code, then perform the following:
 
-* Ensure you have `git`, `node`, and `yarn` installed on the target machine/server. For maximum compatibility we recommend `node` version `6.9.2` and `yarn` version `0.18.1+`
+* Ensure you have `git`, `node`, and `yarn` installed on the target machine/server. For maximum compatibility we recommend `node` version `6.9.1` and `yarn` version `0.18.1+`
 * Clone this repository into the `plugins` folder of the WordPress installation.
 * Run `yarn` to set up all the dependencies
 * You now have two choices:
