@@ -15,7 +15,6 @@ class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controll
 
 	public function run( $request ) {
 		$settings = $request->get_json_params();
-
 		if ( empty( $settings ) || ! array_key_exists( 'wcc_debug_on', $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update settings. The form data could not be read.', 'woocommerce-services' ),

@@ -25,6 +25,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		protected $api_client;
 
 		public function __construct( $id_or_instance_id = null ) {
+			parent::__construct( $id_or_instance_id );
 
 			// If $arg looks like a number, treat it as an instance_id
 			// Otherwise, treat it as a (method) id (e.g. wc_connect_usps)
@@ -265,7 +266,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings_keys    = get_object_vars( $service_settings );
 
 			if ( empty( $settings_keys ) ) {
-				return $this->debug(
+				$this->debug(
 					sprintf(
 						'Service settings empty. Skipping %s rate request (instance id %d).',
 						$this->id,
@@ -273,6 +274,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					),
 					__FUNCTION__
 				);
+				return;
 			}
 
 			// TODO: Request rates for all WooCommerce Services powered methods in
@@ -335,6 +337,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						$items = array();
 
 						foreach ( $rate_package->items as $package_item ) {
+							/** @var WC_Product $product */
 							$product = $this->lookup_product( $package, $package_item->product_id );
 							if ( $product ) {
 								$items[] = $product->get_title();

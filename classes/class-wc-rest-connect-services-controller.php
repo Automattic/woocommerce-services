@@ -25,6 +25,8 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 
 	/**
 	 * Attempts to update the settings on a particular service and instance
+	 * @param $request object
+	 * @return object
 	 */
 	public function run( $request ) {
 		$request_params = $request->get_params();

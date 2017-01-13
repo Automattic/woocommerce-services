@@ -378,6 +378,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function load_dependencies() {
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
@@ -712,6 +713,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array( 'updates' ), $plugin_version );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
+			/** @var array $i18nStrings defined in i18n/strings.php */
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
 		}
 
@@ -945,9 +947,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
-		function get_shipping_phone_from_order( $fields, $address_type, $order ) {
+		function get_shipping_phone_from_order( $fields, $address_type, WC_Order $order ) {
+			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			if ( 'shipping' === $address_type ) {
-				$shipping_phone = get_post_meta( $order->id, '_shipping_phone', true );
+				$shipping_phone = get_post_meta( $order_id, '_shipping_phone', true );
 				if ( ! $shipping_phone ) {
 					$billing_address = $order->get_address( 'billing' );
 					$shipping_phone = $billing_address[ 'phone' ];

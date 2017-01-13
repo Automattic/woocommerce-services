@@ -7,7 +7,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		/**
 		 * Validates the overall passed services object (all service types and all services therein)
 		 *
-		 * @param object $services
+		 * @param object $service_schemas
 		 *
 		 * @return WP_Error|true
 		 */
@@ -63,7 +63,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		 *
 		 * @param string $service_type
 		 * @param integer $service_counter
-		 * @param object $service
+		 * @param object $service_schema
 		 *
 		 * @return WP_Error|true
 		 */

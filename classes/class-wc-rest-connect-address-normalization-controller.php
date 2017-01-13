@@ -61,6 +61,8 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 
 	/**
 	 * Validate the requester's permissions
+	 * @param $request object
+	 * @return boolean
 	 */
 	public function check_permission( $request ) {
 		$data = $request->get_json_params();

@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		/**
 		 * Get sections.
-		 *
+		 * @param $shipping_tabs array shipping tabs
 		 * @return array
 		 */
 		public function get_sections( $shipping_tabs ) {

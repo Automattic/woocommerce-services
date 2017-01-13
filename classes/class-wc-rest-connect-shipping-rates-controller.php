@@ -44,4 +44,5 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 			'rates'   => property_exists( $response, 'rates' ) ? $response->rates : new stdClass(),
 		);
 	}
+
 }

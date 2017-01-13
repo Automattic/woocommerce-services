@@ -20,7 +20,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		protected $logger;
 
 		/**
-		 * @array
+		 * @var array
 		 */
 		protected $fieldsets;
 
@@ -160,6 +160,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Check that we are able to talk to the WooCommerce Services server
 			$schemas = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
+
 			if ( ! is_null( $last_fetch_timestamp ) ) {
 				$last_fetch_timestamp_formatted = sprintf(
 					_x( 'Last updated %s ago', '%s = human-readable time difference', 'woocommerce-services' ),
@@ -167,7 +168,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				);
 			} else {
 				$last_fetch_timestamp = '';
+				$last_fetch_timestamp_formatted = '';
 			}
+
 			if ( is_null( $schemas ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
@@ -541,7 +544,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 						foreach ( $fieldsetitem->items as $item ) {
 							$form_definitions[ $fieldsetitem->key . '_definitions' ][] = (object) array(
-								'id' => $item->id
+								'id' => $item->id,
 							);
 						}
 					}
@@ -642,11 +645,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$form_data = array();
 
 			foreach ( $this->fieldsets as $fieldset ) {
-				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
-					if ( 'indicators' === $fieldsetitem->type ) {
-						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
+				foreach ( $fieldset[ 'items' ] as $fieldset_item ) {
+					if ( 'indicators' === $fieldset_item->type ) {
+						$form_data[ $fieldset_item->key ] = $fieldset_item->items;
 					} else {
-						$form_data[ $fieldsetitem->key ] = $fieldsetitem->value;
+						$form_data[ $fieldset_item->key ] = $fieldset_item->value;
 					}
 				}
 			}
@@ -659,8 +662,6 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 * Localizes the bootstrap, enqueues the script and styles for the help page
 		 */
 		public function page() {
-			$this->help_sections = array();
-
 			$this->add_fieldset(
 				'health',
 				_x( 'Health', 'This section displays the overall health of WooCommerce Services and the things it depends on', 'woocommerce-services' ),
