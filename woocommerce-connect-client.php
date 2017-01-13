@@ -132,6 +132,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $help_view;
 
+		/**
+		 * @var WC_Connect_Remote_Notices_Store
+		 */
+		protected $remote_notices_store;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -155,6 +160,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+			wp_clear_scheduled_hook( 'wc_connect_fetch_remote_notices' );
 		}
 
 		public function __construct() {
@@ -310,6 +316,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->help_view = $help_view;
 		}
 
+		public function get_remote_notices_store() {
+			return $this->remote_notices_store;
+		}
+
+		public function set_remote_notices_store( WC_Connect_Remote_Notices_Store $remote_notices_store ) {
+			$this->remote_notices_store = $remote_notices_store;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -332,6 +346,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->load_dependencies();
 			$this->attach_hooks();
 			$this->schedule_service_schemas_fetch();
+			$this->schedule_remote_notices_fetch();
 		}
 
 		/**
@@ -348,6 +363,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-remote-notices-store.php') );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -357,6 +373,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger );
 			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
+			$remote_notices_store  = new WC_Connect_Remote_Notices_Store( $api_client );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -366,6 +383,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
 			$this->set_help_view( $help_view );
+			$this->set_remote_notices_store( $remote_notices_store );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
@@ -388,6 +406,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function attach_hooks() {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
+			$remote_notices_store = $this->get_remote_notices_store();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -410,6 +429,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_shipping_fields' , array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
+			add_action( 'wc_connect_fetch_remote_notices', array( $remote_notices_store, 'fetch_notices_from_connect_server' ) );
 		}
 
 		/**
@@ -541,6 +561,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'admin_init', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_service_schemas' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_service_schemas' );
+			}
+
+		}
+
+		/**
+		 * Hook fetching the new admin notices from the connect server
+		 * Used, for example, to show major updates to our TOS
+		 */
+		public function schedule_remote_notices_fetch() {
+
+			$remote_notices_store = $this->get_remote_notices_store();
+
+			if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
+				add_action( 'admin_init', array( $remote_notices_store, 'fetch_notices_from_connect_server' ) );
+			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_remote_notices' ) ) {
+				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_remote_notices' );
 			}
 
 		}
