@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
-Tested up to: 4.6.1
-Stable tag: 0.9.4
+Tested up to: 4.7.1
+Stable tag: 0.9.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,7 +36,7 @@ This section describes how to install the plugin and get it working.
 1. Install and activate WooCommerce if you haven't already done so
 1. Install, activate and connect Jetpack if you haven't already done so
 1. Add a USPS or Canada Post shipping method instance to any shipping zone
-1. Want to buy shipping labels? First, add your credit card to wordpress.com/me/billing and then print labels for orders right from the Edit Order page
+1. Want to buy shipping labels? First, add your credit card to https://wordpress.com/me/purchases/billing and then print labels for orders right from the Edit Order page
 
 == Frequently Asked Questions ==
 
@@ -76,6 +76,14 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of Connect for WooCommerce
 
 == Changelog ==
+
+= 0.9.5 =
+* Add non-flat-rate predefined USPS packaging
+* Add enhanced labels metabox with tracking info, reprint button, and refunds
+* Allow payment methods to be managed in Jetpack "Developer Mode"
+* Add messaging in labels dialog when no packages are configured
+* Fix label preview display bug
+* Fix a bug with variable product dimensions
 
 = 0.9.4 =
 * Fix a bug that caused a packages error in the labels UI when checkout used free shipping
