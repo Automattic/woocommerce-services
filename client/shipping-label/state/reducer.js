@@ -221,6 +221,7 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 		const { height, length, width, weight } = movedItem;
 		newPackages[ addedPackageId ] = {
 			height, length, width, weight,
+			id: addedPackageId,
 			box_id: 'individual',
 			items: [ movedItem ],
 		};
