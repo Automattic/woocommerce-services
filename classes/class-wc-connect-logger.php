@@ -2,7 +2,7 @@
 
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
-	define( 'WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION', 'wcc_debug_logging_enabled' );
+	define( 'WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION', 'wc_connect_debug_logging_enabled' );
 
 	class WC_Connect_Logger {
 
