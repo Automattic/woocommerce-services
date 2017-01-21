@@ -26,15 +26,23 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		private static $option_key = 'wc_connect_error_notice';
 
 		public function enable_notice() {
-			update_option( $this->$option_key, true );
+			update_option( self::$option_key, true );
 		}
 
 		public function disable_notice() {
-			update_option( $this->$option_key, false );
+			update_option( self::$option_key, false );
 		}
 
 		public function render_notice() {
-			if ( is_admin() && $this->notice_enabled() ) {
+			$error_notice = filter_input( INPUT_GET, 'wc-connect-error-notice' );
+			if ( 'disable' === $error_notice ) {
+				update_option( self::$option_key, false );
+				$url = home_url( remove_query_arg( 'wc-connect-error-notice' ) );
+				wp_safe_redirect( $url );
+				exit;
+			}
+
+			if ( $this->notice_enabled() ) {
 				$this->show_notice();
 			}
 		}
@@ -44,7 +52,15 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		}
 
 		private function show_notice() {
+			$link_status = admin_url( 'admin.php?page=wc-status&tab=connect' );
+			$link_dismiss = home_url( add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) ) );
 
+			$message = sprintf(
+				__( 'An error occurred in Connect for WooCommerce. Details are logged <a href="%s">here</a>. Click <a href="%s">here</a> to dismiss.', 'connectforwoocommerce' ),
+				$link_status, $link_dismiss
+			);
+
+			echo "<div class='notice notice-error is-dismissible'><p>$message</p></div>";
 		}
 	}
 
