@@ -15,6 +15,7 @@ import Settings from './settings';
 import ShippingLabel from './shipping-label';
 import AccountSettings from './account-settings';
 import Packages from './packages';
+import every from 'lodash/every';
 
 ( () => {
 	if ( ! global.wcConnectData ) {
@@ -47,7 +48,7 @@ import Packages from './packages';
 	window.addEventListener( 'beforeunload', ( event ) => {
 		const state = store.getState();
 
-		if ( ! state.form || state.form.pristine || ( state.form.meta && state.form.meta.pristine ) ) {
+		if ( ! state.form || ( state.form.meta && state.form.meta.pristine ) || every( state.form.pristine ) ) {
 			return;
 		}
 		const text = __( 'You have unsaved changes.' );
