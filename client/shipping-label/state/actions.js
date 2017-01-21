@@ -538,12 +538,7 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 			}
 		};
 
-		let url = sprintf( labelStatusURL, labelId );
-		if ( label.refund && 'pending' === label.refund.status ) {
-			url += '?get_refund=1';
-		}
-
-		saveForm( setIsSaving, setSuccess, _.noop, setError, url, nonce, 'GET' );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
 	} );
 };
 

@@ -59,9 +59,7 @@ class WC_REST_Connect_Shipping_Label_Status_Controller extends WP_REST_Controlle
 	}
 
 	public function get_item( $request ) {
-		$get_refund = $request[ 'get_refund' ] ? 'true' : 'false';
-
-		$response = $this->api_client->get_label_status( $request[ 'label_id' ], $get_refund );
+		$response = $this->api_client->get_label_status( $request[ 'label_id' ] );
 
 		if ( is_wp_error( $response ) ) {
 			$error = new WP_Error(
