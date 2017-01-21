@@ -3,6 +3,7 @@ import {
 	EXIT_PRINTING_FLOW,
 	TOGGLE_STEP,
 	UPDATE_ADDRESS_VALUE,
+	REMOVE_IGNORE_VALIDATION,
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
 	ADDRESS_NORMALIZATION_COMPLETED,
 	SELECT_NORMALIZED_ADDRESS,
@@ -87,7 +88,22 @@ reducers[ UPDATE_ADDRESS_VALUE ] = ( state, { group, name, value } ) => {
 	if ( 'country' === name ) {
 		return reducers[ UPDATE_ADDRESS_VALUE ]( newState, { group, name: 'state', value: '' } );
 	}
+	if ( state.form[ group ].ignoreValidation ) {
+		newState.form[ group ].ignoreValidation = { ...state.form[ group ].ignoreValidation,
+			[ name ]: false,
+		};
+	}
 	return newState;
+};
+
+reducers[ REMOVE_IGNORE_VALIDATION ] = ( state, { group } ) => {
+	return { ...state,
+		form: { ...state.form,
+			[ group ]: { ...state.form[ group ],
+				ignoreValidation: null,
+			},
+		},
+	};
 };
 
 reducers[ ADDRESS_NORMALIZATION_IN_PROGRESS ] = ( state, { group } ) => {
