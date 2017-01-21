@@ -93,6 +93,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 
 		$label_ids = array();
 		$labels_order_meta = array();
+		$purchased_labels_meta = array();
 		$existing_labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );
 		if ( $existing_labels_data ) {
 			$labels_order_meta = json_decode( $existing_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
@@ -142,12 +143,13 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 			$label_meta[ 'product_names' ] = $product_names;
 
 			array_unshift( $labels_order_meta, $label_meta );
+			array_unshift( $purchased_labels_meta, $label_meta );
 		}
 
 		update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_order_meta ) );
 
 		return array(
-			'labels' => $labels_order_meta,
+			'labels' => $purchased_labels_meta,
 			'success' => true,
 		);
 	}

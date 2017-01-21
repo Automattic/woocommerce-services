@@ -435,8 +435,6 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 	let error = null;
 	let response = null;
 
-	const oldLabels = getState().shippingLabel.labels;
-
 	const setError = ( err ) => error = err;
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
@@ -452,9 +450,8 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				const purchasedLabels = _.differenceBy( response, oldLabels, 'label_id' );
-				const labelsToPrint = purchasedLabels.map( ( label, index ) => ( {
-					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, purchasedLabels.length ),
+				const labelsToPrint = labels.map( ( label, index ) => ( {
+					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, labels.length ),
 					labelId: label.label_id,
 				} ) );
 				const state = getState().shippingLabel;

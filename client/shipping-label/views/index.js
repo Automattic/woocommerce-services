@@ -163,7 +163,7 @@ class ShippingLabelRootView extends Component {
 		const purchased = timeAgo( label.created );
 
 		return (
-			<div key={ index } className="wcc-metabox-label-item" >
+			<div key={ label.label_id } className="wcc-metabox-label-item" >
 				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
 				<p className="wcc-metabox-label-item__tracking">{ __( 'Tracking #:' ) } <TrackingLink { ...label }/></p>
 				<p className="wcc-metabox-label-item__actions" >
