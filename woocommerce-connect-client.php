@@ -338,6 +338,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
+			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
@@ -380,6 +381,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
 			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store, $this->logger );
 			$this->set_settings_pages( $settings_pages );
+
+			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 		}
 
 		/**
