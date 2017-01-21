@@ -456,7 +456,13 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				} ) );
 				const state = getState().shippingLabel;
 				printDocument( getPrintURL( state.paperSize, labelsToPrint, context ) )
-					.then( () => dispatch( exitPrintingFlow( true ) ) )
+					.then( () => {
+						const noticeText = 1 === labels.length
+								? __( 'Your shipping label was purchased successfully' )
+								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), labels.length );
+						dispatch( NoticeActions.successNotice( noticeText ) );
+						dispatch( exitPrintingFlow( true ) );
+					} )
 					.catch( ( err ) => {
 						console.error( err );
 						dispatch( NoticeActions.errorNotice( err.toString() ) );
