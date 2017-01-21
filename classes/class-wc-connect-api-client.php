@@ -141,6 +141,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// each item needs to specify quantity, weight, length, width and height
 			$contents = $this->build_shipment_contents( $package );
 
+			if ( is_wp_error( $contents ) ) {
+				return $contents;
+			}
+
 			if ( empty( $contents ) ) {
 				return new WP_Error( 'nothing_to_ship', 'No shipping rate could be calculated. No items in the package are shippable.' );
 			}
