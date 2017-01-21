@@ -73,7 +73,7 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WP_REST_Controlle
 				'message' => $response->get_error_message(),
 			), $response->get_error_code() );
 
-			$this->logger->log( $response, __CLASS__ );
+			$this->logger->debug( $response, __CLASS__ );
 			return $response;
 		}
 

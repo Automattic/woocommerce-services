@@ -75,7 +75,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 					$result->get_error_data()
 				)
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 

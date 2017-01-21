@@ -78,7 +78,7 @@ class WC_REST_Connect_Shipping_Labels_Print_Controller extends WP_REST_Controlle
 					'status' => 400
 				)
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 		$params[ 'labels' ] = array();
@@ -94,7 +94,7 @@ class WC_REST_Connect_Shipping_Labels_Print_Controller extends WP_REST_Controlle
 		$raw_response = $this->api_client->get_labels_print_pdf( $params );
 
 		if ( is_wp_error( $raw_response ) ) {
-			$this->logger->log( $raw_response, __CLASS__ );
+			$this->logger->debug( $raw_response, __CLASS__ );
 			return $raw_response;
 		}
 

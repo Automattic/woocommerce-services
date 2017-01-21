@@ -430,7 +430,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			//////////////////////////////////////////////////////////////////////////////
 
 			if ( ! class_exists( 'WP_REST_Controller' ) ) {
-				$this->logger->log( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
+				$this->logger->debug( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
 				return;
 			}
 

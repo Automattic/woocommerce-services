@@ -67,7 +67,7 @@ class WC_REST_Connect_Shipping_Label_Status_Controller extends WP_REST_Controlle
 				$response->get_error_message(),
 				array( 'message' => $response->get_error_message() )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 
