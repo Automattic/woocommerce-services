@@ -78,7 +78,12 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $message Message to log
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
-		public function log( $message, $context = '' ) {
+		public function error( $message, $context = '' ) {
+			WC_Connect_Error_Notice::instance()->enable_notice();
+			$this->log( $message, $context );
+		}
+
+		private function log( $message, $context = '' ) {
 			$log_message = $this->format_message( $message, $context );
 			$this->logger->add( 'wc-connect', $log_message );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {

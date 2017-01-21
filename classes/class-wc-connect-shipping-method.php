@@ -149,6 +149,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
+		protected function error( $message, $context = '' ) {
+			$logger = $this->get_logger();
+			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
+				$logger->error( $message, $context );
+			}
+		}
+
 		/**
 		 * Restores any values persisted to the DB for this service instance
 		 * and sets up title for WC core to work properly
@@ -286,7 +293,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->debug(
+				$this->error(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -297,7 +304,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 				$this->set_last_request_failed();
 
-				$this->debug( $response_body, __FUNCTION__ );
+				$this->error( $response_body, __FUNCTION__ );
 				$this->add_fallback_rate( $service_settings );
 				return;
 			}
