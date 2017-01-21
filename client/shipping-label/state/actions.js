@@ -190,8 +190,8 @@ export const openPrintingFlow = () => ( dispatch, getState, context ) => {
 	dispatch( { type: OPEN_PRINTING_FLOW } );
 };
 
-export const exitPrintingFlow = () => {
-	return { type: EXIT_PRINTING_FLOW };
+export const exitPrintingFlow = ( force ) => {
+	return { type: EXIT_PRINTING_FLOW, force };
 };
 
 export const updateAddressValue = ( group, name, value ) => {
@@ -459,7 +459,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				} ) );
 				const state = getState().shippingLabel;
 				printDocument( getPrintURL( state.paperSize, labelsToPrint, context ) )
-					.then( () => dispatch( exitPrintingFlow() ) )
+					.then( () => dispatch( exitPrintingFlow( true ) ) )
 					.catch( ( err ) => {
 						console.error( err );
 						dispatch( NoticeActions.errorNotice( err.toString() ) );

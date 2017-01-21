@@ -56,7 +56,10 @@ reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
 	};
 };
 
-reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
+reducers[ EXIT_PRINTING_FLOW ] = ( state, { force } ) => {
+	if ( ! force && state.form.isSubmitting ) {
+		return state;
+	}
 	return { ...state,
 		showPurchaseDialog: false,
 	};
