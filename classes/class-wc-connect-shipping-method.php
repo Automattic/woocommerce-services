@@ -235,6 +235,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return is_string( $preset_id );
 		}
 
+		private function add_fallback_rate( $service_settings ) {
+			if ( ! property_exists( $service_settings, 'fallback_rate' ) || 0 >= $service_settings->fallback_rate ) {
+				return;
+			}
+
+			$rate_to_add = array(
+				'id'        => self::format_rate_id( 'fallback', $this->id, 0 ),
+				'label'     => self::format_rate_title( __( 'Fallback rate' ) ),
+				'cost'      => $service_settings->fallback_rate,
+				'calc_tax'  => 'per_item',
+			);
+
+			$this->add_rate( $rate_to_add );
+		}
+
 		public function calculate_shipping( $package = array() ) {
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
@@ -284,14 +299,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->set_last_request_failed();
 
 				$this->log( $response_body, __FUNCTION__ );
+				$this->add_fallback_rate( $service_settings );
 				return;
 			}
 
 			if ( ! property_exists( $response_body, 'rates' ) ) {
 				$this->set_last_request_failed();
+				$this->add_fallback_rate( $service_settings );
 				return;
 			}
+
 			$instances = $response_body->rates;
+			$added_rates_count = 0;
 
 			foreach ( (array) $instances as $instance ) {
 				if ( ! property_exists( $instance, 'rates' ) ) {
@@ -339,7 +358,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					);
 
 					$this->add_rate( $rate_to_add );
+					$added_rates_count++;
 				}
+			}
+
+			if ( 0 === $added_rates_count ) {
+				$this->add_fallback_rate( $service_settings );
 			}
 
 			$this->update_last_rate_request_timestamp();
