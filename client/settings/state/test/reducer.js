@@ -56,4 +56,11 @@ describe( 'Settings reducer', () => {
 
 		expect( state ).to.not.have.property( 'fieldsStatus' );
 	} );
+
+	it( 'UPDATE_FIELD marks pristine false', () => {
+		const action = updateField( 'some_key', 'some value' );
+		const state = reducer( initialState, action );
+
+		expect( state ).to.have.deep.property( 'pristine.some_key', false );
+	} );
 } );
