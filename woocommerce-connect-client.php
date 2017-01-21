@@ -642,7 +642,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$is_active = $wpdb->get_var( $wpdb->prepare(
-					"SELECT instance_id FROM wp_woocommerce_shipping_zone_methods WHERE is_enabled = 1 AND method_id = %s LIMIT 1;",
+					"SELECT instance_id FROM {$wpdb->prefix}woocommerce_shipping_zone_methods WHERE is_enabled = 1 AND method_id = %s LIMIT 1;",
 					$shipping_service_id
 				) );
 
