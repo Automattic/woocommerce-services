@@ -450,16 +450,16 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				const labelsToPrint = labels.map( ( label, index ) => ( {
-					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, labels.length ),
+				const labelsToPrint = response.map( ( label, index ) => ( {
+					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
 					labelId: label.label_id,
 				} ) );
 				const state = getState().shippingLabel;
 				printDocument( getPrintURL( state.paperSize, labelsToPrint, context ) )
 					.then( () => {
-						const noticeText = 1 === labels.length
+						const noticeText = 1 === response.length
 								? __( 'Your shipping label was purchased successfully' )
-								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), labels.length );
+								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
 						dispatch( NoticeActions.successNotice( noticeText ) );
 						dispatch( exitPrintingFlow( true ) );
 					} )
