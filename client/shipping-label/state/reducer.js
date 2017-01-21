@@ -62,6 +62,9 @@ reducers[ EXIT_PRINTING_FLOW ] = ( state, { force } ) => {
 	}
 	return { ...state,
 		showPurchaseDialog: false,
+		form: { ...state.form,
+			isSubmitting: false,
+		},
 	};
 };
 
