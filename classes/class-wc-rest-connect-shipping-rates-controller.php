@@ -67,6 +67,10 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 		$request_body = $request->get_body();
 		$payload      = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 
+		// This is the earliest point in the printing label flow where we are sure that
+		// the merchant wants to ship from this exact address (normalized or otherwise)
+		$this->settings_store->update_origin_address( $payload[ 'origin' ] );
+
 		// Hardcode USPS rates for now
 		$payload[ 'carrier' ] = 'usps';
 
