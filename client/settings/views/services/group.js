@@ -41,11 +41,21 @@ const ShippingServiceGroup = ( props ) => {
 	//filter out the services that have a disabled corresponding predefined package
 	const manageableServices = services.filter( ( service ) => ! service.predefined_package || predefinedPackages.includes( service.predefined_package ) );
 	const allChecked = _.every( manageableServices, ( service ) => service.enabled );
+	const renderHeader = () => {
+		return <div className="wcc-shipping-services-group-header">
+			<CheckBox
+				onClick={ ( event ) => event.stopPropagation() }
+				onChange={ ( event ) => updateAll( event, updateValue, manageableServices ) }
+				checked={ allChecked }
+			/>
+			{ title }
+		</div>;
+	};
 	const summary = summaryLabel( manageableServices );
 
 	return (
 		<FoldableCard
-			header={ title }
+			header={ renderHeader() }
 			summary={ summary }
 			expandedSummary={ summary }
 			clickableHeader={ true }
@@ -56,11 +66,6 @@ const ShippingServiceGroup = ( props ) => {
 		>
 			<div className="wcc-shipping-service-entry multi-select-header">
 				<label className="wcc-shipping-service-header-container">
-					<CheckBox
-						onClick={ ( event ) => event.stopPropagation() }
-						onChange={ ( event ) => updateAll( event, updateValue, manageableServices ) }
-						checked={ allChecked }
-					/>
 					<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
 					<span className="wcc-shipping-service-header price-adjustment">{ __( 'Price adjustment' ) }</span>
 				</label>
