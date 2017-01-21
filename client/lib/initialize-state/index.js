@@ -20,14 +20,16 @@ const getItemValue = ( schema, value, definitions ) => {
 
 export default ( schema, values ) => {
 	const formValues = {};
+	const pristine = {};
 	Object.keys( schema.properties ).forEach( ( key ) => {
 		formValues[ key ] = getItemValue( schema.properties[ key ], values[ key ], schema.definitions );
+		pristine[ key ] = true;
 	} );
 
 	return {
 		form: {
 			isSaving: false,
-			pristine: true,
+			pristine,
 			currentStep: -1,
 			values: formValues,
 			shippingLabel: {},
