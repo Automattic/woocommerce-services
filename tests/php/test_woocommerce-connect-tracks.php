@@ -11,7 +11,7 @@ abstract class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	public function setUp() {
 		$this->logger = $this->getMockBuilder( 'WC_Connect_Logger' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'log' ) )
+			->setMethods( array( 'debug' ) )
 			->getMock();
 
 		$this->tracks = new WC_Connect_Tracks( $this->logger );
