@@ -107,7 +107,7 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
 		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
 			->setConstructorArgs( array( 1 ) )
-			->setMethods( array( 'is_valid_package_destination', 'get_service_settings', 'log' ) )
+			->setMethods( array( 'is_valid_package_destination', 'get_service_settings', 'debug' ) )
 			->getMock();
 
 		$shipping_method->expects( $this->any() )
@@ -119,7 +119,7 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 			->will( $this->returnValue( new stdClass() ) );
 
 		$shipping_method->expects( $this->once() )
-			->method( 'log' )
+			->method( 'debug' )
 			->with(
 				$this->stringContains( 'Service settings empty.' ),
 				$this->anything()

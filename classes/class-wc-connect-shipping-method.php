@@ -133,7 +133,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * Avoids calling methods on an undefined object if no logger was
 		 * injected during the init action in the constructor.
 		 *
-		 * @see WC_Connect_Logger::log()
+		 * @see WC_Connect_Logger::debug()
 		 * @param string|WP_Error $message
 		 * @param string $context
 		 */
