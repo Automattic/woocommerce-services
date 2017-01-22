@@ -36,7 +36,7 @@ const PrintLabelDialog = ( props ) => {
 	return (
 		<Modal
 			isVisible={ props.showPurchaseDialog }
-			onClose={ props.labelActions.exitPrintingFlow } >
+			onClose={ () => props.labelActions.exitPrintingFlow( false ) } >
 			<div className="wcc-shipping-label-dialog__content">
 				<h3 className="form-section-heading">
 					{ 1 === props.form.packages.selected.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
@@ -75,7 +75,7 @@ const PrintLabelDialog = ( props ) => {
 						label: getPurchaseButtonLabel(),
 					},
 					{
-						onClick: props.labelActions.exitPrintingFlow,
+						onClick: () => props.labelActions.exitPrintingFlow( false ),
 						label: __( 'Cancel' ),
 					},
 				] } />

@@ -56,9 +56,15 @@ reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
 	};
 };
 
-reducers[ EXIT_PRINTING_FLOW ] = ( state ) => {
+reducers[ EXIT_PRINTING_FLOW ] = ( state, { force } ) => {
+	if ( ! force && state.form.isSubmitting ) {
+		return state;
+	}
 	return { ...state,
 		showPurchaseDialog: false,
+		form: { ...state.form,
+			isSubmitting: false,
+		},
 	};
 };
 
@@ -456,11 +462,12 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 	}
 
 	return { ...state,
-		labels: response.map( ( label ) => ( { ...label, statusUpdated: true } ) ),
-		form: {
-			...state.form,
-			isSubmitting: false,
-		},
+		labels: [
+			...response.map( ( label ) => ( { ...label,
+				statusUpdated: true,
+			} ) ),
+			...state.labels,
+		],
 	};
 };
 

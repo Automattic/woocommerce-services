@@ -190,8 +190,8 @@ export const openPrintingFlow = () => ( dispatch, getState, context ) => {
 	dispatch( { type: OPEN_PRINTING_FLOW } );
 };
 
-export const exitPrintingFlow = () => {
-	return { type: EXIT_PRINTING_FLOW };
+export const exitPrintingFlow = ( force ) => {
+	return { type: EXIT_PRINTING_FLOW, force };
 };
 
 export const updateAddressValue = ( group, name, value ) => {
@@ -435,8 +435,6 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 	let error = null;
 	let response = null;
 
-	const oldLabels = getState().shippingLabel.labels;
-
 	const setError = ( err ) => error = err;
 	const setSuccess = ( success, json ) => {
 		if ( success ) {
@@ -452,14 +450,19 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {
-				const purchasedLabels = _.differenceBy( response, oldLabels, 'label_id' );
-				const labelsToPrint = purchasedLabels.map( ( label, index ) => ( {
-					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, purchasedLabels.length ),
+				const labelsToPrint = response.map( ( label, index ) => ( {
+					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
 					labelId: label.label_id,
 				} ) );
 				const state = getState().shippingLabel;
 				printDocument( getPrintURL( state.paperSize, labelsToPrint, context ) )
-					.then( () => dispatch( exitPrintingFlow() ) )
+					.then( () => {
+						const noticeText = 1 === response.length
+								? __( 'Your shipping label was purchased successfully' )
+								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
+						dispatch( NoticeActions.successNotice( noticeText ) );
+						dispatch( exitPrintingFlow( true ) );
+					} )
 					.catch( ( err ) => {
 						console.error( err );
 						dispatch( NoticeActions.errorNotice( err.toString() ) );
