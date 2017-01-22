@@ -270,10 +270,15 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 				$ago_edit_link = sprintf(
 					wp_kses(
-						_x( 'Request was made %1$s ago - <a href="%2$s">edit service settings</a>', 'e.g. two hours', 'connectforwoocommerce' ),
+						_x(
+							'Request was made %1$s ago - check logs below or <a href="%2$s">edit service settings</a>',
+							'e.g. two hours',
+							'connectforwoocommerce'
+						),
 						array( 'a' => array( 'href' => array() ) )
 					),
 					esc_html( human_time_diff( $last_failed_request_timestamp ) ),
+					esc_url( $service_settings_url ),
 					esc_url( $service_settings_url )
 				);
 
