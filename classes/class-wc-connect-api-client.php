@@ -247,8 +247,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $label_id integer
 		 * @return object|WP_Error
 		 */
-		public function get_label_status( $label_id, $get_refund ) {
-			return $this->request( 'GET', '/shipping/label/' . $label_id . '?get_refund=' . $get_refund );
+		public function get_label_status( $label_id ) {
+			return $this->request( 'GET', '/shipping/label/' . $label_id . '?get_refund=true' );
 		}
 
 		/**
