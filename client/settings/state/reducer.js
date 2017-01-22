@@ -1,7 +1,7 @@
 import { SET_FORM_PROPERTY } from './actions';
 import values from './values/reducer';
 import * as formValueActions from './values/actions';
-import mapValues from 'lodash/mapValues';
+import _ from 'lodash';
 
 const reducers = {};
 
@@ -9,7 +9,7 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	const newObj = {};
 	newObj[ action.field ] = action.value;
 	if ( 'success' === action.field && action.value ) {
-		newObj.pristine = mapValues( state.pristine, () => true );
+		newObj.pristine = _.mapValues( state.pristine, () => true );
 	} else if ( 'fieldsStatus' === action.field && action.value ) {
 		Object.keys( action.value ).forEach( ( fieldPath ) => {
 			const fieldStatus = action.value[ fieldPath ];
