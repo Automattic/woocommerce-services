@@ -242,7 +242,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			$rate_to_add = array(
 				'id'        => self::format_rate_id( 'fallback', $this->id, 0 ),
-				'label'     => self::format_rate_title( __( 'Fallback rate' ) ),
+				'label'     => self::format_rate_title( $this->service_schema->carrier_name ),
 				'cost'      => $service_settings->fallback_rate,
 				'calc_tax'  => 'per_item',
 			);
