@@ -310,7 +310,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			$instances = $response_body->rates;
-			$added_rates_count = 0;
 
 			foreach ( (array) $instances as $instance ) {
 				if ( ! property_exists( $instance, 'rates' ) ) {
@@ -358,11 +357,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					);
 
 					$this->add_rate( $rate_to_add );
-					$added_rates_count++;
 				}
 			}
 
-			if ( 0 === $added_rates_count ) {
+			if ( 0 === count( $this->rates ) ) {
 				$this->add_fallback_rate( $service_settings );
 			}
 
