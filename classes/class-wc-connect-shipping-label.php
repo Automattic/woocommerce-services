@@ -170,7 +170,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			foreach( $packages as $idx => $package ) {
 				// Abort if the package data is malformed
-				if ( ! $package[ 'id' ] || ! $package[ 'service_id' ] ) {
+				if ( ! isset( $package[ 'id' ] ) || ! isset( $package[ 'service_id' ] ) ) {
 					return array();
 				}
 
