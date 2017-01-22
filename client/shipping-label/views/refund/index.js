@@ -53,6 +53,7 @@ RefundDialog.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	created: PropTypes.number,
 	refundable_amount: PropTypes.number,
+	label_id: PropTypes.number,
 };
 
 export default RefundDialog;
