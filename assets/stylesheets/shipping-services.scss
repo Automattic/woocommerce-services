@@ -58,28 +58,24 @@
 	}
 
 	&.multi-select-header {
-		display: flex;
+		display: inline-block;
 		box-sizing: border-box;
 		border-bottom: 1px solid lighten( $gray, 30% );
 		padding-bottom: 8px;
 		margin-bottom: 4px;
 
-		.wcc-shipping-service-header-container {
-		  flex-grow: 1;
+	  .wcc-shipping-service-header {
+		display: inline-block;
+		margin-left: 0;
+		font-weight: bold;
+	  }
 
-		  .wcc-shipping-service-header {
-			display: inline-block;
-			margin-left: 0;
-			font-weight: bold;
-		  }
-
-		  .price-adjustment {
-			float: right;
-			@include breakpoint( '>480px' ) {
-			  padding-right: 8px;
-			}
-		  }
+	  .price-adjustment {
+		float: right;
+		@include breakpoint( '>480px' ) {
+		  padding-right: 8px;
 		}
+	  }
 	}
 
 	.form-checkbox {

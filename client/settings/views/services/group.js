@@ -65,10 +65,8 @@ const ShippingServiceGroup = ( props ) => {
 			expanded={ ! _.isEmpty( errors ) }
 		>
 			<div className="wcc-shipping-service-entry multi-select-header">
-				<label className="wcc-shipping-service-header-container">
-					<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
-					<span className="wcc-shipping-service-header price-adjustment">{ __( 'Price adjustment' ) }</span>
-				</label>
+				<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
+				<span className="wcc-shipping-service-header price-adjustment">{ __( 'Price adjustment' ) }</span>
 			</div>
 
 			{ services.map( ( service, idx ) => (
