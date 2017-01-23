@@ -219,6 +219,13 @@ export const editAddress = ( group ) => {
 	};
 };
 
+export const removeIgnoreValidation = ( group ) => {
+	return {
+		type: REMOVE_IGNORE_VALIDATION,
+		group,
+	};
+};
+
 export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce } ) => {
 	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
@@ -254,7 +261,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 
 	let state = getState().shippingLabel.form[ group ];
 	if ( state.ignoreValidation ) {
-		dispatch( { type: REMOVE_IGNORE_VALIDATION, group } );
+		dispatch( removeIgnoreValidation( group ) );
 		const errors = getFormErrors( getState(), storeOptions );
 		if ( hasNonEmptyLeaves( errors[ group ] ) ) {
 			return;
