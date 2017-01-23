@@ -75,8 +75,8 @@ const Packages = ( props ) => {
 		return elements;
 	};
 
-	const onSaveSuccess = () => props.noticeActions.successNotice( __( 'Your packages have been saved.' ), { duration: 2250 } );
-	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to save your packages. Please try again.' ), { duration: 7000 } );
+	const onSaveSuccess = () => props.noticeActions.successNotice( __( 'Your packages have been saved.' ), { duration: 5000 } );
+	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to save your packages. Please try again.' ) );
 	const onSaveChanges = () => props.saveForm( onSaveSuccess, onSaveFailure );
 
 	const buttons = [
