@@ -684,6 +684,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'admin_init', array( $this, 'dismiss_tos_notice' ) );
+
+			if ( isset( $_GET['wc-connect-notice'] ) ) {
+				return;
+			}
+
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
 			add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
 
@@ -696,11 +701,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function show_tos_notice() {
-			$accept_url = admin_url( 'plugins.php?wc-connect-notice=accept' );
+			$accept_url = admin_url( 'admin.php?page=wc-settings&tab=shipping&wc-connect-notice=accept' );
+			$decline_url = admin_url( 'plugins.php?wc-connect-notice=decline' );
 
 			?>
 			<div class="notice wcc-admin-notice">
 				<h1><?php _e( 'Welcome to WooCommerce Services' ) ?></h1>
+				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'connectforwoocommerce' ); ?>"></a>
 				<p>
 					<b>Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.</b>
 				</p>
@@ -721,17 +728,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function dismiss_tos_notice() {
-			if ( ! isset( $_GET['wc-connect-notice'] ) || $_GET['wc-connect-notice'] !== 'accept' ) {
+			if ( ! isset( $_GET['wc-connect-notice'] ) ) {
 				return;
 			}
 
-			update_option( 'wc_connect_tos_accepted', true );
-
-			if ( wp_get_referer() ) {
-				wp_safe_redirect( wp_get_referer() );
+			if ( 'accept' === $_GET['wc-connect-notice'] ) {
+				update_option( 'wc_connect_tos_accepted', true );
+				wp_safe_redirect( remove_query_arg( 'wc-connect-notice' ) );
 			} else {
-				wp_safe_redirect( admin_url( 'plugins.php' ) );
+				deactivate_plugins( plugin_basename( __FILE__ ) );
+				add_action( 'admin_notices', array( $this, 'deactivate_notice' ) );
 			}
+		}
+
+		public function deactivate_notice() {
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p><?php _e( 'WooCommerce Services plugin has been disabled.', 'connectforwoocommerce' ); ?></p>
+			</div>
+			<?php
 		}
 
 		public function get_active_services() {
