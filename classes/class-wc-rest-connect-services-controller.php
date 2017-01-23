@@ -73,7 +73,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 				__( 'Unable to update service settings. Form data is missing service ID.', 'connectforwoocommerce' ),
 				array( 'status' => 400 )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 
@@ -85,7 +85,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 				__( 'Unable to update service settings. The form data could not be read.', 'connectforwoocommerce' ),
 				array( 'status' => 400 )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 
@@ -102,7 +102,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 					$validation_result->get_error_data()
 				)
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 

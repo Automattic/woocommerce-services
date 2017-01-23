@@ -61,7 +61,7 @@ class WC_REST_Connect_Self_Help_Controller extends WP_REST_Controller {
 				__( 'Unable to update settings. The form data could not be read.', 'connectforwoocommerce' ),
 				array( 'status' => 400 )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 

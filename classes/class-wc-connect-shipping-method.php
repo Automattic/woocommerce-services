@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			do_action( 'wc_connect_service_init', $this, $id_or_instance_id );
 
 			if ( ! $this->service_schema ) {
-				$this->log(
+				$this->debug(
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
 				);
@@ -133,22 +133,28 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * Avoids calling methods on an undefined object if no logger was
 		 * injected during the init action in the constructor.
 		 *
-		 * @see WC_Connect_Logger::log()
+		 * @see WC_Connect_Logger::debug()
 		 * @param string|WP_Error $message
 		 * @param string $context
 		 */
-		protected function log( $message, $context = '' ) {
+		protected function debug( $message, $context = '' ) {
 
 			$logger = $this->get_logger();
 
 			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
 
-				$logger->log( $message, $context );
+				$logger->debug( $message, $context );
 
 			}
 
 		}
 
+		protected function error( $message, $context = '' ) {
+			$logger = $this->get_logger();
+			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
+				$logger->error( $message, $context );
+			}
+		}
 
 		/**
 		 * Restores any values persisted to the DB for this service instance
@@ -260,7 +266,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings_keys    = get_object_vars( $service_settings );
 
 			if ( empty( $settings_keys ) ) {
-				return $this->log(
+				return $this->debug(
 					sprintf(
 						'Service settings empty. Skipping %s rate request (instance id %d).',
 						$this->id,
@@ -287,7 +293,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->log(
+				$this->error(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -298,7 +304,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 				$this->set_last_request_failed();
 
-				$this->log( $response_body, __FUNCTION__ );
+				$this->error( $response_body, __FUNCTION__ );
 				$this->add_fallback_rate( $service_settings );
 				return;
 			}

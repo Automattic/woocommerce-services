@@ -73,7 +73,7 @@ class WC_REST_Connect_Shipping_Labels_Preview_Controller extends WP_REST_Control
 		$raw_response = $this->api_client->get_labels_preview_pdf( $params );
 
 		if ( is_wp_error( $raw_response ) ) {
-			$this->logger->log( $raw_response, __CLASS__ );
+			$this->logger->debug( $raw_response, __CLASS__ );
 			return $raw_response;
 		}
 

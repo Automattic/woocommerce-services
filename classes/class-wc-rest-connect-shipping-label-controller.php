@@ -86,7 +86,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 				$response->get_error_message(),
 				array( 'message' => $response->get_error_message() )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 
@@ -105,7 +105,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 					$label_data->error->message,
 					array( 'message' => $label_data->error->message )
 				);
-				$this->logger->log( $error, __CLASS__ );
+				$this->logger->debug( $error, __CLASS__ );
 				return $error;
 			}
 			$label_ids[] = $label_data->label->label_id;

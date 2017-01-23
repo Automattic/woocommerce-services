@@ -79,7 +79,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 				$response->get_error_message(),
 				array( 'message' => $response->get_error_message() )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 
@@ -89,7 +89,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 				$response->error->message,
 				array( 'message' => $response->error->message )
 			);
-			$this->logger->log( $error, __CLASS__ );
+			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 

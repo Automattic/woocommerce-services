@@ -56,28 +56,39 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 			$this->is_logging_enabled = false;
 		}
 
-		public function is_logging_enabled() {
+		public function is_debug_enabled() {
 			return $this->is_logging_enabled;
 		}
 
 		/**
-		 * Logs messages
+		 * Logs messages only when debugging is enabled
 		 *
 		 * @param string $message Message to log
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
-		public function log( $message, $context = '' ) {
-
-			if ( $this->is_logging_enabled() ) {
-
-				$log_message = $this->format_message( $message, $context );
-				$this->logger->add( 'wc-connect', $log_message );
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( $log_message );
-				}
-
+		public function debug( $message, $context = '' ) {
+			if ( $this->is_debug_enabled() ) {
+				$this->log( $message, $context );
 			}
+		}
 
+		/**
+		 * Logs messages even if debugging is disabled
+		 *
+		 * @param string $message Message to log
+		 * @param string $context Optional context (e.g. a class or function name)
+		 */
+		public function error( $message, $context = '' ) {
+			WC_Connect_Error_Notice::instance()->enable_notice();
+			$this->log( $message, $context );
+		}
+
+		private function log( $message, $context = '' ) {
+			$log_message = $this->format_message( $message, $context );
+			$this->logger->add( 'wc-connect', $log_message );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( $log_message );
+			}
 		}
 
 	}

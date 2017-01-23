@@ -64,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function update_account_settings( $settings ) {
 			// simple validation for now
 			if ( ! is_array( $settings ) ) {
-				$this->logger->log( 'Array expected but not received', __FUNCTION__ );
+				$this->logger->debug( 'Array expected but not received', __FUNCTION__ );
 				return false;
 			}
 
@@ -400,7 +400,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				case 'yd':
 					return __('yd', 'connectforwoocommerce');
 				default:
-					$this->logger->log( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
+					$this->logger->debug( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
 					return $value;
 			}
 		}
