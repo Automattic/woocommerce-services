@@ -35,7 +35,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			WC_Connect_Logger $logger ) {
 
 			$this->id    = 'connect';
-			$this->label = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'connectforwoocommerce' );
+			$this->label = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce-services' );
 
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
@@ -58,7 +58,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'connectforwoocommerce' );
+			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce-services' );
 			return $tabs;
 		}
 
@@ -69,8 +69,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		public function get_sections() {
 			return array(
-				'' => __( 'Account Settings', 'connectforwoocommerce' ),
-				'packages' => __( 'Packaging Manager', 'connectforwoocommerce' ),
+				'' => __( 'Account Settings', 'woocommerce-services' ),
+				'packages' => __( 'Packaging Manager', 'woocommerce-services' ),
 			);
 		}
 
@@ -200,9 +200,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			if ( $this->is_jetpack_dev_mode() ) {
 				if ( $this->is_jetpack_connected() ) {
-					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'connectforwoocommerce' );
+					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'woocommerce-services' );
 				} else {
-					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from Connect for WooCommerce production servers.', 'connectforwoocommerce' );
+					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from Connect for WooCommerce production servers.', 'woocommerce-services' );
 				}
 				?>
 					<div class="wc-connect-admin-dev-notice">
@@ -224,19 +224,19 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$master_user = $this->get_master_user();
 			if ( is_a( $master_user, 'WP_User' ) ) {
 				$message = sprintf(
-					__( 'Only the primary Jetpack user can manage shipping label payment methods. Please login as %1$s (%2$s) to manage payment methods.', 'connectforwoocommerce' ),
+					__( 'Only the primary Jetpack user can manage shipping label payment methods. Please login as %1$s (%2$s) to manage payment methods.', 'woocommerce-services' ),
 					$master_user->display_name,
 					$master_user->user_login
 				);
 			} else {
-				$message = __( 'You must first connect your Jetpack before you can manage your shipping label payment method.', 'connectforwoocommerce' );
+				$message = __( 'You must first connect your Jetpack before you can manage your shipping label payment method.', 'woocommerce-services' );
 			}
 
 			?>
 				<div class="wc-connect-admin-container">
 					<div class="wc-connect-no-priv-settings">
 						<h3 class="settings-group-header form-section-heading">
-							<?php echo esc_html( __( 'Payment Method', 'connectforwoocommerce' ) ); ?>
+							<?php echo esc_html( __( 'Payment Method', 'woocommerce-services' ) ); ?>
 						</h3>
 						<?php echo esc_html( $message ) ?>
 					</div>
@@ -290,7 +290,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			?>
 			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>">
 				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'connectforwoocommerce' ), $debug_page_uri ); ?>
+					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
 				</span>
 			</div>
 			<?php

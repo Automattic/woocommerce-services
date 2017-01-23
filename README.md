@@ -24,7 +24,7 @@ You need:
 
 ### Working with the Beta
 
-If you'd just like to check out the latest beta release and not contribute code back, then [download the latest release](https://wordpress.org/plugins/connect-for-woocommerce/) and install as a plugin on your WordPress site.
+If you'd just like to check out the latest beta release and not contribute code back, then [download the latest release](https://wordpress.org/plugins/woocommerce-services/) and install as a plugin on your WordPress site.
 
 ### Working with `master`
 

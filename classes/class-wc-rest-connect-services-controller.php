@@ -70,7 +70,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 
 		if ( empty( $id ) ) {
 			$error = new WP_Error( 'service_id_missing',
-				__( 'Unable to update service settings. Form data is missing service ID.', 'connectforwoocommerce' ),
+				__( 'Unable to update service settings. Form data is missing service ID.', 'woocommerce-services' ),
 				array( 'status' => 400 )
 			);
 			$this->logger->debug( $error, __CLASS__ );
@@ -82,7 +82,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 
 		if ( empty( $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
-				__( 'Unable to update service settings. The form data could not be read.', 'connectforwoocommerce' ),
+				__( 'Unable to update service settings. The form data could not be read.', 'woocommerce-services' ),
 				array( 'status' => 400 )
 			);
 			$this->logger->debug( $error, __CLASS__ );
@@ -94,7 +94,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $validation_result ) ) {
 			$error = new WP_Error( 'validation_failed',
 				sprintf(
-					__( 'Unable to update service settings. Validation failed. %s', 'connectforwoocommerce' ),
+					__( 'Unable to update service settings. Validation failed. %s', 'woocommerce-services' ),
 					$validation_result->get_error_message()
 				),
 				array_merge(

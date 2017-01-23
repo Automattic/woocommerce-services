@@ -34,8 +34,8 @@ function buildWordPressString( properties ) {
 	const wpFunc = properties.context ? '_x' : '__',
 		response = [],
 		stringFromFunc = {
-			__: '__( ' + properties.single + ', "connectforwoocommerce" )',
-			_x: '_x( ' + [ properties.single, properties.context ].join( ', ' ) + ', "connectforwoocommerce" )',
+			__: '__( ' + properties.single + ', "woocommerce-services" )',
+			_x: '_x( ' + [ properties.single, properties.context ].join( ', ' ) + ', "woocommerce-services" )',
 		};
 
 	// translations with comments get a preceding comment in the php code
@@ -99,4 +99,4 @@ function readFile( outputFile, arrayName, inputFile ) {
 	} );
 }
 
-readFile( 'i18n/strings.php', 'i18nStrings', 'dist/woocommerce-connect-client.js' );
+readFile( 'i18n/strings.php', 'i18nStrings', 'dist/woocommerce-services.js' );

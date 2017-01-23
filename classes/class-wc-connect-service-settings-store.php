@@ -195,11 +195,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				} else if ( is_object( $service_schema ) && property_exists( $service_schema, 'method_title' ) ) {
 					$title = $service_schema->method_title;
 				} else {
-					$title = _x( 'Unknown', 'A service with an unknown title and unknown method_title', 'connectforwoocommerce' );
+					$title = _x( 'Unknown', 'A service with an unknown title and unknown method_title', 'woocommerce-services' );
 				}
 				$method->service_type = 'shipping';
 				$method->title = $title;
-				$method->zone_name = empty( $method->zone_name ) ? __( 'Rest of the World', 'connectforwoocommerce' ) : $method->zone_name;
+				$method->zone_name = empty( $method->zone_name ) ? __( 'Rest of the World', 'woocommerce-services' ) : $method->zone_name;
 				$enabled_services[] = $method;
 			}
 
@@ -235,7 +235,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					wp_send_json_error(
 						array(
 							'error' => 'bad_instance_id',
-							'message' => __( 'An invalid service instance was received.', 'connectforwoocommerce' )
+							'message' => __( 'An invalid service instance was received.', 'woocommerce-services' )
 						)
 					);
 				}
@@ -245,7 +245,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					wp_send_json_error(
 						array(
 							'error' => 'bad_service_id',
-							'message' => __( 'An invalid service ID was received.', 'connectforwoocommerce' )
+							'message' => __( 'An invalid service ID was received.', 'woocommerce-services' )
 						)
 					);
 				}
@@ -382,23 +382,23 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
-					return __('kg', 'connectforwoocommerce');
+					return __('kg', 'woocommerce-services');
 				case 'g':
-					return __('g', 'connectforwoocommerce');
+					return __('g', 'woocommerce-services');
 				case 'lbs':
-					return __('lbs', 'connectforwoocommerce');
+					return __('lbs', 'woocommerce-services');
 				case 'oz':
-					return __('oz', 'connectforwoocommerce');
+					return __('oz', 'woocommerce-services');
 				case 'm':
-					return __('m', 'connectforwoocommerce');
+					return __('m', 'woocommerce-services');
 				case 'cm':
-					return __('cm', 'connectforwoocommerce');
+					return __('cm', 'woocommerce-services');
 				case 'mm':
-					return __('mm', 'connectforwoocommerce');
+					return __('mm', 'woocommerce-services');
 				case 'in':
-					return __('in', 'connectforwoocommerce');
+					return __('in', 'woocommerce-services');
 				case 'yd':
-					return __('yd', 'connectforwoocommerce');
+					return __('yd', 'woocommerce-services');
 				default:
 					$this->logger->debug( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
 					return $value;
