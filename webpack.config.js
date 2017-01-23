@@ -53,7 +53,6 @@ module.exports = {
 			{
 				test: /\.svg$/,
 				loader: 'svg-url-loader',
-				include: /(client)/,
 			},
 			{
 				test: /\.png$/,
