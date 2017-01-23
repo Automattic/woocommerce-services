@@ -42,24 +42,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$this->service_schemas_store = $service_schemas_store;
 			$this->logger = $logger;
 
-			add_filter( 'woocommerce_settings_tabs_array', array( $this, 'tabs' ), 30 ); // 30 positions connect as the last tab
-			add_filter( 'woocommerce_get_sections_connect', array( $this, 'get_sections' ) );
-			add_action( 'woocommerce_sections_connect', array( $this, 'output_section_tabs') );
-			add_action( 'woocommerce_settings_connect', array( $this, 'output_settings_screen' ) );
-		}
-
-		/**
-		 * Filters the tabs to add connect
-		 *
-		 * @param array $tabs
-		 * @return array
-		 */
-		public function tabs( $tabs ) {
-			if ( ! is_array( $tabs ) ) {
-				$tabs = array();
-			}
-			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce-services' );
-			return $tabs;
+			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
+			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ) );
 		}
 
 		/**
@@ -67,30 +51,14 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 *
 		 * @return array
 		 */
-		public function get_sections() {
-			return array(
-				'' => __( 'Account Settings', 'woocommerce-services' ),
-				'packages' => __( 'Packaging Manager', 'woocommerce-services' ),
-			);
-		}
-
-		/**
-		 * Outputs the section tabs. Based on WC_Settings_Page::output_sections.
-		 * We can't derive readily from WC_Settings_Page because we use
-		 * dependency injection and WC expects to simply include each settings page
-		 * instance
-		 */
-
-		public function output_section_tabs() {
-			global $current_section;
-			$sections = $this->get_sections();
-
-			echo '<ul class="subsubsub">';
-			$array_keys = array_keys( $sections );
-			foreach ( $sections as $id => $label ) {
-				echo '<li><a href="' . admin_url( 'admin.php?page=wc-settings&tab=connect&section=' . sanitize_title( $id ) ) . '" class="' . ( $current_section == $id ? 'current' : '' ) . '">' . $label . '</a> ' . ( end( $array_keys ) == $id ? '' : '|' ) . ' </li>';
+		public function get_sections( $shipping_tabs ) {
+			if ( ! is_array( $shipping_tabs ) ) {
+				$shipping_tabs = array();
 			}
-			echo '</ul><br class="clear" /><br/>';
+
+			$shipping_tabs[ 'package-settings' ] = __( 'Packages', 'connectforwoocommerce' );
+			$shipping_tabs[ 'label-settings'] = __( 'Shipping Label', 'connectforwoocommerce' );
+			return $shipping_tabs;
 		}
 
 		/**
@@ -156,15 +124,18 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			global $current_section;
 			global $current_user;
 
-			if ( '' === $current_section ) {
-				$master_user = $this->get_master_user();
-				if ( $this->is_jetpack_dev_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) ) {
-					$this->output_account_screen();
-				} else {
-					$this->output_no_priv_account_screen();
-				}
-			} else if ( 'packages' == $current_section ) {
-				$this->output_packages_screen();
+			switch( $current_section ) {
+				case 'package-settings':
+					$this->output_packages_screen();
+					break;
+				case 'label-settings':
+					$master_user = $this->get_master_user();
+					if ( $this->is_jetpack_dev_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) ) {
+						$this->output_account_screen();
+					} else {
+						$this->output_no_priv_account_screen();
+					}
+					break;
 			}
 		}
 
