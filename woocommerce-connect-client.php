@@ -132,6 +132,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $help_view;
 
+		/**
+		 * @var WC_Connect_Shipping_Label
+		 */
+		protected $shipping_label;
+
+		/**
+		 * @var WC_Connect_Nux
+		 */
+		protected $nux;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -310,6 +320,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->help_view = $help_view;
 		}
 
+		public function set_shipping_label( WC_Connect_Shipping_Label $shipping_label ) {
+			$this->shipping_label = $shipping_label;
+		}
+
+		public function set_nux( WC_Connect_Nux $nux ) {
+			$this->nux = $nux;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -348,6 +366,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -357,6 +376,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger );
 			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
+			$nux                   = new WC_Connect_Nux();
+			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $nux );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -366,6 +387,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
 			$this->set_help_view( $help_view );
+			$this->set_shipping_label( $shipping_label );
+			$this->set_nux( $nux );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
@@ -410,6 +433,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_shipping_fields' , array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
+			add_action( 'admin_init', array( $this->nux, 'check_notice_dismissal' ) );
 		}
 
 		/**
@@ -675,7 +699,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$accept_url = admin_url( 'plugins.php?wc-connect-notice=accept' );
 
 			?>
-			<div class="notice wcc-tos-banner">
+			<div class="notice wcc-admin-notice">
 				<h1><?php _e( 'Connect for WooCommerce is almost ready!' ) ?></h1>
 				<p>
 					<?php
@@ -735,9 +759,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function add_meta_boxes() {
-			$shipping_label = new WC_Connect_Shipping_Label( $this->api_client, $this->service_settings_store, $this->service_schemas_store );
-			if ( $shipping_label->should_show_meta_box() ) {
-				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'connectforwoocommerce' ), array( $shipping_label, 'meta_box' ), null, 'side', 'default' );
+			if ( $this->shipping_label->should_show_meta_box() ) {
+				$this->nux->init_labels_notice();
+				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'connectforwoocommerce' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
 		}
 
