@@ -31,7 +31,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_labels_notice() {
-			$dismiss_url = add_query_arg( 'wc-connect-nux', 'labels' );
+			return;
+			/*$dismiss_url = add_query_arg( 'wc-connect-nux', 'labels' );
 
 			?>
 			<div class="notice is-dismissible wcc-admin-notice">
@@ -46,7 +47,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					<a href="<?php echo( esc_url( $dismiss_url ) ) ?>" class="button-primary"><?php _e( 'Ok' ) ?></a>
 				</p>
 			</div>
-			<?php
+			<?php*/
 		}
 
 		public function check_notice_dismissal() {
@@ -58,8 +59,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$notices = $this->get_notice_states();
 			$notices[ $notice ] = true;
 			update_option( 'wc_connect_nux_notices', $notices );
-
-			wp_safe_redirect( remove_query_arg( 'wc-connect-nux' ) );
 		}
 	}
 
