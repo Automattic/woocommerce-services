@@ -1,9 +1,20 @@
-import React, { Component } from 'react';
+import React, { PropTypes, Component } from 'react';
 
 import Tooltip from 'components/tooltip';
 import Gridicon from 'components/gridicon';
 
 export default class InfoTooltip extends Component {
+	static propTypes = {
+		className: PropTypes.string,
+		position: PropTypes.string,
+		maxWidth: PropTypes.string,
+	};
+
+	static defaultProps = {
+		position: 'top',
+		maxWidth: 'auto',
+	};
+
 	constructor( props ) {
 		super( props );
 
@@ -35,10 +46,13 @@ export default class InfoTooltip extends Component {
 					<Tooltip
 						className="wc-connect-popover"
 						isVisible
+						showOnMobile
 						onClose={ this.closeTooltip }
-						position="top"
+						position={ this.props.position }
 						context={ this.refs && this.refs.icon }>
-						{ this.props.children }
+						<div style={ { maxWidth: this.props.maxWidth } } >
+							{ this.props.children }
+						</div>
 					</Tooltip>
 				}
 			</span>

@@ -69,8 +69,11 @@ const ShippingServiceGroup = ( props ) => {
 				<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
 				<span className="wcc-shipping-service-header price-adjustment">
 					{ __( 'Price adjustment' ) }
-					<InfoTooltip className="price-adjustment-info">
-						Lorem ipsum
+					<InfoTooltip
+						className="price-adjustment-info"
+						position="top left"
+						maxWidth={ 230 }>
+						{ __( 'Increase the rates calculated by the carrier to account for packaging and handling costs. You can also add a negative amount to save your customers money.' ) }
 					</InfoTooltip>
 				</span>
 			</div>
