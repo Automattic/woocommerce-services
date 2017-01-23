@@ -61,7 +61,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			);
 ?>
 			<div class='notice notice-error' style="position: relative;">
-				<a href="<?php echo esc_url( $link_dismiss ); ?>" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'connectforwoocommerce' ); ?>"></a>
+				<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'connectforwoocommerce' ); ?>"></a>
 				<p><?php echo $message; ?></p>
 			</div>
 <?php
