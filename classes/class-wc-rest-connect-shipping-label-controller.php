@@ -122,11 +122,11 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 			$package = $settings[ 'packages' ][ $index ];
 			$box_id = $package[ 'box_id' ];
 			if ( 'individual' === $box_id ) {
-				$label_meta[ 'package_name' ] = __( 'Individual packaging', 'connectforwoocommerce' );
+				$label_meta[ 'package_name' ] = __( 'Individual packaging', 'woocommerce-services' );
 			} else if ( isset( $package_lookup[ $box_id ] ) ) {
 				$label_meta[ 'package_name' ] = $package_lookup[ $box_id ][ 'name' ];
 			} else {
-				$label_meta[ 'package_name' ] = __( 'Unknown package', 'connectforwoocommerce' );
+				$label_meta[ 'package_name' ] = __( 'Unknown package', 'woocommerce-services' );
 			}
 
 			$product_names = array();

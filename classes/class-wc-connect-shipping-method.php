@@ -338,9 +338,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						}
 
 						if ( ! property_exists( $rate_package, 'box_id' ) ) {
-							$package_format = __( 'Unknown package (%s)', 'connectforwoocommerce' );
+							$package_format = __( 'Unknown package (%s)', 'woocommerce-services' );
 						} else if ( 'individual' === $rate_package->box_id ) {
-							$package_format = __( 'Individual packaging (%s)', 'connectforwoocommerce' );
+							$package_format = __( 'Individual packaging (%s)', 'woocommerce-services' );
 						} else if ( isset( $packaging_lookup[ $rate_package->box_id ] )
 							&& isset( $packaging_lookup[ $rate_package->box_id ][ 'name' ] ) ) {
 							$package_format = $packaging_lookup[ $rate_package->box_id ][ 'name' ] . ' (%s)';
@@ -358,7 +358,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'calc_tax'  => 'per_item',
 						'meta_data' => array(
 							'wc_connect_packages' => json_encode( $rate->packages ),
-							__( 'Packaging', 'connectforwoocommerce' ) => $packaging_info
+							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
 						),
 					);
 
@@ -409,7 +409,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					<span class="form-troubles" style="opacity: 0">
 						<?php printf(
 							wp_kses(
-								__( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'connectforwoocommerce' ),
+								__( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ),
 								array( 'a' => array( 'href' => array() ) )
 							),
 							$debug_page_uri

@@ -334,7 +334,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function load_textdomain() {
-			load_plugin_textdomain( 'connectforwoocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
+			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
 		}
 
 		/**
@@ -717,7 +717,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<?php
 					printf(
-						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how Connect for WooCommerce handles your store\'s data <a target="_blank" href="%s">here</a>.', 'connectforwoocommerce' ),
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how Connect for WooCommerce handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/connect-privacy' )
 					);
@@ -782,7 +782,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function add_meta_boxes() {
 			if ( $this->shipping_label->should_show_meta_box() ) {
 				$this->nux->init_labels_notice();
-				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'connectforwoocommerce' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default' );
+				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
 		}
 

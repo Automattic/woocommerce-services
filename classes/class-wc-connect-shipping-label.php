@@ -337,7 +337,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				<span class="form-troubles" style="opacity: 0">
 					<?php printf( __(
 						'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.',
-						'connectforwoocommerce' ),
+						'woocommerce-services' ),
 						$debug_page_uri
 					); ?>
 				</span>

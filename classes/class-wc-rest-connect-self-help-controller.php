@@ -58,7 +58,7 @@ class WC_REST_Connect_Self_Help_Controller extends WP_REST_Controller {
 
 		if ( empty( $settings ) || ! is_object( $settings ) || ! property_exists( $settings, 'wcc_debug_on' ) ) {
 			$error = new WP_Error( 'bad_form_data',
-				__( 'Unable to update settings. The form data could not be read.', 'connectforwoocommerce' ),
+				__( 'Unable to update settings. The form data could not be read.', 'woocommerce-services' ),
 				array( 'status' => 400 )
 			);
 			$this->logger->debug( $error, __CLASS__ );
