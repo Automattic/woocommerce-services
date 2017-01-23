@@ -64,18 +64,24 @@
 		padding-bottom: 8px;
 		margin-bottom: 4px;
 
-	  .wcc-shipping-service-header {
-		display: inline-block;
-		margin-left: 0;
-		font-weight: bold;
-	  }
-
-	  .price-adjustment {
-		float: right;
-		@include breakpoint( '>480px' ) {
-		  padding-right: 8px;
+		.wcc-shipping-service-header {
+			display: inline-block;
+			margin-left: 0;
+			font-weight: bold;
 		}
-	  }
+
+		.price-adjustment {
+			float: right;
+			@include breakpoint( '>480px' ) {
+				padding-right: 8px;
+			}
+		}
+
+		.price-adjustment-info {
+			float: right;
+			margin-left: 4px;
+			height: 0;
+		}
 	}
 
 	.form-checkbox {

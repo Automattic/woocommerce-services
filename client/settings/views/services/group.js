@@ -3,6 +3,7 @@ import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
 import CheckBox from 'components/forms/form-checkbox';
 import Gridicon from 'components/gridicon';
+import InfoTooltip from 'components/info-tooltip';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
@@ -66,7 +67,12 @@ const ShippingServiceGroup = ( props ) => {
 		>
 			<div className="wcc-shipping-service-entry multi-select-header">
 				<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
-				<span className="wcc-shipping-service-header price-adjustment">{ __( 'Price adjustment' ) }</span>
+				<span className="wcc-shipping-service-header price-adjustment">
+					{ __( 'Price adjustment' ) }
+					<InfoTooltip className="price-adjustment-info">
+						Lorem ipsum
+					</InfoTooltip>
+				</span>
 			</div>
 
 			{ services.map( ( service, idx ) => (
