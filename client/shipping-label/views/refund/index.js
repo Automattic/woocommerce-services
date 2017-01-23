@@ -5,14 +5,14 @@ import ActionButtons from 'components/action-buttons';
 import { sprintf } from 'sprintf-js';
 import formatDate from 'lib/utils/format-date';
 
-const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refundable_amount } ) => {
+const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refundable_amount, label_id } ) => {
 	const getRefundableAmount = () => {
 		return storeOptions.currency_symbol + refundable_amount.toFixed( 2 );
 	};
 
 	return (
 		<Modal
-			isVisible={ Boolean( refundDialog ) }
+			isVisible={ refundDialog && refundDialog.labelId === label_id }
 			onClose={ labelActions.closeRefundDialog }
 			additionalClassNames="wcc-shipping-label-refund">
 			<div className="wcc-shipping-label-refund__content">
@@ -53,6 +53,7 @@ RefundDialog.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	created: PropTypes.number,
 	refundable_amount: PropTypes.number,
+	label_id: PropTypes.number,
 };
 
 export default RefundDialog;
