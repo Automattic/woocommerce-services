@@ -19,10 +19,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 */
 		protected $service_schemas_store;
 
-		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Service_Schemas_Store $service_schemas_store ) {
+		/**
+		 * @var WC_Connect_Payment_Methods_Store
+		 */
+		protected $payment_methods_store;
+
+		public function __construct(
+			WC_Connect_API_Client $api_client,
+			WC_Connect_Service_Settings_Store $settings_store,
+			WC_Connect_Service_Schemas_Store $service_schemas_store,
+			WC_Connect_Payment_Methods_Store $payment_methods_store
+		) {
 			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
 			$this->service_schemas_store = $service_schemas_store;
+			$this->payment_methods_store = $payment_methods_store;
 		}
 
 		protected function get_items_as_individual_packages( $order ) {
@@ -293,6 +304,36 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return 'a4';
 		}
 
+		public function get_selected_payment_method() {
+			// Account settings contains the payment method id
+			$account_settings = $this->settings_store->get_account_settings();
+
+			// No selected payment method case
+			if ( ! isset( $account_settings[ 'selected_payment_method_id' ] ) ) {
+				return null;
+			}
+
+			$selected_payment_method_id = $account_settings[ 'selected_payment_method_id' ];
+
+			// Get all known payment methods
+			$payment_methods = $this->payment_methods_store->get_payment_methods();
+
+			// Find the selected payment method and return the card digits (e.g. "4242")
+			foreach ( (array) $payment_methods as $payment_method ) {
+				if ( ! property_exists( $payment_method, 'payment_method_id' ) ) {
+					continue;
+				}
+
+				if ( $selected_payment_method_id != $payment_method->payment_method_id ) {
+					continue;
+				}
+
+				return property_exists( $payment_method, 'card_digits' ) ? $payment_method->card_digits : null;
+			}
+
+			return null;
+		}
+
 		public function meta_box( $post ) {
 			$order = wc_get_order( $post );
 
@@ -317,6 +358,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
+				'paymentMethod'           => $this->get_selected_payment_method(),
 			);
 
 			$labels_data = get_post_meta( $order->id, 'wc_connect_labels', true );

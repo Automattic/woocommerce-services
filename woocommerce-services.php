@@ -378,7 +378,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                = new WC_Connect_Tracks( $logger );
 			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 			$nux                   = new WC_Connect_Nux();
-			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $nux );
+			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $nux, $payment_methods_store );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
