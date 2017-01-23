@@ -655,8 +655,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
 
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
-			wp_register_style( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-connect-client.css', array( 'noticons', 'dashicons' ) );
-			wp_register_script( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-connect-client.js', array(), false, true );
+			wp_register_style( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-services.css', array( 'noticons', 'dashicons' ) );
+			wp_register_script( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-services.js', array(), false, true );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
@@ -700,7 +700,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function admin_banner_styles() {
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
-			wp_enqueue_style( 'wc_connect_banner', $wc_connect_base_url . 'woocommerce-connect-client-banner.css' );
+			wp_enqueue_style( 'wc_connect_banner', $wc_connect_base_url . 'woocommerce-services-banner.css' );
 		}
 
 		public function show_tos_notice() {

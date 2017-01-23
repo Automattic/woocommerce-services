@@ -1,5 +1,5 @@
 {
-  "name": "woocommerce-connect-client",
+  "name": "woocommerce-services",
   "version": "0.9.0",
   "dependencies": {
     "abab": {

@@ -25,7 +25,7 @@ require_once( $wp_tests_dir . '/includes/functions.php' );
 
 // Activates this plugin in WordPress so it can be tested.
 function _manually_load_plugin() {
-	require dirname( __FILE__ ) . '/../../woocommerce-connect-client.php';
+	require dirname( __FILE__ ) . '/../../woocommerce-services.php';
 }
 tests_add_filter( 'plugins_loaded', '_manually_load_plugin' );
 

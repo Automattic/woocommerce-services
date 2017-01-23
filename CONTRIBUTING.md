@@ -14,7 +14,7 @@ There are many ways to contribute – reporting bugs, feature suggestions, and f
 
 ## Reporting Bugs, Asking Questions, Sending Suggestions
 
-Open [a GitHub issue](https://github.com/Automattic/woocommerce-connect-client/issues/), that's all. If you want to prefix the title with a “Question:”, “Bug:”, or the general area of the application, that would be helpful but is no means mandatory. If you have write access, add the appropriate labels.
+Open [a GitHub issue](https://github.com/Automattic/woocommerce-services/issues/), that's all. If you want to prefix the title with a “Question:”, “Bug:”, or the general area of the application, that would be helpful but is no means mandatory. If you have write access, add the appropriate labels.
 
 If you're filing a bug, specific steps to reproduce are helpful. Please include what you expected to see and what happened instead.
 
@@ -50,7 +50,7 @@ For example, if you had a `mysql` database running on `localhost` and with the d
 
 `./tests/bin/install-wc-tests.sh wcc_tests root ''`
 
-After the tests installer has completed, simply run `phpunit` from the root of the `woocommerce-connect-client` plugin directory.
+After the tests installer has completed, simply run `phpunit` from the root of the `woocommerce-services` plugin directory.
 
 If everything is running correctly, you'll see output like the following:
 

@@ -99,4 +99,4 @@ function readFile( outputFile, arrayName, inputFile ) {
 	} );
 }
 
-readFile( 'i18n/strings.php', 'i18nStrings', 'dist/woocommerce-connect-client.js' );
+readFile( 'i18n/strings.php', 'i18nStrings', 'dist/woocommerce-services.js' );

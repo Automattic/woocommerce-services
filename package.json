@@ -1,5 +1,5 @@
 {
-  "name": "woocommerce-connect-client",
+  "name": "woocommerce-services",
   "version": "0.9.4",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Automattic/woocommerce-connect-client"
+    "url": "git://github.com/Automattic/woocommerce-services"
   },
   "license": "GPL-2.0",
   "description": "Connect allthethings",

@@ -8,7 +8,7 @@ const fs = require( 'fs' );
 
 // some config
 const releaseFolder = 'release';
-const targetFolder = 'release/woocommerce-connect';
+const targetFolder = 'release/woocommerce-services';
 const dirsToCopy = [
 	'assets',
 	'classes',
@@ -37,12 +37,12 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 	cp( '*.md', targetFolder );
 
 	// copy the main php file
-	cp( 'woocommerce-connect-client.php', targetFolder );
+	cp( 'woocommerce-services.php', targetFolder );
 
 	// copy the directories to the release folder
 	cp( '-Rf', dirsToCopy, targetFolder );
 
-	const output = fs.createWriteStream( releaseFolder + '/woocommerce-connect.zip' );
+	const output = fs.createWriteStream( releaseFolder + '/woocommerce-services.zip' );
 	const archive = archiver( 'zip' );
 
 	output.on( 'close', () => {

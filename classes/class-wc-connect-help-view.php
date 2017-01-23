@@ -435,7 +435,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					array(  'a' => array( 'href' => array() ) )
 				),
 				esc_url( 'https://docs.woocommerce.com/document/woocommerce-connect-faq/' ),
-				esc_url( 'https://wordpress.org/support/plugin/connect-for-woocommerce' )
+				esc_url( 'https://wordpress.org/support/plugin/woocommerce-services' )
 			);
 
 			$support_items[] = (object) array(

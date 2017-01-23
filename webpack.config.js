@@ -20,8 +20,8 @@ module.exports = {
 	babelSettings,
 	cache: true,
 	entry: {
-		'woocommerce-connect-client': [ './client/main.js' ],
-		'woocommerce-connect-client-banner': [ './assets/stylesheets/banner.scss' ],
+		'woocommerce-services': [ './client/main.js' ],
+		'woocommerce-services-banner': [ './assets/stylesheets/banner.scss' ],
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
