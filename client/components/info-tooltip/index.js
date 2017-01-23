@@ -1,7 +1,7 @@
 import React, { PropTypes, Component } from 'react';
-
 import Tooltip from 'components/tooltip';
 import Gridicon from 'components/gridicon';
+import classNames from 'classnames';
 
 export default class InfoTooltip extends Component {
 	static propTypes = {
@@ -39,8 +39,7 @@ export default class InfoTooltip extends Component {
 			<span
 				onMouseEnter={ this.openTooltip }
 				onMouseLeave={ this.closeTooltip }
-				className={ this.props.className }
-				style={ { cursor: 'help', color: 'black' } } >
+				className={ classNames( 'info-tooltip', this.props.className ) } >
 				<Gridicon ref="icon" icon="info-outline" size={ 18 } />
 				{ this.state.showTooltip &&
 					<Tooltip
