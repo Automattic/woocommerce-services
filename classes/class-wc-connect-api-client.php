@@ -262,6 +262,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Requests the available notices for this site from the Connect for WooCommerce Server
+		 */
+		public function get_notices( $last_retrieved_id, $site_language ) {
+			$json = '{"id":1,"title":"A new notice","body":"Our terms of service have <a href=\"https://wordpress.com/\">changed</a>.","button":"Okay","requires_receipt":true}';
+			$response = json_decode( $json );
+			return $response;
+		}
+
+		/**
 		 * Tests the connection to the Connect for WooCommerce Server
 		 *
 		 * @return true|WP_Error
