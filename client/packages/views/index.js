@@ -46,6 +46,11 @@ const Packages = ( props ) => {
 
 			_.forEach( servicePackages, ( predefGroup, groupId ) => {
 				const groupPackages = predefGroup.definitions;
+				const nonFlatRates = _.reject( groupPackages, 'is_flat_rate' );
+				if ( ! nonFlatRates.length ) {
+					return;
+				}
+
 				const summary = predefSummary( serviceSelected, groupPackages );
 
 				elements.push( <FoldableCard

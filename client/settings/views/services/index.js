@@ -12,7 +12,6 @@ const ShippingServiceGroups = ( {
 	description,
 	services,
 	settings,
-	predefinedPackages,
 	currencySymbol,
 	updateValue,
 	settingsKey,
@@ -39,7 +38,6 @@ const ShippingServiceGroups = ( {
 				key={ serviceGroup }
 				title={ serviceGroups[ serviceGroup ][ 0 ].group_name }
 				services={ serviceGroups[ serviceGroup ] }
-				predefinedPackages={ predefinedPackages }
 				currencySymbol={ currencySymbol }
 				updateValue={ updateValue }
 				settingsKey={ settingsKey }
@@ -68,7 +66,6 @@ ShippingServiceGroups.propTypes = {
 	currencySymbol: PropTypes.string,
 	updateValue: PropTypes.func.isRequired,
 	settingsKey: PropTypes.string.isRequired,
-	predefinedPackages: PropTypes.array.isRequired,
 };
 
 ShippingServiceGroups.defaultProps = {

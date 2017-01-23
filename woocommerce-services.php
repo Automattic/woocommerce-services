@@ -543,7 +543,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'formSchema'         => $service_schema->service_settings,
 				'formLayout'         => $service_schema->form_layout,
 				'formData'           => $settings_store->get_service_settings( $id, $instance ),
-				'predefinedPackages' => $settings_store->get_predefined_packages_for_service( $id ),
 				'callbackURL'        => get_rest_url( null, $path ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => 'wc-connect-service-settings',

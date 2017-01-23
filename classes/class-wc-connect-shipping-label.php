@@ -135,7 +135,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			foreach ( $predefined_packages_schema as $group ) {
 				foreach ( $group->definitions as $package ) {
-					if ( ! in_array( $package->id, $enabled_predefined_packages ) ) {
+					if ( ! $package->is_flat_rate && ! in_array( $package->id, $enabled_predefined_packages ) ) {
 						continue;
 					}
 
