@@ -56,11 +56,16 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			$link_dismiss = home_url( add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) ) );
 
 			$message = sprintf(
-				__( 'An error occurred in Connect for WooCommerce. Details are logged <a href="%s">here</a>. Click <a href="%s">here</a> to dismiss.', 'connectforwoocommerce' ),
+				__( 'An error occurred in Connect for WooCommerce. Details are logged <a href="%s">here</a>.', 'connectforwoocommerce' ),
 				$link_status, $link_dismiss
 			);
-
-			echo "<div class='notice notice-error is-dismissible'><p>$message</p></div>";
+?>
+			<div class='notice notice-error' style="position: relative;">
+				<a href="<?php echo esc_url( $link_dismiss ); ?>" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'connectforwoocommerce' ); ?>"></a>
+				<p><?php echo $message; ?></p>
+			</div>
+<?php
+			echo "";
 		}
 	}
 
