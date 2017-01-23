@@ -84,8 +84,8 @@ class ShippingLabelRootView extends Component {
 				<PurchaseLabelDialog
 					{ ...this.props.shippingLabel }
 					{ ...this.props } />
-				<Button className="wcc-metabox__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
 				{ this.renderPaymentInfo() }
+				<Button className="wcc-metabox__new-label-button" disabled={ ! paymentMethod } onClick={ this.props.labelActions.openPrintingFlow } >
 					{ __( 'Create new label' ) }
 				</Button>
 			</div>
