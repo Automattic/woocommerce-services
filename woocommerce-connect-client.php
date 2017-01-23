@@ -700,7 +700,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			?>
 			<div class="notice wcc-admin-notice">
-				<h1><?php _e( 'Connect for WooCommerce is almost ready!' ) ?></h1>
+				<h1><?php _e( 'Welcome to WooCommerce Services' ) ?></h1>
+				<p>
+					<b>Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.</b>
+				</p>
 				<p>
 					<?php
 					printf(
