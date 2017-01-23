@@ -9,7 +9,7 @@ import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
 import Spinner from 'components/spinner';
 import Gridicon from 'components/gridicon';
-import Tooltip from 'components/tooltip';
+import InfoTooltip from 'components/info-tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
@@ -136,25 +136,18 @@ class ShippingLabelRootView extends Component {
 		return (
 			<span>
 				<span className="wcc-metabox-label-item__detail"
-						onMouseEnter={ () => this.openTooltip( index ) }
-						onMouseLeave={ () => this.closeTooltip( index ) }
 						ref={ 'label-details-' + index }>
 					{ sprintf( __( 'Label #%s' ), label.label_id ) }
 				</span>
-				<Tooltip
-					className="wc-connect-popover"
-					isVisible={ this.state.showTooltips[ index ] }
-					onClose={ () => this.closeTooltip( index ) }
+				<InfoTooltip
 					position="top"
-					context={ this.refs && this.refs[ 'label-details-' + index ] } >
-					<div className="wc-connect-popover-contents">
-						<h3>{ label.package_name }</h3>
-						<p>{ label.service_name }</p>
-						<ul>
-							{ label.product_names.map( ( productName, productIdx ) => <li key={ productIdx }>{ productName }</li> ) }
-						</ul>
-					</div>
-				</Tooltip>
+					maxWidth={ 300 } >
+					<h3>{ label.package_name }</h3>
+					<p>{ label.service_name }</p>
+					<ul>
+						{ label.product_names.map( ( productName, productIdx ) => <li key={ productIdx }>{ productName }</li> ) }
+					</ul>
+				</InfoTooltip>
 			</span>
 		);
 	}

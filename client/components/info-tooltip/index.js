@@ -40,7 +40,7 @@ export default class InfoTooltip extends Component {
 				onMouseEnter={ this.openTooltip }
 				onMouseLeave={ this.closeTooltip }
 				className={ this.props.className }
-				style={ { cursor: 'help' } } >
+				style={ { cursor: 'help', color: 'black' } } >
 				<Gridicon ref="icon" icon="info-outline" size={ 18 } />
 				{ this.state.showTooltip &&
 					<Tooltip
@@ -50,7 +50,8 @@ export default class InfoTooltip extends Component {
 						onClose={ this.closeTooltip }
 						position={ this.props.position }
 						context={ this.refs && this.refs.icon }>
-						<div style={ { maxWidth: this.props.maxWidth } } >
+						<div className="wc-connect-popover-contents"
+							style={ { maxWidth: this.props.maxWidth } } >
 							{ this.props.children }
 						</div>
 					</Tooltip>
