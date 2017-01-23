@@ -30,9 +30,9 @@ If you'd just like to check out the latest beta release and not contribute code 
 
 If you'd just like to check out the latest code and/or wish to contribute code, then perform the following:
 
-* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `6.9.0` and `npm` version 3+
+* Ensure you have `git`, `node`, and `yarn` installed on the target machine/server. For maximum compatibility we recommend `node` version `6.9.1` and `yarn` version `0.18.1+`
 * Clone this repository into the `plugins` folder of the WordPress installation.
-* Run `npm install` to set up all the dependencies
+* Run `yarn` to set up all the dependencies
 * You now have two choices:
     * For Development: Add the following to your `wp-config.php` file: `define( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL', 'http://localhost:8085/' );` and then Run `npm start` which will start a webpack dev server at `localhost:8085`, complete with hot reloading whenever you make changes. You will need to keep the `npm start` task running while developing. You can press `ctrl+c` to exit this process.
     * For testing or pre-production use: Run `npm run dist` which will build the files into the `dist` folder, and will be loaded by the plugin without any additional configuration
