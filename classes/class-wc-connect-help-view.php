@@ -349,14 +349,25 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			if ( method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
 				$logs = WC_Admin_Status::scan_log_files();
+				$latest_file_date = 0;
+				$file = null;
+				$key = null;
 
 				foreach ( $logs as $log_key => $log_file ) {
-					if ( "wc-connect-" === substr( $log_key, 0, 11 ) ) {
-						$complete_log = file( WC_LOG_DIR . $log_file );
-						$data->key = $log_key;
-						$data->file = $log_file;
-						$data->tail = array_slice( $complete_log, -10 );
+				    $log_file = WC_LOG_DIR . $log_file;
+					$file_date = filemtime( $log_file );
+					if ( 'wc-connect-' === substr( $log_key, 0, 11 ) && $latest_file_date < $file_date ) {
+						$latest_file_date = $file_date;
+						$file = $log_file;
+						$key = $log_key;
 					}
+				}
+
+				if ( null !== $file ) {
+					$complete_log = file( $file );
+					$data->key = $key;
+					$data->file = $file;
+					$data->tail = array_slice( $complete_log, -10 );
 				}
 			}
 
