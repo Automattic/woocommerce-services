@@ -16,9 +16,9 @@ const AccountSettingsRootView = ( props ) => {
 
 	const onSaveSuccess = () => {
 		props.actions.setFormMetaProperty( 'pristine', true );
-		props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 2250 } );
+		props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 5000 } );
 	};
-	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to update your payment method. Please try again.' ), { duration: 7000 } );
+	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to update your payment method. Please try again.' ) );
 	const onSaveChanges = () => props.actions.saveForm( onSaveSuccess, onSaveFailure );
 
 	const paymentMethodDescriptionFormat = __( 'Manage your payment methods on %(startLink)sWordPress.com%(endLink)s' );

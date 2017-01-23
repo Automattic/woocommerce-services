@@ -35,7 +35,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		dispatch( FormActions.setFormProperty( 'success', value ) );
 		if ( ! silent && true === value ) {
 			dispatch( NoticeActions.successNotice( __( 'Your changes have been saved.' ), {
-				duration: 2250,
+				duration: 5000,
 			} ) );
 		}
 	};
@@ -44,9 +44,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		dispatch( FormActions.setFormProperty( 'fieldsStatus', value ) );
 
 		if ( ! silent ) {
-			dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
-				duration: 7000,
-			} ) );
+			dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ) ) );
 		}
 	};
 
@@ -55,15 +53,11 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 
 		if ( ! silent ) {
 			if ( _.isString( value ) ) {
-				dispatch( NoticeActions.errorNotice( value, {
-					duration: 7000,
-				} ) );
+				dispatch( NoticeActions.errorNotice( value ) );
 			}
 
 			if ( _.isObject( value ) ) {
-				dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ), {
-					duration: 7000,
-				} ) );
+				dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ) ) );
 			}
 		}
 	};
