@@ -106,7 +106,7 @@ const SettingsItem = ( {
 			const packagesMsg = sprintf(
 				__( 'Add and edit saved packages using the <a href="%(url)s">Packaging Manager</a>.' ),
 				{
-					url: 'admin.php?page=wc-settings&tab=connect&section=packages',
+					url: 'admin.php?page=wc-settings&tab=shipping&section=package-settings',
 				}
 			);
 
