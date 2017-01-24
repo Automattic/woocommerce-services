@@ -14,6 +14,7 @@ export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
 export const UPDATE_ADDRESS_VALUE = 'UPDATE_ADDRESS_VALUE';
+export const REMOVE_IGNORE_VALIDATION = 'REMOVE_IGNORE_VALIDATION';
 export const ADDRESS_NORMALIZATION_IN_PROGRESS = 'ADDRESS_NORMALIZATION_IN_PROGRESS';
 export const ADDRESS_NORMALIZATION_COMPLETED = 'ADDRESS_NORMALIZATION_COMPLETED';
 export const SELECT_NORMALIZED_ADDRESS = 'SELECT_NORMALIZED_ADDRESS';
@@ -146,11 +147,11 @@ export const openPrintingFlow = () => ( dispatch, getState, context ) => {
 	let errors = getFormErrors( getState(), storeOptions );
 	const promisesQueue = [];
 
-	if ( ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
+	if ( ! origin.ignoreValidation && ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
 		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
 
-	if ( ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
+	if ( ! destination.ignoreValidation && ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
 		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
@@ -218,6 +219,13 @@ export const editAddress = ( group ) => {
 	};
 };
 
+export const removeIgnoreValidation = ( group ) => {
+	return {
+		type: REMOVE_IGNORE_VALIDATION,
+		group,
+	};
+};
+
 export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce } ) => {
 	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
@@ -251,9 +259,17 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		}
 	};
 
-	const state = getState().shippingLabel.form[ group ];
+	let state = getState().shippingLabel.form[ group ];
+	if ( state.ignoreValidation ) {
+		dispatch( removeIgnoreValidation( group ) );
+		const errors = getFormErrors( getState(), storeOptions );
+		if ( hasNonEmptyLeaves( errors[ group ] ) ) {
+			return;
+		}
+		state = getState().shippingLabel.form[ group ];
+	}
 	if ( state.isNormalized && _.isEqual( state.values, state.normalized ) ) {
-		handleNormalizeResponse();
+		handleNormalizeResponse( true );
 		return;
 	}
 	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )

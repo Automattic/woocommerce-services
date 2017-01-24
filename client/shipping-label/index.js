@@ -23,6 +23,9 @@ export default ( { formData, labelsData, paperSize, storeOptions } ) => ( {
 	},
 
 	getInitialState() {
+		// The phone field is never prefilled, so if it's present it means the address is fully valid
+		const hasOriginAddress = Boolean( formData.origin.phone );
+
 		return {
 			shippingLabel: {
 				labels: labelsData || [],
@@ -31,8 +34,10 @@ export default ( { formData, labelsData, paperSize, storeOptions } ) => ( {
 					orderId: formData.order_id,
 					origin: {
 						values: formData.origin,
-						isNormalized: Boolean( formData.origin.phone ), // If the phone field is filled, we assume it's an already normalized address
-						normalized: formData.origin.phone ? formData.origin : null,
+						isNormalized: hasOriginAddress,
+						normalized: hasOriginAddress ? formData.origin : null,
+						// If no origin address is stored, mark all fields as "ignore validation" so the UI doesn't immediately show errors
+						ignoreValidation: hasOriginAddress ? null : _.mapValues( formData.origin, () => true ),
 						selectNormalized: true,
 						normalizationInProgress: false,
 						allowChangeCountry: false,

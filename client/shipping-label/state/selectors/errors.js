@@ -4,7 +4,7 @@ import { isValidPhone } from 'lib/utils/phone-format';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
-const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized }, countriesData ) => {
+const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized, ignoreValidation }, countriesData ) => {
 	if ( isNormalized && ! normalized ) {
 		// If the address is normalized but the server didn't return a normalized address, then it's
 		// invalid and must register as an error
@@ -37,6 +37,14 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized 
 		if ( ! _.isEmpty( countriesData[ country ].states ) && ! state ) {
 			errors.state = __( 'This field is required' );
 		}
+	}
+
+	if ( ignoreValidation ) {
+		Object.keys( errors ).forEach( ( field ) => {
+			if ( ignoreValidation[ field ] ) {
+				delete errors[ field ];
+			}
+		} );
 	}
 
 	return errors;

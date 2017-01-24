@@ -5,11 +5,19 @@ import {
 	removePackage,
 	setPackageType,
 	savePackages,
+	removeIgnoreValidation,
+	updateAddressValue,
 } from '../actions';
 import hoek from 'hoek';
 
 const initialState = {
 	form: {
+		origin: {
+			values: { address: 'Some street', postcode: '', state: 'CA', country: 'US' },
+			isNormalized: false,
+			normalized: null,
+			ignoreValidation: { address: true, postcode: true, state: true, country: true },
+		},
 		packages: {
 			all: {
 				customPackage1: {
@@ -220,5 +228,50 @@ describe( 'Label purchase form reducer', () => {
 		const state = reducer( existingState, action );
 
 		expect( state.form.packages.saved ).to.eql( true );
+	} );
+
+	it( 'REMOVE_IGNORE_VALIDATION removes the ignore validation flags, does not change anything else', () => {
+		const existingState = hoek.clone( initialState );
+
+		const action = removeIgnoreValidation( 'origin' );
+		const state = reducer( existingState, action );
+
+		expect( state.form.origin.ignoreValidation ).to.be.null;
+		state.form.origin.ignoreValidation = existingState.form.origin.ignoreValidation;
+		expect( state ).to.deep.equal( existingState );
+	} );
+
+	it( 'UPDATE_ADDRESS_VALUE on any field marks the address as not validated', () => {
+		const existingState = hoek.clone( initialState );
+		existingState.form.origin.ignoreValidation = null;
+		existingState.form.origin.isNormalized = true;
+		existingState.form.origin.normalized = { address: 'MAIN ST', postcode: '12345' };
+
+		const action = updateAddressValue( 'origin', 'address', 'Main Street' );
+		const state = reducer( existingState, action );
+
+		expect( state.form.origin.values.address ).to.equal( 'Main Street' );
+		expect( state.form.origin.isNormalized ).to.be.false;
+		expect( state.form.origin.normalized ).to.be.null;
+	} );
+
+	it( 'UPDATE_ADDRESS_VALUE changing the country restes the state field', () => {
+		const existingState = hoek.clone( initialState );
+
+		const action = updateAddressValue( 'origin', 'country', 'ES' );
+		const state = reducer( existingState, action );
+
+		expect( state.form.origin.values.country ).to.equal( 'ES' );
+		expect( state.form.origin.values.state ).to.equal( '' );
+	} );
+
+	it( 'UPDATE_ADDRESS_VALUE removed the "ignore validation" flag on that field', () => {
+		const existingState = hoek.clone( initialState );
+
+		const action = updateAddressValue( 'origin', 'address', 'Main Street' );
+		const state = reducer( existingState, action );
+
+		expect( state.form.origin.ignoreValidation.address ).to.be.false;
+		expect( state.form.origin.ignoreValidation.postcode ).to.be.true;
 	} );
 } );

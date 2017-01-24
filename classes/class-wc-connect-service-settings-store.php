@@ -98,6 +98,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields[ 'address_2' ] = '';
 			$wc_address_fields[ 'city' ] = '';
 			$wc_address_fields[ 'postcode' ] = '';
+			$wc_address_fields[ 'phone' ] = '';
 
 			$stored_address_fields = get_option( 'wc_connect_origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
