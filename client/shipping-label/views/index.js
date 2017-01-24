@@ -146,6 +146,7 @@ class ShippingLabelRootView extends Component {
 					isVisible={ this.state.showTooltips[ index ] }
 					onClose={ () => this.closeTooltip( index ) }
 					position="top"
+					showOnMobile
 					context={ this.refs && this.refs[ 'label-details-' + index ] } >
 					<div className="wc-connect-popover-contents">
 						<h3>{ label.package_name }</h3>
