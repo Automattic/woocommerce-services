@@ -437,6 +437,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
 			add_action( 'admin_init', array( $this->nux, 'check_notice_dismissal' ) );
+			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 		}
 
 		/**
@@ -656,6 +657,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
 			wp_register_style( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-services.css', array( 'noticons', 'dashicons' ) );
 			wp_register_script( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-services.js', array(), false, true );
+			wp_register_script( 'wc_services_admin_pointers', $wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), false, true );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
