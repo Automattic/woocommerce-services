@@ -1,4 +1,4 @@
-import { SET_FORM_PROPERTY } from './actions';
+import { SET_FORM_PROPERTY, SET_ALL_PRISTINE } from './actions';
 import values from './values/reducer';
 import * as formValueActions from './values/actions';
 import _ from 'lodash';
@@ -22,6 +22,11 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	}
 	return Object.assign( {}, state, newObj );
 };
+
+reducers[ SET_ALL_PRISTINE ] = ( state, action ) => ( {
+	...state,
+	pristine: _.mapValues( state.pristine, () => action.pristineValue ),
+} );
 
 export default function form( state = {}, action ) {
 	let newState = Object.assign( {}, state );
