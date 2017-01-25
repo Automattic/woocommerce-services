@@ -7,7 +7,10 @@ export default class InfoTooltip extends Component {
 	static propTypes = {
 		className: PropTypes.string,
 		position: PropTypes.string,
-		maxWidth: PropTypes.string,
+		maxWidth: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.number,
+		] ),
 	};
 
 	static defaultProps = {
