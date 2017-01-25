@@ -28,6 +28,7 @@ class ShippingLabelRootView extends Component {
 		this.renderLabel = this.renderLabel.bind( this );
 		this.openTooltip = this.openTooltip.bind( this );
 		this.closeTooltip = this.closeTooltip.bind( this );
+		this.renderLabelButton = this.renderLabelButton.bind( this );
 		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
 
 		this.needToFetchLabelsStatus = true;
@@ -76,6 +77,14 @@ class ShippingLabelRootView extends Component {
 		);
 	}
 
+	renderLabelButton() {
+		return (
+			<Button className="wcc-metabox__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
+				{ __( 'Create new label' ) }
+			</Button>
+		);
+	}
+
 	renderPurchaseLabelFlow() {
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
@@ -84,10 +93,8 @@ class ShippingLabelRootView extends Component {
 				<PurchaseLabelDialog
 					{ ...this.props.shippingLabel }
 					{ ...this.props } />
-				{ this.renderPaymentInfo() }
-				<Button className="wcc-metabox__new-label-button" disabled={ ! paymentMethod } onClick={ this.props.labelActions.openPrintingFlow } >
-					{ __( 'Create new label' ) }
-				</Button>
+				{ this.renderPaymentInfo( paymentMethod ) }
+				{ paymentMethod && this.renderLabelButton() }
 			</div>
 		);
 	}
