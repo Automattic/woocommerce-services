@@ -70,7 +70,7 @@ const PackagesStep = ( {
 			const packagesMsg = sprintf(
 				__( 'There are no packages configured. The items have been packed individually. You can add or enable packages using the <a href="%(url)s">Packaging Manager</a>.' ),
 				{
-					url: 'admin.php?page=wc-settings&tab=connect&section=packages',
+					url: 'admin.php?page=wc-settings&tab=shipping&section=package-settings',
 				}
 			);
 
