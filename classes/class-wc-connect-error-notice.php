@@ -56,7 +56,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			$link_dismiss = home_url( add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) ) );
 
 			$message = sprintf(
-				__( 'An error occurred in Connect for WooCommerce. Details are logged <a href="%s">here</a>.', 'connectforwoocommerce' ),
+				__( 'An error occurred in WooCommerce Services. Details are logged <a href="%s">here</a>.', 'connectforwoocommerce' ),
 				$link_status, $link_dismiss
 			);
 ?>

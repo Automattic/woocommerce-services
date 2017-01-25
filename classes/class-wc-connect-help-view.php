@@ -155,9 +155,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				)
 			);
 
-			// Lastly, do the Connect for WooCommerce health check
+			// Lastly, do the WooCommerce Services health check
 			// Check that we have schema
-			// Check that we are able to talk to the Connect for WooCommerce server
+			// Check that we are able to talk to the WooCommerce Services server
 			$schemas = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
 			if ( ! is_null( $last_fetch_timestamp ) ) {
@@ -212,7 +212,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$health_items[] =	(object) array(
 				'key' => 'wcc_health_items',
-				'title' => __( 'Connect for WooCommerce Service Data', 'woocommerce-services' ),
+				'title' => __( 'WooCommerce Services Data', 'woocommerce-services' ),
 				'type' => 'indicators',
 				'items' => array(
 					'wcc_indicator' => $health_item
@@ -339,7 +339,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		/**
-		 * Gets the last 10 lines from the Connect for WooCommerce log, if it exists
+		 * Gets the last 10 lines from the WooCommerce Services log, if it exists
 		 */
 		protected function get_debug_log_data() {
 			$data = new stdClass;
@@ -481,7 +481,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce-services' );
+			$tabs[ 'connect' ] = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
 			return $tabs;
 
 		}
@@ -664,7 +664,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$this->add_fieldset(
 				'health',
-				_x( 'Health', 'This section displays the overall health of Connect for WooCommerce and the things it depends on', 'woocommerce-services' ),
+				_x( 'Health', 'This section displays the overall health of WooCommerce Services and the things it depends on', 'woocommerce-services' ),
 				$this->get_health_items()
 			);
 
@@ -703,7 +703,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			?>
 				<h2>
-					<?php _e( 'Connect for WooCommerce Status', 'woocommerce' ); ?>
+					<?php _e( 'WooCommerce Services Status', 'woocommerce' ); ?>
 				</h2>
 				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php

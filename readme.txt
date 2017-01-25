@@ -1,4 +1,4 @@
-=== Connect for WooCommerce ===
+=== WooCommerce Services ===
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
@@ -13,7 +13,7 @@ Hosted services for WooCommerce, including free real-time USPS and Canada Post r
 
 **This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
-Connect for WooCommerce makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
 With Connect, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
@@ -73,7 +73,7 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 5. Setting up custom packages
 6. Selecting your preferred payment method
 7. Managing your saved cards on WordPress.com
-8. Checking on the health of Connect for WooCommerce
+8. Checking on the health of WooCommerce Services
 
 == Changelog ==
 
