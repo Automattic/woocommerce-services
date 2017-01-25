@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { translate as __ } from 'lib/mixins/i18n';
 import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
+import getFormErrors from 'settings/state/selectors/errors';
 
 export const UPDATE_FIELD = 'UPDATE_FIELD';
 export const REMOVE_FIELD = 'REMOVE_FIELD';
@@ -26,7 +27,7 @@ export const addArrayFieldItem = ( path, item ) => ( {
 	item,
 } );
 
-export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce, submitMethod, formSchema } ) => {
 	silent = ( true === silent );
 
 	const setIsSaving = ( value ) => dispatch( FormActions.setFormProperty( 'isSaving', value ) );
@@ -62,7 +63,16 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		}
 	};
 
-	const coercedValues = coerceFormValues( schema, getState().form.values );
+	const coercedValues = coerceFormValues( formSchema, getState().form.values );
 
-	saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
+	// Trigger a client-side validation before hitting the server
+	dispatch( FormActions.setAllPristine( false ) );
+
+	const errors = getFormErrors( getState(), formSchema );
+
+	if ( _.isEmpty( errors ) ) {
+		saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
+	} else {
+		setError( errors );
+	}
 };
