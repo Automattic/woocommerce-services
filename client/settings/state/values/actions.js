@@ -27,7 +27,7 @@ export const addArrayFieldItem = ( path, item ) => ( {
 	item,
 } );
 
-export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce, submitMethod, formSchema } ) => {
+export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
 	silent = ( true === silent );
 
 	const setIsSaving = ( value ) => dispatch( FormActions.setFormProperty( 'isSaving', value ) );
@@ -63,12 +63,12 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		}
 	};
 
-	const coercedValues = coerceFormValues( formSchema, getState().form.values );
+	const coercedValues = coerceFormValues( schema, getState().form.values );
 
 	// Trigger a client-side validation before hitting the server
 	dispatch( FormActions.setAllPristine( false ) );
 
-	const errors = getFormErrors( getState(), formSchema );
+	const errors = getFormErrors( getState(), schema );
 
 	if ( _.isEmpty( errors ) ) {
 		saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
