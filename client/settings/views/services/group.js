@@ -31,7 +31,6 @@ const ShippingServiceGroup = ( props ) => {
 		services,
 		updateValue,
 		errors,
-		predefinedPackages,
 	} = props;
 	const actionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
@@ -39,20 +38,18 @@ const ShippingServiceGroup = ( props ) => {
 			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
-	//filter out the services that have a disabled corresponding predefined package
-	const manageableServices = services.filter( ( service ) => ! service.predefined_package || predefinedPackages.includes( service.predefined_package ) );
-	const allChecked = _.every( manageableServices, ( service ) => service.enabled );
+	const allChecked = _.every( services, ( service ) => service.enabled );
 	const renderHeader = () => {
 		return <div className="wcc-shipping-services-group-header">
 			<CheckBox
 				onClick={ ( event ) => event.stopPropagation() }
-				onChange={ ( event ) => updateAll( event, updateValue, manageableServices ) }
+				onChange={ ( event ) => updateAll( event, updateValue, services ) }
 				checked={ allChecked }
 			/>
 			{ title }
 		</div>;
 	};
-	const summary = summaryLabel( manageableServices );
+	const summary = summaryLabel( services );
 
 	return (
 		<FoldableCard
@@ -82,7 +79,6 @@ const ShippingServiceGroup = ( props ) => {
 				<ShippingServiceEntry
 					{ ...props }
 					{ ...{ service } }
-					isManageable={ manageableServices.includes( service ) }
 					updateValue={ ( key, val ) => updateValue( [ service.id ].concat( key ), val ) }
 					key={ idx }
 				/>
@@ -104,7 +100,6 @@ ShippingServiceGroup.propTypes = {
 		adjustment_type: PropTypes.string,
 	} ) ).isRequired,
 	updateValue: PropTypes.func.isRequired,
-	predefinedPackages: PropTypes.array.isRequired,
 };
 
 export default ShippingServiceGroup;

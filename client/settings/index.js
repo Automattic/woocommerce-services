@@ -7,7 +7,7 @@ import form from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, formSchema, formLayout, storeOptions, predefinedPackages } ) => ( {
+export default ( { formData, formSchema, formLayout, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			form,
@@ -30,7 +30,6 @@ export default ( { formData, formSchema, formLayout, storeOptions, predefinedPac
 		<SettingsView
 			storeOptions={ storeOptions }
 			schema={ formSchema }
-			layout={ formLayout }
-			predefinedPackages={ predefinedPackages } />
+			layout={ formLayout } />
 	),
 } );

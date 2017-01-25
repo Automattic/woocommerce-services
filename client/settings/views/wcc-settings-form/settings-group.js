@@ -97,7 +97,6 @@ SettingsGroup.propTypes = {
 	} ),
 	schema: PropTypes.object.isRequired,
 	storeOptions: PropTypes.object.isRequired,
-	predefinedPackages: PropTypes.array.isRequired,
 	saveForm: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
 	formActions: PropTypes.object.isRequired,

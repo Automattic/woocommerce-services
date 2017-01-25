@@ -82,11 +82,15 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 
 		return (
 			<FormSelect onChange={ packageOptionChange } value={ pckg.box_id }>
-				{ _.map( groups, ( group, groupId ) => (
-					<optgroup label={ group.title } key={ groupId } >
+				{ _.map( groups, ( group, groupId ) => {
+					if ( _.isEmpty( group.definitions ) ) {
+						return null;
+					}
+
+					return <optgroup label={ group.title } key={ groupId }>
 						{ _.map( group.definitions, renderPackageOption ) }
-					</optgroup>
-				) ) }
+					</optgroup>;
+				} ) }
 			</FormSelect>
 		);
 	};

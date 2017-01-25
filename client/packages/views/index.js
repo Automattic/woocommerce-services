@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
+import FormCheckbox from 'components/forms/form-checkbox';
 import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
@@ -38,6 +39,24 @@ const Packages = ( props ) => {
 		return sprintf( 1 === selectedCount ? __( '%d package selected' ) : __( '%d packages selected' ), selectedCount );
 	};
 
+	const renderPredefHeader = ( title, selected, packages, serviceId, groupId ) => {
+		if ( ! selected ) {
+			return null;
+		}
+
+		const allPackageIds = packages.map( ( def ) => def.id );
+		const selectedAll = 0 === _.difference( allPackageIds, selected ).length;
+		return (
+			<div className="wcc-predefined-packages-group-header" >
+				<FormCheckbox
+					checked={ selectedAll }
+					onClick={ ( event ) => event.stopPropagation() }
+					onChange={ () => props.toggleAll( serviceId, groupId ) } />
+				{ title }
+			</div>
+		);
+	};
+
 	const renderPredefinedPackages = () => {
 		const elements = [];
 
@@ -46,11 +65,16 @@ const Packages = ( props ) => {
 
 			_.forEach( servicePackages, ( predefGroup, groupId ) => {
 				const groupPackages = predefGroup.definitions;
+				const nonFlatRates = _.reject( groupPackages, 'is_flat_rate' );
+				if ( ! nonFlatRates.length ) {
+					return;
+				}
+
 				const summary = predefSummary( serviceSelected, groupPackages );
 
 				elements.push( <FoldableCard
 					key={ `${serviceId}_${groupId}` }
-					header={ predefGroup.title }
+					header={ renderPredefHeader( predefGroup.title, serviceSelected, groupPackages, serviceId, groupId ) }
 					summary={ summary }
 					expandedSummary={ summary }
 					clickableHeader={ true }
