@@ -69,9 +69,9 @@ class ShippingLabelRootView extends Component {
 		}
 
 		return (
-			<Notice status="is-error" isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
-				<p>{ __( 'There are no cards saved on your account. Please add one to purchase labels.' ) }</p>
-				<p><a href="admin.php?page=wc-settings&tab=connect">{ __( 'Add new cards' ) }</a></p>
+			<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
+				<p>{ __( 'To purchase shipping labels, you will first need to add a credit card.' ) }</p>
+				<p><a href="admin.php?page=wc-settings&tab=connect">{ __( 'Add a credit card' ) }</a></p>
 			</Notice>
 		);
 	}
