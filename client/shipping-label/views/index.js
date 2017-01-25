@@ -64,7 +64,7 @@ class ShippingLabelRootView extends Component {
 							cardDigits: `<strong>${paymentMethod}</strong>`,
 						}
 					) } }></p>
-					<p><a href="admin.php?page=wc-settings&tab=connect">{ __( 'Manage cards' ) }</a></p>
+					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Manage cards' ) }</a></p>
 				</Notice>
 			);
 		}
@@ -72,7 +72,7 @@ class ShippingLabelRootView extends Component {
 		return (
 			<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
 				<p>{ __( 'To purchase shipping labels, you will first need to add a credit card.' ) }</p>
-				<p><a href="admin.php?page=wc-settings&tab=connect">{ __( 'Add a credit card' ) }</a></p>
+				<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Add a credit card' ) }</a></p>
 			</Notice>
 		);
 	}
