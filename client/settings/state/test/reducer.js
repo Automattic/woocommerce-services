@@ -1,5 +1,5 @@
 import reducer from '../reducer';
-import { setFormProperty } from '../actions';
+import { setFormProperty, setAllPristine } from '../actions';
 import { updateField } from '../values/actions';
 
 const initialState = {
@@ -13,6 +13,9 @@ const initialState = {
 			},
 			value: 1122,
 		},
+	},
+	pristine: {
+		field: true,
 	},
 };
 
@@ -32,6 +35,9 @@ describe( 'Settings reducer', () => {
 					value: 1122,
 				},
 			},
+			pristine: {
+				field: true,
+			},
 		} );
 	} );
 
@@ -46,6 +52,9 @@ describe( 'Settings reducer', () => {
 				id: 'newID',
 				newfield: 'some new value',
 			},
+			pristine: {
+				field: true,
+			},
 		} );
 	} );
 
@@ -55,5 +64,34 @@ describe( 'Settings reducer', () => {
 		const state = reducer( initialErrorState, action );
 
 		expect( state ).to.not.have.property( 'fieldsStatus' );
+	} );
+
+	it( 'UPDATE_FIELD marks pristine false', () => {
+		const action = updateField( 'some_key', 'some value' );
+		const state = reducer( initialState, action );
+
+		expect( state ).to.have.deep.property( 'pristine.some_key', false );
+	} );
+
+	it( 'SET_ALL_PRISTINE', () => {
+		const action = setAllPristine( false );
+		const state = reducer( initialState, action );
+
+		expect( state ).to.eql( {
+			textObj: {
+				field: {
+					id: 'PCKG_A',
+					dimensions: {
+						width: 10,
+						length: 11,
+						height: 23,
+					},
+					value: 1122,
+				},
+			},
+			pristine: {
+				field: false,
+			},
+		} );
 	} );
 } );

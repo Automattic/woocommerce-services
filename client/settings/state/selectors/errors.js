@@ -64,14 +64,34 @@ const parseErrorsList = ( errantFields ) => {
 	return parsedErrors;
 };
 
-const getRawFormErrors = ( schema, data ) => {
+const getFirstFieldPathNode = ( fieldPath ) => {
+	const fieldPathPieces = ObjectPath.parse( fieldPath );
+
+	if ( 'data' === fieldPathPieces[ 0 ] ) {
+		return fieldPathPieces[ 1 ] || null;
+	}
+
+	return fieldPathPieces[ 0 ];
+};
+
+const getRawFormErrors = ( schema, data, pristine ) => {
 	const validate = validator( schema, { greedy: true } );
 	const coerced = coerceFormValues( schema, data );
 	const success = validate( coerced );
 
 	if ( ! success && validate.errors && validate.errors.length ) {
 		const rawErrors = {};
-		validate.errors.forEach( ( error ) => rawErrors[ error.field ] = EMPTY_ERROR );
+
+		validate.errors.forEach( ( error ) => {
+			// Ignore validation errors for fields that haven't been interacted with
+			const errorField = getFirstFieldPathNode( error.field );
+
+			if ( errorField && pristine[ errorField ] ) {
+				return;
+			}
+			rawErrors[ error.field ] = EMPTY_ERROR;
+		} );
+
 		return rawErrors;
 	}
 
@@ -82,5 +102,6 @@ export default createSelector(
 	( state ) => state.form.fieldsStatus,
 	( state, schema ) => schema,
 	( state ) => state.form.values,
-	( fieldsStatus, schema, data ) => parseErrorsList( fieldsStatus || getRawFormErrors( schema, data ) )
+	( state ) => state.form.pristine,
+	( fieldsStatus, schema, data, pristine ) => parseErrorsList( fieldsStatus || getRawFormErrors( schema, data, pristine ) )
 );

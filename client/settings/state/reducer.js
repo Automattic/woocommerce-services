@@ -1,6 +1,7 @@
-import { SET_FORM_PROPERTY } from './actions';
+import { SET_FORM_PROPERTY, SET_ALL_PRISTINE } from './actions';
 import values from './values/reducer';
 import * as formValueActions from './values/actions';
+import _ from 'lodash';
 
 const reducers = {};
 
@@ -8,7 +9,7 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	const newObj = {};
 	newObj[ action.field ] = action.value;
 	if ( 'success' === action.field && action.value ) {
-		newObj.pristine = true;
+		newObj.pristine = _.mapValues( state.pristine, () => true );
 	} else if ( 'fieldsStatus' === action.field && action.value ) {
 		Object.keys( action.value ).forEach( ( fieldPath ) => {
 			const fieldStatus = action.value[ fieldPath ];
@@ -22,6 +23,11 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	return Object.assign( {}, state, newObj );
 };
 
+reducers[ SET_ALL_PRISTINE ] = ( state, action ) => ( {
+	...state,
+	pristine: _.mapValues( state.pristine, () => action.pristineValue ),
+} );
+
 export default function form( state = {}, action ) {
 	let newState = Object.assign( {}, state );
 
@@ -30,7 +36,7 @@ export default function form( state = {}, action ) {
 	}
 
 	if ( formValueActions[ action.type ] ) {
-		newState.pristine = false;
+		newState.pristine = { ...state.pristine, [ action.path ]: false };
 
 		// Allow client-side form validation to take over error state when inputs change
 		delete newState.error;
