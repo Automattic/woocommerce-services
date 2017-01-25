@@ -1,14 +1,14 @@
-# Connect for WooCommerce
+# WooCommerce Services
 
-Connect for WooCommerce development is now in BETA - this means that you should expect frequent and sometimes large changes as we improve the service. During BETA testing, we'll be fixing problems and working to launch a feature-complete MVP.
+WooCommerce Services development is now in BETA - this means that you should expect frequent and sometimes large changes as we improve the service. During BETA testing, we'll be fixing problems and working to launch a feature-complete MVP.
 
 **This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
-Connect for WooCommerce makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
 With Connect, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-The emphasis for initial release of Connect for WooCommerce is shipping simplified. We are providing Shipping Zones-compatible USPS and Canada Post shipping methods and USPS shipping labels (stamps). Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
+The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing Shipping Zones-compatible USPS and Canada Post shipping methods and USPS shipping labels (stamps). Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
 
 To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
@@ -47,4 +47,4 @@ We support the latest two versions of all major browsers, except IE, where we cu
 
 ## License
 
-Connect for WooCommerce is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).
+WooCommerce Services is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).

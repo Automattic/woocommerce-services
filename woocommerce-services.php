@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: Connect for WooCommerce
+ * Plugin Name: WooCommerce Services
  * Plugin URI: http://woocommerce.com/
- * Description: Connect for WooCommerce: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
+ * Description: WooCommerce Services: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
  * Author URI: http://woocommerce.com/
  * Version: 0.9.5
@@ -716,7 +716,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<?php
 					printf(
-						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how Connect for WooCommerce handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/connect-privacy' )
 					);

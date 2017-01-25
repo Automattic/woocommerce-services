@@ -35,7 +35,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			WC_Connect_Logger $logger ) {
 
 			$this->id    = 'connect';
-			$this->label = _x( 'Connect for WooCommerce', 'The Connect for WooCommerce brandname', 'woocommerce-services' );
+			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
 
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
@@ -173,7 +173,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				if ( $this->is_jetpack_connected() ) {
 					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'woocommerce-services' );
 				} else {
-					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from Connect for WooCommerce production servers.', 'woocommerce-services' );
+					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from WooCommerce Services production servers.', 'woocommerce-services' );
 				}
 				?>
 					<div class="wc-connect-admin-dev-notice">
