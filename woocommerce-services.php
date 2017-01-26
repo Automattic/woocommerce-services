@@ -146,6 +146,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $service_object_cache = array();
 
+		protected $wc_connect_base_url;
+
 		static function load_tracks_for_activation_hooks() {
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
@@ -168,6 +170,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function __construct() {
+			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 			add_action( 'woocommerce_init', array( $this, 'init' ) );
 		}
@@ -654,10 +657,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
 			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
 
-			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
-			wp_register_style( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-services.css', array( 'noticons', 'dashicons' ) );
-			wp_register_script( 'wc_connect_admin', $wc_connect_base_url . 'woocommerce-services.js', array(), false, true );
-			wp_register_script( 'wc_services_admin_pointers', $wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), false, true );
+			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array( 'noticons', 'dashicons' ) );
+			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), false, true );
+			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), false, true );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
@@ -700,8 +702,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function admin_banner_styles() {
-			$wc_connect_base_url = defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ );
-			wp_enqueue_style( 'wc_connect_banner', $wc_connect_base_url . 'woocommerce-services-banner.css' );
+			wp_enqueue_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css' );
 		}
 
 		public function show_tos_notice() {
