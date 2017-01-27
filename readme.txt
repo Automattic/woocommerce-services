@@ -15,7 +15,7 @@ Hosted services for WooCommerce, including free real-time USPS and Canada Post r
 
 WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
-With Connect, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
+With WooCommerce Services, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
 To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
@@ -40,7 +40,7 @@ This section describes how to install the plugin and get it working.
 
 == Frequently Asked Questions ==
 
-= What services are included in Connect? =
+= What services are included? =
 
 For this first release, we’re including free real-time USPS and Canada Post Shipping rates in checkout. We are also including discounted USPS shipping labels for domestic packages. More services will roll out over upcoming releases.
 

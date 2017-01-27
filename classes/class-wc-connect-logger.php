@@ -85,7 +85,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
 		private function log( $message, $context = '' ) {
 			$log_message = $this->format_message( $message, $context );
-			$this->logger->add( 'wc-connect', $log_message );
+			$this->logger->add( 'wc-services', $log_message );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( $log_message );
 			}
