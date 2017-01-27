@@ -739,7 +739,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( 'accept' === $_GET['wc-connect-notice'] ) {
 				update_option( 'wc_connect_tos_accepted', true );
-				wp_safe_redirect( remove_query_arg( 'wc-connect-notice' ) );
+				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
+
+				exit;
 			} else {
 				deactivate_plugins( plugin_basename( __FILE__ ) );
 				add_action( 'admin_notices', array( $this, 'deactivate_notice' ) );
