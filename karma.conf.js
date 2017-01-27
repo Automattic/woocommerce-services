@@ -11,7 +11,7 @@ module.exports = function( config ) {
 	config.set({
 		browsers: [ 'jsdom' ],
 		frameworks: [ 'mocha', 'chai' ],
-		files: [ testFile ],
+		files: [ 'client/test/mock-jquery.js', testFile ],
 		preprocessors: {
 			[ testFile ]: [ 'webpack', 'sourcemap' ],
 		},

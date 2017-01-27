@@ -22,11 +22,15 @@ module.exports = {
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
 		'woocommerce-services-banner': [ './assets/stylesheets/banner.scss' ],
+		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
 		publicPath: 'http://localhost:8085/',
+	},
+	externals: {
+		'jquery': 'jQuery',
 	},
 	devtool: '#inline-source-map',
 	module: {
