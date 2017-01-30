@@ -19,6 +19,7 @@ import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import _ from 'lodash';
 import { sprintf } from 'sprintf-js';
+import Notice from 'components/notice';
 
 class ShippingLabelRootView extends Component {
 	constructor( props ) {
@@ -27,6 +28,8 @@ class ShippingLabelRootView extends Component {
 		this.renderLabel = this.renderLabel.bind( this );
 		this.openTooltip = this.openTooltip.bind( this );
 		this.closeTooltip = this.closeTooltip.bind( this );
+		this.renderLabelButton = this.renderLabelButton.bind( this );
+		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
 
 		this.needToFetchLabelsStatus = true;
 
@@ -49,15 +52,49 @@ class ShippingLabelRootView extends Component {
 		this.setState( { showTooltips } );
 	}
 
+	renderPaymentInfo() {
+		const paymentMethod = this.props.shippingLabel.paymentMethod;
+
+		if ( paymentMethod ) {
+			return (
+				<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
+					<p dangerouslySetInnerHTML={ { __html: sprintf(
+						__( 'Labels will be purchased using card ending: %(cardDigits)s.' ),
+						{
+							cardDigits: `<strong>${paymentMethod}</strong>`,
+						}
+					) } }></p>
+					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Manage cards' ) }</a></p>
+				</Notice>
+			);
+		}
+
+		return (
+			<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
+				<p>{ __( 'To purchase shipping labels, you will first need to add a credit card.' ) }</p>
+				<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Add a credit card' ) }</a></p>
+			</Notice>
+		);
+	}
+
+	renderLabelButton() {
+		return (
+			<Button className="wcc-metabox__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
+				{ __( 'Create new label' ) }
+			</Button>
+		);
+	}
+
 	renderPurchaseLabelFlow() {
+		const paymentMethod = this.props.shippingLabel.paymentMethod;
+
 		return (
 			<div className="wcc-metabox-label-item" >
 				<PurchaseLabelDialog
 					{ ...this.props.shippingLabel }
 					{ ...this.props } />
-				<Button className="wcc-metabox__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
-					{ __( 'Create new label' ) }
-				</Button>
+				{ this.renderPaymentInfo( paymentMethod ) }
+				{ paymentMethod && this.renderLabelButton() }
 			</div>
 		);
 	}

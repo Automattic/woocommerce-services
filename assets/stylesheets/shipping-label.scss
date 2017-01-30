@@ -2,6 +2,11 @@
 	margin-bottom: 0;
 	text-align: center;
 
+	.wcc-metabox-label-payment .gridicon.notice__icon {
+		align-self: flex-start;
+		margin-top: 8px;
+	}
+
 	.wcc-metabox-label-item {
 		padding: 16px;
 		border-bottom: 1px solid #eee;
@@ -42,6 +47,7 @@
 
 		.wcc-metabox__new-label-button {
 			width: 100%;
+			margin-top: 16px;
 		}
 
 		.wcc-metabox-label-item__actions {
