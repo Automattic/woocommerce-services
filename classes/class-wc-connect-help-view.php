@@ -356,7 +356,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				foreach ( $logs as $log_key => $log_file ) {
 				    $log_file = WC_LOG_DIR . $log_file;
 					$file_date = filemtime( $log_file );
-					if ( 'wc-connect-' === substr( $log_key, 0, 11 ) && $latest_file_date < $file_date ) {
+					if ( 'wc-services-' === substr( $log_key, 0, 12 ) && $latest_file_date < $file_date ) {
 						$latest_file_date = $file_date;
 						$file = $log_file;
 						$key = $log_key;
