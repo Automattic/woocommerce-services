@@ -5,9 +5,9 @@
  * Description: WooCommerce Services: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
  * Author URI: http://woocommerce.com/
- * Version: 0.9.5
+ * Version: 1.0.0
  *
- * Copyright (c) 2016 Automattic
+ * Copyright (c) 2017 Automattic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

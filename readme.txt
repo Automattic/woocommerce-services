@@ -2,16 +2,14 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
-Tested up to: 4.7.1
-Stable tag: 0.9.5
+Tested up to: 4.7.2
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels. (BETA)
 
 == Description ==
-
-**This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
 WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
