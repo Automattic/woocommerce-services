@@ -2,16 +2,14 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
-Tested up to: 4.7.1
-Stable tag: 0.9.5
+Tested up to: 4.7.2
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels. (BETA)
 
 == Description ==
-
-**This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
 
 WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
@@ -76,6 +74,27 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.0.0 =
+* Improve logging for rates request errors
+* Fix a rates bug with individually packaged items
+* Add an easier UI to select grouped shipping services
+* Fix a database table prefix bug
+* Fix a bug allowing an errant double-purchase of labels
+* Always retrieve a refunded label's status
+* Save the shipping label origin address for reuse earlier
+* Add a fallback rate for USPS
+* Recommend checking logs when errors occur
+* Fix bug showing the wrong label purchase amount when requesting refunds
+* Add tooltip explaining what shipping service price adjustments are
+* Notify admins when products are missing dimensions when retrieving rates
+* Improve terms of service message
+* Improve user experience with form validation
+* Move the settings under WooCommerce > Shipping
+* Automatically enable flat rate packages when their corresponding service is enabled
+* Improve the on-boarding experience for new users
+* Show the card information being used to purchase labels
+* Don't allow the labels flow to be entered without a selected payment method
 
 = 0.9.5 =
 * Add non-flat-rate predefined USPS packaging
