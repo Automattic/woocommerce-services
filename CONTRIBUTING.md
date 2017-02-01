@@ -2,10 +2,6 @@
 
 Hi! Thank you for your interest in contributing to WooCommerce Services. We appreciate it.
 
-The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing a Shipping Zones-compatible USPS and Canada Post shipping methods. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/). We are also allowing to print discounted USPS shipping labels.
-
-Our shipping methods fetch rates for customers' carts in real time from the USPS and Canada Post servers. There's no need to provide your own USPS or Canada Post accounts.
-
 There are many ways to contribute – reporting bugs, feature suggestions, and fixing bugs.
 
 ## Reporting Bugs, Asking Questions, Sending Suggestions

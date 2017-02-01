@@ -4,7 +4,7 @@ WooCommerce Services makes basic eCommerce features like shipping more reliable 
 
 With WooCommerce Services, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing Shipping Zones-compatible USPS and Canada Post shipping methods and USPS shipping labels (stamps). Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/). We are also allowing to print discounted USPS shipping labels.
+The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing USPS and Canada Post shipping methods and USPS shipping labels (stamps).
 
 To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
@@ -16,7 +16,7 @@ There are many ways to contribute – reporting bugs, feature suggestions and fi
 You need:
 * A WordPress site
 * WooCommerce 2.6+
-* Installation of [Jetpack](https://wordpress.org/plugins/jetpack/), activate and connect it to your WordPress.com account
+* Installation of [Jetpack](https://wordpress.org/plugins/jetpack/), connected to your WordPress.com account
 
 ### Using the plugin
 
