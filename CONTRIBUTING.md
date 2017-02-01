@@ -2,13 +2,9 @@
 
 Hi! Thank you for your interest in contributing to WooCommerce Services. We appreciate it.
 
-Although what you see today is a plugin, the goal for  WooCommerce Services is to be a fully integrated part of WooCommerce core. To get us from feature plugin to core, WooCommerce Services development is now in ALPHA - this means that you should expect frequent and sometimes large changes as features are added. During ALPHA testing, we'll be fixing problems and working to launch a feature-complete BETA. Successful BETA will culminate in a PR for inclusion into a future WooCommerce release.
+The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing a Shipping Zones-compatible USPS and Canada Post shipping methods. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/). We are also allowing to print discounted USPS shipping labels.
 
-**We do not recommend you use this ALPHA software on a production site.**
-
-The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing a Shipping Zones-compatible USPS shipping method and, coming soon, a Shipping Zones compatible Canada Post shipping method. Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
-
-Our USPS shipping method fetches rates for customers' carts in real time from the USPS server. No USPS account is needed - you can use the default one if you like.
+Our shipping methods fetch rates for customers' carts in real time from the USPS and Canada Post servers. There's no need to provide your own USPS or Canada Post accounts.
 
 There are many ways to contribute – reporting bugs, feature suggestions, and fixing bugs.
 
@@ -21,9 +17,9 @@ If you're filing a bug, specific steps to reproduce are helpful. Please include 
 ## Setting up USPS shipping with the WooCommerce Services
 
 1. Install or update to [WordPress 4.5](https://wordpress.org/download/) or higher.
-2. Install and activate WooCommerce 2.6 or higher. The WooCommerce Services will NOT work with WooCommerce 2.5 or older.  A plugin ZIP will be available soon, but for now you need to download a ZIP of the master branch or clone the WooCommerce plugin from its [repository on GitHub](https://github.com/woocommerce/woocommerce).
+2. Install and activate [WooCommerce 2.6 or higher](https://wordpress.org/plugins/woocommerce/). WooCommerce Services will NOT work with WooCommerce 2.5 or older.
 3. Install and activate [Jetpack 3.9.6 or higher](https://wordpress.org/plugins/jetpack/).
-4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, the WooCommerce Services requires the Jetpack connection to authenticate with the WooCommerce Services server.
+4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, WooCommerce Services requires the Jetpack connection to authenticate with the WooCommerce Services server.
 5. Install and activate this feature plugin.
 6. Add at least one product with weight and dimensions.
 7. Add at least one shipping zone, and add the WooCommerce Services USPS shipping method to it.

@@ -1,14 +1,10 @@
 # WooCommerce Services
 
-WooCommerce Services development is now in BETA - this means that you should expect frequent and sometimes large changes as we improve the service. During BETA testing, we'll be fixing problems and working to launch a feature-complete MVP.
-
-**This is a BETA release. Please carefully test and make sure it meets your needs before considering for a production site.**
-
 WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
 With WooCommerce Services, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing Shipping Zones-compatible USPS and Canada Post shipping methods and USPS shipping labels (stamps). Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/).
+The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing Shipping Zones-compatible USPS and Canada Post shipping methods and USPS shipping labels (stamps). Shipping Zones are [an exciting new feature of WooCommerce 2.6](https://woocommerce.wordpress.com/2016/02/10/shipping-zones-to-ship-with-2-6/). We are also allowing to print discounted USPS shipping labels.
 
 To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
@@ -22,9 +18,9 @@ You need:
 * WooCommerce 2.6+
 * Installation of [Jetpack](https://wordpress.org/plugins/jetpack/), activate and connect it to your WordPress.com account
 
-### Working with the Beta
+### Using the plugin
 
-If you'd just like to check out the latest beta release and not contribute code back, then [download the latest release](https://wordpress.org/plugins/woocommerce-services/) and install as a plugin on your WordPress site.
+If you'd just like to check out the latest release and not contribute code back, then [download the latest release](https://wordpress.org/plugins/woocommerce-services/) and install as a plugin on your WordPress site.
 
 ### Working with `master`
 
