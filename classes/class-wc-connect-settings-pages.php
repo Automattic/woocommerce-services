@@ -57,7 +57,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			$shipping_tabs[ 'package-settings' ] = __( 'Packages', 'connectforwoocommerce' );
-			$shipping_tabs[ 'label-settings'] = __( 'Shipping Label', 'connectforwoocommerce' );
+			$shipping_tabs[ 'label-settings'] = __( 'Shipping Labels', 'connectforwoocommerce' );
 			return $shipping_tabs;
 		}
 
