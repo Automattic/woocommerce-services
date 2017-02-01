@@ -7,7 +7,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels. (BETA)
+Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
 
 == Description ==
 
