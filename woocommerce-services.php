@@ -351,8 +351,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			$this->load_dependencies();
-			$this->attach_hooks();
 			$this->schedule_service_schemas_fetch();
+			$this->attach_hooks();
 		}
 
 		/**
@@ -566,9 +566,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas = $schemas_store->get_service_schemas();
 
 			if ( ! $schemas ) {
-				add_action( 'admin_init', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+				$schemas_store->fetch_service_schemas_from_connect_server();
 			} else if ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
-				add_action( 'admin_init', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+				$schemas_store->fetch_service_schemas_from_connect_server();
 			} else if ( ! wp_next_scheduled( 'wc_connect_fetch_service_schemas' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_service_schemas' );
 			}
