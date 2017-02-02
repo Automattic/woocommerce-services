@@ -268,6 +268,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			// On success, save the settings to the database and exit
 			update_option( $this->get_service_settings_key( $id, $instance ), $settings );
+			// Invalidate shipping rates session cache
+			WC_Cache_Helper::get_transient_version( 'shipping', /* $refresh = */ true );
 			do_action( 'wc_connect_saved_service_settings', $id, $instance, $settings );
 
 			return true;
