@@ -158,12 +158,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return new WC_Connect_Tracks( $logger );
 		}
 
-		static function plugin_activation() {
-			$tracks = self::load_tracks_for_activation_hooks();
-			$tracks->opted_in();
-		}
-
 		static function plugin_deactivation() {
+			update_option( 'wc_connect_tos_accepted', false );
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
@@ -740,7 +736,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( 'accept' === $_GET['wc-connect-notice'] ) {
 				update_option( 'wc_connect_tos_accepted', true );
 				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
-
+				$tracks = self::load_tracks_for_activation_hooks();
+				$tracks->opted_in();
 				exit;
 			} else {
 				deactivate_plugins( plugin_basename( __FILE__ ) );
@@ -841,5 +838,4 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	}
 }
 
-register_activation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_activation' ) );
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
