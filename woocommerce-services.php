@@ -437,6 +437,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
 			add_action( 'admin_init', array( $this->nux, 'check_notice_dismissal' ) );
+			add_filter( 'jetpack_options_whitelist' );
 		}
 
 		/**

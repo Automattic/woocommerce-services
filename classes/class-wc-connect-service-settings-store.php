@@ -282,7 +282,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 *
 		 * @return string
 		 */
-		protected function get_service_settings_key( $service_id, $service_instance = false ) {
+		public function get_service_settings_key( $service_id, $service_instance = false ) {
 			if ( ! $service_instance ) {
 				return 'woocommerce_' . $service_id . '_form_settings';
 			}
