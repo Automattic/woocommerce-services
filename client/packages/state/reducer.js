@@ -132,11 +132,10 @@ reducers[ REMOVE_PACKAGE ] = ( state, action ) => {
 	};
 };
 
-reducers[ TOGGLE_ALL ] = ( state, { serviceId, groupId } ) => {
+reducers[ TOGGLE_ALL ] = ( state, { serviceId, groupId, checked } ) => {
 	const groupPackages = state.predefinedSchema[ serviceId ][ groupId ].definitions.map( ( def ) => def.id );
 	const selected = state.packages.predefined[ serviceId ];
-	const selectedAll = 0 === _.difference( groupPackages, selected ).length;
-	const newSelected = selectedAll ? _.difference( selected, groupPackages ) : _.uniq( _.concat( selected, groupPackages ) );
+	const newSelected = checked ? _.uniq( _.concat( selected, groupPackages ) ) : _.difference( selected, groupPackages );
 
 	const newPredefined = {	...state.packages.predefined };
 	newPredefined[ serviceId ] = newSelected;

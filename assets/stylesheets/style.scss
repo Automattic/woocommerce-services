@@ -348,6 +348,27 @@
 		height: inherit;
 	}
 
+	.wcc-indeterminate-container {
+		margin-right: 8px;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		position: relative;
+
+		input {
+			margin: 0;
+		}
+
+		.gridicon {
+			color: #00a0d2;
+			height: 16px;
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			width: 16px;
+		}
+	}
+
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';
