@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WooCommerce Services
+ * Plugin Name: WooCommerce Services (deprecated)
  * Plugin URI: http://woocommerce.com/
  * Description: WooCommerce Services: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
@@ -345,6 +345,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			}
+
+			add_action( 'admin_init', array( $this, 'reinstall_notice' ) );
 
 			$this->load_dependencies();
 			$this->schedule_service_schemas_fetch();
@@ -760,6 +762,112 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<a href="<?php echo( esc_url( $accept_url ) ) ?>" class="button-primary"><?php _e( 'Connect' ) ?></a>
 				</p>
+			</div>
+			<?php
+		}
+
+		public function reinstall_notice() {
+			if ( get_option( 'wc_connect_dismiss_deprecation', false ) ) {
+				return;
+			}
+
+			if ( $this->check_reinstall_actions() ) {
+				return;
+			}
+
+			add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
+			add_action( 'admin_notices', array( $this, 'show_reinstall_notice' ) );
+		}
+
+		private function check_reinstall_actions() {
+			if ( ! isset( $_GET['wc-connect-deprecate'] ) ) {
+				return false;
+			}
+
+			$command = $_GET['wc-connect-deprecate'];
+
+			if ( 'reinstall' === $command ) {
+				$this->reinstall_plugin();
+			}
+
+			if( 'dismiss' === $command ) {
+				update_option( 'wc_connect_tos_accepted', true );
+			}
+
+			return true;
+		}
+
+		public function show_reinstall_notice() {
+			$accept_url = add_query_arg( array( 'wc-connect-deprecate' => 'reinstall' ) );
+			$decline_url = admin_url( 'plugins.php?wc-connect-deprecate=dismiss' );
+
+			?>
+			<div class="notice wcc-admin-notice">
+				<h1><?php _e( 'WooCommerce Services Plugin has Moved' ) ?></h1>
+				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
+				<p>
+					<b>The repository from which this plugin has been installed is deprecated. But don't worry, updating is painless!</b>
+				</p>
+				<p>
+					<?php echo __( 'Click the "Reinstall" button below to automatically delete this outdated plugin and install the new one. None of your settings will be lost.', 'woocommerce-services' ); ?>
+				</p>
+				<p>
+					<a href="<?php echo( esc_url( $accept_url ) ) ?>" class="button-primary"><?php _e( 'Reinstall' ) ?></a>
+				</p>
+			</div>
+			<?php
+		}
+
+		private function reinstall_plugin() {
+			if ( ! current_user_can( 'install_plugins' ) ) {
+				add_action( 'admin_notice', array( $this, 'reinstall_failed' ) );
+				return;
+			}
+
+			include_once( ABSPATH . '/wp-admin/includes/admin.php' );
+			include_once( ABSPATH . '/wp-admin/includes/plugin-install.php' );
+			include_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+			include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
+			include_once( ABSPATH . '/wp-admin/includes/class-plugin-upgrader.php' );
+
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+			delete_plugins( array( plugin_basename( __FILE__ ) ) );
+
+			$api = plugins_api( 'plugin_information', array( 'slug' => 'woocommerce-services' ) );
+			if ( is_wp_error( $api ) ) {
+				add_action( 'admin_notice', array( $this, 'reinstall_failed' ) );
+				return;
+			}
+
+			$upgrader = new Plugin_Upgrader( new Automatic_Upgrader_Skin() );
+			$result   = $upgrader->install( $api->download_link );
+			if ( true !== $result ) {
+				add_action( 'admin_notice', array( $this, 'reinstall_failed' ) );
+				return;
+			}
+
+			$success = is_null( activate_plugin( 'woocommerce-services/woocommerce-services.php' ) );
+
+			if ( ! $success ) {
+				add_action( 'admin_notice', array( $this, 'reinstall_failed' ) );
+				return;
+			}
+
+			add_action( 'admin_notice', array( $this, 'reinstall_success' ) );
+		}
+
+		public function reinstall_failed() {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><?php _e( 'Failed to reinstall WooCommerce Services. You may need to manually reinstall the plugin.', 'woocommerce-services' ); ?></p>
+			</div>
+			<?php
+		}
+
+		public function reinstall_success() {
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p><?php _e( 'WooCommerce Services plugin has been successfully reinstalled.', 'woocommerce-services' ); ?></p>
 			</div>
 			<?php
 		}
