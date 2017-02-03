@@ -341,7 +341,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
-			if ( ! $this->check_tos() ) {
+			if ( ! get_option( 'wc_connect_tos_accepted', false ) ) {
+				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			}
 
@@ -679,19 +680,55 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $active_shipping_services;
 		}
 
-		public function check_tos() {
-			if ( get_option( 'wc_connect_tos_accepted', false ) ) {
-				return true;
-			}
-
-			add_action( 'admin_init', array( $this, 'dismiss_tos_notice' ) );
-
-			if ( isset( $_GET['wc-connect-notice'] ) ) {
+		/**
+		 * Checks for TOS accept/decline and renders the notice as needed
+		 */
+		public function admin_tos_notice() {
+			// Do nothing if the TOS has been accepted or declined
+			if ( $this->dismiss_tos_notice() ) {
 				return;
 			}
 
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
-			add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
+			if ( $this->can_accept_tos() ) {
+				add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
+				add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
+			}
+		}
+
+		private function dismiss_tos_notice() {
+			if ( ! isset( $_GET['wc-connect-notice'] ) ) {
+				return false;
+			}
+
+			if ( 'accept' === $_GET['wc-connect-notice'] ) {
+				update_option( 'wc_connect_tos_accepted', true );
+				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
+				exit;
+			}
+
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+			add_action( 'admin_notices', array( $this, 'deactivate_notice' ) );
+			return true;
+		}
+
+		/**
+		 * Check that the current user is the owner of the Jetpack connection
+		 * Only that person can accept the TOS
+		 * @return bool
+		 */
+		private function can_accept_tos() {
+			if ( defined( 'JETPACK_DEV_DEBUG' ) ) {
+				return true;
+			}
+
+			if ( ! class_exists( 'Jetpack_Data' ) ) {
+				return false;
+			}
+
+			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			if ( $user_token && is_object( $user_token ) && isset( $user_token->external_user_id ) ) {
+				return get_current_user_id() === $user_token->external_user_id;
+			}
 
 			return false;
 		}
@@ -725,23 +762,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				</p>
 			</div>
 			<?php
-		}
-
-		public function dismiss_tos_notice() {
-			if ( ! isset( $_GET['wc-connect-notice'] ) ) {
-				return;
-			}
-
-			if ( 'accept' === $_GET['wc-connect-notice'] ) {
-				update_option( 'wc_connect_tos_accepted', true );
-				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
-				$tracks = self::load_tracks_for_activation_hooks();
-				$tracks->opted_in();
-				exit;
-			} else {
-				deactivate_plugins( plugin_basename( __FILE__ ) );
-				add_action( 'admin_notices', array( $this, 'deactivate_notice' ) );
-			}
 		}
 
 		public function deactivate_notice() {
