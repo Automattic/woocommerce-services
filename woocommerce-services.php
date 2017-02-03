@@ -159,7 +159,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		static function plugin_deactivation() {
-			update_option( 'wc_connect_tos_accepted', false );
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
