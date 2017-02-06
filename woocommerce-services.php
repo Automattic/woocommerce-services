@@ -712,7 +712,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			?>
 			<div class="notice wcc-admin-notice">
 				<h1><?php _e( 'Welcome to WooCommerce Services' ) ?></h1>
-				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'connectforwoocommerce' ); ?>"></a>
+				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
 				<p>
 					<b>Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.</b>
 				</p>
@@ -751,7 +751,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function deactivate_notice() {
 			?>
 			<div class="notice notice-success is-dismissible">
-				<p><?php _e( 'WooCommerce Services plugin has been disabled.', 'connectforwoocommerce' ); ?></p>
+				<p><?php _e( 'WooCommerce Services plugin has been disabled.', 'woocommerce-services' ); ?></p>
 			</div>
 			<?php
 		}

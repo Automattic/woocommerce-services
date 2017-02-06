@@ -56,12 +56,12 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			$link_dismiss = home_url( add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) ) );
 
 			$message = sprintf(
-				__( 'An error occurred in WooCommerce Services. Details are logged <a href="%s">here</a>.', 'connectforwoocommerce' ),
+				__( 'An error occurred in WooCommerce Services. Details are logged <a href="%s">here</a>.', 'woocommerce-services' ),
 				$link_status, $link_dismiss
 			);
 ?>
 			<div class='notice notice-error' style="position: relative;">
-				<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'connectforwoocommerce' ); ?>"></a>
+				<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
 				<p><?php echo $message; ?></p>
 			</div>
 <?php
