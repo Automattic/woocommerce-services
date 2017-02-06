@@ -39,9 +39,15 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 	 */
 	protected $logger;
 
-	public function __construct( WC_Connect_Service_Schemas_Store $schemas_store, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
+	/*
+	 * @var WC_Connect_Nux
+	 */
+	protected $nux;
+
+	public function __construct( WC_Connect_Service_Schemas_Store $schemas_store, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Nux $nux, WC_Connect_Logger $logger ) {
 		$this->service_schemas_store  = $schemas_store;
 		$this->service_settings_store = $settings_store;
+		$this->nux = $nux;
 		$this->logger = $logger;
 	}
 
@@ -53,6 +59,13 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 			array(
 				'methods'             => WP_REST_Server::EDITABLE, // registers the U (PUT) in CRUD
 				'callback'            => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
+			),
+		) );
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/dismiss_notice', array(
+			array(
+				'methods'             => WP_REST_Server::EDITABLE, // registers the U (PUT) in CRUD
+				'callback'            => array( $this, 'dismiss_notice' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 			),
 		) );
@@ -105,6 +118,12 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
+
+		return new WP_REST_Response( array( 'success' => true ), 200 );
+	}
+
+	public function dismiss_notice() {
+		$this->nux->dismiss_notice( 'service_settings' );
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}

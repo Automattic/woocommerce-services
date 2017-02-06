@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import WCCSettingsGroup from './settings-group';
+import NuxNotice from './nux-notice';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as FormActions from 'settings/state/actions';
@@ -21,6 +22,7 @@ const WCCSettingsForm = ( props ) => {
 
 	return (
 		<div>
+			<NuxNotice noticeDismissed={ ! ! props.form.noticeDismissed } dismissNotice={ props.formActions.dismissNotice } />
 			{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }
 		</div>
 	);

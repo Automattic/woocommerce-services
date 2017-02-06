@@ -18,7 +18,7 @@ const getItemValue = ( schema, value, definitions ) => {
 	}
 };
 
-export default ( schema, values ) => {
+export default ( schema, values, noticeDismissed ) => {
 	const formValues = {};
 	const pristine = {};
 	Object.keys( schema.properties ).forEach( ( key ) => {
@@ -33,6 +33,7 @@ export default ( schema, values ) => {
 			currentStep: -1,
 			values: formValues,
 			shippingLabel: {},
+			noticeDismissed,
 		},
 	};
 };

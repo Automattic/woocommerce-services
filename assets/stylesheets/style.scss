@@ -369,6 +369,23 @@
 		}
 	}
 
+	.wcc-nux-notice {
+		background: lighten( $blue-light, 20% );
+		border: 1px solid $blue-light;
+		padding: 15px;
+		margin-bottom: 10px;
+		display: flex;
+
+		svg {
+			margin-right: 10px;
+		}
+
+		a {
+			text-decoration: none;
+			margin-left: auto;
+		}
+	}
+
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';
