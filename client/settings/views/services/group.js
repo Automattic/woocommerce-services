@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
-import IndeterminateCheckbox from 'components/indeterminate-checkbox';
+import BulkCheckbox from 'components/bulk-checkbox';
 import Gridicon from 'components/gridicon';
 import InfoTooltip from 'components/info-tooltip';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -42,7 +42,7 @@ const ShippingServiceGroup = ( props ) => {
 	), 0 );
 	const renderHeader = () => {
 		return <div className="wcc-shipping-services-group-header">
-			<IndeterminateCheckbox
+			<BulkCheckbox
 				selectedCount={ numSelected }
 				allCount={ services.length }
 				onToggle={ ( event, checked ) => ( updateAll( event, checked, updateValue, services ) ) } />

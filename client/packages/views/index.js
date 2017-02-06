@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
-import IndeterminateCheckbox from 'components/indeterminate-checkbox';
+import BulkCheckbox from 'components/bulk-checkbox';
 import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
@@ -51,7 +51,7 @@ const Packages = ( props ) => {
 
 		return (
 			<div className="wcc-predefined-packages-group-header" >
-				<IndeterminateCheckbox
+				<BulkCheckbox
 					selectedCount={ selected.length }
 					allCount={ packages.length }
 					onToggle={ onToggle } />

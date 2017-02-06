@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'components/gridicon';
 
-const IndeterminateCheckbox = ( { selectedCount, allCount, onToggle } ) => {
+const BulkCheckbox = ( { selectedCount, allCount, onToggle } ) => {
 	const allSelected = selectedCount === allCount;
 	const someSelected = 0 < selectedCount && allCount > selectedCount;
 
@@ -11,17 +11,17 @@ const IndeterminateCheckbox = ( { selectedCount, allCount, onToggle } ) => {
 	};
 
 	return (
-		<span className="wcc-indeterminate-container" onClick={ onClick }>
+		<span className="wcc-bulk-checkbox-container" onClick={ onClick }>
 			<input type="checkbox" checked={ allSelected } readOnly />
 			{ someSelected ? <Gridicon className="bulk-select__some-checked-icon" icon="minus-small" size={ 18 }/> : null }
 		</span>
 	);
 };
 
-IndeterminateCheckbox.propTypes = {
+BulkCheckbox.propTypes = {
 	selectedCount: PropTypes.number.isRequired,
 	allCount: PropTypes.number.isRequired,
 	onToggle: PropTypes.func,
 };
 
-export default IndeterminateCheckbox;
+export default BulkCheckbox;
