@@ -165,7 +165,7 @@ class ShippingLabelRootView extends Component {
 		);
 	}
 
-	renderLabelDetails( label, index ) {
+	renderLabelDetails( label, labelNum, index ) {
 		if ( ! label.package_name || ! label.product_names ) {
 			return null;
 		}
@@ -176,7 +176,7 @@ class ShippingLabelRootView extends Component {
 						onMouseEnter={ () => this.openTooltip( index ) }
 						onMouseLeave={ () => this.closeTooltip( index ) }
 						ref={ 'label-details-' + index }>
-					{ sprintf( __( 'Label #%s' ), label.label_id ) }
+					{ sprintf( __( 'Label #%s' ), labelNum ) }
 				</span>
 				<Tooltip
 					className="wc-connect-popover"
@@ -197,12 +197,12 @@ class ShippingLabelRootView extends Component {
 		);
 	}
 
-	renderLabel( label, index ) {
+	renderLabel( label, index, labels ) {
 		const purchased = timeAgo( label.created );
 
 		return (
 			<div key={ label.label_id } className="wcc-metabox-label-item" >
-				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
+				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, labels.length - index, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
 				<p className="wcc-metabox-label-item__tracking">{ __( 'Tracking #:' ) } <TrackingLink { ...label }/></p>
 				<p className="wcc-metabox-label-item__actions" >
 					{ this.renderRefund( label ) }
