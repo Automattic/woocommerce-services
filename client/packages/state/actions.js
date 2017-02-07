@@ -50,10 +50,11 @@ export const toggleOuterDimensions = () => ( {
 	type: TOGGLE_OUTER_DIMENSIONS,
 } );
 
-export const toggleAll = ( serviceId, groupId ) => ( {
+export const toggleAll = ( serviceId, groupId, checked ) => ( {
 	type: TOGGLE_ALL,
 	serviceId,
 	groupId,
+	checked,
 } );
 
 export const togglePackage = ( serviceId, packageId ) => ( {

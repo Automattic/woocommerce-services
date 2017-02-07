@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
-import FormCheckbox from 'components/forms/form-checkbox';
+import BulkCheckbox from 'components/bulk-checkbox';
 import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
@@ -44,14 +44,17 @@ const Packages = ( props ) => {
 			return null;
 		}
 
-		const allPackageIds = packages.map( ( def ) => def.id );
-		const selectedAll = 0 === _.difference( allPackageIds, selected ).length;
+		const onToggle = ( event, checked ) => {
+			event.stopPropagation();
+			props.toggleAll( serviceId, groupId, checked );
+		};
+
 		return (
 			<div className="wcc-predefined-packages-group-header" >
-				<FormCheckbox
-					checked={ selectedAll }
-					onClick={ ( event ) => event.stopPropagation() }
-					onChange={ () => props.toggleAll( serviceId, groupId ) } />
+				<BulkCheckbox
+					selectedCount={ selected.length }
+					allCount={ packages.length }
+					onToggle={ onToggle } />
 				{ title }
 			</div>
 		);
@@ -70,11 +73,12 @@ const Packages = ( props ) => {
 					return;
 				}
 
-				const summary = predefSummary( serviceSelected, groupPackages );
+				const groupSelected = _.filter( serviceSelected, ( selectedId ) => ( _.some( groupPackages, ( pckg ) => ( pckg.id === selectedId ) ) ) );
+				const summary = predefSummary( groupSelected, nonFlatRates );
 
 				elements.push( <FoldableCard
 					key={ `${serviceId}_${groupId}` }
-					header={ renderPredefHeader( predefGroup.title, serviceSelected, groupPackages, serviceId, groupId ) }
+					header={ renderPredefHeader( predefGroup.title, groupSelected, nonFlatRates, serviceId, groupId ) }
 					summary={ summary }
 					expandedSummary={ summary }
 					clickableHeader={ true }
@@ -85,7 +89,7 @@ const Packages = ( props ) => {
 				>
 					<PackagesList
 						packages={ groupPackages }
-						selected={ serviceSelected }
+						selected={ groupSelected }
 						serviceId={ serviceId }
 						groupId={ groupId }
 						toggleAll={ props.toggleAll }

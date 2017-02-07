@@ -1,17 +1,14 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
-import CheckBox from 'components/forms/form-checkbox';
+import BulkCheckbox from 'components/bulk-checkbox';
 import Gridicon from 'components/gridicon';
 import InfoTooltip from 'components/info-tooltip';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
-const summaryLabel = ( services ) => {
-	const numSelected = services.reduce( ( count, service ) => (
-		count + ( service.enabled ? 1 : 0 )
-	), 0 );
+const summaryLabel = ( services, numSelected ) => {
 	if ( numSelected === services.length ) {
 		return __( 'All services selected' );
 	}
@@ -19,9 +16,10 @@ const summaryLabel = ( services ) => {
 	return sprintf( format, numSelected );
 };
 
-const updateAll = ( event, updateValue, services ) => {
+const updateAll = ( event, checked, updateValue, services ) => {
+	event.stopPropagation();
 	services.forEach( ( service ) => {
-		updateValue( [ service.id, 'enabled' ], event.target.checked );
+		updateValue( [ service.id, 'enabled' ], checked );
 	} );
 };
 
@@ -38,18 +36,21 @@ const ShippingServiceGroup = ( props ) => {
 			<Gridicon icon="chevron-down" size={ 24 } />
 		</button>
 	);
-	const allChecked = _.every( services, ( service ) => service.enabled );
+
+	const numSelected = services.reduce( ( count, service ) => (
+		count + ( service.enabled ? 1 : 0 )
+	), 0 );
 	const renderHeader = () => {
 		return <div className="wcc-shipping-services-group-header">
-			<CheckBox
-				onClick={ ( event ) => event.stopPropagation() }
-				onChange={ ( event ) => updateAll( event, updateValue, services ) }
-				checked={ allChecked }
-			/>
+			<BulkCheckbox
+				selectedCount={ numSelected }
+				allCount={ services.length }
+				onToggle={ ( event, checked ) => ( updateAll( event, checked, updateValue, services ) ) } />
 			{ title }
 		</div>;
 	};
-	const summary = summaryLabel( services );
+
+	const summary = summaryLabel( services, numSelected );
 
 	return (
 		<FoldableCard
