@@ -435,7 +435,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_shipping_fields' , array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
-			add_action( 'admin_init', array( $this->nux, 'check_notice_dismissal' ) );
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 		}
 
@@ -472,7 +471,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
-			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store, $logger );
+			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store, $this->nux, $logger );
 			$this->set_rest_services_controller( $rest_services_controller );
 			$rest_services_controller->register_routes();
 
@@ -546,6 +545,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'callbackURL'        => get_rest_url( null, $path ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => 'wc-connect-service-settings',
+				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
+				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
@@ -801,7 +802,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function add_meta_boxes() {
 			if ( $this->shipping_label->should_show_meta_box() ) {
-				$this->nux->init_labels_notice();
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
 		}

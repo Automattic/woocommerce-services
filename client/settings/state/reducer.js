@@ -1,4 +1,4 @@
-import { SET_FORM_PROPERTY, SET_ALL_PRISTINE } from './actions';
+import { SET_FORM_PROPERTY, SET_ALL_PRISTINE, DISMISS_NOTICE } from './actions';
 import values from './values/reducer';
 import * as formValueActions from './values/actions';
 import _ from 'lodash';
@@ -26,6 +26,11 @@ reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 reducers[ SET_ALL_PRISTINE ] = ( state, action ) => ( {
 	...state,
 	pristine: _.mapValues( state.pristine, () => action.pristineValue ),
+} );
+
+reducers[ DISMISS_NOTICE ] = ( state ) => ( {
+	...state,
+	noticeDismissed: true,
 } );
 
 export default function form( state = {}, action ) {
