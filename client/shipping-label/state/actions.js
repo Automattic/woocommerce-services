@@ -140,19 +140,39 @@ const refreshPreview = ( dispatch, getState, context ) => {
 	} );
 };
 
-export const openPrintingFlow = () => ( dispatch, getState, context ) => {
+export const openPrintingFlow = () => (
+	dispatch,
+	getState,
+	context,
+	getErrors = getFormErrors
+) => {
 	const { storeOptions, addressNormalizationURL, getRatesURL, nonce } = context;
 	let form = getState().shippingLabel.form;
 	const { origin, destination } = form;
-	let errors = getFormErrors( getState(), storeOptions );
+	let errors = getErrors( getState(), storeOptions );
 	const promisesQueue = [];
 
-	if ( ! origin.ignoreValidation && ! hasNonEmptyLeaves( errors.origin ) && ! origin.isNormalized && ! origin.normalizationInProgress ) {
+	if ( ! origin.ignoreValidation &&
+		! hasNonEmptyLeaves( errors.origin ) &&
+		! origin.isNormalized &&
+		! origin.normalizationInProgress ) {
 		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
 
-	if ( ! destination.ignoreValidation && ! hasNonEmptyLeaves( errors.destination ) && ! destination.isNormalized && ! destination.normalizationInProgress ) {
+	if ( origin.ignoreValidation || hasNonEmptyLeaves( errors.origin ) ) {
+		dispatch( toggleStep( 'origin' ) );
+	}
+
+	if ( ! destination.ignoreValidation &&
+		! hasNonEmptyLeaves( errors.destination ) &&
+		! destination.isNormalized &&
+		! destination.normalizationInProgress ) {
 		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
+	}
+
+	if ( destination.ignoreValidation ||
+			hasNonEmptyLeaves( errors.destination ) ) {
+		dispatch( toggleStep( 'destination' ) );
 	}
 
 	waitForAllPromises( promisesQueue ).then( () => {
