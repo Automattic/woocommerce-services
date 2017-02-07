@@ -702,8 +702,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( 'accept' === $_GET['wc-connect-notice'] ) {
+				$tracks = self::load_tracks_for_activation_hooks();
+				$tracks->opted_in();
+
 				update_option( 'wc_connect_tos_accepted', true );
 				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
+
 				exit;
 			}
 
