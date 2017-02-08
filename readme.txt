@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6.1
 Tested up to: 4.7.2
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,6 +74,10 @@ Absolutely! You can read our Terms of Service [here](https://woocommerce.com/ter
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.1.1 =
+* Update plugin support documentation link
+* Fix bug related to tracking Terms of Service acceptance
 
 = 1.1.0 =
 * Fetch service schemas earlier - fix bug where no shipping methods displayed
