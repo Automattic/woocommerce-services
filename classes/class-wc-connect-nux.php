@@ -75,8 +75,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'target' => 'th.wc-shipping-zone-methods',
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
-						__( 'Add WooCommerce Shipping Service to a Zone' ,'woocommerce-services' ),
-						__( 'Choose a zone that is applicable to USPS or Canada Post.', 'woocommerce-services' )
+						__( 'Add a WooCommerce shipping service to a Zone' ,'woocommerce-services' ),
+						__( 'To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don\'t have any zones, add one first.', 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
 				)
