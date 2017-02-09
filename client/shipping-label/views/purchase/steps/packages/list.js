@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import getPackageDescriptions from './get-package-descriptions';
 

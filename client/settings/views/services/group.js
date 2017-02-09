@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
 import BulkCheckbox from 'components/bulk-checkbox';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import InfoTooltip from 'components/info-tooltip';
 import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';

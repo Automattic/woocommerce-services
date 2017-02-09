@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const noPackages = () => {

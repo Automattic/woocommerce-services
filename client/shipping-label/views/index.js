@@ -8,7 +8,7 @@ import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
 import Spinner from 'components/spinner';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import Tooltip from 'components/tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';

@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import Button from 'components/button';
 import FormCheckbox from 'components/forms/form-checkbox';
 import classNames from 'classnames';
