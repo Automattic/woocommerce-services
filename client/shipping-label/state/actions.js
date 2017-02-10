@@ -174,7 +174,8 @@ export const openPrintingFlow = () => ( dispatch, getState, context ) => {
 			form.destination.isNormalized &&
 			_.isEqual( form.destination.values, form.destination.normalized ) &&
 			_.isEmpty( form.rates.available ) &&
-			form.packages.all && Object.keys( form.packages.all ).length
+			form.packages.all && Object.keys( form.packages.all ).length &&
+			! hasNonEmptyLeaves( errors.packages )
 		) {
 			return getLabelRates( dispatch, getState, showPreviewAfterRateFetch, { getRatesURL, nonce } );
 		}
