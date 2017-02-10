@@ -256,6 +256,17 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 				expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 			};
 
+			const errors = getFormErrors( getState(), storeOptions );
+
+			// If all prerequisite steps are error free, fetch new rates
+			if (
+				hasNonEmptyLeaves( errors.origin ) ||
+				hasNonEmptyLeaves( errors.destination ) ||
+				hasNonEmptyLeaves( errors.packages )
+			) {
+				return;
+			}
+
 			getLabelRates( dispatch, getState, handleRatesResponse, { getRatesURL, nonce } );
 		}
 	};
