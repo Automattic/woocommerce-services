@@ -16,6 +16,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		public static $custom_packages = 'wc_connect_packages';
 		public static $predefined_packages = 'wc_connect_predefined_packages';
 		public static $last_rate_request = 'wc_connect_last_rate_request';
+		public static $nux_notices = 'wc_connect_nux_notices';
 
 		/**
 		 * Based on the service id and optional instance, generates the options key that

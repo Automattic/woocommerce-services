@@ -162,6 +162,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+		}
+
+		static function plugin_uninstall() {
+			require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
 			WC_Connect_Options::delete_all_options();
 		}
 
@@ -865,3 +869,4 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 }
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
+register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
