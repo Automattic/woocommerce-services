@@ -237,6 +237,13 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 		expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 	};
 
+	const errors = getFormErrors( getState(), storeOptions );
+
+	// Make sure packaging is error free before fetching new rates after address confirmation
+	if ( hasNonEmptyLeaves( errors.packages ) ) {
+		return;
+	}
+
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
