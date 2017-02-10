@@ -80,11 +80,11 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 		}
 
 		public function get_payment_methods() {
-			return get_option( 'wc_connect_payment_methods', array() );
+			return get_option( WC_Connect_Options::$payment_methods, array() );
 		}
 
 		protected function update_payment_methods( $payment_methods ) {
-			update_option( 'wc_connect_payment_methods', $payment_methods );
+			update_option( WC_Connect_Options::$payment_methods, $payment_methods );
 		}
 
 		protected function get_payment_methods_from_response_body( $response_body ) {

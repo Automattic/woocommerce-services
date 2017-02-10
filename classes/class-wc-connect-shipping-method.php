@@ -375,10 +375,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function update_last_rate_request_timestamp() {
-			$previous_timestamp = get_option( 'wc_connect_last_rate_request' );
+			$previous_timestamp = get_option( WC_Connect_Options::$last_rate_request );
 			if ( false === $previous_timestamp ||
 				( time() - HOUR_IN_SECONDS ) > $previous_timestamp ) {
-				update_option( 'wc_connect_last_rate_request', time() );
+				update_option( WC_Connect_Options::$last_rate_request, time() );
 			}
 		}
 
@@ -387,7 +387,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$timestamp = time();
 			}
 
-			update_option( $this->service_settings_store->get_service_failure_timestamp_key( $this->id, $this->instance_id ), $timestamp );
+			update_option( WC_Connect_Options::get_service_failure_timestamp_key( $this->id, $this->instance_id ), $timestamp );
 		}
 
 		public function admin_options() {

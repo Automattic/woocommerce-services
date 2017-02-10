@@ -406,9 +406,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'wc_version' => WC()->version,
 				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 				'wp_version' => get_bloginfo( 'version' ),
-				'last_services_update' => get_option( 'wc_connect_services_last_update', 0 ),
-				'last_heartbeat' => get_option( 'wc_connect_last_heartbeat', 0 ),
-				'last_rate_request' => get_option( 'wc_connect_last_rate_request', 0 ),
+				'last_services_update' => get_option( WC_Connect_Options::$last_schema_update, 0 ),
+				'last_heartbeat' => get_option( WC_Connect_Options::$last_heartbeat, 0 ),
+				'last_rate_request' => get_option( WC_Connect_Options::$last_rate_request, 0 ),
 				'active_services' => $this->wc_connect_loader->get_active_services(),
 				'disable_stats' => Jetpack::is_staging_site(),
 			) );
@@ -490,10 +490,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		private function get_guid() {
-			$guid = get_option( 'wc_connect_store_guid', false );
+			$guid = get_option( WC_Connect_Options::$store_guid, false );
 			if ( false === $guid ) {
 				$guid = $this->generate_guid();
-				update_option( 'wc_connect_store_guid', $guid );
+				update_option( WC_Connect_Options::$store_guid, $guid );
 			}
 
 			return $guid;

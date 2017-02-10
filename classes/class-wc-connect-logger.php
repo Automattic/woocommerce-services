@@ -2,8 +2,6 @@
 
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
-	define( 'WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION', 'wc_connect_debug_logging_enabled' );
-
 	class WC_Connect_Logger {
 
 		/**
@@ -17,7 +15,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
 			$this->logger = $logger;
 
-			$this->is_logging_enabled = get_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, false );
+			$this->is_logging_enabled = get_option( WC_Connect_Options::$debug_enabled, false );
 
 		}
 
@@ -45,14 +43,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		}
 
 		public function enable_logging() {
-			update_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, true );
+			update_option( WC_Connect_Options::$debug_enabled, true );
 			$this->is_logging_enabled = true;
 			$this->log( "Logging enabled" );
 		}
 
 		public function disable_logging() {
 			$this->log( "Logging disabled" );
-			update_option( WOOCOMMERCE_CONNECT_DEBUG_LOGGING_ENABLED_OPTION, false );
+			update_option( WC_Connect_Options::$debug_enabled, false );
 			$this->is_logging_enabled = false;
 		}
 
