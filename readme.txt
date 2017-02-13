@@ -1,7 +1,7 @@
 === WooCommerce Services ===
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
-Requires at least: 4.6.1
+Requires at least: 4.6
 Tested up to: 4.7.2
 Stable tag: 1.1.1
 License: GPLv2 or later
