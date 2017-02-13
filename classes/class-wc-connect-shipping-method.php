@@ -375,10 +375,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function update_last_rate_request_timestamp() {
-			$previous_timestamp = get_option( WC_Connect_Options::$last_rate_request );
+			$previous_timestamp = get_option( WC_Connect_Options::LAST_RATE_REQUEST );
 			if ( false === $previous_timestamp ||
 				( time() - HOUR_IN_SECONDS ) > $previous_timestamp ) {
-				update_option( WC_Connect_Options::$last_rate_request, time() );
+				update_option( WC_Connect_Options::LAST_RATE_REQUEST, time() );
 			}
 		}
 

@@ -51,7 +51,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$default = array(
 				'selected_payment_method_id' => 0
 			);
-			return get_option( WC_Connect_Options::$account_settings, $default );
+			return get_option( WC_Connect_Options::ACCOUNT_SETTINGS, $default );
 		}
 
 		/**
@@ -68,7 +68,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
-			return update_option( WC_Connect_Options::$account_settings, $settings );;
+			return update_option( WC_Connect_Options::ACCOUNT_SETTINGS, $settings );;
 		}
 
 		public function get_selected_payment_method_id() {
@@ -100,16 +100,16 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields[ 'postcode' ] = '';
 			$wc_address_fields[ 'phone' ] = '';
 
-			$stored_address_fields = get_option( WC_Connect_Options::$origin_address, array() );
+			$stored_address_fields = get_option( WC_Connect_Options::ORIGIN_ADDRESS, array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
 		public function get_preferred_paper_size() {
-			return get_option( WC_Connect_Options::$paper_size, '' );
+			return get_option( WC_Connect_Options::PAPER_SIZE, '' );
 		}
 
 		public function set_preferred_paper_size( $size ) {
-			return update_option( WC_Connect_Options::$paper_size, $size );
+			return update_option( WC_Connect_Options::PAPER_SIZE, $size );
 		}
 
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
@@ -124,7 +124,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function update_origin_address( $address ) {
-			return update_option( WC_Connect_Options::$origin_address, $address );
+			return update_option( WC_Connect_Options::ORIGIN_ADDRESS, $address );
 		}
 
 		protected function sort_services( $a, $b ) {
@@ -281,7 +281,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_packages() {
-			return get_option( WC_Connect_Options::$custom_packages, array() );
+			return get_option( WC_Connect_Options::CUSTOM_PACKAGES, array() );
 		}
 
 		/**
@@ -290,7 +290,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_packages( $packages ) {
-			update_option( WC_Connect_Options::$custom_packages, $packages );
+			update_option( WC_Connect_Options::CUSTOM_PACKAGES, $packages );
 		}
 
 		/**
@@ -299,7 +299,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_predefined_packages() {
-			return get_option( WC_Connect_Options::$predefined_packages, array() );
+			return get_option( WC_Connect_Options::PREDEFINED_PACKAGES, array() );
 		}
 
 		/**
@@ -323,7 +323,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_predefined_packages( $packages ) {
-			update_option( WC_Connect_Options::$predefined_packages, $packages );
+			update_option( WC_Connect_Options::PREDEFINED_PACKAGES, $packages );
 		}
 
 		public function get_package_lookup_for_service( $service_id ) {

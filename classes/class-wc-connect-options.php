@@ -2,21 +2,21 @@
 
 if ( ! class_exists( 'WC_Connect_Options' ) ) {
 	class WC_Connect_Options {
-		public static $tos_accepted = 'wc_connect_tos_accepted';
-		public static $store_guid = 'wc_connect_store_guid';
-		public static $error_notice = 'wc_connect_error_notice';
-		public static $debug_enabled = 'wc_connect_debug_logging_enabled';
-		public static $payment_methods = 'wc_connect_payment_methods';
-		public static $service_schemas = 'wc_connect_services';
-		public static $last_schema_update = 'wc_connect_services_last_update';
-		public static $last_heartbeat = 'wc_connect_last_heartbeat';
-		public static $account_settings = 'wc_connect_account_settings';
-		public static $paper_size = 'wc_connect_paper_size';
-		public static $origin_address = 'wc_connect_origin_address';
-		public static $custom_packages = 'wc_connect_packages';
-		public static $predefined_packages = 'wc_connect_predefined_packages';
-		public static $last_rate_request = 'wc_connect_last_rate_request';
-		public static $nux_notices = 'wc_connect_nux_notices';
+		const TOS_ACCEPTED = 'wc_connect_tos_accepted';
+		const STORE_GUID = 'wc_connect_store_guid';
+		const ERROR_NOTICE = 'wc_connect_error_notice';
+		const DEBUG_ENABLED = 'wc_connect_debug_logging_enabled';
+		const PAYMENT_METHODS = 'wc_connect_payment_methods';
+		const SERVICE_SCHEMAS = 'wc_connect_services';
+		const LAST_SCHEMA_UPDATE = 'wc_connect_services_last_update';
+		const LAST_HEARTBEAT = 'wc_connect_last_heartbeat';
+		const ACCOUNT_SETTINGS = 'wc_connect_account_settings';
+		const PAPER_SIZE = 'wc_connect_paper_size';
+		const ORIGIN_ADDRESS = 'wc_connect_origin_address';
+		const CUSTOM_PACKAGES = 'wc_connect_packages';
+		const PREDEFINED_PACKAGES = 'wc_connect_predefined_packages';
+		const LAST_RATE_REQUEST = 'wc_connect_last_rate_request';
+		const NUX_NOTICES = 'wc_connect_nux_notices';
 
 		/**
 		 * Based on the service id and optional instance, generates the options key that
@@ -70,20 +70,11 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				return;
 			}
 
-			delete_option( self::$tos_accepted );
-			delete_option( self::$store_guid );
-			delete_option( self::$error_notice );
-			delete_option( self::$debug_enabled );
-			delete_option( self::$payment_methods );
-			delete_option( self::$service_schemas );
-			delete_option( self::$last_schema_update );
-			delete_option( self::$last_heartbeat );
-			delete_option( self::$account_settings );
-			delete_option( self::$paper_size );
-			delete_option( self::$origin_address );
-			delete_option( self::$custom_packages );
-			delete_option( self::$predefined_packages );
-			delete_option( self::$last_rate_request );
+			$reflect = new ReflectionClass( get_called_class() );
+			$constants = $reflect->getConstants();
+			foreach ( $constants as $constantName => $constantValue ) {
+				delete_option( $constantValue );
+			}
 
 			self::delete_all_shipping_methods_options();
 		}

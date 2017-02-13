@@ -40,23 +40,23 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		}
 
 		public function get_service_schemas() {
-			return get_option( WC_Connect_Options::$service_schemas, null );
+			return get_option( WC_Connect_Options::SERVICE_SCHEMAS, null );
 		}
 
 		protected function update_service_schemas( $service_schemas ) {
-			update_option( WC_Connect_Options::$service_schemas, $service_schemas );
+			update_option( WC_Connect_Options::SERVICE_SCHEMAS, $service_schemas );
 		}
 
 		public function get_last_fetch_timestamp() {
-			return get_option( WC_Connect_Options::$last_schema_update, null );
+			return get_option( WC_Connect_Options::LAST_SCHEMA_UPDATE, null );
 		}
 
 		protected function update_last_fetch_timestamp() {
-			update_option( WC_Connect_Options::$last_schema_update, time() );
+			update_option( WC_Connect_Options::LAST_SCHEMA_UPDATE, time() );
 		}
 
 		protected function maybe_update_heartbeat() {
-			$last_heartbeat = get_option( WC_Connect_Options::$last_heartbeat );
+			$last_heartbeat = get_option( WC_Connect_Options::LAST_HEARTBEAT );
 			$now = time();
 
 			if ( ! $last_heartbeat ) {
@@ -73,7 +73,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			if ( $should_update ) {
-				update_option( WC_Connect_Options::$last_heartbeat, $now );
+				update_option( WC_Connect_Options::LAST_HEARTBEAT, $now );
 			}
 		}
 

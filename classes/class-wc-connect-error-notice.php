@@ -24,17 +24,17 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		}
 
 		public function enable_notice() {
-			update_option( WC_Connect_Options::$error_notice, true );
+			update_option( WC_Connect_Options::ERROR_NOTICE, true );
 		}
 
 		public function disable_notice() {
-			update_option( WC_Connect_Options::$error_notice, false );
+			update_option( WC_Connect_Options::ERROR_NOTICE, false );
 		}
 
 		public function render_notice() {
 			$error_notice = filter_input( INPUT_GET, 'wc-connect-error-notice' );
 			if ( 'disable' === $error_notice ) {
-				update_option( WC_Connect_Options::$error_notice, false );
+				update_option( WC_Connect_Options::ERROR_NOTICE, false );
 				$url = home_url( remove_query_arg( 'wc-connect-error-notice' ) );
 				wp_safe_redirect( $url );
 				exit;
@@ -46,7 +46,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		}
 
 		private function notice_enabled() {
-			return get_option( WC_Connect_Options::$error_notice, false );
+			return get_option( WC_Connect_Options::ERROR_NOTICE, false );
 		}
 
 		private function show_notice() {
