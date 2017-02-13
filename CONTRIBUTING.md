@@ -12,9 +12,9 @@ If you're filing a bug, specific steps to reproduce are helpful. Please include 
 
 ## Setting up USPS shipping with the WooCommerce Services
 
-1. Install or update to [WordPress 4.5](https://wordpress.org/download/) or higher.
-2. Install and activate [WooCommerce 2.6 or higher](https://wordpress.org/plugins/woocommerce/). WooCommerce Services will NOT work with WooCommerce 2.5 or older.
-3. Install and activate [Jetpack 3.9.6 or higher](https://wordpress.org/plugins/jetpack/).
+1. Install or update to [WordPress 4.6 or higher](https://wordpress.org/download/).
+2. Install and activate [WooCommerce 2.6 or higher](https://wordpress.org/plugins/woocommerce/).
+3. Install and activate [Jetpack 4.6 or higher](https://wordpress.org/plugins/jetpack/).
 4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, WooCommerce Services requires the Jetpack connection to authenticate with the WooCommerce Services server.
 5. Install and activate this feature plugin.
 6. Add at least one product with weight and dimensions.
