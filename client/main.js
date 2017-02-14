@@ -1,8 +1,5 @@
-if ( ! global._babelPolyfill ) {
-	require( 'babel-polyfill' );
-}
-
 /*global wcConnectData */
+import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { applyMiddleware, createStore, compose } from 'redux';
