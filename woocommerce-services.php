@@ -27,6 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
+
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
@@ -165,7 +167,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		static function plugin_uninstall() {
-			require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
 			WC_Connect_Options::delete_all_options();
 		}
 
@@ -346,8 +347,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
-			require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
-
 			if ( ! get_option( WC_Connect_Options::TOS_ACCEPTED, false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
