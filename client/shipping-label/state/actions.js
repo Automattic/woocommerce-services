@@ -239,8 +239,12 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 
 	const errors = getFormErrors( getState(), storeOptions );
 
-	// Make sure packaging is error free before fetching new rates after address confirmation
-	if ( hasNonEmptyLeaves( errors.packages ) ) {
+	// If all prerequisite steps are error free, fetch new rates
+	if (
+		hasNonEmptyLeaves( errors.origin ) ||
+		hasNonEmptyLeaves( errors.destination ) ||
+		hasNonEmptyLeaves( errors.packages )
+	) {
 		return;
 	}
 
