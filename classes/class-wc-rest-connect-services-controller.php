@@ -96,7 +96,10 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 		if ( empty( $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update service settings. The form data could not be read.', 'woocommerce-services' ),
-				array( 'status' => 400 )
+				array(
+					'status'     => 400,
+					'error_code' => json_last_error(),
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;
