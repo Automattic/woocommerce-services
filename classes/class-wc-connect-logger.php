@@ -15,7 +15,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
 			$this->logger = $logger;
 
-			$this->is_logging_enabled = get_option( WC_Connect_Options::DEBUG_ENABLED, false );
+			$this->is_logging_enabled = WC_Connect_Options::get_option( 'debug_logging_enabled', false );
 
 		}
 
@@ -43,14 +43,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		}
 
 		public function enable_logging() {
-			update_option( WC_Connect_Options::DEBUG_ENABLED, true );
+			WC_Connect_Options::update_option( 'debug_logging_enabled', true );
 			$this->is_logging_enabled = true;
 			$this->log( "Logging enabled" );
 		}
 
 		public function disable_logging() {
 			$this->log( "Logging disabled" );
-			update_option( WC_Connect_Options::DEBUG_ENABLED, false );
+			WC_Connect_Options::update_option( 'debug_logging_enabled', false );
 			$this->is_logging_enabled = false;
 		}
 

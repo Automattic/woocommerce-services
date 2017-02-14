@@ -347,7 +347,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
-			if ( ! get_option( WC_Connect_Options::TOS_ACCEPTED, false ) ) {
+			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			}
@@ -710,7 +710,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( 'accept' === $_GET['wc-connect-notice'] ) {
 				$tracks = self::load_tracks_for_activation_hooks();
 				$tracks->opted_in();
-				update_option( WC_Connect_Options::TOS_ACCEPTED, true );
+				WC_Connect_Options::update_option( 'tos_accepted', true );
 				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
 
 				exit;

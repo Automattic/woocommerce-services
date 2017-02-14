@@ -51,7 +51,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$default = array(
 				'selected_payment_method_id' => 0
 			);
-			return get_option( WC_Connect_Options::ACCOUNT_SETTINGS, $default );
+			return WC_Connect_Options::get_option( 'account_settings', $default );
 		}
 
 		/**
@@ -68,7 +68,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
-			return update_option( WC_Connect_Options::ACCOUNT_SETTINGS, $settings );;
+			return WC_Connect_Options::update_option( 'account_settings', $settings );;
 		}
 
 		public function get_selected_payment_method_id() {
@@ -100,16 +100,16 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields[ 'postcode' ] = '';
 			$wc_address_fields[ 'phone' ] = '';
 
-			$stored_address_fields = get_option( WC_Connect_Options::ORIGIN_ADDRESS, array() );
+			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
 		public function get_preferred_paper_size() {
-			return get_option( WC_Connect_Options::PAPER_SIZE, '' );
+			return WC_Connect_Options::get_option( 'paper_size', '' );
 		}
 
 		public function set_preferred_paper_size( $size ) {
-			return update_option( WC_Connect_Options::PAPER_SIZE, $size );
+			return WC_Connect_Options::update_option( 'paper_size', $size );
 		}
 
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
@@ -124,7 +124,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function update_origin_address( $address ) {
-			return update_option( WC_Connect_Options::ORIGIN_ADDRESS, $address );
+			return WC_Connect_Options::update_option( 'origin_address', $address );
 		}
 
 		protected function sort_services( $a, $b ) {
@@ -219,7 +219,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return object|array
 		 */
 		public function get_service_settings( $service_id, $service_instance = false ) {
-			return get_option( WC_Connect_Options::get_service_settings_key( $service_id, $service_instance ), array() );
+			return WC_Connect_Options::get_shipping_method_option( 'form_settings', array(), $service_id, $service_instance );
 		}
 
 		/**
@@ -267,7 +267,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			// On success, save the settings to the database and exit
-			update_option( WC_Connect_Options::get_service_settings_key( $id, $instance ), $settings );
+			WC_Connect_Options::update_shipping_method_option( 'form_settings', $settings, $id, $instance );
 			// Invalidate shipping rates session cache
 			WC_Cache_Helper::get_transient_version( 'shipping', /* $refresh = */ true );
 			do_action( 'wc_connect_saved_service_settings', $id, $instance, $settings );
@@ -281,7 +281,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_packages() {
-			return get_option( WC_Connect_Options::CUSTOM_PACKAGES, array() );
+			return WC_Connect_Options::get_option( 'packages', array() );
 		}
 
 		/**
@@ -290,7 +290,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_packages( $packages ) {
-			update_option( WC_Connect_Options::CUSTOM_PACKAGES, $packages );
+			WC_Connect_Options::update_option( 'packages', $packages );
 		}
 
 		/**
@@ -299,7 +299,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_predefined_packages() {
-			return get_option( WC_Connect_Options::PREDEFINED_PACKAGES, array() );
+			return WC_Connect_Options::get_option( 'predefined_packages', array() );
 		}
 
 		/**
@@ -323,7 +323,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_predefined_packages( $packages ) {
-			update_option( WC_Connect_Options::PREDEFINED_PACKAGES, $packages );
+			WC_Connect_Options::update_option( 'predefined_packages', $packages );
 		}
 
 		public function get_package_lookup_for_service( $service_id ) {

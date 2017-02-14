@@ -9,7 +9,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		private function get_notice_states() {
-			$states = get_option( WC_Connect_Options::NUX_NOTICES, array() );
+			$states = WC_Connect_Options::get_option( 'nux_notices', array() );
 
 			if ( ! $states ) {
 				return array();
@@ -27,7 +27,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function dismiss_notice( $notice ) {
 			$notices = $this->get_notice_states();
 			$notices[ $notice ] = true;
-			update_option( WC_Connect_Options::NUX_NOTICES, $notices );
+			WC_Connect_Options::update_option( 'nux_notices', $notices );
 		}
 
 		private function init_pointers() {
