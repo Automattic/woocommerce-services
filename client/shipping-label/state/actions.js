@@ -174,7 +174,8 @@ export const openPrintingFlow = () => ( dispatch, getState, context ) => {
 			form.destination.isNormalized &&
 			_.isEqual( form.destination.values, form.destination.normalized ) &&
 			_.isEmpty( form.rates.available ) &&
-			form.packages.all && Object.keys( form.packages.all ).length
+			form.packages.all && Object.keys( form.packages.all ).length &&
+			! hasNonEmptyLeaves( errors.packages )
 		) {
 			return getLabelRates( dispatch, getState, showPreviewAfterRateFetch, { getRatesURL, nonce } );
 		}
@@ -236,6 +237,17 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 		expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 	};
 
+	const errors = getFormErrors( getState(), storeOptions );
+
+	// If all prerequisite steps are error free, fetch new rates
+	if (
+		hasNonEmptyLeaves( errors.origin ) ||
+		hasNonEmptyLeaves( errors.destination ) ||
+		hasNonEmptyLeaves( errors.packages )
+	) {
+		return;
+	}
+
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
@@ -254,6 +266,17 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 			const handleRatesResponse = () => {
 				expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 			};
+
+			const errors = getFormErrors( getState(), storeOptions );
+
+			// If all prerequisite steps are error free, fetch new rates
+			if (
+				hasNonEmptyLeaves( errors.origin ) ||
+				hasNonEmptyLeaves( errors.destination ) ||
+				hasNonEmptyLeaves( errors.packages )
+			) {
+				return;
+			}
 
 			getLabelRates( dispatch, getState, handleRatesResponse, { getRatesURL, nonce } );
 		}
