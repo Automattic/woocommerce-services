@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WooCommerce Services (deprecated)
+ * Plugin Name: Connect for WooCommerce (deprecated)
  * Plugin URI: http://woocommerce.com/
  * Description: WooCommerce Services: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
@@ -767,10 +767,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function reinstall_notice() {
-			if ( get_option( 'wc_connect_dismiss_deprecation', false ) ) {
-				return;
-			}
-
 			if ( $this->check_reinstall_actions() ) {
 				return;
 			}
@@ -784,14 +780,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return false;
 			}
 
-			$command = $_GET['wc-connect-deprecate'];
-
-			if ( 'reinstall' === $command ) {
+			if ( 'reinstall' === $_GET['wc-connect-deprecate'] ) {
 				$this->reinstall_plugin();
-			}
-
-			if( 'dismiss' === $command ) {
-				update_option( 'wc_connect_tos_accepted', true );
 			}
 
 			return true;
@@ -799,14 +789,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function show_reinstall_notice() {
 			$accept_url = add_query_arg( array( 'wc-connect-deprecate' => 'reinstall' ) );
-			$decline_url = admin_url( 'plugins.php?wc-connect-deprecate=dismiss' );
-
 			?>
 			<div class="notice wcc-admin-notice">
-				<h1><?php _e( 'WooCommerce Services Plugin has Moved' ) ?></h1>
-				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
+				<h1><?php echo __( 'WooCommerce Services Plugin has Moved', 'woocommerce-services' ); ?></h1>
 				<p>
-					<b>The repository from which this plugin has been installed is deprecated. But don't worry, updating is painless!</b>
+					<b><?php echo __( 'The repository from which this plugin has been installed is deprecated. But don\'t worry, updating is painless!', 'woocommerce-services' ); ?></b>
 				</p>
 				<p>
 					<?php echo __( 'Click the "Reinstall" button below to automatically delete this outdated plugin and install the new one. None of your settings will be lost.', 'woocommerce-services' ); ?>
@@ -859,7 +846,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function reinstall_failed() {
 			?>
 			<div class="notice notice-error is-dismissible">
-				<p><?php _e( 'Failed to reinstall WooCommerce Services. You may need to manually reinstall the plugin.', 'woocommerce-services' ); ?></p>
+				<p><?php _e( 'Failed to reinstall WooCommerce Services. You will need to complete the process manually.', 'woocommerce-services' ); ?></p>
+				<p><?php
+					printf(
+						__( 'Please delete the old plugin (named "Connect for WooCommerce"), and then <a target="_blank" href="%s">install "WooCommerce Services"</a> from the store.', 'woocommerce-services' ),
+						admin_url( 'plugin-install.php?s=woocommerce+services&tab=search&type=term' )
+					); ?>
+				</p>
 			</div>
 			<?php
 		}
