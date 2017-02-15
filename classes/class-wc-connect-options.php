@@ -221,7 +221,18 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			if ( is_array( $options ) && isset( $options[ $name ] ) ) {
 				return $options[ $name ];
 			}
-			return $default;
+
+			//make the grouped options backwards-compatible and migrate the old options
+			$legacy_name = "wc_connect_$name";
+			$legacy_option = get_option( $legacy_name, false );
+			if ( ! $legacy_option ) {
+				return $default;
+			}
+			if ( self::update_grouped_option( $group, $name, $legacy_option ) ) {
+				delete_option( $legacy_name );
+			}
+
+			return $legacy_option;
 		}
 
 		private static function update_grouped_option( $group, $name, $value ) {
