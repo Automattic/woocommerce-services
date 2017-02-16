@@ -75,7 +75,6 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 	 * Attempts to update the settings on a particular service and instance
 	 */
 	public function update_item( $request ) {
-
 		$request_params = $request->get_params();
 
 		$id = array_key_exists( 'id', $request_params ) ? $request_params['id'] : '';
@@ -90,16 +89,12 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 			return $error;
 		}
 
-		$request_body = $request->get_body();
-		$settings = json_decode( $request_body, false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$settings = $request->get_json_params();
 
 		if ( empty( $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update service settings. The form data could not be read.', 'woocommerce-services' ),
-				array(
-					'status'     => 400,
-					'error_code' => json_last_error(),
-				)
+				array( 'status' => 400 )
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;

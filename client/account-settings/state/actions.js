@@ -32,6 +32,7 @@ export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,
+			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify( getState().form.data ),
 	};

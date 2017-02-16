@@ -59,11 +59,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WP_REST_Controller {
 	}
 
 	public function update_items( $request ) {
-		$carrier = 'usps'; //TODO: remove hardcoding
-
-		$request_body = $request->get_body();
-		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-
+		$carrier  = 'usps'; //TODO: remove hardcoding
+		$settings = $request->get_json_params();
 		$order_id = $settings[ 'order_id' ];
 
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();

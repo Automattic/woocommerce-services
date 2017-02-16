@@ -64,8 +64,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function update_items( $request ) {
-		$request_body = $request->get_body();
-		$payload      = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$payload = $request->get_json_params();
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
