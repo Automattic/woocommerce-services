@@ -9,7 +9,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		private function get_notice_states() {
-			$states = WC_Connect_Options::get_option( 'nux_notices', array() );
+			$states = get_user_meta( get_current_user_id(), 'wc_connect_nux_notices', true );
 
 			if ( ! $states ) {
 				return array();
