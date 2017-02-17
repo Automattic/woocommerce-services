@@ -55,7 +55,12 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				return;
 			}
 
-			foreach( self::$grouped_options as $group ) {
+			foreach( self::$grouped_options as $group_key => $group ) {
+				//delete legacy options
+				foreach ( self::get_option_names( $group_key ) as $group_option ) {
+					delete_option( "wc_connect_$group_option" );
+				}
+
 				delete_option( $group );
 			}
 
