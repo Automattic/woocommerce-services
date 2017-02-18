@@ -1,5 +1,9 @@
-var webpack = require( 'webpack' ),
-	config = require( './webpack.config.js' );
+const webpack = require( 'webpack' );
+const devConfig = require( './webpack.config.js' );
+
+devConfig.babelSettings.plugins.push( 'transform-react-remove-prop-types' );
+
+const config = devConfig.getConfig();
 
 delete config.output.publicPath;
 delete config.devtool;

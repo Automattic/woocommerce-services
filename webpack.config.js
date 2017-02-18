@@ -18,7 +18,7 @@ const babelSettings = {
 	babelrc: false,
 };
 
-module.exports = {
+const getConfig = () => ( {
 	babelSettings,
 	cache: true,
 	entry: {
@@ -103,4 +103,8 @@ module.exports = {
 	postcss: function () {
 		return [ autoprefixer( { browsers } ) ];
 	},
-};
+} );
+
+module.exports = getConfig();
+module.exports.getConfig = getConfig;
+module.exports.babelSettings = babelSettings;
