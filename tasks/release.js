@@ -10,7 +10,6 @@ const fs = require( 'fs' );
 const releaseFolder = 'release';
 const targetFolder = 'release/woocommerce-services';
 const dirsToCopy = [
-	'assets',
 	'classes',
 	'dist',
 	'i18n',
@@ -32,9 +31,6 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 	rm( '-rf', releaseFolder );
 	mkdir( releaseFolder );
 	mkdir( targetFolder );
-
-	// copy all markdown information files
-	cp( '*.md', targetFolder );
 
 	// copy the main php file
 	cp( 'woocommerce-services.php', targetFolder );
