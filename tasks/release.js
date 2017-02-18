@@ -25,6 +25,7 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 	}
 
 	// run npm dist
+	rm( '-rf', 'dist' );
 	exec( 'npm run dist' );
 
 	// start with a clean release folder
