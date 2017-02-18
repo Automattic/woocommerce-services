@@ -341,6 +341,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
+			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
+
 			if ( ! get_option( 'wc_connect_tos_accepted', false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
@@ -425,7 +427,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 			}
 
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
@@ -651,12 +652,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Registers the React UI bundle
 		 */
 		public function admin_enqueue_scripts() {
-			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), '20150727' );
-			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), '20150727' );
+			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them
+			$plugin_data = get_plugin_data( __FILE__, false, false );
+			$plugin_version = $plugin_data[ 'Version' ];
 
-			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array( 'noticons', 'dashicons' ) );
-			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), false, true );
-			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), false, true );
+			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), $plugin_version );
+			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), $plugin_version );
+
+			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array( 'noticons', 'dashicons' ), $plugin_version );
+			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version );
+			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
+			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
@@ -691,7 +697,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $this->can_accept_tos() ) {
-				add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
+				wp_enqueue_style( 'wc_connect_banner' );
 				add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
 			}
 		}
@@ -736,10 +742,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			return false;
-		}
-
-		public function admin_banner_styles() {
-			wp_enqueue_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css' );
 		}
 
 		public function show_tos_notice() {
