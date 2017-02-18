@@ -3,9 +3,11 @@ const path = require( 'path' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 const autoprefixer = require( 'autoprefixer' );
 
+const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
+
 const babelSettings = {
 	presets: [
-		'es2015',
+		[ 'env', { useBuiltIns: true, targets: { browsers } } ],
 		'stage-1',
 		'react'
 	],
@@ -91,6 +93,7 @@ module.exports = {
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 		],
 	},
+	resolveLoader: { root: path.resolve( __dirname, 'node_modules' ) },
 	plugins: [
 		new webpack.ProvidePlugin( {
 			'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
@@ -98,6 +101,6 @@ module.exports = {
 		new ExtractTextPlugin( '[name].css' ),
 	],
 	postcss: function () {
-		return [ autoprefixer ];
+		return [ autoprefixer( { browsers } ) ];
 	},
 };
