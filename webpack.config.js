@@ -7,7 +7,11 @@ const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 const babelSettings = {
 	presets: [
-		[ 'env', { useBuiltIns: true, targets: { browsers } } ],
+		[ 'env', {
+			useBuiltIns: true,
+			targets: { browsers },
+			modules: false,
+		} ],
 		'stage-1',
 		'react'
 	],
@@ -19,7 +23,6 @@ const babelSettings = {
 };
 
 const getConfig = () => ( {
-	babelSettings,
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
@@ -36,39 +39,60 @@ const getConfig = () => ( {
 	},
 	devtool: '#inline-source-map',
 	module: {
-		preLoaders: [
+		rules: [
 			{
 				test: /\.jsx?$/,
-				loader: 'eslint',
+				enforce: 'pre',
+				use: 'eslint-loader',
 				include: path.resolve( __dirname, 'client' ),
-			},
-		],
-		loaders: [
-			{
-				test: /\.json$/,
-				loader: 'json-loader'
 			},
 			{
 				test: /\.scss$/,
-				loader: ExtractTextPlugin.extract( 'style', 'css!postcss!sass' )
+				use: ExtractTextPlugin.extract( {
+					fallback: 'style-loader',
+					use: [
+						'css-loader',
+						{
+							loader: 'postcss-loader',
+							options: {
+								plugins: () => [ autoprefixer( { browsers } ) ],
+							},
+						},
+						{
+							loader: 'sass-loader',
+							options: {
+								includePaths: [
+									path.resolve( __dirname, 'client' ),
+									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
+								],
+							},
+						},
+					],
+				} ),
 			},
 			{
 				test: /\.html$/,
-				loader: 'html-loader'
+				use: 'html-loader',
 			},
 			{
 				test: /\.svg$/,
-				loader: 'svg-url-loader',
+				use: 'svg-url-loader',
 			},
 			{
 				test: /\.png$/,
-				loader: 'url-loader?limit=10000',
-			}
-		],
-		postLoaders: [
+				use: {
+					loader: 'url-loader',
+					options: { limit: 10000 },
+				},
+			},
 			{
 				test: /\.jsx?$/,
-				loader: 'babel?' + JSON.stringify( babelSettings ),
+				enforce: 'post',
+				use: {
+					loader: 'babel-loader',
+					options: babelSettings,
+				},
 				include: [
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
@@ -78,31 +102,20 @@ const getConfig = () => ( {
 		// google-libphonenumber is pre-compiled, suppress the warning for that module
 		noParse: /.*google-libphonenumber.*/,
 	},
-	sassLoader: {
-		includePaths: [
-			path.resolve( __dirname, 'client' ),
-			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
-		]
-	},
 	resolve: {
-		extensions: [ '', '.json', '.js', '.jsx' ],
-		root: [
+		extensions: [ '.json', '.js', '.jsx' ],
+		modules: [
 			path.resolve( __dirname, 'client' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
 		],
 	},
-	resolveLoader: { root: path.resolve( __dirname, 'node_modules' ) },
 	plugins: [
 		new webpack.ProvidePlugin( {
-			'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
+			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch'
 		} ),
-		new ExtractTextPlugin( '[name].css' ),
 	],
-	postcss: function () {
-		return [ autoprefixer( { browsers } ) ];
-	},
 } );
 
 module.exports = getConfig();

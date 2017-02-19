@@ -3,20 +3,14 @@
 // as implement our own translation logic, that could involved the server.
 let translations = {};
 
-const initialize = ( newTranslations ) => {
+export const initialize = ( newTranslations ) => {
 	translations = newTranslations;
 };
 
-const translate = ( text ) => {
+export const translate = ( text ) => {
 	return ( text in translations ) ? translations[ text ] : text;
 };
 
-const mixin = {
+export const mixin = {
 	translate,
-};
-
-export default {
-	initialize,
-	translate,
-	mixin,
 };

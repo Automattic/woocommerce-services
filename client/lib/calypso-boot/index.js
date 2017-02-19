@@ -1,5 +1,5 @@
 import ReactClass from 'react/lib/ReactClass';
-import i18n from '../mixins/i18n';
+import { initialize, mixin } from '../mixins/i18n';
 
 export default function boot() {
 	// Initialize i18n
@@ -9,9 +9,9 @@ export default function boot() {
 		i18nLocaleStringsObject = window.i18nLocaleStrings;
 	}
 
-	i18n.initialize( i18nLocaleStringsObject );
+	initialize( i18nLocaleStringsObject );
 
-	ReactClass.injection.injectMixin( i18n.mixin );
+	ReactClass.injection.injectMixin( mixin );
 }
 
 boot();
