@@ -110,6 +110,9 @@ const config = {
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
 		],
+		alias: {
+			'i18n-calypso': path.resolve( __dirname, 'client', 'lib', 'i18n-calypso-stub' ),
+		}
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
