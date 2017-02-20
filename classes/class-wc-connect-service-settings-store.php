@@ -51,7 +51,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$default = array(
 				'selected_payment_method_id' => 0
 			);
-			return get_option( 'wc_connect_account_settings', $default );
+			return WC_Connect_Options::get_option( 'account_settings', $default );
 		}
 
 		/**
@@ -68,7 +68,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
-			return update_option( 'wc_connect_account_settings', $settings );;
+			return WC_Connect_Options::update_option( 'account_settings', $settings );;
 		}
 
 		public function get_selected_payment_method_id() {
@@ -100,16 +100,16 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields[ 'postcode' ] = '';
 			$wc_address_fields[ 'phone' ] = '';
 
-			$stored_address_fields = get_option( 'wc_connect_origin_address', array() );
+			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
 		public function get_preferred_paper_size() {
-			return get_option( 'wc_connect_paper_size', '' );
+			return WC_Connect_Options::get_option( 'paper_size', '' );
 		}
 
 		public function set_preferred_paper_size( $size ) {
-			return update_option( 'wc_connect_paper_size', $size );
+			return WC_Connect_Options::update_option( 'paper_size', $size );
 		}
 
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
@@ -124,7 +124,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function update_origin_address( $address ) {
-			return update_option( 'wc_connect_origin_address', $address );
+			return WC_Connect_Options::update_option( 'origin_address', $address );
 		}
 
 		protected function sort_services( $a, $b ) {
@@ -219,7 +219,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return object|array
 		 */
 		public function get_service_settings( $service_id, $service_instance = false ) {
-			return get_option( $this->get_service_settings_key( $service_id, $service_instance ), array() );
+			return WC_Connect_Options::get_shipping_method_option( 'form_settings', array(), $service_id, $service_instance );
 		}
 
 		/**
@@ -267,7 +267,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			// On success, save the settings to the database and exit
-			update_option( $this->get_service_settings_key( $id, $instance ), $settings );
+			WC_Connect_Options::update_shipping_method_option( 'form_settings', $settings, $id, $instance );
 			// Invalidate shipping rates session cache
 			WC_Cache_Helper::get_transient_version( 'shipping', /* $refresh = */ true );
 			do_action( 'wc_connect_saved_service_settings', $id, $instance, $settings );
@@ -276,46 +276,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
-		 * Based on the service id and optional instance, generates the options key that
-		 * should be used to get/set the service's settings
-		 *
-		 * @param string $service_id
-		 * @param integer $service_instance
-		 *
-		 * @return string
-		 */
-		protected function get_service_settings_key( $service_id, $service_instance = false ) {
-			if ( ! $service_instance ) {
-				return 'woocommerce_' . $service_id . '_form_settings';
-			}
-
-			return 'woocommerce_' . $service_id . '_' . $service_instance . '_form_settings';
-		}
-
-		/**
-		 * Based on the service id and optional instance, generates the options key that
-		 * should be used to get/set the service's last failure timestamp
-		 *
-		 * @param string $service_id
-		 * @param integer $service_instance
-		 *
-		 * @return string
-		 */
-		public function get_service_failure_timestamp_key( $service_id, $service_instance = false ) {
-			if ( ! $service_instance ) {
-				return 'woocommerce_' . $service_id . '_failure_timestamp';
-			}
-
-			return 'woocommerce_' . $service_id . '_' . $service_instance . '_failure_timestamp';
-		}
-
-		/**
 		 * Returns a global list of packages
 		 *
 		 * @return array
 		 */
 		public function get_packages() {
-			return get_option( 'wc_connect_packages', array() );
+			return WC_Connect_Options::get_option( 'packages', array() );
 		}
 
 		/**
@@ -324,7 +290,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_packages( $packages ) {
-			update_option( 'wc_connect_packages', $packages );
+			WC_Connect_Options::update_option( 'packages', $packages );
 		}
 
 		/**
@@ -333,7 +299,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_predefined_packages() {
-			return get_option( 'wc_connect_predefined_packages', array() );
+			return WC_Connect_Options::get_option( 'predefined_packages', array() );
 		}
 
 		/**
@@ -357,7 +323,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_predefined_packages( $packages ) {
-			update_option( 'wc_connect_predefined_packages', $packages );
+			WC_Connect_Options::update_option( 'predefined_packages', $packages );
 		}
 
 		public function get_package_lookup_for_service( $service_id ) {

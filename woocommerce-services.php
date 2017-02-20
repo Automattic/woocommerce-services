@@ -27,6 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
+
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
@@ -162,6 +164,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+		}
+
+		static function plugin_uninstall() {
+			WC_Connect_Options::delete_all_options();
 		}
 
 		public function __construct() {
@@ -341,7 +347,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
-			if ( ! get_option( 'wc_connect_tos_accepted', false ) ) {
+			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			}
@@ -704,8 +710,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( 'accept' === $_GET['wc-connect-notice'] ) {
 				$tracks = self::load_tracks_for_activation_hooks();
 				$tracks->opted_in();
-
-				update_option( 'wc_connect_tos_accepted', true );
+				WC_Connect_Options::update_option( 'tos_accepted', true );
 				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
 
 				exit;
@@ -794,6 +799,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function shipping_zone_method_deleted( $instance_id, $service_id, $zone_id ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				WC_Connect_Options::delete_shipping_method_options(  $service_id, $instance_id );
 				do_action( 'wc_connect_shipping_zone_method_deleted', $instance_id, $service_id, $zone_id );
 			}
 		}
@@ -862,3 +868,4 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 }
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
+register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
