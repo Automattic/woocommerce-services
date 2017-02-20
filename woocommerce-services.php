@@ -354,6 +354,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$this->load_dependencies();
 			$this->schedule_service_schemas_fetch();
+			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
 		}
 
@@ -623,8 +624,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return mixed
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
-
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -640,7 +640,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function woocommerce_load_shipping_methods() {
 
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -671,7 +671,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function get_active_shipping_services() {
 			global $wpdb;
 			$active_shipping_services = array();
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$is_active = $wpdb->get_var( $wpdb->prepare(
@@ -787,7 +787,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function is_wc_connect_shipping_service( $service_id ) {
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 			return in_array( $service_id, $shipping_service_ids );
 		}
 

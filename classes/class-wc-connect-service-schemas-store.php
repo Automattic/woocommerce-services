@@ -104,9 +104,32 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		}
 
 		/**
+		 * Returns all shipping method ids
+		 *
+		 * @return array|bool An array of supported shipping method ids or false if schema does not support method_id
+		 */
+		public function get_all_shipping_method_ids() {
+			$service_schemas = $this->get_service_schemas();
+			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'shipping' ) || ! is_array( $service_schemas->shipping ) ) {
+				return false;
+			}
+
+			$service_schema_ids = array();
+			foreach ( $service_schemas->shipping as $service_schema ) {
+				if ( ! property_exists( $service_schema, 'method_id' ) ) {
+					return false;
+				}
+
+				$service_schema_ids[] = $service_schema->method_id;
+			}
+
+			return $service_schema_ids;
+		}
+
+		/**
 		 * Returns a particular service's schema given its id
 		 *
-		 * @param string service_id The service id for which to return the schema
+		 * @param string $service_id The service id for which to return the schema
 		 *
 		 * @return object|null The service schema or null if no such id was found
 		 */
@@ -127,6 +150,29 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		}
 
 		/**
+		 * Returns a particular service's schema given its method_id
+		 *
+		 * @param $method_id
+		 *
+		 * @return object|null The service schema or null if no such id was found
+		 */
+		public function get_service_schema_by_method_id( $method_id ) {
+			$service_schemas = $this->get_service_schemas();
+			if ( ! is_object( $service_schemas ) ) {
+				return null;
+			}
+
+			foreach ( $service_schemas as $service_type => $service_type_service_schemas ) {
+				$matches = wp_filter_object_list( $service_type_service_schemas, array( 'method_id' => $method_id ) );
+				if ( $matches ) {
+					return array_shift( $matches );
+				}
+			}
+
+			return null;
+		}
+
+		/**
 		 * Returns a service's schema given its shipping zone instance
 		 *
 		 * @param string $instance_id The shipping zone instance id for which to return the schema
@@ -135,14 +181,14 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 */
 		public function get_service_schema_by_instance_id( $instance_id ) {
 			global $wpdb;
-			$service_id = $wpdb->get_var(
+			$method_id = $wpdb->get_var(
 				$wpdb->prepare(
 					"SELECT method_id FROM {$wpdb->prefix}woocommerce_shipping_zone_methods WHERE instance_id = %d;",
 					$instance_id
 				)
 			);
 
-			return $this->get_service_schema_by_id( $service_id );
+			return $this->get_service_schema_by_method_id( $method_id );
 		}
 
 		/**
@@ -158,7 +204,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			if ( ! empty( $id_or_instance_id ) ) {
-				return $this->get_service_schema_by_id( $id_or_instance_id );
+				return $this->get_service_schema_by_method_id( $id_or_instance_id );
 			}
 
 			return null;

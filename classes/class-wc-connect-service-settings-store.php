@@ -156,19 +156,21 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_enabled_services() {
-
-			$enabled_services = array();
-
-			$shipping_services = $this->service_schemas_store->get_all_service_ids_of_type( 'shipping' );
+			$shipping_services = $this->service_schemas_store->get_all_shipping_method_ids();
 			if ( empty( $shipping_services ) ) {
-				return $enabled_services;
+				return array();
 			}
+			return $this->get_enabled_services_by_ids( $shipping_services );
+		}
+
+		public function get_enabled_services_by_ids( $service_ids ) {
+			$enabled_services = array();
 
 			// Note: We use esc_sql here instead of prepare because we are using WHERE IN
 			// https://codex.wordpress.org/Function_Reference/esc_sql
 
 			$escaped_list = '';
-			foreach ( $shipping_services as $shipping_service ) {
+			foreach ( $service_ids as $shipping_service ) {
 				if ( ! empty( $escaped_list ) ) {
 					$escaped_list .= ',';
 				}
@@ -189,7 +191,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			foreach ( (array) $methods as $method ) {
-				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $method->method_id );
+				$service_schema = $this->service_schemas_store->get_service_schema_by_method_id( $method->method_id );
 				$service_settings = $this->get_service_settings( $method->method_id, $method->instance_id );
 				if ( is_object( $service_settings ) && property_exists( $service_settings, 'title' ) ) {
 					$title = $service_settings->title;
@@ -206,7 +208,53 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			usort( $enabled_services, array( $this, 'sort_services' ) );
 			return $enabled_services;
+		}
 
+		/**
+		 * Checks if the shipping method ids have been migrated to the "wc_services_*" format and migrates them
+		 */
+		public function migrate_legacy_services() {
+			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false )
+				|| ! $this->service_schemas_store->get_all_shipping_method_ids() ) {
+				return;
+			}
+
+			global $wpdb;
+
+			//old services used the id field instead of method_id
+			$shipping_service_ids = $this->service_schemas_store->get_all_service_ids_of_type( 'shipping' );
+			$legacy_services = $this->get_enabled_services_by_ids( $shipping_service_ids );
+
+			foreach ( $legacy_services as $legacy_service ) {
+				$service_id = $legacy_service->method_id;
+				$instance_id = $legacy_service->instance_id;
+				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $service_id );
+				if ( ! property_exists( $service_schema, 'method_id' ) ) {
+					//schemas not ready for migration yet. Wait for them to be updated
+					return;
+				}
+
+				$service_settings = $this->get_service_settings( $service_id, $instance_id );
+				if ( ! is_object( $service_settings ) ) {
+					continue;
+				}
+
+				$new_method_id = $service_schema->method_id;
+
+				$query = $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}woocommerce_shipping_zone_methods " .
+					"SET method_id=%s " .
+					"WHERE instance_id=%s AND method_id=%s",
+					$new_method_id, $instance_id, $service_id);
+				$wpdb->query( $query );
+
+				//update the migrated service settings
+				WC_Connect_Options::update_shipping_method_option( 'form_settings', $service_settings, $new_method_id, $instance_id );
+				//delete the old service settings
+				WC_Connect_Options::delete_shipping_method_options( $service_id, $instance_id );
+			}
+
+			WC_Connect_Options::update_option( 'shipping_methods_migrated', true );
 		}
 
 		/**
@@ -241,7 +289,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					);
 				}
 			} else {
-				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $id );
+				$service_schema = $this->service_schemas_store->get_service_schema_by_method_id( $id );
 				if ( ! $service_schema ) {
 					wp_send_json_error(
 						array(

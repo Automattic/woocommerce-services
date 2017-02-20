@@ -58,7 +58,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->supports = array();
 				$this->title = '';
 			} else {
-				$this->id = $this->service_schema->id;
+				$this->id = $this->service_schema->method_id;
 				$this->method_title = $this->service_schema->method_title;
 				$this->method_description = $this->service_schema->method_description;
 				$this->supports = array(
@@ -280,7 +280,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// the current shipping zone to avoid each method making an independent request
 			$services = array(
 				array(
-					'id'               => $this->id,
+					'id'               => $this->service_schema->id,
 					'instance'         => $this->instance_id,
 					'service_settings' => $service_settings,
 				),
