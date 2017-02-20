@@ -10,7 +10,7 @@ const babelSettings = {
 		[ 'env', {
 			useBuiltIns: true,
 			targets: { browsers },
-			modules: false,
+			// modules: false, // add-module-exports breaks with WebPack 2 and modules: false
 		} ],
 		'stage-1',
 		'react'
