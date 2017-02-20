@@ -27,7 +27,7 @@ module.exports = function( config ) {
 				{ type: 'text-summary' },
 			]
 		},
-		webpack: Object.assign( baseWebpackConfig(), {
+		webpack: Object.assign( baseWebpackConfig, {
 			entry: {},
 			isparta: {
 				embedSource: true,

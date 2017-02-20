@@ -3,6 +3,8 @@ const path = require( 'path' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 const autoprefixer = require( 'autoprefixer' );
 
+const isProd = 'production' === process.env.NODE_ENV;
+
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 const babelSettings = {
@@ -22,7 +24,7 @@ const babelSettings = {
 	babelrc: false,
 };
 
-const getConfig = () => ( {
+const config = {
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
@@ -32,12 +34,10 @@ const getConfig = () => ( {
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
-		publicPath: 'http://localhost:8085/',
 	},
 	externals: {
 		'jquery': 'jQuery',
 	},
-	devtool: '#inline-source-map',
 	module: {
 		rules: [
 			{
@@ -113,11 +113,46 @@ const getConfig = () => ( {
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
-			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch'
+			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
+		} ),
+		new ExtractTextPlugin( {
+			filename: '[name].css',
+			disable: ! isProd,
 		} ),
 	],
-} );
+};
 
-module.exports = getConfig();
-module.exports.getConfig = getConfig;
-module.exports.babelSettings = babelSettings;
+if ( isProd ) {
+
+	babelSettings.plugins.push( 'transform-react-remove-prop-types' );
+
+	config.plugins.push( new webpack.LoaderOptionsPlugin( { minimize: true } ) );
+
+	config.plugins.push( new webpack.DefinePlugin( {
+		'process.env.NODE_ENV': '"production"'
+	} ) );
+
+	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
+		compress: {
+			screw_ie8: true,
+			warnings: false,
+			unsafe: true,
+		},
+		mangle: {
+			screw_ie8: true,
+		},
+		output: {
+			comments: false,
+			screw_ie8: true,
+		},
+	} ) );
+
+} else {
+
+	config.output.publicPath = 'http://localhost:8085/';
+
+	config.devtool = '#inline-source-map';
+
+}
+
+module.exports = config;
