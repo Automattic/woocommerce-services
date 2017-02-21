@@ -130,7 +130,8 @@ if ( isProd ) {
 	config.plugins.push( new webpack.LoaderOptionsPlugin( { minimize: true } ) );
 
 	config.plugins.push( new webpack.DefinePlugin( {
-		'process.env.NODE_ENV': '"production"'
+		'process.env.NODE_ENV': '"production"',
+		'typeof window': '"object"',
 	} ) );
 
 	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
