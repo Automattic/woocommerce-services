@@ -2,8 +2,12 @@ const webpack = require( 'webpack' );
 const path = require( 'path' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 const autoprefixer = require( 'autoprefixer' );
+const escapeStringRegexp = require( 'escape-string-regexp' );
+
+const testDirMatcher = new RegExp( escapeStringRegexp( path.resolve( __dirname, 'client' ) ) + '.*' + escapeStringRegexp( path.sep + 'test' + path.sep ) );
 
 const isProd = 'production' === process.env.NODE_ENV;
+const isTest = 'test' === process.env.NODE_ENV;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
@@ -44,7 +48,12 @@ const config = {
 			{
 				test: /\.jsx?$/,
 				enforce: 'pre',
-				use: 'eslint-loader',
+				use: {
+					loader: 'eslint-loader',
+					options: {
+						emitWarning: true,
+					},
+				},
 				include: path.resolve( __dirname, 'client' ),
 			},
 			{
@@ -95,6 +104,7 @@ const config = {
 					options: babelSettings,
 				},
 				include: [
+					testDirMatcher,
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 				],
@@ -155,6 +165,21 @@ if ( isProd ) {
 	config.output.publicPath = 'http://localhost:8085/';
 
 	config.devtool = '#inline-source-map';
+
+	config.devServer = {
+		overlay: {
+			errors: true,
+			warnings: false,
+		},
+	};
+
+}
+
+if ( isTest ) {
+
+	babelSettings.plugins.push( [ 'istanbul', {
+		exclude: testDirMatcher,
+	} ] );
 
 }
 

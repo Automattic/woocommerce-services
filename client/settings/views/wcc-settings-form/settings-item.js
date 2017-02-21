@@ -151,7 +151,7 @@ const SettingsItem = ( {
 		case 'boolean':
 			return (
 				<Toggle
-					checked={ fieldValue }
+					checked={ Boolean( fieldValue ) }
 					id={ id }
 					title={ fieldSchema.title }
 					description={ fieldSchema.description }
