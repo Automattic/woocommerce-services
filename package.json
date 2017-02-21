@@ -80,7 +80,6 @@
     "component-closest": "^1.0.1",
     "debug": "^2.2.0",
     "dompurify": "^0.8.0",
-    "google-libphonenumber": "^2.0.4",
     "gridicons": "1.0.0",
     "i18n-calypso": "^1.7.0",
     "is-my-json-valid": "^2.13.1",

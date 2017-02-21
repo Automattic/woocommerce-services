@@ -99,8 +99,6 @@ const config = {
 				],
 			},
 		],
-		// google-libphonenumber is pre-compiled, suppress the warning for that module
-		noParse: /.*google-libphonenumber.*/,
 	},
 	resolve: {
 		extensions: [ '.json', '.js', '.jsx' ],
