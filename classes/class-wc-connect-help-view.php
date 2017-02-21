@@ -240,8 +240,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			foreach ( (array) $enabled_services as $enabled_service ) {
 				$indicator_key = "{$enabled_service->method_id}_{$enabled_service->instance_id}";
-				$failure_timestamp_key = $this->service_settings_store->get_service_failure_timestamp_key( $enabled_service->method_id, $enabled_service->instance_id );
-				$last_failed_request_timestamp = intval( get_option( $failure_timestamp_key, -1 ) );
+				$last_failed_request_timestamp = intval( WC_Connect_Options::get_shipping_method_option( 'failure_timestamp', -1, $enabled_service->method_id, $enabled_service->instance_id ) );
 
 				$service_settings_url = esc_url( add_query_arg(
 					array(
