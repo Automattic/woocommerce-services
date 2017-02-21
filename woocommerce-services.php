@@ -27,6 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
+
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
@@ -162,6 +164,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks = self::load_tracks_for_activation_hooks();
 			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+		}
+
+		static function plugin_uninstall() {
+			WC_Connect_Options::delete_all_options();
 		}
 
 		public function __construct() {
@@ -341,7 +347,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
-			if ( ! get_option( 'wc_connect_tos_accepted', false ) ) {
+			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
+
+			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			}
@@ -425,7 +433,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 			}
 
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
@@ -514,6 +521,34 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
+
+			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
+		}
+
+		/**
+		 * Log any WP_Errors encountered before our REST API callbacks
+		 *
+		 * Note: intended to be hooked into 'rest_request_before_callbacks'
+		 *
+		 * @param WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
+		 * @param WP_REST_Server   $handler  ResponseHandler instance (usually WP_REST_Server).
+		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 *
+		 * @return mixed - pass through value of $response.
+		 */
+		public function log_rest_api_errors( $response, $handler, $request ) {
+			if ( ! is_wp_error( $response ) ) {
+				return $response;
+			}
+
+			if ( 0 === strpos( $request->get_route(), '/wc/v1/connect/' ) ) {
+				$route_info = $request->get_method() . ' ' . $request->get_route();
+
+				$this->get_logger()->error( $response, $route_info );
+				$this->get_logger()->error( $route_info, $request->get_body() );
+			}
+
+			return $response;
 		}
 
 		/**
@@ -651,9 +686,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Registers the React UI bundle
 		 */
 		public function admin_enqueue_scripts() {
-			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array() );
-			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), false, true );
-			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), false, true );
+			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them
+			$plugin_data = get_plugin_data( __FILE__, false, false );
+			$plugin_version = $plugin_data[ 'Version' ];
+
+			wp_register_style( 'noticons', plugins_url( 'assets/stylesheets/noticons.css', __FILE__ ), array(), $plugin_version );
+			wp_register_style( 'dashicons', plugins_url( 'assets/stylesheets/dashicons.css', __FILE__ ), array(), $plugin_version );
+
+			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array(), $plugin_version );
+			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version );
+			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
+			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
@@ -688,7 +731,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $this->can_accept_tos() ) {
-				add_action( 'admin_enqueue_scripts', array( $this, 'admin_banner_styles' ) );
+				wp_enqueue_style( 'wc_connect_banner' );
 				add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
 			}
 		}
@@ -701,8 +744,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( 'accept' === $_GET['wc-connect-notice'] ) {
 				$tracks = self::load_tracks_for_activation_hooks();
 				$tracks->opted_in();
-
-				update_option( 'wc_connect_tos_accepted', true );
+				WC_Connect_Options::update_option( 'tos_accepted', true );
 				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping' ) );
 
 				exit;
@@ -733,10 +775,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			return false;
-		}
-
-		public function admin_banner_styles() {
-			wp_enqueue_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css' );
 		}
 
 		public function show_tos_notice() {
@@ -791,6 +829,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function shipping_zone_method_deleted( $instance_id, $service_id, $zone_id ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				WC_Connect_Options::delete_shipping_method_options(  $service_id, $instance_id );
 				do_action( 'wc_connect_shipping_zone_method_deleted', $instance_id, $service_id, $zone_id );
 			}
 		}
@@ -859,3 +898,4 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 }
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
+register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );

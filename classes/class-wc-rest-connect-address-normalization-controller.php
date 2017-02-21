@@ -59,17 +59,17 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 	}
 
 	public function update_items( $request ) {
-		$request = json_decode( $request->get_body(), false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-		$name = $request->address->name;
-		unset( $request->address->name );
-		$company = $request->address->company;
-		unset( $request->address->company );
-		$phone = $request->address->phone;
-		unset( $request->address->phone );
+		$data    = $request->get_json_params();
+		$address = $data['address'];
+		$name    = $address['name'];
+		$company = $address['company'];
+		$phone   = $address['phone'];
+
+		unset( $address['name'], $address['company'], $address['phone'] );
 
 		$body = array(
-			'destination' => $request->address,
-			'carrier' => 'usps',
+			'destination' => $address,
+			'carrier'     => 'usps', // TODO: remove hardcoding
 		);
 		$response = $this->api_client->send_address_normalization_request( $body );
 
@@ -108,10 +108,12 @@ class WC_REST_Connect_Address_Normalization_Controller extends WP_REST_Controlle
 	 * Validate the requester's permissions
 	 */
 	public function update_items_permissions_check( $request ) {
-		$request = json_decode( $request->get_body(), false, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-		if ( 'origin' === $request->type ) {
+		$data = $request->get_json_params();
+
+		if ( 'origin' === $data['type'] ) {
 			return current_user_can( 'manage_woocommerce' ); // Only an admin can normalize the origin address
 		}
+
 		return true; // non-authenticated service for the 'destination' address
 	}
 

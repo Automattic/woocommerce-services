@@ -59,10 +59,8 @@ class WC_REST_Connect_Account_Settings_Controller extends WP_REST_Controller {
 	}
 
 	public function update_items( $request ) {
-		$request_body = $request->get_body();
-		$settings = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-
-		$result = $this->settings_store->update_account_settings( $settings );
+		$settings = $request->get_json_params();
+		$result   = $this->settings_store->update_account_settings( $settings );
 
 		if ( is_wp_error( $result ) ) {
 			$error = new WP_Error( 'save_failed',
