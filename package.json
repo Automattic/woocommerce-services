@@ -83,6 +83,7 @@
     "gridicons": "1.0.0",
     "i18n-calypso": "^1.7.0",
     "is-my-json-valid": "^2.13.1",
+    "libphonenumber-js": "^0.3.7",
     "lodash": "^4.16.4",
     "object-path-immutable": "^0.4.0",
     "objectpath": "^1.2.1",
