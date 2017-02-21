@@ -521,6 +521,34 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
+
+			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
+		}
+
+		/**
+		 * Log any WP_Errors encountered before our REST API callbacks
+		 *
+		 * Note: intended to be hooked into 'rest_request_before_callbacks'
+		 *
+		 * @param WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
+		 * @param WP_REST_Server   $handler  ResponseHandler instance (usually WP_REST_Server).
+		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 *
+		 * @return mixed - pass through value of $response.
+		 */
+		public function log_rest_api_errors( $response, $handler, $request ) {
+			if ( ! is_wp_error( $response ) ) {
+				return $response;
+			}
+
+			if ( 0 === strpos( $request->get_route(), '/wc/v1/connect/' ) ) {
+				$route_info = $request->get_method() . ' ' . $request->get_route();
+
+				$this->get_logger()->error( $response, $route_info );
+				$this->get_logger()->error( $route_info, $request->get_body() );
+			}
+
+			return $response;
 		}
 
 		/**

@@ -53,8 +53,7 @@ class WC_REST_Connect_Packages_Controller extends WP_REST_Controller {
 	}
 
 	public function update_items( $request ) {
-		$request_body = $request->get_body();
-		$packages = json_decode( $request_body, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+		$packages = $request->get_json_params();
 
 		$this->service_settings_store->update_packages( $packages[ 'custom' ] );
 		$this->service_settings_store->update_predefined_packages( $packages[ 'predefined' ] );

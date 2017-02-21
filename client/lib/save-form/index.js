@@ -9,6 +9,7 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,
+			'Content-Type': 'application/json',
 		},
 	};
 	if ( formData ) {
