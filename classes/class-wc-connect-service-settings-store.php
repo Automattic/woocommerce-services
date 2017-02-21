@@ -214,8 +214,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Checks if the shipping method ids have been migrated to the "wc_services_*" format and migrates them
 		 */
 		public function migrate_legacy_services() {
-			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false )
-				|| ! $this->service_schemas_store->get_all_shipping_method_ids() ) {
+			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) //check if the method have already been migrated
+				|| ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() //ensure the latest schemas are fetched
+				|| ! $this->service_schemas_store->get_all_shipping_method_ids() ) { //verify that the schemas contain the method_id field
 				return;
 			}
 
@@ -229,11 +230,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$service_id = $legacy_service->method_id;
 				$instance_id = $legacy_service->instance_id;
 				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $service_id );
-				if ( ! property_exists( $service_schema, 'method_id' ) ) {
-					//schemas not ready for migration yet. Wait for them to be updated
-					return;
-				}
-
 				$service_settings = $this->get_service_settings( $service_id, $instance_id );
 				if ( ! is_object( $service_settings ) ) {
 					continue;

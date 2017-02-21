@@ -27,7 +27,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			if ( is_wp_error( $response_body ) ) {
 				$this->logger->debug( $response_body, __FUNCTION__ );
-				return;
+				return false;
 			}
 
 			$this->logger->debug( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
@@ -36,7 +36,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			// If we made it this far, it is safe to store the object
 
-			$this->update_service_schemas( $response_body );
+			return $this->update_service_schemas( $response_body );
 		}
 
 		public function get_service_schemas() {
@@ -44,7 +44,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		}
 
 		protected function update_service_schemas( $service_schemas ) {
-			WC_Connect_Options::update_option( 'services', $service_schemas );
+			return WC_Connect_Options::update_option( 'services', $service_schemas );
 		}
 
 		public function get_last_fetch_timestamp() {

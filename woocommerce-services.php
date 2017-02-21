@@ -625,6 +625,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
+			if ( ! $shipping_service_ids ) {
+				return $shipping_methods;
+			}
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -641,6 +644,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function woocommerce_load_shipping_methods() {
 
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
+			if ( ! $shipping_service_ids ) {
+				return;
+			}
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -672,6 +678,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			global $wpdb;
 			$active_shipping_services = array();
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
+			if ( ! $shipping_service_ids ) {
+				return $active_shipping_services;
+			}
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$is_active = $wpdb->get_var( $wpdb->prepare(
@@ -788,6 +797,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function is_wc_connect_shipping_service( $service_id ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
+			if ( ! $shipping_service_ids ) {
+				return false;
+			}
 			return in_array( $service_id, $shipping_service_ids );
 		}
 
