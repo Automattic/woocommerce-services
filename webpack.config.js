@@ -11,6 +11,8 @@ const isTest = 'test' === process.env.NODE_ENV;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
+process.noDeprecation = true; // see https://github.com/webpack/loader-utils/issues/56
+
 const babelSettings = {
 	presets: [
 		[ 'env', {
