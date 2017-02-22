@@ -5,7 +5,7 @@ import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';
 import FormSelect from 'components/forms/form-select';
 import Button from 'components/button';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
 import _ from 'lodash';
 

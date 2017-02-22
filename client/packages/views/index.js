@@ -6,7 +6,7 @@ import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import FoldableCard from 'components/foldable-card';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
 import { translate as __ } from 'lib/mixins/i18n';

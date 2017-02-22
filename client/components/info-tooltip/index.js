@@ -1,6 +1,6 @@
 import React, { PropTypes, Component } from 'react';
 import Tooltip from 'components/tooltip';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import classNames from 'classnames';
 
 export default class InfoTooltip extends Component {

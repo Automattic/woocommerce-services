@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 
 const BulkCheckbox = ( { selectedCount, allCount, onToggle } ) => {
 	const allSelected = selectedCount === allCount;

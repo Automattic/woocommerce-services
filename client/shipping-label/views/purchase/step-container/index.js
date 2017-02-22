@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import Spinner from 'components/spinner';
 import Card from 'components/card';
 import { translate as __ } from 'lib/mixins/i18n';

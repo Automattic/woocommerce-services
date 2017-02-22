@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'lib/mixins/i18n';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import Button from 'components/button';
 
 const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, removeItem } ) => {

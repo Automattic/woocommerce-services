@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import classNames from 'classnames';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const renderLastUpdated = ( lastUpdated ) => {
