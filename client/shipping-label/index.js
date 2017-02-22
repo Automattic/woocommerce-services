@@ -25,6 +25,7 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 	getInitialState() {
 		// The phone field is never prefilled, so if it's present it means the address is fully valid
 		const hasOriginAddress = Boolean( formData.origin.phone );
+		const hasDestinationAddress = Boolean( formData.destination.phone );
 
 		return {
 			shippingLabel: {
@@ -47,6 +48,8 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						values: formData.destination,
 						isNormalized: false,
 						normalized: null,
+						// If no destination address is stored, mark all fields as "ignore validation" so the UI doesn't immediately show errors
+						ignoreValidation: hasDestinationAddress ? null : _.mapValues( formData.destination, () => true ),
 						selectNormalized: true,
 						normalizationInProgress: false,
 						allowChangeCountry: false,
