@@ -180,7 +180,7 @@ if ( isProd ) {
 if ( isTest ) {
 
 	babelSettings.plugins.push( [ 'istanbul', {
-		exclude: testDirMatcher,
+		exclude: [ '**/test/**' ],
 	} ] );
 
 }
