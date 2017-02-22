@@ -62,8 +62,31 @@ install:
 # Clones WordPress and configures our testing environment.
 before_script:
     - bash tests/bin/install-wc-tests.sh wordpress_test travis '' localhost $WP_VERSION
+    # Following courtesy of: https://raw.githubusercontent.com/WordPress/twentyseventeen/master/.travis.yml
+    # Install CodeSniffer for WordPress Coding Standards checks.
+    - mkdir /tmp/woocommerce/php-codesniffer && curl -L https://github.com/squizlabs/PHP_CodeSniffer/archive/master.tar.gz | tar xz --strip-components=1 -C /tmp/woocommerce/php-codesniffer
+    # Install WordPress Coding Standards.
+    - mkdir /tmp/woocommerce/wordpress-coding-standards && curl -L https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/archive/master.tar.gz | tar xz --strip-components=1 -C /tmp/woocommerce/wordpress-coding-standards
+    # Set install path for WordPress Coding Standards
+    # @link https://github.com/squizlabs/PHP_CodeSniffer/blob/4237c2fc98cc838730b76ee9cee316f99286a2a7/CodeSniffer.php#L1941
+    - /tmp/woocommerce/php-codesniffer/scripts/phpcs --config-set installed_paths /tmp/woocommerce/wordpress-coding-standards
+    # After CodeSniffer install you should refresh your path.
+    - phpenv rehash
 
-script: phpunit && npm test
+script:
+    # Search theme for PHP syntax errors.
+    - find . \( -name '*.php' \) -exec php -lf {} \;
+    # WordPress Coding Standards
+    # @link https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards
+    # @link http://pear.php.net/package/PHP_CodeSniffer/
+    # -p flag: Show progress of the run.
+    # -s flag: Show sniff codes in all reports.
+    # -v flag: Print verbose output.
+    # -n flag: Do not print warnings (shortcut for --warning-severity=0)
+    # --standard: Use WordPress as the standard.
+    # --extensions: Only sniff PHP files.
+    - /tmp/woocommerce/php-codesniffer/scripts/phpcs -p -s -v -n . --standard=./codesniffer.ruleset.xml --extensions=php
+    - phpunit && npm test
 
 sudo: false
 
