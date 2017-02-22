@@ -34,8 +34,13 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			$this->update_last_fetch_timestamp();
 			$this->maybe_update_heartbeat();
 
-			// If we made it this far, it is safe to store the object
+			$old_schemas = $this->get_service_schemas();
+			if ( $old_schemas == $response_body ) {
+				//schemas weren't changed, but were fetched without problems
+				return true;
+			}
 
+			// If we made it this far, it is safe to store the object
 			return $this->update_service_schemas( $response_body );
 		}
 
@@ -109,21 +114,21 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 * @return array|bool An array of supported shipping method ids or false if schema does not support method_id
 		 */
 		public function get_all_shipping_method_ids() {
+			$shipping_method_ids = array();
 			$service_schemas = $this->get_service_schemas();
 			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'shipping' ) || ! is_array( $service_schemas->shipping ) ) {
-				return false;
+				return $shipping_method_ids;
 			}
 
-			$service_schema_ids = array();
 			foreach ( $service_schemas->shipping as $service_schema ) {
 				if ( ! property_exists( $service_schema, 'method_id' ) ) {
-					return false;
+					continue;
 				}
 
-				$service_schema_ids[] = $service_schema->method_id;
+				$shipping_method_ids[] = $service_schema->method_id;
 			}
 
-			return $service_schema_ids;
+			return $shipping_method_ids;
 		}
 
 		/**

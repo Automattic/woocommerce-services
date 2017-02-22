@@ -237,12 +237,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 				$new_method_id = $service_schema->method_id;
 
-				$query = $wpdb->prepare(
-					"UPDATE {$wpdb->prefix}woocommerce_shipping_zone_methods " .
-					"SET method_id=%s " .
-					"WHERE instance_id=%s AND method_id=%s",
-					$new_method_id, $instance_id, $service_id);
-				$wpdb->query( $query );
+				$wpdb->update(
+					"{$wpdb->prefix}woocommerce_shipping_zone_methods",
+					array( 'method_id' => $new_method_id ),
+					array( 'instance_id' => $instance_id, 'method_id' => $service_id ),
+					array( '%s' ),
+					array( '%d', '%s' ) );
 
 				//update the migrated service settings
 				WC_Connect_Options::update_shipping_method_option( 'form_settings', $service_settings, $new_method_id, $instance_id );
