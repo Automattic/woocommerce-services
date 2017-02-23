@@ -215,8 +215,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function migrate_legacy_services() {
 			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) //check if the method have already been migrated
-				|| ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() //ensure the latest schemas are fetched
-				|| ! $this->service_schemas_store->get_all_shipping_method_ids() ) { //verify that the schemas contain the method_id field
+				|| ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) { //ensure the latest schemas are fetched
 				return;
 			}
 
@@ -231,7 +230,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$instance_id = $legacy_service->instance_id;
 				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $service_id );
 				$service_settings = $this->get_service_settings( $service_id, $instance_id );
-				if ( ! is_object( $service_settings ) ) {
+				if ( ( is_array( $service_settings ) && ! $service_settings ) //check for an empty array
+					|| ( ! is_array( $service_settings ) && ! is_object( $service_settings ) ) ) { //settings are neither an array nor an object
 					continue;
 				}
 
