@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormSelect from 'components/forms/form-select';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import NumberInput from 'components/number-field/number-input';
 

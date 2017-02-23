@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 import { translate as __ } from 'lib/mixins/i18n';
 
 const SettingsNuxNotice = ( { noticeDismissed, dismissNotice } ) => {

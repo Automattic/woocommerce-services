@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import sanitizeHTML from 'lib/utils/sanitize-html';
-import Gridicon from 'components/gridicon';
+import Gridicon from 'gridicons';
 
 const FieldError = ( { text } ) => {
 	return (

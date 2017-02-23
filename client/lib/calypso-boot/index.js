@@ -1,4 +1,4 @@
-import ReactInjection from 'react/lib/ReactInjection';
+import ReactClass from 'react/lib/ReactClass';
 import i18n from '../mixins/i18n';
 
 export default function boot() {
@@ -11,7 +11,7 @@ export default function boot() {
 
 	i18n.initialize( i18nLocaleStringsObject );
 
-	ReactInjection.Class.injectMixin( i18n.mixin );
+	ReactClass.injection.injectMixin( i18n.mixin );
 }
 
 boot();
