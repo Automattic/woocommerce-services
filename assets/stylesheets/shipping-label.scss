@@ -187,6 +187,7 @@
 
 	.validation-message {
 		margin: -24px -24px 24px -24px;
+		width: inherit;
 
 		 .notice__icon {
 			 display: none;
@@ -274,6 +275,7 @@
 
 .notice.wcc-label-rates__notice {
 	margin: -24px -24px 24px;
+	width: inherit;
 }
 
 // Address
