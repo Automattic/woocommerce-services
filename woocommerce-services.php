@@ -529,26 +529,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * to get the service instance form layout and settings bundled inside wcConnectData
 		 * as the form container is emitted into the body's HTML
 		 */
-		public function localize_and_enqueue_service_script( $id, $instance = false ) {
+		public function localize_and_enqueue_service_script( $method_id, $instance = false ) {
 			if ( ! function_exists( 'get_rest_url' ) ) {
 				return;
 			}
 
 			$settings_store = $this->get_service_settings_store();
 			$schemas_store = $this->get_service_schemas_store();
-			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $id );
+			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $method_id );
 
 			if ( ! $service_schema ) {
 				return;
 			}
 
-			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
+			$service_id = $service_schema->id;
+			$path = $instance ? "/wc/v1/connect/services/{$service_id}/{$instance}" : "/wc/v1/connect/services/{$service_id}";
 
 			$admin_array = array(
 				'storeOptions'       => $settings_store->get_store_options(),
 				'formSchema'         => $service_schema->service_settings,
 				'formLayout'         => $service_schema->form_layout,
-				'formData'           => $settings_store->get_service_settings( $id, $instance ),
+				'formData'           => $settings_store->get_service_settings( $method_id, $instance ),
 				'callbackURL'        => get_rest_url( null, $path ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => 'wc-connect-service-settings',
