@@ -284,29 +284,23 @@
 		top: 16px;
 		right: 16px;
 		@include breakpoint( '<660px' ) {
-			top: -4px;
+			top: -5px;
 			right: 0;
 		}
 
 		.notice {
-			margin-left: 164px;
 			max-width: 740px;
-
-			@include breakpoint( '<960px' ) {
-				margin-left: 36px;
-			}
 
 			@include breakpoint( '<780px' ) {
 				margin-left: 0;
 			}
 		}
 
-		// adjust until system fonts get in wp-admin
 		.notice__text {
-			padding: 10px 8px 8px;
+			font-size: 15px;
 
-			@include breakpoint( '<660px' ) {
-				padding: 16px;
+			@include breakpoint( '>660px' ) {
+				margin-top: 1px;
 			}
 		}
 	}
@@ -462,4 +456,9 @@
 		font-style: italic;
 		color: $gray;
 	}
+}
+
+// Gridicons
+.gridicon {
+	fill: currentColor;
 }

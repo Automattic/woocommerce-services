@@ -27,7 +27,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function dismiss_notice( $notice ) {
 			$notices = $this->get_notice_states();
 			$notices[ $notice ] = true;
-			WC_Connect_Options::update_option( 'nux_notices', $notices );
+			update_user_meta( get_current_user_id(), 'wc_connect_nux_notices', true );
 		}
 
 		private function init_pointers() {
