@@ -89,7 +89,7 @@ class WC_REST_Connect_Services_Controller extends WP_REST_Controller {
 			return $error;
 		}
 
-		$settings = $request->get_json_params();
+		$settings = ( object ) $request->get_json_params();
 
 		if ( empty( $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
