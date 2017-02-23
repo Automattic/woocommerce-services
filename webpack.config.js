@@ -2,10 +2,25 @@ const webpack = require( 'webpack' );
 const path = require( 'path' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 const autoprefixer = require( 'autoprefixer' );
+const escapeStringRegexp = require( 'escape-string-regexp' );
+
+const testDirMatcher = new RegExp( escapeStringRegexp( path.resolve( __dirname, 'client' ) ) + '.*' + escapeStringRegexp( path.sep + 'test' + path.sep ) );
+
+const isProd = 'production' === process.env.NODE_ENV;
+const isTest = 'test' === process.env.NODE_ENV;
+
+const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
+
+process.noDeprecation = true; // see https://github.com/webpack/loader-utils/issues/56
 
 const babelSettings = {
 	presets: [
-		'es2015',
+		[ 'env', {
+			useBuiltIns: true,
+			targets: { browsers },
+			loose: true,
+			// modules: false, // add-module-exports breaks with WebPack 2 and modules: false
+		} ],
 		'stage-1',
 		'react'
 	],
@@ -16,8 +31,7 @@ const babelSettings = {
 	babelrc: false,
 };
 
-module.exports = {
-	babelSettings,
+const config = {
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
@@ -27,77 +41,148 @@ module.exports = {
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
-		publicPath: 'http://localhost:8085/',
 	},
 	externals: {
 		'jquery': 'jQuery',
 	},
-	devtool: '#inline-source-map',
 	module: {
-		preLoaders: [
+		rules: [
 			{
 				test: /\.jsx?$/,
-				loader: 'eslint',
+				enforce: 'pre',
+				use: {
+					loader: 'eslint-loader',
+					options: {
+						emitWarning: true,
+					},
+				},
 				include: path.resolve( __dirname, 'client' ),
-			},
-		],
-		loaders: [
-			{
-				test: /\.json$/,
-				loader: 'json-loader'
 			},
 			{
 				test: /\.scss$/,
-				loader: ExtractTextPlugin.extract( 'style', 'css!postcss!sass' )
+				use: ExtractTextPlugin.extract( {
+					fallback: 'style-loader',
+					use: [
+						'css-loader',
+						{
+							loader: 'postcss-loader',
+							options: {
+								plugins: () => [ autoprefixer( { browsers } ) ],
+							},
+						},
+						{
+							loader: 'sass-loader',
+							options: {
+								includePaths: [
+									path.resolve( __dirname, 'client' ),
+									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
+								],
+							},
+						},
+					],
+				} ),
 			},
 			{
 				test: /\.html$/,
-				loader: 'html-loader'
+				use: 'html-loader',
 			},
 			{
 				test: /\.svg$/,
-				loader: 'svg-url-loader',
+				use: 'svg-url-loader',
 			},
 			{
 				test: /\.png$/,
-				loader: 'url-loader?limit=10000',
-			}
-		],
-		postLoaders: [
+				use: {
+					loader: 'url-loader',
+					options: { limit: 10000 },
+				},
+			},
 			{
 				test: /\.jsx?$/,
-				loader: 'babel?' + JSON.stringify( babelSettings ),
+				enforce: 'post',
+				use: {
+					loader: 'babel-loader',
+					options: babelSettings,
+				},
 				include: [
+					testDirMatcher,
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 				],
 			},
 		],
-		// google-libphonenumber is pre-compiled, suppress the warning for that module
-		noParse: /.*google-libphonenumber.*/,
-	},
-	sassLoader: {
-		includePaths: [
-			path.resolve( __dirname, 'client' ),
-			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
-		]
 	},
 	resolve: {
-		extensions: [ '', '.json', '.js', '.jsx' ],
-		root: [
+		extensions: [ '.json', '.js', '.jsx' ],
+		modules: [
 			path.resolve( __dirname, 'client' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
 		],
+		alias: {
+			'i18n-calypso': path.resolve( __dirname, 'client', 'lib', 'i18n-calypso-stub' ),
+		}
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
-			'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
+			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
 		} ),
-		new ExtractTextPlugin( '[name].css' ),
+		new ExtractTextPlugin( {
+			filename: '[name].css',
+			disable: ! isProd,
+		} ),
 	],
-	postcss: function () {
-		return [ autoprefixer ];
-	},
 };
+
+if ( isProd ) {
+
+	babelSettings.plugins.push( 'transform-react-remove-prop-types' );
+
+	config.plugins.push( new webpack.LoaderOptionsPlugin( { minimize: true } ) );
+
+	config.plugins.push( new webpack.DefinePlugin( {
+		'process.env.NODE_ENV': '"production"',
+		'typeof window': '"object"',
+	} ) );
+
+	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
+		compress: {
+			screw_ie8: true,
+			warnings: false,
+			unsafe: true,
+		},
+		mangle: {
+			screw_ie8: true,
+		},
+		output: {
+			comments: false,
+			screw_ie8: true,
+		},
+	} ) );
+
+} else {
+
+	config.output.publicPath = 'http://localhost:8085/';
+
+	config.devtool = '#inline-source-map';
+
+	config.devServer = {
+		overlay: {
+			errors: true,
+			warnings: false,
+		},
+	};
+
+}
+
+if ( isTest ) {
+
+	babelSettings.plugins.push( [ 'istanbul', {
+		exclude: [ '**/test/**' ],
+	} ] );
+
+}
+
+module.exports = config;

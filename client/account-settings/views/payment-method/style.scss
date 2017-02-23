@@ -1,7 +1,5 @@
 .payment-method {
-	background-image: url('../images/cc-visa-disabled.svg');
-	background-position: 18px center;
-	background-repeat: no-repeat;
+	background: url('../images/cc-visa-disabled.svg') no-repeat 18px center;
 	background-size: 60px auto;
 	display: flex;
 	flex-wrap: wrap;

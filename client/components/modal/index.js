@@ -11,7 +11,7 @@ const Modal = ( props ) => {
 		<Dialog
 			{ ...props }
 			isFullScreen={ true }
-			additionalClassNames={ classnames( props.additionalClassNames, 'wcc-modal' ) }
+			additionalClassNames={ classnames( props.additionalClassNames, 'wcc-root' ) }
 			onClickOutside={ shouldStayOpen } />
 	);
 };

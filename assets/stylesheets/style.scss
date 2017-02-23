@@ -8,8 +8,7 @@
 @import 'components/popover/style';
 @import 'components/tooltip/style';
 
-.wc-connect-admin-container,
-.wcc-modal {
+.wcc-root {
 	// Shared
 	@import 'shared/reset'; // css reset before the rest of the styles are defined
 	@import 'shared/utilities'; // Helper classes
@@ -385,6 +384,26 @@
 		}
 	}
 
+	@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+	.form-troubles {
+		 opacity: 0;
+		 animation: fadeIn ease-in 1;
+		 animation-fill-mode: forwards;
+		 animation-duration: .5s;
+		 animation-delay: 3s;
+	 }
+
+	.wc-connect-no-priv-settings {
+		background: $white;
+		padding: 20px;
+	}
+
+	// Gridicons
+	.gridicon {
+		fill: currentColor;
+	}
+
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';
@@ -395,21 +414,6 @@
 	@import '../../client/components/toggle/style';
 	@import '../../client/shipping-label/views/purchase/steps/packages/style.scss';
 	@import '../../client/packages/views/style';
-}
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.wc-connect-admin-container .form-troubles {
-	opacity: 0;
-	animation: fadeIn ease-in 1;
-	animation-fill-mode: forwards;
-	animation-duration: .5s;
-	animation-delay: 3s;
-}
-
-.wc-connect-admin-container .wc-connect-no-priv-settings {
-	background: $white;
-	padding: 20px;
 }
 
 #woocommerce-order-label .inside {

@@ -705,7 +705,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				<h2>
 					<?php _e( 'WooCommerce Services Status', 'woocommerce' ); ?>
 				</h2>
-				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
+				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php
 		}
 

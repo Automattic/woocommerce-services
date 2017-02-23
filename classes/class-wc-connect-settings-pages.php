@@ -166,7 +166,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$hide_save_button = true;
 
 			?>
-				<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>"></div>
+				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>"></div>
 			<?php
 
 			if ( $this->is_jetpack_dev_mode() ) {
@@ -204,7 +204,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			?>
-				<div class="wc-connect-admin-container">
+				<div class="wcc-root">
 					<div class="wc-connect-no-priv-settings">
 						<h3 class="settings-group-header form-section-heading">
 							<?php echo esc_html( __( 'Payment Method', 'woocommerce-services' ) ); ?>
@@ -259,7 +259,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$hide_save_button = true;
 
 			?>
-			<div class="wc-connect-admin-container" id="<?php echo esc_attr( $root_view ) ?>">
+			<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>">
 				<span class="form-troubles" style="opacity: 0">
 					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
 				</span>
