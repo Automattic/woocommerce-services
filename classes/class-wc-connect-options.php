@@ -44,6 +44,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'paper_size',
 				'packages',
 				'predefined_packages',
+				'shipping_methods_migrated',
 			);
 		}
 

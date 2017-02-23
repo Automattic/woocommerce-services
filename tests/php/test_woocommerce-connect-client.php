@@ -69,11 +69,11 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'get_all_service_ids_of_type' ) )
+			->setMethods( array( 'get_all_shipping_method_ids' ) )
 			->getMock();
 
 		$store->expects( $this->any() )
-			->method( 'get_all_service_ids_of_type' )
+			->method( 'get_all_shipping_method_ids' )
 			->will( $this->returnValue( $service_data ) );
 
 

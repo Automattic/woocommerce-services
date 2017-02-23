@@ -356,6 +356,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$this->load_dependencies();
 			$this->schedule_service_schemas_fetch();
+			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
 		}
 
@@ -557,26 +558,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * to get the service instance form layout and settings bundled inside wcConnectData
 		 * as the form container is emitted into the body's HTML
 		 */
-		public function localize_and_enqueue_service_script( $id, $instance = false ) {
+		public function localize_and_enqueue_service_script( $method_id, $instance = false ) {
 			if ( ! function_exists( 'get_rest_url' ) ) {
 				return;
 			}
 
 			$settings_store = $this->get_service_settings_store();
 			$schemas_store = $this->get_service_schemas_store();
-			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $id );
+			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $method_id );
 
 			if ( ! $service_schema ) {
 				return;
 			}
 
-			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
+			$service_id = $service_schema->id;
+			$path = $instance ? "/wc/v1/connect/services/{$service_id}/{$instance}" : "/wc/v1/connect/services/{$service_id}";
 
 			$admin_array = array(
 				'storeOptions'       => $settings_store->get_store_options(),
 				'formSchema'         => $service_schema->service_settings,
 				'formLayout'         => $service_schema->form_layout,
-				'formData'           => $settings_store->get_service_settings( $id, $instance ),
+				'formData'           => $settings_store->get_service_settings( $method_id, $instance ),
 				'callbackURL'        => get_rest_url( null, $path ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => 'wc-connect-service-settings',
@@ -652,8 +654,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return mixed
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
-
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -668,8 +669,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 */
 		public function woocommerce_load_shipping_methods() {
-
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
@@ -704,7 +704,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function get_active_shipping_services() {
 			global $wpdb;
 			$active_shipping_services = array();
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
 				$is_active = $wpdb->get_var( $wpdb->prepare(
@@ -816,7 +816,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function is_wc_connect_shipping_service( $service_id ) {
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_service_ids_of_type( 'shipping' );
+			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 			return in_array( $service_id, $shipping_service_ids );
 		}
 
