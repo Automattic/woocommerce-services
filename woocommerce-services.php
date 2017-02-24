@@ -787,9 +787,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<?php
 					printf(
-						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that WooCommerce Services passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/' ),
-						esc_url( 'https://woocommerce.com/terms-conditions/connect-privacy' )
+						esc_url( 'https://woocommerce.com/terms-conditions/services-privacy/' )
 					);
 					?>
 				</p>
