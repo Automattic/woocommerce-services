@@ -11,7 +11,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		private function get_notice_states() {
 			$states = get_user_meta( get_current_user_id(), 'wc_connect_nux_notices', true );
 
-			if ( ! $states ) {
+			if ( ! is_array( $states ) ) {
 				return array();
 			}
 
@@ -27,7 +27,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function dismiss_notice( $notice ) {
 			$notices = $this->get_notice_states();
 			$notices[ $notice ] = true;
-			update_user_meta( get_current_user_id(), 'wc_connect_nux_notices', true );
+			update_user_meta( get_current_user_id(), 'wc_connect_nux_notices', $notices );
 		}
 
 		private function init_pointers() {
