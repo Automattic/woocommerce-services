@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
 Tested up to: 4.7.2
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,17 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.2.0 =
+* Improve label printing flow when origin or destination addresses need modification
+* More descriptive text in pointer notice for setting up a WCS shipping method
+* Remove plugin options during uninstall
+* Prevent a label rates request when prerequisite data needs modification
+* Include more information when JSON parsing fails
+* Fix compatibility issues with Internet Explorer 11 and Microsoft Edge browsers
+* Add version to plugin script and style includes
+* Reduce size of CSS and JS files
+* Fix incompatibility with existing WooCommerce USPS extension
 
 = 1.1.1 =
 * Update plugin support documentation link
