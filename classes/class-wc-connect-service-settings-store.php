@@ -297,7 +297,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			// Validate settings with WCC server
-			$response_body = $this->api_client->validate_service_settings( $id, $settings );
+			$response_body = $this->api_client->validate_service_settings( $service_schema->id, $settings );
 
 			if ( is_wp_error( $response_body ) ) {
 				// TODO - handle multiple error messages when the validation endpoint can return them
