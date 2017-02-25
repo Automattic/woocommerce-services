@@ -40,6 +40,14 @@
         background: $gray-light;
         box-shadow: none;
         padding: 5px 14px 7px;
+
+		.spinner {
+			margin-bottom: -8px;
+
+			.spinner__border {
+				fill: transparent;
+			}
+		}
     }
 
 	.button.is-primary {
