@@ -516,8 +516,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				} ) );
 				const state = getState().shippingLabel;
 				const printUrl = getPrintURL( state.paperSize, labelsToPrint, context );
-				preloadDocument( printUrl )
-					.then( () => printDocument( printUrl, false ) )
+				printDocument( printUrl, false )
 					.then( ( success ) => {
 						const noticeText = 1 === response.length
 								? __( 'Your shipping label was purchased successfully' )
