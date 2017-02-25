@@ -26,6 +26,7 @@ export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
 export const UPDATE_PREVIEW = 'UPDATE_PREVIEW';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
+export const SHOW_PRINT_CONFIRMATION = 'SHOW_PRINT_CONFIRMATION';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
 export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
@@ -514,13 +515,19 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 					labelId: label.label_id,
 				} ) );
 				const state = getState().shippingLabel;
-				printDocument( getPrintURL( state.paperSize, labelsToPrint, context ) )
-					.then( () => {
+				const printUrl = getPrintURL( state.paperSize, labelsToPrint, context );
+				preloadDocument( printUrl )
+					.then( () => printDocument( printUrl, false ) )
+					.then( ( success ) => {
 						const noticeText = 1 === response.length
 								? __( 'Your shipping label was purchased successfully' )
 								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
 						dispatch( NoticeActions.successNotice( noticeText ) );
-						dispatch( exitPrintingFlow( true ) );
+						if ( success ) {
+							dispatch( exitPrintingFlow( true ) );
+						} else {
+							dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
+						}
 					} )
 					.catch( ( err ) => {
 						console.error( err );
@@ -568,6 +575,12 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 		console.error( err );
 		dispatch( NoticeActions.errorNotice( err.toString() ) );
 	} );
+};
+
+export const confirmPrintLabel = ( url ) => ( dispatch ) => {
+	printDocument( url, true )
+		.then( () => dispatch( exitPrintingFlow( true ) ) )
+		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
 
 export const openRefundDialog = ( labelId ) => {
@@ -648,7 +661,7 @@ export const confirmReprint = () => ( dispatch, getState, context ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const state = getState().shippingLabel;
 	const labelId = state.reprintDialog.labelId;
-	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ) )
+	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ), true )
 		.then( () => dispatch( closeReprintDialog() ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
