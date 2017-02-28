@@ -33,8 +33,9 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 	mkdir( releaseFolder );
 	mkdir( targetFolder );
 
-	// copy the main php file
+	// copy the main php file and readme.txt
 	cp( 'woocommerce-services.php', targetFolder );
+	cp( 'readme.txt', targetFolder );
 
 	// copy the directories to the release folder
 	cp( '-Rf', dirsToCopy, targetFolder );
