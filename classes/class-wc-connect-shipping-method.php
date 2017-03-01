@@ -250,7 +250,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				'id'        => self::format_rate_id( 'fallback', $this->id, 0 ),
 				'label'     => self::format_rate_title( $this->service_schema->carrier_name ),
 				'cost'      => $service_settings->fallback_rate,
-				'calc_tax'  => 'per_item',
 			);
 
 			$this->add_rate( $rate_to_add );
@@ -355,7 +354,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'id'        => self::format_rate_id( $instance->id, $instance->instance, $rate_idx ),
 						'label'     => self::format_rate_title( $rate->title ),
 						'cost'      => $rate->rate,
-						'calc_tax'  => 'per_item',
 						'meta_data' => array(
 							'wc_connect_packages' => json_encode( $rate->packages ),
 							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
