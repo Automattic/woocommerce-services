@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'gridicons';
+import Checkbox from 'components/checkbox';
 
 const BulkCheckbox = ( { selectedCount, allCount, onToggle } ) => {
 	const allSelected = selectedCount === allCount;
@@ -11,9 +12,9 @@ const BulkCheckbox = ( { selectedCount, allCount, onToggle } ) => {
 	};
 
 	return (
-		<span className="wcc-bulk-checkbox-container" onClick={ onClick }>
-			<input type="checkbox" checked={ allSelected } readOnly />
-			{ someSelected ? <Gridicon className="bulk-select__some-checked-icon" icon="minus-small" size={ 18 }/> : null }
+		<span className="form-checkbox bulk-checkbox" onClick={ onClick }>
+			<Checkbox checked={ allSelected } readOnly />
+			{ someSelected && <Gridicon icon="minus-small" size={ 16 } /> }
 		</span>
 	);
 };
