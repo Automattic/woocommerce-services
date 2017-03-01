@@ -310,8 +310,8 @@
 
 	// WP style conflict resets
 	.card {
-		min-width: initial;
-		max-width: initial;
+		min-width: 0;
+		max-width: none;
 	}
 
 	.wp-admin & {
