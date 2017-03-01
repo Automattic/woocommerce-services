@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
-import BulkCheckbox from 'components/bulk-checkbox';
+import Checkbox from 'components/checkbox';
 import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
@@ -44,17 +44,17 @@ const Packages = ( props ) => {
 			return null;
 		}
 
-		const onToggle = ( event, checked ) => {
-			event.stopPropagation();
-			props.toggleAll( serviceId, groupId, checked );
+		const onToggle = ( event ) => {
+			props.toggleAll( serviceId, groupId, event.target.checked );
 		};
 
 		return (
 			<div className="wcc-predefined-packages-group-header" >
-				<BulkCheckbox
-					selectedCount={ selected.length }
-					allCount={ packages.length }
-					onToggle={ onToggle } />
+				<Checkbox
+					checked={ selected.length === packages.length }
+					partialChecked={ Boolean( selected.length ) }
+					onChange={ onToggle }
+					onClick={ ( event ) => event.stopPropagation() } />
 				{ title }
 			</div>
 		);

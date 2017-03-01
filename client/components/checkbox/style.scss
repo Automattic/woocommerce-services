@@ -17,8 +17,11 @@
 		color: $blue-medium;
 		pointer-events: none;
 		position: absolute;
-		left: 1px;
-		top: 1px;
+
+		&.gridicons-checkmark {
+			left: 1px;
+			top: 1px;
+		}
 	}
 
 	&.is-disabled .gridicon {

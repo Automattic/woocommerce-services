@@ -4,13 +4,23 @@ import Gridicon from 'gridicons';
 import _ from 'lodash';
 
 const Checkbox = ( props ) => {
-	const otherProps = _.omit( props, 'className' );
+	const { className, disabled, checked, partialChecked } = props;
+	const otherProps = _.omit( props, [ 'className', 'partialChecked' ] );
+
 	return (
-		<span className={ classNames( props.className, 'form-checkbox', { 'is-disabled': props.disabled } ) } >
+		<span className={ classNames( className, 'form-checkbox', { 'is-disabled': disabled } ) } >
 			<input { ...otherProps } type="checkbox" />
-			{ props.checked && <Gridicon icon="checkmark" size={ 14 } /> }
+			{ checked && <Gridicon icon="checkmark" size={ 14 } /> }
+			{ ! checked && partialChecked && <Gridicon icon="minus-small" size={ 16 } /> }
 		</span>
 	);
+};
+
+Checkbox.propTypes = {
+	checked: PropTypes.bool.isRequired,
+	partialChecked: PropTypes.bool,
+	onChange: PropTypes.func.isRequired,
+	className: PropTypes.string,
 };
 
 export default Checkbox;
