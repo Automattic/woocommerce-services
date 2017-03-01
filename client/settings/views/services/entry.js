@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import FormCheckbox from 'components/forms/form-checkbox';
+import Checkbox from 'components/checkbox';
 import FormSelect from 'components/forms/form-select';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
@@ -25,7 +25,7 @@ const ShippingServiceEntry = ( props ) => {
 	return (
 		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) } >
 			<label className="wcc-shipping-service-entry-title">
-				<FormCheckbox
+				<Checkbox
 					checked={ enabled }
 					onChange={ ( event ) => updateValue( 'enabled', event.target.checked ) }
 				/>

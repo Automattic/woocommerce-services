@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'gridicons';
 import Button from 'components/button';
-import FormCheckbox from 'components/forms/form-checkbox';
+import Checkbox from 'components/checkbox';
 import classNames from 'classnames';
 import _ from 'lodash';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -39,7 +39,7 @@ const renderName = ( name, openModal ) => {
 const renderSelect = ( selected, onToggle ) => {
 	return (
 		<div className="package-actions">
-			<FormCheckbox checked={ selected } onChange={ onToggle } />
+			<Checkbox checked={ selected } onChange={ onToggle } />
 		</div>
 	);
 };
