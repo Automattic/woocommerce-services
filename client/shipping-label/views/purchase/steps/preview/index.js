@@ -9,7 +9,7 @@ const PreviewStep = ( { labelPreviewURL, canPurchase, paperSize, labelActions, e
 			<div className="preview-container">
 				<span className="preview-title">{ __( 'Preview' ) }</span>
 				<div className="preview-placeholder">
-					{ canPurchase && labelPreviewURL && <iframe src={ labelPreviewURL } /> }
+					{ canPurchase && labelPreviewURL && <embed src={ labelPreviewURL } type="application/pdf" /> }
 				</div>
 			</div>
 			<Dropdown
