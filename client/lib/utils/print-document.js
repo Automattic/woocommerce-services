@@ -1,4 +1,4 @@
-import pdfSupport from 'lib/utils/pdf-support';
+import getPDFSupport from 'lib/utils/pdf-support';
 
 let iframe = null;
 
@@ -36,33 +36,26 @@ const loadDocumentInFrame = ( url ) => {
  * Opens the native printing dialog to print the given URL.
  * Falls back to opening the PDF in a new tab if opening the printing dialog is not supported.
  * @param {string} url URL of the document to print
- * @param {boolean} isUserInteraction True if this code is being executed as a result of a direct user interaction,
- * such as the click of a button. False otherwise (if this was triggered by an AJAX response, for example
- * @returns {Promise} Promise that resolves with true if the printing dialog (or equivalent) was correctly
- * invoked. It resolves with false if it's required to call this function again as a result of direct user interaction.
+ * @returns {Promise} Promise that resolves if the printing dialog (or equivalent) was correctly
+ * invoked, rejects otherwise.
  */
-export default ( url, isUserInteraction ) => {
-	switch ( pdfSupport() ) {
+export default ( url ) => {
+	switch ( getPDFSupport() ) {
 		case 'native':
 			// Happy case where everything can happen automatically. Supported in Edge, Chrome and Safari
 			return loadDocumentInFrame( url )
 				.then( () => {
 					iframe.contentWindow.print();
-					return true;
 				} );
 
 		case 'addon':
 			// window.open will be blocked by the browser if this code isn't being executed from a direct user interaction
-			if ( isUserInteraction ) {
-				window.open( url );
-				return Promise.resolve( true );
-			}
-			return Promise.resolve( false );
+			return window.open( url ) ? Promise.resolve() : Promise.reject( new Error( 'Unable to open label PDF in new tab' ) );
 
 		default:
 			// If browser doesn't support PDFs at all, this will trigger the "Download" pop-up.
 			// No need to wait for the iframe to load, it will never finish.
 			loadDocumentInFrame( url );
-			return Promise.resolve( true );
+			return Promise.resolve();
 	}
 };

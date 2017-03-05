@@ -1,6 +1,7 @@
 import saveForm from 'lib/save-form';
 import _ from 'lodash';
 import printDocument from 'lib/utils/print-document';
+import getPDFSupport from 'lib/utils/pdf-support';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
@@ -516,22 +517,23 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				} ) );
 				const state = getState().shippingLabel;
 				const printUrl = getPrintURL( state.paperSize, labelsToPrint, context );
-				printDocument( printUrl, false )
-					.then( ( success ) => {
-						const noticeText = 1 === response.length
+				if ( 'addon' === getPDFSupport() ) {
+					// If the browser has a PDF "addon", we need another user click to trigger opening it in a new tab
+					dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
+				} else {
+					printDocument( printUrl )
+						.then( () => {
+							const noticeText = 1 === response.length
 								? __( 'Your shipping label was purchased successfully' )
 								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
-						dispatch( NoticeActions.successNotice( noticeText ) );
-						if ( success ) {
+							dispatch( NoticeActions.successNotice( noticeText ) );
 							dispatch( exitPrintingFlow( true ) );
-						} else {
-							dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
-						}
-					} )
-					.catch( ( err ) => {
-						console.error( err );
-						dispatch( NoticeActions.errorNotice( err.toString() ) );
-					} );
+						} )
+						.catch( ( err ) => {
+							console.error( err );
+							dispatch( NoticeActions.errorNotice( err.toString() ) );
+						} );
+				}
 			}
 		}
 	};
@@ -577,7 +579,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 };
 
 export const confirmPrintLabel = ( url ) => ( dispatch ) => {
-	printDocument( url, true )
+	printDocument( url )
 		.then( () => dispatch( exitPrintingFlow( true ) ) )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
@@ -660,7 +662,10 @@ export const confirmReprint = () => ( dispatch, getState, context ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const state = getState().shippingLabel;
 	const labelId = state.reprintDialog.labelId;
-	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ), true )
-		.then( () => dispatch( closeReprintDialog() ) )
-		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
+	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ) )
+		.catch( ( error ) => {
+			console.error( error );
+			dispatch( NoticeActions.errorNotice( error.toString() ) );
+		} )
+		.then( () => dispatch( closeReprintDialog() ) );
 };
