@@ -782,14 +782,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<h1><?php _e( 'Welcome to WooCommerce Services' ) ?></h1>
 				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
 				<p>
-					<b>Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.</b>
+					<b><?php _e( 'Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.', 'woocommerce-services' ); ?></b>
 				</p>
 				<p>
 					<?php
 					printf(
-						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that Connect passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that WooCommerce Services passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/' ),
-						esc_url( 'https://woocommerce.com/terms-conditions/connect-privacy' )
+						esc_url( 'https://woocommerce.com/terms-conditions/services-privacy/' )
 					);
 					?>
 				</p>
