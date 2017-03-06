@@ -782,7 +782,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<h1><?php _e( 'Welcome to WooCommerce Services' ) ?></h1>
 				<a href="<?php echo esc_url( $decline_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
 				<p>
-					<b>Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.</b>
+					<b><?php _e( 'Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.', 'woocommerce-services' ); ?></b>
 				</p>
 				<p>
 					<?php
