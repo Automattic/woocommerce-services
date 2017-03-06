@@ -341,27 +341,6 @@
 		height: inherit;
 	}
 
-	.wcc-bulk-checkbox-container {
-		margin-right: 8px;
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		position: relative;
-
-		input {
-			margin: 0;
-		}
-
-		.gridicon {
-			color: #00a0d2;
-			height: 16px;
-			position: absolute;
-			left: 0px;
-			top: 0px;
-			width: 16px;
-		}
-	}
-
 	.wcc-nux-notice {
 		background: lighten( $blue-light, 22% );
 		border: 1px solid lighten( $blue-light, 15% );
@@ -407,6 +386,7 @@
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';
+	@import '../../client/components/checkbox/style';
 	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';
 	@import '../../client/components/text/style';

@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
-import BulkCheckbox from 'components/bulk-checkbox';
+import Checkbox from 'components/checkbox';
 import Gridicon from 'gridicons';
 import InfoTooltip from 'components/info-tooltip';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -16,10 +16,9 @@ const summaryLabel = ( services, numSelected ) => {
 	return sprintf( format, numSelected );
 };
 
-const updateAll = ( event, checked, updateValue, services ) => {
-	event.stopPropagation();
+const updateAll = ( event, updateValue, services ) => {
 	services.forEach( ( service ) => {
-		updateValue( [ service.id, 'enabled' ], checked );
+		updateValue( [ service.id, 'enabled' ], event.target.checked );
 	} );
 };
 
@@ -42,10 +41,11 @@ const ShippingServiceGroup = ( props ) => {
 	), 0 );
 	const renderHeader = () => {
 		return <div className="wcc-shipping-services-group-header">
-			<BulkCheckbox
-				selectedCount={ numSelected }
-				allCount={ services.length }
-				onToggle={ ( event, checked ) => ( updateAll( event, checked, updateValue, services ) ) } />
+			<Checkbox
+				checked={ services.length === numSelected }
+				partialChecked={ Boolean( numSelected ) }
+				onChange={ ( event ) => ( updateAll( event, updateValue, services ) ) }
+				onClick={ ( event ) => event.stopPropagation() } />
 			{ title }
 		</div>;
 	};
