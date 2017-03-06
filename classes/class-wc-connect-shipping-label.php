@@ -53,31 +53,35 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					$length = $product->get_length();
 					$width  = $product->get_width();
 				}
-				$name = html_entity_decode( $product->get_formatted_name() );
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
 					$id = "weight_{$i}_individual";
+					$product_data = array(
+						'height'     => ( float ) $height,
+						'product_id' => $item[ 'product_id' ],
+						'length'     => ( float ) $length,
+						'quantity'   => 1,
+						'weight'     => ( float ) $weight,
+						'width'      => ( float ) $width,
+						'name'       => $this->get_name( $product ),
+					);
+
+					if ( isset( $product->variation_id ) ) {
+						$product_data[ 'attributes' ] = $product->get_formatted_variation_attributes( true );
+					}
+
 					$packages[ $id ] = array(
-						'id' => $id,
+						'id'     => $id,
 						'box_id' => 'individual',
 						'height' => ( float ) $height,
 						'length' => ( float ) $length,
 						'weight' => ( float ) $weight,
-						'width' => ( float ) $width,
-						'items' => array(
-							array(
-								'height' => ( float ) $height,
-								'product_id' => $item[ 'product_id' ],
-								'length' => ( float ) $length,
-								'quantity' => 1,
-								'weight' => ( float ) $weight,
-								'width' => ( float ) $width,
-								'name' => $name,
-							),
-						),
+						'width'  => ( float ) $width,
+						'items'  => array( $product_data ),
 					);
 				}
 			}
+
 			return $packages;
 		}
 
@@ -117,6 +121,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					if ( ! $product ) {
 						continue;
 					}
+
 					$product_data = $package[ 'items' ][ $item_index ];
 					$product_data[ 'name' ] = $this->get_name( $product );
 					$product_data[ 'url' ] = admin_url( 'post.php?post=' . $product->id . '&action=edit' );
