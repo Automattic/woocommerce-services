@@ -15,16 +15,17 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 
 	public function run( $request ) {
 		$data    = $request->get_json_params();
+		$order_id = $data[ 'orderId' ];
+		$type     = $data[ 'type' ];
 		$address = $data['address'];
 		$name    = $address['name'];
 		$company = $address['company'];
 		$phone   = $address['phone'];
 
-		unset( $address['name'], $address['company'], $address['phone'] );
+		unset( $address[ 'name' ], $address[ 'company' ], $address[ 'phone' ] );
 
 		$body = array(
 			'destination' => $address,
-			'carrier'     => 'usps', // TODO: remove hardcoding
 		);
 		$response = $this->api_client->send_address_normalization_request( $body );
 
@@ -51,11 +52,16 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		$response->normalized->name = $name;
 		$response->normalized->company = $company;
 		$response->normalized->phone = $phone;
+		$is_trivial_normalization = isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false;
+
+		if ( $is_trivial_normalization ) {
+			WC_REST_Connect_Address_Controller::update_address( $order_id, $type, $response->normalized );
+		}
 
 		return array(
 			'success' => true,
 			'normalized' => $response->normalized,
-			'is_trivial_normalization' => isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false,
+			'is_trivial_normalization' => $is_trivial_normalization,
 		);
 	}
 
@@ -71,5 +77,4 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 
 		return true; // non-authenticated service for the 'destination' address
 	}
-
 }

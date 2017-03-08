@@ -5,7 +5,7 @@ import {
 	ADDRESS_NORMALIZATION_COMPLETED,
 } from './actions';
 
-export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
+export const normalizeAddress = ( dispatch, orderId, address, type, addressNormalizationURL, nonce ) => {
 	dispatch( { type: ADDRESS_NORMALIZATION_IN_PROGRESS, group: type } );
 	return new Promise( ( resolve ) => {
 		let error = null;
@@ -31,6 +31,10 @@ export default ( dispatch, address, type, addressNormalizationURL, nonce ) => {
 				setTimeout( () => resolve( ! error ), 0 );
 			}
 		};
-		saveForm( setIsSaving, setSuccess, _.noop, setError, addressNormalizationURL, nonce, 'POST', { address, type } );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, addressNormalizationURL, nonce, 'POST', { orderId, address, type } );
 	} );
+};
+
+export const acceptAddress = ( dispatch, orderId, address, type, addressAcceptURL, nonce ) => {
+	saveForm( _.noop, _.noop, _.noop, _.noop, addressAcceptURL, nonce, 'POST', { orderId, address, type } );
 };
