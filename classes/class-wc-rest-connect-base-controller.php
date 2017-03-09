@@ -48,10 +48,15 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'             => $this->method,
-				'callback'            => array( $this, 'run' ),
+				'callback'            => array( $this, 'run_internal' ),
 				'permission_callback' => array( $this, 'check_permission' ),
 			),
 		) );
+	}
+
+	public function run_internal( $request ) {
+		define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
+		return $this->run( $request );
 	}
 
 	abstract public function run( $request );
