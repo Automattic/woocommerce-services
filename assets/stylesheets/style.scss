@@ -35,12 +35,20 @@
 	// Breakpoints
 	$breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
 
-    // Buttons
-    .button {
-        background: $gray-light;
-        box-shadow: none;
-        padding: 5px 14px 7px;
-    }
+	// Buttons
+	.button {
+		background: $gray-light;
+		box-shadow: none;
+		padding: 5px 14px 7px;
+
+		.spinner {
+			margin-bottom: -8px;
+
+			.spinner__border {
+				fill: transparent;
+			}
+		}
+	}
 
 	.button.is-primary {
 		background: $blue-wordpress;

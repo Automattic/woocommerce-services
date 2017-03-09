@@ -797,6 +797,12 @@
       "resolved": "https://registry.npmjs.org/batch/-/batch-0.5.3.tgz",
       "dev": true
     },
+    "bcrypt-pbkdf": {
+      "version": "1.0.1",
+      "from": "bcrypt-pbkdf@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.1.tgz",
+      "optional": true
+    },
     "better-assert": {
       "version": "1.0.2",
       "from": "better-assert@~1.0.0",
@@ -1694,6 +1700,12 @@
       "from": "dompurify@>=0.8.5 <0.9.0",
       "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-0.8.5.tgz"
     },
+    "ecc-jsbn": {
+      "version": "0.1.1",
+      "from": "ecc-jsbn@>=0.1.1 <0.2.0",
+      "resolved": "https://registry.npmjs.org/ecc-jsbn/-/ecc-jsbn-0.1.1.tgz",
+      "optional": true
+    },
     "ee-first": {
       "version": "1.1.1",
       "from": "ee-first@1.1.1",
@@ -1881,6 +1893,13 @@
           "from": "estraverse@>=1.9.1 <2.0.0",
           "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-1.9.3.tgz",
           "dev": true
+        },
+        "source-map": {
+          "version": "0.2.0",
+          "from": "source-map@>=0.2.0 <0.3.0",
+          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.2.0.tgz",
+          "dev": true,
+          "optional": true
         }
       }
     },
@@ -3096,6 +3115,12 @@
       "from": "jed@1.0.2",
       "resolved": "https://registry.npmjs.org/jed/-/jed-1.0.2.tgz"
     },
+    "jodid25519": {
+      "version": "1.0.2",
+      "from": "jodid25519@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/jodid25519/-/jodid25519-1.0.2.tgz",
+      "optional": true
+    },
     "js-base64": {
       "version": "2.1.9",
       "from": "js-base64@^2.1.9",
@@ -3117,6 +3142,12 @@
       "from": "js-yaml@>=3.7.0 <3.8.0",
       "resolved": "https://registry.npmjs.org/js-yaml/-/js-yaml-3.7.0.tgz",
       "dev": true
+    },
+    "jsbn": {
+      "version": "0.1.1",
+      "from": "jsbn@>=0.1.0 <0.2.0",
+      "resolved": "https://registry.npmjs.org/jsbn/-/jsbn-0.1.1.tgz",
+      "optional": true
     },
     "jsdom": {
       "version": "9.11.0",
@@ -5547,6 +5578,12 @@
       "from": "tunnel-agent@~0.4.1",
       "resolved": "https://registry.npmjs.org/tunnel-agent/-/tunnel-agent-0.4.3.tgz",
       "dev": true
+    },
+    "tweetnacl": {
+      "version": "0.14.5",
+      "from": "tweetnacl@>=0.14.0 <0.15.0",
+      "resolved": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.5.tgz",
+      "optional": true
     },
     "type-check": {
       "version": "0.3.2",
@@ -8960,7 +8997,15 @@
         "prismjs": {
           "version": "1.6.0",
           "from": "prismjs@1.6.0",
-          "resolved": "https://registry.npmjs.org/prismjs/-/prismjs-1.6.0.tgz"
+          "resolved": "https://registry.npmjs.org/prismjs/-/prismjs-1.6.0.tgz",
+          "dependencies": {
+            "clipboard": {
+              "version": "1.6.0",
+              "from": "clipboard@>=1.5.5 <2.0.0",
+              "resolved": "https://registry.npmjs.org/clipboard/-/clipboard-1.6.0.tgz",
+              "optional": true
+            }
+          }
         },
         "private": {
           "version": "0.1.7",

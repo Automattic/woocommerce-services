@@ -14,10 +14,13 @@ const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
 
 	const getPurchaseButtonLabel = () => {
+		if ( props.form.needsPrintConfirmation ) {
+			return __( 'Print' );
+		}
 		if ( props.form.isSubmitting ) {
 			return (
 				<div>
-					<Spinner size={ 24 } className="wcc-shipping-label-dialog__button-spinner" />
+					<Spinner size={ 24 } />
 					<span className="wcc-shipping-label-dialog__purchasing-label">{ __( 'Purchasing...' ) }</span>
 				</div>
 			);
@@ -31,6 +34,13 @@ const PrintLabelDialog = ( props ) => {
 			label += ' (' + currencySymbol + getRatesTotal( props.form.rates ) + ')';
 		}
 		return label;
+	};
+
+	const getPurchaseButtonAction = () => {
+		if ( props.form.needsPrintConfirmation ) {
+			return () => props.labelActions.confirmPrintLabel( props.form.printUrl );
+		}
+		return props.labelActions.purchaseLabel;
 	};
 
 	return (
@@ -69,8 +79,8 @@ const PrintLabelDialog = ( props ) => {
 				</div>
 				<ActionButtons buttons={ [
 					{
-						isDisabled: ! props.canPurchase || props.form.isSubmitting,
-						onClick: props.labelActions.purchaseLabel,
+						isDisabled: ! props.form.needsPrintConfirmation && ( ! props.canPurchase || props.form.isSubmitting ),
+						onClick: getPurchaseButtonAction(),
 						isPrimary: true,
 						label: getPurchaseButtonLabel(),
 					},

@@ -242,16 +242,8 @@
 		}
 	}
 
-	.wcc-shipping-label-dialog__button-spinner {
-		margin-right: 6px;
-		margin-bottom: -8px;
-
-		.spinner__border {
-			fill: transparent;
-		}
-	}
-
 	.wcc-shipping-label-dialog__purchasing-label {
+		margin-left: 6px;
 		color: $blue-wordpress;
 		animation: pulsate 2s ease-out;
 		animation-iteration-count: infinite;

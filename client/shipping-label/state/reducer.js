@@ -15,6 +15,7 @@ import {
 	UPDATE_PREVIEW,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
+	SHOW_PRINT_CONFIRMATION,
 	RATES_RETRIEVAL_IN_PROGRESS,
 	RATES_RETRIEVAL_COMPLETED,
 	OPEN_REFUND_DIALOG,
@@ -484,6 +485,15 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 			} ) ),
 			...state.labels,
 		],
+	};
+};
+
+reducers[ SHOW_PRINT_CONFIRMATION ] = ( state, { printUrl } ) => {
+	return { ...state,
+		form: { ...state.form,
+			needsPrintConfirmation: true,
+			printUrl,
+		},
 	};
 };
 

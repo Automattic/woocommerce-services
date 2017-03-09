@@ -1,6 +1,7 @@
 import { translate as __ } from 'lib/mixins/i18n';
 import querystring from 'querystring';
 import _ from 'lodash';
+import getPDFSupport from 'lib/utils/pdf-support';
 
 const PAPER_SIZES = {
 	a4: {
@@ -45,5 +46,5 @@ export const getPrintURL = ( paperSize, labels, { labelsPrintURL, nonce } ) => {
 };
 
 export const getPreviewURL = ( paperSize, labels, { labelsPreviewURL, nonce } ) => {
-	return _getPDFURL( paperSize, labels, labelsPreviewURL, nonce );
+	return getPDFSupport() ? _getPDFURL( paperSize, labels, labelsPreviewURL, nonce ) : null;
 };
