@@ -466,13 +466,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_store = $this->get_service_settings_store();
 			$logger = $this->get_logger();
 
-			//////////////////////////////////////////////////////////////////////////////
-			// TODO - Remove this when woocommerce/pull/10435 lands
-			if ( ! class_exists( 'WP_REST_Controller' ) ) {
-				include_once( plugin_basename( 'vendor/class-wp-rest-controller.php' ) );
-			}
-			//////////////////////////////////////////////////////////////////////////////
-
 			if ( ! class_exists( 'WP_REST_Controller' ) ) {
 				$this->logger->debug( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
 				return;
