@@ -373,6 +373,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$store_options = $this->settings_store->get_store_options();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
+			$base_location = wc_get_base_location();
+			$store_options[ 'originCountry' ] = $base_location[ 'country' ];
 			$admin_array[ 'storeOptions' ] = $store_options;
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
