@@ -55,7 +55,9 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 	}
 
 	public function run_internal( $request ) {
-		define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
+		}
 		return $this->run( $request );
 	}
 
