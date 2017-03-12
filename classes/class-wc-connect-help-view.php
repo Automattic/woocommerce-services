@@ -685,15 +685,29 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$this->get_support_items()
 			);
 
-			$root_view = 'wc-connect-admin-help';
-			$admin_array = array(
+			$admin_array = array();
+
+			$help_root_view = 'wc-connect-admin-help';
+			$admin_array[] = array(
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
 				'formSchema'         => $this->get_form_schema(),
 				'formLayout'         => $this->get_form_layout(),
 				'formData'           => $this->get_form_data(),
 				'callbackURL'        => get_rest_url( null, "/wc/v1/connect/self-help" ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'rootView'           => $root_view,
+				'rootView'           => $help_root_view,
+				'noticeDismissed'    => true,
+			);
+
+			$print_root_view = 'wc-connect-admin-test-print';
+			$admin_array[] = array(
+				'storeOptions'       => $this->service_settings_store->get_store_options(),
+				'formSchema'         => $this->get_form_schema(),
+				'formLayout'         => $this->get_form_layout(),
+				'formData'           => $this->get_form_data(),
+				'callbackURL'        => get_rest_url( null, "/wc/v1/connect/self-help" ),
+				'nonce'              => wp_create_nonce( 'wp_rest' ),
+				'rootView'           => $print_root_view,
 				'noticeDismissed'    => true,
 			);
 
@@ -705,7 +719,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				<h2>
 					<?php _e( 'WooCommerce Services Status', 'woocommerce' ); ?>
 				</h2>
-				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>"></div>
+			<div class="wcc-root" id="<?php echo esc_attr( $help_root_view ) ?>"></div>
+			<div class="wcc-root" id="<?php echo esc_attr( $print_root_view ) ?>"></div>
 			<?php
 		}
 

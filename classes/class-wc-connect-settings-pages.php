@@ -157,7 +157,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				'rootView'     => $root_view,
 			);
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
 			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_style( 'wc_connect_admin' );
 
@@ -250,7 +250,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				'rootView'     => $root_view,
 			);
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
 			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_style( 'wc_connect_admin' );
 

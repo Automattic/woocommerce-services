@@ -377,7 +377,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$store_options[ 'originCountry' ] = $base_location[ 'country' ];
 			$admin_array[ 'storeOptions' ] = $store_options;
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
 			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_style( 'wc_connect_admin' );
 

@@ -585,7 +585,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
 			);
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
 			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_style( 'wc_connect_admin' );
 		}

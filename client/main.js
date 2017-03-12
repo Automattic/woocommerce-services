@@ -1,4 +1,3 @@
-/*global wcConnectData */
 import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -14,17 +13,14 @@ import AccountSettings from './account-settings';
 import Packages from './packages';
 import _ from 'lodash';
 
-( () => {
-	if ( ! global.wcConnectData ) {
-		return;
-	}
-
+( global.wcConnectData || [] ).forEach( ( wcConnectData ) => {
 	const Route = ( ( rootView ) => {
 		switch ( rootView ) {
 			case 'wc-connect-create-shipping-label':
 				return ShippingLabel;
 			case 'wc-connect-service-settings':
 			case 'wc-connect-admin-help':
+			case 'wc-connect-admin-test-print':
 				return Settings;
 			case 'wc-connect-account-settings':
 				return AccountSettings;
@@ -103,4 +99,4 @@ import _ from 'lodash';
 	}
 
 	render();
-} )();
+} );
