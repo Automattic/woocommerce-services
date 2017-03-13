@@ -1,6 +1,7 @@
 <?php
 /**
- * A class for working around the quircks and different versions of WordPress/WooCommerce
+ * A class for working around the quirks and different versions of WordPress/WooCommerce
+ * This is for versions 2.6 and lower
  */
 
 // No direct access please

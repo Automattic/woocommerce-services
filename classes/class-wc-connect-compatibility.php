@@ -1,6 +1,7 @@
 <?php
 /**
- * A class for working around the quircks and different versions of WordPress/WooCommerce
+ * A class for working around the quirks and different versions of WordPress/WooCommerce
+ * This is the base class. Its static members auto-select the correct version to use.
  */
 
 // No direct access please
