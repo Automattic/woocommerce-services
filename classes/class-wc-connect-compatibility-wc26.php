@@ -21,7 +21,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		}
 
 		public function get_formatted_variation( WC_Product $product, $flat = false ) {
-			return $product->get_formatted_variation_attributes( $flat );
+			return wc_get_formatted_variation( $product, $flat );
 		}
 	}
 }

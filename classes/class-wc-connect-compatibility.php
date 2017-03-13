@@ -23,9 +23,12 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		}
 
 		private static function select_compatibility() {
+
 			if( doubleval( WC()->version ) <= 2.6 ) {
+				require_once 'class-wc-connect-compatibility-wc26.php';
 				return new WC_Connect_Compatibility_WC26();
 			} else {
+				require_once 'class-wc-connect-compatibility-wc30.php';
 				return new WC_Connect_Compatibility_WC30();
 			}
 		}
