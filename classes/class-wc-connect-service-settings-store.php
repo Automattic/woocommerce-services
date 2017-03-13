@@ -34,11 +34,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ) );
 			$dimension_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ) );
 			$weight_unit = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ) );
+			$base_location = wc_get_base_location();
 
 			return array(
 				'currency_symbol' => $currency_symbol,
 				'dimension_unit' => $this->translate_unit( $dimension_unit ),
 				'weight_unit' => $this->translate_unit( $weight_unit ),
+				'origin_country' => $base_location[ 'country' ],
 			);
 		}
 
@@ -105,7 +107,17 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function get_preferred_paper_size() {
-			return WC_Connect_Options::get_option( 'paper_size', '' );
+			$paper_size = WC_Connect_Options::get_option( 'paper_size', '' );
+			if ( $paper_size ) {
+				return $paper_size;
+			}
+			// According to https://en.wikipedia.org/wiki/Letter_(paper_size) US, Mexico, Canada and Dominican Republic
+			// use "Letter" size, and pretty much all the rest of the world use A4, so those are sensible defaults
+			$base_location = wc_get_base_location();
+			if ( in_array( $base_location[ 'country' ], array( 'US', 'CA', 'MX', 'DO' ) ) ) {
+				return 'letter';
+			}
+			return 'a4';
 		}
 
 		public function set_preferred_paper_size( $size ) {

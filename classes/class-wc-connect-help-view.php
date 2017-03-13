@@ -702,13 +702,10 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$print_root_view = 'wc-connect-admin-test-print';
 			$admin_array[] = array(
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
-				'formSchema'         => $this->get_form_schema(),
-				'formLayout'         => $this->get_form_layout(),
-				'formData'           => $this->get_form_data(),
-				'callbackURL'        => get_rest_url( null, "/wc/v1/connect/self-help" ),
+				'paperSize'          => $this->service_settings_store->get_preferred_paper_size(),
+				'labelsPreviewURL'   => get_rest_url( null, '/wc/v1/connect/labels/preview' ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => $print_root_view,
-				'noticeDismissed'    => true,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );

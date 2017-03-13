@@ -10,6 +10,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';
 import AccountSettings from './account-settings';
+import PrintTestLabel from './print-test-label';
 import Packages from './packages';
 import _ from 'lodash';
 
@@ -20,12 +21,13 @@ import _ from 'lodash';
 				return ShippingLabel;
 			case 'wc-connect-service-settings':
 			case 'wc-connect-admin-help':
-			case 'wc-connect-admin-test-print':
 				return Settings;
 			case 'wc-connect-account-settings':
 				return AccountSettings;
 			case 'wc-connect-packages':
 				return Packages;
+			case 'wc-connect-admin-test-print':
+				return PrintTestLabel;
 		}
 	} )( wcConnectData.rootView )( wcConnectData );
 

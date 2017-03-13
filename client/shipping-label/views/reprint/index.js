@@ -23,7 +23,7 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions }
 				</p>
 				<Dropdown
 					id={ 'paper_size' }
-					valuesMap={ getPaperSizes( storeOptions.originCountry ) }
+					valuesMap={ getPaperSizes( storeOptions.origin_country ) }
 					title={ __( 'Paper size' ) }
 					value={ paperSize }
 					updateValue={ labelActions.updatePaperSize }
