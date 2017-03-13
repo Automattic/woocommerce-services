@@ -80,6 +80,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_services_controller;
 
 		/**
+		 * @var WC_REST_Connect_Services_Dismiss_Service_Notice_Controller
+		 */
+		protected $rest_dismiss_service_notice_controller;
+
+
+		/**
 		 * @var WC_REST_Connect_Self_Help_Controller
 		 */
 		protected $rest_self_help_controller;
@@ -242,6 +248,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_services_controller( WC_REST_Connect_Services_Controller $rest_services_controller ) {
 			$this->rest_services_controller = $rest_services_controller;
+		}
+
+		public function set_rest_dismiss_service_notice_controller( WC_REST_Connect_Services_Dismiss_Service_Notice_Controller $rest_dismiss_service_notice_controller ) {
+			$this->rest_dismiss_service_notice_controller = $rest_dismiss_service_notice_controller;
 		}
 
 		public function get_rest_self_help_controller() {
@@ -456,20 +466,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_store = $this->get_service_settings_store();
 			$logger = $this->get_logger();
 
-			//////////////////////////////////////////////////////////////////////////////
-			// TODO - Remove this when woocommerce/pull/10435 lands
-			if ( ! class_exists( 'WP_REST_Controller' ) ) {
-				include_once( plugin_basename( 'vendor/class-wp-rest-controller.php' ) );
-			}
-			//////////////////////////////////////////////////////////////////////////////
-
 			if ( ! class_exists( 'WP_REST_Controller' ) ) {
 				$this->logger->debug( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
 				return;
 			}
 
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-base-controller.php' ) );
+
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-packages-controller.php' ) );
-			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $settings_store, $logger );
+			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_packages_controller( $rest_packages_controller );
 			$rest_packages_controller->register_routes();
 
@@ -479,12 +484,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
-			$rest_services_controller = new WC_REST_Connect_Services_Controller( $schemas_store, $settings_store, $this->nux, $logger );
+			$rest_services_controller = new WC_REST_Connect_Services_Controller( $this->api_client, $settings_store, $logger, $schemas_store );
 			$this->set_rest_services_controller( $rest_services_controller );
 			$rest_services_controller->register_routes();
 
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-dismiss-service-notice-controller.php' ) );
+			$rest_dismiss_service_notice_controller = new WC_REST_Connect_Services_Dismiss_Service_Notice_Controller( $this->api_client, $settings_store, $logger, $this->nux );
+			$this->set_rest_dismiss_service_notice_controller( $rest_dismiss_service_notice_controller );
+			$rest_dismiss_service_notice_controller->register_routes();
+
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-self-help-controller.php' ) );
-			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $logger );
+			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
 			$rest_self_help_controller->register_routes();
 
