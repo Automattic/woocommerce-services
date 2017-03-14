@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
 Tested up to: 4.7.2
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,15 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.3.0 =
+* Fix label PDF viewing in IE, Microsoft Edge, and Firefox
+* Fix label modal width issue in Internet Explorer 11
+* Don't initially show red error highlights for missing label destination address
+* Labels: Fix escaped HTML showing in product variation names
+* Remove unused icon font, reducing CSS size
+* Fix tax rate calculation for shipping
+* Fix WP Super Cache label printing bug
 
 = 1.2.0 =
 * Improve label printing flow when origin or destination addresses need modification
