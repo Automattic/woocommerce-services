@@ -231,7 +231,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$service_items[] = (object) array(
 					'key' => 'wcc_services_empty',
 					'type' => 'text',
-					'class' => 'form_text_body_copy',
+					'class' => 'form-text-body-copy',
 					'value' => __( 'No services have been enabled', 'woocommerce-services' )
 				);
 
@@ -440,7 +440,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$support_items[] = (object) array(
 				'key' => 'wcc_support_item',
 				'type' => 'text',
-				'class' => 'form_text_body_copy',
+				'class' => 'form-text-body-copy',
 				'title' => __( 'Need help?', 'woocommerce-services' ),
 				'value' => $doc_link
 			);
