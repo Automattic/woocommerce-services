@@ -27,5 +27,5 @@ export const print = () => ( dispatch, getState, { labelsPreviewURL, nonce } ) =
 		} )
 		.catch( ( error ) => {
 			dispatch( { type: PRINTING_ERROR, error } );
-		} )
+		} );
 };

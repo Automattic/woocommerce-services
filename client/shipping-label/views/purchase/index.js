@@ -6,9 +6,10 @@ import { translate as __ } from 'lib/mixins/i18n';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
-import PreviewStep from './steps/preview';
 import { sprintf } from 'sprintf-js';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
+import Dropdown from 'components/dropdown';
+import { getPaperSizes } from 'lib/pdf-label-utils';
 
 const PrintLabelDialog = ( props ) => {
 	const currencySymbol = props.storeOptions.currency_symbol;
@@ -61,10 +62,13 @@ const PrintLabelDialog = ( props ) => {
 							errors={ props.errors.rates } />
 					</div>
 					<div className="wcc-shipping-label-dialog__sidebar">
-						<PreviewStep
-							{ ...props }
-							{ ...props.form.preview }
-							errors={ props.errors.preview } />
+						<Dropdown
+							id={ 'paper_size' }
+							valuesMap={ getPaperSizes( props.form.origin.values.country ) }
+							title={ __( 'Paper size' ) }
+							value={ props.paperSize }
+							updateValue={ props.labelActions.updatePaperSize }
+							error={ props.errors.sidebar.paperSize } />
 					</div>
 				</div>
 				<ActionButtons buttons={ [

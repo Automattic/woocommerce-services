@@ -60,7 +60,7 @@ const getPackagesErrors = ( values ) => _.mapValues( values, ( pckg ) => {
 
 const getRatesErrors = ( values ) => _.mapValues( values, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) );
 
-const getPreviewErrors = ( paperSize ) => {
+const getSidebarErrors = ( paperSize ) => {
 	const errors = {};
 	if ( ! paperSize ) {
 		errors.paperSize = __( 'This field is required' );
@@ -81,7 +81,7 @@ export default createSelector(
 			destination: getAddressErrors( form.destination, countriesData ),
 			packages: getPackagesErrors( form.packages.selected ),
 			rates: getRatesErrors( form.rates.values ),
-			preview: getPreviewErrors( paperSize ),
+			sidebar: getSidebarErrors( paperSize ),
 		};
 	}
 );

@@ -343,7 +343,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
-				'labelsPreviewURL'        => get_rest_url( null, '/wc/v1/connect/labels/preview' ),
 				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/labels/print' ),
 				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
