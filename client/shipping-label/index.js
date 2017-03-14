@@ -46,7 +46,7 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 					},
 					destination: {
 						values: formData.destination,
-						isNormalized: ! ! formData.destination_normalized,
+						isNormalized: Boolean( formData.destination_normalized ),
 						normalized: formData.destination_normalized ? formData.destination : null,
 						// If no destination address is stored, mark all fields as "ignore validation" so the UI doesn't immediately show errors
 						ignoreValidation: hasDestinationAddress ? null : _.mapValues( formData.destination, () => true ),

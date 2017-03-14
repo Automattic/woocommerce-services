@@ -37,7 +37,7 @@ class WC_REST_Connect_Address_Controller extends WC_REST_Connect_Base_Controller
 	}
 
 	public static function update_address( $order_id, $type, $api_address ) {
-		if ( ! $order_id || 'destination' != $type ) {
+		if ( ! $order_id || 'destination' !== $type ) {
 			return;
 		}
 
