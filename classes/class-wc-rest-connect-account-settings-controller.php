@@ -10,7 +10,7 @@ if ( class_exists( 'WC_REST_Connect_Account_Settings_Controller' ) ) {
 
 class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_Controller {
 
-	protected $method = 'POST';
+	protected $method = 'PUT';
 	protected $rest_base = 'connect/account/settings';
 
 	public function run( $request ) {
