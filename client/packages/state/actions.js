@@ -79,7 +79,7 @@ export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState
 	dispatch( setIsSaving( true ) );
 
 	const request = {
-		method: submitMethod || 'PUT',
+		method: submitMethod || 'POST',
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,
