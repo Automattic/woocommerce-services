@@ -79,6 +79,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.3.1 =
+* Fix compatibility bug with `mod_security`
+* Update shipping address on order when corrected by API
+
 = 1.3.0 =
 * Fix label PDF viewing in IE, Microsoft Edge, and Firefox
 * Fix label modal width issue in Internet Explorer 11
