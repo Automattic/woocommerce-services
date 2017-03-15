@@ -5,7 +5,7 @@ import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );
 	const request = {
-		method: submitMethod || 'PUT',
+		method: submitMethod || 'POST',
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,

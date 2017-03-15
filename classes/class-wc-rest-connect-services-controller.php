@@ -10,7 +10,7 @@ if ( class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 
 class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controller {
 
-	protected $method = 'PUT';
+	protected $method = 'POST';
 	protected $rest_base = 'connect/services/(?P<id>[a-z_]+)\/(?P<instance>[\d]+)';
 
 	/**

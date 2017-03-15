@@ -28,7 +28,7 @@ export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState
 	dispatch( setFormMetaProperty( 'isSaving', true ) );
 
 	const request = {
-		method: submitMethod || 'PUT',
+		method: submitMethod || 'POST',
 		credentials: 'same-origin',
 		headers: {
 			'X-WP-Nonce': nonce,
