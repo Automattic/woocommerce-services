@@ -356,7 +356,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$admin_array = array(
 				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
-				'addressAcceptURL'        => get_rest_url( null, '/wc/v1/connect/update-address' ),
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),

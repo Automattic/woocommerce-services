@@ -126,11 +126,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_address_normalization_controller;
 
 		/**
-		 * @var WC_REST_Connect_Address_Controller
-		 */
-		protected $rest_address_controller;
-
-		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -313,10 +308,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
 			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
-		}
-
-		public function set_rest_address_controller( WC_REST_Connect_Address_Controller $rest_address_controller ) {
-			$this->rest_address_controller = $rest_address_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -541,11 +532,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
-
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-address-controller.php' ) );
-			$rest_address_controller = new WC_REST_Connect_Address_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_address_controller( $rest_address_controller );
-			$rest_address_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}

@@ -15,8 +15,6 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 
 	public function run( $request ) {
 		$data    = $request->get_json_params();
-		$order_id = $data[ 'orderId' ];
-		$type     = $data[ 'type' ];
 		$address = $data['address'];
 		$name    = $address['name'];
 		$company = $address['company'];
@@ -53,10 +51,6 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		$response->normalized->company = $company;
 		$response->normalized->phone = $phone;
 		$is_trivial_normalization = isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false;
-
-		if ( $is_trivial_normalization ) {
-			WC_REST_Connect_Address_Controller::update_address( $order_id, $type, $response->normalized );
-		}
 
 		return array(
 			'success' => true,

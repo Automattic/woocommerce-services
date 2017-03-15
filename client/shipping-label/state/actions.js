@@ -6,7 +6,7 @@ import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
-import { normalizeAddress, acceptAddress } from './normalize-address';
+import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -112,12 +112,13 @@ const convertToApiPackage = ( pckg ) => {
 const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
 	const formState = getState().shippingLabel.form;
 	const {
+		orderId,
 		origin,
 		destination,
 		packages,
 	} = formState;
 
-	return getRates( dispatch, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
+	return getRates( dispatch, orderId, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
 		.then( handleResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -158,7 +159,7 @@ export const openPrintingFlow = () => (
 		! hasNonEmptyLeaves( errors.origin ) &&
 		! origin.isNormalized &&
 		! origin.normalizationInProgress ) {
-		promisesQueue.push( normalizeAddress( dispatch, form.orderId, origin.values, 'origin', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
 
 	if ( origin.ignoreValidation || hasNonEmptyLeaves( errors.origin ) ) {
@@ -169,7 +170,7 @@ export const openPrintingFlow = () => (
 		! hasNonEmptyLeaves( errors.destination ) &&
 		! destination.isNormalized &&
 		! destination.normalizationInProgress ) {
-		promisesQueue.push( normalizeAddress( dispatch, form.orderId, destination.values, 'destination', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
 	if ( destination.ignoreValidation || hasNonEmptyLeaves( errors.destination ) ) {
@@ -248,7 +249,7 @@ export const removeIgnoreValidation = ( group ) => {
 	};
 };
 
-export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce, addressAcceptURL } ) => {
+export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce } ) => {
 	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
 		group,
@@ -269,11 +270,6 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 		hasNonEmptyLeaves( errors.packages )
 	) {
 		return;
-	}
-
-	const form = state.shippingLabel.form;
-	if ( form[ group ].selectNormalized ) {
-		acceptAddress( dispatch, form.orderId, form[ group ].normalized, group, addressAcceptURL, nonce );
 	}
 
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
@@ -323,7 +319,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		handleNormalizeResponse( true );
 		return;
 	}
-	normalizeAddress( dispatch, getState().shippingLabel.form.orderId, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
+	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
 		.then( handleNormalizeResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -547,10 +543,10 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 	let form = getState().shippingLabel.form;
 	const addressNormalizationQueue = [];
 	if ( ! form.origin.isNormalized ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, form.orderId, form.origin.values, 'origin', addressNormalizationURL, nonce ) );
+		addressNormalizationQueue.push( normalizeAddress( dispatch, form.origin.values, 'origin', addressNormalizationURL, nonce ) );
 	}
 	if ( ! form.destination.isNormalized ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, form.orderId, form.destination.values, 'destination', addressNormalizationURL, nonce ) );
+		addressNormalizationQueue.push( normalizeAddress( dispatch, form.destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
 	Promise.all( addressNormalizationQueue ).then( ( normalizationResults ) => {
