@@ -230,19 +230,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_data( WC_Order $order ) {
-			$selected_packages = $this->get_selected_packages( $order );
-			$all_packages      = $this->get_all_packages();
-			$flat_rate_groups  = $this->get_flat_rate_packages_groups();
-			$is_packed         = ( false !== $this->get_packaging_metadata( $order ) );
-			$origin            = $this->get_origin_address();
-			$selected_rates    = $this->get_selected_rates( $order );
-			$destination       = $this->get_destination_address( $order );
+			$selected_packages      = $this->get_selected_packages( $order );
+			$all_packages           = $this->get_all_packages();
+			$flat_rate_groups       = $this->get_flat_rate_packages_groups();
+			$is_packed              = ( false !== $this->get_packaging_metadata( $order ) );
+			$origin                 = $this->get_origin_address();
+			$selected_rates         = $this->get_selected_rates( $order );
+			$destination            = $this->get_destination_address( $order );
 
 			if ( ! $destination[ 'country' ] ) {
 				$destination[ 'country' ] = $origin[ 'country' ];
 			}
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination' );
+			$destination_normalized = ( bool ) get_post_meta( $order->id, 'wc_connect_destination_normalized', true );
+
+			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => (object) $selected_rates,

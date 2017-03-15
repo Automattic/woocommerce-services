@@ -112,12 +112,13 @@ const convertToApiPackage = ( pckg ) => {
 const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
 	const formState = getState().shippingLabel.form;
 	const {
+		orderId,
 		origin,
 		destination,
 		packages,
 	} = formState;
 
-	return getRates( dispatch, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
+	return getRates( dispatch, orderId, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
 		.then( handleResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -172,8 +173,7 @@ export const openPrintingFlow = () => (
 		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
 	}
 
-	if ( destination.ignoreValidation ||
-			hasNonEmptyLeaves( errors.destination ) ) {
+	if ( destination.ignoreValidation || hasNonEmptyLeaves( errors.destination ) ) {
 		dispatch( toggleStep( 'destination' ) );
 	}
 
@@ -259,7 +259,9 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 		expandFirstErroneousStep( dispatch, getState, storeOptions, group );
 	};
 
-	const errors = getFormErrors( getState(), storeOptions );
+	const state = getState();
+
+	const errors = getFormErrors( state, storeOptions );
 
 	// If all prerequisite steps are error free, fetch new rates
 	if (

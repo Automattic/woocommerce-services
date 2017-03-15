@@ -127,6 +127,20 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return WC_Connect_Options::update_option( 'origin_address', $address );
 		}
 
+		public function update_destination_address( $order_id, $api_address ) {
+			$order = wc_get_order( $order_id );
+			$wc_address = $order->get_address( 'shipping' );
+
+			$new_address = array_merge( array(), ( array ) $wc_address, ( array ) $api_address );
+			//rename address to address_1
+			$new_address[ 'address_1' ] = $new_address[ 'address' ];
+			//remove api-specific fields
+			unset( $new_address[ 'address' ], $new_address[ 'name' ] );
+
+			$order->set_address( $new_address, 'shipping' );
+			update_post_meta( $order->id, 'wc_connect_destination_normalized', true );
+		}
+
 		protected function sort_services( $a, $b ) {
 
 			if ( $a->zone_order === $b->zone_order ) {
