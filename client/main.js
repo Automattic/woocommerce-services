@@ -8,6 +8,7 @@ import { Provider } from 'react-redux';
 import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
 import { translate as __ } from 'lib/mixins/i18n';
+import * as storageUtils from 'lib/utils/local-storage';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';
 import AccountSettings from './account-settings';
@@ -33,9 +34,13 @@ import _ from 'lodash';
 		}
 	} )( wcConnectData.rootView )( wcConnectData );
 
+	const persistedStateKey = Route.getStateKey();
+	const persistedState = storageUtils.getWithExpiry( persistedStateKey );
+	storageUtils.remove( persistedStateKey );
+
 	const store = createStore(
 		Route.getReducer(),
-		Route.getInitialState(),
+		persistedState || Route.getInitialState(),
 		compose(
 			applyMiddleware( thunk.withExtraArgument( wcConnectData ) ),
 			window.devToolsExtension ? window.devToolsExtension() : f => f
@@ -44,6 +49,11 @@ import _ from 'lodash';
 
 	window.addEventListener( 'beforeunload', ( event ) => {
 		const state = store.getState();
+
+		if ( window.persistState ) {
+			storageUtils.setWithExpiry( persistedStateKey, state );
+			return;
+		}
 
 		if ( ! state.form || ( state.form.meta && state.form.meta.pristine ) || _.every( state.form.pristine ) ) {
 			return;

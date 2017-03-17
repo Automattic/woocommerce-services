@@ -74,6 +74,10 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 		};
 	},
 
+	getStateKey() {
+		return `wcs-label-${formData.order_id}`;
+	},
+
 	View: () => (
 		<ShippingLabelRootView
 			storeOptions={ storeOptions } />

@@ -39,6 +39,10 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 		};
 	},
 
+	getStateKey() {
+		return 'wcs-packages';
+	},
+
 	View: () => {
 		return <PackagesView />;
 	},

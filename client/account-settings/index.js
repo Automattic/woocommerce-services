@@ -32,6 +32,10 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 		};
 	},
 
+	getStateKey() {
+		return 'wcs-account-settings';
+	},
+
 	View: () => (
 		<AccountSettingsRootView
 			storeOptions={ storeOptions } />
