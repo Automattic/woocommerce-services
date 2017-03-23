@@ -14,6 +14,9 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 	abstract class WC_Connect_Compatibility {
 		private static $singleton;
 
+		/**
+		 * @return WC_Connect_Compatibility
+		 */
 		public static function instance() {
 			if( self::$singleton === null ) {
 				self::$singleton = self::select_compatibility();
@@ -33,8 +36,27 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 			}
 		}
 
+		/**
+		 * @param WC_Order $order
+		 *
+		 * @return string
+		 */
 		abstract public function get_order_id( WC_Order $order );
+
+		/**
+		 * @param WC_Order $order
+		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
+		 *
+		 * @return WC_Product
+		 */
 		abstract public function get_item_product( WC_Order $order, $item );
+
+		/**
+		 * @param WC_Product $product
+		 * @param bool $flat
+		 *
+		 * @return string
+		 */
 		abstract public function get_formatted_variation( WC_Product $product, $flat = false );
 	}
 
