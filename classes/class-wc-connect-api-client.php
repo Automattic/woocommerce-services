@@ -14,7 +14,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 	class WC_Connect_API_Client {
 
 		/**
-		 * @var WC_Connect_Service_Schemas_Validator
+		 * @var WC_Connect_Services_Validator
 		 */
 		protected $validator;
 
@@ -74,7 +74,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Build the server's expected contents array, for rates requests.
 		 *
-		 * @param $package array Package provided to WC_Shipping_Method::calculate_shipping()
+		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
 		 *
 		 * @return array|WP_Error {
 		 * 		@type float $height Product height.
@@ -89,7 +89,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$contents = array();
 
 			foreach ( $package[ 'contents' ] as $package_item ) {
-				/** @var WC_Product $product */
 				$product  = $package_item[ 'data' ];
 				$quantity = $package_item[ 'quantity' ];
 
@@ -130,8 +129,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets shipping rates (for checkout) from the WooCommerce Services Server
 		 *
-		 * @param $services array settings for all services we want rates for
-		 * @param $package array Package provided to WC_Shipping_Method::calculate_shipping()
+		 * @param $services All settings for all services we want rates for
+		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
 		 * @param $custom_boxes array of custom boxes definitions (objects)
 		 * @param $predefined_boxes array of enabled predefined box IDs (strings)
 		 *
