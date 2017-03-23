@@ -17,6 +17,7 @@ export const TOGGLE_STEP = 'TOGGLE_STEP';
 export const UPDATE_ADDRESS_VALUE = 'UPDATE_ADDRESS_VALUE';
 export const REMOVE_IGNORE_VALIDATION = 'REMOVE_IGNORE_VALIDATION';
 export const ADDRESS_NORMALIZATION_IN_PROGRESS = 'ADDRESS_NORMALIZATION_IN_PROGRESS';
+export const SET_NORMALIZED_ADDRESS = 'SET_NORMALIZED_ADDRESS';
 export const ADDRESS_NORMALIZATION_COMPLETED = 'ADDRESS_NORMALIZATION_COMPLETED';
 export const SELECT_NORMALIZED_ADDRESS = 'SELECT_NORMALIZED_ADDRESS';
 export const EDIT_ADDRESS = 'EDIT_ADDRESS';
@@ -29,6 +30,7 @@ export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const SHOW_PRINT_CONFIRMATION = 'SHOW_PRINT_CONFIRMATION';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
+export const SET_RATES = 'SET_RATES';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
 export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
 export const CLOSE_REFUND_DIALOG = 'CLOSE_REFUND_DIALOG';
@@ -509,7 +511,9 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 			dispatch( { type: PURCHASE_LABEL_REQUEST } );
 		} else {
 			dispatch( { type: PURCHASE_LABEL_RESPONSE, response, error } );
-			if ( error ) {
+			if ( 'rest_cookie_invalid_nonce' === error ) {
+				dispatch( exitPrintingFlow( true ) );
+			} else if ( error ) {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 			} else {

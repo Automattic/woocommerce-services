@@ -1,4 +1,5 @@
-import parseJson from 'lib/utils/parse-json';
+import saveForm from 'lib/save-form';
+import _ from 'lodash';
 
 export const ADD_PACKAGE = 'ADD_PACKAGE';
 export const REMOVE_PACKAGE = 'REMOVE_PACKAGE';
@@ -75,30 +76,20 @@ export const setIsSaving = ( isSaving ) => ( {
 
 // The callbackURL, nonce and submitMethod are extracted from wcConnectData
 // courtesy thunk.withExtraArgument in main.js
-export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
 	dispatch( setIsSaving( true ) );
-
-	const request = {
-		method: submitMethod || 'POST',
-		credentials: 'same-origin',
-		headers: {
-			'X-WP-Nonce': nonce,
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify( getState().form.packages ),
+	const setError = ( error ) => {
+		if ( error && 'rest_cookie_invalid_nonce' !== error ) {
+			onSaveFailure();
+		}
 	};
-
-	return fetch( callbackURL, request ).then( ( response ) => {
-		dispatch( setIsSaving( false ) );
-
-		return parseJson( response ).then( ( json ) => {
-			if ( json.success ) {
-				onSaveSuccess();
-			} else {
-				onSaveFailure();
-			}
-		} );
-	} ).catch( ( e ) => {
-		onSaveFailure( e );
-	} );
+	const setSuccess = ( success ) => {
+		if ( success ) {
+			onSaveSuccess();
+		}
+	};
+	const setSaving = ( saving ) => {
+		dispatch( setIsSaving( saving ) );
+	};
+	saveForm( setSaving, setSuccess, _.noop, setError, callbackURL, nonce, submitMethod, getState().form.packages );
 };

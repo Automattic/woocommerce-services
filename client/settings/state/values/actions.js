@@ -52,7 +52,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 	const setError = ( value ) => {
 		dispatch( FormActions.setFormProperty( 'error', value ) );
 
-		if ( ! silent ) {
+		if ( 'rest_cookie_invalid_nonce' !== value && ! silent ) {
 			if ( _.isString( value ) ) {
 				dispatch( NoticeActions.errorNotice( value ) );
 			}

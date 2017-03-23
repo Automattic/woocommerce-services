@@ -1,4 +1,5 @@
-import parseJson from 'lib/utils/parse-json';
+import saveForm from 'lib/save-form';
+import _ from 'lodash';
 
 // SET_FORM_DATA_VALUE is used to update a form field's underlying setting, e.g. selected_payment_method_id
 export const SET_FORM_DATA_VALUE = 'SET_FORM_DATA_VALUE';
@@ -24,30 +25,20 @@ export const SAVE_FORM = 'SAVE_FORM';
 
 // The callbackURL, nonce and submitMethod are extracted from wcConnectData
 // courtesy thunk.withExtraArgument in main.js
-export const saveForm = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
 	dispatch( setFormMetaProperty( 'isSaving', true ) );
-
-	const request = {
-		method: submitMethod || 'POST',
-		credentials: 'same-origin',
-		headers: {
-			'X-WP-Nonce': nonce,
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify( getState().form.data ),
+	const setError = ( error ) => {
+		if ( error && 'rest_cookie_invalid_nonce' !== error ) {
+			onSaveFailure();
+		}
 	};
-
-	return fetch( callbackURL, request ).then( ( response ) => {
-		dispatch( setFormMetaProperty( 'isSaving', false ) );
-
-		return parseJson( response ).then( ( json ) => {
-			if ( json.success ) {
-				onSaveSuccess();
-			} else {
-				onSaveFailure();
-			}
-		} );
-	} ).catch( ( e ) => {
-		onSaveFailure( e );
-	} );
+	const setSuccess = ( success ) => {
+		if ( success ) {
+			onSaveSuccess();
+		}
+	};
+	const setIsSaving = ( saving ) => {
+		dispatch( setFormMetaProperty( 'isSaving', saving ) );
+	};
+	saveForm( setIsSaving, setSuccess, _.noop, setError, callbackURL, nonce, submitMethod, getState().form.data );
 };
