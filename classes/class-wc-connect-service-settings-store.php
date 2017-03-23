@@ -61,7 +61,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 *
 		 * @param array $settings
 		 *
-		 * @return true|WP_Error
+		 * @return true
 		 */
 		public function update_account_settings( $settings ) {
 			// simple validation for now
@@ -284,7 +284,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * service or an empty array
 		 *
 		 * @param string $service_id
-		 * @param integer|boolean $service_instance
+		 * @param integer $service_instance
 		 *
 		 * @return object|array
 		 */
@@ -295,9 +295,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Given id and possibly instance, validates the settings and, if they validate, saves them to options
 		 *
-		 * @param $settings object
-		 * @param $id integer
-		 * @param $instance boolean|string
 		 * @return bool|WP_Error
 		 */
 		public function validate_and_possibly_update_settings( $settings, $id, $instance = false ) {
@@ -360,7 +357,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates the global list of packages
 		 *
-		 * @param array $packages
+		 * @param array packages
 		 */
 		public function update_packages( $packages ) {
 			WC_Connect_Options::update_option( 'packages', $packages );
@@ -393,7 +390,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates the global list of enabled predefined packages for all services
 		 *
-		 * @param array $packages
+		 * @param array packages
 		 */
 		public function update_predefined_packages( $packages ) {
 			WC_Connect_Options::update_option( 'predefined_packages', $packages );
