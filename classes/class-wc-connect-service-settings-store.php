@@ -384,7 +384,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			WC_Connect_Options::update_option( 'predefined_packages', $packages );
 		}
 
-		public function get_package_lookup_for_service( $service_id ) {
+		public function get_package_lookup() {
 			$lookup = array();
 
 			$custom_packages =  $this->get_packages();
@@ -392,14 +392,16 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$lookup[ $custom_package[ 'name' ] ] = $custom_package;
 			}
 
-			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema_for_service( $service_id );
+			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
 			if ( is_null( $predefined_packages_schema ) ) {
 				return $lookup;
 			}
 
-			foreach ( $predefined_packages_schema as $group ) {
-				foreach ( $group->definitions as $predefined ) {
-					$lookup[ $predefined->id ] = ( array ) $predefined;
+			foreach ( $predefined_packages_schema as $service_id => $groups ) {
+				foreach ( $groups as $group ) {
+					foreach ( $group->definitions as $predefined ) {
+						$lookup[ $predefined->id ] = ( array ) $predefined;
+					}
 				}
 			}
 

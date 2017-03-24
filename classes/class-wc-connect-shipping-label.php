@@ -145,17 +145,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$formatted_packages[ $package_id ] = $package;
 			}
 
-			$service_id = 'usps'; //TODO: remove hardcoding
-			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema_for_service( $service_id );
-			$enabled_predefined_packages = $this->settings_store->get_predefined_packages_for_service( $service_id );
+			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
+			$enabled_predefined_packages = $this->settings_store->get_predefined_packages();
 
-			foreach ( $predefined_packages_schema as $group ) {
-				foreach ( $group->definitions as $package ) {
-					if ( ! $package->is_flat_rate && ! in_array( $package->id, $enabled_predefined_packages ) ) {
-						continue;
+			foreach ( $predefined_packages_schema as $service_id => $service_predefined_packages_schema ) {
+				$service_enabled_predefined_packages = isset( $enabled_predefined_packages[ $service_id ] ) ? $enabled_predefined_packages[ $service_id ] : array();
+				foreach ( $service_predefined_packages_schema as $group ) {
+					foreach ( $group->definitions as $package ) {
+						if ( ! $package->is_flat_rate && ! in_array( $package->id, $service_enabled_predefined_packages ) ) {
+							continue;
+						}
+
+						$formatted_packages[ $package->id ] = $package;
 					}
-
-					$formatted_packages[ $package->id ] = $package;
 				}
 			}
 
@@ -163,12 +165,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_flat_rate_packages_groups() {
-			$service_id = 'usps'; //TODO: remove hardcoding
-			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema_for_service( $service_id );
+			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
 			$groups = array();
 
-			foreach ( $predefined_packages_schema as $group_id => $group ) {
-				$groups[ $group_id ] = $group->title;
+			foreach ( $predefined_packages_schema as $service_id => $service_predefined_packages_schema ) {
+				foreach ( $service_predefined_packages_schema as $group_id => $group ) {
+					$groups[ $group_id ] = $group->title;
+				}
 			}
 
 			return $groups;

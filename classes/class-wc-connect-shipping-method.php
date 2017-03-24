@@ -321,7 +321,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					continue;
 				}
 
-				$packaging_lookup = $this->service_settings_store->get_package_lookup_for_service( $instance->id );
+				$packaging_lookup = $this->service_settings_store->get_package_lookup();
 
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
 					$package_names = array();

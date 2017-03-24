@@ -14,13 +14,10 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	protected $rest_base = 'connect/label/purchase';
 
 	public function run( $request ) {
-		$carrier  = 'usps'; //TODO: remove hardcoding
 		$settings = $request->get_json_params();
 		$order_id = $settings[ 'order_id' ];
 
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
-		$settings[ 'carrier' ] = $carrier;
-		$settings[ 'label_size' ] = 'default';
 		$settings[ 'ship_date' ] = date( 'Y-m-d', time() + 86400 ); // tomorrow
 
 		$service_names = array();
@@ -49,7 +46,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		if ( $existing_labels_data ) {
 			$labels_order_meta = json_decode( $existing_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 		}
-		$package_lookup = $this->settings_store->get_package_lookup_for_service( $carrier );
+		$package_lookup = $this->settings_store->get_package_lookup();
 		foreach ( $response->labels as $index => $label_data ) {
 			if ( isset( $label_data->error ) ) {
 				$error = new WP_Error(
@@ -67,7 +64,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				'tracking' => $label_data->label->tracking_id,
 				'refundable_amount' => $label_data->label->refundable_amount,
 				'created' => $label_data->label->created,
-				'carrier_id' => $settings[ 'carrier' ],
+				'carrier_id' => $label_data->label->carrier_id,
 				'service_name' => $service_names[ $index ],
 			);
 
