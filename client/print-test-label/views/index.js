@@ -23,9 +23,8 @@ const PrintTestLabelView = ( { paperSize, country, printingInProgress, error, up
 					status="is-error"
 					showDismiss={ false }
 					text={ error } /> }
-				<p>
-					{ __( 'If you are having trouble configuring your printer, use this button to print a test shipping label.' ) }
-				</p>
+				<FormLegend>{ __( 'Having trouble configuring your printer?' ) }</FormLegend>
+				<p>{ __( 'You can run a test print for shipping labels by selecting the paper size, then print.' ) }</p>
 				<FormFieldset>
 					<FormLegend>{ __( 'Paper size' ) }</FormLegend>
 					<div className="print-test-label__form-container">
