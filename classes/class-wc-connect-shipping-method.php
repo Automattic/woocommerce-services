@@ -317,6 +317,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$instances = $response_body->rates;
 
 			foreach ( (array) $instances as $instance ) {
+				if ( property_exists( $instance, 'error' ) ) {
+					$this->error( $instance->error, __FUNCTION__ );
+					$this->set_last_request_failed();
+				}
+
 				if ( ! property_exists( $instance, 'rates' ) ) {
 					continue;
 				}
