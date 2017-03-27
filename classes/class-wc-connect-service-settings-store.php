@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			unset( $new_address[ 'address' ], $new_address[ 'name' ] );
 
 			$order->set_address( $new_address, 'shipping' );
-			update_post_meta( $order->id, 'wc_connect_destination_normalized', true );
+			update_post_meta( $order->id, '_wc_connect_destination_normalized', true );
 		}
 
 		protected function sort_services( $a, $b ) {

@@ -858,7 +858,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function hide_wc_connect_order_meta_data( $protected, $meta_key, $meta_type ) {
-			if ( 'wc_connect_labels' === $meta_key ) {
+			if ( in_array( $meta_key, array( 'wc_connect_labels', 'wc_connect_destination_normalized' ) ) ) {
 				$protected = true;
 			}
 

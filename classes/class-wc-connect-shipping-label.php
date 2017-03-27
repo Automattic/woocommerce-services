@@ -242,7 +242,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$destination[ 'country' ] = $origin[ 'country' ];
 			}
 
-			$destination_normalized = ( bool ) get_post_meta( $order->id, 'wc_connect_destination_normalized', true );
+			$destination_normalized = ( bool ) get_post_meta( $order->id, '_wc_connect_destination_normalized', true );
 
 			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized' );
 
