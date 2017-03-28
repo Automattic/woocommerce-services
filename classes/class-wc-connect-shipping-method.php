@@ -317,6 +317,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$instances = $response_body->rates;
 
 			foreach ( (array) $instances as $instance ) {
+				if ( property_exists( $instance, 'error' ) ) {
+					$this->error( $instance->error, __FUNCTION__ );
+					$this->set_last_request_failed();
+				}
+
 				if ( ! property_exists( $instance, 'rates' ) ) {
 					continue;
 				}
@@ -366,10 +371,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			if ( 0 === count( $this->rates ) ) {
 				$this->add_fallback_rate( $service_settings );
+			} else {
+				$this->set_last_request_failed( 0 );
 			}
 
 			$this->update_last_rate_request_timestamp();
-			$this->set_last_request_failed( 0 );
 		}
 
 		public function update_last_rate_request_timestamp() {
