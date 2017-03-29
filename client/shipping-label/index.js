@@ -74,6 +74,20 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 		};
 	},
 
+	getStateForPersisting( state ) {
+		state = {
+			shippingLabel: {
+				...state.shippingLabel,
+				showPurchaseDialog: false,
+				form: {
+					...state.shippingLabel.form,
+					isSubmitting: false,
+				},
+			},
+		};
+		return state;
+	},
+
 	getStateKey() {
 		return `wcs-label-${formData.order_id}`;
 	},

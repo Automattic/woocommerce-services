@@ -39,6 +39,11 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 		};
 	},
 
+	getStateForPersisting( state ) {
+		delete state.notices;
+		return state;
+	},
+
 	getStateKey() {
 		return 'wcs-packages';
 	},

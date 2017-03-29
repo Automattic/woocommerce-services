@@ -32,6 +32,11 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 		};
 	},
 
+	getStateForPersisting( state ) {
+		delete state.notices;
+		return state;
+	},
+
 	getStateKey() {
 		return 'wcs-account-settings';
 	},

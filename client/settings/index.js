@@ -26,6 +26,11 @@ export default ( { formData, formSchema, formLayout, storeOptions, noticeDismiss
 		return initializeState( formSchema, formData, noticeDismissed );
 	},
 
+	getStateForPersisting( state ) {
+		delete state.notices;
+		return state;
+	},
+
 	getStateKey() {
 		return `wcs-settings-${methodId}-${instanceId}`;
 	},

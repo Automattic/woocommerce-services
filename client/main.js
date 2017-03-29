@@ -37,10 +37,11 @@ import _ from 'lodash';
 	const persistedStateKey = Route.getStateKey();
 	const persistedState = storageUtils.getWithExpiry( persistedStateKey );
 	storageUtils.remove( persistedStateKey );
+	const serverState = Route.getInitialState();
 
 	const store = createStore(
 		Route.getReducer(),
-		persistedState || Route.getInitialState(),
+		{ ...serverState, ...persistedState },
 		compose(
 			applyMiddleware( thunk.withExtraArgument( wcConnectData ) ),
 			window.devToolsExtension ? window.devToolsExtension() : f => f
@@ -51,7 +52,7 @@ import _ from 'lodash';
 		const state = store.getState();
 
 		if ( window.persistState ) {
-			storageUtils.setWithExpiry( persistedStateKey, state );
+			storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
 			return;
 		}
 
