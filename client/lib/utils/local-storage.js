@@ -5,6 +5,10 @@ localStorageModule();
 export const MAX_AGE = 86400000;
 
 export const setWithExpiry = ( key, obj ) => {
+	if ( ! obj ) {
+		return;
+	}
+
 	const json = JSON.stringify( {
 		...obj,
 		_timestamp: Date.now(),

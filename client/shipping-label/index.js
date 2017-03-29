@@ -74,18 +74,8 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 		};
 	},
 
-	getStateForPersisting( state ) {
-		state = {
-			shippingLabel: {
-				...state.shippingLabel,
-				showPurchaseDialog: false,
-				form: {
-					...state.shippingLabel.form,
-					isSubmitting: false,
-				},
-			},
-		};
-		return state;
+	getStateForPersisting() {
+		return null; //do not persist any state for labels
 	},
 
 	getStateKey() {
