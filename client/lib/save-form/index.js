@@ -26,7 +26,7 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 				return setSuccess( true, json );
 			}
 
-			if ( 'rest_cookie_invalid_nonce' === json.code && window.localStorage ) {
+			if ( 'rest_cookie_invalid_nonce' === json.code ) {
 				setError( json.code );
 				window.persistState = true;
 				alert( __( 'There was a problem saving your settings. Please try again after the page is reloaded.' ) );
