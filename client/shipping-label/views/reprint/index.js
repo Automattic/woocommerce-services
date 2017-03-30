@@ -5,7 +5,7 @@ import ActionButtons from 'components/action-buttons';
 import Dropdown from 'components/dropdown';
 import { getPaperSizes } from 'lib/pdf-label-utils';
 
-const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
+const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions } ) => {
 	return (
 		<Modal
 			isVisible={ Boolean( reprintDialog ) }
@@ -23,7 +23,7 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize } ) => {
 				</p>
 				<Dropdown
 					id={ 'paper_size' }
-					valuesMap={ getPaperSizes() }
+					valuesMap={ getPaperSizes( storeOptions.origin_country ) }
 					title={ __( 'Paper size' ) }
 					value={ paperSize }
 					updateValue={ labelActions.updatePaperSize }
@@ -49,6 +49,7 @@ ReprintDialog.propTypes = {
 	reprintDialog: PropTypes.object,
 	labelActions: PropTypes.object.isRequired,
 	paperSize: PropTypes.string.isRequired,
+	storeOptions: PropTypes.object.isRequired,
 };
 
 export default ReprintDialog;

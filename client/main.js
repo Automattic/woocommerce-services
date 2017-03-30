@@ -1,4 +1,3 @@
-/*global wcConnectData */
 import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -11,14 +10,11 @@ import { translate as __ } from 'lib/mixins/i18n';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';
 import AccountSettings from './account-settings';
+import PrintTestLabel from './print-test-label';
 import Packages from './packages';
 import _ from 'lodash';
 
-( () => {
-	if ( ! global.wcConnectData ) {
-		return;
-	}
-
+( global.wcConnectData || [] ).forEach( ( wcConnectData ) => {
 	const Route = ( ( rootView ) => {
 		switch ( rootView ) {
 			case 'wc-connect-create-shipping-label':
@@ -30,6 +26,8 @@ import _ from 'lodash';
 				return AccountSettings;
 			case 'wc-connect-packages':
 				return Packages;
+			case 'wc-connect-admin-test-print':
+				return PrintTestLabel;
 		}
 	} )( wcConnectData.rootView )( wcConnectData );
 
@@ -103,4 +101,4 @@ import _ from 'lodash';
 	}
 
 	render();
-} )();
+} );

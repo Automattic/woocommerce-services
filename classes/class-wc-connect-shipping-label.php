@@ -297,20 +297,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return false;
 		}
 
-		public function get_paper_size() {
-			$paper_size = NULL; //$this->settings_store->get_preferred_paper_size();
-			if ( $paper_size ) {
-				return $paper_size;
-			}
-			// According to https://en.wikipedia.org/wiki/Letter_(paper_size) US, Mexico, Canada and Dominican Republic
-			// use "Letter" size, and pretty much all the rest of the world use A4, so those are sensible defaults
-			$base_location = wc_get_base_location();
-			if ( in_array( $base_location[ 'country' ], array( 'US', 'CA', 'MX', 'DO' ) ) ) {
-				return 'letter';
-			}
-			return 'a4';
-		}
-
 		public function get_selected_payment_method() {
 			// Account settings contains the payment method id
 			$account_settings = $this->settings_store->get_account_settings();
@@ -359,9 +345,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order->id . '-%d/refund' ),
-				'labelsPreviewURL'        => get_rest_url( null, '/wc/v1/connect/labels/preview' ),
 				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/labels/print' ),
-				'paperSize'               => $this->get_paper_size(),
+				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
@@ -377,7 +362,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$admin_array[ 'storeOptions' ] = $store_options;
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
 			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_style( 'wc_connect_admin' );
 

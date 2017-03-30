@@ -12,7 +12,6 @@ import {
 	UPDATE_PACKAGE_WEIGHT,
 	UPDATE_RATE,
 	UPDATE_PAPER_SIZE,
-	UPDATE_PREVIEW,
 	PURCHASE_LABEL_REQUEST,
 	PURCHASE_LABEL_RESPONSE,
 	SHOW_PRINT_CONFIRMATION,
@@ -448,16 +447,6 @@ reducers[ UPDATE_RATE ] = ( state, { packageId, value } ) => {
 reducers[ UPDATE_PAPER_SIZE ] = ( state, { value } ) => {
 	return { ...state,
 		paperSize: value,
-	};
-};
-
-reducers[ UPDATE_PREVIEW ] = ( state, { url } ) => {
-	return { ...state,
-		form: { ...state.form,
-			preview: { ...state.form.preview,
-				labelPreviewURL: url,
-			},
-		},
 	};
 };
 

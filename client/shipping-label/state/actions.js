@@ -4,13 +4,12 @@ import printDocument from 'lib/utils/print-document';
 import getPDFSupport from 'lib/utils/pdf-support';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'shipping-label/state/selectors/errors';
-import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'lib/mixins/i18n';
-import { getPreviewURL, getPrintURL } from 'lib/pdf-label-utils';
+import { getPrintURL } from 'lib/pdf-label-utils';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -24,7 +23,6 @@ export const CONFIRM_ADDRESS_SUGGESTION = 'CONFIRM_ADDRESS_SUGGESTION';
 export const UPDATE_PACKAGE_WEIGHT = 'UPDATE_PACKAGE_WEIGHT';
 export const UPDATE_RATE = 'UPDATE_RATE';
 export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
-export const UPDATE_PREVIEW = 'UPDATE_PREVIEW';
 export const PURCHASE_LABEL_REQUEST = 'PURCHASE_LABEL_REQUEST';
 export const PURCHASE_LABEL_RESPONSE = 'PURCHASE_LABEL_RESPONSE';
 export const SHOW_PRINT_CONFIRMATION = 'SHOW_PRINT_CONFIRMATION';
@@ -126,23 +124,6 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 		} );
 };
 
-const refreshPreview = ( dispatch, getState, context ) => {
-	if ( ! canPurchase( getState(), context.storeOptions ) ) {
-		return;
-	}
-	const state = getState().shippingLabel;
-	const { form, paperSize } = state;
-	let pckgIndex = 1;
-	const labels = _.map( form.packages.selected, () => ( {
-		caption: sprintf( __( 'PACKAGE %d (OF %d)' ), pckgIndex++, Object.keys( form.packages.selected ).length ),
-	} ) );
-
-	dispatch( {
-		type: UPDATE_PREVIEW,
-		url: getPreviewURL( paperSize, labels, context ),
-	} );
-};
-
 export const openPrintingFlow = () => (
 	dispatch,
 	getState,
@@ -184,11 +165,6 @@ export const openPrintingFlow = () => (
 			expandFirstErroneousStep( dispatch, getState, storeOptions );
 		};
 
-		const showPreviewAfterRateFetch = () => {
-			refreshPreview( dispatch, getState, context );
-			expandStepAfterAction();
-		};
-
 		// If origin and destination are normalized, get rates
 		if (
 			form.origin.isNormalized &&
@@ -199,7 +175,7 @@ export const openPrintingFlow = () => (
 			form.packages.all && Object.keys( form.packages.all ).length &&
 			! hasNonEmptyLeaves( errors.packages )
 		) {
-			return getLabelRates( dispatch, getState, showPreviewAfterRateFetch, { getRatesURL, nonce } );
+			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
 		}
 
 		// Otherwise, just expand the next errant step unless the
@@ -468,29 +444,24 @@ export const confirmPackages = () => ( dispatch, getState, context ) => {
 
 	const handleResponse = () => {
 		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
-		refreshPreview( dispatch, getState, context );
 	};
 
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const updateRate = ( packageId, value ) => ( dispatch, getState, context ) => {
-	dispatch( {
+export const updateRate = ( packageId, value ) => {
+	return {
 		type: UPDATE_RATE,
 		packageId,
 		value,
-	} );
-
-	refreshPreview( dispatch, getState, context );
+	};
 };
 
-export const updatePaperSize = ( value ) => ( dispatch, getState, context ) => {
-	dispatch( {
+export const updatePaperSize = ( value ) => {
+	return {
 		type: UPDATE_PAPER_SIZE,
 		value,
-	} );
-
-	refreshPreview( dispatch, getState, context );
+	};
 };
 
 export const purchaseLabel = () => ( dispatch, getState, context ) => {

@@ -67,7 +67,6 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						available: {},
 						retrievalInProgress: false,
 					},
-					preview: {},
 				},
 				openedPackageId: labelsData ? '' : Object.keys( formData.selected_packages )[ 0 ] || '',
 			},

@@ -6,7 +6,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
-import PreviewStep from './steps/preview';
+import Sidebar from './sidebar';
 import { sprintf } from 'sprintf-js';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
@@ -70,12 +70,9 @@ const PrintLabelDialog = ( props ) => {
 							{ ...props.form.rates }
 							errors={ props.errors.rates } />
 					</div>
-					<div className="wcc-shipping-label-dialog__sidebar">
-						<PreviewStep
-							{ ...props }
-							{ ...props.form.preview }
-							errors={ props.errors.preview } />
-					</div>
+					<Sidebar
+						{ ...props }
+						errors={ props.errors.rates } />
 				</div>
 				<ActionButtons buttons={ [
 					{

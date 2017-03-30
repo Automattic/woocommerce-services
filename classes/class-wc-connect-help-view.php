@@ -231,7 +231,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$service_items[] = (object) array(
 					'key' => 'wcc_services_empty',
 					'type' => 'text',
-					'class' => 'form_text_body_copy',
+					'class' => 'form-text-body-copy',
 					'value' => __( 'No services have been enabled', 'woocommerce-services' )
 				);
 
@@ -430,7 +430,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$doc_link = sprintf(
 				wp_kses(
-					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>', 'woocommerce-services' ),
+					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>.', 'woocommerce-services' ),
 					array(  'a' => array( 'href' => array() ) )
 				),
 				esc_url( 'https://docs.woocommerce.com/document/woocommerce-services/' ),
@@ -440,7 +440,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$support_items[] = (object) array(
 				'key' => 'wcc_support_item',
 				'type' => 'text',
-				'class' => 'form_text_body_copy',
+				'class' => 'form-text-body-copy',
 				'title' => __( 'Need help?', 'woocommerce-services' ),
 				'value' => $doc_link
 			);
@@ -685,16 +685,27 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$this->get_support_items()
 			);
 
-			$root_view = 'wc-connect-admin-help';
-			$admin_array = array(
+			$admin_array = array();
+
+			$help_root_view = 'wc-connect-admin-help';
+			$admin_array[] = array(
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
 				'formSchema'         => $this->get_form_schema(),
 				'formLayout'         => $this->get_form_layout(),
 				'formData'           => $this->get_form_data(),
 				'callbackURL'        => get_rest_url( null, "/wc/v1/connect/self-help" ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'rootView'           => $root_view,
+				'rootView'           => $help_root_view,
 				'noticeDismissed'    => true,
+			);
+
+			$print_root_view = 'wc-connect-admin-test-print';
+			$admin_array[] = array(
+				'storeOptions'       => $this->service_settings_store->get_store_options(),
+				'paperSize'          => $this->service_settings_store->get_preferred_paper_size(),
+				'labelsPreviewURL'   => get_rest_url( null, '/wc/v1/connect/labels/preview' ),
+				'nonce'              => wp_create_nonce( 'wp_rest' ),
+				'rootView'           => $print_root_view,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $admin_array );
@@ -705,7 +716,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				<h2>
 					<?php _e( 'WooCommerce Services Status', 'woocommerce' ); ?>
 				</h2>
-				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>"></div>
+			<div class="wcc-root" id="<?php echo esc_attr( $help_root_view ) ?>"></div>
+			<div class="wcc-root" id="<?php echo esc_attr( $print_root_view ) ?>"></div>
 			<?php
 		}
 
