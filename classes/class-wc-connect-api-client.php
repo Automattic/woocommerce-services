@@ -68,7 +68,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Services service slug provided' );
 			}
 
-			return $this->request( 'POST', "/services/{$service_slug}/settings", array( 'service_settings' => $service_settings ) );
+			return $this->request( 'POST', "/services/{$service_slug}/settings", array(
+				'service_settings' => $service_settings,
+			) );
 		}
 
 		/**
@@ -88,16 +90,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function build_shipment_contents( $package ) {
 			$contents = array();
 
-			foreach ( $package[ 'contents' ] as $package_item ) {
-				$product  = $package_item[ 'data' ];
-				$quantity = $package_item[ 'quantity' ];
+			foreach ( $package['contents'] as $package_item ) {
+				$product  = $package_item['data'];
+				$quantity = $package_item['quantity'];
 
 				if ( ( $quantity > 0 ) && $product->needs_shipping() ) {
 
 					if ( ! $product->has_weight() ) {
 						return new WP_Error(
 							'product_missing_weight',
-							sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product->get_id() )
+							sprintf( 'Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.', $product->get_id() )
 						);
 					}
 
@@ -113,12 +115,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					}
 
 					$contents[] = array(
-						'height'     => ( float ) $height,
+						'height'     => (float) $height,
 						'product_id' => $product->get_id(),
-						'length'     => ( float ) $length,
-						'quantity'   => $package_item[ 'quantity' ],
-						'weight'     => ( float ) $weight,
-						'width'      => ( float ) $width,
+						'length'     => (float) $length,
+						'quantity'   => $package_item['quantity'],
+						'weight'     => (float) $weight,
+						'width'      => (float) $width,
 					);
 				}
 			}
@@ -152,7 +154,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// Then, make the request
 			$body = array(
 				'contents'         => $contents,
-				'destination'      => $package[ 'destination' ],
+				'destination'      => $package['destination'],
 				'services'         => $services,
 				'boxes'            => $custom_boxes,
 				'predefined_boxes' => $predefined_boxes,
@@ -449,7 +451,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			list( $token_key, $token_secret ) = explode( '.', $token->secret );
 			$token_key = sprintf( '%s:%d:%d', $token_key, JETPACK__API_VERSION, $token->external_user_id );
-			$time_diff = (int)Jetpack_Options::get_option( 'time_diff' );
+			$time_diff = (int) Jetpack_Options::get_option( 'time_diff' );
 			$timestamp = time() + $time_diff;
 			$nonce = wp_generate_password( 10, false );
 
@@ -483,8 +485,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$normalized_request_string = join( "\n", array(
 					$token_key,
 					$timestamp,
-					$nonce
-				) ) . "\n";
+					$nonce,
+			) ) . "\n";
 
 			return base64_encode( hash_hmac( 'sha1', $normalized_request_string, $token_secret, true ) );
 		}

@@ -595,7 +595,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => 'wc-connect-service-settings',
 				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
-				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
+				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' ),
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
@@ -630,7 +630,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init_service( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
 
 			// TODO - make more generic - allow things other than WC_Connect_Shipping_Method to work here
-
 			$method->set_api_client( $this->get_api_client() );
 			$method->set_logger( $this->get_logger() );
 			$method->set_service_settings_store( $this->get_service_settings_store() );
@@ -678,7 +677,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Registers shipping methods for use in things like the Add Shipping Method dialog
 		 * on the Shipping Zones view
-		 *
 		 */
 		public function woocommerce_load_shipping_methods() {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
@@ -700,7 +698,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function admin_enqueue_scripts() {
 			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them
 			$plugin_data = get_plugin_data( __FILE__, false, false );
-			$plugin_version = $plugin_data[ 'Version' ];
+			$plugin_version = $plugin_data['Version'];
 
 			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array(), $plugin_version );
 			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version );
@@ -767,6 +765,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Check that the current user is the owner of the Jetpack connection
 		 * Only that person can accept the TOS
+		 *
 		 * @return bool
 		 */
 		private function can_accept_tos() {
@@ -800,7 +799,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<?php
 					printf(
-						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%s">Terms of Service</a>, and understand that WooCommerce Services passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%s">here</a>.', 'woocommerce-services' ),
+						__( 'By clicking "Connect" below, you agree to our <a target="_blank" href="%1$s">Terms of Service</a>, and understand that WooCommerce Services passes some data to external servers in order to enable its features. You can find more information about how WooCommerce Services handles your store\'s data <a target="_blank" href="%2$s">here</a>.', 'woocommerce-services' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/' ),
 						esc_url( 'https://woocommerce.com/terms-conditions/services-privacy/' )
 					);
@@ -838,7 +837,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function shipping_zone_method_deleted( $instance_id, $service_id, $zone_id ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
-				WC_Connect_Options::delete_shipping_method_options(  $service_id, $instance_id );
+				WC_Connect_Options::delete_shipping_method_options( $service_id, $instance_id );
 				do_action( 'wc_connect_shipping_zone_method_deleted', $instance_id, $service_id, $zone_id );
 			}
 		}
@@ -869,7 +868,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function add_shipping_phone_to_checkout( $fields ) {
-			$fields[ 'shipping_phone' ] = array(
+			$fields['shipping_phone'] = array(
 				'label'        => __( 'Phone', 'woocommerce' ),
 				'type'         => 'tel',
 				'required'     => false,
@@ -882,7 +881,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function add_shipping_phone_to_order_fields( $fields ) {
-			$fields[ 'phone' ] = array(
+			$fields['phone'] = array(
 				'label' => __( 'Phone', 'woocommerce' ),
 			);
 			return $fields;
@@ -893,9 +892,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$shipping_phone = get_post_meta( $order->id, '_shipping_phone', true );
 				if ( ! $shipping_phone ) {
 					$billing_address = $order->get_address( 'billing' );
-					$shipping_phone = $billing_address[ 'phone' ];
+					$shipping_phone = $billing_address['phone'];
 				}
-				$fields[ 'phone' ] =  $shipping_phone;
+				$fields['phone'] = $shipping_phone;
 			}
 			return $fields;
 		}

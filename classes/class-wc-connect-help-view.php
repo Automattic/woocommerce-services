@@ -44,13 +44,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Check that WooCommerce is at least 2.6 or higher (feature-plugin only)
 			// Check that WooCommerce base_country is set
 			$base_country = WC()->countries->get_base_country();
-			if ( version_compare( WC()->version, WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION, "<" ) ) {
+			if ( version_compare( WC()->version, WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION, '<' ) ) {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
 					'notice',
 					'indicator-error',
 					sprintf(
-						__( 'WooCommerce %s or higher is required (You are running %s)', 'woocommerce-services' ),
+						__( 'WooCommerce %1$s or higher is required (You are running %2$s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
 						WC()->version
 					),
@@ -81,15 +81,15 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'title' => __( 'WooCommerce', 'woocommerce-services' ),
 				'type' => 'indicators',
 				'items' => array(
-					'woocommerce_indicator' => $health_item
-				)
+					'woocommerce_indicator' => $health_item,
+				),
 			);
 
 			// Jetpack
 			// Only one of the following should present
 			// Check that Jetpack is active
 			// Check that Jetpack is connected
-			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' ); // required for is_plugin_active
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' ); // required for is_plugin_active
 			if ( method_exists( 'Jetpack', 'is_development_mode' ) && method_exists( 'Jetpack', 'is_active' ) ) {
 				$is_connected = Jetpack::is_development_mode() ? true : Jetpack::is_active();
 			} else {
@@ -106,13 +106,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					),
 					''
 				);
-			} else if ( version_compare( JETPACK__VERSION, WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION, "<" ) ) {
+			} else if ( version_compare( JETPACK__VERSION, WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION, '<' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'notice',
 					'indicator-error',
 					sprintf(
-						__( 'Jetpack %s or higher is required (You are running %s)', 'woocommerce-services' ),
+						__( 'Jetpack %1$s or higher is required (You are running %2$s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION,
 						JETPACK__VERSION
 					),
@@ -151,8 +151,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'title' => __( 'Jetpack', 'woocommerce-services' ),
 				'type' => 'indicators',
 				'items' => array(
-					'jetpack_indicator' => $health_item
-				)
+					'jetpack_indicator' => $health_item,
+				),
 			);
 
 			// Lastly, do the WooCommerce Services health check
@@ -210,13 +210,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				);
 			}
 
-			$health_items[] =	(object) array(
+			$health_items[] = (object) array(
 				'key' => 'wcc_health_items',
 				'title' => __( 'WooCommerce Services Data', 'woocommerce-services' ),
 				'type' => 'indicators',
 				'items' => array(
-					'wcc_indicator' => $health_item
-				)
+					'wcc_indicator' => $health_item,
+				),
 			);
 
 			return $health_items;
@@ -232,7 +232,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'key' => 'wcc_services_empty',
 					'type' => 'text',
 					'class' => 'form-text-body-copy',
-					'value' => __( 'No services have been enabled', 'woocommerce-services' )
+					'value' => __( 'No services have been enabled', 'woocommerce-services' ),
 				);
 
 				return $service_items;
@@ -246,7 +246,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					array(
 						'page' => 'wc-settings',
 						'tab' => 'shipping',
-						'instance_id' => $enabled_service->instance_id
+						'instance_id' => $enabled_service->instance_id,
 					),
 					admin_url( 'admin.php' )
 				) );
@@ -254,7 +254,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$review_link = sprintf(
 					wp_kses(
 						__( '<a href="%s">Review service settings</a>', 'woocommerce-services' ),
-						array(  'a' => array( 'href' => array() ) )
+						array(
+							'a' => array(
+								'href' => array(),
+							),
+						)
 					),
 					esc_url( $service_settings_url )
 				);
@@ -262,7 +266,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$edit_link = sprintf(
 					wp_kses(
 						__( '<a href="%s">Edit service settings</a>', 'woocommerce-services' ),
-						array(  'a' => array( 'href' => array() ) )
+						array(
+							'a' => array(
+								'href' => array(),
+							),
+						)
 					),
 					esc_url( $service_settings_url )
 				);
@@ -274,7 +282,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 							'e.g. two hours',
 							'woocommerce-services'
 						),
-						array( 'a' => array( 'href' => array() ) )
+						array(
+							'a' => array(
+								'href' => array(),
+							),
+						)
 					),
 					esc_html( human_time_diff( $last_failed_request_timestamp ) ),
 					esc_url( $service_settings_url ),
@@ -329,8 +341,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'subtitle' => $subtitle,
 					'type' => 'indicators',
 					'items' => array(
-						$indicator_key => $indicator
-					)
+						$indicator_key => $indicator,
+					),
 				);
 			}
 
@@ -385,7 +397,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'false_text' => __( 'Disabled', 'woocommerce-services' ),
 				'description' => '',
 				'value' => $this->logger->is_debug_enabled(),
-				'save_on_toggle' => true
+				'save_on_toggle' => true,
 			);
 
 			// add connect log tail
@@ -399,14 +411,18 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					array(
 						'page' => 'wc-status',
 						'tab' => 'logs',
-						'log_file' => $log_data->key
+						'log_file' => $log_data->key,
 					),
 					admin_url( 'admin.php' )
 				);
 				$description = sprintf(
 					wp_kses(
-						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce-services' ),
-						array(  'a' => array( 'href' => array() ) ) ),
+						__( 'Last %1$d entries <a href="%2$s">Show full log</a>', 'woocommerce-services' ),
+						array(
+						'a' => array(
+							'href' => array(),
+						),
+					) ),
 					$log_tail_line_count,
 					esc_url( $url )
 				);
@@ -419,7 +435,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'type' => 'textarea',
 				'description' => $description,
 				'readonly' => true,
-				'value' => $log_tail
+				'value' => $log_tail,
 			);
 
 			return $debug_items;
@@ -431,7 +447,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$doc_link = sprintf(
 				wp_kses(
 					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">open a support ticket</a>.', 'woocommerce-services' ),
-					array(  'a' => array( 'href' => array() ) )
+					array(
+						'a' => array(
+							'href' => array()
+						)
+					)
 				),
 				esc_url( 'https://docs.woocommerce.com/document/woocommerce-services/' ),
 				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
@@ -442,7 +462,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'type' => 'text',
 				'class' => 'form-text-body-copy',
 				'title' => __( 'Need help?', 'woocommerce-services' ),
-				'value' => $doc_link
+				'value' => $doc_link,
 			);
 
 			return $support_items;
@@ -452,7 +472,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$this->fieldsets[ $section_slug ] = array(
 				'title' => $title,
-				'items' => $items
+				'items' => $items,
 			);
 
 		}
@@ -464,7 +484,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'icon' => $icon,
 				'class' => $class,
 				'message' => $message,
-				'last_updated' => $last_updated
+				'last_updated' => $last_updated,
 			);
 
 		}
@@ -480,7 +500,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
+			$tabs['connect'] = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
 			return $tabs;
 
 		}
@@ -488,27 +508,27 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		protected function get_indicator_schema() {
 
 			return (object) array(
-				"properties" => (object) array(
-					"id" => (object) array(
-						"type" => "string"
+				'properties' => (object) array(
+					'id' => (object) array(
+						'type' => 'string',
 					),
-					"icon" => (object) array(
-						"type" => "string",
-						"default" => "notice"
+					'icon' => (object) array(
+						'type' => 'string',
+						'default' => 'notice',
 					),
-					"class" => (object) array(
-						"type" => "string",
-						"default" => ""
+					'class' => (object) array(
+						'type' => 'string',
+						'default' => '',
 					),
-					"message" => (object) array(
-						"type" => "string",
-						"default" => "",
+					'message' => (object) array(
+						'type' => 'string',
+						'default' => '',
 					),
-					"last_updated" => (object) array(
-						"type" => "string",
-						"default" => ""
-					)
-				)
+					'last_updated' => (object) array(
+						'type' => 'string',
+						'default' => '',
+					),
+				),
 			);
 
 		}
@@ -525,23 +545,23 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			// Iterate over the items in each fieldset to build a list of properties
 			foreach ( $this->fieldsets as $fieldset ) {
-				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
+				foreach ( $fieldset['items'] as $fieldsetitem ) {
 
 					if ( 'indicators' === $fieldsetitem->type ) {
 						$form_properties[ $fieldsetitem->key ] = array(
 							'title' => $fieldsetitem->title,
 							'type' => 'object',
 							'definition' => $fieldsetitem->key . '_definitions',
-							'items' => $this->get_indicator_schema()
+							'items' => $this->get_indicator_schema(),
 						);
 
 						if ( property_exists( $fieldsetitem, 'subtitle' ) ) {
-							$form_properties[ $fieldsetitem->key ][ 'subtitle' ] = $fieldsetitem->subtitle;
+							$form_properties[ $fieldsetitem->key ]['subtitle'] = $fieldsetitem->subtitle;
 						}
 
 						foreach ( $fieldsetitem->items as $item ) {
 							$form_definitions[ $fieldsetitem->key . '_definitions' ][] = (object) array(
-								'id' => $item->id
+								'id' => $item->id,
 							);
 						}
 					}
@@ -575,11 +595,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 
 			return (object) array(
-				"type" => "object",
-				"required" => array(),
+				'type' => 'object',
+				'required' => array(),
 				// these definitions enumerate the specific indicator IDs for each
-				"definitions" => $form_definitions,
-				"properties" => $form_properties
+				'definitions' => $form_definitions,
+				'properties' => $form_properties,
 			);
 		}
 
@@ -598,14 +618,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				// Filter the fieldset's items to only include key and type
 				// and possibly readonly and class since that is all form layout items
 				// should have in them
-
 				// Note that non interactive form elements, like type text, may also
 				// pass a title through layout since they do not exist in the schema
 				$items = array();
-				foreach( $fieldset[ 'items' ] as $fieldsetitem ) {
+				foreach ( $fieldset['items'] as $fieldsetitem ) {
 					$item = array(
 						'key' => $fieldsetitem->key,
-						'type' => $fieldsetitem->type
+						'type' => $fieldsetitem->type,
 					);
 					if ( property_exists( $fieldsetitem, 'readonly' ) ) {
 						$item['readonly'] = $fieldsetitem->readonly;
@@ -620,9 +639,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				}
 
 				$form_layout[] = (object) array(
-					'title' => $fieldset[ 'title' ],
+					'title' => $fieldset['title'],
 					'type'  => 'fieldset',
-					'items' => $items
+					'items' => $items,
 				);
 			}
 
@@ -638,11 +657,10 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		protected function get_form_data() {
 
 			// Iterate over the fieldsets, extracting the settable items
-
 			$form_data = array();
 
 			foreach ( $this->fieldsets as $fieldset ) {
-				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
+				foreach ( $fieldset['items'] as $fieldsetitem ) {
 					if ( 'indicators' === $fieldsetitem->type ) {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
 					} else {
@@ -693,9 +711,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'formSchema'         => $this->get_form_schema(),
 				'formLayout'         => $this->get_form_layout(),
 				'formData'           => $this->get_form_data(),
+<<<<<<< d3f4da86e07c37584e6466a727c2f6d9956188f8
 				'methodId'           => 'self_help',
 				'instanceId'         => 'self_help',
 				'callbackURL'        => get_rest_url( null, "/wc/v1/connect/self-help" ),
+=======
+				'callbackURL'        => get_rest_url( null, '/wc/v1/connect/self-help' ),
+>>>>>>> Commit phpcbf automatically fixed code.
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => $help_root_view,
 				'noticeDismissed'    => true,

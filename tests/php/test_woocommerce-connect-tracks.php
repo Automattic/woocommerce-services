@@ -26,7 +26,7 @@ class WP_Test_WC_Connect_Tracks_No_Jetpack extends WP_Test_WC_Connect_Tracks {
 			->with(
 				$this->stringContains( 'Error' ),
 				$this->anything()
-		);
+			);
 		$record = $this->tracks->opted_out();
 		$this->assertNull( $record );
 	}
@@ -42,7 +42,6 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_record_user_event() {
 		// $record will contain the args received by jetpack_tracks_record_event
-
 		$this->logger->expects( $this->once() )
 			->method( 'debug' )
 			->with(
@@ -119,7 +118,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
 		// rather then the less precise for all versions
 		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly(2) )
+			$this->logger->expects( $this->exactly( 2 ) )
 				->method( 'debug' )
 				->withConsecutive(
 					array(
@@ -132,14 +131,14 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 					)
 				);
 		} else {
-			$this->logger->expects( $this->at(0) )
+			$this->logger->expects( $this->at( 0 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
 					$this->anything()
 				);
 
-			$this->logger->expects( $this->at(1) )
+			$this->logger->expects( $this->at( 1 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
@@ -157,7 +156,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
 		// rather then the less precise for all versions
 		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly(2) )
+			$this->logger->expects( $this->exactly( 2 ) )
 				->method( 'debug' )
 				->withConsecutive(
 					array(
@@ -170,14 +169,14 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 					)
 				);
 		} else {
-			$this->logger->expects( $this->at(0) )
+			$this->logger->expects( $this->at( 0 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_method_added' ),
 					$this->anything()
 				);
 
-			$this->logger->expects( $this->at(1) )
+			$this->logger->expects( $this->at( 1 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_added' ),
@@ -195,7 +194,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
 		// rather then the less precise for all versions
 		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly(2) )
+			$this->logger->expects( $this->exactly( 2 ) )
 				->method( 'debug' )
 				->withConsecutive(
 					array(
@@ -208,14 +207,14 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 					)
 				);
 		} else {
-			$this->logger->expects( $this->at(0) )
+			$this->logger->expects( $this->at( 0 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' ),
 					$this->anything()
 				);
 
-			$this->logger->expects( $this->at(1) )
+			$this->logger->expects( $this->at( 1 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' ),
@@ -233,7 +232,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
 		// rather then the less precise for all versions
 		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly(2) )
+			$this->logger->expects( $this->exactly( 2 ) )
 				->method( 'debug' )
 				->withConsecutive(
 					array(
@@ -246,14 +245,14 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 					)
 				);
 		} else {
-			$this->logger->expects( $this->at(0) )
+			$this->logger->expects( $this->at( 0 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' ),
 					$this->anything()
 				);
 
-			$this->logger->expects( $this->at(1) )
+			$this->logger->expects( $this->at( 1 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' ),
@@ -271,7 +270,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
 		// rather then the less precise for all versions
 		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly(2) )
+			$this->logger->expects( $this->exactly( 2 ) )
 				->method( 'debug' )
 				->withConsecutive(
 					array(
@@ -284,14 +283,14 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 					)
 				);
 		} else {
-			$this->logger->expects( $this->at(0) )
+			$this->logger->expects( $this->at( 0 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' ),
 					$this->anything()
 				);
 
-			$this->logger->expects( $this->at(1) )
+			$this->logger->expects( $this->at( 1 ) )
 				->method( 'debug' )
 				->with(
 					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' ),

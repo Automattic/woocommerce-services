@@ -63,7 +63,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->method_description = $this->service_schema->method_description;
 				$this->supports = array(
 					'shipping-zones',
-					'instance-settings'
+					'instance-settings',
 				);
 
 				// Set title to default value
@@ -135,7 +135,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * @see WC_Connect_Logger::debug()
 		 * @param string|WP_Error $message
-		 * @param string $context
+		 * @param string          $context
 		 */
 		protected function debug( $message, $context = '' ) {
 
@@ -159,7 +159,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		/**
 		 * Restores any values persisted to the DB for this service instance
 		 * and sets up title for WC core to work properly
-		 *
 		 */
 		protected function init_form_settings() {
 
@@ -228,9 +227,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		private function lookup_product( $package, $product_id ) {
-			foreach ( $package[ 'contents' ] as $item ) {
-				if ( $item[ 'product_id' ] === $product_id ) {
-					return $item[ 'data' ];
+			foreach ( $package['contents'] as $item ) {
+				if ( $item['product_id'] === $product_id ) {
+					return $item['data'];
 				}
 			}
 
@@ -346,8 +345,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						} else if ( 'individual' === $rate_package->box_id ) {
 							$package_format = __( 'Individual packaging (%s)', 'woocommerce-services' );
 						} else if ( isset( $packaging_lookup[ $rate_package->box_id ] )
-							&& isset( $packaging_lookup[ $rate_package->box_id ][ 'name' ] ) ) {
-							$package_format = $packaging_lookup[ $rate_package->box_id ][ 'name' ] . ' (%s)';
+							&& isset( $packaging_lookup[ $rate_package->box_id ]['name'] ) ) {
+							$package_format = $packaging_lookup[ $rate_package->box_id ]['name'] . ' (%s)';
 						}
 
 						$package_names[] = sprintf( $package_format, implode( ', ', $items ) );
@@ -361,7 +360,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'cost'      => $rate->rate,
 						'meta_data' => array(
 							'wc_connect_packages' => json_encode( $rate->packages ),
-							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
+							__( 'Packaging', 'woocommerce-services' ) => $packaging_info,
 						),
 					);
 
@@ -401,7 +400,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
 					'page' => 'wc-status',
-					'tab' => 'connect'
+					'tab' => 'connect',
 				),
 				admin_url( 'admin.php' )
 			) );
@@ -414,7 +413,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						<?php printf(
 							wp_kses(
 								__( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ),
-								array( 'a' => array( 'href' => array() ) )
+								array(
+									'a' => array(
+										'href' => array(),
+									),
+								)
 							),
 							$debug_page_uri
 						); ?>

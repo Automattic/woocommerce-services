@@ -20,7 +20,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		$company = $address['company'];
 		$phone   = $address['phone'];
 
-		unset( $address[ 'name' ], $address[ 'company' ], $address[ 'phone' ] );
+		unset( $address['name'], $address['company'], $address['phone'] );
 
 		$body = array(
 			'destination' => $address,
@@ -31,7 +31,9 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			$error = new WP_Error(
 				$response->get_error_code(),
 				$response->get_error_message(),
-				array( 'message' => $response->get_error_message() )
+				array(
+					'message' => $response->get_error_message(),
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;
@@ -41,7 +43,9 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			$error = new WP_Error(
 				$response->error->code,
 				$response->error->message,
-				array( 'message' => $response->error->message )
+				array(
+					'message' => $response->error->message,
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;

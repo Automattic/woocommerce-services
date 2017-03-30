@@ -35,18 +35,22 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 		if ( empty( $id ) ) {
 			$error = new WP_Error( 'service_id_missing',
 				__( 'Unable to update service settings. Form data is missing service ID.', 'woocommerce-services' ),
-				array( 'status' => 400 )
+				array(
+					'status' => 400,
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;
 		}
 
-		$settings = ( object ) $request->get_json_params();
+		$settings = (object) $request->get_json_params();
 
 		if ( empty( $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update service settings. The form data could not be read.', 'woocommerce-services' ),
-				array( 'status' => 400 )
+				array(
+					'status' => 400,
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;
@@ -61,7 +65,9 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 					$validation_result->get_error_message()
 				),
 				array_merge(
-					array( 'status' => 400 ),
+					array(
+						'status' => 400,
+					),
 					$validation_result->get_error_data()
 				)
 			);
@@ -69,7 +75,9 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 			return $error;
 		}
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response( array(
+			'success' => true,
+		), 200 );
 	}
 
 }

@@ -51,7 +51,9 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 
 		private function show_notice() {
 			$link_status = admin_url( 'admin.php?page=wc-status&tab=connect' );
-			$link_dismiss = add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) );
+			$link_dismiss = add_query_arg( array(
+				'wc-connect-error-notice' => 'disable',
+			) );
 
 			$message = sprintf(
 				__( 'An error occurred in WooCommerce Services. Details are logged <a href="%s">here</a>.', 'woocommerce-services' ),
@@ -63,7 +65,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				<p><?php echo $message; ?></p>
 			</div>
 <?php
-			echo "";
+			echo '';
 		}
 	}
 

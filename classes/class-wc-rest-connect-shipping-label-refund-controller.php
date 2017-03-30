@@ -14,7 +14,7 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WC_REST_Connect_B
 	protected $rest_base = 'connect/label/(?P<order_id>\d+)-(?P<label_id>\d+)/refund';
 
 	public function run( $request ) {
-		$response = $this->api_client->send_shipping_label_refund_request( $request[ 'label_id' ] );
+		$response = $this->api_client->send_shipping_label_refund_request( $request['label_id'] );
 
 		if ( isset( $response->error ) ) {
 			$response = new WP_Error(
@@ -34,9 +34,9 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WC_REST_Connect_B
 
 		$label_refund = (object) array(
 			'label_id' => (int) $response->label->id,
-			'refund'   => $response->refund ,
+			'refund'   => $response->refund,
 		);
-		$this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $label_refund );
+		$this->settings_store->update_label_order_meta_data( $request['order_id'], $label_refund );
 
 		return array(
 			'success' => true,

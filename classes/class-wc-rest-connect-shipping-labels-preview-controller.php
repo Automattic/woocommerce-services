@@ -17,12 +17,14 @@ class WC_REST_Connect_Shipping_Labels_Preview_Controller extends WC_REST_Connect
 		$raw_params = $request->get_params();
 		$params = array();
 
-		$params[ 'paper_size' ] = $raw_params[ 'paper_size' ];
-		$this->settings_store->set_preferred_paper_size( $params[ 'paper_size' ] );
-		$params[ 'carrier' ] = 'usps';
-		$params[ 'labels' ] = array();
-		foreach ( $raw_params[ 'captions' ] as $caption ) {
-			$params[ 'labels' ][] = array( 'caption' => $caption );
+		$params['paper_size'] = $raw_params['paper_size'];
+		$this->settings_store->set_preferred_paper_size( $params['paper_size'] );
+		$params['carrier'] = 'usps';
+		$params['labels'] = array();
+		foreach ( $raw_params['captions'] as $caption ) {
+			$params['labels'][] = array(
+				'caption' => $caption,
+			);
 		}
 
 		$raw_response = $this->api_client->get_labels_preview_pdf( $params );
@@ -32,8 +34,8 @@ class WC_REST_Connect_Shipping_Labels_Preview_Controller extends WC_REST_Connect
 			return $raw_response;
 		}
 
-		header( 'content-type: ' . $raw_response[ 'headers' ][ 'content-type' ] );
-		echo $raw_response[ 'body' ];
+		header( 'content-type: ' . $raw_response['headers']['content-type'] );
+		echo $raw_response['body'];
 		die();
 	}
 

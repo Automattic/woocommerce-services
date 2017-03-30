@@ -24,7 +24,9 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 					$result->get_error_message()
 				),
 				array_merge(
-					array( 'status' => 400 ),
+					array(
+						'status' => 400,
+					),
 					$result->get_error_data()
 				)
 			);
@@ -32,7 +34,9 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 			return $error;
 		}
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response( array(
+			'success' => true,
+		), 200 );
 	}
 
 }

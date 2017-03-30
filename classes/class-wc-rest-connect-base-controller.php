@@ -34,6 +34,7 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 
 	/**
 	 * Endpoint method (GET/POST/PUT...)
+	 *
 	 * @var string
 	 */
 	protected $method;

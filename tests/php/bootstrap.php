@@ -10,7 +10,7 @@
 // Support for:
 // 1. `WC_DEVELOP_DIR` environment variable
 // 2. Tests checked out to /tmp
-if( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
+if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	$wc_root = getenv( 'WC_DEVELOP_DIR' );
 } else if ( file_exists( '/tmp/woocommerce/tests/bootstrap.php' ) ) {
 	$wc_root = '/tmp/woocommerce/tests';

@@ -36,7 +36,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			$old_schemas = $this->get_service_schemas();
 			if ( $old_schemas == $response_body ) {
-				//schemas weren't changed, but were fetched without problems
+				// schemas weren't changed, but were fetched without problems
 				return true;
 			}
 
@@ -145,7 +145,9 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			foreach ( $service_schemas as $service_type => $service_type_service_schemas ) {
-				$matches = wp_filter_object_list( $service_type_service_schemas, array( 'id' => $service_id ) );
+				$matches = wp_filter_object_list( $service_type_service_schemas, array(
+					'id' => $service_id,
+				) );
 				if ( $matches ) {
 					return array_shift( $matches );
 				}
@@ -168,7 +170,9 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			foreach ( $service_schemas as $service_type => $service_type_service_schemas ) {
-				$matches = wp_filter_object_list( $service_type_service_schemas, array( 'method_id' => $method_id ) );
+				$matches = wp_filter_object_list( $service_type_service_schemas, array(
+					'method_id' => $method_id,
+				) );
 				if ( $matches ) {
 					return array_shift( $matches );
 				}
@@ -236,7 +240,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			$predefined_packages = array();
-			foreach( $service_schemas->shipping as $service_schema ) {
+			foreach ( $service_schemas->shipping as $service_schema ) {
 				if ( ! isset( $service_schema->packages ) ) {
 					continue;
 				}

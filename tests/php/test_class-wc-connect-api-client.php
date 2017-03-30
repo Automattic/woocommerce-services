@@ -32,7 +32,9 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 
 		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
 
-		$actual = $this->api_client->build_shipment_contents( array( 'contents' => WC()->cart->get_cart() ) );
+		$actual = $this->api_client->build_shipment_contents( array(
+			'contents' => WC()->cart->get_cart(),
+		) );
 
 		$this->assertIsWPError( $actual );
 		$this->assertEquals( 'product_missing_weight', $actual->get_error_code() );
@@ -50,7 +52,9 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 
 		WC()->cart->add_to_cart( $product_id, 1 );
 
-		$actual = $this->api_client->build_shipment_contents( array( 'contents' => WC()->cart->get_cart() ) );
+		$actual = $this->api_client->build_shipment_contents( array(
+			'contents' => WC()->cart->get_cart(),
+		) );
 
 		$expected = array( array(
 			'height'     => 5,
@@ -59,7 +63,8 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 			'width'      => 6,
 			'quantity'   => 1,
 			'weight'     => 2,
-		) );
+		),
+		);
 
 		$this->assertEquals( $actual, $expected );
 	}
@@ -68,7 +73,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		$this->product = WC_Helper_Product::create_variation_product();
 
 		$all_variations     = $this->product->get_available_variations();
-		$first_variation_id = $all_variations[ 0 ][ 'variation_id' ];
+		$first_variation_id = $all_variations[0]['variation_id'];
 		$product_id         = $this->product->get_id();
 
 		// set base product dimensions
@@ -85,7 +90,9 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 
 		WC()->cart->add_to_cart( $first_variation_id, 1 );
 
-		$actual = $this->api_client->build_shipment_contents( array( 'contents' => WC()->cart->get_cart() ) );
+		$actual = $this->api_client->build_shipment_contents( array(
+			'contents' => WC()->cart->get_cart(),
+		) );
 
 		$expected = array( array(
 			'height'     => 2,

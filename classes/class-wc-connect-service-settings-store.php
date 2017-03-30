@@ -51,7 +51,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function get_account_settings() {
 			$default = array(
-				'selected_payment_method_id' => 0
+				'selected_payment_method_id' => 0,
 			);
 			return WC_Connect_Options::get_option( 'account_settings', $default );
 		}
@@ -70,37 +70,37 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
-			return WC_Connect_Options::update_option( 'account_settings', $settings );;
+			return WC_Connect_Options::update_option( 'account_settings', $settings );
 		}
 
 		public function get_selected_payment_method_id() {
 			$account_settings = $this->get_account_settings();
-			return intval( $account_settings[ 'selected_payment_method_id' ] );
+			return intval( $account_settings['selected_payment_method_id'] );
 		}
 
 		public function set_selected_payment_method_id( $new_payment_method_id ) {
 			$new_payment_method_id = intval( $new_payment_method_id );
 			$account_settings = $this->get_account_settings();
-			$old_payment_method_id = intval( $account_settings[ 'selected_payment_method_id' ] );
+			$old_payment_method_id = intval( $account_settings['selected_payment_method_id'] );
 			if ( $old_payment_method_id === $new_payment_method_id ) {
 				return;
 			}
-			$account_settings[ 'selected_payment_method_id' ] = $new_payment_method_id;
+			$account_settings['selected_payment_method_id'] = $new_payment_method_id;
 			$this->update_account_settings( $account_settings );
 		}
 
 		public function get_origin_address() {
 			$wc_address_fields = array();
-			$wc_address_fields[ 'company' ] = get_bloginfo( 'name' );
-			$wc_address_fields[ 'name' ] = wp_get_current_user()->display_name;
+			$wc_address_fields['company'] = get_bloginfo( 'name' );
+			$wc_address_fields['name'] = wp_get_current_user()->display_name;
 			$base_location = wc_get_base_location();
-			$wc_address_fields[ 'country' ] = $base_location[ 'country' ];
-			$wc_address_fields[ 'state' ] = $base_location[ 'state' ];
-			$wc_address_fields[ 'address' ] = '';
-			$wc_address_fields[ 'address_2' ] = '';
-			$wc_address_fields[ 'city' ] = '';
-			$wc_address_fields[ 'postcode' ] = '';
-			$wc_address_fields[ 'phone' ] = '';
+			$wc_address_fields['country'] = $base_location['country'];
+			$wc_address_fields['state'] = $base_location['state'];
+			$wc_address_fields['address'] = '';
+			$wc_address_fields['address_2'] = '';
+			$wc_address_fields['city'] = '';
+			$wc_address_fields['postcode'] = '';
+			$wc_address_fields['phone'] = '';
 
 			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
@@ -125,10 +125,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
-			$raw_labels_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
+			$raw_labels_data = get_post_meta( (int) $order_id, 'wc_connect_labels', true );
 			$labels_data = json_decode( $raw_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-			foreach( $labels_data as $index => $label_data ) {
-				if ( $label_data[ 'label_id' ] === $new_label_data->label_id ) {
+			foreach ( $labels_data as $index => $label_data ) {
+				if ( $label_data['label_id'] === $new_label_data->label_id ) {
 					$labels_data[ $index ] = array_merge( $label_data, (array) $new_label_data );
 				}
 			}
@@ -143,11 +143,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$order = wc_get_order( $order_id );
 			$wc_address = $order->get_address( 'shipping' );
 
-			$new_address = array_merge( array(), ( array ) $wc_address, ( array ) $api_address );
-			//rename address to address_1
-			$new_address[ 'address_1' ] = $new_address[ 'address' ];
-			//remove api-specific fields
-			unset( $new_address[ 'address' ], $new_address[ 'name' ] );
+			$new_address = array_merge( array(), (array) $wc_address, (array) $api_address );
+			// rename address to address_1
+			$new_address['address_1'] = $new_address['address'];
+			// remove api-specific fields
+			unset( $new_address['address'], $new_address['name'] );
 
 			$order->set_address( $new_address, 'shipping' );
 			update_post_meta( $order->id, '_wc_connect_destination_normalized', true );
@@ -194,7 +194,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			// Note: We use esc_sql here instead of prepare because we are using WHERE IN
 			// https://codex.wordpress.org/Function_Reference/esc_sql
-
 			$escaped_list = '';
 			foreach ( $service_ids as $shipping_service ) {
 				if ( ! empty( $escaped_list ) ) {
@@ -209,7 +208,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
 				"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
 				"WHERE method_id IN ({$escaped_list}) " .
-				"ORDER BY zone_order, instance_id;"
+				'ORDER BY zone_order, instance_id;'
 			);
 
 			if ( empty( $methods ) ) {
@@ -240,14 +239,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Checks if the shipping method ids have been migrated to the "wc_services_*" format and migrates them
 		 */
 		public function migrate_legacy_services() {
-			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) //check if the method have already been migrated
-				|| ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) { //ensure the latest schemas are fetched
+			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) // check if the method have already been migrated
+				|| ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) { // ensure the latest schemas are fetched
 				return;
 			}
 
 			global $wpdb;
 
-			//old services used the id field instead of method_id
+			// old services used the id field instead of method_id
 			$shipping_service_ids = $this->service_schemas_store->get_all_service_ids_of_type( 'shipping' );
 			$legacy_services = $this->get_enabled_services_by_ids( $shipping_service_ids );
 
@@ -256,8 +255,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$instance_id = $legacy_service->instance_id;
 				$service_schema = $this->service_schemas_store->get_service_schema_by_id( $service_id );
 				$service_settings = $this->get_service_settings( $service_id, $instance_id );
-				if ( ( is_array( $service_settings ) && ! $service_settings ) //check for an empty array
-					|| ( ! is_array( $service_settings ) && ! is_object( $service_settings ) ) ) { //settings are neither an array nor an object
+				if ( ( is_array( $service_settings ) && ! $service_settings ) // check for an empty array
+					|| ( ! is_array( $service_settings ) && ! is_object( $service_settings ) ) ) { // settings are neither an array nor an object
 					continue;
 				}
 
@@ -265,14 +264,19 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 				$wpdb->update(
 					"{$wpdb->prefix}woocommerce_shipping_zone_methods",
-					array( 'method_id' => $new_method_id ),
-					array( 'instance_id' => $instance_id, 'method_id' => $service_id ),
+					array(
+						'method_id' => $new_method_id,
+					),
+					array(
+						'instance_id' => $instance_id,
+						'method_id' => $service_id,
+					),
 					array( '%s' ),
-					array( '%d', '%s' ) );
+				array( '%d', '%s' ) );
 
-				//update the migrated service settings
+				// update the migrated service settings
 				WC_Connect_Options::update_shipping_method_option( 'form_settings', $service_settings, $new_method_id, $instance_id );
-				//delete the old service settings
+				// delete the old service settings
 				WC_Connect_Options::delete_shipping_method_options( $service_id, $instance_id );
 			}
 
@@ -283,7 +287,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Given a service's id and optional instance, returns the settings for that
 		 * service or an empty array
 		 *
-		 * @param string $service_id
+		 * @param string  $service_id
 		 * @param integer $service_instance
 		 *
 		 * @return object|array
@@ -306,7 +310,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					wp_send_json_error(
 						array(
 							'error' => 'bad_instance_id',
-							'message' => __( 'An invalid service instance was received.', 'woocommerce-services' )
+							'message' => __( 'An invalid service instance was received.', 'woocommerce-services' ),
 						)
 					);
 				}
@@ -316,7 +320,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					wp_send_json_error(
 						array(
 							'error' => 'bad_service_id',
-							'message' => __( 'An invalid service ID was received.', 'woocommerce-services' )
+							'message' => __( 'An invalid service ID was received.', 'woocommerce-services' ),
 						)
 					);
 				}
@@ -399,9 +403,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function get_package_lookup() {
 			$lookup = array();
 
-			$custom_packages =  $this->get_packages();
+			$custom_packages = $this->get_packages();
 			foreach ( $custom_packages as $custom_package ) {
-				$lookup[ $custom_package[ 'name' ] ] = $custom_package;
+				$lookup[ $custom_package['name'] ] = $custom_package;
 			}
 
 			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
@@ -412,7 +416,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			foreach ( $predefined_packages_schema as $service_id => $groups ) {
 				foreach ( $groups as $group ) {
 					foreach ( $group->definitions as $predefined ) {
-						$lookup[ $predefined->id ] = ( array ) $predefined;
+						$lookup[ $predefined->id ] = (array) $predefined;
 					}
 				}
 			}
@@ -423,23 +427,23 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
-					return __('kg', 'woocommerce-services');
+					return __( 'kg', 'woocommerce-services' );
 				case 'g':
-					return __('g', 'woocommerce-services');
+					return __( 'g', 'woocommerce-services' );
 				case 'lbs':
-					return __('lbs', 'woocommerce-services');
+					return __( 'lbs', 'woocommerce-services' );
 				case 'oz':
-					return __('oz', 'woocommerce-services');
+					return __( 'oz', 'woocommerce-services' );
 				case 'm':
-					return __('m', 'woocommerce-services');
+					return __( 'm', 'woocommerce-services' );
 				case 'cm':
-					return __('cm', 'woocommerce-services');
+					return __( 'cm', 'woocommerce-services' );
 				case 'mm':
-					return __('mm', 'woocommerce-services');
+					return __( 'mm', 'woocommerce-services' );
 				case 'in':
-					return __('in', 'woocommerce-services');
+					return __( 'in', 'woocommerce-services' );
 				case 'yd':
-					return __('yd', 'woocommerce-services');
+					return __( 'yd', 'woocommerce-services' );
 				default:
 					$this->logger->debug( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
 					return $value;

@@ -29,13 +29,13 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 								'type' => 'string',
 								'title' => 'Method Title',
 								'description' => 'This controls the title which the user sees during checkout.',
-								'default' => 'USPS'
-							)
-						)
-					)
-				)
+								'default' => 'USPS',
+							),
+						),
+					),
+				),
 			),
-			'boxes' => new stdClass()
+			'boxes' => new stdClass(),
 		);
 
 	}

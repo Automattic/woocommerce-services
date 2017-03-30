@@ -23,17 +23,19 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
-		$this->settings_store->update_origin_address( $payload[ 'origin' ] );
-		$this->settings_store->update_destination_address( $payload[ 'orderId' ], $payload[ 'destination' ] );
+		$this->settings_store->update_origin_address( $payload['origin'] );
+		$this->settings_store->update_destination_address( $payload['orderId'], $payload['destination'] );
 
-		unset( $payload[ 'orderId' ] );
+		unset( $payload['orderId'] );
 		$response = $this->api_client->get_label_rates( $payload );
 
 		if ( is_wp_error( $response ) ) {
 			$error = new WP_Error(
 				$response->get_error_code(),
 				$response->get_error_message(),
-				array( 'message' => $response->get_error_message() )
+				array(
+					'message' => $response->get_error_message(),
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;

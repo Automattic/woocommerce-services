@@ -56,8 +56,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$shipping_tabs = array();
 			}
 
-			$shipping_tabs[ 'package-settings' ] = __( 'Packages', 'woocommerce-services' );
-			$shipping_tabs[ 'label-settings'] = __( 'Shipping Labels', 'woocommerce-services' );
+			$shipping_tabs['package-settings'] = __( 'Packages', 'woocommerce-services' );
+			$shipping_tabs['label-settings'] = __( 'Shipping Labels', 'woocommerce-services' );
 			return $shipping_tabs;
 		}
 
@@ -66,7 +66,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		public function get_form_meta() {
 			return array(
-				'payment_methods' => $this->payment_methods_store->get_payment_methods()
+				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
 			);
 		}
 
@@ -81,6 +81,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		/**
 		 * Helper method to get if Jetpack is in development mode
+		 *
 		 * @return bool
 		 */
 		protected function is_jetpack_dev_mode() {
@@ -93,6 +94,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		/**
 		 * Helper method to get if Jetpack is connected (aka active)
+		 *
 		 * @return bool
 		 */
 		protected function is_jetpack_connected() {
@@ -105,10 +107,11 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		/**
 		 * Helper method to get the Jetpack master user, IF we are connected
+		 *
 		 * @return WP_User | false
 		 */
 		protected function get_master_user() {
-			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			if ( $this->is_jetpack_connected() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$master_user_id = Jetpack_Options::get_option( 'master_user' );
 				return get_userdata( $master_user_id );
@@ -124,7 +127,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			global $current_section;
 			global $current_user;
 
-			switch( $current_section ) {
+			switch ( $current_section ) {
 				case 'package-settings':
 					$this->output_packages_screen();
 					break;
@@ -152,7 +155,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				'storeOptions' => $this->service_settings_store->get_store_options(),
 				'formData'     => $this->get_form_data(),
 				'formMeta'     => $this->get_form_meta(),
-				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/account/settings" ),
+				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/account/settings' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'rootView'     => $root_view,
 			);
@@ -218,14 +221,14 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		public function get_packages_form_data() {
 			return array(
 				'custom' => $this->service_settings_store->get_packages(),
-				'predefined' => $this->service_settings_store->get_predefined_packages()
+				'predefined' => $this->service_settings_store->get_predefined_packages(),
 			);
 		}
 
 		public function get_packages_form_schema() {
 			return array(
 				'custom' => $this->service_schemas_store->get_packages_schema(),
-				'predefined' => $this->service_schemas_store->get_predefined_packages_schema()
+				'predefined' => $this->service_schemas_store->get_predefined_packages_schema(),
 			);
 		}
 
@@ -233,7 +236,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
 					'page' => 'wc-status',
-					'tab' => 'connect'
+					'tab' => 'connect',
 				),
 				admin_url( 'admin.php' )
 			) );

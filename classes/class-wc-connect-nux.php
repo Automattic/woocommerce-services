@@ -35,7 +35,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_pointers( $hook ) {
-			/* Get admin pointers for the current admin page.
+			/*
+			 Get admin pointers for the current admin page.
 			 *
 			 * @since 0.9.6
 			 *
@@ -50,10 +51,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
 			$valid_pointers = array();
 
-			if( isset( $dismissed_pointers ) ) {
+			if ( isset( $dismissed_pointers ) ) {
 				foreach ( $pointers as $pointer ) {
 					if ( ! in_array( $pointer['id'], $dismissed_pointers ) ) {
-						$valid_pointers[] =  $pointer;
+						$valid_pointers[] = $pointer;
 					}
 				}
 			} else {
@@ -78,8 +79,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						__( 'Add a WooCommerce shipping service to a Zone' ,'woocommerce-services' ),
 						__( 'To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don\'t have any zones, add one first.', 'woocommerce-services' )
 					),
-					'position' => array( 'edge' => 'right', 'align' => 'left' ),
-				)
+					'position' => array(
+						'edge' => 'right',
+						'align' => 'left',
+					),
+				),
 			);
 			return $pointers;
 		}

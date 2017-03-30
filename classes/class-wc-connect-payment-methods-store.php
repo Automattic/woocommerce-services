@@ -68,14 +68,14 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 
 			// Just one? Go ahead and use it
 			if ( 1 === $payment_method_count ) {
-				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[ 0 ] );
+				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[0] );
 				return;
 			}
 
 			// Is the stored method id not in the list? Select the first one
 			$selected_payment_method_id = $this->service_settings_store->get_selected_payment_method_id();
 			if ( ! in_array( $selected_payment_method_id, $payment_method_ids ) ) {
-				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[ 0 ] );
+				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[0] );
 			}
 		}
 

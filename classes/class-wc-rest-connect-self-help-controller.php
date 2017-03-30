@@ -19,7 +19,9 @@ class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controll
 		if ( empty( $settings ) || ! array_key_exists( 'wcc_debug_on', $settings ) ) {
 			$error = new WP_Error( 'bad_form_data',
 				__( 'Unable to update settings. The form data could not be read.', 'woocommerce-services' ),
-				array( 'status' => 400 )
+				array(
+					'status' => 400,
+				)
 			);
 			$this->logger->debug( $error, __CLASS__ );
 			return $error;
@@ -31,7 +33,9 @@ class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controll
 			$this->logger->disable_logging();
 		}
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response( array(
+			'success' => true,
+		), 200 );
 	}
 
 }
