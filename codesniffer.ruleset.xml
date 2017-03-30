@@ -19,7 +19,7 @@
 		<!--<exclude name="Squiz.Commenting.InlineComment.NotCapital" />-->
 	</rule>
 	<rule ref="WordPress-Docs">
-
+		<exclude name="Squiz.Commenting.LongConditionClosingComment.Missing" />
 	</rule>
 
 	<rule ref="Squiz.Commenting.FunctionComment.ScalarTypeHintMissing">
