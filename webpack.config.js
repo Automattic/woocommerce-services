@@ -131,7 +131,6 @@ const config = {
 		} ),
 		new ExtractTextPlugin( {
 			filename: '[name].css',
-			disable: ! isProd,
 		} ),
 	],
 };

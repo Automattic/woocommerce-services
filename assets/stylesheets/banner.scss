@@ -14,16 +14,26 @@
 		}
 	}
 
-    .button-primary {
+	.button-primary {
 		background: $purple-light;
 		border-color: $purple-dark;
 		box-shadow: 0 1px 0 $purple-dark;
 		text-shadow: none;
 		color: $white;
 
-		&:hover {
+		&:hover,
+		&:active {
 			background:  $purple;
 			border-color: $purple-dark;
+			box-shadow: 0 1px 0 $purple-dark;
 		}
-    }
+
+		&:focus {
+			background: $purple-light;
+			border-color: $purple-dark;
+			box-shadow: 0 1px 0 $purple, 0 0 2px 1px $purple-light;
+			text-shadow: none;
+			color: $white;
+		}
+	}
 }
