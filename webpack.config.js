@@ -35,7 +35,7 @@ const config = {
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
-		'woocommerce-services-banner': [ './client/tos-banner.js' ],
+		'woocommerce-services-banner': [ './assets/stylesheets/banner.scss' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 	},
 	output: {
@@ -131,7 +131,6 @@ const config = {
 		} ),
 		new ExtractTextPlugin( {
 			filename: '[name].css',
-			disable: ! isProd,
 		} ),
 	],
 };

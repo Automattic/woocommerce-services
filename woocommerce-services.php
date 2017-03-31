@@ -702,7 +702,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array(), $plugin_version );
 			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version );
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
-			defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) && wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array(), $plugin_version );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
@@ -738,7 +737,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $this->can_accept_tos() ) {
-				defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) && wp_enqueue_script( 'wc_connect_banner' );
 				wp_enqueue_style( 'wc_connect_banner' );
 				add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
 			}
