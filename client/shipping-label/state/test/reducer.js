@@ -7,6 +7,8 @@ import {
 	savePackages,
 	removeIgnoreValidation,
 	updateAddressValue,
+
+	CLEAR_AVAILABLE_RATES,
 } from '../actions';
 import hoek from 'hoek';
 
@@ -73,6 +75,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.weight_1_custom1.items ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -87,6 +90,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.client_individual_0.items ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -99,6 +103,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.unpacked ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -116,6 +121,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.weight_0_custom1.items ).to.include( existingState.form.packages.unpacked[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -135,6 +141,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.client_individual_0.items ).to.include( existingState.form.packages.unpacked[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -154,6 +161,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.weight_0_custom1.items.length ).to.eql( 2 );
 		expect( state.form.packages.selected.weight_0_custom1.items ).to.include( existingState.form.packages.selected.client_individual_0.items[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -174,6 +182,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.unpacked ).to.include( existingState.form.packages.selected.client_individual_0.items[ 0 ] );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.packages.saved ).to.eql( false );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -190,6 +199,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.client_custom_0.weight ).to.eql( 3.5 );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.openedPackageId ).to.eql( 'client_custom_0' );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -202,6 +212,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.unpacked ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.packages.saved ).to.eql( false );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -217,6 +228,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.selected.weight_0_custom1.weight ).to.eql( 4.7 );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
 	} );
 
@@ -273,5 +285,15 @@ describe( 'Label purchase form reducer', () => {
 
 		expect( state.form.origin.ignoreValidation.address ).to.be.false;
 		expect( state.form.origin.ignoreValidation.postcode ).to.be.true;
+	} );
+
+	it( 'CLEAR_AVAILABLE_RATES clears the available rates and resets the print confirmation', () => {
+		const existingState = hoek.clone( initialState );
+
+		const action = { type: CLEAR_AVAILABLE_RATES };
+		const state = reducer( existingState, action );
+
+		expect( state.form.rates.available ).to.eql( {} );
+		expect( state.form.needsPrintConfirmation ).to.eql( false );
 	} );
 } );

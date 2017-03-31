@@ -30,6 +30,7 @@ export const SHOW_PRINT_CONFIRMATION = 'SHOW_PRINT_CONFIRMATION';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
 export const SET_RATES = 'SET_RATES';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
+export const CLEAR_AVAILABLE_RATES = 'CLEAR_AVAILABLE_RATES';
 export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
 export const CLOSE_REFUND_DIALOG = 'CLOSE_REFUND_DIALOG';
 export const LABEL_STATUS_RESPONSE = 'LABEL_STATUS_RESPONSE';
@@ -505,6 +506,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
 							dispatch( NoticeActions.successNotice( noticeText ) );
 							dispatch( exitPrintingFlow( true ) );
+							dispatch( { type: CLEAR_AVAILABLE_RATES } );
 						} )
 						.catch( ( err ) => {
 							console.error( err );
@@ -557,7 +559,10 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 
 export const confirmPrintLabel = ( url ) => ( dispatch ) => {
 	printDocument( url )
-		.then( () => dispatch( exitPrintingFlow( true ) ) )
+		.then( () => {
+			dispatch( exitPrintingFlow( true ) );
+			dispatch( { type: CLEAR_AVAILABLE_RATES } );
+		} )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
 
