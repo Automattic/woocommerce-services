@@ -711,13 +711,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'formSchema'         => $this->get_form_schema(),
 				'formLayout'         => $this->get_form_layout(),
 				'formData'           => $this->get_form_data(),
-<<<<<<< d3f4da86e07c37584e6466a727c2f6d9956188f8
 				'methodId'           => 'self_help',
 				'instanceId'         => 'self_help',
-				'callbackURL'        => get_rest_url( null, "/wc/v1/connect/self-help" ),
-=======
 				'callbackURL'        => get_rest_url( null, '/wc/v1/connect/self-help' ),
->>>>>>> Commit phpcbf automatically fixed code.
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rootView'           => $help_root_view,
 				'noticeDismissed'    => true,

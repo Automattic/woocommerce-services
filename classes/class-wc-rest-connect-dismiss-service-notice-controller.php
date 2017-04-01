@@ -26,7 +26,9 @@ class WC_REST_Connect_Services_Dismiss_Service_Notice_Controller extends WC_REST
 	public function run( $request ) {
 		$this->nux->dismiss_notice( 'service_settings' );
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response( array(
+			'success' => true,
+		), 200 );
 	}
 
 }
