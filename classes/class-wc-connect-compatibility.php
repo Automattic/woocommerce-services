@@ -39,13 +39,17 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		}
 
 		/**
+		 * Get the ID for a given Order.
+		 *
 		 * @param WC_Order $order
 		 *
-		 * @return string
+		 * @return int
 		 */
 		abstract public function get_order_id( WC_Order $order );
 
 		/**
+		 * Retrieve the corresponding Product for the given Order Item.
+		 *
 		 * @param WC_Order $order
 		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
 		 *
@@ -54,6 +58,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		abstract public function get_item_product( WC_Order $order, $item );
 
 		/**
+		 * Get formatted list of Product Variations, if applicable.
+		 *
 		 * @param WC_Product $product
 		 * @param bool $flat
 		 *
