@@ -18,16 +18,18 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * @return WC_Connect_Compatibility
 		 */
 		public static function instance() {
-			if( self::$singleton === null ) {
+			if ( is_null( self::$singleton ) ) {
 				self::$singleton = self::select_compatibility();
 			}
 
 			return self::$singleton;
 		}
 
+		/**
+		 * @return WC_Connect_Compatibility subclass for active version of WooCommerce
+		 */
 		private static function select_compatibility() {
-
-			if( doubleval( WC()->version ) <= 2.6 ) {
+			if ( version_compare( WC_VERSION, '3.0.0', '<' ) ) {
 				require_once 'class-wc-connect-compatibility-wc26.php';
 				return new WC_Connect_Compatibility_WC26();
 			} else {
