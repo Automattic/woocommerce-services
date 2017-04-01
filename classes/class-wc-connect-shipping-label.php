@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					);
 
 					if ( isset( $product->variation_id ) ) {
-						$product_data[ 'attributes' ] = $product->get_formatted_variation_attributes( true );
+						$product_data[ 'attributes' ] = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 					}
 
 					$packages[ $id ] = array(
