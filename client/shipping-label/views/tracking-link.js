@@ -4,6 +4,7 @@ import { translate as __ } from 'lib/mixins/i18n';
 
 const TRACKING_URL_MAP = {
 	usps: 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=%s',
+	fedex: 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=%s',
 };
 
 const TrackingLink = ( { tracking, carrier_id } ) => {
