@@ -110,6 +110,10 @@ const convertToApiPackage = ( pckg ) => {
 	return _.pick( pckg, [ 'id', 'box_id', 'service_id', 'length', 'width', 'height', 'weight' ] );
 };
 
+export const clearAvailableRates = () => {
+	return { type: CLEAR_AVAILABLE_RATES };
+};
+
 const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
 	const formState = getState().shippingLabel.form;
 	const {
@@ -506,7 +510,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
 							dispatch( NoticeActions.successNotice( noticeText ) );
 							dispatch( exitPrintingFlow( true ) );
-							dispatch( { type: CLEAR_AVAILABLE_RATES } );
+							dispatch( clearAvailableRates() );
 						} )
 						.catch( ( err ) => {
 							console.error( err );
@@ -561,7 +565,7 @@ export const confirmPrintLabel = ( url ) => ( dispatch ) => {
 	printDocument( url )
 		.then( () => {
 			dispatch( exitPrintingFlow( true ) );
-			dispatch( { type: CLEAR_AVAILABLE_RATES } );
+			dispatch( clearAvailableRates() );
 		} )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };

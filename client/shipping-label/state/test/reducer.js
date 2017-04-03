@@ -7,8 +7,7 @@ import {
 	savePackages,
 	removeIgnoreValidation,
 	updateAddressValue,
-
-	CLEAR_AVAILABLE_RATES,
+    clearAvailableRates,
 } from '../actions';
 import hoek from 'hoek';
 
@@ -290,7 +289,7 @@ describe( 'Label purchase form reducer', () => {
 	it( 'CLEAR_AVAILABLE_RATES clears the available rates and resets the print confirmation', () => {
 		const existingState = hoek.clone( initialState );
 
-		const action = { type: CLEAR_AVAILABLE_RATES };
+		const action = clearAvailableRates();
 		const state = reducer( existingState, action );
 
 		expect( state.form.rates.available ).to.eql( {} );
