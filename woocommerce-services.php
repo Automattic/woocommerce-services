@@ -738,7 +738,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $this->can_accept_tos() ) {
-				wp_enqueue_style( 'wc_connect_banner' );
 				add_action( 'admin_notices', array( $this, 'show_tos_notice' ) );
 			}
 		}
@@ -785,12 +784,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function show_tos_notice() {
+			wp_enqueue_style( 'wc_connect_banner' );
 			$accept_url = admin_url( 'admin.php?page=wc-settings&tab=shipping&wc-connect-notice=accept' );
 			$decline_url = admin_url( 'plugins.php?wc-connect-notice=decline' );
 
 			?>
 			<div class="notice wcc-admin-notice">
-				<h1><?php _e( 'Welcome to WooCommerce Services' ) ?></h1>
+				<h2><?php _e( 'Welcome to WooCommerce Services' ) ?></h2>
 				<a href="<?php echo esc_url( $decline_url ); ?>" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
 				<p>
 					<b><?php _e( 'Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.', 'woocommerce-services' ); ?></b>
