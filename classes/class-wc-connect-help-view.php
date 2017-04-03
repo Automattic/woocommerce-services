@@ -430,11 +430,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$doc_link = sprintf(
 				wp_kses(
-					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">report a bug</a>.', 'woocommerce-services' ),
+					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">open a support ticket</a>.', 'woocommerce-services' ),
 					array(  'a' => array( 'href' => array() ) )
 				),
 				esc_url( 'https://docs.woocommerce.com/document/woocommerce-services/' ),
-				esc_url( 'https://wordpress.org/support/plugin/woocommerce-services' )
+				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
 			);
 
 			$support_items[] = (object) array(

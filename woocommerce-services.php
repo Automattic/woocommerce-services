@@ -454,6 +454,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
+			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 		}
 
 		/**
@@ -895,6 +896,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$fields[ 'phone' ] =  $shipping_phone;
 			}
 			return $fields;
+		}
+
+		function add_plugin_action_links( $links ) {
+			$links[] = sprintf(
+				wp_kses(
+					__( '<a href="%s">Support</a>', 'woocommerce-services' ),
+					array(  'a' => array( 'href' => array() ) )
+				),
+				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
+			);
+			return $links;
 		}
 	}
 
