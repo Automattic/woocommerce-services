@@ -472,7 +472,7 @@ export const updatePaperSize = ( value ) => {
 };
 
 export const purchaseLabel = () => ( dispatch, getState, context ) => {
-	const { purchaseURL, addressNormalizationURL, nonce } = context;
+	const { purchaseURL, getRatesURL, addressNormalizationURL, nonce } = context;
 	let error = null;
 	let response = null;
 
@@ -492,6 +492,9 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 			} else if ( error ) {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
+				//re-request the rates on failure to avoid attempting repurchase of the same shipment id
+				dispatch( clearAvailableRates() );
+				getLabelRates( dispatch, getState, _.noop, { getRatesURL, nonce } );
 			} else {
 				const labelsToPrint = response.map( ( label, index ) => ( {
 					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
