@@ -6,6 +6,10 @@
 	background-size: contain;
 	position: relative;
 
+	.notice-dismiss {
+		text-decoration: none;
+	}
+
 	a {
 		color: $purple-light;
 
