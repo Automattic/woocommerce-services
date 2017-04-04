@@ -131,9 +131,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $service_schemas_validator;
 
 		/**
-		 * @var WC_Connect_Settings_Page
+		 * @var WC_Connect_Settings_Pages
 		 */
-		protected $settings_page;
+		protected $settings_pages;
 
 		/**
 		 * @var WC_Connect_Help_View
