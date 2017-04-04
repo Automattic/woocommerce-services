@@ -69,6 +69,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'weight'     => ( float ) $weight,
 						'width'      => ( float ) $width,
 						'name'       => $this->get_name( $product ),
+						'url'        => get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null ),
 					);
 
 					if ( $product->is_type( 'variation' ) ) {
@@ -130,7 +131,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 					$product_data = $package[ 'items' ][ $item_index ];
 					$product_data[ 'name' ] = $this->get_name( $product );
-					$product_data[ 'url' ] = admin_url( 'post.php?post=' . $product->get_id() . '&action=edit' );
+					$product_data[ 'url' ] = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
 					if ( $product->is_type( 'variation' ) ) {
 						$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 						$product_data[ 'attributes' ] = $formatted;
