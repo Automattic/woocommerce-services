@@ -46,5 +46,18 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		public function get_formatted_variation( WC_Product $product, $flat = false ) {
 			return $product->get_formatted_variation_attributes( $flat );
 		}
+
+		/**
+		 * Get the most specific ID for a given Product.
+		 *
+		 * Note: Returns the Variation ID for Variable Products.
+		 *
+		 * @param WC_Product $product
+		 *
+		 * @return int
+		 */
+		public function get_product_id( WC_Product $product ) {
+			return ( $product->is_type( 'variation' ) ) ? $product->variation_id : $product->get_id();
+		}
 	}
 }
