@@ -71,7 +71,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'name'       => $this->get_name( $product ),
 					);
 
-					if ( isset( $product->variation_id ) ) {
+					if ( $product->is_type( 'variation' ) ) {
 						$product_data[ 'attributes' ] = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 					}
 
@@ -104,7 +104,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			if ( $product->get_sku() ) {
 				$identifier = $product->get_sku();
 			} else {
-				$identifier = '#' . ( isset( $product->variation_id ) ? $product->variation_id : $product->get_id() );
+				$identifier = '#' . WC_Connect_Compatibility::instance()->get_product_id( $product );
+
 			}
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
@@ -130,7 +131,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					$product_data = $package[ 'items' ][ $item_index ];
 					$product_data[ 'name' ] = $this->get_name( $product );
 					$product_data[ 'url' ] = admin_url( 'post.php?post=' . $product->get_id() . '&action=edit' );
-					if ( isset( $product->variation_id ) ) {
+					if ( $product->is_type( 'variation' ) ) {
 						$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 						$product_data[ 'attributes' ] = $formatted;
 					}
