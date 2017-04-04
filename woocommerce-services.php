@@ -150,6 +150,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $nux;
 
+		/**
+		 * @var WC_Connect_Jetpack_Installer
+		 */
+		protected $jetpack_installer;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -342,6 +347,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux = $nux;
 		}
 
+		public function set_jetpack_installer( WC_Connect_Jetpack_Installer $jetpack_installer ) {
+			$this->jetpack_installer = $jetpack_installer;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -357,14 +366,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
+			$this->load_dependencies();
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 
 			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
+			} else if ( ! $this->check_jetpack_install() ) {
+				add_action( 'admin_notices', array( $this, 'show_jetpack_notice' ) );
+				return;
 			}
 
-			$this->load_dependencies();
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
@@ -422,6 +434,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
 			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store, $this->logger );
 			$this->set_settings_pages( $settings_pages );
+
+			require_once( plugin_basename( 'classes/class-wc-connect-jetpack-installer.php' ) );
+			$jetpack_installer = new WC_Connect_Jetpack_Installer();
+			$this->set_jetpack_installer( $jetpack_installer );
 
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 		}
@@ -790,7 +806,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			?>
 			<div class="notice wcc-admin-notice">
-				<h2><?php _e( 'Welcome to WooCommerce Services' ) ?></h2>
+				<h2><?php _e( 'Welcome to WooCommerce Services', 'woocommerce-services' ) ?></h2>
 				<a href="<?php echo esc_url( $decline_url ); ?>" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss and deactivate the plugin', 'woocommerce-services' ); ?>"></a>
 				<p>
 					<b><?php _e( 'Connect to get live shipping rates and print discounted labels. You will also get access to new features as we add them.', 'woocommerce-services' ); ?></b>
@@ -815,6 +831,50 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php _e( 'WooCommerce Services plugin has been disabled.', 'woocommerce-services' ); ?></p>
+			</div>
+			<?php
+		}
+
+		public function check_jetpack_install() {
+			if ( defined( 'JETPACK_DEV_DEBUG' ) ) {
+				return true;
+			}
+
+			if ( ! class_exists( 'Jetpack_Data' ) ) {
+				return false;
+			}
+
+			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id );
+		}
+
+		public function show_jetpack_notice() {
+			if ( class_exists( 'Jetpack_Data' ) ) {
+				$notice_text = __( 'Please connect Jetpack to your WordPress.com account to use WooCommerce Services.', 'woocommerce-services' );
+				$button_label = __( 'Connect to WordPress.com', 'woocommerce-services' );
+				$button_url = $this->jetpack_installer->get_connect_url();
+			} else {
+				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
+					$notice_text = __( 'Please activate Jetpack to use WooCommerce Services.', 'woocommerce-services' );
+					$button_label = __( 'Activate', 'woocommerce-services' );
+					$button_url = wp_nonce_url( add_query_arg( array( 'jetpack-install-action' => 'activate' ) ), 'wc-services-jetpack-install' );
+				} else {
+					$notice_text = __( 'Please install Jetpack to use WooCommerce Services.', 'woocommerce-services' );
+					$button_label = __( 'Install', 'woocommerce-services' );
+					$button_url = wp_nonce_url( add_query_arg( array( 'jetpack-install-action' => 'install' ) ), 'wc-services-jetpack-install' );
+				}
+			}
+
+			wp_enqueue_style( 'wc_connect_banner' );
+			?>
+			<div class="notice wcc-admin-notice">
+				<h2><?php _e( 'Welcome to WooCommerce Services', 'woocommerce-services' ) ?></h2>
+				<p>
+					<b><?php echo $notice_text; ?></b>
+				</p>
+				<p>
+					<a href="<?php echo $button_url; ?>" class="button-primary"><?php echo $button_label ?></a>
+				</p>
 			</div>
 			<?php
 		}
