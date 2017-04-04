@@ -77,6 +77,17 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * @return int
 		 */
 		abstract public function get_product_id( WC_Product $product );
+
+		/**
+		 * Get the top-level ID for a given Product.
+		 *
+		 * Note: Returns the Parent ID for Variable Products.
+		 *
+		 * @param WC_Product $product
+		 *
+		 * @return int
+		 */
+		abstract public function get_parent_product_id( WC_Product $product );
 	}
 
 }

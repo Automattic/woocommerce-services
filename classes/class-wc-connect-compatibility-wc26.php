@@ -59,5 +59,18 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		public function get_product_id( WC_Product $product ) {
 			return ( $product->is_type( 'variation' ) ) ? $product->variation_id : $product->get_id();
 		}
+
+		/**
+		 * Get the top-level ID for a given Product.
+		 *
+		 * Note: Returns the Parent ID for Variable Products.
+		 *
+		 * @param WC_Product $product
+		 *
+		 * @return int
+		 */
+		public function get_parent_product_id( WC_Product $product ) {
+			return $product->get_id();
+		}
 	}
 }
