@@ -364,7 +364,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			} else if ( ! $this->check_jetpack_install() ) {
-				add_action( 'admin_notices', array( $this, 'show_jetpack_notice' ) );
+				add_action( 'admin_init', array( $this, 'admin_jetpack_notice' ) );
 				return;
 			}
 
@@ -835,6 +835,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id );
 		}
 
+		public function admin_jetpack_notice() {
+			wp_enqueue_style( 'wc_connect_banner' ); // Including the CSS this early will mostly prevent a flash of Core styles in the banner
+			add_action( 'admin_notices', array( $this, 'show_jetpack_notice' ) );
+		}
+
 		public function show_jetpack_notice() {
 			$button_onclick = '';
 			$button_url = '#';
@@ -872,7 +877,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 
-			wp_enqueue_style( 'wc_connect_banner' );
 			?>
 			<div class="notice wcc-admin-notice">
 				<h2><?php _e( 'Welcome to WooCommerce Services', 'woocommerce-services' ) ?></h2>
