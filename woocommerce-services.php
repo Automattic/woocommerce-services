@@ -850,17 +850,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function show_jetpack_notice() {
 			if ( class_exists( 'Jetpack_Data' ) ) {
-				$notice_text = __( 'Please connect Jetpack to your WordPress.com account to use WooCommerce Services.', 'woocommerce-services' );
+				$notice_text = __( 'To get started please connect Jetpack to your Worpress.com account.', 'woocommerce-services' );
 				$button_label = __( 'Connect to WordPress.com', 'woocommerce-services' );
 				$button_url = $this->jetpack_installer->get_connect_url();
 			} else {
 				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					$notice_text = __( 'Please activate Jetpack to use WooCommerce Services.', 'woocommerce-services' );
-					$button_label = __( 'Activate', 'woocommerce-services' );
+					$notice_text = __( 'To get started you need to activate Jetpack.', 'woocommerce-services' );
+					$button_label = __( 'Activate Jetpack', 'woocommerce-services' );
 					$button_url = wp_nonce_url( add_query_arg( array( 'jetpack-install-action' => 'activate' ) ), 'wc-services-jetpack-install' );
 				} else {
-					$notice_text = __( 'Please install Jetpack to use WooCommerce Services.', 'woocommerce-services' );
-					$button_label = __( 'Install', 'woocommerce-services' );
+					$notice_text = __( 'To get started you need to install Jetpack.', 'woocommerce-services' );
+					$button_label = __( 'Install Jetpack', 'woocommerce-services' );
 					$button_url = wp_nonce_url( add_query_arg( array( 'jetpack-install-action' => 'install' ) ), 'wc-services-jetpack-install' );
 				}
 			}
