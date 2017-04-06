@@ -22,6 +22,11 @@
 		}
 	}
 
+	.error {
+		color: $alert-red;
+		font-weight: bold;
+	}
+
 	.button-primary {
 		background: $purple-light;
 		border-color: $purple-dark;
@@ -42,6 +47,12 @@
 			box-shadow: 0 1px 0 $purple, 0 0 2px 1px $purple-light;
 			text-shadow: none;
 			color: $white;
+		}
+
+		&.disabled {
+			color: lighten( $purple-light, 30 ) !important;
+			background: $purple-light !important;
+			border-color: $purple-dark !important;
 		}
 	}
 }

@@ -150,11 +150,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $nux;
 
-		/**
-		 * @var WC_Connect_Jetpack_Installer
-		 */
-		protected $jetpack_installer;
-
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -347,10 +342,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux = $nux;
 		}
 
-		public function set_jetpack_installer( WC_Connect_Jetpack_Installer $jetpack_installer ) {
-			$this->jetpack_installer = $jetpack_installer;
-		}
-
 		/**
 		 * Load our textdomain
 		 *
@@ -434,10 +425,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
 			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store, $this->logger );
 			$this->set_settings_pages( $settings_pages );
-
-			require_once( plugin_basename( 'classes/class-wc-connect-jetpack-installer.php' ) );
-			$jetpack_installer = new WC_Connect_Jetpack_Installer();
-			$this->set_jetpack_installer( $jetpack_installer );
 
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 		}
@@ -849,19 +836,34 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function show_jetpack_notice() {
+			$button_onclick = '';
+			$button_url = '#';
+
 			if ( class_exists( 'Jetpack_Data' ) ) {
 				$notice_text = __( 'To get started please connect Jetpack to your Worpress.com account.', 'woocommerce-services' );
 				$button_label = __( 'Connect to WordPress.com', 'woocommerce-services' );
-				$button_url = $this->jetpack_installer->get_connect_url();
+				$redirect_to = admin_url( 'admin.php?page=wc-settings&tab=shipping' );
+				$button_url = Jetpack::init()->build_connect_url( false, $redirect_to, 'woocommerce-services' );
 			} else {
+				$activate_url = wp_nonce_url( 'plugins.php?action=activate&plugin=jetpack/jetpack.php', 'activate-plugin_jetpack/jetpack.php' );
+
 				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
 					$notice_text = __( 'To get started you need to activate Jetpack.', 'woocommerce-services' );
 					$button_label = __( 'Activate Jetpack', 'woocommerce-services' );
-					$button_url = wp_nonce_url( add_query_arg( array( 'jetpack-install-action' => 'activate' ) ), 'wc-services-jetpack-install' );
+					$button_url = $activate_url;
 				} else {
 					$notice_text = __( 'To get started you need to install Jetpack.', 'woocommerce-services' );
 					$button_label = __( 'Install Jetpack', 'woocommerce-services' );
-					$button_url = wp_nonce_url( add_query_arg( array( 'jetpack-install-action' => 'install' ) ), 'wc-services-jetpack-install' );
+
+					wp_enqueue_script( 'updates' );
+					$button_progress_label = esc_js( __( 'Installing...', 'woocommerce-services' ) );
+					$error_message = esc_js( __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ) );
+					$button_onclick = "this.onclick = null;" .
+						"this.innerHTML = '$button_progress_label';" .
+						"this.className += ' disabled';" .
+						"wp.updates.installPlugin( { slug: 'jetpack' } )" .
+							".then( () => window.location = '$activate_url' )" .
+							".fail( () => { this.parentNode.className = 'error'; this.parentNode.innerHTML = '$error_message'; } )";
 				}
 			}
 
@@ -870,10 +872,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			<div class="notice wcc-admin-notice">
 				<h2><?php _e( 'Welcome to WooCommerce Services', 'woocommerce-services' ) ?></h2>
 				<p>
-					<b><?php echo $notice_text; ?></b>
+					<b><?php echo $notice_text ?></b>
 				</p>
 				<p>
-					<a href="<?php echo $button_url; ?>" class="button-primary"><?php echo $button_label ?></a>
+					<a href="<?php echo esc_url( $button_url ) ?>" onclick="<?php echo $button_onclick ?>" class="button-primary"><?php echo $button_label ?></a>
 				</p>
 			</div>
 			<?php
