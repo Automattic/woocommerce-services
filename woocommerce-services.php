@@ -840,6 +840,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$button_url = '#';
 
 			if ( class_exists( 'Jetpack_Data' ) ) {
+				$screen = get_current_screen();
+				if ( 'jetpack' === $screen->parent_base || 'plugins' === $screen->base ) {
+					return; // Jetpack Dashboard and the plugins list screen already have big "Connect to WordPress.com" buttons
+				}
+
 				$notice_text = __( 'To get started please connect Jetpack to your Worpress.com account.', 'woocommerce-services' );
 				$button_label = __( 'Connect to WordPress.com', 'woocommerce-services' );
 				$redirect_to = admin_url( 'admin.php?page=wc-settings&tab=shipping' );
