@@ -35,7 +35,7 @@ const config = {
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
-		'woocommerce-services-banner': [ './assets/stylesheets/banner.scss' ],
+		'woocommerce-services-banner': [ './client/banner.js' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 	},
 	output: {

@@ -707,6 +707,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version );
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
+			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array(), $plugin_version );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
@@ -841,8 +842,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function show_jetpack_notice() {
-			$button_onclick = '';
-			$button_url = '#';
+			$button_class = 'button-primary';
 
 			if ( class_exists( 'Jetpack_Data' ) ) {
 				$screen = get_current_screen();
@@ -864,16 +864,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				} else {
 					$notice_text = __( 'To get started you need to install Jetpack.', 'woocommerce-services' );
 					$button_label = __( 'Install Jetpack', 'woocommerce-services' );
+					$button_url = '#';
+					$button_class .= ' wcc-install-jetpack';
 
 					wp_enqueue_script( 'updates' );
-					$button_progress_label = esc_js( __( 'Installing...', 'woocommerce-services' ) );
-					$error_message = esc_js( __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ) );
-					$button_onclick = "this.onclick = null;" .
-						"this.innerHTML = '$button_progress_label';" .
-						"this.className += ' disabled';" .
-						"wp.updates.installPlugin( { slug: 'jetpack' } )" .
-							".then( () => window.location = '$activate_url' )" .
-							".fail( () => { this.parentNode.className = 'error'; this.parentNode.innerHTML = '$error_message'; } )";
+					wp_enqueue_script( 'wc_connect_banner' );
 				}
 			}
 
@@ -884,7 +879,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					<b><?php echo $notice_text ?></b>
 				</p>
 				<p>
-					<a href="<?php echo esc_url( $button_url ) ?>" onclick="<?php echo $button_onclick ?>" class="button-primary"><?php echo $button_label ?></a>
+					<a href="<?php echo esc_url( $button_url ) ?>"
+					   data-error-message="<?php esc_attr_e( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ) ?>"
+					   class="<?php echo esc_attr( $button_class ) ?>">
+						<?php echo $button_label ?>
+					</a>
 				</p>
 			</div>
 			<?php
