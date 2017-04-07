@@ -707,7 +707,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version );
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
-			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array(), $plugin_version );
+			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array( 'updates' ), $plugin_version );
 
 			require_once( plugin_basename( 'i18n/strings.php' ) );
 			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
@@ -867,7 +867,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					$button_url = '#';
 					$button_class .= ' wcc-install-jetpack';
 
-					wp_enqueue_script( 'updates' );
 					wp_enqueue_script( 'wc_connect_banner' );
 				}
 			}
