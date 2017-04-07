@@ -73,6 +73,14 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 		};
 	},
 
+	getStateForPersisting() {
+		return null; //do not persist any state for labels
+	},
+
+	getStateKey() {
+		return `wcs-label-${formData.order_id}`;
+	},
+
 	View: () => (
 		<ShippingLabelRootView
 			storeOptions={ storeOptions } />

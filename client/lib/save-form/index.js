@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { translate as __ } from 'lib/mixins/i18n';
 import parseJson from 'lib/utils/parse-json';
 import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 
@@ -23,6 +24,14 @@ const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonc
 		return parseJson( response ).then( ( json ) => {
 			if ( json.success ) {
 				return setSuccess( true, json );
+			}
+
+			if ( 'rest_cookie_invalid_nonce' === json.code ) {
+				setError( json.code );
+				window.persistState = true;
+				alert( __( 'There was a problem saving your settings. Please try again after the page is reloaded.' ) );
+				location.reload();
+				return;
 			}
 
 			if ( 'validation_failure' === _.get( json, 'data.error' ) && _.get( json, 'data.data.fields' ) ) {

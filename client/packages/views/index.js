@@ -105,7 +105,7 @@ const Packages = ( props ) => {
 
 	const onSaveSuccess = () => props.noticeActions.successNotice( __( 'Your packages have been saved.' ), { duration: 5000 } );
 	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to save your packages. Please try again.' ) );
-	const onSaveChanges = () => props.saveForm( onSaveSuccess, onSaveFailure );
+	const onSaveChanges = () => props.submit( onSaveSuccess, onSaveFailure );
 
 	const buttons = [
 		{

@@ -19,7 +19,7 @@ const AccountSettingsRootView = ( props ) => {
 		props.noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 5000 } );
 	};
 	const onSaveFailure = () => props.noticeActions.errorNotice( __( 'Unable to update your payment method. Please try again.' ) );
-	const onSaveChanges = () => props.actions.saveForm( onSaveSuccess, onSaveFailure );
+	const onSaveChanges = () => props.actions.submit( onSaveSuccess, onSaveFailure );
 
 	const paymentMethodDescriptionFormat = __( 'Manage your payment methods on %(startLink)sWordPress.com%(endLink)s' );
 	const paymentMethodDescription = sprintf(
@@ -61,7 +61,7 @@ const AccountSettingsRootView = ( props ) => {
 };
 
 AccountSettingsRootView.propTypes = {
-	saveForm: PropTypes.func,
+	submit: PropTypes.func,
 	storeOptions: PropTypes.object.isRequired,
 };
 

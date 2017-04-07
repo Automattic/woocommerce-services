@@ -7,7 +7,7 @@ import form from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, formSchema, formLayout, storeOptions, noticeDismissed } ) => ( {
+export default ( { formData, formSchema, formLayout, storeOptions, noticeDismissed, methodId, instanceId } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			form,
@@ -24,6 +24,15 @@ export default ( { formData, formSchema, formLayout, storeOptions, noticeDismiss
 
 	getInitialState() {
 		return initializeState( formSchema, formData, noticeDismissed );
+	},
+
+	getStateForPersisting( state ) {
+		delete state.notices;
+		return state;
+	},
+
+	getStateKey() {
+		return `wcs-settings-${methodId}-${instanceId}`;
 	},
 
 	View: () => (

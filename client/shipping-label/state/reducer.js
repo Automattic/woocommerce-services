@@ -5,6 +5,7 @@ import {
 	UPDATE_ADDRESS_VALUE,
 	REMOVE_IGNORE_VALIDATION,
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
+	SET_NORMALIZED_ADDRESS,
 	ADDRESS_NORMALIZATION_COMPLETED,
 	SELECT_NORMALIZED_ADDRESS,
 	EDIT_ADDRESS,
@@ -16,6 +17,7 @@ import {
 	PURCHASE_LABEL_RESPONSE,
 	SHOW_PRINT_CONFIRMATION,
 	RATES_RETRIEVAL_IN_PROGRESS,
+	SET_RATES,
 	RATES_RETRIEVAL_COMPLETED,
 	OPEN_REFUND_DIALOG,
 	CLOSE_REFUND_DIALOG,
@@ -122,12 +124,10 @@ reducers[ ADDRESS_NORMALIZATION_IN_PROGRESS ] = ( state, { group } ) => {
 	};
 };
 
-reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized, isTrivialNormalization } ) => {
+reducers[ SET_NORMALIZED_ADDRESS ] = ( state, { group, normalized, isTrivialNormalization } ) => {
 	const newState = { ...state,
 		form: { ...state.form,
 			[ group ]: { ...state.form[ group ],
-				normalizationInProgress: false,
-				isNormalized: true,
 				selectNormalized: true,
 				normalized,
 			},
@@ -137,6 +137,17 @@ reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group, normalized, isTr
 		newState.form[ group ].values = normalized;
 	}
 	return newState;
+};
+
+reducers[ ADDRESS_NORMALIZATION_COMPLETED ] = ( state, { group } ) => {
+	return { ...state,
+		form: { ...state.form,
+			[ group ]: { ...state.form[ group ],
+				isNormalized: true,
+				normalizationInProgress: false,
+			},
+		},
+	};
 };
 
 reducers[ SELECT_NORMALIZED_ADDRESS ] = ( state, { group, selectNormalized } ) => {
@@ -499,7 +510,7 @@ reducers[ RATES_RETRIEVAL_IN_PROGRESS ] = ( state ) => {
 	};
 };
 
-reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
+reducers[ SET_RATES ] = ( state, { rates } ) => {
 	return { ...state,
 		form: { ...state.form,
 			rates: {
@@ -511,8 +522,17 @@ reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state, { rates } ) => {
 
 					return '';
 				} ),
-				retrievalInProgress: false,
 				available: rates,
+			},
+		},
+	};
+};
+
+reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state ) => {
+	return { ...state,
+		form: { ...state.form,
+			rates: { ...state.form.rates,
+				retrievalInProgress: false,
 			},
 		},
 	};
