@@ -24,6 +24,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 */
 		protected $payment_methods_store;
 
+		/**
+		 * @var array array of currently unsupported US states
+		 */
+		private $unsupported_states = array( 'AA', 'AE', 'AP' );
+
 		public function __construct(
 			WC_Connect_API_Client $api_client,
 			WC_Connect_Service_Settings_Store $settings_store,
@@ -266,6 +271,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			foreach( WC()->countries->get_states() as $country => $states ) {
 				$result[ $country ][ 'states' ] = array();
 				foreach ( $states as $code => $name ) {
+					if ( 'US' === $country && in_array( $code, $this->unsupported_states ) ) {
+						continue;
+					}
+
 					$result[ $country ][ 'states' ][ $code ] = html_entity_decode( $name );
 				}
 			}
@@ -287,7 +296,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$dest_address = $order->get_address( 'shipping' );
-			if ( $dest_address[ 'country' ] && 'US' !== $dest_address[ 'country' ] ) {
+			if ( ( $dest_address[ 'country' ] && 'US' !== $dest_address[ 'country' ] )
+				|| in_array( $dest_address[ 'state' ], $this->unsupported_states ) ) {
 				return false;
 			}
 
