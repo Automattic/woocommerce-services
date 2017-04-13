@@ -428,8 +428,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$headers = array();
-			$lang = strtolower( str_replace( '_', '-', get_locale() ) );
-			$headers['Accept-Language'] = $lang;
+			$locale = strtolower( str_replace( '_', '-', get_locale() ) );
+			$locale_elements = explode( '-', $locale );
+			$lang = $locale_elements[ 0 ];
+			$headers['Accept-Language'] = $locale . ',' . $lang;
 			$headers['Content-Type'] = 'application/json; charset=utf-8';
 			$headers['Accept'] = 'application/vnd.woocommerce-connect.v1';
 			$headers['Authorization'] = $authorization;
