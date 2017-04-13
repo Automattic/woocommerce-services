@@ -449,8 +449,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					__( 'Our team is here for you. View our <a href="%1$s">support docs</a> or <a href="%2$s">open a support ticket</a>.', 'woocommerce-services' ),
 					array(
 						'a' => array(
-							'href' => array()
-						)
+							'href' => array(),
+						),
 					)
 				),
 				esc_url( 'https://docs.woocommerce.com/document/woocommerce-services/' ),

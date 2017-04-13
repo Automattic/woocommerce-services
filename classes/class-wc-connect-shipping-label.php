@@ -43,7 +43,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_items_as_individual_packages( $order ) {
 			$packages = array();
-			foreach( $order->get_items() as $item ) {
+			foreach ( $order->get_items() as $item ) {
 				$product = $order->get_product_from_item( $item );
 				if ( ! $product || ! $product->needs_shipping() ) {
 					continue;
@@ -59,29 +59,29 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					$width  = $product->get_width();
 				}
 
-				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
+				for ( $i = 0; $i < $item['qty']; $i++ ) {
 					$id = "weight_{$i}_individual";
 					$product_data = array(
-						'height'     => ( float ) $height,
-						'product_id' => $item[ 'product_id' ],
-						'length'     => ( float ) $length,
+						'height'     => (float) $height,
+						'product_id' => $item['product_id'],
+						'length'     => (float) $length,
 						'quantity'   => 1,
-						'weight'     => ( float ) $weight,
-						'width'      => ( float ) $width,
+						'weight'     => (float) $weight,
+						'width'      => (float) $width,
 						'name'       => $this->get_name( $product ),
 					);
 
 					if ( isset( $product->variation_id ) ) {
-						$product_data[ 'attributes' ] = $product->get_formatted_variation_attributes( true );
+						$product_data['attributes'] = $product->get_formatted_variation_attributes( true );
 					}
 
 					$packages[ $id ] = array(
 						'id'     => $id,
 						'box_id' => 'individual',
-						'height' => ( float ) $height,
-						'length' => ( float ) $length,
-						'weight' => ( float ) $weight,
-						'width'  => ( float ) $width,
+						'height' => (float) $height,
+						'length' => (float) $length,
+						'weight' => (float) $weight,
+						'width'  => (float) $width,
 						'items'  => array( $product_data ),
 					);
 				}
@@ -93,11 +93,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+			if ( ! $shipping_method || ! isset( $shipping_method['wc_connect_packages'] ) ) {
 				return false;
 			}
 
-			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			return json_decode( $shipping_method['wc_connect_packages'], true );
 		}
 
 		protected function get_name( WC_Product $product ) {
@@ -109,7 +109,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
 
-		protected function get_selected_packages(WC_Order $order ) {
+		protected function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
 				return $this->get_items_as_individual_packages( $order );
@@ -117,23 +117,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$formatted_packages = array();
 
-			foreach( $packages as $package ) {
-				$package_id = $package[ 'id' ];
+			foreach ( $packages as $package ) {
+				$package_id = $package['id'];
 				$formatted_packages[ $package_id ] = $package;
 
-				foreach( $package[ 'items' ] as $item_index => $item ) {
+				foreach ( $package['items'] as $item_index => $item ) {
 					$product = $order->get_product_from_item( $item );
 					if ( ! $product ) {
 						continue;
 					}
 
-					$product_data = $package[ 'items' ][ $item_index ];
-					$product_data[ 'name' ] = $this->get_name( $product );
-					$product_data[ 'url' ] = admin_url( 'post.php?post=' . $product->id . '&action=edit' );
+					$product_data = $package['items'][ $item_index ];
+					$product_data['name'] = $this->get_name( $product );
+					$product_data['url'] = admin_url( 'post.php?post=' . $product->id . '&action=edit' );
 					if ( isset( $product->variation_id ) ) {
-						$product_data[ 'attributes' ] = $product->get_formatted_variation_attributes( true );
+						$product_data['attributes'] = $product->get_formatted_variation_attributes( true );
 					}
-					$formatted_packages[ $package_id ][ 'items' ][ $item_index ] = $product_data;
+					$formatted_packages[ $package_id ]['items'][ $item_index ] = $product_data;
 				}
 			}
 
@@ -145,8 +145,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$formatted_packages = array();
 
-			foreach( $custom_packages as $package ) {
-				$package_id = $package[ 'name' ];
+			foreach ( $custom_packages as $package ) {
+				$package_id = $package['name'];
 				$formatted_packages[ $package_id ] = $package;
 			}
 
@@ -166,7 +166,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 			}
 
-			return ( object ) $formatted_packages;
+			return (object) $formatted_packages;
 		}
 
 		protected function get_flat_rate_packages_groups() {
@@ -185,20 +185,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+			if ( ! $shipping_method || ! isset( $shipping_method['wc_connect_packages'] ) ) {
 				return array();
 			}
 
-			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			$packages = json_decode( $shipping_method['wc_connect_packages'], true );
 			$rates = array();
 
-			foreach( $packages as $idx => $package ) {
+			foreach ( $packages as $idx => $package ) {
 				// Abort if the package data is malformed
-				if ( ! isset( $package[ 'id' ] ) || ! isset( $package[ 'service_id' ] ) ) {
+				if ( ! isset( $package['id'] ) || ! isset( $package['service_id'] ) ) {
 					return array();
 				}
 
-				$rates[ $package[ 'id' ] ] = $package[ 'service_id' ];
+				$rates[ $package['id'] ] = $package['service_id'];
 			}
 
 			return $rates;
@@ -206,20 +206,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function format_address_for_api( $address ) {
 			// Combine first and last name
-			if ( ! isset( $address[ 'name' ] ) ) {
-				$first_name = isset( $address[ 'first_name' ] ) ? trim( $address[ 'first_name' ] ) : '';
-				$last_name  = isset( $address[ 'last_name' ] ) ? trim( $address[ 'last_name' ] ) : '';
+			if ( ! isset( $address['name'] ) ) {
+				$first_name = isset( $address['first_name'] ) ? trim( $address['first_name'] ) : '';
+				$last_name  = isset( $address['last_name'] ) ? trim( $address['last_name'] ) : '';
 
-				$address[ 'name' ] = $first_name . ' ' . $last_name;
+				$address['name'] = $first_name . ' ' . $last_name;
 			}
 
 			// Rename address_1 to address
-			if ( ! isset( $address[ 'address' ] ) && isset( $address[ 'address_1' ] ) ) {
-				$address[ 'address' ] = $address[ 'address_1' ];
+			if ( ! isset( $address['address'] ) && isset( $address['address_1'] ) ) {
+				$address['address'] = $address['address_1'];
 			}
 
 			// Remove now defunct keys
-			unset( $address[ 'first_name' ], $address[ 'last_name' ], $address[ 'address_1' ] );
+			unset( $address['first_name'], $address['last_name'], $address['address_1'] );
 
 			return $address;
 		}
@@ -246,36 +246,38 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$selected_rates         = $this->get_selected_rates( $order );
 			$destination            = $this->get_destination_address( $order );
 
-			if ( ! $destination[ 'country' ] ) {
-				$destination[ 'country' ] = $origin[ 'country' ];
+			if ( ! $destination['country'] ) {
+				$destination['country'] = $origin['country'];
 			}
 
-			$destination_normalized = ( bool ) get_post_meta( $order->id, '_wc_connect_destination_normalized', true );
+			$destination_normalized = (bool) get_post_meta( $order->id, '_wc_connect_destination_normalized', true );
 
 			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized' );
 
-			$form_data[ 'rates' ] = array(
+			$form_data['rates'] = array(
 				'selected'  => (object) $selected_rates,
 			);
 
-			$form_data[ 'order_id' ] = $order->id;
+			$form_data['order_id'] = $order->id;
 
 			return $form_data;
 		}
 
 		protected function get_states_map() {
 			$result = array();
-			foreach( WC()->countries->get_countries() as $code => $name ) {
-				$result[ $code ] = array( 'name' => html_entity_decode( $name ) );
+			foreach ( WC()->countries->get_countries() as $code => $name ) {
+				$result[ $code ] = array(
+					'name' => html_entity_decode( $name ),
+				);
 			}
-			foreach( WC()->countries->get_states() as $country => $states ) {
-				$result[ $country ][ 'states' ] = array();
+			foreach ( WC()->countries->get_states() as $country => $states ) {
+				$result[ $country ]['states'] = array();
 				foreach ( $states as $code => $name ) {
 					if ( 'US' === $country && in_array( $code, $this->unsupported_states ) ) {
 						continue;
 					}
 
-					$result[ $country ][ 'states' ][ $code ] = html_entity_decode( $name );
+					$result[ $country ]['states'][ $code ] = html_entity_decode( $name );
 				}
 			}
 			return $result;
@@ -289,19 +291,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			// TODO: return true if the order has already label meta-data
-
 			$base_location = wc_get_base_location();
-			if ( 'US' !== $base_location[ 'country' ] ) {
+			if ( 'US' !== $base_location['country'] ) {
 				return false;
 			}
 
 			$dest_address = $order->get_address( 'shipping' );
-			if ( ( $dest_address[ 'country' ] && 'US' !== $dest_address[ 'country' ] )
-				|| in_array( $dest_address[ 'state' ], $this->unsupported_states ) ) {
+			if ( ( $dest_address['country'] && 'US' !== $dest_address['country'] )
+				|| in_array( $dest_address['state'], $this->unsupported_states ) ) {
 				return false;
 			}
 
-			foreach( $order->get_items() as $item ) {
+			foreach ( $order->get_items() as $item ) {
 				$product = $order->get_product_from_item( $item );
 				if ( $product && $product->needs_shipping() ) {
 					return true;
@@ -315,11 +316,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$account_settings = $this->settings_store->get_account_settings();
 
 			// No selected payment method case
-			if ( ! isset( $account_settings[ 'selected_payment_method_id' ] ) ) {
+			if ( ! isset( $account_settings['selected_payment_method_id'] ) ) {
 				return null;
 			}
 
-			$selected_payment_method_id = $account_settings[ 'selected_payment_method_id' ];
+			$selected_payment_method_id = $account_settings['selected_payment_method_id'];
 
 			// Get all known payment methods
 			$payment_methods = $this->payment_methods_store->get_payment_methods();
@@ -346,7 +347,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
 					'page' => 'wc-status',
-					'tab' => 'connect'
+					'tab' => 'connect',
 				),
 				admin_url( 'admin.php' )
 			) );
@@ -368,12 +369,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$labels_data = get_post_meta( $order->id, 'wc_connect_labels', true );
 			if ( $labels_data ) {
-				$admin_array[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+				$admin_array['labelsData'] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 			}
 
 			$store_options = $this->settings_store->get_store_options();
-			$store_options[ 'countriesData' ] = $this->get_states_map();
-			$admin_array[ 'storeOptions' ] = $store_options;
+			$store_options['countriesData'] = $this->get_states_map();
+			$admin_array['storeOptions'] = $store_options;
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
 			wp_enqueue_script( 'wc_connect_admin' );
@@ -382,11 +383,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			?>
 			<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>">
 				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __(
-						'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.',
-						'woocommerce-services' ),
-						$debug_page_uri
-					); ?>
+				<?php
+				printf(
+					__( 'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ),
+					$debug_page_uri
+				);
+				?>
 				</span>
 			</div>
 			<?php

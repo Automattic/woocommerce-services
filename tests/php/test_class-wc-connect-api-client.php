@@ -94,14 +94,16 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 			'contents' => WC()->cart->get_cart(),
 		) );
 
-		$expected = array( array(
-			'height'     => 2,
-			'product_id' => $first_variation_id,
-			'length'     => 4,
-			'width'      => 3,
-			'quantity'   => 1,
-			'weight'     => 5,
-		) );
+		$expected = array(
+			array(
+				'height'     => 2,
+				'product_id' => $first_variation_id,
+				'length'     => 4,
+				'width'      => 3,
+				'quantity'   => 1,
+				'weight'     => 5,
+			),
+		);
 
 		$this->assertEquals( $actual, $expected );
 	}
