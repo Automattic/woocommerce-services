@@ -65,6 +65,7 @@ function buildPhpOutput( data, arrayName ) {
 	// prepend the matches array with this content to open the php file
 	matches.unshift( [
 		'<?php',
+		'\n/* @codingStandardsIgnoreFile */',
 		'\n/* THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY */',
 		'\n$' + arrayName + ' = array(',
 	].join( '' ) );
