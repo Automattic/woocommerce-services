@@ -28,6 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
+require_once( plugin_basename( 'classes/class-wc-connect-utils.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
@@ -36,9 +37,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD', DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD', 3 * DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
-	if ( ! defined( 'JSON_HEX_QUOT' ) ) {
-		define( 'JSON_HEX_QUOT', 0 );
-	}
 
 	class WC_Connect_Loader {
 
