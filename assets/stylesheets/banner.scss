@@ -8,6 +8,7 @@
 
 	h2 {
 		font-size: 1.5em;
+		margin-bottom: .4em;
 	}
 
 	.notice-dismiss {
@@ -18,7 +19,7 @@
 		color: $purple-light;
 
 		&:hover {
-			color: $purple-dark;
+			color: $white;
 		}
 	}
 
@@ -38,7 +39,7 @@
 		&:active {
 			background:  $purple;
 			border-color: $purple-dark;
-			box-shadow: 0 1px 0 $purple-dark;
+			box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 0 #a36597;
 		}
 
 		&:focus {
