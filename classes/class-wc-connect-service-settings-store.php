@@ -158,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					$labels_data[ $index ] = array_merge( $label_data, (array) $new_label_data );
 				}
 			}
-			update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_data ) );
+			update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_data, JSON_HEX_QUOT ) );
 		}
 
 		/**
@@ -170,7 +170,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function add_labels_to_order( $order_id, $new_labels ) {
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			$labels_data = array_merge( $labels_data, $new_labels );
-			update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_data ) );
+			update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_data, JSON_HEX_QUOT ) );
 		}
 
 		public function update_origin_address( $address ) {
