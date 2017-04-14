@@ -198,12 +198,13 @@ export const openPrintingFlow = () => (
 };
 
 export const exitPrintingFlow = ( force ) => ( dispatch, getState ) => {
+	dispatch( { type: EXIT_PRINTING_FLOW, force } );
+
 	const form = getState().shippingLabel.form;
+
 	if ( form.needsPrintConfirmation ) {
 		dispatch( clearAvailableRates() );
 	}
-
-	dispatch( { type: EXIT_PRINTING_FLOW, force } );
 };
 
 export const updateAddressValue = ( group, name, value ) => {
