@@ -12,12 +12,11 @@ import { sprintf } from 'sprintf-js';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
-	const currencySymbol = props.storeOptions.currency_symbol;
-
 	const getPurchaseButtonLabel = () => {
 		if ( props.form.needsPrintConfirmation ) {
 			return __( 'Print' );
 		}
+
 		if ( props.form.isSubmitting ) {
 			return (
 				<div>
@@ -26,15 +25,25 @@ const PrintLabelDialog = ( props ) => {
 				</div>
 			);
 		}
-		let label = 'addon' === getPDFSupport() ? __( 'Buy' ) : __( 'Buy & Print' );
-		const nPackages = props.form.packages.selected.length;
-		if ( nPackages ) {
-			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
-		}
+
+		const noNativePDFSupport = ( 'addon' === getPDFSupport() );
+
 		if ( props.canPurchase ) {
-			label += ' (' + currencySymbol + getRatesTotal( props.form.rates ) + ')';
+			const currencySymbol = props.storeOptions.currency_symbol;
+			const ratesTotal = getRatesTotal( props.form.rates );
+
+			if ( noNativePDFSupport ) {
+				return sprintf( __( 'Buy (%1$s%2$.2f)' ), currencySymbol, ratesTotal );
+			}
+
+			return sprintf( __( 'Buy & Print (%1$s%2$.2f)' ), currencySymbol, ratesTotal );
 		}
-		return label;
+
+		if ( noNativePDFSupport ) {
+			return __( 'Buy' );
+		}
+
+		return __( 'Buy & Print' );
 	};
 
 	const getPurchaseButtonAction = () => {
