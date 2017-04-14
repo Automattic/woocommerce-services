@@ -382,12 +382,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
+				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order->id ),
 			);
-
-			$labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );
-			if ( $labels_data ) {
-				$admin_array[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-			}
 
 			$store_options = $this->settings_store->get_store_options();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
