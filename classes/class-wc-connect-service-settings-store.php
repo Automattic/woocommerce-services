@@ -135,6 +135,26 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$raw_label_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
 			$label_data = false;
 			if ( $raw_label_data ) {
+
+				//attempt to recover the labels with unescaped quotation marks in their package_name and product_names fields
+				preg_match_all( '/"package_name":"(.+?)","/', $raw_label_data, $package_name_matches );
+				if ( 2 === count( $package_name_matches ) ) {
+					foreach ( $package_name_matches[ 0 ] as $idx => $match ) {
+						$package_name = $package_name_matches[ 1 ][ $idx ];
+						$escaped_name = preg_replace( '/(?<!\\\)"/', '\\"', $package_name );
+						$raw_label_data = str_replace( $match, '"package_name":"' . $escaped_name . '","', $raw_label_data );
+					}
+				}
+
+				preg_match_all( '/"product_names":\["(.+?)"\]/', $raw_label_data, $product_array_matches );
+				if ( 2 === count( $product_array_matches ) ) {
+					foreach ( $product_array_matches[ 0 ] as $idx => $match ) {
+						$products_str = $product_array_matches[ 1 ][ $idx ];
+						$escaped_products = preg_replace( '/(?<![,\\\])"(?!,)/', '\\"', $products_str );
+						$raw_label_data = str_replace( $products_str, $escaped_products, $raw_label_data );
+					}
+				}
+
 				$label_data = json_decode( $raw_label_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 			}
 

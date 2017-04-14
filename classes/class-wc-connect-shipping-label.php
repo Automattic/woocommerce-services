@@ -91,14 +91,34 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $packages;
 		}
 
-		protected function get_packaging_metadata( WC_Order $order ) {
-			$shipping_methods = $order->get_shipping_methods();
-			$shipping_method = reset( $shipping_methods );
+		protected function get_packaging_from_shipping_method( $shipping_method ) {
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
 				return false;
 			}
 
-			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			$packages_json = $shipping_method[ 'wc_connect_packages' ];
+
+			if ( ! $packages_json ) {
+				return array();
+			}
+
+			//attempt to recover the boxes with unescaped quotation marks in their box_id field
+			preg_match_all( '/"box_id":"(.+?)","/', $packages_json, $box_id_matches );
+			if ( 2 === count( $box_id_matches ) ) {
+				foreach ( $box_id_matches[ 0 ] as $idx => $match ) {
+					$box_id = $box_id_matches[ 1 ][ $idx ];
+					$escaped_id = preg_replace( '/(?<!\\\)"/', '\\"', $box_id );
+					$packages_json = str_replace( $match, '"box_id":"' . $escaped_id . '","', $packages_json );
+				}
+			}
+
+			return json_decode( $packages_json, true );
+		}
+
+		protected function get_packaging_metadata( WC_Order $order ) {
+			$shipping_methods = $order->get_shipping_methods();
+			$shipping_method = reset( $shipping_methods );
+			return $this->get_packaging_from_shipping_method( $shipping_method );
 		}
 
 		protected function get_name( WC_Product $product ) {
@@ -190,11 +210,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return array();
-			}
-
-			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			$packages = $this->get_packaging_from_shipping_method( $shipping_method );
 			$rates = array();
 
 			foreach( $packages as $idx => $package ) {
