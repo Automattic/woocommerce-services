@@ -30,6 +30,7 @@ export const SHOW_PRINT_CONFIRMATION = 'SHOW_PRINT_CONFIRMATION';
 export const RATES_RETRIEVAL_IN_PROGRESS = 'RATES_RETRIEVAL_IN_PROGRESS';
 export const SET_RATES = 'SET_RATES';
 export const RATES_RETRIEVAL_COMPLETED = 'RATES_RETRIEVAL_COMPLETED';
+export const CLEAR_AVAILABLE_RATES = 'CLEAR_AVAILABLE_RATES';
 export const OPEN_REFUND_DIALOG = 'OPEN_REFUND_DIALOG';
 export const CLOSE_REFUND_DIALOG = 'CLOSE_REFUND_DIALOG';
 export const LABEL_STATUS_RESPONSE = 'LABEL_STATUS_RESPONSE';
@@ -107,6 +108,10 @@ export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions }
 
 const convertToApiPackage = ( pckg ) => {
 	return _.pick( pckg, [ 'id', 'box_id', 'service_id', 'length', 'width', 'height', 'weight' ] );
+};
+
+export const clearAvailableRates = () => {
+	return { type: CLEAR_AVAILABLE_RATES };
 };
 
 const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
@@ -192,8 +197,14 @@ export const openPrintingFlow = () => (
 	dispatch( { type: OPEN_PRINTING_FLOW } );
 };
 
-export const exitPrintingFlow = ( force ) => {
-	return { type: EXIT_PRINTING_FLOW, force };
+export const exitPrintingFlow = ( force ) => ( dispatch, getState ) => {
+	dispatch( { type: EXIT_PRINTING_FLOW, force } );
+
+	const form = getState().shippingLabel.form;
+
+	if ( form.needsPrintConfirmation ) {
+		dispatch( clearAvailableRates() );
+	}
 };
 
 export const updateAddressValue = ( group, name, value ) => {
@@ -467,7 +478,7 @@ export const updatePaperSize = ( value ) => {
 };
 
 export const purchaseLabel = () => ( dispatch, getState, context ) => {
-	const { purchaseURL, addressNormalizationURL, nonce } = context;
+	const { purchaseURL, getRatesURL, addressNormalizationURL, nonce } = context;
 	let error = null;
 	let response = null;
 
@@ -487,6 +498,9 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 			} else if ( error ) {
 				console.error( error );
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
+				//re-request the rates on failure to avoid attempting repurchase of the same shipment id
+				dispatch( clearAvailableRates() );
+				getLabelRates( dispatch, getState, _.noop, { getRatesURL, nonce } );
 			} else {
 				const labelsToPrint = response.map( ( label, index ) => ( {
 					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
@@ -505,6 +519,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
 							dispatch( NoticeActions.successNotice( noticeText ) );
 							dispatch( exitPrintingFlow( true ) );
+							dispatch( clearAvailableRates() );
 						} )
 						.catch( ( err ) => {
 							console.error( err );
@@ -557,7 +572,10 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 
 export const confirmPrintLabel = ( url ) => ( dispatch ) => {
 	printDocument( url )
-		.then( () => dispatch( exitPrintingFlow( true ) ) )
+		.then( () => {
+			dispatch( exitPrintingFlow( true ) );
+			dispatch( clearAvailableRates() );
+		} )
 		.catch( ( error ) => dispatch( NoticeActions.errorNotice( error.toString() ) ) );
 };
 

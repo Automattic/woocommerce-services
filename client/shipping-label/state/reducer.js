@@ -19,6 +19,7 @@ import {
 	RATES_RETRIEVAL_IN_PROGRESS,
 	SET_RATES,
 	RATES_RETRIEVAL_COMPLETED,
+	CLEAR_AVAILABLE_RATES,
 	OPEN_REFUND_DIALOG,
 	CLOSE_REFUND_DIALOG,
 	LABEL_STATUS_RESPONSE,
@@ -276,6 +277,7 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 		...state,
 		form: {
 			...state.form,
+			needsPrintConfirmation: false,
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
@@ -357,6 +359,7 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 		addedPackageId,
 		form: {
 			...state.form,
+			needsPrintConfirmation: false,
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
@@ -383,6 +386,7 @@ reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
 		openedPackageId,
 		form: {
 			...state.form,
+			needsPrintConfirmation: false,
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
@@ -415,6 +419,7 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 		...state,
 		form: {
 			...state.form,
+			needsPrintConfirmation: false,
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
@@ -533,6 +538,17 @@ reducers[ RATES_RETRIEVAL_COMPLETED ] = ( state ) => {
 		form: { ...state.form,
 			rates: { ...state.form.rates,
 				retrievalInProgress: false,
+			},
+		},
+	};
+};
+
+reducers[ CLEAR_AVAILABLE_RATES ] = ( state ) => {
+	return { ...state,
+		form: { ...state.form,
+			needsPrintConfirmation: false,
+			rates: { ...state.form.rates,
+				available: {},
 			},
 		},
 	};
