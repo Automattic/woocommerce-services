@@ -3,6 +3,7 @@ import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import Spinner from 'components/spinner';
 import { translate as __ } from 'lib/mixins/i18n';
+import getPDFSupport from 'lib/utils/pdf-support';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
@@ -25,7 +26,7 @@ const PrintLabelDialog = ( props ) => {
 				</div>
 			);
 		}
-		let label = __( 'Buy & Print' );
+		let label = 'addon' === getPDFSupport() ? __( 'Buy' ) : __( 'Buy & Print' );
 		const nPackages = props.form.packages.selected.length;
 		if ( nPackages ) {
 			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
@@ -42,6 +43,22 @@ const PrintLabelDialog = ( props ) => {
 		}
 		return props.labelActions.purchaseLabel;
 	};
+
+	const buttons = [
+		{
+			isDisabled: ! props.form.needsPrintConfirmation && ( ! props.canPurchase || props.form.isSubmitting ),
+			onClick: getPurchaseButtonAction(),
+			isPrimary: true,
+			label: getPurchaseButtonLabel(),
+		},
+	];
+
+	if ( ! props.form.needsPrintConfirmation ) {
+		buttons.push( {
+			onClick: () => props.labelActions.exitPrintingFlow( false ),
+			label: __( 'Cancel' ),
+		} );
+	}
 
 	return (
 		<Modal
@@ -74,18 +91,7 @@ const PrintLabelDialog = ( props ) => {
 						{ ...props }
 						errors={ props.errors.rates } />
 				</div>
-				<ActionButtons buttons={ [
-					{
-						isDisabled: ! props.form.needsPrintConfirmation && ( ! props.canPurchase || props.form.isSubmitting ),
-						onClick: getPurchaseButtonAction(),
-						isPrimary: true,
-						label: getPurchaseButtonLabel(),
-					},
-					{
-						onClick: () => props.labelActions.exitPrintingFlow( false ),
-						label: __( 'Cancel' ),
-					},
-				] } />
+				<ActionButtons buttons={ buttons } />
 			</div>
 		</Modal>
 	);
