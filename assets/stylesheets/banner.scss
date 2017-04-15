@@ -1,17 +1,31 @@
 @import 'colors';
 
-.wcc-admin-notice {
+.notice.wcc-admin-notice {
 	border-left-color: $purple-light !important;
 	background: url( '../images/tos-notice-bg.png' ) no-repeat bottom right $white;
 	background-size: contain;
 	position: relative;
 
+	h2 {
+		font-size: 1.5em;
+		margin-bottom: .4em;
+	}
+
+	.notice-dismiss {
+		text-decoration: none;
+	}
+
 	a {
 		color: $purple-light;
 
 		&:hover {
-			color: $purple-dark;
+			color: $white;
 		}
+	}
+
+	.error {
+		color: $alert-red;
+		font-weight: bold;
 	}
 
 	.button-primary {
@@ -25,7 +39,7 @@
 		&:active {
 			background:  $purple;
 			border-color: $purple-dark;
-			box-shadow: 0 1px 0 $purple-dark;
+			box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 0 #a36597;
 		}
 
 		&:focus {
@@ -34,6 +48,12 @@
 			box-shadow: 0 1px 0 $purple, 0 0 2px 1px $purple-light;
 			text-shadow: none;
 			color: $white;
+		}
+
+		&.disabled {
+			color: lighten( $purple-light, 30 ) !important;
+			background: $purple-light !important;
+			border-color: $purple-dark !important;
 		}
 	}
 }
