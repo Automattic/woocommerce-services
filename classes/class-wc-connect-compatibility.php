@@ -13,6 +13,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 
 	abstract class WC_Connect_Compatibility {
 		private static $singleton;
+		private static $version = WC_VERSION;
 
 		/**
 		 * @return WC_Connect_Compatibility
@@ -29,13 +30,23 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * @return WC_Connect_Compatibility subclass for active version of WooCommerce
 		 */
 		private static function select_compatibility() {
-			if ( version_compare( WC_VERSION, '3.0.0', '<' ) ) {
+			if ( version_compare( self::$version, '3.0.0', '<' ) ) {
 				require_once 'class-wc-connect-compatibility-wc26.php';
 				return new WC_Connect_Compatibility_WC26();
 			} else {
 				require_once 'class-wc-connect-compatibility-wc30.php';
 				return new WC_Connect_Compatibility_WC30();
 			}
+		}
+
+		public static function set_version( $value ) {
+			self::$singleton = null;
+			self::$version = $value;
+		}
+
+		public static function reset_version() {
+			self::$singleton = null;
+			self::$version = WC_VERSION;
 		}
 
 		/**
