@@ -97,9 +97,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$packages_json = $shipping_method[ 'wc_connect_packages' ];
-
 			if ( ! $packages_json ) {
 				return array();
+			}
+
+			$packages = json_decode( $packages_json, true );
+			if ( $packages ) {
+				return $packages;
 			}
 
 			//attempt to recover the boxes with unescaped quotation marks in their box_id field
@@ -112,7 +116,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 			}
 
-			return json_decode( $packages_json, true );
+			return $packages ? $packages : array();
 		}
 
 		protected function get_packaging_metadata( WC_Order $order ) {
