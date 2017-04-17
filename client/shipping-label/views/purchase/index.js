@@ -33,10 +33,10 @@ const PrintLabelDialog = ( props ) => {
 			const ratesTotal = getRatesTotal( props.form.rates );
 
 			if ( noNativePDFSupport ) {
-				return sprintf( __( 'Buy (%1$s%2$.2f)' ), currencySymbol, ratesTotal );
+				return sprintf( __( 'Buy (%(currencySymbol)s%(ratesTotal).2f)' ), { currencySymbol, ratesTotal } );
 			}
 
-			return sprintf( __( 'Buy & Print (%1$s%2$.2f)' ), currencySymbol, ratesTotal );
+			return sprintf( __( 'Buy & Print (%(currencySymbol)s%(ratesTotal).2f)' ), { currencySymbol, ratesTotal } );
 		}
 
 		if ( noNativePDFSupport ) {
