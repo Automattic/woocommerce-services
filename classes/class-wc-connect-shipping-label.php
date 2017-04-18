@@ -124,18 +124,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$formatted_packages[ $package_id ] = $package;
 
 				foreach( $package[ 'items' ] as $item_index => $item ) {
+					$product_data = $package[ 'items' ][ $item_index ];
 					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
-					if ( ! $product ) {
-						continue;
+
+					if ( $product ) {
+						$product_data[ 'name' ] = $this->get_name( $product );
+						$product_data[ 'url' ] = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
+						if ( $product->is_type( 'variation' ) ) {
+							$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
+							$product_data[ 'attributes' ] = $formatted;
+						}
+					} else {
+						$product_data[ 'name' ] = sprintf( __( '#%s - [Deleted product]', 'woocommerce-services' ), $item[ 'product_id' ] );
 					}
 
-					$product_data = $package[ 'items' ][ $item_index ];
-					$product_data[ 'name' ] = $this->get_name( $product );
-					$product_data[ 'url' ] = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
-					if ( $product->is_type( 'variation' ) ) {
-						$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
-						$product_data[ 'attributes' ] = $formatted;
-					}
 					$formatted_packages[ $package_id ][ 'items' ][ $item_index ] = $product_data;
 				}
 			}

@@ -80,12 +80,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 			$product_names = array();
 			foreach ( $package[ 'products' ] as $product_id ) {
-				$product =  wc_get_product( $product_id );
-				if ( ! isset( $product ) ) {
-					continue;
-				}
-
-				$product_names[] = $product->get_title();
+				$product = wc_get_product( $product_id );
+				$product_names[] = $product ? $product->get_title() : sprintf( __( '#%s - [Deleted product]', 'woocommerce-services' ), $product_id );
 			}
 
 			$label_meta[ 'product_names' ] = $product_names;
