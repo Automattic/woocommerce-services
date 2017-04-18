@@ -1,6 +1,7 @@
 <?php
 
 abstract class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
+	/** @var  WC_Connect_Tracks */
 	protected $tracks;
 	protected $logger;
 
@@ -41,7 +42,8 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 	}
 
 	public function test_record_user_event() {
-		// $record will contain the args received by jetpack_tracks_record_event
+		global $mock_recorded_tracks_events;
+		$mock_recorded_tracks_events = array();
 
 		$this->logger->expects( $this->once() )
 			->method( 'debug' )
@@ -50,7 +52,9 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				$this->anything()
 			);
 
-		$record = $this->tracks->record_user_event( 'test' );
+		$this->tracks->record_user_event( 'test' );
+		// $record will contain the args received by jetpack_tracks_record_event
+		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
 		$this->assertEquals( 'woocommerceconnect_test', $record[1] );
 		$this->assertInternalType( 'array', $record[2] );
@@ -65,6 +69,8 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 	}
 
 	public function test_opted_in() {
+		global $mock_recorded_tracks_events;
+		$mock_recorded_tracks_events = array();
 
 		$this->logger->expects( $this->once() )
 			->method( 'debug' )
@@ -73,8 +79,9 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				$this->anything()
 			);
 
+		$this->tracks->opted_in();
 		// $record will contain the args received by jetpack_tracks_record_event
-		$record = $this->tracks->opted_in();
+		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
 		$this->assertEquals( 'woocommerceconnect_opted_in', $record[1] );
 		$this->assertInternalType( 'array', $record[2] );
@@ -89,6 +96,8 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 	}
 
 	public function test_opted_out() {
+		global $mock_recorded_tracks_events;
+		$mock_recorded_tracks_events = array();
 
 		$this->logger->expects( $this->once() )
 			->method( 'debug' )
@@ -98,7 +107,8 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 			);
 
 		// $record will contain the args received by jetpack_tracks_record_event
-		$record = $this->tracks->opted_out();
+		$this->tracks->opted_out();
+		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
 		$this->assertEquals( 'woocommerceconnect_opted_out', $record[1] );
 		$this->assertInternalType( 'array', $record[2] );

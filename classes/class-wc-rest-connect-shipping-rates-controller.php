@@ -27,6 +27,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		$this->settings_store->update_destination_address( $payload[ 'orderId' ], $payload[ 'destination' ] );
 
 		unset( $payload[ 'orderId' ] );
+
 		$response = $this->api_client->get_label_rates( $payload );
 
 		if ( is_wp_error( $response ) ) {

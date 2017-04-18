@@ -24,11 +24,11 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		}
 
 		public function opted_in() {
-			return $this->record_user_event( 'opted_in' );
+			$this->record_user_event( 'opted_in' );
 		}
 
 		public function opted_out() {
-			return $this->record_user_event( 'opted_out' );
+			$this->record_user_event( 'opted_out' );
 		}
 
 		public function shipping_zone_method_added( $instance_id, $service_id ) {
@@ -94,7 +94,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$event_type = self::$product_name . '_' . $event_type;
 
 			$this->debug( 'Tracked the following event: ' . $event_type );
-			return jetpack_tracks_record_event( $user, $event_type, $data );
+			jetpack_tracks_record_event( $user, $event_type, $data );
 		}
 
 		protected function debug( $message ) {

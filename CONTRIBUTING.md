@@ -36,7 +36,7 @@ In order to successfully bootstrap your testing environment, you'll need the fol
 
 Once you have the prerequisites, run the tests installer:
 
-`./tests/bin/install-wc-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version]`
+`./tests/bin/install-wc-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version] [wc-version]`
 
 For example, if you had a `mysql` database running on `localhost` and with the default `root` user, you could run:
 
