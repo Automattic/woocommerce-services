@@ -3,6 +3,7 @@ import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import Spinner from 'components/spinner';
 import { translate as __ } from 'lib/mixins/i18n';
+import getPDFSupport from 'lib/utils/pdf-support';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
@@ -11,12 +12,11 @@ import { sprintf } from 'sprintf-js';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
-	const currencySymbol = props.storeOptions.currency_symbol;
-
 	const getPurchaseButtonLabel = () => {
 		if ( props.form.needsPrintConfirmation ) {
 			return __( 'Print' );
 		}
+
 		if ( props.form.isSubmitting ) {
 			return (
 				<div>
@@ -25,15 +25,25 @@ const PrintLabelDialog = ( props ) => {
 				</div>
 			);
 		}
-		let label = __( 'Buy & Print' );
-		const nPackages = props.form.packages.selected.length;
-		if ( nPackages ) {
-			label += ' ' + ( 1 === nPackages ? __( '1 Label' ) : sprintf( __( '%d Labels' ), nPackages ) );
-		}
+
+		const noNativePDFSupport = ( 'addon' === getPDFSupport() );
+
 		if ( props.canPurchase ) {
-			label += ' (' + currencySymbol + getRatesTotal( props.form.rates ) + ')';
+			const currencySymbol = props.storeOptions.currency_symbol;
+			const ratesTotal = getRatesTotal( props.form.rates );
+
+			if ( noNativePDFSupport ) {
+				return sprintf( __( 'Buy (%(currencySymbol)s%(ratesTotal).2f)' ), { currencySymbol, ratesTotal } );
+			}
+
+			return sprintf( __( 'Buy & Print (%(currencySymbol)s%(ratesTotal).2f)' ), { currencySymbol, ratesTotal } );
 		}
-		return label;
+
+		if ( noNativePDFSupport ) {
+			return __( 'Buy' );
+		}
+
+		return __( 'Buy & Print' );
 	};
 
 	const getPurchaseButtonAction = () => {
@@ -42,6 +52,22 @@ const PrintLabelDialog = ( props ) => {
 		}
 		return props.labelActions.purchaseLabel;
 	};
+
+	const buttons = [
+		{
+			isDisabled: ! props.form.needsPrintConfirmation && ( ! props.canPurchase || props.form.isSubmitting ),
+			onClick: getPurchaseButtonAction(),
+			isPrimary: true,
+			label: getPurchaseButtonLabel(),
+		},
+	];
+
+	if ( ! props.form.needsPrintConfirmation ) {
+		buttons.push( {
+			onClick: () => props.labelActions.exitPrintingFlow( false ),
+			label: __( 'Cancel' ),
+		} );
+	}
 
 	return (
 		<Modal
@@ -74,18 +100,7 @@ const PrintLabelDialog = ( props ) => {
 						{ ...props }
 						errors={ props.errors.rates } />
 				</div>
-				<ActionButtons buttons={ [
-					{
-						isDisabled: ! props.form.needsPrintConfirmation && ( ! props.canPurchase || props.form.isSubmitting ),
-						onClick: getPurchaseButtonAction(),
-						isPrimary: true,
-						label: getPurchaseButtonLabel(),
-					},
-					{
-						onClick: () => props.labelActions.exitPrintingFlow( false ),
-						label: __( 'Cancel' ),
-					},
-				] } />
+				<ActionButtons buttons={ buttons } />
 			</div>
 		</Modal>
 	);
