@@ -26,24 +26,28 @@ env:
 matrix:
   include:
    - php: 5.2
-     env: WP_VERSION=latest
+     env: WP_VERSION=latest WC_VERSION=2.6.11
    - php: 5.2
-     env: WP_VERSION=4.4
+     env: WP_VERSION=4.4 WC_VERSION=2.6.11
    - php: 5.3
-     env: WP_VERSION=latest
+     env: WP_VERSION=latest WC_VERSION=2.6.11
    - php: 5.3
-     env: WP_VERSION=4.4
+     env: WP_VERSION=4.4 WC_VERSION=2.6.11
    - php: 5.4
-     env: WP_VERSION=latest
+     env: WP_VERSION=latest WC_VERSION=2.6.11
    - php: 5.4
-     env: WP_VERSION=4.4
+     env: WP_VERSION=4.4 WC_VERSION=2.6.11
    - php: 5.5
-     env: WP_VERSION=latest
+     env: WP_VERSION=latest WC_VERSION=2.6.11
    - php: 5.5
-     env: WP_VERSION=4.4
+     env: WP_VERSION=4.4 WC_VERSION=2.6.11
+   - php: 5.5
+     env: WP_VERSION=latest WC_VERSION=3.0.3
      # 5.6 / master already included above as first build.
    - php: 5.6
-     env: WP_VERSION=4.4
+     env: WP_VERSION=4.4 WC_VERSION=2.6.11
+   - php: 5.6
+     env: WP_VERSION=4.4 WC_VERSION=3.0.3
 
 # Cache the NPM dependencies
 cache:
@@ -61,7 +65,7 @@ install:
 
 # Clones WordPress and configures our testing environment.
 before_script:
-    - bash tests/bin/install-wc-tests.sh wordpress_test travis '' localhost $WP_VERSION
+    - bash tests/bin/install-wc-tests.sh wordpress_test travis '' localhost $WP_VERSION $WC_VERSION
 
 script: phpunit && npm test
 
