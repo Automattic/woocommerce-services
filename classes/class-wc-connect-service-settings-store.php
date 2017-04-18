@@ -125,6 +125,48 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
+		 * Attempts to recover faulty json string fields that might contain strings with unescaped quotes
+		 *
+		 * @param string $field_name
+		 * @param string $json
+		 *
+		 * @return string
+		 */
+		public function try_recover_invalid_json_string( $field_name, $json ) {
+			$regex = '/"' . $field_name . '":"(.+?)","/';
+			preg_match_all( $regex, $json, $match_groups );
+			if ( 2 === count( $match_groups ) ) {
+				foreach ( $match_groups[ 0 ] as $idx => $match ) {
+					$value = $match_groups[ 1 ][ $idx ];
+					$escaped_value = preg_replace( '/(?<!\\\)"/', '\\"', $value );
+					$json = str_replace( $match, '"' . $field_name . '":"' . $escaped_value . '","', $json );
+				}
+			}
+			return $json;
+		}
+
+		/**
+		 * Attempts to recover faulty json string array fields that might contain strings with unescaped quotes
+		 *
+		 * @param string $field_name
+		 * @param string $json
+		 *
+		 * @return string
+		 */
+		public function try_recover_invalid_json_array( $field_name, $json ) {
+			$regex = '/"' . $field_name . '":\["(.+?)"\]/';
+			preg_match_all( $regex, $json, $match_groups );
+			if ( 2 === count( $match_groups ) ) {
+				foreach ( $match_groups[ 0 ] as $idx => $match ) {
+					$array = $match_groups[ 1 ][ $idx ];
+					$escaped_array = preg_replace( '/(?<![,\\\])"(?!,)/', '\\"', $array );
+					$json = str_replace( $array, $escaped_array, $json );
+				}
+			}
+			return $json;
+		}
+
+		/**
 		 * Returns labels for the specific order ID
 		 *
 		 * @param $order_id
@@ -149,31 +191,19 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return $decoded_labels;
 			}
 
-			//attempt to recover the labels with unescaped quotation marks in their package_name and product_names fields
-			preg_match_all( '/"package_name":"(.+?)","/', $label_data, $package_name_matches );
-			if ( 2 === count( $package_name_matches ) ) {
-				foreach ( $package_name_matches[ 0 ] as $idx => $match ) {
-					$package_name = $package_name_matches[ 1 ][ $idx ];
-					$escaped_name = preg_replace( '/(?<!\\\)"/', '\\"', $package_name );
-					$label_data = str_replace( $match, '"package_name":"' . $escaped_name . '","', $label_data );
-				}
-			}
-
-			preg_match_all( '/"product_names":\["(.+?)"\]/', $label_data, $product_array_matches );
-			if ( 2 === count( $product_array_matches ) ) {
-				foreach ( $product_array_matches[ 0 ] as $idx => $match ) {
-					$products_str = $product_array_matches[ 1 ][ $idx ];
-					$escaped_products = preg_replace( '/(?<![,\\\])"(?!,)/', '\\"', $products_str );
-					$label_data = str_replace( $products_str, $escaped_products, $label_data );
-				}
-			}
-
+			$label_data = $this->try_recover_invalid_json_string( 'package_name', $label_data );
 			$decoded_labels = json_decode( $label_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-			if ( ! $decoded_labels ) {
-				return array();
+			if ( $decoded_labels ) {
+				return $decoded_labels;
 			}
 
-			return $decoded_labels;
+			$label_data = $this->try_recover_invalid_json_array( 'product_names', $label_data );
+			$decoded_labels = json_decode( $label_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			if ( $decoded_labels ) {
+				return $decoded_labels;
+			}
+
+			return array();
 		}
 
 		/**

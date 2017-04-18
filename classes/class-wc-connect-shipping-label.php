@@ -106,17 +106,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return $packages;
 			}
 
-			//attempt to recover the boxes with unescaped quotation marks in their box_id field
-			preg_match_all( '/"box_id":"(.+?)","/', $packages_json, $box_id_matches );
-			if ( 2 === count( $box_id_matches ) ) {
-				foreach ( $box_id_matches[ 0 ] as $idx => $match ) {
-					$box_id = $box_id_matches[ 1 ][ $idx ];
-					$escaped_id = preg_replace( '/(?<!\\\)"/', '\\"', $box_id );
-					$packages_json = str_replace( $match, '"box_id":"' . $escaped_id . '","', $packages_json );
-				}
+			$packages_json = $this->settings_store->try_recover_invalid_json_string( 'box_id', $packages_json );
+			$packages = json_decode( $packages_json, true );
+			if ( $packages ) {
+				return $packages;
 			}
 
-			return $packages ? $packages : array();
+			return array();
 		}
 
 		protected function get_packaging_metadata( WC_Order $order ) {
