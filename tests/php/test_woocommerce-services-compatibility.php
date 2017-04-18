@@ -15,13 +15,21 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 		WC_Connect_Compatibility::reset_version();
 	}
 
+	private static function get_id( $object ) {
+		if ( version_compare( WC_VERSION, '3.0.0', '<' ) ) {
+			return $object->id;
+		} else {
+			return $object->get_id();
+		}
+	}
+
 	public function test_get_order_id() {
 		$compat = WC_Connect_Compatibility::instance();
 		$order = WC_Helper_Order::create_order();
 		$next_order = WC_Helper_Order::create_order();
 		$id = $compat->get_order_id( $order );
-		$this->assertEquals( $order->id, $id );
-		$this->assertNotEquals( $order->id, $next_order->id );
+		$this->assertEquals( self::get_id( $order ), $id );
+		$this->assertNotEquals( self::get_id( $order ), self::get_id( $next_order ) );
 	}
 
 	public function test_get_item_product() {
@@ -29,10 +37,11 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 		$product = WC_Helper_Product::create_simple_product();
  		$order = WC_Helper_Order::create_order();
  		$items = $order->get_items();
-		$item = array_values( $items )[ 0 ];
+		$item_values = array_values( $items );
+		$item = $item_values[ 0 ];
 
 		$result = $compat->get_item_product( $order, $item );
 
-		$this->assertEquals( $product->id + 1, $result->id );
+		$this->assertEquals( self::get_id( $product ) + 1, self::get_id( $result ) );
 	}
 }
