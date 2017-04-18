@@ -96,18 +96,30 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			$packages_json = $shipping_method[ 'wc_connect_packages' ];
-			if ( ! $packages_json ) {
+			$packages_data = $shipping_method[ 'wc_connect_packages' ];
+			if ( ! $packages_data ) {
 				return array();
 			}
 
-			$packages = json_decode( $packages_json, true );
+			// WC3 retrieves metadata as non-scalar values
+			if ( is_array( $packages_data ) ) {
+				return $packages_data;
+			}
+
+			// WC2.6 stores non-scalar values as string, but doesn't deserialize it on retrieval
+			$packages = maybe_unserialize( $packages_data );
+			if ( is_array( $packages ) ) {
+				return $packages;
+			}
+
+			// legacy WCS stored the labels as JSON
+			$packages = json_decode( $packages_data, true );
 			if ( $packages ) {
 				return $packages;
 			}
 
-			$packages_json = $this->settings_store->try_recover_invalid_json_string( 'box_id', $packages_json );
-			$packages = json_decode( $packages_json, true );
+			$packages_data = $this->settings_store->try_recover_invalid_json_string( 'box_id', $packages_data );
+			$packages = json_decode( $packages_data, true );
 			if ( $packages ) {
 				return $packages;
 			}
@@ -139,13 +151,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$formatted_packages = array();
 
-			foreach( $packages as $package ) {
+			foreach( $packages as $package_obj ) {
+				$package = ( array ) $package_obj;
 				$package_id = $package[ 'id' ];
 				$formatted_packages[ $package_id ] = $package;
 
 				foreach( $package[ 'items' ] as $item_index => $item ) {
-					$product_data = $package[ 'items' ][ $item_index ];
-					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+					$product_data = ( array ) $item;
+					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $product_data );
 
 					if ( $product ) {
 						$product_data[ 'name' ] = $this->get_name( $product );
@@ -213,7 +226,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$packages = $this->get_packaging_from_shipping_method( $shipping_method );
 			$rates = array();
 
-			foreach( $packages as $idx => $package ) {
+			foreach( $packages as $idx => $package_obj ) {
+				$package = ( array ) $package_obj;
 				// Abort if the package data is malformed
 				if ( ! isset( $package[ 'id' ] ) || ! isset( $package[ 'service_id' ] ) ) {
 					return array();

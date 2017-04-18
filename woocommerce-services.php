@@ -28,7 +28,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
-require_once( plugin_basename( 'classes/class-wc-connect-utils.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
