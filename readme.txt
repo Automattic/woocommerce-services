@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
 Tested up to: 4.7.2
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,17 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.4.0 =
+* WooCommerce 3.0 compatibility
+* Add test label print to system status page
+* Remove shipping label preview
+* Better handling of logged out users
+* Add contextual plugin link to WooCommerce.com support form
+* Fix bug when purchasing additional shipping labels without a page refresh
+* Better NUX flow when Jetpack missing or inactive
+* Temporarily remove label support for military addresses (requires customs form)
+* Fix bug where predefined USPS packages weren't being sent in requests
 
 = 1.3.2 =
 * Hide destination address normalized order meta
