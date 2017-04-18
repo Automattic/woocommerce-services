@@ -42,6 +42,14 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 
 		$result = $compat->get_item_product( $order, $item );
 
+		/**
+		 * WC_Helper_Order::create_order() creates it's own product for use by default
+		 * and only allows a Product to be passed in in WC 3.0.x and up.
+		 *
+		 * This hack creates an initial product to use as an ID reference, and is
+		 * based on the assumption that the product created inside create_order()
+		 * will have an ID one greater than the reference product.
+		 */
 		$this->assertEquals( self::get_id( $product ) + 1, self::get_id( $result ) );
 	}
 
