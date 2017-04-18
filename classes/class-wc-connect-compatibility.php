@@ -71,12 +71,12 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Get formatted list of Product Variations, if applicable.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product_Variation $product
 		 * @param bool $flat
 		 *
 		 * @return string
 		 */
-		abstract public function get_formatted_variation( WC_Product $product, $flat = false );
+		abstract public function get_formatted_variation( WC_Product_Variation $product, $flat = false );
 
 		/**
 		 * Get the most specific ID for a given Product.

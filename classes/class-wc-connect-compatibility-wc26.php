@@ -38,12 +38,12 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		/**
 		 * Get formatted list of Product Variations, if applicable.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product_Variation $product
 		 * @param bool $flat
 		 *
 		 * @return string
 		 */
-		public function get_formatted_variation( WC_Product $product, $flat = false ) {
+		public function get_formatted_variation( WC_Product_Variation $product, $flat = false ) {
 			return $product->get_formatted_variation_attributes( $flat );
 		}
 
@@ -70,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		 * @return int
 		 */
 		public function get_parent_product_id( WC_Product $product ) {
-			return $product->get_id();
+			return ( $product->is_type( 'variation' ) ) ? $product->parent->get_id() : $product->get_id();
 		}
 	}
 }

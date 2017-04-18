@@ -41,12 +41,12 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		/**
 		 * Get formatted list of Product Variations, if applicable.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product_Variation $product
 		 * @param bool $flat
 		 *
 		 * @return string
 		 */
-		public function get_formatted_variation( WC_Product $product, $flat = false ) {
+		public function get_formatted_variation( WC_Product_Variation $product, $flat = false ) {
 			return wc_get_formatted_variation( $product, $flat );
 		}
 
