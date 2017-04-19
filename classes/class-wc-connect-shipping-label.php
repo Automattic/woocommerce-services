@@ -412,7 +412,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
-				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order->id ),
+				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
 			);
 
 			$store_options = $this->settings_store->get_store_options();
