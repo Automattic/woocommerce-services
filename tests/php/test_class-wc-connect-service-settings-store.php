@@ -2,26 +2,42 @@
 
 class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 
-	protected $settings_store;
-
 	protected $order_id = 123;
 
 	public static function setupBeforeClass() {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-logger.php' );
 	}
 
-	public function setUp() {
-		$this->settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
-			->disableOriginalConstructor()
-			->setMethods( null )
-			->getMock();
+	private function get_settings_store( $service_schemas_store = false, $api_client = false, $logger = false ) {
+		if ( ! $api_client ) {
+			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
+		}
+
+		if ( ! $service_schemas_store ) {
+			$service_schemas_store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
+		}
+
+		if ( ! $logger ) {
+			$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
+		}
+
+		return new WC_Connect_Service_Settings_Store( $service_schemas_store, $api_client, $logger );
 	}
 
 	public function tearDown() {
 		delete_post_meta( $this->order_id, 'wc_connect_labels' );
-
-		// release the test store instance
-		unset( $this->settings_store );
 	}
 
 	public function test_get_label_order_meta_data_regular_json() {
@@ -41,7 +57,8 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->settings_store->get_label_order_meta_data( $this->order_id );
+		$settings_store = $this->get_settings_store();
+		$actual = $settings_store->get_label_order_meta_data( $this->order_id );
 
 		$this->assertEquals( $actual, $expected );
 	}
@@ -63,7 +80,8 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->settings_store->get_label_order_meta_data( $this->order_id );
+		$settings_store = $this->get_settings_store();
+		$actual = $settings_store->get_label_order_meta_data( $this->order_id );
 
 		$this->assertEquals( $actual, $expected );
 	}
@@ -85,7 +103,8 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->settings_store->get_label_order_meta_data( $this->order_id );
+		$settings_store = $this->get_settings_store();
+		$actual = $settings_store->get_label_order_meta_data( $this->order_id );
 
 		$this->assertEquals( $actual, $expected );
 	}
@@ -118,7 +137,8 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->settings_store->get_label_order_meta_data( $this->order_id );
+		$settings_store = $this->get_settings_store();
+		$actual = $settings_store->get_label_order_meta_data( $this->order_id );
 
 		$this->assertEquals( $actual, $expected );
 	}
@@ -126,7 +146,8 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	public function test_get_label_order_meta_data_not_set() {
 		$expected = array();
 
-		$actual = $this->settings_store->get_label_order_meta_data( $this->order_id );
+		$settings_store = $this->get_settings_store();
+		$actual = $settings_store->get_label_order_meta_data( $this->order_id );
 
 		$this->assertEquals( $actual, $expected );
 	}

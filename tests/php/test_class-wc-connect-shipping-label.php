@@ -1,31 +1,47 @@
 <?php
 
 class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
-	protected $shipping_label;
-
 	public static function setupBeforeClass() {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-label.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-payment-methods-store.php' );
 
 		WC_Connect_Compatibility::set_version( '3.0.0' );
 	}
 
-	public function setUp() {
-		$this->shipping_label = $this->getMockBuilder( 'WC_Connect_Shipping_Label' )
-			 ->disableOriginalConstructor()
-			 ->setMethods( null )
-			 ->getMock();
+	private function get_shipping_label( $api_client = false, $settings_store = false, $service_schemas_store = false, $payment_methods_store = false ) {
+		if ( ! $settings_store ) {
+			$settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
+				 ->disableOriginalConstructor()
+				 ->setMethods( null )
+				 ->getMock();
+		}
 
-		$this->shipping_label->settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
-			->disableOriginalConstructor()
-			->setMethods( null )
-			->getMock();
-	}
+		if ( ! $api_client ) {
+			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
+		}
 
-	public function tearDown() {
-		// release the test store instance
-		unset( $this->shipping_label );
+		if ( ! $service_schemas_store ) {
+			$service_schemas_store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
+		}
+
+		if ( ! $payment_methods_store ) {
+			$payment_methods_store = $this->getMockBuilder( 'WC_Connect_Payment_Methods_Store' )
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
+		}
+
+		return new WC_Connect_Shipping_Label( $api_client, $settings_store, $service_schemas_store, $payment_methods_store );
 	}
 
 	private function create_mock_order() {
@@ -49,7 +65,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'weight_0_.' => 'pri',
 		);
 
-		$actual = $this->shipping_label->get_selected_rates( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_rates( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -67,7 +84,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'weight_0_.' => 'pri',
 		);
 
-		$actual = $this->shipping_label->get_selected_rates( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_rates( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -88,7 +106,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'weight_0_.' => 'pri',
 		);
 
-		$actual = $this->shipping_label->get_selected_rates( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_rates( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -109,7 +128,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'weight_0_.' => 'pri',
 		);
 
-		$actual = $this->shipping_label->get_selected_rates( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_rates( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -143,7 +163,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->shipping_label->get_selected_packages( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_packages( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -177,7 +198,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->shipping_label->get_selected_packages( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_packages( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -233,7 +255,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->shipping_label->get_selected_packages( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_packages( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 
@@ -287,7 +310,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			),
 		);
 
-		$actual = $this->shipping_label->get_selected_packages( $mock_order );
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_packages( $mock_order );
 		$this->assertEquals( $actual, $expected );
 	}
 }

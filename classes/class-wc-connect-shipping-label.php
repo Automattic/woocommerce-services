@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		/**
 		 * @var WC_Connect_Service_Settings_Store
 		 */
-		public $settings_store;
+		protected $settings_store;
 
 		/**
 		 * @var WC_Connect_Service_Schemas_Store
