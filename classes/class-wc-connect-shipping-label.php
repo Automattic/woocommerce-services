@@ -135,7 +135,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 							$product_data[ 'attributes' ] = $formatted;
 						}
 					} else {
-						$product_data[ 'name' ] = sprintf( __( '#%s - [Deleted product]', 'woocommerce-services' ), $item[ 'product_id' ] );
+						$product_data[ 'name' ] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $item[ 'product_id' ], $order );
 					}
 
 					$formatted_packages[ $package_id ][ 'items' ][ $item_index ] = $product_data;
