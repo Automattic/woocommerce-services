@@ -186,19 +186,19 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			//attempt to decode the JSON (legacy way of storing the labels data)
-			$decoded_labels = json_decode( $label_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			$decoded_labels = json_decode( $label_data, true );
 			if ( $decoded_labels ) {
 				return $decoded_labels;
 			}
 
 			$label_data = $this->try_recover_invalid_json_string( 'package_name', $label_data );
-			$decoded_labels = json_decode( $label_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			$decoded_labels = json_decode( $label_data, true );
 			if ( $decoded_labels ) {
 				return $decoded_labels;
 			}
 
 			$label_data = $this->try_recover_invalid_json_array( 'product_names', $label_data );
-			$decoded_labels = json_decode( $label_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			$decoded_labels = json_decode( $label_data, true );
 			if ( $decoded_labels ) {
 				return $decoded_labels;
 			}

@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		/**
 		 * @var WC_Connect_Service_Settings_Store
 		 */
-		protected $settings_store;
+		public $settings_store;
 
 		/**
 		 * @var WC_Connect_Service_Schemas_Store
@@ -143,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
 
-		protected function get_selected_packages( WC_Order $order ) {
+		public function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
 				return $this->get_items_as_individual_packages( $order );
@@ -220,7 +220,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $groups;
 		}
 
-		protected function get_selected_rates( WC_Order $order ) {
+		public function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
 			$packages = $this->get_packaging_from_shipping_method( $shipping_method );
