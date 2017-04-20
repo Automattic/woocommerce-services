@@ -294,8 +294,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			// TODO: return true if the order has already label meta-data
+			// If the order already has purchased labels, show the meta-box no matter what
+			if ( get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true ) ) {
+				return true;
+			}
 
+			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
 			$base_location = wc_get_base_location();
 			if ( 'US' !== $base_location[ 'country' ] ) {
 				return false;
@@ -307,6 +311,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
+			// If the order was created using WCS checkout rates, show the meta-box regardless of the products' state
+			if ( $this->get_packaging_metadata( $order ) ) {
+				return true;
+			}
+
+			// At this point (no packaging data), only show if there's at least one existing and shippable product
 			foreach( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
