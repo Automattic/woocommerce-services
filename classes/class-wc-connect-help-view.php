@@ -716,7 +716,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			?>
 				<h2>
-					<?php _e( 'WooCommerce Services Status', 'woocommerce' ); ?>
+					<?php _e( 'WooCommerce Services Status', 'woocommerce-services' ); ?>
 				</h2>
 			<div class="wcc-root" id="<?php echo esc_attr( $help_root_view ) ?>"></div>
 			<div class="wcc-root" id="<?php echo esc_attr( $print_root_view ) ?>"></div>

@@ -24,7 +24,7 @@ class WC_REST_Connect_Shipping_Labels_Print_Controller extends WC_REST_Connect_B
 		$n_captions = isset( $raw_params[ 'captions' ] ) ? count( $raw_params[ 'captions' ] ) : 0;
 		// Either there are the same number of captions as labels, or no captions at all
 		if ( ! $n_label_ids || ( $n_captions && $n_captions !== $n_label_ids ) ) {
-			$message = __( 'Invalid PDF request.', 'woocommerce' );
+			$message = __( 'Invalid PDF request.', 'woocommerce-services' );
 			$error = new WP_Error(
 				'invalid_pdf_request',
 				$message,

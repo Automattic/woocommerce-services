@@ -395,7 +395,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$body = array_merge( $default_body, $initial_body );
 
 			// Add interesting fields to the body of each request
-			$body['settings'] = wp_parse_args( $body['settings'], array(
+			$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
 				'store_guid' => $this->get_guid(),
 				'base_city' => WC()->countries->get_base_city(),
 				'base_country' => WC()->countries->get_base_country(),
@@ -428,11 +428,13 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$headers = array();
-			$lang = strtolower( str_replace( '_', '-', get_locale() ) );
-			$headers['Accept-Language'] = $lang;
-			$headers['Content-Type'] = 'application/json; charset=utf-8';
-			$headers['Accept'] = 'application/vnd.woocommerce-connect.v1';
-			$headers['Authorization'] = $authorization;
+			$locale = strtolower( str_replace( '_', '-', get_locale() ) );
+			$locale_elements = explode( '-', $locale );
+			$lang = $locale_elements[ 0 ];
+			$headers[ 'Accept-Language' ] = $locale . ',' . $lang;
+			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
+			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v1';
+			$headers[ 'Authorization' ] = $authorization;
 			return $headers;
 		}
 

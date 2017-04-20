@@ -929,7 +929,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		function add_shipping_phone_to_checkout( $fields ) {
 			$fields[ 'shipping_phone' ] = array(
-				'label'        => __( 'Phone', 'woocommerce' ),
+				'label'        => __( 'Phone', 'woocommerce-services' ),
 				'type'         => 'tel',
 				'required'     => false,
 				'class'        => array( 'form-row-wide' ),
@@ -942,7 +942,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		function add_shipping_phone_to_order_fields( $fields ) {
 			$fields[ 'phone' ] = array(
-				'label' => __( 'Phone', 'woocommerce' ),
+				'label' => __( 'Phone', 'woocommerce-services' ),
 			);
 			return $fields;
 		}

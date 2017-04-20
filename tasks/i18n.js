@@ -60,7 +60,7 @@ function buildWordPressString( properties ) {
  */
 function buildPhpOutput( data, arrayName ) {
 	// find matching instances of `translate()` and generate corresponding php output
-	const matches = _.uniq( parser.getMatches( data ).map( ( match ) => match.string ) );
+	const matches = _.uniq( parser.getMatches( data ).map( ( match ) => match.string ) ).sort();
 
 	// prepend the matches array with this content to open the php file
 	matches.unshift( [
