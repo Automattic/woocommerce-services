@@ -83,12 +83,15 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		 * @return string The product (or variation) name, ready to print
 		 */
 		public function get_product_name_from_order( $product_id, $order ) {
-			foreach( $order->get_items() as $line_item ) {
+			foreach ( $order->get_items() as $line_item ) {
 				if ( (int) $line_item[ 'product_id' ] === $product_id || (int) $line_item[ 'variation_id' ] === $product_id ) {
-					return sprintf( '#%s - %s', $product_id, $line_item[ 'name' ] );
+					/* translators: %1$d: Product ID, %2$s: Product Name */
+					return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item[ 'name' ] );
 				}
 			}
-			return sprintf( __( '#%s - [Deleted product]', 'woocommerce-services' ), $product_id );
+
+			/* translators: %d: Deleted Product ID */
+			return sprintf( __( '#%d - [Deleted product]', 'woocommerce-services' ), $product_id );
 		}
 	}
 }

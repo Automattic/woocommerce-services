@@ -86,20 +86,26 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 * @return string The product (or variation) name, ready to print
 		 */
 		public function get_product_name_from_order( $product_id, $order ) {
-			foreach( $order->get_items() as $line_item ) {
+			foreach ( $order->get_items() as $line_item ) {
 				$line_product_id = $line_item->get_product_id();
+				$line_variation_id = $line_item->get_variation_id();
+
 				if ( ! $line_product_id ) {
 					$line_product_id = (int) get_metadata( 'order_item', $line_item->get_id(), '_product_id', true );
 				}
-				$line_variation_id = $line_item->get_variation_id();
+
 				if ( ! $line_variation_id ) {
 					$line_variation_id = (int) get_metadata( 'order_item', $line_item->get_id(), '_variation_id', true );
 				}
+
 				if ( $line_product_id === $product_id || $line_variation_id === $product_id ) {
-					return sprintf( '#%s - %s', $product_id, $line_item->get_name() );
+					/* translators: %1$d: Product ID, %2$s: Product Name */
+					return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item->get_name() );
 				}
 			}
-			return sprintf( __( '#%s - [Deleted product]', 'woocommerce-services' ), $product_id );
+
+			/* translators: %d: Deleted Product ID */
+			return sprintf( __( '#%d - [Deleted product]', 'woocommerce-services' ), $product_id );
 		}
 	}
 
