@@ -20,7 +20,10 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, remov
 		<div key={ itemIndex } className="wcc-package-item">
 			<div className="wcc-package-item__name">
 					<span className="wcc-package-item__title">
-						<a href={ item.url } target="_blank">{ item.name }</a>
+						{ item.url
+							? <a href={ item.url } target="_blank">{ item.name }</a>
+							: item.name
+						}
 					</span>
 				{ item.attributes && <p>{ item.attributes }</p> }
 			</div>

@@ -80,12 +80,14 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 			$product_names = array();
 			foreach ( $package[ 'products' ] as $product_id ) {
-				$product =  wc_get_product( $product_id );
-				if ( ! isset( $product ) ) {
-					continue;
-				}
+				$product = wc_get_product( $product_id );
 
-				$product_names[] = $product->get_title();
+				if ( $product ) {
+					$product_names[] = $product->get_title();
+				} else {
+					$order = wc_get_order( $order_id );
+					$product_names[] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_id, $order );
+				}
 			}
 
 			$label_meta[ 'product_names' ] = $product_names;

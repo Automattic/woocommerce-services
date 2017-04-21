@@ -72,5 +72,26 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		public function get_parent_product_id( WC_Product $product ) {
 			return ( $product->is_type( 'variation' ) ) ? $product->parent->get_id() : $product->get_id();
 		}
+
+		/**
+		 * For a given product ID, it tries to find its name inside an order's line items.
+		 * This is useful when an order has a product which was later deleted from the
+		 * store.
+		 *
+		 * @param int $product_id Product ID or variation ID
+		 * @param WC_Order $order
+		 * @return string The product (or variation) name, ready to print
+		 */
+		public function get_product_name_from_order( $product_id, $order ) {
+			foreach ( $order->get_items() as $line_item ) {
+				if ( (int) $line_item[ 'product_id' ] === $product_id || (int) $line_item[ 'variation_id' ] === $product_id ) {
+					/* translators: %1$d: Product ID, %2$s: Product Name */
+					return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item[ 'name' ] );
+				}
+			}
+
+			/* translators: %d: Deleted Product ID */
+			return sprintf( __( '#%d - [Deleted product]', 'woocommerce-services' ), $product_id );
+		}
 	}
 }

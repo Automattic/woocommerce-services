@@ -79,4 +79,22 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 		$this->assertEquals( self::get_id( $product ), $parent_id );
 		$this->assertEquals( self::get_id( $product ), $variation_id );
 	}
+
+	public function get_product_name_from_order() {
+		$compat = WC_Connect_Compatibility::instance();
+		$order = WC_Helper_Order::create_order();
+		$order_id = self::get_id( $order );
+
+		// The order is auto-populated with a product. Delete that product from the database, but not from the order
+		$items = $order->get_items();
+		$item_values = array_values( $items );
+		$item = $item_values[ 0 ];
+		$product = $compat->get_item_product( $order, $item );
+		$product_id = self::get_id( $product );
+		$product_name = $product->get_title();
+		WC_Helper_Product::delete_product( $product_id );
+
+		$order = wc_get_order( $order_id );
+		$this->assertContains( $product_name, $compat->get_product_name_from_order( $product_id, $order ) );
+	}
 }

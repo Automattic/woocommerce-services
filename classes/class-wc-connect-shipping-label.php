@@ -124,18 +124,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$formatted_packages[ $package_id ] = $package;
 
 				foreach( $package[ 'items' ] as $item_index => $item ) {
+					$product_data = $package[ 'items' ][ $item_index ];
 					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
-					if ( ! $product ) {
-						continue;
+
+					if ( $product ) {
+						$product_data[ 'name' ] = $this->get_name( $product );
+						$product_data[ 'url' ] = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
+						if ( $product->is_type( 'variation' ) ) {
+							$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
+							$product_data[ 'attributes' ] = $formatted;
+						}
+					} else {
+						$product_data[ 'name' ] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $item[ 'product_id' ], $order );
 					}
 
-					$product_data = $package[ 'items' ][ $item_index ];
-					$product_data[ 'name' ] = $this->get_name( $product );
-					$product_data[ 'url' ] = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
-					if ( $product->is_type( 'variation' ) ) {
-						$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
-						$product_data[ 'attributes' ] = $formatted;
-					}
 					$formatted_packages[ $package_id ][ 'items' ][ $item_index ] = $product_data;
 				}
 			}
@@ -292,8 +294,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			// TODO: return true if the order has already label meta-data
+			// If the order already has purchased labels, show the meta-box no matter what
+			if ( get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true ) ) {
+				return true;
+			}
 
+			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
 			$base_location = wc_get_base_location();
 			if ( 'US' !== $base_location[ 'country' ] ) {
 				return false;
@@ -305,6 +311,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
+			// If the order was created using WCS checkout rates, show the meta-box regardless of the products' state
+			if ( $this->get_packaging_metadata( $order ) ) {
+				return true;
+			}
+
+			// At this point (no packaging data), only show if there's at least one existing and shippable product
 			foreach( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
