@@ -81,6 +81,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = 1.4.1 =
 * Fix deleted product bug in labels UI
+* Tweak Accept-Language header
 
 = 1.4.0 =
 * WooCommerce 3.0 compatibility
