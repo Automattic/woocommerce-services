@@ -1,6 +1,50 @@
 <?php
 
 class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
+
+	private $wc_connect_packages = array(
+		array(
+			'id' => 'weight_0_.',
+			'box_id' => '"',
+			'length' => 10,
+			'width' => 10,
+			'height' => 10,
+			'weight' => 0.25625,
+			'items' => array(
+				array (
+					'product_id' => 128,
+					'length' => 3,
+					'width' => 3,
+					'height' => 2.5,
+					'weight' => 0.15625,
+					'quantity' => 1,
+				),
+			),
+			'service_id' => 'pri',
+		),
+	);
+
+	private $expected_selected_packages = array(
+		'weight_0_.' => array(
+			'id' => 'weight_0_.',
+			'box_id' => '"',
+			'length' => 10,
+			'width' => 10,
+			'height' => 10,
+			'weight' => 0.25625,
+			'items' => array ( array(
+				'product_id' => 128,
+				'length' => 3,
+				'width' => 3,
+				'height' => 2.5,
+				'weight' => 0.15625,
+				'quantity' => 1,
+				'name' => '#128 - [Deleted product]',
+			) ),
+			'service_id' => 'pri',
+		),
+	);
+
 	public static function setupBeforeClass() {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-label.php' );
@@ -52,9 +96,11 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_selected_rates_regular_json() {
+		$json = json_encode( $this->wc_connect_packages );
+
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => '[{"id":"weight_0_.","box_id":"box","length":10,"width":10,"height":10,"weight":0.25625,"items":[{"product_id":128,"length":3,"width":3,"height":2.5,"weight":0.15625,"quantity":1}],"service_id":"pri"}]',
+				'wc_connect_packages' => $json,
 			),
 		);
 
@@ -71,9 +117,13 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_selected_rates_unescaped_json() {
+		//create a json and ensure that quotes are unescaped
+		$json = json_encode( $this->wc_connect_packages );
+		$json = str_replace( '"box_id":"\""', '"box_id":"""', $json );
+
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => '[{"id":"weight_0_.","box_id":""","length":10,"width":10,"height":10,"weight":0.25625,"items":[{"product_id":128,"length":3,"width":3,"height":2.5,"weight":0.15625,"quantity":1}],"service_id":"pri"}]',
+				'wc_connect_packages' => $json,
 			),
 		);
 
@@ -92,10 +142,7 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	public function test_get_selected_rates_serialized_array() {
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => maybe_serialize( array( array(
-					'id'         => 'weight_0_.',
-					'service_id' => 'pri'
-				) ) ),
+				'wc_connect_packages' => maybe_serialize( $this->wc_connect_packages ),
 			),
 		);
 
@@ -114,10 +161,7 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	public function test_get_selected_rates_unserialized_array() {
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => maybe_serialize( array( array(
-					'id'         => 'weight_0_.',
-					'service_id' => 'pri'
-				) ) ),
+				'wc_connect_packages' => $this->wc_connect_packages,
 			),
 		);
 
@@ -134,184 +178,68 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_selected_packages_regular_json() {
+		$json = json_encode( $this->wc_connect_packages );
+
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => '[{"id":"weight_0_.","box_id":"box","length":10,"width":10,"height":10,"weight":0.25625,"items":[{"product_id":128,"length":3,"width":3,"height":2.5,"weight":0.15625,"quantity":1}],"service_id":"pri"}]',
+				'wc_connect_packages' => $json,
 			),
 		);
 
 		$mock_order = $this->create_mock_order();
 		$mock_order->expects( $this->any() )->method( 'get_shipping_methods' )->will( $this->returnValue( $shipping_method ) );
 
-		$expected = array(
-			'weight_0_.' => array(
-				'id' => 'weight_0_.',
-				'box_id' => 'box',
-				'length' => 10,
-				'width' => 10,
-				'height' => 10,
-				'weight' => 0.25625,
-				'items' => array ( array(
-					                   'product_id' => 128,
-					                   'length' => 3,
-					                   'width' => 3,
-					                   'height' => 2.5,
-					                   'weight' => 0.15625,
-					                   'quantity' => 1,
-				) ),
-				'service_id' => 'pri',
-			),
-		);
-
 		$shipping_label = $this->get_shipping_label();
 		$actual = $shipping_label->get_selected_packages( $mock_order );
-		$this->assertEquals( $actual, $expected );
+		$this->assertEquals( $actual, $this->expected_selected_packages );
 	}
 
 	public function test_get_selected_packages_unescaped_json() {
+		//create a json and ensure that quotes are unescaped
+		$json = json_encode( $this->wc_connect_packages );
+		$json = str_replace( '"box_id":"\""', '"box_id":"""', $json );
+
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => '[{"id":"weight_0_.","box_id":""","length":10,"width":10,"height":10,"weight":0.25625,"items":[{"product_id":128,"length":3,"width":3,"height":2.5,"weight":0.15625,"quantity":1}],"service_id":"pri"}]',
+				'wc_connect_packages' => $json,
 			),
 		);
 
 		$mock_order = $this->create_mock_order();
 		$mock_order->expects( $this->any() )->method( 'get_shipping_methods' )->will( $this->returnValue( $shipping_method ) );
 
-		$expected = array(
-			'weight_0_.' => array(
-				'id' => 'weight_0_.',
-				'box_id' => '"',
-				'length' => 10,
-				'width' => 10,
-				'height' => 10,
-				'weight' => 0.25625,
-				'items' => array ( array(
-					'product_id' => 128,
-					'length' => 3,
-					'width' => 3,
-					'height' => 2.5,
-					'weight' => 0.15625,
-					'quantity' => 1,
-				) ),
-				'service_id' => 'pri',
-			),
-		);
-
 		$shipping_label = $this->get_shipping_label();
 		$actual = $shipping_label->get_selected_packages( $mock_order );
-		$this->assertEquals( $actual, $expected );
+		$this->assertEquals( $actual, $this->expected_selected_packages );
 	}
 
 	public function test_get_selected_packages_serialized_array() {
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => maybe_serialize(
-					array(
-						array(
-							'id' => 'weight_0_.',
-							'box_id' => '"',
-							'length' => 10,
-							'width' => 10,
-							'height' => 10,
-							'weight' => 0.25625,
-							'items' => array(
-								array (
-									'product_id' => 128,
-									'length' => 3,
-									'width' => 3,
-									'height' => 2.5,
-									'weight' => 0.15625,
-									'quantity' => 1,
-								),
-							),
-							'service_id' => 'pri',
-						),
-					)
-				),
+				'wc_connect_packages' => maybe_serialize( $this->wc_connect_packages ),
 			),
 		);
 
 		$mock_order = $this->create_mock_order();
 		$mock_order->expects( $this->any() )->method( 'get_shipping_methods' )->will( $this->returnValue( $shipping_method ) );
 
-		$expected = array(
-			'weight_0_.' => array(
-				'id' => 'weight_0_.',
-				'box_id' => '"',
-				'length' => 10,
-				'width' => 10,
-				'height' => 10,
-				'weight' => 0.25625,
-				'items' => array ( array(
-					'product_id' => 128,
-					'length' => 3,
-					'width' => 3,
-					'height' => 2.5,
-					'weight' => 0.15625,
-					'quantity' => 1,
-				) ),
-				'service_id' => 'pri',
-			),
-		);
-
 		$shipping_label = $this->get_shipping_label();
 		$actual = $shipping_label->get_selected_packages( $mock_order );
-		$this->assertEquals( $actual, $expected );
+		$this->assertEquals( $actual, $this->expected_selected_packages );
 	}
 
 	public function test_get_selected_packages_unserialized_array() {
 		$shipping_method = array(
 			array(
-				'wc_connect_packages' => array(
-					array(
-						'id' => 'weight_0_.',
-						'box_id' => '"',
-						'length' => 10,
-						'width' => 10,
-						'height' => 10,
-						'weight' => 0.25625,
-						'items' => array(
-							array (
-								'product_id' => 128,
-								'length' => 3,
-								'width' => 3,
-								'height' => 2.5,
-								'weight' => 0.15625,
-								'quantity' => 1,
-							),
-						),
-						'service_id' => 'pri',
-					),
-				),
+				'wc_connect_packages' => $this->wc_connect_packages,
 			),
 		);
 
 		$mock_order = $this->create_mock_order();
 		$mock_order->expects( $this->any() )->method( 'get_shipping_methods' )->will( $this->returnValue( $shipping_method ) );
 
-		$expected = array(
-			'weight_0_.' => array(
-				'id' => 'weight_0_.',
-				'box_id' => '"',
-				'length' => 10,
-				'width' => 10,
-				'height' => 10,
-				'weight' => 0.25625,
-				'items' => array ( array(
-					'product_id' => 128,
-					'length' => 3,
-					'width' => 3,
-					'height' => 2.5,
-					'weight' => 0.15625,
-					'quantity' => 1,
-				) ),
-				'service_id' => 'pri',
-			),
-		);
-
 		$shipping_label = $this->get_shipping_label();
 		$actual = $shipping_label->get_selected_packages( $mock_order );
-		$this->assertEquals( $actual, $expected );
+		$this->assertEquals( $actual, $this->expected_selected_packages );
 	}
 }

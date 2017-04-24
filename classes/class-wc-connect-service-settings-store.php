@@ -181,7 +181,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			//labels stored as an array, return
-			if ( ! is_string( $label_data ) ) {
+			if ( is_array( $label_data ) ) {
 				return $label_data;
 			}
 
