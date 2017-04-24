@@ -160,7 +160,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				foreach ( $match_groups[ 0 ] as $idx => $match ) {
 					$array = $match_groups[ 1 ][ $idx ];
 					$escaped_array = preg_replace( '/(?<![,\\\])"(?!,)/', '\\"', $array );
-					$json = str_replace( $array, $escaped_array, $json );
+					$json = str_replace( '["' . $array . '"]', '["' . $escaped_array. '"]', $json );
 				}
 			}
 			return $json;
