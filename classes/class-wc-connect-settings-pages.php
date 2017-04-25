@@ -246,7 +246,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				'formData'     => $this->get_packages_form_data(),
 				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'submitMethod' => 'POST',
 				'rootView'     => $root_view,
 			);
 

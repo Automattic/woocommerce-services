@@ -25,7 +25,7 @@ export const SAVE_FORM = 'SAVE_FORM';
 
 // The callbackURL, nonce and submitMethod are extracted from wcConnectData
 // courtesy thunk.withExtraArgument in main.js
-export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce } ) => {
 	dispatch( setFormMetaProperty( 'isSaving', true ) );
 	const setError = ( error ) => {
 		if ( error && 'rest_cookie_invalid_nonce' !== error ) {
@@ -40,5 +40,5 @@ export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, 
 	const setIsSaving = ( saving ) => {
 		dispatch( setFormMetaProperty( 'isSaving', saving ) );
 	};
-	saveForm( setIsSaving, setSuccess, _.noop, setError, callbackURL, nonce, submitMethod, getState().form.data );
+	saveForm( setIsSaving, setSuccess, _.noop, setError, callbackURL, nonce, 'POST', getState().form.data );
 };

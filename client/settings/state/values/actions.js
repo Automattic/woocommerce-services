@@ -27,7 +27,7 @@ export const addArrayFieldItem = ( path, item ) => ( {
 	item,
 } );
 
-export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce } ) => {
 	silent = ( true === silent );
 
 	const setIsSaving = ( value ) => dispatch( FormActions.setFormProperty( 'isSaving', value ) );
@@ -71,7 +71,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 	const errors = getFormErrors( getState(), schema );
 
 	if ( _.isEmpty( errors ) ) {
-		saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, submitMethod, coercedValues );
+		saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, 'POST', coercedValues );
 	} else {
 		setError( errors );
 	}
