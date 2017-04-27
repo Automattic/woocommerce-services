@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Button from 'components/button';
 import { translate as __ } from 'lib/mixins/i18n';
-import PurchaseLabelDialog from './purchase';
+import PrintLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
@@ -90,7 +90,7 @@ class ShippingLabelRootView extends Component {
 
 		return (
 			<div className="wcc-metabox-label-item" >
-				<PurchaseLabelDialog
+				<PrintLabelDialog
 					{ ...this.props.shippingLabel }
 					{ ...this.props } />
 				{ this.renderPaymentInfo( paymentMethod ) }
