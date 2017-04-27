@@ -76,8 +76,6 @@ ShippingRates.propTypes = {
 	selectedPackages: PropTypes.object.isRequired,
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
-	weightUnit: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
 };
