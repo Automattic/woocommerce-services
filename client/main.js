@@ -16,11 +16,15 @@ import Packages from './packages';
 import _ from 'lodash';
 import { setNonce, setBaseURL } from 'api/request';
 
-( global.wcConnectData || [] ).forEach( ( wcConnectData ) => {
-	setNonce( wcConnectData.nonce );
-	setBaseURL( wcConnectData.baseURL );
+if ( global.wcConnectData ) {
+	setNonce( global.wcConnectData.nonce );
+	setBaseURL( global.wcConnectData.baseURL );
+}
 
-	const Route = ( ( rootView ) => {
+Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
+	const args = JSON.parse( container.dataset.args ) || {};
+	delete container.dataset.args;
+	const RouteClass = ( ( rootView ) => {
 		switch ( rootView ) {
 			case 'wc-connect-create-shipping-label':
 				return ShippingLabel;
@@ -33,8 +37,15 @@ import { setNonce, setBaseURL } from 'api/request';
 				return Packages;
 			case 'wc-connect-admin-test-print':
 				return PrintTestLabel;
+			default:
+				return null;
 		}
-	} )( wcConnectData.rootView )( wcConnectData );
+	} )( container.id );
+
+	if ( ! RouteClass ) {
+		return;
+	}
+	const Route = RouteClass( args );
 
 	const persistedStateKey = Route.getStateKey();
 	const persistedState = storageUtils.getWithExpiry( persistedStateKey );
@@ -45,7 +56,7 @@ import { setNonce, setBaseURL } from 'api/request';
 		Route.getReducer(),
 		{ ...serverState, ...persistedState },
 		compose(
-			applyMiddleware( thunk.withExtraArgument( wcConnectData ) ),
+			applyMiddleware( thunk.withExtraArgument( args ) ),
 			window.devToolsExtension ? window.devToolsExtension() : f => f
 		)
 	);
@@ -69,14 +80,12 @@ import { setNonce, setBaseURL } from 'api/request';
 		return text;
 	} );
 
-	const rootEl = document.getElementById( wcConnectData.rootView );
-
 	let render = () => {
 		ReactDOM.render(
 			<Provider store={ store }>
 				<Route.View />
 			</Provider>,
-			rootEl
+			container
 		);
 	};
 
@@ -88,7 +97,7 @@ import { setNonce, setBaseURL } from 'api/request';
 			const RedBox = require( 'redbox-react' ).default;
 			ReactDOM.render(
 				<RedBox error={ error } />,
-				rootEl
+				container
 			);
 		};
 

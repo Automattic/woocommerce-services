@@ -459,6 +459,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
+			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 		}
 
 		/**
@@ -588,7 +589,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
 
-			$admin_array = array(
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
 				'storeOptions'       => $settings_store->get_store_options(),
 				'formSchema'         => $service_schema->service_settings,
 				'formLayout'         => $service_schema->form_layout,
@@ -597,14 +598,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'instanceId'         => $instance,
 				'callbackURL'        => get_rest_url( null, $path ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'rootView'           => 'wc-connect-service-settings',
 				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
 				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
-			);
-
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
+			) );
 		}
 
 		/**
@@ -969,6 +965,33 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
 			);
 			return $links;
+		}
+
+		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
+			$payload = array(
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'baseURL'      => get_rest_url(),
+			);
+
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
+			wp_enqueue_script( 'wc_connect_admin' );
+			wp_enqueue_style( 'wc_connect_admin' );
+
+			$debug_page_uri = esc_url( add_query_arg(
+				array(
+					'page' => 'wc-status',
+					'tab' => 'connect'
+				),
+				admin_url( 'admin.php' )
+			) );
+
+			?>
+				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>" data-args="<?php echo esc_attr( wp_json_encode( $extra_args ) ) ?>">
+					<span class="form-troubles" style="opacity: 0">
+						<?php printf( __( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
+					</span>
+				</div>
+			<?php
 		}
 	}
 

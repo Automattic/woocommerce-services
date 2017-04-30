@@ -360,17 +360,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function meta_box( $post ) {
 			$order = wc_get_order( $post );
 
-			$debug_page_uri = esc_url( add_query_arg(
-				array(
-					'page' => 'wc-status',
-					'tab' => 'connect'
-				),
-				admin_url( 'admin.php' )
-			) );
-
-			$root_view = 'wc-connect-create-shipping-label';
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$admin_array = array(
+			$payload = array(
 				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
 				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
@@ -379,35 +370,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/labels/print' ),
 				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
-				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
 			);
 
 			$labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );
 			if ( $labels_data ) {
-				$admin_array[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+				$payload[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
 			}
 
 			$store_options = $this->settings_store->get_store_options();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
-			$admin_array[ 'storeOptions' ] = $store_options;
+			$payload[ 'storeOptions' ] = $store_options;
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
-
-			?>
-			<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>">
-				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __(
-						'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.',
-						'woocommerce-services' ),
-						$debug_page_uri
-					); ?>
-				</span>
-			</div>
-			<?php
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
 		}
 
 	}

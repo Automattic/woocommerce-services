@@ -128,25 +128,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			// Always get a fresh copy when loading this view
 			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
-			// Fire up the view
-			$root_view = 'wc-connect-account-settings';
-			$admin_array = array(
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'baseURL'      => get_rest_url(),
-				'rootView'     => $root_view,
-			);
-
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
-
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
-
-			?>
-				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>"></div>
-			<?php
 
 			if ( $this->is_jetpack_dev_mode() ) {
 				if ( $this->is_jetpack_connected() ) {
@@ -161,6 +145,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 						</p>
 					</div>
 				<?php
+			} else {
+				do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings' );
 			}
 		}
 
@@ -209,40 +195,19 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		public function output_packages_screen() {
-			$debug_page_uri = esc_url( add_query_arg(
-				array(
-					'page' => 'wc-status',
-					'tab' => 'connect'
-				),
-				admin_url( 'admin.php' )
-			) );
 			$store_options = $this->service_settings_store->get_store_options();
-			$root_view = 'wc-connect-packages';
-
-			$admin_array = array(
-				'storeOptions' => $store_options,
-				'formSchema'   => $this->get_packages_form_schema(),
-				'formData'     => $this->get_packages_form_data(),
-				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'rootView'     => $root_view,
-			);
-
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
 
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			?>
-			<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>">
-				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
-				</span>
-			</div>
-			<?php
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages', array(
+				'storeOptions' => $store_options,
+				'formSchema'   => $this->get_packages_form_schema(),
+				'formData'     => $this->get_packages_form_data(),
+				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+			) );
 		}
 
 	}

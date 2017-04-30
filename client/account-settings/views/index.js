@@ -43,7 +43,7 @@ const AccountSettingsRootView = ( props ) => {
 		<div className="wcc-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<CompactCard>
-				{ props.formData &&
+				{ props.formData && // TODO: Add "Loading" indicator and "Error fetching data" message
 					<PaymentMethodSelector
 						description={ paymentMethodDescription }
 						paymentMethods={ props.formMeta.payment_methods }

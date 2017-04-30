@@ -22,7 +22,7 @@ export default () => ( {
 	},
 
 	getInitialState() {
-		return initialState;
+		return { form: initialState };
 	},
 
 	getInitialAction() {
