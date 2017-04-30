@@ -117,38 +117,41 @@ const Packages = ( props ) => {
 	];
 
 	return (
-		<div className="wcc-container">
+		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
-			<CompactCard className="settings-group-card">
-				<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
-				<div className="settings-group-content">
-					<PackagesList
-						packages={ props.form.packages.custom }
-						dimensionUnit={ props.form.dimensionUnit }
-						editable={ true }
-						removePackage={ props.removePackage }
-						editPackage={ props.editPackage } />
-					<AddPackageDialog { ...props } />
-					<FormFieldset className="add-package-button-field">
-						<FormButton
-							type="button"
-							isPrimary={ false }
-							compact
-							onClick={ props.addPackage } >
-							{ __( 'Add a package' ) }
-						</FormButton>
-					</FormFieldset>
-				</div>
-			</CompactCard>
-			<CompactCard className="settings-group-card">
-				<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
-				<div className="settings-group-content">
-					{ renderPredefinedPackages() }
-				</div>
-			</CompactCard>
-			<CompactCard className="save-button-bar">
-				<ActionButtons buttons={ buttons } />
-			</CompactCard>
+			{ props.form.packageSchema && // TODO: Add "Loading" indicator and "Error fetching data" message
+				<div>
+					<CompactCard className="settings-group-card">
+						<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
+						<div className="settings-group-content">
+							<PackagesList
+								packages={ props.form.packages.custom }
+								dimensionUnit={ props.form.dimensionUnit }
+								editable={ true }
+								removePackage={ props.removePackage }
+								editPackage={ props.editPackage } />
+							<AddPackageDialog { ...props } />
+							<FormFieldset className="add-package-button-field">
+								<FormButton
+									type="button"
+									isPrimary={ false }
+									compact
+									onClick={ props.addPackage } >
+									{ __( 'Add a package' ) }
+								</FormButton>
+							</FormFieldset>
+						</div>
+					</CompactCard>
+					<CompactCard className="settings-group-card">
+						<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
+						<div className="settings-group-content">
+							{ renderPredefinedPackages() }
+						</div>
+					</CompactCard>
+					<CompactCard className="save-button-bar">
+						<ActionButtons buttons={ buttons } />
+					</CompactCard>
+				</div> }
 		</div>
 	);
 };

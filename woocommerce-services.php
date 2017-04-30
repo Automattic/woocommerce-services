@@ -424,7 +424,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			new WC_Connect_Debug_Tools( $this->api_client );
 
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
-			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store, $this->logger );
+			$settings_pages = new WC_Connect_Settings_Pages();
 			$this->set_settings_pages( $settings_pages );
 
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
@@ -480,7 +480,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-base-controller.php' ) );
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-packages-controller.php' ) );
-			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger );
+			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
 			$this->set_rest_packages_controller( $rest_packages_controller );
 			$rest_packages_controller->register_routes();
 

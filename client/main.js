@@ -21,7 +21,6 @@ if ( global.wcConnectData ) {
 	setBaseURL( global.wcConnectData.baseURL );
 }
 
-
 const getRouteClass = ( classNames ) => {
 	for ( let i = 0; i < classNames.length; i++ ) {
 		switch ( classNames[ i ] ) {

@@ -11,6 +11,8 @@ import {
 	TOGGLE_OUTER_DIMENSIONS,
 	TOGGLE_ALL,
 	TOGGLE_PACKAGE,
+	SET_IS_FETCHING,
+	INIT_PACKAGES_FORM,
 } from './actions';
 import _ from 'lodash';
 
@@ -178,6 +180,22 @@ reducers[ SET_IS_SAVING ] = ( state, action ) => {
 		isSaving: action.isSaving,
 		pristine: ! action.isSaving, //set pristine after the form has been saved
 	} );
+};
+
+reducers[ SET_IS_FETCHING ] = ( state, { isFetching } ) => {
+	return { ...state,
+		isFetching,
+	};
+};
+
+reducers[ INIT_PACKAGES_FORM ] = ( state, { packages, dimensionUnit, weightUnit, packageSchema, predefinedSchema } ) => {
+	return { ...state,
+		packages,
+		dimensionUnit,
+		weightUnit,
+		packageSchema,
+		predefinedSchema,
+	};
 };
 
 const packages = ( state = initialState, action ) => {

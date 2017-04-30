@@ -4,43 +4,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 	class WC_Connect_Settings_Pages {
 
-		/**
-		 * @var WC_Connect_Payment_Methods_Store
-		 */
-		protected $payment_methods_store;
-
-		/**
-		 * @var WC_Connect_Service_Settings_Store
-		 */
-		protected $service_settings_store;
-
-		/**
-		 * @var WC_Connect_Service_Schemas_Store
-		 */
-		protected $service_schemas_store;
-
-		/**
-		 * @var WC_Connect_Logger
-		 */
-		protected $logger;
-
-		/**
-		 * @array
-		 */
-		protected $fieldsets;
-
-		public function __construct( WC_Connect_Payment_Methods_Store $payment_methods_store,
-			WC_Connect_Service_Settings_Store $service_settings_store,
-			WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_Logger $logger ) {
-
+		public function __construct() {
 			$this->id    = 'connect';
 			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
-
-			$this->payment_methods_store = $payment_methods_store;
-			$this->service_settings_store = $service_settings_store;
-			$this->service_schemas_store = $service_schemas_store;
-			$this->logger = $logger;
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
 			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ) );
@@ -125,9 +91,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 * Localizes the bootstrap, enqueues the script and styles for the settings page
 		 */
 		public function output_account_screen() {
-			// Always get a fresh copy when loading this view
-			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
-
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
@@ -180,34 +143,12 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			<?php
 		}
 
-		public function get_packages_form_data() {
-			return array(
-				'custom' => $this->service_settings_store->get_packages(),
-				'predefined' => $this->service_settings_store->get_predefined_packages()
-			);
-		}
-
-		public function get_packages_form_schema() {
-			return array(
-				'custom' => $this->service_schemas_store->get_packages_schema(),
-				'predefined' => $this->service_schemas_store->get_predefined_packages_schema()
-			);
-		}
-
 		public function output_packages_screen() {
-			$store_options = $this->service_settings_store->get_store_options();
-
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages', array(
-				'storeOptions' => $store_options,
-				'formSchema'   => $this->get_packages_form_schema(),
-				'formData'     => $this->get_packages_form_data(),
-				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-			) );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages' );
 		}
 
 	}

@@ -23,6 +23,9 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 	}
 
 	public function get() {
+		// Always get a fresh copy when hitting this endpoint
+		$this->payment_methods_store->fetch_payment_methods_from_connect_server();
+
 		return new WP_REST_Response( array(
 			'success'  => true,
 			'formData' => $this->settings_store->get_account_settings(),
