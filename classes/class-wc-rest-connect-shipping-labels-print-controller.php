@@ -9,11 +9,9 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Labels_Print_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Labels_Print_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'GET';
 	protected $rest_base = 'connect/labels/print';
 
-	public function run( $request ) {
+	public function get( $request ) {
 		$raw_params = $request->get_params();
 		$params = array();
 

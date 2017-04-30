@@ -9,11 +9,9 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Labels_Preview_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Labels_Preview_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'GET';
 	protected $rest_base = 'connect/labels/preview';
 
-	public function run( $request ) {
+	public function get( $request ) {
 		$raw_params = $request->get_params();
 		$params = array();
 

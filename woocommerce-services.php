@@ -484,7 +484,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_packages_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-account-settings-controller.php' ) );
-			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger );
+			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger, $this->payment_methods_store );
 			$this->set_rest_account_settings_controller( $rest_account_settings_controller );
 			$rest_account_settings_controller->register_routes();
 

@@ -9,11 +9,9 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
 	protected $rest_base = 'connect/label/purchase';
 
-	public function run( $request ) {
+	public function post( $request ) {
 		$settings = $request->get_json_params();
 		$order_id = $settings[ 'order_id' ];
 

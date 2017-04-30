@@ -32,12 +32,6 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 	 */
 	protected $logger;
 
-	/**
-	 * Endpoint method (GET/POST/PUT...)
-	 * @var string
-	 */
-	protected $method;
-
 	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
 		$this->api_client = $api_client;
 		$this->settings_store = $settings_store;
@@ -45,23 +39,39 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 	}
 
 	public function register_routes() {
-		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
-			array(
-				'methods'             => $this->method,
-				'callback'            => array( $this, 'run_internal' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-			),
-		) );
+		if ( method_exists( $this, 'get' ) ) {
+			register_rest_route( $this->namespace, '/' . $this->rest_base, array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_internal' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+				),
+			) );
+		}
+		if ( method_exists( $this, 'post' ) ) {
+			register_rest_route( $this->namespace, '/' . $this->rest_base, array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'post_internal' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+				),
+			) );
+		}
 	}
 
-	public function run_internal( $request ) {
+	public function get_internal( $request ) {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
 		}
-		return $this->run( $request );
+		return $this->get( $request );
 	}
 
-	abstract public function run( $request );
+	public function post_internal( $request ) {
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
+		}
+		return $this->post( $request );
+	}
 
 	/**
 	 * Validate the requester's permissions

@@ -9,8 +9,6 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Rates_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
 	protected $rest_base = 'connect/shipping-rates';
 
 	/**
@@ -18,7 +16,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * @param WP_REST_Request $request - See WC_Connect_API_Client::get_label_rates()
 	 * @return array|WP_Error
 	 */
-	public function run( $request ) {
+	public function post( $request ) {
 		$payload = $request->get_json_params();
 
 		// This is the earliest point in the printing label flow where we are sure that

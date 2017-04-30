@@ -9,8 +9,6 @@ if ( class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 }
 
 class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
 	protected $rest_base = 'connect/services/(?P<id>[a-z_]+)\/(?P<instance>[\d]+)';
 
 	/**
@@ -26,7 +24,7 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 	/**
 	 * Attempts to update the settings on a particular service and instance
 	 */
-	public function run( $request ) {
+	public function post( $request ) {
 		$request_params = $request->get_params();
 
 		$id = array_key_exists( 'id', $request_params ) ? $request_params['id'] : '';

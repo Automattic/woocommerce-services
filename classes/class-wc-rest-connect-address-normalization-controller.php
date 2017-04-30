@@ -9,11 +9,9 @@ if ( class_exists( 'WC_REST_Connect_Address_Normalization_Controller' ) ) {
 }
 
 class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
 	protected $rest_base = 'connect/normalize-address';
 
-	public function run( $request ) {
+	public function post( $request ) {
 		$data    = $request->get_json_params();
 		$address = $data['address'];
 		$name    = $address['name'];

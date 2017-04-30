@@ -9,8 +9,6 @@ if ( class_exists( 'WC_REST_Connect_Services_Dismiss_Service_Notice_Controller' 
 }
 
 class WC_REST_Connect_Services_Dismiss_Service_Notice_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
 	protected $rest_base = 'connect/services/dismiss_notice';
 
 	/*
@@ -23,7 +21,7 @@ class WC_REST_Connect_Services_Dismiss_Service_Notice_Controller extends WC_REST
 		$this->nux = $nux;
 	}
 
-	public function run( $request ) {
+	public function post() {
 		$this->nux->dismiss_notice( 'service_settings' );
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
