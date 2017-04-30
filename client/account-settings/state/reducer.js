@@ -13,30 +13,27 @@ export const initialState = {
 
 const reducers = {};
 
-reducers[ SET_FORM_DATA_VALUE ] = ( state, action ) => {
-	const data = Object.assign( {}, state.data, { [ action.key ]: action.value } );
-	const meta = Object.assign( {}, state.meta, { pristine: false } );
-	return {
-		meta: meta,
-		data: data,
+reducers[ SET_FORM_DATA_VALUE ] = ( state, { key, value } ) => {
+	return { ...state,
+		meta: { ...state.meta,
+			pristine: false,
+		},
+		data: { ...state.data,
+			[ key ]: value,
+		},
 	};
 };
 
-reducers[ SET_FORM_META_PROPERTY ] = ( state, action ) => {
-	const data = Object.assign( {}, state.data );
-	const meta = Object.assign( {}, state.meta, { [ action.key ]: action.value } );
-	return {
-		meta: meta,
-		data: data,
+reducers[ SET_FORM_META_PROPERTY ] = ( state, { key, value } ) => {
+	return { ...state,
+		meta: { ...state.meta,
+			[ key ]: value,
+		},
 	};
 };
 
-const reducer = ( state, action ) => {
-	if ( 'undefined' === typeof state ) {
-		return initialState;
-	}
-
-	if ( 'function' === typeof reducers[ action.type ] ) {
+const reducer = ( state = initialState, action ) => {
+	if ( reducers[ action.type ] ) {
 		return reducers[ action.type ]( state, action );
 	}
 	return state;
