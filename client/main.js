@@ -14,8 +14,12 @@ import AccountSettings from './account-settings';
 import PrintTestLabel from './print-test-label';
 import Packages from './packages';
 import _ from 'lodash';
+import { setNonce, setBaseURL } from 'api/request';
 
 ( global.wcConnectData || [] ).forEach( ( wcConnectData ) => {
+	setNonce( wcConnectData.nonce );
+	setBaseURL( wcConnectData.baseURL );
+
 	const Route = ( ( rootView ) => {
 		switch ( rootView ) {
 			case 'wc-connect-create-shipping-label':

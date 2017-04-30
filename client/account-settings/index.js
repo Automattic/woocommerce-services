@@ -5,7 +5,7 @@ import reducer from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, formMeta, storeOptions } ) => ( {
+export default ( { formData, formMeta } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			form: reducer,
@@ -42,7 +42,6 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 	},
 
 	View: () => (
-		<AccountSettingsRootView
-			storeOptions={ storeOptions } />
+		<AccountSettingsRootView />
 	),
 } );

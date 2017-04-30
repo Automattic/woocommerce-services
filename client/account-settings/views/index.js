@@ -62,7 +62,6 @@ const AccountSettingsRootView = ( props ) => {
 
 AccountSettingsRootView.propTypes = {
 	submit: PropTypes.func,
-	storeOptions: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state ) {

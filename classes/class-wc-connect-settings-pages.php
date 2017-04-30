@@ -149,11 +149,10 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			// Fire up the view
 			$root_view = 'wc-connect-account-settings';
 			$admin_array = array(
-				'storeOptions' => $this->service_settings_store->get_store_options(),
 				'formData'     => $this->get_form_data(),
 				'formMeta'     => $this->get_form_meta(),
-				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/account/settings" ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'baseURL'      => get_rest_url(),
 				'rootView'     => $root_view,
 			);
 
