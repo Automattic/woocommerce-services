@@ -21,11 +21,10 @@ if ( global.wcConnectData ) {
 	setBaseURL( global.wcConnectData.baseURL );
 }
 
-Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
-	const args = JSON.parse( container.dataset.args ) || {};
-	delete container.dataset.args;
-	const RouteClass = ( ( rootView ) => {
-		switch ( rootView ) {
+
+const getRouteClass = ( classNames ) => {
+	for ( let i = 0; i < classNames.length; i++ ) {
+		switch ( classNames[ i ] ) {
 			case 'wc-connect-create-shipping-label':
 				return ShippingLabel;
 			case 'wc-connect-service-settings':
@@ -37,11 +36,16 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 				return Packages;
 			case 'wc-connect-admin-test-print':
 				return PrintTestLabel;
-			default:
-				return null;
 		}
-	} )( container.id );
+	}
+	return null;
+};
 
+Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
+	const args = JSON.parse( container.dataset.args ) || {};
+	delete container.dataset.args;
+
+	const RouteClass = getRouteClass( container.classList );
 	if ( ! RouteClass ) {
 		return;
 	}
