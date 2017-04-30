@@ -1,11 +1,12 @@
 import React from 'react';
 import { combineReducers } from 'redux';
 import AccountSettingsRootView from './views';
-import reducer from './state/reducer';
+import reducer, { initialState } from './state/reducer';
+import { fetchSettings } from './state/actions';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, formMeta } ) => ( {
+export default () => ( {
 	getReducer() {
 		return combineReducers( {
 			form: reducer,
@@ -21,15 +22,11 @@ export default ( { formData, formMeta } ) => ( {
 	},
 
 	getInitialState() {
-		const initialMeta = require( './state/reducer' ).initialState.meta;
-		const combinedMeta = Object.assign( {}, initialMeta, formMeta );
+		return initialState;
+	},
 
-		return {
-			form: {
-				data: formData,
-				meta: combinedMeta,
-			},
-		};
+	getInitialAction() {
+		return fetchSettings();
 	},
 
 	getStateForPersisting( state ) {

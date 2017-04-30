@@ -62,24 +62,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		/**
-		 * Things used to help render the view, but which cannot be changed in the view
-		 */
-		public function get_form_meta() {
-			return array(
-				'payment_methods' => $this->payment_methods_store->get_payment_methods()
-			);
-		}
-
-		/**
-		 * Mutate-able settings bootstrapped to the view -- should be
-		 * identical to what is returned by the WC_REST_Connect_Settings_Controller
-		 * GET /connect/settings endpoint (see callbackURL below)
-		 */
-		public function get_form_data() {
-			return $this->service_settings_store->get_account_settings();
-		}
-
-		/**
 		 * Helper method to get if Jetpack is in development mode
 		 * @return bool
 		 */
@@ -149,8 +131,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			// Fire up the view
 			$root_view = 'wc-connect-account-settings';
 			$admin_array = array(
-				'formData'     => $this->get_form_data(),
-				'formMeta'     => $this->get_form_meta(),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'baseURL'      => get_rest_url(),
 				'rootView'     => $root_view,

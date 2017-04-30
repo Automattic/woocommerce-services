@@ -49,6 +49,9 @@ import { setNonce, setBaseURL } from 'api/request';
 			window.devToolsExtension ? window.devToolsExtension() : f => f
 		)
 	);
+	if ( Route.getInitialAction ) {
+		store.dispatch( Route.getInitialAction() );
+	}
 
 	window.addEventListener( 'beforeunload', ( event ) => {
 		const state = store.getState();

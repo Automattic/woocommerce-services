@@ -2,17 +2,14 @@ import * as request from './request';
 
 export * as url from './url';
 
-export const post = ( url, data ) => {
-	return request.post( url, data )
-		.catch( ( json ) => {
-			if ( json.data.message ) {
-				throw json.data.message;
-			}
+const handleError = ( jsonError ) => {
+	if ( jsonError.data.message ) {
+		throw jsonError.data.message;
+	}
 
-			throw JSON.stringify( json );
-		} );
+	throw JSON.stringify( jsonError );
 };
 
-export const get = ( url ) => {
+export const post = ( url, data ) => request.post( url, data ).catch( handleError );
 
-};
+export const get = ( url ) => request.get( url ).catch( handleError );

@@ -1,3 +1,3 @@
 const namespace = 'wc/v1/connect/';
 
-export const saveAccountSettings = () => namespace + 'account/settings';
+export const accountSettings = () => namespace + 'account/settings';

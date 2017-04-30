@@ -43,13 +43,14 @@ const AccountSettingsRootView = ( props ) => {
 		<div className="wcc-container">
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<CompactCard>
-				<PaymentMethodSelector
-					description={ paymentMethodDescription }
-					paymentMethods={ props.formMeta.payment_methods }
-					onChange={ onPaymentMethodChange }
-					title={ __( 'Payment Method' ) }
-					value={ props.formData.selected_payment_method_id }
-				/>
+				{ props.formData &&
+					<PaymentMethodSelector
+						description={ paymentMethodDescription }
+						paymentMethods={ props.formMeta.payment_methods }
+						onChange={ onPaymentMethodChange }
+						title={ __( 'Payment Method' ) }
+						value={ props.formData.selected_payment_method_id }
+					/> }
 			</CompactCard>
 			<CompactCard className="save-button-bar">
 				<ActionButtons

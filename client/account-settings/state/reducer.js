@@ -5,10 +5,10 @@ export const initialState = {
 		error: false,
 		fieldsStatus: false,
 		isSaving: false,
+		isFetching: false,
 		pristine: true,
 	},
-	data: {
-	},
+	data: null,
 };
 
 const reducers = {};
