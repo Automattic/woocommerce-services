@@ -230,7 +230,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function add_labels_to_order( $order_id, $new_labels ) {
 			$labels_data = $this->get_label_order_meta_data( $order_id );
-			$labels_data = array_merge( $labels_data, $new_labels );
+			$labels_data = array_merge( $new_labels, $labels_data );
 			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
 		}
 
