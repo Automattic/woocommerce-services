@@ -7,8 +7,6 @@ import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
-import CountryDropdown from 'components/country-dropdown';
-import StateDropdown from 'components/state-dropdown';
 import ShippingServiceGroups from 'settings/views/services';
 import FormLegend from 'components/forms/form-legend';
 import { sprintf } from 'sprintf-js';
@@ -54,34 +52,6 @@ const SettingsItem = ( {
 					value={ fieldValue }
 					updateValue={ updateValue }
 					error={ fieldError }
-				/>
-			);
-
-		case 'country':
-			return (
-				<CountryDropdown
-					id={ id }
-					title={ fieldSchema.title }
-					description={ fieldSchema.description }
-					value={ fieldValue }
-					updateValue={ updateValue }
-					error={ fieldError }
-					countriesData={ storeOptions.countriesData }
-				/>
-			);
-
-		case 'state':
-			return (
-				<StateDropdown
-					id={ id }
-					placeholder={ layout.placeholder }
-					title={ fieldSchema.title }
-					description={ fieldSchema.description }
-					value={ fieldValue }
-					updateValue={ updateValue }
-					error={ fieldError }
-					countryCode={ form.values[ layout.country_field ] }
-					countriesData={ storeOptions.countriesData }
 				/>
 			);
 
@@ -202,7 +172,6 @@ SettingsItem.propTypes = {
 	formValueActions: PropTypes.object.isRequired,
 	errors: PropTypes.object,
 	saveForm: PropTypes.func,
-	countriesData: PropTypes.object,
 };
 
 export default SettingsItem;
