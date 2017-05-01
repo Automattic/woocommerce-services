@@ -9,7 +9,7 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Refund_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Label_Refund_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/label/(?P<order_id>\d+)-(?P<label_id>\d+)/refund';
+	protected $rest_base = 'connect/label/(?P<order_id>\d+)/(?P<label_id>\d+)/refund';
 
 	public function post( $request ) {
 		$response = $this->api_client->send_shipping_label_refund_request( $request[ 'label_id' ] );

@@ -7,7 +7,7 @@ import {
 	exitPrintingFlow,
 } from './actions';
 
-export default ( dispatch, orderId, origin, destination, packages, getRatesURL, nonce ) => {
+export default ( dispatch, origin, destination, packages, getRatesURL, nonce ) => {
 	dispatch( { type: RATES_RETRIEVAL_IN_PROGRESS } );
 	return new Promise( ( resolve, reject ) => {
 		let error = null;
@@ -34,6 +34,6 @@ export default ( dispatch, orderId, origin, destination, packages, getRatesURL, 
 				}
 			}
 		};
-		saveForm( setIsSaving, setSuccess, _.noop, setError, getRatesURL, nonce, 'POST', { orderId, origin, destination, packages } );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, getRatesURL, nonce, 'POST', { origin, destination, packages } );
 	} );
 };

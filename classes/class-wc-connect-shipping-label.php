@@ -362,12 +362,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
-				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
+				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/' . $order_id ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
-				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
-				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '-%d' ),
-				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '-%d/refund' ),
-				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/labels/print' ),
+				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/rates' ),
+				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d' ),
+				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d/refund' ),
+				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/label/print' ),
 				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'formData'                => $this->get_form_data( $order ),

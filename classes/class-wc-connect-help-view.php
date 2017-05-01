@@ -707,7 +707,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
 				'paperSize'          => $this->service_settings_store->get_preferred_paper_size(),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'labelsPreviewURL'   => get_rest_url( null, '/wc/v1/connect/labels/preview' ),
+				'labelsPreviewURL'   => get_rest_url( null, '/wc/v1/connect/label/preview' ),
 			) );
 		}
 

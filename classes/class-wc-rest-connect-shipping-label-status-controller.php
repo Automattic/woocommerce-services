@@ -9,7 +9,7 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Status_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Label_Status_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/label/(?P<order_id>\d+)-(?P<label_id>\d+)';
+	protected $rest_base = 'connect/label/(?P<order_id>\d+)/(?P<label_id>\d+)';
 
 	public function get( $request ) {
 		$response = $this->api_client->get_label_status( $request[ 'label_id' ] );

@@ -4,12 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_REST_Connect_Shipping_Labels_Print_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Shipping_Label_Print_Controller' ) ) {
 	return;
 }
 
-class WC_REST_Connect_Shipping_Labels_Print_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/labels/print';
+class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Base_Controller {
+	protected $rest_base = 'connect/label/print';
 
 	public function get( $request ) {
 		$raw_params = $request->get_params();

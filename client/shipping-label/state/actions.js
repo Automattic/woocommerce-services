@@ -117,13 +117,12 @@ export const clearAvailableRates = () => {
 const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
 	const formState = getState().shippingLabel.form;
 	const {
-		orderId,
 		origin,
 		destination,
 		packages,
 	} = formState;
 
-	return getRates( dispatch, orderId, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
+	return getRates( dispatch, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
 		.then( handleResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -560,7 +559,6 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 					products: _.flatten( pckg.items.map( ( item ) => _.fill( new Array( item.quantity ), item.product_id ) ) ),
 				};
 			} ),
-			order_id: form.orderId,
 		};
 
 		saveForm( setIsSaving, setSuccess, _.noop, setError, purchaseURL, nonce, 'POST', formData );
