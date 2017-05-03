@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import FieldError from 'components/field-error';
 import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
 import getPackageDescriptions from '../packages/get-package-descriptions';
@@ -29,9 +30,11 @@ const ShippingRates = ( {
 		shouldShowRateNotice,
 	} ) => {
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
+	const hasSinglePackage = ( 1 === Object.keys( selectedPackages ).length );
+	const hasMultiplePackages = ( 1 < Object.keys( selectedPackages ).length );
 
 	const renderTitle = ( pckg, pckgId ) => {
-		if ( 1 === Object.keys( selectedPackages ).length ) {
+		if ( hasSinglePackage ) { // {id: {}, id:{}} obj of all packages
 			return __( 'Choose rate' );
 		}
 		return sprintf( __( 'Choose rate: %s' ), packageNames[ pckgId ] );
@@ -41,20 +44,35 @@ const ShippingRates = ( {
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = _.get( availableRates, [ pckgId, 'rates' ], [] );
 		const valuesMap = { '': __( 'Select one...' ) };
+		const serverErrors = errors.server && errors.server[ pckgId ];
+		const formError = errors.form && errors.form[ pckgId ];
 
 		packageRates.forEach( ( rateObject ) => {
 			valuesMap[ rateObject.service_id ] = rateObject.title + ' (' + currencySymbol + rateObject.rate.toFixed( 2 ) + ')';
 		} );
 
 		return (
-			<div key={ pckgId }>
-				<Dropdown
-					id={ id + '_' + pckgId }
-					valuesMap={ valuesMap }
-					title={ renderTitle( pckg, pckgId ) }
-					value={ selectedRate }
-					updateValue={ ( value ) => updateRate( pckgId, value ) }
-					error={ errors[ pckgId ] } />
+			<div key={ pckgId } className="wcc-metabox-rate__package-container">
+				{ serverErrors &&
+					_.isEmpty( packageRates ) &&
+					hasMultiplePackages &&
+					<p className="wcc-metabox-rate__package-heading">{ packageNames[ pckgId ] }</p>
+				}
+				{ ! _.isEmpty( packageRates ) &&
+					<Dropdown
+						id={ id + '_' + pckgId }
+						valuesMap={ valuesMap }
+						title={ renderTitle( pckg, pckgId ) }
+						value={ selectedRate }
+						updateValue={ ( value ) => updateRate( pckgId, value ) }
+						error={ formError } />
+				}
+				{ serverErrors && serverErrors.map( ( serverError, index ) => {
+					return <FieldError
+						type="server-error"
+						key={ index }
+						text={ serverError.message } />;
+				} ) }
 			</div>
 		);
 	};
