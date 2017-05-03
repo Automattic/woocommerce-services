@@ -7,7 +7,7 @@ module.exports = function( config ) {
 	config.set({
 		browsers: [ 'jsdom' ],
 		frameworks: [ 'mocha', 'chai' ],
-		files: [ 'client/test/mock-jquery.js', testFile ],
+		files: [ 'node_modules/babel-polyfill/dist/polyfill.js', 'client/test/mock-jquery.js', testFile ],
 		preprocessors: {
 			[ testFile ]: [ 'webpack', 'sourcemap' ],
 		},
