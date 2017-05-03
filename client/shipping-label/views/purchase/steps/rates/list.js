@@ -6,17 +6,15 @@ import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
-const renderRateNotice = ( show ) => {
-	if ( show ) {
-		return (
-			<Notice
-				className="wcc-label-rates__notice"
-				icon="info-outline"
-				showDismiss={ false }
-				text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
-			/>
-		);
-	}
+const renderRateNotice = () => {
+	return (
+		<Notice
+			className="wcc-label-rates__notice"
+			icon="info-outline"
+			showDismiss={ false }
+			text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
+		/>
+	);
 };
 
 const ShippingRates = ( {
@@ -28,7 +26,7 @@ const ShippingRates = ( {
 		updateRate,
 		currencySymbol,
 		errors,
-		showRateNotice,
+		shouldShowRateNotice,
 	} ) => {
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
 
@@ -63,7 +61,7 @@ const ShippingRates = ( {
 
 	return (
 		<div>
-			{ renderRateNotice( showRateNotice ) }
+			{ shouldShowRateNotice && renderRateNotice() }
 			{ Object.values( _.mapValues( selectedPackages, renderSinglePackage ) ) }
 		</div>
 	);
