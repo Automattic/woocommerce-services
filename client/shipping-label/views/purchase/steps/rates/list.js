@@ -30,7 +30,7 @@ const ShippingRates = ( {
 	} ) => {
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
 
-	const renderTitle = ( pckg, pckgId ) => {
+	const getTitle = ( pckg, pckgId ) => {
 		if ( 1 === Object.keys( selectedPackages ).length ) {
 			return __( 'Choose rate' );
 		}
@@ -51,7 +51,7 @@ const ShippingRates = ( {
 				<Dropdown
 					id={ id + '_' + pckgId }
 					valuesMap={ valuesMap }
-					title={ renderTitle( pckg, pckgId ) }
+					title={ getTitle( pckg, pckgId ) }
 					value={ selectedRate }
 					updateValue={ ( value ) => updateRate( pckgId, value ) }
 					error={ errors[ pckgId ] } />
