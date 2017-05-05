@@ -40,12 +40,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		}
 
 		$label_ids = array();
-		$labels_order_meta = array();
 		$purchased_labels_meta = array();
-		$existing_labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );
-		if ( $existing_labels_data ) {
-			$labels_order_meta = json_decode( $existing_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-		}
 		$package_lookup = $this->settings_store->get_package_lookup();
 		foreach ( $response->labels as $index => $label_data ) {
 			if ( isset( $label_data->error ) ) {
@@ -92,11 +87,10 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 			$label_meta[ 'product_names' ] = $product_names;
 
-			array_unshift( $labels_order_meta, $label_meta );
 			array_unshift( $purchased_labels_meta, $label_meta );
 		}
 
-		update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_order_meta ) );
+		$this->settings_store->add_labels_to_order( $order_id, $purchased_labels_meta );
 
 		return array(
 			'labels' => $purchased_labels_meta,

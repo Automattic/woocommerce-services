@@ -124,15 +124,114 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return WC_Connect_Options::update_option( 'paper_size', $size );
 		}
 
+		/**
+		 * Attempts to recover faulty json string fields that might contain strings with unescaped quotes
+		 *
+		 * @param string $field_name
+		 * @param string $json
+		 *
+		 * @return string
+		 */
+		public function try_recover_invalid_json_string( $field_name, $json ) {
+			$regex = '/"' . $field_name . '":"(.+?)","/';
+			preg_match_all( $regex, $json, $match_groups );
+			if ( 2 === count( $match_groups ) ) {
+				foreach ( $match_groups[ 0 ] as $idx => $match ) {
+					$value = $match_groups[ 1 ][ $idx ];
+					$escaped_value = preg_replace( '/(?<!\\\)"/', '\\"', $value );
+					$json = str_replace( $match, '"' . $field_name . '":"' . $escaped_value . '","', $json );
+				}
+			}
+			return $json;
+		}
+
+		/**
+		 * Attempts to recover faulty json string array fields that might contain strings with unescaped quotes
+		 *
+		 * @param string $field_name
+		 * @param string $json
+		 *
+		 * @return string
+		 */
+		public function try_recover_invalid_json_array( $field_name, $json ) {
+			$regex = '/"' . $field_name . '":\["(.+?)"\]/';
+			preg_match_all( $regex, $json, $match_groups );
+			if ( 2 === count( $match_groups ) ) {
+				foreach ( $match_groups[ 0 ] as $idx => $match ) {
+					$array = $match_groups[ 1 ][ $idx ];
+					$escaped_array = preg_replace( '/(?<![,\\\])"(?!,)/', '\\"', $array );
+					$json = str_replace( '["' . $array . '"]', '["' . $escaped_array. '"]', $json );
+				}
+			}
+			return $json;
+		}
+
+		/**
+		 * Returns labels for the specific order ID
+		 *
+		 * @param $order_id
+		 *
+		 * @return array
+		 */
+		public function get_label_order_meta_data( $order_id ) {
+			$label_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
+			//return an empty array if the data doesn't exist
+			if ( ! $label_data ) {
+				return array();
+			}
+
+			//labels stored as an array, return
+			if ( is_array( $label_data ) ) {
+				return $label_data;
+			}
+
+			//attempt to decode the JSON (legacy way of storing the labels data)
+			$decoded_labels = json_decode( $label_data, true );
+			if ( $decoded_labels ) {
+				return $decoded_labels;
+			}
+
+			$label_data = $this->try_recover_invalid_json_string( 'package_name', $label_data );
+			$decoded_labels = json_decode( $label_data, true );
+			if ( $decoded_labels ) {
+				return $decoded_labels;
+			}
+
+			$label_data = $this->try_recover_invalid_json_array( 'product_names', $label_data );
+			$decoded_labels = json_decode( $label_data, true );
+			if ( $decoded_labels ) {
+				return $decoded_labels;
+			}
+
+			return array();
+		}
+
+		/**
+		 * Updates the existing label data
+		 *
+		 * @param $order_id
+		 * @param $new_label_data
+		 */
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
-			$raw_labels_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
-			$labels_data = json_decode( $raw_labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
+			$labels_data = $this->get_label_order_meta_data( $order_id );
 			foreach( $labels_data as $index => $label_data ) {
 				if ( $label_data[ 'label_id' ] === $new_label_data->label_id ) {
 					$labels_data[ $index ] = array_merge( $label_data, (array) $new_label_data );
 				}
 			}
-			update_post_meta( $order_id, 'wc_connect_labels', json_encode( $labels_data ) );
+			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
+		}
+
+		/**
+		 * Adds new labels to the order
+		 *
+		 * @param $order_id
+		 * @param array $new_labels - labels to be added
+		 */
+		public function add_labels_to_order( $order_id, $new_labels ) {
+			$labels_data = $this->get_label_order_meta_data( $order_id );
+			$labels_data = array_merge( $new_labels, $labels_data );
+			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
 		}
 
 		public function update_origin_address( $address ) {
