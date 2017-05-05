@@ -520,7 +520,9 @@ reducers[ SET_RATES ] = ( state, { rates } ) => {
 		form: { ...state.form,
 			rates: {
 				values: _.mapValues( rates, ( rate ) => {
-					const selected = rate.rates.find( ( r ) => r.is_selected );
+					const selected = _.get( rate, 'rates', [] )
+						.find( ( r ) => r.is_selected );
+
 					if ( selected ) {
 						return selected.service_id;
 					}

@@ -86,8 +86,6 @@ const RatesStep = ( props ) => {
 				selectedRates={ values }
 				availableRates={ available }
 				updateRate={ labelActions.updateRate }
-				dimensionUnit={ storeOptions.dimension_unit }
-				weightUnit={ storeOptions.weight_unit }
 				currencySymbol={ storeOptions.currency_symbol }
 				errors={ errors } />
 		</StepContainer>

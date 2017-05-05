@@ -58,7 +58,22 @@ const getPackagesErrors = ( values ) => _.mapValues( values, ( pckg ) => {
 	return errors;
 } );
 
-const getRatesErrors = ( values ) => _.mapValues( values, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) );
+const getRatesErrors = ( { values: selectedRates, available: allRates } ) => {
+	return {
+		server: _.mapValues( allRates, ( rate ) => {
+			if ( rate.errors ) {
+				return rate.errors.map( ( error ) => {
+					return {
+						message: ( error.userMessage ||
+							error.message ||
+							"We couldn't get a rate for this package, please try again." ),
+					};
+				} );
+			}
+		} ),
+		form: _.mapValues( selectedRates, ( ( rate ) => rate ? null : __( 'Please choose a rate' ) ) ),
+	};
+};
 
 const getSidebarErrors = ( paperSize ) => {
 	const errors = {};
@@ -80,7 +95,7 @@ export default createSelector(
 			origin: getAddressErrors( form.origin, countriesData ),
 			destination: getAddressErrors( form.destination, countriesData ),
 			packages: getPackagesErrors( form.packages.selected ),
-			rates: getRatesErrors( form.rates.values ),
+			rates: getRatesErrors( form.rates ),
 			sidebar: getSidebarErrors( paperSize ),
 		};
 	}

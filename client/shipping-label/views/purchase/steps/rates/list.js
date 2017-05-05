@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import FieldError from 'components/field-error';
 import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
 import getPackageDescriptions from '../packages/get-package-descriptions';
@@ -6,17 +7,15 @@ import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
-const renderRateNotice = ( show ) => {
-	if ( show ) {
-		return (
-			<Notice
-				className="wcc-label-rates__notice"
-				icon="info-outline"
-				showDismiss={ false }
-				text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
-			/>
-		);
-	}
+const renderRateNotice = () => {
+	return (
+		<Notice
+			className="wcc-label-rates__notice"
+			icon="info-outline"
+			showDismiss={ false }
+			text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
+		/>
+	);
 };
 
 const ShippingRates = ( {
@@ -28,12 +27,14 @@ const ShippingRates = ( {
 		updateRate,
 		currencySymbol,
 		errors,
-		showRateNotice,
+		shouldShowRateNotice,
 	} ) => {
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
+	const hasSinglePackage = ( 1 === Object.keys( selectedPackages ).length );
+	const hasMultiplePackages = ( 1 < Object.keys( selectedPackages ).length );
 
 	const renderTitle = ( pckg, pckgId ) => {
-		if ( 1 === Object.keys( selectedPackages ).length ) {
+		if ( hasSinglePackage ) { // {id: {}, id:{}} obj of all packages
 			return __( 'Choose rate' );
 		}
 		return sprintf( __( 'Choose rate: %s' ), packageNames[ pckgId ] );
@@ -43,27 +44,42 @@ const ShippingRates = ( {
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = _.get( availableRates, [ pckgId, 'rates' ], [] );
 		const valuesMap = { '': __( 'Select one...' ) };
+		const serverErrors = errors.server && errors.server[ pckgId ];
+		const formError = errors.form && errors.form[ pckgId ];
 
 		packageRates.forEach( ( rateObject ) => {
 			valuesMap[ rateObject.service_id ] = rateObject.title + ' (' + currencySymbol + rateObject.rate.toFixed( 2 ) + ')';
 		} );
 
 		return (
-			<div key={ pckgId }>
-				<Dropdown
-					id={ id + '_' + pckgId }
-					valuesMap={ valuesMap }
-					title={ renderTitle( pckg, pckgId ) }
-					value={ selectedRate }
-					updateValue={ ( value ) => updateRate( pckgId, value ) }
-					error={ errors[ pckgId ] } />
+			<div key={ pckgId } className="wcc-metabox-rate__package-container">
+				{ serverErrors &&
+					_.isEmpty( packageRates ) &&
+					hasMultiplePackages &&
+					<p className="wcc-metabox-rate__package-heading">{ packageNames[ pckgId ] }</p>
+				}
+				{ ! _.isEmpty( packageRates ) &&
+					<Dropdown
+						id={ id + '_' + pckgId }
+						valuesMap={ valuesMap }
+						title={ renderTitle( pckg, pckgId ) }
+						value={ selectedRate }
+						updateValue={ ( value ) => updateRate( pckgId, value ) }
+						error={ formError } />
+				}
+				{ serverErrors && serverErrors.map( ( serverError, index ) => {
+					return <FieldError
+						type="server-error"
+						key={ index }
+						text={ serverError.message } />;
+				} ) }
 			</div>
 		);
 	};
 
 	return (
 		<div>
-			{ renderRateNotice( showRateNotice ) }
+			{ shouldShowRateNotice && renderRateNotice() }
 			{ Object.values( _.mapValues( selectedPackages, renderSinglePackage ) ) }
 		</div>
 	);
@@ -76,8 +92,6 @@ ShippingRates.propTypes = {
 	selectedPackages: PropTypes.object.isRequired,
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
-	weightUnit: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
 };
