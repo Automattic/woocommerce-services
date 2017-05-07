@@ -44,6 +44,11 @@ const config = {
 	},
 	externals: {
 		'jquery': 'jQuery',
+		'cheerio': 'window',
+		'jsdom': true,
+		'react/addons': true,
+		'react/lib/ExecutionEnvironment': true,
+		'react/lib/ReactContext': true,
 	},
 	module: {
 		rules: [
