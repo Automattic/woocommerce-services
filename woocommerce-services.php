@@ -168,13 +168,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return new WC_Connect_Tracks( $logger );
 		}
 
+		static function plugin_activation() {
+			if ( WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+				$tracks = self::load_tracks_for_activation_hooks();
+				$tracks->plugin_activated();
+			}
+		}
+
 		static function plugin_deactivation() {
-			$tracks = self::load_tracks_for_activation_hooks();
-			$tracks->opted_out();
+			if ( WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+				$tracks = self::load_tracks_for_activation_hooks();
+				$tracks->plugin_deactivated();
+			}
+
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 		}
 
 		static function plugin_uninstall() {
+			if ( WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+				$tracks = self::load_tracks_for_activation_hooks();
+				$tracks->plugin_uninstalled();
+			}
+
 			WC_Connect_Options::delete_all_options();
 		}
 
@@ -1024,5 +1039,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	}
 }
 
+register_activation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_activation' ) );
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );

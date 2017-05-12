@@ -27,8 +27,16 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$this->record_user_event( 'opted_in' );
 		}
 
-		public function opted_out() {
-			$this->record_user_event( 'opted_out' );
+		public function plugin_activated() {
+			$this->record_user_event( 'plugin_activated' );
+		}
+
+		public function plugin_deactivated() {
+			$this->record_user_event( 'plugin_deactivated' );
+		}
+
+		public function plugin_uninstalled() {
+			$this->record_user_event( 'plugin_uninstalled' );
 		}
 
 		public function shipping_zone_method_added( $instance_id, $service_id ) {

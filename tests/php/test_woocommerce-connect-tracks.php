@@ -28,7 +28,7 @@ class WP_Test_WC_Connect_Tracks_No_Jetpack extends WP_Test_WC_Connect_Tracks {
 				$this->stringContains( 'Error' ),
 				$this->anything()
 		);
-		$record = $this->tracks->opted_out();
+		$record = $this->tracks->plugin_deactivated();
 		$this->assertNull( $record );
 	}
 
@@ -95,22 +95,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->assertArrayHasKey( 'wp_version', $record[2] );
 	}
 
-	public function test_opted_out() {
+	public function test_plugin_deactivated() {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
 		$this->logger->expects( $this->once() )
 			->method( 'debug' )
 			->with(
-				$this->stringContains( 'woocommerceconnect_opted_out' ),
+				$this->stringContains( 'woocommerceconnect_plugin_deactivated' ),
 				$this->anything()
 			);
 
 		// $record will contain the args received by jetpack_tracks_record_event
-		$this->tracks->opted_out();
+		$this->tracks->plugin_deactivated();
 		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
-		$this->assertEquals( 'woocommerceconnect_opted_out', $record[1] );
+		$this->assertEquals( 'woocommerceconnect_plugin_deactivated', $record[1] );
 		$this->assertInternalType( 'array', $record[2] );
 		$this->assertArrayHasKey( '_via_ua', $record[2] );
 		$this->assertArrayHasKey( '_via_ip', $record[2] );
