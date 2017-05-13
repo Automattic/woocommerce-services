@@ -93,7 +93,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_packaging_from_shipping_method( $shipping_method ) {
 			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return false;
+				return array();
 			}
 
 			$packages_data = $shipping_method[ 'wc_connect_packages' ];
