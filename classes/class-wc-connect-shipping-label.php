@@ -91,14 +91,46 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $packages;
 		}
 
+		protected function get_packaging_from_shipping_method( $shipping_method ) {
+			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
+				return array();
+			}
+
+			$packages_data = $shipping_method[ 'wc_connect_packages' ];
+			if ( ! $packages_data ) {
+				return array();
+			}
+
+			// WC3 retrieves metadata as non-scalar values
+			if ( is_array( $packages_data ) ) {
+				return $packages_data;
+			}
+
+			// WC2.6 stores non-scalar values as string, but doesn't deserialize it on retrieval
+			$packages = maybe_unserialize( $packages_data );
+			if ( is_array( $packages ) ) {
+				return $packages;
+			}
+
+			// legacy WCS stored the labels as JSON
+			$packages = json_decode( $packages_data, true );
+			if ( $packages ) {
+				return $packages;
+			}
+
+			$packages_data = $this->settings_store->try_recover_invalid_json_string( 'box_id', $packages_data );
+			$packages = json_decode( $packages_data, true );
+			if ( $packages ) {
+				return $packages;
+			}
+
+			return array();
+		}
+
 		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return false;
-			}
-
-			return json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			return $this->get_packaging_from_shipping_method( $shipping_method );
 		}
 
 		protected function get_name( WC_Product $product ) {
@@ -111,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
 
-		protected function get_selected_packages( WC_Order $order ) {
+		public function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
 				return $this->get_items_as_individual_packages( $order );
@@ -119,13 +151,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$formatted_packages = array();
 
-			foreach( $packages as $package ) {
+			foreach( $packages as $package_obj ) {
+				$package = ( array ) $package_obj;
 				$package_id = $package[ 'id' ];
 				$formatted_packages[ $package_id ] = $package;
 
 				foreach( $package[ 'items' ] as $item_index => $item ) {
-					$product_data = $package[ 'items' ][ $item_index ];
-					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+					$product_data = ( array ) $item;
+					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $product_data );
 
 					if ( $product ) {
 						$product_data[ 'name' ] = $this->get_name( $product );
@@ -187,17 +220,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $groups;
 		}
 
-		protected function get_selected_rates( WC_Order $order ) {
+		public function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
-			if ( ! $shipping_method || ! isset( $shipping_method[ 'wc_connect_packages' ] ) ) {
-				return array();
-			}
-
-			$packages = json_decode( $shipping_method[ 'wc_connect_packages' ], true );
+			$packages = $this->get_packaging_from_shipping_method( $shipping_method );
 			$rates = array();
 
-			foreach( $packages as $idx => $package ) {
+			foreach( $packages as $idx => $package_obj ) {
+				$package = ( array ) $package_obj;
 				// Abort if the package data is malformed
 				if ( ! isset( $package[ 'id' ] ) || ! isset( $package[ 'service_id' ] ) ) {
 					return array();
@@ -372,6 +402,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
+				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
 			);
 
 			$labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );

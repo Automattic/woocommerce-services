@@ -363,7 +363,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'label'     => self::format_rate_title( $rate->title ),
 						'cost'      => $rate->rate,
 						'meta_data' => array(
-							'wc_connect_packages' => json_encode( $rate->packages ),
+							'wc_connect_packages' => $rate->packages,
 							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
 						),
 					);

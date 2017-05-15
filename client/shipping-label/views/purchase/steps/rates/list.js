@@ -6,17 +6,15 @@ import { translate as __ } from 'lib/mixins/i18n';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
-const renderRateNotice = ( show ) => {
-	if ( show ) {
-		return (
-			<Notice
-				className="wcc-label-rates__notice"
-				icon="info-outline"
-				showDismiss={ false }
-				text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
-			/>
-		);
-	}
+const renderRateNotice = () => {
+	return (
+		<Notice
+			className="wcc-label-rates__notice"
+			icon="info-outline"
+			showDismiss={ false }
+			text={ __( 'The service and rate chosen by the customer at checkout is not available. Please choose another.' ) }
+		/>
+	);
 };
 
 const ShippingRates = ( {
@@ -28,11 +26,11 @@ const ShippingRates = ( {
 		updateRate,
 		currencySymbol,
 		errors,
-		showRateNotice,
+		shouldShowRateNotice,
 	} ) => {
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
 
-	const renderTitle = ( pckg, pckgId ) => {
+	const getTitle = ( pckg, pckgId ) => {
 		if ( 1 === Object.keys( selectedPackages ).length ) {
 			return __( 'Choose rate' );
 		}
@@ -53,7 +51,7 @@ const ShippingRates = ( {
 				<Dropdown
 					id={ id + '_' + pckgId }
 					valuesMap={ valuesMap }
-					title={ renderTitle( pckg, pckgId ) }
+					title={ getTitle( pckg, pckgId ) }
 					value={ selectedRate }
 					updateValue={ ( value ) => updateRate( pckgId, value ) }
 					error={ errors[ pckgId ] } />
@@ -63,7 +61,7 @@ const ShippingRates = ( {
 
 	return (
 		<div>
-			{ renderRateNotice( showRateNotice ) }
+			{ shouldShowRateNotice && renderRateNotice() }
 			{ Object.values( _.mapValues( selectedPackages, renderSinglePackage ) ) }
 		</div>
 	);
@@ -76,8 +74,6 @@ ShippingRates.propTypes = {
 	selectedPackages: PropTypes.object.isRequired,
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
-	dimensionUnit: PropTypes.string.isRequired,
-	weightUnit: PropTypes.string.isRequired,
 	currencySymbol: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
 };

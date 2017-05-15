@@ -1,44 +1,38 @@
-import React, { PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react';
 import FormTextInput from 'components/forms/form-text-input';
 
-export default React.createClass( {
-	displayName: 'NumberInput',
-
-	propTypes: {
+export default class NumberInput extends Component {
+	static propTypes = {
 		onChange: PropTypes.func,
-	},
+	};
 
-	getDefaultProps() {
-		return {
-			onChange: () => {},
-		};
-	},
+	static defaultProps = {
+		onChange: () => {},
+	};
 
-	getInitialState() {
-		return {
-			focused: false,
-			text: this.props.value,
-		};
-	},
+	state = {
+		focused: false,
+		text: this.props.value,
+	};
 
 	componentWillReceiveProps( nextProps ) {
 		if ( ! this.state.focused && nextProps.value !== this.props.value ) {
 			this.setState( { text: nextProps.value } );
 		}
-	},
+	}
 
-	handleChange( event ) {
+	handleChange = ( event ) => {
 		this.setState( { text: event.target.value } );
 		this.props.onChange( event );
-	},
+	}
 
-	handleBlur( event ) {
+	handleBlur = ( event ) => {
 		this.setState( {
 			focused: false,
 			text: this.props.value,
 		} );
 		this.props.onChange( event );
-	},
+	}
 
 	render() {
 		return (
@@ -50,5 +44,5 @@ export default React.createClass( {
 				onFocus={ () => this.setState( { focused: true } ) }
 			/>
 		);
-	},
-} );
+	}
+}
