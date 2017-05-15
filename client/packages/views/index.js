@@ -7,6 +7,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import FoldableCard from 'components/foldable-card';
 import Gridicon from 'gridicons';
+import Spinner from 'components/spinner';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -112,46 +113,70 @@ const Packages = ( props ) => {
 			label: __( 'Save changes' ),
 			onClick: onSaveChanges,
 			isPrimary: true,
-			isDisabled: props.form.isSaving,
+			isDisabled: props.form.isSaving || props.form.pristine,
 		},
 	];
+
+	const renderContent = () => {
+		if ( ! props.form.packages ) {
+			if ( props.form.isFetching ) {
+				return (
+					<CompactCard className="settings-group-card">
+						<div style={ { margin: 'auto' } }>
+							<Spinner size={ 24 } />
+						</div>
+					</CompactCard>
+				);
+			}
+			return (
+				<CompactCard className="settings-group-card">
+					<p className="error-message">
+						{ __( 'Unable to get your settings. Please try again.' ) }
+					</p>
+				</CompactCard>
+			);
+		}
+
+		return (
+			<div>
+				<CompactCard className="settings-group-card">
+					<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
+					<div className="settings-group-content">
+						<PackagesList
+							packages={ props.form.packages.custom }
+							dimensionUnit={ props.form.dimensionUnit }
+							editable={ true }
+							removePackage={ props.removePackage }
+							editPackage={ props.editPackage } />
+						<AddPackageDialog { ...props } />
+						<FormFieldset className="add-package-button-field">
+							<FormButton
+								type="button"
+								isPrimary={ false }
+								compact
+								onClick={ props.addPackage } >
+								{ __( 'Add a package' ) }
+							</FormButton>
+						</FormFieldset>
+					</div>
+				</CompactCard>
+				<CompactCard className="settings-group-card">
+					<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
+					<div className="settings-group-content">
+						{ renderPredefinedPackages() }
+					</div>
+				</CompactCard>
+			</div>
+		);
+	};
 
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
-			{ props.form.packageSchema && // TODO: Add "Loading" indicator and "Error fetching data" message
-				<div>
-					<CompactCard className="settings-group-card">
-						<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
-						<div className="settings-group-content">
-							<PackagesList
-								packages={ props.form.packages.custom }
-								dimensionUnit={ props.form.dimensionUnit }
-								editable={ true }
-								removePackage={ props.removePackage }
-								editPackage={ props.editPackage } />
-							<AddPackageDialog { ...props } />
-							<FormFieldset className="add-package-button-field">
-								<FormButton
-									type="button"
-									isPrimary={ false }
-									compact
-									onClick={ props.addPackage } >
-									{ __( 'Add a package' ) }
-								</FormButton>
-							</FormFieldset>
-						</div>
-					</CompactCard>
-					<CompactCard className="settings-group-card">
-						<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
-						<div className="settings-group-content">
-							{ renderPredefinedPackages() }
-						</div>
-					</CompactCard>
-					<CompactCard className="save-button-bar">
-						<ActionButtons buttons={ buttons } />
-					</CompactCard>
-				</div> }
+			{ renderContent() }
+			<CompactCard className="save-button-bar">
+				<ActionButtons buttons={ buttons } />
+			</CompactCard>
 		</div>
 	);
 };

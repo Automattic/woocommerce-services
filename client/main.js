@@ -63,6 +63,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 			window.devToolsExtension ? window.devToolsExtension() : f => f
 		)
 	);
+
 	if ( Route.getInitialAction ) {
 		store.dispatch( Route.getInitialAction() );
 	}

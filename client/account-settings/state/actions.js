@@ -1,7 +1,4 @@
 import * as api from 'api';
-import _ from 'lodash';
-import * as NoticeActions from 'state/notices/actions';
-import { translate as __ } from 'lib/mixins/i18n';
 
 export const INIT_FORM = 'INIT_FORM';
 
@@ -45,7 +42,6 @@ export const fetchSettings = () => ( dispatch, getState ) => {
 		} )
 		.catch( ( error ) => {
 			console.error( error );
-			dispatch( NoticeActions.errorNotice( __( 'Unable to get your settings. Please try again.' ) ) );
 		} )
 		.then( () => dispatch( setFormMetaProperty( 'isFetching', false ) ) );
 };

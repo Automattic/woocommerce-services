@@ -1,6 +1,4 @@
 import * as api from 'api';
-import * as NoticeActions from 'state/notices/actions';
-import { translate as __ } from 'lib/mixins/i18n';
 
 export const ADD_PACKAGE = 'ADD_PACKAGE';
 export const REMOVE_PACKAGE = 'REMOVE_PACKAGE';
@@ -96,7 +94,6 @@ export const fetchSettings = () => ( dispatch, getState ) => {
 		} )
 		.catch( ( error ) => {
 			console.error( error );
-			dispatch( NoticeActions.errorNotice( __( 'Unable to get your settings. Please try again.' ) ) );
 		} )
 		.then( () => dispatch( { type: SET_IS_FETCHING, isFetching: false } ) );
 };

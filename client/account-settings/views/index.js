@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import ActionButtons from 'components/action-buttons';
 import CompactCard from 'components/card/compact';
 import GlobalNotices from 'components/global-notices';
+import Spinner from 'components/spinner';
 import notices from 'notices';
 import PaymentMethodSelector from './payment-method-selector';
 import { sprintf } from 'sprintf-js';
@@ -39,18 +40,38 @@ const AccountSettingsRootView = ( props ) => {
 		},
 	];
 
+	const renderContent = () => {
+		if ( ! props.formData ) {
+			if ( props.formMeta.isFetching ) {
+				return (
+					<div style={ { margin: 'auto' } }>
+						<Spinner size={ 24 } />
+					</div>
+				);
+			}
+			return (
+				<p className="error-message">
+					{ __( 'Unable to get your settings. Please try again.' ) }
+				</p>
+			);
+		}
+
+		return (
+			<PaymentMethodSelector
+				description={ paymentMethodDescription }
+				paymentMethods={ props.formMeta.payment_methods }
+				onChange={ onPaymentMethodChange }
+				title={ __( 'Payment Method' ) }
+				value={ props.formData.selected_payment_method_id }
+			/>
+		);
+	};
+
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<CompactCard>
-				{ props.formData && // TODO: Add "Loading" indicator and "Error fetching data" message
-					<PaymentMethodSelector
-						description={ paymentMethodDescription }
-						paymentMethods={ props.formMeta.payment_methods }
-						onChange={ onPaymentMethodChange }
-						title={ __( 'Payment Method' ) }
-						value={ props.formData.selected_payment_method_id }
-					/> }
+				{ renderContent() }
 			</CompactCard>
 			<CompactCard className="save-button-bar">
 				<ActionButtons
