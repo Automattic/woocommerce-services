@@ -17,6 +17,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
 		$settings[ 'ship_date' ] = date( 'Y-m-d', time() + 86400 ); // tomorrow
+		$settings[ 'order_id' ] = $order_id;
 
 		$service_names = array();
 		foreach ( $settings[ 'packages' ] as $index => $package ) {
