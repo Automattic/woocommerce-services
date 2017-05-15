@@ -405,11 +405,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
 			);
 
-			$labels_data = get_post_meta( $order_id, 'wc_connect_labels', true );
-			if ( $labels_data ) {
-				$payload[ 'labelsData' ] = json_decode( $labels_data, true, WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH );
-			}
-
 			$store_options = $this->settings_store->get_store_options();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
 			$payload[ 'storeOptions' ] = $store_options;
