@@ -1,4 +1,4 @@
-import { SET_FORM_DATA_VALUE, SET_FORM_META_PROPERTY } from './actions';
+import { INIT_FORM, SET_FORM_DATA_VALUE, SET_FORM_META_PROPERTY } from './actions';
 
 export const initialState = {
 	meta: {
@@ -12,6 +12,18 @@ export const initialState = {
 };
 
 const reducers = {};
+
+reducers[ INIT_FORM ] = ( state, { formData, formMeta } ) => {
+	return { ...state,
+		meta: { ...state.meta,
+			...formMeta,
+			pristine: true,
+		},
+		data: { ...state.data,
+			...formData,
+		},
+	};
+};
 
 reducers[ SET_FORM_DATA_VALUE ] = ( state, { key, value } ) => {
 	return { ...state,

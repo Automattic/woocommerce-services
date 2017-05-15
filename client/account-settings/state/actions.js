@@ -3,6 +3,16 @@ import _ from 'lodash';
 import * as NoticeActions from 'state/notices/actions';
 import { translate as __ } from 'lib/mixins/i18n';
 
+export const INIT_FORM = 'INIT_FORM';
+
+export const initForm = ( formData, formMeta ) => {
+	return {
+		type: INIT_FORM,
+		formData,
+		formMeta,
+	};
+};
+
 // SET_FORM_DATA_VALUE is used to update a form field's underlying setting, e.g. selected_payment_method_id
 export const SET_FORM_DATA_VALUE = 'SET_FORM_DATA_VALUE';
 
@@ -31,10 +41,7 @@ export const fetchSettings = () => ( dispatch, getState ) => {
 
 	api.get( api.url.accountSettings() )
 		.then( ( { formMeta, formData } ) => {
-			// TODO: Create single action/reducer instead of looping
-			_.forIn( formMeta, ( value, key ) => dispatch( setFormMetaProperty( key, value ) ) );
-			_.forIn( formData, ( value, key ) => dispatch( setFormDataValue( key, value ) ) );
-			dispatch( setFormMetaProperty( 'pristine', true ) );
+			dispatch( initForm( formData, formMeta ) );
 		} )
 		.catch( ( error ) => {
 			console.error( error );
