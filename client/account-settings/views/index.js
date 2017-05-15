@@ -44,7 +44,7 @@ const AccountSettingsRootView = ( props ) => {
 		if ( ! props.formData ) {
 			if ( props.formMeta.isFetching ) {
 				return (
-					<div style={ { margin: 'auto' } }>
+					<div style={ { textAlign: 'center' } }>
 						<Spinner size={ 24 } />
 					</div>
 				);
