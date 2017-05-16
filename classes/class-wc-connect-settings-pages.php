@@ -108,9 +108,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 						</p>
 					</div>
 				<?php
-			} else {
-				do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings' );
 			}
+
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings' );
 		}
 
 		public function output_no_priv_account_screen() {
