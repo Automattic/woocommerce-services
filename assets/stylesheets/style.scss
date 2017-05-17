@@ -399,6 +399,11 @@
 		text-align: center;
 	}
 
+	.loading-spinner {
+		margin: 8px auto;
+		text-align: center;
+	}
+
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';

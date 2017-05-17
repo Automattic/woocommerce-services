@@ -4,6 +4,7 @@ import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
 import Gridicon from 'gridicons';
 import { translate as __ } from 'lib/mixins/i18n';
+import Spinner from 'components/spinner';
 
 const noPackages = () => {
 	return (
@@ -37,6 +38,20 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 		);
 	};
 
+	const renderList = () => {
+		if ( ! packages ) {
+			return (
+				<div className="loading-spinner">
+					<Spinner size={ 24 } />
+				</div>
+			);
+		}
+		if ( ! packages.length ) {
+			return noPackages();
+		}
+		return packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) );
+	};
+
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
 			<div className="wcc-shipping-packages-list-header">
@@ -45,10 +60,7 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 				<FormLegend className="package-name">{ __( 'Name' ) }</FormLegend>
 				<FormLegend className="package-dimensions">{ __( 'Dimensions (L x W x H)' ) }</FormLegend>
 			</div>
-			{ 0 === packages.length
-				? noPackages()
-				: packages.map( ( pckg, idx ) => renderPackageListItem( pckg, idx ) )
-			}
+			{ renderList() }
 		</FormFieldset>
 	);
 };

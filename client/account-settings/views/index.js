@@ -4,7 +4,6 @@ import { bindActionCreators } from 'redux';
 import ActionButtons from 'components/action-buttons';
 import CompactCard from 'components/card/compact';
 import GlobalNotices from 'components/global-notices';
-import Spinner from 'components/spinner';
 import notices from 'notices';
 import PaymentMethodSelector from './payment-method-selector';
 import { sprintf } from 'sprintf-js';
@@ -41,14 +40,7 @@ const AccountSettingsRootView = ( props ) => {
 	];
 
 	const renderContent = () => {
-		if ( ! props.formData ) {
-			if ( props.formMeta.isFetching ) {
-				return (
-					<div style={ { textAlign: 'center' } }>
-						<Spinner size={ 24 } />
-					</div>
-				);
-			}
+		if ( ! props.formData && ! props.formMeta.isFetching ) {
 			return (
 				<p className="error-message">
 					{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
@@ -58,11 +50,12 @@ const AccountSettingsRootView = ( props ) => {
 
 		return (
 			<PaymentMethodSelector
+				isLoading={ props.formMeta.isFetching }
 				description={ paymentMethodDescription }
-				paymentMethods={ props.formMeta.payment_methods }
+				paymentMethods={ props.formMeta.payment_methods || [] }
 				onChange={ onPaymentMethodChange }
 				title={ __( 'Payment Method' ) }
-				value={ props.formData.selected_payment_method_id }
+				value={ ( props.formData || {} ).selected_payment_method_id }
 			/>
 		);
 	};

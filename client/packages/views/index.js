@@ -21,6 +21,8 @@ import _ from 'lodash';
 import { sprintf } from 'sprintf-js';
 
 const Packages = ( props ) => {
+	const isFetching = props.form.isFetching;
+
 	const foldableActionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
 			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
@@ -63,6 +65,14 @@ const Packages = ( props ) => {
 
 	const renderPredefinedPackages = () => {
 		const elements = [];
+
+		if ( isFetching ) {
+			return (
+				<div className="loading-spinner">
+					<Spinner size={ 24 } />
+				</div>
+			);
+		}
 
 		_.forEach( props.form.predefinedSchema, ( servicePackages, serviceId ) => {
 			const serviceSelected = props.form.packages.predefined[ serviceId ] || [];
@@ -118,16 +128,7 @@ const Packages = ( props ) => {
 	];
 
 	const renderContent = () => {
-		if ( ! props.form.packages ) {
-			if ( props.form.isFetching ) {
-				return (
-					<CompactCard className="settings-group-card">
-						<div style={ { margin: 'auto' } }>
-							<Spinner size={ 24 } />
-						</div>
-					</CompactCard>
-				);
-			}
+		if ( ! props.form.packages && ! isFetching ) {
 			return (
 				<CompactCard className="settings-group-card">
 					<p className="error-message">
@@ -143,17 +144,18 @@ const Packages = ( props ) => {
 					<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
 					<div className="settings-group-content">
 						<PackagesList
-							packages={ props.form.packages.custom }
+							packages={ ( props.form.packages || {} ).custom }
 							dimensionUnit={ props.form.dimensionUnit }
 							editable={ true }
 							removePackage={ props.removePackage }
 							editPackage={ props.editPackage } />
-						<AddPackageDialog { ...props } />
+						{ ( ! isFetching ) && <AddPackageDialog { ...props } /> }
 						<FormFieldset className="add-package-button-field">
 							<FormButton
 								type="button"
 								isPrimary={ false }
 								compact
+								disabled={ isFetching }
 								onClick={ props.addPackage } >
 								{ __( 'Add a package' ) }
 							</FormButton>
