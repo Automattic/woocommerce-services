@@ -6,7 +6,7 @@ import { fetchSettings } from './state/actions';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default () => ( {
+export default ( { formData, formSchema, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			form: reducer,
@@ -22,6 +22,8 @@ export default () => ( {
 	},
 
 	getInitialState() {
+		storeOptions = storeOptions || {};
+		formSchema = formSchema || { custom: {} };
 		return {
 			form: {
 				pristine: true,
@@ -29,6 +31,11 @@ export default () => ( {
 				isFetching: false,
 				showModal: false,
 				modalErrors: {},
+				packages: formData,
+				dimensionUnit: storeOptions.dimension_unit,
+				weightUnit: storeOptions.weight_unit,
+				packageSchema: formSchema.custom.items,
+				predefinedSchema: formSchema.predefined,
 				packageData: {
 					is_user_defined: true,
 				},

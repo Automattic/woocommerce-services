@@ -4,9 +4,35 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 	class WC_Connect_Settings_Pages {
 
-		public function __construct() {
+		/**
+		 * @var WC_Connect_Payment_Methods_Store
+		 */
+		protected $payment_methods_store;
+
+		/**
+		 * @var WC_Connect_Service_Settings_Store
+		 */
+		protected $service_settings_store;
+
+		/**
+		 * @var WC_Connect_Service_Schemas_Store
+		 */
+		protected $service_schemas_store;
+
+		/**
+		 * @array
+		 */
+		protected $fieldsets;
+
+		public function __construct( WC_Connect_Payment_Methods_Store $payment_methods_store,
+									 WC_Connect_Service_Settings_Store $service_settings_store,
+									 WC_Connect_Service_Schemas_Store $service_schemas_store ) {
 			$this->id    = 'connect';
 			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
+
+			$this->payment_methods_store = $payment_methods_store;
+			$this->service_settings_store = $service_settings_store;
+			$this->service_schemas_store = $service_schemas_store;
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
 			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ) );
@@ -110,7 +136,16 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings' );
+			// Always get a fresh copy when loading this view
+			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
+
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings', array(
+				'storeOptions' => $this->service_settings_store->get_store_options(),
+				'formData'     => $this->service_settings_store->get_account_settings(),
+				'formMeta'     => array(
+					'payment_methods' => $this->payment_methods_store->get_payment_methods(),
+				),
+			) );
 		}
 
 		public function output_no_priv_account_screen() {
@@ -148,7 +183,17 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages' );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages', array(
+				'storeOptions' => $this->service_settings_store->get_store_options(),
+				'formSchema'   => array(
+					'custom' => $this->service_schemas_store->get_packages_schema(),
+					'predefined' => $this->service_schemas_store->get_predefined_packages_schema(),
+				),
+				'formData'     => array(
+					'custom' => $this->service_settings_store->get_packages(),
+					'predefined' => $this->service_settings_store->get_predefined_packages(),
+				),
+			) );
 		}
 
 	}

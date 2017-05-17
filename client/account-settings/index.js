@@ -6,7 +6,7 @@ import { fetchSettings } from './state/actions';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default () => ( {
+export default ( { formData, formMeta } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			form: reducer,
@@ -22,7 +22,12 @@ export default () => ( {
 	},
 
 	getInitialState() {
-		return { form: initialState };
+		return {
+			form: {
+				data: formData,
+				meta: { ...initialState.meta, ...formMeta },
+			},
+		};
 	},
 
 	getInitialAction() {
