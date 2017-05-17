@@ -51,7 +51,7 @@ const AccountSettingsRootView = ( props ) => {
 			}
 			return (
 				<p className="error-message">
-					{ __( 'Unable to get your settings. Please try again.' ) }
+					{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
 				</p>
 			);
 		}

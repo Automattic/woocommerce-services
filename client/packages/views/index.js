@@ -131,7 +131,7 @@ const Packages = ( props ) => {
 			return (
 				<CompactCard className="settings-group-card">
 					<p className="error-message">
-						{ __( 'Unable to get your settings. Please try again.' ) }
+						{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
 					</p>
 				</CompactCard>
 			);
