@@ -179,7 +179,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-			add_action( 'woocommerce_init', array( $this, 'init' ) );
+			add_action( 'init', array( $this, 'init' ), 20 ); // We want this plugin to init after WooCommerce and Jetpack
 		}
 
 		public function get_logger() {
@@ -357,17 +357,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function init() {
-			$this->load_dependencies();
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
-
-			if ( ! $this->check_jetpack_install() ) {
-				add_action( 'admin_init', array( $this, 'admin_jetpack_notice' ) );
-				return;
-			} else if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
-				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
+			if ( ! $this->check_prerequisites() ) {
 				return;
 			}
 
+			$this->load_dependencies();
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
@@ -811,54 +806,116 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			<?php
 		}
 
-		public function check_jetpack_install() {
-			if ( defined( 'JETPACK_DEV_DEBUG' ) ) {
-				return true;
+		/**
+		 * Checks that WooCommerce and Jetpack are installed and activated.
+		 * If the prerequisites are not fulfilled, this function will handle generating the
+		 * needed screens for fixing the problem
+		 *
+		 * Things that are checked:
+		 * - WooCommerce installed and activated
+		 * - Jetpack installed, activated and connected
+		 * - TOS agreed to
+		 *
+		 * @return bool true if all prerequisites are met, false otherwise
+		 */
+		public function check_prerequisites() {
+			if ( ! class_exists( 'WooCommerce' ) ) {
+				add_action( 'admin_init', array( $this, 'install_woocommerce' ) );
+				return false;
 			}
 
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
+				add_action( 'admin_init', array( $this, 'install_jetpack' ) );
 				return false;
 			}
 
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id );
-		}
-
-		public function admin_jetpack_notice() {
-			wp_enqueue_style( 'wc_connect_banner' ); // Including the CSS this early will mostly prevent a flash of Core styles in the banner
-			add_action( 'admin_notices', array( $this, 'show_jetpack_notice' ) );
-		}
-
-		public function show_jetpack_notice() {
-			$button_class = 'button-primary';
-
-			if ( class_exists( 'Jetpack_Data' ) ) {
-				$screen = get_current_screen();
-				if ( 'jetpack' === $screen->parent_base || 'plugins' === $screen->base ) {
-					return; // Jetpack Dashboard and the plugins list screen already have big "Connect to WordPress.com" buttons
-				}
-
-				$notice_text = __( 'To get started, please connect Jetpack to your WordPress.com account.', 'woocommerce-services' );
-				$button_label = __( 'Connect to WordPress.com', 'woocommerce-services' );
-				$redirect_to = admin_url( 'admin.php?page=wc-settings&tab=shipping' );
-				$button_url = Jetpack::init()->build_connect_url( false, $redirect_to, 'woocommerce-services' );
-			} else {
-				$activate_url = wp_nonce_url( 'plugins.php?action=activate&plugin=jetpack/jetpack.php', 'activate-plugin_jetpack/jetpack.php' );
-
-				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					$notice_text = __( 'To get started you need to activate Jetpack.', 'woocommerce-services' );
-					$button_label = __( 'Activate Jetpack', 'woocommerce-services' );
-					$button_url = $activate_url;
-				} else {
-					$notice_text = __( 'To get started you need to install Jetpack.', 'woocommerce-services' );
-					$button_label = __( 'Install Jetpack', 'woocommerce-services' );
-					$button_url = '#';
-					$button_class .= ' wcc-install-jetpack';
-
-					wp_enqueue_script( 'wc_connect_banner' );
-				}
+			$is_connected = $user_token && is_object( $user_token ) && isset( $user_token->external_user_id );
+			if ( ! $is_connected ) {
+				$this->admin_jetpack_notice( 'show_jetpack_connect_notice' );
+				return false;
 			}
 
+			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
+				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
+				return false;
+			}
+
+			return true;
+		}
+
+		public function install_woocommerce() {
+			if ( 0 === validate_plugin( 'woocommerce/woocommerce.php' ) ) {
+				$this->admin_jetpack_notice( 'show_woocommerce_activate_notice' );
+				return;
+			}
+
+			$this->admin_jetpack_notice( 'show_woocommerce_install_notice' );
+		}
+
+		public function install_jetpack() {
+			if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
+				$this->admin_jetpack_notice( 'show_jetpack_activate_notice' );
+				return;
+			}
+
+			$this->admin_jetpack_notice( 'show_jetpack_install_notice' );
+		}
+
+		public function admin_jetpack_notice( $callback_name) {
+			wp_enqueue_style( 'wc_connect_banner' ); // Including the CSS this early will mostly prevent a flash of Core styles in the banner
+			add_action( 'admin_notices', array( $this, $callback_name ) );
+		}
+
+		public function show_jetpack_install_notice() {
+			$notice_text = __( 'To get started you need to install Jetpack.', 'woocommerce-services' );
+			$button_label = __( 'Install Jetpack', 'woocommerce-services' );
+			$button_url = '#';
+			$button_class = 'button-primary wcc-install-jetpack';
+			wp_enqueue_script( 'wc_connect_banner' );
+			$this->render_prerequisite_notice( $notice_text, $button_url, $button_class, $button_label );
+		}
+
+		public function show_jetpack_activate_notice() {
+			$button_class = 'button-primary';
+			$notice_text = __( 'To get started you need to activate Jetpack.', 'woocommerce-services' );
+			$button_label = __( 'Activate Jetpack', 'woocommerce-services' );
+			$button_url = wp_nonce_url( 'plugins.php?action=activate&plugin=jetpack/jetpack.php', 'activate-plugin_jetpack/jetpack.php' );
+			$this->render_prerequisite_notice( $notice_text, $button_url, $button_class, $button_label );
+		}
+
+		public function show_woocommerce_install_notice() {
+			$notice_text = __( 'To get started you need to install WooCommerce.', 'woocommerce-services' );
+			$button_label = __( 'Install WooCommerce', 'woocommerce-services' );
+			$button_url = '#';
+			$button_class = 'button-primary wcc-install-woocommerce';
+			wp_enqueue_script( 'wc_connect_banner' );
+			$this->render_prerequisite_notice( $notice_text, $button_url, $button_class, $button_label );
+		}
+
+		public function show_woocommerce_activate_notice() {
+			$button_class = 'button-primary';
+			$notice_text = __( 'To get started you need to activate WooCommerce.', 'woocommerce-services' );
+			$button_label = __( 'Activate WooCommerce', 'woocommerce-services' );
+			$button_url = wp_nonce_url( 'plugins.php?action=activate&plugin=woocommerce/woocommerce.php', 'activate-plugin_woocommerce/woocommerce.php' );
+			$this->render_prerequisite_notice( $notice_text, $button_url, $button_class, $button_label );
+		}
+
+		public function show_jetpack_connect_notice() {
+			$button_class = 'button-primary';
+			$screen = get_current_screen();
+			if ( 'jetpack' === $screen->parent_base || 'plugins' === $screen->base ) {
+				return; // Jetpack Dashboard and the plugins list screen already have big "Connect to WordPress.com" buttons
+			}
+
+			$notice_text = __( 'To get started, please connect Jetpack to your WordPress.com account.', 'woocommerce-services' );
+			$button_label = __( 'Connect to WordPress.com', 'woocommerce-services' );
+			$redirect_to = admin_url( 'admin.php?page=wc-settings&tab=shipping' );
+			$button_url = Jetpack::init()->build_connect_url( false, $redirect_to, 'woocommerce-services' );
+			$this->render_prerequisite_notice( $notice_text, $button_url, $button_class, $button_label );
+		}
+
+		private function render_prerequisite_notice( $notice_text, $button_url, $button_class, $button_label ) {
 			?>
 			<div class="notice wcc-admin-notice">
 				<h2><?php _e( 'Welcome to WooCommerce Services', 'woocommerce-services' ) ?></h2>

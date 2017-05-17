@@ -16,4 +16,18 @@ jQuery( document ).ready( ( $ ) => {
 					.html( btn.data( 'error-message' ) )
 			);
 	} );
+
+	$( '.wcc-admin-notice .wcc-install-woocommerce' ).one( 'click', function() {
+		const btn = $( this );
+
+		btn.html( wp.updates.l10n.installing )
+			.addClass( 'disabled' );
+
+		wp.updates.installPlugin( { slug: 'woocommerce' } )
+			.then( ( response ) => window.location = response.activateUrl || window.location.href )
+			.fail( () =>
+				btn.parent().addClass( 'error' )
+					.html( btn.data( 'error-message' ) )
+			);
+	} );
 } );
