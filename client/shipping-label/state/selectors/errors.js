@@ -58,10 +58,10 @@ const getPackagesErrors = ( values ) => _.mapValues( values, ( pckg ) => {
 	return errors;
 } );
 
-const getRatesErrors = ( { values: selectedRates, available: allRates } ) => {
+export const getRatesErrors = ( { values: selectedRates, available: allRates } ) => {
 	return {
 		server: _.mapValues( allRates, ( rate ) => {
-			if( ! rate.errors ) {
+			if ( ! rate.errors ) {
 				return;
 			}
 
