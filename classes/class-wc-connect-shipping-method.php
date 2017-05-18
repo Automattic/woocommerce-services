@@ -401,29 +401,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			// hide WP native save button on settings page
 			global $hide_save_button;
 			$hide_save_button = true;
-			$debug_page_uri = esc_url( add_query_arg(
-				array(
-					'page' => 'wc-status',
-					'tab' => 'connect'
-				),
-				admin_url( 'admin.php' )
-			) );
 
 			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
-
-			?>
-				<div class="wcc-root" id="wc-connect-service-settings">
-					<span class="form-troubles" style="opacity: 0">
-						<?php printf(
-							wp_kses(
-								__( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ),
-								array( 'a' => array( 'href' => array() ) )
-							),
-							$debug_page_uri
-						); ?>
-					</span>
-				</div>
-			<?php
 		}
 
 		public static function format_rate_id( $method_id, $instance, $rate_idx ) {

@@ -70,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
-			return WC_Connect_Options::update_option( 'account_settings', $settings );;
+			return WC_Connect_Options::update_option( 'account_settings', $settings );
 		}
 
 		public function get_selected_payment_method_id() {

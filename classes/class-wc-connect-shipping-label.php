@@ -390,26 +390,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function meta_box( $post ) {
 			$order = wc_get_order( $post );
 
-			$debug_page_uri = esc_url( add_query_arg(
-				array(
-					'page' => 'wc-status',
-					'tab' => 'connect'
-				),
-				admin_url( 'admin.php' )
-			) );
-
-			$root_view = 'wc-connect-create-shipping-label';
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$admin_array = array(
-				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/purchase' ),
+			$payload = array(
+				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/' . $order_id ),
 				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
-				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/shipping-rates' ),
-				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '-%d' ),
-				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '-%d/refund' ),
-				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/labels/print' ),
+				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/rates' ),
+				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d' ),
+				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d/refund' ),
+				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/label/print' ),
 				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
-				'rootView'                => $root_view,
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
 				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
@@ -417,23 +407,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$store_options = $this->settings_store->get_store_options();
 			$store_options[ 'countriesData' ] = $this->get_states_map();
-			$admin_array[ 'storeOptions' ] = $store_options;
+			$payload[ 'storeOptions' ] = $store_options;
 
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
-
-			?>
-			<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>">
-				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __(
-						'Shipping labels not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.',
-						'woocommerce-services' ),
-						$debug_page_uri
-					); ?>
-				</span>
-			</div>
-			<?php
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
 		}
 
 	}

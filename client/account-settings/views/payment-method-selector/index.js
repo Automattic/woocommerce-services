@@ -4,8 +4,9 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PaymentMethod from '../payment-method';
 import { translate as __ } from 'lib/mixins/i18n';
+import Spinner from 'components/spinner';
 
-const PaymentMethodSelector = ( { paymentMethods, title, description, value, onChange } ) => {
+const PaymentMethodSelector = ( { paymentMethods, title, description, value, onChange, isLoading } ) => {
 	const renderNoMethods = () => (
 		<p>
 			{ __( 'No payment methods available' ) }
@@ -30,7 +31,21 @@ const PaymentMethodSelector = ( { paymentMethods, title, description, value, onC
 		} )
 	);
 
-	const hasMethods = 0 < paymentMethods.length;
+	const renderSpinner = () => (
+		<div className="loading-spinner">
+			<Spinner size={ 24 } />
+		</div>
+	);
+
+	const renderContent = () => {
+		if ( isLoading ) {
+			return renderSpinner();
+		}
+		if ( paymentMethods.length ) {
+			return renderPaymentMethods();
+		}
+		return renderNoMethods();
+	};
 
 	return (
 		<FormFieldset className="payment-method-selector">
@@ -39,7 +54,7 @@ const PaymentMethodSelector = ( { paymentMethods, title, description, value, onC
 			</FormLegend>
 			<FieldDescription text={ description } />
 			<div className="payment-method-selector__payment-methods">
-				{ hasMethods ? renderPaymentMethods() : renderNoMethods() }
+				{ renderContent() }
 			</div>
 		</FormFieldset>
 	);
@@ -51,6 +66,7 @@ PaymentMethodSelector.propTypes = {
 	onChange: PropTypes.func.isRequired,
 	title: PropTypes.string,
 	value: PropTypes.number.isRequired,
+	isLoading: PropTypes.bool.isRequired,
 };
 
 export default PaymentMethodSelector;

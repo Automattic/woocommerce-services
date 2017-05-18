@@ -10,10 +10,32 @@ if ( class_exists( 'WC_REST_Connect_Account_Settings_Controller' ) ) {
 
 class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_Controller {
 
-	protected $method = 'POST';
 	protected $rest_base = 'connect/account/settings';
 
-	public function run( $request ) {
+	/*
+	 * @var WC_Connect_Payment_Methods_Store
+	 */
+	protected $payment_methods_store;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger, WC_Connect_Payment_Methods_Store $payment_methods_store ) {
+		parent::__construct( $api_client, $settings_store, $logger );
+		$this->payment_methods_store = $payment_methods_store;
+	}
+
+	public function get() {
+		// Always get a fresh copy when hitting this endpoint
+		$this->payment_methods_store->fetch_payment_methods_from_connect_server();
+
+		return new WP_REST_Response( array(
+			'success'  => true,
+			'formData' => $this->settings_store->get_account_settings(),
+			'formMeta' => array(
+				'payment_methods' => $this->payment_methods_store->get_payment_methods()
+			)
+		), 200 );
+	}
+
+	public function post( $request ) {
 		$settings = $request->get_json_params();
 		$result   = $this->settings_store->update_account_settings( $settings );
 

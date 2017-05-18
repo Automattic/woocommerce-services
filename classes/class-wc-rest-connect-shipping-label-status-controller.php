@@ -9,11 +9,9 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Status_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Label_Status_Controller extends WC_REST_Connect_Base_Controller {
+	protected $rest_base = 'connect/label/(?P<order_id>\d+)/(?P<label_id>\d+)';
 
-	protected $method = 'GET';
-	protected $rest_base = 'connect/label/(?P<order_id>\d+)-(?P<label_id>\d+)';
-
-	public function run( $request ) {
+	public function get( $request ) {
 		$response = $this->api_client->get_label_status( $request[ 'label_id' ] );
 
 		if ( is_wp_error( $response ) ) {

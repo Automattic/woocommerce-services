@@ -106,14 +106,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_shipping_label_refund_controller;
 
 		/**
-		 * @var WC_REST_Connect_Shipping_Labels_Preview_Controller
+		 * @var WC_REST_Connect_Shipping_Label_Preview_Controller
 		 */
-		protected $rest_shipping_labels_preview_controller;
+		protected $rest_shipping_label_preview_controller;
 
 		/**
-		 * @var WC_REST_Connect_Shipping_Labels_Print_Controller
+		 * @var WC_REST_Connect_Shipping_Label_Print_Controller
 		 */
-		protected $rest_shipping_labels_print_controller;
+		protected $rest_shipping_label_print_controller;
 
 		/**
 		 * @var WC_REST_Connect_Shipping_Rates_Controller
@@ -286,20 +286,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_shipping_label_refund_controller = $rest_shipping_label_refund_controller;
 		}
 
-		public function get_rest_shipping_labels_preview_controller() {
-			return $this->rest_shipping_labels_preview_controller;
+		public function get_rest_shipping_label_preview_controller() {
+			return $this->rest_shipping_label_preview_controller;
 		}
 
-		public function set_rest_shipping_labels_preview_controller( WC_REST_Connect_Shipping_Labels_Preview_Controller $rest_shipping_labels_preview_controller ) {
-			$this->rest_shipping_labels_preview_controller = $rest_shipping_labels_preview_controller;
+		public function set_rest_shipping_label_preview_controller( WC_REST_Connect_Shipping_Label_Preview_Controller $rest_shipping_label_preview_controller ) {
+			$this->rest_shipping_label_preview_controller = $rest_shipping_label_preview_controller;
 		}
 
-		public function get_rest_shipping_labels_print_controller() {
-			return $this->rest_shipping_labels_print_controller;
+		public function get_rest_shipping_label_print_controller() {
+			return $this->rest_shipping_label_print_controller;
 		}
 
-		public function set_rest_shipping_labels_print_controller( WC_REST_Connect_Shipping_Labels_Print_Controller $rest_shipping_labels_print_controller ) {
-			$this->rest_shipping_labels_print_controller = $rest_shipping_labels_print_controller;
+		public function set_rest_shipping_label_print_controller( WC_REST_Connect_Shipping_Label_Print_Controller $rest_shipping_label_print_controller ) {
+			$this->rest_shipping_label_print_controller = $rest_shipping_label_print_controller;
 		}
 
 		public function set_rest_shipping_rates_controller( WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller ) {
@@ -424,7 +424,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			new WC_Connect_Debug_Tools( $this->api_client );
 
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
-			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store, $this->logger );
+			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store );
 			$this->set_settings_pages( $settings_pages );
 
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
@@ -459,6 +459,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
+			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 		}
 
 		/**
@@ -479,12 +480,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-base-controller.php' ) );
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-packages-controller.php' ) );
-			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger );
+			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
 			$this->set_rest_packages_controller( $rest_packages_controller );
 			$rest_packages_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-account-settings-controller.php' ) );
-			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger );
+			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger, $this->payment_methods_store );
 			$this->set_rest_account_settings_controller( $rest_account_settings_controller );
 			$rest_account_settings_controller->register_routes();
 
@@ -518,15 +519,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_shipping_label_refund_controller( $rest_shipping_label_refund_controller );
 			$rest_shipping_label_refund_controller->register_routes();
 
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-labels-preview-controller.php' ) );
-			$rest_shipping_labels_preview_controller = new WC_REST_Connect_Shipping_Labels_Preview_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_labels_preview_controller( $rest_shipping_labels_preview_controller );
-			$rest_shipping_labels_preview_controller->register_routes();
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-preview-controller.php' ) );
+			$rest_shipping_label_preview_controller = new WC_REST_Connect_Shipping_Label_Preview_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_shipping_label_preview_controller( $rest_shipping_label_preview_controller );
+			$rest_shipping_label_preview_controller->register_routes();
 
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-labels-print-controller.php' ) );
-			$rest_shipping_labels_print_controller = new WC_REST_Connect_Shipping_Labels_Print_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_labels_print_controller( $rest_shipping_labels_print_controller );
-			$rest_shipping_labels_print_controller->register_routes();
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-print-controller.php' ) );
+			$rest_shipping_label_print_controller = new WC_REST_Connect_Shipping_Label_Print_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_shipping_label_print_controller( $rest_shipping_label_print_controller );
+			$rest_shipping_label_print_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-rates-controller.php' ) );
 			$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store, $logger );
@@ -588,7 +589,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
 
-			$admin_array = array(
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
 				'storeOptions'       => $settings_store->get_store_options(),
 				'formSchema'         => $service_schema->service_settings,
 				'formLayout'         => $service_schema->form_layout,
@@ -597,14 +598,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'instanceId'         => $instance,
 				'callbackURL'        => get_rest_url( null, $path ),
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'rootView'           => 'wc-connect-service-settings',
 				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
 				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
-			);
-
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
+			) );
 		}
 
 		/**
@@ -969,6 +965,33 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
 			);
 			return $links;
+		}
+
+		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
+			$payload = array(
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'baseURL'      => get_rest_url(),
+			);
+
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
+			wp_enqueue_script( 'wc_connect_admin' );
+			wp_enqueue_style( 'wc_connect_admin' );
+
+			$debug_page_uri = esc_url( add_query_arg(
+				array(
+					'page' => 'wc-status',
+					'tab' => 'connect'
+				),
+				admin_url( 'admin.php' )
+			) );
+
+			?>
+				<div class="wcc-root <?php echo esc_attr( $root_view ) ?>" data-args="<?php echo esc_attr( wp_json_encode( $extra_args ) ) ?>">
+					<span class="form-troubles" style="opacity: 0">
+						<?php printf( __( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
+					</span>
+				</div>
+			<?php
 		}
 	}
 

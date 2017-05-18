@@ -391,6 +391,19 @@
 		fill: currentColor;
 	}
 
+	.error-message {
+		color: darken( $alert-red, 10 );
+		font-weight: bold;
+		margin-left: auto;
+		margin-right: auto;
+		text-align: center;
+	}
+
+	.loading-spinner {
+		margin: 8px auto;
+		text-align: center;
+	}
+
 	// WCC Components
 	@import '../../client/account-settings/views/payment-method/style';
 	@import '../../client/account-settings/views/payment-method-selector/style';

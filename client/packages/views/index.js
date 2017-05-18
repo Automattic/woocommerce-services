@@ -7,6 +7,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import FoldableCard from 'components/foldable-card';
 import Gridicon from 'gridicons';
+import Spinner from 'components/spinner';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
 import { translate as __ } from 'lib/mixins/i18n';
@@ -20,6 +21,8 @@ import _ from 'lodash';
 import { sprintf } from 'sprintf-js';
 
 const Packages = ( props ) => {
+	const isFetching = props.form.isFetching;
+
 	const foldableActionButton = (
 		<button className="foldable-card__action foldable-card__expand" type="button">
 			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
@@ -62,6 +65,14 @@ const Packages = ( props ) => {
 
 	const renderPredefinedPackages = () => {
 		const elements = [];
+
+		if ( isFetching ) {
+			return (
+				<div className="loading-spinner">
+					<Spinner size={ 24 } />
+				</div>
+			);
+		}
 
 		_.forEach( props.form.predefinedSchema, ( servicePackages, serviceId ) => {
 			const serviceSelected = props.form.packages.predefined[ serviceId ] || [];
@@ -112,40 +123,59 @@ const Packages = ( props ) => {
 			label: __( 'Save changes' ),
 			onClick: onSaveChanges,
 			isPrimary: true,
-			isDisabled: props.form.isSaving,
+			isDisabled: props.form.isSaving || props.form.pristine,
 		},
 	];
 
+	const renderContent = () => {
+		if ( ! props.form.packages && ! isFetching ) {
+			return (
+				<CompactCard className="settings-group-card">
+					<p className="error-message">
+						{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
+					</p>
+				</CompactCard>
+			);
+		}
+
+		return (
+			<div>
+				<CompactCard className="settings-group-card">
+					<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
+					<div className="settings-group-content">
+						<PackagesList
+							packages={ ( props.form.packages || {} ).custom }
+							dimensionUnit={ props.form.dimensionUnit }
+							editable={ true }
+							removePackage={ props.removePackage }
+							editPackage={ props.editPackage } />
+						{ ( ! isFetching ) && <AddPackageDialog { ...props } /> }
+						<FormFieldset className="add-package-button-field">
+							<FormButton
+								type="button"
+								isPrimary={ false }
+								compact
+								disabled={ isFetching }
+								onClick={ props.addPackage } >
+								{ __( 'Add a package' ) }
+							</FormButton>
+						</FormFieldset>
+					</div>
+				</CompactCard>
+				<CompactCard className="settings-group-card">
+					<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
+					<div className="settings-group-content">
+						{ renderPredefinedPackages() }
+					</div>
+				</CompactCard>
+			</div>
+		);
+	};
+
 	return (
-		<div className="wcc-container">
+		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
-			<CompactCard className="settings-group-card">
-				<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
-				<div className="settings-group-content">
-					<PackagesList
-						packages={ props.form.packages.custom }
-						dimensionUnit={ props.form.dimensionUnit }
-						editable={ true }
-						removePackage={ props.removePackage }
-						editPackage={ props.editPackage } />
-					<AddPackageDialog { ...props } />
-					<FormFieldset className="add-package-button-field">
-						<FormButton
-							type="button"
-							isPrimary={ false }
-							compact
-							onClick={ props.addPackage } >
-							{ __( 'Add a package' ) }
-						</FormButton>
-					</FormFieldset>
-				</div>
-			</CompactCard>
-			<CompactCard className="settings-group-card">
-				<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
-				<div className="settings-group-content">
-					{ renderPredefinedPackages() }
-				</div>
-			</CompactCard>
+			{ renderContent() }
 			<CompactCard className="save-button-bar">
 				<ActionButtons buttons={ buttons } />
 			</CompactCard>

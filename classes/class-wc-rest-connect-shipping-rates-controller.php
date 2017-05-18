@@ -9,24 +9,21 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Rates_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
-	protected $rest_base = 'connect/shipping-rates';
+	protected $rest_base = 'connect/label/(?P<order_id>\d+)/rates';
 
 	/**
 	 *
 	 * @param WP_REST_Request $request - See WC_Connect_API_Client::get_label_rates()
 	 * @return array|WP_Error
 	 */
-	public function run( $request ) {
+	public function post( $request ) {
 		$payload = $request->get_json_params();
+		$order_id = $request[ 'order_id' ];
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
 		$this->settings_store->update_origin_address( $payload[ 'origin' ] );
-		$this->settings_store->update_destination_address( $payload[ 'orderId' ], $payload[ 'destination' ] );
-
-		unset( $payload[ 'orderId' ] );
+		$this->settings_store->update_destination_address( $order_id, $payload[ 'destination' ] );
 
 		$response = $this->api_client->get_label_rates( $payload );
 

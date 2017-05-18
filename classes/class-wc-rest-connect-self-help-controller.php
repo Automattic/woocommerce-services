@@ -9,11 +9,9 @@ if ( class_exists( 'WC_REST_Connect_Self_Help_Controller' ) ) {
 }
 
 class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controller {
-
-	protected $method = 'POST';
 	protected $rest_base = 'connect/self-help';
 
-	public function run( $request ) {
+	public function post( $request ) {
 		$settings = $request->get_json_params();
 
 		if ( empty( $settings ) || ! array_key_exists( 'wcc_debug_on', $settings ) ) {

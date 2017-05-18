@@ -1,5 +1,14 @@
-import saveForm from 'lib/save-form';
-import _ from 'lodash';
+import * as api from 'api';
+
+export const INIT_FORM = 'INIT_FORM';
+
+export const initForm = ( formData, formMeta ) => {
+	return {
+		type: INIT_FORM,
+		formData,
+		formMeta,
+	};
+};
 
 // SET_FORM_DATA_VALUE is used to update a form field's underlying setting, e.g. selected_payment_method_id
 export const SET_FORM_DATA_VALUE = 'SET_FORM_DATA_VALUE';
@@ -21,24 +30,26 @@ export const setFormMetaProperty = ( key, value ) => {
 	};
 };
 
-export const SAVE_FORM = 'SAVE_FORM';
+export const fetchSettings = () => ( dispatch, getState ) => {
+	if ( getState().form.data || getState().form.meta.isFetching ) {
+		return;
+	}
+	dispatch( setFormMetaProperty( 'isFetching', true ) );
 
-// The callbackURL, nonce and submitMethod are extracted from wcConnectData
-// courtesy thunk.withExtraArgument in main.js
-export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+	api.get( api.url.accountSettings() )
+		.then( ( { formMeta, formData } ) => {
+			dispatch( initForm( formData, formMeta ) );
+		} )
+		.catch( ( error ) => {
+			console.error( error );
+		} )
+		.then( () => dispatch( setFormMetaProperty( 'isFetching', false ) ) );
+};
+
+export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState ) => {
 	dispatch( setFormMetaProperty( 'isSaving', true ) );
-	const setError = ( error ) => {
-		if ( error && 'rest_cookie_invalid_nonce' !== error ) {
-			onSaveFailure();
-		}
-	};
-	const setSuccess = ( success ) => {
-		if ( success ) {
-			onSaveSuccess();
-		}
-	};
-	const setIsSaving = ( saving ) => {
-		dispatch( setFormMetaProperty( 'isSaving', saving ) );
-	};
-	saveForm( setIsSaving, setSuccess, _.noop, setError, callbackURL, nonce, submitMethod, getState().form.data );
+	api.post( api.url.accountSettings(), getState().form.data )
+		.then( onSaveSuccess )
+		.catch( onSaveFailure )
+		.then( () => dispatch( setFormMetaProperty( 'isSaving', false ) ) );
 };

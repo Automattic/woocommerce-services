@@ -1,5 +1,4 @@
-import saveForm from 'lib/save-form';
-import _ from 'lodash';
+import * as api from 'api';
 
 export const ADD_PACKAGE = 'ADD_PACKAGE';
 export const REMOVE_PACKAGE = 'REMOVE_PACKAGE';
@@ -13,6 +12,8 @@ export const UPDATE_PACKAGES_FIELD = 'UPDATE_PACKAGES_FIELD';
 export const TOGGLE_OUTER_DIMENSIONS = 'TOGGLE_OUTER_DIMENSIONS';
 export const TOGGLE_ALL = 'TOGGLE_ALL';
 export const TOGGLE_PACKAGE = 'TOGGLE_PACKAGE';
+export const SET_IS_FETCHING = 'SET_IS_FETCHING';
+export const INIT_PACKAGES_FORM = 'INIT_PACKAGES_FORM';
 
 export const addPackage = () => ( {
 	type: ADD_PACKAGE,
@@ -74,22 +75,33 @@ export const setIsSaving = ( isSaving ) => ( {
 	isSaving,
 } );
 
-// The callbackURL, nonce and submitMethod are extracted from wcConnectData
-// courtesy thunk.withExtraArgument in main.js
-export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState, { callbackURL, nonce, submitMethod } ) => {
+export const fetchSettings = () => ( dispatch, getState ) => {
+	if ( getState().form.packages || getState().form.isFetching ) {
+		return;
+	}
+	dispatch( { type: SET_IS_FETCHING, isFetching: true } );
+
+	api.get( api.url.packages() )
+		.then( ( { formData, formSchema, storeOptions } ) => {
+			dispatch( {
+				type: INIT_PACKAGES_FORM,
+				packages: formData,
+				dimensionUnit: storeOptions.dimension_unit,
+				weightUnit: storeOptions.weight_unit,
+				packageSchema: formSchema.custom.items,
+				predefinedSchema: formSchema.predefined,
+			} );
+		} )
+		.catch( ( error ) => {
+			console.error( error );
+		} )
+		.then( () => dispatch( { type: SET_IS_FETCHING, isFetching: false } ) );
+};
+
+export const submit = ( onSaveSuccess, onSaveFailure ) => ( dispatch, getState ) => {
 	dispatch( setIsSaving( true ) );
-	const setError = ( error ) => {
-		if ( error && 'rest_cookie_invalid_nonce' !== error ) {
-			onSaveFailure();
-		}
-	};
-	const setSuccess = ( success ) => {
-		if ( success ) {
-			onSaveSuccess();
-		}
-	};
-	const setSaving = ( saving ) => {
-		dispatch( setIsSaving( saving ) );
-	};
-	saveForm( setSaving, setSuccess, _.noop, setError, callbackURL, nonce, submitMethod, getState().form.packages );
+	api.post( api.url.packages(), getState().form.packages )
+		.then( onSaveSuccess )
+		.catch( onSaveFailure )
+		.then( () => dispatch( setIsSaving( false ) ) );
 };

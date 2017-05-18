@@ -9,16 +9,15 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Controller {
+	protected $rest_base = 'connect/label/(?P<order_id>\d+)';
 
-	protected $method = 'POST';
-	protected $rest_base = 'connect/label/purchase';
-
-	public function run( $request ) {
+	public function post( $request ) {
 		$settings = $request->get_json_params();
-		$order_id = $settings[ 'order_id' ];
+		$order_id = $request[ 'order_id' ];
 
 		$settings[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
 		$settings[ 'ship_date' ] = date( 'Y-m-d', time() + 86400 ); // tomorrow
+		$settings[ 'order_id' ] = $order_id;
 
 		$service_names = array();
 		foreach ( $settings[ 'packages' ] as $index => $package ) {

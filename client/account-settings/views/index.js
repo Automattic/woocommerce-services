@@ -39,17 +39,32 @@ const AccountSettingsRootView = ( props ) => {
 		},
 	];
 
+	const renderContent = () => {
+		if ( ! props.formData && ! props.formMeta.isFetching ) {
+			return (
+				<p className="error-message">
+					{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
+				</p>
+			);
+		}
+
+		return (
+			<PaymentMethodSelector
+				isLoading={ props.formMeta.isFetching }
+				description={ paymentMethodDescription }
+				paymentMethods={ props.formMeta.payment_methods || [] }
+				onChange={ onPaymentMethodChange }
+				title={ __( 'Payment Method' ) }
+				value={ ( props.formData || {} ).selected_payment_method_id }
+			/>
+		);
+	};
+
 	return (
-		<div className="wcc-container">
+		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<CompactCard>
-				<PaymentMethodSelector
-					description={ paymentMethodDescription }
-					paymentMethods={ props.formMeta.payment_methods }
-					onChange={ onPaymentMethodChange }
-					title={ __( 'Payment Method' ) }
-					value={ props.formData.selected_payment_method_id }
-				/>
+				{ renderContent() }
 			</CompactCard>
 			<CompactCard className="save-button-bar">
 				<ActionButtons
@@ -62,7 +77,6 @@ const AccountSettingsRootView = ( props ) => {
 
 AccountSettingsRootView.propTypes = {
 	submit: PropTypes.func,
-	storeOptions: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state ) {

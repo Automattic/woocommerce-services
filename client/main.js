@@ -14,10 +14,16 @@ import AccountSettings from './account-settings';
 import PrintTestLabel from './print-test-label';
 import Packages from './packages';
 import _ from 'lodash';
+import { setNonce, setBaseURL } from 'api/request';
 
-( global.wcConnectData || [] ).forEach( ( wcConnectData ) => {
-	const Route = ( ( rootView ) => {
-		switch ( rootView ) {
+if ( global.wcConnectData ) {
+	setNonce( global.wcConnectData.nonce );
+	setBaseURL( global.wcConnectData.baseURL );
+}
+
+const getRouteClass = ( classNames ) => {
+	for ( let i = 0; i < classNames.length; i++ ) {
+		switch ( classNames[ i ] ) {
 			case 'wc-connect-create-shipping-label':
 				return ShippingLabel;
 			case 'wc-connect-service-settings':
@@ -30,7 +36,19 @@ import _ from 'lodash';
 			case 'wc-connect-admin-test-print':
 				return PrintTestLabel;
 		}
-	} )( wcConnectData.rootView )( wcConnectData );
+	}
+	return null;
+};
+
+Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
+	const args = JSON.parse( container.dataset.args ) || {};
+	delete container.dataset.args;
+
+	const RouteClass = getRouteClass( container.classList );
+	if ( ! RouteClass ) {
+		return;
+	}
+	const Route = RouteClass( args );
 
 	const persistedStateKey = Route.getStateKey();
 	const persistedState = storageUtils.getWithExpiry( persistedStateKey );
@@ -41,10 +59,14 @@ import _ from 'lodash';
 		Route.getReducer(),
 		{ ...serverState, ...persistedState },
 		compose(
-			applyMiddleware( thunk.withExtraArgument( wcConnectData ) ),
+			applyMiddleware( thunk.withExtraArgument( args ) ),
 			window.devToolsExtension ? window.devToolsExtension() : f => f
 		)
 	);
+
+	if ( Route.getInitialAction ) {
+		store.dispatch( Route.getInitialAction() );
+	}
 
 	window.addEventListener( 'beforeunload', ( event ) => {
 		const state = store.getState();
@@ -62,14 +84,12 @@ import _ from 'lodash';
 		return text;
 	} );
 
-	const rootEl = document.getElementById( wcConnectData.rootView );
-
 	let render = () => {
 		ReactDOM.render(
 			<Provider store={ store }>
 				<Route.View />
 			</Provider>,
-			rootEl
+			container
 		);
 	};
 
@@ -81,7 +101,7 @@ import _ from 'lodash';
 			const RedBox = require( 'redbox-react' ).default;
 			ReactDOM.render(
 				<RedBox error={ error } />,
-				rootEl
+				container
 			);
 		};
 

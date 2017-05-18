@@ -20,27 +20,19 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		protected $service_schemas_store;
 
 		/**
-		 * @var WC_Connect_Logger
-		 */
-		protected $logger;
-
-		/**
 		 * @array
 		 */
 		protected $fieldsets;
 
 		public function __construct( WC_Connect_Payment_Methods_Store $payment_methods_store,
-			WC_Connect_Service_Settings_Store $service_settings_store,
-			WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_Logger $logger ) {
-
+									 WC_Connect_Service_Settings_Store $service_settings_store,
+									 WC_Connect_Service_Schemas_Store $service_schemas_store ) {
 			$this->id    = 'connect';
 			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
 
 			$this->payment_methods_store = $payment_methods_store;
 			$this->service_settings_store = $service_settings_store;
 			$this->service_schemas_store = $service_schemas_store;
-			$this->logger = $logger;
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
 			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ) );
@@ -59,24 +51,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$shipping_tabs[ 'package-settings' ] = __( 'Packages', 'woocommerce-services' );
 			$shipping_tabs[ 'label-settings'] = __( 'Shipping Labels', 'woocommerce-services' );
 			return $shipping_tabs;
-		}
-
-		/**
-		 * Things used to help render the view, but which cannot be changed in the view
-		 */
-		public function get_form_meta() {
-			return array(
-				'payment_methods' => $this->payment_methods_store->get_payment_methods()
-			);
-		}
-
-		/**
-		 * Mutate-able settings bootstrapped to the view -- should be
-		 * identical to what is returned by the WC_REST_Connect_Settings_Controller
-		 * GET /connect/settings endpoint (see callbackURL below)
-		 */
-		public function get_form_data() {
-			return $this->service_settings_store->get_account_settings();
 		}
 
 		/**
@@ -143,31 +117,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 * Localizes the bootstrap, enqueues the script and styles for the settings page
 		 */
 		public function output_account_screen() {
-			// Always get a fresh copy when loading this view
-			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
-
-			// Fire up the view
-			$root_view = 'wc-connect-account-settings';
-			$admin_array = array(
-				'storeOptions' => $this->service_settings_store->get_store_options(),
-				'formData'     => $this->get_form_data(),
-				'formMeta'     => $this->get_form_meta(),
-				'callbackURL'  => get_rest_url( null, "/wc/v1/connect/account/settings" ),
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'rootView'     => $root_view,
-			);
-
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
-
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
-
-			?>
-				<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>"></div>
-			<?php
 
 			if ( $this->is_jetpack_dev_mode() ) {
 				if ( $this->is_jetpack_connected() ) {
@@ -183,6 +135,17 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					</div>
 				<?php
 			}
+
+			// Always get a fresh copy when loading this view
+			$this->payment_methods_store->fetch_payment_methods_from_connect_server();
+
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings', array(
+				'storeOptions' => $this->service_settings_store->get_store_options(),
+				'formData'     => $this->service_settings_store->get_account_settings(),
+				'formMeta'     => array(
+					'payment_methods' => $this->payment_methods_store->get_payment_methods(),
+				),
+			) );
 		}
 
 		public function output_no_priv_account_screen() {
@@ -215,56 +178,22 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			<?php
 		}
 
-		public function get_packages_form_data() {
-			return array(
-				'custom' => $this->service_settings_store->get_packages(),
-				'predefined' => $this->service_settings_store->get_predefined_packages()
-			);
-		}
-
-		public function get_packages_form_schema() {
-			return array(
-				'custom' => $this->service_schemas_store->get_packages_schema(),
-				'predefined' => $this->service_schemas_store->get_predefined_packages_schema()
-			);
-		}
-
 		public function output_packages_screen() {
-			$debug_page_uri = esc_url( add_query_arg(
-				array(
-					'page' => 'wc-status',
-					'tab' => 'connect'
-				),
-				admin_url( 'admin.php' )
-			) );
-			$store_options = $this->service_settings_store->get_store_options();
-			$root_view = 'wc-connect-packages';
-
-			$admin_array = array(
-				'storeOptions' => $store_options,
-				'formSchema'   => $this->get_packages_form_schema(),
-				'formData'     => $this->get_packages_form_data(),
-				'callbackURL'  => get_rest_url( null, '/wc/v1/connect/packages' ),
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'submitMethod' => 'POST',
-				'rootView'     => $root_view,
-			);
-
-			wp_localize_script( 'wc_connect_admin', 'wcConnectData', array( $admin_array ) );
-			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
-
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			?>
-			<div class="wcc-root" id="<?php echo esc_attr( $root_view ) ?>">
-				<span class="form-troubles" style="opacity: 0">
-					<?php printf( __( 'Settings not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
-				</span>
-			</div>
-			<?php
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages', array(
+				'storeOptions' => $this->service_settings_store->get_store_options(),
+				'formSchema'   => array(
+					'custom' => $this->service_schemas_store->get_packages_schema(),
+					'predefined' => $this->service_schemas_store->get_predefined_packages_schema(),
+				),
+				'formData'     => array(
+					'custom' => $this->service_settings_store->get_packages(),
+					'predefined' => $this->service_settings_store->get_predefined_packages(),
+				),
+			) );
 		}
 
 	}
