@@ -14,8 +14,9 @@ import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import PaymentMethod from './label-payment-method';
 
-const ShippingLabels = ( { paymentMethods, setFormDataValue, selectedPaymentMethod, storeOptions, translate } ) => {
+const ShippingLabels = ( { paymentMethods, setFormDataValue, selectedPaymentMethod, paperSize, storeOptions, translate } ) => {
 	const onPaymentMethodChange = ( value ) => setFormDataValue( 'selected_payment_method_id', value );
+	const onPaperSizeChange = ( value ) => setFormDataValue( 'paper_size', value );
 
 	const renderPaymentMethod = ( method, index ) => {
 		const onSelect = () => onPaymentMethodChange( method.payment_method_id );
@@ -38,8 +39,8 @@ const ShippingLabels = ( { paymentMethods, setFormDataValue, selectedPaymentMeth
 				id={ 'paper_size' }
 				valuesMap={ getPaperSizes( storeOptions.origin_country ) }
 				title={ translate( 'Paper size' ) }
-				value={ 'A4' }
-				updateValue={ () => {} } />
+				value={ paperSize }
+				updateValue={ onPaperSizeChange } />
 			<FormFieldSet>
 				<FormLabel
 					className="shipping__cards-label">
@@ -59,6 +60,7 @@ ShippingLabels.propTypes = {
 	paymentMethods: PropTypes.array,
 	setFormDataValue: PropTypes.func,
 	selectedPaymentMethod: PropTypes.number,
+	paperSize: PropTypes.string,
 	storeOptions: PropTypes.object,
 };
 

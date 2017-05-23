@@ -35,6 +35,7 @@ const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, 
 					paymentMethods={ formMeta.payment_methods || [] }
 					setFormDataValue={ actions.setFormDataValue }
 					selectedPaymentMethod={ ( formData || {} ).selected_payment_method_id }
+					paperSize={ ( formData || {} ).paper_size }
 					storeOptions={ storeOptions }
 				/>
 			</CompactCard>
