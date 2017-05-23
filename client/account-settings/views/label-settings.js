@@ -1,99 +1,65 @@
 /**
  * External dependencies
  */
-import React, { Component } from 'react';
-import classNames from 'classnames';
+import React, { PropTypes } from 'react';
 import { localize } from 'i18n-calypso';
 
 /**
  * Internal dependencies
  */
+import { getPaperSizes } from 'lib/pdf-label-utils';
 import Button from 'components/button';
+import Dropdown from 'components/dropdown';
 import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormSelect from 'components/forms/form-select';
-import ShippingCard from './label-card';
+import PaymentMethod from './label-payment-method';
 
-class ShippingLabels extends Component {
-	constructor( props ) {
-		super( props );
+const ShippingLabels = ( { paymentMethods, setFormDataValue, selectedPaymentMethod, storeOptions, translate } ) => {
+	const onPaymentMethodChange = ( value ) => setFormDataValue( 'selected_payment_method_id', value );
 
-		//TODO: use redux state with real data
-		this.state = {
-			visible: true,
-			cards: [ {
-				selected: true,
-				type: 'VISA',
-				digits: '1234',
-				name: 'Name Surname',
-				date: '12/19'
-			}, {
-				selected: false,
-				type: 'MasterCard',
-				digits: '5678',
-				name: 'Name Surname',
-				date: '01/20'
-			} ]
-		};
-	}
-
-	selectCard( index ) {
-		const cards = this.state.cards.map( ( card ) => {
-			return { ...card, selected: false };
-		} );
-
-		cards[ index ].selected = true;
-
-		this.setState( { cards } );
-	}
-
-	render() {
-		const { translate } = this.props;
-
-		const onToggle = () => {
-			this.setState( { visible: ! this.state.visible } );
-		};
-
-		const renderCard = ( card, index ) => {
-			const onSelect = () => {
-				this.selectCard( index );
-			};
-
-			return ( <ShippingCard
-				key={ index }
-				onSelect={ onSelect }
-				{ ...card } /> );
-		};
+	const renderPaymentMethod = ( method, index ) => {
+		const onSelect = () => onPaymentMethodChange( method.payment_method_id );
 
 		return (
-			<div className={ classNames( 'shipping__labels-container', { hidden: ! this.state.visible } ) }>
-				<FormFieldSet>
-					<FormLabel
-						className="shipping__labels-paper-size"
-						htmlFor="paper-size">
-						{ translate( 'Paper size' ) }
-					</FormLabel>
-					<FormSelect name="paper-size">
-						<option>{ translate( 'Letter' ) }</option>
-						<option>{ translate( 'Legal' ) }</option>
-						<option>{ translate( 'Label (4"x6")' ) }</option>
-						<option>{ translate( 'A4' ) }</option>
-					</FormSelect>
-				</FormFieldSet>
-				<FormFieldSet>
-					<FormLabel
-						className="shipping__cards-label">
-						{ translate( 'Credit card' ) }
-					</FormLabel>
-					<p className="shipping__credit-card-description">
-						{ translate( 'Use your credit card on file to pay for the labels you print or add a new one.' ) }
-					</p>
-					{ this.state.cards.map( renderCard ) }
-					<Button href="https://wordpress.com/me/billing" target="_blank" compact>{ translate( 'Add another credit card' ) }</Button>
-				</FormFieldSet>
-			</div>
+			<PaymentMethod
+				key={ index }
+				selected={ selectedPaymentMethod === method.payment_method_id }
+				type={ method.card_type }
+				name={ method.name }
+				digits={ method.card_digits }
+				expiry={ method.expiry }
+				onSelect={ onSelect } />
 		);
-	}
-}
+	};
+
+	return (
+		<div className="shipping__labels-container">
+			<Dropdown
+				id={ 'paper_size' }
+				valuesMap={ getPaperSizes( storeOptions.origin_country ) }
+				title={ translate( 'Paper size' ) }
+				value={ 'A4' }
+				updateValue={ () => {} } />
+			<FormFieldSet>
+				<FormLabel
+					className="shipping__cards-label">
+					{ translate( 'Credit card' ) }
+				</FormLabel>
+				<p className="shipping__credit-card-description">
+					{ translate( 'Use your credit card on file to pay for the labels you print or add a new one.' ) }
+				</p>
+				{ paymentMethods.map( renderPaymentMethod ) }
+				<Button href="https://wordpress.com/me/billing" target="_blank" compact>{ translate( 'Add another credit card' ) }</Button>
+			</FormFieldSet>
+		</div>
+	);
+};
+
+ShippingLabels.propTypes = {
+	paymentMethods: PropTypes.array,
+	setFormDataValue: PropTypes.func,
+	selectedPaymentMethod: PropTypes.number,
+	storeOptions: PropTypes.object,
+};
 
 export default localize( ShippingLabels );
