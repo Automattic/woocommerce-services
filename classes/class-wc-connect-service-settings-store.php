@@ -74,11 +74,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
-			if ( isset( $settings[ 'paper_size' ] ) ) {
-				$paper_size = $settings['paper_size'];
-				$this->set_preferred_paper_size( $paper_size );
-				unset( $settings['paper_size'] );
-			}
+			$paper_size = $settings['paper_size'];
+			$this->set_preferred_paper_size( $paper_size );
+			unset( $settings['paper_size'] );
 
 			return WC_Connect_Options::update_option( 'account_settings', $settings );
 		}
