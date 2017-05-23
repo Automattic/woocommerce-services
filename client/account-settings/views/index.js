@@ -7,7 +7,7 @@ import GlobalNotices from 'components/global-notices';
 import LabelSettings from './label-settings';
 import notices from 'notices';
 import { translate as __ } from 'lib/mixins/i18n';
-import * as actions from '../state/actions';
+import * as settingsActions from '../state/actions';
 import * as NoticeActions from 'state/notices/actions';
 
 const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, storeOptions } ) => {
@@ -61,7 +61,7 @@ function mapStateToProps( state ) {
 
 function mapDispatchToProps( dispatch ) {
 	return {
-		actions: bindActionCreators( actions, dispatch ),
+		actions: bindActionCreators( settingsActions, dispatch ),
 		noticeActions: bindActionCreators( NoticeActions, dispatch ),
 	};
 }
