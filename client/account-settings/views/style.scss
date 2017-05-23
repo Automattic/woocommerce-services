@@ -1,0 +1,43 @@
+.form-label.shipping__labels-paper-size,
+.form-label.shipping__cards-label {
+	margin-bottom: 4px;
+}
+
+.shipping__credit-card-description {
+	margin-bottom: 4px;
+	color: $gray;
+	padding-bottom: 8px;
+	font-size: 12px;
+	line-height: 18px;
+}
+
+.card.shipping__card {
+	margin-bottom: 14px;
+}
+
+.form-checkbox.shipping__card-checkbox {
+	margin-top: 10px;
+	margin-right: 20px;
+	float: left;
+}
+
+.payment-logo {
+	float: left;
+	margin-top: 10px;
+	margin-right: 14px;
+}
+
+.shipping__card-details {
+	float: left;
+}
+
+.shipping__card-number {
+	margin-bottom: 0;
+	font-weight: bold;
+}
+
+.shipping__card-date {
+	float: right;
+	color: $gray;
+	font-style: italic;
+}
