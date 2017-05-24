@@ -26,6 +26,7 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 			form: {
 				data: formData,
 				meta: { ...initialState.meta, ...formMeta },
+				storeOptions,
 			},
 		};
 	},
@@ -44,6 +45,6 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 	},
 
 	View: () => (
-		<AccountSettingsRootView storeOptions={ storeOptions } />
+		<AccountSettingsRootView />
 	),
 } );

@@ -27,17 +27,31 @@ const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, 
 		},
 	];
 
+	const renderContent = () => {
+		if ( ! formData && ! formMeta.isFetching ) {
+			return (
+				<p className="error-message">
+					{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
+				</p>
+			);
+		}
+		return (
+			<LabelSettings
+				isLoading={ formMeta.isFetching }
+				paymentMethods={ formMeta.payment_methods || [] }
+				setFormDataValue={ actions.setFormDataValue }
+				selectedPaymentMethod={ ( formData || {} ).selected_payment_method_id }
+				paperSize={ ( formData || {} ).paper_size }
+				storeOptions={ storeOptions }
+			/>
+		);
+	};
+
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<CompactCard>
-				<LabelSettings
-					paymentMethods={ formMeta.payment_methods || [] }
-					setFormDataValue={ actions.setFormDataValue }
-					selectedPaymentMethod={ ( formData || {} ).selected_payment_method_id }
-					paperSize={ ( formData || {} ).paper_size }
-					storeOptions={ storeOptions }
-				/>
+				{ renderContent() }
 			</CompactCard>
 			<CompactCard className="save-button-bar">
 				<ActionButtons
@@ -54,6 +68,7 @@ AccountSettingsRootView.propTypes = {
 
 function mapStateToProps( state ) {
 	return {
+		storeOptions: state.form.storeOptions,
 		formData: state.form.data,
 		formMeta: state.form.meta,
 	};

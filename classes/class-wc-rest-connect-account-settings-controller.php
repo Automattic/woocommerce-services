@@ -28,6 +28,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 
 		return new WP_REST_Response( array(
 			'success'  => true,
+			'storeOptions' => $this->settings_store->get_store_options(),
 			'formData' => $this->settings_store->get_account_settings(),
 			'formMeta' => array(
 				'payment_methods' => $this->payment_methods_store->get_payment_methods()

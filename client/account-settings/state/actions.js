@@ -2,9 +2,10 @@ import * as api from 'api';
 
 export const INIT_FORM = 'INIT_FORM';
 
-export const initForm = ( formData, formMeta ) => {
+export const initForm = ( storeOptions, formData, formMeta ) => {
 	return {
 		type: INIT_FORM,
+		storeOptions,
 		formData,
 		formMeta,
 	};
@@ -37,8 +38,8 @@ export const fetchSettings = () => ( dispatch, getState ) => {
 	dispatch( setFormMetaProperty( 'isFetching', true ) );
 
 	api.get( api.url.accountSettings() )
-		.then( ( { formMeta, formData } ) => {
-			dispatch( initForm( formData, formMeta ) );
+		.then( ( { storeOptions, formMeta, formData } ) => {
+			dispatch( initForm( storeOptions, formData, formMeta ) );
 		} )
 		.catch( ( error ) => {
 			console.error( error );

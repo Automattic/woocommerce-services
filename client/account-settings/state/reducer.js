@@ -13,8 +13,9 @@ export const initialState = {
 
 const reducers = {};
 
-reducers[ INIT_FORM ] = ( state, { formData, formMeta } ) => {
+reducers[ INIT_FORM ] = ( state, { storeOptions, formData, formMeta } ) => {
 	return { ...state,
+		storeOptions,
 		meta: { ...state.meta,
 			...formMeta,
 			pristine: true,
