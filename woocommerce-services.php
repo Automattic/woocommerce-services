@@ -150,6 +150,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $nux;
 
+		/**
+		 * @var WC_Connect_Setup_Wizard
+		 */
+		protected $setup_wizard;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -342,6 +347,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux = $nux;
 		}
 
+		public function set_setup_wizard( WC_Connect_Setup_Wizard $setup_wizard ) {
+			$this->setup_wizard = $setup_wizard;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -359,6 +368,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init() {
 			$this->load_dependencies();
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
+
+			// temporarily add WC setup wizard filter here so it runs before
+			// JP is installed and TOS is accepted
+			add_filter( 'woocommerce_setup_wizard_steps', array( $this->setup_wizard, 'add_new_shipping_step' ) );
 
 			if ( ! $this->check_jetpack_install() ) {
 				add_action( 'admin_init', array( $this, 'admin_jetpack_notice' ) );
@@ -390,6 +403,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-setup-wizard.php' ) );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -401,6 +415,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 			$nux                   = new WC_Connect_Nux();
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
+			$setup_wizard          = new WC_Connect_Setup_Wizard();
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -412,6 +427,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_help_view( $help_view );
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
+			$this->set_setup_wizard( $setup_wizard );
 
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
