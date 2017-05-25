@@ -32,7 +32,7 @@ const PaymentMethod = ( { translate, selected, type, digits, name, expiry, onSel
 	};
 
 	return (
-		<CompactCard className="shipping__card">
+		<CompactCard className="shipping__card" onClick={ onSelect }>
 			<Checkbox
 				className="shipping__card-checkbox"
 				checked={ selected }
