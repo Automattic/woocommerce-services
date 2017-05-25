@@ -31,6 +31,7 @@
 
 	// Components
 	@import 'components';
+	@import 'components/payment-logo/style';
 
 	// Breakpoints
 	$breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
@@ -405,8 +406,7 @@
 	}
 
 	// WCC Components
-	@import '../../client/account-settings/views/payment-method/style';
-	@import '../../client/account-settings/views/payment-method-selector/style';
+	@import '../../client/account-settings/views/style';
 	@import '../../client/components/checkbox/style';
 	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';

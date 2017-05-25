@@ -53,7 +53,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$default = array(
 				'selected_payment_method_id' => 0
 			);
-			return WC_Connect_Options::get_option( 'account_settings', $default );
+
+			$result = WC_Connect_Options::get_option( 'account_settings', $default );
+			$result[ 'paper_size' ] = $this->get_preferred_paper_size();
+
+			return $result;
 		}
 
 		/**
@@ -69,6 +73,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$this->logger->debug( 'Array expected but not received', __FUNCTION__ );
 				return false;
 			}
+
+			$paper_size = $settings['paper_size'];
+			$this->set_preferred_paper_size( $paper_size );
+			unset( $settings['paper_size'] );
 
 			return WC_Connect_Options::update_option( 'account_settings', $settings );
 		}

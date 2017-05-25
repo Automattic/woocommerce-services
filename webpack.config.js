@@ -68,7 +68,12 @@ const config = {
 				use: ExtractTextPlugin.extract( {
 					fallback: 'style-loader',
 					use: [
-						'css-loader',
+						{
+							loader: 'css-loader',
+							options: {
+								root: '', //force absolute paths in url() to be rewritten
+							}
+						},
 						{
 							loader: 'postcss-loader',
 							options: {
@@ -136,6 +141,13 @@ const config = {
 		} ),
 		new ExtractTextPlugin( {
 			filename: '[name].css',
+		} ),
+		//rewrite calypso images path
+		new webpack.NormalModuleReplacementPlugin( /calypso\/images/, ( resource ) => {
+			resource.request = resource.request.replace(
+				/^.+calypso\/images/,
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
+			);
 		} ),
 	],
 };
