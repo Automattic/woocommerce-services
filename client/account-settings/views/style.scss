@@ -13,11 +13,17 @@
 
 .card.shipping__card {
 	margin-bottom: 14px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 	cursor: pointer;
 }
 
+.shipping__card .payment-logo {
+	margin-top: 0;
+}
+
 .form-checkbox.shipping__card-checkbox {
-	margin-top: 10px;
 	margin-right: 20px;
 	float: left;
 }
@@ -30,11 +36,16 @@
 
 .shipping__card-details {
 	float: left;
+	flex-grow: 1;
 }
 
 .shipping__card-number {
 	margin-bottom: 0;
 	font-weight: bold;
+}
+
+.shipping__card-name {
+	margin-bottom: 0;
 }
 
 .shipping__card-date {
