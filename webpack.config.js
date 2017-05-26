@@ -168,6 +168,7 @@ if ( isProd ) {
 		},
 		mangle: {
 			screw_ie8: true,
+			except: [ 'translate' ],
 		},
 		output: {
 			comments: false,
