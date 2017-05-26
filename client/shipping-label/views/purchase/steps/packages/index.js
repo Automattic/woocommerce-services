@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import PackageList from './list';
 import PackageInfo from './package-info';
 import MoveItemDialog from './move-item';

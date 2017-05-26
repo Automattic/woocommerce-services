@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import classNames from 'classnames';
 import _ from 'lodash';
 import FormLabel from 'components/forms/form-label';

@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import Gridicon from 'gridicons';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 const SettingsNuxNotice = ( { noticeDismissed, dismissNotice } ) => {
 	if ( noticeDismissed ) {

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import parseJson from 'lib/utils/parse-json';
 import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 

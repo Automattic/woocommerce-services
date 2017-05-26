@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import ShippingRates from './list';
 import StepContainer from '../../step-container';
 import { sprintf } from 'sprintf-js';

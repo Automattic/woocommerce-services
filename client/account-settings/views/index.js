@@ -6,7 +6,7 @@ import CompactCard from 'components/card/compact';
 import GlobalNotices from 'components/global-notices';
 import LabelSettings from './label-settings';
 import notices from 'notices';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import * as settingsActions from '../state/actions';
 import * as NoticeActions from 'state/notices/actions';
 

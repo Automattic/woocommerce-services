@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import ItemInfo from './item-info';
 import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';

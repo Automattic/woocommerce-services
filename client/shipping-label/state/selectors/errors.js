@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { isValidPhone } from 'lib/utils/phone-format';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';

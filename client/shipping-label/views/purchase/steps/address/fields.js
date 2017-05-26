@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import TextField from 'components/text-field';
 import FormButton from 'components/forms/form-button';
 import CountryDropdown from 'components/country-dropdown';

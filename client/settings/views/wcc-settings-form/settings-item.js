@@ -10,7 +10,7 @@ import Dropdown from 'components/dropdown';
 import ShippingServiceGroups from 'settings/views/services';
 import FormLegend from 'components/forms/form-legend';
 import { sprintf } from 'sprintf-js';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 const SettingsItem = ( {
 	form,

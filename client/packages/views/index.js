@@ -10,7 +10,7 @@ import Gridicon from 'gridicons';
 import Spinner from 'components/spinner';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as PackagesActions from '../state/actions';

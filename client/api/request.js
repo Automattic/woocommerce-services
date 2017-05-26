@@ -1,5 +1,5 @@
 import parseJson from 'lib/utils/parse-json';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 let nonce;
 export const setNonce = ( _nonce ) => nonce = _nonce;

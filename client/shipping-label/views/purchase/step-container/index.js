@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import Gridicon from 'gridicons';
 import Spinner from 'components/spinner';
 import Card from 'components/card';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import classNames from 'classnames';
 
 const ExpandButton = () => (

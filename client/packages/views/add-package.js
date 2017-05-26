@@ -6,7 +6,7 @@ import FormTextInput from 'components/forms/form-text-input';
 import FormButton from 'components/forms/form-button';
 import Modal from 'components/modal';
 import AddPackagePresets from './add-package-presets';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { sprintf } from 'sprintf-js';
 import checkInputs from './modal-errors';
 import _ from 'lodash';

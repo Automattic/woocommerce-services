@@ -1,7 +1,7 @@
 import saveForm from 'lib/save-form';
 import coerceFormValues from 'lib/utils/coerce-values';
 import _ from 'lodash';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'settings/state/selectors/errors';

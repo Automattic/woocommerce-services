@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
 import getPackageDescriptions from '../packages/get-package-descriptions';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 

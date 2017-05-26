@@ -4,7 +4,7 @@ import FoldableCard from 'components/foldable-card';
 import Checkbox from 'components/checkbox';
 import Gridicon from 'gridicons';
 import InfoTooltip from 'components/info-tooltip';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 

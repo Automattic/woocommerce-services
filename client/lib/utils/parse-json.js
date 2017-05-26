@@ -1,4 +1,4 @@
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 /**
  * Parses a server response into a JSON object, providing a human-readable error if the

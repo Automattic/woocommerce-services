@@ -3,7 +3,7 @@ import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
 import Gridicon from 'gridicons';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import Spinner from 'components/spinner';
 
 const noPackages = () => {
