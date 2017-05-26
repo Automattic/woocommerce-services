@@ -15,6 +15,9 @@ module.exports = function( config ) {
 			captureConsole: true
 		},
 		reporters: [ 'mocha', 'coverage' ],
+		mochaReporter: {
+			showDiff: true,
+		},
 		coverageReporter: {
 			dir: 'coverage/',
 			includeAllSources: true,

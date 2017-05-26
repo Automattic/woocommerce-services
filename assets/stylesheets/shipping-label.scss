@@ -261,6 +261,25 @@
 			opacity: 0.5;
 		}
 	}
+
+	.wcc-metabox-rate__package-container {
+		margin-bottom: 2em;
+	}
+
+	.wcc-metabox-rate__package-container .form-server-error {
+		margin-left: -2px; // align with form-input-validation gridicon
+	}
+
+	.wcc-metabox-rate__package-container .form-fieldset ~ .form-server-error {
+		// when there is a rates drop-down
+		margin-top: -1em;
+	}
+
+	.wcc-metabox-rate__package-heading {
+		font-size: 14px;
+		font-weight: 600;
+		margin-bottom: 5px;
+	}
 }
 
 // Notice
