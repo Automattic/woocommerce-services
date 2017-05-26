@@ -22,7 +22,27 @@ const parser = new Xgettext( {
 			return buildWordPressString( finalProps );
 		},
 	},
+	parseOptions: { plugins: [ 'jsx', 'classProperties', 'objectRestSpread', 'exportExtensions', 'trailingFunctionCommas', 'asyncFunctions' ], allowImportExportEverywhere: true }
 } );
+
+function getFunction( properties ) {
+	let wpFunc = ['_'];
+
+	if ( properties.plural ) {
+		wpFunc.push( 'n' );
+	}
+	if ( properties.context ) {
+		wpFunc.push( 'x' );
+	}
+
+	wpFunc = wpFunc.join( '' );
+
+	if ( 1 === wpFunc.length ) {
+		return '__';
+	}
+
+	return wpFunc;
+}
 
 /**
  * Generate each line of equivalent php from a matching `translate()`
@@ -31,11 +51,14 @@ const parser = new Xgettext( {
  * @return {string}            the equivalent php code for each translation request
  */
 function buildWordPressString( properties ) {
-	const wpFunc = properties.context ? '_x' : '__',
+	const wpFunc = getFunction( properties ),
 		response = [],
+		closing = ', "woocommerce-services" )',
 		stringFromFunc = {
-			__: '__( ' + properties.single + ', "woocommerce-services" )',
-			_x: '_x( ' + [ properties.single, properties.context ].join( ', ' ) + ', "woocommerce-services" )',
+			__: '__( ' + properties.single + closing,
+			_x: '_x( ' + [ properties.single, properties.context ].join( ', ' ) + closing,
+			_nx: '_nx( ' + [ properties.single, properties.plural, properties.count, properties.context ].join( ', ' ) + closing,
+			_n: '_n( ' + [ properties.single, properties.plural, properties.count ].join( ', ' ) + closing
 		};
 
 	// translations with comments get a preceding comment in the php code
