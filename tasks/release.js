@@ -13,6 +13,7 @@ const dirsToCopy = [
 	'classes',
 	'dist',
 	'i18n',
+	'languages',
 	'vendor',
 ];
 

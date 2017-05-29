@@ -5,15 +5,20 @@ import Checkbox from 'components/checkbox';
 import Gridicon from 'gridicons';
 import InfoTooltip from 'components/info-tooltip';
 import { translate as __ } from 'i18n-calypso';
-import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
 const summaryLabel = ( services, numSelected ) => {
 	if ( numSelected === services.length ) {
 		return __( 'All services selected' );
 	}
-	const format = ( 1 === numSelected ) ? __( '%d service selected' ) : __( '%d services selected' );
-	return sprintf( format, numSelected );
+	return __(
+		'%(numSelected)d service selected',
+		'%(numSelected)d services selected',
+		{
+			count: numSelected,
+			args: { numSelected },
+		}
+	);
 };
 
 const updateAll = ( event, updateValue, services ) => {

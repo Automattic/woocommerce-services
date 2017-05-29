@@ -5,10 +5,17 @@ export default function boot() {
 	// Initialize i18n mixin
 	ReactClass.injection.injectMixin( i18n.mixin );
 
-	if ( window.i18nLocaleStrings ) {
-		const i18nLocaleStringsObject = window.i18nLocaleStrings;
-		i18n.setLocale( i18nLocaleStringsObject );
+	if ( ! window.i18nLocale ) {
+		return;
 	}
+
+	const i18nLocaleStringsObject = JSON.parse( window.i18nLocale.json );
+	if ( ! i18nLocaleStringsObject ) {
+		return;
+	}
+
+	i18nLocaleStringsObject[ '' ].localeSlug = window.i18nLocale.localeSlug;
+	i18n.setLocale( i18nLocaleStringsObject );
 }
 
 boot();
