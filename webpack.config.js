@@ -7,6 +7,7 @@ const escapeStringRegexp = require( 'escape-string-regexp' );
 const testDirMatcher = new RegExp( escapeStringRegexp( path.resolve( __dirname, 'client' ) ) + '.*' + escapeStringRegexp( path.sep + 'test' + path.sep ) );
 
 const isProd = 'production' === process.env.NODE_ENV;
+const isI18n = 'i18n' === process.env.NODE_ENV;
 const isTest = 'test' === process.env.NODE_ENV;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
@@ -168,7 +169,6 @@ if ( isProd ) {
 		},
 		mangle: {
 			screw_ie8: true,
-			except: [ 'translate' ],
 		},
 		output: {
 			comments: false,
@@ -176,7 +176,7 @@ if ( isProd ) {
 		},
 	} ) );
 
-} else {
+} else if ( ! isI18n ) {
 
 	config.output.publicPath = 'http://localhost:8085/';
 
