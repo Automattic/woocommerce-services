@@ -1,4 +1,4 @@
-const fs = require('fs'),
+const fs = require( 'fs' ),
 	globby = require( 'globby' ),
 	path = require( 'path' ),
 	po2json = require( 'po2json' );
@@ -22,5 +22,5 @@ poFilePaths.forEach( ( inputPath ) => {
 		} else {
 			console.log( 'saved ' + outputFilename );
 		}
-	} )
+	} );
 } );
