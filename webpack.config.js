@@ -150,7 +150,7 @@ const config = {
 	],
 };
 
-if ( isProd ) {
+if ( isProd || isI18n ) {
 
 	babelSettings.plugins.push( 'transform-react-remove-prop-types' );
 
@@ -169,6 +169,7 @@ if ( isProd ) {
 		},
 		mangle: {
 			screw_ie8: true,
+			except: isProd ? [] : [ 'translate' ]
 		},
 		output: {
 			comments: false,
@@ -176,7 +177,7 @@ if ( isProd ) {
 		},
 	} ) );
 
-} else if ( ! isI18n ) {
+} else {
 
 	config.output.publicPath = 'http://localhost:8085/';
 
