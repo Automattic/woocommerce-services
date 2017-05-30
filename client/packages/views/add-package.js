@@ -7,7 +7,6 @@ import FormButton from 'components/forms/form-button';
 import Modal from 'components/modal';
 import AddPackagePresets from './add-package-presets';
 import { translate as __ } from 'i18n-calypso';
-import { sprintf } from 'sprintf-js';
 import checkInputs from './modal-errors';
 import _ from 'lodash';
 import inputFilters from './input-filters';
@@ -140,7 +139,7 @@ const AddPackageDialog = ( props ) => {
 				{ fieldInfo( 'name', __( 'This field must be unique' ) ) }
 			</FormFieldset>
 			<FormFieldset>
-				<FormLabel>{ sprintf( __( 'Inner Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
+				<FormLabel>{ __( 'Inner Dimensions (L x W x H) %(dimensionUnit)s', { args: { dimensionUnit } } ) }</FormLabel>
 				<FormTextInput
 					name="inner_dimensions"
 					placeholder={ exampleDimensions }
@@ -155,7 +154,7 @@ const AddPackageDialog = ( props ) => {
 			</FormFieldset>
 			{ isOuterDimensionsVisible
 				? ( <FormFieldset>
-						<FormLabel>{ sprintf( __( 'Outer Dimensions (L x W x H) %s' ), dimensionUnit ) }</FormLabel>
+						<FormLabel>{ __( 'Outer Dimensions (L x W x H) %(dimensionUnit)s', { args: { dimensionUnit } } ) }</FormLabel>
 						<FormTextInput
 							name="outer_dimensions"
 							placeholder={ exampleDimensions }

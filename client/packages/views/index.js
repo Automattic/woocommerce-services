@@ -18,7 +18,6 @@ import * as NoticeActions from 'state/notices/actions';
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
 import _ from 'lodash';
-import { sprintf } from 'sprintf-js';
 
 const Packages = ( props ) => {
 	const isFetching = props.form.isFetching;
@@ -39,7 +38,10 @@ const Packages = ( props ) => {
 		}
 
 		const selectedCount = groupPackageIds.length - diffLen;
-		return sprintf( 1 === selectedCount ? __( '%d package selected' ) : __( '%d packages selected' ), selectedCount );
+		return __( '%(selectedCount)d package selected', '%(selectedCount)d packages selected', {
+			count: selectedCount,
+			args: { selectedCount },
+		} );
 	};
 
 	const renderPredefHeader = ( title, selected, packages, serviceId, groupId ) => {

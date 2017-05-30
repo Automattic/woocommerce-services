@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
 import ShippingRates from './list';
 import StepContainer from '../../step-container';
-import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
@@ -22,20 +21,24 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol, pac
 		const rateInfo = _.find( packageRates, [ 'service_id', selectedRate ] );
 
 		if ( rateInfo ) {
-			return sprintf( __( '%(serviceName)s: %(currencySymbol)s%(rate).2f' ), {
-				serviceName: rateInfo.title,
-				rate: rateInfo.rate,
-				currencySymbol,
+			return __( '%(serviceName)s: %(currencySymbol)s%(rate).2f', {
+				args: {
+					serviceName: rateInfo.title,
+					rate: rateInfo.rate,
+					currencySymbol,
+				},
 			} );
 		}
 
-		return __( '' );
+		return __( ' ' );
 	}
 
 	// Otherwise, just show the total
-	return sprintf( __( 'Total rate: %(currencySymbol)s%(total).2f' ), {
-		total,
-		currencySymbol,
+	return __( 'Total rate: %(currencySymbol)s%(total)s', {
+		args: {
+			total,
+			currencySymbol,
+		},
 	} );
 };
 

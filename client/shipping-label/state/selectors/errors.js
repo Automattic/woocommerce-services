@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { translate as __ } from 'i18n-calypso';
 import { isValidPhone } from 'lib/utils/phone-format';
-import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized, ignoreValidation }, countriesData ) => {
@@ -23,7 +22,7 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized,
 
 	if ( countriesData[ country ] ) {
 		if ( ! isValidPhone( phone, country ) ) {
-			errors.phone = sprintf( __( 'Invalid phone number for %s' ), countriesData[ country ].name );
+			errors.phone = __( 'Invalid phone number for %(country)s', { args: { country: countriesData[ country ].name } } );
 		}
 
 		switch ( country ) {
