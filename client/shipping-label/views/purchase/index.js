@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import Spinner from 'components/spinner';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import getPDFSupport from 'lib/utils/pdf-support';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';

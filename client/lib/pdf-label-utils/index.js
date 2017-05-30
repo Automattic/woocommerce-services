@@ -1,4 +1,4 @@
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import querystring from 'querystring';
 import _ from 'lodash';
 import getPDFSupport from 'lib/utils/pdf-support';

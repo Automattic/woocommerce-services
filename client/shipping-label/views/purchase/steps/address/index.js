@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import AddressFields from './fields';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import StepContainer from '../../step-container';

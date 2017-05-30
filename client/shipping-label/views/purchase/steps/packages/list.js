@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import getPackageDescriptions from './get-package-descriptions';

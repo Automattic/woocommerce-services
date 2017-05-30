@@ -1,17 +1,21 @@
 import ReactClass from 'react/lib/ReactClass';
-import { initialize, mixin } from '../mixins/i18n';
+import i18n from 'i18n-calypso';
 
 export default function boot() {
-	// Initialize i18n
-	let i18nLocaleStringsObject = {};
+	// Initialize i18n mixin
+	ReactClass.injection.injectMixin( i18n.mixin );
 
-	if ( window.i18nLocaleStrings ) {
-		i18nLocaleStringsObject = window.i18nLocaleStrings;
+	if ( ! window.i18nLocale ) {
+		return;
 	}
 
-	initialize( i18nLocaleStringsObject );
+	const i18nLocaleStringsObject = JSON.parse( window.i18nLocale.json );
+	if ( ! i18nLocaleStringsObject ) {
+		return;
+	}
 
-	ReactClass.injection.injectMixin( mixin );
+	i18nLocaleStringsObject[ '' ].localeSlug = window.i18nLocale.localeSlug;
+	i18n.setLocale( i18nLocaleStringsObject );
 }
 
 boot();

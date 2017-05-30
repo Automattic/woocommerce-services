@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import Dropdown from 'components/dropdown';
 import TextField from 'components/text-field';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 const StateDropdown = ( props ) => {
 	const statesMap = ( props.countriesData[ props.countryCode ] || {} ).states;

@@ -1,0 +1,1214 @@
+# Copyright (C) 2017 WooCommerce Services
+# This file is distributed under the same license as the WooCommerce Services package.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Services 1.4.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-"
+"services\n"
+"POT-Creation-Date: 2017-05-29 16:17:46+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#. translators: %1$d: Product ID, %2$s: Product Name
+#: classes/class-wc-connect-compatibility-wc26.php:89
+#: classes/class-wc-connect-compatibility-wc30.php:103
+msgid "#%1$d - %2$s"
+msgstr ""
+
+#. translators: %d: Deleted Product ID
+#: classes/class-wc-connect-compatibility-wc26.php:94
+#: classes/class-wc-connect-compatibility-wc30.php:108
+msgid "#%d - [Deleted product]"
+msgstr ""
+
+#: classes/class-wc-connect-debug-tools.php:20
+msgid "Test your WooCommerce Services connection"
+msgstr ""
+
+#: classes/class-wc-connect-debug-tools.php:21
+msgid "Test Connection"
+msgstr ""
+
+#: classes/class-wc-connect-debug-tools.php:22
+msgid ""
+"This will test your WooCommerce Services connection to ensure everything is "
+"working correctly"
+msgstr ""
+
+#: classes/class-wc-connect-debug-tools.php:31
+msgid "Your site is succesfully communicating to the WooCommerce Services API."
+msgstr ""
+
+#: classes/class-wc-connect-debug-tools.php:33
+msgid ""
+"ERROR: Your site has a problem connecting to the WooCommerce Services API. "
+"Please make sure your Jetpack connection is working."
+msgstr ""
+
+#: classes/class-wc-connect-error-notice.php:57
+msgid ""
+"An error occurred in WooCommerce Services. Details are logged <a href=\"%s"
+"\">here</a>."
+msgstr ""
+
+#: classes/class-wc-connect-error-notice.php:62
+msgid "Dismiss this notice"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:53
+msgid "WooCommerce %s or higher is required (You are running %s)"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:64
+msgid "Please set Base Location in WooCommerce Settings > General"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:73
+msgid "WooCommerce %s is configured correctly"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:81
+msgid "WooCommerce"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:104
+msgid "Please install and activate the Jetpack plugin, version %s or higher"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:115
+msgid "Jetpack %s or higher is required (You are running %s)"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:126
+msgid ""
+"Jetpack is not connected to WordPress.com. Make sure the Jetpack plugin is "
+"installed, activated, and connected."
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:134
+msgid "This is a Jetpack staging site"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:143
+msgid "Jetpack %s is connected and working correctly"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:151
+msgid "Jetpack"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:165
+msgctxt "%s = human-readable time difference"
+msgid "Last updated %s ago"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:176
+msgid "No service data available"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:184
+msgid "Service data was found, but may be out of date"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:192
+msgid "Service data was found, but is more than three days old"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:200
+msgid "Service data was found, but is more than one day old"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:208
+msgid "Service data is up-to-date"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:215
+msgid "WooCommerce Services Data"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:235
+msgid "No services have been enabled"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:256
+msgid "<a href=\"%s\">Review service settings</a>"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:264
+msgid "<a href=\"%s\">Edit service settings</a>"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:272
+msgctxt "e.g. two hours"
+msgid ""
+"Request was made %1$s ago - check logs below or <a href=\"%2$s\">edit "
+"service settings</a>"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:291
+msgid "Setup for this service has not yet been completed"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:299
+msgid "No rate requests have yet been made for this service"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:307
+msgid "The most recent rate request was successful"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:315
+msgid "The most recent rate request failed"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:322
+msgid "%s Shipping Zone"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:384
+msgid "Enabled"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:385
+msgid "Disabled"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:396
+msgid "Log is empty"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:408
+msgid "Last %d entries <a href=\"%s\">Show full log</a>"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:418
+msgid "Debug Log"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:433
+msgid ""
+"Our team is here for you. View our <a href=\"%1$s\">support docs</a> or <a "
+"href=\"%2$s\">open a support ticket</a>."
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:444
+msgid "Need help?"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:483
+#: classes/class-wc-connect-settings-pages.php:31
+msgctxt "The WooCommerce Services brandname"
+msgid "WooCommerce Services"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:666
+msgctxt ""
+"This section displays the overall health of WooCommerce Services and the "
+"things it depends on"
+msgid "Health"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:672
+msgid "Services"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:678
+msgid "Debug"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:684
+msgid "Support"
+msgstr ""
+
+#: classes/class-wc-connect-help-view.php:690
+msgid "WooCommerce Services Status"
+msgstr ""
+
+#: classes/class-wc-connect-nux.php:78
+msgid "Add a WooCommerce shipping service to a Zone"
+msgstr ""
+
+#: classes/class-wc-connect-nux.php:79
+msgid ""
+"To ship products to customers using USPS or Canada Post, you will need to "
+"add them as a shipping method to an applicable zone. If you don't have any "
+"zones, add one first."
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:334
+msgctxt "A service with an unknown title and unknown method_title"
+msgid "Unknown"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:338
+msgid "Rest of the World"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:416
+msgid "An invalid service instance was received."
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:426
+msgid "An invalid service ID was received."
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:533
+msgid "kg"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:535
+msgid "g"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:537
+msgid "lbs"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:539
+msgid "oz"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:541
+msgid "m"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:543
+msgid "cm"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:545
+msgid "mm"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:547
+msgid "in"
+msgstr ""
+
+#: classes/class-wc-connect-service-settings-store.php:549
+msgid "yd"
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:51 i18n/strings.php:46
+msgid "Packages"
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:52
+msgid "Shipping Labels"
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:126
+msgid ""
+"Note: Jetpack is connected, but development mode is also enabled on this "
+"site. Please disable development mode."
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:128
+msgid ""
+"Note: Jetpack development mode is enabled on this site. This site will not "
+"be able to obtain payment methods from WooCommerce Services production "
+"servers."
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:161
+msgid ""
+"Only the primary Jetpack user can manage shipping label payment methods. "
+"Please login as %1$s (%2$s) to manage payment methods."
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:166
+msgid ""
+"You must first connect your Jetpack before you can manage your shipping "
+"label payment method."
+msgstr ""
+
+#: classes/class-wc-connect-settings-pages.php:173
+msgid "Payment Method"
+msgstr ""
+
+#: classes/class-wc-connect-shipping-method.php:348
+msgid "Unknown package (%s)"
+msgstr ""
+
+#: classes/class-wc-connect-shipping-method.php:350
+msgid "Individual packaging (%s)"
+msgstr ""
+
+#: classes/class-wc-connect-shipping-method.php:367
+msgid "Packaging"
+msgstr ""
+
+#: classes/class-wc-rest-connect-account-settings-controller.php:46
+msgid "Unable to update settings. %s"
+msgstr ""
+
+#: classes/class-wc-rest-connect-self-help-controller.php:19
+msgid "Unable to update settings. The form data could not be read."
+msgstr ""
+
+#: classes/class-wc-rest-connect-services-controller.php:35
+msgid "Unable to update service settings. Form data is missing service ID."
+msgstr ""
+
+#: classes/class-wc-rest-connect-services-controller.php:46
+msgid "Unable to update service settings. The form data could not be read."
+msgstr ""
+
+#: classes/class-wc-rest-connect-services-controller.php:58
+msgid "Unable to update service settings. Validation failed. %s"
+msgstr ""
+
+#: classes/class-wc-rest-connect-shipping-label-controller.php:68
+msgid "Individual packaging"
+msgstr ""
+
+#: classes/class-wc-rest-connect-shipping-label-controller.php:72
+msgid "Unknown package"
+msgstr ""
+
+#: classes/class-wc-rest-connect-shipping-label-print-controller.php:25
+msgid "Invalid PDF request."
+msgstr ""
+
+#: i18n/strings.php:4
+msgid "N/A"
+msgstr ""
+
+#: i18n/strings.php:5 i18n/strings.php:11 i18n/strings.php:34
+#: i18n/strings.php:54 i18n/strings.php:79 i18n/strings.php:145
+msgid "Cancel"
+msgstr ""
+
+#: i18n/strings.php:6 i18n/strings.php:85 i18n/strings.php:109
+#: i18n/strings.php:113
+msgid "Print"
+msgstr ""
+
+#: i18n/strings.php:7 i18n/strings.php:76 i18n/strings.php:110
+#: i18n/strings.php:164
+msgid "Paper size"
+msgstr ""
+
+#: i18n/strings.php:8
+msgid ""
+"NOTE: If you already used the label in a package, printing and using it "
+"again is a violation of our terms of service and may result in criminal "
+"charges."
+msgstr ""
+
+#: i18n/strings.php:9
+msgid ""
+"If there was a printing error when you purchased the label, you can print it "
+"again."
+msgstr ""
+
+#: i18n/strings.php:10
+msgid "Reprint shipping label"
+msgstr ""
+
+#: i18n/strings.php:12
+msgid "Refund label (-%s)"
+msgstr ""
+
+#: i18n/strings.php:13
+msgid "Amount eligible for refund"
+msgstr ""
+
+#: i18n/strings.php:14
+msgid "Purchase date"
+msgstr ""
+
+#: i18n/strings.php:15
+msgid ""
+"You can request a refund for a shipping label that has not been used to ship "
+"a package. It will take at least 14 days to process."
+msgstr ""
+
+#: i18n/strings.php:16
+msgid "Request a refund"
+msgstr ""
+
+#: i18n/strings.php:17 i18n/strings.php:160
+msgid "Select one..."
+msgstr ""
+
+#: i18n/strings.php:18
+msgid "Choose rate: %s"
+msgstr ""
+
+#: i18n/strings.php:19
+msgid "Choose rate"
+msgstr ""
+
+#: i18n/strings.php:20
+msgid ""
+"The service and rate chosen by the customer at checkout is not available. "
+"Please choose another."
+msgstr ""
+
+#: i18n/strings.php:21
+msgid "Rates"
+msgstr ""
+
+#: i18n/strings.php:22
+msgid "Total rate: %(currencySymbol)s%(total).2f"
+msgstr ""
+
+#: i18n/strings.php:24
+msgid "%(serviceName)s: %(currencySymbol)s%(rate).2f"
+msgstr ""
+
+#: i18n/strings.php:25
+msgid "Unsaved changes made to packages"
+msgstr ""
+
+#: i18n/strings.php:26
+msgid "There are no items saved for a later delivery"
+msgstr ""
+
+#: i18n/strings.php:27 i18n/strings.php:44
+msgid "Saved for later"
+msgstr ""
+
+#: i18n/strings.php:28
+msgid "Remove this package"
+msgstr ""
+
+#: i18n/strings.php:29
+msgid "Total Weight"
+msgstr ""
+
+#: i18n/strings.php:30
+msgid "Contents"
+msgstr ""
+
+#: i18n/strings.php:31
+msgid "Custom Packages"
+msgstr ""
+
+#: i18n/strings.php:32
+msgid "There are no items in this package."
+msgstr ""
+
+#: i18n/strings.php:33 i18n/strings.php:57
+msgid "Add item"
+msgstr ""
+
+#: i18n/strings.php:35 i18n/strings.php:178
+msgid "Move"
+msgstr ""
+
+#: i18n/strings.php:36
+msgid "Where would you like to move it?"
+msgstr ""
+
+#: i18n/strings.php:37
+msgid "Move item"
+msgstr ""
+
+#: i18n/strings.php:38
+msgid "%s is currently in %s."
+msgstr ""
+
+#: i18n/strings.php:39
+msgid "Save for later"
+msgstr ""
+
+#: i18n/strings.php:40
+msgid "Ship in original packaging"
+msgstr ""
+
+#: i18n/strings.php:41
+msgid "Original packaging"
+msgstr ""
+
+#: i18n/strings.php:42
+msgid "Boxed"
+msgstr ""
+
+#: i18n/strings.php:43 i18n/strings.php:147
+msgid "Add package"
+msgstr ""
+
+#: i18n/strings.php:45
+msgid "Use these packages"
+msgstr ""
+
+#: i18n/strings.php:47
+msgid "There are no packages or items associated with this order"
+msgstr ""
+
+#: i18n/strings.php:48
+msgid ""
+"There are no packages configured. The items have been packed individually. "
+"You can add or enable packages using the <a href=\"%(url)s\">Packaging "
+"Manager</a>."
+msgstr ""
+
+#: i18n/strings.php:49
+msgid "%d items in %d packages: %f %s total"
+msgstr ""
+
+#: i18n/strings.php:50
+msgid "%d items in 1 package: %f %s total"
+msgstr ""
+
+#: i18n/strings.php:51
+msgid "1 item in 1 package: %f %s total"
+msgstr ""
+
+#: i18n/strings.php:52
+msgid "Weight not entered"
+msgstr ""
+
+#: i18n/strings.php:53
+msgid "No packages selected"
+msgstr ""
+
+#: i18n/strings.php:55
+msgid "Add"
+msgstr ""
+
+#: i18n/strings.php:56
+msgid "Which item would you like to add to %s?"
+msgstr ""
+
+#: i18n/strings.php:58
+msgid "Use selected address"
+msgstr ""
+
+#: i18n/strings.php:59
+msgid "Suggested address"
+msgstr ""
+
+#: i18n/strings.php:60
+msgid "Edit address"
+msgstr ""
+
+#: i18n/strings.php:61
+msgid "Address entered"
+msgstr ""
+
+#: i18n/strings.php:62
+msgid ""
+"We have slightly modified the address entered. If correct, please use the "
+"suggested address to ensure accurate delivery."
+msgstr ""
+
+#: i18n/strings.php:63
+msgid "Destination address"
+msgstr ""
+
+#: i18n/strings.php:64
+msgid "Origin address"
+msgstr ""
+
+#: i18n/strings.php:65
+msgid "Invalid address"
+msgstr ""
+
+#: i18n/strings.php:66
+msgid "Validating address..."
+msgstr ""
+
+#: i18n/strings.php:67
+msgid "Use this address"
+msgstr ""
+
+#: i18n/strings.php:68
+msgid "Country"
+msgstr ""
+
+#: i18n/strings.php:69
+msgid "Postal code"
+msgstr ""
+
+#: i18n/strings.php:70
+msgid "State"
+msgstr ""
+
+#: i18n/strings.php:71
+msgid "City"
+msgstr ""
+
+#: i18n/strings.php:72
+msgid "Address"
+msgstr ""
+
+#: i18n/strings.php:73 woocommerce-services.php:944
+#: woocommerce-services.php:957
+msgid "Phone"
+msgstr ""
+
+#: i18n/strings.php:74
+msgid "Company"
+msgstr ""
+
+#: i18n/strings.php:75 i18n/strings.php:115
+msgid "Name"
+msgstr ""
+
+#: i18n/strings.php:77
+msgid "Create shipping labels"
+msgstr ""
+
+#: i18n/strings.php:78
+msgid "Create shipping label"
+msgstr ""
+
+#: i18n/strings.php:80
+msgid "Buy & Print"
+msgstr ""
+
+#: i18n/strings.php:81
+msgid "Buy"
+msgstr ""
+
+#: i18n/strings.php:82
+msgid "Buy & Print (%(currencySymbol)s%(ratesTotal).2f)"
+msgstr ""
+
+#: i18n/strings.php:83
+msgid "Buy (%(currencySymbol)s%(ratesTotal).2f)"
+msgstr ""
+
+#: i18n/strings.php:84
+msgid "Purchasing..."
+msgstr ""
+
+#: i18n/strings.php:86
+msgid "Tracking #:"
+msgstr ""
+
+#: i18n/strings.php:87
+msgid "purchased"
+msgstr ""
+
+#: i18n/strings.php:88
+msgid "Label #%s"
+msgstr ""
+
+#: i18n/strings.php:89
+msgid "Reprint"
+msgstr ""
+
+#: i18n/strings.php:90
+msgid "Refund rejected"
+msgstr ""
+
+#: i18n/strings.php:91
+msgid "Refunded on %s"
+msgstr ""
+
+#: i18n/strings.php:92
+msgid "Refund pending"
+msgstr ""
+
+#: i18n/strings.php:93
+msgid "Request refund"
+msgstr ""
+
+#: i18n/strings.php:94
+msgid "Create new label"
+msgstr ""
+
+#: i18n/strings.php:95
+msgid "Add a credit card"
+msgstr ""
+
+#: i18n/strings.php:96
+msgid "To purchase shipping labels, you will first need to add a credit card."
+msgstr ""
+
+#: i18n/strings.php:97
+msgid "Manage cards"
+msgstr ""
+
+#: i18n/strings.php:98
+msgid "Labels will be purchased using card ending: %(cardDigits)s."
+msgstr ""
+
+#: i18n/strings.php:99
+msgid "Saved Packages"
+msgstr ""
+
+#: i18n/strings.php:100
+msgid ""
+"Add and edit saved packages using the <a href=\"%(url)s\">Packaging Manager</"
+"a>."
+msgstr ""
+
+#: i18n/strings.php:101
+msgid "Okay"
+msgstr ""
+
+#: i18n/strings.php:102
+msgid ""
+"Now add your zip code and chose which services you want to offer your "
+"customers."
+msgstr ""
+
+#: i18n/strings.php:103
+msgid ""
+"Increase the rates calculated by the carrier to account for packaging and "
+"handling costs. You can also add a negative amount to save your customers "
+"money."
+msgstr ""
+
+#: i18n/strings.php:104
+msgid "Price adjustment"
+msgstr ""
+
+#: i18n/strings.php:105
+msgid "Service"
+msgstr ""
+
+#: i18n/strings.php:106 i18n/strings.php:129
+msgid "Expand Services"
+msgstr ""
+
+#: i18n/strings.php:107
+msgid "%(numSelected)d service selected"
+msgid_plural "%(numSelected)d services selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: i18n/strings.php:108
+msgid "All services selected"
+msgstr ""
+
+#: i18n/strings.php:111
+msgid ""
+"You can run a test print for shipping labels by selecting the paper size, "
+"then print."
+msgstr ""
+
+#: i18n/strings.php:112
+msgid "Having trouble configuring your printer?"
+msgstr ""
+
+#: i18n/strings.php:114
+msgid "Dimensions (L x W x H)"
+msgstr ""
+
+#: i18n/strings.php:116
+msgid "Type"
+msgstr ""
+
+#: i18n/strings.php:117
+msgid "Your packages will display here once they are added."
+msgstr ""
+
+#: i18n/strings.php:118
+msgid "Untitled"
+msgstr ""
+
+#: i18n/strings.php:119
+msgid "Predefined packages"
+msgstr ""
+
+#: i18n/strings.php:120 i18n/strings.php:140
+msgid "Add a package"
+msgstr ""
+
+#: i18n/strings.php:121
+msgid "Custom packages"
+msgstr ""
+
+#: i18n/strings.php:122 i18n/strings.php:172
+msgid "Unable to get your settings. Please refresh the page to try again."
+msgstr ""
+
+#: i18n/strings.php:123 i18n/strings.php:173
+msgid "Save changes"
+msgstr ""
+
+#: i18n/strings.php:124
+msgid "Unable to save your packages. Please try again."
+msgstr ""
+
+#: i18n/strings.php:125
+msgid "Your packages have been saved."
+msgstr ""
+
+#: i18n/strings.php:126
+msgid "%d packages selected"
+msgstr ""
+
+#: i18n/strings.php:127
+msgid "%d package selected"
+msgstr ""
+
+#: i18n/strings.php:128
+msgid "All packages selected"
+msgstr ""
+
+#: i18n/strings.php:130
+msgid "Defines both the weight of the empty box and the max weight it can hold"
+msgstr ""
+
+#: i18n/strings.php:131 i18n/strings.php:132
+msgid "Max weight"
+msgstr ""
+
+#: i18n/strings.php:133
+msgid "Weight of box"
+msgstr ""
+
+#: i18n/strings.php:134
+msgid "Package weight"
+msgstr ""
+
+#: i18n/strings.php:135
+msgid "Outer Dimensions (L x W x H) %s"
+msgstr ""
+
+#: i18n/strings.php:136
+msgid "Inner Dimensions (L x W x H) %s"
+msgstr ""
+
+#: i18n/strings.php:137
+msgid "This field must be unique"
+msgstr ""
+
+#: i18n/strings.php:138
+msgid "The customer will see this during checkout"
+msgstr ""
+
+#: i18n/strings.php:139
+msgid "Package name"
+msgstr ""
+
+#: i18n/strings.php:141
+msgid "Edit package"
+msgstr ""
+
+#: i18n/strings.php:142 i18n/strings.php:185 i18n/strings.php:188
+#: i18n/strings.php:191
+msgid "This field is required"
+msgstr ""
+
+#: i18n/strings.php:143
+msgid "Invalid value"
+msgstr ""
+
+#: i18n/strings.php:144
+msgid "View exterior dimensions"
+msgstr ""
+
+#: i18n/strings.php:146
+msgid "Apply changes"
+msgstr ""
+
+#: i18n/strings.php:148
+msgid "Type of package"
+msgstr ""
+
+#: i18n/strings.php:149
+msgid "less than a minute ago"
+msgstr ""
+
+#: i18n/strings.php:150
+msgid "a minute ago"
+msgstr ""
+
+#: i18n/strings.php:151
+msgid "%d minutes ago"
+msgstr ""
+
+#: i18n/strings.php:152
+msgid "an hour ago"
+msgstr ""
+
+#: i18n/strings.php:153
+msgid "%d hours ago"
+msgstr ""
+
+#: i18n/strings.php:154
+msgid "a day ago"
+msgstr ""
+
+#: i18n/strings.php:155
+msgid "%d days ago"
+msgstr ""
+
+#: i18n/strings.php:156
+msgid "a month ago"
+msgstr ""
+
+#: i18n/strings.php:157
+msgid "%d months ago"
+msgstr ""
+
+#: i18n/strings.php:158
+msgid "a year ago"
+msgstr ""
+
+#: i18n/strings.php:159
+msgid "%d years ago"
+msgstr ""
+
+#: i18n/strings.php:161
+msgid "Add another credit card"
+msgstr ""
+
+#: i18n/strings.php:162
+msgid ""
+"Use your credit card on file to pay for the labels you print or add a new "
+"one."
+msgstr ""
+
+#: i18n/strings.php:163
+msgid "Credit card"
+msgstr ""
+
+#: i18n/strings.php:165
+msgctxt "date is of the form MM/YY"
+msgid "Expires %(date)s"
+msgstr ""
+
+#: i18n/strings.php:166
+msgid "****%(digits)s"
+msgstr ""
+
+#: i18n/strings.php:167
+msgid "PayPal"
+msgstr ""
+
+#: i18n/strings.php:168
+msgid "VISA"
+msgstr ""
+
+#: i18n/strings.php:169
+msgid "MasterCard"
+msgstr ""
+
+#: i18n/strings.php:170
+msgid "Discover"
+msgstr ""
+
+#: i18n/strings.php:171
+msgid "American Express"
+msgstr ""
+
+#: i18n/strings.php:174
+msgid "Unable to update your payment method. Please try again."
+msgstr ""
+
+#: i18n/strings.php:175
+msgid "Your payment method has been updated."
+msgstr ""
+
+#: i18n/strings.php:176
+msgid "You have unsaved changes."
+msgstr ""
+
+#: i18n/strings.php:177
+msgid "More"
+msgstr ""
+
+#: i18n/strings.php:179
+msgid "TEST LABEL 2"
+msgstr ""
+
+#: i18n/strings.php:180
+msgid "TEST LABEL 1"
+msgstr ""
+
+#: i18n/strings.php:181 i18n/strings.php:182
+msgid "Unexpected server error."
+msgstr ""
+
+#: i18n/strings.php:183 i18n/strings.php:203
+msgid ""
+"There was a problem saving your settings. Please try again after the page is "
+"reloaded."
+msgstr ""
+
+#: i18n/strings.php:184
+msgid "Expand"
+msgstr ""
+
+#: i18n/strings.php:186
+msgid "Please choose a rate"
+msgstr ""
+
+#: i18n/strings.php:187
+msgid "Invalid weight"
+msgstr ""
+
+#: i18n/strings.php:189
+msgid "Invalid ZIP code format"
+msgstr ""
+
+#: i18n/strings.php:190
+msgid "Invalid phone number for %s"
+msgstr ""
+
+#: i18n/strings.php:192
+msgid "This address is not recognized. Please try another."
+msgstr ""
+
+#: i18n/strings.php:193 i18n/strings.php:194
+msgid ""
+"There was a problem with one or more entries. Please fix the errors below "
+"and try saving again."
+msgstr ""
+
+#: i18n/strings.php:195
+msgid "Your changes have been saved."
+msgstr ""
+
+#: i18n/strings.php:196
+msgid "Box %d"
+msgstr ""
+
+#: i18n/strings.php:197
+msgid "Envelope %d"
+msgstr ""
+
+#: i18n/strings.php:198
+msgid "Package %d"
+msgstr ""
+
+#: i18n/strings.php:199
+msgid "The refund request has been sent successfully."
+msgstr ""
+
+#: i18n/strings.php:200
+msgid "Your %d shipping labels were purchased successfully"
+msgstr ""
+
+#: i18n/strings.php:201
+msgid "Your shipping label was purchased successfully"
+msgstr ""
+
+#: i18n/strings.php:202
+msgid "PACKAGE %d (OF %d)"
+msgstr ""
+
+#: i18n/strings.php:204
+msgid "Dismiss"
+msgstr ""
+
+#: i18n/strings.php:205
+msgid "Letter"
+msgstr ""
+
+#: i18n/strings.php:206
+msgid "Legal"
+msgstr ""
+
+#: i18n/strings.php:207
+msgid "Label (4\"x6\")"
+msgstr ""
+
+#: i18n/strings.php:208
+msgid "A4"
+msgstr ""
+
+#: i18n/strings.php:209
+msgid "Save Settings"
+msgstr ""
+
+#: i18n/strings.php:210
+msgid "Saving…"
+msgstr ""
+
+#: woocommerce-services.php:801 woocommerce-services.php:880
+msgid "Welcome to WooCommerce Services"
+msgstr ""
+
+#: woocommerce-services.php:802
+msgid "Dismiss and deactivate the plugin"
+msgstr ""
+
+#: woocommerce-services.php:804
+msgid ""
+"Connect to get live shipping rates and print discounted labels. You will "
+"also get access to new features as we add them."
+msgstr ""
+
+#: woocommerce-services.php:809
+msgid ""
+"By clicking \"Connect\" below, you agree to our <a target=\"_blank\" href="
+"\"%s\">Terms of Service</a>, and understand that WooCommerce Services passes "
+"some data to external servers in order to enable its features. You can find "
+"more information about how WooCommerce Services handles your store's data <a "
+"target=\"_blank\" href=\"%s\">here</a>."
+msgstr ""
+
+#: woocommerce-services.php:816
+msgid "Connect"
+msgstr ""
+
+#: woocommerce-services.php:825
+msgid "WooCommerce Services plugin has been disabled."
+msgstr ""
+
+#: woocommerce-services.php:857
+msgid "To get started, please connect Jetpack to your WordPress.com account."
+msgstr ""
+
+#: woocommerce-services.php:858
+msgid "Connect to WordPress.com"
+msgstr ""
+
+#: woocommerce-services.php:865
+msgid "To get started you need to activate Jetpack."
+msgstr ""
+
+#: woocommerce-services.php:866
+msgid "Activate Jetpack"
+msgstr ""
+
+#: woocommerce-services.php:869
+msgid "To get started you need to install Jetpack."
+msgstr ""
+
+#: woocommerce-services.php:870
+msgid "Install Jetpack"
+msgstr ""
+
+#: woocommerce-services.php:886
+msgid ""
+"There was an error installing Jetpack. Please try installing it manually."
+msgstr ""
+
+#: woocommerce-services.php:925
+msgid "Shipping Label"
+msgstr ""
+
+#: woocommerce-services.php:978
+msgid "<a href=\"%s\">Support</a>"
+msgstr ""
+
+#: woocommerce-services.php:1007
+msgid ""
+"Section not loading? Visit the <a href=\"%s\">status page</a> for "
+"troubleshooting steps."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "WooCommerce Services"
+msgstr ""
+
+#. #-#-#-#-#  woocommerce-services.pot (WooCommerce Services 1.4.1)  #-#-#-#-#
+#. Plugin URI of the plugin/theme
+#. #-#-#-#-#  woocommerce-services.pot (WooCommerce Services 1.4.1)  #-#-#-#-#
+#. Author URI of the plugin/theme
+msgid "http://woocommerce.com/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"WooCommerce Services: Hosted services for WooCommerce, including free real-"
+"time USPS and Canada Post rates and discounted USPS shipping labels."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Automattic"
+msgstr ""

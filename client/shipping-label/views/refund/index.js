@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import Modal from 'components/modal';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import ActionButtons from 'components/action-buttons';
 import { sprintf } from 'sprintf-js';
 import formatDate from 'lib/utils/format-date';

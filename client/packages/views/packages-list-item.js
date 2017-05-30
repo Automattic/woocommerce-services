@@ -4,7 +4,7 @@ import Button from 'components/button';
 import Checkbox from 'components/checkbox';
 import classNames from 'classnames';
 import _ from 'lodash';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 const renderIcon = ( isLetter, isError, onClick ) => {
 	let icon;

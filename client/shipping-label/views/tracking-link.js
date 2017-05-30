@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { sprintf } from 'sprintf-js';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 
 const TRACKING_URL_MAP = {
 	usps: 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=%s',

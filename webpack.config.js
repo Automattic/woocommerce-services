@@ -7,6 +7,7 @@ const escapeStringRegexp = require( 'escape-string-regexp' );
 const testDirMatcher = new RegExp( escapeStringRegexp( path.resolve( __dirname, 'client' ) ) + '.*' + escapeStringRegexp( path.sep + 'test' + path.sep ) );
 
 const isProd = 'production' === process.env.NODE_ENV;
+const isI18n = 'i18n' === process.env.NODE_ENV;
 const isTest = 'test' === process.env.NODE_ENV;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
@@ -131,9 +132,6 @@ const config = {
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
 		],
-		alias: {
-			'i18n-calypso': path.resolve( __dirname, 'client', 'lib', 'i18n-calypso-stub' ),
-		}
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
@@ -152,7 +150,7 @@ const config = {
 	],
 };
 
-if ( isProd ) {
+if ( isProd || isI18n ) {
 
 	babelSettings.plugins.push( 'transform-react-remove-prop-types' );
 
@@ -171,6 +169,7 @@ if ( isProd ) {
 		},
 		mangle: {
 			screw_ie8: true,
+			except: isProd ? [] : [ 'translate' ]
 		},
 		output: {
 			comments: false,

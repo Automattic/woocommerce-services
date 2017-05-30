@@ -6,7 +6,7 @@ import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import * as storageUtils from 'lib/utils/local-storage';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';

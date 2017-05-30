@@ -5,6 +5,8 @@
  * Description: WooCommerce Services: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
  * Author URI: http://woocommerce.com/
+ * Text Domain: woocommerce-services
+ * Domain Path: /i18n/languages/
  * Version: 1.4.1
  *
  * Copyright (c) 2017 Automattic
@@ -348,7 +350,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function load_textdomain() {
-			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
+			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
 		}
 
 		/**
@@ -694,6 +696,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $payment_gateways;
 		}
 
+		function get_i18n_json() {
+			$i18n_json = plugin_dir_path( __FILE__ ) . 'i18n/json/woocommerce-services-' . get_locale() . '.json';
+			if ( is_file( $i18n_json ) && is_readable( $i18n_json ) ) {
+				$locale_data = @file_get_contents( $i18n_json );
+				if ( $locale_data ) {
+					return $locale_data;
+				}
+			}
+			// Return empty if we have nothing to return so it doesn't fail when parsed in JS
+			return '{}';
+		}
+
 		/**
 		 * Registers the React UI bundle
 		 */
@@ -708,9 +722,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array( 'updates' ), $plugin_version );
 
-			require_once( plugin_basename( 'i18n/strings.php' ) );
+			$i18n_json = $this->get_i18n_json();
 			/** @var array $i18nStrings defined in i18n/strings.php */
-			wp_localize_script( 'wc_connect_admin', 'i18nLocaleStrings', $i18nStrings );
+			wp_localize_script( 'wc_connect_admin', 'i18nLocale', array(
+					'json' => $i18n_json,
+					'localeSlug' => join( '-', explode( '_', get_locale() ) ),
+			) );
 		}
 
 		public function get_active_shipping_services() {

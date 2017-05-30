@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { translate as __ } from 'lib/mixins/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { getPaperSizes } from 'lib/pdf-label-utils';
 import Dropdown from 'components/dropdown';
 
