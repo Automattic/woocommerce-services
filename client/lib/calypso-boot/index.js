@@ -10,7 +10,7 @@ export default function boot() {
 	}
 
 	const i18nLocaleStringsObject = JSON.parse( window.i18nLocale.json );
-	if ( ! i18nLocaleStringsObject ) {
+	if ( ! i18nLocaleStringsObject || ! i18nLocaleStringsObject[ '' ] ) {
 		return;
 	}
 
