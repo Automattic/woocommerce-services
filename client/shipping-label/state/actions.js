@@ -502,7 +502,12 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				getLabelRates( dispatch, getState, _.noop, { getRatesURL, nonce } );
 			} else {
 				const labelsToPrint = response.map( ( label, index ) => ( {
-					caption: sprintf( __( 'PACKAGE %d (OF %d)' ), index + 1, response.length ),
+					caption: __( 'PACKAGE %(num)d (OF %(total)d)', {
+						args: {
+							num: index + 1,
+							total: response.length,
+						},
+					} ),
 					labelId: label.label_id,
 				} ) );
 				const state = getState().shippingLabel;
@@ -513,9 +518,14 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				} else {
 					printDocument( printUrl )
 						.then( () => {
-							const noticeText = 1 === response.length
-								? __( 'Your shipping label was purchased successfully' )
-								: sprintf( __( 'Your %d shipping labels were purchased successfully' ), response.length );
+							const noticeText = __(
+								'Your shipping label was purchased successfully',
+								'Your %(count)d shipping labels were purchased successfully',
+								{
+									count: response.length,
+									args: { count: response.length },
+								}
+							);
 							dispatch( NoticeActions.successNotice( noticeText ) );
 							dispatch( exitPrintingFlow( true ) );
 							dispatch( clearAvailableRates() );

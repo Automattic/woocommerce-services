@@ -8,7 +8,6 @@ import Unpacked from './unpacked';
 import FormButton from 'components/forms/form-button';
 import Notice from 'components/notice';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
-import { sprintf } from 'sprintf-js';
 import StepContainer from '../../step-container';
 
 const PackagesStep = ( {
@@ -51,11 +50,11 @@ const PackagesStep = ( {
 		let summary = '';
 
 		if ( 1 === packageIds.length && 1 === itemsCount ) {
-			summary = sprintf( __( '1 item in 1 package: %f %s total' ), totalWeight, storeOptions.weight_unit );
+			summary = __( '1 item in 1 package: %(weight)f %(unit)s total', { args: { weight: totalWeight, unit: storeOptions.weight_unit } } );
 		} else if ( 1 === packageIds.length ) {
-			summary = sprintf( __( '%d items in 1 package: %f %s total' ), itemsCount, totalWeight, storeOptions.weight_unit );
+			summary = __( '%(itemsCount)d items in 1 package: %(weight)f %(unit)s total', { args: { itemsCount, weight: totalWeight, unit: storeOptions.weight_unit } } );
 		} else {
-			summary = sprintf( __( '%d items in %d packages: %f %s total' ), itemsCount, packageIds.length, totalWeight, storeOptions.weight_unit );
+			summary = __( '%(itemsCount)d items in %(packageCount)d packages: %(weight)f %(unit)s total', { args: { itemsCount, packageCount: packageIds.length, weight: totalWeight, unit: storeOptions.weight_unit } } );
 		}
 
 		if ( ! hasAnyPackagesConfigured ) {
@@ -67,18 +66,14 @@ const PackagesStep = ( {
 
 	const renderWarning = () => {
 		if ( ! hasAnyPackagesConfigured ) {
-			const packagesMsg = sprintf(
-				__( 'There are no packages configured. The items have been packed individually. You can add or enable packages using the <a href="%(url)s">Packaging Manager</a>.' ),
-				{
-					url: 'admin.php?page=wc-settings&tab=shipping&section=package-settings',
-				}
-			);
-
 			return <Notice
 				className="validation-message"
 				status="is-warning"
 				showDismiss={ false }>
-				<span dangerouslySetInnerHTML={ { __html: packagesMsg } } />
+				<span>{ __(
+					'There are no packages configured. The items have been packed individually. You can add or enable packages using the {{a}}Packaging Manager{{/a}}.',
+					{ components: { a: <a href="admin.php?page=wc-settings&tab=shipping&section=package-settings" /> } }
+				) }</span>
 			</Notice>;
 		}
 

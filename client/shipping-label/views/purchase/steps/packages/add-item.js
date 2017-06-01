@@ -4,7 +4,6 @@ import Dialog from 'components/dialog';
 import FormRadio from 'components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
 import ActionButtons from 'components/action-buttons';
-import { sprintf } from 'sprintf-js';
 import getPackageDescriptions from './get-package-descriptions';
 
 const AddItemDialog = ( {
@@ -22,20 +21,20 @@ const AddItemDialog = ( {
 		return null;
 	}
 
-	const renderRadioButton = ( pckgId, itemIdx, label ) => {
+	const packageLabels = getPackageDescriptions( selected, all, true );
+	const getPackageNameElement = ( pckgId ) => {
+		return <span className="wcc-move-item-dialog__package-name">{ packageLabels[ pckgId ] }</span>;
+	};
+
+	const renderRadioButton = ( pckgId, itemIdx, item ) => {
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="wcc-move-item-dialog__package-option">
 				<FormRadio checked={ pckgId === sourcePackageId && itemIdx === movedItemIndex } onChange={ () => ( setAddedItem( pckgId, itemIdx ) ) } />
-				<span dangerouslySetInnerHTML={ { __html: label } } />
+				<span> { __( '%(item)s from {{pckg/}}', { args: { item: item.name }, components: { pckg: getPackageNameElement( pckgId ) } } ) } </span>
 			</FormLabel>
 		);
-	};
-
-	const packageLabels = getPackageDescriptions( selected, all, true );
-	const getPackageNameHtml = ( pckgId ) => {
-		return `<span class="wcc-move-item-dialog__package-name">${ packageLabels[ pckgId ] }</span>`;
 	};
 
 	const itemOptions = [];
@@ -47,8 +46,7 @@ const AddItemDialog = ( {
 
 		let itemIdx = 0;
 		selected[ pckgId ].items.forEach( ( item ) => {
-			const label = sprintf( '%s from %s', item.name, getPackageNameHtml( pckgId ) );
-			itemOptions.push( renderRadioButton( pckgId, itemIdx, label ) );
+			itemOptions.push( renderRadioButton( pckgId, itemIdx, item ) );
 			itemIdx++;
 		} );
 	} );
@@ -68,7 +66,9 @@ const AddItemDialog = ( {
 			<div className="wcc-label-packages-dialog__content">
 				<h1 className="form-section-heading">{ __( 'Add item' ) }</h1>
 				<div className="wcc-label-packages-dialog__body">
-					<p dangerouslySetInnerHTML={ { __html: sprintf( __( 'Which item would you like to add to %s?' ), getPackageNameHtml( openedPackageId ) ) } } />
+					<p>
+						{ __( 'Which item would you like to add to {{pckg/}}?', { components: { pckg: getPackageNameElement( openedPackageId ) } } ) }
+					</p>
 					{ itemOptions }
 				</div>
 				<ActionButtons buttons={ [

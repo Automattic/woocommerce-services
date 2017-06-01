@@ -18,7 +18,6 @@ import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
 import _ from 'lodash';
-import { sprintf } from 'sprintf-js';
 import Notice from 'components/notice';
 
 class ShippingLabelRootView extends Component {
@@ -58,12 +57,12 @@ class ShippingLabelRootView extends Component {
 		if ( paymentMethod ) {
 			return (
 				<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
-					<p dangerouslySetInnerHTML={ { __html: sprintf(
-						__( 'Labels will be purchased using card ending: %(cardDigits)s.' ),
-						{
-							cardDigits: `<strong>${paymentMethod}</strong>`,
-						}
-					) } }></p>
+					<p>
+						{ __( 'Labels will be purchased using card ending: {{strong}}%(cardDigits)s.{{/strong}}', {
+							components: { strong: <strong /> },
+							args: { cardDigits: paymentMethod },
+						} ) }
+					</p>
 					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Manage cards' ) }</a></p>
 				</Notice>
 			);
@@ -132,7 +131,7 @@ class ShippingLabelRootView extends Component {
 				break;
 			case 'complete':
 				className = 'wcc-metabox-label-item__refund-complete';
-				text = sprintf( __( 'Refunded on %s' ), formatDate( label.refund.refund_date ) );
+				text = __( 'Refunded on %(date)s', { args: { date: formatDate( label.refund.refund_date ) } } );
 				break;
 			case 'rejected':
 				className = 'wcc-metabox-label-item__refund-rejected';
@@ -176,7 +175,7 @@ class ShippingLabelRootView extends Component {
 						onMouseEnter={ () => this.openTooltip( index ) }
 						onMouseLeave={ () => this.closeTooltip( index ) }
 						ref={ 'label-details-' + index }>
-					{ sprintf( __( 'Label #%s' ), labelNum ) }
+					{ __( 'Label #%(labelNum)s', { args: { labelNum } } ) }
 				</span>
 				<Tooltip
 					className="wc-connect-popover"
@@ -203,7 +202,9 @@ class ShippingLabelRootView extends Component {
 		return (
 			<div key={ label.label_id } className="wcc-metabox-label-item" >
 				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, labels.length - index, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
-				<p className="wcc-metabox-label-item__tracking">{ __( 'Tracking #:' ) } <TrackingLink { ...label }/></p>
+				<p className="wcc-metabox-label-item__tracking">
+					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label }/> } } ) }
+				</p>
 				<p className="wcc-metabox-label-item__actions" >
 					{ this.renderRefund( label ) }
 					{ this.renderReprint( label ) }

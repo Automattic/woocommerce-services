@@ -8,7 +8,6 @@ import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
 import RatesStep from './steps/rates';
 import Sidebar from './sidebar';
-import { sprintf } from 'sprintf-js';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
 const PrintLabelDialog = ( props ) => {
@@ -33,10 +32,10 @@ const PrintLabelDialog = ( props ) => {
 			const ratesTotal = getRatesTotal( props.form.rates );
 
 			if ( noNativePDFSupport ) {
-				return sprintf( __( 'Buy (%(currencySymbol)s%(ratesTotal).2f)' ), { currencySymbol, ratesTotal } );
+				return __( 'Buy (%(currencySymbol)s%(ratesTotal)s)', { args: { currencySymbol, ratesTotal } } );
 			}
 
-			return sprintf( __( 'Buy & Print (%(currencySymbol)s%(ratesTotal).2f)' ), { currencySymbol, ratesTotal } );
+			return __( 'Buy & Print (%(currencySymbol)s%(ratesTotal)s)', { args: { currencySymbol, ratesTotal } } );
 		}
 
 		if ( noNativePDFSupport ) {

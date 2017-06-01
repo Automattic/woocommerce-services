@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import Modal from 'components/modal';
 import { translate as __ } from 'i18n-calypso';
 import ActionButtons from 'components/action-buttons';
-import { sprintf } from 'sprintf-js';
 import formatDate from 'lib/utils/format-date';
 
 const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refundable_amount, label_id } ) => {
@@ -35,7 +34,7 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 						onClick: labelActions.confirmRefund,
 						isPrimary: true,
 						isDisabled: refundDialog && refundDialog.isSubmitting,
-						label: sprintf( __( 'Refund label (-%s)' ), getRefundableAmount() ),
+						label: __( 'Refund label (-%(amount)s)', { args: { amount: getRefundableAmount() } } ),
 					},
 					{
 						onClick: labelActions.closeRefundDialog,

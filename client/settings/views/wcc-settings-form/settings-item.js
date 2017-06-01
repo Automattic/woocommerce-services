@@ -9,7 +9,6 @@ import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
 import ShippingServiceGroups from 'settings/views/services';
 import FormLegend from 'components/forms/form-legend';
-import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'i18n-calypso';
 
 const SettingsItem = ( {
@@ -71,17 +70,17 @@ const SettingsItem = ( {
 			);
 
 		case 'packages':
-			const packagesMsg = sprintf(
-				__( 'Add and edit saved packages using the <a href="%(url)s">Packaging Manager</a>.' ),
-				{
-					url: 'admin.php?page=wc-settings&tab=shipping&section=package-settings',
-				}
-			);
-
 			return (
 				<div>
 					<FormLegend>{ __( 'Saved Packages' ) }</FormLegend>
-					<div dangerouslySetInnerHTML={ { __html: packagesMsg } } />
+					{ __(
+						'Add and edit saved packages using the {{a}}Packaging Manager{{/a}}.',
+						{
+							components: {
+								a: <a href="admin.php?page=wc-settings&tab=shipping&section=package-settings" />,
+							},
+						}
+					) }
 				</div>
 			);
 

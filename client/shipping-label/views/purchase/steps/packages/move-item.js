@@ -4,7 +4,6 @@ import Dialog from 'components/dialog';
 import FormRadio from 'components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
 import ActionButtons from 'components/action-buttons';
-import { sprintf } from 'sprintf-js';
 import getPackageDescriptions from './get-package-descriptions';
 
 const MoveItemDialog = ( {
@@ -36,7 +35,7 @@ const MoveItemDialog = ( {
 	const openedPackage = selected[ openedPackageId ];
 	const items = '' !== openedPackageId ? openedPackage.items : unpacked;
 	const item = items[ movedItemIndex ];
-	const itemLink = sprintf( '<a href="%s" target="_blank">%s</a>', item.url, item.name );
+	const itemLink = <a href={ item.url } target="_blank">{ item.name }</a>;
 	let desc;
 
 	const packageLabels = getPackageDescriptions( selected, all, true );
@@ -72,14 +71,18 @@ const MoveItemDialog = ( {
 	};
 
 	if ( '' === openedPackageId ) {
-		desc = sprintf( '%s is currently saved for a later shipment.', itemLink );
+		desc = __( '{{itemLink/}} is currently saved for a later shipment.', { components: { itemLink } } );
 	} else if ( 'individual' === openedPackage.box_id ) {
-		desc = sprintf( '%s is currently shipped in its original packaging.', itemLink );
+		desc = __( '{{itemLink/}} is currently shipped in its original packaging.', { components: { itemLink } } );
 	} else {
-		desc = sprintf(
-			__( '%s is currently in %s.' ),
-			itemLink,
-			sprintf( '<span class="wcc-move-item-dialog__package-name">%s</a>', packageLabels[ openedPackageId ] )
+		desc = __(
+			'{{itemLink/}} is currently in {{pckg/}}.',
+			{
+				components: {
+					itemLink,
+					pckg: <span className="wcc-move-item-dialog__package-name">{ packageLabels[ openedPackageId ] }</span>,
+				},
+			}
 		);
 	}
 
@@ -92,7 +95,7 @@ const MoveItemDialog = ( {
 			<div className="wcc-label-packages-dialog__content">
 				<h1 className="form-section-heading">{ __( 'Move item' ) }</h1>
 				<div className="wcc-label-packages-dialog__body">
-					<p dangerouslySetInnerHTML={ { __html: desc } }/>
+					<p>{ desc }</p>
 					<p>{ __( 'Where would you like to move it?' ) }</p>
 					{ renderPackedOptions() }
 					{ renderIndividualOption() }

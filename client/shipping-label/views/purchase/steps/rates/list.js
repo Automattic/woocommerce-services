@@ -4,7 +4,6 @@ import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
 import getPackageDescriptions from '../packages/get-package-descriptions';
 import { translate as __ } from 'i18n-calypso';
-import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
 const renderRateNotice = () => {
@@ -37,7 +36,7 @@ const ShippingRates = ( {
 		if ( hasSinglePackage ) {
 			return __( 'Choose rate' );
 		}
-		return sprintf( __( 'Choose rate: %s' ), packageNames[ pckgId ] );
+		return __( 'Choose rate: %(pckg)s', { args: { pckg: packageNames[ pckgId ] } } );
 	};
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
