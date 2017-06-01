@@ -788,7 +788,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool
 		 */
 		private function can_accept_tos() {
-			if ( defined( 'JETPACK_DEV_DEBUG' ) && JETPACK_DEV_DEBUG ) {
+			if ( defined( 'JETPACK_DEV_DEBUG' ) && JETPACK_DEV_DEBUG && current_user_can( 'manage_options' ) ) {
 				return true;
 			}
 
