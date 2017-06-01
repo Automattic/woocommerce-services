@@ -42,7 +42,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_items_as_individual_packages( WC_Order $order ) {
-			$packages = array();
+			$packages   = array();
+			$item_count = 0;
+
 			foreach( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( ! $product || ! $product->needs_shipping() ) {
@@ -60,7 +62,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
-					$id = "weight_{$i}_individual";
+					$id = 'weight_' . $item_count++ . '_individual';
 					$product_data = array(
 						'height'     => ( float ) $height,
 						'product_id' => $item[ 'product_id' ],
