@@ -30,7 +30,7 @@ const ratesSummary = ( selectedRates, availableRates, total, currencySymbol, pac
 			} );
 		}
 
-		return __( ' ' );
+		return '';
 	}
 
 	// Otherwise, just show the total
