@@ -18,9 +18,12 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 		return null;
 	}
 
+	const pckg = selected[ packageId ];
+	const isIndividualPackage = ! all[ pckg.box_id ];
+
 	const renderItemInfo = ( item, itemIndex ) => {
 		return (
-			<ItemInfo key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId } showRemove={ true } openItemMove={ openItemMove } removeItem={ removeItem } />
+			<ItemInfo key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId } showRemove={ true } openItemMove={ openItemMove } removeItem={ removeItem } isIndividualPackage={ isIndividualPackage } />
 		);
 	};
 
@@ -30,14 +33,16 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 	};
 
 	const renderAddItemButton = () => {
+		if ( isIndividualPackage ) {
+			return null;
+		}
+
 		return ( <Button className="wcc-package__add-item-btn" compact onClick={ () => ( openAddItem() ) }>{ __( 'Add item' ) }</Button> );
 	};
 
 	const packageOptionChange = ( e ) => {
 		setPackageType( packageId, e.target.value );
 	};
-
-	const pckg = selected[ packageId ];
 
 	const renderItems = () => {
 		const canAddItems = unpacked.length || _.some( selected, ( sel, selId ) => ( packageId !== selId && sel.items.length ) );
@@ -64,7 +69,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 	};
 
 	const renderPackageSelect = () => {
-		if ( ! all[ pckg.box_id ] ) {
+		if ( isIndividualPackage ) {
 			return ( <div className="wcc-package__desc"><span className="wcc-package__desc-name">Package - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span></div> );
 		}
 
