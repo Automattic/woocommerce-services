@@ -497,4 +497,44 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		$actual = $shipping_label->get_selected_packages( $mock_order );
 		$this->assertEquals( $actual, $this->expected_selected_packages_multiple );
 	}
+
+	public function test_get_items_as_individual_packages_multiple_products() {
+		$products = array(
+			WC_Helper_Product::create_simple_product(),
+			WC_Helper_Product::create_simple_product(),
+		);
+
+		$order = wc_create_order( array(
+			'status'        => 'processing',
+			'customer_id'   => 1,
+			'customer_note' => '',
+			'total'         => '',
+		) );
+
+		// Add order products
+		if ( version_compare( WOOCOMMERCE_VERSION, '3.0.0', '<' ) ) {
+			foreach ( $products as $product ) {
+				$order->add_product( $product );
+			}
+		} else {
+			foreach ( $products as $product ) {
+				$item = new WC_Order_Item_Product();
+
+				$item->set_props( array(
+					'product'  => $product,
+					'quantity' => 1,
+				) );
+
+				$item->save();
+				$order->add_item( $item );
+			}
+
+			$order->save();
+		}
+
+		$shipping_label      = $this->get_shipping_label();
+		$individual_packages = $shipping_label->get_items_as_individual_packages( $order );
+
+		$this->assertEquals( count( $products ), count( $individual_packages ) );
+	}
 }

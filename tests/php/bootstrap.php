@@ -27,7 +27,7 @@ require_once( $wp_tests_dir . '/includes/functions.php' );
 function _manually_load_plugin() {
 	require dirname( __FILE__ ) . '/../../woocommerce-services.php';
 }
-tests_add_filter( 'plugins_loaded', '_manually_load_plugin' );
+tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 if ( ! defined( 'WC_UNIT_TESTING' ) ) {
 	define( 'WC_UNIT_TESTING', true );

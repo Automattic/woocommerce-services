@@ -41,7 +41,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->payment_methods_store = $payment_methods_store;
 		}
 
-		protected function get_items_as_individual_packages( WC_Order $order ) {
+		public function get_items_as_individual_packages( WC_Order $order ) {
 			$packages   = array();
 			$item_count = 0;
 
