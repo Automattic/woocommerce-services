@@ -365,7 +365,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( ! $this->check_jetpack_install() ) {
 				add_action( 'admin_init', array( $this, 'admin_jetpack_notice' ) );
 				return;
-			} else if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
+			}
+
+			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
 				add_action( 'admin_init', array( $this, 'admin_tos_notice' ) );
 				return;
 			}
@@ -792,12 +794,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return true;
 			}
 
-			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				return false;
-			}
-
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			return is_object( $user_token ) && isset( $user_token->external_user_id) && get_current_user_id() === $user_token->external_user_id;
+			return isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id;
 		}
 
 		public function show_tos_notice() {
@@ -837,16 +835,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function check_jetpack_install() {
-			if ( defined( 'JETPACK_DEV_DEBUG' ) ) {
-				return true;
-			}
-
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
 				return false;
 			}
 
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 			return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id );
+
 		}
 
 		public function admin_jetpack_notice() {
