@@ -3,7 +3,19 @@ import { translate as __ } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import Button from 'components/button';
 
-const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, removeItem } ) => {
+const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, removeItem, showPackIndividually, packIndividually } ) => {
+	const renderPackIndividually = () => {
+		if ( ! showPackIndividually ) {
+			return null;
+		}
+
+		return (
+			<Button className="wcc-package-item__move" compact onClick={ () => packIndividually( packageId, itemIndex ) }>
+				{ __( 'Ship Separately' ) }
+			</Button>
+		);
+	};
+
 	const renderRemove = () => {
 		if ( ! showRemove ) {
 			return null;
@@ -28,7 +40,8 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, remov
 				{ item.attributes && <p>{ item.attributes }</p> }
 			</div>
 			<div className="wcc-package-item__actions">
-				<Button className="wcc-package-item__move" compact onClick={ () => ( openItemMove( itemIndex ) ) }>{ __( 'Move' ) }</Button>
+				{ renderPackIndividually() }
+				<Button className="wcc-package-item__move" compact onClick={ () => ( openItemMove( itemIndex ) ) }>{ __( 'Add to Package' ) }</Button>
 				{ renderRemove() }
 			</div>
 		</div>
@@ -40,6 +53,8 @@ ItemInfo.propTypes = {
 	itemIndex: PropTypes.number.isRequired,
 	showRemove: PropTypes.bool,
 	packageId: PropTypes.string.isRequired,
+	showPackIndividually: PropTypes.bool,
+	packIndividually: PropTypes.func,
 };
 
 export default ItemInfo;

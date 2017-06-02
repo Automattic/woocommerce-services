@@ -10,7 +10,12 @@ const Unpacked = ( { packageId, unpacked, openItemMove, moveItem } ) => {
 
 	const renderItemInfo = ( item, itemIndex ) => {
 		return (
-			<ItemInfo key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId } openItemMove={ openItemMove } moveItem={ moveItem } />
+			<ItemInfo
+				key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId }
+				openItemMove={ openItemMove } moveItem={ moveItem }
+				showPackIndividually={ true }
+				packIndividually={ () => moveItem( '', itemIndex, 'individual') }
+			/>
 		);
 	};
 

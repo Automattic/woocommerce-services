@@ -64,19 +64,19 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 		}
 	} );
 
-	if ( packed.length ) {
-		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Boxed' ) ) );
+	if ( packed.length || individual.length  ) {
+		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Packages to be Shipped' ) ) );
 	}
 
 	if ( individual.length ) {
-		individual.unshift( renderPackageListHeader( 'individual-header', __( 'Original packaging' ) ) );
+		//individual.unshift( renderPackageListHeader( 'individual-header', __( 'Original packaging' ) ) );
 	}
 
 	return (
 		<div className="wcc-packages-list">
 			{ packed }
-			{ renderAddPackage() }
 			{ individual }
+			{ renderAddPackage() }
 			{ renderUnpackedLink() }
 		</div>
 	);
