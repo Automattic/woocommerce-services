@@ -839,6 +839,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return false;
 			}
 
+			if ( defined( 'JETPACK_DEV_DEBUG' ) ) {
+				return true;
+			}
+
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 			return $user_token && is_object( $user_token ) && isset( $user_token->external_user_id );
 
