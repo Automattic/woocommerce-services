@@ -27,12 +27,16 @@ const AddItemDialog = ( {
 	};
 
 	const renderRadioButton = ( pckgId, itemIdx, item ) => {
+		const itemLabel = packageLabels[ pckgId ]
+			? __( '%(item)s from {{pckg/}}', { args: { item: item.name }, components: { pckg: getPackageNameElement( pckgId ) } } )
+			: item;
+
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="wcc-move-item-dialog__package-option">
 				<FormRadio checked={ pckgId === sourcePackageId && itemIdx === movedItemIndex } onChange={ () => ( setAddedItem( pckgId, itemIdx ) ) } />
-				<span> { __( '%(item)s from {{pckg/}}', { args: { item: item.name }, components: { pckg: getPackageNameElement( pckgId ) } } ) } </span>
+				<span>{ itemLabel }</span>
 			</FormLabel>
 		);
 	};
