@@ -64,7 +64,7 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 		}
 	} );
 
-	if ( packed.length || individual.length  ) {
+	if ( packed.length || individual.length ) {
 		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Packages to be Shipped' ) ) );
 	}
 
@@ -74,9 +74,9 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 
 	return (
 		<div className="wcc-packages-list">
+			{ renderAddPackage() }
 			{ packed }
 			{ individual }
-			{ renderAddPackage() }
 			{ renderUnpackedLink() }
 		</div>
 	);

@@ -3,14 +3,14 @@ import { translate as __ } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import Button from 'components/button';
 
-const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, removeItem, showPackIndividually, packIndividually } ) => {
+const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, removeItem, showPackIndividually, moveItem } ) => {
 	const renderPackIndividually = () => {
 		if ( ! showPackIndividually ) {
 			return null;
 		}
 
 		return (
-			<Button className="wcc-package-item__move" compact onClick={ () => packIndividually( packageId, itemIndex ) }>
+			<Button className="wcc-package-item__move" compact onClick={ () => moveItem( '', itemIndex, 'individual' ) }>
 				{ __( 'Ship Separately' ) }
 			</Button>
 		);
@@ -54,7 +54,7 @@ ItemInfo.propTypes = {
 	showRemove: PropTypes.bool,
 	packageId: PropTypes.string.isRequired,
 	showPackIndividually: PropTypes.bool,
-	packIndividually: PropTypes.func,
+	moveItem: PropTypes.func,
 };
 
 export default ItemInfo;
