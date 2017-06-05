@@ -2,7 +2,7 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
-Tested up to: 4.7.2
+Tested up to: 4.7.5
 Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
