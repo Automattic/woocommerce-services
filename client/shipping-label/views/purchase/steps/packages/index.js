@@ -171,7 +171,8 @@ const PackagesStep = ( {
 				unpacked={ unpacked }
 				closeAddItem={ labelActions.closeAddItem }
 				setAddedItem={ labelActions.setAddedItem }
-				confirmAddItem={ labelActions.confirmAddItem } />
+				confirmAddItem={ labelActions.confirmAddItem }
+				moveItem={ labelActions.moveItem } />
 		</StepContainer>
 	);
 };

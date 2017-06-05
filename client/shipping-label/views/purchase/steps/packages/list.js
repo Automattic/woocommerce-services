@@ -13,7 +13,7 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 		return (
 			<div className="wcc-packages-list__unpacked">
 				<a href="#" className="wcc-packages-list__link" onClick={ () => ( openPackage( '' ) ) }>
-					{ __( 'Saved for later' ) }
+					{ __( 'Unpacked Items' ) }
 				</a>
 				<span className="wcc-packages-list-package__count">{ unpacked.length }</span>
 			</div>

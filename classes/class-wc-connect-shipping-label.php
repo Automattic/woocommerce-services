@@ -283,6 +283,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$origin                 = $this->get_origin_address();
 			$selected_rates         = $this->get_selected_rates( $order );
 			$destination            = $this->get_destination_address( $order );
+			$unpacked = array();
+
+			// if there's no packaging information, add everything to the unpacked list
+			if ( ! $this->get_packaging_metadata( $order ) ) {
+				foreach( $selected_packages as $package ) {
+					$unpacked[] = $package[ 'items' ][ 0 ];
+				}
+				$selected_packages = new stdClass();
+			}
 
 			if ( ! $destination[ 'country' ] ) {
 				$destination[ 'country' ] = $origin[ 'country' ];
@@ -290,7 +299,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$destination_normalized = ( bool ) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized', 'unpacked' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => (object) $selected_rates,

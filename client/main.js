@@ -48,6 +48,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	if ( ! RouteClass ) {
 		return;
 	}
+
 	const Route = RouteClass( args );
 
 	const persistedStateKey = Route.getStateKey();
