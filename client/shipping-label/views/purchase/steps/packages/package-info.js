@@ -37,7 +37,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 			return null;
 		}
 
-		return ( <Button className="wcc-package__add-item-btn" compact onClick={ () => ( openAddItem() ) }>{ __( 'Add item' ) }</Button> );
+		return ( <Button className="wcc-package__add-item-btn" compact onClick={ () => ( openAddItem() ) }>{ __( 'Add items' ) }</Button> );
 	};
 
 	const packageOptionChange = ( e ) => {
