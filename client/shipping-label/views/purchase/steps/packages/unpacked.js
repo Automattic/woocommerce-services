@@ -24,7 +24,7 @@ const Unpacked = ( { packageId, unpacked, openItemMove, moveItem } ) => {
 
 	return (
 		<div className="wcc-package">
-			<FormLegend className="wcc-package-item__name">{ __( 'Saved for later' ) }</FormLegend>
+			<FormLegend className="wcc-package-item__name">{ __( 'Unpacked Items' ) }</FormLegend>
 			{ unpacked.length ? unpacked.map( renderItemInfo ) : <div>{ __( 'There are no items saved for a later delivery' ) }</div> }
 		</div>
 	);
