@@ -361,6 +361,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init() {
 			$this->load_dependencies();
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
+			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
 			if ( ! $this->check_jetpack_install() ) {
 				add_action( 'admin_init', array( $this, 'admin_jetpack_notice' ) );
