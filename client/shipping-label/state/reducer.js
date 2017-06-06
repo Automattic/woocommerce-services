@@ -332,7 +332,7 @@ reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex } ) => {
 	};
 };
 
-reducers[ ADD_PACKAGE ] = ( state ) => {
+reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
 	const newPackages = {...state.form.packages.selected};
 	const packageKeys = Object.keys( newPackages );
 	const boxesKeys = Object.keys( state.form.packages.all );
@@ -345,12 +345,20 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 	const { height, length, width } = getBoxDimensions( box );
 	const addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
 	const openedPackageId = addedPackageId;
+
+	const newUnpacked = [ ...state.form.packages.unpacked ];
+	let addedItem = null;
+
+	if ( itemIndex ) {
+		addedItem = newUnpacked.splice( itemIndex, 1 )[ 0 ];
+	}
+
 	newPackages[ addedPackageId ] = {
 		height, length, width,
 		id: addedPackageId,
-		weight: box.box_weight,
+		weight: box.box_weight + ( addedItem ? addedItem.weight : 0 ),
 		box_id: boxId,
-		items: [],
+		items: addedItem ? [ addedItem ] : [],
 	};
 
 	return {
@@ -363,6 +371,7 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
+				unpacked: newUnpacked,
 				saved: false,
 			},
 			rates: {

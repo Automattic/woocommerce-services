@@ -3,7 +3,7 @@ import { translate as __ } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import Button from 'components/button';
 
-const ItemInfo = ( { item, itemIndex, packageId, showRemove, removeItem, showPackIndividually, moveItem, isIndividualPackage } ) => {
+const ItemInfo = ( { item, itemIndex, packageId, showRemove, removeItem, showPackIndividually, openItemMove, moveItem, isIndividualPackage, addPackage } ) => {
 	const renderPackIndividually = () => {
 		if ( ! showPackIndividually ) {
 			return null;
@@ -11,7 +11,30 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, removeItem, showPac
 
 		return (
 			<Button className="wcc-package-item__move" compact onClick={ () => moveItem( '', itemIndex, 'individual' ) }>
-				{ __( 'Ship Separately' ) }
+				{ __( 'Ship Individually' ) }
+			</Button>
+		);
+	};
+
+	const renderAddToPackage = () => {
+		if ( ! showPackIndividually ) {
+			return null;
+		}
+
+		return (
+			<Button className="wcc-package-item__move" compact onClick={ () => {
+				addPackage( itemIndex );
+				//moveItem( '', itemIndex, 'new' );
+			} }>
+				{ __( 'Add to New Package' ) }
+			</Button>
+		);
+	};
+
+	const renderMoveToPackage = () => {
+		return (
+			<Button className="wcc-package-item__move" compact onClick={ () => openItemMove( itemIndex ) }>
+				{ __( 'Move to Package' ) }
 			</Button>
 		);
 	};
@@ -45,6 +68,8 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, removeItem, showPac
 			</div>
 			<div className="wcc-package-item__actions">
 				{ renderPackIndividually() }
+				{ renderAddToPackage() }
+				{ renderMoveToPackage() }
 				{ renderRemove() }
 			</div>
 		</div>
@@ -57,6 +82,7 @@ ItemInfo.propTypes = {
 	showRemove: PropTypes.bool,
 	packageId: PropTypes.string.isRequired,
 	showPackIndividually: PropTypes.bool,
+	openMoveItem: PropTypes.func,
 	moveItem: PropTypes.func,
 };
 

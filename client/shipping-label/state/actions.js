@@ -379,9 +379,10 @@ export const setAddedItem = ( sourcePackageId, movedItemIndex ) => {
 	};
 };
 
-export const addPackage = () => {
+export const addPackage = ( itemIndex ) => {
 	return {
 		type: ADD_PACKAGE,
+		itemIndex,
 	};
 };
 

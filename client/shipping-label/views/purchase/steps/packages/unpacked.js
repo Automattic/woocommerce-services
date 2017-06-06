@@ -3,7 +3,7 @@ import { translate as __ } from 'i18n-calypso';
 import ItemInfo from './item-info';
 import FormLegend from 'components/forms/form-legend';
 
-const Unpacked = ( { packageId, unpacked, openItemMove, moveItem } ) => {
+const Unpacked = ( { packageId, unpacked, openItemMove, moveItem, addPackage } ) => {
 	if ( '' !== packageId ) {
 		return null;
 	}
@@ -17,6 +17,7 @@ const Unpacked = ( { packageId, unpacked, openItemMove, moveItem } ) => {
 				packageId={ packageId }
 				openItemMove={ openItemMove }
 				moveItem={ moveItem }
+				addPackage={ addPackage }
 				showPackIndividually={ true }
 			/>
 		);

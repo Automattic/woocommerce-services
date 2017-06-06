@@ -121,7 +121,8 @@ const PackagesStep = ( {
 					packageId={ openedPackageId }
 					unpacked={ unpacked }
 					openItemMove={ labelActions.openItemMove }
-					moveItem={ labelActions.moveItem } />
+					moveItem={ labelActions.moveItem }
+					addPackage={ labelActions.addPackage } />
 			);
 		}
 

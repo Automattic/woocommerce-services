@@ -54,22 +54,6 @@ const MoveItemDialog = ( {
 		return elements;
 	};
 
-	const renderIndividualOption = () => {
-		if ( openedPackage && 'individual' === openedPackage.box_id ) {
-			return null;
-		}
-
-		return renderRadioButton( 'individual', __( 'Ship in original packaging' ) );
-	};
-
-	const renderSaveForLaterOption = () => {
-		if ( '' === openedPackageId ) {
-			return null;
-		}
-
-		return renderRadioButton( '', __( 'Save for later' ) );
-	};
-
 	if ( '' === openedPackageId ) {
 		desc = __( '{{itemLink/}} is currently saved for a later shipment.', { components: { itemLink } } );
 	} else if ( 'individual' === openedPackage.box_id ) {
@@ -98,8 +82,6 @@ const MoveItemDialog = ( {
 					<p>{ desc }</p>
 					<p>{ __( 'Where would you like to move it?' ) }</p>
 					{ renderPackedOptions() }
-					{ renderIndividualOption() }
-					{ renderSaveForLaterOption() }
 				</div>
 				<ActionButtons buttons={ [
 					{ label: __( 'Move' ), isPrimary: true, onClick: () => ( confirmItemMove( openedPackageId, movedItemIndex, targetPackageId ) ) },
