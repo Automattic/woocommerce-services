@@ -125,6 +125,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_welcome' ) );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
 					break;
+				case Jetpack_Install_Status::CONNECTED:
+					add_action(
+						'admin_notices',
+						array( $this, 'show_banner_after_connection_see_how_it_works' )
+					);
+					break;
 			}
 		}
 
@@ -175,6 +181,37 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'button_text'    => __( 'Connect your store to WordPress.com', 'woocommerce-services' ),
 				'image_url'      => 'https://cldup.com/WpkrskfH_r.jpg',
 				'should_show_jp' => true,
+			) );
+		}
+
+		public function show_banner_after_connection_see_how_it_works() {
+			if ( function_exists( 'get_current_screen' ) ) {
+				$screen = get_current_screen();
+			}
+			if ( ! isset( $screen ) ) {
+				return;
+			}
+			// do not display if not on:
+			// 1. plugins page or
+			// 2. product page edit screen
+			if ( ! (
+					'plugins' === $screen->base
+					|| (
+						'edit' === $screen->parent_base
+						&& 'post' === $screen->base
+						&& 'product' === $screen->post_type
+					)
+				)
+			) {
+				return;
+			}
+			$this->show_nux_banner( array(
+				'title'          => __( 'You now have access to discount shipping rates and printing services directly within your dashboard!', 'woocommerce-services' ),
+				'description'    => __( 'You can begin purchasing discounted labels from USPS, and printing them at any time.', 'woocommerce-services' ),
+				'url'            => '#',
+				'button_text'    => __( 'See how it works', 'woocommerce-services' ),
+				'image_url'      => 'https://cldup.com/opSeqZzABZ.jpg',
+				'should_show_jp' => false,
 			) );
 		}
 
