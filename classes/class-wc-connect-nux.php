@@ -122,6 +122,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			switch ( $jetpack_install_status ) {
 				case Jetpack_Install_Status::ACTIVATED:
+					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_welcome' ) );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
 					break;
 			}
@@ -148,6 +149,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$this->show_nux_banner( array(
 				'title'          => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
 				'description'    => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
+				'url'            => $connect_url,
+				'button_text'    => __( 'Connect your store to WordPress.com', 'woocommerce-services' ),
+				'image_url'      => 'https://cldup.com/WpkrskfH_r.jpg',
+				'should_show_jp' => true,
+			) );
+		}
+
+		public function show_banner_before_connection_welcome() {
+			if ( function_exists( 'get_current_screen' ) ) {
+				$screen = get_current_screen();
+			}
+			if ( ! isset( $screen ) ) {
+				return;
+			}
+			if ( 'plugins' !== $screen->base ) {
+				return;
+			}
+			$redirect = admin_url( 'plugins.php' );
+			$connect_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
+			$this->show_nux_banner( array(
+				'title'          => __( 'Welcome to WooCommerce services', 'woocommerce-services' ),
+				'description'    => __( 'WooCommerce services makes shipping a breeze. Print a label and take advantage of discounted shipping rates right as you process your order, all from the convenience of your WordPress dashboard.', 'woocommerce-services' ),
 				'url'            => $connect_url,
 				'button_text'    => __( 'Connect your store to WordPress.com', 'woocommerce-services' ),
 				'image_url'      => 'https://cldup.com/WpkrskfH_r.jpg',
