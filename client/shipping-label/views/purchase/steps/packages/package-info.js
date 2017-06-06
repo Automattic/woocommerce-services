@@ -70,7 +70,12 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 
 	const renderPackageSelect = () => {
 		if ( isIndividualPackage ) {
-			return ( <div className="wcc-package__desc"><span className="wcc-package__desc-name">Package - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span></div> );
+			return ( <div className="wcc-package__desc">
+				<div className="wcc-package-items-header">
+					<FormLegend className="wcc-package-item__name">{ __( 'Individually Shipped Item' ) }</FormLegend>
+				</div>
+				<span className="wcc-package__desc-name">{ __( 'Item Dimensions' ) } - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
+			</div> );
 		}
 
 		const groups = _.reduce( flatRateGroups, ( result, groupTitle, groupId ) => {
@@ -86,17 +91,22 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 		} );
 
 		return (
-			<FormSelect onChange={ packageOptionChange } value={ pckg.box_id }>
-				{ _.map( groups, ( group, groupId ) => {
-					if ( _.isEmpty( group.definitions ) ) {
-						return null;
-					}
+			<div>
+				<div className="wcc-package-items-header">
+					<FormLegend className="wcc-package-item__name">{ __( 'Box Package for Multiple Items' ) }</FormLegend>
+				</div>
+				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id }>
+					{ _.map( groups, ( group, groupId ) => {
+						if ( _.isEmpty( group.definitions ) ) {
+							return null;
+						}
 
-					return <optgroup label={ group.title } key={ groupId }>
-						{ _.map( group.definitions, renderPackageOption ) }
-					</optgroup>;
-				} ) }
-			</FormSelect>
+						return <optgroup label={ group.title } key={ groupId }>
+							{ _.map( group.definitions, renderPackageOption ) }
+						</optgroup>;
+					} ) }
+				</FormSelect>
+			</div>
 		);
 	};
 
