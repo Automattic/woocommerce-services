@@ -1,11 +1,22 @@
 <?php
 
+if ( ! class_exists( 'Jetpack_Install_Status' ) ) {
+	abstract class Jetpack_Install_Status {
+		const UNINSTALLED = 'uninstalled';
+		const INSTALLED = 'installed';
+		const ACTIVATED = 'activated';
+		const DEV = 'dev';
+		const CONNECTED = 'connected';
+	}
+}
+
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 	class WC_Connect_Nux {
 
 		function __construct() {
 			$this->init_pointers();
+			add_action( 'admin_init', array( $this, 'set_up_nux_notices' ) );
 		}
 
 		private function get_notice_states() {
@@ -82,6 +93,92 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				)
 			);
 			return $pointers;
+		}
+
+		public function get_jetpack_install_status() {
+			// check if Jetpack is activated
+			if ( ! class_exists( 'Jetpack_Data' ) ) {
+				// not activated, check if installed
+				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
+					return Jetpack_Install_Status::INSTALLED;
+				}
+				return Jetpack_Install_Status::UNINSTALLED;
+			} else if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
+				// installed, activated, and dev mode on
+				return Jetpack_Install_Status::DEV;
+			}
+
+			// installed, activated, dev mode off
+			// check if connected
+			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			if ( isset( $user_token->external_user_id ) ) { // always an int
+				return Jetpack_Install_Status::CONNECTED;
+			}
+
+			return Jetpack_Install_Status::ACTIVATED;
+		}
+
+		public function set_up_nux_notices() {
+			$jetpack_install_status = $this->get_jetpack_install_status();
+			switch ( $jetpack_install_status ) {
+				case Jetpack_Install_Status::ACTIVATED:
+					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
+					break;
+			}
+		}
+
+		public function show_banner_before_connection_get_access() {
+			if ( function_exists( 'get_current_screen' ) ) {
+				$screen = get_current_screen();
+			}
+			if ( ! isset( $screen ) ) {
+				return;
+			}
+			if ( ! (
+				'edit' === $screen->parent_base
+				&& 'post' === $screen->base
+				&& 'product' === $screen->post_type
+			) ) {
+				return;
+			}
+			'add' === $screen->action
+				? $redirect = admin_url( 'post-new.php?post_type=product' )
+				: $redirect = get_edit_post_link();
+			$connect_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
+			$this->show_nux_banner( array(
+				'title'          => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
+				'description'    => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
+				'url'            => $connect_url,
+				'button_text'    => __( 'Connect your store to WordPress.com', 'woocommerce-services' ),
+				'image_url'      => 'https://cldup.com/WpkrskfH_r.jpg',
+				'should_show_jp' => true,
+			) );
+		}
+
+		public function show_nux_banner( $content ) {
+			?>
+			<div class="notice wcs-nux__notice" style="display:flex;">
+				<div class="wcs-nux__notice-logo">
+					<img src="<?php echo esc_url( $content['image_url'] );  ?>">
+				</div>
+				<div class="wcs-nux__notice-content">
+					<h1><?php echo esc_html( $content['title'] ); ?></h1>
+					<p><?php echo esc_html( $content['description'] ); ?></p>
+					<a href="<?php echo esc_url( $content['url'] ); ?>">
+						<?php echo esc_html( $content['button_text'] ); ?>
+					</a>
+					<?php if ( $content['should_show_jp'] ) : ?>
+						<p>By connecting your site you agree to our fascinating <a href="http://google.com">Terms of Service</a> and to <a>share details</a> with WordPress.com.</p>
+					<?php endif; ?>
+				</div>
+				<?php if ( $content['should_show_jp'] ) : ?>
+					<div class="wcs-nux__notice-jetpack">
+						<img src="https://cldup.com/BxbWlzSyPC.jpg">
+						<p>Powered by Jetpack</p>
+					</div>
+				<?php endif; ?>
+			</div>
+			<?php
 		}
 	}
 }
