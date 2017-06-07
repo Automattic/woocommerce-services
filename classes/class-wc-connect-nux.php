@@ -121,6 +121,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function set_up_nux_notices() {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			switch ( $jetpack_install_status ) {
+				case Jetpack_Install_Status::UNINSTALLED:
+					wp_enqueue_script( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
+					break;
 				case Jetpack_Install_Status::ACTIVATED:
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_welcome' ) );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
@@ -148,17 +152,34 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			) ) {
 				return;
 			}
-			'add' === $screen->action
-				? $redirect = admin_url( 'post-new.php?post_type=product' )
-				: $redirect = get_edit_post_link();
-			$connect_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
+
+			$jetpack_status = $this->get_jetpack_install_status();
+
+			$button_url = '#';
+			$button_text = __( 'Connect your store to WordPress.com', 'woocommerce-services' );
+			$should_install_jetpack = false;
+
+			switch ( $jetpack_status ) {
+				case Jetpack_Install_Status::UNINSTALLED:
+					$button_text = __( 'Install Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
+					$should_install_jetpack = true;
+					break;
+				case Jetpack_Install_Status::ACTIVATED:
+					'add' === $screen->action
+						? $redirect = admin_url( 'post-new.php?post_type=product' )
+						: $redirect = get_edit_post_link();
+					$button_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
+					break;
+			}
+
 			$this->show_nux_banner( array(
-				'title'          => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
-				'description'    => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
-				'url'            => $connect_url,
-				'button_text'    => __( 'Connect your store to WordPress.com', 'woocommerce-services' ),
-				'image_url'      => 'https://cldup.com/WpkrskfH_r.jpg',
-				'should_show_jp' => true,
+				'title'           => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
+				'description'     => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
+				'url'             => $button_url,
+				'button_text'     => $button_text,
+				'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
+				'should_show_jp'  => true,
+				'will_install_jp' => $should_install_jetpack,
 			) );
 		}
 
@@ -224,7 +245,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<div class="wcs-nux__notice-content">
 					<h1><?php echo esc_html( $content['title'] ); ?></h1>
 					<p><?php echo esc_html( $content['description'] ); ?></p>
-					<a href="<?php echo esc_url( $content['url'] ); ?>">
+					<a
+						href="<?php echo esc_url( $content['url'] ); ?>"
+						<?php if ( isset( $content['will_install_jp'] ) && $content['will_install_jp'] ) : ?>
+							class="woocommerce-services__install-jetpack"
+							data-error-message="<?php esc_attr_e( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ) ?>"
+						<?php endif; ?>
+					>
 						<?php echo esc_html( $content['button_text'] ); ?>
 					</a>
 					<?php if ( $content['should_show_jp'] ) : ?>
