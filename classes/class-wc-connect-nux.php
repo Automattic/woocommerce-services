@@ -120,10 +120,27 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function set_up_nux_notices() {
 			$jetpack_install_status = $this->get_jetpack_install_status();
+
+			$ajax_data = array(
+				'nonce'                  => wp_create_nonce( 'wcs_install_banner' ),
+				'initial_install_status' => $jetpack_install_status,
+				'translations'           => array(
+					'activating'   => __( 'Activating...', 'woocommerce-services' ),
+					'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
+					'installError' => __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ),
+					'defaultError' => __( 'Something went wrong. Please try connecting to Jetpack manually, or contact support on the WordPress.org forums.', 'woocommerce-services' ),
+				),
+			);
+
 			switch ( $jetpack_install_status ) {
 				case Jetpack_Install_Status::UNINSTALLED:
+				case Jetpack_Install_Status::INSTALLED:
 					wp_enqueue_script( 'wc_connect_banner' );
+					wp_localize_script( 'wc_connect_banner', 'wcs_install_banner', $ajax_data );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
+					add_action( 'wp_ajax_activate_jetpack',
+						array( $this, 'woocommerce_services_ajax_activate_jetpack' )
+					);
 					break;
 				case Jetpack_Install_Status::ACTIVATED:
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_welcome' ) );
@@ -164,6 +181,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					$button_text = __( 'Install Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
 					$should_install_jetpack = true;
 					break;
+				case Jetpack_Install_Status::INSTALLED:
+					$button_text = __( 'Activate Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
+					$should_install_jetpack = true;
+					break;
 				case Jetpack_Install_Status::ACTIVATED:
 					'add' === $screen->action
 						? $redirect = admin_url( 'post-new.php?post_type=product' )
@@ -179,7 +200,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'button_text'     => $button_text,
 				'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
 				'should_show_jp'  => true,
-				'will_install_jp' => $should_install_jetpack,
+				'will_use_script' => $should_install_jetpack,
 			) );
 		}
 
@@ -247,9 +268,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					<p><?php echo esc_html( $content['description'] ); ?></p>
 					<a
 						href="<?php echo esc_url( $content['url'] ); ?>"
-						<?php if ( isset( $content['will_install_jp'] ) && $content['will_install_jp'] ) : ?>
+						<?php if ( isset( $content['will_use_script'] ) && $content['will_use_script'] ) : ?>
 							class="woocommerce-services__install-jetpack"
-							data-error-message="<?php esc_attr_e( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ) ?>"
 						<?php endif; ?>
 					>
 						<?php echo esc_html( $content['button_text'] ); ?>
@@ -266,6 +286,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php endif; ?>
 			</div>
 			<?php
+		}
+
+		/**
+		 * Activates Jetpack after an ajax request
+		 */
+		public function woocommerce_services_ajax_activate_jetpack() {
+			check_ajax_referer( 'wcs_install_banner' );
+
+			$result = activate_plugin( 'jetpack/jetpack.php' );
+
+			if ( is_null( $result ) ) {
+				// The function activate_plugin() returns NULL on success.
+				echo 'success';
+			} else {
+				if ( is_wp_error( $result ) ) {
+					echo esc_html( $result->get_error_message() );
+				} else {
+					echo 'error';
+				}
+			}
+
+			wp_die();
 		}
 	}
 }
