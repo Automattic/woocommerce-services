@@ -14,12 +14,14 @@ const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 };
 
 const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
+	const pckgErrors = errors[ packageId ] || {};
+
 	if ( ! packageId ) {
 		return null;
 	}
 
 	const pckg = selected[ packageId ];
-	const isIndividualPackage = ! all[ pckg.box_id ];
+	const isIndividualPackage = ! ( 'not_selected' === pckg.box_id || all[ pckg.box_id ] );
 
 	const renderItemInfo = ( item, itemIndex ) => {
 		return (
@@ -95,7 +97,8 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 				<div className="wcc-package-items-header">
 					<FormLegend className="wcc-package-item__name">{ __( 'Box Package for Multiple Items' ) }</FormLegend>
 				</div>
-				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id }>
+				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id } isError={ pckgErrors.box_id }>
+					<option value={ 'not_selected' } key={ 'not_selected' }>{ __( 'Please select a box' ) }</option> )
 					{ _.map( groups, ( group, groupId ) => {
 						if ( _.isEmpty( group.definitions ) ) {
 							return null;
@@ -109,8 +112,6 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 			</div>
 		);
 	};
-
-	const pckgErrors = errors[ packageId ] || {};
 
 	return (
 		<div className="wcc-package">

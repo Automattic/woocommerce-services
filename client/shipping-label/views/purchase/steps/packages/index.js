@@ -29,6 +29,7 @@ const PackagesStep = ( {
 	const itemsCount = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].items.length ), 0 );
 	const totalWeight = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].weight ), 0 );
 	const isValidWeight = packageIds.reduce( ( result, pId ) => ( result && 0 < selected[ pId ].weight ), true );
+	const isValidPackageType = packageIds.reduce( ( result, pId ) => ( result && 'not_selected' !== selected[ pId ].box_id ), true );
 	const isValidPackages = 0 < packageIds.length;
 	const hasAnyPackagesConfigured = all && Object.keys( all ).length;
 
@@ -37,6 +38,13 @@ const PackagesStep = ( {
 			return {
 				isError: true,
 				summary: __( 'No packages selected' ),
+			};
+		}
+
+		if ( ! isValidPackageType ) {
+			return {
+				isError: true,
+				summary: __( 'Please Select a Box Type' ),
 			};
 		}
 

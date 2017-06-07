@@ -340,9 +340,6 @@ reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
 		return state;
 	}
 
-	const boxId = boxesKeys[ 0 ];
-	const box = state.form.packages.all[ boxId ];
-	const { height, length, width } = getBoxDimensions( box );
 	const addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
 	const openedPackageId = addedPackageId;
 
@@ -354,10 +351,10 @@ reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
 	}
 
 	newPackages[ addedPackageId ] = {
-		height, length, width,
+		height: 0, length: 0, width: 0,
 		id: addedPackageId,
-		weight: box.box_weight + ( addedItem ? addedItem.weight : 0 ),
-		box_id: boxId,
+		weight: ( addedItem ? addedItem.weight : 0 ),
+		box_id: 'not_selected',
 		items: addedItem ? [ addedItem ] : [],
 	};
 
@@ -412,17 +409,27 @@ reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
 };
 
 reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
-	const box = state.form.packages.all[ boxTypeId ];
 	const newPackages = {...state.form.packages.selected};
-	const { length, width, height } = getBoxDimensions( box );
 	const oldPackage = newPackages[ packageId ];
 
-	newPackages[ packageId ] = {
-		..._.omit( oldPackage, 'service_id' ),
-		height, length, width,
-		weight: box.box_weight + _.sumBy( oldPackage.items, 'weight' ),
-		box_id: boxTypeId,
-	};
+	if ( 'not_selected' === boxTypeId ) {
+		// This is when no box is selected
+		newPackages[ packageId ] = {
+			..._.omit( oldPackage, 'service_id' ),
+			height: 0, length: 0, width: 0,
+			weight: 0 + _.sumBy( oldPackage.items, 'weight' ),
+			box_id: boxTypeId,
+		};
+	} else {
+		const box = state.form.packages.all[ boxTypeId ];
+		const { length, width, height } = getBoxDimensions( box );
+		newPackages[ packageId ] = {
+			..._.omit( oldPackage, 'service_id' ),
+			height, length, width,
+			weight: box.box_weight + _.sumBy( oldPackage.items, 'weight' ),
+			box_id: boxTypeId,
+		};
+	}
 
 	return {
 		...state,
