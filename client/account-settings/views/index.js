@@ -68,9 +68,9 @@ AccountSettingsRootView.propTypes = {
 
 function mapStateToProps( state ) {
 	return {
-		storeOptions: state.form.storeOptions,
-		formData: state.form.data,
-		formMeta: state.form.meta,
+		storeOptions: {"currency_symbol":"$","dimension_unit":"in","weight_unit":"lbs","origin_country":"US"},
+		formData: {"selected_payment_method_id":1,"paper_size":"legal"},
+		formMeta: {"error":false,"fieldsStatus":false,"isSaving":false,"isFetching":false,"pristine":true,"payment_methods":[{"payment_method_id":2,"name":"ddd ddd","card_type":"mastercard","card_digits":"4444","expiry":"2019-02-28"},{"payment_method_id":1,"name":"ddd ddd","card_type":"visa","card_digits":"4242","expiry":"2020-05-31"}]},
 	};
 }
 

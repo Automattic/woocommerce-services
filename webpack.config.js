@@ -38,12 +38,16 @@ const config = {
 		'woocommerce-services': [ './client/main.js' ],
 		'woocommerce-services-banner': [ './client/banner.js' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
+		'wc-test': [ './client/test.js' ],
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
 	},
 	externals: {
+		'react': 'react',
+		'redux': 'redux',
+		'react-redux': 'reactRedux',
 		'jquery': 'jQuery',
 		'cheerio': 'window',
 		'jsdom': true,
@@ -161,21 +165,21 @@ if ( isProd || isI18n ) {
 		'typeof window': '"object"',
 	} ) );
 
-	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
-		compress: {
-			screw_ie8: true,
-			warnings: false,
-			unsafe: true,
-		},
-		mangle: {
-			screw_ie8: true,
-			except: isProd ? [] : [ 'translate' ]
-		},
-		output: {
-			comments: false,
-			screw_ie8: true,
-		},
-	} ) );
+//	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
+//		compress: {
+//			screw_ie8: true,
+//			warnings: false,
+//			unsafe: true,
+//		},
+//		mangle: {
+//			screw_ie8: true,
+//			except: isProd ? [] : [ 'translate' ]
+//		},
+//		output: {
+//			comments: false,
+//			screw_ie8: true,
+//		},
+//	} ) );
 
 } else {
 
