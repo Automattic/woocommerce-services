@@ -229,24 +229,16 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 	}
 
 	const newPackages = { ...state.form.packages.selected };
-	const newUnpacked = [ ...state.form.packages.unpacked ];
-	let movedItem;
 	let addedPackageId = '';
 
-	if ( '' === openedPackageId ) {
-		//move from unpacked
-		movedItem = newUnpacked.splice( movedItemIndex, 1 )[ 0 ];
-	} else {
-		//move from packed
-		const originItems = [ ...newPackages[ openedPackageId ].items ];
-		movedItem = originItems.splice( movedItemIndex, 1 )[ 0 ];
+	const originItems = [ ...newPackages[ openedPackageId ].items ];
+	const movedItem = originItems.splice( movedItemIndex, 1 )[ 0 ];
 
-		newPackages[ openedPackageId ] = {
-			...newPackages[ openedPackageId ],
-			items: originItems,
-			weight: newPackages[ openedPackageId ].weight - movedItem.weight,
-		};
-	}
+	newPackages[ openedPackageId ] = {
+		...newPackages[ openedPackageId ],
+		items: originItems,
+		weight: newPackages[ openedPackageId ].weight - movedItem.weight,
+	};
 
 	if ( 'individual' === targetPackageId ) {
 		//move to an individual packaging
@@ -259,9 +251,17 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 			box_id: 'individual',
 			items: [ movedItem ],
 		};
-	} else if ( '' === targetPackageId ) {
-		//move to unpacked
-		newUnpacked.push( movedItem );
+	} else if ( 'new' === targetPackageId ) {
+		//move to an individual packaging
+		const packageKeys = Object.keys( newPackages );
+		addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
+		newPackages[ addedPackageId ] = {
+			height: 0, length: 0, width: 0, weight: movedItem.weight,
+			id: addedPackageId,
+			box_id: 'not_selected',
+			items: [ movedItem ],
+		};
+		openedPackageId = addedPackageId;
 	} else {
 		//move to a custom package
 		const targetItems = [ ...newPackages[ targetPackageId ].items ];
@@ -281,7 +281,6 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
-				unpacked: newUnpacked,
 				saved: false,
 			},
 			rates: {
@@ -291,6 +290,7 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 			},
 		},
 		addedPackageId,
+		openedPackageId,
 	};
 };
 
@@ -332,7 +332,7 @@ reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex } ) => {
 	};
 };
 
-reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
+reducers[ ADD_PACKAGE ] = ( state ) => {
 	const newPackages = {...state.form.packages.selected};
 	const packageKeys = Object.keys( newPackages );
 	const boxesKeys = Object.keys( state.form.packages.all );
@@ -343,19 +343,12 @@ reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
 	const addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
 	const openedPackageId = addedPackageId;
 
-	const newUnpacked = [ ...state.form.packages.unpacked ];
-	let addedItem = null;
-
-	if ( itemIndex ) {
-		addedItem = newUnpacked.splice( itemIndex, 1 )[ 0 ];
-	}
-
 	newPackages[ addedPackageId ] = {
 		height: 0, length: 0, width: 0,
 		id: addedPackageId,
-		weight: ( addedItem ? addedItem.weight : 0 ),
+		weight: 0,
 		box_id: 'not_selected',
-		items: addedItem ? [ addedItem ] : [],
+		items: [],
 	};
 
 	return {
@@ -368,7 +361,6 @@ reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
-				unpacked: newUnpacked,
 				saved: false,
 			},
 			rates: {
@@ -383,9 +375,13 @@ reducers[ ADD_PACKAGE ] = ( state, { itemIndex } ) => {
 reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
 	const newPackages = {...state.form.packages.selected};
 	const pckg = newPackages[ packageId ];
-	const newUnpacked = state.form.packages.unpacked.concat( pckg.items );
+	const removedItems = pckg.items;
 	delete newPackages[ packageId ];
+
 	const openedPackageId = Object.keys( newPackages )[ 0 ] || '';
+	const newOpenedPackage = { ... newPackages[ openedPackageId ] };
+	newOpenedPackage.items = newOpenedPackage.items.concat( removedItems );
+	newPackages[ openedPackageId ] = newOpenedPackage;
 
 	return {
 		...state,
@@ -396,7 +392,6 @@ reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
 			packages: {
 				...state.form.packages,
 				selected: newPackages,
-				unpacked: newUnpacked,
 				saved: false,
 			},
 			rates: {

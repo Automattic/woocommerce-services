@@ -1,20 +1,21 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
 import Dialog from 'components/dialog';
+import FormRadio from 'components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
 import ActionButtons from 'components/action-buttons';
 import getPackageDescriptions from './get-package-descriptions';
 
 const AddItemDialog = ( {
 	showAddItemDialog,
+	movedItemIndex,
 	sourcePackageId,
 	openedPackageId,
 	selected,
 	all,
-	unpacked,
 	closeAddItem,
 	setAddedItem,
-	moveItem } ) => {
+	confirmAddItem } ) => {
 	if ( ! showAddItemDialog ) {
 		return null;
 	}
@@ -25,24 +26,31 @@ const AddItemDialog = ( {
 	};
 
 	const renderRadioButton = ( pckgId, itemIdx, item ) => {
+		const itemLabel = packageLabels[ pckgId ]
+			? __( '%(item)s from {{pckg/}}', { args: { item: item.name }, components: { pckg: getPackageNameElement( pckgId ) } } )
+			: item;
+
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
-				className="wcc-move-item-dialog__package-option"
-				onClick={ () => {
-					setAddedItem( pckgId, itemIdx );
-					moveItem( sourcePackageId, itemIdx, openedPackageId );
-				} }>
-				<span>{ item }</span>
+				className="wcc-move-item-dialog__package-option">
+				<FormRadio checked={ pckgId === sourcePackageId && itemIdx === movedItemIndex } onChange={ () => ( setAddedItem( pckgId, itemIdx ) ) } />
+				<span>{ itemLabel }</span>
 			</FormLabel>
 		);
 	};
 
 	const itemOptions = [];
-	let unpackedIdx = 0;
-	unpacked.forEach( ( item ) => {
-		itemOptions.push( renderRadioButton( '', unpackedIdx, item.name ) );
-		unpackedIdx++;
+	Object.keys( selected ).forEach( ( pckgId ) => {
+		if ( pckgId === openedPackageId ) {
+			return;
+		}
+
+		let itemIdx = 0;
+		selected[ pckgId ].items.forEach( ( item ) => {
+			itemOptions.push( renderRadioButton( pckgId, itemIdx, item ) );
+			itemIdx++;
+		} );
 	} );
 
 	return (
@@ -55,12 +63,13 @@ const AddItemDialog = ( {
 				<h1 className="form-section-heading">{ __( 'Add item' ) }</h1>
 				<div className="wcc-label-packages-dialog__body">
 					<p>
-						{ __( 'Which items would you like to add to {{pckg/}}?', { components: { pckg: getPackageNameElement( openedPackageId ) } } ) }
+						{ __( 'Which item would you like to add to {{pckg/}}?', { components: { pckg: getPackageNameElement( openedPackageId ) } } ) }
 					</p>
 					{ itemOptions }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Exit' ), onClick: closeAddItem },
+					{ label: __( 'Add' ), isPrimary: true, onClick: () => ( confirmAddItem( sourcePackageId, movedItemIndex, openedPackageId ) ) },
+					{ label: __( 'Cancel' ), onClick: closeAddItem },
 				] } />
 			</div>
 		</Dialog>
@@ -74,7 +83,6 @@ AddItemDialog.propTypes = {
 	openedPackageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
-	unpacked: PropTypes.array,
 };
 
 export default AddItemDialog;

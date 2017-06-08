@@ -13,8 +13,9 @@ const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 	return `${dimensions.length} ${dimensionUnit} x ${dimensions.width} ${dimensionUnit} x ${dimensions.height} ${dimensionUnit}`;
 };
 
-const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
+const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
 	const pckgErrors = errors[ packageId ] || {};
+	const numPackages = _.values( selected ).filter( p => 'individual' !== p.box_id ).length;
 
 	if ( ! packageId ) {
 		return null;
@@ -47,7 +48,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 	};
 
 	const renderItems = () => {
-		const canAddItems = unpacked.length || _.some( selected, ( sel, selId ) => ( packageId !== selId && sel.items.length ) );
+		const canAddItems = _.some( selected, ( sel, selId ) => ( packageId !== selId && sel.items.length ) );
 
 		if ( ! pckg.items.length ) {
 			return (
@@ -113,6 +114,21 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 		);
 	};
 
+	const renderRemoveButton = () => {
+		if ( 'individual' !== pckg.box_id && 1 === numPackages ) {
+			return null;
+		}
+
+		return (
+			<div>
+				<Button className="wcc-package__remove" borderless compact onClick={ () => ( removePackage( packageId ) ) }>
+					<Gridicon icon="trash" />
+					<span className="wcc-package__remove-label">{ __( 'Remove this package' ) }</span>
+				</Button>
+			</div>
+		);
+	};
+
 	return (
 		<div className="wcc-package">
 			{ renderPackageSelect() }
@@ -134,12 +150,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 					error={ pckgErrors.weight } />
 				<span className="wcc-package__weight-unit">{ weightUnit }</span>
 			</div>
-			<div>
-				<Button className="wcc-package__remove" borderless compact onClick={ () => ( removePackage( packageId ) ) }>
-					<Gridicon icon="trash" />
-					<span className="wcc-package__remove-label">{ __( 'Remove this package' ) }</span>
-				</Button>
-			</div>
+			{ renderRemoveButton() }
 		</div>
 	);
 };
@@ -149,7 +160,6 @@ PackageInfo.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
 	flatRateGroups: PropTypes.object.isRequired,
-	unpacked: PropTypes.array.isRequired,
 	updateWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,

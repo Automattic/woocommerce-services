@@ -1,56 +1,12 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
-import Gridicon from 'gridicons';
 import Button from 'components/button';
 
-const ItemInfo = ( { item, itemIndex, packageId, showRemove, removeItem, showPackIndividually, openItemMove, moveItem, isIndividualPackage, addPackage } ) => {
-	const renderPackIndividually = () => {
-		if ( ! showPackIndividually ) {
-			return null;
-		}
-
-		return (
-			<Button className="wcc-package-item__move" compact onClick={ () => moveItem( '', itemIndex, 'individual' ) }>
-				{ __( 'Ship Individually' ) }
-			</Button>
-		);
-	};
-
-	const renderAddToPackage = () => {
-		if ( ! showPackIndividually ) {
-			return null;
-		}
-
-		return (
-			<Button className="wcc-package-item__move" compact onClick={ () => {
-				addPackage( itemIndex );
-				//moveItem( '', itemIndex, 'new' );
-			} }>
-				{ __( 'Add to New Package' ) }
-			</Button>
-		);
-	};
-
+const ItemInfo = ( { item, itemIndex, openItemMove } ) => {
 	const renderMoveToPackage = () => {
 		return (
 			<Button className="wcc-package-item__move" compact onClick={ () => openItemMove( itemIndex ) }>
 				{ __( 'Move to Package' ) }
-			</Button>
-		);
-	};
-
-	const renderRemove = () => {
-		if ( isIndividualPackage ) {
-			return null;
-		}
-
-		if ( ! showRemove ) {
-			return null;
-		}
-
-		return (
-			<Button className="wcc-package-item__remove" compact borderless onClick={ () => removeItem( packageId, itemIndex ) }>
-				<Gridicon icon="cross" />
 			</Button>
 		);
 	};
@@ -67,10 +23,7 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, removeItem, showPac
 				{ item.attributes && <p>{ item.attributes }</p> }
 			</div>
 			<div className="wcc-package-item__actions">
-				{ renderPackIndividually() }
-				{ renderAddToPackage() }
 				{ renderMoveToPackage() }
-				{ renderRemove() }
 			</div>
 		</div>
 	);

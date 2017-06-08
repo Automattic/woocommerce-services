@@ -68,18 +68,6 @@
 	}
 }
 
-.wcc-packages-list__unpacked {
-	margin: 32px 0 0 0;
-	border-top: 1px solid $gray-light;
-	display: flex;
-	padding: 8px;
-
-	.wcc-packages-list__link {
-		font-style: italic;
-		color: darken( $gray, 30% );
-	}
-}
-
 .wcc-packages-list__link {
 	text-decoration: none;
 	flex-grow: 1;

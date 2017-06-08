@@ -13,7 +13,6 @@ const MoveItemDialog = ( {
 	openedPackageId,
 	selected,
 	all,
-	unpacked,
 	closeItemMove,
 	setTargetPackage,
 	confirmItemMove } ) => {
@@ -33,7 +32,7 @@ const MoveItemDialog = ( {
 	};
 
 	const openedPackage = selected[ openedPackageId ];
-	const items = '' !== openedPackageId ? openedPackage.items : unpacked;
+	const items = openedPackage.items;
 	const item = items[ movedItemIndex ];
 	const itemLink = <a href={ item.url } target="_blank">{ item.name }</a>;
 	let desc;
@@ -52,6 +51,18 @@ const MoveItemDialog = ( {
 		} );
 
 		return elements;
+	};
+
+	const renderNewPackageOption = () => {
+		return renderRadioButton( 'new', __( 'Add to a New Package' ) );
+	};
+
+	const renderIndividualOption = () => {
+		if ( openedPackage && 'individual' === openedPackage.box_id ) {
+			return null;
+		}
+
+		return renderRadioButton( 'individual', __( 'Ship in original packaging' ) );
 	};
 
 	if ( '' === openedPackageId ) {
@@ -82,6 +93,8 @@ const MoveItemDialog = ( {
 					<p>{ desc }</p>
 					<p>{ __( 'Where would you like to move it?' ) }</p>
 					{ renderPackedOptions() }
+					{ renderNewPackageOption() }
+					{ renderIndividualOption() }
 				</div>
 				<ActionButtons buttons={ [
 					{ label: __( 'Move' ), isPrimary: true, onClick: () => ( confirmItemMove( openedPackageId, movedItemIndex, targetPackageId ) ) },
@@ -99,7 +112,6 @@ MoveItemDialog.propTypes = {
 	openedPackageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
-	unpacked: PropTypes.array,
 };
 
 export default MoveItemDialog;

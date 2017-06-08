@@ -379,10 +379,9 @@ export const setAddedItem = ( sourcePackageId, movedItemIndex ) => {
 	};
 };
 
-export const addPackage = ( itemIndex ) => {
+export const addPackage = () => {
 	return {
 		type: ADD_PACKAGE,
-		itemIndex,
 	};
 };
 
@@ -423,11 +422,10 @@ export const confirmItemMove = ( packageId, itemIndex, targetPackageId ) => ( di
 	const state = getState().shippingLabel;
 	const packages = state.form.packages;
 	const selected = packages.selected;
-	const unpacked = packages.unpacked;
 	if ( selected[ packageId ] && 'individual' === selected[ packageId ].box_id ) {
 		dispatch( removePackage( packageId ) );
 		dispatch( openPackage( '' ) );
-	} else if ( '' === packageId && ! unpacked.length ) {
+	} else if ( '' === packageId ) {
 		if ( 'individual' === targetPackageId ) {
 			dispatch( openPackage( state.addedPackageId ) );
 		} else {

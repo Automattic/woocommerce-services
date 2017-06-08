@@ -58,7 +58,6 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						all: formData.all_packages,
 						flatRateGroups: formData.flat_rate_groups,
 						selected: formData.selected_packages,
-						unpacked: formData.unpacked,
 						isPacked: formData.is_packed,
 						saved: true,
 					},
@@ -68,7 +67,7 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						retrievalInProgress: false,
 					},
 				},
-				openedPackageId: labelsData ? '' : Object.keys( formData.selected_packages )[ 0 ] || '',
+				openedPackageId: Object.keys( formData.selected_packages )[ 0 ] || '',
 			},
 		};
 	},

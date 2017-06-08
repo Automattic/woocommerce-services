@@ -41,51 +41,60 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->payment_methods_store = $payment_methods_store;
 		}
 
+		private function get_item_data( WC_Order $order, WC_Order_Item $item ) {
+			$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+			if ( ! $product || ! $product->needs_shipping() ) {
+				return null;
+			}
+			$height = 0;
+			$length = 0;
+			$weight = $product->get_weight();
+			$width = 0;
+
+			if ( $product->has_dimensions() ) {
+				$height = $product->get_height();
+				$length = $product->get_length();
+				$width  = $product->get_width();
+			}
+
+			$product_data = array(
+				'height'     => ( float ) $height,
+				'product_id' => $item[ 'product_id' ],
+				'length'     => ( float ) $length,
+				'quantity'   => 1,
+				'weight'     => ( float ) $weight,
+				'width'      => ( float ) $width,
+				'name'       => $this->get_name( $product ),
+				'url'        => get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null ),
+			);
+
+			if ( $product->is_type( 'variation' ) ) {
+				$product_data[ 'attributes' ] = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
+			}
+
+			return $product_data;
+		}
+
 		public function get_items_as_individual_packages( WC_Order $order ) {
 			$packages   = array();
 			$item_count = 0;
 
 			foreach( $order->get_items() as $item ) {
-				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
-				if ( ! $product || ! $product->needs_shipping() ) {
+				$item_data = $this->get_item_data( $order, $item );
+				if ( null === $item_data ) {
 					continue;
-				}
-				$height = 0;
-				$length = 0;
-				$weight = $product->get_weight();
-				$width = 0;
-
-				if ( $product->has_dimensions() ) {
-					$height = $product->get_height();
-					$length = $product->get_length();
-					$width  = $product->get_width();
 				}
 
 				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
 					$id = 'weight_' . $item_count++ . '_individual';
-					$product_data = array(
-						'height'     => ( float ) $height,
-						'product_id' => $item[ 'product_id' ],
-						'length'     => ( float ) $length,
-						'quantity'   => 1,
-						'weight'     => ( float ) $weight,
-						'width'      => ( float ) $width,
-						'name'       => $this->get_name( $product ),
-						'url'        => get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null ),
-					);
-
-					if ( $product->is_type( 'variation' ) ) {
-						$product_data[ 'attributes' ] = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
-					}
-
 					$packages[ $id ] = array(
 						'id'     => $id,
 						'box_id' => 'individual',
-						'height' => ( float ) $height,
-						'length' => ( float ) $length,
-						'weight' => ( float ) $weight,
-						'width'  => ( float ) $width,
-						'items'  => array( $product_data ),
+						'height' => $item_data[ 'height' ],
+						'length' => $item_data[ 'length' ],
+						'weight' => $item_data[ 'weight' ],
+						'width'  => $item_data[ 'width' ],
+						'items'  => array( $item_data ),
 					);
 				}
 			}
@@ -148,7 +157,25 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
-				return $this->get_items_as_individual_packages( $order );
+				$items = array();
+				$weight = 0;
+
+				foreach( $this->get_all_items( $order ) as $id => $item ) {
+					$items[ $id ] = $item;
+					$weight += $item[ 'weight' ];
+				}
+
+				return array(
+					'default_box' => array(
+						'id'     => 'default_box',
+						'box_id' => 'not_selected',
+						'height' => 0,
+						'length' => 0,
+						'weight' => $weight,
+						'width'  => 0,
+						'items'  => $items,
+					)
+				);
 			}
 
 			$formatted_packages = array();
@@ -178,6 +205,26 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			return $formatted_packages;
+		}
+
+		private function get_all_items( WC_Order $order ) {
+			if ( $this->get_packaging_metadata( $order ) ) {
+				return array();
+			}
+
+			$items = array();
+			foreach( $order->get_items() as $item ) {
+				$item_data = $this->get_item_data( $order, $item );
+				if ( null === $item_data ) {
+					continue;
+				}
+
+				for( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
+					$items[] = $item_data;
+				}
+			}
+
+			return $items;
 		}
 
 		protected function get_all_packages() {
@@ -283,15 +330,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$origin                 = $this->get_origin_address();
 			$selected_rates         = $this->get_selected_rates( $order );
 			$destination            = $this->get_destination_address( $order );
-			$unpacked = array();
-
-			// if there's no packaging information, add everything to the unpacked list
-			if ( ! $this->get_packaging_metadata( $order ) ) {
-				foreach( $selected_packages as $package ) {
-					$unpacked[] = $package[ 'items' ][ 0 ];
-				}
-				$selected_packages = new stdClass();
-			}
 
 			if ( ! $destination[ 'country' ] ) {
 				$destination[ 'country' ] = $origin[ 'country' ];
@@ -299,7 +337,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$destination_normalized = ( bool ) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized', 'unpacked' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized' );
 
 			$form_data[ 'rates' ] = array(
 				'selected'  => (object) $selected_rates,

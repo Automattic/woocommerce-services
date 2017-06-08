@@ -45,7 +45,6 @@ const initialState = {
 					],
 				},
 			},
-			unpacked: [],
 			isPacked: true,
 		},
 	},
@@ -98,8 +97,6 @@ describe( 'Label purchase form reducer', () => {
 		const state = reducer( initialState, action );
 
 		expect( state.form.packages.selected.weight_0_custom1.items.length ).to.eql( 0 );
-		expect( state.form.packages.unpacked.length ).to.eql( 1 );
-		expect( state.form.packages.unpacked ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
@@ -108,16 +105,11 @@ describe( 'Label purchase form reducer', () => {
 
 	it( 'MOVE_ITEM moves items from saved for later to selected packages', () => {
 		const existingState = hoek.clone( initialState );
-		existingState.form.packages.unpacked.push( {
-			product_id: 789,
-		} );
 
 		const action = moveItem( '', 0, 'weight_0_custom1' );
 		const state = reducer( existingState, action );
 
-		expect( state.form.packages.unpacked.length ).to.eql( 0 );
 		expect( state.form.packages.selected.weight_0_custom1.items.length ).to.eql( 2 );
-		expect( state.form.packages.selected.weight_0_custom1.items ).to.include( existingState.form.packages.unpacked[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
@@ -126,18 +118,13 @@ describe( 'Label purchase form reducer', () => {
 
 	it( 'MOVE_ITEM moves items from saved for later to original packaging', () => {
 		const existingState = hoek.clone( initialState );
-		existingState.form.packages.unpacked.push( {
-			product_id: 789,
-		} );
 
 		const action = moveItem( '', 0, 'individual' );
 		const state = reducer( existingState, action );
 
-		expect( state.form.packages.unpacked.length ).to.eql( 0 );
 		expect( state.form.packages.selected ).to.include.keys( 'client_individual_0' );
 		expect( state.form.packages.selected.client_individual_0.box_id ).to.eql( 'individual' );
 		expect( state.form.packages.selected.client_individual_0.items.length ).to.eql( 1 );
-		expect( state.form.packages.selected.client_individual_0.items ).to.include( existingState.form.packages.unpacked[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
@@ -177,8 +164,6 @@ describe( 'Label purchase form reducer', () => {
 		const action = moveItem( 'client_individual_0', 0, '' );
 		const state = reducer( existingState, action );
 
-		expect( state.form.packages.unpacked.length ).to.eql( 1 );
-		expect( state.form.packages.unpacked ).to.include( existingState.form.packages.selected.client_individual_0.items[ 0 ] );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
@@ -207,8 +192,6 @@ describe( 'Label purchase form reducer', () => {
 		const state = reducer( initialState, action );
 
 		expect( state.form.packages.selected ).to.not.include.keys( 'weight_0_custom1' );
-		expect( state.form.packages.unpacked.length ).to.eql( 1 );
-		expect( state.form.packages.unpacked ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );

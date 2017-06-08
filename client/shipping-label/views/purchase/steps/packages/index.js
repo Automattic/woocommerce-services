@@ -4,7 +4,6 @@ import PackageList from './list';
 import PackageInfo from './package-info';
 import MoveItemDialog from './move-item';
 import AddItemDialog from './add-item';
-import Unpacked from './unpacked';
 import FormButton from 'components/forms/form-button';
 import Notice from 'components/notice';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
@@ -15,7 +14,6 @@ const PackagesStep = ( {
 	selected,
 	all,
 	flatRateGroups,
-	unpacked,
 	storeOptions,
 	labelActions,
 	errors,
@@ -96,11 +94,10 @@ const PackagesStep = ( {
 				packageId={ openedPackageId }
 				selected={ selected }
 				all={ all }
-				unpacked={ unpacked }
 				addPackage={ labelActions.addPackage }/>,
 		];
 
-		if ( ! packageIds.length && ! unpacked.length ) {
+		if ( ! packageIds.length ) {
 			elements.push(
 				<div key="no-packages" className="wcc-package">{ __( 'There are no packages or items associated with this order' ) }</div>
 			);
@@ -112,7 +109,6 @@ const PackagesStep = ( {
 					selected={ selected }
 					all={ all }
 					flatRateGroups={ flatRateGroups }
-					unpacked={ unpacked }
 					dimensionUnit={ storeOptions.dimension_unit }
 					weightUnit={ storeOptions.weight_unit }
 					errors={ errors }
@@ -122,15 +118,6 @@ const PackagesStep = ( {
 					removePackage={ labelActions.removePackage }
 					setPackageType={ labelActions.setPackageType }
 					openAddItem={ labelActions.openAddItem } />
-			);
-			elements.push(
-				<Unpacked
-					key="unpacked"
-					packageId={ openedPackageId }
-					unpacked={ unpacked }
-					openItemMove={ labelActions.openItemMove }
-					moveItem={ labelActions.moveItem }
-					addPackage={ labelActions.addPackage } />
 			);
 		}
 
@@ -166,7 +153,6 @@ const PackagesStep = ( {
 				targetPackageId={ targetPackageId }
 				selected={ selected }
 				all={ all }
-				unpacked={ unpacked }
 				closeItemMove={ labelActions.closeItemMove }
 				setTargetPackage={ labelActions.setTargetPackage }
 				confirmItemMove={ labelActions.confirmItemMove } />
@@ -177,7 +163,6 @@ const PackagesStep = ( {
 				openedPackageId={ openedPackageId }
 				selected={ selected }
 				all={ all }
-				unpacked={ unpacked }
 				closeAddItem={ labelActions.closeAddItem }
 				setAddedItem={ labelActions.setAddedItem }
 				confirmAddItem={ labelActions.confirmAddItem }

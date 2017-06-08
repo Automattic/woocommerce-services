@@ -4,22 +4,7 @@ import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import getPackageDescriptions from './get-package-descriptions';
 
-const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPackage } ) => {
-	const renderUnpackedLink = () => {
-		if ( ! unpacked.length ) {
-			return null;
-		}
-
-		return (
-			<div className="wcc-packages-list__unpacked">
-				<a href="#" className="wcc-packages-list__link" onClick={ () => ( openPackage( '' ) ) }>
-					{ __( 'Unpacked Items' ) }
-				</a>
-				<span className="wcc-packages-list-package__count">{ unpacked.length }</span>
-			</div>
-		);
-	};
-
+const PackageList = ( { selected, all, packageId, openPackage, addPackage } ) => {
 	const renderAddPackage = () => {
 		const boxesKeys = Object.keys( all );
 		if ( ! boxesKeys.length ) {
@@ -77,7 +62,6 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 			{ renderAddPackage() }
 			{ packed }
 			{ individual }
-			{ renderUnpackedLink() }
 		</div>
 	);
 };
@@ -85,7 +69,6 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 PackageList.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
-	unpacked: PropTypes.array.isRequired,
 	packageId: PropTypes.string.isRequired,
 };
 
