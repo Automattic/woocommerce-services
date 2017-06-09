@@ -96,7 +96,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 		return (
 			<div>
 				<div className="wcc-package-items-header">
-					<FormLegend className="wcc-package-item__name">{ __( 'Shipping Package of Multiple Items' ) }</FormLegend>
+					<FormLegend className="wcc-package-item__name">{ __( 'Shipping Package' ) }</FormLegend>
 				</div>
 				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id } isError={ pckgErrors.box_id }>
 					<option value={ 'not_selected' } key={ 'not_selected' }>{ __( 'Please select a package' ) }</option> )
@@ -135,7 +135,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 
 			<div>
 				<div className="wcc-package-items-header">
-					<FormLegend className="wcc-package-item__name">{ __( 'Contents' ) }</FormLegend>
+					<FormLegend className="wcc-package-item__name">{ __( 'Items to Ship' ) }</FormLegend>
 				</div>
 				{ renderItems() }
 			</div>

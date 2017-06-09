@@ -13,7 +13,7 @@ const PackageList = ( { selected, all, packageId, openPackage, addPackage } ) =>
 
 		return ( <div className="wcc-packages-list__add-container">
 			<a href="#" className="wcc-packages-list__link" onClick={ () => ( addPackage() ) }>
-				<Gridicon icon="add-outline" size={ 18 } /> { __( 'Add package' ) }
+				<Gridicon icon="add-outline" size={ 18 } /> { __( 'Add new Package' ) }
 			</a>
 		</div> );
 	};
