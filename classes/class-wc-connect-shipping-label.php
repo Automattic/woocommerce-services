@@ -169,7 +169,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						'weight' => $weight,
 						'width'  => 0,
 						'items'  => $items,
-					)
+					),
 				);
 			}
 
