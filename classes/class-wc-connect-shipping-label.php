@@ -41,7 +41,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->payment_methods_store = $payment_methods_store;
 		}
 
-		private function get_item_data( WC_Order $order, $item ) {
+		public function get_item_data( WC_Order $order, $item ) {
 			$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 			if ( ! $product || ! $product->needs_shipping() ) {
 				return null;
@@ -202,7 +202,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $formatted_packages;
 		}
 
-		private function get_all_items( WC_Order $order ) {
+		public function get_all_items( WC_Order $order ) {
 			if ( $this->get_packaging_metadata( $order ) ) {
 				return array();
 			}
