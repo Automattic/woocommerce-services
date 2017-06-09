@@ -159,7 +159,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return true;
 		}
 
-		public function get_redirect_url() {
+		public function get_jetpack_redirect_url() {
 			$full_path = add_query_arg( array() );
 			// Remove [...]/wp-admin so we can use admin_url().
 			$new_index = strpos( '/wp-admin', $full_path ) + strlen( '/wp-admin' );
@@ -180,7 +180,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$ajax_data = array(
 				'nonce'                  => wp_create_nonce( 'wcs_install_banner' ),
 				'initial_install_status' => $jetpack_install_status,
-				'redirect_url'           => $this->get_redirect_url(),
+				'redirect_url'           => $this->get_jetpack_redirect_url(),
 				'translations'           => array(
 					'activating'   => __( 'Activating...', 'woocommerce-services' ),
 					'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
