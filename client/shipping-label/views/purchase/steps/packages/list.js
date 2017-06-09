@@ -59,9 +59,9 @@ const PackageList = ( { selected, all, packageId, openPackage, addPackage } ) =>
 
 	return (
 		<div className="wcc-packages-list">
-			{ renderAddPackage() }
 			{ packed }
 			{ individual }
+			{ renderAddPackage() }
 		</div>
 	);
 };
