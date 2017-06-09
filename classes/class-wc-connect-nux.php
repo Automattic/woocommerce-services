@@ -118,6 +118,30 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return Jetpack_Install_Status::ACTIVATED;
 		}
 
+		public function should_display_nux_notice( $screen ) {
+			if ( // Display if on any of these admin pages.
+				( // Products list.
+					'product' === $screen->post_type
+					&& 'edit' === $screen->base
+				)
+				|| ( // Orders list.
+					'shop_order' === $screen->post_type
+					&& 'edit' === $screen->base
+					)
+				|| ( // Edit order page.
+					'shop_order' === $screen->post_type
+					&& 'post' === $screen->base
+					)
+				|| ( // WooCommerce settings.
+					'woocommerce_page_wc-settings' === $screen->base
+					)
+				|| 'plugins' === $screen->base
+			) {
+				return true;
+			}
+			return false;
+		}
+
 		public function set_up_nux_notices() {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
@@ -156,17 +180,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_before_connection_get_access() {
-			if ( function_exists( 'get_current_screen' ) ) {
-				$screen = get_current_screen();
-			}
-			if ( ! isset( $screen ) ) {
-				return;
-			}
-			if ( ! (
-				'edit' === $screen->parent_base
-				&& 'post' === $screen->base
-				&& 'product' === $screen->post_type
-			) ) {
+			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
 				return;
 			}
 
@@ -186,10 +200,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					$should_install_jetpack = true;
 					break;
 				case Jetpack_Install_Status::ACTIVATED:
-					'add' === $screen->action
-						? $redirect = admin_url( 'post-new.php?post_type=product' )
-						: $redirect = get_edit_post_link();
-					$button_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
+					$current_url = add_query_arg( null, null );
+					$button_url = Jetpack::init()->build_connect_url( true, $current_url, 'woocommerce-services' );
 					break;
 			}
 
@@ -205,15 +217,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_before_connection_welcome() {
-			if ( function_exists( 'get_current_screen' ) ) {
-				$screen = get_current_screen();
-			}
-			if ( ! isset( $screen ) ) {
+			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
 				return;
 			}
-			if ( 'plugins' !== $screen->base ) {
-				return;
-			}
+
 			$redirect = admin_url( 'plugins.php' );
 			$connect_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
 			$this->show_nux_banner( array(
@@ -227,26 +234,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_after_connection_see_how_it_works() {
-			if ( function_exists( 'get_current_screen' ) ) {
-				$screen = get_current_screen();
-			}
-			if ( ! isset( $screen ) ) {
+			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
 				return;
 			}
-			// do not display if not on:
-			// 1. plugins page or
-			// 2. product page edit screen
-			if ( ! (
-					'plugins' === $screen->base
-					|| (
-						'edit' === $screen->parent_base
-						&& 'post' === $screen->base
-						&& 'product' === $screen->post_type
-					)
-				)
-			) {
-				return;
-			}
+
 			$this->show_nux_banner( array(
 				'title'          => __( 'You now have access to discount shipping rates and printing services directly within your dashboard!', 'woocommerce-services' ),
 				'description'    => __( 'You can begin purchasing discounted labels from USPS, and printing them at any time.', 'woocommerce-services' ),
