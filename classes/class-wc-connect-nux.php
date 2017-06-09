@@ -170,6 +170,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function set_up_nux_notices() {
+			if ( ! current_user_can( 'manage_woocommerce' )
+				|| ! current_user_can( 'install_plugins' )
+				|| ! current_user_can( 'activate_plugins' )
+			) {
+				return;
+			}
+
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
 			$ajax_data = array(
