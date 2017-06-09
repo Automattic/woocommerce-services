@@ -178,7 +178,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
 			$ajax_data = array(
-				'nonce'                  => wp_create_nonce( 'wcs_install_banner' ),
+				'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 				'initial_install_status' => $jetpack_install_status,
 				'redirect_url'           => $this->get_jetpack_redirect_url(),
 				'translations'           => array(
@@ -194,7 +194,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case self::JETPACK_INSTALLED:
 				case self::JETPACK_ACTIVATED:
 					wp_enqueue_script( 'wc_connect_banner' );
-					wp_localize_script( 'wc_connect_banner', 'wcs_install_banner', $ajax_data );
+					wp_localize_script( 'wc_connect_banner', 'wcs_nux_notice', $ajax_data );
 					add_action( 'wp_ajax_woocommerce_services_activate_jetpack',
 						array( $this, 'ajax_activate_jetpack' )
 					);
@@ -292,7 +292,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Activates Jetpack after an ajax request
 		 */
 		public function ajax_activate_jetpack() {
-			check_ajax_referer( 'wcs_install_banner' );
+			check_ajax_referer( 'wcs_nux_notice' );
 
 			$result = activate_plugin( 'jetpack/jetpack.php' );
 
@@ -315,7 +315,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 *
 		 */
 		public function ajax_get_jetpack_connect_url() {
-			check_ajax_referer( 'wcs_install_banner' );
+			check_ajax_referer( 'wcs_nux_notice' );
 
 			$redirect_url = '';
 			if ( isset( $_POST['redirect_url'] ) ) {

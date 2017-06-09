@@ -3,7 +3,7 @@
  */
 /*global wp */
 /*global ajaxurl */
-/*global wcs_install_banner */
+/*global wcs_nux_notice */
 import jQuery from 'jquery';
 
 /**
@@ -23,11 +23,11 @@ jQuery( document ).ready( ( $ ) => {
 			.fail( function( error ) {
 				let errorMessage = error;
 				if ( ! error ) {
-					errorMessage = wcs_install_banner.translations.defaultError;
+					errorMessage = wcs_nux_notice.translations.defaultError;
 				}
 				if ( error && error.install && 'plugin' === error.install ) {
 					// plugin install error
-					errorMessage = wcs_install_banner.translations.installError;
+					errorMessage = wcs_nux_notice.translations.installError;
 				}
 				$( '<p/>', {
 					// eslint-disable-next-line quote-props
@@ -38,7 +38,7 @@ jQuery( document ).ready( ( $ ) => {
 			} );
 
 		function installStep() {
-			if ( 'uninstalled' === wcs_install_banner.initial_install_status ) {
+			if ( 'uninstalled' === wcs_nux_notice.initial_install_status ) {
 				return $.when()
 					.then( function() {
 						btn.html( wp.updates.l10n.installing );
@@ -49,15 +49,15 @@ jQuery( document ).ready( ( $ ) => {
 		}
 
 		function activateStep() {
-			if ( 'installed' === wcs_install_banner.initial_install_status ||
-				'uninstalled' === wcs_install_banner.initial_install_status
+			if ( 'installed' === wcs_nux_notice.initial_install_status ||
+				'uninstalled' === wcs_nux_notice.initial_install_status
 			) {
 				return $.when()
 				.then( function() {
-					btn.html( wcs_install_banner.translations.activating + '...' );
+					btn.html( wcs_nux_notice.translations.activating );
 					return $.post( ajaxurl, {
 						action: 'woocommerce_services_activate_jetpack',
-						_ajax_nonce: wcs_install_banner.nonce,
+						_ajax_nonce: wcs_nux_notice.nonce,
 					} );
 				} )
 				.then( function( response ) {
@@ -73,11 +73,11 @@ jQuery( document ).ready( ( $ ) => {
 		function connectStep() {
 			return $.when()
 			.then( function() {
-				btn.html( wcs_install_banner.translations.connecting + '...' );
+				btn.html( wcs_nux_notice.translations.connecting );
 				return $.post( ajaxurl, {
 					action: 'woocommerce_services_get_jetpack_connect_url',
-					_ajax_nonce: wcs_install_banner.nonce,
-					redirect_url: wcs_install_banner.redirect_url,
+					_ajax_nonce: wcs_nux_notice.nonce,
+					redirect_url: wcs_nux_notice.redirect_url,
 				} );
 			} )
 			.then( function( jetpackConnectUrl ) {
