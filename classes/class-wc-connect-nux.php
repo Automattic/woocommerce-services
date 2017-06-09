@@ -142,6 +142,25 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return false;
 		}
 
+		public function is_new_store() {
+			$posts_by_status = wp_count_posts( 'shop_order' );
+			$order_statuses = array(
+				'wc-pending',
+				'wc-processing',
+				'wc-on-hold',
+				'wc-completed',
+				'wc-cancelled',
+				'wc-refunded',
+				'wc-failed',
+			);
+			foreach( $order_statuses as $order_status ) {
+				if ( isset( $posts_by_status->$order_status ) && 0 < $posts_by_status->$order_status ) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		public function set_up_nux_notices() {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
@@ -161,25 +180,24 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case Jetpack_Install_Status::INSTALLED:
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_install_banner', $ajax_data );
-					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
+					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
 					add_action( 'wp_ajax_activate_jetpack',
 						array( $this, 'woocommerce_services_ajax_activate_jetpack' )
 					);
 					break;
 				case Jetpack_Install_Status::ACTIVATED:
-					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_welcome' ) );
-					add_action( 'admin_notices', array( $this, 'show_banner_before_connection_get_access' ) );
+					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
 					break;
 				case Jetpack_Install_Status::CONNECTED:
 					add_action(
 						'admin_notices',
-						array( $this, 'show_banner_after_connection_see_how_it_works' )
+						array( $this, 'show_banner_after_connection' )
 					);
 					break;
 			}
 		}
 
-		public function show_banner_before_connection_get_access() {
+		public function show_banner_before_connection() {
 			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
 				return;
 			}
@@ -205,35 +223,30 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					break;
 			}
 
-			$this->show_nux_banner( array(
-				'title'           => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
-				'description'     => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
-				'url'             => $button_url,
-				'button_text'     => $button_text,
-				'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
-				'should_show_jp'  => true,
-				'will_use_script' => $should_install_jetpack,
-			) );
-		}
-
-		public function show_banner_before_connection_welcome() {
-			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
-				return;
+			if ( $this->is_new_store() ) {
+				$this->show_nux_banner( array(
+					'title'           => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
+					'description'     => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
+					'url'             => $button_url,
+					'button_text'     => $button_text,
+					'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
+					'should_show_jp'  => true,
+					'will_use_script' => $should_install_jetpack,
+				) );
+			} else {
+				$this->show_nux_banner( array(
+					'title'           => __( 'Welcome to WooCommerce services', 'woocommerce-services' ),
+					'description'     => __( 'WooCommerce services makes shipping a breeze. Print a label and take advantage of discounted shipping rates right as you process your order, all from the convenience of your WordPress dashboard.', 'woocommerce-services' ),
+					'url'             => $button_url,
+					'button_text'     => $button_text,
+					'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
+					'should_show_jp'  => true,
+					'will_use_script' => $should_install_jetpack,
+				) );
 			}
-
-			$redirect = admin_url( 'plugins.php' );
-			$connect_url = Jetpack::init()->build_connect_url( true, $redirect, 'woocommerce-services' );
-			$this->show_nux_banner( array(
-				'title'          => __( 'Welcome to WooCommerce services', 'woocommerce-services' ),
-				'description'    => __( 'WooCommerce services makes shipping a breeze. Print a label and take advantage of discounted shipping rates right as you process your order, all from the convenience of your WordPress dashboard.', 'woocommerce-services' ),
-				'url'            => $connect_url,
-				'button_text'    => __( 'Connect your store to WordPress.com', 'woocommerce-services' ),
-				'image_url'      => 'https://cldup.com/WpkrskfH_r.jpg',
-				'should_show_jp' => true,
-			) );
 		}
 
-		public function show_banner_after_connection_see_how_it_works() {
+		public function show_banner_after_connection() {
 			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
 				return;
 			}
