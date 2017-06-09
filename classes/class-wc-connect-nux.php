@@ -118,7 +118,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return Jetpack_Install_Status::ACTIVATED;
 		}
 
-		public function should_display_nux_notice( $screen ) {
+		public function should_display_nux_notice_on_screen( $screen ) {
 			if ( // Display if on any of these admin pages.
 				( // Products list.
 					'product' === $screen->post_type
@@ -205,7 +205,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_before_connection() {
-			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
+			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
 
@@ -242,7 +242,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_after_connection() {
-			if ( ! $this->should_display_nux_notice( get_current_screen() ) ) {
+			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
 
