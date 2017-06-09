@@ -53,10 +53,6 @@ const PackageList = ( { selected, all, packageId, openPackage, addPackage } ) =>
 		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Packages to be Shipped' ) ) );
 	}
 
-	if ( individual.length ) {
-		//individual.unshift( renderPackageListHeader( 'individual-header', __( 'Original packaging' ) ) );
-	}
-
 	return (
 		<div className="wcc-packages-list">
 			{ packed }

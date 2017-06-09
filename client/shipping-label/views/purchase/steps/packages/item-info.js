@@ -32,11 +32,7 @@ const ItemInfo = ( { item, itemIndex, openItemMove } ) => {
 ItemInfo.propTypes = {
 	item: PropTypes.object.isRequired,
 	itemIndex: PropTypes.number.isRequired,
-	showRemove: PropTypes.bool,
-	packageId: PropTypes.string.isRequired,
-	showPackIndividually: PropTypes.bool,
-	openMoveItem: PropTypes.func,
-	moveItem: PropTypes.func,
+	openItemMove: PropTypes.func.isRequired,
 };
 
 export default ItemInfo;
