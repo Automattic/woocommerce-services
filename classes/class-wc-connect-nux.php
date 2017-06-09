@@ -218,6 +218,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$button_text = __( 'Connect your store to WordPress.com', 'woocommerce-services' );
 
+			$image_url = plugins_url( 'assets/images/nux-closed-box.jpg', dirname( __FILE__ ) );
+
 			switch ( $jetpack_status ) {
 				case self::JETPACK_UNINSTALLED:
 					$button_text = __( 'Install Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
@@ -232,7 +234,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'title'           => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
 					'description'     => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
 					'button_text'     => $button_text,
-					'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
+					'image_url'       => $image_url,
 					'should_show_jp'  => true,
 				) );
 			} else {
@@ -240,7 +242,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'title'           => __( 'Welcome to WooCommerce services', 'woocommerce-services' ),
 					'description'     => __( 'WooCommerce services makes shipping a breeze. Print a label and take advantage of discounted shipping rates right as you process your order, all from the convenience of your WordPress dashboard.', 'woocommerce-services' ),
 					'button_text'     => $button_text,
-					'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
+					'image_url'       => $image_url,
 					'should_show_jp'  => true,
 				) );
 			}
@@ -255,7 +257,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'title'          => __( 'You now have access to discount shipping rates and printing services directly within your dashboard!', 'woocommerce-services' ),
 				'description'    => __( 'You can begin purchasing discounted labels from USPS, and printing them at any time.', 'woocommerce-services' ),
 				'button_text'    => __( 'See how it works', 'woocommerce-services' ),
-				'image_url'      => 'https://cldup.com/opSeqZzABZ.jpg',
+				'image_url'      => plugins_url(
+					'assets/images/nux-open-box.jpg', dirname( __FILE__ )
+				),
 				'should_show_jp' => false,
 			) );
 		}
@@ -280,7 +284,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				</div>
 				<?php if ( $content['should_show_jp'] ) : ?>
 					<div class="wcs-nux__notice-jetpack">
-						<img src="https://cldup.com/BxbWlzSyPC.jpg">
+						<img src="<?php echo esc_url(
+							plugins_url( 'assets/images/nux-jetpack-logo.jpg', dirname( __FILE__ ) )
+						); ?>">
 						<p>Powered by Jetpack</p>
 					</div>
 				<?php endif; ?>
