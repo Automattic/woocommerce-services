@@ -12,39 +12,17 @@ import jQuery from 'jquery';
 import '../assets/stylesheets/banner.scss';
 
 jQuery( document ).ready( ( $ ) => {
-	$( '.woocommerce-services__install-jetpack' ).one( 'click', function( event ) {
+	$( '.woocommerce-services__connect-jetpack' ).one( 'click', function( event ) {
 		event.preventDefault();
 		const btn = $( this );
 		btn.addClass( 'disabled' );
 
-		// Either install or activate, and then connect.
-		let installStep = $.Deferred().resolve();
-		if ( 'uninstalled' === wcs_install_banner.initial_install_status ) {
-			btn.html( wp.updates.l10n.installing );
-			installStep = wp.updates.installPlugin( { slug: 'jetpack' } );
-		}
-
-		installStep
-			.then( function() {
-				btn.html( wcs_install_banner.translations.activating );
-				return $.post( ajaxurl, {
-					action: 'activate_jetpack',
-					_ajax_nonce: wcs_install_banner.nonce,
-				} );
-			} )
-			.then( function( response ) {
-				if ( 'success' === response ) {
-					return;
-				}
-				return $.Deferred().reject( response );
-			} )
-			.then( function() {
-				btn.html( wcs_install_banner.translations.connecting );
-				return;
-			} )
+		installStep()
+			.then( activateStep )
+			.then( connectStep )
 			.fail( function( error ) {
-				let errorMessage = wcs_install_banner.translations.defaultError;
-				if ( error ) {
+				let errorMessage = error;
+				if ( ! error ) {
 					errorMessage = wcs_install_banner.translations.defaultError;
 				}
 				if ( error && error.install && 'plugin' === error.install ) {
@@ -58,5 +36,53 @@ jQuery( document ).ready( ( $ ) => {
 				} ).insertAfter( btn );
 				btn.remove();
 			} );
+
+		function installStep() {
+			if ( 'uninstalled' === wcs_install_banner.initial_install_status ) {
+				return $.when()
+					.then( function() {
+						btn.html( wp.updates.l10n.installing );
+						return wp.updates.installPlugin( { slug: 'jetpack' } );
+					} );
+			}
+			return $.Deferred().resolve();
+		}
+
+		function activateStep() {
+			if ( 'installed' === wcs_install_banner.initial_install_status ||
+				'uninstalled' === wcs_install_banner.initial_install_status
+			) {
+				return $.when()
+				.then( function() {
+					btn.html( wcs_install_banner.translations.activating + '...' );
+					return $.post( ajaxurl, {
+						action: 'activate_jetpack',
+						_ajax_nonce: wcs_install_banner.nonce,
+					} );
+				} )
+				.then( function( response ) {
+					if ( 'success' === response ) {
+						return;
+					}
+					return $.Deferred().reject( response );
+				} );
+			}
+			return $.Deferred().resolve();
+		}
+
+		function connectStep() {
+			return $.when()
+			.then( function() {
+				btn.html( wcs_install_banner.translations.connecting + '...' );
+				return $.post( ajaxurl, {
+					action: 'get_jetpack_connect_url',
+					_ajax_nonce: wcs_install_banner.nonce,
+					redirect_url: wcs_install_banner.redirect_url,
+				} );
+			} )
+			.then( function( jetpackConnectUrl ) {
+				window.location.href = jetpackConnectUrl;
+			} );
+		}
 	} );
 } );

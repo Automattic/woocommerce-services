@@ -161,12 +161,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return true;
 		}
 
+		public function get_redirect_url() {
+			$full_path = add_query_arg( array() );
+			// Remove [...]/wp-admin so we can use admin_url().
+			$new_index = strpos( '/wp-admin', $full_path ) + strlen( '/wp-admin' );
+			$path = substr( $full_path, $new_index );
+			return admin_url( $path );
+		}
+
 		public function set_up_nux_notices() {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
 			$ajax_data = array(
 				'nonce'                  => wp_create_nonce( 'wcs_install_banner' ),
 				'initial_install_status' => $jetpack_install_status,
+				'redirect_url'           => $this->get_redirect_url(),
 				'translations'           => array(
 					'activating'   => __( 'Activating...', 'woocommerce-services' ),
 					'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
@@ -178,15 +187,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			switch ( $jetpack_install_status ) {
 				case Jetpack_Install_Status::UNINSTALLED:
 				case Jetpack_Install_Status::INSTALLED:
+				case Jetpack_Install_Status::ACTIVATED:
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_install_banner', $ajax_data );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
 					add_action( 'wp_ajax_activate_jetpack',
 						array( $this, 'woocommerce_services_ajax_activate_jetpack' )
 					);
-					break;
-				case Jetpack_Install_Status::ACTIVATED:
-					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
+					add_action( 'wp_ajax_get_jetpack_connect_url',
+						array( $this, 'woocommerce_services_ajax_get_jetpack_connect_url' )
+					);
 					break;
 				case Jetpack_Install_Status::CONNECTED:
 					add_action(
@@ -204,22 +214,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
-			$button_url = '#';
 			$button_text = __( 'Connect your store to WordPress.com', 'woocommerce-services' );
-			$should_install_jetpack = false;
 
 			switch ( $jetpack_status ) {
 				case Jetpack_Install_Status::UNINSTALLED:
 					$button_text = __( 'Install Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
-					$should_install_jetpack = true;
 					break;
 				case Jetpack_Install_Status::INSTALLED:
 					$button_text = __( 'Activate Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
-					$should_install_jetpack = true;
-					break;
-				case Jetpack_Install_Status::ACTIVATED:
-					$current_url = add_query_arg( null, null );
-					$button_url = Jetpack::init()->build_connect_url( true, $current_url, 'woocommerce-services' );
 					break;
 			}
 
@@ -227,21 +229,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				$this->show_nux_banner( array(
 					'title'           => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
 					'description'     => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
-					'url'             => $button_url,
 					'button_text'     => $button_text,
 					'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
 					'should_show_jp'  => true,
-					'will_use_script' => $should_install_jetpack,
 				) );
 			} else {
 				$this->show_nux_banner( array(
 					'title'           => __( 'Welcome to WooCommerce services', 'woocommerce-services' ),
 					'description'     => __( 'WooCommerce services makes shipping a breeze. Print a label and take advantage of discounted shipping rates right as you process your order, all from the convenience of your WordPress dashboard.', 'woocommerce-services' ),
-					'url'             => $button_url,
 					'button_text'     => $button_text,
 					'image_url'       => 'https://cldup.com/WpkrskfH_r.jpg',
 					'should_show_jp'  => true,
-					'will_use_script' => $should_install_jetpack,
 				) );
 			}
 		}
@@ -254,7 +252,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$this->show_nux_banner( array(
 				'title'          => __( 'You now have access to discount shipping rates and printing services directly within your dashboard!', 'woocommerce-services' ),
 				'description'    => __( 'You can begin purchasing discounted labels from USPS, and printing them at any time.', 'woocommerce-services' ),
-				'url'            => '#',
 				'button_text'    => __( 'See how it works', 'woocommerce-services' ),
 				'image_url'      => 'https://cldup.com/opSeqZzABZ.jpg',
 				'should_show_jp' => false,
@@ -270,14 +267,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<div class="wcs-nux__notice-content">
 					<h1><?php echo esc_html( $content['title'] ); ?></h1>
 					<p><?php echo esc_html( $content['description'] ); ?></p>
-					<a
-						href="<?php echo esc_url( $content['url'] ); ?>"
-						<?php if ( isset( $content['will_use_script'] ) && $content['will_use_script'] ) : ?>
-							class="woocommerce-services__install-jetpack"
-						<?php endif; ?>
+					<button
+						class="woocommerce-services__connect-jetpack"
 					>
 						<?php echo esc_html( $content['button_text'] ); ?>
-					</a>
+					</button>
 					<?php if ( $content['should_show_jp'] ) : ?>
 						<p>By connecting your site you agree to our fascinating <a href="http://google.com">Terms of Service</a> and to <a>share details</a> with WordPress.com.</p>
 					<?php endif; ?>
@@ -311,6 +305,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				}
 			}
 
+			wp_die();
+		}
+
+		/**
+		 * Get Jetpack connection URL.
+		 *
+		 */
+		public function woocommerce_services_ajax_get_jetpack_connect_url() {
+			check_ajax_referer( 'wcs_install_banner' );
+
+			$redirect_url = '';
+			if ( isset( $_POST['redirect_url'] ) ) {
+				$redirect_url = esc_url_raw( wp_unslash( $_POST['redirect_url'] ) );
+			}
+
+			$connect_url = Jetpack::init()->build_connect_url(
+				true,
+				$redirect_url,
+				'woocommerce-services'
+			);
+
+			echo esc_url_raw( $connect_url );
 			wp_die();
 		}
 	}
