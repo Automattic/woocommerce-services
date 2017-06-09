@@ -41,7 +41,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->payment_methods_store = $payment_methods_store;
 		}
 
-		private function get_item_data( WC_Order $order, WC_Order_Item $item ) {
+		private function get_item_data( WC_Order $order, $item ) {
 			$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 			if ( ! $product || ! $product->needs_shipping() ) {
 				return null;
