@@ -190,19 +190,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case Jetpack_Install_Status::ACTIVATED:
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_install_banner', $ajax_data );
+					add_action( 'wp_ajax_woocommerce_services_activate_jetpack',
+						array( $this, 'ajax_activate_jetpack' )
+					);
+					add_action( 'wp_ajax_woocommerce_services_get_jetpack_connect_url',
+						array( $this, 'ajax_get_jetpack_connect_url' )
+					);
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
-					add_action( 'wp_ajax_activate_jetpack',
-						array( $this, 'woocommerce_services_ajax_activate_jetpack' )
-					);
-					add_action( 'wp_ajax_get_jetpack_connect_url',
-						array( $this, 'woocommerce_services_ajax_get_jetpack_connect_url' )
-					);
 					break;
 				case Jetpack_Install_Status::CONNECTED:
-					add_action(
-						'admin_notices',
-						array( $this, 'show_banner_after_connection' )
-					);
+					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
 		}
@@ -289,7 +286,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		/**
 		 * Activates Jetpack after an ajax request
 		 */
-		public function woocommerce_services_ajax_activate_jetpack() {
+		public function ajax_activate_jetpack() {
 			check_ajax_referer( 'wcs_install_banner' );
 
 			$result = activate_plugin( 'jetpack/jetpack.php' );
@@ -312,7 +309,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Get Jetpack connection URL.
 		 *
 		 */
-		public function woocommerce_services_ajax_get_jetpack_connect_url() {
+		public function ajax_get_jetpack_connect_url() {
 			check_ajax_referer( 'wcs_install_banner' );
 
 			$redirect_url = '';

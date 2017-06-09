@@ -56,7 +56,7 @@ jQuery( document ).ready( ( $ ) => {
 				.then( function() {
 					btn.html( wcs_install_banner.translations.activating + '...' );
 					return $.post( ajaxurl, {
-						action: 'activate_jetpack',
+						action: 'woocommerce_services_activate_jetpack',
 						_ajax_nonce: wcs_install_banner.nonce,
 					} );
 				} )
@@ -75,7 +75,7 @@ jQuery( document ).ready( ( $ ) => {
 			.then( function() {
 				btn.html( wcs_install_banner.translations.connecting + '...' );
 				return $.post( ajaxurl, {
-					action: 'get_jetpack_connect_url',
+					action: 'woocommerce_services_get_jetpack_connect_url',
 					_ajax_nonce: wcs_install_banner.nonce,
 					redirect_url: wcs_install_banner.redirect_url,
 				} );
