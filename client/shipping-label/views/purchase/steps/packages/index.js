@@ -42,7 +42,7 @@ const PackagesStep = ( {
 		if ( ! isValidPackageType ) {
 			return {
 				isError: true,
-				summary: __( 'Please Select a Box Type' ),
+				summary: __( 'Please Select a Package Type' ),
 			};
 		}
 

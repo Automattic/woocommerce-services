@@ -96,10 +96,10 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 		return (
 			<div>
 				<div className="wcc-package-items-header">
-					<FormLegend className="wcc-package-item__name">{ __( 'Package of Multiple Items' ) }</FormLegend>
+					<FormLegend className="wcc-package-item__name">{ __( 'Shipping Package of Multiple Items' ) }</FormLegend>
 				</div>
 				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id } isError={ pckgErrors.box_id }>
-					<option value={ 'not_selected' } key={ 'not_selected' }>{ __( 'Please select a box' ) }</option> )
+					<option value={ 'not_selected' } key={ 'not_selected' }>{ __( 'Please select a package' ) }</option> )
 					{ _.map( groups, ( group, groupId ) => {
 						if ( _.isEmpty( group.definitions ) ) {
 							return null;

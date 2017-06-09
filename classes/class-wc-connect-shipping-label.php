@@ -79,7 +79,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$packages   = array();
 			$item_count = 0;
 
-			foreach( $order->get_items() as $item ) {
+			foreach ( $order->get_items() as $item ) {
 				$item_data = $this->get_item_data( $order, $item );
 				if ( null === $item_data ) {
 					continue;
@@ -157,13 +157,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
-				$items = array();
-				$weight = 0;
-
-				foreach( $this->get_all_items( $order ) as $id => $item ) {
-					$items[ $id ] = $item;
-					$weight += $item[ 'weight' ];
-				}
+				$items = $this->get_all_items( $order );
+				$weight = array_sum( wp_list_pluck( $items, 'weight' ) );
 
 				return array(
 					'default_box' => array(
@@ -180,12 +175,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$formatted_packages = array();
 
-			foreach( $packages as $package_obj ) {
+			foreach ( $packages as $package_obj ) {
 				$package = ( array ) $package_obj;
 				$package_id = $package[ 'id' ];
 				$formatted_packages[ $package_id ] = $package;
 
-				foreach( $package[ 'items' ] as $item_index => $item ) {
+				foreach ( $package[ 'items' ] as $item_index => $item ) {
 					$product_data = ( array ) $item;
 					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $product_data );
 
@@ -213,13 +208,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$items = array();
-			foreach( $order->get_items() as $item ) {
+			foreach ( $order->get_items() as $item ) {
 				$item_data = $this->get_item_data( $order, $item );
 				if ( null === $item_data ) {
 					continue;
 				}
 
-				for( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
+				for ( $i = 0; $i < $item[ 'qty' ]; $i++ ) {
 					$items[] = $item_data;
 				}
 			}
@@ -232,7 +227,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$formatted_packages = array();
 
-			foreach( $custom_packages as $package ) {
+			foreach ( $custom_packages as $package ) {
 				$package_id = $package[ 'name' ];
 				$formatted_packages[ $package_id ] = $package;
 			}
@@ -275,7 +270,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$packages = $this->get_packaging_from_shipping_method( $shipping_method );
 			$rates = array();
 
-			foreach( $packages as $idx => $package_obj ) {
+			foreach ( $packages as $idx => $package_obj ) {
 				$package = ( array ) $package_obj;
 				// Abort if the package data is malformed
 				if ( ! isset( $package[ 'id' ] ) || ! isset( $package[ 'service_id' ] ) ) {
@@ -350,10 +345,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_states_map() {
 			$result = array();
-			foreach( WC()->countries->get_countries() as $code => $name ) {
+			foreach ( WC()->countries->get_countries() as $code => $name ) {
 				$result[ $code ] = array( 'name' => html_entity_decode( $name ) );
 			}
-			foreach( WC()->countries->get_states() as $country => $states ) {
+			foreach ( WC()->countries->get_states() as $country => $states ) {
 				$result[ $country ][ 'states' ] = array();
 				foreach ( $states as $code => $name ) {
 					if ( 'US' === $country && in_array( $code, $this->unsupported_states ) ) {
@@ -396,7 +391,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			// At this point (no packaging data), only show if there's at least one existing and shippable product
-			foreach( $order->get_items() as $item ) {
+			foreach ( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
 					return true;
