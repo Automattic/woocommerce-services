@@ -1,18 +1,16 @@
 <?php
 
-if ( ! class_exists( 'Jetpack_Install_Status' ) ) {
-	abstract class Jetpack_Install_Status {
-		const UNINSTALLED = 'uninstalled';
-		const INSTALLED = 'installed';
-		const ACTIVATED = 'activated';
-		const DEV = 'dev';
-		const CONNECTED = 'connected';
-	}
-}
-
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 	class WC_Connect_Nux {
+		/**
+		 * Jetpack status constants.
+		 */
+		const JETPACK_UNINSTALLED = 'uninstalled';
+		const JETPACK_INSTALLED = 'installed';
+		const JETPACK_ACTIVATED = 'activated';
+		const JETPACK_DEV = 'dev';
+		const JETPACK_CONNECTED = 'connected';
 
 		function __construct() {
 			$this->init_pointers();
@@ -100,22 +98,22 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
 				// not activated, check if installed
 				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					return Jetpack_Install_Status::INSTALLED;
+					return self::JETPACK_INSTALLED;
 				}
-				return Jetpack_Install_Status::UNINSTALLED;
+				return self::JETPACK_UNINSTALLED;
 			} else if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
 				// installed, activated, and dev mode on
-				return Jetpack_Install_Status::DEV;
+				return self::JETPACK_DEV;
 			}
 
 			// installed, activated, dev mode off
 			// check if connected
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
 			if ( isset( $user_token->external_user_id ) ) { // always an int
-				return Jetpack_Install_Status::CONNECTED;
+				return self::JETPACK_CONNECTED;
 			}
 
-			return Jetpack_Install_Status::ACTIVATED;
+			return self::JETPACK_ACTIVATED;
 		}
 
 		public function should_display_nux_notice_on_screen( $screen ) {
@@ -192,9 +190,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 
 			switch ( $jetpack_install_status ) {
-				case Jetpack_Install_Status::UNINSTALLED:
-				case Jetpack_Install_Status::INSTALLED:
-				case Jetpack_Install_Status::ACTIVATED:
+				case self::JETPACK_UNINSTALLED:
+				case self::JETPACK_INSTALLED:
+				case self::JETPACK_ACTIVATED:
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_install_banner', $ajax_data );
 					add_action( 'wp_ajax_woocommerce_services_activate_jetpack',
@@ -205,7 +203,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					);
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
 					break;
-				case Jetpack_Install_Status::CONNECTED:
+				case self::JETPACK_CONNECTED:
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
@@ -221,10 +219,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$button_text = __( 'Connect your store to WordPress.com', 'woocommerce-services' );
 
 			switch ( $jetpack_status ) {
-				case Jetpack_Install_Status::UNINSTALLED:
+				case self::JETPACK_UNINSTALLED:
 					$button_text = __( 'Install Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
 					break;
-				case Jetpack_Install_Status::INSTALLED:
+				case self::JETPACK_INSTALLED:
 					$button_text = __( 'Activate Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
 					break;
 			}
