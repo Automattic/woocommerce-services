@@ -216,31 +216,31 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
-			$button_text = __( 'Connect your store to WordPress.com', 'woocommerce-services' );
+			$button_text = __( 'CONNECT >', 'woocommerce-services' );
 
 			$image_url = plugins_url( 'assets/images/nux-closed-box.jpg', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_UNINSTALLED:
-					$button_text = __( 'Install Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
+					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED:
-					$button_text = __( 'Activate Jetpack and connect your store to WordPress.com', 'woocommerce-services' );
+					$button_text = __( 'Activate Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
 			}
 
 			if ( $this->is_new_store() ) {
 				$this->show_nux_banner( array(
-					'title'           => __( 'Get access to discount shipping labels by connecting to WordPress.com', 'woocommerce-services' ),
-					'description'     => __( 'WooCommerce Services is almost ready to go. Once you connect your store to WordPress.com you can begin printing labels and saving money with discounted shipping rates all from your dashboard.', 'woocommerce-services' ),
+					'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
+					'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you’ll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard.", 'woocommerce-services' ),
 					'button_text'     => $button_text,
 					'image_url'       => $image_url,
 					'should_show_jp'  => true,
 				) );
 			} else {
 				$this->show_nux_banner( array(
-					'title'           => __( 'Welcome to WooCommerce services', 'woocommerce-services' ),
-					'description'     => __( 'WooCommerce services makes shipping a breeze. Print a label and take advantage of discounted shipping rates right as you process your order, all from the convenience of your WordPress dashboard.', 'woocommerce-services' ),
+					'title'           => __( 'Save time and money with WooCommerce Shipping', 'woocommerce-services' ),
+					'description'     => __( 'Access discounted shipping rates and printing services for USPS and Canada Post without leaving your dashboard (fewer trips to the post office, winning).', 'woocommerce-services' ),
 					'button_text'     => $button_text,
 					'image_url'       => $image_url,
 					'should_show_jp'  => true,
@@ -254,9 +254,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			$this->show_nux_banner( array(
-				'title'          => __( 'You now have access to discount shipping rates and printing services directly within your dashboard!', 'woocommerce-services' ),
-				'description'    => __( 'You can begin purchasing discounted labels from USPS, and printing them at any time.', 'woocommerce-services' ),
-				'button_text'    => __( 'See how it works', 'woocommerce-services' ),
+				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services' ),
+				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
+				'button_text'    => __( 'GET STARTED >', 'woocommerce-services' ),
 				'image_url'      => plugins_url(
 					'assets/images/nux-open-box.jpg', dirname( __FILE__ )
 				),
