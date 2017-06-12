@@ -133,6 +133,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
 					)
+				|| ( // WooCommerce featured extension page
+					'woocommerce_page_wc-addons' === $screen->base
+					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
+					)
+				|| ( // WooCommerce shipping extension page
+					'woocommerce_page_wc-addons' === $screen->base
+					&& isset( $_GET['section'] ) && 'shipping_methods' === $_GET['section']
+					)
 				|| 'plugins' === $screen->base
 			) {
 				return true;
