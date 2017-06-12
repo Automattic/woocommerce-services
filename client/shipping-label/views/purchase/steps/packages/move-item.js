@@ -15,7 +15,7 @@ const MoveItemDialog = ( {
 	all,
 	closeItemMove,
 	setTargetPackage,
-	confirmItemMove } ) => {
+	moveItem } ) => {
 	if ( -1 === movedItemIndex || ! showItemMoveDialog ) {
 		return null;
 	}
@@ -97,7 +97,7 @@ const MoveItemDialog = ( {
 					{ renderIndividualOption() }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Move' ), isPrimary: true, onClick: () => ( confirmItemMove( openedPackageId, movedItemIndex, targetPackageId ) ) },
+					{ label: __( 'Move' ), isPrimary: true, onClick: () => ( moveItem( openedPackageId, movedItemIndex, targetPackageId ) ) },
 					{ label: __( 'Cancel' ), onClick: closeItemMove },
 				] } />
 			</div>
@@ -112,6 +112,7 @@ MoveItemDialog.propTypes = {
 	openedPackageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
+	moveItem: PropTypes.func.isRequired,
 };
 
 export default MoveItemDialog;

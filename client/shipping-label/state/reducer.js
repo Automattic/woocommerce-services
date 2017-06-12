@@ -223,21 +223,22 @@ reducers[ OPEN_ITEM_MOVE ] = ( state, { movedItemIndex } ) => {
 	};
 };
 
-reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackageId } ) => {
-	if ( -1 === movedItemIndex || openedPackageId === targetPackageId || undefined === openedPackageId ) {
+reducers[ MOVE_ITEM ] = ( state, { originPackageId, movedItemIndex, targetPackageId } ) => {
+	if ( -1 === movedItemIndex || originPackageId === targetPackageId || undefined === originPackageId ) {
 		return state;
 	}
 
 	const newPackages = { ...state.form.packages.selected };
-	let addedPackageId = '';
+	let addedPackageId = null;
+	let openedPackageId = state.openedPackageId;
 
-	const originItems = [ ...newPackages[ openedPackageId ].items ];
+	const originItems = [ ...newPackages[ originPackageId ].items ];
 	const movedItem = originItems.splice( movedItemIndex, 1 )[ 0 ];
 
-	newPackages[ openedPackageId ] = {
-		...newPackages[ openedPackageId ],
+	newPackages[ originPackageId ] = {
+		...newPackages[ originPackageId ],
 		items: originItems,
-		weight: newPackages[ openedPackageId ].weight - movedItem.weight,
+		weight: newPackages[ originPackageId ].weight - movedItem.weight,
 	};
 
 	if ( 'individual' === targetPackageId ) {
@@ -252,7 +253,7 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 			items: [ movedItem ],
 		};
 	} else if ( 'new' === targetPackageId ) {
-		//move to an individual packaging
+		//move to an new packaging
 		const packageKeys = Object.keys( newPackages );
 		addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
 		newPackages[ addedPackageId ] = {
@@ -261,9 +262,8 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 			box_id: 'not_selected',
 			items: [ movedItem ],
 		};
-		openedPackageId = addedPackageId;
 	} else {
-		//move to a custom package
+		//move to an existing package
 		const targetItems = [ ...newPackages[ targetPackageId ].items ];
 		targetItems.push( movedItem );
 		newPackages[ targetPackageId ] = {
@@ -273,8 +273,17 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 		};
 	}
 
+	if ( 0 === newPackages[ originPackageId ].items.length ) {
+		delete newPackages[ originPackageId ];
+		openedPackageId = addedPackageId || targetPackageId;
+	}
+
 	return {
 		...state,
+		openedPackageId,
+		addedPackageId,
+		movedItemIndex: -1,
+		showItemMoveDialog: false,
 		form: {
 			...state.form,
 			needsPrintConfirmation: false,
@@ -289,8 +298,6 @@ reducers[ MOVE_ITEM ] = ( state, { openedPackageId, movedItemIndex, targetPackag
 				available: {},
 			},
 		},
-		addedPackageId,
-		openedPackageId,
 	};
 };
 

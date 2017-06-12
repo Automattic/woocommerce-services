@@ -5,7 +5,6 @@ import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';
 import FormSelect from 'components/forms/form-select';
 import Button from 'components/button';
-import Gridicon from 'gridicons';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
 import _ from 'lodash';
 
@@ -13,9 +12,8 @@ const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 	return `${dimensions.length} ${dimensionUnit} x ${dimensions.width} ${dimensionUnit} x ${dimensions.height} ${dimensionUnit}`;
 };
 
-const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
+const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, setPackageType, openAddItem } ) => {
 	const pckgErrors = errors[ packageId ] || {};
-	const numPackages = _.values( selected ).filter( p => 'individual' !== p.box_id ).length;
 
 	if ( ! packageId ) {
 		return null;
@@ -114,21 +112,6 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 		);
 	};
 
-	const renderRemoveButton = () => {
-		if ( 'individual' !== pckg.box_id && 1 === numPackages ) {
-			return null;
-		}
-
-		return (
-			<div>
-				<Button className="wcc-package__remove" borderless compact onClick={ () => ( removePackage( packageId ) ) }>
-					<Gridicon icon="trash" />
-					<span className="wcc-package__remove-label">{ __( 'Remove this package' ) }</span>
-				</Button>
-			</div>
-		);
-	};
-
 	return (
 		<div className="wcc-package">
 			{ renderPackageSelect() }
@@ -150,7 +133,6 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 					error={ pckgErrors.weight } />
 				<span className="wcc-package__weight-unit">{ weightUnit }</span>
 			</div>
-			{ renderRemoveButton() }
 		</div>
 	);
 };
@@ -164,6 +146,10 @@ PackageInfo.propTypes = {
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
+	openItemMove: PropTypes.func.isRequired,
+	removeItem: PropTypes.func.isRequired,
+	setPackageType: PropTypes.func.isRequired,
+	openAddItem: PropTypes.func.isRequired,
 };
 
 export default PackageInfo;

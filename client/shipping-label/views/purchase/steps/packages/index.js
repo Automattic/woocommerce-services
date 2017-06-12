@@ -9,20 +9,23 @@ import Notice from 'components/notice';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import StepContainer from '../../step-container';
 
-const PackagesStep = ( {
-	openedPackageId,
-	selected,
-	all,
-	flatRateGroups,
-	storeOptions,
-	labelActions,
-	errors,
-	expanded,
-	showItemMoveDialog,
-	movedItemIndex,
-	targetPackageId,
-	showAddItemDialog,
-	sourcePackageId } ) => {
+const PackagesStep = ( props ) => {
+	const {
+		openedPackageId,
+		selected,
+		all,
+		flatRateGroups,
+		storeOptions,
+		labelActions,
+		errors,
+		expanded,
+		showItemMoveDialog,
+		movedItemIndex,
+		targetPackageId,
+		showAddItemDialog,
+		sourcePackageId,
+	} = props;
+
 	const packageIds = Object.keys( selected );
 	const itemsCount = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].items.length ), 0 );
 	const totalWeight = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].weight ), 0 );
@@ -156,7 +159,7 @@ const PackagesStep = ( {
 				all={ all }
 				closeItemMove={ labelActions.closeItemMove }
 				setTargetPackage={ labelActions.setTargetPackage }
-				confirmItemMove={ labelActions.confirmItemMove } />
+				moveItem={ labelActions.moveItem } />
 			<AddItemDialog
 				showAddItemDialog={ showAddItemDialog || false }
 				movedItemIndex={ movedItemIndex }

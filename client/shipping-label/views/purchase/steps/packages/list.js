@@ -4,20 +4,7 @@ import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import getPackageDescriptions from './get-package-descriptions';
 
-const PackageList = ( { selected, all, errors, packageId, openPackage, addPackage } ) => {
-	const renderAddPackage = () => {
-		const boxesKeys = Object.keys( all );
-		if ( ! boxesKeys.length ) {
-			return null;
-		}
-
-		return ( <div className="wcc-packages-list__add-container">
-			<a href="#" className="wcc-packages-list__link" onClick={ () => ( addPackage() ) }>
-				<Gridicon icon="add-outline" size={ 18 } /> { __( 'Add new Package' ) }
-			</a>
-		</div> );
-	};
-
+const PackageList = ( { selected, all, errors, packageId, openPackage } ) => {
 	const renderCountOrError = ( isError, count ) => {
 		if ( isError ) {
 			return ( <Gridicon icon="notice-outline" className="is-error" size={ 18 } /> );
@@ -75,7 +62,6 @@ const PackageList = ( { selected, all, errors, packageId, openPackage, addPackag
 		<div className="wcc-packages-list">
 			{ packed }
 			{ individual }
-			{ renderAddPackage() }
 		</div>
 	);
 };
@@ -85,8 +71,7 @@ PackageList.propTypes = {
 	all: PropTypes.object.isRequired,
 	packageId: PropTypes.string.isRequired,
 	errors: PropTypes.object,
-	openPackage: PropTypes.func,
-	addPackage: PropTypes.func,
+	openPackage: PropTypes.func.isRequired,
 };
 
 export default PackageList;

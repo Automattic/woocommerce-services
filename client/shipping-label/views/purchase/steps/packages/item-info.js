@@ -6,7 +6,7 @@ const ItemInfo = ( { item, itemIndex, openItemMove } ) => {
 	const renderMoveToPackage = () => {
 		return (
 			<Button className="wcc-package-item__move" compact onClick={ () => openItemMove( itemIndex ) }>
-				{ __( 'Move to Package' ) }
+				{ __( 'Move' ) }
 			</Button>
 		);
 	};
