@@ -237,23 +237,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					break;
 			}
 
-			if ( $this->is_new_store() ) {
-				$this->show_nux_banner( array(
-					'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
-					'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard.", 'woocommerce-services' ),
-					'button_text'     => $button_text,
-					'image_url'       => $image_url,
-					'should_show_jp'  => true,
-				) );
-			} else {
-				$this->show_nux_banner( array(
-					'title'           => __( 'Save time and money with WooCommerce Shipping', 'woocommerce-services' ),
-					'description'     => __( 'Access discounted shipping rates and printing services for USPS and Canada Post without leaving your dashboard (fewer trips to the post office, winning).', 'woocommerce-services' ),
-					'button_text'     => $button_text,
-					'image_url'       => $image_url,
-					'should_show_jp'  => true,
-				) );
-			}
+			$this->show_nux_banner( array(
+				'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
+				'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ),
+				'button_text'     => $button_text,
+				'image_url'       => $image_url,
+				'should_show_jp'  => true,
+			) );
 		}
 
 		public function show_banner_after_connection() {
