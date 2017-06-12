@@ -232,7 +232,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( $this->is_new_store() ) {
 				$this->show_nux_banner( array(
 					'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
-					'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you’ll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard.", 'woocommerce-services' ),
+					'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard.", 'woocommerce-services' ),
 					'button_text'     => $button_text,
 					'image_url'       => $image_url,
 					'should_show_jp'  => true,
