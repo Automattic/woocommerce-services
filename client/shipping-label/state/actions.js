@@ -416,18 +416,6 @@ export const removeItem = ( packageId, itemIndex ) => ( dispatch, getState ) => 
 	}
 };
 
-export const confirmAddItem = ( sourcePackageId, itemIndex, targetPackageId ) => ( dispatch, getState ) => {
-	dispatch( moveItem( sourcePackageId, itemIndex, targetPackageId ) );
-
-	const state = getState().shippingLabel;
-	const selected = state.form.packages.selected;
-	if ( selected[ sourcePackageId ] && 'individual' === selected[ sourcePackageId ].box_id ) {
-		dispatch( removePackage( sourcePackageId ) );
-	}
-
-	dispatch( closeAddItem() );
-};
-
 export const confirmPackages = () => ( dispatch, getState, context ) => {
 	const { getRatesURL, storeOptions, nonce } = context;
 	dispatch( toggleStep( 'packages' ) );

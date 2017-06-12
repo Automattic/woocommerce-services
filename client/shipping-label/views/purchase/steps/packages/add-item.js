@@ -15,7 +15,7 @@ const AddItemDialog = ( {
 	all,
 	closeAddItem,
 	setAddedItem,
-	confirmAddItem } ) => {
+	moveItem } ) => {
 	if ( ! showAddItemDialog ) {
 		return null;
 	}
@@ -68,8 +68,8 @@ const AddItemDialog = ( {
 					{ itemOptions }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Add' ), isPrimary: true, onClick: () => ( confirmAddItem( sourcePackageId, movedItemIndex, openedPackageId ) ) },
-					{ label: __( 'Cancel' ), onClick: closeAddItem },
+					{ label: __( 'Add' ), isPrimary: true, onClick: () => ( moveItem( sourcePackageId, movedItemIndex, openedPackageId ) ) },
+					{ label: __( 'Close' ), onClick: closeAddItem },
 				] } />
 			</div>
 		</Dialog>
@@ -83,6 +83,9 @@ AddItemDialog.propTypes = {
 	openedPackageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
+	closeAddItem: PropTypes.func.isRequired,
+	setAddedItem: PropTypes.func.isRequired,
+	moveItem: PropTypes.func.isRequired,
 };
 
 export default AddItemDialog;
