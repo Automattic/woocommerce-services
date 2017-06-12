@@ -68,7 +68,7 @@ describe( 'Label purchase form reducer', () => {
 		const action = moveItem( 'weight_0_custom1', 0, 'weight_1_custom1' );
 		const state = reducer( initialState, action );
 
-		expect( state.form.packages.selected.weight_0_custom1.items.length ).to.eql( 0 );
+		expect( state.form.packages.selected.weight_0_custom1 ).to.eql( undefined );
 		expect( state.form.packages.selected.weight_1_custom1.items.length ).to.eql( 2 );
 		expect( state.form.packages.selected.weight_1_custom1.items ).to.include( initialState.form.packages.selected.weight_0_custom1.items[ 0 ] );
 		expect( state.form.packages.saved ).to.eql( false );
@@ -81,7 +81,7 @@ describe( 'Label purchase form reducer', () => {
 		const action = moveItem( 'weight_0_custom1', 0, 'individual' );
 		const state = reducer( initialState, action );
 
-		expect( state.form.packages.selected.weight_0_custom1.items.length ).to.eql( 0 );
+		expect( state.form.packages.selected.weight_0_custom1 ).to.eql( undefined );
 		expect( state.form.packages.selected ).to.include.keys( 'client_individual_0' );
 		expect( state.form.packages.selected.client_individual_0.box_id ).to.eql( 'individual' );
 		expect( state.form.packages.selected.client_individual_0.items.length ).to.eql( 1 );
