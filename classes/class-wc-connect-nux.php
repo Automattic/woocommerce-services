@@ -237,13 +237,27 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					break;
 			}
 
-			$this->show_nux_banner( array(
+			$default_content = array(
 				'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
 				'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ),
 				'button_text'     => $button_text,
 				'image_url'       => $image_url,
 				'should_show_jp'  => true,
-			) );
+			);
+
+			$base_location = wc_get_base_location();
+			$country = isset( $base_location['country'] )
+				? $base_location['country']
+				: '';
+			switch ( $country ) {
+				case 'CA':
+					$localized_content = array(
+						'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ),
+					);
+					break;
+			}
+
+			$this->show_nux_banner( wp_parse_args( $localized_content = null, $default_content ) );
 		}
 
 		public function show_banner_after_connection() {
