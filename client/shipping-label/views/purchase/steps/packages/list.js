@@ -4,7 +4,7 @@ import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import getPackageDescriptions from './get-package-descriptions';
 
-const PackageList = ( { selected, all, packageId, openPackage, addPackage } ) => {
+const PackageList = ( { selected, all, errors, packageId, openPackage, addPackage } ) => {
 	const renderAddPackage = () => {
 		const boxesKeys = Object.keys( all );
 		if ( ! boxesKeys.length ) {
@@ -18,14 +18,32 @@ const PackageList = ( { selected, all, packageId, openPackage, addPackage } ) =>
 		</div> );
 	};
 
+	const renderCountOrError = ( isError, count ) => {
+		if ( isError ) {
+			return ( <Gridicon icon="notice-outline" className="is-error" size={ 18 } /> );
+		}
+
+		if ( undefined === count ) {
+			return null;
+		}
+
+		return ( <span className="wcc-packages-list-package__count">{ count }</span> );
+	};
+
 	const renderPackageListItem = ( pckgId, name, count ) => {
+		const isError = 0 < Object.keys( errors[ pckgId ] || {} ).length;
+		const className = classNames( {
+			'wcc-packages-list__item': true,
+			'is-error': isError,
+		} );
+
 		return (
-			<div className="wcc-packages-list__item" key={ pckgId }>
+			<div className={ className } key={ pckgId }>
 				<div
 					className={ classNames( 'wcc-packages-list-package', { selected: packageId === pckgId } ) }
 					onClick={ () => ( openPackage( pckgId ) ) } >
 					<span className="wcc-packages-list-package__name">{ name }</span>
-					{ undefined !== count ? <span className="wcc-packages-list-package__count">{ count }</span> : null }
+					{ renderCountOrError( isError, count ) }
 				</div>
 			</div>
 		);
@@ -66,6 +84,9 @@ PackageList.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
 	packageId: PropTypes.string.isRequired,
+	errors: PropTypes.object,
+	openPackage: PropTypes.func,
+	addPackage: PropTypes.func,
 };
 
 export default PackageList;

@@ -94,6 +94,7 @@ const PackagesStep = ( {
 				packageId={ openedPackageId }
 				selected={ selected }
 				all={ all }
+				errors={ errors }
 				addPackage={ labelActions.addPackage }/>,
 		];
 
