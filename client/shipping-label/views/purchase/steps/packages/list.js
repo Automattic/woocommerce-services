@@ -19,13 +19,8 @@ const PackageList = ( { selected, all, errors, packageId, openPackage } ) => {
 
 	const renderPackageListItem = ( pckgId, name, count ) => {
 		const isError = 0 < Object.keys( errors[ pckgId ] || {} ).length;
-		const className = classNames( {
-			'wcc-packages-list__item': true,
-			'is-error': isError,
-		} );
-
 		return (
-			<div className={ className } key={ pckgId }>
+			<div className="wcc-packages-list__item" key={ pckgId }>
 				<div
 					className={ classNames( 'wcc-packages-list-package', { selected: packageId === pckgId } ) }
 					onClick={ () => ( openPackage( pckgId ) ) } >
