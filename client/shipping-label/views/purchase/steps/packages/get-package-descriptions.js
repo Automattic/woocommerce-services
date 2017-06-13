@@ -10,11 +10,8 @@ export default ( selected, all, addNames ) => {
 			return pckg.items[ 0 ].name;
 		}
 
-		let pckgType = __( 'Box %d' );
 		const pckgData = all[ pckg.box_id ];
-		if ( pckgData ) {
-			pckgType = all[ pckg.box_id ].is_letter ? __( 'Envelope %d' ) : __( 'Box %d' );
-		}
+		const pckgType = ( pckgData && pckgData.is_letter ) ? __( 'Envelope %d' ) : __( 'Package %d' );
 
 		pckgCount++;
 		const pckgName = addNames && pckgData ? ': ' + pckgData.name : '';
