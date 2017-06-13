@@ -1,10 +1,17 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+
+/**
+ * Internal dependencies
+ */
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import { getPaperSizes } from 'lib/pdf-label-utils';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import * as PrintTestLabelActions from '../state/actions';
 import Notice from 'components/notice';
 import FormButton from 'components/forms/form-button';
@@ -14,6 +21,8 @@ import FormLegend from 'components/forms/form-legend';
 
 const PrintTestLabelView = ( { paperSize, country, printingInProgress, error, updatePaperSize, print } ) => {
 	const paperSizes = getPaperSizes( country );
+	const onPaperSizeChange = ( event ) => updatePaperSize( event.target.value );
+
 	return (
 		<CompactCard className="settings-group-card print-test-label">
 			<FormSectionHeading className="settings-group-header">{ __( 'Print' ) }</FormSectionHeading>
@@ -31,7 +40,7 @@ const PrintTestLabelView = ( { paperSize, country, printingInProgress, error, up
 						<FormSelect
 							className="print-test-label__paper-size"
 							value={ paperSize }
-							onChange={ ( event ) => updatePaperSize( event.target.value ) } >
+							onChange={ onPaperSizeChange } >
 							{ Object.keys( paperSizes ).map( key =>
 								<option key={ key } value={ key }>
 									{ paperSizes[ key ] }

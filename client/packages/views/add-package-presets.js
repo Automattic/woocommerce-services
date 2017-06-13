@@ -1,8 +1,15 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import SelectOptGroups from 'components/forms/select-opt-groups';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import { translate as __ } from 'i18n-calypso';
 
 const defaultPackages = {
 	label: 'Custom box',
@@ -32,7 +39,7 @@ const getOptionGroups = ( presets ) => {
 				};
 			} ),
 		} );
-	};
+	}
 
 	return groups;
 };
@@ -75,15 +82,17 @@ const AddPackagePresets = ( { selectedPreset, setSelectedPreset, presets, setMod
 		} );
 	};
 
+	const onChange = ( event ) => handleSelectEvent( event, onSelectDefault, onSelectPreset, setSelectedPreset );
+
 	return (
 		<FormFieldset>
 			<FormLabel htmlFor="package_type">{ __( 'Type of package' ) }</FormLabel>
 			<SelectOptGroups
 				id="package_type"
 				defaultValue={ selectedPreset }
-				onChange={ ( e ) => handleSelectEvent( e, onSelectDefault, onSelectPreset, setSelectedPreset ) }
+				onChange={ onChange }
 				optGroups={ getOptionGroups( presets ) }
-				readOnly={ false }/>
+				readOnly={ false } />
 		</FormFieldset>
 	);
 };

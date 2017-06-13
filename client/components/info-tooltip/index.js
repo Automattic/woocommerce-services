@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes, Component } from 'react';
-import Tooltip from 'components/tooltip';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
+import Tooltip from 'components/tooltip';
 
 export default class InfoTooltip extends Component {
 	static propTypes = {

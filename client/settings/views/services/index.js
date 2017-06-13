@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import _ from 'lodash';
-import ShippingServiceGroup from './group';
 import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
+import ShippingServiceGroup from './group';
 import FormLegend from 'components/forms/form-legend';
 import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';

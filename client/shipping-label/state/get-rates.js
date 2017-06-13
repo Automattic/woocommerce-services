@@ -1,5 +1,12 @@
-import saveForm from 'lib/save-form';
+/**
+ * External dependencies
+ */
 import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import saveForm from 'lib/save-form';
 import {
 	RATES_RETRIEVAL_IN_PROGRESS,
 	SET_RATES,

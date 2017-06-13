@@ -1,3 +1,11 @@
+/**
+ * External dependencies
+ */
+import { expect } from 'chai';
+
+/**
+ * Internal dependencies
+ */
 import reducer from '../reducer';
 import { setFormProperty, setAllPristine } from '../actions';
 import { updateField } from '../values/actions';

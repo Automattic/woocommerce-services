@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormButton from 'components/forms/form-button';
 import FormButtonsBar from 'components/forms/form-buttons-bar';
 

@@ -1,8 +1,15 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
-import WCCSettingsGroup from './settings-group';
-import NuxNotice from './nux-notice';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+
+/**
+ * Internal dependencies
+ */
+import WCCSettingsGroup from './settings-group';
+import NuxNotice from './nux-notice';
 import * as FormActions from 'settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'settings/state/values/actions';

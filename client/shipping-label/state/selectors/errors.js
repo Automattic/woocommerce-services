@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import { createSelector } from 'reselect';
 import { translate as __ } from 'i18n-calypso';
-import { isValidPhone } from 'lib/utils/phone-format';
 import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import { isValidPhone } from 'lib/utils/phone-format';
 
 const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized, ignoreValidation }, countriesData ) => {
 	if ( isNormalized && ! normalized ) {

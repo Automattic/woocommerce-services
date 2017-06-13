@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
-import classNames from 'classnames';
 import _ from 'lodash';
+import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'components/forms/form-radio';
 import Notice from 'components/notice';
@@ -64,17 +71,19 @@ const AddressSuggestion = ( {
 		confirmAddressSuggestion,
 		countriesData,
 	} ) => {
+	const onToggleSelectNormalizedAddress = ( value ) => () => selectNormalizedAddress( value );
 	return (
 		<div>
 			<Notice
 				className="validation-message"
 				status="is-warning"
 				showDismiss={ false }
-				text={ __( 'We have slightly modified the address entered. If correct, please use the suggested address to ensure accurate delivery.' ) } />
+				text={ __( 'We have slightly modified the address entered. ' +
+					'If correct, please use the suggested address to ensure accurate delivery.' ) } />
 			<div className="suggestion-container">
 				<RadioButton
 					checked={ ! selectNormalized }
-					onChange={ () => selectNormalizedAddress( false ) } >
+					onChange={ onToggleSelectNormalizedAddress( false ) } >
 					<span className="suggestion-title">{ __( 'Address entered' ) }</span>
 					<AddressSummary
 						values={ values }
@@ -85,7 +94,7 @@ const AddressSuggestion = ( {
 				</RadioButton>
 				<RadioButton
 					checked={ selectNormalized }
-					onChange={ () => selectNormalizedAddress( true ) } >
+					onChange={ onToggleSelectNormalizedAddress( true ) } >
 					<span className="suggestion-title">{ __( 'Suggested address' ) }</span>
 					<AddressSummary
 						values={ normalized }

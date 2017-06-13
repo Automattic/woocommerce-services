@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import WCCSettingsForm from './wcc-settings-form';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';

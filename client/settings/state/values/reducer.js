@@ -1,9 +1,16 @@
+/**
+ * External dependencies
+ */
+import objectPath from 'object-path-immutable';
+
+/**
+ * Internal dependencies
+ */
 import {
 	UPDATE_FIELD,
 	REMOVE_FIELD,
 	ADD_ARRAY_FIELD_ITEM,
 } from './actions';
-import objectPath from 'object-path-immutable';
 
 const reducers = {};
 

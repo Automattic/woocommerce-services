@@ -1,10 +1,17 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import TextField from 'components/text-field';
 import FormButton from 'components/forms/form-button';
 import CountryDropdown from 'components/country-dropdown';
 import StateDropdown from 'components/state-dropdown';
-import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import AddressSuggestion from './suggestion';
 import { getPlainPhoneNumber, formatPhoneForDisplay } from 'lib/utils/phone-format';
@@ -22,14 +29,17 @@ const AddressFields = ( {
 		errors,
 	} ) => {
 	if ( isNormalized && normalized && ! _.isEqual( normalized, values ) ) {
+		const selectNormalizedAddress = ( select ) => labelActions.selectNormalizedAddress( group, select );
+		const confirmAddressSuggestion = () => labelActions.confirmAddressSuggestion( group );
+		const editAddress = () => labelActions.editAddress( group );
 		return (
 			<AddressSuggestion
 				values={ values }
 				normalized={ normalized }
 				selectNormalized={ selectNormalized }
-				selectNormalizedAddress={ ( select ) => labelActions.selectNormalizedAddress( group, select ) }
-				confirmAddressSuggestion={ () => labelActions.confirmAddressSuggestion( group ) }
-				editAddress={ () => labelActions.editAddress( group ) }
+				selectNormalizedAddress={ selectNormalizedAddress }
+				confirmAddressSuggestion={ confirmAddressSuggestion }
+				editAddress={ editAddress }
 				countriesData={ storeOptions.countriesData } />
 		);
 	}
@@ -37,7 +47,10 @@ const AddressFields = ( {
 	const fieldErrors = _.isObject( errors ) ? errors : {};
 	const getId = ( fieldName ) => group + '_' + fieldName;
 	const getValue = ( fieldName ) => values[ fieldName ] || '';
-	const updateValue = ( fieldName, newValue ) => labelActions.updateAddressValue( group, fieldName, newValue );
+	const updateValue = ( fieldName ) => ( newValue ) => labelActions.updateAddressValue( group, fieldName, newValue );
+	const getPhoneNumber = ( value ) => getPlainPhoneNumber( value, getValue( 'country' ) );
+	const updatePhoneValue = ( value ) => labelActions.updateAddressValue( group, 'phone', getPhoneNumber( value ) );
+	const submitAddressForNormalization = () => labelActions.submitAddressForNormalization( group );
 
 	return (
 		<div>
@@ -45,21 +58,21 @@ const AddressFields = ( {
 				id={ getId( 'name' ) }
 				title={ __( 'Name' ) }
 				value={ getValue( 'name' ) }
-				updateValue={ ( value ) => updateValue( 'name', value ) }
+				updateValue={ updateValue( 'name' ) }
 				error={ fieldErrors.name } />
 			<div className="address__company-phone">
 				<TextField
 					id={ getId( 'company' ) }
 					title={ __( 'Company' ) }
 					value={ getValue( 'company' ) }
-					updateValue={ ( value ) => updateValue( 'company', value ) }
+					updateValue={ updateValue( 'company' ) }
 					className="address__company"
 					error={ fieldErrors.company } />
 				<TextField
 					id={ getId( 'phone' ) }
 					title={ __( 'Phone' ) }
 					value={ formatPhoneForDisplay( getValue( 'phone' ), getValue( 'country' ) ) }
-					updateValue={ ( value ) => updateValue( 'phone', getPlainPhoneNumber( value, getValue( 'country' ) ) ) }
+					updateValue={ updatePhoneValue }
 					className="address__phone"
 					error={ fieldErrors.phone } />
 			</div>
@@ -67,20 +80,20 @@ const AddressFields = ( {
 				id={ getId( 'address' ) }
 				title={ __( 'Address' ) }
 				value={ getValue( 'address' ) }
-				updateValue={ ( value ) => updateValue( 'address', value ) }
+				updateValue={ updateValue( 'address' ) }
 				className="address__address-1"
 				error={ fieldErrors.address } />
 			<TextField
 				id={ getId( 'address_2' ) }
 				value={ getValue( 'address_2' ) }
-				updateValue={ ( value ) => updateValue( 'address_2', value ) }
+				updateValue={ updateValue( 'address_2' ) }
 				error={ fieldErrors.address_2 } />
 			<div className="address__city-state-postal-code">
 				<TextField
 					id={ getId( 'city' ) }
 					title={ __( 'City' ) }
 					value={ getValue( 'city' ) }
-					updateValue={ ( value ) => updateValue( 'city', value ) }
+					updateValue={ updateValue( 'city' ) }
 					className="address__city"
 					error={ fieldErrors.city } />
 				<StateDropdown
@@ -89,14 +102,14 @@ const AddressFields = ( {
 					value={ getValue( 'state' ) }
 					countryCode={ getValue( 'country' ) }
 					countriesData={ storeOptions.countriesData }
-					updateValue={ ( value ) => updateValue( 'state', value ) }
+					updateValue={ updateValue( 'state' ) }
 					className="address__state"
 					error={ fieldErrors.state } />
 				<TextField
 					id={ getId( 'postcode' ) }
 					title={ __( 'Postal code' ) }
 					value={ getValue( 'postcode' ) }
-					updateValue={ ( value ) => updateValue( 'postcode', value ) }
+					updateValue={ updateValue( 'postcode' ) }
 					className="address__postal-code"
 					error={ fieldErrors.postcode } />
 			</div>
@@ -106,14 +119,14 @@ const AddressFields = ( {
 				value={ getValue( 'country' ) }
 				disabled={ ! allowChangeCountry }
 				countriesData={ storeOptions.countriesData }
-				updateValue={ ( value ) => updateValue( 'country', value ) }
+				updateValue={ updateValue( 'country' ) }
 				error={ fieldErrors.country } />
 			<div className="step__confirmation-container">
 				<FormButton
 					type="button"
 					className="step__confirmation"
 					disabled={ hasNonEmptyLeaves( errors ) || normalizationInProgress }
-					onClick={ () => labelActions.submitAddressForNormalization( group ) }
+					onClick={ submitAddressForNormalization }
 					isPrimary >
 					{ __( 'Use this address' ) }
 				</FormButton>

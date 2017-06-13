@@ -1,3 +1,11 @@
+/**
+ * External dependencies
+ */
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import {
 	ADD_PACKAGE,
 	REMOVE_PACKAGE,
@@ -14,7 +22,6 @@ import {
 	SET_IS_FETCHING,
 	INIT_PACKAGES_FORM,
 } from './actions';
-import _ from 'lodash';
 
 export const initialState = {
 	modalErrors: {},

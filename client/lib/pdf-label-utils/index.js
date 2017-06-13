@@ -1,6 +1,13 @@
+/**
+ * External dependencies
+ */
 import { translate as __ } from 'i18n-calypso';
 import querystring from 'querystring';
 import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import getPDFSupport from 'lib/utils/pdf-support';
 
 const PAPER_SIZES = {
@@ -30,7 +37,7 @@ export const getPaperSizes = ( country ) => (
 
 const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
-		throw new Error( `Invalid paper size: ${paperSize}` );
+		throw new Error( `Invalid paper size: ${ paperSize }` );
 	}
 	const params = {
 		_wpnonce: nonce,

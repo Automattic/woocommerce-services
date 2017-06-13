@@ -1,8 +1,15 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
+import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import Spinner from 'components/spinner';
-import { translate as __ } from 'i18n-calypso';
 import getPDFSupport from 'lib/utils/pdf-support';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
@@ -61,9 +68,11 @@ const PrintLabelDialog = ( props ) => {
 		},
 	];
 
+	const exitPrintingFlow = () => props.labelActions.exitPrintingFlow( false );
+
 	if ( ! props.form.needsPrintConfirmation ) {
 		buttons.push( {
-			onClick: () => props.labelActions.exitPrintingFlow( false ),
+			onClick: exitPrintingFlow,
 			label: __( 'Cancel' ),
 		} );
 	}
@@ -71,7 +80,7 @@ const PrintLabelDialog = ( props ) => {
 	return (
 		<Modal
 			isVisible={ props.showPurchaseDialog }
-			onClose={ () => props.labelActions.exitPrintingFlow( false ) } >
+			onClose={ exitPrintingFlow } >
 			<div className="wcc-shipping-label-dialog__content">
 				<h3 className="form-section-heading">
 					{ 1 === props.form.packages.selected.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }

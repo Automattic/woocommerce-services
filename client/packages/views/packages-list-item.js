@@ -1,10 +1,17 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
 import Gridicon from 'gridicons';
+import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
 import Button from 'components/button';
 import Checkbox from 'components/checkbox';
-import classNames from 'classnames';
-import _ from 'lodash';
-import { translate as __ } from 'i18n-calypso';
 
 const renderIcon = ( isLetter, isError, onClick ) => {
 	let icon;

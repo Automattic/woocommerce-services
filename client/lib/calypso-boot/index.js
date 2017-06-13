@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import ReactClass from 'react/lib/ReactClass';
 import i18n from 'i18n-calypso';
 

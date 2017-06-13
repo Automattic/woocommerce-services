@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 //import from calypso
 import localStorageModule from 'lib/local-storage';
 localStorageModule();

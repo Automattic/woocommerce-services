@@ -1,4 +1,13 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
@@ -6,19 +15,17 @@ import FormTextInput from 'components/forms/form-text-input';
 import FormButton from 'components/forms/form-button';
 import Modal from 'components/modal';
 import AddPackagePresets from './add-package-presets';
-import { translate as __ } from 'i18n-calypso';
 import checkInputs from './modal-errors';
-import _ from 'lodash';
 import inputFilters from './input-filters';
 import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 
 const getDialogButtons = ( mode, dismissModal, savePackage ) => {
 	return [
-		<FormButton onClick={ () => savePackage() }>
+		<FormButton onClick={ savePackage }>
 			{ ( 'add' === mode ) ? __( 'Add package' ) : __( 'Apply changes' ) }
 		</FormButton>,
-		<FormButton onClick={ () => dismissModal() } isPrimary={ false }>
+		<FormButton onClick={ dismissModal } isPrimary={ false }>
 			{ __( 'Cancel' ) }
 		</FormButton>,
 	];
@@ -150,7 +157,7 @@ const AddPackageDialog = ( props ) => {
 					isError={ modalErrors.inner_dimensions }
 				/>
 				{ fieldInfo( 'inner_dimensions' ) }
-				{ ! isOuterDimensionsVisible ? <OuterDimensionsToggle { ...{ toggleOuterDimensions } }/> : null }
+				{ ! isOuterDimensionsVisible ? <OuterDimensionsToggle { ...{ toggleOuterDimensions } } /> : null }
 			</FormFieldset>
 			{ isOuterDimensionsVisible
 				? ( <FormFieldset>

@@ -1,5 +1,15 @@
-import saveForm from 'lib/save-form';
+/* eslint-disable no-console */
+/**
+ * External dependencies
+ */
+import { sprintf } from 'sprintf-js';
+import { translate as __ } from 'i18n-calypso';
 import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import saveForm from 'lib/save-form';
 import printDocument from 'lib/utils/print-document';
 import getPDFSupport from 'lib/utils/pdf-support';
 import * as NoticeActions from 'state/notices/actions';
@@ -7,9 +17,8 @@ import getFormErrors from 'shipping-label/state/selectors/errors';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
-import { sprintf } from 'sprintf-js';
-import { translate as __ } from 'i18n-calypso';
 import { getPrintURL } from 'lib/pdf-label-utils';
+
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -139,7 +148,7 @@ export const openPrintingFlow = () => (
 	const { storeOptions, addressNormalizationURL, getRatesURL, nonce } = context;
 	let form = getState().shippingLabel.form;
 	const { origin, destination } = form;
-	let errors = getErrors( getState(), storeOptions );
+	const errors = getErrors( getState(), storeOptions );
 	const promisesQueue = [];
 
 	if ( ! origin.ignoreValidation &&
@@ -263,7 +272,9 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
 };
 
-export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { addressNormalizationURL, getRatesURL, nonce, storeOptions } ) => {
+export const submitAddressForNormalization = ( group ) => ( dispatch, getState, context ) => {
+	const { addressNormalizationURL, getRatesURL, nonce, storeOptions } = context;
+
 	const handleNormalizeResponse = ( success ) => {
 		if ( ! success ) {
 			return;
@@ -509,10 +520,12 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 	let form = getState().shippingLabel.form;
 	const addressNormalizationQueue = [];
 	if ( ! form.origin.isNormalized ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, form.origin.values, 'origin', addressNormalizationURL, nonce ) );
+		const task = normalizeAddress( dispatch, form.origin.values, 'origin', addressNormalizationURL, nonce );
+		addressNormalizationQueue.push( task );
 	}
 	if ( ! form.destination.isNormalized ) {
-		addressNormalizationQueue.push( normalizeAddress( dispatch, form.destination.values, 'destination', addressNormalizationURL, nonce ) );
+		const task = normalizeAddress( dispatch, form.destination.values, 'destination', addressNormalizationURL, nonce );
+		addressNormalizationQueue.push( task );
 	}
 
 	Promise.all( addressNormalizationQueue ).then( ( normalizationResults ) => {

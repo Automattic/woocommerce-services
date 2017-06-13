@@ -1,6 +1,13 @@
+/**
+ * External dependencies
+ */
 import { expect } from 'chai';
-import { openPrintingFlow } from '../actions';
 import sinon from 'sinon';
+
+/**
+ * Internal dependencies
+ */
+import { openPrintingFlow } from '../actions';
 
 const context = {
 	storeOptions: {

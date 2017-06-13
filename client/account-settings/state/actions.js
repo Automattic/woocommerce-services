@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import * as api from 'api';
 
 export const INIT_FORM = 'INIT_FORM';
@@ -42,7 +45,7 @@ export const fetchSettings = () => ( dispatch, getState ) => {
 			dispatch( initForm( storeOptions, formData, formMeta ) );
 		} )
 		.catch( ( error ) => {
-			console.error( error );
+			console.error( error ); // eslint-disable-line no-console
 		} )
 		.then( () => dispatch( setFormMetaProperty( 'isFetching', false ) ) );
 };

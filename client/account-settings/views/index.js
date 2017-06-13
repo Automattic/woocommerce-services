@@ -1,12 +1,19 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import ActionButtons from 'components/action-buttons';
 import CompactCard from 'components/card/compact';
 import GlobalNotices from 'components/global-notices';
 import LabelSettings from './label-settings';
 import notices from 'notices';
-import { translate as __ } from 'i18n-calypso';
 import * as settingsActions from '../state/actions';
 import * as NoticeActions from 'state/notices/actions';
 

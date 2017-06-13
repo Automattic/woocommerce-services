@@ -1,14 +1,22 @@
+/**
+ * External dependencies
+ */
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import Button from 'components/button';
+import _ from 'lodash';
+import Gridicon from 'gridicons';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
+import Button from 'components/button';
 import PrintLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
 import Spinner from 'components/spinner';
-import Gridicon from 'gridicons';
 import Tooltip from 'components/tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
@@ -17,7 +25,6 @@ import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 import getFormErrors from 'shipping-label/state/selectors/errors';
 import canPurchase from 'shipping-label/state/selectors/can-purchase';
-import _ from 'lodash';
 import Notice from 'components/notice';
 
 class ShippingLabelRootView extends Component {
@@ -105,6 +112,11 @@ class ShippingLabelRootView extends Component {
 			return null;
 		}
 
+		const openRefundDialog = ( e ) => {
+			e.preventDefault();
+			this.props.labelActions.openRefundDialog( label.label_id );
+		};
+
 		return (
 			<span>
 				<RefundDialog
@@ -112,7 +124,9 @@ class ShippingLabelRootView extends Component {
 					{ ...this.props.shippingLabel }
 					{ ...this.props }
 					{ ...label } />
-				<a href="#" onClick={ () => this.props.labelActions.openRefundDialog( label.label_id ) } ><Gridicon icon="refund" size={ 12 }/>{ __( 'Request refund' ) }</a>
+				<a href="#" onClick={ openRefundDialog } >
+					<Gridicon icon="refund" size={ 12 } />{ __( 'Request refund' ) }
+				</a>
 			</span>
 		);
 	}
@@ -142,15 +156,22 @@ class ShippingLabelRootView extends Component {
 		}
 
 		return (
-			<span className={ className } ><Gridicon icon="time" size={ 12 }/>{ text }</span>
+			<span className={ className } ><Gridicon icon="time" size={ 12 } />{ text }</span>
 		);
 	}
 
 	renderReprint( label ) {
 		const todayTime = new Date().getTime();
-		if ( label.refund || ( label.used_date && label.used_date < todayTime ) || ( label.expiry_date && label.expiry_date < todayTime ) ) {
+		if ( label.refund ||
+			( label.used_date && label.used_date < todayTime ) ||
+			( label.expiry_date && label.expiry_date < todayTime ) ) {
 			return null;
 		}
+
+		const openReprintDialog = ( e ) => {
+			e.preventDefault();
+			this.props.labelActions.openReprintDialog( label.label_id );
+		};
 
 		return (
 			<span>
@@ -159,7 +180,9 @@ class ShippingLabelRootView extends Component {
 					{ ...this.props.shippingLabel }
 					{ ...this.props }
 					{ ...label } />
-				<a href="#" onClick={ () => this.props.labelActions.openReprintDialog( label.label_id ) } ><Gridicon icon="print" size={ 12 }/>{ __( 'Reprint' ) }</a>
+				<a href="#" onClick={ openReprintDialog } >
+					<Gridicon icon="print" size={ 12 } />{ __( 'Reprint' ) }
+				</a>
 			</span>
 		);
 	}
@@ -169,18 +192,21 @@ class ShippingLabelRootView extends Component {
 			return null;
 		}
 
+		const onMouseEnter = () => this.openTooltip( index );
+		const onMouseLeave = () => this.closeTooltip( index );
+		const onClose = () => this.closeTooltip( index );
 		return (
 			<span>
 				<span className="wcc-metabox-label-item__detail"
-						onMouseEnter={ () => this.openTooltip( index ) }
-						onMouseLeave={ () => this.closeTooltip( index ) }
+						onMouseEnter={ onMouseEnter }
+						onMouseLeave={ onMouseLeave }
 						ref={ 'label-details-' + index }>
 					{ __( 'Label #%(labelNum)s', { args: { labelNum } } ) }
 				</span>
 				<Tooltip
 					className="wc-connect-popover"
 					isVisible={ this.state.showTooltips[ index ] }
-					onClose={ () => this.closeTooltip( index ) }
+					onClose={ onClose }
 					position="top"
 					showOnMobile
 					context={ this.refs && this.refs[ 'label-details-' + index ] } >
@@ -201,9 +227,12 @@ class ShippingLabelRootView extends Component {
 
 		return (
 			<div key={ label.label_id } className="wcc-metabox-label-item" >
-				<p className="wcc-metabox-label-item__created">{ this.renderLabelDetails( label, labels.length - index, index ) } { __( 'purchased' ) } <span title={ formatDate( label.created ) }>{ purchased }</span></p>
+				<p className="wcc-metabox-label-item__created">
+					{ this.renderLabelDetails( label, labels.length - index, index ) } { __( 'purchased' ) }
+					<span title={ formatDate( label.created ) }>{ purchased }</span>
+				</p>
 				<p className="wcc-metabox-label-item__tracking">
-					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label }/> } } ) }
+					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label } /> } } ) }
 				</p>
 				<p className="wcc-metabox-label-item__actions" >
 					{ this.renderRefund( label ) }
@@ -227,7 +256,7 @@ class ShippingLabelRootView extends Component {
 	render() {
 		return (
 			<div className="wcc-metabox-shipping-label-container">
-				<GlobalNotices id="notices" notices={ notices.list }/>
+				<GlobalNotices id="notices" notices={ notices.list } />
 				{ this.renderPurchaseLabelFlow() }
 				{ this.props.shippingLabel.labels.length ? this.renderLabels() : null }
 			</div>

@@ -1,4 +1,12 @@
+/* eslint-disable react/no-danger */
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import sanitizeHTML from 'lib/utils/sanitize-html';

@@ -1,6 +1,13 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
-import Modal from 'components/modal';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
+import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import Dropdown from 'components/dropdown';
 import { getPaperSizes } from 'lib/pdf-label-utils';
@@ -19,7 +26,8 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions }
 					{ __( 'If there was a printing error when you purchased the label, you can print it again.' ) }
 				</p>
 				<p className="reprint-notice">
-					{ __( 'NOTE: If you already used the label in a package, printing and using it again is a violation of our terms of service and may result in criminal charges.' ) }
+					{ __( 'NOTE: If you already used the label in a package, printing and using it again ' +
+						'is a violation of our terms of service and may result in criminal charges.' ) }
 				</p>
 				<Dropdown
 					id={ 'paper_size' }

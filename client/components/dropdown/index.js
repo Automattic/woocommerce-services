@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormSelect from 'components/forms/form-select';
 import FormLegend from 'components/forms/form-legend';
@@ -7,6 +14,8 @@ import sanitizeHTML from 'lib/utils/sanitize-html';
 import FieldDescription from 'components/field-description';
 
 const Dropdown = ( { id, valuesMap, title, description, value, updateValue, error, disabled, className } ) => {
+	const onChange = ( event ) => updateValue( event.target.value );
+
 	return (
 		<FormFieldset className={ className }>
 			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
@@ -14,7 +23,7 @@ const Dropdown = ( { id, valuesMap, title, description, value, updateValue, erro
 				id={ id }
 				name={ id }
 				value={ value }
-				onChange={ ( event ) => updateValue( event.target.value ) }
+				onChange={ onChange }
 				disabled={ Boolean( disabled ) }
 				isError={ Boolean( error ) } >
 				{ Object.keys( valuesMap ).map( key => {

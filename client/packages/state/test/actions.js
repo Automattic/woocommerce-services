@@ -1,3 +1,11 @@
+/**
+ * External dependencies
+ */
+import { expect } from 'chai';
+
+/**
+ * Internal dependencies
+ */
 import {
 	addPackage,
 	removePackage,
@@ -36,7 +44,7 @@ describe( 'Packages state actions', () => {
 		};
 		expect( editPackage( packageToEdit ) ).to.eql( {
 			type: EDIT_PACKAGE,
-			package: packageToEdit,
+			'package': packageToEdit,
 		} );
 	} );
 

@@ -1,9 +1,15 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
 import { combineReducers } from 'redux';
-import ShippingLabelRootView from './views';
-import shippingLabel from './state/reducer';
 import _ from 'lodash';
 
+/**
+ * Internal dependencies
+ */
+import ShippingLabelRootView from './views';
+import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
@@ -38,7 +44,8 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						values: formData.origin,
 						isNormalized: hasOriginAddress,
 						normalized: hasOriginAddress ? formData.origin : null,
-						// If no origin address is stored, mark all fields as "ignore validation" so the UI doesn't immediately show errors
+						// If no origin address is stored, mark all fields as "ignore validation"
+						// so the UI doesn't immediately show errors
 						ignoreValidation: hasOriginAddress ? null : _.mapValues( formData.origin, () => true ),
 						selectNormalized: true,
 						normalizationInProgress: false,
@@ -48,7 +55,8 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						values: formData.destination,
 						isNormalized: Boolean( formData.destination_normalized ),
 						normalized: formData.destination_normalized ? formData.destination : null,
-						// If no destination address is stored, mark all fields as "ignore validation" so the UI doesn't immediately show errors
+						// If no destination address is stored, mark all fields as "ignore validation"
+						// so the UI doesn't immediately show errors
 						ignoreValidation: hasDestinationAddress ? null : _.mapValues( formData.destination, () => true ),
 						selectNormalized: true,
 						normalizationInProgress: false,
@@ -62,7 +70,9 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 						saved: true,
 					},
 					rates: {
-						values: _.isEmpty( formData.rates.selected ) ? _.mapValues( formData.packages, () => ( '' ) ) : formData.rates.selected,
+						values: _.isEmpty( formData.rates.selected )
+							? _.mapValues( formData.packages, () => '' )
+							: formData.rates.selected,
 						available: {},
 						retrievalInProgress: false,
 					},
@@ -77,7 +87,7 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 	},
 
 	getStateKey() {
-		return `wcs-label-${formData.order_id}`;
+		return `wcs-label-${ formData.order_id }`;
 	},
 
 	View: () => (

@@ -1,4 +1,12 @@
+/* eslint-disable react/no-danger */
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormToggle from 'components/forms/form-toggle/compact';
@@ -11,7 +19,19 @@ const renderToggleText = ( text ) => {
 	);
 };
 
-const Toggle = ( { id, title, description, trueText, falseText, saveOnToggle, checked, placeholder, saveForm, updateValue, className } ) => {
+const Toggle = ( {
+		id,
+		title,
+		description,
+		trueText,
+		falseText,
+		saveOnToggle,
+		checked,
+		placeholder,
+		saveForm,
+		updateValue,
+		className,
+	} ) => {
 	const handleChangeEvent = () => {
 		updateValue( ! checked );
 		if ( saveOnToggle && saveForm ) {

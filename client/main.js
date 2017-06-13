@@ -1,19 +1,26 @@
+/**
+ * External dependencies
+ */
 import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { applyMiddleware, createStore, compose } from 'redux';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
+import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
-import { translate as __ } from 'i18n-calypso';
 import * as storageUtils from 'lib/utils/local-storage';
 import Settings from './settings';
 import ShippingLabel from './shipping-label';
 import AccountSettings from './account-settings';
 import PrintTestLabel from './print-test-label';
 import Packages from './packages';
-import _ from 'lodash';
 import { setNonce, setBaseURL } from 'api/request';
 
 if ( global.wcConnectData ) {

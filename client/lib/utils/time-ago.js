@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import { translate as __ } from 'i18n-calypso';
 
 export default ( date ) => {

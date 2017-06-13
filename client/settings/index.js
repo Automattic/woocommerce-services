@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
 import { combineReducers } from 'redux';
+
+/**
+ * Internal dependencies
+ */
 import initializeState from 'lib/initialize-state';
 import SettingsView from './views';
 import form from './state/reducer';
@@ -32,7 +39,7 @@ export default ( { formData, formSchema, formLayout, storeOptions, noticeDismiss
 	},
 
 	getStateKey() {
-		return `wcs-settings-${methodId}-${instanceId}`;
+		return `wcs-settings-${ methodId }-${ instanceId }`;
 	},
 
 	View: () => (

@@ -1,5 +1,12 @@
-import saveForm from 'lib/save-form';
+/**
+ * External dependencies
+ */
 import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import saveForm from 'lib/save-form';
 
 export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
 export const SET_ALL_PRISTINE = 'SET_ALL_PRISTINE';

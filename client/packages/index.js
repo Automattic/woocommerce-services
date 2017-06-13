@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
 import { combineReducers } from 'redux';
+
+/**
+ * Internal dependencies
+ */
 import PackagesView from './views';
 import reducer from './state/reducer';
 import { fetchSettings } from './state/actions';

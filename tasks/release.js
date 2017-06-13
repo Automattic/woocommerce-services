@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*eslint no-process-exit: 0, no-undef: 0, strict: 0 */
 'use strict';
 require( 'shelljs/global' );
@@ -48,7 +49,8 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 	} );
 
 	archive.on( 'error', ( err ) => {
-		console.error( colors.red( 'An error occured while creating the zip: ' + err + '\nYou can still probably create the zip manually from the ' + targetFolder + ' folder.' ) );
+		console.error( colors.red( 'An error occured while creating the zip: ' + err +
+			'\nYou can still probably create the zip manually from the ' + targetFolder + ' folder.' ) );
 	} );
 
 	archive.pipe( output );

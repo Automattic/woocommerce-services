@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import { createSelector } from 'reselect';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import getErrors from './errors';
-import _ from 'lodash';
 
 export default createSelector(
 	getErrors,

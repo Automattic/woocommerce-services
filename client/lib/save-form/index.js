@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import _ from 'lodash';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import parseJson from 'lib/utils/parse-json';
 import { EMPTY_ERROR } from 'settings/state/selectors/errors';
 

@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
 import getPackageDescriptions from './get-package-descriptions';
 
 const PackageList = ( { selected, all, errors, packageId, openPackage } ) => {
@@ -19,11 +26,12 @@ const PackageList = ( { selected, all, errors, packageId, openPackage } ) => {
 
 	const renderPackageListItem = ( pckgId, name, count ) => {
 		const isError = 0 < Object.keys( errors[ pckgId ] || {} ).length;
+		const onOpenClick = () => openPackage( pckgId );
 		return (
 			<div className="wcc-packages-list__item" key={ pckgId }>
 				<div
 					className={ classNames( 'wcc-packages-list-package', { selected: packageId === pckgId } ) }
-					onClick={ () => ( openPackage( pckgId ) ) } >
+					onClick={ onOpenClick } >
 					<span className="wcc-packages-list-package__name">{ name }</span>
 					{ renderCountOrError( isError, count ) }
 				</div>

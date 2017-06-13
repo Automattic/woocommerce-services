@@ -1,6 +1,13 @@
+/**
+ * External dependencies
+ */
+import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import { getPreviewURL } from 'lib/pdf-label-utils';
 import printDocument from 'lib/utils/print-document';
-import { translate as __ } from 'i18n-calypso';
 
 export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
 export const PRINTING_IN_PROGRESS = 'PRINTING_IN_PROGRESS';

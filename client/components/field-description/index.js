@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
