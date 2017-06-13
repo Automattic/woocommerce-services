@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import Dialog from 'components/dialog';
 import FormRadio from 'components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
@@ -21,11 +28,12 @@ const MoveItemDialog = ( {
 	}
 
 	const renderRadioButton = ( pckgId, label ) => {
+		const onChange = () => setTargetPackage( pckgId );
 		return (
 			<FormLabel
 				key={ pckgId }
 				className="wcc-move-item-dialog__package-option">
-				<FormRadio checked={ pckgId === targetPackageId } onChange={ () => ( setTargetPackage( pckgId ) ) } />
+				<FormRadio checked={ pckgId === targetPackageId } onChange={ onChange } />
 				{ label }
 			</FormLabel>
 		);
@@ -34,7 +42,7 @@ const MoveItemDialog = ( {
 	const openedPackage = selected[ openedPackageId ];
 	const items = openedPackage.items;
 	const item = items[ movedItemIndex ];
-	const itemLink = <a href={ item.url } target="_blank">{ item.name }</a>;
+	const itemLink = <a href={ item.url } target="_blank" rel="noopener noreferrer">{ item.name }</a>;
 	let desc;
 
 	const packageLabels = getPackageDescriptions( selected, all, true );
@@ -97,7 +105,7 @@ const MoveItemDialog = ( {
 					{ renderIndividualOption() }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Move' ), isPrimary: true, onClick: () => ( moveItem( openedPackageId, movedItemIndex, targetPackageId ) ) },
+					{ label: __( 'Move' ), isPrimary: true, onClick: () => moveItem( openedPackageId, movedItemIndex, targetPackageId ) },
 					{ label: __( 'Cancel' ), onClick: closeItemMove },
 				] } />
 			</div>

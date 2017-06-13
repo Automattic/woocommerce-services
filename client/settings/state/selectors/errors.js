@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import { createSelector } from 'reselect';
 import _ from 'lodash';
 import validator from 'is-my-json-valid';
 import ObjectPath from 'objectpath';
+
+/**
+ * Internal dependencies
+ */
 import coerceFormValues from 'lib/utils/coerce-values';
 
 export const EMPTY_ERROR = {

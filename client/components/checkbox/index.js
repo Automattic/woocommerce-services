@@ -1,3 +1,7 @@
+/* eslint-disable wpcalypso/jsx-gridicon-size */
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import classNames from 'classnames';
 import Gridicon from 'gridicons';

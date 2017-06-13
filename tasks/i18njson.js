@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const fs = require( 'fs' ),
 	globby = require( 'globby' ),
 	path = require( 'path' ),

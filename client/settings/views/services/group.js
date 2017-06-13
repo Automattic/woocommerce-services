@@ -1,11 +1,18 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import Gridicon from 'gridicons';
+import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
 import Checkbox from 'components/checkbox';
-import Gridicon from 'gridicons';
 import InfoTooltip from 'components/info-tooltip';
-import { translate as __ } from 'i18n-calypso';
-import _ from 'lodash';
 
 const summaryLabel = ( services, numSelected ) => {
 	if ( numSelected === services.length ) {
@@ -44,13 +51,17 @@ const ShippingServiceGroup = ( props ) => {
 	const numSelected = services.reduce( ( count, service ) => (
 		count + ( service.enabled ? 1 : 0 )
 	), 0 );
+
+	const stopPropagation = ( event ) => event.stopPropagation();
+	const onChange = ( event ) => updateAll( event, updateValue, services );
+
 	const renderHeader = () => {
 		return <div className="wcc-shipping-services-group-header">
 			<Checkbox
 				checked={ services.length === numSelected }
 				partialChecked={ Boolean( numSelected ) }
-				onChange={ ( event ) => ( updateAll( event, updateValue, services ) ) }
-				onClick={ ( event ) => event.stopPropagation() } />
+				onChange={ onChange }
+				onClick={ stopPropagation } />
 			{ title }
 		</div>;
 	};
@@ -76,19 +87,21 @@ const ShippingServiceGroup = ( props ) => {
 						className="price-adjustment-info"
 						position="top left"
 						maxWidth={ 230 }>
-						{ __( 'Increase the rates calculated by the carrier to account for packaging and handling costs. You can also add a negative amount to save your customers money.' ) }
+						{ __( 'Increase the rates calculated by the carrier to account for packaging and handling costs. ' +
+							'You can also add a negative amount to save your customers money.' ) }
 					</InfoTooltip>
 				</span>
 			</div>
 
-			{ services.map( ( service, idx ) => (
-				<ShippingServiceEntry
-					{ ...props }
-					{ ...{ service } }
-					updateValue={ ( key, val ) => updateValue( [ service.id ].concat( key ), val ) }
-					key={ idx }
-				/>
-				) ) }
+			{ services.map( ( service, idx ) => {
+				const onUpdate = ( key, val ) => updateValue( [ service.id ].concat( key ), val );
+				return <ShippingServiceEntry
+						{ ...props }
+						{ ...{ service } }
+						updateValue={ onUpdate }
+						key={ idx }
+					/>;
+			} ) }
 		</FoldableCard>
 	);
 };

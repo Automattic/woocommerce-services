@@ -1,5 +1,12 @@
-import saveForm from 'lib/save-form';
+/**
+ * External dependencies
+ */
 import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import saveForm from 'lib/save-form';
 import {
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
 	SET_NORMALIZED_ADDRESS,
@@ -34,7 +41,7 @@ export default ( dispatch, address, group, addressNormalizationURL, nonce ) => {
 						dispatch( exitPrintingFlow( true ) );
 					}
 
-					console.error( error );
+					console.error( error ); // eslint-disable-line no-console
 				}
 				setTimeout( () => resolve( ! error ), 0 );
 			}

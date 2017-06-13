@@ -1,9 +1,16 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+import Gridicon from 'gridicons';
+
+/**
+ * Internal dependencies
+ */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
-import Gridicon from 'gridicons';
-import { translate as __ } from 'i18n-calypso';
 import Spinner from 'components/spinner';
 
 const noPackages = () => {
@@ -20,17 +27,19 @@ const noPackages = () => {
 const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId, removePackage, editPackage, togglePackage } ) => {
 	const renderPackageListItem = ( pckg, idx ) => {
 		const isSelected = selected && selected.includes( pckg.id );
+		const onToggle = () => togglePackage( serviceId, pckg.id );
+		const onRemove = () => removePackage( idx );
 
 		return (
 			<PackagesListItem
 				key={ idx }
 				index={ idx }
 				data={ pckg }
-				editable={ editable }
 				selected={ isSelected }
-				onToggle={ () => togglePackage( serviceId, pckg.id ) }
-				onRemove={ () => removePackage( idx ) }
 				{ ...{
+					onToggle,
+					onRemove,
+					editable,
 					dimensionUnit,
 					editPackage,
 				} }
@@ -55,7 +64,7 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
 			<div className="wcc-shipping-packages-list-header">
-				<FormLegend className="package-actions"/>
+				<FormLegend className="package-actions" />
 				<FormLegend className="package-type">{ __( 'Type' ) }</FormLegend>
 				<FormLegend className="package-name">{ __( 'Name' ) }</FormLegend>
 				<FormLegend className="package-dimensions">{ __( 'Dimensions (L x W x H)' ) }</FormLegend>

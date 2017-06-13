@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import NumberInput from './number-input';
@@ -8,6 +15,8 @@ import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const NumberField = ( { id, title, description, value, placeholder, updateValue, error, className } ) => {
+	const onChange = ( event ) => updateValue( parseNumber( event.target.value ) );
+
 	return (
 		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
@@ -16,7 +25,7 @@ const NumberField = ( { id, title, description, value, placeholder, updateValue,
 				name={ id }
 				placeholder={ placeholder }
 				value={ value }
-				onChange={ ( event ) => updateValue( parseNumber( event.target.value ) ) }
+				onChange={ onChange }
 				isError={ Boolean( error ) }
 			/>
 			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }

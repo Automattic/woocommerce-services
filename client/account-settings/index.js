@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
 import { combineReducers } from 'redux';
+
+/**
+ * Internal dependencies
+ */
 import AccountSettingsRootView from './views';
 import reducer, { initialState } from './state/reducer';
 import { fetchSettings } from './state/actions';

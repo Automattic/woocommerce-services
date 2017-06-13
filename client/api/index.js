@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import * as request from './request';
 
 export * as url from './url';

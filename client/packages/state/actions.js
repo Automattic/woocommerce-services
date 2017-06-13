@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import * as api from 'api';
 
 export const ADD_PACKAGE = 'ADD_PACKAGE';
@@ -26,7 +29,7 @@ export const removePackage = ( index ) => ( {
 
 export const editPackage = ( packageToEdit ) => ( {
 	type: EDIT_PACKAGE,
-	package: packageToEdit,
+	'package': packageToEdit,
 } );
 
 export const dismissModal = () => ( {
@@ -93,7 +96,7 @@ export const fetchSettings = () => ( dispatch, getState ) => {
 			} );
 		} )
 		.catch( ( error ) => {
-			console.error( error );
+			console.error( error ); // eslint-disable-line no-console
 		} )
 		.then( () => dispatch( { type: SET_IS_FETCHING, isFetching: false } ) );
 };

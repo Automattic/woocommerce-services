@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import PackageList from './list';
 import PackageInfo from './package-info';
 import MoveItemDialog from './move-item';
@@ -59,11 +66,29 @@ const PackagesStep = ( props ) => {
 		let summary = '';
 
 		if ( 1 === packageIds.length && 1 === itemsCount ) {
-			summary = __( '1 item in 1 package: %(weight)f %(unit)s total', { args: { weight: totalWeight, unit: storeOptions.weight_unit } } );
+			summary = __( '1 item in 1 package: %(weight)f %(unit)s total', {
+				args: {
+					weight: totalWeight,
+					unit: storeOptions.weight_unit,
+				},
+			} );
 		} else if ( 1 === packageIds.length ) {
-			summary = __( '%(itemsCount)d items in 1 package: %(weight)f %(unit)s total', { args: { itemsCount, weight: totalWeight, unit: storeOptions.weight_unit } } );
+			summary = __( '%(itemsCount)d items in 1 package: %(weight)f %(unit)s total', {
+				args: {
+					itemsCount,
+					weight: totalWeight,
+					unit: storeOptions.weight_unit,
+				},
+			} );
 		} else {
-			summary = __( '%(itemsCount)d items in %(packageCount)d packages: %(weight)f %(unit)s total', { args: { itemsCount, packageCount: packageIds.length, weight: totalWeight, unit: storeOptions.weight_unit } } );
+			summary = __( '%(itemsCount)d items in %(packageCount)d packages: %(weight)f %(unit)s total', {
+				args: {
+					itemsCount,
+					packageCount: packageIds.length,
+					weight: totalWeight,
+					unit: storeOptions.weight_unit,
+				},
+			} );
 		}
 
 		if ( ! hasAnyPackagesConfigured ) {
@@ -80,7 +105,8 @@ const PackagesStep = ( props ) => {
 				status="is-warning"
 				showDismiss={ false }>
 				<span>{ __(
-					'There are no packages configured. The items have been packed individually. You can add or enable packages using the {{a}}Packaging Manager{{/a}}.',
+					'There are no packages configured. The items have been packed individually. ' +
+					'You can add or enable packages using the {{a}}Packaging Manager{{/a}}.',
 					{ components: { a: <a href="admin.php?page=wc-settings&tab=shipping&section=package-settings" /> } }
 				) }</span>
 			</Notice>;
@@ -98,7 +124,7 @@ const PackagesStep = ( props ) => {
 				selected={ selected }
 				all={ all }
 				errors={ errors }
-				addPackage={ labelActions.addPackage }/>,
+				addPackage={ labelActions.addPackage } />,
 		];
 
 		if ( ! packageIds.length ) {
@@ -132,12 +158,13 @@ const PackagesStep = ( props ) => {
 		);
 	};
 
+	const toggleStep = () => labelActions.toggleStep( 'packages' );
 	return (
 		<StepContainer
 			title={ __( 'Packages' ) }
 			{ ...getContainerState() }
 			expanded={ expanded }
-			toggleStep={ () => labelActions.toggleStep( 'packages' ) } >
+			toggleStep={ toggleStep } >
 			{ renderWarning() }
 			{ renderContents() }
 			<div className="step__confirmation-container">

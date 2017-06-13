@@ -1,8 +1,16 @@
+/* eslint-disable react/no-danger */
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import Gridicon from 'gridicons';
 import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
-import Gridicon from 'gridicons';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const renderLastUpdated = ( lastUpdated ) => {
@@ -22,7 +30,7 @@ const Indicator = ( { icon, className, message, lastUpdated } ) => {
 		<div className={ classNames( 'indicator', className ) }>
 			<div className="indicator__icon-and-message">
 				<div className="indicator__icon">
-					<Gridicon icon={ icon }/>
+					<Gridicon icon={ icon } />
 				</div>
 				<div className="indicator__message">
 					{ message }

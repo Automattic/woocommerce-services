@@ -1,5 +1,12 @@
-import parseJson from 'lib/utils/parse-json';
+/**
+ * External dependencies
+ */
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
+import parseJson from 'lib/utils/parse-json';
 
 let nonce;
 export const setNonce = ( _nonce ) => nonce = _nonce;

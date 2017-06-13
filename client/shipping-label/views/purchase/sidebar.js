@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import { getPaperSizes } from 'lib/pdf-label-utils';
 import Dropdown from 'components/dropdown';
 

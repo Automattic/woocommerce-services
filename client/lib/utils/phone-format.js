@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import { parse, isValidNumber, format } from 'libphonenumber-js';
 
 export const isValidPhone = ( phoneNumber, countryCode ) => {

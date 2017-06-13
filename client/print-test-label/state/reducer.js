@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import { UPDATE_PAPER_SIZE, PRINTING_IN_PROGRESS, PRINTING_ERROR } from './actions';
 
 const reducers = {};

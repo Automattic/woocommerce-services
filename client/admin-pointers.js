@@ -1,4 +1,7 @@
 /*global wcSevicesAdminPointers, ajaxurl */
+/**
+ * External dependencies
+ */
 import jQuery from 'jquery';
 
 jQuery( document ).ready( function( $ ) {

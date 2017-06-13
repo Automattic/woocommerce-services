@@ -1,6 +1,13 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
-import Modal from 'components/modal';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
+import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import formatDate from 'lib/utils/format-date';
 
@@ -19,9 +26,10 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 					{ __( 'Request a refund' ) }
 				</h3>
 				<p>
-					{ __( 'You can request a refund for a shipping label that has not been used to ship a package. It will take at least 14 days to process.' ) }
+					{ __( 'You can request a refund for a shipping label that has not been used to ship a package. ' +
+						'It will take at least 14 days to process.' ) }
 				</p>
-				<hr/>
+				<hr />
 				<dl>
 					<dt>{ __( 'Purchase date' ) }</dt>
 					<dd>{ formatDate( created ) }</dd>

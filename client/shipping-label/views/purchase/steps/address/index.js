@@ -1,11 +1,26 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import AddressFields from './fields';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import StepContainer from '../../step-container';
-import _ from 'lodash';
 
-const renderSummary = ( { values, isNormalized, normalizationInProgress, normalized, selectNormalized, storeOptions, errors }, showCountry ) => {
+const renderSummary = ( {
+		values,
+		isNormalized,
+		normalizationInProgress,
+		normalized,
+		selectNormalized,
+		storeOptions,
+		errors,
+	}, showCountry ) => {
 	if ( normalizationInProgress ) {
 		return __( 'Validating address...' );
 	}
@@ -42,12 +57,13 @@ const getNormalizationStatus = ( { normalizationInProgress, errors, isNormalized
 
 const Origin = ( props ) => {
 	const showCountryInSummary = false;
+	const toggleStep = () => props.labelActions.toggleStep( 'origin' );
 	return (
 		<StepContainer
 			title={ __( 'Origin address' ) }
 			summary={ renderSummary( props, showCountryInSummary ) }
 			expanded={ props.expanded }
-			toggleStep={ () => props.labelActions.toggleStep( 'origin' ) }
+			toggleStep={ toggleStep }
 			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }
@@ -58,12 +74,13 @@ const Origin = ( props ) => {
 
 const Destination = ( props ) => {
 	const showCountryInSummary = props.form.origin.values.country !== props.values.country;
+	const toggleStep = () => props.labelActions.toggleStep( 'destination' );
 	return (
 		<StepContainer
 			title={ __( 'Destination address' ) }
 			summary={ renderSummary( props, showCountryInSummary ) }
 			expanded={ props.expanded }
-			toggleStep={ () => props.labelActions.toggleStep( 'destination' ) }
+			toggleStep={ toggleStep }
 			{ ...getNormalizationStatus( props ) } >
 			<AddressFields
 				{ ...props }

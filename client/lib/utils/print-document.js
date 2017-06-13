@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import getPDFSupport from 'lib/utils/pdf-support';
 
 let iframe = null;

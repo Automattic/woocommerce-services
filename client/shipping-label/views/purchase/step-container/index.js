@@ -1,9 +1,16 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import Gridicon from 'gridicons';
-import Spinner from 'components/spinner';
-import Card from 'components/card';
 import { translate as __ } from 'i18n-calypso';
 import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
+import Spinner from 'components/spinner';
+import Card from 'components/card';
 
 const ExpandButton = () => (
 	<button className="foldable-card__action foldable-card__expand" type="button">
@@ -35,7 +42,9 @@ const StepContainer = ( { isSuccess, isWarning, isError, isProgress, title, summ
 	summary = <span className={ className }>{ summary }</span>;
 	const header = (
 		<div className="foldable-card__title-status">
-			<div className="foldable-card__status">{ isProgress ? <Spinner size={ 24 } /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }</div>
+			<div className="foldable-card__status">
+				{ isProgress ? <Spinner size={ 24 } /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }
+			</div>
 			<div className="foldable-card__title">{ title }</div>
 		</div>
 	);
@@ -48,7 +57,7 @@ const StepContainer = ( { isSuccess, isWarning, isError, isProgress, title, summ
 					<span className="foldable-card__summary">{ summary } </span>
 					<span className="foldable-card__summary_expanded">{ summary } </span>
 					<div className="foldable-card__action">
-						<ExpandButton/>
+						<ExpandButton />
 					</div>
 				</span>
 			</div>

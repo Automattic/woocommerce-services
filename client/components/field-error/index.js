@@ -1,7 +1,15 @@
+/* eslint-disable react/no-danger */
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
-import sanitizeHTML from 'lib/utils/sanitize-html';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
+import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const FieldError = ( { text, type = 'input-validation' } ) => {
 	return (

@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import Dropdown from 'components/dropdown';
 
 const CountryDropdown = ( props ) => {

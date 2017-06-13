@@ -1,4 +1,12 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import Indicators from 'components/indicators';
 import Text from 'components/text';
 import TextArea from 'components/text-area';
@@ -9,7 +17,6 @@ import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
 import ShippingServiceGroups from 'settings/views/services';
 import FormLegend from 'components/forms/form-legend';
-import { translate as __ } from 'i18n-calypso';
 
 const SettingsItem = ( {
 	form,
@@ -118,6 +125,7 @@ const SettingsItem = ( {
 			);
 
 		case 'boolean':
+			const onToggle = () => saveForm( schema );
 			return (
 				<Toggle
 					checked={ Boolean( fieldValue ) }
@@ -127,7 +135,7 @@ const SettingsItem = ( {
 					trueText={ fieldSchema.trueText }
 					falseText={ fieldSchema.falseText }
 					saveOnToggle={ Boolean( fieldSchema.saveOnToggle ) }
-					saveForm={ () => saveForm( schema ) }
+					saveForm={ onToggle }
 					updateValue={ updateValue }
 				/>
 			);

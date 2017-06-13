@@ -1,4 +1,11 @@
+/**
+ * External dependencies
+ */
 import React, { Component, PropTypes } from 'react';
+
+/**
+ * Internal dependencies
+ */
 import FormTextInput from 'components/forms/form-text-input';
 
 export default class NumberInput extends Component {
@@ -21,17 +28,21 @@ export default class NumberInput extends Component {
 		}
 	}
 
-	handleChange = ( event ) => {
+	handleChange( event ) {
 		this.setState( { text: event.target.value } );
 		this.props.onChange( event );
 	}
 
-	handleBlur = ( event ) => {
+	handleBlur( event ) {
 		this.setState( {
 			focused: false,
 			text: this.props.value,
 		} );
 		this.props.onChange( event );
+	}
+
+	handleFocus() {
+		this.setState( { focused: true } );
 	}
 
 	render() {
@@ -41,7 +52,7 @@ export default class NumberInput extends Component {
 				value={ this.state.text }
 				onChange={ this.handleChange }
 				onBlur={ this.handleBlur }
-				onFocus={ () => this.setState( { focused: true } ) }
+				onFocus={ this.handleFocus }
 			/>
 		);
 	}

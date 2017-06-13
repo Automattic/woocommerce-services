@@ -1,20 +1,41 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import ItemInfo from './item-info';
 import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';
 import FormSelect from 'components/forms/form-select';
 import Button from 'components/button';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
-import _ from 'lodash';
 
 const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
-	return `${dimensions.length} ${dimensionUnit} x ${dimensions.width} ${dimensionUnit} x ${dimensions.height} ${dimensionUnit}`;
+	return `${ dimensions.length } ${ dimensionUnit } x 
+			${ dimensions.width } ${ dimensionUnit } x 
+			${ dimensions.height } ${ dimensionUnit }`;
 };
 
-const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, setPackageType, openAddItem } ) => {
+const PackageInfo = ( {
+		packageId,
+		selected,
+		all,
+		flatRateGroups,
+		dimensionUnit,
+		weightUnit,
+		errors,
+		updateWeight,
+		openItemMove,
+		removeItem,
+		setPackageType,
+		openAddItem,
+	} ) => {
 	const pckgErrors = errors[ packageId ] || {};
-
 	if ( ! packageId ) {
 		return null;
 	}
@@ -24,7 +45,14 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 
 	const renderItemInfo = ( item, itemIndex ) => {
 		return (
-			<ItemInfo key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId } showRemove={ true } openItemMove={ openItemMove } removeItem={ removeItem } isIndividualPackage={ isIndividualPackage } />
+			<ItemInfo key={ itemIndex }
+					item={ item }
+					itemIndex={ itemIndex }
+					packageId={ packageId }
+					showRemove
+					openItemMove={ openItemMove }
+					removeItem={ removeItem }
+					isIndividualPackage={ isIndividualPackage } />
 		);
 	};
 
@@ -38,7 +66,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 			return null;
 		}
 
-		return ( <Button className="wcc-package__add-item-btn" compact onClick={ () => ( openAddItem() ) }>{ __( 'Add items' ) }</Button> );
+		return ( <Button className="wcc-package__add-item-btn" compact onClick={ openAddItem }>{ __( 'Add items' ) }</Button> );
 	};
 
 	const packageOptionChange = ( e ) => {
@@ -75,7 +103,8 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 				<div className="wcc-package-items-header">
 					<FormLegend className="wcc-package-item__name">{ __( 'Individually Shipped Item' ) }</FormLegend>
 				</div>
-				<span className="wcc-package__desc-name">{ __( 'Item Dimensions' ) } - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
+				<span className="wcc-package__desc-name">{ __( 'Item Dimensions' ) } - </span>
+				<span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
 			</div> );
 		}
 
@@ -112,6 +141,8 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 		);
 	};
 
+	const onWeightChange = ( value ) => updateWeight( packageId, value );
+
 	return (
 		<div className="wcc-package">
 			{ renderPackageSelect() }
@@ -125,11 +156,11 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit,
 
 			<div>
 				<NumberField
-					id={ `weight_${packageId}` }
+					id={ `weight_${ packageId }` }
 					className="wcc-package__weight"
 					title={ __( 'Total Weight' ) }
 					value={ pckg.weight }
-					updateValue={ ( value ) => updateWeight( packageId, value ) }
+					updateValue={ onWeightChange }
 					error={ pckgErrors.weight } />
 				<span className="wcc-package__weight-unit">{ weightUnit }</span>
 			</div>

@@ -1,4 +1,16 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import _ from 'lodash';
+import Gridicon from 'gridicons';
+
+/**
+ * Internal dependencies
+ */
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import Checkbox from 'components/checkbox';
@@ -6,18 +18,13 @@ import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import FoldableCard from 'components/foldable-card';
-import Gridicon from 'gridicons';
 import Spinner from 'components/spinner';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
-import { translate as __ } from 'i18n-calypso';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import * as PackagesActions from '../state/actions';
 import * as NoticeActions from 'state/notices/actions';
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
-import _ from 'lodash';
 
 const Packages = ( props ) => {
 	const isFetching = props.form.isFetching;
@@ -53,13 +60,15 @@ const Packages = ( props ) => {
 			props.toggleAll( serviceId, groupId, event.target.checked );
 		};
 
+		const stopPropagation = ( event ) => event.stopPropagation();
+
 		return (
 			<div className="wcc-predefined-packages-group-header" >
 				<Checkbox
 					checked={ selected.length === packages.length }
 					partialChecked={ Boolean( selected.length ) }
 					onChange={ onToggle }
-					onClick={ ( event ) => event.stopPropagation() } />
+					onClick={ stopPropagation } />
 				{ title }
 			</div>
 		);
@@ -86,11 +95,11 @@ const Packages = ( props ) => {
 					return;
 				}
 
-				const groupSelected = _.filter( serviceSelected, ( selectedId ) => ( _.some( groupPackages, ( pckg ) => ( pckg.id === selectedId ) ) ) );
+				const groupSelected = _.filter( serviceSelected, selectedId => _.some( groupPackages, pckg => pckg.id === selectedId ) );
 				const summary = predefSummary( groupSelected, nonFlatRates );
 
 				elements.push( <FoldableCard
-					key={ `${serviceId}_${groupId}` }
+					key={ `${ serviceId }_${ groupId }` }
 					header={ renderPredefHeader( predefGroup.title, groupSelected, nonFlatRates, serviceId, groupId ) }
 					summary={ summary }
 					expandedSummary={ summary }

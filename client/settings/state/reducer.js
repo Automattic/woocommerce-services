@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import { SET_FORM_PROPERTY, SET_ALL_PRISTINE, DISMISS_NOTICE } from './actions';
 import values from './values/reducer';
 import * as formValueActions from './values/actions';
-import _ from 'lodash';
 
 const reducers = {};
 

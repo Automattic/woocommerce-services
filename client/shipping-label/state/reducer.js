@@ -1,3 +1,12 @@
+/* eslint-disable no-console */
+/**
+ * External dependencies
+ */
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import {
 	OPEN_PRINTING_FLOW,
 	EXIT_PRINTING_FLOW,
@@ -42,7 +51,6 @@ import {
 	SET_ADDED_ITEM,
 } from './actions';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
-import _ from 'lodash';
 
 const generateUniqueBoxId = ( keyBase, boxIds ) => {
 	for ( let i = 0; i <= boxIds.length; i++ ) {
@@ -340,7 +348,7 @@ reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex } ) => {
 };
 
 reducers[ ADD_PACKAGE ] = ( state ) => {
-	const newPackages = {...state.form.packages.selected};
+	const newPackages = { ...state.form.packages.selected };
 	const packageKeys = Object.keys( newPackages );
 	const boxesKeys = Object.keys( state.form.packages.all );
 	if ( ! boxesKeys.length ) {
@@ -380,7 +388,7 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 };
 
 reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
-	const newPackages = {...state.form.packages.selected};
+	const newPackages = { ...state.form.packages.selected };
 	const pckg = newPackages[ packageId ];
 	const removedItems = pckg.items;
 	delete newPackages[ packageId ];
@@ -411,7 +419,7 @@ reducers[ REMOVE_PACKAGE ] = ( state, { packageId } ) => {
 };
 
 reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
-	const newPackages = {...state.form.packages.selected};
+	const newPackages = { ...state.form.packages.selected };
 	const oldPackage = newPackages[ packageId ];
 
 	if ( 'not_selected' === boxTypeId ) {

@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import { sanitize } from 'dompurify';
 
 export default ( html ) => {

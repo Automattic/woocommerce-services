@@ -1,5 +1,12 @@
 /*global wp */
+/**
+ * External dependencies
+ */
 import jQuery from 'jquery';
+
+/**
+ * Internal dependencies
+ */
 import '../assets/stylesheets/banner.scss';
 
 jQuery( document ).ready( ( $ ) => {

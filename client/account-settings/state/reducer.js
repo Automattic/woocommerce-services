@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import { INIT_FORM, SET_FORM_DATA_VALUE, SET_FORM_META_PROPERTY } from './actions';
 
 export const initialState = {

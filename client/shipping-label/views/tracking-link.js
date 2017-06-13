@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'i18n-calypso';
@@ -15,7 +18,7 @@ const TrackingLink = ( { tracking, carrier_id } ) => {
 	if ( ! url ) {
 		return <span>{ tracking }</span>;
 	}
-	return <a target="_blank" href={ sprintf( url, tracking ) }>{ tracking }</a>;
+	return <a target="_blank" rel="noopener noreferrer" href={ sprintf( url, tracking ) }>{ tracking }</a>;
 };
 
 TrackingLink.propTypes = {

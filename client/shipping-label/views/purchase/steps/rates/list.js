@@ -1,10 +1,17 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import FieldError from 'components/field-error';
 import Dropdown from 'components/dropdown';
 import Notice from 'components/notice';
 import getPackageDescriptions from '../packages/get-package-descriptions';
-import { translate as __ } from 'i18n-calypso';
-import _ from 'lodash';
 
 const renderRateNotice = () => {
 	return (
@@ -50,6 +57,7 @@ const ShippingRates = ( {
 			valuesMap[ rateObject.service_id ] = rateObject.title + ' (' + currencySymbol + rateObject.rate.toFixed( 2 ) + ')';
 		} );
 
+		const onRateUpdate = ( value ) => updateRate( pckgId, value );
 		return (
 			<div key={ pckgId } className="wcc-metabox-rate__package-container">
 				{ serverErrors &&
@@ -63,7 +71,7 @@ const ShippingRates = ( {
 						valuesMap={ valuesMap }
 						title={ getTitle( pckg, pckgId ) }
 						value={ selectedRate }
-						updateValue={ ( value ) => updateRate( pckgId, value ) }
+						updateValue={ onRateUpdate }
 						error={ formError } />
 				}
 				{ serverErrors && serverErrors.map( ( serverError, index ) => {

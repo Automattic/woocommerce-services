@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
-import Dialog from 'components/dialog';
 import closest from 'component-closest';
 import classnames from 'classnames';
+
+/**
+ * Internal dependencies
+ */
+import Dialog from 'components/dialog';
 
 const Modal = ( props ) => {
 	// Only close the modal if the click was in the dialog backdrop, *not* in any other element like global notices

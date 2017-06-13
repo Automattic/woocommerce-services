@@ -1,4 +1,4 @@
-/*
+/**
  * External dependencies
  */
 import React from 'react';
@@ -6,8 +6,8 @@ import { expect } from 'chai';
 import { shallow } from 'enzyme';
 import { noop } from 'lodash';
 
-/*
- * Internal Dependencies
+/**
+ * Internal dependencies
  */
 import ShippingRates from '../list';
 import Dropdown from 'components/dropdown';

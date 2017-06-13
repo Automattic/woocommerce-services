@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import Dialog from 'components/dialog';
 import FormRadio from 'components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
@@ -30,11 +37,13 @@ const AddItemDialog = ( {
 			? __( '%(item)s from {{pckg/}}', { args: { item: item.name }, components: { pckg: getPackageNameElement( pckgId ) } } )
 			: item;
 
+		const onChange = () => setAddedItem( pckgId, itemIdx );
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="wcc-move-item-dialog__package-option">
-				<FormRadio checked={ pckgId === sourcePackageId && itemIdx === movedItemIndex } onChange={ () => ( setAddedItem( pckgId, itemIdx ) ) } />
+				<FormRadio checked={ pckgId === sourcePackageId && itemIdx === movedItemIndex }
+						onChange={ onChange } />
 				<span>{ itemLabel }</span>
 			</FormLabel>
 		);
@@ -63,12 +72,16 @@ const AddItemDialog = ( {
 				<h1 className="form-section-heading">{ __( 'Add item' ) }</h1>
 				<div className="wcc-label-packages-dialog__body">
 					<p>
-						{ __( 'Which item would you like to add to {{pckg/}}?', { components: { pckg: getPackageNameElement( openedPackageId ) } } ) }
+						{ __( 'Which item would you like to add to {{pckg/}}?', {
+							components: {
+								pckg: getPackageNameElement( openedPackageId ),
+							}
+						} ) }
 					</p>
 					{ itemOptions }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Add' ), isPrimary: true, onClick: () => ( moveItem( sourcePackageId, movedItemIndex, openedPackageId ) ) },
+					{ label: __( 'Add' ), isPrimary: true, onClick: () => moveItem( sourcePackageId, movedItemIndex, openedPackageId ) },
 					{ label: __( 'Close' ), onClick: closeAddItem },
 				] } />
 			</div>

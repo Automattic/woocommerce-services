@@ -1,9 +1,16 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
-import _ from 'lodash';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const SettingsGroup = ( props ) => {

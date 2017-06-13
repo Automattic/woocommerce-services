@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import _ from 'lodash';
 
 /**

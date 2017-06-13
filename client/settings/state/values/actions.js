@@ -1,7 +1,14 @@
-import saveForm from 'lib/save-form';
-import coerceFormValues from 'lib/utils/coerce-values';
+/**
+ * External dependencies
+ */
 import _ from 'lodash';
 import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
+import saveForm from 'lib/save-form';
+import coerceFormValues from 'lib/utils/coerce-values';
 import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from 'settings/state/selectors/errors';
@@ -45,7 +52,8 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 		dispatch( FormActions.setFormProperty( 'fieldsStatus', value ) );
 
 		if ( ! silent ) {
-			dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ) ) );
+			dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. ' +
+				'Please fix the errors below and try saving again.' ) ) );
 		}
 	};
 
@@ -58,7 +66,8 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 			}
 
 			if ( _.isObject( value ) ) {
-				dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' ) ) );
+				dispatch( NoticeActions.errorNotice( __( 'There was a problem with one or more entries. ' +
+					'Please fix the errors below and try saving again.' ) ) );
 			}
 		}
 	};

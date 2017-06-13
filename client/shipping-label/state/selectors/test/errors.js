@@ -1,5 +1,10 @@
-/*
- * Internal Dependencies
+/**
+ * External dependencies
+ */
+import { expect } from 'chai';
+
+/**
+ * Internal dependencies
  */
 import { getRatesErrors } from '../errors';
 

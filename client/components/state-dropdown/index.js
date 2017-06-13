@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
+import { translate as __ } from 'i18n-calypso';
+
+/**
+ * Internal dependencies
+ */
 import Dropdown from 'components/dropdown';
 import TextField from 'components/text-field';
-import { translate as __ } from 'i18n-calypso';
 
 const StateDropdown = ( props ) => {
 	const statesMap = ( props.countriesData[ props.countryCode ] || {} ).states;

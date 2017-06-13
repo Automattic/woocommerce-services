@@ -1,8 +1,15 @@
+/**
+ * External dependencies
+ */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
+
+/**
+ * Internal dependencies
+ */
 import ShippingRates from './list';
 import StepContainer from '../../step-container';
-import _ from 'lodash';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 
@@ -74,12 +81,13 @@ const RatesStep = ( props ) => {
 	} = props;
 	const summary = ratesSummary( values, available, getRatesTotal( form.rates ), storeOptions.currency_symbol, form.packages.saved );
 
+	const toggleStep = () => labelActions.toggleStep( 'rates' );
 	return (
 		<StepContainer
 			title={ __( 'Rates' ) }
 			summary={ summary }
 			expanded={ expanded }
-			toggleStep={ () => labelActions.toggleStep( 'rates' ) }
+			toggleStep={ toggleStep }
 			{ ...getRatesStatus( props ) } >
 			<ShippingRates
 				id="rates"
