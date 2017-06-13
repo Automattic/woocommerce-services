@@ -1,17 +1,12 @@
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
-import Gridicon from 'gridicons';
 import Button from 'components/button';
 
-const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, removeItem } ) => {
-	const renderRemove = () => {
-		if ( ! showRemove ) {
-			return null;
-		}
-
+const ItemInfo = ( { item, itemIndex, openItemMove } ) => {
+	const renderMoveToPackage = () => {
 		return (
-			<Button className="wcc-package-item__remove" compact borderless onClick={ () => removeItem( packageId, itemIndex ) }>
-				<Gridicon icon="cross" />
+			<Button className="wcc-package-item__move" compact onClick={ () => openItemMove( itemIndex ) }>
+				{ __( 'Move' ) }
 			</Button>
 		);
 	};
@@ -28,8 +23,7 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, remov
 				{ item.attributes && <p>{ item.attributes }</p> }
 			</div>
 			<div className="wcc-package-item__actions">
-				<Button className="wcc-package-item__move" compact onClick={ () => ( openItemMove( itemIndex ) ) }>{ __( 'Move' ) }</Button>
-				{ renderRemove() }
+				{ renderMoveToPackage() }
 			</div>
 		</div>
 	);
@@ -38,8 +32,7 @@ const ItemInfo = ( { item, itemIndex, packageId, showRemove, openItemMove, remov
 ItemInfo.propTypes = {
 	item: PropTypes.object.isRequired,
 	itemIndex: PropTypes.number.isRequired,
-	showRemove: PropTypes.bool,
-	packageId: PropTypes.string.isRequired,
+	openItemMove: PropTypes.func.isRequired,
 };
 
 export default ItemInfo;

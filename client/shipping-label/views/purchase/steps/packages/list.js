@@ -4,43 +4,28 @@ import Gridicon from 'gridicons';
 import classNames from 'classnames';
 import getPackageDescriptions from './get-package-descriptions';
 
-const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPackage } ) => {
-	const renderUnpackedLink = () => {
-		if ( ! unpacked.length ) {
+const PackageList = ( { selected, all, errors, packageId, openPackage } ) => {
+	const renderCountOrError = ( isError, count ) => {
+		if ( isError ) {
+			return ( <Gridicon icon="notice-outline" className="is-error" size={ 18 } /> );
+		}
+
+		if ( undefined === count ) {
 			return null;
 		}
 
-		return (
-			<div className="wcc-packages-list__unpacked">
-				<a href="#" className="wcc-packages-list__link" onClick={ () => ( openPackage( '' ) ) }>
-					{ __( 'Saved for later' ) }
-				</a>
-				<span className="wcc-packages-list-package__count">{ unpacked.length }</span>
-			</div>
-		);
-	};
-
-	const renderAddPackage = () => {
-		const boxesKeys = Object.keys( all );
-		if ( ! boxesKeys.length ) {
-			return null;
-		}
-
-		return ( <div className="wcc-packages-list__add-container">
-			<a href="#" className="wcc-packages-list__link" onClick={ () => ( addPackage() ) }>
-				<Gridicon icon="add-outline" size={ 18 } /> { __( 'Add package' ) }
-			</a>
-		</div> );
+		return ( <span className="wcc-packages-list-package__count">{ count }</span> );
 	};
 
 	const renderPackageListItem = ( pckgId, name, count ) => {
+		const isError = 0 < Object.keys( errors[ pckgId ] || {} ).length;
 		return (
 			<div className="wcc-packages-list__item" key={ pckgId }>
 				<div
 					className={ classNames( 'wcc-packages-list-package', { selected: packageId === pckgId } ) }
 					onClick={ () => ( openPackage( pckgId ) ) } >
 					<span className="wcc-packages-list-package__name">{ name }</span>
-					{ undefined !== count ? <span className="wcc-packages-list-package__count">{ count }</span> : null }
+					{ renderCountOrError( isError, count ) }
 				</div>
 			</div>
 		);
@@ -64,20 +49,14 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 		}
 	} );
 
-	if ( packed.length ) {
-		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Boxed' ) ) );
-	}
-
-	if ( individual.length ) {
-		individual.unshift( renderPackageListHeader( 'individual-header', __( 'Original packaging' ) ) );
+	if ( packed.length || individual.length ) {
+		packed.unshift( renderPackageListHeader( 'boxed-header', __( 'Packages to be Shipped' ) ) );
 	}
 
 	return (
 		<div className="wcc-packages-list">
 			{ packed }
-			{ renderAddPackage() }
 			{ individual }
-			{ renderUnpackedLink() }
 		</div>
 	);
 };
@@ -85,8 +64,9 @@ const PackageList = ( { selected, all, unpacked, packageId, openPackage, addPack
 PackageList.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
-	unpacked: PropTypes.array.isRequired,
 	packageId: PropTypes.string.isRequired,
+	errors: PropTypes.object,
+	openPackage: PropTypes.func.isRequired,
 };
 
 export default PackageList;

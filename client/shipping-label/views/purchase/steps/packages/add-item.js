@@ -13,10 +13,9 @@ const AddItemDialog = ( {
 	openedPackageId,
 	selected,
 	all,
-	unpacked,
 	closeAddItem,
 	setAddedItem,
-	confirmAddItem } ) => {
+	moveItem } ) => {
 	if ( ! showAddItemDialog ) {
 		return null;
 	}
@@ -42,7 +41,6 @@ const AddItemDialog = ( {
 	};
 
 	const itemOptions = [];
-
 	Object.keys( selected ).forEach( ( pckgId ) => {
 		if ( pckgId === openedPackageId ) {
 			return;
@@ -53,12 +51,6 @@ const AddItemDialog = ( {
 			itemOptions.push( renderRadioButton( pckgId, itemIdx, item ) );
 			itemIdx++;
 		} );
-	} );
-
-	let unpackedIdx = 0;
-	unpacked.forEach( ( item ) => {
-		itemOptions.push( renderRadioButton( '', unpackedIdx, item.name ) );
-		unpackedIdx++;
 	} );
 
 	return (
@@ -76,8 +68,8 @@ const AddItemDialog = ( {
 					{ itemOptions }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Add' ), isPrimary: true, onClick: () => ( confirmAddItem( sourcePackageId, movedItemIndex, openedPackageId ) ) },
-					{ label: __( 'Cancel' ), onClick: closeAddItem },
+					{ label: __( 'Add' ), isPrimary: true, onClick: () => ( moveItem( sourcePackageId, movedItemIndex, openedPackageId ) ) },
+					{ label: __( 'Close' ), onClick: closeAddItem },
 				] } />
 			</div>
 		</Dialog>
@@ -91,7 +83,9 @@ AddItemDialog.propTypes = {
 	openedPackageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
-	unpacked: PropTypes.array,
+	closeAddItem: PropTypes.func.isRequired,
+	setAddedItem: PropTypes.func.isRequired,
+	moveItem: PropTypes.func.isRequired,
 };
 
 export default AddItemDialog;

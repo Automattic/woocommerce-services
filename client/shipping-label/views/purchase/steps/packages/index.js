@@ -4,31 +4,33 @@ import PackageList from './list';
 import PackageInfo from './package-info';
 import MoveItemDialog from './move-item';
 import AddItemDialog from './add-item';
-import Unpacked from './unpacked';
 import FormButton from 'components/forms/form-button';
 import Notice from 'components/notice';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import StepContainer from '../../step-container';
 
-const PackagesStep = ( {
-	openedPackageId,
-	selected,
-	all,
-	flatRateGroups,
-	unpacked,
-	storeOptions,
-	labelActions,
-	errors,
-	expanded,
-	showItemMoveDialog,
-	movedItemIndex,
-	targetPackageId,
-	showAddItemDialog,
-	sourcePackageId } ) => {
+const PackagesStep = ( props ) => {
+	const {
+		openedPackageId,
+		selected,
+		all,
+		flatRateGroups,
+		storeOptions,
+		labelActions,
+		errors,
+		expanded,
+		showItemMoveDialog,
+		movedItemIndex,
+		targetPackageId,
+		showAddItemDialog,
+		sourcePackageId,
+	} = props;
+
 	const packageIds = Object.keys( selected );
 	const itemsCount = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].items.length ), 0 );
 	const totalWeight = packageIds.reduce( ( result, pId ) => ( result + selected[ pId ].weight ), 0 );
 	const isValidWeight = packageIds.reduce( ( result, pId ) => ( result && 0 < selected[ pId ].weight ), true );
+	const isValidPackageType = packageIds.reduce( ( result, pId ) => ( result && 'not_selected' !== selected[ pId ].box_id ), true );
 	const isValidPackages = 0 < packageIds.length;
 	const hasAnyPackagesConfigured = all && Object.keys( all ).length;
 
@@ -37,6 +39,13 @@ const PackagesStep = ( {
 			return {
 				isError: true,
 				summary: __( 'No packages selected' ),
+			};
+		}
+
+		if ( ! isValidPackageType ) {
+			return {
+				isError: true,
+				summary: __( 'Please select a package type' ),
 			};
 		}
 
@@ -88,11 +97,11 @@ const PackagesStep = ( {
 				packageId={ openedPackageId }
 				selected={ selected }
 				all={ all }
-				unpacked={ unpacked }
+				errors={ errors }
 				addPackage={ labelActions.addPackage }/>,
 		];
 
-		if ( ! packageIds.length && ! unpacked.length ) {
+		if ( ! packageIds.length ) {
 			elements.push(
 				<div key="no-packages" className="wcc-package">{ __( 'There are no packages or items associated with this order' ) }</div>
 			);
@@ -104,7 +113,6 @@ const PackagesStep = ( {
 					selected={ selected }
 					all={ all }
 					flatRateGroups={ flatRateGroups }
-					unpacked={ unpacked }
 					dimensionUnit={ storeOptions.dimension_unit }
 					weightUnit={ storeOptions.weight_unit }
 					errors={ errors }
@@ -114,14 +122,6 @@ const PackagesStep = ( {
 					removePackage={ labelActions.removePackage }
 					setPackageType={ labelActions.setPackageType }
 					openAddItem={ labelActions.openAddItem } />
-			);
-			elements.push(
-				<Unpacked
-					key="unpacked"
-					packageId={ openedPackageId }
-					unpacked={ unpacked }
-					openItemMove={ labelActions.openItemMove }
-					moveItem={ labelActions.moveItem } />
 			);
 		}
 
@@ -157,10 +157,9 @@ const PackagesStep = ( {
 				targetPackageId={ targetPackageId }
 				selected={ selected }
 				all={ all }
-				unpacked={ unpacked }
 				closeItemMove={ labelActions.closeItemMove }
 				setTargetPackage={ labelActions.setTargetPackage }
-				confirmItemMove={ labelActions.confirmItemMove } />
+				moveItem={ labelActions.moveItem } />
 			<AddItemDialog
 				showAddItemDialog={ showAddItemDialog || false }
 				movedItemIndex={ movedItemIndex }
@@ -168,10 +167,10 @@ const PackagesStep = ( {
 				openedPackageId={ openedPackageId }
 				selected={ selected }
 				all={ all }
-				unpacked={ unpacked }
 				closeAddItem={ labelActions.closeAddItem }
 				setAddedItem={ labelActions.setAddedItem }
-				confirmAddItem={ labelActions.confirmAddItem } />
+				confirmAddItem={ labelActions.confirmAddItem }
+				moveItem={ labelActions.moveItem } />
 		</StepContainer>
 	);
 };

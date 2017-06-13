@@ -5,7 +5,6 @@ import NumberField from 'components/number-field';
 import FormLegend from 'components/forms/form-legend';
 import FormSelect from 'components/forms/form-select';
 import Button from 'components/button';
-import Gridicon from 'gridicons';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
 import _ from 'lodash';
 
@@ -13,14 +12,19 @@ const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 	return `${dimensions.length} ${dimensionUnit} x ${dimensions.width} ${dimensionUnit} x ${dimensions.height} ${dimensionUnit}`;
 };
 
-const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, removePackage, setPackageType, openAddItem } ) => {
+const PackageInfo = ( { packageId, selected, all, flatRateGroups, dimensionUnit, weightUnit, errors, updateWeight, openItemMove, removeItem, setPackageType, openAddItem } ) => {
+	const pckgErrors = errors[ packageId ] || {};
+
 	if ( ! packageId ) {
 		return null;
 	}
 
+	const pckg = selected[ packageId ];
+	const isIndividualPackage = ! ( 'not_selected' === pckg.box_id || all[ pckg.box_id ] );
+
 	const renderItemInfo = ( item, itemIndex ) => {
 		return (
-			<ItemInfo key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId } showRemove={ true } openItemMove={ openItemMove } removeItem={ removeItem } />
+			<ItemInfo key={ itemIndex } item={ item } itemIndex={ itemIndex } packageId={ packageId } showRemove={ true } openItemMove={ openItemMove } removeItem={ removeItem } isIndividualPackage={ isIndividualPackage } />
 		);
 	};
 
@@ -30,17 +34,19 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 	};
 
 	const renderAddItemButton = () => {
-		return ( <Button className="wcc-package__add-item-btn" compact onClick={ () => ( openAddItem() ) }>{ __( 'Add item' ) }</Button> );
+		if ( isIndividualPackage ) {
+			return null;
+		}
+
+		return ( <Button className="wcc-package__add-item-btn" compact onClick={ () => ( openAddItem() ) }>{ __( 'Add items' ) }</Button> );
 	};
 
 	const packageOptionChange = ( e ) => {
 		setPackageType( packageId, e.target.value );
 	};
 
-	const pckg = selected[ packageId ];
-
 	const renderItems = () => {
-		const canAddItems = unpacked.length || _.some( selected, ( sel, selId ) => ( packageId !== selId && sel.items.length ) );
+		const canAddItems = _.some( selected, ( sel, selId ) => ( packageId !== selId && sel.items.length ) );
 
 		if ( ! pckg.items.length ) {
 			return (
@@ -64,8 +70,13 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 	};
 
 	const renderPackageSelect = () => {
-		if ( ! all[ pckg.box_id ] ) {
-			return ( <div className="wcc-package__desc"><span className="wcc-package__desc-name">Package - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span></div> );
+		if ( isIndividualPackage ) {
+			return ( <div className="wcc-package__desc">
+				<div className="wcc-package-items-header">
+					<FormLegend className="wcc-package-item__name">{ __( 'Individually Shipped Item' ) }</FormLegend>
+				</div>
+				<span className="wcc-package__desc-name">{ __( 'Item Dimensions' ) } - </span><span className="wcc-package__desc-dimensions">{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
+			</div> );
 		}
 
 		const groups = _.reduce( flatRateGroups, ( result, groupTitle, groupId ) => {
@@ -81,21 +92,25 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 		} );
 
 		return (
-			<FormSelect onChange={ packageOptionChange } value={ pckg.box_id }>
-				{ _.map( groups, ( group, groupId ) => {
-					if ( _.isEmpty( group.definitions ) ) {
-						return null;
-					}
+			<div>
+				<div className="wcc-package-items-header">
+					<FormLegend className="wcc-package-item__name">{ __( 'Shipping Package' ) }</FormLegend>
+				</div>
+				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id } isError={ pckgErrors.box_id }>
+					<option value={ 'not_selected' } key={ 'not_selected' }>{ __( 'Please select a package' ) }</option> )
+					{ _.map( groups, ( group, groupId ) => {
+						if ( _.isEmpty( group.definitions ) ) {
+							return null;
+						}
 
-					return <optgroup label={ group.title } key={ groupId }>
-						{ _.map( group.definitions, renderPackageOption ) }
-					</optgroup>;
-				} ) }
-			</FormSelect>
+						return <optgroup label={ group.title } key={ groupId }>
+							{ _.map( group.definitions, renderPackageOption ) }
+						</optgroup>;
+					} ) }
+				</FormSelect>
+			</div>
 		);
 	};
-
-	const pckgErrors = errors[ packageId ] || {};
 
 	return (
 		<div className="wcc-package">
@@ -103,7 +118,7 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 
 			<div>
 				<div className="wcc-package-items-header">
-					<FormLegend className="wcc-package-item__name">{ __( 'Contents' ) }</FormLegend>
+					<FormLegend className="wcc-package-item__name">{ __( 'Items to Ship' ) }</FormLegend>
 				</div>
 				{ renderItems() }
 			</div>
@@ -118,12 +133,6 @@ const PackageInfo = ( { packageId, selected, all, flatRateGroups, unpacked, dime
 					error={ pckgErrors.weight } />
 				<span className="wcc-package__weight-unit">{ weightUnit }</span>
 			</div>
-			<div>
-				<Button className="wcc-package__remove" borderless compact onClick={ () => ( removePackage( packageId ) ) }>
-					<Gridicon icon="trash" />
-					<span className="wcc-package__remove-label">{ __( 'Remove this package' ) }</span>
-				</Button>
-			</div>
 		</div>
 	);
 };
@@ -133,11 +142,14 @@ PackageInfo.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
 	flatRateGroups: PropTypes.object.isRequired,
-	unpacked: PropTypes.array.isRequired,
 	updateWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
+	openItemMove: PropTypes.func.isRequired,
+	removeItem: PropTypes.func.isRequired,
+	setPackageType: PropTypes.func.isRequired,
+	openAddItem: PropTypes.func.isRequired,
 };
 
 export default PackageInfo;

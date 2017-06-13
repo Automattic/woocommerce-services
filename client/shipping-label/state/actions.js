@@ -337,10 +337,10 @@ export const openItemMove = ( movedItemIndex ) => {
 	};
 };
 
-export const moveItem = ( openedPackageId, movedItemIndex, targetPackageId ) => {
+export const moveItem = ( originPackageId, movedItemIndex, targetPackageId ) => {
 	return {
 		type: MOVE_ITEM,
-		openedPackageId,
+		originPackageId,
 		movedItemIndex,
 		targetPackageId,
 	};
@@ -414,39 +414,6 @@ export const removeItem = ( packageId, itemIndex ) => ( dispatch, getState ) => 
 		dispatch( removePackage( packageId ) );
 		dispatch( openPackage( '' ) );
 	}
-};
-
-export const confirmItemMove = ( packageId, itemIndex, targetPackageId ) => ( dispatch, getState ) => {
-	dispatch( moveItem( packageId, itemIndex, targetPackageId ) );
-
-	const state = getState().shippingLabel;
-	const packages = state.form.packages;
-	const selected = packages.selected;
-	const unpacked = packages.unpacked;
-	if ( selected[ packageId ] && 'individual' === selected[ packageId ].box_id ) {
-		dispatch( removePackage( packageId ) );
-		dispatch( openPackage( '' ) );
-	} else if ( '' === packageId && ! unpacked.length ) {
-		if ( 'individual' === targetPackageId ) {
-			dispatch( openPackage( state.addedPackageId ) );
-		} else {
-			dispatch( openPackage( targetPackageId ) );
-		}
-	}
-
-	dispatch( closeItemMove() );
-};
-
-export const confirmAddItem = ( sourcePackageId, itemIndex, targetPackageId ) => ( dispatch, getState ) => {
-	dispatch( moveItem( sourcePackageId, itemIndex, targetPackageId ) );
-
-	const state = getState().shippingLabel;
-	const selected = state.form.packages.selected;
-	if ( selected[ sourcePackageId ] && 'individual' === selected[ sourcePackageId ].box_id ) {
-		dispatch( removePackage( sourcePackageId ) );
-	}
-
-	dispatch( closeAddItem() );
 };
 
 export const confirmPackages = () => ( dispatch, getState, context ) => {

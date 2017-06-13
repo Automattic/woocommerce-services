@@ -51,9 +51,15 @@ const getAddressErrors = ( { values, isNormalized, normalized, selectNormalized,
 
 const getPackagesErrors = ( values ) => _.mapValues( values, ( pckg ) => {
 	const errors = {};
+
+	if ( 'not_selected' === pckg.box_id ) {
+		errors.box_id = __( 'Please select a package' );
+	}
+
 	if ( ! pckg.weight || 'number' !== typeof pckg.weight || 0 > pckg.weight ) {
 		errors.weight = __( 'Invalid weight' );
 	}
+
 	return errors;
 } );
 
