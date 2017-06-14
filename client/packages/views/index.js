@@ -12,13 +12,14 @@ import Gridicon from 'gridicons';
  * Internal dependencies
  */
 import CompactCard from 'components/card/compact';
+import ErrorMessage from 'components/error-message';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import Checkbox from 'components/checkbox';
 import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import FoldableCard from 'components/foldable-card';
-import Spinner from 'components/spinner';
+import LoadingSpinner from 'components/loading-spinner';
 import PackagesList from './packages-list';
 import AddPackageDialog from './add-package';
 import * as PackagesActions from '../state/actions';
@@ -78,11 +79,7 @@ const Packages = ( props ) => {
 		const elements = [];
 
 		if ( isFetching ) {
-			return (
-				<div className="loading-spinner">
-					<Spinner size={ 24 } />
-				</div>
-			);
+			return <LoadingSpinner />;
 		}
 
 		_.forEach( props.form.predefinedSchema, ( servicePackages, serviceId ) => {
@@ -142,9 +139,9 @@ const Packages = ( props ) => {
 		if ( ! props.form.packages && ! isFetching ) {
 			return (
 				<CompactCard className="settings-group-card">
-					<p className="error-message">
+					<ErrorMessage>
 						{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
-					</p>
+					</ErrorMessage>
 				</CompactCard>
 			);
 		}

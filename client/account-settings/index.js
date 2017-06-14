@@ -7,7 +7,7 @@ import { combineReducers } from 'redux';
 /**
  * Internal dependencies
  */
-import AccountSettingsRootView from './views';
+import AccountSettingsRootView from './view';
 import reducer, { initialState } from './state/reducer';
 import { fetchSettings } from './state/actions';
 // from calypso

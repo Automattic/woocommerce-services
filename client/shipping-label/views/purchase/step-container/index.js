@@ -9,7 +9,7 @@ import classNames from 'classnames';
 /**
  * Internal dependencies
  */
-import Spinner from 'components/spinner';
+import LoadingSpinner from 'components/loading-spinner';
 import Card from 'components/card';
 
 const ExpandButton = () => (
@@ -43,7 +43,7 @@ const StepContainer = ( { isSuccess, isWarning, isError, isProgress, title, summ
 	const header = (
 		<div className="foldable-card__title-status">
 			<div className="foldable-card__status">
-				{ isProgress ? <Spinner size={ 24 } /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }
+				{ isProgress ? <LoadingSpinner inline /> : <Gridicon icon={ getIcon() } className={ className } size={ 24 } /> }
 			</div>
 			<div className="foldable-card__title">{ title }</div>
 		</div>

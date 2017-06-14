@@ -16,7 +16,7 @@ import PrintLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
-import Spinner from 'components/spinner';
+import LoadingSpinner from 'components/loading-spinner';
 import Tooltip from 'components/tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
@@ -248,7 +248,7 @@ class ShippingLabelRootView extends Component {
 			this.props.labelActions.fetchLabelsStatus();
 		}
 		if ( ! _.every( this.props.shippingLabel.labels, 'statusUpdated' ) ) {
-			return <Spinner size={ 24 } />;
+			return <LoadingSpinner />;
 		}
 		return this.props.shippingLabel.labels.map( this.renderLabel );
 	}

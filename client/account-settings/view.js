@@ -9,12 +9,13 @@ import { translate as __ } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import ActionButtons from 'components/action-buttons';
+import ActionButtonsCard from 'components/action-buttons-card';
 import CompactCard from 'components/card/compact';
+import ErrorMessage from 'components/error-message';
 import GlobalNotices from 'components/global-notices';
-import LabelSettings from './label-settings';
+import LabelSettings from './components/label-settings';
 import notices from 'notices';
-import * as settingsActions from '../state/actions';
+import * as settingsActions from './state/actions';
 import * as NoticeActions from 'state/notices/actions';
 
 const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, storeOptions } ) => {
@@ -37,9 +38,9 @@ const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, 
 	const renderContent = () => {
 		if ( ! formData && ! formMeta.isFetching ) {
 			return (
-				<p className="error-message">
+				<ErrorMessage>
 					{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
-				</p>
+				</ErrorMessage>
 			);
 		}
 		return (
@@ -60,11 +61,7 @@ const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, 
 			<CompactCard>
 				{ renderContent() }
 			</CompactCard>
-			<CompactCard className="save-button-bar">
-				<ActionButtons
-					buttons={ buttons }
-				/>
-			</CompactCard>
+			<ActionButtonsCard buttons={ buttons } />
 		</div>
 	);
 };

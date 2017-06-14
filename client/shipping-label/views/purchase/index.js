@@ -9,7 +9,7 @@ import { translate as __ } from 'i18n-calypso';
  */
 import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
-import Spinner from 'components/spinner';
+import LoadingSpinner from 'components/loading-spinner';
 import getPDFSupport from 'lib/utils/pdf-support';
 import AddressStep from './steps/address';
 import PackagesStep from './steps/packages';
@@ -26,7 +26,7 @@ const PrintLabelDialog = ( props ) => {
 		if ( props.form.isSubmitting ) {
 			return (
 				<div>
-					<Spinner size={ 24 } />
+					<LoadingSpinner inline />
 					<span className="wcc-shipping-label-dialog__purchasing-label">{ __( 'Purchasing...' ) }</span>
 				</div>
 			);

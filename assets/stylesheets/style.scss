@@ -31,7 +31,6 @@
 
 	// Components
 	@import 'components';
-	@import 'components/payment-logo/style';
 
 	// Breakpoints
 	$breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
@@ -167,13 +166,6 @@
 			@include breakpoint( '<660px' ) {
 				flex-wrap: wrap;
 			}
-		}
-		&.save-button-bar {
-			background: $gray-light;
-			padding: 16px 24px;
-			margin-right: 0;
-			margin-left: 0;
-			max-width: 100%;
 		}
 	}
 
@@ -399,24 +391,13 @@
 		fill: currentColor;
 	}
 
-	.error-message {
-		color: darken( $alert-red, 10 );
-		font-weight: bold;
-		margin-left: auto;
-		margin-right: auto;
-		text-align: center;
-	}
-
-	.loading-spinner {
-		margin: 8px auto;
-		text-align: center;
-	}
-
 	// WCC Components
-	@import '../../client/account-settings/views/style';
+	@import '../../client/account-settings/style';
 	@import '../../client/components/checkbox/style';
+	@import '../../client/components/error-message/style';
 	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';
+	@import '../../client/components/loading-spinner/style';
 	@import '../../client/components/text/style';
 	@import '../../client/components/text-area/style';
 	@import '../../client/components/toggle/style';

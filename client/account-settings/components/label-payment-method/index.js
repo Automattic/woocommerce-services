@@ -32,18 +32,18 @@ const PaymentMethod = ( { translate, selected, type, digits, name, expiry, onSel
 	};
 
 	return (
-		<CompactCard className="shipping__card" onClick={ onSelect }>
+		<CompactCard className="label-payment-method" onClick={ onSelect }>
 			<Checkbox
-				className="shipping__card-checkbox"
+				className="label-payment-method__checkbox"
 				checked={ selected }
 				onChange={ onSelect }
 			/>
-			<PaymentLogo className="shipping__card-logo" type={ typeId } />
-			<div className="shipping__card-details">
-				<p className="shipping__card-number">{ typeName } { renderDigits() }</p>
-				<p className="shipping__card-name">{ name }</p>
+			<PaymentLogo type={ typeId } />
+			<div className="label-payment-method__card-details">
+				<p className="label-payment-method__card-number">{ typeName } { renderDigits() }</p>
+				<p className="label-payment-method__card-name">{ name }</p>
 			</div>
-			<div className="shipping__card-date">
+			<div className="label-payment-method__card-date">
 				{ translate( 'Expires %(date)s', {
 					args: { date: expiry },
 					context: 'date is of the form MM/YY',

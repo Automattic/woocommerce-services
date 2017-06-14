@@ -11,7 +11,7 @@ import Gridicon from 'gridicons';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
 import PackagesListItem from './packages-list-item';
-import Spinner from 'components/spinner';
+import LoadingSpinner from 'components/loading-spinner';
 
 const noPackages = () => {
 	return (
@@ -49,11 +49,7 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 
 	const renderList = () => {
 		if ( ! packages ) {
-			return (
-				<div className="loading-spinner">
-					<Spinner size={ 24 } />
-				</div>
-			);
+			return <LoadingSpinner />;
 		}
 		if ( ! packages.length ) {
 			return noPackages();
