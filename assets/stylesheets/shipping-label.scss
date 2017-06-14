@@ -185,15 +185,6 @@
 		color: $alert-red;
 	}
 
-	.validation-message {
-		margin: -24px -24px 24px -24px;
-		width: inherit;
-
-		 .notice__icon {
-			 display: none;
-		 }
-	}
-
 	.suggestion-container {
 		display: flex;
 		align-items: flex-start;

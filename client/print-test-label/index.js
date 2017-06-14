@@ -6,7 +6,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import PrintTestLabelView from './views';
+import PrintTestLabelView from './view';
 import reducer from './state/reducer';
 
 export default ( { paperSize, storeOptions } ) => ( {

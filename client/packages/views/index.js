@@ -13,7 +13,7 @@ import Gridicon from 'gridicons';
  */
 import CompactCard from 'components/card/compact';
 import ErrorMessage from 'components/error-message';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import SettingsGroupCard from 'components/settings-group-card';
 import Checkbox from 'components/checkbox';
 import ActionButtons from 'components/action-buttons';
 import FormFieldset from 'components/forms/form-fieldset';
@@ -138,44 +138,38 @@ const Packages = ( props ) => {
 	const renderContent = () => {
 		if ( ! props.form.packages && ! isFetching ) {
 			return (
-				<CompactCard className="settings-group-card">
+				<SettingsGroupCard>
 					<ErrorMessage>
 						{ __( 'Unable to get your settings. Please refresh the page to try again.' ) }
 					</ErrorMessage>
-				</CompactCard>
+				</SettingsGroupCard>
 			);
 		}
 
 		return (
 			<div>
-				<CompactCard className="settings-group-card">
-					<FormSectionHeading className="settings-group-header">{ __( 'Custom packages' ) }</FormSectionHeading>
-					<div className="settings-group-content">
-						<PackagesList
-							packages={ ( props.form.packages || {} ).custom }
-							dimensionUnit={ props.form.dimensionUnit }
-							editable={ true }
-							removePackage={ props.removePackage }
-							editPackage={ props.editPackage } />
-						{ ( ! isFetching ) && <AddPackageDialog { ...props } /> }
-						<FormFieldset className="add-package-button-field">
-							<FormButton
-								type="button"
-								isPrimary={ false }
-								compact
-								disabled={ isFetching }
-								onClick={ props.addPackage } >
-								{ __( 'Add a package' ) }
-							</FormButton>
-						</FormFieldset>
-					</div>
-				</CompactCard>
-				<CompactCard className="settings-group-card">
-					<FormSectionHeading className="settings-group-header">{ __( 'Predefined packages' ) }</FormSectionHeading>
-					<div className="settings-group-content">
-						{ renderPredefinedPackages() }
-					</div>
-				</CompactCard>
+				<SettingsGroupCard heading={ __( 'Custom packages' ) } >
+					<PackagesList
+						packages={ ( props.form.packages || {} ).custom }
+						dimensionUnit={ props.form.dimensionUnit }
+						editable={ true }
+						removePackage={ props.removePackage }
+						editPackage={ props.editPackage } />
+					{ ( ! isFetching ) && <AddPackageDialog { ...props } /> }
+					<FormFieldset className="add-package-button-field">
+						<FormButton
+							type="button"
+							isPrimary={ false }
+							compact
+							disabled={ isFetching }
+							onClick={ props.addPackage } >
+							{ __( 'Add a package' ) }
+						</FormButton>
+					</FormFieldset>
+				</SettingsGroupCard>
+				<SettingsGroupCard heading={ __( 'Predefined packages' ) } >
+					{ renderPredefinedPackages() }
+				</SettingsGroupCard>
 			</div>
 		);
 	};

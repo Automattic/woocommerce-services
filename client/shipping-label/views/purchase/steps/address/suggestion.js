@@ -11,7 +11,7 @@ import classNames from 'classnames';
  */
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'components/forms/form-radio';
-import Notice from 'components/notice';
+import ErrorNotice from 'components/error-notice';
 import FormButton from 'components/forms/form-button';
 
 const RadioButton = ( props ) => {
@@ -74,12 +74,10 @@ const AddressSuggestion = ( {
 	const onToggleSelectNormalizedAddress = ( value ) => () => selectNormalizedAddress( value );
 	return (
 		<div>
-			<Notice
-				className="validation-message"
-				status="is-warning"
-				showDismiss={ false }
-				text={ __( 'We have slightly modified the address entered. ' +
-					'If correct, please use the suggested address to ensure accurate delivery.' ) } />
+			<ErrorNotice isWarning>
+				{ __( 'We have slightly modified the address entered. ' +
+					'If correct, please use the suggested address to ensure accurate delivery.' ) }
+			</ErrorNotice>
 			<div className="suggestion-container">
 				<RadioButton
 					checked={ ! selectNormalized }

@@ -12,6 +12,7 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
 import ActionButtons from 'components/action-buttons';
 import sanitizeHTML from 'lib/utils/sanitize-html';
+import SettingsGroupCard from 'components/settings-group-card';
 
 const SettingsGroup = ( props ) => {
 	const {
@@ -56,12 +57,9 @@ const SettingsGroup = ( props ) => {
 	switch ( group.type ) {
 		case 'fieldset':
 			return (
-				<CompactCard className="settings-group-card">
-					<FormSectionHeading className="settings-group-header" dangerouslySetInnerHTML={ sanitizeHTML( group.title ) } />
-					<div className="settings-group-content">
-						{ renderSettingsItems() }
-					</div>
-				</CompactCard>
+				<SettingsGroupCard heading={ group.title } >
+					{ renderSettingsItems() }
+				</SettingsGroupCard>
 			);
 
 		case 'actions':

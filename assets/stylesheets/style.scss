@@ -87,26 +87,6 @@
 		}
 	}
 
-	.settings-group-header {
-		width: 22%;
-		@include breakpoint( '<660px' ) {
-			width: 100%;
-		}
-	}
-
-	.settings-group-header {
-		font-size: 16px;
-		font-weight: 600;
-		color: darken( $gray, 20% );
-	}
-
-	.settings-group-content {
-		width: 78%;
-		@include breakpoint( '<660px' ) {
-			width: 100%;
-		}
-	}
-
 	.form-input-validation {
 		padding: 4px 0 4px 32px;
 		.gridicon {
@@ -150,21 +130,6 @@
 
 			h4 {
 				font-weight: bold;
-			}
-		}
-	}
-
-	// Cards
-	.card.is-compact {
-		&.settings-group-card {
-			margin-left: 0;
-			margin-right: 0;
-			max-width: 100%;
-			display: flex;
-			padding-top: 24px;
-
-			@include breakpoint( '<660px' ) {
-				flex-wrap: wrap;
 			}
 		}
 	}
@@ -395,15 +360,17 @@
 	@import '../../client/account-settings/style';
 	@import '../../client/components/checkbox/style';
 	@import '../../client/components/error-message/style';
+	@import '../../client/components/error-notice/style';
 	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';
 	@import '../../client/components/loading-spinner/style';
 	@import '../../client/components/text/style';
 	@import '../../client/components/text-area/style';
 	@import '../../client/components/toggle/style';
-	@import '../../client/shipping-label/views/purchase/steps/packages/style.scss';
+	@import '../../client/components/settings-group-card/style';
+	@import '../../client/shipping-label/views/purchase/steps/packages/style';
 	@import '../../client/packages/views/style';
-	@import '../../client/print-test-label/views/style';
+	@import '../../client/print-test-label/style';
 }
 
 #woocommerce-order-label .inside {
