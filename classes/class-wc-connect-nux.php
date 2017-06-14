@@ -212,6 +212,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						array( $this, 'ajax_get_jetpack_connect_url' )
 					);
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
+					add_action( 'admin_notices', array( $this, 'remove_jetpack_notices' ), 1 );
 					break;
 				case self::JETPACK_CONNECTED:
 					// Has the after-connection notice been dismissed already?
@@ -221,6 +222,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
+		}
+
+		// Before any other notices are displayed, this hook will remove Jetpack banners.
+		public function remove_jetpack_notices() {
+			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_banner' ) );
+			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_connect_prompt_full_screen' ) );
 		}
 
 		public function show_banner_before_connection() {
