@@ -228,7 +228,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			// Before any other notices are displayed, this hook will remove Jetpack banners.
+			// Remove Jetpack's connect banners since we're showing our own.
 			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_banner' ) );
 			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_connect_prompt_full_screen' ) );
 
