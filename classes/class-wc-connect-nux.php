@@ -211,7 +211,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'wp_ajax_woocommerce_services_get_jetpack_connect_url',
 						array( $this, 'ajax_get_jetpack_connect_url' )
 					);
-					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
+					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
 					break;
 				case self::JETPACK_CONNECTED:
 					// Has the after-connection notice been dismissed already?
@@ -227,6 +227,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
+
+			// Remove Jetpack's connect banners since we're showing our own.
+			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_banner' ) );
+			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_connect_prompt_full_screen' ) );
 
 			// Make sure to show the after-connection success message even after Jetpack disconnect.
 			WC_Connect_Options::delete_option( self::SUCCESS_BANNER_IS_DISMISSED );
