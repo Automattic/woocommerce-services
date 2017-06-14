@@ -20,7 +20,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		function __construct() {
 			$this->init_pointers();
-			add_action( 'admin_init', array( $this, 'set_up_nux_notices' ) );
 		}
 
 		private function get_notice_states() {
