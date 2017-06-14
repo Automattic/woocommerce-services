@@ -12,6 +12,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
+		/**
+		 * Option name for dismissing success banner
+		 * after the JP connection flow
+		 */
+		const SUCCESS_BANNER_IS_DISMISSED = 'after_jp_cxn_nux_success_banner_dismissed';
+
 		function __construct() {
 			$this->init_pointers();
 			add_action( 'admin_init', array( $this, 'set_up_nux_notices' ) );
@@ -209,6 +215,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ) );
 					break;
 				case self::JETPACK_CONNECTED:
+					// Has the after-connection notice been dismissed already?
+					if ( WC_Connect_Options::get_option( self::SUCCESS_BANNER_IS_DISMISSED ) ) {
+						break;
+					}
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
@@ -218,6 +228,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
+
+			// Make sure to show the after-connection success message even after Jetpack disconnect.
+			WC_Connect_Options::delete_option( self::SUCCESS_BANNER_IS_DISMISSED );
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
@@ -262,10 +275,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			// Did the user just dismiss?
+			if ( isset( $_GET['wcs-nux-notice'] ) && 'dismiss' === $_GET['wcs-nux-notice'] ) {
+				WC_Connect_Options::update_option( self::SUCCESS_BANNER_IS_DISMISSED, true );
+				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
+			}
+
 			$this->show_nux_banner( array(
 				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services' ),
 				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
-				'button_text'    => __( 'GET STARTED >', 'woocommerce-services' ),
+				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
+				'button_link'    => add_query_arg( array(
+					'wcs-nux-notice' => 'dismiss',
+				) ),
 				'image_url'      => plugins_url(
 					'assets/images/nux-open-box.jpg', dirname( __FILE__ )
 				),
@@ -282,11 +304,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<div class="wcs-nux__notice-content">
 					<h1><?php echo esc_html( $content['title'] ); ?></h1>
 					<p><?php echo esc_html( $content['description'] ); ?></p>
-					<button
-						class="woocommerce-services__connect-jetpack"
-					>
-						<?php echo esc_html( $content['button_text'] ); ?>
-					</button>
+					<?php if ( isset( $content['button_link'] ) ) : ?>
+						<a href="<?php echo esc_url( $content['button_link'] ); ?>">
+							<?php echo esc_html( $content['button_text'] ); ?>
+						</a>
+					<?php else : ?>
+						<button
+							class="woocommerce-services__connect-jetpack"
+						>
+							<?php echo esc_html( $content['button_text'] ); ?>
+						</button>
+					<?php endif; ?>
 					<?php if ( $content['should_show_jp'] ) : ?>
 						<p>By connecting your site you agree to our fascinating <a href="http://google.com">Terms of Service</a> and to <a>share details</a> with WordPress.com.</p>
 					<?php endif; ?>
