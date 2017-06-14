@@ -148,6 +148,18 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return false;
 		}
 
+		public function should_display_nux_notice_for_current_store_locale() {
+			$base_location = wc_get_base_location();
+			$country = isset( $base_location['country'] )
+				? $base_location['country']
+				: '';
+			// Do not display for non-US, non-CA stores.
+			if( 'CA' === $country || 'US' === $country ) {
+				return true;
+			}
+			return false;
+		}
+
 		public function is_new_store() {
 			$posts_by_status = wp_count_posts( 'shop_order' );
 			$order_statuses = array(
@@ -180,6 +192,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				|| ! current_user_can( 'install_plugins' )
 				|| ! current_user_can( 'activate_plugins' )
 			) {
+				return;
+			}
+
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
 			}
 
