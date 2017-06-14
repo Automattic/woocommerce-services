@@ -160,25 +160,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return false;
 		}
 
-		public function is_new_store() {
-			$posts_by_status = wp_count_posts( 'shop_order' );
-			$order_statuses = array(
-				'wc-pending',
-				'wc-processing',
-				'wc-on-hold',
-				'wc-completed',
-				'wc-cancelled',
-				'wc-refunded',
-				'wc-failed',
-			);
-			foreach( $order_statuses as $order_status ) {
-				if ( isset( $posts_by_status->$order_status ) && 0 < $posts_by_status->$order_status ) {
-					return false;
-				}
-			}
-			return true;
-		}
-
 		public function get_jetpack_redirect_url() {
 			$full_path = add_query_arg( array() );
 			// Remove [...]/wp-admin so we can use admin_url().
