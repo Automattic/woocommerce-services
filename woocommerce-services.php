@@ -742,6 +742,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $active_shipping_services;
 		}
 
+		public function get_active_services() {
+			return $this->get_active_shipping_services();
+		}
+
 		public function is_wc_connect_shipping_service( $service_id ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 			return in_array( $service_id, $shipping_service_ids );
