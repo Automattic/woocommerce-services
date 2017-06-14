@@ -229,8 +229,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			// Remove Jetpack's connect banners since we're showing our own.
-			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_banner' ) );
-			remove_action( 'admin_notices', array( Jetpack_Connection_Banner::init(), 'render_connect_prompt_full_screen' ) );
+			if( class_exists( 'Jetpack_Connection_Banner' ) ) {
+				$jetpackBannerInstance = Jetpack_Connection_Banner::init();
+				remove_action( 'admin_notices', array( $jetpackBannerInstance, 'render_banner' ) );
+				remove_action( 'admin_notices', array( $jetpackBannerInstance, 'render_connect_prompt_full_screen' ) );
+			}
 
 			// Make sure to show the after-connection success message even after Jetpack disconnect.
 			WC_Connect_Options::delete_option( self::SUCCESS_BANNER_IS_DISMISSED );
