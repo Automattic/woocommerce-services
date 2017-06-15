@@ -14,6 +14,7 @@ export default class InfoTooltip extends Component {
 	static propTypes = {
 		className: PropTypes.string,
 		position: PropTypes.string,
+		anchor: PropTypes.node,
 		maxWidth: PropTypes.oneOfType( [
 			PropTypes.string,
 			PropTypes.number,
@@ -45,21 +46,23 @@ export default class InfoTooltip extends Component {
 	}
 
 	render() {
+		const anchor = this.props.anchor || <Gridicon icon="info-outline" size={ 18 } />;
+
 		return (
 			<span
 				onMouseEnter={ this.openTooltip }
 				onMouseLeave={ this.closeTooltip }
 				className={ classNames( 'info-tooltip', this.props.className ) } >
-				<Gridicon ref="icon" icon="info-outline" size={ 18 } />
+				<span ref="anchor">{ anchor }</span>
 				{ this.state.showTooltip &&
 					<Tooltip
-						className="wc-connect-popover"
+						className="info-tooltip__container wcc-root"
 						isVisible
 						showOnMobile
 						onClose={ this.closeTooltip }
 						position={ this.props.position }
-						context={ this.refs && this.refs.icon }>
-						<div className="wc-connect-popover-contents"
+						context={ this.refs && this.refs.anchor }>
+						<div className="info-tooltip__contents"
 							style={ { maxWidth: this.props.maxWidth } } >
 							{ this.props.children }
 						</div>

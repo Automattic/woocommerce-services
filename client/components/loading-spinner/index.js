@@ -21,7 +21,7 @@ const LoadingSpinner = ( { inline } ) => {
 };
 
 LoadingSpinner.propTypes = {
-	inline: PropTypes.boolean,
+	inline: PropTypes.bool,
 };
 
 export default LoadingSpinner;

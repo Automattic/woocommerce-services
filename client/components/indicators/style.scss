@@ -1,9 +1,33 @@
-.indicator {
+.indicators__indicator {
 	margin-top: 4px;
 	margin-bottom: 4px;
+
+	&.is-success .indicators__indicator-icon-and-message {
+		color: $alert-green;
+
+		.gridicon {
+			fill: $alert-green;
+		}
+	}
+
+	&.is-warning .indicators__indicator-icon-and-message {
+		color: $alert-yellow;
+
+		.gridicon {
+			fill: $alert-yellow;
+		}
+	}
+
+	&.is-error .indicators__indicator-icon-and-message {
+		color: $alert-red;
+
+		.gridicon {
+			fill: $alert-red;
+		}
+	}
 }
 
-.indicator .indicator__icon-and-message {
+.indicators__indicator-icon-and-message {
 	display: flex;
 	align-items: center;
 
@@ -16,35 +40,11 @@
 	}
 }
 
-.form-setting-explanation.indicator__last-updated {
+.form-setting-explanation.indicators__indicator-last-updated {
 	margin-top: 0;
 
 	a {
 		font-style: normal;
-	}
-}
-
-.indicator-success .indicator__icon-and-message {
-	color: $alert-green;
-
-	.gridicon {
-		fill: $alert-green;
-	}
-}
-
-.indicator-warning .indicator__icon-and-message {
-	color: $alert-yellow;
-
-	.gridicon {
-		fill: $alert-yellow;
-	}
-}
-
-.indicator-error .indicator__icon-and-message {
-	color: $alert-red;
-
-	.gridicon {
-		fill: $alert-red;
 	}
 }
 

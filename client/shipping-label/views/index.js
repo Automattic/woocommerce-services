@@ -17,7 +17,7 @@ import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
 import LoadingSpinner from 'components/loading-spinner';
-import Tooltip from 'components/tooltip';
+import InfoTooltip from 'components/info-tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
 import * as ShippingLabelActions from 'shipping-label/state/actions';
@@ -32,30 +32,20 @@ class ShippingLabelRootView extends Component {
 		super( props );
 
 		this.renderLabel = this.renderLabel.bind( this );
-		this.openTooltip = this.openTooltip.bind( this );
-		this.closeTooltip = this.closeTooltip.bind( this );
 		this.renderLabelButton = this.renderLabelButton.bind( this );
 		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
 
-		this.needToFetchLabelsStatus = true;
-
 		this.state = {
-			showTooltips: props.shippingLabel.labels.map( () => false ),
+			needToFetchLabelsStatus: true,
 		};
 	}
 
-	openTooltip( index ) {
-		const showTooltips = [ ...this.state.showTooltips ];
-		showTooltips[ index ] = true;
-
-		this.setState( { showTooltips } );
-	}
-
-	closeTooltip( index ) {
-		const showTooltips = [ ...this.state.showTooltips ];
-		showTooltips[ index ] = false;
-
-		this.setState( { showTooltips } );
+	componentWillMount() {
+		if ( this.state.needToFetchLabelsStatus ) {
+			// TODO: Use redux for this instead
+			this.setState( { needToFetchLabelsStatus: false } );
+			this.props.labelActions.fetchLabelsStatus();
+		}
 	}
 
 	renderPaymentInfo() {
@@ -187,38 +177,24 @@ class ShippingLabelRootView extends Component {
 		);
 	}
 
-	renderLabelDetails( label, labelNum, index ) {
+	renderLabelDetails( label, labelNum ) {
 		if ( ! label.package_name || ! label.product_names ) {
 			return null;
 		}
 
-		const onMouseEnter = () => this.openTooltip( index );
-		const onMouseLeave = () => this.closeTooltip( index );
-		const onClose = () => this.closeTooltip( index );
-		return (
-			<span>
-				<span className="wcc-metabox-label-item__detail"
-						onMouseEnter={ onMouseEnter }
-						onMouseLeave={ onMouseLeave }
-						ref={ 'label-details-' + index }>
-					{ __( 'Label #%(labelNum)s', { args: { labelNum } } ) }
-				</span>
-				<Tooltip
-					className="wc-connect-popover"
-					isVisible={ this.state.showTooltips[ index ] }
-					onClose={ onClose }
-					position="top"
-					showOnMobile
-					context={ this.refs && this.refs[ 'label-details-' + index ] } >
-					<div className="wc-connect-popover-contents">
-						<h3>{ label.package_name }</h3>
-						<p>{ label.service_name }</p>
-						<ul>
-							{ label.product_names.map( ( productName, productIdx ) => <li key={ productIdx }>{ productName }</li> ) }
-						</ul>
-					</div>
-				</Tooltip>
+		const tooltipAnchor = (
+			<span className="wcc-metabox-label-item__detail">
+				{ __( 'Label #%(labelNum)s', { args: { labelNum } } ) }
 			</span>
+		);
+		return (
+			<InfoTooltip anchor={ tooltipAnchor }>
+				<h3>{ label.package_name }</h3>
+				<p>{ label.service_name }</p>
+				<ul>
+					{ label.product_names.map( ( productName, productIdx ) => <li key={ productIdx }>{ productName }</li> ) }
+				</ul>
+			</InfoTooltip>
 		);
 	}
 
@@ -228,7 +204,7 @@ class ShippingLabelRootView extends Component {
 		return (
 			<div key={ label.label_id } className="wcc-metabox-label-item" >
 				<p className="wcc-metabox-label-item__created">
-					{ this.renderLabelDetails( label, labels.length - index, index ) } { __( 'purchased' ) }
+					{ this.renderLabelDetails( label, labels.length - index ) } { __( 'purchased' ) }
 					<span title={ formatDate( label.created ) }>{ purchased }</span>
 				</p>
 				<p className="wcc-metabox-label-item__tracking">
@@ -243,10 +219,6 @@ class ShippingLabelRootView extends Component {
 	}
 
 	renderLabels() {
-		if ( this.needToFetchLabelsStatus ) {
-			this.needToFetchLabelsStatus = false;
-			this.props.labelActions.fetchLabelsStatus();
-		}
 		if ( ! _.every( this.props.shippingLabel.labels, 'statusUpdated' ) ) {
 			return <LoadingSpinner />;
 		}
