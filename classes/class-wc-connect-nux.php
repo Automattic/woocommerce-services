@@ -81,8 +81,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			error_log( json_encode($valid_pointers) );
-
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
@@ -352,13 +350,20 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<?php echo esc_html( $content['description'] ); ?>
 					</p>
 					<?php if ( $content['should_show_jp'] ) : ?>
-						<p><?php printf( esc_html__( 'By clicking "%1$s", you agree to the %2$sTerms of Service%3$s and understand that some of your data will be passed to external servers. You can find more information about how your data is handled %4$shere%5$s.', 'woocommerce-services' ),
-							esc_html( $content['button_text'] ),
-							'<a href="https://woocommerce.com/terms-conditions/">',
-							'</a>',
-							'<a href="https://woocommerce.com/terms-conditions/services-privacy/"/>',
-							'</a>'
-						); ?></p>
+						<p><?php
+							/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
+							printf(
+								wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that some of your data will be passed to external servers. You can find more information about how your data is handled <a href="%3$s">here</a>', 'woocommerce-services' ),
+									array(
+										'a' => array(
+											'href' => array(),
+										),
+									) ),
+								esc_html( $content['button_text'] ),
+								'https://woocommerce.com/terms-conditions/',
+								'https://woocommerce.com/terms-conditions/services-privacy/'
+							);
+							?></p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
 						<a
