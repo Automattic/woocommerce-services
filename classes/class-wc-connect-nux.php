@@ -168,7 +168,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function get_jetpack_redirect_url() {
 			$full_path = add_query_arg( array() );
 			// Remove [...]/wp-admin so we can use admin_url().
-			$new_index = strpos( '/wp-admin', $full_path ) + strlen( '/wp-admin' );
+			$new_index = strpos( $full_path, '/wp-admin' ) + strlen( '/wp-admin' );
 			$path = substr( $full_path, $new_index );
 			return admin_url( $path );
 		}
