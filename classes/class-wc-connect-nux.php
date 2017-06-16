@@ -6,9 +6,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		/**
 		 * Jetpack status constants.
 		 */
-		const JETPACK_UNINSTALLED = 'uninstalled';
-		const JETPACK_INSTALLED = 'installed';
-		const JETPACK_ACTIVATED = 'activated';
+		const JETPACK_NOT_INSTALLED = 'uninstalled';
+		const JETPACK_INSTALLED_NOT_ACTIVATED = 'installed';
+		const JETPACK_ACTIVATED_NOT_CONNECTED = 'activated';
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
@@ -16,7 +16,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Option name for dismissing success banner
 		 * after the JP connection flow
 		 */
-		const SUCCESS_BANNER_IS_DISMISSED = 'after_jp_cxn_nux_success_banner_dismissed';
+		const SHOULD_SHOW_AFTER_CXN_BANNER = 'should_display_nux_after_jp_cxn_banner';
 
 		function __construct() {
 			$this->init_pointers();
@@ -98,14 +98,49 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
+		public static function get_banner_type_to_display( $status = array() ) {
+			if ( ! isset( $status['jetpack_connection_status'] ) ) {
+				return;
+			}
+
+			/* The NUX Flow:
+			- Case 1: Jetpack not connected (with TOS or no TOS accepted):
+				1. show_banner_before_connection()
+				2. connect to JP
+				3. show_banner_after_connection(), which sets the TOS acceptance in options
+			- Case 2: Jetpack connected, no TOS
+				1. show_tos_only_banner(), which accepts TOS on button click
+			- Case 3: Jetpack connected, and TOS accepted
+				This is an existing user. Do nothing.
+			*/
+			switch ( $status['jetpack_connection_status'] ) {
+				case self::JETPACK_NOT_INSTALLED:
+				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
+				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
+					return 'before_jetpack_connection';
+				case self::JETPACK_CONNECTED:
+					// Has the user just gone through our NUX connection flow?
+					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
+						return 'after_jetpack_connection';
+					}
+					// Has the user already accepted our TOS? Then do nothing.
+					// Note: TOS is accepted during the after_connection banner
+					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] ) {
+						return 'tos_only_banner';
+					}
+				default:
+					return false;
+			}
+		}
+
 		public function get_jetpack_install_status() {
 			// check if Jetpack is activated
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
 				// not activated, check if installed
 				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					return self::JETPACK_INSTALLED;
+					return self::JETPACK_INSTALLED_NOT_ACTIVATED;
 				}
-				return self::JETPACK_UNINSTALLED;
+				return self::JETPACK_NOT_INSTALLED;
 			} else if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
 				// installed, activated, and dev mode on
 				return self::JETPACK_DEV;
@@ -118,7 +153,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return self::JETPACK_CONNECTED;
 			}
 
-			return self::JETPACK_ACTIVATED;
+			return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 		}
 
 		public function should_display_nux_notice_on_screen( $screen ) {
@@ -186,11 +221,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			$jetpack_install_status = $this->get_jetpack_install_status();
+			$banner_to_display = self::get_banner_type_to_display( array(
+				'jetpack_connection_status'       => $jetpack_install_status,
+				'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
+				'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
+			) );
 
-			switch ( $jetpack_install_status ) {
-				case self::JETPACK_UNINSTALLED:
-				case self::JETPACK_INSTALLED:
-				case self::JETPACK_ACTIVATED:
+			switch ( $banner_to_display ) {
+				case 'before_jetpack_connection':
 					$ajax_data = array(
 						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 						'initial_install_status' => $jetpack_install_status,
@@ -213,13 +251,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
 					break;
-				case self::JETPACK_CONNECTED:
-					// Has the after-connection notice been dismissed already?
-					if ( WC_Connect_Options::get_option( self::SUCCESS_BANNER_IS_DISMISSED ) ) {
-						break;
-					}
+				case 'after_jetpack_connection':
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
+					break;
+				case 'tos_only_banner':
 					break;
 			}
 		}
@@ -237,8 +273,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				remove_action( 'admin_notices', array( $jetpack_banner, 'render_connect_prompt_full_screen' ) );
 			}
 
-			// Make sure to show the after-connection success message even after Jetpack disconnect.
-			WC_Connect_Options::delete_option( self::SUCCESS_BANNER_IS_DISMISSED );
+			// Make sure we always disply the after-connection banner after this banner
+			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
@@ -247,10 +283,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
-				case self::JETPACK_UNINSTALLED:
+				case self::JETPACK_NOT_INSTALLED:
 					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
-				case self::JETPACK_INSTALLED:
+				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text = __( 'Activate Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
 			}
@@ -285,7 +321,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// Did the user just dismiss?
 			if ( isset( $_GET['wcs-nux-notice'] ) && 'dismiss' === $_GET['wcs-nux-notice'] ) {
-				WC_Connect_Options::update_option( self::SUCCESS_BANNER_IS_DISMISSED, true );
+				// No longer need to keep track of whether the before connection banner was displayed.
+				WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
 			}
 
