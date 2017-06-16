@@ -46,6 +46,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
+			if ( $this->should_show_labels_pointer() ) {
+				add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
+			}
 		}
 
 		public function show_pointers( $hook ) {
@@ -78,6 +81,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			error_log( json_encode($valid_pointers) );
+
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
@@ -93,7 +98,39 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						__( 'To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don\'t have any zones, add one first.', 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
-				)
+				),
+			);
+			return $pointers;
+		}
+
+		private function should_show_labels_pointer() {
+			return true;
+		}
+
+		private function has_payments_configured() {
+			return true;
+		}
+
+		public function register_order_page_labels_pointer( $pointers ) {
+			if ( $this->has_payments_configured() ) {
+				$contents = sprintf( '<h3>%s</h3><p>%s</p>',
+					__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
+					__( 'You can now purchase and print discounted labels from USPS directly from your customer\'s order. Select "Create new Label" to get started.', 'woocommerce-services' )
+				);
+			} else {
+				$contents = sprintf( '<h3>%s</h3><p>%s</p>',
+					__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
+					__( 'Add a payment method to purchase and print discounted labels from USPS directly from your customer\'s order. Select "Create new Label" to get started.', 'woocommerce-services' )
+				);
+			}
+			$pointers[] = array(
+				'id' => 'wc_services_labels_metabox',
+				'target' => '#woocommerce-order-label',
+				'options' => array(
+					'content' => $contents,
+					'position' => array( 'edge' => 'right', 'align' => 'left' ),
+				),
+				'dim' => true,
 			);
 			return $pointers;
 		}
