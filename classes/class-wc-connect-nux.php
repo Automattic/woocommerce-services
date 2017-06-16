@@ -159,7 +159,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				? $base_location['country']
 				: '';
 			// Do not display for non-US, non-CA stores.
-			if( 'CA' === $country || 'US' === $country ) {
+			if ( 'CA' === $country || 'US' === $country ) {
 				return true;
 			}
 			return false;
@@ -230,7 +230,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			// Remove Jetpack's connect banners since we're showing our own.
-			if( class_exists( 'Jetpack_Connection_Banner' ) ) {
+			if ( class_exists( 'Jetpack_Connection_Banner' ) ) {
 				$jetpackBannerInstance = Jetpack_Connection_Banner::init();
 				remove_action( 'admin_notices', array( $jetpackBannerInstance, 'render_banner' ) );
 				remove_action( 'admin_notices', array( $jetpackBannerInstance, 'render_connect_prompt_full_screen' ) );
