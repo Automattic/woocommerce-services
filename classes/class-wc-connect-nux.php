@@ -187,22 +187,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
-			$ajax_data = array(
-				'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
-				'initial_install_status' => $jetpack_install_status,
-				'redirect_url'           => $this->get_jetpack_redirect_url(),
-				'translations'           => array(
-					'activating'   => __( 'Activating...', 'woocommerce-services' ),
-					'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
-					'installError' => __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ),
-					'defaultError' => __( 'Something went wrong. Please try connecting to Jetpack manually, or contact support on the WordPress.org forums.', 'woocommerce-services' ),
-				),
-			);
-
 			switch ( $jetpack_install_status ) {
 				case self::JETPACK_UNINSTALLED:
 				case self::JETPACK_INSTALLED:
 				case self::JETPACK_ACTIVATED:
+					$ajax_data = array(
+						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
+						'initial_install_status' => $jetpack_install_status,
+						'redirect_url'           => $this->get_jetpack_redirect_url(),
+						'translations'           => array(
+							'activating'   => __( 'Activating...', 'woocommerce-services' ),
+							'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
+							'installError' => __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ),
+							'defaultError' => __( 'Something went wrong. Please try connecting to Jetpack manually, or contact support on the WordPress.org forums.', 'woocommerce-services' ),
+						),
+					);
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_nux_notice', $ajax_data );
 					add_action( 'wp_ajax_woocommerce_services_activate_jetpack',
