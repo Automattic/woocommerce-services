@@ -355,10 +355,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						printf(
 							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that some of your data will be passed to external servers. You can find more information about how your data is handled <a href="%3$s">here</a>', 'woocommerce-services' ),
 								array(
-									'a' => array(
-										'href' => array(),
-									),
-								) ),
+								'a' => array(
+									'href' => array(),
+								),
+							) ),
 							esc_html( $content['button_text'] ),
 							'https://woocommerce.com/terms-conditions/',
 							'https://woocommerce.com/terms-conditions/services-privacy/'
