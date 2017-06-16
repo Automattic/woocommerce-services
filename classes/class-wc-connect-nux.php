@@ -210,6 +210,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'wp_ajax_woocommerce_services_get_jetpack_connect_url',
 						array( $this, 'ajax_get_jetpack_connect_url' )
 					);
+					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
 					break;
 				case self::JETPACK_CONNECTED:
@@ -217,6 +218,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					if ( WC_Connect_Options::get_option( self::SUCCESS_BANNER_IS_DISMISSED ) ) {
 						break;
 					}
+					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
@@ -241,7 +243,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$button_text = __( 'CONNECT >', 'woocommerce-services' );
 
-			$image_url = plugins_url( 'images/nux-closed-box.jpg', dirname( __FILE__ ) );
+			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_UNINSTALLED:
@@ -294,7 +296,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'wcs-nux-notice' => 'dismiss',
 				) ),
 				'image_url'      => plugins_url(
-					'images/nux-open-box.jpg', dirname( __FILE__ )
+					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
 			) );
@@ -302,20 +304,25 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function show_nux_banner( $content ) {
 			?>
-			<div class="notice wcs-nux__notice" style="display:flex;">
+			<div class="notice wcs-nux__notice">
 				<div class="wcs-nux__notice-logo">
 					<img src="<?php echo esc_url( $content['image_url'] );  ?>">
 				</div>
 				<div class="wcs-nux__notice-content">
 					<h1><?php echo esc_html( $content['title'] ); ?></h1>
-					<p><?php echo esc_html( $content['description'] ); ?></p>
+					<p class="wcs-nux__notice-content-text">
+						<?php echo esc_html( $content['description'] ); ?>
+					</p>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
-						<a href="<?php echo esc_url( $content['button_link'] ); ?>">
+						<a
+							class="wcs-nux__notice-content-button button button-primary"
+							href="<?php echo esc_url( $content['button_link'] ); ?>"
+						>
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</a>
 					<?php else : ?>
 						<button
-							class="woocommerce-services__connect-jetpack"
+							class="woocommerce-services__connect-jetpack wcs-nux__notice-content-button button button-primary"
 						>
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</button>
@@ -327,9 +334,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php if ( $content['should_show_jp'] ) : ?>
 					<div class="wcs-nux__notice-jetpack">
 						<img src="<?php echo esc_url(
-							plugins_url( 'images/nux-jetpack-logo.jpg', dirname( __FILE__ ) )
+							plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) )
 						); ?>">
-						<p>Powered by Jetpack</p>
+						<p class="wcs-nux__notice-jetpack-text">Powered by Jetpack</p>
 					</div>
 				<?php endif; ?>
 			</div>
