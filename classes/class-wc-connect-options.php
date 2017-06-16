@@ -45,7 +45,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'packages',
 				'predefined_packages',
 				'shipping_methods_migrated',
-				'after_jp_cxn_nux_success_banner_dismissed',
+				'should_display_nux_after_jp_cxn_banner',
 			);
 		}
 
