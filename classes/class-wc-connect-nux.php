@@ -242,7 +242,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$button_text = __( 'CONNECT >', 'woocommerce-services' );
 
-			$image_url = plugins_url( 'assets/images/nux-closed-box.jpg', dirname( __FILE__ ) );
+			$image_url = plugins_url( 'images/nux-closed-box.jpg', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_UNINSTALLED:
@@ -295,7 +295,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'wcs-nux-notice' => 'dismiss',
 				) ),
 				'image_url'      => plugins_url(
-					'assets/images/nux-open-box.jpg', dirname( __FILE__ )
+					'images/nux-open-box.jpg', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
 			) );
@@ -328,7 +328,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php if ( $content['should_show_jp'] ) : ?>
 					<div class="wcs-nux__notice-jetpack">
 						<img src="<?php echo esc_url(
-							plugins_url( 'assets/images/nux-jetpack-logo.jpg', dirname( __FILE__ ) )
+							plugins_url( 'images/nux-jetpack-logo.jpg', dirname( __FILE__ ) )
 						); ?>">
 						<p>Powered by Jetpack</p>
 					</div>
