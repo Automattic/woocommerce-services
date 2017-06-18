@@ -346,9 +346,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				</div>
 				<?php if ( $content['should_show_jp'] ) : ?>
 					<div class="wcs-nux__notice-jetpack">
-						<img src="<?php echo esc_url(
-							plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) )
-						); ?>">
+						<img src="<?php
+						echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) );
+						?>">
 						<p class="wcs-nux__notice-jetpack-text">Powered by Jetpack</p>
 					</div>
 				<?php endif; ?>
