@@ -1,59 +1,63 @@
-@import 'colors';
+.notice.wcs-nux__notice {
+	display: flex;
+	padding: 0;
+	border: 0;
 
-.notice.wcc-admin-notice {
-	border-left-color: $purple-light !important;
-	background: url( '../images/tos-notice-bg.png' ) no-repeat bottom right $white;
-	background-size: contain;
-	position: relative;
-
-	h2 {
-		font-size: 1.5em;
-		margin-bottom: .4em;
+	.wcs-nux__notice-logo {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		margin-left: 1em;
 	}
 
-	.notice-dismiss {
-		text-decoration: none;
+	.wcs-nux__notice-logo img {
+		width: 230px;
+		height: 131px;
+		margin: 1em;
 	}
 
-	a {
-		color: $purple-light;
+	.wcs-nux__notice-content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 1em;
+		margin-left: 1em;
 
-		&:hover {
-			color: $white;
+		.wcs-nux__notice-content-button {
+			align-self: flex-start; // do not stretch the button across entire div
 		}
 	}
 
-	.error {
-		color: $alert-red;
-		font-weight: bold;
+	.wcs-nux__notice-content-text {
+		max-width: 90%;
 	}
 
-	.button-primary {
-		background: $purple-light;
-		border-color: $purple-dark;
-		box-shadow: 0 1px 0 $purple-dark;
-		text-shadow: none;
-		color: $white;
+	.wcs-nux__notice-jetpack {
+		display: flex;
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: center;
+		background-color: #F4F8FA;
+		padding: 4em;
+		white-space: nowrap;
 
-		&:hover,
-		&:active {
-			background:  $purple;
-			border-color: $purple-dark;
-			box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 0 #a36597;
+		p {
+			margin: 2em 0 0 0; // override default style
 		}
+	}
 
-		&:focus {
-			background: $purple-light;
-			border-color: $purple-dark;
-			box-shadow: 0 1px 0 $purple, 0 0 2px 1px $purple-light;
-			text-shadow: none;
-			color: $white;
-		}
+	.wcs-nux__notice-jetpack img {
+		height: 75px;
+		width: 75px;
+		margin: 1em;
+	}
 
-		&.disabled {
-			color: lighten( $purple-light, 30 ) !important;
-			background: $purple-light !important;
-			border-color: $purple-dark !important;
-		}
+	.wcs-nux__notice-jetpack-text {
+		text-transform: uppercase;
+		font-size: 0.8em;
+		letter-spacing: 2px;
+		color: #82B1D2;
 	}
 }

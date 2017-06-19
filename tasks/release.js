@@ -15,6 +15,7 @@ const dirsToCopy = [
 	'dist',
 	'i18n',
 	'vendor',
+	'images',
 ];
 
 confirm( colors.cyan( 'Howdy! This script is going to create a release folder with a compiled ' +
