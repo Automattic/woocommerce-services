@@ -34,8 +34,8 @@ const ShippingServiceEntry = ( props ) => {
 	const onUpdateAdjustmentType = ( event ) => updateValue( 'adjustment_type', event.target.value );
 
 	return (
-		<div className={ classNames( 'wcc-shipping-service-entry', { 'wcc-error': hasError } ) } >
-			<label className="wcc-shipping-service-entry-title">
+		<div className={ classNames( 'shipping-services__entry', { 'wcc-error': hasError } ) } >
+			<label className="shipping-services__entry-title">
 				<Checkbox
 					checked={ enabled }
 					onChange={ onToggleEnabled }

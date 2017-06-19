@@ -8,7 +8,7 @@ import { combineReducers } from 'redux';
  * Internal dependencies
  */
 import initializeState from 'lib/initialize-state';
-import SettingsView from './views';
+import SettingsView from './view';
 import form from './state/reducer';
 
 // from calypso

@@ -47,7 +47,7 @@ const SettingsGroup = ( props ) => {
 		} );
 		rows.push( currentRowItems );
 		return rows.filter( ( arr ) => arr.length ).map( ( items, idx ) => (
-			<div className="settings-form-row" key={ idx }>{ items }</div>
+			<div className="settings-form__row" key={ idx }>{ items }</div>
 		) );
 	};
 
@@ -81,7 +81,7 @@ const SettingsGroup = ( props ) => {
 
 		default:
 			return (
-				<div className="settings-group-default">
+				<div>
 					{ renderSettingsItems() }
 				</div>
 			);

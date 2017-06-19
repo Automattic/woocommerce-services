@@ -15,7 +15,7 @@ import TextField from 'components/text-field';
 import Toggle from 'components/toggle';
 import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
-import ShippingServiceGroups from 'settings/views/services';
+import ShippingServiceGroups from '../shipping-services';
 import FormLegend from 'components/forms/form-legend';
 
 const SettingsItem = ( {

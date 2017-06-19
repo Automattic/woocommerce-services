@@ -2,7 +2,6 @@
  * External dependencies
  */
 import React, { PropTypes } from 'react';
-import Gridicon from 'gridicons';
 import { translate as __ } from 'i18n-calypso';
 import _ from 'lodash';
 
@@ -41,12 +40,6 @@ const ShippingServiceGroup = ( props ) => {
 		updateValue,
 		errors,
 	} = props;
-	const actionButton = (
-		<button className="foldable-card__action foldable-card__expand" type="button">
-			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
-			<Gridicon icon="chevron-down" size={ 24 } />
-		</button>
-	);
 
 	const numSelected = services.reduce( ( count, service ) => (
 		count + ( service.enabled ? 1 : 0 )
@@ -56,7 +49,7 @@ const ShippingServiceGroup = ( props ) => {
 	const onChange = ( event ) => updateAll( event, updateValue, services );
 
 	const renderHeader = () => {
-		return <div className="wcc-shipping-services-group-header">
+		return <div className="shipping-services__group-header">
 			<Checkbox
 				checked={ services.length === numSelected }
 				partialChecked={ Boolean( numSelected ) }
@@ -75,16 +68,15 @@ const ShippingServiceGroup = ( props ) => {
 			expandedSummary={ summary }
 			clickableHeader={ true }
 			compact
-			actionButton={ actionButton }
-			actionButtonExpanded={ actionButton }
+			screenReaderText={ __( 'Expand Services' ) }
 			expanded={ ! _.isEmpty( errors ) }
 		>
-			<div className="wcc-shipping-service-entry multi-select-header">
-				<span className="wcc-shipping-service-header service-name">{ __( 'Service' ) }</span>
-				<span className="wcc-shipping-service-header price-adjustment">
+			<div className="shipping-services__entry multi-select-header">
+				<span className="shipping-services__entry-header">{ __( 'Service' ) }</span>
+				<span className="shipping-services__entry-header shipping-services__entry-price-adjustment">
 					{ __( 'Price adjustment' ) }
 					<InfoTooltip
-						className="price-adjustment-info"
+						className="shipping-services__entry-price-adjustment-info"
 						position="top left"
 						maxWidth={ 230 }>
 						{ __( 'Increase the rates calculated by the carrier to account for packaging and handling costs. ' +

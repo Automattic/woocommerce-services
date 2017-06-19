@@ -23,7 +23,6 @@
 	//@import 'shared/welcome'; // welcome messages
 	//@import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
 
-	@import 'shipping-services'; // Shipping Services Groups, Group and Entry Component styles
 	@import 'shipping-label'; // Shipping Labels specific styles
 
 	// Main
@@ -99,19 +98,6 @@
 		.gridicon {
 			float: none;
 			vertical-align: middle;
-		}
-	}
-
-	.settings-form-row {
-		display: flex;
-
-		& > * {
-			flex-grow: 1;
-			margin-right: 16px;
-
-			&:last-child {
-				margin-right: 0;
-			}
 		}
 	}
 
@@ -296,28 +282,6 @@
 		height: inherit;
 	}
 
-	.wcc-nux-notice {
-		background: lighten( $blue-light, 22% );
-		border: 1px solid lighten( $blue-light, 15% );
-		padding: 16px;
-		margin-bottom: 8px;
-		display: flex;
-
-		.wcc-nux-notice__copy {
-			margin-top: 3px;
-		}
-
-		svg {
-			margin-right: 8px;
-		}
-
-		a {
-			text-decoration: none;
-			margin-left: auto;
-			margin-top: 3px;
-		}
-	}
-
 	@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 	.form-troubles {
@@ -346,6 +310,7 @@
 	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';
 	@import '../../client/components/loading-spinner/style';
+	@import '../../client/components/nux-notice/style';
 	@import '../../client/components/text/style';
 	@import '../../client/components/text-area/style';
 	@import '../../client/components/toggle/style';
@@ -353,6 +318,7 @@
 	@import '../../client/shipping-label/views/purchase/steps/packages/style';
 	@import '../../client/packages/style';
 	@import '../../client/print-test-label/style';
+	@import '../../client/settings/style';
 }
 
 #woocommerce-order-label .inside {

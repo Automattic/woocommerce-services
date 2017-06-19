@@ -6,7 +6,7 @@ import React, { PropTypes } from 'react';
 /**
  * Internal dependencies
  */
-import WCCSettingsForm from './wcc-settings-form';
+import SettingsForm from './components/settings-form';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
 
@@ -14,7 +14,7 @@ const Settings = ( props ) => {
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
-			<WCCSettingsForm
+			<SettingsForm
 				{ ...props }
 			/>
 		</div>

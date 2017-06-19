@@ -54,10 +54,10 @@ const ShippingServiceGroups = ( {
 	};
 
 	return (
-		<div className="wcc-shipping-services-groups">
+		<div className="shipping-services">
 			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
 			<FieldDescription text={ description } />
-			<div className={ classNames( 'wcc-shipping-services-groups-inner', { 'is-error': generalError } ) }>
+			<div className={ classNames( 'shipping-services__inner', { 'is-error': generalError } ) }>
 				{ Object.keys( serviceGroups ).sort().map( renderServiceGroup ) }
 			</div>
 			{ generalError ? <FieldError text={ generalError } /> : null }

@@ -4,12 +4,13 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { translate as __ } from 'i18n-calypso';
 
 /**
  * Internal dependencies
  */
 import WCCSettingsGroup from './settings-group';
-import NuxNotice from './nux-notice';
+import NuxNotice from 'components/nux-notice';
 import * as FormActions from 'settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'settings/state/values/actions';
@@ -29,7 +30,11 @@ const WCCSettingsForm = ( props ) => {
 
 	return (
 		<div>
-			<NuxNotice noticeDismissed={ ! ! props.form.noticeDismissed } dismissNotice={ props.formActions.dismissNotice } />
+			{ ! props.form.noticeDismissed && (
+				<NuxNotice onDismiss={ props.formActions.dismissNotice } >
+					{ __( 'Now add your zip code and chose which services you want to offer your customers.' ) }
+				</NuxNotice>
+			) }
 			{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }
 		</div>
 	);
