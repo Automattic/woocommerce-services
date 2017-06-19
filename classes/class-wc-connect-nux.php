@@ -112,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 						__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-						__( 'You can now purchase and print discounted labels from USPS directly from your customer\'s order. Select "Create new Label" to get started.', 'woocommerce-services' )
+						__( 'When you\'re ready, purchase and print discounted labels from USPS right here.', 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
 				),
