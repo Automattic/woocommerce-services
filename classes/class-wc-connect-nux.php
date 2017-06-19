@@ -350,7 +350,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<img src="<?php
 						echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) );
 						?>">
-						<p class="wcs-nux__notice-jetpack-text">Powered by Jetpack</p>
+						<p class="wcs-nux__notice-jetpack-text"><?php echo esc_html( __( 'Powered by Jetpack', 'woocommerce-services' ) ); ?></p>
 					</div>
 				<?php endif; ?>
 			</div>
