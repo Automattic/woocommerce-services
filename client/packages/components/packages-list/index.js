@@ -10,16 +10,16 @@ import Gridicon from 'gridicons';
  */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
-import PackagesListItem from './packages-list-item';
+import PackagesListItem from './item';
 import LoadingSpinner from 'components/loading-spinner';
 
 const noPackages = () => {
 	return (
-		<div className="packages-list-empty">
-			<div className="package-list-empty-icon">
+		<div className="packages-list__empty">
+			<div className="packages-list__empty-icon">
 				<Gridicon icon="info" size={ 18 } />
 			</div>
-			<div className="packages-list-empty-description">{ __( 'Your packages will display here once they are added.' ) }</div>
+			<div className="packages-list__empty-description">{ __( 'Your packages will display here once they are added.' ) }</div>
 		</div>
 	);
 };
@@ -58,12 +58,12 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 	};
 
 	return (
-		<FormFieldset className="wcc-shipping-packages-list">
-			<div className="wcc-shipping-packages-list-header">
-				<FormLegend className="package-actions" />
-				<FormLegend className="package-type">{ __( 'Type' ) }</FormLegend>
-				<FormLegend className="package-name">{ __( 'Name' ) }</FormLegend>
-				<FormLegend className="package-dimensions">{ __( 'Dimensions (L x W x H)' ) }</FormLegend>
+		<FormFieldset className="packages-list">
+			<div className="packages-list__header">
+				<FormLegend className="packages-list__column-actions" />
+				<FormLegend className="packages-list__column-type">{ __( 'Type' ) }</FormLegend>
+				<FormLegend className="packages-list__column-name">{ __( 'Name' ) }</FormLegend>
+				<FormLegend className="packages-list__column-dimensions">{ __( 'Dimensions (L x W x H)' ) }</FormLegend>
 			</div>
 			{ renderList() }
 		</FormFieldset>

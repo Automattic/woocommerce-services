@@ -6,36 +6,27 @@ import { translate as __ } from 'i18n-calypso';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import _ from 'lodash';
-import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
  */
-import CompactCard from 'components/card/compact';
 import ErrorMessage from 'components/error-message';
 import SettingsGroupCard from 'components/settings-group-card';
 import Checkbox from 'components/checkbox';
-import ActionButtons from 'components/action-buttons';
+import ActionButtonsCard from 'components/action-buttons-card';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormButton from 'components/forms/form-button';
 import FoldableCard from 'components/foldable-card';
 import LoadingSpinner from 'components/loading-spinner';
-import PackagesList from './packages-list';
-import AddPackageDialog from './add-package';
-import * as PackagesActions from '../state/actions';
+import PackagesList from './components/packages-list';
+import AddPackageDialog from './components/add-package';
+import * as PackagesActions from './state/actions';
 import * as NoticeActions from 'state/notices/actions';
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
 
 const Packages = ( props ) => {
 	const isFetching = props.form.isFetching;
-
-	const foldableActionButton = (
-		<button className="foldable-card__action foldable-card__expand" type="button">
-			<span className="screen-reader-text">{ __( 'Expand Services' ) }</span>
-			<Gridicon icon="chevron-down" size={ 24 } />
-		</button>
-	);
 
 	const predefSummary = ( serviceSelected, groupDefinitions ) => {
 		const groupPackageIds = groupDefinitions.map( ( def ) => def.id );
@@ -64,7 +55,7 @@ const Packages = ( props ) => {
 		const stopPropagation = ( event ) => event.stopPropagation();
 
 		return (
-			<div className="wcc-predefined-packages-group-header" >
+			<div className="packages__predefined-group-header" >
 				<Checkbox
 					checked={ selected.length === packages.length }
 					partialChecked={ Boolean( selected.length ) }
@@ -102,8 +93,7 @@ const Packages = ( props ) => {
 					expandedSummary={ summary }
 					clickableHeader={ true }
 					compact
-					actionButton={ foldableActionButton }
-					actionButtonExpanded={ foldableActionButton }
+					screenReaderText={ __( 'Expand Services' ) }
 					expanded={ false }
 				>
 					<PackagesList
@@ -156,7 +146,7 @@ const Packages = ( props ) => {
 						removePackage={ props.removePackage }
 						editPackage={ props.editPackage } />
 					{ ( ! isFetching ) && <AddPackageDialog { ...props } /> }
-					<FormFieldset className="add-package-button-field">
+					<FormFieldset className="packages__add-package-button">
 						<FormButton
 							type="button"
 							isPrimary={ false }
@@ -178,9 +168,7 @@ const Packages = ( props ) => {
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			{ renderContent() }
-			<CompactCard className="save-button-bar">
-				<ActionButtons buttons={ buttons } />
-			</CompactCard>
+			<ActionButtonsCard buttons={ buttons } />
 		</div>
 	);
 };

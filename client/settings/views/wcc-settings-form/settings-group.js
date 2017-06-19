@@ -7,11 +7,8 @@ import _ from 'lodash';
 /**
  * Internal dependencies
  */
-import CompactCard from 'components/card/compact';
-import FormSectionHeading from 'components/forms/form-section-heading';
 import SettingsItem from './settings-item';
-import ActionButtons from 'components/action-buttons';
-import sanitizeHTML from 'lib/utils/sanitize-html';
+import ActionButtonsCard from 'components/action-buttons-card';
 import SettingsGroupCard from 'components/settings-group-card';
 
 const SettingsGroup = ( props ) => {
@@ -80,11 +77,7 @@ const SettingsGroup = ( props ) => {
 				}
 				return { label, onClick, isDisabled, isPrimary };
 			} );
-			return (
-				<CompactCard className="save-button-bar">
-					<ActionButtons buttons={ buttons } />
-				</CompactCard>
-			);
+			return <ActionButtonsCard buttons={ buttons } />;
 
 		default:
 			return (

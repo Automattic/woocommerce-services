@@ -21,7 +21,7 @@ const renderIcon = ( isLetter, isError, onClick ) => {
 		icon = isLetter ? 'mail' : 'product';
 	}
 
-	const gridicon = <Gridicon icon={ icon } className="package-type-icon" size={ isError ? 29 : 18 } />;
+	const gridicon = <Gridicon icon={ icon } className="packages-list__type-icon" size={ isError ? 29 : 18 } />;
 	if ( ! onClick ) {
 		return gridicon;
 	}
@@ -34,7 +34,7 @@ const renderIcon = ( isLetter, isError, onClick ) => {
 const renderName = ( name, openModal ) => {
 	const nameEl = name && '' !== _.trim( name )
 		? name
-		: <span className="package-no-name">{ __( 'Untitled' ) }</span>;
+		: <span className="packages-list__no-name">{ __( 'Untitled' ) }</span>;
 
 	if ( ! openModal ) {
 		return nameEl;
@@ -45,7 +45,7 @@ const renderName = ( name, openModal ) => {
 
 const renderSelect = ( selected, onToggle ) => {
 	return (
-		<div className="package-actions">
+		<div className="packages-list__column-actions">
 			<Checkbox checked={ selected } onChange={ onToggle } />
 		</div>
 	);
@@ -53,8 +53,8 @@ const renderSelect = ( selected, onToggle ) => {
 
 const renderActions = ( onRemove ) => {
 	return (
-		<div className="package-actions">
-			<Button compact borderless className="remove-package" onClick={ onRemove }>
+		<div className="packages-list__column-actions">
+			<Button compact borderless className="packages-list__remove-button" onClick={ onRemove }>
 				<Gridicon icon="cross-small" size={ 18 } />
 			</Button>
 		</div>
@@ -78,15 +78,15 @@ const PackagesListItem = ( {
 	} : null;
 
 	return (
-		<div className={ classNames( 'wcc-shipping-packages-list-item', { 'wcc-error': hasError } ) }>
+		<div className={ classNames( 'packages-list__item', { 'wcc-error': hasError } ) }>
 			{ editable ? null : renderSelect( selected, onToggle ) }
-			<div className="package-type">
+			<div className="packages-list__column-type">
 				{ renderIcon( data.is_letter, hasError, openModal ) }
 			</div>
-			<div className="package-name">
+			<div className="packages-list__column-name">
 				{ renderName( data.name, openModal ) }
 			</div>
-			<div className="package-dimensions">
+			<div className="packages-list__column-dimensions">
 				<span>{ data.inner_dimensions } { dimensionUnit }</span>
 			</div>
 			{ editable ? renderActions( onRemove ) : null }

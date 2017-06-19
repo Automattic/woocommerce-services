@@ -7,7 +7,7 @@ import { combineReducers } from 'redux';
 /**
  * Internal dependencies
  */
-import PackagesView from './views';
+import PackagesView from './view';
 import reducer from './state/reducer';
 import { fetchSettings } from './state/actions';
 // from calypso

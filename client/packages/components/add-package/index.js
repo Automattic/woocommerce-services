@@ -12,9 +12,10 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextInput from 'components/forms/form-text-input';
+import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import FormButton from 'components/forms/form-button';
 import Modal from 'components/modal';
-import AddPackagePresets from './add-package-presets';
+import AddPackagePresets from './presets';
 import checkInputs from './modal-errors';
 import inputFilters from './input-filters';
 import FieldError from 'components/field-error';
@@ -38,9 +39,11 @@ const OuterDimensionsToggle = ( { toggleOuterDimensions } ) => {
 	};
 
 	return (
-		<a href="#" className="form-setting-explanation" onClick={ onClick }>
-			{ __( 'View exterior dimensions' ) }
-		</a>
+		<FormSettingExplanation>
+			<a href="#" onClick={ onClick }>
+				{ __( 'View exterior dimensions' ) }
+			</a>
+		</FormSettingExplanation>
 	);
 };
 
@@ -78,7 +81,6 @@ const AddPackageDialog = ( props ) => {
 		is_user_defined,
 	} = packageData;
 
-	const fieldClassName = is_user_defined ? null : 'flat-rate-package__inner-dimensions__read-only';
 	const isOuterDimensionsVisible = showOuterDimensions || outer_dimensions;
 	const exampleDimensions = [ 100.25, 25, 5.75 ].map( ( val ) => val.toLocaleString() ).join( ' x ' );
 
@@ -126,7 +128,7 @@ const AddPackageDialog = ( props ) => {
 	return (
 		<Modal
 			isVisible={ showModal }
-			additionalClassNames="wcc-shipping-add-edit-package-dialog"
+			additionalClassNames="add-package"
 			onClose={ dismissModal }
 			buttons={ getDialogButtons( mode, dismissModal, onSave ) }>
 			<FormSectionHeading>
@@ -151,7 +153,6 @@ const AddPackageDialog = ( props ) => {
 					name="inner_dimensions"
 					placeholder={ exampleDimensions }
 					value={ inner_dimensions || '' }
-					className={ fieldClassName }
 					onChange={ updateTextField }
 					disabled={ ! is_user_defined }
 					isError={ modalErrors.inner_dimensions }
@@ -166,7 +167,6 @@ const AddPackageDialog = ( props ) => {
 							name="outer_dimensions"
 							placeholder={ exampleDimensions }
 							value={ outer_dimensions || '' }
-							className={ fieldClassName }
 							onChange={ updateTextField }
 							disabled={ ! is_user_defined }
 							isError={ modalErrors.outer_dimensions }
@@ -175,34 +175,32 @@ const AddPackageDialog = ( props ) => {
 					</FormFieldset> )
 				: null
 			}
-			<FormFieldset className="wcc-shipping-add-package-weight-group">
-				<div className="wcc-shipping-add-package-weight">
+			<FormFieldset className="add-package__weight-group">
+				<div className="add-package__weight">
 					<FormLabel htmlFor="box_weight">{ __( 'Package weight' ) }</FormLabel>
 					<FormTextInput
 						id="box_weight"
 						name="box_weight"
 						placeholder={ __( 'Weight of box' ) }
 						value={ box_weight || '' }
-						className={ fieldClassName }
 						onChange={ updateTextField }
 						disabled={ ! is_user_defined }
 						isError={ modalErrors.box_weight }
 					/>
 					{ fieldInfo( 'box_weight' ) }
 				</div>
-				<div className="wcc-shipping-add-package-weight">
+				<div className="add-package__weight">
 					<FormLabel htmlFor="max_weight">{ __( 'Max weight' ) }</FormLabel>
 					<FormTextInput
 						id="max_weight"
 						name="max_weight"
 						placeholder={ __( 'Max weight' ) }
 						value={ max_weight || '' }
-						className={ fieldClassName }
 						onChange={ updateTextField }
 						disabled={ ! is_user_defined }
 						isError={ modalErrors.max_weight }
 					/>
-					<span className="wcc-shipping-add-package-weight-unit">{ weightUnit }</span>
+					<span className="add-package__weight-unit">{ weightUnit }</span>
 					{ fieldInfo( 'max_weight' ) }
 				</div>
 				<FieldDescription text={ __( 'Defines both the weight of the empty box and the max weight it can hold' ) } />

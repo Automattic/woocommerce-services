@@ -144,16 +144,6 @@
 		max-width: none;
 		padding: 0;
 
-		&.wcc-shipping-add-edit-package-dialog {
-			@include breakpoint( ">480px" ) {
-				top: 10%;
-				right: calc(50% - 250px);
-				bottom: 10%;
-				left: calc(50% - 250px);
-				width: 500px;
-			}
-		}
-
 		&.wcc-label-packages-dialog {
 			top: -46px;
 
@@ -187,10 +177,6 @@
 			}
 		}
 
-		&.wcc-shipping-add-edit-package-dialog .form-section-heading {
-			padding: 0;
-		}
-
 		&.wcc-shipping-label-refund {
 			@include breakpoint( ">480px" ) {
 				top: calc(50% - 175px);
@@ -220,10 +206,6 @@
 			@include breakpoint( ">480px" ) {
 				padding: 32px;
 			}
-		}
-
-		&.wcc-shipping-add-edit-package-dialog .dialog__content {
-			padding: 32px;
 		}
 
 		.form-buttons-bar,
@@ -369,7 +351,7 @@
 	@import '../../client/components/toggle/style';
 	@import '../../client/components/settings-group-card/style';
 	@import '../../client/shipping-label/views/purchase/steps/packages/style';
-	@import '../../client/packages/views/style';
+	@import '../../client/packages/style';
 	@import '../../client/print-test-label/style';
 }
 
