@@ -12,6 +12,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
+		const SHOW_LABEL_METABOX_POINTER_OPTION = 'show_label_metabox_pointer';
+
 		/**
 		 * Option name for dismissing success banner
 		 * after the JP connection flow
@@ -46,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
-			if ( $this->should_show_labels_pointer() ) {
+			if ( $this->is_new_labels_user() ) {
 				add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
 			}
 		}
@@ -101,8 +103,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
-		private function should_show_labels_pointer() {
-			return true;
+		private function is_new_labels_user() {
+			global $wpdb;
+			$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
+			$results = $wpdb->get_results( $query );
+			return 0 === count( $results );
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
