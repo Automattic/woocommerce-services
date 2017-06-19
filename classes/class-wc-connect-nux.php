@@ -105,27 +105,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return true;
 		}
 
-		private function has_payments_configured() {
-			return true;
-		}
-
 		public function register_order_page_labels_pointer( $pointers ) {
-			if ( $this->has_payments_configured() ) {
-				$contents = sprintf( '<h3>%s</h3><p>%s</p>',
-					__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-					__( 'You can now purchase and print discounted labels from USPS directly from your customer\'s order. Select "Create new Label" to get started.', 'woocommerce-services' )
-				);
-			} else {
-				$contents = sprintf( '<h3>%s</h3><p>%s</p>',
-					__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-					__( 'Add a payment method to purchase and print discounted labels from USPS directly from your customer\'s order. Select "Create new Label" to get started.', 'woocommerce-services' )
-				);
-			}
 			$pointers[] = array(
 				'id' => 'wc_services_labels_metabox',
 				'target' => '#woocommerce-order-label',
 				'options' => array(
-					'content' => $contents,
+					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+						__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
+						__( 'You can now purchase and print discounted labels from USPS directly from your customer\'s order. Select "Create new Label" to get started.', 'woocommerce-services' )
+					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
 				),
 				'dim' => true,
