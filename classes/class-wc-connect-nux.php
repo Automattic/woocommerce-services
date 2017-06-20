@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
-		const SHOW_LABEL_METABOX_POINTER_OPTION = 'show_label_metabox_pointer';
+		const TRANSIENT_IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
 		/**
 		 * Option name for dismissing success banner
@@ -102,10 +102,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		private function is_new_labels_user() {
-			global $wpdb;
-			$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
-			$results = $wpdb->get_results( $query );
-			return 0 === count( $results );
+			$is_new_user = get_transient( self::TRANSIENT_IS_NEW_LABEL_USER );
+			if ( ! is_string( $is_new_user )) {
+				error_log( 'calculating if the user is new' );
+				global $wpdb;
+				$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
+				$results = $wpdb->get_results( $query );
+				$is_new_user  = 0 === count( $results ) ? 'yes' : 'no';
+				set_transient( self::TRANSIENT_IS_NEW_LABEL_USER, $is_new_user );
+			}
+
+			return 'yes' === $is_new_user;
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
