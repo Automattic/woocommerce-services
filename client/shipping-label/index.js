@@ -8,7 +8,7 @@ import _ from 'lodash';
 /**
  * Internal dependencies
  */
-import ShippingLabelRootView from './views';
+import ShippingLabelRootView from './view';
 import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';

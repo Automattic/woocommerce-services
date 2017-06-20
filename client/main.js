@@ -122,8 +122,8 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		};
 
 		module.hot.accept( [
-			'./settings/views',
-			'./shipping-label/views',
+			'./settings/view',
+			'./shipping-label/view',
 			'./account-settings/view',
 		], () => {
 			setTimeout( render );
