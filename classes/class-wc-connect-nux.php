@@ -20,7 +20,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 */
 		const SUCCESS_BANNER_IS_DISMISSED = 'after_jp_cxn_nux_success_banner_dismissed';
 
-		function __construct() {
+		/**
+		 * @var WC_Connect_Shipping_Label
+		 */
+		private $shipping_label;
+
+		function __construct( WC_Connect_Shipping_Label $shipping_label ) {
+			$this->shipping_label = $shipping_label;
 			$this->init_pointers();
 		}
 
@@ -116,7 +122,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			if ( $this->is_new_labels_user() ) {
+			if ( $this->is_new_labels_user() && $this->shipping_label->should_show_meta_box() ) {
 				$pointers[] = array(
 					'id' => 'wc_services_labels_metabox',
 					'target' => '#woocommerce-order-label',
