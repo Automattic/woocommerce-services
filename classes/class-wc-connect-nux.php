@@ -48,9 +48,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
-			if ( $this->is_new_labels_user() ) {
-				add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
-			}
+			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
 		}
 
 		public function show_pointers( $hook ) {
@@ -111,18 +109,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			$pointers[] = array(
-				'id' => 'wc_services_labels_metabox',
-				'target' => '#woocommerce-order-label',
-				'options' => array(
-					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
-						__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-						__( 'When you\'re ready, purchase and print discounted labels from USPS right here.', 'woocommerce-services' )
+			if ( $this->is_new_labels_user() ) {
+				$pointers[] = array(
+					'id' => 'wc_services_labels_metabox',
+					'target' => '#woocommerce-order-label',
+					'options' => array(
+						'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+							__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
+							__( 'When you\'re ready, purchase and print discounted labels from USPS right here.', 'woocommerce-services' )
+						),
+						'position' => array( 'edge' => 'right', 'align' => 'left' ),
 					),
-					'position' => array( 'edge' => 'right', 'align' => 'left' ),
-				),
-				'dim' => true,
-			);
+					'dim' => true,
+				);
+			}
+
 			return $pointers;
 		}
 
