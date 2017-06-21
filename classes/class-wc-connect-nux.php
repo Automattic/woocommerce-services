@@ -99,7 +99,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 						__( 'Add a WooCommerce shipping service to a Zone' ,'woocommerce-services' ),
-						__( 'To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don\'t have any zones, add one first.', 'woocommerce-services' )
+						__( "To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don't have any zones, add one first.", 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
 				),
@@ -107,10 +107,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
-		private function is_new_labels_user() {
+		public function is_new_labels_user() {
 			$is_new_user = get_transient( self::TRANSIENT_IS_NEW_LABEL_USER );
-			if ( ! is_string( $is_new_user )) {
-				error_log( 'calculating if the user is new' );
+			if ( ! is_string( $is_new_user ) ) {
 				global $wpdb;
 				$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
 				$results = $wpdb->get_results( $query );
@@ -129,7 +128,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'options' => array(
 						'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 							__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-							__( 'When you\'re ready, purchase and print discounted labels from USPS right here.', 'woocommerce-services' )
+							__( "When you're ready, purchase and print discounted labels from USPS right here.", 'woocommerce-services' )
 						),
 						'position' => array( 'edge' => 'right', 'align' => 'left' ),
 					),
