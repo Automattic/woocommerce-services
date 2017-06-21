@@ -317,7 +317,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					break;
 			}
 
-			$this->show_nux_banner( wp_parse_args( $localized_content, $default_content ) );
+			$this->show_nux_banner( wp_parse_args( $localized_content = null, $default_content ) );
 		}
 
 		public function show_banner_after_connection() {
