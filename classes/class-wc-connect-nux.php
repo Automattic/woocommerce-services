@@ -322,6 +322,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				// No longer need to keep track of whether the before connection banner was displayed.
 				WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
+				exit;
 			}
 
 			// By going through the connection process, the user has accepted our TOS
