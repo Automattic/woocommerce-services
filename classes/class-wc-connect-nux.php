@@ -256,6 +256,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 				case 'tos_only_banner':
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 			}
 		}
@@ -335,6 +337,26 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
+				) ),
+				'image_url'      => plugins_url(
+					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
+				),
+				'should_show_jp' => false,
+			) );
+		}
+
+		public function show_tos_banner() {
+			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
+				WC_Connect_Options::update_option( 'tos_accepted', true );
+				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
+				exit;
+			}
+			$this->show_nux_banner( array(
+				'title'          => __( 'Setup complete! We need you to accept our TOS', 'woocommerce-services' ),
+				'description'    => __( 'Everything is ready to roll, we just need you to agree to our Terms of Service.', 'woocommerce-services' ),
+				'button_text'    => __( 'I accept the TOS!', 'woocommerce-services' ),
+				'button_link'    => add_query_arg( array(
+					'wcs-nux-tos' => 'accept',
 				) ),
 				'image_url'      => plugins_url(
 					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
