@@ -322,6 +322,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
 			}
 
+			// By going through the connection process, the user has accepted our TOS
+			WC_Connect_Options::update_option( 'tos_accepted', true );
+
 			$this->show_nux_banner( array(
 				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services' ),
 				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
