@@ -6,11 +6,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		/**
 		 * Jetpack status constants.
 		 */
-		const JETPACK_UNINSTALLED = 'uninstalled';
-		const JETPACK_INSTALLED = 'installed';
-		const JETPACK_ACTIVATED = 'activated';
+		const JETPACK_NOT_INSTALLED = 'uninstalled';
+		const JETPACK_INSTALLED_NOT_ACTIVATED = 'installed';
+		const JETPACK_ACTIVATED_NOT_CONNECTED = 'activated';
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
+		const JETPACK_CONNECTED_AND_DISMISSED = 'connected_and_dismissed';
+		const JETPACK_CONNECTED_NO_TOS = 'connected_no_tos';
 
 		/**
 		 * Option name for dismissing success banner
@@ -99,14 +101,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function get_jetpack_install_status() {
-			// check if Jetpack is activated
+			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
+				// Jetpack is not installed
+				return self::JETPACK_NOT_INSTALLED;
+			}
+
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				// not activated, check if installed
-				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					return self::JETPACK_INSTALLED;
-				}
-				return self::JETPACK_UNINSTALLED;
-			} else if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
+				// Jetpack is installed but not activated
+				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
+			}
+
+			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
 				// installed, activated, and dev mode on
 				return self::JETPACK_DEV;
 			}
@@ -114,11 +119,23 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// installed, activated, dev mode off
 			// check if connected
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			if ( isset( $user_token->external_user_id ) ) { // always an int
-				return self::JETPACK_CONNECTED;
+			if ( ! isset( $user_token->external_user_id ) ) {
+				// Jetpack is activated but is not connected
+				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 			}
 
-			return self::JETPACK_ACTIVATED;
+			if ( ! WC_Connect_Options::get_option( 'tos_accepted', false ) ) {
+				// Jetpack is connected but the user hasn't accepted TOS
+				return self::JETPACK_CONNECTED_NO_TOS;
+			}
+
+			if ( WC_Connect_Options::get_option( self::SUCCESS_BANNER_IS_DISMISSED ) ) {
+				// Everything is complete and the user has dismissed the final welcome banner
+				return self::JETPACK_CONNECTED_AND_DISMISSED;
+			}
+
+			// Everything is setup correctly, show the welcome banner
+			return self::JETPACK_CONNECTED;
 		}
 
 		public function should_display_nux_notice_on_screen( $screen ) {
@@ -188,9 +205,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
 			switch ( $jetpack_install_status ) {
-				case self::JETPACK_UNINSTALLED:
-				case self::JETPACK_INSTALLED:
-				case self::JETPACK_ACTIVATED:
+				case self::JETPACK_NOT_INSTALLED:
+				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
+				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
 					$ajax_data = array(
 						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 						'initial_install_status' => $jetpack_install_status,
@@ -215,11 +232,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					break;
 				case self::JETPACK_CONNECTED:
 					// Has the after-connection notice been dismissed already?
-					if ( WC_Connect_Options::get_option( self::SUCCESS_BANNER_IS_DISMISSED ) ) {
-						break;
-					}
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
+					break;
+				case self::JETPACK_CONNECTED_NO_TOS:
+					// Has the after-connection notice been dismissed already?
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 			}
 		}
@@ -247,10 +266,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
-				case self::JETPACK_UNINSTALLED:
+				case self::JETPACK_NOT_INSTALLED:
 					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
-				case self::JETPACK_INSTALLED:
+				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text = __( 'Activate Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
 			}
@@ -295,6 +314,26 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
+				) ),
+				'image_url'      => plugins_url(
+					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
+				),
+				'should_show_jp' => false,
+			) );
+		}
+
+		public function show_tos_banner() {
+			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
+				WC_Connect_Options::update_option( '', true );
+				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
+			}
+
+			$this->show_nux_banner( array(
+				'title'          => __( 'Setup complete! We need you to accept our TOS' ),
+				'description'    => __( 'Everything is ready to roll, we just need you to agree to our Terms of Service.', 'woocommerce-services' ),
+				'button_text'    => __( 'I accept the TOS!', 'woocommerce-services' ),
+				'button_link'    => add_query_arg( array(
+					'wcs-nux-tos' => 'accept',
 				) ),
 				'image_url'      => plugins_url(
 					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
