@@ -299,6 +299,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'button_text'     => $button_text,
 				'image_url'       => $image_url,
 				'should_show_jp'  => true,
+				'should_show_terms' => true,
 			);
 
 			$base_location = wc_get_base_location();
@@ -345,6 +346,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
+				'should_show_terms' => false,
 			) );
 		}
 
@@ -365,6 +367,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
+				'should_show_terms' => false,
 			) );
 		}
 
@@ -379,7 +382,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					<p class="wcs-nux__notice-content-text">
 						<?php echo esc_html( $content['description'] ); ?>
 					</p>
-					<?php if ( $content['should_show_jp'] ) : ?>
+					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p><?php
 						/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 						printf(
