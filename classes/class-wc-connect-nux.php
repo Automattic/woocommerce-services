@@ -311,9 +311,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ),
 					);
 					break;
+				default:
+					$localized_content = array();
 			}
 
-			$this->show_nux_banner( wp_parse_args( $localized_content, $default_content ) );
+			$this->show_nux_banner( array_merge( $default_content, $localized_content ) );
 		}
 
 		public function show_banner_after_connection() {
