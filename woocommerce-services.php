@@ -169,6 +169,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'before_init' ) );
 			add_action( 'woocommerce_init', array( $this, 'init' ) );
 		}
 
@@ -339,6 +340,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function load_textdomain() {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
+		}
+
+		public function before_init() {
+			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
+
+			$taxjar = new WC_Connect_TaxJar_Integration();
 		}
 
 		/**
