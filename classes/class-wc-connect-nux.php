@@ -440,10 +440,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 								),
 							) ),
 							esc_html( $content['button_text'] ),
-							'<a href="https://woocommerce.com/terms-conditions/">',
-							'</a>',
-							'<a href="https://woocommerce.com/terms-conditions/services-privacy/"/>',
-							'</a>'
+							'https://woocommerce.com/terms-conditions/',
+							'https://woocommerce.com/terms-conditions/services-privacy/'
 						); ?></p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
