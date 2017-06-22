@@ -122,12 +122,24 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+			$user_id = get_current_user_id();
+			$dismissed_data = (string) get_user_meta( $user_id, 'dismissed_wp_pointers', true );
+			$dismissed_pointers = explode( ',', $dismissed_data );
 			if ( $dismissed_pointers && in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
 				return $pointers;
 			}
 
-			if ( $this->is_new_labels_user() && $this->shipping_label->should_show_meta_box() ) {
+			// If the user is not new to labels, we should just dismiss this pointer
+			if ( ! $this->is_new_labels_user() ) {
+				if ( strlen( $dismissed_data ) ) {
+					$dismissed_data .= ',';
+				}
+				$dismissed_data .= 'wc_services_labels_metabox';
+				update_user_meta( $user_id, 'dismissed_wp_pointers', $dismissed_data );
+				return $pointers;
+			}
+
+			if ( $this->shipping_label->should_show_meta_box() ) {
 				$pointers[] = array(
 					'id' => 'wc_services_labels_metabox',
 					'target' => '#woocommerce-order-label',
