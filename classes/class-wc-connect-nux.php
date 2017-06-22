@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
-		const TRANSIENT_IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
+		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
 		/**
 		 * Option name for dismissing success banner
@@ -87,6 +87,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			add_action( 'admin_footer', '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
@@ -108,19 +109,24 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function is_new_labels_user() {
-			$is_new_user = get_transient( self::TRANSIENT_IS_NEW_LABEL_USER );
-			if ( ! is_string( $is_new_user ) ) {
+			$is_new_user = get_transient( self::IS_NEW_LABEL_USER );
+			if ( false === $is_new_user ) {
 				global $wpdb;
 				$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
 				$results = $wpdb->get_results( $query );
-				$is_new_user  = 0 === count( $results ) ? 'yes' : 'no';
-				set_transient( self::TRANSIENT_IS_NEW_LABEL_USER, $is_new_user );
+				$is_new_user = 0 === count( $results ) ? 'yes' : 'no';
+				set_transient( self::IS_NEW_LABEL_USER, $is_new_user );
 			}
 
 			return 'yes' === $is_new_user;
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
+			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+			if ( $dismissed_pointers && in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
+				return $pointers;
+			}
+
 			if ( $this->is_new_labels_user() && $this->shipping_label->should_show_meta_box() ) {
 				$pointers[] = array(
 					'id' => 'wc_services_labels_metabox',
