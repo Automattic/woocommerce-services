@@ -158,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public static function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
-				return;
+				return false;
 			}
 
 			/* The NUX Flow:
@@ -186,6 +186,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] ) {
 						return 'tos_only_banner';
 					}
+					return false;
 				default:
 					return false;
 			}
