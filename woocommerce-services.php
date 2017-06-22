@@ -343,9 +343,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function before_init() {
+			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
 
-			$taxjar = new WC_Connect_TaxJar_Integration();
+			$logger     = new WC_Connect_Logger( new WC_Logger() );
+			$validator  = new WC_Connect_Service_Schemas_Validator();
+			$api_client = new WC_Connect_API_Client( $validator, $this );
+			$taxjar     = new WC_Connect_TaxJar_Integration( $api_client );
+
+			$this->set_logger( $logger );
+			$this->set_api_client( $api_client );
+			$this->set_service_schemas_validator( $validator );
 		}
 
 		/**
@@ -379,9 +389,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function load_dependencies() {
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
@@ -391,9 +398,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 
-			$logger                = new WC_Connect_Logger( new WC_Logger() );
-			$validator             = new WC_Connect_Service_Schemas_Validator();
-			$api_client            = new WC_Connect_API_Client( $validator, $this );
+			$logger                = $this->get_logger();
+			$api_client            = $this->get_api_client();
 			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
@@ -401,9 +407,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 
-			$this->set_logger( $logger );
-			$this->set_api_client( $api_client );
-			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
 			$this->set_payment_methods_store( $payment_methods_store );
