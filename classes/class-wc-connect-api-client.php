@@ -383,6 +383,33 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Proxy an HTTP request through the WCS Server
+		 *
+		 * @param $path Path of proxy route
+		 * @param $args WP_Http request args
+		 *
+		 * @return array|WP_Error
+		 */
+		public function proxy_request( $path, $args ) {
+			$proxy_url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
+			$proxy_url .= ltrim( $path, '/' );
+
+			$args['headers']['Authorization'] = $this->authorization_header();
+
+			$http_timeout = 60; // 1 minute
+
+			if ( function_exists( 'wc_set_time_limit' ) ) {
+				wc_set_time_limit( $http_timeout + 10 );
+			}
+
+			$args['timeout'] = $http_timeout;
+
+			$response = wp_remote_request( $proxy_url, $args );
+
+			return $response;
+		}
+
+		/**
 		 * Adds useful WP/WC/WCC information to request bodies
 		 *
 		 * @param array $initial_body
