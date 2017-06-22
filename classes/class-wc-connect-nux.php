@@ -12,13 +12,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
+		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
+
 		/**
 		 * Option name for dismissing success banner
 		 * after the JP connection flow
 		 */
 		const SHOULD_SHOW_AFTER_CXN_BANNER = 'should_display_nux_after_jp_cxn_banner';
 
-		function __construct() {
+		/**
+		 * @var WC_Connect_Shipping_Label
+		 */
+		private $shipping_label;
+
+		function __construct( WC_Connect_Shipping_Label $shipping_label ) {
+			$this->shipping_label = $shipping_label;
 			$this->init_pointers();
 		}
 
@@ -46,6 +54,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
+			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
 		}
 
 		public function show_pointers( $hook ) {
@@ -78,6 +87,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			add_action( 'admin_footer', '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
@@ -90,11 +100,48 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 						__( 'Add a WooCommerce shipping service to a Zone' ,'woocommerce-services' ),
-						__( 'To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don\'t have any zones, add one first.', 'woocommerce-services' )
+						__( "To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don't have any zones, add one first.", 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
-				)
+				),
 			);
+			return $pointers;
+		}
+
+		public function is_new_labels_user() {
+			$is_new_user = get_transient( self::IS_NEW_LABEL_USER );
+			if ( false === $is_new_user ) {
+				global $wpdb;
+				$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
+				$results = $wpdb->get_results( $query );
+				$is_new_user = 0 === count( $results ) ? 'yes' : 'no';
+				set_transient( self::IS_NEW_LABEL_USER, $is_new_user );
+			}
+
+			return 'yes' === $is_new_user;
+		}
+
+		public function register_order_page_labels_pointer( $pointers ) {
+			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+			if ( $dismissed_pointers && in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
+				return $pointers;
+			}
+
+			if ( $this->is_new_labels_user() && $this->shipping_label->should_show_meta_box() ) {
+				$pointers[] = array(
+					'id' => 'wc_services_labels_metabox',
+					'target' => '#woocommerce-order-label',
+					'options' => array(
+						'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+							__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
+							__( "When you're ready, purchase and print discounted labels from USPS right here.", 'woocommerce-services' )
+						),
+						'position' => array( 'edge' => 'right', 'align' => 'left' ),
+					),
+					'dim' => true,
+				);
+			}
+
 			return $pointers;
 		}
 
@@ -393,10 +440,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 								),
 							) ),
 							esc_html( $content['button_text'] ),
-							'https://woocommerce.com/terms-conditions/',
-							'https://woocommerce.com/terms-conditions/services-privacy/'
-						);
-						?></p>
+							'<a href="https://woocommerce.com/terms-conditions/">',
+							'</a>',
+							'<a href="https://woocommerce.com/terms-conditions/services-privacy/"/>',
+							'</a>'
+						); ?></p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
 						<a
