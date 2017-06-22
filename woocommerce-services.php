@@ -363,6 +363,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
+			// if the TOS has not bee accepted, do nothing else.
+			if ( true !== WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+				return;
+			}
+
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
