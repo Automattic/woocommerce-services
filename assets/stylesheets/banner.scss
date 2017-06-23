@@ -61,3 +61,36 @@
 		color: #82B1D2;
 	}
 }
+
+@media (max-width: 1000px) {
+	.notice.wcs-nux__notice {
+		flex-direction: column;
+
+		.wcs-nux__notice-logo {
+			display: none;
+		}
+
+		.wcs-nux__notice-content {
+			.wcs-nux__notice-content-button {
+				align-self: auto;
+				margin: 1.5em 0 1em 0;
+				text-align: center;
+			}
+		}
+
+		.wcs-nux__notice-jetpack {
+			flex-direction: row;
+			padding: 0.5em;
+
+			img {
+				height: 2em;
+				width: 2em;
+				margin: 0 1em 0 0;
+			}
+
+			.wcs-nux__notice-jetpack-text {
+				margin: 0;
+			}
+		}
+	}
+}
