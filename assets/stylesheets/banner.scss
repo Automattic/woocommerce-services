@@ -24,6 +24,16 @@
 		padding: 1em;
 		margin-left: 1em;
 
+		.wcs-nux__notice-content-tos {
+			font-size: 0.8em;
+			color: #cbd8e0;
+			margin-bottom: 1em;
+
+			a {
+					color: #49a8ce;
+			}
+		}
+
 		.wcs-nux__notice-content-button {
 			align-self: flex-start; // do not stretch the button across entire div
 		}
@@ -71,6 +81,10 @@
 		}
 
 		.wcs-nux__notice-content {
+			.wcs-nux__notice-content-tos {
+				margin: 0;
+			}
+
 			.wcs-nux__notice-content-button {
 				align-self: auto;
 				margin: 1.5em 0 1em 0;
