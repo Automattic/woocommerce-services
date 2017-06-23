@@ -360,10 +360,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function init() {
 			$this->load_dependencies();
+
+			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
-			// if the TOS has not bee accepted or Jetpack is not Connected do nothing else.
+			// if the TOS has not been accepted or Jetpack is not Connected do nothing else.
 			$jetpack_status = $this->nux->get_jetpack_install_status();
 			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status || WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
 			if ( true !== WC_Connect_Options::get_option( 'tos_accepted' ) || ! $is_jetpack_connected ) {
@@ -379,6 +381,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
+			// we need to use validate_plugin to check that Jetpack is installed
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
@@ -414,8 +419,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_help_view( $help_view );
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
-
-			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
 		/**
