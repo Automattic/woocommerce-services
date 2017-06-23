@@ -40,6 +40,7 @@ jQuery( document ).ready( function( $ ) {
 		target.pointer( options ).pointer( 'open' );
 		if ( pointer.dim ) {
 			target.css( 'z-index', 9999 );
+			$( 'body' ).append( '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
 			$( '#wcs-pointer-page-dimmer' ).fadeIn( 500 );
 		}
 	}
