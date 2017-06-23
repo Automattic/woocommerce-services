@@ -87,7 +87,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			add_action( 'admin_footer', '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
