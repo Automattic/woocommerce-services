@@ -18,11 +18,13 @@ class WC_Connect_TaxJar_Integration {
 	public function __construct( WC_Connect_API_Client $api_client ) {
 		$this->api_client = $api_client;
 
-		add_filter( 'option_woocommerce_taxjar-integration_settings', array( $this, 'override_taxjar_settings' ) );
-		add_filter( 'pre_http_request', array( $this, 'proxy_taxjar_requests' ), 10, 3 );
+		add_filter( 'default_option_woocommerce_taxjar-integration_settings', array( $this, 'override_taxjar_settings' ) );
 	}
 
 	public function override_taxjar_settings( $settings ) {
+		// Attach proxy filter, since we know that no TaxJar settings exist on this store.
+		add_filter( 'pre_http_request', array( $this, 'proxy_taxjar_requests' ), 10, 3 );
+
 		if ( ! is_array( $settings ) ) {
 			$settings = array();
 		}
