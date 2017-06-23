@@ -14,11 +14,24 @@ class WC_Connect_TaxJar_Integration {
 
 	const TAXJAR_URL = 'https://api.taxjar.com';
 	const PROXY_PATH = 'taxjar';
+	const FAKE_TOKEN = '[Managed by WooCommerce Services]';
 
 	public function __construct( WC_Connect_API_Client $api_client ) {
 		$this->api_client = $api_client;
 
 		add_filter( 'default_option_woocommerce_taxjar-integration_settings', array( $this, 'override_taxjar_settings' ) );
+		add_filter( 'option_woocommerce_taxjar-integration_settings', array( $this, 'check_taxjar_settings' ) );
+	}
+
+	public function check_taxjar_settings( $settings ) {
+		if (
+			isset( $settings['api_token'] ) &&
+			( $settings['api_token'] === strtolower( self::FAKE_TOKEN ) )
+		) {
+			return $this->override_taxjar_settings( $settings );
+		}
+
+		return $settings;
 	}
 
 	public function override_taxjar_settings( $settings ) {
@@ -30,7 +43,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$settings = array_merge( $settings, array(
-			'api_token'  => '[Managed by WooCommerce Services]',
+			'api_token'  => self::FAKE_TOKEN,
 			'enabled'    => 'yes',
 			'store_city' => get_option( 'woocommerce_store_city' ),
 			'store_zip'  => get_option( 'woocommerce_store_postcode' ),
