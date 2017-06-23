@@ -3,7 +3,7 @@
 	color: $gray-dark;
 }
 
-.tooltip.popover.info-tooltip__container {
+&.tooltip.popover.info-tooltip__container {
 	.popover__inner {
 		background: $gray-dark;
 	}
@@ -19,6 +19,8 @@
 		h1, h2, h3 {
 			margin: 0 0 8px 0;
 			color: $white;
+			font-weight: 600;
+			font-size: 1.3em;
 		}
 		p {
 			margin-top: 0;

@@ -1,4 +1,4 @@
-&.label-refund-modal {
+&.dialog.card.label-refund-modal {
 	@include breakpoint( ">480px" ) {
 		top: calc(50% - 175px);
 		right: calc(50% - 250px);

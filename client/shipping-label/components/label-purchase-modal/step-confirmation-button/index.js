@@ -14,7 +14,7 @@ const SetpConfirmationButton = ( { disabled, onClick, children } ) => {
 			<FormButton
 				type="button"
 				onClick={ onClick }
-				disabled={ false !== disabled }
+				disabled={ Boolean( disabled ) }
 				isPrimary >
 				{ children }
 			</FormButton>
