@@ -73,14 +73,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$dismissed_pointers = $this->get_dismissed_pointers();
 			$valid_pointers = array();
 
-			if( isset( $dismissed_pointers ) ) {
-				foreach ( $pointers as $pointer ) {
-					if ( ! in_array( $pointer['id'], $dismissed_pointers, true ) ) {
-						$valid_pointers[] =  $pointer;
-					}
+			foreach ( $pointers as $pointer ) {
+				if ( ! in_array( $pointer['id'], $dismissed_pointers, true ) ) {
+					$valid_pointers[] =  $pointer;
 				}
-			} else {
-				$valid_pointers = $pointers;
 			}
 
 			if ( empty( $valid_pointers ) ) {
@@ -131,7 +127,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function register_order_page_labels_pointer( $pointers ) {
 			$dismissed_pointers = $this->get_dismissed_pointers();
-			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
+			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers, true ) ) {
 				return $pointers;
 			}
 
