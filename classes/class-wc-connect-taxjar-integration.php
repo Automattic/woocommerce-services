@@ -37,7 +37,15 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	public function override_taxjar_settings( $settings ) {
-		// Attach proxy filter, since we know that no TaxJar settings exist on this store.
+		$store_city     = get_option( 'woocommerce_store_city' );
+		$store_postcode = get_option( 'woocommerce_store_postcode' );
+
+		// Check for store address before hijacking requests.
+		if ( empty( $store_city ) || empty( $store_postcode ) ) {
+			return $settings;
+		}
+
+		// Attach proxy filter.
 		add_filter( 'pre_http_request', array( $this, 'proxy_taxjar_requests' ), 10, 3 );
 
 		if ( ! is_array( $settings ) ) {
@@ -47,8 +55,8 @@ class WC_Connect_TaxJar_Integration {
 		$settings = array_merge( $settings, array(
 			'api_token'  => self::FAKE_TOKEN,
 			'enabled'    => 'yes',
-			'store_city' => get_option( 'woocommerce_store_city' ),
-			'store_zip'  => get_option( 'woocommerce_store_postcode' ),
+			'store_city' => $store_city,
+			'store_zip'  => $store_postcode,
 		) );
 
 		return $settings;
