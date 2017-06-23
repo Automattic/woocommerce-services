@@ -381,9 +381,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
-			// we need to use validate_plugin to check that Jetpack is installed
-			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );

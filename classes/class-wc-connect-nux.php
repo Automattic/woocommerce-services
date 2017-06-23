@@ -193,6 +193,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function get_jetpack_install_status() {
+			// we need to use validate_plugin to check that Jetpack is installed
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+
 			// check if jetpack is installed
 			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
 				return self::JETPACK_NOT_INSTALLED;
