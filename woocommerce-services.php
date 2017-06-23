@@ -366,7 +366,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// if the TOS has not bee accepted or Jetpack is not Connected do nothing else.
 			$jetpack_status = $this->nux->get_jetpack_install_status();
 			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status || WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
-			if ( true !== WC_Connect_Options::get_option( 'tos_accepted' ) && $is_jetpack_connected ) {
+			if ( true !== WC_Connect_Options::get_option( 'tos_accepted' ) || ! $is_jetpack_connected ) {
 				return;
 			}
 
