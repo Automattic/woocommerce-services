@@ -30,8 +30,8 @@ class WC_Connect_TaxJar_Integration {
 		$settings = array_merge( $settings, array(
 			'api_token'  => '[Managed by WooCommerce Services]',
 			'enabled'    => 'yes',
-			'store_city' => 'Park City', // TODO: get from new WC address data
-			'store_zip'  => '84060',     // TODO: get from new WC address data
+			'store_city' => get_option( 'woocommerce_store_city' ),
+			'store_zip'  => get_option( 'woocommerce_store_postcode' ),
 		) );
 
 		return $settings;
