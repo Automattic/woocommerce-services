@@ -14,7 +14,7 @@ const LoadingSpinner = ( { inline } ) => {
 		return spinner;
 	}
 	return (
-		<div className="loading-spinner loading-spinner__container">
+		<div className="loading-spinner">
 			{ spinner }
 		</div>
 	);
