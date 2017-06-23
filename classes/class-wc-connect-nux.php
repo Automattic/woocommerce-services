@@ -87,7 +87,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			add_action( 'admin_footer', array( $this, 'add_dimming_div' ) );
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
@@ -106,10 +105,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				),
 			);
 			return $pointers;
-		}
-
-		public function add_dimming_div() {
-			echo '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>';
 		}
 
 		public function is_new_labels_user() {
