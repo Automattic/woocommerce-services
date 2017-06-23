@@ -23,7 +23,7 @@ const ItemInfo = ( { item, itemIndex, openItemMove } ) => {
 	return (
 		<div key={ itemIndex } className="packages-step__item">
 			<div className="packages-step__item-name">
-					<span className="packages-step__item-title">
+					<span>
 						{ item.url
 							? <a href={ item.url } target="_blank" rel="noopener noreferrer">{ item.name }</a>
 							: item.name
