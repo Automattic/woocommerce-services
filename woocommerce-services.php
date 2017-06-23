@@ -152,6 +152,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $nux;
 
+		/**
+		 * @var WC_Connect_TaxJar_Integration
+		 */
+		protected $taxjar;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -169,8 +174,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-			add_action( 'before_woocommerce_init', array( $this, 'before_init' ) );
-			add_action( 'woocommerce_init', array( $this, 'init' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'init' ) );
 		}
 
 		public function get_logger() {
@@ -333,6 +337,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux = $nux;
 		}
 
+		public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
+			$this->taxjar = $taxjar;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -340,22 +348,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function load_textdomain() {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
-		}
-
-		public function before_init() {
-			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
-
-			$logger     = new WC_Connect_Logger( new WC_Logger() );
-			$validator  = new WC_Connect_Service_Schemas_Validator();
-			$api_client = new WC_Connect_API_Client( $validator, $this );
-			$taxjar     = new WC_Connect_TaxJar_Integration( $api_client );
-
-			$this->set_logger( $logger );
-			$this->set_api_client( $api_client );
-			$this->set_service_schemas_validator( $validator );
 		}
 
 		/**
@@ -387,6 +379,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
+			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
@@ -398,21 +394,30 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 
-			$logger                = $this->get_logger();
-			$api_client            = $this->get_api_client();
+
+			$logger                = new WC_Connect_Logger( new WC_Logger() );
+			$validator             = new WC_Connect_Service_Schemas_Validator();
+			$api_client            = new WC_Connect_API_Client( $validator, $this );
 			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
+			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client );
 
+			$this->set_logger( $logger );
+			$this->set_api_client( $api_client );
+			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
 			$this->set_service_settings_store( $settings_store );
 			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
+			$this->set_taxjar( $taxjar );
+
+			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
 		/**
@@ -439,6 +444,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function attach_hooks() {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
+			$this->taxjar->init();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );

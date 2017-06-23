@@ -18,7 +18,9 @@ class WC_Connect_TaxJar_Integration {
 
 	public function __construct( WC_Connect_API_Client $api_client ) {
 		$this->api_client = $api_client;
+	}
 
+	public function init() {
 		add_filter( 'default_option_woocommerce_taxjar-integration_settings', array( $this, 'override_taxjar_settings' ) );
 		add_filter( 'option_woocommerce_taxjar-integration_settings', array( $this, 'check_taxjar_settings' ) );
 	}
