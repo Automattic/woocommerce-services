@@ -131,7 +131,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function register_order_page_labels_pointer( $pointers ) {
 			$dismissed_pointers = $this->get_dismissed_pointers();
-			if ( $dismissed_pointers && in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
+			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
 				return $pointers;
 			}
 
