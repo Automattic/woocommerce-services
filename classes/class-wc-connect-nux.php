@@ -70,17 +70,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+			$dismissed_pointers = $this->get_dismissed_pointers();
 			$valid_pointers = array();
 
-			if( isset( $dismissed_pointers ) ) {
-				foreach ( $pointers as $pointer ) {
-					if ( ! in_array( $pointer['id'], $dismissed_pointers ) ) {
-						$valid_pointers[] =  $pointer;
-					}
+			foreach ( $pointers as $pointer ) {
+				if ( ! in_array( $pointer['id'], $dismissed_pointers, true ) ) {
+					$valid_pointers[] =  $pointer;
 				}
-			} else {
-				$valid_pointers = $pointers;
 			}
 
 			if ( empty( $valid_pointers ) ) {
@@ -90,6 +86,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			wp_enqueue_style( 'wp-pointer' );
 			wp_localize_script( 'wc_services_admin_pointers', 'wcSevicesAdminPointers', $valid_pointers );
 			wp_enqueue_script( 'wc_services_admin_pointers' );
+		}
+
+		public function get_dismissed_pointers() {
+			$data = get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true );
+			if ( is_string( $data ) && 0 < strlen( $data ) ) {
+				return explode( ',', $data );
+			}
+			return array();
 		}
 
 		public function register_add_service_to_zone_pointer( $pointers ) {
@@ -121,12 +125,20 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
-			if ( $dismissed_pointers && in_array( 'wc_services_labels_metabox', $dismissed_pointers ) ) {
+			$dismissed_pointers = $this->get_dismissed_pointers();
+			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers, true ) ) {
 				return $pointers;
 			}
 
-			if ( $this->is_new_labels_user() && $this->shipping_label->should_show_meta_box() ) {
+			// If the user is not new to labels, we should just dismiss this pointer
+			if ( ! $this->is_new_labels_user() ) {
+				$dismissed_pointers[] = 'wc_services_labels_metabox';
+				$dismissed_data = implode( ',', $dismissed_pointers );
+				update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', $dismissed_data );
+				return $pointers;
+			}
+
+			if ( $this->shipping_label->should_show_meta_box() ) {
 				$pointers[] = array(
 					'id' => 'wc_services_labels_metabox',
 					'target' => '#woocommerce-order-label',
