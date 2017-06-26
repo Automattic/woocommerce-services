@@ -369,7 +369,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status;
 			$is_jetpack_dev_mode = WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
 			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
-			if (  ! ( $is_jetpack_dev_mode || ( $is_jetpack_connected && $tos_accepted ) ) ) {
+			if (  ! ( $tos_accepted && ( $is_jetpack_connected || $is_jetpack_dev_mode ) ) ) {
 				return;
 			}
 
