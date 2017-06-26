@@ -158,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public static function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
-				return;
+				return false;
 			}
 
 			/* The NUX Flow:
@@ -186,20 +186,27 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] ) {
 						return 'tos_only_banner';
 					}
+					return false;
 				default:
 					return false;
 			}
 		}
 
 		public function get_jetpack_install_status() {
+			// we need to use validate_plugin to check that Jetpack is installed
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+
+			// check if jetpack is installed
+			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
+				return self::JETPACK_NOT_INSTALLED;
+			}
+
 			// check if Jetpack is activated
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				// not activated, check if installed
-				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					return self::JETPACK_INSTALLED_NOT_ACTIVATED;
-				}
-				return self::JETPACK_NOT_INSTALLED;
-			} else if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
+				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
+			}
+
+			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
 				// installed, activated, and dev mode on
 				return self::JETPACK_DEV;
 			}
@@ -207,11 +214,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// installed, activated, dev mode off
 			// check if connected
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			if ( isset( $user_token->external_user_id ) ) { // always an int
-				return self::JETPACK_CONNECTED;
+			if ( ! isset( $user_token->external_user_id ) ) { // always an int
+				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 			}
 
-			return self::JETPACK_ACTIVATED_NOT_CONNECTED;
+			return self::JETPACK_CONNECTED;
 		}
 
 		public function should_display_nux_notice_on_screen( $screen ) {
