@@ -6,19 +6,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		/**
 		 * Jetpack status constants.
 		 */
-		const JETPACK_UNINSTALLED = 'uninstalled';
-		const JETPACK_INSTALLED = 'installed';
-		const JETPACK_ACTIVATED = 'activated';
+		const JETPACK_NOT_INSTALLED = 'uninstalled';
+		const JETPACK_INSTALLED_NOT_ACTIVATED = 'installed';
+		const JETPACK_ACTIVATED_NOT_CONNECTED = 'activated';
 		const JETPACK_DEV = 'dev';
 		const JETPACK_CONNECTED = 'connected';
 
-		const TRANSIENT_IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
+		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
 		/**
 		 * Option name for dismissing success banner
 		 * after the JP connection flow
 		 */
-		const SUCCESS_BANNER_IS_DISMISSED = 'after_jp_cxn_nux_success_banner_dismissed';
+		const SHOULD_SHOW_AFTER_CXN_BANNER = 'should_display_nux_after_jp_cxn_banner';
 
 		/**
 		 * @var WC_Connect_Shipping_Label
@@ -70,17 +70,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+			$dismissed_pointers = $this->get_dismissed_pointers();
 			$valid_pointers = array();
 
-			if( isset( $dismissed_pointers ) ) {
-				foreach ( $pointers as $pointer ) {
-					if ( ! in_array( $pointer['id'], $dismissed_pointers ) ) {
-						$valid_pointers[] =  $pointer;
-					}
+			foreach ( $pointers as $pointer ) {
+				if ( ! in_array( $pointer['id'], $dismissed_pointers, true ) ) {
+					$valid_pointers[] =  $pointer;
 				}
-			} else {
-				$valid_pointers = $pointers;
 			}
 
 			if ( empty( $valid_pointers ) ) {
@@ -92,6 +88,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			wp_enqueue_script( 'wc_services_admin_pointers' );
 		}
 
+		public function get_dismissed_pointers() {
+			$data = get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true );
+			if ( is_string( $data ) && 0 < strlen( $data ) ) {
+				return explode( ',', $data );
+			}
+			return array();
+		}
+
 		public function register_add_service_to_zone_pointer( $pointers ) {
 			$pointers[] = array(
 				'id' => 'wc_services_add_service_to_zone',
@@ -99,7 +103,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 						__( 'Add a WooCommerce shipping service to a Zone' ,'woocommerce-services' ),
-						__( 'To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don\'t have any zones, add one first.', 'woocommerce-services' )
+						__( "To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don't have any zones, add one first.", 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'right', 'align' => 'left' ),
 				),
@@ -107,29 +111,41 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
-		private function is_new_labels_user() {
-			$is_new_user = get_transient( self::TRANSIENT_IS_NEW_LABEL_USER );
-			if ( ! is_string( $is_new_user )) {
-				error_log( 'calculating if the user is new' );
+		public function is_new_labels_user() {
+			$is_new_user = get_transient( self::IS_NEW_LABEL_USER );
+			if ( false === $is_new_user ) {
 				global $wpdb;
 				$query = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
 				$results = $wpdb->get_results( $query );
-				$is_new_user  = 0 === count( $results ) ? 'yes' : 'no';
-				set_transient( self::TRANSIENT_IS_NEW_LABEL_USER, $is_new_user );
+				$is_new_user = 0 === count( $results ) ? 'yes' : 'no';
+				set_transient( self::IS_NEW_LABEL_USER, $is_new_user );
 			}
 
 			return 'yes' === $is_new_user;
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			if ( $this->is_new_labels_user() && $this->shipping_label->should_show_meta_box() ) {
+			$dismissed_pointers = $this->get_dismissed_pointers();
+			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers, true ) ) {
+				return $pointers;
+			}
+
+			// If the user is not new to labels, we should just dismiss this pointer
+			if ( ! $this->is_new_labels_user() ) {
+				$dismissed_pointers[] = 'wc_services_labels_metabox';
+				$dismissed_data = implode( ',', $dismissed_pointers );
+				update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', $dismissed_data );
+				return $pointers;
+			}
+
+			if ( $this->shipping_label->should_show_meta_box() ) {
 				$pointers[] = array(
 					'id' => 'wc_services_labels_metabox',
 					'target' => '#woocommerce-order-label',
 					'options' => array(
 						'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 							__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-							__( 'When you\'re ready, purchase and print discounted labels from USPS right here.', 'woocommerce-services' )
+							__( "When you're ready, purchase and print discounted labels from USPS right here.", 'woocommerce-services' )
 						),
 						'position' => array( 'edge' => 'right', 'align' => 'left' ),
 					),
@@ -140,15 +156,57 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
+		public static function get_banner_type_to_display( $status = array() ) {
+			if ( ! isset( $status['jetpack_connection_status'] ) ) {
+				return false;
+			}
+
+			/* The NUX Flow:
+			- Case 1: Jetpack not connected (with TOS or no TOS accepted):
+				1. show_banner_before_connection()
+				2. connect to JP
+				3. show_banner_after_connection(), which sets the TOS acceptance in options
+			- Case 2: Jetpack connected, no TOS
+				1. show_tos_only_banner(), which accepts TOS on button click
+			- Case 3: Jetpack connected, and TOS accepted
+				This is an existing user. Do nothing.
+			*/
+			switch ( $status['jetpack_connection_status'] ) {
+				case self::JETPACK_NOT_INSTALLED:
+				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
+				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
+					return 'before_jetpack_connection';
+				case self::JETPACK_CONNECTED:
+					// Has the user just gone through our NUX connection flow?
+					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
+						return 'after_jetpack_connection';
+					}
+					// Has the user already accepted our TOS? Then do nothing.
+					// Note: TOS is accepted during the after_connection banner
+					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] ) {
+						return 'tos_only_banner';
+					}
+					return false;
+				default:
+					return false;
+			}
+		}
+
 		public function get_jetpack_install_status() {
+			// we need to use validate_plugin to check that Jetpack is installed
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+
+			// check if jetpack is installed
+			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
+				return self::JETPACK_NOT_INSTALLED;
+			}
+
 			// check if Jetpack is activated
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				// not activated, check if installed
-				if ( 0 === validate_plugin( 'jetpack/jetpack.php' ) ) {
-					return self::JETPACK_INSTALLED;
-				}
-				return self::JETPACK_UNINSTALLED;
-			} else if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
+				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
+			}
+
+			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
 				// installed, activated, and dev mode on
 				return self::JETPACK_DEV;
 			}
@@ -156,11 +214,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// installed, activated, dev mode off
 			// check if connected
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			if ( isset( $user_token->external_user_id ) ) { // always an int
-				return self::JETPACK_CONNECTED;
+			if ( ! isset( $user_token->external_user_id ) ) { // always an int
+				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 			}
 
-			return self::JETPACK_ACTIVATED;
+			return self::JETPACK_CONNECTED;
 		}
 
 		public function should_display_nux_notice_on_screen( $screen ) {
@@ -228,11 +286,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			$jetpack_install_status = $this->get_jetpack_install_status();
+			$banner_to_display = self::get_banner_type_to_display( array(
+				'jetpack_connection_status'       => $jetpack_install_status,
+				'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
+				'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
+			) );
 
-			switch ( $jetpack_install_status ) {
-				case self::JETPACK_UNINSTALLED:
-				case self::JETPACK_INSTALLED:
-				case self::JETPACK_ACTIVATED:
+			switch ( $banner_to_display ) {
+				case 'before_jetpack_connection':
 					$ajax_data = array(
 						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 						'initial_install_status' => $jetpack_install_status,
@@ -255,13 +316,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
 					break;
-				case self::JETPACK_CONNECTED:
-					// Has the after-connection notice been dismissed already?
-					if ( WC_Connect_Options::get_option( self::SUCCESS_BANNER_IS_DISMISSED ) ) {
-						break;
-					}
+				case 'after_jetpack_connection':
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
+					break;
+				case 'tos_only_banner':
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 			}
 		}
@@ -279,8 +340,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				remove_action( 'admin_notices', array( $jetpack_banner, 'render_connect_prompt_full_screen' ) );
 			}
 
-			// Make sure to show the after-connection success message even after Jetpack disconnect.
-			WC_Connect_Options::delete_option( self::SUCCESS_BANNER_IS_DISMISSED );
+			// Make sure we always disply the after-connection banner after this banner
+			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
@@ -289,10 +350,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
-				case self::JETPACK_UNINSTALLED:
+				case self::JETPACK_NOT_INSTALLED:
 					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
-				case self::JETPACK_INSTALLED:
+				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text = __( 'Activate Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
 			}
@@ -303,6 +364,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'button_text'     => $button_text,
 				'image_url'       => $image_url,
 				'should_show_jp'  => true,
+				'should_show_terms' => true,
 			);
 
 			$base_location = wc_get_base_location();
@@ -315,9 +377,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ),
 					);
 					break;
+				default:
+					$localized_content = array();
 			}
 
-			$this->show_nux_banner( wp_parse_args( $localized_content = null, $default_content ) );
+			$this->show_nux_banner( array_merge( $default_content, $localized_content ) );
 		}
 
 		public function show_banner_after_connection() {
@@ -327,12 +391,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// Did the user just dismiss?
 			if ( isset( $_GET['wcs-nux-notice'] ) && 'dismiss' === $_GET['wcs-nux-notice'] ) {
-				WC_Connect_Options::update_option( self::SUCCESS_BANNER_IS_DISMISSED, true );
+				// No longer need to keep track of whether the before connection banner was displayed.
+				WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
+				exit;
 			}
 
+			// By going through the connection process, the user has accepted our TOS
+			WC_Connect_Options::update_option( 'tos_accepted', true );
+
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services' ),
+				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services', 'woocommerce-services' ),
 				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
@@ -342,6 +411,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
+				'should_show_terms' => false,
+			) );
+		}
+
+		public function show_tos_banner() {
+			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
+				WC_Connect_Options::update_option( 'tos_accepted', true );
+				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
+				exit;
+			}
+			$this->show_nux_banner( array(
+				'title'          => __( 'Setup complete! We need you to accept our TOS', 'woocommerce-services' ),
+				'description'    => __( 'Everything is ready to roll, we just need you to agree to our Terms of Service.', 'woocommerce-services' ),
+				'button_text'    => __( 'I accept the TOS!', 'woocommerce-services' ),
+				'button_link'    => add_query_arg( array(
+					'wcs-nux-tos' => 'accept',
+				) ),
+				'image_url'      => plugins_url(
+					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
+				),
+				'should_show_jp' => false,
+				'should_show_terms' => false,
 			) );
 		}
 
@@ -356,11 +447,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					<p class="wcs-nux__notice-content-text">
 						<?php echo esc_html( $content['description'] ); ?>
 					</p>
-					<?php if ( $content['should_show_jp'] ) : ?>
+					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p><?php
 						/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 						printf(
-							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that some of your data will be passed to external servers. You can find more information about how your data is handled <a href="%3$s">here</a>', 'woocommerce-services' ),
+							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that some of your data will be passed to external servers. You can find more information about how your data is handled <a href="%3$s">here</a>.', 'woocommerce-services' ),
 								array(
 								'a' => array(
 									'href' => array(),
@@ -369,8 +460,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							esc_html( $content['button_text'] ),
 							'https://woocommerce.com/terms-conditions/',
 							'https://woocommerce.com/terms-conditions/services-privacy/'
-						);
-						?></p>
+						); ?></p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
 						<a

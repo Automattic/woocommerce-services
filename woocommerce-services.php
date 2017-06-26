@@ -360,8 +360,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function init() {
 			$this->load_dependencies();
+
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
+
+			// Plugin should be enabled if dev mode or connected + TOS
+			$jetpack_status = $this->nux->get_jetpack_install_status();
+			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status;
+			$is_jetpack_dev_mode = WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
+			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
+			if (  ! ( $tos_accepted && ( $is_jetpack_connected || $is_jetpack_dev_mode ) ) ) {
+				return;
+			}
 
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
@@ -393,7 +403,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger );
-			$help_view             = new WC_Connect_Help_View( $schemas_store, $settings_store, $logger );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $shipping_label );
 
@@ -404,11 +413,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_service_settings_store( $settings_store );
 			$this->set_payment_methods_store( $payment_methods_store );
 			$this->set_tracks( $tracks );
-			$this->set_help_view( $help_view );
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
-
-			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
 		/**
@@ -422,6 +428,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_pages = new WC_Connect_Settings_Pages( $this->payment_methods_store, $this->service_settings_store, $this->service_schemas_store );
 			$this->set_settings_pages( $settings_pages );
 
+			$schema = $this->get_service_schemas_store();
+			$settings = $this->get_service_settings_store();
+			$logger = $this->get_logger();
+			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 		}
 
@@ -455,6 +465,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
+			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
 		/**
