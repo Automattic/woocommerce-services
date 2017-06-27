@@ -21,12 +21,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const SHOULD_SHOW_AFTER_CXN_BANNER = 'should_display_nux_after_jp_cxn_banner';
 
 		/**
+		 * @var WC_Connect_Tracks
+		 */
+		protected $tracks;
+
+		/**
 		 * @var WC_Connect_Shipping_Label
 		 */
 		private $shipping_label;
 
-		function __construct( WC_Connect_Shipping_Label $shipping_label ) {
+		function __construct( WC_Connect_Tracks $tracks, WC_Connect_Shipping_Label $shipping_label ) {
+			$this->tracks = $tracks;
 			$this->shipping_label = $shipping_label;
+
 			$this->init_pointers();
 		}
 
@@ -400,6 +407,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// By going through the connection process, the user has accepted our TOS
 			WC_Connect_Options::update_option( 'tos_accepted', true );
 
+			$this->tracks->opted_in( 'connection_banner' );
+
 			$this->show_nux_banner( array(
 				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services', 'woocommerce-services' ),
 				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
@@ -418,9 +427,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function show_tos_banner() {
 			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
 				WC_Connect_Options::update_option( 'tos_accepted', true );
+
+				$this->tracks->opted_in( 'tos_banner' );
+
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
 				exit;
 			}
+
 			$this->show_nux_banner( array(
 				'title'          => __( 'Setup complete! We need you to accept our TOS', 'woocommerce-services' ),
 				'description'    => __( 'Everything is ready to roll, we just need you to agree to our Terms of Service.', 'woocommerce-services' ),
