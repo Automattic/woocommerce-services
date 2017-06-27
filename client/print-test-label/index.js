@@ -25,6 +25,10 @@ export default ( { paperSize, storeOptions } ) => ( {
 		};
 	},
 
+	getStateKey() {
+		return 'wcs-print-test-label';
+	},
+
 	View: () => {
 		return <PrintTestLabelView />;
 	},
