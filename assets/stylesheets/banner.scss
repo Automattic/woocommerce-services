@@ -21,11 +21,36 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		padding: 1em;
+		padding: 1em 1em 2.5em 1em;
 		margin-left: 1em;
+		color: #52768f;
+
+		.wcs-nux__notice-content-title {
+			color: #52768f; // Needed to override specificity
+			font-size: 1.3em;
+			font-weight: 600;
+		}
+
+		.wcs-nux__notice-content-tos {
+			font-size: 0.8em;
+			color: #cbd8e0;
+			margin-bottom: 1em;
+
+			a {
+					color: #49a8ce;
+			}
+		}
 
 		.wcs-nux__notice-content-button {
 			align-self: flex-start; // do not stretch the button across entire div
+			background-color: #00AADC;
+			border-color: #0087BE;
+			box-shadow: 0 1px 0 #0087BE;
+			color: #fff;
+			font-size: 1.1em;
+			height: auto;
+			padding: 0.5em 1.5em;
+			text-shadow: none;
 		}
 	}
 
@@ -59,5 +84,42 @@
 		font-size: 0.8em;
 		letter-spacing: 2px;
 		color: #82B1D2;
+	}
+}
+
+@media (max-width: 1000px) {
+	.notice.wcs-nux__notice {
+		flex-direction: column;
+
+		.wcs-nux__notice-logo {
+			display: none;
+		}
+
+		.wcs-nux__notice-content {
+			.wcs-nux__notice-content-tos {
+				margin: 0;
+			}
+
+			.wcs-nux__notice-content-button {
+				align-self: auto;
+				margin: 1.5em 0 1em 0;
+				text-align: center;
+			}
+		}
+
+		.wcs-nux__notice-jetpack {
+			flex-direction: row;
+			padding: 0.5em;
+
+			img {
+				height: 2em;
+				width: 2em;
+				margin: 0 1em 0 0;
+			}
+
+			.wcs-nux__notice-jetpack-text {
+				margin: 0;
+			}
+		}
 	}
 }
