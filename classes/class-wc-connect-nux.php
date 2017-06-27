@@ -453,7 +453,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<p class="wcs-nux__notice-content-tos"><?php
 						/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 						printf(
-							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that some of your data will be passed to external servers. You can find more information about how your data is handled <a href="%3$s">here</a>.', 'woocommerce-services' ),
+							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that <a href="%3$s">some of your data will be passed to external servers</a>.', 'woocommerce-services' ),
 								array(
 								'a' => array(
 									'href' => array(),
