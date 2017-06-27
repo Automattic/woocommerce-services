@@ -17,6 +17,9 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
 		public function __construct( WC_Connect_Logger $logger = null ) {
 			$this->logger = $logger;
+		}
+
+		public function init() {
 			add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 			add_action( 'wc_connect_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 			add_action( 'wc_connect_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );

@@ -466,6 +466,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
+
+			$tracks = $this->get_tracks();
+			$tracks->init();
 		}
 
 		/**
