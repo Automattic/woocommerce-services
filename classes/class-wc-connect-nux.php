@@ -156,7 +156,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
-		public static function get_banner_type_to_display( $status = array() ) {
+		/**
+		 * Check that the current user is the owner of the Jetpack connection
+		 * - Only that person can accept the TOS
+		 *
+		 * @return bool
+		 */
+		public function can_accept_tos() {
+			// Developer case
+			if ( defined( 'JETPACK_DEV_DEBUG' ) && JETPACK_DEV_DEBUG ) {
+				return true;
+			}
+
+			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			$can_accept = (
+				isset( $user_token->external_user_id ) &&
+				get_current_user_id() === $user_token->external_user_id
+			);
+
+			return $can_accept;
+		}
+
+		public function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
 				return false;
 			}
@@ -177,13 +198,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
+				case self::JETPACK_DEV:
 					// Has the user just gone through our NUX connection flow?
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
 						return 'after_jetpack_connection';
 					}
+
 					// Has the user already accepted our TOS? Then do nothing.
 					// Note: TOS is accepted during the after_connection banner
-					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] ) {
+					if (
+						isset( $status['tos_accepted'] )
+						&& ! $status['tos_accepted']
+						&& $this->can_accept_tos()
+					) {
 						return 'tos_only_banner';
 					}
 					return false;
@@ -286,7 +313,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			$jetpack_install_status = $this->get_jetpack_install_status();
-			$banner_to_display = self::get_banner_type_to_display( array(
+			$banner_to_display = $this->get_banner_type_to_display( array(
 				'jetpack_connection_status'       => $jetpack_install_status,
 				'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
 				'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
