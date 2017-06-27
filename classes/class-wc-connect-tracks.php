@@ -23,8 +23,12 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			add_action( 'wc_connect_saved_service_settings', array( $this, 'saved_service_settings' ), 10, 3 );
 		}
 
-		public function opted_in() {
-			$this->record_user_event( 'opted_in' );
+		public function opted_in( $source = null ) {
+			if ( is_null( $source ) ) {
+				$this->record_user_event( 'opted_in' );
+			} else {
+				$this->record_user_event( 'opted_in', compact( 'source' ) );
+			}
 		}
 
 		public function opted_out() {
@@ -80,6 +84,10 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$jetpack_blog_id = -1;
 			if ( class_exists( 'Jetpack_Options' ) && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$jetpack_blog_id = Jetpack_Options::get_option( 'id' );
+			}
+
+			if ( ! is_array( $data ) ) {
+				$data = array();
 			}
 
 			$data['_via_ua'] = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
