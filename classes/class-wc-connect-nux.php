@@ -421,10 +421,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
 				exit;
 			}
+
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! We need you to accept our TOS', 'woocommerce-services' ),
-				'description'    => __( 'Everything is ready to roll, we just need you to agree to our Terms of Service.', 'woocommerce-services' ),
-				'button_text'    => __( 'I accept the TOS!', 'woocommerce-services' ),
+				'title'          => __( 'Almost ready to enjoy discounted shipping rates', 'woocommerce-services' ),
+				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>. Using this feature means <a href="%2$s">some of your data will be passed to external servers.</a>', 'woocommerce-services' ),
+					array(
+						'a' => array(
+							'href' => array(),
+						),
+					) ),
+					'https://woocommerce.com/terms-conditions/',
+					'https://woocommerce.com/terms-conditions/services-privacy/'
+				),
+				'button_text'    => __( 'I accept', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-tos' => 'accept',
 				) ),
@@ -447,7 +456,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<?php echo esc_html( $content['title'] ); ?>
 					</h1>
 					<p class="wcs-nux__notice-content-text">
-						<?php echo esc_html( $content['description'] ); ?>
+						<?php echo $content['description']; ?>
 					</p>
 					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p class="wcs-nux__notice-content-tos"><?php
