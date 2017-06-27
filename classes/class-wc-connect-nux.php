@@ -177,7 +177,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $can_accept;
 		}
 
-		public function get_banner_type_to_display( $status = array() ) {
+		public static function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
 				return false;
 			}
@@ -204,7 +204,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					if (
 						isset( $status['tos_accepted'] )
 						&& ! $status['tos_accepted']
-						&& $this->can_accept_tos()
+						&& isset( $status['can_accept_tos'] )
+						&& $status['can_accept_tos']
 					) {
 						return 'tos_only_banner';
 					}
@@ -314,9 +315,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			$jetpack_install_status = $this->get_jetpack_install_status();
-			$banner_to_display = $this->get_banner_type_to_display( array(
+			$banner_to_display = self::get_banner_type_to_display( array(
 				'jetpack_connection_status'       => $jetpack_install_status,
 				'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
+				'can_accept_tos'                  => $this->can_accept_tos(),
 				'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
 			) );
 
