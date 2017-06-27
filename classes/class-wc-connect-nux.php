@@ -160,11 +160,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Check that the current user is the owner of the Jetpack connection
 		 * - Only that person can accept the TOS
 		 *
+		 * @uses self::get_jetpack_install_status()
+		 *
 		 * @return bool
 		 */
 		public function can_accept_tos() {
 			// Developer case
-			if ( defined( 'JETPACK_DEV_DEBUG' ) && JETPACK_DEV_DEBUG ) {
+			if ( self::JETPACK_DEV === $this->get_jetpack_install_status() ) {
 				return true;
 			}
 
