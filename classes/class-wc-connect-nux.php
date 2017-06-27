@@ -345,16 +345,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
-			$button_text = __( 'CONNECT >', 'woocommerce-services' );
+			$button_text = __( 'Connect', 'woocommerce-services' );
 
 			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
-					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
+					$button_text = __( 'Install Jetpack and connect', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
-					$button_text = __( 'Activate Jetpack and CONNECT >', 'woocommerce-services' );
+					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
 					break;
 			}
 
