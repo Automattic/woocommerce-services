@@ -199,11 +199,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
 				case self::JETPACK_DEV:
-					// Has the user just gone through our NUX connection flow?
-					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
-						return 'after_jetpack_connection';
-					}
-
 					// Has the user already accepted our TOS? Then do nothing.
 					// Note: TOS is accepted during the after_connection banner
 					if (
@@ -213,6 +208,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					) {
 						return 'tos_only_banner';
 					}
+
+					// Has the user just gone through our NUX connection flow?
+					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
+						return 'after_jetpack_connection';
+					}
+
 					return false;
 				default:
 					return false;
