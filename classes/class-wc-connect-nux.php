@@ -432,7 +432,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
-				'should_show_terms' => false,
+				'should_show_terms' => true,
 			) );
 		}
 
