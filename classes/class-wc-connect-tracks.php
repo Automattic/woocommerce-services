@@ -15,8 +15,9 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		 */
 		protected $logger;
 
-		public function __construct( WC_Connect_Logger $logger = null ) {
+		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
 			$this->logger = $logger;
+			$this->plugin_file = $plugin_file;
 		}
 
 		public function init() {
@@ -24,6 +25,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			add_action( 'wc_connect_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 			add_action( 'wc_connect_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 			add_action( 'wc_connect_saved_service_settings', array( $this, 'saved_service_settings' ), 10, 3 );
+			register_deactivation_hook( $this->plugin_file, array( $this, 'opted_out' ) );
 		}
 
 		public function opted_in( $source = null ) {
