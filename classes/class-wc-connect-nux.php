@@ -354,7 +354,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
-					$button_text = __( 'Activate Jetpack and CONNECT >', 'woocommerce-services' );
+					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
 					break;
 			}
 
