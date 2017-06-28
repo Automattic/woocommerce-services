@@ -388,8 +388,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				remove_action( 'admin_notices', array( $jetpack_banner, 'render_connect_prompt_full_screen' ) );
 			}
 
-			// Make sure we always disply the after-connection banner after this banner
-			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+			// Make sure that we wait until the button is clicked before displaying
+			// the after_connection banner
+			// so that we don't accept the TOS pre-maturely
+			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
@@ -591,6 +593,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				$redirect_url,
 				'woocommerce-services'
 			);
+
+			// Make sure we always display the after-connection banner
+			// after the before_connection button is clicked
+			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
 
 			echo esc_url_raw( $connect_url );
 			wp_die();
