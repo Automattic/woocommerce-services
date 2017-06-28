@@ -59,9 +59,10 @@ class ShippingLabelRootView extends Component {
 	}
 
 	renderPaymentInfo() {
+		const numPaymentMethods = this.props.shippingLabel.numPaymentMethods;
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
-		if ( paymentMethod ) {
+		if ( numPaymentMethods > 0 && paymentMethod ) {
 			return (
 				<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
 					<p>
@@ -71,6 +72,15 @@ class ShippingLabelRootView extends Component {
 						} ) }
 					</p>
 					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Manage cards' ) }</a></p>
+				</Notice>
+			);
+		}
+
+		if ( numPaymentMethods > 0 ) {
+			return (
+				<Notice isCompact={ true } showDismiss={ false } className="wcc-metabox-label-payment inline">
+					<p>{ __( 'To purchase shipping labels, you will first need to select a credit card.' ) }</p>
+					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Select a credit card' ) }</a></p>
 				</Notice>
 			);
 		}
