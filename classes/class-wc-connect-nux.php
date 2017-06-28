@@ -167,13 +167,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function can_accept_tos() {
 			$jetpack_status = $this->get_jetpack_install_status();
 
+			if (
+				( self::JETPACK_NOT_INSTALLED === $jetpack_status ) ||
+				( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_status )
+			) {
+				return false;
+			}
+
 			// Developer case
 			if ( self::JETPACK_DEV === $jetpack_status ) {
 				return true;
-			}
-
-			if ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_status ) {
-				return false;
 			}
 
 			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
