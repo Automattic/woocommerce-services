@@ -360,7 +360,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$default_content = array(
 				'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
-				'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ),
+				'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ) ),
 				'button_text'     => $button_text,
 				'image_url'       => $image_url,
 				'should_show_jp'  => true,
@@ -374,7 +374,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			switch ( $country ) {
 				case 'CA':
 					$localized_content = array(
-						'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ),
+						'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ) ),
 					);
 					break;
 				default:
@@ -402,7 +402,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$this->show_nux_banner( array(
 				'title'          => __( 'Setup complete! You can now enjoy discounted shipping rates and print labels directly from your dashboard.', 'woocommerce-services' ),
-				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
+				'description'    => esc_html( __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ) ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
