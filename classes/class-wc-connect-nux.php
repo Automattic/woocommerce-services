@@ -345,13 +345,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
-			$button_text = __( 'CONNECT >', 'woocommerce-services' );
+			$button_text = __( 'Connect', 'woocommerce-services' );
 
 			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
-					$button_text = __( 'Install Jetpack and CONNECT >', 'woocommerce-services' );
+					$button_text = __( 'Install Jetpack and connect', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
@@ -360,7 +360,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$default_content = array(
 				'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
-				'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ),
+				'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ) ),
 				'button_text'     => $button_text,
 				'image_url'       => $image_url,
 				'should_show_jp'  => true,
@@ -374,7 +374,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			switch ( $country ) {
 				case 'CA':
 					$localized_content = array(
-						'description'     => __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ),
+						'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ) ),
 					);
 					break;
 				default:
@@ -401,8 +401,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			WC_Connect_Options::update_option( 'tos_accepted', true );
 
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services', 'woocommerce-services' ),
-				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
+				'title'          => __( 'Setup complete! You can now enjoy discounted shipping rates and print labels directly from your dashboard.', 'woocommerce-services' ),
+				'description'    => esc_html( __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ) ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
@@ -421,10 +421,18 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
 				exit;
 			}
+
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! We need you to accept our TOS', 'woocommerce-services' ),
-				'description'    => __( 'Everything is ready to roll, we just need you to agree to our Terms of Service.', 'woocommerce-services' ),
-				'button_text'    => __( 'I accept the TOS!', 'woocommerce-services' ),
+				'title'          => __( 'Almost ready to enjoy discounted shipping rates', 'woocommerce-services' ),
+				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>.', 'woocommerce-services' ),
+					array(
+						'a' => array(
+							'href' => array(),
+						),
+					) ),
+					'https://woocommerce.com/terms-conditions/'
+				),
+				'button_text'    => __( 'I accept', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-tos' => 'accept',
 				) ),
@@ -447,7 +455,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<?php echo esc_html( $content['title'] ); ?>
 					</h1>
 					<p class="wcs-nux__notice-content-text">
-						<?php echo esc_html( $content['description'] ); ?>
+						<?php echo $content['description']; ?>
 					</p>
 					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p class="wcs-nux__notice-content-tos"><?php
