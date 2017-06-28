@@ -158,19 +158,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $wc_connect_base_url;
 
-		static function load_tracks_for_activation_hooks() {
-			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
-			$logger = null;
-			if ( class_exists( 'WC_Logger' ) ) {
-				$logger = new WC_Connect_Logger( new WC_Logger() );
-			}
-			return new WC_Connect_Tracks( $logger );
-		}
-
 		static function plugin_deactivation() {
-			$tracks = self::load_tracks_for_activation_hooks();
-			$tracks->opted_out();
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 		}
 
@@ -402,9 +390,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
-			$tracks                = new WC_Connect_Tracks( $logger );
+			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
-			$nux                   = new WC_Connect_Nux( $shipping_label );
+			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -466,6 +454,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
+
+			$tracks = $this->get_tracks();
+			$tracks->init();
 		}
 
 		/**
