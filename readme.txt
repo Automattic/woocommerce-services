@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
-Tested up to: 4.7.5
-Stable tag: 1.5.0
+Tested up to: 4.8
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.6.0 =
+* New streamlined onboarding process for plugin dependencies
+* Better packaging workflow for orders not using live rates at checkout
+* Improved discovery for label printing
+* Fix bug with test label printing on status page
 
 = 1.5.0 =
 * Handle decoding errors retrieving older package data from orders
