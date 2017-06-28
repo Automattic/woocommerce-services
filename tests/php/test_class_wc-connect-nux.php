@@ -23,7 +23,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 				array(
 					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
 					'tos_accepted'                    => true,
-					'can_accept_tos'                  => false,
+					'can_accept_tos'                  => null, // irrelevant here, TOS is accepted (DEV)
 					'should_display_after_cxn_banner' => false,
 				)
 			), false
@@ -34,7 +34,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 				array(
 					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
 					'tos_accepted'                    => false,
-					'can_accept_tos'                  => false,
+					'can_accept_tos'                  => null, // irrelevant here, TOS will be accepted in "after" banner
 					'should_display_after_cxn_banner' => true,
 				)
 			), 'after_jetpack_connection'
@@ -68,21 +68,21 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals( WC_Connect_Nux::get_banner_type_to_display( array(
 			'jetpack_connection_status'              => WC_Connect_Nux::JETPACK_NOT_INSTALLED,
 			'tos_accepted'                           => false,
-			'can_accept_tos'                         => false,
+			'can_accept_tos'                         => false, // no master user, not DEV
 			'should_display_after_cxn_banner'        => false,
 		) ), 'before_jetpack_connection' );
 
 		$this->assertEquals( WC_Connect_Nux::get_banner_type_to_display( array(
 			'jetpack_connection_status'              => WC_Connect_Nux::JETPACK_INSTALLED_NOT_ACTIVATED,
 			'tos_accepted'                           => false,
-			'can_accept_tos'                         => false,
+			'can_accept_tos'                         => false, // no master user, not DEV
 			'should_display_after_cxn_banner'        => false,
 		) ), 'before_jetpack_connection' );
 
 		$this->assertEquals( WC_Connect_Nux::get_banner_type_to_display( array(
 			'jetpack_connection_status'              => WC_Connect_Nux::JETPACK_ACTIVATED_NOT_CONNECTED,
 			'tos_accepted'                           => false,
-			'can_accept_tos'                         => false,
+			'can_accept_tos'                         => false, // no master user, not DEV
 			'should_display_after_cxn_banner'        => false,
 		) ), 'before_jetpack_connection' );
 
@@ -90,7 +90,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals( WC_Connect_Nux::get_banner_type_to_display( array(
 			'jetpack_connection_status'              => WC_Connect_Nux::JETPACK_CONNECTED,
 			'tos_accepted'                           => false,
-			'can_accept_tos'                         => false,
+			'can_accept_tos'                         => null, // irrelevant here, TOS will be accepted in "after" banner
 			'should_display_after_cxn_banner'        => true,
 		) ), 'after_jetpack_connection' );
 	}
