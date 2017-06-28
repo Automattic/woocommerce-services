@@ -32,10 +32,16 @@ class ShippingLabelRootView extends Component {
 		super( props );
 
 		this.renderLabel = this.renderLabel.bind( this );
+		this.renderLabels = this.renderLabels.bind( this );
 		this.openTooltip = this.openTooltip.bind( this );
 		this.closeTooltip = this.closeTooltip.bind( this );
 		this.renderLabelButton = this.renderLabelButton.bind( this );
 		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
+		this.renderPurchaseLabelFlow = this.renderPurchaseLabelFlow.bind( this );
+		this.renderRefundLink = this.renderRefundLink.bind( this );
+		this.renderRefund = this.renderRefund.bind( this );
+		this.renderReprint = this.renderReprint.bind( this );
+		this.renderLabelDetails = this.renderLabelDetails.bind( this );
 
 		this.needToFetchLabelsStatus = true;
 
