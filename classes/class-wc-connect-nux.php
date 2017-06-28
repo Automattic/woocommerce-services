@@ -424,14 +424,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$this->show_nux_banner( array(
 				'title'          => __( 'Almost ready to enjoy discounted shipping rates', 'woocommerce-services' ),
-				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>. Using this feature means <a href="%2$s">some of your data will be passed to external servers.</a>', 'woocommerce-services' ),
+				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>.', 'woocommerce-services' ),
 					array(
 						'a' => array(
 							'href' => array(),
 						),
 					) ),
-					'https://woocommerce.com/terms-conditions/',
-					'https://woocommerce.com/terms-conditions/services-privacy/'
+					'https://woocommerce.com/terms-conditions/'
 				),
 				'button_text'    => __( 'I accept', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
