@@ -28,12 +28,12 @@ export default class NumberInput extends Component {
 		}
 	}
 
-	handleChange( event ) {
+	handleChange = ( event ) => {
 		this.setState( { text: event.target.value } );
 		this.props.onChange( event );
 	}
 
-	handleBlur( event ) {
+	handleBlur = ( event ) => {
 		this.setState( {
 			focused: false,
 			text: this.props.value,
@@ -41,7 +41,7 @@ export default class NumberInput extends Component {
 		this.props.onChange( event );
 	}
 
-	handleFocus() {
+	handleFocus = () => {
 		this.setState( { focused: true } );
 	}
 
