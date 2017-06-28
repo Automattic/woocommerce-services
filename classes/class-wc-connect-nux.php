@@ -401,7 +401,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			WC_Connect_Options::update_option( 'tos_accepted', true );
 
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! You can now access discounted shipping rates and printing services', 'woocommerce-services' ),
+				'title'          => __( 'Setup complete! You can now enjoy discounted shipping rates and print labels directly from your dashboard.', 'woocommerce-services' ),
 				'description'    => __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
