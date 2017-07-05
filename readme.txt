@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.6.1 =
+* Better UX when selecting shipping label payment method
 
 = 1.6.0 =
 * New streamlined onboarding process for plugin dependencies
