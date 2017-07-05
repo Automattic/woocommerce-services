@@ -152,6 +152,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $nux;
 
+		/**
+		 * @var WC_Connect_TaxJar_Integration
+		 */
+		protected $taxjar;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -169,7 +174,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-			add_action( 'woocommerce_init', array( $this, 'init' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
 		}
 
 		public function get_logger() {
@@ -332,6 +337,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux = $nux;
 		}
 
+		public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
+			$this->taxjar = $taxjar;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -342,11 +351,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Bootstrap our plugin and hook into WP/WC core.
+		 * Perform plugin bootstrapping that needs to happen before WC init.
 		 *
-		 * @codeCoverageIgnore
+		 * This allows the modification of extensions, integrations, etc.
 		 */
-		public function init() {
+		public function pre_wc_init() {
 			$this->load_dependencies();
 
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
@@ -361,6 +370,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
+			$this->taxjar->init();
+		}
+
+		/**
+		 * Bootstrap our plugin and hook into WP/WC core.
+		 *
+		 * @codeCoverageIgnore
+		 */
+		public function after_wc_init() {
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
@@ -370,11 +389,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
-			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-store.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-settings-store.php' ) );
@@ -383,6 +403,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
+
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -393,6 +414,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
+			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -403,6 +425,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_tracks( $tracks );
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
+			$this->set_taxjar( $taxjar );
+
+			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
 		/**
