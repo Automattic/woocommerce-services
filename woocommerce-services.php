@@ -174,7 +174,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-			add_action( 'before_woocommerce_init', array( $this, 'init' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
 		}
 
 		public function get_logger() {
@@ -351,11 +351,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Bootstrap our plugin and hook into WP/WC core.
+		 * Perform plugin bootstrapping that needs to happen before WC init.
 		 *
-		 * @codeCoverageIgnore
+		 * This allows the modification of extensions, integrations, etc.
 		 */
-		public function init() {
+		public function pre_wc_init() {
 			$this->load_dependencies();
 
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
@@ -370,6 +370,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
+			$this->taxjar->init();
+		}
+
+		/**
+		 * Bootstrap our plugin and hook into WP/WC core.
+		 *
+		 * @codeCoverageIgnore
+		 */
+		public function after_wc_init() {
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
@@ -444,7 +454,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function attach_hooks() {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
-			$this->taxjar->init();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );

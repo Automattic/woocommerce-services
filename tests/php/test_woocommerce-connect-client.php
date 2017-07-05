@@ -92,12 +92,12 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	public function test_init_hook_attached_in_constructor() {
 
 		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
-			->setMethods( array( 'init' ) )
+			->setMethods( array( 'pre_wc_init' ) )
 			->getMock();
 
-		$attached = has_action( 'before_woocommerce_init', array( $loader, 'init' ) );
+		$attached = has_action( 'before_woocommerce_init', array( $loader, 'pre_wc_init' ) );
 
-		$this->assertNotFalse( $attached, 'WC_Connect_Loader::init() not attached to `before_woocommerce_init`.' );
+		$this->assertNotFalse( $attached, 'WC_Connect_Loader::pre_wc_init() not attached to `before_woocommerce_init`.' );
 
 	}
 
