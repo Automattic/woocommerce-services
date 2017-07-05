@@ -50,31 +50,28 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 		}
 
 		protected function potentially_update_selected_payment_method_from_payment_methods( $payment_methods ) {
-			$payment_method_count = count( $payment_methods );
-
-			// No payment methods at all? Clear anything we have stored
-			if ( 0 === $payment_method_count ) {
-				$this->service_settings_store->set_selected_payment_method_id( 0 );
-				return;
-			}
-
 			$payment_method_ids = array();
+
 			foreach ( (array) $payment_methods as $payment_method ) {
 				$payment_method_id = intval( $payment_method->payment_method_id );
+
 				if ( 0 !== $payment_method_id ) {
 					$payment_method_ids[] = $payment_method_id;
 				}
 			}
 
-			// Just one? Go ahead and use it
-			if ( 1 === $payment_method_count ) {
-				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[ 0 ] );
+			// No payment methods at all? Clear anything we have stored
+			if ( 0 === count( $payment_method_ids ) ) {
+				$this->service_settings_store->set_selected_payment_method_id( 0 );
 				return;
 			}
 
-			// Is the stored method id not in the list? Select the first one
+			// Has the stored method ID been removed? Select the first available one
 			$selected_payment_method_id = $this->service_settings_store->get_selected_payment_method_id();
-			if ( ! in_array( $selected_payment_method_id, $payment_method_ids ) ) {
+			if (
+				$selected_payment_method_id &&
+				! in_array( $selected_payment_method_id, $payment_method_ids )
+			) {
 				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[ 0 ] );
 			}
 		}
