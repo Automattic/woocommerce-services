@@ -244,8 +244,13 @@ class ShippingLabelRootView extends Component {
 		return (
 			<div key={ label.label_id } className="wcc-metabox-label-item" >
 				<p className="wcc-metabox-label-item__created">
-					{ this.renderLabelDetails( label, labels.length - index, index ) } { __( 'purchased' ) }
-					<span title={ formatDate( label.created ) }>{ purchased }</span>
+					{ this.renderLabelDetails( label, labels.length - index, index ) }
+					{ ' ' }
+					{ __( 'purchased {{purchasedAt/}}', {
+						components: {
+							purchasedAt: <span title={ formatDate( label.created ) }>{ purchased }</span>
+						}
+					} ) }
 				</p>
 				<p className="wcc-metabox-label-item__tracking">
 					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label } /> } } ) }
