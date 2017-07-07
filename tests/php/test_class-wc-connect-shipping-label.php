@@ -346,6 +346,35 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		$this->assertEquals( $actual, $this->expected_selected_packages );
 	}
 
+	// WC 3.1.0 shipping rate meta_data save bug
+	// See: https://github.com/Automattic/woocommerce-services/issues/1075
+	public function test_get_selected_packages_null_in_array() {
+		$shipping_method = array(
+			array(
+				'wc_connect_packages' => array( null ), // Bug causes data to be `a:1:{i:0;N;}` in database
+			),
+		);
+
+		$expected = array(
+			'default_box' => array(
+				'id'     => 'default_box',
+				'box_id' => 'not_selected',
+				'height' => 0,
+				'length' => 0,
+				'weight' => 0,
+				'width'  => 0,
+				'items'  => array(),
+			),
+		);
+
+		$mock_order = $this->create_mock_order();
+		$mock_order->expects( $this->any() )->method( 'get_shipping_methods' )->will( $this->returnValue( $shipping_method ) );
+
+		$shipping_label = $this->get_shipping_label();
+		$actual = $shipping_label->get_selected_packages( $mock_order );
+		$this->assertEquals( $actual, $expected );
+	}
+
 	public function test_get_selected_rates_multiple_packages_regular_json() {
 		$json = json_encode( $this->wc_connect_packages_multiple );
 
