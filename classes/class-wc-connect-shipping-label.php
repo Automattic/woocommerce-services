@@ -142,8 +142,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
-			$shipping_method = reset( $shipping_methods );
-			return $this->get_packaging_from_shipping_method( $shipping_method );
+			$shipping_method  = reset( $shipping_methods );
+			$packaging        = $this->get_packaging_from_shipping_method( $shipping_method );
+
+			if ( is_array( $packaging ) ) {
+				return array_filter( $packaging );
+			}
+
+			return array();
 		}
 
 		protected function get_name( WC_Product $product ) {
