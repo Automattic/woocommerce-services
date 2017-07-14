@@ -381,11 +381,12 @@ export const closeAddItem = () => {
 	};
 };
 
-export const setAddedItem = ( sourcePackageId, movedItemIndex ) => {
+export const setAddedItem = ( sourcePackageId, movedItemIndex, added ) => {
 	return {
 		type: SET_ADDED_ITEM,
 		sourcePackageId,
 		movedItemIndex,
+		added,
 	};
 };
 

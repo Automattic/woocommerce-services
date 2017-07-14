@@ -334,16 +334,19 @@ reducers[ OPEN_ADD_ITEM ] = ( state ) => {
 reducers[ CLOSE_ADD_ITEM ] = ( state ) => {
 	return {
 		...state,
-		movedItemIndex: -1,
+		addedItems: null,
 		showAddItemDialog: false,
 	};
 };
 
-reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex } ) => {
+reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex, added } ) => {
 	return {
 		...state,
-		sourcePackageId,
-		movedItemIndex,
+		addedItems: { ...state.addedItems,
+			[ sourcePackageId ]: { ...( state.addedItems || {} )[ sourcePackageId ],
+				[ movedItemIndex ]: added,
+			}
+		},
 	};
 };
 
