@@ -17,6 +17,7 @@ import {
 	removeIgnoreValidation,
 	updateAddressValue,
     clearAvailableRates,
+	PURCHASE_LABEL_RESPONSE,
 } from '../actions';
 
 const initialState = {
@@ -57,6 +58,7 @@ const initialState = {
 		},
 	},
 	openedPackageId: 'weight_0_custom1',
+	labels: [],
 };
 
 describe( 'Label purchase form reducer', () => {
@@ -235,5 +237,41 @@ describe( 'Label purchase form reducer', () => {
 
 		expect( state.form.rates.available ).to.eql( {} );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
+	} );
+
+	it( 'PURCHASE_LABEL_RESPONSE handles errors', () => {
+		const action = {
+			type: PURCHASE_LABEL_RESPONSE,
+			response: null,
+			error: 'there was an error',
+		};
+		const state = reducer( initialState, action );
+
+		// In an error condition, the form is marked as "not submitting"
+		// and the label data should remain unchanged
+		expect( state.form.isSubmitting ).to.equal( false );
+		expect( initialState.labels ).to.deep.equal( state.labels );
+	} );
+
+	it( 'PURCHASE_LABEL_RESPONSE handles success', () => {
+		const label = {
+			label_id: 1,
+			tracking: '8888888888888888888888',
+			refundable_amount: 6.66,
+			created: 1500054237240,
+			carrier_id: 'usps',
+			service_name: 'USPS - Priority Mail',
+			package_name: 'Individual packaging',
+			product_names: [ 'Dark Matter' ],
+		};
+		const action = {
+			type: PURCHASE_LABEL_RESPONSE,
+			response: [ label ],
+			error: null,
+		};
+		const state = reducer( initialState, action );
+
+		// All labels in response should be in state, marked as "updated"
+		expect( state.labels ).to.deep.equal( [ { ...label, statusUpdated: true } ] );
 	} );
 } );
