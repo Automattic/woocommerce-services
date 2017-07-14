@@ -80,16 +80,25 @@ const AddItemDialog = ( {
 					{ itemOptions }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Add' ), isPrimary: true, onClick: () => {
-						Object.keys( addedItems || {} ).forEach( ( sourcePackageId ) => {
-							Object.keys( addedItems[ sourcePackageId ] || {} ).forEach( ( movedItemIndex ) => {
-								if ( addedItems[ sourcePackageId ][ movedItemIndex ] ) {
-									moveItem( sourcePackageId, movedItemIndex, openedPackageId );
-								}
+					{
+						label: __( 'Add' ),
+						isPrimary: true,
+						isDisabled: ! Object.keys( addedItems || {} ).filter( ( sourcePackageId ) =>
+							Object.keys( addedItems[ sourcePackageId ] || {} ).filter( ( movedItemIndex ) =>
+								addedItems[ sourcePackageId ][ movedItemIndex ]
+							).length
+						).length,
+						onClick: () => {
+							Object.keys( addedItems || {} ).forEach( ( sourcePackageId ) => {
+								Object.keys( addedItems[ sourcePackageId ] || {} ).forEach( ( movedItemIndex ) => {
+									if ( addedItems[ sourcePackageId ][ movedItemIndex ] ) {
+										moveItem( sourcePackageId, movedItemIndex, openedPackageId );
+									}
+								} );
 							} );
-						} );
-						closeAddItem();
-					} },
+							closeAddItem();
+						},
+					},
 					{ label: __( 'Close' ), onClick: closeAddItem },
 				] } />
 			</div>

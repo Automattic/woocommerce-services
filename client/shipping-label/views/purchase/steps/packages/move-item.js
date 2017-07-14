@@ -105,7 +105,12 @@ const MoveItemDialog = ( {
 					{ renderIndividualOption() }
 				</div>
 				<ActionButtons buttons={ [
-					{ label: __( 'Move' ), isPrimary: true, onClick: () => moveItem( openedPackageId, movedItemIndex, targetPackageId ) },
+					{
+						label: __( 'Move' ),
+						isPrimary: true,
+						isDisabled: targetPackageId === openedPackageId,
+						onClick: () => moveItem( openedPackageId, movedItemIndex, targetPackageId ),
+					},
 					{ label: __( 'Cancel' ), onClick: closeItemMove },
 				] } />
 			</div>
