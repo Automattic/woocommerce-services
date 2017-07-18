@@ -2,7 +2,6 @@
  * External dependencies
  */
 import { translate as __ } from 'i18n-calypso';
-import { sprintf } from 'sprintf-js';
 import _ from 'lodash';
 
 export default ( selected, all, addNames ) => {
@@ -13,11 +12,20 @@ export default ( selected, all, addNames ) => {
 			return pckg.items[ 0 ].name;
 		}
 
-		const pckgData = all[ pckg.box_id ];
-		const pckgType = ( pckgData && pckgData.is_letter ) ? __( 'Envelope %d' ) : __( 'Package %d' );
-
 		pckgCount++;
-		const pckgName = addNames && pckgData ? ': ' + pckgData.name : '';
-		return sprintf( pckgType, pckgCount ) + pckgName;
+
+		const pckgData = all[ pckg.box_id ];
+		const isEnvelope = pckgData && pckgData.is_letter;
+		const pckgName = addNames && pckgData ? pckgData.name : false;
+
+		if ( isEnvelope ) {
+			return pckgName
+				? __( 'Envelope %d: %s', { args: [ pckgCount, pckgName ] } )
+				: __( 'Envelope %d', { args: [ pckgCount ] } );
+		}
+
+		return pckgName
+			? __( 'Package %d: %s', { args: [ pckgCount, pckgName ] } )
+			: __( 'Package %d', { args: [ pckgCount ] } );
 	} );
 };

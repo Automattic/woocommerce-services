@@ -2,7 +2,6 @@
 /**
  * External dependencies
  */
-import { sprintf } from 'sprintf-js';
 import { translate as __ } from 'i18n-calypso';
 import _ from 'lodash';
 
@@ -597,7 +596,7 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 			}
 		};
 
-		saveForm( setIsSaving, setSuccess, _.noop, setError, sprintf( labelStatusURL, labelId ), nonce, 'GET' );
+		saveForm( setIsSaving, setSuccess, _.noop, setError, labelStatusURL.replace( '%d', labelId ), nonce, 'GET' );
 	} );
 };
 
@@ -630,7 +629,7 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 		}
 	};
 
-	saveForm( setIsSaving, setSuccess, _.noop, setError, sprintf( labelRefundURL, labelId ), nonce, 'POST' );
+	saveForm( setIsSaving, setSuccess, _.noop, setError, labelRefundURL.replace( '%d', labelId ), nonce, 'POST' );
 };
 
 export const openReprintDialog = ( labelId ) => {
