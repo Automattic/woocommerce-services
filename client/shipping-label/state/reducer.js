@@ -49,6 +49,7 @@ import {
 	OPEN_ADD_ITEM,
 	CLOSE_ADD_ITEM,
 	SET_ADDED_ITEM,
+	ADD_ITEMS,
 } from './actions';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
 
@@ -328,13 +329,13 @@ reducers[ OPEN_ADD_ITEM ] = ( state ) => {
 	return {
 		...state,
 		showAddItemDialog: true,
+		addedItems: {},
 	};
 };
 
 reducers[ CLOSE_ADD_ITEM ] = ( state ) => {
 	return {
 		...state,
-		addedItems: null,
 		showAddItemDialog: false,
 	};
 };
@@ -343,11 +344,24 @@ reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex, added }
 	return {
 		...state,
 		addedItems: { ...state.addedItems,
-			[ sourcePackageId ]: { ...( state.addedItems || {} )[ sourcePackageId ],
+			[ sourcePackageId ]: { ...state.addedItems[ sourcePackageId ],
 				[ movedItemIndex ]: added,
 			}
 		},
 	};
+};
+
+reducers[ ADD_ITEMS ] = ( state, { targetPackageId } ) => {
+	return _.reduce( state.addedItems, ( prevState, inPackage, originPackageId ) => {
+		const movedItemIndices = _.toPairs( inPackage )
+			.filter( ( [ , added ] ) => added )
+			.map( ( [ movedItemIndex ] ) => +movedItemIndex );
+		return _.sortBy( movedItemIndices ).reverse().reduce( ( prevPrevState, movedItemIndex ) => {
+			return reducers[ MOVE_ITEM ]( prevPrevState, { originPackageId, movedItemIndex, targetPackageId } );
+		}, prevState );
+	}, { ...state,
+		showAddItemDialog: false,
+	} );
 };
 
 reducers[ ADD_PACKAGE ] = ( state ) => {

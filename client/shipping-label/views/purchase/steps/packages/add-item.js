@@ -3,6 +3,7 @@
  */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
 
 /**
  * Internal dependencies
@@ -21,7 +22,7 @@ const AddItemDialog = ( {
 	all,
 	closeAddItem,
 	setAddedItem,
-	moveItem } ) => {
+	addItems } ) => {
 	if ( ! showAddItemDialog ) {
 		return null;
 	}
@@ -41,7 +42,7 @@ const AddItemDialog = ( {
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="wcc-move-item-dialog__package-option">
-				<FormCheckbox checked={ ! ! ( ( addedItems || {} )[ pckgId ] || {} )[ itemIdx ] }
+				<FormCheckbox checked={ _.get( addedItems, [ pckgId, itemIdx ], false ) }
 						onChange={ onChange } />
 				<span>{ itemLabel }</span>
 			</FormLabel>
@@ -83,21 +84,8 @@ const AddItemDialog = ( {
 					{
 						label: __( 'Add' ),
 						isPrimary: true,
-						isDisabled: ! Object.keys( addedItems || {} ).filter( ( sourcePackageId ) =>
-							Object.keys( addedItems[ sourcePackageId ] || {} ).filter( ( movedItemIndex ) =>
-								addedItems[ sourcePackageId ][ movedItemIndex ]
-							).length
-						).length,
-						onClick: () => {
-							Object.keys( addedItems || {} ).forEach( ( sourcePackageId ) => {
-								Object.keys( addedItems[ sourcePackageId ] || {} ).forEach( ( movedItemIndex ) => {
-									if ( addedItems[ sourcePackageId ][ movedItemIndex ] ) {
-										moveItem( sourcePackageId, movedItemIndex, openedPackageId );
-									}
-								} );
-							} );
-							closeAddItem();
-						},
+						isDisabled: ! _.some( addedItems, _.some ),
+						onClick: () => addItems( openedPackageId ),
 					},
 					{ label: __( 'Close' ), onClick: closeAddItem },
 				] } />
@@ -114,7 +102,7 @@ AddItemDialog.propTypes = {
 	all: PropTypes.object.isRequired,
 	closeAddItem: PropTypes.func.isRequired,
 	setAddedItem: PropTypes.func.isRequired,
-	moveItem: PropTypes.func.isRequired,
+	addItems: PropTypes.func.isRequired,
 };
 
 export default AddItemDialog;

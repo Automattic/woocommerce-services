@@ -195,7 +195,7 @@ const PackagesStep = ( props ) => {
 				all={ all }
 				closeAddItem={ labelActions.closeAddItem }
 				setAddedItem={ labelActions.setAddedItem }
-				moveItem={ labelActions.moveItem } />
+				addItems={ labelActions.addItems } />
 		</StepContainer>
 	);
 };
