@@ -35,9 +35,6 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 	const newState = Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',
-		packageData: {
-			is_user_defined: true,
-		},
 		showOuterDimensions: false,
 	} );
 
