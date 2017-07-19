@@ -72,8 +72,15 @@
 
 .wcc-shipping-packages-list-header {
 	display: flex;
-	height: 26px;
+	padding-bottom: 2px;
 	border-bottom: 1px solid lighten( $gray, 30% );
+	margin-bottom: 12px;
+
+	.package-type {
+		@include breakpoint( '<660px' ) {
+			visibility: hidden;
+		}
+	}
 }
 
 .wcc-shipping-packages-list-item,

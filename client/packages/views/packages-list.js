@@ -64,10 +64,13 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 	return (
 		<FormFieldset className="wcc-shipping-packages-list">
 			<div className="wcc-shipping-packages-list-header">
-				<FormLegend className="package-actions" />
+				{ editable ? null : <FormLegend className="package-actions" /> }
 				<FormLegend className="package-type">{ __( 'Type' ) }</FormLegend>
 				<FormLegend className="package-name">{ __( 'Name' ) }</FormLegend>
-				<FormLegend className="package-dimensions">{ __( 'Dimensions (L x W x H)' ) }</FormLegend>
+				<FormLegend className="package-dimensions">
+					{ __( 'Dimensions (L x W x H)' ).replace( /\(.+\)/g, ( d ) => d.replace( / /g, '\u00a0' ) ) }
+				</FormLegend>
+				{ editable ? <FormLegend className="package-actions" /> : null }
 			</div>
 			{ renderList() }
 		</FormFieldset>
