@@ -163,6 +163,7 @@
 			max-width: 100%;
 			display: flex;
 			padding-top: 24px;
+			padding-bottom: 24px;
 
 			@include breakpoint( '<660px' ) {
 				flex-wrap: wrap;

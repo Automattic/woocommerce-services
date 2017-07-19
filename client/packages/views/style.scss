@@ -177,9 +177,13 @@
 	}
 }
 
-.add-package-button-field .button {
-	float: left;
-	margin-left: 0;
+.add-package-button-field {
+	margin-bottom: 0;
+
+	.button {
+		float: left;
+		margin-left: 0;
+	}
 }
 
 .form-text-input.flat-rate-package__inner-dimensions__read-only:disabled,
