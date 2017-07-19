@@ -17,10 +17,10 @@
 			width: 11%;
 		}
 
-	.package-type-icon {
-		fill: $gray;
+		.package-type-icon {
+			fill: $gray;
+		}
 	}
-}
 
 	.package-name {
 		width: 46%;
@@ -51,6 +51,14 @@
 		text-align: right;
 		@include breakpoint( '<660px' ) {
 			width: 8%;
+		}
+
+		button {
+			padding-top: 4px;
+		}
+
+		.form-checkbox {
+			margin-top: 1px;
 		}
 	}
 
@@ -101,6 +109,11 @@
 			margin-left: -1px;
 		}
 	}
+
+	a {
+		display: inline-block;
+	}
+
 }
 
 .wcc-shipping-add-package-weight {

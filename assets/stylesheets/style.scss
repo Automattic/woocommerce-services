@@ -93,9 +93,9 @@
 		@include breakpoint( '<660px' ) {
 			width: 100%;
 		}
-	}
+		padding-right: 10px;
+		box-sizing: border-box;
 
-	.settings-group-header {
 		font-size: 16px;
 		font-weight: 600;
 		color: darken( $gray, 20% );
@@ -322,7 +322,12 @@
 	}
 
 	// Custom styles
-	max-width: 700px;
+	max-width: 720px;
+
+	&.wc-connect-packages,
+	&.wc-connect-account-settings {
+		margin-top: 6px;
+	}
 
 	// WP style conflict resets
 	.card {
