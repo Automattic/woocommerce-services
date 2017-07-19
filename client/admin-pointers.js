@@ -6,9 +6,7 @@ import jQuery from 'jquery';
 
 jQuery( document ).ready( function( $ ) {
 	function show_pointer( pointers, i ) {
-		if ( ! Array.isArray( pointers ) ||
-			! pointers[ i ]
-		) {
+		if ( ! ( Array.isArray( pointers ) && pointers[ i ] ) ) {
 			return;
 		}
 
@@ -22,17 +20,29 @@ jQuery( document ).ready( function( $ ) {
 			return;
 		}
 
+		const target = $( pointer.target );
+
 		const options = $.extend( pointer.options, {
 			close: function() {
 				$.post( ajaxurl, {
 					pointer: pointer.id,
 					action: 'dismiss-wp-pointer',
 				} );
+
+				if ( pointer.dim ) {
+					$( '#wcs-pointer-page-dimmer' ).fadeOut( 500 );
+				}
+
 				show_pointer( pointers, i + 1 );
 			},
 		} );
 
-		$( pointer.target ).pointer( options ).pointer( 'open' );
+		target.pointer( options ).pointer( 'open' );
+		if ( pointer.dim ) {
+			target.css( 'z-index', 9999 );
+			$( 'body' ).append( '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
+			$( '#wcs-pointer-page-dimmer' ).fadeIn( 500 );
+		}
 	}
 	show_pointer( wcSevicesAdminPointers, 0 );
 } );

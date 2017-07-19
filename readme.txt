@@ -1,9 +1,9 @@
 === WooCommerce Services ===
-Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel
+Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
-Tested up to: 4.7.5
-Stable tag: 1.5.0
+Tested up to: 4.8
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,19 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.6.2 =
+* Fix spacing bug in purchased label display
+* Fix bug with "create label" flow on WooCommerce 3.1.0
+
+= 1.6.1 =
+* Better UX when selecting shipping label payment method
+
+= 1.6.0 =
+* New streamlined onboarding process for plugin dependencies
+* Better packaging workflow for orders not using live rates at checkout
+* Improved discovery for label printing
+* Fix bug with test label printing on status page
 
 = 1.5.0 =
 * Handle decoding errors retrieving older package data from orders

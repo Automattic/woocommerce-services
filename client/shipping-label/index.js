@@ -13,7 +13,7 @@ import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
 
-export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod } ) => ( {
+export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			shippingLabel,
@@ -38,6 +38,7 @@ export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod 
 				labels: labelsData || [],
 				paperSize,
 				paymentMethod,
+				numPaymentMethods,
 				form: {
 					orderId: formData.order_id,
 					origin: {

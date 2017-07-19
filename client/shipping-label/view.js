@@ -32,8 +32,14 @@ class ShippingLabelRootView extends Component {
 		super( props );
 
 		this.renderLabel = this.renderLabel.bind( this );
+		this.renderLabels = this.renderLabels.bind( this );
 		this.renderLabelButton = this.renderLabelButton.bind( this );
 		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
+		this.renderPurchaseLabelFlow = this.renderPurchaseLabelFlow.bind( this );
+		this.renderRefundLink = this.renderRefundLink.bind( this );
+		this.renderRefund = this.renderRefund.bind( this );
+		this.renderReprint = this.renderReprint.bind( this );
+		this.renderLabelDetails = this.renderLabelDetails.bind( this );
 
 		this.state = {
 			needToFetchLabelsStatus: true,
@@ -49,9 +55,10 @@ class ShippingLabelRootView extends Component {
 	}
 
 	renderPaymentInfo() {
+		const numPaymentMethods = this.props.shippingLabel.numPaymentMethods;
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
-		if ( paymentMethod ) {
+		if ( numPaymentMethods > 0 && paymentMethod ) {
 			return (
 				<Notice isCompact showDismiss={ false } className="shipping-label__payment inline">
 					<p>
@@ -61,6 +68,15 @@ class ShippingLabelRootView extends Component {
 						} ) }
 					</p>
 					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Manage cards' ) }</a></p>
+				</Notice>
+			);
+		}
+
+		if ( numPaymentMethods > 0 ) {
+			return (
+				<Notice isCompact={ true } showDismiss={ false } className="shipping-label__payment inline">
+					<p>{ __( 'To purchase shipping labels, you will first need to select a credit card.' ) }</p>
+					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Select a credit card' ) }</a></p>
 				</Notice>
 			);
 		}
@@ -204,8 +220,12 @@ class ShippingLabelRootView extends Component {
 		return (
 			<div key={ label.label_id } className="shipping-label__item" >
 				<p className="shipping-label__item-created">
-					{ this.renderLabelDetails( label, labels.length - index ) } { __( 'purchased' ) }
-					<span title={ formatDate( label.created ) }>{ purchased }</span>
+					{ __( '{{labelDetails/}} purchased {{purchasedAt/}}', {
+						components: {
+							labelDetails: this.renderLabelDetails( label, labels.length - index, index ),
+							purchasedAt: <span title={ formatDate( label.created ) }>{ purchased }</span>
+						}
+					} ) }
 				</p>
 				<p className="shipping-label__item-tracking">
 					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label } /> } } ) }

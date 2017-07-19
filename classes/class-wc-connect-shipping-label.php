@@ -29,6 +29,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 */
 		private $unsupported_states = array( 'AA', 'AE', 'AP' );
 
+		private $show_metabox = null;
+
 		public function __construct(
 			WC_Connect_API_Client $api_client,
 			WC_Connect_Service_Settings_Store $settings_store,
@@ -140,8 +142,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
-			$shipping_method = reset( $shipping_methods );
-			return $this->get_packaging_from_shipping_method( $shipping_method );
+			$shipping_method  = reset( $shipping_methods );
+			$packaging        = $this->get_packaging_from_shipping_method( $shipping_method );
+
+			if ( is_array( $packaging ) ) {
+				return array_filter( $packaging );
+			}
+
+			return array();
 		}
 
 		protected function get_name( WC_Product $product ) {
@@ -362,6 +370,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		public function should_show_meta_box() {
+			if ( null === $this->show_metabox ) {
+				$this->show_metabox = $this->calculate_should_show_meta_box();
+			}
+
+			return $this->show_metabox;
+		}
+
+		private function calculate_should_show_meta_box() {
 			$order = wc_get_order();
 
 			if ( ! $order ) {
@@ -446,6 +462,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
+				'numPaymentMethods'       => count( $this->payment_methods_store->get_payment_methods() ),
 				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
 			);
 

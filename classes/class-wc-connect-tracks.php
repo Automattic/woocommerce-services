@@ -15,16 +15,25 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		 */
 		protected $logger;
 
-		public function __construct( WC_Connect_Logger $logger = null ) {
+		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
 			$this->logger = $logger;
+			$this->plugin_file = $plugin_file;
+		}
+
+		public function init() {
 			add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 			add_action( 'wc_connect_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 			add_action( 'wc_connect_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 			add_action( 'wc_connect_saved_service_settings', array( $this, 'saved_service_settings' ), 10, 3 );
+			register_deactivation_hook( $this->plugin_file, array( $this, 'opted_out' ) );
 		}
 
-		public function opted_in() {
-			$this->record_user_event( 'opted_in' );
+		public function opted_in( $source = null ) {
+			if ( is_null( $source ) ) {
+				$this->record_user_event( 'opted_in' );
+			} else {
+				$this->record_user_event( 'opted_in', compact( 'source' ) );
+			}
 		}
 
 		public function opted_out() {
@@ -80,6 +89,10 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$jetpack_blog_id = -1;
 			if ( class_exists( 'Jetpack_Options' ) && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$jetpack_blog_id = Jetpack_Options::get_option( 'id' );
+			}
+
+			if ( ! is_array( $data ) ) {
+				$data = array();
 			}
 
 			$data['_via_ua'] = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';

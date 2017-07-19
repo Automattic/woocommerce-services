@@ -1,59 +1,139 @@
-@import 'colors';
+.notice.wcs-nux__notice {
+	display: flex;
+	padding: 0;
+	border: 0;
 
-.notice.wcc-admin-notice {
-	border-left-color: $purple-light !important;
-	background: url( '../images/tos-notice-bg.png' ) no-repeat bottom right $white;
-	background-size: contain;
-	position: relative;
-
-	h2 {
-		font-size: 1.5em;
-		margin-bottom: .4em;
+	.wcs-nux__notice-logo {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		margin-left: 1em;
 	}
 
-	.notice-dismiss {
-		text-decoration: none;
+	.wcs-nux__notice-logo img {
+		width: 220px;
+		height: 121px;
+		margin: 2em;
 	}
 
-	a {
-		color: $purple-light;
+	.wcs-nux__notice-content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 1em 1em 2.5em 1em;
+		margin-left: 1em;
+		color: #52768f;
 
-		&:hover {
-			color: $white;
-		}
-	}
-
-	.error {
-		color: $alert-red;
-		font-weight: bold;
-	}
-
-	.button-primary {
-		background: $purple-light;
-		border-color: $purple-dark;
-		box-shadow: 0 1px 0 $purple-dark;
-		text-shadow: none;
-		color: $white;
-
-		&:hover,
-		&:active {
-			background:  $purple;
-			border-color: $purple-dark;
-			box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 0 #a36597;
+		.wcs-nux__notice-content-title {
+			color: #4F748E; // Needed to override specificity
+			font-size: 1.3em;
+			font-weight: 600;
 		}
 
-		&:focus {
-			background: $purple-light;
-			border-color: $purple-dark;
-			box-shadow: 0 1px 0 $purple, 0 0 2px 1px $purple-light;
+		.wcs-nux__notice-content-tos {
+			font-size: 0.8em;
+			color: #7591A5;
+			margin: 0 0 1.5em 0;
+			padding: 0;
+
+			a {
+					color: #49a8ce;
+			}
+		}
+
+		.wcs-nux__notice-content-button {
+			align-self: flex-start; // do not stretch the button across entire div
+			background-color: #00AADC;
+			border-color: #0087BE;
+			box-shadow: 0 1px 0 #0087BE;
+			color: #fff;
+			font-size: 1.1em;
+			height: auto;
+			padding: 0.45em 1.5em;
 			text-shadow: none;
-			color: $white;
+		}
+	}
+
+	.wcs-nux__notice-content-text {
+		max-width: 90%;
+		margin: 0 0 1em;
+		line-height: 1.6;
+    padding: 0;
+	}
+
+	.wcs-nux__notice-jetpack {
+		display: flex;
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: center;
+		background-color: #F4F8FA;
+		padding: 3.5em;
+		white-space: nowrap;
+
+		p {
+			margin: 1em 0 0 0; // override default style
+		}
+	}
+
+	.wcs-nux__notice-jetpack img {
+		height: 60px;
+		width: 60px;
+		margin: 1em;
+	}
+
+	.wcs-nux__notice-jetpack-text {
+		text-transform: uppercase;
+		font-size: 0.6em;
+		letter-spacing: 2px;
+		color: #82B1D2;
+	}
+}
+
+@media (max-width: 1000px) {
+	.notice.wcs-nux__notice {
+		flex-direction: column;
+
+		.wcs-nux__notice-content{
+			margin: 0 1em;
 		}
 
-		&.disabled {
-			color: lighten( $purple-light, 30 ) !important;
-			background: $purple-light !important;
-			border-color: $purple-dark !important;
+		.wcs-nux__notice-logo {
+			display: none;
+		}
+
+		.wcs-nux__notice-content {
+			.wcs-nux__notice-content-tos {
+				margin: 1.5em 0 .5em;
+				max-width: 90%;
+			}
+
+			.wcs-nux__notice-content-text {
+				margin: 1em 0 0;
+				max-width: 100%;
+			}
+
+			.wcs-nux__notice-content-button {
+				align-self: auto;
+				margin: 1.5em 0 0 0;
+				text-align: center;
+			}
+		}
+
+		.wcs-nux__notice-jetpack {
+			flex-direction: row;
+			padding: 0.5em;
+
+			img {
+				height: 2em;
+				width: 2em;
+				margin: 0 1em 0 0;
+			}
+
+			.wcs-nux__notice-jetpack-text {
+				margin: 0;
+			}
 		}
 	}
 }
