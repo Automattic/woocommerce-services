@@ -100,7 +100,6 @@
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "reselect": "^2.5.4",
-    "sprintf-js": "^1.0.3",
     "whatwg-fetch": "^2.0.2",
     "wp-calypso": "github:automattic/wp-calypso"
   }

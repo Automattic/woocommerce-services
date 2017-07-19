@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "1.5.0",
+  "version": "1.6.2",
   "dependencies": {
     "abab": {
       "version": "1.0.3",
@@ -4171,8 +4171,7 @@
     "nan": {
       "version": "2.6.2",
       "from": "nan@>=2.3.2 <3.0.0",
-      "resolved": "https://registry.npmjs.org/nan/-/nan-2.6.2.tgz",
-      "dev": true
+      "resolved": "https://registry.npmjs.org/nan/-/nan-2.6.2.tgz"
     },
     "native-promise-only": {
       "version": "0.8.1",
@@ -5844,7 +5843,8 @@
     "sprintf-js": {
       "version": "1.0.3",
       "from": "sprintf-js@>=1.0.3 <2.0.0",
-      "resolved": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.0.3.tgz"
+      "resolved": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.0.3.tgz",
+      "dev": true
     },
     "sshpk": {
       "version": "1.13.0",
