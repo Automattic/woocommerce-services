@@ -71,7 +71,7 @@ const ShippingServiceGroup = ( props ) => {
 			screenReaderText={ __( 'Expand Services' ) }
 			expanded={ ! _.isEmpty( errors ) }
 		>
-			<div className="shipping-services__entry multi-select-header">
+			<div className="shipping-services__entry shipping-services__entry-header-container">
 				<span className="shipping-services__entry-header">{ __( 'Service' ) }</span>
 				<span className="shipping-services__entry-header shipping-services__entry-price-adjustment">
 					{ __( 'Price adjustment' ) }
