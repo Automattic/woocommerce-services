@@ -11,7 +11,6 @@
 .wcc-root {
 	// Shared
 	@import 'shared/reset'; // css reset before the rest of the styles are defined
-	@import 'shared/utilities'; // Helper classes
 	@import 'shared/typography'; // all the typographic rules, variables, etc.
 	@import 'shared/mixins/mixins'; // sass mixins for gradients, bordius radii, etc.
 	@import 'shared/extends'; // sass extends for commonly used styles
