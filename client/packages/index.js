@@ -2,7 +2,6 @@
  * External dependencies
  */
 import React from 'react';
-import { combineReducers } from 'state/utils';
 
 /**
  * Internal dependencies
@@ -12,6 +11,7 @@ import reducer from './state/reducer';
 import { fetchSettings } from './state/actions';
 // from calypso
 import notices from 'state/notices/reducer';
+import { combineReducers } from 'state/utils';
 
 export default ( { formData, formSchema, storeOptions } ) => ( {
 	getReducer() {

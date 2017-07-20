@@ -2,7 +2,6 @@
  * External dependencies
  */
 import React from 'react';
-import { combineReducers } from 'state/utils';
 import _ from 'lodash';
 
 /**
@@ -12,6 +11,7 @@ import ShippingLabelRootView from './view';
 import shippingLabel from './state/reducer';
 // from calypso
 import notices from 'state/notices/reducer';
+import { combineReducers } from 'state/utils';
 
 export default ( { formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => ( {
 	getReducer() {

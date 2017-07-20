@@ -2,7 +2,6 @@
  * External dependencies
  */
 import React from 'react';
-import { combineReducers } from 'state/utils';
 
 /**
  * Internal dependencies
@@ -10,9 +9,9 @@ import { combineReducers } from 'state/utils';
 import initializeState from 'lib/initialize-state';
 import SettingsView from './view';
 import form from './state/reducer';
-
 // from calypso
 import notices from 'state/notices/reducer';
+import { combineReducers } from 'state/utils';
 
 export default ( { formData, formSchema, formLayout, storeOptions, noticeDismissed, methodId, instanceId } ) => ( {
 	getReducer() {
