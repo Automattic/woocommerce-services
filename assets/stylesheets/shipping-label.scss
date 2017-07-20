@@ -73,11 +73,11 @@
 
 			.wcc-metabox-label-item__refund-pending {
 				color: $alert-yellow;
-
-				.spinner {
-					margin-left: 2px;
-					margin-bottom: 1px;
-				}
+			}
+			
+			.wcc-metabox-label-item__refund-checking {
+				@extend .wcc-metabox-label-item__refund-pending;
+				animation: loading-fade 1.6s ease-in-out infinite;
 			}
 
 			.wcc-metabox-label-item__refund-complete {

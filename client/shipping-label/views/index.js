@@ -15,7 +15,6 @@ import PrintLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
-import Spinner from 'components/spinner';
 import Tooltip from 'components/tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
@@ -155,10 +154,13 @@ class ShippingLabelRootView extends Component {
 		let className = '';
 		switch ( label.refund.status ) {
 			case 'pending':
-				className = 'wcc-metabox-label-item__refund-pending';
-				text = label.statusUpdated
-					? __( 'Refund pending' )
-					: <span>{ __( 'Checking refund status' ) } <Spinner size={ 12 } /></span>;
+				if ( label.statusUpdated ) {
+					className = 'wcc-metabox-label-item__refund-pending';
+					text = __( 'Refund pending' );
+				} else {
+					className = 'wcc-metabox-label-item__refund-checking';
+					text = __( 'Checking refund status' );
+				}
 				break;
 			case 'complete':
 				className = 'wcc-metabox-label-item__refund-complete';
