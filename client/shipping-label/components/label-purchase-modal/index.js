@@ -18,7 +18,7 @@ import Sidebar from './sidebar';
 import { getRatesTotal } from 'shipping-label/state/selectors/rates';
 import FormSectionHeading from 'components/forms/form-section-heading';
 
-const PrintLabelDialog = ( props ) => {
+const PurchaseDialog = ( props ) => {
 	const getPurchaseButtonLabel = () => {
 		if ( props.form.needsPrintConfirmation ) {
 			return __( 'Print' );
@@ -115,4 +115,4 @@ const PrintLabelDialog = ( props ) => {
 	);
 };
 
-export default PrintLabelDialog;
+export default PurchaseDialog;

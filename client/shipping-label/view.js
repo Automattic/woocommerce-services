@@ -12,7 +12,7 @@ import { translate as __ } from 'i18n-calypso';
  * Internal dependencies
  */
 import Button from 'components/button';
-import PrintLabelDialog from './components/label-purchase-modal';
+import PurchaseDialog from './components/label-purchase-modal';
 import RefundDialog from './components/label-refund-modal';
 import ReprintDialog from './components/label-reprint-modal';
 import TrackingLink from './components/tracking-link';
@@ -102,7 +102,7 @@ class ShippingLabelRootView extends Component {
 
 		return (
 			<div className="shipping-label__item" >
-				<PrintLabelDialog
+				<PurchaseDialog
 					{ ...this.props.shippingLabel }
 					{ ...this.props } />
 				{ this.renderPaymentInfo( paymentMethod ) }
