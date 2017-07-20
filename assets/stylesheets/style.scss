@@ -28,9 +28,6 @@
 	// Components
 	@import 'components';
 
-	// Breakpoints
-	$breakpoints: 480px, 660px, 780px, 960px, 1040px; // adds wp-admin specific breakpoints
-
 	// Buttons
 	.button {
 		background: $gray-light;
@@ -195,7 +192,7 @@
 		.notice {
 			max-width: 740px;
 
-			@include breakpoint( '<780px' ) {
+			@include breakpoint( '<660px' ) {
 				margin-left: 0;
 			}
 		}
