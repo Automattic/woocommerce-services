@@ -1,3 +1,1 @@
-module.exports = {
-	'extends': './node_modules/wp-calypso/.eslintrc.js',
-};
+module.exports = require( 'wp-calypso/.eslintrc' );
