@@ -49,7 +49,7 @@ const ShippingServiceGroup = ( props ) => {
 	const onChange = ( event ) => updateAll( event, updateValue, services );
 
 	const renderHeader = () => {
-		return <div className="shipping-services__group-header">
+		return <div>
 			<Checkbox
 				checked={ services.length === numSelected }
 				partialChecked={ Boolean( numSelected ) }
