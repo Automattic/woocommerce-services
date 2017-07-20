@@ -344,24 +344,22 @@ reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex, added }
 	return {
 		...state,
 		addedItems: { ...state.addedItems,
-			[ sourcePackageId ]: { ...state.addedItems[ sourcePackageId ],
-				[ movedItemIndex ]: added,
-			}
+			[ sourcePackageId ]: added
+				? { ...state.addedItems[ sourcePackageId ], [ movedItemIndex ]: true }
+				: _.omit( state.addedItems[ sourcePackageId ], movedItemIndex )
 		},
 	};
 };
 
 reducers[ ADD_ITEMS ] = ( state, { targetPackageId } ) => {
-	return _.reduce( state.addedItems, ( prevState, inPackage, originPackageId ) => {
-		const movedItemIndices = _.toPairs( inPackage )
-			.filter( ( [ , added ] ) => added )
-			.map( ( [ movedItemIndex ] ) => +movedItemIndex );
-		return _.sortBy( movedItemIndices ).reverse().reduce( ( prevPrevState, movedItemIndex ) => {
-			return reducers[ MOVE_ITEM ]( prevPrevState, { originPackageId, movedItemIndex, targetPackageId } );
-		}, prevState );
-	}, { ...state,
-		showAddItemDialog: false,
+	// For each origin package
+	_.each( state.addedItems, ( inPackage, originPackageId ) => {
+		// Move items in reverse order of index, to maintain validity as items are removed
+		_.sortBy( Object.keys( inPackage ), ( d ) => -d ).forEach( ( movedItemIndex ) => {
+			state = reducers[ MOVE_ITEM ]( state, { originPackageId, movedItemIndex, targetPackageId } );
+		} );
 	} );
+	return { ...state, showAddItemDialog: false };
 };
 
 reducers[ ADD_PACKAGE ] = ( state ) => {
