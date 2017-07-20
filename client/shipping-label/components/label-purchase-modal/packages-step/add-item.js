@@ -30,7 +30,7 @@ const AddItemDialog = ( {
 
 	const packageLabels = getPackageDescriptions( selected, all, true );
 	const getPackageNameElement = ( pckgId ) => {
-		return <span className="packages-step__dialog-package-option">{ packageLabels[ pckgId ] }</span>;
+		return <span className="packages-step__dialog-package-name">{ packageLabels[ pckgId ] }</span>;
 	};
 
 	const renderRadioButton = ( pckgId, itemIdx, item ) => {
