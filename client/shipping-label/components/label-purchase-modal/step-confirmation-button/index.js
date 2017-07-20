@@ -8,7 +8,7 @@ import React, { PropTypes } from 'react';
  */
 import FormButton from 'components/forms/form-button';
 
-const SetpConfirmationButton = ( { disabled, onClick, children } ) => {
+const StepConfirmationButton = ( { disabled, onClick, children } ) => {
 	return (
 		<div className="step-confirmation-button">
 			<FormButton
@@ -22,9 +22,9 @@ const SetpConfirmationButton = ( { disabled, onClick, children } ) => {
 	);
 };
 
-SetpConfirmationButton.propTypes = {
+StepConfirmationButton.propTypes = {
 	disabled: PropTypes.bool,
 	onClick: PropTypes.func.isRequired,
 };
 
-export default SetpConfirmationButton;
+export default StepConfirmationButton;
