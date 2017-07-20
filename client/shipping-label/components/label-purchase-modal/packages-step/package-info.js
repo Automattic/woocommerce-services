@@ -101,7 +101,7 @@ const PackageInfo = ( {
 		if ( isIndividualPackage ) {
 			return ( <div>
 				<div className="packages-step__package-items-header">
-					<FormLegend className="packages-step__package-item-name">{ __( 'Individually Shipped Item' ) }</FormLegend>
+					<FormLegend>{ __( 'Individually Shipped Item' ) }</FormLegend>
 				</div>
 				<span className="packages-step__package-item-description">{ __( 'Item Dimensions' ) } - </span>
 				<span>{ renderPackageDimensions( pckg, dimensionUnit ) }</span>
@@ -123,7 +123,7 @@ const PackageInfo = ( {
 		return (
 			<div>
 				<div className="packages-step__package-items-header">
-					<FormLegend className="packages-step__package-item-name">{ __( 'Shipping Package' ) }</FormLegend>
+					<FormLegend>{ __( 'Shipping Package' ) }</FormLegend>
 				</div>
 				<FormSelect onChange={ packageOptionChange } value={ pckg.box_id } isError={ pckgErrors.box_id }>
 					<option value={ 'not_selected' } key={ 'not_selected' }>{ __( 'Please select a package' ) }</option> )
@@ -149,7 +149,7 @@ const PackageInfo = ( {
 
 			<div>
 				<div className="packages-step__package-items-header">
-					<FormLegend className="packages-step__package-item-name">{ __( 'Items to Ship' ) }</FormLegend>
+					<FormLegend>{ __( 'Items to Ship' ) }</FormLegend>
 				</div>
 				{ renderItems() }
 			</div>
