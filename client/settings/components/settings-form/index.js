@@ -16,7 +16,7 @@ import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'settings/state/values/actions';
 import getFormErrors from 'settings/state/selectors/errors';
 
-const WCCSettingsForm = ( props ) => {
+const SettingsForm = ( props ) => {
 	const renderGroup = ( index ) => {
 		return (
 			<WCCSettingsGroup
@@ -40,7 +40,7 @@ const WCCSettingsForm = ( props ) => {
 	);
 };
 
-WCCSettingsForm.propTypes = {
+SettingsForm.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 	schema: PropTypes.object.isRequired,
 	layout: PropTypes.array.isRequired,
@@ -64,4 +64,4 @@ function mapDispatchToProps( dispatch ) {
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)( WCCSettingsForm );
+)( SettingsForm );
