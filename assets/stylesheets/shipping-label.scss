@@ -73,6 +73,11 @@
 
 			.wcc-metabox-label-item__refund-pending {
 				color: $alert-yellow;
+
+				.spinner {
+					margin-left: 2px;
+					margin-bottom: 1px;
+				}
 			}
 
 			.wcc-metabox-label-item__refund-complete {

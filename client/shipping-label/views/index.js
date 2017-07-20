@@ -4,7 +4,6 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import _ from 'lodash';
 import Gridicon from 'gridicons';
 import { translate as __ } from 'i18n-calypso';
 
@@ -157,7 +156,9 @@ class ShippingLabelRootView extends Component {
 		switch ( label.refund.status ) {
 			case 'pending':
 				className = 'wcc-metabox-label-item__refund-pending';
-				text = __( 'Refund pending' );
+				text = label.statusUpdated
+					? __( 'Refund pending' )
+					: <span>{ __( 'Checking refund status' ) } <Spinner size={ 12 } /></span>;
 				break;
 			case 'complete':
 				className = 'wcc-metabox-label-item__refund-complete';
@@ -266,9 +267,6 @@ class ShippingLabelRootView extends Component {
 		if ( this.needToFetchLabelsStatus ) {
 			this.needToFetchLabelsStatus = false;
 			this.props.labelActions.fetchLabelsStatus();
-		}
-		if ( ! _.every( this.props.shippingLabel.labels, 'statusUpdated' ) ) {
-			return <Spinner size={ 24 } />;
 		}
 		return this.props.shippingLabel.labels.map( this.renderLabel );
 	}
