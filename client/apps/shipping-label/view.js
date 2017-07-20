@@ -20,11 +20,11 @@ import LoadingSpinner from 'components/loading-spinner';
 import InfoTooltip from 'components/info-tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
-import * as ShippingLabelActions from 'shipping-label/state/actions';
+import * as ShippingLabelActions from './state/actions';
 import notices from 'notices';
 import GlobalNotices from 'components/global-notices';
-import getFormErrors from 'shipping-label/state/selectors/errors';
-import canPurchase from 'shipping-label/state/selectors/can-purchase';
+import getFormErrors from './state/selectors/errors';
+import canPurchase from './state/selectors/can-purchase';
 import Notice from 'components/notice';
 
 class ShippingLabelRootView extends Component {

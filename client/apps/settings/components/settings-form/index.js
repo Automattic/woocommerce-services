@@ -11,10 +11,10 @@ import { translate as __ } from 'i18n-calypso';
  */
 import WCCSettingsGroup from './settings-group';
 import NuxNotice from 'components/nux-notice';
-import * as FormActions from 'settings/state/actions';
+import * as FormActions from 'apps/settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
-import * as FormValueActions from 'settings/state/values/actions';
-import getFormErrors from 'settings/state/selectors/errors';
+import * as FormValueActions from 'apps/settings/state/values/actions';
+import getFormErrors from 'apps/settings/state/selectors/errors';
 
 const SettingsForm = ( props ) => {
 	const renderGroup = ( index ) => {

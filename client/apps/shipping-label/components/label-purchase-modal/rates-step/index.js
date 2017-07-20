@@ -11,7 +11,7 @@ import _ from 'lodash';
 import ShippingRates from './list';
 import StepContainer from '../step-container';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
-import { getRatesTotal } from 'shipping-label/state/selectors/rates';
+import { getRatesTotal } from 'apps/shipping-label/state/selectors/rates';
 
 const ratesSummary = ( selectedRates, availableRates, total, currencySymbol, packagesSaved ) => {
 	if ( ! packagesSaved ) {

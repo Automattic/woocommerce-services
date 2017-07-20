@@ -11,7 +11,7 @@ import saveForm from 'lib/save-form';
 import coerceFormValues from 'lib/utils/coerce-values';
 import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
-import getFormErrors from 'settings/state/selectors/errors';
+import getFormErrors from '../selectors/errors';
 
 export const UPDATE_FIELD = 'UPDATE_FIELD';
 export const REMOVE_FIELD = 'REMOVE_FIELD';

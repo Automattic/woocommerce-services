@@ -12,7 +12,7 @@ import saveForm from 'lib/save-form';
 import printDocument from 'lib/utils/print-document';
 import getPDFSupport from 'lib/utils/pdf-support';
 import * as NoticeActions from 'state/notices/actions';
-import getFormErrors from 'shipping-label/state/selectors/errors';
+import getFormErrors from './selectors/errors';
 import { hasNonEmptyLeaves } from 'lib/utils/tree';
 import normalizeAddress from './normalize-address';
 import getRates from './get-rates';

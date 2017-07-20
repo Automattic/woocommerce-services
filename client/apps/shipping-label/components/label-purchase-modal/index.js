@@ -15,7 +15,7 @@ import AddressStep from './address-step';
 import PackagesStep from './packages-step';
 import RatesStep from './rates-step';
 import Sidebar from './sidebar';
-import { getRatesTotal } from 'shipping-label/state/selectors/rates';
+import { getRatesTotal } from 'apps/shipping-label/state/selectors/rates';
 import FormSectionHeading from 'components/forms/form-section-heading';
 
 const PurchaseDialog = ( props ) => {
