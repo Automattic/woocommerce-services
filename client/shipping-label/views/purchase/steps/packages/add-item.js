@@ -42,7 +42,7 @@ const AddItemDialog = ( {
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="wcc-move-item-dialog__package-option">
-				<FormCheckbox checked={ _.get( addedItems, [ pckgId, itemIdx ], false ) }
+				<FormCheckbox checked={ _.includes( addedItems[ pckgId ], itemIdx ) }
 						onChange={ onChange } />
 				<span>{ itemLabel }</span>
 			</FormLabel>
@@ -84,7 +84,7 @@ const AddItemDialog = ( {
 					{
 						label: __( 'Add' ),
 						isPrimary: true,
-						isDisabled: ! _.some( addedItems, _.some ),
+						isDisabled: ! _.some( addedItems, _.size ),
 						onClick: () => addItems( openedPackageId ),
 					},
 					{ label: __( 'Close' ), onClick: closeAddItem },

@@ -341,21 +341,23 @@ reducers[ CLOSE_ADD_ITEM ] = ( state ) => {
 };
 
 reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex, added } ) => {
+	const itemIndices = state.addedItems[ sourcePackageId ] || []
 	return {
 		...state,
 		addedItems: { ...state.addedItems,
-			[ sourcePackageId ]: added
-				? { ...state.addedItems[ sourcePackageId ], [ movedItemIndex ]: true }
-				: _.omit( state.addedItems[ sourcePackageId ], movedItemIndex )
+			[ sourcePackageId ]: ! added
+				? _.without( itemIndices, movedItemIndex )
+				: _.includes( itemIndices, movedItemIndex ) ? itemIndices : [ ...itemIndices, movedItemIndex ]
 		},
 	};
 };
 
 reducers[ ADD_ITEMS ] = ( state, { targetPackageId } ) => {
 	// For each origin package
-	_.each( state.addedItems, ( inPackage, originPackageId ) => {
-		// Move items in reverse order of index, to maintain validity as items are removed
-		_.sortBy( Object.keys( inPackage ), ( d ) => -d ).forEach( ( movedItemIndex ) => {
+	_.each( state.addedItems, ( itemIndices, originPackageId ) => {
+		// Move items in reverse order of index, to maintain validity as items are removed.
+		// e.g. when index 0 is removed from the package, index 1 would become index 0
+		_.sortBy( itemIndices, ( i ) => -i ).forEach( ( movedItemIndex ) => {
 			state = reducers[ MOVE_ITEM ]( state, { originPackageId, movedItemIndex, targetPackageId } );
 		} );
 	} );
