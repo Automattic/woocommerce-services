@@ -504,12 +504,14 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 								}
 							);
 							dispatch( NoticeActions.successNotice( noticeText ) );
-							dispatch( exitPrintingFlow( true ) );
-							dispatch( clearAvailableRates() );
 						} )
 						.catch( ( err ) => {
 							console.error( err );
 							dispatch( NoticeActions.errorNotice( err.toString() ) );
+						} )
+						.then( () => {
+							dispatch( exitPrintingFlow( true ) );
+							dispatch( clearAvailableRates() );
 						} );
 				}
 			}

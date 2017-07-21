@@ -510,9 +510,6 @@ reducers[ PURCHASE_LABEL_RESPONSE ] = ( state, { response, error } ) => {
 	}
 
 	return { ...state,
-		form: { ...state.form,
-			isSubmitting: false,
-		},
 		labels: [
 			...response.map( ( label ) => ( { ...label,
 				statusUpdated: true,
