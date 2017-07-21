@@ -108,7 +108,7 @@ const MoveItemDialog = ( {
 					{
 						label: __( 'Move' ),
 						isPrimary: true,
-						isDisabled: targetPackageId === openedPackageId,
+						isDisabled: targetPackageId === openedPackageId,  // Result of targetPackageId initialization
 						onClick: () => moveItem( openedPackageId, movedItemIndex, targetPackageId ),
 					},
 					{ label: __( 'Cancel' ), onClick: closeItemMove },

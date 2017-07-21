@@ -10,6 +10,7 @@ import hoek from 'hoek';
 import reducer from '../reducer';
 import {
 	moveItem,
+	openAddItem,
 	setAddedItem,
 	addItems,
 	addPackage,
@@ -61,7 +62,6 @@ const initialState = {
 	},
 	openedPackageId: 'weight_0_custom1',
 	labels: [],
-	addedItems: {},
 };
 
 describe( 'Label purchase form reducer', () => {
@@ -129,7 +129,7 @@ describe( 'Label purchase form reducer', () => {
 	} );
 
 	it( 'ADD_ITEMS moves a set of items from their original packaging to selected package', () => {
-		let existingState = hoek.clone( initialState );
+		const existingState = hoek.clone( initialState );
 		existingState.form.packages.selected.weight_2_custom1 = {
 			items: [
 				{
@@ -143,14 +143,20 @@ describe( 'Label purchase form reducer', () => {
 			weight: 3.4,
 		};
 
-		existingState = [
+		let state = reducer( existingState, openAddItem() );
+		expect( state.addedItems ).to.eql( {} );
+
+		state = [
 			setAddedItem( 'weight_0_custom1', 0, true ),
 			setAddedItem( 'weight_1_custom1', 0, true ),
 			setAddedItem( 'weight_1_custom1', 1, true ),
-		].reduce( reducer, existingState );
+		].reduce( reducer, state );
 
-		const action = addItems( 'weight_2_custom1' );
-		const state = reducer( existingState, action );
+		expect( state.addedItems.weight_0_custom1 ).to.eql( [ 0 ] );
+		expect( state.addedItems.weight_1_custom1 ).to.include( 0 );
+		expect( state.addedItems.weight_1_custom1 ).to.include( 1 );
+
+		state = reducer( state, addItems( 'weight_2_custom1' ) );
 
 		expect( state.form.packages.selected.weight_0_custom1 ).to.not.exist;
 		expect( state.form.packages.selected.weight_1_custom1 ).to.not.exist;
