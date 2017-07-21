@@ -4,7 +4,6 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import _ from 'lodash';
 import Gridicon from 'gridicons';
 import { translate as __ } from 'i18n-calypso';
 
@@ -16,7 +15,6 @@ import PrintLabelDialog from './purchase';
 import RefundDialog from './refund';
 import ReprintDialog from './reprint';
 import TrackingLink from './tracking-link';
-import Spinner from 'components/spinner';
 import Tooltip from 'components/tooltip';
 import formatDate from 'lib/utils/format-date';
 import timeAgo from 'lib/utils/time-ago';
@@ -156,8 +154,13 @@ class ShippingLabelRootView extends Component {
 		let className = '';
 		switch ( label.refund.status ) {
 			case 'pending':
-				className = 'wcc-metabox-label-item__refund-pending';
-				text = __( 'Refund pending' );
+				if ( label.statusUpdated ) {
+					className = 'wcc-metabox-label-item__refund-pending';
+					text = __( 'Refund pending' );
+				} else {
+					className = 'wcc-metabox-label-item__refund-checking';
+					text = __( 'Checking refund status' );
+				}
 				break;
 			case 'complete':
 				className = 'wcc-metabox-label-item__refund-complete';
@@ -266,9 +269,6 @@ class ShippingLabelRootView extends Component {
 		if ( this.needToFetchLabelsStatus ) {
 			this.needToFetchLabelsStatus = false;
 			this.props.labelActions.fetchLabelsStatus();
-		}
-		if ( ! _.every( this.props.shippingLabel.labels, 'statusUpdated' ) ) {
-			return <Spinner size={ 24 } />;
 		}
 		return this.props.shippingLabel.labels.map( this.renderLabel );
 	}
