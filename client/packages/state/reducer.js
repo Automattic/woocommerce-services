@@ -35,11 +35,12 @@ reducers[ ADD_PACKAGE ] = ( state ) => {
 	const newState = Object.assign( {}, state, {
 		showModal: true,
 		mode: 'add',
-		showOuterDimensions: false,
 	} );
 
-	if ( 'edit' === state.mode || ! newState.packageData ) {
+	if ( 'edit' === state.mode || ! newState.packageData ||
+			_.last( _.get( state, [ 'packages', 'custom' ] ) ) === newState.packageData ) {
 		newState.packageData = { is_user_defined: true };
+		newState.showOuterDimensions = false;
 	}
 
 	return newState;
@@ -107,6 +108,7 @@ reducers[ SAVE_PACKAGE ] = ( state, action ) => {
 	return {
 		...state,
 		showModal: false,
+		packageData,
 		packages: {
 			...state.packages,
 			custom,

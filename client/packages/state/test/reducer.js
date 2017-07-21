@@ -45,7 +45,8 @@ describe( 'Packages form reducer', () => {
 		const existingAddState = {
 			showModal: false,
 			mode: 'add',
-			showOuterDimensions: false,
+			showOuterDimensions: true,
+			selectedPreset: 'default_envelope',
 			packageData: {
 				name: 'Package name here',
 			},
@@ -56,7 +57,8 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'add',
-			showOuterDimensions: false,
+			showOuterDimensions: true,
+			selectedPreset: 'default_envelope',
 			packageData: existingAddState.packageData,
 		} );
 	} );
