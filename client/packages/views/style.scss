@@ -44,6 +44,10 @@
 		@include breakpoint( '<660px' ) {
 			width: 37%;
 		}
+
+		.package-dimensions-format {
+			white-space: nowrap;
+		}
 	}
 
 	.package-actions {

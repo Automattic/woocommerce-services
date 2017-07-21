@@ -68,7 +68,9 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 				<FormLegend className="package-type">{ __( 'Type' ) }</FormLegend>
 				<FormLegend className="package-name">{ __( 'Name' ) }</FormLegend>
 				<FormLegend className="package-dimensions">
-					{ __( 'Dimensions (L x W x H)' ).replace( /\(.+\)/g, ( d ) => d.replace( / /g, '\u00a0' ) ) }
+					<span className="package-dimensions-title">{ __( 'Dimensions' ) }</span>
+					{ ' ' }
+					<span className="package-dimensions-format">{ __( '(L x W x H)' ) }</span>
 				</FormLegend>
 				{ editable ? <FormLegend className="package-actions" /> : null }
 			</div>
