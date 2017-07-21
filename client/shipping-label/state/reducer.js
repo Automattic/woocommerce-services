@@ -341,14 +341,17 @@ reducers[ CLOSE_ADD_ITEM ] = ( state ) => {
 };
 
 reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex, added } ) => {
-	const itemIndices = state.addedItems[ sourcePackageId ] || []
+	let newItemIndices;
+	if ( added ) {
+		const itemIndices = state.addedItems[ sourcePackageId ] || [];
+		newItemIndices = _.includes( itemIndices, movedItemIndex ) ? itemIndices : [ ...itemIndices, movedItemIndex ];
+	} else {
+		newItemIndices = _.without( state.addedItems[ sourcePackageId ], movedItemIndex );
+	}
+
 	return {
 		...state,
-		addedItems: { ...state.addedItems,
-			[ sourcePackageId ]: ! added
-				? _.without( itemIndices, movedItemIndex )
-				: _.includes( itemIndices, movedItemIndex ) ? itemIndices : [ ...itemIndices, movedItemIndex ]
-		},
+		addedItems: { ...state.addedItems, [ sourcePackageId ]: newItemIndices },
 	};
 };
 
