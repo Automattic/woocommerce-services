@@ -45,6 +45,8 @@ describe( 'Packages form reducer', () => {
 		const existingAddState = {
 			showModal: false,
 			mode: 'add',
+			showOuterDimensions: true,
+			selectedPreset: 'default_envelope',
 			packageData: {
 				name: 'Package name here',
 			},
@@ -55,6 +57,8 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'add',
+			showOuterDimensions: true,
+			selectedPreset: 'default_envelope',
 			packageData: existingAddState.packageData,
 		} );
 	} );
@@ -63,6 +67,7 @@ describe( 'Packages form reducer', () => {
 		const existingEditState = {
 			showModal: false,
 			mode: 'edit',
+			showOuterDimensions: true,
 			packageData: {
 				index: 1,
 				name: 'Package name here',
@@ -74,6 +79,7 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			showModal: true,
 			mode: 'add',
+			showOuterDimensions: false,
 			packageData: { is_user_defined: true },
 		} );
 	} );
@@ -110,7 +116,6 @@ describe( 'Packages form reducer', () => {
 		expect( state ).to.eql( {
 			modalErrors: {},
 			showModal: false,
-			showOuterDimensions: false,
 		} );
 	} );
 
@@ -229,15 +234,10 @@ describe( 'Packages form reducer', () => {
 		const state = reducer( initialSavePackageState, action );
 
 		expect( state.showModal ).to.eql( false );
-		expect( state.packageData ).to.eql( {
-			is_user_defined: true,
-		} );
-		expect( state.mode ).to.eql( 'add' );
 		expect( state.packages.custom[ 1 ] ).to.eql( {
 			is_user_defined: true,
 			name: 'Test Box',
 		} );
-		expect( state.showOuterDimensions ).to.eql( false );
 		expect( state.selectedPreset ).to.eql( null );
 		expect( state.pristine ).to.eql( false );
 	} );
