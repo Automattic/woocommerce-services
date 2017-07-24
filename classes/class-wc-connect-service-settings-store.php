@@ -51,11 +51,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function get_account_settings() {
 			$default = array(
-				'selected_payment_method_id' => 0
+				'selected_payment_method_id' => 0,
+				'enabled' => true,
 			);
 
 			$result = WC_Connect_Options::get_option( 'account_settings', $default );
 			$result[ 'paper_size' ] = $this->get_preferred_paper_size();
+			$result = array_merge( $default, $result );
 
 			return $result;
 		}

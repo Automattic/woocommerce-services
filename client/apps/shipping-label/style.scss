@@ -80,6 +80,11 @@
 				color: $alert-yellow;
 			}
 
+			.is-refund-checking {
+				color: $alert-yellow;
+				animation: loading-fade 1.6s ease-in-out infinite;
+			}
+
 			.is-refund-complete {
 				color: $alert-green;
 			}

@@ -66,6 +66,7 @@ const AddPackageDialog = ( props ) => {
 		packages,
 		packageSchema,
 		predefinedSchema,
+		selectedPreset,
 		packageData,
 		showOuterDimensions,
 	} = form;
@@ -134,7 +135,7 @@ const AddPackageDialog = ( props ) => {
 			<FormSectionHeading>
 				{ ( 'edit' === mode ) ? __( 'Edit package' ) : __( 'Add a package' ) }
 			</FormSectionHeading>
-			{ ( 'add' === mode ) ? <AddPackagePresets { ...props } /> : null }
+			{ ( 'add' === mode ) ? <AddPackagePresets { ...props } selectedPreset={ selectedPreset } /> : null }
 			<FormFieldset>
 				<FormLabel htmlFor="name">{ __( 'Package name' ) }</FormLabel>
 				<FormTextInput

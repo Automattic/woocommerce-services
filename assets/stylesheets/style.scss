@@ -207,7 +207,12 @@
 	}
 
 	// Custom styles
-	max-width: 700px;
+	max-width: 720px;
+
+	&.wc-connect-packages,
+	&.wc-connect-account-settings {
+		margin-top: 6px;
+	}
 
 	// WP style conflict resets
 	.card {
