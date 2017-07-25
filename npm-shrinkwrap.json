@@ -1054,9 +1054,9 @@
       }
     },
     "caniuse-db": {
-      "version": "1.0.30000704",
-      "from": "caniuse-db@^1.0.30000634",
-      "resolved": "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000704.tgz",
+      "version": "1.0.30000706",
+      "from": "caniuse-db@>=1.0.30000634 <2.0.0",
+      "resolved": "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000706.tgz",
       "dev": true
     },
     "caniuse-lite": {
@@ -4056,15 +4056,15 @@
       "dev": true
     },
     "mime-db": {
-      "version": "1.27.0",
-      "from": "mime-db@~1.27.0",
-      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.27.0.tgz",
+      "version": "1.29.0",
+      "from": "mime-db@>=1.29.0 <1.30.0",
+      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.29.0.tgz",
       "dev": true
     },
     "mime-types": {
-      "version": "2.1.15",
-      "from": "mime-types@~2.1.7",
-      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.15.tgz",
+      "version": "2.1.16",
+      "from": "mime-types@>=2.1.7 <2.2.0",
+      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.16.tgz",
       "dev": true
     },
     "minimalistic-assert": {
@@ -5699,9 +5699,9 @@
       "dev": true
     },
     "semver": {
-      "version": "5.4.0",
+      "version": "5.4.1",
       "from": "semver@>=5.3.0 <6.0.0",
-      "resolved": "https://registry.npmjs.org/semver/-/semver-5.4.0.tgz"
+      "resolved": "https://registry.npmjs.org/semver/-/semver-5.4.1.tgz"
     },
     "send": {
       "version": "0.15.3",
@@ -6777,7 +6777,7 @@
     "wp-calypso": {
       "version": "0.17.0",
       "from": "automattic/wp-calypso",
-      "resolved": "git://github.com/automattic/wp-calypso.git#e8ac97ffc08c386afa3fce511800a1a827574bd0",
+      "resolved": "git://github.com/automattic/wp-calypso.git#bab242cde4b697e54a8e9a26a348f123ac3a93b3",
       "dependencies": {
         "abbrev": {
           "version": "1.1.0",
