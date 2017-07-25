@@ -4,6 +4,7 @@
 import React, { PropTypes, Component } from 'react';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
+import _ from 'lodash';
 
 /**
  * Internal dependencies
@@ -29,8 +30,8 @@ export default class InfoTooltip extends Component {
 	constructor( props ) {
 		super( props );
 
-		this.openTooltip = this.openTooltip.bind( this );
-		this.closeTooltip = this.closeTooltip.bind( this );
+		this.openTooltip = _.debounce( this.openTooltip.bind( this ), 100 );
+		this.closeTooltip = _.debounce( this.closeTooltip.bind( this ), 100 );
 
 		this.state = {
 			showTooltip: false,
@@ -50,8 +51,8 @@ export default class InfoTooltip extends Component {
 
 		return (
 			<span
-				onMouseEnter={ this.openTooltip }
-				onMouseLeave={ this.closeTooltip }
+				onMouseOver={ this.openTooltip }
+				onMouseOut={ this.closeTooltip }
 				className={ classNames( 'info-tooltip', this.props.className ) } >
 				<span ref="anchor">{ anchor }</span>
 				{ this.state.showTooltip &&
