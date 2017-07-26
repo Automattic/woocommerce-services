@@ -53,17 +53,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			);
 		}
 
-		$response = $this->api_client->send_shipping_label_request( $settings );
-
-		if ( is_wp_error( $response ) ) {
-			$error = new WP_Error(
-				$response->get_error_code(),
-				$response->get_error_message(),
-				array( 'message' => $response->get_error_message() )
-			);
-			$this->logger->debug( $error, __CLASS__ );
-			return $error;
-		}
+		$settings[ 'async' ] = true; // TODO: only make it async if the request comes from the Jetpack proxy?
+		$response = $this->api_request( 'send_shipping_label_request', $settings );
 
 		foreach ( $response->labels as $index => $label_data ) {
 			if ( isset( $label_data->error ) ) {
