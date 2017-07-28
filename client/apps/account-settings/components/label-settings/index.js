@@ -12,7 +12,7 @@ import Button from 'components/button';
 import Dropdown from 'components/dropdown';
 import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import PaymentMethod from '../label-payment-method';
+import PaymentMethod from '../payment-method';
 import LoadingSpinner from 'components/loading-spinner';
 
 const ShippingLabels = ( { isLoading, paymentMethods, setFormDataValue, selectedPaymentMethod, paperSize, storeOptions, translate } ) => {

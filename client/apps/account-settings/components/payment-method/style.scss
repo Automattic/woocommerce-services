@@ -1,4 +1,4 @@
-.card.is-compact.label-payment-method {
+.card.is-compact.payment-method {
 	margin-bottom: 14px;
 	display: flex;
 	flex-direction: row;
@@ -12,26 +12,26 @@
 	}
 }
 
-.label-payment-method__checkbox {
+.payment-method__checkbox {
 	margin-right: 20px;
 	float: left;
 }
 
-.label-payment-method__card-details {
+.payment-method__card-details {
 	float: left;
 	flex-grow: 1;
 }
 
-.label-payment-method__card-number {
+.payment-method__card-number {
 	margin-bottom: 0;
 	font-weight: bold;
 }
 
-.label-payment-method__card-name {
+.payment-method__card-name {
 	margin-bottom: 0;
 }
 
-.label-payment-method__card-date {
+.payment-method__card-date {
 	float: right;
 	color: $gray;
 	font-style: italic;
