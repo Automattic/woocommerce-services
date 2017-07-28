@@ -448,7 +448,7 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 	const oldBox = state.form.packages.all[ oldPackage.box_id ];
 	const newBox = state.form.packages.all[ boxTypeId ];
 	const weight = round(
-		( newBox != null ? newBox.box_weight : 0 ) - ( oldBox != null ? oldBox.box_weight : 0 ) +
+		( newBox ? newBox.box_weight : 0 ) - ( oldBox ? oldBox.box_weight : 0 ) +
 			( oldPackage.weight != null ? oldPackage.weight : _.sumBy( oldPackage.items, 'weight' ) )
 	);
 
@@ -456,14 +456,20 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 		// This is when no box is selected
 		newPackages[ packageId ] = {
 			..._.omit( oldPackage, 'service_id' ),
-			height: 0, length: 0, width: 0, weight,
+			height: 0,
+			length: 0,
+			width: 0,
+			weight,
 			box_id: boxTypeId,
 		};
 	} else {
 		const { length, width, height } = getBoxDimensions( newBox );
 		newPackages[ packageId ] = {
 			..._.omit( oldPackage, 'service_id' ),
-			height, length, width, weight,
+			height,
+			length,
+			width,
+			weight,
 			box_id: boxTypeId,
 		};
 	}
