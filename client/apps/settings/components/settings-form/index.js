@@ -9,7 +9,7 @@ import { translate as __ } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import WCCSettingsGroup from './settings-group';
+import SettingsGroup from './settings-group';
 import NuxNotice from 'components/nux-notice';
 import * as FormActions from 'apps/settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
@@ -19,7 +19,7 @@ import getFormErrors from 'apps/settings/state/selectors/errors';
 const SettingsForm = ( props ) => {
 	const renderGroup = ( index ) => {
 		return (
-			<WCCSettingsGroup
+			<SettingsGroup
 				{ ...props }
 				group={ props.layout[ index ] }
 				saveForm={ props.formValueActions.submit }
