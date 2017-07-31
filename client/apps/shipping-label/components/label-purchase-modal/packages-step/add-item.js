@@ -3,12 +3,13 @@
  */
 import React, { PropTypes } from 'react';
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
 
 /**
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import FormRadio from 'components/forms/form-radio';
+import FormCheckbox from 'components/forms/form-checkbox';
 import FormLabel from 'components/forms/form-label';
 import ActionButtons from 'components/action-buttons';
 import getPackageDescriptions from './get-package-descriptions';
@@ -16,14 +17,13 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 
 const AddItemDialog = ( {
 	showAddItemDialog,
-	movedItemIndex,
-	sourcePackageId,
+	addedItems,
 	openedPackageId,
 	selected,
 	all,
 	closeAddItem,
 	setAddedItem,
-	moveItem } ) => {
+	addItems } ) => {
 	if ( ! showAddItemDialog ) {
 		return null;
 	}
@@ -33,17 +33,17 @@ const AddItemDialog = ( {
 		return <span className="packages-step__dialog-package-name">{ packageLabels[ pckgId ] }</span>;
 	};
 
-	const renderRadioButton = ( pckgId, itemIdx, item ) => {
+	const renderCheckbox = ( pckgId, itemIdx, item ) => {
 		const itemLabel = packageLabels[ pckgId ]
 			? __( '%(item)s from {{pckg/}}', { args: { item: item.name }, components: { pckg: getPackageNameElement( pckgId ) } } )
 			: item;
 
-		const onChange = () => setAddedItem( pckgId, itemIdx );
+		const onChange = ( event ) => setAddedItem( pckgId, itemIdx, event.target.checked );
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="packages-step__dialog-package-option">
-				<FormRadio checked={ pckgId === sourcePackageId && itemIdx === movedItemIndex }
+				<FormCheckbox checked={ _.includes( addedItems[ pckgId ], itemIdx ) }
 						onChange={ onChange } />
 				<span>{ itemLabel }</span>
 			</FormLabel>
@@ -58,7 +58,7 @@ const AddItemDialog = ( {
 
 		let itemIdx = 0;
 		selected[ pckgId ].items.forEach( ( item ) => {
-			itemOptions.push( renderRadioButton( pckgId, itemIdx, item ) );
+			itemOptions.push( renderCheckbox( pckgId, itemIdx, item ) );
 			itemIdx++;
 		} );
 	} );
@@ -72,7 +72,7 @@ const AddItemDialog = ( {
 			<FormSectionHeading>{ __( 'Add item' ) }</FormSectionHeading>
 			<div className="packages-step__dialog-body">
 				<p>
-					{ __( 'Which item would you like to add to {{pckg/}}?', {
+					{ __( 'Which items would you like to add to {{pckg/}}?', {
 						components: {
 							pckg: getPackageNameElement( openedPackageId ),
 						}
@@ -81,7 +81,12 @@ const AddItemDialog = ( {
 				{ itemOptions }
 			</div>
 			<ActionButtons buttons={ [
-				{ label: __( 'Add' ), isPrimary: true, onClick: () => moveItem( sourcePackageId, movedItemIndex, openedPackageId ) },
+				{
+					label: __( 'Add' ),
+					isPrimary: true,
+					isDisabled: ! _.some( addedItems, _.size ),
+					onClick: () => addItems( openedPackageId ),
+				},
 				{ label: __( 'Close' ), onClick: closeAddItem },
 			] } />
 		</Dialog>
@@ -90,14 +95,13 @@ const AddItemDialog = ( {
 
 AddItemDialog.propTypes = {
 	showAddItemDialog: PropTypes.bool.isRequired,
-	movedItemIndex: PropTypes.number,
-	sourcePackageId: PropTypes.string,
+	addedItems: PropTypes.object,
 	openedPackageId: PropTypes.string.isRequired,
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
 	closeAddItem: PropTypes.func.isRequired,
 	setAddedItem: PropTypes.func.isRequired,
-	moveItem: PropTypes.func.isRequired,
+	addItems: PropTypes.func.isRequired,
 };
 
 export default AddItemDialog;

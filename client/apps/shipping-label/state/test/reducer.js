@@ -10,6 +10,9 @@ import hoek from 'hoek';
 import reducer from '../reducer';
 import {
 	moveItem,
+	openAddItem,
+	setAddedItem,
+	addItems,
 	addPackage,
 	removePackage,
 	setPackageType,
@@ -123,6 +126,47 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.packages.saved ).to.eql( false );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
+	} );
+
+	it( 'ADD_ITEMS moves a set of items from their original packaging to selected package', () => {
+		const existingState = hoek.clone( initialState );
+		existingState.form.packages.selected.weight_2_custom1 = {
+			items: [
+				{
+					product_id: 789,
+					weight: 4.5,
+				},
+			],
+		};
+		existingState.form.packages.selected.weight_1_custom1.items[ 1 ] = {
+			product_id: 457,
+			weight: 3.4,
+		};
+
+		let state = reducer( existingState, openAddItem() );
+		expect( state.addedItems ).to.eql( {} );
+
+		state = [
+			setAddedItem( 'weight_0_custom1', 0, true ),
+			setAddedItem( 'weight_1_custom1', 0, true ),
+			setAddedItem( 'weight_1_custom1', 1, true ),
+		].reduce( reducer, state );
+
+		expect( state.addedItems.weight_0_custom1 ).to.eql( [ 0 ] );
+		expect( state.addedItems.weight_1_custom1 ).to.include( 0 );
+		expect( state.addedItems.weight_1_custom1 ).to.include( 1 );
+
+		state = reducer( state, addItems( 'weight_2_custom1' ) );
+
+		expect( state.form.packages.selected.weight_0_custom1 ).to.not.exist;
+		expect( state.form.packages.selected.weight_1_custom1 ).to.not.exist;
+		expect( state.form.packages.selected.weight_2_custom1.items.length ).to.eql( 4 );
+		expect( state.form.packages.selected.weight_2_custom1.items )
+			.to.include( existingState.form.packages.selected.weight_0_custom1.items[ 0 ] );
+		expect( state.form.packages.selected.weight_2_custom1.items )
+			.to.include( existingState.form.packages.selected.weight_1_custom1.items[ 0 ] );
+		expect( state.form.packages.selected.weight_2_custom1.items )
+			.to.include( existingState.form.packages.selected.weight_1_custom1.items[ 1 ] );
 	} );
 
 	it( 'ADD_PACKAGE adds a new package', () => {

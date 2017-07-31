@@ -49,6 +49,7 @@ import {
 	OPEN_ADD_ITEM,
 	CLOSE_ADD_ITEM,
 	SET_ADDED_ITEM,
+	ADD_ITEMS,
 } from './actions';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
 
@@ -328,23 +329,42 @@ reducers[ OPEN_ADD_ITEM ] = ( state ) => {
 	return {
 		...state,
 		showAddItemDialog: true,
+		addedItems: {},
 	};
 };
 
 reducers[ CLOSE_ADD_ITEM ] = ( state ) => {
 	return {
 		...state,
-		movedItemIndex: -1,
 		showAddItemDialog: false,
 	};
 };
 
-reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex } ) => {
+reducers[ SET_ADDED_ITEM ] = ( state, { sourcePackageId, movedItemIndex, added } ) => {
+	let newItemIndices;
+	if ( added ) {
+		const itemIndices = state.addedItems[ sourcePackageId ] || [];
+		newItemIndices = _.includes( itemIndices, movedItemIndex ) ? itemIndices : [ ...itemIndices, movedItemIndex ];
+	} else {
+		newItemIndices = _.without( state.addedItems[ sourcePackageId ], movedItemIndex );
+	}
+
 	return {
 		...state,
-		sourcePackageId,
-		movedItemIndex,
+		addedItems: { ...state.addedItems, [ sourcePackageId ]: newItemIndices },
 	};
+};
+
+reducers[ ADD_ITEMS ] = ( state, { targetPackageId } ) => {
+	// For each origin package
+	_.each( state.addedItems, ( itemIndices, originPackageId ) => {
+		// Move items in reverse order of index, to maintain validity as items are removed.
+		// e.g. when index 0 is removed from the package, index 1 would become index 0
+		_.sortBy( itemIndices, ( i ) => -i ).forEach( ( movedItemIndex ) => {
+			state = reducers[ MOVE_ITEM ]( state, { originPackageId, movedItemIndex, targetPackageId } );
+		} );
+	} );
+	return { ...state, showAddItemDialog: false };
 };
 
 reducers[ ADD_PACKAGE ] = ( state ) => {

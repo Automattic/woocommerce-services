@@ -30,7 +30,7 @@ const PackagesStep = ( props ) => {
 		movedItemIndex,
 		targetPackageId,
 		showAddItemDialog,
-		sourcePackageId,
+		addedItems,
 	} = props;
 
 	const packageIds = Object.keys( selected );
@@ -175,15 +175,13 @@ const PackagesStep = ( props ) => {
 				moveItem={ labelActions.moveItem } />
 			<AddItemDialog
 				showAddItemDialog={ showAddItemDialog || false }
-				movedItemIndex={ movedItemIndex }
-				sourcePackageId={ sourcePackageId }
+				addedItems={ addedItems }
 				openedPackageId={ openedPackageId }
 				selected={ selected }
 				all={ all }
 				closeAddItem={ labelActions.closeAddItem }
 				setAddedItem={ labelActions.setAddedItem }
-				confirmAddItem={ labelActions.confirmAddItem }
-				moveItem={ labelActions.moveItem } />
+				addItems={ labelActions.addItems } />
 		</StepContainer>
 	);
 };

@@ -59,6 +59,7 @@ export const SAVE_PACKAGES = 'SAVE_PACKAGES';
 export const OPEN_ADD_ITEM = 'OPEN_ADD_ITEM';
 export const CLOSE_ADD_ITEM = 'CLOSE_ADD_ITEM';
 export const SET_ADDED_ITEM = 'SET_ADDED_ITEM';
+export const ADD_ITEMS = 'ADD_ITEMS';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
@@ -381,11 +382,19 @@ export const closeAddItem = () => {
 	};
 };
 
-export const setAddedItem = ( sourcePackageId, movedItemIndex ) => {
+export const setAddedItem = ( sourcePackageId, movedItemIndex, added ) => {
 	return {
 		type: SET_ADDED_ITEM,
 		sourcePackageId,
 		movedItemIndex,
+		added,
+	};
+};
+
+export const addItems = ( targetPackageId ) => {
+	return {
+		type: ADD_ITEMS,
+		targetPackageId,
 	};
 };
 
