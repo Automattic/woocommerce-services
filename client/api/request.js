@@ -44,7 +44,7 @@ const _request = ( url, data, method ) => {
 					case 'IN_PROGRESS':
 						return poll( performRequest );
 					case 'NOT_FOUND':
-						throw { code: 'async_token_not_found', message: __( 'The request expired' ) }; // TODO: How to phrase this error?
+						throw { code: 'async_token_not_found', message: __( 'The request failed, please try again.' ) };
 				}
 
 				if ( json.success ) {
