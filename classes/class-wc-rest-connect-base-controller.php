@@ -73,7 +73,7 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		}
 		try {
 			return $this->get( $request );
-		} catch ( WCC_Api_Exception $error ) {
+		} catch ( WC_Connect_Api_Exception $error ) {
 			return $error->response;
 		}
 	}
