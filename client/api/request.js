@@ -2,11 +2,13 @@
  * External dependencies
  */
 import { translate as __ } from 'i18n-calypso';
+import _ from 'lodash';
 
 /**
  * Internal dependencies
  */
 import parseJson from 'lib/utils/parse-json';
+import addOnBeforeUnloadHandler from 'lib/before-unload';
 
 let nonce;
 export const setNonce = ( _nonce ) => nonce = _nonce;
@@ -15,6 +17,14 @@ let baseURL;
 export const setBaseURL = ( _baseURL ) => baseURL = _baseURL;
 
 const ASYNC_POLLING_INTERVAL = 3 * 1000;
+
+const pendingPostRequests = new Set();
+
+addOnBeforeUnloadHandler( () => {
+	if ( ! window.persistState && pendingPostRequests.size ) {
+		return __( 'Some requests haven\'t finished yet, please wait.' );
+	}
+} );
 
 const _request = ( url, data, method ) => {
 	const request = {
@@ -29,11 +39,18 @@ const _request = ( url, data, method ) => {
 		request.body = JSON.stringify( data );
 	}
 
+	let requestId = null;
+	// GET requests, by their very definition, can be interrupted without causing any unintended side effects
+	if ( 'POST' === method ) {
+		requestId = _.uniqueId();
+		pendingPostRequests.add( requestId );
+	}
+
 	const poll = ( func ) => new Promise( ( resolve, reject ) => {
 		setTimeout( () => func().then( resolve ).catch( reject ), ASYNC_POLLING_INTERVAL );
 	} );
 
-	return ( function performRequest() {
+	function performRequest() {
 		return fetch( baseURL + url, request ).then( ( response ) => {
 			return parseJson( response ).then( ( json ) => {
 				if ( json.async_token ) {
@@ -61,7 +78,17 @@ const _request = ( url, data, method ) => {
 				throw json;
 			} );
 		} );
-	} )();
+	}
+
+	return performRequest()
+		.then( ( res ) => {
+			pendingPostRequests.delete( requestId );
+			return res;
+		} )
+		.catch( ( err ) => {
+			pendingPostRequests.delete( requestId );
+			throw err;
+		} );
 };
 
 export const post = ( url, data ) => _request( url, data, 'POST' );

@@ -22,6 +22,7 @@ import AccountSettings from './account-settings';
 import PrintTestLabel from './print-test-label';
 import Packages from './packages';
 import { setNonce, setBaseURL } from 'api/request';
+import addOnBeforeUnloadHandler from 'lib/before-unload';
 
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
@@ -75,7 +76,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		store.dispatch( Route.getInitialAction() );
 	}
 
-	window.addEventListener( 'beforeunload', ( event ) => {
+	addOnBeforeUnloadHandler( () => {
 		const state = store.getState();
 
 		if ( window.persistState ) {
@@ -86,9 +87,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		if ( ! state.form || ( state.form.meta && state.form.meta.pristine ) || _.every( state.form.pristine ) ) {
 			return;
 		}
-		const text = __( 'You have unsaved changes.' );
-		( event || window.event ).returnValue = text;
-		return text;
+		return __( 'You have unsaved changes.' );
 	} );
 
 	let render = () => {
