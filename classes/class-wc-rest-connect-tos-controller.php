@@ -23,10 +23,7 @@ class WC_REST_Connect_Tos_Controller extends WC_REST_Connect_Base_Controller {
 		$settings = $request->get_json_params();
 
 		if ( ! $settings || ! isset( $settings[ 'accepted' ] ) || ! $settings[ 'accepted' ] ) {
-			return new WP_REST_Response( array(
-				'success'  => false,
-				'accepted' => WC_Connect_Options::get_option( 'tos_accepted' ),
-			), 200 );
+			return new WP_Error( 400 );
 		}
 
 		WC_Connect_Options::update_option( 'tos_accepted', true );
