@@ -242,10 +242,6 @@ class ShippingLabelRootView extends Component {
 	}
 
 	renderLabels() {
-		if ( this.needToFetchLabelsStatus ) {
-			this.needToFetchLabelsStatus = false;
-			this.props.labelActions.fetchLabelsStatus();
-		}
 		return this.props.shippingLabel.labels.map( this.renderLabel );
 	}
 
