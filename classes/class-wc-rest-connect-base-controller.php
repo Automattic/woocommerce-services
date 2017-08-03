@@ -8,6 +8,14 @@ if ( class_exists( 'WC_REST_Connect_Base_Controller' ) ) {
 	return;
 }
 
+class WC_Connect_Api_Exception extends Exception {
+	public $response;
+	public function __construct( $response ) {
+		$this->response = $response;
+		parent::__construct();
+	}
+}
+
 abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 
 	/**
@@ -63,14 +71,44 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
 		}
-		return $this->get( $request );
+		try {
+			return $this->get( $request );
+		} catch ( WC_Connect_Api_Exception $error ) {
+			return $error->response;
+		}
 	}
 
 	public function post_internal( $request ) {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
 		}
-		return $this->post( $request );
+		try {
+			return $this->post( $request );
+		} catch ( WC_Connect_Api_Exception $ex ) {
+			return $ex->response;
+		}
+	}
+
+	protected function api_request( $method /*, ...$args */ ) {
+		$args = array_slice( func_get_args(), 1 );
+		$response = call_user_func_array( array( $this->api_client, $method ), $args );
+
+		if ( is_wp_error( $response ) ) {
+			$error = new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message(),
+				array( 'message' => $response->get_error_message() )
+			);
+			$this->logger->debug( $error, get_class( $this ) );
+			throw new WC_Connect_Api_Exception( $error );
+		}
+
+		if ( isset( $response->async_token ) || isset( $response->async_status ) ) {
+			// Not an error per-se, but we want to interrupt further processing of the response at this point
+			throw new WC_Connect_Api_Exception( $response );
+		}
+
+		return $response;
 	}
 
 	/**

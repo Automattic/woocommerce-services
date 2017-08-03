@@ -302,7 +302,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			// Add useful system information to requests that contain bodies
 			if ( in_array( $method, array( 'POST', 'PUT' ) ) ) {
-				$body = $this->request_body( $body );
+				if ( isset( $body[ 'async_token' ] ) ) {
+					// If this is a polling request, only send the "async_token" field
+					$body = array( 'async_token' => $body[ 'async_token' ] );
+				} else {
+					$body = $this->request_body( $body );
+				}
 				$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
 
 				if ( ! $body ) {
