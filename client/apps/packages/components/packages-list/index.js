@@ -67,7 +67,7 @@ const PackagesList = ( { packages, dimensionUnit, editable, selected, serviceId,
 					{ __( 'Dimensions' ) }{ ' ' }
 					<span className="packages-list__column-dimensions-format">{ __( '(L x W x H)' ) }</span>
 				</FormLegend>
-				{ editable ? <FormLegend className="packages-list__column-actions" /> : null }
+				{ editable && <FormLegend className="packages-list__column-actions" /> }
 			</div>
 			{ renderList() }
 		</FormFieldset>
