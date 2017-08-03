@@ -318,4 +318,42 @@ describe( 'Label purchase form reducer', () => {
 		// All labels in response should be in state, marked as "updated"
 		expect( state.labels ).to.deep.equal( [ { ...label, statusUpdated: true } ] );
 	} );
+
+	it( 'Maintains fixed precision upon adjusting total weight', () => {
+		const existingState = hoek.clone( initialState );
+		existingState.form.packages.all.customPackage1.box_weight = 1.33;
+		existingState.form.packages.selected.weight_0_custom1 = {
+			items: [
+				{
+					product_id: 123,
+					weight: 3,
+				},
+				{
+					product_id: 124,
+					weight: 0.3,
+				},
+			],
+			weight: 3.3,
+		};
+		existingState.form.packages.selected.weight_1_custom1 = {
+			items: [
+				{
+					product_id: 456,
+					weight: 1.44,
+				},
+			],
+			weight: 1.44,
+		};
+
+		const action = moveItem( 'weight_0_custom1', 0, 'weight_1_custom1' );
+		let state = reducer( existingState, action );
+
+		expect( state.form.packages.selected.weight_0_custom1.weight ).to.eql( 0.3 );
+		expect( state.form.packages.selected.weight_1_custom1.weight ).to.eql( 4.44 );
+
+		const packageTypeAction = setPackageType( 'weight_0_custom1', 'customPackage1' );
+		state = reducer( state, packageTypeAction );
+
+		expect( state.form.packages.selected.weight_0_custom1.weight ).to.eql( 1.63 );
+	} );
 } );
