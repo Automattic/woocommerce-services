@@ -61,6 +61,9 @@ const generateUniqueBoxId = ( keyBase, boxIds ) => {
 	}
 };
 
+/* Irons out floating point arithmetic artifacts */
+const round = ( n ) => _.round( n, 8 );
+
 const reducers = {};
 
 reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
@@ -247,7 +250,7 @@ reducers[ MOVE_ITEM ] = ( state, { originPackageId, movedItemIndex, targetPackag
 	newPackages[ originPackageId ] = {
 		...newPackages[ originPackageId ],
 		items: originItems,
-		weight: newPackages[ originPackageId ].weight - movedItem.weight,
+		weight: round( newPackages[ originPackageId ].weight - movedItem.weight ),
 	};
 
 	if ( 'individual' === targetPackageId ) {
@@ -278,7 +281,7 @@ reducers[ MOVE_ITEM ] = ( state, { originPackageId, movedItemIndex, targetPackag
 		newPackages[ targetPackageId ] = {
 			...newPackages[ targetPackageId ],
 			items: targetItems,
-			weight: newPackages[ targetPackageId ].weight + movedItem.weight,
+			weight: round( newPackages[ targetPackageId ].weight + movedItem.weight ),
 		};
 	}
 
@@ -456,7 +459,7 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 		newPackages[ packageId ] = {
 			..._.omit( oldPackage, 'service_id' ),
 			height, length, width,
-			weight: box.box_weight + _.sumBy( oldPackage.items, 'weight' ),
+			weight: round( box.box_weight + _.sumBy( oldPackage.items, 'weight' ) ),
 			box_id: boxTypeId,
 		};
 	}
