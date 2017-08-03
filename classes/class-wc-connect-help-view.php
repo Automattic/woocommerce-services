@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					sprintf(
 						__( 'WooCommerce %s or higher is required (You are running %s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
@@ -60,7 +60,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					__( 'Please set Base Location in WooCommerce Settings > General', 'woocommerce-services' ),
 					''
 				);
@@ -68,7 +68,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'woocommerce_indicator',
 					'checkmark-circle',
-					'indicator-success',
+					'is-success',
 					sprintf(
 						__( 'WooCommerce %s is configured correctly', 'woocommerce-services' ),
 						WC()->version
@@ -99,7 +99,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					sprintf(
 						__( 'Please install and activate the Jetpack plugin, version %s or higher', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION
@@ -110,7 +110,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					sprintf(
 						__( 'Jetpack %s or higher is required (You are running %s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION,
@@ -122,7 +122,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					__( 'Jetpack is not connected to WordPress.com. Make sure the Jetpack plugin is installed, activated, and connected.', 'woocommerce-services' ),
 					''
 				);
@@ -130,7 +130,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'notice',
-					'indicator-warning',
+					'is-warning',
 					__( 'This is a Jetpack staging site', 'woocommerce-services' ),
 					''
 				);
@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'checkmark-circle',
-					'indicator-success',
+					'is-success',
 					sprintf(
 						__( 'Jetpack %s is connected and working correctly', 'woocommerce-services' ),
 						JETPACK__VERSION
@@ -172,7 +172,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					__( 'No service data available', 'woocommerce-services' ),
 					''
 				);
@@ -180,7 +180,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
 					'notice',
-					'indicator-warning',
+					'is-warning',
 					__( 'Service data was found, but may be out of date', 'woocommerce-services' ),
 					''
 				);
@@ -188,7 +188,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
 					'notice',
-					'indicator-error',
+					'is-error',
 					__( 'Service data was found, but is more than three days old', 'woocommerce-services' ),
 					$last_fetch_timestamp_formatted
 				);
@@ -196,7 +196,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
 					'notice',
-					'indicator-warning',
+					'is-warning',
 					__( 'Service data was found, but is more than one day old', 'woocommerce-services' ),
 					$last_fetch_timestamp_formatted
 				);
@@ -204,7 +204,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = $this->build_indicator(
 					'wcc_indicator',
 					'checkmark-circle',
-					'indicator-success',
+					'is-success',
 					__( 'Service data is up-to-date', 'woocommerce-services' ),
 					$last_fetch_timestamp_formatted
 				);
@@ -287,7 +287,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					$indicator = $this->build_indicator(
 						$indicator_key,
 						'notice',
-						'indicator-error',
+						'is-error',
 						__( 'Setup for this service has not yet been completed', 'woocommerce-services' ),
 						$edit_link
 					);
@@ -295,7 +295,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					$indicator = $this->build_indicator(
 						$indicator_key,
 						'notice',
-						'indicator-warning',
+						'is-warning',
 						__( 'No rate requests have yet been made for this service', 'woocommerce-services' ),
 						$review_link
 					);
@@ -303,7 +303,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					$indicator = $this->build_indicator(
 						$indicator_key,
 						'checkmark-circle',
-						'indicator-success',
+						'is-success',
 						__( 'The most recent rate request was successful', 'woocommerce-services' ),
 						$edit_link
 					);
@@ -311,7 +311,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					$indicator = $this->build_indicator(
 						$indicator_key,
 						'notice',
-						'indicator-error',
+						'is-error',
 						__( 'The most recent rate request failed', 'woocommerce-services' ),
 						$ago_edit_link
 					);

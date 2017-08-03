@@ -1,0 +1,17 @@
+@import './components/add-package/style';
+@import './components/packages-list/style';
+
+.packages__add-package-button {
+	margin-bottom: 0;
+
+	.button {
+		float: left;
+		margin-left: 0;
+	}
+}
+
+.packages__predefined-group-header {
+	.form-checkbox {
+		margin-right: 8px;
+	}
+}

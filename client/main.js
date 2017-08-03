@@ -16,11 +16,11 @@ import _ from 'lodash';
 import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
 import * as storageUtils from 'lib/utils/local-storage';
-import Settings from './settings';
-import ShippingLabel from './shipping-label';
-import AccountSettings from './account-settings';
-import PrintTestLabel from './print-test-label';
-import Packages from './packages';
+import Settings from './apps/settings';
+import ShippingLabel from './apps/shipping-label';
+import AccountSettings from './apps/account-settings';
+import PrintTestLabel from './apps/print-test-label';
+import Packages from './apps/packages';
 import { setNonce, setBaseURL } from 'api/request';
 
 if ( global.wcConnectData ) {
@@ -122,17 +122,17 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		};
 
 		module.hot.accept( [
-			'./settings/views',
-			'./shipping-label/views',
-			'./account-settings/views',
+			'./apps/settings/view',
+			'./apps/shipping-label/view',
+			'./apps/account-settings/view',
 		], () => {
 			setTimeout( render );
 		} );
 
 		module.hot.accept( [
-			'./settings/state/reducer',
-			'./shipping-label/state/reducer',
-			'./account-settings/state/reducer',
+			'./apps/settings/state/reducer',
+			'./apps/shipping-label/state/reducer',
+			'./apps/account-settings/state/reducer',
 		], () => {
 			store.replaceReducer( Route.getHotReducer() );
 		} );

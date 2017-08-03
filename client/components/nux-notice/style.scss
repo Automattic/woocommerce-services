@@ -1,0 +1,21 @@
+.nux-notice {
+	background: lighten( $blue-light, 22% );
+	border: 1px solid lighten( $blue-light, 15% );
+	padding: 16px;
+	margin-bottom: 8px;
+	display: flex;
+
+	.nux-notice__copy {
+		margin-top: 3px;
+	}
+
+	svg {
+		margin-right: 8px;
+	}
+
+	a {
+		text-decoration: none;
+		margin-left: auto;
+		margin-top: 3px;
+	}
+}

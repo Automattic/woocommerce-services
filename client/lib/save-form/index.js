@@ -8,7 +8,7 @@ import { translate as __ } from 'i18n-calypso';
  * Internal dependencies
  */
 import parseJson from 'lib/utils/parse-json';
-import { EMPTY_ERROR } from 'settings/state/selectors/errors';
+import { EMPTY_ERROR } from 'apps/settings/state/selectors/errors';
 
 const saveForm = ( setIsSaving, setSuccess, setFieldsStatus, setError, url, nonce, submitMethod, formData ) => {
 	setIsSaving( true );

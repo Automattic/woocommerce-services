@@ -11,6 +11,7 @@ import classNames from 'classnames';
  */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLegend from 'components/forms/form-legend';
+import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 const renderLastUpdated = ( lastUpdated ) => {
@@ -19,20 +20,18 @@ const renderLastUpdated = ( lastUpdated ) => {
 	}
 
 	return (
-		<div className="form-setting-explanation indicator__last-updated">
-			<span dangerouslySetInnerHTML={ sanitizeHTML( lastUpdated ) } />
-		</div>
+		<FormSettingExplanation dangerouslySetInnerHTML={ sanitizeHTML( lastUpdated ) } />
 	);
 };
 
 const Indicator = ( { icon, className, message, lastUpdated } ) => {
 	return (
-		<div className={ classNames( 'indicator', className ) }>
-			<div className="indicator__icon-and-message">
-				<div className="indicator__icon">
+		<div className={ classNames( 'indicators__indicator', className ) }>
+			<div className="indicators__indicator-icon-and-message">
+				<div className="indicators__indicator-icon">
 					<Gridicon icon={ icon } />
 				</div>
-				<div className="indicator__message">
+				<div className="indicators__indicator-message">
 					{ message }
 				</div>
 			</div>
