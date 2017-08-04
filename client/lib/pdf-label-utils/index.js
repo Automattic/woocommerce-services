@@ -42,8 +42,8 @@ const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	const params = {
 		_wpnonce: nonce,
 		paper_size: paperSize,
-		'label_ids[]': _.filter( _.map( labels, 'labelId' ) ),
-		'captions[]': _.filter( _.map( labels, 'caption' ) ),
+		label_id_csv: _.filter( _.map( labels, 'labelId' ) ).join( ',' ),
+		caption_csv: _.filter( _.map( labels, ( l ) => ( l.caption ? encodeURIComponent( l.caption ) : null ) ) ).join( ',' ),
 	};
 	return baseURL + '?' + querystring.stringify( params );
 };
