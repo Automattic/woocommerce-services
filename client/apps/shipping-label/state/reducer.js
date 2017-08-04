@@ -208,6 +208,7 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageId, value } ) => {
 	newPackages[ packageId ] = {
 		...newPackages[ packageId ],
 		weight: parseFloat( value ),
+		is_user_specified_weight: true,
 	};
 
 	return { ...state,
@@ -445,11 +446,10 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 	const newPackages = { ...state.form.packages.selected };
 	const oldPackage = newPackages[ packageId ];
 
-	const oldBox = state.form.packages.all[ oldPackage.box_id ];
-	const newBox = state.form.packages.all[ boxTypeId ];
+	const box = state.form.packages.all[ boxTypeId ];
 	const weight = round(
-		( newBox ? newBox.box_weight : 0 ) - ( oldBox ? oldBox.box_weight : 0 ) +
-			( oldPackage.weight != null ? oldPackage.weight : _.sumBy( oldPackage.items, 'weight' ) )
+		oldPackage.is_user_specified_weight ? oldPackage.weight
+			: ( box ? box.box_weight : 0 ) + _.sumBy( oldPackage.items, 'weight' )
 	);
 
 	if ( 'not_selected' === boxTypeId ) {
@@ -463,7 +463,7 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 			box_id: boxTypeId,
 		};
 	} else {
-		const { length, width, height } = getBoxDimensions( newBox );
+		const { length, width, height } = getBoxDimensions( box );
 		newPackages[ packageId ] = {
 			..._.omit( oldPackage, 'service_id' ),
 			height,
