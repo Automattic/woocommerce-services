@@ -75,7 +75,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			return Jetpack::init()->build_connect_url(
 				true,
 				$redirect_url,
-				'woocommerce-services'
+				'woocommerce-services-auto-authorize'
 			);
 		}
 	}
