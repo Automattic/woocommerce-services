@@ -14,7 +14,7 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 
 const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refundable_amount, label_id } ) => {
 	const getRefundableAmount = () => {
-		return storeOptions.currency_symbol + refundable_amount.toFixed( 2 );
+		return storeOptions.currency_symbol + Number( refundable_amount ).toFixed( 2 );
 	};
 
 	return (
