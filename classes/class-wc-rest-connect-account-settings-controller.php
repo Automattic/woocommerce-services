@@ -26,17 +26,26 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		// Always get a fresh copy when hitting this endpoint
 		$this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
+		$master_user = WC_Connect_Jetpack::get_master_user();
+
 		return new WP_REST_Response( array(
 			'success'  => true,
 			'storeOptions' => $this->settings_store->get_store_options(),
 			'formData' => $this->settings_store->get_account_settings(),
 			'formMeta' => array(
-				'payment_methods' => $this->payment_methods_store->get_payment_methods()
+				'can_manage_payments' => $this->can_user_manage_payment_methods(),
+				'master_user_name' => is_a( $master_user, 'WP_User' ) ? $master_user->display_name : '',
+				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
+ 				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
 			)
 		), 200 );
 	}
 
 	public function post( $request ) {
+		if ( ! $this->can_user_manage_payment_methods() ) {
+			return new WP_Error( 403 );
+		}
+
 		$settings = $request->get_json_params();
 		$result   = $this->settings_store->update_account_settings( $settings );
 
@@ -58,4 +67,10 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
 
+	private function can_user_manage_payment_methods() {
+		global $current_user;
+		$master_user = WC_Connect_Jetpack::get_master_user();
+		return WC_Connect_Jetpack::is_development_mode() ||
+			( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID );
+	}
 }
