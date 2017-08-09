@@ -31,16 +31,6 @@ class ShippingLabelRootView extends Component {
 	constructor( props ) {
 		super( props );
 
-		this.renderLabel = this.renderLabel.bind( this );
-		this.renderLabels = this.renderLabels.bind( this );
-		this.renderLabelButton = this.renderLabelButton.bind( this );
-		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
-		this.renderPurchaseLabelFlow = this.renderPurchaseLabelFlow.bind( this );
-		this.renderRefundLink = this.renderRefundLink.bind( this );
-		this.renderRefund = this.renderRefund.bind( this );
-		this.renderReprint = this.renderReprint.bind( this );
-		this.renderLabelDetails = this.renderLabelDetails.bind( this );
-
 		this.state = {
 			needToFetchLabelsStatus: true,
 		};
@@ -62,7 +52,7 @@ class ShippingLabelRootView extends Component {
 		}
 	}
 
-	renderPaymentInfo() {
+	renderPaymentInfo = () => {
 		const numPaymentMethods = this.props.shippingLabel.numPaymentMethods;
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
@@ -95,17 +85,17 @@ class ShippingLabelRootView extends Component {
 				<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Add a credit card' ) }</a></p>
 			</Notice>
 		);
-	}
+	};
 
-	renderLabelButton() {
+	renderLabelButton = () => {
 		return (
 			<Button className="shipping-label__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
 				{ __( 'Create new label' ) }
 			</Button>
 		);
-	}
+	};
 
-	renderPurchaseLabelFlow() {
+	renderPurchaseLabelFlow = () => {
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
 		return (
@@ -117,9 +107,9 @@ class ShippingLabelRootView extends Component {
 				{ paymentMethod && this.renderLabelButton() }
 			</div>
 		);
-	}
+	};
 
-	renderRefundLink( label ) {
+	renderRefundLink = ( label ) => {
 		const today = new Date();
 		const thirtyDaysAgo = new Date().setDate( today.getDate() - 30 );
 		if ( ( label.used_date && label.used_date < today.getTime() ) || ( label.created_date && label.created_date < thirtyDaysAgo ) ) {
@@ -143,9 +133,9 @@ class ShippingLabelRootView extends Component {
 				</a>
 			</span>
 		);
-	}
+	};
 
-	renderRefund( label ) {
+	renderRefund = ( label ) => {
 		if ( ! label.refund ) {
 			return this.renderRefundLink( label );
 		}
@@ -177,9 +167,9 @@ class ShippingLabelRootView extends Component {
 		return (
 			<span className={ className } ><Gridicon icon="time" size={ 12 } />{ text }</span>
 		);
-	}
+	};
 
-	renderReprint( label ) {
+	renderReprint = ( label ) => {
 		const todayTime = new Date().getTime();
 		if ( label.refund ||
 			( label.used_date && label.used_date < todayTime ) ||
@@ -204,9 +194,9 @@ class ShippingLabelRootView extends Component {
 				</a>
 			</span>
 		);
-	}
+	};
 
-	renderLabelDetails( label, labelNum ) {
+	renderLabelDetails = ( label, labelNum ) => {
 		if ( ! label.package_name || ! label.product_names ) {
 			return null;
 		}
@@ -225,9 +215,9 @@ class ShippingLabelRootView extends Component {
 				</ul>
 			</InfoTooltip>
 		);
-	}
+	};
 
-	renderLabel( label, index, labels ) {
+	renderLabel = ( label, index, labels ) => {
 		const purchased = timeAgo( label.created );
 
 		return (
@@ -249,11 +239,11 @@ class ShippingLabelRootView extends Component {
 				</p>
 			</div>
 		);
-	}
+	};
 
-	renderLabels() {
+	renderLabels = () => {
 		return this.props.shippingLabel.labels.map( this.renderLabel );
-	}
+	};
 
 	renderLoading() {
 		return (
