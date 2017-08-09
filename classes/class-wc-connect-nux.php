@@ -588,11 +588,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				$redirect_url = esc_url_raw( wp_unslash( $_POST['redirect_url'] ) );
 			}
 
-			$connect_url = Jetpack::init()->build_connect_url(
-				true,
-				$redirect_url,
-				'woocommerce-services'
-			);
+			$connect_url = WC_Connect_Jetpack::build_connect_url( $redirect_url );
 
 			// Make sure we always display the after-connection banner
 			// after the before_connection button is clicked

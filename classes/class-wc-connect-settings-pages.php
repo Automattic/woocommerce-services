@@ -54,44 +54,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		/**
-		 * Helper method to get if Jetpack is in development mode
-		 * @return bool
-		 */
-		protected function is_jetpack_dev_mode() {
-			if ( method_exists( 'Jetpack', 'is_development_mode' ) ) {
-				return Jetpack::is_development_mode();
-			}
-
-			return false;
-		}
-
-		/**
-		 * Helper method to get if Jetpack is connected (aka active)
-		 * @return bool
-		 */
-		protected function is_jetpack_connected() {
-			if ( method_exists( 'Jetpack', 'is_active' ) ) {
-				return Jetpack::is_active();
-			}
-
-			return false;
-		}
-
-		/**
-		 * Helper method to get the Jetpack master user, IF we are connected
-		 * @return WP_User | false
-		 */
-		protected function get_master_user() {
-			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
-			if ( $this->is_jetpack_connected() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
-				$master_user_id = Jetpack_Options::get_option( 'master_user' );
-				return get_userdata( $master_user_id );
-			}
-
-			return false;
-		}
-
-		/**
 		 * Output the settings.
 		 */
 		public function output_settings_screen() {
@@ -103,8 +65,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					$this->output_packages_screen();
 					break;
 				case 'label-settings':
-					$master_user = $this->get_master_user();
-					if ( $this->is_jetpack_dev_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) ) {
+					$master_user = WC_Connect_Jetpack::get_master_user();
+					if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID ) ) {
 						$this->output_account_screen();
 					} else {
 						$this->output_no_priv_account_screen();
@@ -121,8 +83,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			global $hide_save_button;
 			$hide_save_button = true;
 
-			if ( $this->is_jetpack_dev_mode() ) {
-				if ( $this->is_jetpack_connected() ) {
+			if ( WC_Connect_Jetpack::is_development_mode() ) {
+				if ( WC_Connect_Jetpack::is_active() ) {
 					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'woocommerce-services' );
 				} else {
 					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from WooCommerce Services production servers.', 'woocommerce-services' );
@@ -155,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			wp_enqueue_style( 'wc_connect_admin' );
 
-			$master_user = $this->get_master_user();
+			$master_user = WC_Connect_Jetpack::get_master_user();
 			if ( is_a( $master_user, 'WP_User' ) ) {
 				$message = sprintf(
 					__( 'Only the primary Jetpack user can manage shipping label payment methods. Please login as %1$s (%2$s) to manage payment methods.', 'woocommerce-services' ),
