@@ -28,26 +28,14 @@ import canPurchase from './state/selectors/can-purchase';
 import Notice from 'components/notice';
 
 class ShippingLabelRootView extends Component {
-	constructor( props ) {
-		super( props );
-
-		this.state = {
-			needToFetchLabelsStatus: true,
-		};
-	}
-
 	componentWillMount() {
-		if ( this.props.loaded && this.state.needToFetchLabelsStatus ) {
-			// TODO: Use redux for this instead
-			this.setState( { needToFetchLabelsStatus: false } );
+		if ( this.props.needToFetchLabelStatus ) {
 			this.props.labelActions.fetchLabelsStatus();
 		}
 	}
 
 	componentWillReceiveProps( props ) {
-		if ( props.loaded && this.state.needToFetchLabelsStatus ) {
-			// TODO: Use redux for this instead
-			this.setState( { needToFetchLabelsStatus: false } );
+		if ( props.needToFetchLabelStatus ) {
 			this.props.labelActions.fetchLabelsStatus();
 		}
 	}
@@ -284,6 +272,7 @@ function mapStateToProps( state ) {
 		shippingLabel,
 		loaded,
 		storeOptions,
+		needToFetchLabelStatus: loaded && ! shippingLabel.refreshedLabelStatus,
 		errors: loaded && getFormErrors( state, storeOptions ),
 		canPurchase: loaded && canPurchase( state, storeOptions ),
 	};

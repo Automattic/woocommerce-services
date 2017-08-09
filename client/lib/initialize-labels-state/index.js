@@ -30,6 +30,7 @@ export default ( formData, labelsData, paperSize, storeOptions, paymentMethod, n
 		loaded: true,
 		isFetching: false,
 		error: false,
+		refreshedLabelStatus: false,
 		labels: labelsData || [],
 		paperSize,
 		paymentMethod,

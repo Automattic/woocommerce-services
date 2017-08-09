@@ -658,6 +658,7 @@ reducers[ LABEL_STATUS_RESPONSE ] = ( state, { labelId, response, error } ) => {
 
 	const newState = { ...state,
 		labels: [ ...state.labels ],
+		refreshedLabelStatus: true,
 	};
 	newState.labels[ labelIndex ] = labelData;
 	return newState;
