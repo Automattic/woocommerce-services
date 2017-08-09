@@ -66,7 +66,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					break;
 				case 'label-settings':
 					$master_user = WC_Connect_Jetpack::get_master_user();
-					if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID ) ) {
+					if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID ) ) {
 						$this->output_account_screen();
 					} else {
 						$this->output_no_priv_account_screen();

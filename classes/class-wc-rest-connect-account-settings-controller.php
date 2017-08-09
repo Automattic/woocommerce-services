@@ -71,6 +71,6 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		global $current_user;
 		$master_user = WC_Connect_Jetpack::get_master_user();
 		return WC_Connect_Jetpack::is_development_mode() ||
-			( is_a( $master_user, 'WP_User' ) && $current_user->ID == $master_user->ID );
+			( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID );
 	}
 }
