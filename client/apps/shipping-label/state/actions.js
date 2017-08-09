@@ -8,7 +8,7 @@ import _ from 'lodash';
 /**
  * Internal dependencies
  */
-import saveForm from 'lib/save-form';
+import * as api from 'api';
 import printDocument from 'lib/utils/print-document';
 import getPDFSupport from 'lib/utils/pdf-support';
 import * as NoticeActions from 'state/notices/actions';
@@ -18,6 +18,9 @@ import normalizeAddress from './normalize-address';
 import getRates from './get-rates';
 import { getPrintURL } from 'lib/pdf-label-utils';
 
+export const INIT_LABELS = 'INIT_LABELS';
+export const SET_IS_FETCHING = 'SET_IS_FETCHING';
+export const SET_FETCH_ERROR = 'SET_FETCH_ERROR';
 export const OPEN_PRINTING_FLOW = 'OPEN_PRINTING_FLOW';
 export const EXIT_PRINTING_FLOW = 'EXIT_PRINTING_FLOW';
 export const TOGGLE_STEP = 'TOGGLE_STEP';
@@ -63,6 +66,28 @@ export const ADD_ITEMS = 'ADD_ITEMS';
 
 const FORM_STEPS = [ 'origin', 'destination', 'packages', 'rates' ];
 
+export const fetchLabelsData = () => ( dispatch, getState, { orderId } ) => {
+	dispatch( { type: SET_IS_FETCHING, isFetching: true } );
+
+	api.get( api.url.orderLabels( orderId ) )
+		.then( ( { formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => {
+			dispatch( {
+				type: INIT_LABELS,
+				formData,
+				labelsData,
+				paperSize,
+				storeOptions,
+				paymentMethod,
+				numPaymentMethods,
+			} );
+		} )
+		.catch( ( error ) => {
+			dispatch( { type: SET_FETCH_ERROR, error: true } );
+			console.error( error ); // eslint-disable-line no-console
+		} )
+		.then( () => dispatch( { type: SET_IS_FETCHING, isFetching: false } ) );
+};
+
 export const toggleStep = ( stepName ) => {
 	return {
 		type: TOGGLE_STEP,
@@ -107,7 +132,10 @@ const expandFirstErroneousStep = ( dispatch, getState, storeOptions, currentStep
 	}
 };
 
-export const submitStep = ( stepName ) => ( dispatch, getState, { storeOptions } ) => {
+export const submitStep = ( stepName ) => ( dispatch, getState ) => {
+	const state = getState().shippingLabel;
+	const storeOptions = state.storeOptions;
+
 	dispatch( {
 		type: TOGGLE_STEP,
 		stepName,
@@ -123,7 +151,7 @@ export const clearAvailableRates = () => {
 	return { type: CLEAR_AVAILABLE_RATES };
 };
 
-const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce } ) => {
+const getLabelRates = ( dispatch, getState, handleResponse, { orderId } ) => {
 	const formState = getState().shippingLabel.form;
 	const {
 		origin,
@@ -131,7 +159,7 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 		packages,
 	} = formState;
 
-	return getRates( dispatch, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), getRatesURL, nonce )
+	return getRates( dispatch, origin.values, destination.values, _.map( packages.selected, convertToApiPackage ), orderId )
 		.then( handleResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -142,11 +170,12 @@ const getLabelRates = ( dispatch, getState, handleResponse, { getRatesURL, nonce
 export const openPrintingFlow = () => (
 	dispatch,
 	getState,
-	context,
+	{ orderId },
 	getErrors = getFormErrors
 ) => {
-	const { storeOptions, addressNormalizationURL, getRatesURL, nonce } = context;
-	let form = getState().shippingLabel.form;
+	const state = getState().shippingLabel;
+	const storeOptions = state.storeOptions;
+	let form = state.form;
 	const { origin, destination } = form;
 	const errors = getErrors( getState(), storeOptions );
 	const promisesQueue = [];
@@ -155,7 +184,7 @@ export const openPrintingFlow = () => (
 		! hasNonEmptyLeaves( errors.origin ) &&
 		! origin.isNormalized &&
 		! origin.normalizationInProgress ) {
-		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, origin.values, 'origin' ) );
 	}
 
 	if ( origin.ignoreValidation || hasNonEmptyLeaves( errors.origin ) ) {
@@ -166,7 +195,7 @@ export const openPrintingFlow = () => (
 		! hasNonEmptyLeaves( errors.destination ) &&
 		! destination.isNormalized &&
 		! destination.normalizationInProgress ) {
-		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination', addressNormalizationURL, nonce ) );
+		promisesQueue.push( normalizeAddress( dispatch, destination.values, 'destination' ) );
 	}
 
 	if ( destination.ignoreValidation || hasNonEmptyLeaves( errors.destination ) ) {
@@ -190,7 +219,7 @@ export const openPrintingFlow = () => (
 			form.packages.all && Object.keys( form.packages.all ).length &&
 			! hasNonEmptyLeaves( errors.packages )
 		) {
-			return getLabelRates( dispatch, getState, expandStepAfterAction, { getRatesURL, nonce } );
+			return getLabelRates( dispatch, getState, expandStepAfterAction, { orderId } );
 		}
 
 		// Otherwise, just expand the next errant step unless the
@@ -246,7 +275,9 @@ export const removeIgnoreValidation = ( group ) => {
 	};
 };
 
-export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { storeOptions, getRatesURL, nonce } ) => {
+export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { orderId } ) => {
+	const storeOptions = getState().shippingLabel.storeOptions;
+
 	dispatch( {
 		type: CONFIRM_ADDRESS_SUGGESTION,
 		group,
@@ -269,12 +300,11 @@ export const confirmAddressSuggestion = ( group ) => ( dispatch, getState, { sto
 		return;
 	}
 
-	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
+	getLabelRates( dispatch, getState, handleResponse, { orderId } );
 };
 
-export const submitAddressForNormalization = ( group ) => ( dispatch, getState, context ) => {
-	const { addressNormalizationURL, getRatesURL, nonce, storeOptions } = context;
-
+export const submitAddressForNormalization = ( group ) => ( dispatch, getState, { orderId } ) => {
+	const storeOptions = getState().shippingLabel.storeOptions;
 	const handleNormalizeResponse = ( success ) => {
 		if ( ! success ) {
 			return;
@@ -301,7 +331,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 				return;
 			}
 
-			getLabelRates( dispatch, getState, handleRatesResponse, { getRatesURL, nonce } );
+			getLabelRates( dispatch, getState, handleRatesResponse, { orderId } );
 		}
 	};
 
@@ -318,7 +348,7 @@ export const submitAddressForNormalization = ( group ) => ( dispatch, getState, 
 		handleNormalizeResponse( true );
 		return;
 	}
-	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group, addressNormalizationURL, nonce )
+	normalizeAddress( dispatch, getState().shippingLabel.form[ group ].values, group )
 		.then( handleNormalizeResponse )
 		.catch( ( error ) => {
 			console.error( error );
@@ -435,8 +465,8 @@ export const removeItem = ( packageId, itemIndex ) => ( dispatch, getState ) => 
 	}
 };
 
-export const confirmPackages = () => ( dispatch, getState, context ) => {
-	const { getRatesURL, storeOptions, nonce } = context;
+export const confirmPackages = () => ( dispatch, getState, { orderId } ) => {
+	const storeOptions = getState().shippingLabel.storeOptions;
 	dispatch( toggleStep( 'packages' ) );
 	dispatch( savePackages() );
 
@@ -444,7 +474,7 @@ export const confirmPackages = () => ( dispatch, getState, context ) => {
 		expandFirstErroneousStep( dispatch, getState, storeOptions, 'packages' );
 	};
 
-	getLabelRates( dispatch, getState, handleResponse, { getRatesURL, nonce } );
+	getLabelRates( dispatch, getState, handleResponse, { orderId } );
 };
 
 export const updateRate = ( packageId, value ) => {
@@ -463,15 +493,13 @@ export const updatePaperSize = ( value ) => {
 };
 
 export const purchaseLabel = () => ( dispatch, getState, context ) => {
-	const { purchaseURL, getRatesURL, addressNormalizationURL, nonce } = context;
+	const { orderId } = context;
 	let error = null;
 	let response = null;
 
 	const setError = ( err ) => error = err;
-	const setSuccess = ( success, json ) => {
-		if ( success ) {
-			response = json.labels;
-		}
+	const setSuccess = ( json ) => {
+		response = json.labels;
 	};
 	const setIsSaving = ( saving ) => {
 		if ( saving ) {
@@ -485,7 +513,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 				dispatch( NoticeActions.errorNotice( error.toString() ) );
 				//re-request the rates on failure to avoid attempting repurchase of the same shipment id
 				dispatch( clearAvailableRates() );
-				getLabelRates( dispatch, getState, _.noop, { getRatesURL, nonce } );
+				getLabelRates( dispatch, getState, _.noop, { orderId } );
 			} else {
 				const labelsToPrint = response.map( ( label, index ) => ( {
 					caption: __( 'PACKAGE %(num)d (OF %(total)d)', {
@@ -530,11 +558,11 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 	let form = getState().shippingLabel.form;
 	const addressNormalizationQueue = [];
 	if ( ! form.origin.isNormalized ) {
-		const task = normalizeAddress( dispatch, form.origin.values, 'origin', addressNormalizationURL, nonce );
+		const task = normalizeAddress( dispatch, form.origin.values, 'origin' );
 		addressNormalizationQueue.push( task );
 	}
 	if ( ! form.destination.isNormalized ) {
-		const task = normalizeAddress( dispatch, form.destination.values, 'destination', addressNormalizationURL, nonce );
+		const task = normalizeAddress( dispatch, form.destination.values, 'destination' );
 		addressNormalizationQueue.push( task );
 	}
 
@@ -561,7 +589,11 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 			} ),
 		};
 
-		saveForm( setIsSaving, setSuccess, _.noop, setError, purchaseURL, nonce, 'POST', formData );
+		setIsSaving( true );
+		api.post( api.url.orderLabels( orderId ), formData )
+			.then( setSuccess )
+			.catch( setError )
+			.then( () => setIsSaving( false ) );
 	} ).catch( ( err ) => {
 		console.error( err );
 		dispatch( NoticeActions.errorNotice( err.toString() ) );
@@ -584,7 +616,7 @@ export const openRefundDialog = ( labelId ) => {
 	};
 };
 
-export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, nonce } ) => {
+export const fetchLabelsStatus = () => ( dispatch, getState, { orderId } ) => {
 	getState().shippingLabel.labels.forEach( ( label ) => {
 		if ( label.statusUpdated ) {
 			return;
@@ -593,10 +625,8 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 		let error = null;
 		let response = null;
 		const setError = ( err ) => error = err;
-		const setSuccess = ( success, json ) => {
-			if ( success ) {
-				response = json.label;
-			}
+		const setSuccess = ( json ) => {
+			response = json.label;
 		};
 		const setIsSaving = ( saving ) => {
 			if ( ! saving ) {
@@ -607,7 +637,11 @@ export const fetchLabelsStatus = () => ( dispatch, getState, { labelStatusURL, n
 			}
 		};
 
-		saveForm( setIsSaving, setSuccess, _.noop, setError, labelStatusURL.replace( '%d', labelId ), nonce, 'GET' );
+		setIsSaving( true );
+		api.get( api.url.labelStatus( orderId, labelId ) )
+			.then( setSuccess )
+			.catch( setError )
+			.then( () => setIsSaving( false ) );
 	} );
 };
 
@@ -615,17 +649,15 @@ export const closeRefundDialog = () => {
 	return { type: CLOSE_REFUND_DIALOG };
 };
 
-export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce } ) => {
+export const confirmRefund = () => ( dispatch, getState, { orderId } ) => {
 	const labelId = getState().shippingLabel.refundDialog.labelId;
 	let error = null;
 	let response = null;
 	const setError = ( err ) => {
 		error = err;
 	};
-	const setSuccess = ( success, json ) => {
-		if ( success ) {
-			response = json.refund;
-		}
+	const setSuccess = ( json ) => {
+		response = json.refund;
 	};
 	const setIsSaving = ( saving ) => {
 		if ( saving ) {
@@ -640,7 +672,11 @@ export const confirmRefund = () => ( dispatch, getState, { labelRefundURL, nonce
 		}
 	};
 
-	saveForm( setIsSaving, setSuccess, _.noop, setError, labelRefundURL.replace( '%d', labelId ), nonce, 'POST' );
+	setIsSaving( true );
+	api.post( api.url.labelRefund( orderId, labelId ) )
+		.then( setSuccess )
+        .catch( setError )
+		.then( () => setIsSaving( false ) );
 };
 
 export const openReprintDialog = ( labelId ) => {

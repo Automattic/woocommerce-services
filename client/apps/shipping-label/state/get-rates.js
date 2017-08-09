@@ -1,12 +1,7 @@
 /**
- * External dependencies
- */
-import _ from 'lodash';
-
-/**
  * Internal dependencies
  */
-import saveForm from 'lib/save-form';
+import * as api from 'api';
 import {
 	RATES_RETRIEVAL_IN_PROGRESS,
 	SET_RATES,
@@ -14,18 +9,16 @@ import {
 	exitPrintingFlow,
 } from './actions';
 
-export default ( dispatch, origin, destination, packages, getRatesURL, nonce ) => {
+export default ( dispatch, origin, destination, packages, orderId ) => {
 	dispatch( { type: RATES_RETRIEVAL_IN_PROGRESS } );
 	return new Promise( ( resolve, reject ) => {
 		let error = null;
 		const setError = ( err ) => error = err;
-		const setSuccess = ( success, json ) => {
-			if ( success ) {
-				dispatch( {
-					type: SET_RATES,
-					rates: json.rates,
-				} );
-			}
+		const setSuccess = ( json ) => {
+			dispatch( {
+				type: SET_RATES,
+				rates: json.rates,
+			} );
 		};
 		const setIsSaving = ( saving ) => {
 			if ( ! saving ) {
@@ -41,6 +34,11 @@ export default ( dispatch, origin, destination, packages, getRatesURL, nonce ) =
 				}
 			}
 		};
-		saveForm( setIsSaving, setSuccess, _.noop, setError, getRatesURL, nonce, 'POST', { origin, destination, packages } );
+
+		setIsSaving( true );
+		api.post( api.url.getLabelRates( orderId ), { origin, destination, packages } )
+			.then( setSuccess )
+			.catch( setError )
+			.then( () => setIsSaving( false ) );
 	} );
 };

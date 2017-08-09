@@ -12,6 +12,7 @@ import { translate as __ } from 'i18n-calypso';
  */
 import Button from 'components/button';
 import PurchaseDialog from './components/label-purchase-modal';
+import QueryLabels from 'components/query-labels';
 import RefundDialog from './components/label-refund-modal';
 import ReprintDialog from './components/label-reprint-modal';
 import TrackingLink from './components/tracking-link';
@@ -45,7 +46,15 @@ class ShippingLabelRootView extends Component {
 	}
 
 	componentWillMount() {
-		if ( this.state.needToFetchLabelsStatus ) {
+		if ( this.props.loaded && this.state.needToFetchLabelsStatus ) {
+			// TODO: Use redux for this instead
+			this.setState( { needToFetchLabelsStatus: false } );
+			this.props.labelActions.fetchLabelsStatus();
+		}
+	}
+
+	componentWillReceiveProps( props ) {
+		if ( props.loaded && this.state.needToFetchLabelsStatus ) {
 			// TODO: Use redux for this instead
 			this.setState( { needToFetchLabelsStatus: false } );
 			this.props.labelActions.fetchLabelsStatus();
@@ -248,24 +257,31 @@ class ShippingLabelRootView extends Component {
 	render() {
 		return (
 			<div className="shipping-label__container">
+				<QueryLabels />
 				<GlobalNotices id="notices" notices={ notices.list } />
-				{ this.renderPurchaseLabelFlow() }
-				{ this.props.shippingLabel.labels.length ? this.renderLabels() : null }
+				{ this.props.loaded && this.renderPurchaseLabelFlow() }
+				{ this.props.loaded && this.props.shippingLabel.labels.length ? this.renderLabels() : null }
 			</div>
 		);
 	}
 }
 
 ShippingLabelRootView.propTypes = {
-	storeOptions: PropTypes.object.isRequired,
+	storeOptions: PropTypes.object,
 	shippingLabel: PropTypes.object.isRequired,
 };
 
-function mapStateToProps( state, { storeOptions } ) {
+function mapStateToProps( state ) {
+	const shippingLabel = state.shippingLabel;
+	const loaded = shippingLabel.loaded;
+	const storeOptions = loaded ? shippingLabel.storeOptions : {};
+
 	return {
-		shippingLabel: state.shippingLabel,
-		errors: getFormErrors( state, storeOptions ),
-		canPurchase: canPurchase( state, storeOptions ),
+		shippingLabel,
+		loaded,
+		storeOptions,
+		errors: loaded && getFormErrors( state, storeOptions ),
+		canPurchase: loaded && canPurchase( state, storeOptions ),
 	};
 }
 

@@ -447,7 +447,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return null;
 		}
 
-		public function meta_box( $post ) {
+		public function get_label_payload( $post ) {
 			$order = wc_get_order( $post );
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
@@ -458,8 +458,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d' ),
 				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d/refund' ),
 				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/label/print' ),
+				'orderId'                 => $order_id,
 				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
-				'nonce'                   => wp_create_nonce( 'wp_rest' ),
 				'formData'                => $this->get_form_data( $order ),
 				'paymentMethod'           => $this->get_selected_payment_method(),
 				'numPaymentMethods'       => count( $this->payment_methods_store->get_payment_methods() ),
@@ -470,7 +470,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$store_options['countriesData'] = $this->get_states_map();
 			$payload['storeOptions'] = $store_options;
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
+			return $payload;
+		}
+
+		public function meta_box( $post ) {
+			$order = wc_get_order( $post );
+
+			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', array(
+				'purchaseURL'             => get_rest_url( null, '/wc/v1/connect/label/' . $order_id ),
+				'addressNormalizationURL' => get_rest_url( null, '/wc/v1/connect/normalize-address' ),
+				'getRatesURL'             => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/rates' ),
+				'labelStatusURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d' ),
+				'labelRefundURL'          => get_rest_url( null, '/wc/v1/connect/label/' . $order_id . '/%d/refund' ),
+				'labelsPrintURL'          => get_rest_url( null, '/wc/v1/connect/label/print' ),
+				'orderId'                 => $order_id,
+			) );
 		}
 
 	}

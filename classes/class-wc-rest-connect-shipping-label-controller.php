@@ -11,6 +11,23 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Controller' ) ) {
 class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/label/(?P<order_id>\d+)';
 
+	/*
+	 * @var WC_Connect_Shipping_Label
+	 */
+	protected $shipping_label;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger, WC_Connect_Shipping_Label $shipping_label ) {
+		parent::__construct( $api_client, $settings_store, $logger );
+		$this->shipping_label = $shipping_label;
+	}
+
+	public function get( $request ) {
+		$order_id = $request[ 'order_id' ];
+		$payload = $this->shipping_label->get_label_payload( $order_id );
+		$payload[ 'success' ] = true;
+		return new WP_REST_Response( $payload, 200 );
+	}
+
 	public function post( $request ) {
 		$settings = $request->get_json_params();
 		$order_id = $request[ 'order_id' ];

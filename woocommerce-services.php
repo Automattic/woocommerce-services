@@ -553,7 +553,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_self_help_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-controller.php' ) );
-			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger );
+			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger, $this->shipping_label );
 			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
 			$rest_shipping_label_controller->register_routes();
 

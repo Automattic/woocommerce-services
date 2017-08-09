@@ -8,6 +8,9 @@ import _ from 'lodash';
  * Internal dependencies
  */
 import {
+	INIT_LABELS,
+	SET_IS_FETCHING,
+	SET_FETCH_ERROR,
 	OPEN_PRINTING_FLOW,
 	EXIT_PRINTING_FLOW,
 	TOGGLE_STEP,
@@ -52,6 +55,7 @@ import {
 	ADD_ITEMS,
 } from './actions';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
+import initializeLabelsState from 'lib/initialize-labels-state';
 
 const generateUniqueBoxId = ( keyBase, boxIds ) => {
 	for ( let i = 0; i <= boxIds.length; i++ ) {
@@ -65,6 +69,27 @@ const generateUniqueBoxId = ( keyBase, boxIds ) => {
 const round = ( n ) => _.round( n, 8 );
 
 const reducers = {};
+
+reducers[ INIT_LABELS ] = ( state, { formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => {
+	return {
+		...state,
+		...initializeLabelsState( formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods ),
+	};
+};
+
+reducers[ SET_IS_FETCHING ] = ( state, { isFetching } ) => {
+	return {
+		...state,
+		isFetching,
+	};
+};
+
+reducers[ SET_FETCH_ERROR ] = ( state, { error } ) => {
+	return {
+		...state,
+		error,
+	};
+};
 
 reducers[ OPEN_PRINTING_FLOW ] = ( state ) => {
 	return { ...state,
