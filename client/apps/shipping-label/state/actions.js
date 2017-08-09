@@ -525,7 +525,7 @@ export const purchaseLabel = () => ( dispatch, getState, context ) => {
 					labelId: label.label_id,
 				} ) );
 				const state = getState().shippingLabel;
-				const printUrl = getPrintURL( state.paperSize, labelsToPrint, context );
+				const printUrl = getPrintURL( state.paperSize, labelsToPrint );
 				if ( 'addon' === getPDFSupport() ) {
 					// If the browser has a PDF "addon", we need another user click to trigger opening it in a new tab
 					dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
@@ -687,11 +687,11 @@ export const closeReprintDialog = () => {
 	return { type: CLOSE_REPRINT_DIALOG };
 };
 
-export const confirmReprint = () => ( dispatch, getState, context ) => {
+export const confirmReprint = () => ( dispatch, getState ) => {
 	dispatch( { type: CONFIRM_REPRINT } );
 	const state = getState().shippingLabel;
 	const labelId = state.reprintDialog.labelId;
-	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ], context ) )
+	printDocument( getPrintURL( getState().shippingLabel.paperSize, [ { labelId } ] ) )
 		.catch( ( error ) => {
 			console.error( error );
 			dispatch( NoticeActions.errorNotice( error.toString() ) );

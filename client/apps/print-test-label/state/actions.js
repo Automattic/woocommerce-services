@@ -17,7 +17,7 @@ export const updatePaperSize = ( paperSize ) => {
 	return { type: UPDATE_PAPER_SIZE, paperSize };
 };
 
-export const print = () => ( dispatch, getState, { labelsPreviewURL, nonce } ) => {
+export const print = () => ( dispatch, getState ) => {
 	dispatch( { type: PRINTING_IN_PROGRESS, inProgress: true } );
 	const { paperSize } = getState();
 
@@ -28,7 +28,7 @@ export const print = () => ( dispatch, getState, { labelsPreviewURL, nonce } ) =
 		labelData.push( { caption: __( 'TEST LABEL 2' ) } );
 	}
 
-	printDocument( getPreviewURL( paperSize, labelData, { labelsPreviewURL, nonce } ) )
+	printDocument( getPreviewURL( paperSize, labelData ) )
 		.then( () => {
 			dispatch( { type: PRINTING_IN_PROGRESS, inProgress: false } );
 		} )
