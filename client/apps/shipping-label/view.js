@@ -11,6 +11,7 @@ import { translate as __ } from 'i18n-calypso';
  * Internal dependencies
  */
 import Button from 'components/button';
+import LoadingSpinner from 'components/loading-spinner';
 import PurchaseDialog from './components/label-purchase-modal';
 import QueryLabels from 'components/query-labels';
 import RefundDialog from './components/label-refund-modal';
@@ -254,20 +255,33 @@ class ShippingLabelRootView extends Component {
 		return this.props.shippingLabel.labels.map( this.renderLabel );
 	}
 
+	renderLoading() {
+		return (
+			<div>
+				<QueryLabels />
+				<LoadingSpinner />
+			</div>
+		);
+	}
+
 	render() {
+		if ( ! this.props.loaded ) {
+			return this.renderLoading();
+		}
+
 		return (
 			<div className="shipping-label__container">
 				<QueryLabels />
 				<GlobalNotices id="notices" notices={ notices.list } />
-				{ this.props.loaded && this.renderPurchaseLabelFlow() }
-				{ this.props.loaded && this.props.shippingLabel.labels.length ? this.renderLabels() : null }
+				{ this.renderPurchaseLabelFlow() }
+				{ this.props.shippingLabel.labels.length ? this.renderLabels() : null }
 			</div>
 		);
 	}
 }
 
 ShippingLabelRootView.propTypes = {
-	storeOptions: PropTypes.object,
+	storeOptions: PropTypes.object.isRequired,
 	shippingLabel: PropTypes.object.isRequired,
 };
 
