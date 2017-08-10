@@ -90,11 +90,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Check that Jetpack is active
 			// Check that Jetpack is connected
 			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' ); // required for is_plugin_active
-			if ( method_exists( 'Jetpack', 'is_development_mode' ) && method_exists( 'Jetpack', 'is_active' ) ) {
-				$is_connected = Jetpack::is_development_mode() ? true : Jetpack::is_active();
-			} else {
-				$is_connected = false;
-			}
+			$is_connected = WC_Connect_Jetpack::is_active() || WC_Connect_Jetpack::is_development_mode();
 			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
@@ -126,7 +122,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					__( 'Jetpack is not connected to WordPress.com. Make sure the Jetpack plugin is installed, activated, and connected.', 'woocommerce-services' ),
 					''
 				);
-			} else if ( Jetpack::is_staging_site() ) {
+			} else if ( WC_Connect_Jetpack::is_staging_site() ) {
 				$health_item = $this->build_indicator(
 					'jetpack_indicator',
 					'notice',

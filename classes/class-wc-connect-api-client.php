@@ -437,7 +437,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'last_heartbeat' => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
 				'last_rate_request' => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
 				'active_services' => $this->wc_connect_loader->get_active_services(),
-				'disable_stats' => Jetpack::is_staging_site(),
+				'disable_stats' => WC_Connect_Jetpack::is_staging_site(),
 			) );
 
 			return $body;
