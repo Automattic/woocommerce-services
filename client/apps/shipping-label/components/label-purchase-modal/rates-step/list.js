@@ -54,7 +54,7 @@ const ShippingRates = ( {
 		const formError = errors.form && errors.form[ pckgId ];
 
 		packageRates.forEach( ( rateObject ) => {
-			valuesMap[ rateObject.service_id ] = rateObject.title + ' (' + currencySymbol + rateObject.rate.toFixed( 2 ) + ')';
+			valuesMap[ rateObject.service_id ] = rateObject.title + ' (' + currencySymbol + Number( rateObject.rate ).toFixed( 2 ) + ')';
 		} );
 
 		const onRateUpdate = ( value ) => updateRate( pckgId, value );

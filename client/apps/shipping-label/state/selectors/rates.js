@@ -19,6 +19,6 @@ export const getRatesTotal = createSelector(
 			return 0;
 		} );
 
-		return _.sum( ratesCost ).toFixed( 2 );
+		return Number( _.sum( ratesCost ) ).toFixed( 2 );
 	}
 );
