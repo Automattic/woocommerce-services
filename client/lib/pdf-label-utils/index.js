@@ -42,6 +42,7 @@ const _getPDFURL = ( paperSize, labels, baseURL, nonce ) => {
 	const params = {
 		_wpnonce: nonce,
 		paper_size: paperSize,
+		//send params as a CSV to avoid conflicts with some plugins out there (#1111)
 		label_id_csv: _.filter( _.map( labels, 'labelId' ) ).join( ',' ),
 		caption_csv: _.filter( _.map( labels, ( l ) => ( l.caption ? encodeURIComponent( l.caption ) : null ) ) ).join( ',' ),
 	};

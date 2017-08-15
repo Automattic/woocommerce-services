@@ -18,9 +18,9 @@ class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Ba
 		$params[ 'paper_size' ] = $raw_params[ 'paper_size' ];
 		$this->settings_store->set_preferred_paper_size( $params[ 'paper_size' ] );
 
-		$label_ids = isset( $raw_params[ 'label_id_csv' ] ) && $raw_params[ 'label_id_csv' ] ? explode( ',', $raw_params[ 'label_id_csv' ] ) : array();
+		$label_ids = ! empty( $raw_params[ 'label_id_csv' ] ) ? explode( ',', $raw_params[ 'label_id_csv' ] ) : array();
 		$n_label_ids = count( $label_ids );
-		$captions = isset( $raw_params[ 'caption_csv' ] ) && $raw_params[ 'caption_csv' ] ? explode( ',', $raw_params[ 'caption_csv' ] ) : array();
+		$captions = ! empty( $raw_params[ 'caption_csv' ] ) ? explode( ',', $raw_params[ 'caption_csv' ] ) : array();
 		$n_captions = count( $captions );
 		// Either there are the same number of captions as labels, or no captions at all
 		if ( ! $n_label_ids || ( $n_captions && $n_captions !== $n_label_ids ) ) {
