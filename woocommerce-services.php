@@ -442,8 +442,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
 			$this->set_taxjar( $taxjar );
-
-			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 		}
 
 		/**
