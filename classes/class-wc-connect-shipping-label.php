@@ -473,15 +473,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function meta_box( $post ) {
 			$order = wc_get_order( $post );
 
-			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
-
 			$payload = $this->get_label_payload( $order );
 			if ( ! $payload ) {
 				return;
 			}
-
-			//pass order ID as the only constant in the context, everything else can be fetched dynamically
-			$payload[ 'orderId' ] = $order_id;
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
 		}
