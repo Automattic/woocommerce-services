@@ -21,9 +21,9 @@ import * as NoticeActions from 'state/notices/actions';
 const AccountSettingsRootView = ( { formData, formMeta, actions, noticeActions, storeOptions } ) => {
 	const onSaveSuccess = () => {
 		actions.setFormMetaProperty( 'pristine', true );
-		noticeActions.successNotice( __( 'Your payment method has been updated.' ), { duration: 5000 } );
+		noticeActions.successNotice( __( 'Your shipping label settings have been saved.' ), { duration: 5000 } );
 	};
-	const onSaveFailure = () => noticeActions.errorNotice( __( 'Unable to update your payment method. Please try again.' ) );
+	const onSaveFailure = () => noticeActions.errorNotice( __( 'Unable to save your shipping label settings. Please try again.' ) );
 	const onSaveChanges = () => actions.submit( onSaveSuccess, onSaveFailure );
 
 	const buttons = [
