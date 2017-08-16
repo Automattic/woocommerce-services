@@ -449,6 +449,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		public function get_label_payload( $post_order_or_id ) {
 			$order = wc_get_order( $post_order_or_id );
+			if ( ! $order ) {
+				return false;
+			}
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
@@ -473,6 +476,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 
 			$payload = $this->get_label_payload( $order );
+			if ( ! $payload ) {
+				return;
+			}
+
 			//pass order ID as the only constant in the context, everything else can be fetched dynamically
 			$payload[ 'orderId' ] = $order_id;
 

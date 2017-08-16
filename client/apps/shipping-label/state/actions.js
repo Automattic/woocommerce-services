@@ -492,8 +492,7 @@ export const updatePaperSize = ( value ) => {
 	};
 };
 
-export const purchaseLabel = () => ( dispatch, getState, context ) => {
-	const { orderId } = context;
+export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 	let error = null;
 	let response = null;
 
@@ -675,7 +674,7 @@ export const confirmRefund = () => ( dispatch, getState, { orderId } ) => {
 	setIsSaving( true );
 	api.post( api.url.labelRefund( orderId, labelId ) )
 		.then( setSuccess )
-        .catch( setError )
+		.catch( setError )
 		.then( () => setIsSaving( false ) );
 };
 

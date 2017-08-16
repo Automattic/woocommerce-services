@@ -24,6 +24,9 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	public function get( $request ) {
 		$order_id = $request[ 'order_id' ];
 		$payload = $this->shipping_label->get_label_payload( $order_id );
+		if ( ! $payload ) {
+			return new WP_Error( 404 );
+		}
 		$payload[ 'success' ] = true;
 		return new WP_REST_Response( $payload, 200 );
 	}
