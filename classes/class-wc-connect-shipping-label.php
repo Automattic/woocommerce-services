@@ -447,8 +447,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return null;
 		}
 
-		public function get_label_payload( $post ) {
-			$order = wc_get_order( $post );
+		public function get_label_payload( $post_order_or_id ) {
+			$order = wc_get_order( $post_order_or_id );
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
