@@ -270,6 +270,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Create a deferred Stripe Standard Account
+		 * @param $request
+		 * @return object|WP_Error
+		 */
+		public function create_stripe_account( $request ) {
+			return $this->request( 'POST', '/stripe/account', $request );
+		}
+
+		/**
 		 * Sends a request to the WooCommerce Services Server
 		 *
 		 * @param $method
