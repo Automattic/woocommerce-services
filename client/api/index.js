@@ -16,3 +16,5 @@ const handleError = ( jsonError ) => {
 export const post = ( url, data ) => request.post( url, data ).catch( handleError );
 
 export const get = ( url ) => request.get( url ).catch( handleError );
+
+export const createGetUrlWithNonce = ( url, queryString ) => request.createGetUrlWithNonce( url, queryString );

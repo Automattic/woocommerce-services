@@ -19,7 +19,7 @@ const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refu
 
 	return (
 		<Modal
-			isVisible={ refundDialog && refundDialog.labelId === label_id }
+			isVisible={ Boolean( refundDialog && refundDialog.labelId === label_id ) }
 			onClose={ labelActions.closeRefundDialog }
 			additionalClassNames="label-refund-modal">
 			<FormSectionHeading>

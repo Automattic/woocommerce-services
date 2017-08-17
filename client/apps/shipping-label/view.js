@@ -11,7 +11,9 @@ import { translate as __ } from 'i18n-calypso';
  * Internal dependencies
  */
 import Button from 'components/button';
+import LoadingSpinner from 'components/loading-spinner';
 import PurchaseDialog from './components/label-purchase-modal';
+import QueryLabels from 'components/query-labels';
 import RefundDialog from './components/label-refund-modal';
 import ReprintDialog from './components/label-reprint-modal';
 import TrackingLink from './components/tracking-link';
@@ -26,33 +28,19 @@ import canPurchase from './state/selectors/can-purchase';
 import Notice from 'components/notice';
 
 class ShippingLabelRootView extends Component {
-	constructor( props ) {
-		super( props );
-
-		this.renderLabel = this.renderLabel.bind( this );
-		this.renderLabels = this.renderLabels.bind( this );
-		this.renderLabelButton = this.renderLabelButton.bind( this );
-		this.renderPaymentInfo = this.renderPaymentInfo.bind( this );
-		this.renderPurchaseLabelFlow = this.renderPurchaseLabelFlow.bind( this );
-		this.renderRefundLink = this.renderRefundLink.bind( this );
-		this.renderRefund = this.renderRefund.bind( this );
-		this.renderReprint = this.renderReprint.bind( this );
-		this.renderLabelDetails = this.renderLabelDetails.bind( this );
-
-		this.state = {
-			needToFetchLabelsStatus: true,
-		};
-	}
-
 	componentWillMount() {
-		if ( this.state.needToFetchLabelsStatus ) {
-			// TODO: Use redux for this instead
-			this.setState( { needToFetchLabelsStatus: false } );
+		if ( this.props.needToFetchLabelStatus ) {
 			this.props.labelActions.fetchLabelsStatus();
 		}
 	}
 
-	renderPaymentInfo() {
+	componentWillReceiveProps( props ) {
+		if ( props.needToFetchLabelStatus ) {
+			this.props.labelActions.fetchLabelsStatus();
+		}
+	}
+
+	renderPaymentInfo = () => {
 		const numPaymentMethods = this.props.shippingLabel.numPaymentMethods;
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
@@ -85,17 +73,17 @@ class ShippingLabelRootView extends Component {
 				<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ __( 'Add a credit card' ) }</a></p>
 			</Notice>
 		);
-	}
+	};
 
-	renderLabelButton() {
+	renderLabelButton = () => {
 		return (
 			<Button className="shipping-label__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
 				{ __( 'Create new label' ) }
 			</Button>
 		);
-	}
+	};
 
-	renderPurchaseLabelFlow() {
+	renderPurchaseLabelFlow = () => {
 		const paymentMethod = this.props.shippingLabel.paymentMethod;
 
 		return (
@@ -107,9 +95,9 @@ class ShippingLabelRootView extends Component {
 				{ paymentMethod && this.renderLabelButton() }
 			</div>
 		);
-	}
+	};
 
-	renderRefundLink( label ) {
+	renderRefundLink = ( label ) => {
 		const today = new Date();
 		const thirtyDaysAgo = new Date().setDate( today.getDate() - 30 );
 		if ( ( label.used_date && label.used_date < today.getTime() ) || ( label.created_date && label.created_date < thirtyDaysAgo ) ) {
@@ -133,9 +121,9 @@ class ShippingLabelRootView extends Component {
 				</a>
 			</span>
 		);
-	}
+	};
 
-	renderRefund( label ) {
+	renderRefund = ( label ) => {
 		if ( ! label.refund ) {
 			return this.renderRefundLink( label );
 		}
@@ -167,9 +155,9 @@ class ShippingLabelRootView extends Component {
 		return (
 			<span className={ className } ><Gridicon icon="time" size={ 12 } />{ text }</span>
 		);
-	}
+	};
 
-	renderReprint( label ) {
+	renderReprint = ( label ) => {
 		const todayTime = new Date().getTime();
 		if ( label.refund ||
 			( label.used_date && label.used_date < todayTime ) ||
@@ -194,9 +182,9 @@ class ShippingLabelRootView extends Component {
 				</a>
 			</span>
 		);
-	}
+	};
 
-	renderLabelDetails( label, labelNum ) {
+	renderLabelDetails = ( label, labelNum ) => {
 		if ( ! label.package_name || ! label.product_names ) {
 			return null;
 		}
@@ -215,9 +203,9 @@ class ShippingLabelRootView extends Component {
 				</ul>
 			</InfoTooltip>
 		);
-	}
+	};
 
-	renderLabel( label, index, labels ) {
+	renderLabel = ( label, index, labels ) => {
 		const purchased = timeAgo( label.created );
 
 		return (
@@ -239,15 +227,29 @@ class ShippingLabelRootView extends Component {
 				</p>
 			</div>
 		);
-	}
+	};
 
-	renderLabels() {
+	renderLabels = () => {
 		return this.props.shippingLabel.labels.map( this.renderLabel );
+	};
+
+	renderLoading() {
+		return (
+			<div>
+				<QueryLabels />
+				<LoadingSpinner />
+			</div>
+		);
 	}
 
 	render() {
+		if ( ! this.props.loaded ) {
+			return this.renderLoading();
+		}
+
 		return (
 			<div className="shipping-label__container">
+				<QueryLabels />
 				<GlobalNotices id="notices" notices={ notices.list } />
 				{ this.renderPurchaseLabelFlow() }
 				{ this.props.shippingLabel.labels.length ? this.renderLabels() : null }
@@ -261,11 +263,18 @@ ShippingLabelRootView.propTypes = {
 	shippingLabel: PropTypes.object.isRequired,
 };
 
-function mapStateToProps( state, { storeOptions } ) {
+function mapStateToProps( state ) {
+	const shippingLabel = state.shippingLabel;
+	const loaded = shippingLabel.loaded;
+	const storeOptions = loaded ? shippingLabel.storeOptions : {};
+
 	return {
-		shippingLabel: state.shippingLabel,
-		errors: getFormErrors( state, storeOptions ),
-		canPurchase: canPurchase( state, storeOptions ),
+		shippingLabel,
+		loaded,
+		storeOptions,
+		needToFetchLabelStatus: loaded && ! shippingLabel.refreshedLabelStatus,
+		errors: loaded && getFormErrors( state, storeOptions ),
+		canPurchase: loaded && canPurchase( state, storeOptions ),
 	};
 }
 

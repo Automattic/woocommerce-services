@@ -43,7 +43,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 
 	public function post( $request ) {
 		if ( ! $this->can_user_manage_payment_methods() ) {
-			return new WP_Error( 403 );
+			return new WP_Error( 'forbidden', __( 'You are not allowed to do that', 'woocommerce-services' ), array( 'status' => 403 ) );
 		}
 
 		$settings = $request->get_json_params();

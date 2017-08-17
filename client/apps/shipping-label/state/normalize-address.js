@@ -1,12 +1,7 @@
 /**
- * External dependencies
- */
-import _ from 'lodash';
-
-/**
  * Internal dependencies
  */
-import saveForm from 'lib/save-form';
+import * as api from 'api';
 import {
 	ADDRESS_NORMALIZATION_IN_PROGRESS,
 	SET_NORMALIZED_ADDRESS,
@@ -14,20 +9,18 @@ import {
 	exitPrintingFlow,
 } from './actions';
 
-export default ( dispatch, address, group, addressNormalizationURL, nonce ) => {
+export default ( dispatch, address, group ) => {
 	dispatch( { type: ADDRESS_NORMALIZATION_IN_PROGRESS, group } );
 	return new Promise( ( resolve ) => {
 		let error = null;
 		const setError = ( err ) => error = err;
-		const setSuccess = ( success, json ) => {
-			if ( success ) {
-				dispatch( {
-					type: SET_NORMALIZED_ADDRESS,
-					group,
-					normalized: json.normalized,
-					isTrivialNormalization: json.is_trivial_normalization,
-				} );
-			}
+		const setSuccess = ( json ) => {
+			dispatch( {
+				type: SET_NORMALIZED_ADDRESS,
+				group,
+				normalized: json.normalized,
+				isTrivialNormalization: json.is_trivial_normalization,
+			} );
 		};
 		const setIsSaving = ( saving ) => {
 			if ( ! saving ) {
@@ -46,6 +39,10 @@ export default ( dispatch, address, group, addressNormalizationURL, nonce ) => {
 				setTimeout( () => resolve( ! error ), 0 );
 			}
 		};
-		saveForm( setIsSaving, setSuccess, _.noop, setError, addressNormalizationURL, nonce, 'POST', { address, type: group } );
+		setIsSaving( true );
+		api.post( api.url.addressNormalization(), { address, type: group } )
+			.then( setSuccess )
+			.catch( setError )
+			.then( () => ( setIsSaving( false ) ) );
 	} );
 };
