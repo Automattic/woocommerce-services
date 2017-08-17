@@ -163,6 +163,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $rest_tos_controller;
 
+		/**
+		 * @var WC_REST_Connect_Stripe_Account_Controller
+		 */
+		protected $rest_stripe_account_controller;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -351,6 +356,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->taxjar = $taxjar;
 		}
 
+		public function set_rest_stripe_account_controller( WC_REST_Connect_Stripe_Account_Controller $rest_stripe_account_controller ) {
+			$this->rest_stripe_account_controller = $rest_stripe_account_controller;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -419,7 +428,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
-
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -587,6 +595,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
+			$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_stripe_account_controller( $rest_stripe_account_controller );
+			$rest_stripe_account_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
