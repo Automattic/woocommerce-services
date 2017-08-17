@@ -208,7 +208,7 @@ reducers[ UPDATE_PACKAGE_WEIGHT ] = ( state, { packageId, value } ) => {
 	newPackages[ packageId ] = {
 		...newPackages[ packageId ],
 		weight: parseFloat( value ),
-		is_user_specified_weight: true,
+		isUserSpecifiedWeight: true,
 	};
 
 	return { ...state,
@@ -448,7 +448,7 @@ reducers[ SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
 
 	const box = state.form.packages.all[ boxTypeId ];
 	const weight = round(
-		oldPackage.is_user_specified_weight ? oldPackage.weight
+		oldPackage.isUserSpecifiedWeight ? oldPackage.weight
 			: ( box ? box.box_weight : 0 ) + _.sumBy( oldPackage.items, 'weight' )
 	);
 
