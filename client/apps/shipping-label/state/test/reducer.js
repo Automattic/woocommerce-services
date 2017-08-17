@@ -16,6 +16,7 @@ import {
 	addPackage,
 	removePackage,
 	setPackageType,
+	updatePackageWeight,
 	savePackages,
 	removeIgnoreValidation,
 	updateAddressValue,
@@ -216,6 +217,17 @@ describe( 'Label purchase form reducer', () => {
 		expect( state.form.rates.values ).to.include.all.keys( Object.keys( state.form.packages.selected ) );
 		expect( state.form.needsPrintConfirmation ).to.eql( false );
 		expect( state.form.rates.available ).to.eql( {} );
+	} );
+
+	it( 'SET_PACKAGE_TYPE maintains user-specified weight after changing an existing package', () => {
+		const priorAction = updatePackageWeight( 'weight_0_custom1', 5.8 );
+		const existingState = reducer( initialState, priorAction );
+
+		const action = setPackageType( 'weight_0_custom1', 'customPackage1' );
+		const state = reducer( existingState, action );
+
+		expect( state.form.packages.selected.weight_0_custom1.box_id ).to.eql( 'customPackage1' );
+		expect( state.form.packages.selected.weight_0_custom1.weight ).to.eql( 5.8 );
 	} );
 
 	it( 'SAVE_PACKAGES changes the saved state', () => {
