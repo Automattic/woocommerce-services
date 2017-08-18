@@ -7,7 +7,7 @@
  * Author URI: http://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.6.2
+ * Version: 1.7.0
  *
  * Copyright (c) 2017 Automattic
  *
