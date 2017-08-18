@@ -14,4 +14,6 @@ export const labelRefund = ( orderId, labelId ) => `${ namespace }label/${ order
 
 export const labelsPrint = () => `${ namespace }label/print`;
 
+export const labelTestPrint = () => `${ namespace }label/preview`;
+
 export const addressNormalization = () => `${ namespace }normalize-address`;
