@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.6.2
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,13 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.7.0 =
+* Fix bug that allows accidental double click of label purchase button
+* More immediate display of purchased labels on order detail screen
+* Fix bug that showed settings screen links before Terms of Service are accepted
+* No longer override package weight when changing type if specified by user
+* Several small appearance tweaks (alignment, spacing)
 
 = 1.6.2 =
 * Fix spacing bug in purchased label display
