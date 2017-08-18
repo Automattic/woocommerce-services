@@ -36,7 +36,7 @@ export const getPaperSizes = ( country ) => (
 	}, {} )
 );
 
-const _getPDFURL = ( paperSize, labels ) => {
+const _getPDFURL = ( paperSize, labels, test = false ) => {
 	if ( ! PAPER_SIZES[ paperSize ] ) {
 		throw new Error( `Invalid paper size: ${ paperSize }` );
 	}
@@ -46,8 +46,9 @@ const _getPDFURL = ( paperSize, labels ) => {
 		label_id_csv: _.filter( _.map( labels, 'labelId' ) ).join( ',' ),
 		caption_csv: _.filter( _.map( labels, ( l ) => ( l.caption ? encodeURIComponent( l.caption ) : null ) ) ).join( ',' ),
 	};
+	const urlBase = test ? api.url.labelTestPrint() : api.url.labelsPrint();
 
-	return api.createGetUrlWithNonce( api.url.labelsPrint(), querystring.stringify( params ) );
+	return api.createGetUrlWithNonce( urlBase, querystring.stringify( params ) );
 };
 
 export const getPrintURL = ( paperSize, labels ) => {
@@ -55,5 +56,5 @@ export const getPrintURL = ( paperSize, labels ) => {
 };
 
 export const getPreviewURL = ( paperSize, labels ) => {
-	return getPDFSupport() ? _getPDFURL( paperSize, labels ) : null;
+	return getPDFSupport() ? _getPDFURL( paperSize, labels, true ) : null;
 };
