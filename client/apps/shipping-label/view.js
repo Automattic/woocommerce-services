@@ -205,8 +205,23 @@ class ShippingLabelRootView extends Component {
 		);
 	};
 
+	renderError = ( label ) => {
+		const tooltipAnchor = (
+			<span className="shipping-label__purchase-error">
+				{ __( 'Purchase error' ) }
+			</span>
+		);
+		return (
+			<InfoTooltip anchor={ tooltipAnchor }>
+				<p>{ __( 'Label purchase failed with the following error: %s', { args: [ label.error ] } ) }</p>
+			</InfoTooltip>
+		);
+	};
+
 	renderLabel = ( label, index, labels ) => {
 		const purchased = timeAgo( label.created );
+		const isInProgress = 'PURCHASE_IN_PROGRESS' === label.status;
+		const isError = 'PURCHASE_ERROR' === label.status;
 
 		return (
 			<div key={ label.label_id } className="shipping-label__item" >
@@ -222,8 +237,10 @@ class ShippingLabelRootView extends Component {
 					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label } /> } } ) }
 				</p>
 				<p className="shipping-label__item-actions" >
-					{ this.renderRefund( label ) }
-					{ this.renderReprint( label ) }
+					{ isInProgress && <span>{ __( 'Purchase in progress' ) }</span> }
+					{ isError && this.renderError( label ) }
+					{ ! isInProgress && ! isError && this.renderRefund( label ) }
+					{ ! isInProgress && ! isError && this.renderReprint( label ) }
 				</p>
 			</div>
 		);

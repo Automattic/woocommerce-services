@@ -511,9 +511,10 @@ const pollForLabelsPurchase = ( dispatch, getState, orderId, labels, error, show
 		return;
 	}
 
-	const errorLabel = _.find( labels, { status: 'ERROR' } );
+	const errorLabel = _.find( labels, { status: 'PURCHASE_ERROR' } );
 	if ( errorLabel ) {
 		pollForLabelsPurchase( dispatch, getState, orderId, null, errorLabel.error, showPrintDialog );
+		return;
 	}
 
 	if ( ! _.every( labels, { status: 'PURCHASED' } ) ) {

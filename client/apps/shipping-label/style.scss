@@ -93,5 +93,13 @@
 				color: $alert-red;
 			}
 		}
+
+		.shipping-label__purchase-error {
+			color: $alert-red;
+			cursor: help;
+			text-decoration: underline;
+			text-decoration-color: $alert-red;
+			text-decoration-style: dotted;
+		}
 	}
 }
