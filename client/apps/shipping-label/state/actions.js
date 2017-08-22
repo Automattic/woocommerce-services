@@ -492,6 +492,90 @@ export const updatePaperSize = ( value ) => {
 	};
 };
 
+const purchaseLabelResponse = ( response, error ) => {
+	return { type: PURCHASE_LABEL_RESPONSE, response, error };
+};
+
+const pollForLabelsPurchase = ( dispatch, getState, orderId, labels, error, showPrintDialog ) => {
+	if ( error ) {
+		dispatch( purchaseLabelResponse( labels, error ) );
+		if ( 'rest_cookie_invalid_nonce' === error ) {
+			dispatch( exitPrintingFlow( true ) );
+		} else {
+			console.error( error );
+			dispatch( NoticeActions.errorNotice( error.toString() ) );
+			//re-request the rates on failure to avoid attempting repurchase of the same shipment id
+			dispatch( clearAvailableRates() );
+			getLabelRates( dispatch, getState, _.noop, { orderId } );
+		}
+		return;
+	}
+
+	const errorLabel = _.find( labels, { status: 'ERROR' } );
+	if ( errorLabel ) {
+		pollForLabelsPurchase( dispatch, getState, orderId, null, errorLabel.error, showPrintDialog );
+	}
+
+	if ( ! _.every( labels, { status: 'PURCHASED' } ) ) {
+		setTimeout( () => {
+			const statusTasks = labels.map( ( label ) => (
+				api.get( api.url.labelStatus( orderId, label.label_id ) )
+					.then( ( statusResponse ) => statusResponse.label )
+			) );
+
+			Promise.all( statusTasks )
+				.then( ( pollResponse ) => pollForLabelsPurchase( dispatch, getState, orderId, pollResponse, null, showPrintDialog ) )
+				.catch( ( pollError ) => pollForLabelsPurchase( dispatch, getState, orderId, null, pollError, showPrintDialog ) );
+		}, 1000 );
+		return;
+	}
+
+	dispatch( purchaseLabelResponse( labels, error ) );
+
+	const noticeText = __(
+		'Your shipping label was purchased successfully',
+		'Your %(count)d shipping labels were purchased successfully',
+		{
+			count: labels.length,
+			args: { count: labels.length },
+		}
+	);
+
+	if ( showPrintDialog ) {
+		const labelsToPrint = labels.map( ( label, index ) => ( {
+			caption: __( 'PACKAGE %(num)d (OF %(total)d)', {
+				args: {
+					num: index + 1,
+					total: labels.length,
+				},
+			} ),
+			labelId: label.label_id,
+		} ) );
+		const state = getState().shippingLabel;
+		const printUrl = getPrintURL( state.paperSize, labelsToPrint );
+		if ( 'addon' === getPDFSupport() ) {
+			// If the browser has a PDF "addon", we need another user click to trigger opening it in a new tab
+			dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
+		} else {
+			printDocument( printUrl )
+				.then( () => {
+					dispatch( NoticeActions.successNotice( noticeText ) );
+				} )
+				.catch( ( err ) => {
+					console.error( err );
+					dispatch( NoticeActions.errorNotice( err.toString() ) );
+				} )
+				.then( () => {
+					dispatch( exitPrintingFlow( true ) );
+					dispatch( clearAvailableRates() );
+				} );
+		}
+		return;
+	}
+
+	dispatch( NoticeActions.successNotice( noticeText ) );
+};
+
 export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 	let error = null;
 	let response = null;
@@ -504,53 +588,7 @@ export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 		if ( saving ) {
 			dispatch( { type: PURCHASE_LABEL_REQUEST } );
 		} else {
-			dispatch( { type: PURCHASE_LABEL_RESPONSE, response, error } );
-			if ( 'rest_cookie_invalid_nonce' === error ) {
-				dispatch( exitPrintingFlow( true ) );
-			} else if ( error ) {
-				console.error( error );
-				dispatch( NoticeActions.errorNotice( error.toString() ) );
-				//re-request the rates on failure to avoid attempting repurchase of the same shipment id
-				dispatch( clearAvailableRates() );
-				getLabelRates( dispatch, getState, _.noop, { orderId } );
-			} else {
-				const labelsToPrint = response.map( ( label, index ) => ( {
-					caption: __( 'PACKAGE %(num)d (OF %(total)d)', {
-						args: {
-							num: index + 1,
-							total: response.length,
-						},
-					} ),
-					labelId: label.label_id,
-				} ) );
-				const state = getState().shippingLabel;
-				const printUrl = getPrintURL( state.paperSize, labelsToPrint );
-				if ( 'addon' === getPDFSupport() ) {
-					// If the browser has a PDF "addon", we need another user click to trigger opening it in a new tab
-					dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
-				} else {
-					printDocument( printUrl )
-						.then( () => {
-							const noticeText = __(
-								'Your shipping label was purchased successfully',
-								'Your %(count)d shipping labels were purchased successfully',
-								{
-									count: response.length,
-									args: { count: response.length },
-								}
-							);
-							dispatch( NoticeActions.successNotice( noticeText ) );
-						} )
-						.catch( ( err ) => {
-							console.error( err );
-							dispatch( NoticeActions.errorNotice( err.toString() ) );
-						} )
-						.then( () => {
-							dispatch( exitPrintingFlow( true ) );
-							dispatch( clearAvailableRates() );
-						} );
-				}
-			}
+			pollForLabelsPurchase( dispatch, getState, orderId, response, error, true );
 		}
 	};
 
@@ -572,6 +610,7 @@ export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 		const state = getState().shippingLabel;
 		form = state.form;
 		const formData = {
+			async: true,
 			origin: form.origin.selectNormalized ? form.origin.normalized : form.origin.values,
 			destination: form.destination.selectNormalized ? form.destination.normalized : form.destination.values,
 			packages: _.map( form.packages.selected, ( pckg, pckgId ) => {
