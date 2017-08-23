@@ -129,6 +129,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_address_normalization_controller;
 
 		/**
+		 * @var WC_REST_Connect_Shipping_Method_Controller
+		 */
+		protected $rest_shipping_method_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -313,6 +318,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
 			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
+		}
+
+		public function set_rest_shipping_method_controller( WC_REST_Connect_Shipping_Method_Controller $rest_shipping_method_controller ) {
+			$this->rest_shipping_method_controller = $rest_shipping_method_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -587,6 +596,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
 
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-method-controller.php' ) );
+			$rest_shipping_method_controller = new WC_REST_Connect_Shipping_Method_Controller( $this->api_client, $settings_store, $logger, $schemas_store, $this->nux );
+			$this->set_rest_shipping_method_controller( $rest_shipping_method_controller );
+			$rest_shipping_method_controller->register_routes();
+
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
 
@@ -638,17 +652,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
-				'storeOptions'       => $settings_store->get_store_options(),
-				'formSchema'         => $service_schema->service_settings,
-				'formLayout'         => $service_schema->form_layout,
-				'formData'           => $settings_store->get_service_settings( $id, $instance ),
+//				'storeOptions'       => $settings_store->get_store_options(),
+//				'formSchema'         => $service_schema->service_settings,
+//				'formLayout'         => $service_schema->form_layout,
+//				'formData'           => $settings_store->get_service_settings( $id, $instance ),
 				'methodId'           => $id,
 				'instanceId'         => $instance,
-				'callbackURL'        => get_rest_url( null, $path ),
-				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
-				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
-			) );
+//				'callbackURL'        => get_rest_url( null, $path ),
+//				'nonce'              => wp_create_nonce( 'wp_rest' ),
+//				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
+//				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
+			));
 		}
 
 		/**

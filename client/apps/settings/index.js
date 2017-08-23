@@ -29,7 +29,9 @@ export default ( { formData, formSchema, formLayout, storeOptions, noticeDismiss
 	},
 
 	getInitialState() {
-		return initializeState( formSchema, formData, noticeDismissed );
+		return {
+			form: initializeState( formSchema, formData, formLayout, storeOptions, noticeDismissed ),
+		};
 	},
 
 	getStateForPersisting( state ) {
@@ -42,9 +44,6 @@ export default ( { formData, formSchema, formLayout, storeOptions, noticeDismiss
 	},
 
 	View: () => (
-		<SettingsView
-			storeOptions={ storeOptions }
-			schema={ formSchema }
-			layout={ formLayout } />
+		<SettingsView />
 	),
 } );
