@@ -162,6 +162,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $taxjar;
 
 		/**
+		 * @var WC_Connect_Stripe_Notice
+		 */
+		protected $stripe_notice;
+
+		/**
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;
@@ -363,6 +368,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_stripe_account_controller = $rest_stripe_account_controller;
 		}
 
+		public function set_stripe_notice( WC_Connect_Stripe_Notice $notice ) {
+		    $this->stripe_notice = $notice;
+        }
+
 		/**
 		 * Load our textdomain
 		 *
@@ -382,6 +391,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
+			add_action( 'admin_init', array( $this->stripe_notice, 'set_up_notice' ) );
 
 			// Plugin should be enabled if dev mode or connected + TOS
 			$jetpack_status = $this->nux->get_jetpack_install_status();
@@ -499,6 +509,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-stripe-notice.php' ) );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -510,6 +521,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
+			$stripe_notice         = new WC_Connect_Stripe_Notice( $api_client );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -521,6 +533,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
 			$this->set_taxjar( $taxjar );
+			$this->set_stripe_notice( $stripe_notice );
 		}
 
 		/**

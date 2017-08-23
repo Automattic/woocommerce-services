@@ -14,13 +14,7 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 	public function post( $request ) {
 		$data = $request->get_json_params();
 
-		// Whitelist the properties we want.
-		$body = array(
-			'email' => $data['email'],
-			'country' => $data['country'],
-		);
-
-		$response = $this->api_client->create_stripe_account( $body );
+		$response = $this->api_client->create_stripe_account( $data['email'], $data['country'] );
 
 		if ( is_wp_error( $response ) ) {
 			$this->logger->debug( $response, __CLASS__ );
