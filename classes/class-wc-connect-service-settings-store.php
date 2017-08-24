@@ -221,15 +221,20 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 *
 		 * @param $order_id
 		 * @param $new_label_data
+		 *
+		 * @return array updated label info
 		 */
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
+			$result = $new_label_data;
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			foreach( $labels_data as $index => $label_data ) {
 				if ( $label_data[ 'label_id' ] === $new_label_data->label_id ) {
-					$labels_data[ $index ] = array_merge( $label_data, (array) $new_label_data );
+					$result = array_merge( $label_data, (array) $new_label_data );
+					$labels_data[ $index ] = $result;
 				}
 			}
 			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
+			return $result;
 		}
 
 		/**
