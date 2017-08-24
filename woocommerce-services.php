@@ -450,7 +450,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client );
-			$stripe_notice         = new WC_Connect_Stripe_Notice( $api_client );
+			$options               = new WC_Connect_Options();
+			$stripe_notice         = new WC_Connect_Stripe_Notice( $api_client, $options, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
