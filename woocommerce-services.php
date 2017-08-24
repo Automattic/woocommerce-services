@@ -391,7 +391,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
-			add_action( 'admin_init', array( $this->stripe_notice, 'set_up_notice' ) );
+			add_action( 'admin_init', array( $this->stripe_notice, 'init' ) );
 
 			// Plugin should be enabled if dev mode or connected + TOS
 			$jetpack_status = $this->nux->get_jetpack_install_status();
