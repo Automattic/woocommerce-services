@@ -1,13 +1,7 @@
 /**
- * External dependencies
- */
-import _ from 'lodash';
-
-/**
  * Internal dependencies
  */
 import * as api from 'api';
-import saveForm from 'lib/save-form';
 
 export const INIT_FORM = 'INIT_FORM';
 export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
@@ -44,7 +38,7 @@ export const setAllPristine = ( pristineValue ) => ( {
 	pristineValue,
 } );
 
-export const dismissNotice = () => ( dispatch, getState, { dismissURL, nonce } ) => {
-	dispatch( { type: DISMISS_NOTICE } );
-	saveForm( _.noop, _.noop, _.noop, _.noop, dismissURL, nonce, 'POST' );
+export const dismissNotice = () => {
+	api.post( api.url.dismissSettingsNuxNotice() );
+	return { type: DISMISS_NOTICE };
 };

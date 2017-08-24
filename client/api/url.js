@@ -20,3 +20,5 @@ export const addressNormalization = () => `${ namespace }normalize-address`;
 
 export const shippingMethod = ( methodId, instanceId = false ) =>
 	`${ namespace }shipping-method/${ methodId }${ instanceId ? `/${ instanceId }` : '' }`;
+
+export const dismissSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;

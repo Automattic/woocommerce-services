@@ -22,7 +22,7 @@ class Settings extends Component {
 	}
 
 	componentWillReceiveProps( props ) {
-		if ( props.loaded ) {
+		if ( ! props.loaded ) {
 			this.props.fetchForm();
 		}
 	}
