@@ -18,12 +18,8 @@ export const labelTestPrint = () => `${ namespace }label/preview`;
 
 export const addressNormalization = () => `${ namespace }normalize-address`;
 
-const appendInstanceId = ( url, instanceId ) => instanceId ? `${ url }/${ instanceId }` : url;
+export const shippingServiceSettings = ( methodId, instanceId = false ) => instanceId
+	? `${ namespace }services/${ methodId }/${ instanceId }`
+	: `${ namespace }services/${ methodId }`;
 
-export const shippingMethod = ( methodId, instanceId = false ) =>
-	appendInstanceId( `${ namespace }shipping-method/${ methodId }`, instanceId );
-
-export const shippingSettingsSave = ( methodId, instanceId = false ) =>
-	appendInstanceId( `${ namespace }services/${ methodId }`, instanceId );
-
-export const dismissSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;
+export const dismissShippingSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;

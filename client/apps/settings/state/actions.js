@@ -16,7 +16,7 @@ const initForm = ( form ) => {
 };
 
 export const fetchForm = () => ( dispatch, getState, { methodId, instanceId } ) => {
-	return api.get( api.url.shippingMethod( methodId, instanceId ) )
+	return api.get( api.url.shippingServiceSettings( methodId, instanceId ) )
 		.then( ( response ) => {
 			dispatch( initForm( response ) );
 		} )
@@ -39,6 +39,6 @@ export const setAllPristine = ( pristineValue ) => ( {
 } );
 
 export const dismissNotice = () => {
-	api.post( api.url.dismissSettingsNuxNotice() );
+	api.post( api.url.dismissShippingSettingsNuxNotice() );
 	return { type: DISMISS_NOTICE };
 };

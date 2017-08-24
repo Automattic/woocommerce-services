@@ -85,7 +85,7 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { methodId, in
 	}
 
 	setIsSaving( true );
-	api.post( api.url.shippingSettingsSave( methodId, instanceId ), coercedValues )
+	api.post( api.url.shippingServiceSettings( methodId, instanceId ), coercedValues )
 		.then( () => setSuccess( true ) )
 		.catch( ( error ) => {
 			if ( 'validation_failure' === _.get( error, 'data.error' ) && _.get( error, 'data.data.fields' ) ) {

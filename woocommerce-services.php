@@ -129,11 +129,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_address_normalization_controller;
 
 		/**
-		 * @var WC_REST_Connect_Shipping_Method_Controller
-		 */
-		protected $rest_shipping_method_controller;
-
-		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -320,10 +315,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
 		}
 
-		public function set_rest_shipping_method_controller( WC_REST_Connect_Shipping_Method_Controller $rest_shipping_method_controller ) {
-			$this->rest_shipping_method_controller = $rest_shipping_method_controller;
-		}
-
 		public function get_service_schemas_validator() {
 			return $this->service_schemas_validator;
 		}
@@ -502,6 +493,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
+			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -547,7 +539,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
-			$rest_services_controller = new WC_REST_Connect_Services_Controller( $this->api_client, $settings_store, $logger, $schemas_store );
+			$rest_services_controller = new WC_REST_Connect_Services_Controller( $this->api_client, $settings_store, $logger, $schemas_store, $this->nux );
 			$this->set_rest_services_controller( $rest_services_controller );
 			$rest_services_controller->register_routes();
 
@@ -596,11 +588,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
 
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-method-controller.php' ) );
-			$rest_shipping_method_controller = new WC_REST_Connect_Shipping_Method_Controller( $this->api_client, $settings_store, $logger, $schemas_store, $this->nux );
-			$this->set_rest_shipping_method_controller( $rest_shipping_method_controller );
-			$rest_shipping_method_controller->register_routes();
-
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
 
@@ -631,6 +618,37 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Added to the wc_connect_shipping_service_settings filter, returns service settings
+		 *
+		 * @param $settings
+		 * @param $method_id
+		 * @param $instance_id
+		 *
+		 * @return array
+		 */
+		public function shipping_service_settings( $settings, $method_id, $instance_id ) {
+			$settings_store = $this->get_service_settings_store();
+			$schemas_store = $this->get_service_schemas_store();
+			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance_id ? $instance_id : $method_id );
+			if ( ! $service_schema ) {
+				return array_merge( $settings, array (
+					'methodId'   => $method_id,
+					'instanceId' => $instance_id,
+				) );
+			}
+
+			return array_merge( $settings, array(
+				'storeOptions'       => $settings_store->get_store_options(),
+				'formSchema'         => $service_schema->service_settings,
+				'formLayout'         => $service_schema->form_layout,
+				'formData'           => $settings_store->get_service_settings( $method_id, $instance_id ),
+				'methodId'           => $method_id,
+				'instanceId'         => $instance_id,
+				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
+			) );
+		}
+
+		/**
 		 * This function is added to the wc_connect_service_admin_options action by this class
 		 * (see attach_hooks) and then that action is fired by WC_Connect_Shipping_Method::admin_options
 		 * to get the service instance form layout and settings bundled inside wcConnectData
@@ -641,28 +659,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			$settings_store = $this->get_service_settings_store();
-			$schemas_store = $this->get_service_schemas_store();
-			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $id );
-
-			if ( ! $service_schema ) {
-				return;
-			}
-
-			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
-
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
-//				'storeOptions'       => $settings_store->get_store_options(),
-//				'formSchema'         => $service_schema->service_settings,
-//				'formLayout'         => $service_schema->form_layout,
-//				'formData'           => $settings_store->get_service_settings( $id, $instance ),
-				'methodId'           => $id,
-				'instanceId'         => $instance,
-//				'callbackURL'        => get_rest_url( null, $path ),
-//				'nonce'              => wp_create_nonce( 'wp_rest' ),
-//				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
-//				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
-			));
+			do_action( 'enqueue_wc_connect_script',
+				'wc-connect-service-settings',
+				array (
+					'methodId'   => $id,
+					'instanceId' => $instance,
+				) );
 		}
 
 		/**
