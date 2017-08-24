@@ -12,6 +12,16 @@ export const isLoaded = ( state ) => {
 	return form && form.loaded;
 };
 
+export const isFetching = ( state ) => {
+	const form = getShippingSettingsForm( state );
+	return form && form.isFetching;
+};
+
+export const isFetchError = ( state ) => {
+	const form = getShippingSettingsForm( state );
+	return form && form.fetchError;
+};
+
 export const getFormSchema = ( state ) => {
 	const form = getShippingSettingsForm( state );
 	if ( ! form || ! form.loaded ) {
