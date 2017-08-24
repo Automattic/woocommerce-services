@@ -654,17 +654,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * to get the service instance form layout and settings bundled inside wcConnectData
 		 * as the form container is emitted into the body's HTML
 		 */
-		public function localize_and_enqueue_service_script( $id, $instance = false ) {
+		public function localize_and_enqueue_service_script( $method_id, $instance_id = false ) {
 			if ( ! function_exists( 'get_rest_url' ) ) {
 				return;
 			}
 
 			do_action( 'enqueue_wc_connect_script',
 				'wc-connect-service-settings',
-				array (
-					'methodId'   => $id,
-					'instanceId' => $instance,
-				) );
+				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
 		}
 
 		/**
