@@ -503,7 +503,7 @@ const pollForLabelsPurchase = ( dispatch, getState, orderId, labels, error, show
 			dispatch( exitPrintingFlow( true ) );
 		} else {
 			console.error( error );
-			dispatch( NoticeActions.errorNotice( error.toString() ) );
+			dispatch( NoticeActions.errorNotice( __( 'Some labels for this order didn\'t purchase. Please try again.' ) ) );
 			//re-request the rates on failure to avoid attempting repurchase of the same shipment id
 			dispatch( clearAvailableRates() );
 			getLabelRates( dispatch, getState, _.noop, { orderId } );
