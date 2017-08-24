@@ -287,14 +287,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$request = array(
 				'returnUrl' => $return_url,
 			);
-			return $this->request( 'POST', '/stripe/oauth/init', $request );
+			return $this->request( 'POST', '/stripe/oauth-init', $request );
 		}
 
 		public function get_stripe_oauth_keys( $code ) {
 			$request = array(
 				'code' => $code,
 			);
-			return $this->request( 'POST', '/stripe/oauth/keys', $request );
+			return $this->request( 'POST', '/stripe/oauth-keys', $request );
 		}
 
 		/**

@@ -31,19 +31,19 @@ if ( ! class_exists( 'WC_Connect_Stripe_Notice' ) ) {
 			$this->api = $client;
 			$this->options = $options;
 			$this->logger = $logger;
-			$this->get_oauth_url();
 		}
 
 		private function get_oauth_url()
 		{
-			$return_url = 'https://wcs.loc/blah/blah';
+			$return_url = 'http://wcs.loc/wp-admin/';
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 			if ( is_wp_error( $result ) ) {
-				$this->logger->error( 'Failed to fetch OAuth URL', $result );
+			    error_log( json_encode( $result ) );
+				$this->logger->error( 'Failed to fetch OAuth URL' );
 				return;
 			}
-			$this->oauth_url = $result[ 'url' ];
-			$this->options->update_option( 'stripe_oauth_code', $result[ 'code' ] );
+			$this->oauth_url = $result->oauthUrl;
+			$_SESSION[ 'stripe_oauth_state' ] = $result->state;
 		}
 
 		private function get_oauth_keys( $state, $code ) {
@@ -100,13 +100,14 @@ if ( ! class_exists( 'WC_Connect_Stripe_Notice' ) ) {
 		}
 
 		public function render_notice() {
+			$this->get_oauth_url();
 			$email = $this->get_post_param( 'wcs_stripe_email' );
 			$country = $this->get_post_param( 'wcs_stripe_country' );
 ?>
 			<div id="message" class="updated jp-wpcom-connect__container">
 				<form method='POST'>
 					<div>
-						Already have a stripe account? <a href="/">Click here</a>.
+						Already have a stripe account? <a href="<?php echo $this->oauth_url; ?>">Click here</a>.
 					</div>
 					<div>
 						Email: <input name="wcs_stripe_email" value='<?php echo $email; ?>' />
