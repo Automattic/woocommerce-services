@@ -230,10 +230,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $this->rest_account_settings_controller;
 		}
 
-		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
-			$this->rest_tos_controller = $rest_tos_controller;
-		}
-
 		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
 			$this->rest_packages_controller = $rest_packages_controller;
 		}
