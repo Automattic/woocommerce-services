@@ -496,24 +496,25 @@ const purchaseLabelResponse = ( response, error ) => {
 	return { type: PURCHASE_LABEL_RESPONSE, response, error };
 };
 
-const pollForLabelsPurchase = ( dispatch, getState, orderId, labels, error, showPrintDialog ) => {
-	if ( error ) {
-		dispatch( purchaseLabelResponse( labels, error ) );
-		if ( 'rest_cookie_invalid_nonce' === error ) {
-			dispatch( exitPrintingFlow( true ) );
-		} else {
-			console.error( error );
-			dispatch( NoticeActions.errorNotice( __( 'Some labels for this order didn\'t purchase. Please try again.' ) ) );
-			//re-request the rates on failure to avoid attempting repurchase of the same shipment id
-			dispatch( clearAvailableRates() );
-			getLabelRates( dispatch, getState, _.noop, { orderId } );
-		}
-		return;
+const handleLabelPurchaseError = ( dispatch, getState, error, orderId, labelCount ) => {
+	dispatch( purchaseLabelResponse( null, true ) );
+	if ( 'rest_cookie_invalid_nonce' === error ) {
+		dispatch( exitPrintingFlow( true ) );
+	} else {
+		dispatch( NoticeActions.errorNotice( __(
+			'Shipping label didn\'t purchase. Please try again.',
+			'Some labels for this order didn\'t purchase. Please try again.',
+			{ count: labelCount } ) ) );
+		//re-request the rates on failure to avoid attempting repurchase of the same shipment id
+		dispatch( clearAvailableRates() );
+		getLabelRates( dispatch, getState, _.noop, { orderId } );
 	}
+};
 
+const pollForLabelsPurchase = ( dispatch, getState, orderId, labels ) => {
 	const errorLabel = _.find( labels, { status: 'PURCHASE_ERROR' } );
 	if ( errorLabel ) {
-		pollForLabelsPurchase( dispatch, getState, orderId, null, errorLabel.error, showPrintDialog );
+		handleLabelPurchaseError( dispatch, getState, 'purchase_error', orderId, labels.length );
 		return;
 	}
 
@@ -525,71 +526,67 @@ const pollForLabelsPurchase = ( dispatch, getState, orderId, labels, error, show
 			) );
 
 			Promise.all( statusTasks )
-				.then( ( pollResponse ) => pollForLabelsPurchase( dispatch, getState, orderId, pollResponse, null, showPrintDialog ) )
-				.catch( ( pollError ) => pollForLabelsPurchase( dispatch, getState, orderId, null, pollError, showPrintDialog ) );
+				.then( ( pollResponse ) => pollForLabelsPurchase( dispatch, getState, orderId, pollResponse ) )
+				.catch( ( pollError ) => handleLabelPurchaseError( dispatch, getState, pollError, orderId, labels.length ) );
 		}, 1000 );
 		return;
 	}
 
-	dispatch( purchaseLabelResponse( labels, error ) );
+	dispatch( purchaseLabelResponse( labels, false ) );
 
-	const noticeText = __(
-		'Your shipping label was purchased successfully',
-		'Your %(count)d shipping labels were purchased successfully',
-		{
-			count: labels.length,
-			args: { count: labels.length },
-		}
-	);
-
-	if ( showPrintDialog ) {
-		const labelsToPrint = labels.map( ( label, index ) => ( {
-			caption: __( 'PACKAGE %(num)d (OF %(total)d)', {
-				args: {
-					num: index + 1,
-					total: labels.length,
-				},
-			} ),
-			labelId: label.label_id,
-		} ) );
-		const state = getState().shippingLabel;
-		const printUrl = getPrintURL( state.paperSize, labelsToPrint );
-		if ( 'addon' === getPDFSupport() ) {
-			// If the browser has a PDF "addon", we need another user click to trigger opening it in a new tab
-			dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
-		} else {
-			printDocument( printUrl )
-				.then( () => {
-					dispatch( NoticeActions.successNotice( noticeText ) );
-				} )
-				.catch( ( err ) => {
-					console.error( err );
-					dispatch( NoticeActions.errorNotice( err.toString() ) );
-				} )
-				.then( () => {
-					dispatch( exitPrintingFlow( true ) );
-					dispatch( clearAvailableRates() );
-				} );
-		}
-		return;
+	const labelsToPrint = labels.map( ( label, index ) => ( {
+		caption: __( 'PACKAGE %(num)d (OF %(total)d)', {
+			args: {
+				num: index + 1,
+				total: labels.length,
+			},
+		} ),
+		labelId: label.label_id,
+	} ) );
+	const state = getState().shippingLabel;
+	const printUrl = getPrintURL( state.paperSize, labelsToPrint );
+	if ( 'addon' === getPDFSupport() ) {
+		// If the browser has a PDF "addon", we need another user click to trigger opening it in a new tab
+		dispatch( { type: SHOW_PRINT_CONFIRMATION, printUrl } );
+	} else {
+		printDocument( printUrl )
+			.then( () => {
+				dispatch( NoticeActions.successNotice( __(
+					'Your shipping label was purchased successfully',
+					'Your %(count)d shipping labels were purchased successfully',
+					{
+						count: labels.length,
+						args: { count: labels.length },
+					}
+				) ) );
+			} )
+			.catch( ( err ) => {
+				console.error( err );
+				dispatch( NoticeActions.errorNotice( err.toString() ) );
+			} )
+			.then( () => {
+				dispatch( exitPrintingFlow( true ) );
+				dispatch( clearAvailableRates() );
+			} );
 	}
-
-	dispatch( NoticeActions.successNotice( noticeText ) );
 };
 
 export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 	let error = null;
-	let response = null;
+	let labels = null;
+	let labelCount = 1;
 
 	const setError = ( err ) => error = err;
 	const setSuccess = ( json ) => {
-		response = json.labels;
+		labels = json.labels;
 	};
 	const setIsSaving = ( saving ) => {
 		if ( saving ) {
 			dispatch( { type: PURCHASE_LABEL_REQUEST } );
+		} else if ( error ) {
+			handleLabelPurchaseError( dispatch, getState, error, orderId, labelCount );
 		} else {
-			pollForLabelsPurchase( dispatch, getState, orderId, response, error, true );
+			pollForLabelsPurchase( dispatch, getState, orderId, labels );
 		}
 	};
 
@@ -627,6 +624,8 @@ export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 				};
 			} ),
 		};
+
+		labelCount = formData.packages.length;
 
 		setIsSaving( true );
 		api.post( api.url.orderLabels( orderId ), formData )

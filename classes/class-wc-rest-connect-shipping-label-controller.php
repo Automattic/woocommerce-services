@@ -81,7 +81,6 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				'carrier_id' => $label_data->label->carrier_id,
 				'service_name' => $service_names[ $index ],
 				'status' => $label_data->label->status,
-				'error' => $label_data->label->error,
 			);
 
 			$package = $settings[ 'packages' ][ $index ];

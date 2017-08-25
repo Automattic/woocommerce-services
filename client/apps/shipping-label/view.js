@@ -231,6 +231,7 @@ class ShippingLabelRootView extends Component {
 	};
 
 	renderLabels = () => {
+		//filter by blacklist (rather than just checking for PURCHASED) to handle legacy labels without the status field
 		const labelsToRender = filter( this.props.shippingLabel.labels,
 			( label ) => 'PURCHASE_IN_PROGRESS' !== label.status && 'PURCHASE_ERROR' !== label.status );
 
