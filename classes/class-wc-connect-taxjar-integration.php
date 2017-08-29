@@ -14,7 +14,10 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	public function init() {
-		// TODO: check if TaxJar plugin is enabled, abort if so
+		// Only enable WCS TaxJar integration if the official TaxJar plugin isn't active.
+		if ( class_exists( 'WC_Taxjar' ) ) {
+			return;
+		}
 
 		// TODO: check if WCS Taxes are enabled before backup existing tax rates
 		$this->backup_existing_tax_rates();
