@@ -539,7 +539,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_account_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
-			$rest_services_controller = new WC_REST_Connect_Services_Controller( $this->api_client, $settings_store, $logger, $schemas_store, $this->nux );
+			$rest_services_controller = new WC_REST_Connect_Services_Controller( $this->api_client, $settings_store, $logger, $schemas_store );
 			$this->set_rest_services_controller( $rest_services_controller );
 			$rest_services_controller->register_routes();
 
