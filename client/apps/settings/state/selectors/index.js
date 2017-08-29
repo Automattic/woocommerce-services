@@ -9,39 +9,30 @@ export const getShippingSettingsForm = ( state ) => {
 
 export const isLoaded = ( state ) => {
 	const form = getShippingSettingsForm( state );
-	return form && form.loaded;
+	return get( form, 'loaded' );
 };
 
 export const isFetching = ( state ) => {
 	const form = getShippingSettingsForm( state );
-	return form && form.isFetching;
+	return get( form, 'isFetching', false );
 };
 
 export const isFetchError = ( state ) => {
 	const form = getShippingSettingsForm( state );
-	return form && form.fetchError;
+	return get( form, 'fetchError', false );
 };
 
 export const getFormSchema = ( state ) => {
 	const form = getShippingSettingsForm( state );
-	if ( ! form || ! form.loaded ) {
-		return null;
-	}
-	return form.schema;
+	return get( form, 'schema', null );
 };
 
 export const getStoreOptions = ( state ) => {
 	const form = getShippingSettingsForm( state );
-	if ( ! form || ! form.loaded ) {
-		return null;
-	}
-	return form.storeOptions;
+	return get( form, 'storeOptions', null );
 };
 
 export const getFormLayout = ( state ) => {
 	const form = getShippingSettingsForm( state );
-	if ( ! form || ! form.loaded ) {
-		return null;
-	}
-	return form.layout;
+	return get( form, 'layout', null );
 };
