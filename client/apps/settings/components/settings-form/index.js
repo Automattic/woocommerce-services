@@ -21,9 +21,7 @@ import LoadingSpinner from 'components/loading-spinner';
 const SettingsForm = ( props ) => {
 	if ( ! props.loaded ) {
 		return (
-			<div>
-				<LoadingSpinner />
-			</div>
+			<LoadingSpinner />
 		);
 	}
 
