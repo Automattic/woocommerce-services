@@ -19,8 +19,46 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// TODO: check if WCS Taxes are enabled before configuring core tax settings
+		$this->configure_tax_settings();
+
 		// TODO: check if WCS Taxes are enabled before backup existing tax rates
 		$this->backup_existing_tax_rates();
+	}
+
+	/**
+	 * Configure WooCommerce core tax settings for TaxJar integration.
+	 *
+	 * Ported from TaxJar's plugin.
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L66-L91
+	 */
+	public function configure_tax_settings() {
+		// If TaxJar is enabled and a user disables taxes we renable them
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		// Users can set either billing or shipping address for tax rates but not shop
+		update_option( 'woocommerce_tax_based_on', 'shipping' );
+
+		// Rate calculations assume tax not included
+		update_option( 'woocommerce_prices_include_tax', 'no' );
+
+		// Don't ever set a default customer address
+		update_option( 'woocommerce_default_customer_address', '' );
+
+		// Use no special handling on shipping taxes, our API handles that
+		update_option( 'woocommerce_shipping_tax_class', '' );
+
+		// API handles rounding precision
+		update_option( 'woocommerce_tax_round_at_subtotal', 'no' );
+
+		// Rates are calculated in the cart assuming tax not included
+		update_option( 'woocommerce_tax_display_shop', 'excl' );
+
+		// TaxJar returns one total amount, not line item amounts
+		update_option( 'woocommerce_tax_display_cart', 'excl' );
+
+		// TaxJar returns one total amount, not line item amounts
+		update_option( 'woocommerce_tax_total_display', 'single' );
 	}
 
 	/**
