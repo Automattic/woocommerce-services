@@ -496,15 +496,12 @@ const purchaseLabelResponse = ( response, error ) => {
 	return { type: PURCHASE_LABEL_RESPONSE, response, error };
 };
 
-const handleLabelPurchaseError = ( dispatch, getState, error, orderId, labelCount ) => {
+const handleLabelPurchaseError = ( dispatch, getState, error, orderId ) => {
 	dispatch( purchaseLabelResponse( null, true ) );
 	if ( 'rest_cookie_invalid_nonce' === error ) {
 		dispatch( exitPrintingFlow( true ) );
 	} else {
-		dispatch( NoticeActions.errorNotice( __(
-			'Shipping label didn\'t purchase. Please try again.',
-			'Some labels for this order didn\'t purchase. Please try again.',
-			{ count: labelCount } ) ) );
+		dispatch( NoticeActions.errorNotice( error ) );
 		//re-request the rates on failure to avoid attempting repurchase of the same shipment id
 		dispatch( clearAvailableRates() );
 		getLabelRates( dispatch, getState, _.noop, { orderId } );
@@ -514,7 +511,7 @@ const handleLabelPurchaseError = ( dispatch, getState, error, orderId, labelCoun
 const pollForLabelsPurchase = ( dispatch, getState, orderId, labels ) => {
 	const errorLabel = _.find( labels, { status: 'PURCHASE_ERROR' } );
 	if ( errorLabel ) {
-		handleLabelPurchaseError( dispatch, getState, 'purchase_error', orderId, labels.length );
+		handleLabelPurchaseError( dispatch, getState, errorLabel.error , orderId );
 		return;
 	}
 
@@ -527,7 +524,7 @@ const pollForLabelsPurchase = ( dispatch, getState, orderId, labels ) => {
 
 			Promise.all( statusTasks )
 				.then( ( pollResponse ) => pollForLabelsPurchase( dispatch, getState, orderId, pollResponse ) )
-				.catch( ( pollError ) => handleLabelPurchaseError( dispatch, getState, pollError, orderId, labels.length ) );
+				.catch( ( pollError ) => handleLabelPurchaseError( dispatch, getState, pollError, orderId ) );
 		}, 1000 );
 		return;
 	}
@@ -574,7 +571,6 @@ const pollForLabelsPurchase = ( dispatch, getState, orderId, labels ) => {
 export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 	let error = null;
 	let labels = null;
-	let labelCount = 1;
 
 	const setError = ( err ) => error = err;
 	const setSuccess = ( json ) => {
@@ -584,7 +580,7 @@ export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 		if ( saving ) {
 			dispatch( { type: PURCHASE_LABEL_REQUEST } );
 		} else if ( error ) {
-			handleLabelPurchaseError( dispatch, getState, error, orderId, labelCount );
+			handleLabelPurchaseError( dispatch, getState, error, orderId );
 		} else {
 			pollForLabelsPurchase( dispatch, getState, orderId, labels );
 		}
@@ -624,8 +620,6 @@ export const purchaseLabel = () => ( dispatch, getState, { orderId } ) => {
 				};
 			} ),
 		};
-
-		labelCount = formData.packages.length;
 
 		setIsSaving( true );
 		api.post( api.url.orderLabels( orderId ), formData )
