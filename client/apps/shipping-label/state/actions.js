@@ -511,7 +511,7 @@ const handleLabelPurchaseError = ( dispatch, getState, error, orderId ) => {
 const pollForLabelsPurchase = ( dispatch, getState, orderId, labels ) => {
 	const errorLabel = _.find( labels, { status: 'PURCHASE_ERROR' } );
 	if ( errorLabel ) {
-		handleLabelPurchaseError( dispatch, getState, errorLabel.error , orderId );
+		handleLabelPurchaseError( dispatch, getState, errorLabel.error, orderId );
 		return;
 	}
 
