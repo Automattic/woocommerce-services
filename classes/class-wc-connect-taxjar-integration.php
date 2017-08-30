@@ -7,11 +7,12 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public $api_client;
 
-	const TAXJAR_URL = 'https://api.taxjar.com';
 	/**
 	 * @var WC_Connect_Logger
 	 */
 	public $logger;
+
+	const PROXY_PATH = 'taxjar/v2';
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
@@ -68,6 +69,65 @@ class WC_Connect_TaxJar_Integration {
 		$this->logger->debug( $message, 'WCS Tax' );
 	}
 
+	/**
+	/**
+	 * Wrap SmartCalcs API requests in a transient-based caching layer.
+	 *
+	 * Modified from TaxJar's plugin (removed use of TLC Transients)
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L463
+	 *
+	 * @param $json
+	 *
+	 * @return mixed|WP_Error
+	 */
+	public function smartcalcs_cache_request( $json ) {
+		$cache_key = 'wcs_tax_' . hash( 'md5', $json );
+		$response  = get_transient( $cache_key );
+
+		if ( false === $response ) {
+			$response = $this->smartcalcs_request( $json );
+
+			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
+				set_transient( $cache_key, $response, HOUR_IN_SECONDS );
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Make a TaxJar SmartCalcs API request through the WCS proxy.
+	 *
+	 * Modified from TaxJar's plugin.
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L440
+	 *
+	 * @param $json
+	 *
+	 * @return array|WP_Error
+	 */
+	public function smartcalcs_request( $json ) {
+		$path = trailingslashit( self::PROXY_PATH ) . 'taxes';
+
+		$this->_log( 'Requesting: ' . $path . ' - ' . $json );
+
+		$response = $this->api_client->proxy_request( $path, array(
+			'method'  => 'POST',
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
+			'body' => $json,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			new WP_Error( 'request', __( 'There was an error retrieving the tax rates. Please check your server configuration.' ) );
+		} elseif ( 200 == $response['response']['code'] ) {
+			return $response;
+		} else {
+			$this->_log( 'Received (' . $response['response']['code'] . '): ' . $response['body'] );
+		}
+	}
+
+	/**
 	 * Configure WooCommerce core tax settings for TaxJar integration.
 	 *
 	 * Ported from TaxJar's plugin.
