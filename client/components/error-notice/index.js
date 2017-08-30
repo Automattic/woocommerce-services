@@ -20,7 +20,7 @@ const ErrorNotice = ( { children, isWarning } ) => {
 };
 
 ErrorNotice.propTypes = {
-	isWarning: PropTypes.boolean,
+	isWarning: PropTypes.bool,
 };
 
 export default ErrorNotice;
