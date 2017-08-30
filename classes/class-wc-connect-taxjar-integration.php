@@ -40,6 +40,9 @@ class WC_Connect_TaxJar_Integration {
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
+
+		// Set customer taxable location for local pickup
+		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
 	}
 
 	/**
@@ -248,6 +251,40 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Set customer zip code and state to store if local shipping option set
+	 *
+	 * Unchanged from the TaxJar plugin.
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c587/includes/class-wc-taxjar-integration.php#L653
+	 *
+	 * @return array
+	 */
+	public function append_base_address_to_customer_taxable_address( $address ) {
+		$store_settings = $this->get_store_settings();
+		$tax_based_on = '';
+
+		list( $country, $state, $postcode, $city ) = $address;
+
+		// See WC_Customer get_taxable_address()
+		// wc_get_chosen_shipping_method_ids() available since Woo 2.6.2+
+		if ( function_exists( 'wc_get_chosen_shipping_method_ids' ) ) {
+			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+				$tax_based_on = 'base';
+			}
+		} else {
+			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( WC()->session->get( 'chosen_shipping_methods', array() ), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+				$tax_based_on = 'base';
+			}
+		}
+
+		if ( 'base' == $tax_based_on ) {
+			$postcode = $store_settings['taxjar_zip_code_setting'];
+			$city = strtoupper( $store_settings['taxjar_city_setting'] );
+		}
+
+		return array( $country, $state, $postcode, $city );
 	}
 
 	/**
