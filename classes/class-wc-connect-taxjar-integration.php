@@ -8,9 +8,17 @@ class WC_Connect_TaxJar_Integration {
 	public $api_client;
 
 	const TAXJAR_URL = 'https://api.taxjar.com';
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	public $logger;
 
-	public function __construct( WC_Connect_API_Client $api_client ) {
+	public function __construct(
+		WC_Connect_API_Client $api_client,
+		WC_Connect_Logger $logger
+	) {
 		$this->api_client = $api_client;
+		$this->logger = $logger;
 	}
 
 	public function init() {
@@ -54,6 +62,12 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * @param $message
+	 */
+	public function _log( $message ) {
+		$this->logger->debug( $message, 'WCS Tax' );
+	}
+
 	 * Configure WooCommerce core tax settings for TaxJar integration.
 	 *
 	 * Ported from TaxJar's plugin.

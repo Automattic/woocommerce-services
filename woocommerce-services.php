@@ -430,7 +430,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client );
+			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
