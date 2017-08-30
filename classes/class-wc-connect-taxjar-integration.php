@@ -27,6 +27,33 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Gets the store's location settings.
+	 *
+	 * Modified version of TaxJar's plugin.
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L796
+	 *
+	 * @return array
+	 */
+	public function get_store_settings() {
+		$default_wc_settings     = explode( ':', get_option( 'woocommerce_default_country' ) );
+		$taxjar_city_setting     = get_option( 'woocommerce_store_city' );
+		$taxjar_zip_code_setting = get_option( 'woocommerce_store_postcode' );
+
+		$store_settings          = array(
+			'taxjar_zip_code_setting' => $taxjar_zip_code_setting,
+			'store_state_setting'     => null,
+			'store_country_setting'   => $default_wc_settings[0],
+			'taxjar_city_setting'     => $taxjar_city_setting,
+		);
+
+		if ( isset( $default_wc_settings[1] ) ) {
+			$store_settings['store_state_setting'] = $default_wc_settings[1];
+		}
+
+		return $store_settings;
+	}
+
+	/**
 	 * Configure WooCommerce core tax settings for TaxJar integration.
 	 *
 	 * Ported from TaxJar's plugin.
