@@ -453,6 +453,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
+			$account_settings = $this->settings_store->get_account_settings();
+			if ( ! $account_settings[ 'enabled' ] ) {
+				return array( 'enabled' => false );
+			}
+
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
 				'orderId'                 => $order_id,
@@ -461,6 +466,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'paymentMethod'           => $this->get_selected_payment_method(),
 				'numPaymentMethods'       => count( $this->payment_methods_store->get_payment_methods() ),
 				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
+				'enabled'                 => true,
 			);
 
 			$store_options = $this->settings_store->get_store_options();
