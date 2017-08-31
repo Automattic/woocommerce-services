@@ -12,7 +12,8 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public $logger;
 
-	const PROXY_PATH = 'taxjar/v2';
+	const PROXY_PATH     = 'taxjar/v2';
+	const ENV_SETUP_FLAG = 'needs_tax_environment_setup';
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
@@ -28,11 +29,8 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		// TODO: check if WCS Taxes are enabled before configuring core tax settings
-		$this->configure_tax_settings();
-
-		// TODO: check if WCS Taxes are enabled before backup existing tax rates
-		$this->backup_existing_tax_rates();
+		// TODO: check if WCS Taxes are enabled
+		$this->setup_environment();
 
 		// TODO: check if WCS Taxes are enabled before calculating rates for orders
 		// Calculate Taxes at Cart / Checkout
@@ -43,6 +41,22 @@ class WC_Connect_TaxJar_Integration {
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
+	}
+
+	/**
+	 * Put the WooCommerce tax settings in a known-good initial configuration.
+	 */
+	public function setup_environment() {
+		$needs_setup = WC_Connect_Options::get_option( self::ENV_SETUP_FLAG, true );
+
+		if ( ! $needs_setup ) {
+			return;
+		}
+
+		$this->configure_tax_settings();
+		$this->backup_existing_tax_rates();
+
+		WC_Connect_Options::update_option( self::ENV_SETUP_FLAG, false );
 	}
 
 	/**
