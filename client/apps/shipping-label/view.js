@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Gridicon from 'gridicons';
 import { translate as __ } from 'i18n-calypso';
+import { filter } from 'lodash';
 
 /**
  * Internal dependencies
@@ -230,7 +231,11 @@ class ShippingLabelRootView extends Component {
 	};
 
 	renderLabels = () => {
-		return this.props.shippingLabel.labels.map( this.renderLabel );
+		//filter by blacklist (rather than just checking for PURCHASED) to handle legacy labels without the status field
+		const labelsToRender = filter( this.props.shippingLabel.labels,
+			( label ) => 'PURCHASE_IN_PROGRESS' !== label.status && 'PURCHASE_ERROR' !== label.status );
+
+		return labelsToRender.map( this.renderLabel );
 	};
 
 	renderLoading() {
