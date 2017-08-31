@@ -387,7 +387,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
-			$this->taxjar->init();
 		}
 
 		/**
@@ -497,6 +496,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
+
+			$this->taxjar->init();
 		}
 
 		public function tos_rest_init() {

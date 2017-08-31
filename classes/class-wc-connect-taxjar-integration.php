@@ -29,6 +29,14 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		$store_settings = $this->get_store_settings();
+		$store_country  = $store_settings['store_country_setting'];
+
+		// TaxJar supports USA, Canada, Australia, and the European Union
+		if ( ! $this->is_supported_country( $store_country ) ) {
+			return;
+		}
+
 		// TODO: check if WCS Taxes are enabled
 		$this->setup_environment();
 
@@ -57,6 +65,36 @@ class WC_Connect_TaxJar_Integration {
 		$this->backup_existing_tax_rates();
 
 		WC_Connect_Options::update_option( self::ENV_SETUP_FLAG, false );
+	}
+
+	/**
+	 * TaxJar supports USA, Canada, Australia, and the European Union
+	 * See: https://developers.taxjar.com/api/reference/#countries
+	 *
+	 * @return array Countries supported by TaxJar.
+	 */
+	public function get_supported_countries() {
+		$supported_countries = array_merge(
+			array(
+				'US',
+				'CA',
+				'AU',
+			),
+			WC()->countries->get_european_union_countries()
+		);
+
+		return $supported_countries;
+	}
+
+	/**
+	 * Check if a given country is supported by TaxJar.
+	 *
+	 * @param $country Two character country code.
+	 *
+	 * @return bool Whether or not the country is supported by TaxJar.
+	 */
+	public function is_supported_country( $country ) {
+		return in_array( $country, $this->get_supported_countries() );
 	}
 
 	/**
