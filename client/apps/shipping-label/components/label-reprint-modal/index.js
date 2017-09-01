@@ -17,10 +17,10 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import { closeReprintDialog, confirmReprint, updatePaperSize } from '../../state/actions';
 
 const ReprintDialog = ( props ) => {
-	const { reprintDialog, paperSize, storeOptions } = props;
+	const { reprintDialog, paperSize, storeOptions, label_id } = props;
 	return (
 		<Modal
-			isVisible={ Boolean( reprintDialog ) }
+			isVisible={ Boolean( reprintDialog && reprintDialog.labelId === label_id ) }
 			onClose={ props.closeReprintDialog }
 			additionalClassNames="label-reprint-modal">
 			<FormSectionHeading>
