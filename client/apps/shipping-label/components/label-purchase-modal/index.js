@@ -60,9 +60,9 @@ const PurchaseDialog = ( props ) => {
 
 	const getPurchaseButtonAction = () => {
 		if ( props.form.needsPrintConfirmation ) {
-			return () => props.labelActions.confirmPrintLabel( props.form.printUrl );
+			return () => props.confirmPrintLabel( props.form.printUrl );
 		}
-		return props.labelActions.purchaseLabel;
+		return props.purchaseLabel;
 	};
 
 	const buttons = [
@@ -74,7 +74,7 @@ const PurchaseDialog = ( props ) => {
 		},
 	];
 
-	const closeModal = () => props.labelActions.exitPrintingFlow( false );
+	const closeModal = () => props.exitPrintingFlow( false );
 
 	if ( ! props.form.needsPrintConfirmation ) {
 		buttons.push( {
@@ -120,7 +120,7 @@ const PurchaseDialog = ( props ) => {
 	);
 };
 
-function mapStateToProps( state ) {
+const mapStateToProps = ( state ) => {
 	const shippingLabel = state.shippingLabel;
 	const loaded = shippingLabel.loaded;
 	const storeOptions = loaded ? shippingLabel.storeOptions : {};
@@ -131,12 +131,10 @@ function mapStateToProps( state ) {
 		errors: loaded && getFormErrors( state, storeOptions ),
 		canPurchase: loaded && canPurchase( state, storeOptions ),
 	};
-}
+};
 
-function mapDispatchToProps( dispatch ) {
-	return {
-		labelActions: bindActionCreators( { confirmPrintLabel, purchaseLabel, exitPrintingFlow }, dispatch ),
-	};
-}
+const mapDispatchToProps = ( dispatch ) => {
+	return bindActionCreators( { confirmPrintLabel, purchaseLabel, exitPrintingFlow }, dispatch );
+};
 
 export default connect( mapStateToProps, mapDispatchToProps )( PurchaseDialog );

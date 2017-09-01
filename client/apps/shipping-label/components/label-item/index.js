@@ -28,7 +28,7 @@ class LabelItem extends Component {
 
 		const openDialog = ( e ) => {
 			e.preventDefault();
-			this.props.labelActions.openRefundDialog( label.label_id );
+			this.props.openRefundDialog( label.label_id );
 		};
 
 		return (
@@ -85,7 +85,7 @@ class LabelItem extends Component {
 
 		const openDialog = ( e ) => {
 			e.preventDefault();
-			this.props.labelActions.openReprintDialog( label.label_id );
+			this.props.openReprintDialog( label.label_id );
 		};
 
 		return (
@@ -147,12 +147,12 @@ class LabelItem extends Component {
 
 LabelItem.propTypes = {
 	label: PropTypes.object.isRequired,
+	openRefundDialog: PropTypes.func.isRequired,
+	openReprintDialog: PropTypes.func.isRequired,
 };
 
-function mapDispatchToProps( dispatch ) {
-	return {
-		labelActions: bindActionCreators( { openRefundDialog, openReprintDialog }, dispatch ),
-	};
-}
+const mapDispatchToProps = ( dispatch ) => {
+	return bindActionCreators( { openRefundDialog, openReprintDialog }, dispatch );
+};
 
 export default connect( null, mapDispatchToProps )( LabelItem );

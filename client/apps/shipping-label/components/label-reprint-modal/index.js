@@ -16,11 +16,12 @@ import { getPaperSizes } from 'lib/pdf-label-utils';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import { closeReprintDialog, confirmReprint, updatePaperSize } from '../../state/actions';
 
-const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions } ) => {
+const ReprintDialog = ( props ) => {
+	const { reprintDialog, paperSize, storeOptions } = props;
 	return (
 		<Modal
 			isVisible={ Boolean( reprintDialog ) }
-			onClose={ labelActions.closeReprintDialog }
+			onClose={ props.closeReprintDialog }
 			additionalClassNames="label-reprint-modal">
 			<FormSectionHeading>
 				{ __( 'Reprint shipping label' ) }
@@ -37,16 +38,16 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions }
 				valuesMap={ getPaperSizes( storeOptions.origin_country ) }
 				title={ __( 'Paper size' ) }
 				value={ paperSize }
-				updateValue={ labelActions.updatePaperSize } />
+				updateValue={ props.updatePaperSize } />
 			<ActionButtons buttons={ [
 				{
-					onClick: labelActions.confirmReprint,
+					onClick: props.confirmReprint,
 					isPrimary: true,
 					isDisabled: reprintDialog && reprintDialog.isFetching,
 					label: __( 'Print' ),
 				},
 				{
-					onClick: labelActions.closeReprintDialog,
+					onClick: props.closeReprintDialog,
 					label: __( 'Cancel' ),
 				},
 			] } />
@@ -56,12 +57,14 @@ const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions }
 
 ReprintDialog.propTypes = {
 	reprintDialog: PropTypes.object,
-	labelActions: PropTypes.object.isRequired,
 	paperSize: PropTypes.string.isRequired,
 	storeOptions: PropTypes.object.isRequired,
+	closeReprintDialog: PropTypes.func.isRequired,
+	confirmReprint: PropTypes.func.isRequired,
+	updatePaperSize: PropTypes.func.isRequired,
 };
 
-function mapStateToProps( state ) {
+const mapStateToProps = ( state ) => {
 	const shippingLabel = state.shippingLabel;
 	const loaded = shippingLabel.loaded;
 	return {
@@ -69,12 +72,10 @@ function mapStateToProps( state ) {
 		paperSize: shippingLabel.paperSize,
 		storeOptions: loaded ? shippingLabel.storeOptions : {},
 	};
-}
+};
 
-function mapDispatchToProps( dispatch ) {
-	return {
-		labelActions: bindActionCreators( { closeReprintDialog, confirmReprint, updatePaperSize }, dispatch ),
-	};
-}
+const mapDispatchToProps = ( dispatch ) => {
+	return bindActionCreators( { closeReprintDialog, confirmReprint, updatePaperSize }, dispatch );
+};
 
 export default connect( mapStateToProps, mapDispatchToProps )( ReprintDialog );

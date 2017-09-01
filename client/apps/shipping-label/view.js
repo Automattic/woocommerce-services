@@ -23,13 +23,13 @@ import Notice from 'components/notice';
 class ShippingLabelRootView extends Component {
 	componentWillMount() {
 		if ( this.props.needToFetchLabelStatus ) {
-			this.props.labelActions.fetchLabelsStatus();
+			this.props.fetchLabelsStatus();
 		}
 	}
 
 	componentWillReceiveProps( props ) {
 		if ( props.needToFetchLabelStatus ) {
-			this.props.labelActions.fetchLabelsStatus();
+			this.props.fetchLabelsStatus();
 		}
 	}
 
@@ -70,7 +70,7 @@ class ShippingLabelRootView extends Component {
 
 	renderLabelButton = () => {
 		return (
-			<Button className="shipping-label__new-label-button" onClick={ this.props.labelActions.openPrintingFlow } >
+			<Button className="shipping-label__new-label-button" onClick={ this.props.openPrintingFlow } >
 				{ __( 'Create new label' ) }
 			</Button>
 		);
@@ -93,13 +93,15 @@ class ShippingLabelRootView extends Component {
 		const labelsToRender = filter( this.props.shippingLabel.labels,
 			( label ) => 'PURCHASE_IN_PROGRESS' !== label.status && 'PURCHASE_ERROR' !== label.status );
 
-		return labelsToRender.map( ( label, index ) =>
-			<LabelItem
-				key={ label.label_id }
-				label={ label }
-				labelNum={ labelsToRender.length - index }
-			/>
-		);
+		return labelsToRender.map( ( label, index ) => {
+			return (
+				<LabelItem
+					key={ label.label_id }
+					label={ label }
+					labelNum={ labelsToRender.length - index }
+				/>
+			);
+		} );
 	};
 
 	renderLoading() {
@@ -129,23 +131,24 @@ class ShippingLabelRootView extends Component {
 
 ShippingLabelRootView.propTypes = {
 	shippingLabel: PropTypes.object.isRequired,
+	loaded: PropTypes.bool.isRequired,
+	needToFetchLabelStatus: PropTypes.bool.isRequired,
+	fetchLabelsStatus: PropTypes.func.isRequired,
+	openPrintingFlow: PropTypes.func.isRequired,
 };
 
-function mapStateToProps( state ) {
+const mapStateToProps = ( state ) => {
 	const shippingLabel = state.shippingLabel;
 	const loaded = shippingLabel.loaded;
-
 	return {
 		shippingLabel,
 		loaded,
 		needToFetchLabelStatus: loaded && ! shippingLabel.refreshedLabelStatus,
 	};
-}
+};
 
-function mapDispatchToProps( dispatch ) {
-	return {
-		labelActions: bindActionCreators( { fetchLabelsStatus, openPrintingFlow }, dispatch ),
-	};
-}
+const mapDispatchToProps = ( dispatch ) => {
+	return bindActionCreators( { fetchLabelsStatus, openPrintingFlow }, dispatch );
+};
 
 export default connect( mapStateToProps, mapDispatchToProps )( ShippingLabelRootView );
