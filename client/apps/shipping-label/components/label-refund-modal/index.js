@@ -2,6 +2,8 @@
  * External dependencies
  */
 import React, { PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { translate as __ } from 'i18n-calypso';
 
 /**
@@ -11,6 +13,7 @@ import Modal from 'components/modal';
 import ActionButtons from 'components/action-buttons';
 import formatDate from 'lib/utils/format-date';
 import FormSectionHeading from 'components/forms/form-section-heading';
+import { closeRefundDialog, confirmRefund } from '../../state/actions';
 
 const RefundDialog = ( { refundDialog, labelActions, storeOptions, created, refundable_amount, label_id } ) => {
 	const getRefundableAmount = () => {
@@ -62,4 +65,19 @@ RefundDialog.propTypes = {
 	label_id: PropTypes.number,
 };
 
-export default RefundDialog;
+function mapStateToProps( state ) {
+	const shippingLabel = state.shippingLabel;
+	const loaded = shippingLabel.loaded;
+	return {
+		refundDialog: loaded ? shippingLabel.refundDialog : {},
+		storeOptions: loaded ? shippingLabel.storeOptions : {},
+	};
+}
+
+function mapDispatchToProps( dispatch ) {
+	return {
+		labelActions: bindActionCreators( { closeRefundDialog, confirmRefund }, dispatch ),
+	};
+}
+
+export default connect( mapStateToProps, mapDispatchToProps )( RefundDialog );

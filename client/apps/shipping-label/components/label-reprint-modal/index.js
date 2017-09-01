@@ -2,6 +2,8 @@
  * External dependencies
  */
 import React, { PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { translate as __ } from 'i18n-calypso';
 
 /**
@@ -12,6 +14,7 @@ import ActionButtons from 'components/action-buttons';
 import Dropdown from 'components/dropdown';
 import { getPaperSizes } from 'lib/pdf-label-utils';
 import FormSectionHeading from 'components/forms/form-section-heading';
+import { closeReprintDialog, confirmReprint, updatePaperSize } from '../../state/actions';
 
 const ReprintDialog = ( { reprintDialog, labelActions, paperSize, storeOptions } ) => {
 	return (
@@ -58,4 +61,20 @@ ReprintDialog.propTypes = {
 	storeOptions: PropTypes.object.isRequired,
 };
 
-export default ReprintDialog;
+function mapStateToProps( state ) {
+	const shippingLabel = state.shippingLabel;
+	const loaded = shippingLabel.loaded;
+	return {
+		reprintDialog: loaded ? shippingLabel.reprintDialog : {},
+		paperSize: shippingLabel.paperSize,
+		storeOptions: loaded ? shippingLabel.storeOptions : {},
+	};
+}
+
+function mapDispatchToProps( dispatch ) {
+	return {
+		labelActions: bindActionCreators( { closeReprintDialog, confirmReprint, updatePaperSize }, dispatch ),
+	};
+}
+
+export default connect( mapStateToProps, mapDispatchToProps )( ReprintDialog );

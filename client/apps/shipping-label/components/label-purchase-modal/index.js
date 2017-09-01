@@ -2,6 +2,8 @@
  * External dependencies
  */
 import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { translate as __ } from 'i18n-calypso';
 
 /**
@@ -17,6 +19,9 @@ import RatesStep from './rates-step';
 import Sidebar from './sidebar';
 import { getRatesTotal } from 'apps/shipping-label/state/selectors/rates';
 import FormSectionHeading from 'components/forms/form-section-heading';
+import { confirmPrintLabel, purchaseLabel, exitPrintingFlow } from '../../state/actions';
+import getFormErrors from '../../state/selectors/errors';
+import canPurchase from '../../state/selectors/can-purchase';
 
 const PurchaseDialog = ( props ) => {
 	const getPurchaseButtonLabel = () => {
@@ -69,11 +74,11 @@ const PurchaseDialog = ( props ) => {
 		},
 	];
 
-	const exitPrintingFlow = () => props.labelActions.exitPrintingFlow( false );
+	const closeModal = () => props.labelActions.exitPrintingFlow( false );
 
 	if ( ! props.form.needsPrintConfirmation ) {
 		buttons.push( {
-			onClick: exitPrintingFlow,
+			onClick: closeModal,
 			label: __( 'Cancel' ),
 		} );
 	}
@@ -81,7 +86,7 @@ const PurchaseDialog = ( props ) => {
 	return (
 		<Modal
 			isVisible={ props.showPurchaseDialog }
-			onClose={ exitPrintingFlow } >
+			onClose={ closeModal } >
 			<div className="label-purchase-modal__content">
 				<FormSectionHeading>
 					{ 1 === props.form.packages.selected.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
@@ -115,4 +120,23 @@ const PurchaseDialog = ( props ) => {
 	);
 };
 
-export default PurchaseDialog;
+function mapStateToProps( state ) {
+	const shippingLabel = state.shippingLabel;
+	const loaded = shippingLabel.loaded;
+	const storeOptions = loaded ? shippingLabel.storeOptions : {};
+
+	return {
+		...shippingLabel,
+		storeOptions,
+		errors: loaded && getFormErrors( state, storeOptions ),
+		canPurchase: loaded && canPurchase( state, storeOptions ),
+	};
+}
+
+function mapDispatchToProps( dispatch ) {
+	return {
+		labelActions: bindActionCreators( { confirmPrintLabel, purchaseLabel, exitPrintingFlow }, dispatch ),
+	};
+}
+
+export default connect( mapStateToProps, mapDispatchToProps )( PurchaseDialog );
