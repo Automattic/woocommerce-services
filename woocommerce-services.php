@@ -181,6 +181,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $rest_stripe_account_controller;
 
+		/**
+		 * @var WC_REST_Connect_Stripe_Oauth_Controller
+		 */
+		protected $rest_stripe_Oauth_controller;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -373,6 +378,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_stripe_account_controller = $rest_stripe_account_controller;
 		}
 
+		public function set_rest_stripe_oauth_controller( WC_REST_Connect_Stripe_Oauth_Controller $rest_stripe_oauth_controller ) {
+			$this->rest_stripe_oauth_controller = $rest_stripe_oauth_controller;
+		}
+
 		public function set_stripe( WC_Connect_Stripe $stripe ) {
 			$this->stripe = $stripe;
 		}
@@ -533,7 +542,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 			$options               = new WC_Connect_Options();
 			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger );
-			$stripe_notice         = new WC_Connect_Stripe_Notice( $api_client, $options, $logger );
+			$stripe_notice         = new WC_Connect_Stripe_Notice();
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -697,10 +706,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
 
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-settings-controller.php' ) );
+			$rest_stripe_settings_controller = new WC_REST_Connect_Stripe_Settings_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
+			$rest_stripe_settings_controller->register_routes();
+
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
 			$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
 			$this->set_rest_stripe_account_controller( $rest_stripe_account_controller );
 			$rest_stripe_account_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-controller.php' ) );
+			$rest_stripe_oauth_controller = new WC_REST_Connect_Stripe_Oauth_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
+			$this->set_rest_stripe_oauth_controller( $rest_stripe_oauth_controller );
+			$rest_stripe_oauth_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
