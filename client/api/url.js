@@ -23,3 +23,5 @@ export const shippingServiceSettings = ( methodId, instanceId = false ) => insta
 	: `${ namespace }services/${ methodId }`;
 
 export const dismissShippingSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;
+
+export const stripeSettings = () => `${ namespace }stripe/account`;
