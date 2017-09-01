@@ -7,11 +7,12 @@ import { translate as __ } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import saveForm from 'lib/save-form';
+import * as api from 'api';
 import coerceFormValues from 'lib/utils/coerce-values';
 import * as FormActions from '../actions';
 import * as NoticeActions from 'state/notices/actions';
 import getFormErrors from '../selectors/errors';
+import { EMPTY_ERROR } from 'apps/settings/state/selectors/errors';
 
 export const UPDATE_FIELD = 'UPDATE_FIELD';
 export const REMOVE_FIELD = 'REMOVE_FIELD';
@@ -34,7 +35,7 @@ export const addArrayFieldItem = ( path, item ) => ( {
 	item,
 } );
 
-export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL, nonce } ) => {
+export const submit = ( schema, silent ) => ( dispatch, getState, { methodId, instanceId } ) => {
 	silent = ( true === silent );
 
 	const setIsSaving = ( value ) => dispatch( FormActions.setFormProperty( 'isSaving', value ) );
@@ -78,10 +79,26 @@ export const submit = ( schema, silent ) => ( dispatch, getState, { callbackURL,
 	dispatch( FormActions.setAllPristine( false ) );
 
 	const errors = getFormErrors( getState(), schema );
-
-	if ( _.isEmpty( errors ) ) {
-		saveForm( setIsSaving, setSuccess, setFieldsStatus, setError, callbackURL, nonce, 'POST', coercedValues );
-	} else {
+	if ( ! _.isEmpty( errors ) ) {
 		setError( errors );
+		return;
 	}
+
+	setIsSaving( true );
+	api.post( api.url.shippingServiceSettings( methodId, instanceId ), coercedValues )
+		.then( () => setSuccess( true ) )
+		.catch( ( error ) => {
+			if ( 'validation_failure' === _.get( error, 'data.error' ) && _.get( error, 'data.data.fields' ) ) {
+				let fieldsStatus = error.data.data.fields;
+				// Some services still give the field errors in an array, keep backwards-compatibility
+				if ( _.isArray( fieldsStatus ) ) {
+					fieldsStatus = {};
+					error.data.data.fields.forEach( ( fieldName ) => fieldsStatus[ fieldName ] = EMPTY_ERROR );
+				}
+				return setFieldsStatus( fieldsStatus );
+			}
+
+			setError( error );
+		} )
+		.then( () => setIsSaving( false ) );
 };

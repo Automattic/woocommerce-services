@@ -6,11 +6,19 @@ import _ from 'lodash';
 /**
  * Internal dependencies
  */
-import { SET_FORM_PROPERTY, SET_ALL_PRISTINE, DISMISS_NOTICE } from './actions';
+import { INIT_FORM, SET_FORM_PROPERTY, SET_ALL_PRISTINE, DISMISS_NOTICE } from './actions';
+import initializeState from 'lib/initialize-state';
 import values from './values/reducer';
 import * as formValueActions from './values/actions';
 
 const reducers = {};
+
+reducers[ INIT_FORM ] = ( state, { formSchema, formData, formLayout, storeOptions, noticeDismissed } ) => {
+	return {
+		...state,
+		...initializeState( formSchema, formData, formLayout, storeOptions, noticeDismissed ),
+	};
+};
 
 reducers[ SET_FORM_PROPERTY ] = ( state, action ) => {
 	const newObj = {};

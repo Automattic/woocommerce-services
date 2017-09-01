@@ -14,9 +14,17 @@ import NuxNotice from 'components/nux-notice';
 import * as FormActions from 'apps/settings/state/actions';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import * as FormValueActions from 'apps/settings/state/values/actions';
+import { getShippingSettingsForm } from 'apps/settings/state/selectors';
 import getFormErrors from 'apps/settings/state/selectors/errors';
+import LoadingSpinner from 'components/loading-spinner';
 
 const SettingsForm = ( props ) => {
+	if ( ! props.loaded ) {
+		return (
+			<LoadingSpinner />
+		);
+	}
+
 	const renderGroup = ( index ) => {
 		return (
 			<SettingsGroup
@@ -41,15 +49,16 @@ const SettingsForm = ( props ) => {
 };
 
 SettingsForm.propTypes = {
-	storeOptions: PropTypes.object.isRequired,
-	schema: PropTypes.object.isRequired,
-	layout: PropTypes.array.isRequired,
+	loaded: PropTypes.bool.isRequired,
+	storeOptions: PropTypes.object,
+	schema: PropTypes.object,
+	layout: PropTypes.array,
 };
 
 function mapStateToProps( state, props ) {
 	return {
-		form: state.form,
-		errors: getFormErrors( state, props.schema ),
+		form: getShippingSettingsForm( state ),
+		errors: props.loaded && getFormErrors( state, props.schema ),
 	};
 }
 

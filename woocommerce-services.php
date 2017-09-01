@@ -493,6 +493,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
+			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -617,38 +618,50 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Added to the wc_connect_shipping_service_settings filter, returns service settings
+		 *
+		 * @param $settings
+		 * @param $method_id
+		 * @param $instance_id
+		 *
+		 * @return array
+		 */
+		public function shipping_service_settings( $settings, $method_id, $instance_id ) {
+			$settings_store = $this->get_service_settings_store();
+			$schemas_store = $this->get_service_schemas_store();
+			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance_id ? $instance_id : $method_id );
+			if ( ! $service_schema ) {
+				return array_merge( $settings, array (
+					'methodId'   => $method_id,
+					'instanceId' => $instance_id,
+				) );
+			}
+
+			return array_merge( $settings, array(
+				'storeOptions'       => $settings_store->get_store_options(),
+				'formSchema'         => $service_schema->service_settings,
+				'formLayout'         => $service_schema->form_layout,
+				'formData'           => $settings_store->get_service_settings( $method_id, $instance_id ),
+				'methodId'           => $method_id,
+				'instanceId'         => $instance_id,
+				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
+			) );
+		}
+
+		/**
 		 * This function is added to the wc_connect_service_admin_options action by this class
 		 * (see attach_hooks) and then that action is fired by WC_Connect_Shipping_Method::admin_options
 		 * to get the service instance form layout and settings bundled inside wcConnectData
 		 * as the form container is emitted into the body's HTML
 		 */
-		public function localize_and_enqueue_service_script( $id, $instance = false ) {
+		public function localize_and_enqueue_service_script( $method_id, $instance_id = false ) {
 			if ( ! function_exists( 'get_rest_url' ) ) {
 				return;
 			}
 
-			$settings_store = $this->get_service_settings_store();
-			$schemas_store = $this->get_service_schemas_store();
-			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance ? $instance : $id );
-
-			if ( ! $service_schema ) {
-				return;
-			}
-
-			$path = $instance ? "/wc/v1/connect/services/{$id}/{$instance}" : "/wc/v1/connect/services/{$id}";
-
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
-				'storeOptions'       => $settings_store->get_store_options(),
-				'formSchema'         => $service_schema->service_settings,
-				'formLayout'         => $service_schema->form_layout,
-				'formData'           => $settings_store->get_service_settings( $id, $instance ),
-				'methodId'           => $id,
-				'instanceId'         => $instance,
-				'callbackURL'        => get_rest_url( null, $path ),
-				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
-				'dismissURL'         => get_rest_url( null, '/wc/v1/connect/services/dismiss_notice' )
-			) );
+			do_action( 'enqueue_wc_connect_script',
+				'wc-connect-service-settings',
+				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
 		}
 
 		/**

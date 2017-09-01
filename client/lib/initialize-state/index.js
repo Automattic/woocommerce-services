@@ -21,7 +21,14 @@ const getItemValue = ( schema, value, definitions ) => {
 	}
 };
 
-export default ( schema, values, noticeDismissed ) => {
+export default ( schema, values, layout, storeOptions, noticeDismissed ) => {
+	if ( ! schema || ! values ) {
+		return {
+			isFetching: false,
+			loaded: false,
+		};
+	}
+
 	const formValues = {};
 	const pristine = {};
 	Object.keys( schema.properties ).forEach( ( key ) => {
@@ -30,13 +37,16 @@ export default ( schema, values, noticeDismissed ) => {
 	} );
 
 	return {
-		form: {
-			isSaving: false,
-			pristine,
-			currentStep: -1,
-			values: formValues,
-			shippingLabel: {},
-			noticeDismissed,
-		},
+		isSaving: false,
+		isFetching: false,
+		loaded: true,
+		pristine,
+		currentStep: -1,
+		values: formValues,
+		shippingLabel: {},
+		layout,
+		schema,
+		storeOptions,
+		noticeDismissed,
 	};
 };

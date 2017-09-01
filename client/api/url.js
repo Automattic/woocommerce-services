@@ -17,3 +17,9 @@ export const labelsPrint = () => `${ namespace }label/print`;
 export const labelTestPrint = () => `${ namespace }label/preview`;
 
 export const addressNormalization = () => `${ namespace }normalize-address`;
+
+export const shippingServiceSettings = ( methodId, instanceId = false ) => instanceId
+	? `${ namespace }services/${ methodId }/${ instanceId }`
+	: `${ namespace }services/${ methodId }`;
+
+export const dismissShippingSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;
