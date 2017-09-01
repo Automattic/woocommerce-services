@@ -4,12 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_REST_Connect_Stripe_Account_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Stripe_Oauth_Controller' ) ) {
 	return;
 }
 
-class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/stripe/account';
+class WC_REST_Connect_Stripe_Oauth_Controller extends WC_REST_Connect_Base_Controller {
+	protected $rest_base = 'connect/stripe/oauth';
 	private $stripe;
 
 	public function __construct( WC_Connect_Stripe $stripe, WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
@@ -17,18 +17,13 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$this->stripe = $stripe;
 	}
 
-	public function get( $request ) {
-		$payload = $this->stripe->get_settings();
-		$payload[ 'success' ] = true;
-		return new WP_REST_Response( $payload, 200 );
-	}
-
 	public function post( $request ) {
 		$data = $request->get_json_params();
 
-		$response = $this->stripe->create_account( $data['email'], $data['country'] );
+		$response = $this->stripe->connect_oauth( $data['state'], $data['code'] );
 
 		if ( is_wp_error( $response ) ) {
+			error_log(json_encode($response));
 			$this->logger->debug( $response, __CLASS__ );
 			return new WP_REST_Response( array(
 				'success'   => false,

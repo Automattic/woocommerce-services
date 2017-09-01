@@ -28,26 +28,9 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$this->logger = $logger;
 		}
 
-		public function init() {
-			if ( ! session_id() ) {
-				session_start();
-			}
-
-			if ( isset( $_GET[ 'wcs_stripe_create' ] ) ) {
-				$this->create_deferred_account();
-			} elseif ( isset( $_GET[ 'wcs_stripe_connect' ] ) ) {
-				$this->start_oauth();
-			} elseif ( isset( $_GET[ 'wcs_stripe_code' ] ) && isset( $_GET[ 'wcs_stripe_state' ] ) ) {
-				$this->connect_oauth();
-			} else {
-				add_action( 'admin_notices', array( $this, 'render_notice' ) );
-			}
-		}
-
-		public function get_settings() {
+		public function get_settings( $return_url ) {
 			$email = get_option( 'admin_email' );
 			$country = WC()->countries->get_base_country();
-			$return_url = site_url( remove_query_arg( 'wcs_stripe_connect' ) );
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
 			if ( is_wp_error( $result ) ) {
@@ -63,39 +46,31 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			);
 		}
 
-		private function create_deferred_account() {
-			$email = get_option( 'admin_email' );
-			$country = WC()->countries->get_base_country();
-			$result = $this->api->create_stripe_account( $email, $country );
-			$this->save_stripe_keys( $result );
+		public function create_account( $email, $country ) {
+			$response = $this->api->create_stripe_account( $email, $country );
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+			$this->save_stripe_keys( $response );
+			return $response;
 		}
 
-		private function start_oauth() {
-			$return_url = site_url( remove_query_arg( 'wcs_stripe_connect' ) );
-			$result = $this->api->get_stripe_oauth_init( $return_url );
-			if ( is_wp_error( $result ) ) {
-				$this->error = json_encode( $result );
-				add_action( 'admin_notices', array( $this, 'error_notice' ) );
-				exit;
+		public function connect_oauth( $state, $code ) {
+			if ( $state !== get_transient( 'wcs_stripe_state' ) ) {
+				return new WP_Error( 'Invalid stripe state' );
 			}
 
-			$_SESSION[ 'wcs_stripe_oauth_state' ] = $result->state;
-			wp_redirect( $result->oauthUrl );
-			exit;
-		}
+			$response = $this->api->get_stripe_oauth_keys( $code );
 
-		private function connect_oauth() {
-			if ( $_SESSION[ 'wcs_stripe_oauth_state' ] !== $_GET[ 'wcs_stripe_state' ] ) {
-				$this->error = 'Invalid state received at end of OAuth flow.';
-				add_action( 'admin_notices', array( $this, 'error_notice' ) );
-				return;
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
-			$result = $this->api->get_stripe_oauth_keys( $_GET[ 'wcs_stripe_code' ] );
-			$this->save_stripe_keys( $result );
+			$this->save_stripe_keys( $response );
+			return $response;
 		}
 
-		public function save_stripe_keys( $result ) {
+		private function save_stripe_keys( $result ) {
 			if ( ! isset( $result->accountId, $result->publishableKey, $result->secretKey ) ) {
 				$this->error = 'Unexpected server response: ' . json_encode( $result );
 				add_action( 'admin_notices', array( $this, 'error_notice' ) );
