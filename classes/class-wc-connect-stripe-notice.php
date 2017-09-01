@@ -49,11 +49,30 @@ if ( ! class_exists( 'WC_Connect_Stripe_Notice' ) ) {
 			$country = WC()->countries->get_base_country();
 			$create_link = site_url( add_query_arg( 'wcs_stripe_create', '1' ) );
 			$connect_link = site_url( add_query_arg( 'wcs_stripe_connect', '1' ) );
+
+			$payload = array(
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'baseURL'      => get_rest_url(),
+			);
+
+			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
+			wp_enqueue_script( 'wc_connect_admin' );
+			wp_enqueue_style( 'wc_connect_admin' );
+
+			$debug_page_uri = esc_url( add_query_arg(
+				array(
+					'page' => 'wc-status',
+					'tab' => 'connect'
+				),
+				admin_url( 'admin.php' )
+			) );
+
+			$extra_args = array();
+			$data_args = esc_attr( wp_json_encode( $extra_args ) );
+			$message = sprintf( __( 'Section not loading? Visit the <a href=\"%s\">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri );
 			echo "
-			<div id='message' class='updated jp-wpcom-connect__container'>
-                <div>Let's get you some stripe!</div>
-                <div>Create an account for $email / $country? <a href='$create_link'>Click here</a></div>
-                <div>Already have a stripe account? <a href='$connect_link'>Click here</a></div>
+			<div class='wcc-root updated jp-wpcom-connect__container wc-connect-stripe-connect' data-args=\"$data_args\">
+					<span class=\"form-troubles\" style=\"opacity: 0\">$message</span>
 			</div>";
 		}
 
