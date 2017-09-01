@@ -176,16 +176,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $rest_tos_controller;
 
-		/**
-		 * @var WC_REST_Connect_Stripe_Account_Controller
-		 */
-		protected $rest_stripe_account_controller;
-
-		/**
-		 * @var WC_REST_Connect_Stripe_Oauth_Controller
-		 */
-		protected $rest_stripe_Oauth_controller;
-
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -372,14 +362,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
 			$this->taxjar = $taxjar;
-		}
-
-		public function set_rest_stripe_account_controller( WC_REST_Connect_Stripe_Account_Controller $rest_stripe_account_controller ) {
-			$this->rest_stripe_account_controller = $rest_stripe_account_controller;
-		}
-
-		public function set_rest_stripe_oauth_controller( WC_REST_Connect_Stripe_Oauth_Controller $rest_stripe_oauth_controller ) {
-			$this->rest_stripe_oauth_controller = $rest_stripe_oauth_controller;
 		}
 
 		public function set_stripe( WC_Connect_Stripe $stripe ) {
@@ -712,12 +694,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
 			$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-			$this->set_rest_stripe_account_controller( $rest_stripe_account_controller );
 			$rest_stripe_account_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-controller.php' ) );
 			$rest_stripe_oauth_controller = new WC_REST_Connect_Stripe_Oauth_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-			$this->set_rest_stripe_oauth_controller( $rest_stripe_oauth_controller );
 			$rest_stripe_oauth_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
