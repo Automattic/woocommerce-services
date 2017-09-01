@@ -11,6 +11,12 @@ if ( class_exists( 'WC_REST_Connect_Stripe_Account_Controller' ) ) {
 class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/stripe/account';
 
+	public function get( $request ) {
+		$payload = array();
+		$payload[ 'success' ] = true;
+		return new WP_REST_Response( $payload, 200 );
+	}
+
 	public function post( $request ) {
 		$data = $request->get_json_params();
 

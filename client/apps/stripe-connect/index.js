@@ -6,34 +6,23 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import form from './state/reducer';
-import Loading from './components/loading';
-import Connect from './components/loading';
-// from calypso
-import notices from 'state/notices/reducer';
-import { combineReducers } from 'state/utils';
+import reducer from './state/reducer';
+import View from './view';
 
 export default ( { methodId, instanceId } ) => ( {
 	getReducer() {
-		return combineReducers( {
-			form,
-			notices,
-		} );
+		return reducer;
 	},
 
 	getHotReducer() {
-		return combineReducers( {
-			form: require( './state/reducer' ).default,
-			notices,
-		} );
+		return reducer;
 	},
 
 	getInitialState() {
-		return {};
+		return { status: 'new' };
 	},
 
 	getStateForPersisting( state ) {
-		delete state.notices;
 		return state;
 	},
 
@@ -42,10 +31,6 @@ export default ( { methodId, instanceId } ) => ( {
 	},
 
 	View: () => {
-		if ( 2 === 1 + 1 ) {
-			return <Loading />;
-		}
-
-		return <Connect />;
+		return <View />;
 	},
 } );

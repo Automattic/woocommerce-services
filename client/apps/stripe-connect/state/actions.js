@@ -1,31 +1,25 @@
 /**
  * External dependencies
  */
-import _ from 'lodash';
 
 /**
  * Internal dependencies
  */
-import saveForm from 'lib/save-form';
+import * as api from 'api';
 
-export const SET_FORM_PROPERTY = 'SET_FORM_PROPERTY';
-export const SET_ALL_PRISTINE = 'SET_ALL_PRISTINE';
-export const DISMISS_NOTICE = 'DISMISS_NOTICE';
+export const SET_STATE = 'SET_STATE';
 
-export const setFormProperty = ( field, value ) => {
-	return {
-		type: SET_FORM_PROPERTY,
-		field,
-		value,
-	};
-};
-
-export const setAllPristine = ( pristineValue ) => ( {
-	type: SET_ALL_PRISTINE,
-	pristineValue,
+export const setState = ( state ) => ( {
+	type: SET_STATE,
+	value: state,
 } );
 
-export const dismissNotice = () => ( dispatch, getState, { dismissURL, nonce } ) => {
-	dispatch( { type: DISMISS_NOTICE } );
-	saveForm( _.noop, _.noop, _.noop, _.noop, dismissURL, nonce, 'POST' );
+export const fetchStripeSettings = () => ( dispatch ) => {
+	console.log( 'fetch settings' );
+	api.get( api.url.stripeSettings() )
+		.catch( () => ( {} ) )
+		.then( ( result ) => {
+			console.log( result );
+			dispatch( setState( Object.assign( { status: 'loaded' }, result ) ) );
+		} );
 };
