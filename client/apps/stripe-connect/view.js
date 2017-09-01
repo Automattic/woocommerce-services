@@ -10,15 +10,19 @@ import { bindActionCreators } from 'redux';
  */
 import * as StripeActions from './state/actions';
 import Loading from './components/loading';
-import Connect from './components/loading';
+import Connect from './components/connect';
+import Message from './components/message';
 
-const StripeConnect = ( { actions, stripeSettings } ) => {
-	console.log( stripeSettings );
-	if ( 'not_connected' === stripeSettings ) {
+const StripeConnect = ( { actions, state } ) => {
+	if ( state.message ) {
+		return <Message />;
+	}
+
+	if ( 'loaded' === state.status ) {
 		return <Connect />;
 	}
 
-	if ( 'new' === stripeSettings.status ) {
+	if ( 'new' === state.status ) {
 		actions.fetchStripeSettings();
 	}
 
@@ -27,11 +31,11 @@ const StripeConnect = ( { actions, stripeSettings } ) => {
 
 StripeConnect.propTypes = {
 	actions: PropTypes.object.isRequired,
-	stripeSettings: PropTypes.object.isRequired,
+	state: PropTypes.object.isRequired,
 };
 
 function mapStateToProps( state ) {
-	return { stripeSettings: state };
+	return { state: state };
 }
 
 function mapDispatchToProps( dispatch ) {

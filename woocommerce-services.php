@@ -162,6 +162,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $taxjar;
 
 		/**
+		 * @var WC_Connect_Stripe
+		 */
+		protected $stripe;
+
+		/**
 		 * @var WC_Connect_Stripe_Notice
 		 */
 		protected $stripe_notice;
@@ -368,9 +373,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_stripe_account_controller = $rest_stripe_account_controller;
 		}
 
+		public function set_stripe( WC_Connect_Stripe $stripe ) {
+			$this->stripe = $stripe;
+		}
+
 		public function set_stripe_notice( WC_Connect_Stripe_Notice $notice ) {
-		    $this->stripe_notice = $notice;
-        }
+			$this->stripe_notice = $notice;
+		}
 
 		/**
 		 * Load our textdomain
@@ -509,6 +518,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-stripe.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-stripe-notice.php' ) );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
@@ -522,6 +532,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 			$options               = new WC_Connect_Options();
+			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger );
 			$stripe_notice         = new WC_Connect_Stripe_Notice( $api_client, $options, $logger );
 
 			$this->set_logger( $logger );
@@ -534,6 +545,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
 			$this->set_taxjar( $taxjar );
+			$this->set_stripe( $stripe );
 			$this->set_stripe_notice( $stripe_notice );
 		}
 
@@ -686,7 +698,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_address_normalization_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
-			$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->api_client, $settings_store, $logger );
+			$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
 			$this->set_rest_stripe_account_controller( $rest_stripe_account_controller );
 			$rest_stripe_account_controller->register_routes();
 
