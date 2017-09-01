@@ -71,8 +71,8 @@ if ( ! class_exists( 'WC_Connect_Stripe_Notice' ) ) {
 			$data_args = esc_attr( wp_json_encode( $extra_args ) );
 			$message = sprintf( __( 'Section not loading? Visit the <a href=\"%s\">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri );
 			echo "
-			<div class='wcc-root updated jp-wpcom-connect__container wc-connect-stripe-connect' data-args=\"$data_args\">
-					<span class=\"form-troubles\" style=\"opacity: 0\">$message</span>
+			<div class='updated jp-wpcom-connect__container wc-connect-stripe-connect wcc-root' data-args=\"$data_args\">
+				<div>$message</div>
 			</div>";
 		}
 
