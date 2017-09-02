@@ -34,8 +34,7 @@ class ShippingLabelRootView extends Component {
 	}
 
 	renderPaymentInfo = () => {
-		const numPaymentMethods = this.props.shippingLabel.numPaymentMethods;
-		const paymentMethod = this.props.shippingLabel.paymentMethod;
+		const { numPaymentMethods, paymentMethod } = this.props;
 
 		if ( numPaymentMethods > 0 && paymentMethod ) {
 			return (
@@ -77,20 +76,18 @@ class ShippingLabelRootView extends Component {
 	};
 
 	renderPurchaseLabelFlow = () => {
-		const paymentMethod = this.props.shippingLabel.paymentMethod;
-
 		return (
 			<div className="shipping-label__item" >
 				<PurchaseDialog />
-				{ this.renderPaymentInfo( paymentMethod ) }
-				{ paymentMethod && this.renderLabelButton() }
+				{ this.renderPaymentInfo() }
+				{ this.props.paymentMethod && this.renderLabelButton() }
 			</div>
 		);
 	};
 
 	renderLabels = () => {
 		//filter by blacklist (rather than just checking for PURCHASED) to handle legacy labels without the status field
-		const labelsToRender = filter( this.props.shippingLabel.labels,
+		const labelsToRender = filter( this.props.labels,
 			( label ) => 'PURCHASE_IN_PROGRESS' !== label.status && 'PURCHASE_ERROR' !== label.status );
 
 		return labelsToRender.map( ( label, index ) => {
@@ -123,27 +120,30 @@ class ShippingLabelRootView extends Component {
 				<QueryLabels />
 				<GlobalNotices id="notices" notices={ notices.list } />
 				{ this.renderPurchaseLabelFlow() }
-				{ this.props.shippingLabel.labels.length ? this.renderLabels() : null }
+				{ this.props.labels.length ? this.renderLabels() : null }
 			</div>
 		);
 	}
 }
 
 ShippingLabelRootView.propTypes = {
-	shippingLabel: PropTypes.object.isRequired,
 	loaded: PropTypes.bool.isRequired,
 	needToFetchLabelStatus: PropTypes.bool.isRequired,
+	numPaymentMethods: PropTypes.number.isRequired,
+	paymentMethod: PropTypes.number.isRequired,
+	labels: PropTypes.array.isRequired,
 	fetchLabelsStatus: PropTypes.func.isRequired,
 	openPrintingFlow: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ( state ) => {
-	const shippingLabel = state.shippingLabel;
-	const loaded = shippingLabel.loaded;
+	const loaded = state.shippingLabel.loaded;
 	return {
-		shippingLabel,
 		loaded,
-		needToFetchLabelStatus: loaded && ! shippingLabel.refreshedLabelStatus,
+		needToFetchLabelStatus: loaded && ! state.shippingLabel.refreshedLabelStatus,
+		numPaymentMethods: state.shippingLabel.numPaymentMethods,
+		paymentMethod: state.shippingLabel.paymentMethod,
+		labels: state.shippingLabel.labels,
 	};
 };
 

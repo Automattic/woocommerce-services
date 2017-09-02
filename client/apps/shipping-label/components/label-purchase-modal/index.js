@@ -41,7 +41,7 @@ const PurchaseDialog = ( props ) => {
 		const noNativePDFSupport = ( 'addon' === getPDFSupport() );
 
 		if ( props.canPurchase ) {
-			const currencySymbol = props.storeOptions.currency_symbol;
+			const currencySymbol = props.currency_symbol;
 			const ratesTotal = getRatesTotal( props.form.rates );
 
 			if ( noNativePDFSupport ) {
@@ -93,26 +93,12 @@ const PurchaseDialog = ( props ) => {
 				</FormSectionHeading>
 				<div className="label-purchase-modal__body">
 					<div className="label-purchase-modal__main-section">
-						<AddressStep.Origin
-							{ ...props }
-							{ ...props.form.origin }
-							errors={ props.errors.origin } />
-						<AddressStep.Destination
-							{ ...props }
-							{ ...props.form.destination }
-							errors={ props.errors.destination } />
-						<PackagesStep
-							{ ...props }
-							{ ...props.form.packages }
-							errors={ props.errors.packages } />
-						<RatesStep
-							{ ...props }
-							{ ...props.form.rates }
-							errors={ props.errors.rates } />
+						<AddressStep type="origin" title={ __( 'Origin address' ) } />
+						<AddressStep type="destination" title={ __( 'Destination address' ) } />
+						<PackagesStep />
+						<RatesStep />
 					</div>
-					<Sidebar
-						{ ...props }
-						errors={ props.errors.rates } />
+					<Sidebar />
 				</div>
 				<ActionButtons buttons={ buttons } />
 			</div>
@@ -121,13 +107,12 @@ const PurchaseDialog = ( props ) => {
 };
 
 const mapStateToProps = ( state ) => {
-	const shippingLabel = state.shippingLabel;
-	const loaded = shippingLabel.loaded;
-	const storeOptions = loaded ? shippingLabel.storeOptions : {};
-
+	const loaded = state.shippingLabel.loaded;
+	const storeOptions = loaded ? state.shippingLabel.storeOptions : {};
 	return {
-		...shippingLabel,
-		storeOptions,
+		form: state.shippingLabel.form,
+		showPurchaseDialog: state.shippingLabel.showPurchaseDialog,
+		currency_symbol: storeOptions.currency_symbol,
 		errors: loaded && getFormErrors( state, storeOptions ),
 		canPurchase: loaded && canPurchase( state, storeOptions ),
 	};
