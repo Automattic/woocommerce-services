@@ -61,10 +61,12 @@ const getNormalizationStatus = ( { normalizationInProgress, errors, isNormalized
 
 const AddressStep = ( props ) => {
 	const toggleStepHandler = () => props.toggleStep( props.type );
+	const { form, storeOptions, error, showCountryInSummary } = props;
+
 	return (
 		<StepContainer
 			title={ props.title }
-			summary={ props.summary }
+			summary={ renderSummary( { ...form, storeOptions, errors: error }, showCountryInSummary ) }
 			expanded={ props.expanded }
 			toggleStep={ toggleStepHandler }
 			{ ...props.normalizationStatus } >
@@ -74,10 +76,13 @@ const AddressStep = ( props ) => {
 };
 
 AddressStep.propTypes = {
-	values: PropTypes.object.isRequired,
-	isNormalized: PropTypes.bool.isRequired,
-	normalized: PropTypes.object,
-	normalizationInProgress: PropTypes.bool.isRequired,
+	form: PropTypes.shape( {
+		values: PropTypes.object.isRequired,
+		isNormalized: PropTypes.bool.isRequired,
+		normalized: PropTypes.object,
+		normalizationInProgress: PropTypes.bool.isRequired,
+	} ).isRequired,
+	storeOptions: PropTypes.object.isRequired,
 	errors: PropTypes.oneOfType( [
 		PropTypes.object,
 		PropTypes.bool,
@@ -97,8 +102,10 @@ const mapStateToProps = ( state, ownProps ) => {
 
 	return {
 		errors,
+		form,
+		storeOptions,
+		showCountryInSummary,
 		expanded: form.expanded,
-		summary: renderSummary( { ...form, storeOptions, errors }, showCountryInSummary ),
 		normalizationStatus: getNormalizationStatus( { ...form, errors } ),
 	};
 };

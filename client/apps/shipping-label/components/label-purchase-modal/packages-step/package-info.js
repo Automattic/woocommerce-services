@@ -18,15 +18,15 @@ import Button from 'components/button';
 import getBoxDimensions from 'lib/utils/get-box-dimensions';
 import getFormErrors from '../../../state/selectors/errors';
 import {
-	updateWeight,
+	updatePackageWeight,
 	removePackage,
 	setPackageType,
 	openAddItem,
 } from '../../../state/actions';
 
 const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
-	return `${ dimensions.length } ${ dimensionUnit } x 
-			${ dimensions.width } ${ dimensionUnit } x 
+	return `${ dimensions.length } ${ dimensionUnit } x
+			${ dimensions.width } ${ dimensionUnit } x
 			${ dimensions.height } ${ dimensionUnit }`;
 };
 
@@ -145,7 +145,7 @@ const PackageInfo = ( props ) => {
 		);
 	};
 
-	const onWeightChange = ( value ) => props.updateWeight( packageId, value );
+	const onWeightChange = ( value ) => props.updatePackageWeight( packageId, value );
 
 	return (
 		<div className="packages-step__package">
@@ -177,7 +177,7 @@ PackageInfo.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
 	flatRateGroups: PropTypes.object.isRequired,
-	updateWeight: PropTypes.func.isRequired,
+	updatePackageWeight: PropTypes.func.isRequired,
 	dimensionUnit: PropTypes.string.isRequired,
 	weightUnit: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
@@ -202,7 +202,7 @@ const mapStateToProps = ( state ) => {
 
 const mapDispatchToProps = ( dispatch ) => {
 	return bindActionCreators( {
-		updateWeight,
+		updatePackageWeight,
 		removePackage,
 		setPackageType,
 		openAddItem,
