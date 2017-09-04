@@ -52,7 +52,7 @@ const ShippingLabels = ( { isLoading, paymentMethods, setFormDataValue, selected
 					{ translate( 'Credit card' ) }
 				</FormLabel>
 				<p className="label-settings__credit-card-description">
-					{ translate( 'Use your credit card on file to pay for the labels you print or add a new one.' ) }
+					{ translate( 'To purchase shipping labels, use your credit card on file or add a new one.' ) }
 				</p>
 				{ paymentMethods.map( renderPaymentMethod ) }
 				<Button href="https://wordpress.com/me/billing" target="_blank" compact>
