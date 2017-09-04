@@ -25,9 +25,13 @@ import {
 } from '../../../state/actions';
 
 const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
-	return `${ dimensions.length } ${ dimensionUnit } x
-			${ dimensions.width } ${ dimensionUnit } x
-			${ dimensions.height } ${ dimensionUnit }`;
+	return [
+		dimensions.length,
+		dimensions.width,
+		dimensions.height,
+	]
+	.map( ( dimension ) => `${ dimension } ${ dimensionUnit }` )
+	.join( ' x ' );
 };
 
 const PackageInfo = ( props ) => {
