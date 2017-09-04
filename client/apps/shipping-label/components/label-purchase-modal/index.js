@@ -2,6 +2,8 @@
  * External dependencies
  */
 import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { translate as __ } from 'i18n-calypso';
 
 /**
@@ -17,6 +19,9 @@ import RatesStep from './rates-step';
 import Sidebar from './sidebar';
 import { getRatesTotal } from 'apps/shipping-label/state/selectors/rates';
 import FormSectionHeading from 'components/forms/form-section-heading';
+import { confirmPrintLabel, purchaseLabel, exitPrintingFlow } from '../../state/actions';
+import getFormErrors from '../../state/selectors/errors';
+import canPurchase from '../../state/selectors/can-purchase';
 
 const PurchaseDialog = ( props ) => {
 	const getPurchaseButtonLabel = () => {
@@ -36,7 +41,7 @@ const PurchaseDialog = ( props ) => {
 		const noNativePDFSupport = ( 'addon' === getPDFSupport() );
 
 		if ( props.canPurchase ) {
-			const currencySymbol = props.storeOptions.currency_symbol;
+			const currencySymbol = props.currency_symbol;
 			const ratesTotal = getRatesTotal( props.form.rates );
 
 			if ( noNativePDFSupport ) {
@@ -55,9 +60,9 @@ const PurchaseDialog = ( props ) => {
 
 	const getPurchaseButtonAction = () => {
 		if ( props.form.needsPrintConfirmation ) {
-			return () => props.labelActions.confirmPrintLabel( props.form.printUrl );
+			return () => props.confirmPrintLabel( props.form.printUrl );
 		}
-		return props.labelActions.purchaseLabel;
+		return props.purchaseLabel;
 	};
 
 	const buttons = [
@@ -69,11 +74,11 @@ const PurchaseDialog = ( props ) => {
 		},
 	];
 
-	const exitPrintingFlow = () => props.labelActions.exitPrintingFlow( false );
+	const closeModal = () => props.exitPrintingFlow( false );
 
 	if ( ! props.form.needsPrintConfirmation ) {
 		buttons.push( {
-			onClick: exitPrintingFlow,
+			onClick: closeModal,
 			label: __( 'Cancel' ),
 		} );
 	}
@@ -81,33 +86,19 @@ const PurchaseDialog = ( props ) => {
 	return (
 		<Modal
 			isVisible={ props.showPurchaseDialog }
-			onClose={ exitPrintingFlow } >
+			onClose={ closeModal } >
 			<div className="label-purchase-modal__content">
 				<FormSectionHeading>
 					{ 1 === props.form.packages.selected.length ? __( 'Create shipping label' ) : __( 'Create shipping labels' ) }
 				</FormSectionHeading>
 				<div className="label-purchase-modal__body">
 					<div className="label-purchase-modal__main-section">
-						<AddressStep.Origin
-							{ ...props }
-							{ ...props.form.origin }
-							errors={ props.errors.origin } />
-						<AddressStep.Destination
-							{ ...props }
-							{ ...props.form.destination }
-							errors={ props.errors.destination } />
-						<PackagesStep
-							{ ...props }
-							{ ...props.form.packages }
-							errors={ props.errors.packages } />
-						<RatesStep
-							{ ...props }
-							{ ...props.form.rates }
-							errors={ props.errors.rates } />
+						<AddressStep type="origin" title={ __( 'Origin address' ) } />
+						<AddressStep type="destination" title={ __( 'Destination address' ) } />
+						<PackagesStep />
+						<RatesStep />
 					</div>
-					<Sidebar
-						{ ...props }
-						errors={ props.errors.rates } />
+					<Sidebar />
 				</div>
 				<ActionButtons buttons={ buttons } />
 			</div>
@@ -115,4 +106,20 @@ const PurchaseDialog = ( props ) => {
 	);
 };
 
-export default PurchaseDialog;
+const mapStateToProps = ( state ) => {
+	const loaded = state.shippingLabel.loaded;
+	const storeOptions = loaded ? state.shippingLabel.storeOptions : {};
+	return {
+		form: state.shippingLabel.form,
+		showPurchaseDialog: state.shippingLabel.showPurchaseDialog,
+		currency_symbol: storeOptions.currency_symbol,
+		errors: loaded && getFormErrors( state, storeOptions ),
+		canPurchase: loaded && canPurchase( state, storeOptions ),
+	};
+};
+
+const mapDispatchToProps = ( dispatch ) => {
+	return bindActionCreators( { confirmPrintLabel, purchaseLabel, exitPrintingFlow }, dispatch );
+};
+
+export default connect( mapStateToProps, mapDispatchToProps )( PurchaseDialog );
