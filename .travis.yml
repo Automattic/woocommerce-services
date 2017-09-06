@@ -27,12 +27,20 @@ matrix:
   include:
    - php: 5.2
      env: WP_VERSION=latest WC_VERSION=2.6.14
+     sudo: true
+     dist: precise
    - php: 5.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     sudo: true
+     dist: precise
    - php: 5.3
      env: WP_VERSION=latest WC_VERSION=2.6.14
+     sudo: true
+     dist: precise
    - php: 5.3
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     sudo: true
+     dist: precise
    - php: 5.4
      env: WP_VERSION=latest WC_VERSION=2.6.14
    - php: 5.4
