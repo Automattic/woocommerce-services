@@ -19,7 +19,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		private $logger;
 
-		const SESSION_VAR_NAME = 'wcs_stripe_state';
+		const STATE_VAR_NAME = 'wcs_stripe_state';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
 			$this->api = $client;
@@ -34,7 +34,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				return $result;
 			}
 
-			WC()->session->set( self::SESSION_VAR_NAME, $result->state );
+			$this->options->update_option( self::STATE_VAR_NAME, $result->state );
 
 			return $result->oauthUrl;
 		}
@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function connect_oauth( $state, $code ) {
-			if ( $state !== WC()->session->get( self::SESSION_VAR_NAME ) ) {
+			if ( $state !== $this->options->get_option( self::STATE_VAR_NAME, false ) ) {
 				return new WP_Error( 'Invalid stripe state' );
 			}
 
