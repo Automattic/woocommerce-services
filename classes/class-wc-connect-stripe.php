@@ -26,8 +26,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function get_settings( $return_url ) {
-			$email = get_option( 'admin_email' );
-			$country = WC()->countries->get_base_country();
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
 			if ( is_wp_error( $result ) ) {
@@ -37,8 +35,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			set_transient( 'wcs_stripe_state', $result->state );
 
 			return array (
-				'email' => $email,
-				'country' => $country,
 				'oauthUrl' => $result->oauthUrl,
 			);
 		}
