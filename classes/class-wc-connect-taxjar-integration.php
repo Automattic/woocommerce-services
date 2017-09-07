@@ -14,6 +14,7 @@ class WC_Connect_TaxJar_Integration {
 
 	const PROXY_PATH     = 'taxjar/v2';
 	const ENV_SETUP_FLAG = 'needs_tax_environment_setup';
+	const OPTION_NAME    = 'wc_connect_taxes_enabled';
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
@@ -37,6 +38,9 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// Add toggle for automated taxes to the core settings page
+		add_filter( 'woocommerce_tax_settings', array( $this, 'add_tax_settings' ) );
+
 		// TODO: check if WCS Taxes are enabled
 		$this->setup_environment();
 
@@ -49,6 +53,33 @@ class WC_Connect_TaxJar_Integration {
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
+	}
+
+	/**
+	 * Add our "automated taxes" setting to the core group.
+	 *
+	 * @param array $tax_settings WooCommerce Tax Settings
+	 *
+	 * @return array
+	 */
+	public function add_tax_settings( $tax_settings ) {
+		$automated_taxes = array(
+			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
+			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
+			'desc_tip' => __( 'Automate your sales tax calculations with WooCommerce Services.', 'woocommerce-services' ),
+			'default'  => 'no',
+			'type'     => 'select',
+			'class'    => 'wc-enhanced-select',
+			'options'  => array(
+				'no'  => __( 'Disable automated taxes', 'woocommerce-services' ),
+				'yes' => __( 'Enable automated taxes', 'woocommerce-services' ),
+			),
+		);
+
+		// Insert the "automated taxes" setting at the top (under the section title)
+		array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
+
+		return $tax_settings;
 	}
 
 	/**
