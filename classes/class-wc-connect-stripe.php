@@ -36,9 +36,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 			WC()->session->set( self::SESSION_VAR_NAME, $result->state );
 
-			return array (
-				'oauthUrl' => $result->oauthUrl,
-			);
+			return $result->oauthUrl;
 		}
 
 		public function create_account( $email, $country ) {
