@@ -70,12 +70,15 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				return new WP_Error( 'Invalid credentials received from server' );
 			}
 
+			$is_test = false !== strpos( $result->publishableKey, '_test_' );
+			$prefix = $is_test ? 'test_' : '';
+
 			$option_name = 'woocommerce_stripe_settings';
 			$options = get_option( $option_name );
-			$options['testmode']        = 'no';
-			$options['account_id']      = $result->accountId;
-			$options['publishable_key'] = $result->publishableKey;
-			$options['secret_key']      = $result->secretKey;
+			$options[ 'testmode' ]                  = $is_test ? 'yes' : 'no';
+			$options[ $prefix . 'account_id' ]      = $result->accountId;
+			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
+			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
 
 			update_option( $option_name, $options );
 			return $result;
