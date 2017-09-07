@@ -19,9 +19,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		private $logger;
 
-		/** @var string */
-		private $error = '';
-
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
 			$this->api = $client;
 			$this->options = $options;
@@ -51,8 +48,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			if ( is_wp_error( $response ) ) {
 				return $response;
 			}
-			$this->save_stripe_keys( $response );
-			return $response;
+			return $this->save_stripe_keys( $response );
 		}
 
 		public function connect_oauth( $state, $code ) {
@@ -66,15 +62,12 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				return $response;
 			}
 
-			$this->save_stripe_keys( $response );
-			return $response;
+			return $this->save_stripe_keys( $response );
 		}
 
 		private function save_stripe_keys( $result ) {
 			if ( ! isset( $result->accountId, $result->publishableKey, $result->secretKey ) ) {
-				$this->error = 'Unexpected server response: ' . json_encode( $result );
-				add_action( 'admin_notices', array( $this, 'error_notice' ) );
-				return;
+				return new WP_Error( 'Invalid credentials received from server' );
 			}
 
 			$option_name = 'woocommerce_stripe_settings';
@@ -85,7 +78,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$options['secret_key']      = $result->secretKey;
 
 			update_option( $option_name, $options );
-			add_action( 'admin_notices', array( $this, 'success_notice' ) );
+			return $result;
 		}
 	}
 }
