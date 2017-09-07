@@ -19,23 +19,21 @@ class WC_REST_Connect_Stripe_Settings_Controller extends WC_REST_Connect_Base_Co
 
 	public function post( $request ) {
 		$data = $request->get_json_params();
-		$settings = $this->stripe->get_settings( $data['returnUrl'] );
+		$result = $this->stripe->get_oauth_url( $data['returnUrl'] );
 
-		if ( is_wp_error( $settings ) ) {
-			$this->logger->debug( $settings, __CLASS__ );
+		if ( is_wp_error( $result ) ) {
+			$this->logger->debug( $result, __CLASS__ );
 			return new WP_REST_Response( array(
 				'success'   => false,
 				'data'      => array(
-					'message' => $settings->get_error_message(),
+					'message' => $result->get_error_message(),
 				),
 			), 400 );
 		}
 
 		return new WP_REST_Response( array(
 			'success' => true,
-			'email' => $settings['email'],
-			'country' => $settings['country'],
-			'oauthUrl' => $settings['oauthUrl'],
+			'oauthUrl' => $result,
 		), 200 );
 	}
 }
