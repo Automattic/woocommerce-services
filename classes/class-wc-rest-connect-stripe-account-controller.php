@@ -17,12 +17,6 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$this->stripe = $stripe;
 	}
 
-	public function get( $request ) {
-		$payload = $this->stripe->get_settings();
-		$payload[ 'success' ] = true;
-		return new WP_REST_Response( $payload, 200 );
-	}
-
 	public function post( $request ) {
 		$data = $request->get_json_params();
 
