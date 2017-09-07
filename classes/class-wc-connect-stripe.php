@@ -27,7 +27,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$this->logger = $logger;
 		}
 
-		public function get_settings( $return_url ) {
+		public function get_oauth_url( $return_url ) {
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
 			if ( is_wp_error( $result ) ) {
