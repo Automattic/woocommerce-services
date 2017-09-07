@@ -41,10 +41,13 @@ class WC_Connect_TaxJar_Integration {
 		// Add toggle for automated taxes to the core settings page
 		add_filter( 'woocommerce_tax_settings', array( $this, 'add_tax_settings' ) );
 
-		// TODO: check if WCS Taxes are enabled
+		// Bow out if we're not wanted
+		if ( ! $this->is_enabled() ) {
+			return;
+		}
+
 		$this->setup_environment();
 
-		// TODO: check if WCS Taxes are enabled before calculating rates for orders
 		// Calculate Taxes at Cart / Checkout
 		add_action( 'woocommerce_calculate_totals', array( $this, 'calculate_totals' ), 20 );
 
@@ -53,6 +56,15 @@ class WC_Connect_TaxJar_Integration {
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
+	}
+
+	/**
+	 * Are automated taxes enabled?
+	 *
+	 * @return bool
+	 */
+	public function is_enabled() {
+		return ( 'yes' === get_option( self::OPTION_NAME ) );
 	}
 
 	/**
