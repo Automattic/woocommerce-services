@@ -16,13 +16,21 @@ export const setState = ( state ) => ( {
 } );
 
 export const fetchStripeSettings = () => ( dispatch ) => {
-	const query = url.parse( window.location.href, true ).query;
+	const location = url.parse( window.location.href, true );
+	const query = location.query;
 
 	if ( query.wcs_stripe_state && query.wcs_stripe_code ) {
 		api.post( api.url.stripeOauth(), { state: query.wcs_stripe_state, code: query.wcs_stripe_code } )
-			.catch( ( error ) => ( error ) )
+			.catch( ( error ) => error )
 			.then( ( result ) => {
 				dispatch( setState( { message: JSON.stringify( result ) } ) );
+
+				delete location.query.wcs_stripe_state;
+				delete location.query.wcs_stripe_code;
+				delete location.search;
+				const newLocation = url.format( location );
+
+				setTimeout( () => window.location.href = newLocation, 5000 );
 			} );
 		return;
 	}
