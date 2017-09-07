@@ -21,7 +21,6 @@ import ShippingLabel from './apps/shipping-label';
 import AccountSettings from './apps/account-settings';
 import PrintTestLabel from './apps/print-test-label';
 import Packages from './apps/packages';
-import StripeConnect from './apps/stripe-connect';
 import { setNonce, setBaseURL } from 'api/request';
 
 if ( global.wcConnectData ) {
@@ -43,8 +42,6 @@ const getRouteClass = ( classNames ) => {
 				return Packages;
 			case 'wc-connect-admin-test-print':
 				return PrintTestLabel;
-			case 'wc-connect-stripe-connect':
-				return StripeConnect;
 		}
 	}
 	return null;

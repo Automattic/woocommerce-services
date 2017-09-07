@@ -30,9 +30,3 @@ export const settingsForm = ( formType, methodId, instanceId ) => {
 };
 
 export const dismissShippingSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;
-
-export const stripeAccount = () => `${ namespace }stripe/account`;
-
-export const stripeSettings = () => `${ namespace }stripe/settings`;
-
-export const stripeOauth = () => `${ namespace }stripe/oauth`;
