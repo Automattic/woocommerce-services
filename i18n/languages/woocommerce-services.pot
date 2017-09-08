@@ -1206,7 +1206,7 @@ msgstr ""
 #. Plugin URI of the plugin/theme
 #. #-#-#-#-#  woocommerce-services.pot (WooCommerce Services 1.4.1)  #-#-#-#-#
 #. Author URI of the plugin/theme
-msgid "http://woocommerce.com/"
+msgid "https://woocommerce.com/"
 msgstr ""
 
 #. Description of the plugin/theme

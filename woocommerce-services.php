@@ -154,6 +154,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $nux;
 
 		/**
+		/**
 		 * @var WC_Connect_TaxJar_Integration
 		 */
 		protected $taxjar;
