@@ -19,7 +19,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		private $logger;
 
-		const STATE_VAR_NAME = 'wcs_stripe_state';
+		const STATE_VAR_NAME = 'stripe_state';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
 			$this->api = $client;
