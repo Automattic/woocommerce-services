@@ -12,9 +12,10 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public $logger;
 
-	const PROXY_PATH     = 'taxjar/v2';
-	const ENV_SETUP_FLAG = 'needs_tax_environment_setup';
-	const OPTION_NAME    = 'wc_connect_taxes_enabled';
+	const PROXY_PATH               = 'taxjar/v2';
+	const ENV_SETUP_FLAG           = 'needs_tax_environment_setup';
+	const OPTION_NAME              = 'wc_connect_taxes_enabled';
+	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
@@ -86,7 +87,7 @@ class WC_Connect_TaxJar_Integration {
 		$automated_taxes = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
-			'desc_tip' => __( 'Automate your sales tax calculations with WooCommerce Services.', 'woocommerce-services' ),
+			'desc_tip' => __( 'Automate your sales tax calculations with WooCommerce Services, powered by Jetpack.', 'woocommerce-services' ),
 			'default'  => 'no',
 			'type'     => 'select',
 			'class'    => 'wc-enhanced-select',
