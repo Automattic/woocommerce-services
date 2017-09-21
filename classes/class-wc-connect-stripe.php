@@ -75,6 +75,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 			$option_name = 'woocommerce_stripe_settings';
 			$options = get_option( $option_name );
+			$options[ 'enabled' ]                   = 'yes';
 			$options[ 'testmode' ]                  = $is_test ? 'yes' : 'no';
 			$options[ $prefix . 'account_id' ]      = $result->accountId;
 			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
