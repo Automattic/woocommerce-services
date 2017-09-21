@@ -27,6 +27,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$this->logger = $logger;
 		}
 
+		public function is_stripe_plugin_enabled() {
+			return class_exists( 'WC_Stripe' );
+		}
+
 		public function get_oauth_url( $return_url ) {
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
