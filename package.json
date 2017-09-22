@@ -25,6 +25,7 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-istanbul": "^4.0.0",
     "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-transform-imports": "^1.4.1",
     "babel-polyfill": "^6.23.0",
     "chai": "3.5.0",
     "colors": "^1.1.2",
