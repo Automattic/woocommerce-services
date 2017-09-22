@@ -26,6 +26,6 @@ export const dismissShippingSettingsNuxNotice = () => `${ namespace }services/di
 
 export const stripeAccount = () => `${ namespace }stripe/account`;
 
-export const stripeSettings = () => `${ namespace }stripe/settings`;
+export const stripeSettings = () => `${ namespace }stripe/oauth/init`;
 
-export const stripeOauth = () => `${ namespace }stripe/oauth`;
+export const stripeOauth = () => `${ namespace }stripe/oauth/connect`;
