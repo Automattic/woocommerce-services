@@ -73,8 +73,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$is_test = false !== strpos( $result->publishableKey, '_test_' );
 			$prefix = $is_test ? 'test_' : '';
 
+			$default_options = $this->get_default_stripe_config();
+
 			$option_name = 'woocommerce_stripe_settings';
-			$options = get_option( $option_name );
+			$options = array_merge( $default_options, get_option( $option_name, array() ) );
 			$options[ 'enabled' ]                   = 'yes';
 			$options[ 'testmode' ]                  = $is_test ? 'yes' : 'no';
 			$options[ $prefix . 'account_id' ]      = $result->accountId;
@@ -82,6 +84,22 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
 
 			update_option( $option_name, $options );
+			return $result;
+		}
+
+		private function get_default_stripe_config() {
+			if ( ! class_exists( 'WC_Gateway_Stripe' ) ) {
+				return array();
+			}
+
+			$result = array();
+			$gateway = new WC_Gateway_Stripe();
+			foreach ( $gateway->form_fields as $key => $value ) {
+				if ( isset( $value['default'] ) ) {
+					$result[ $key ] = $value['default'];
+				}
+			}
+
 			return $result;
 		}
 	}
