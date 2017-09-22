@@ -271,6 +271,34 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Create a deferred Stripe Standard Account
+		 * @param $email string The user's email address
+		 * @param $country string The user's country
+		 * @return object|WP_Error
+		 */
+		public function create_stripe_account( $email, $country ) {
+			$request = array(
+				'email' => $email,
+				'country' => $country,
+			);
+			return $this->request( 'POST', '/stripe/account', $request );
+		}
+
+		public function get_stripe_oauth_init( $return_url ) {
+			$request = array(
+				'returnUrl' => $return_url,
+			);
+			return $this->request( 'POST', '/stripe/oauth-init', $request );
+		}
+
+		public function get_stripe_oauth_keys( $code ) {
+			$request = array(
+				'code' => $code,
+			);
+			return $this->request( 'POST', '/stripe/oauth-keys', $request );
+		}
+
+		/**
 		 * Sends a request to the WooCommerce Services Server
 		 *
 		 * @param $method
