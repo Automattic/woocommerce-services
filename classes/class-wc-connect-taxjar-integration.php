@@ -158,20 +158,12 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function get_store_settings() {
-		$default_wc_settings     = explode( ':', get_option( 'woocommerce_default_country' ) );
-		$taxjar_city_setting     = get_option( 'woocommerce_store_city' );
-		$taxjar_zip_code_setting = get_option( 'woocommerce_store_postcode' );
-
-		$store_settings          = array(
-			'taxjar_zip_code_setting' => $taxjar_zip_code_setting,
-			'store_state_setting'     => null,
-			'store_country_setting'   => $default_wc_settings[0],
-			'taxjar_city_setting'     => $taxjar_city_setting,
+		$store_settings = array(
+			'taxjar_zip_code_setting' => WC()->countries->get_base_postcode(),
+			'store_state_setting'     => WC()->countries->get_base_state(),
+			'store_country_setting'   => WC()->countries->get_base_country(),
+			'taxjar_city_setting'     => WC()->countries->get_base_city(),
 		);
-
-		if ( isset( $default_wc_settings[1] ) ) {
-			$store_settings['store_state_setting'] = $default_wc_settings[1];
-		}
 
 		return $store_settings;
 	}
