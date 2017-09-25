@@ -716,7 +716,7 @@ class WC_Connect_TaxJar_Integration {
 
 			echo ',';
 
-			if ( $rate->tax_rate_country ) {
+			if ( $rate->tax_rate_state ) {
 				echo esc_attr( $rate->tax_rate_state );
 			} else {
 				echo '*';
