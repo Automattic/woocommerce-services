@@ -630,7 +630,7 @@ class WC_Connect_TaxJar_Integration {
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			new WP_Error( 'request', __( 'There was an error retrieving the tax rates. Please check your server configuration.' ) );
+			return new WP_Error( 'request', __( 'There was an error retrieving the tax rates. Please check your server configuration.' ) );
 		} elseif ( 200 == $response['response']['code'] ) {
 			return $response;
 		} else {
