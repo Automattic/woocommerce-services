@@ -16,9 +16,9 @@ function handleObject( schema, value ) {
 function getItemValue( schema, value ) {
 	switch ( schema.type ) {
 		case 'boolean':
-			return value || schema.default || false;
+			return _.isNil( value ) ? ( schema.default || false ) : value;
 		case 'number':
-			return value || schema.default || 0;
+			return _.isNil( value ) ? ( schema.default || 0 ) : value;
 		case 'string':
 		case 'textarea':
 			return value || schema.default || '';
