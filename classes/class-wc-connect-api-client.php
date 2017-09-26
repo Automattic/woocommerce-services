@@ -62,7 +62,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return bool|WP_Error
 		 */
 		public function validate_service_settings( $service_slug, $service_settings ) {
-
 			// Make sure the service slug only contains underscores or letters
 			if ( 1 === preg_match( '/[^a-z_]/i', $service_slug ) ) {
 				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Services service slug provided' );
@@ -427,6 +426,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'base_city' => WC()->countries->get_base_city(),
 				'base_country' => WC()->countries->get_base_country(),
 				'base_state' => WC()->countries->get_base_state(),
+				'base_postcode' => WC()->countries->get_base_postcode(),
 				'currency' => get_woocommerce_currency(),
 				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
 				'jetpack_version' => JETPACK__VERSION,
