@@ -158,11 +158,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $taxjar;
 
-		/**
-		 * @var WC_REST_Connect_Tos_Controller
-		 */
-		protected $rest_tos_controller;
-
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -233,10 +228,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function get_rest_account_settings_controller() {
 			return $this->rest_account_settings_controller;
-		}
-
-		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
-			$this->rest_tos_controller = $rest_tos_controller;
 		}
 
 		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
@@ -371,18 +362,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
-			// Plugin should be enabled if dev mode or connected + TOS
+			// Plugin should be enabled if dev mode or connected
 			$jetpack_status = $this->nux->get_jetpack_install_status();
 			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status;
 			$is_jetpack_dev_mode = WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
-			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
 			if (  ! $is_jetpack_connected && ! $is_jetpack_dev_mode ) {
-				return;
-			}
-
-			add_action( 'rest_api_init', array( $this, 'tos_rest_init' ) );
-
-			if ( ! $tos_accepted ) {
 				return;
 			}
 
@@ -497,18 +481,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
-		}
-
-		public function tos_rest_init() {
-			$settings_store = $this->get_service_settings_store();
-			$logger = $this->get_logger();
-
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-base-controller.php' ) );
-
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-tos-controller.php' ) );
-			$rest_tos_controller = new WC_REST_Connect_Tos_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_tos_controller( $rest_tos_controller );
-			$rest_tos_controller->register_routes();
 		}
 
 		/**

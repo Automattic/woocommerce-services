@@ -59,6 +59,7 @@ ReprintDialog.propTypes = {
 	reprintDialog: PropTypes.object,
 	paperSize: PropTypes.string.isRequired,
 	storeOptions: PropTypes.object.isRequired,
+	labelId: PropTypes.number,
 	closeReprintDialog: PropTypes.func.isRequired,
 	confirmReprint: PropTypes.func.isRequired,
 	updatePaperSize: PropTypes.func.isRequired,

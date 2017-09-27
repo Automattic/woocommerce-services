@@ -36,7 +36,6 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			}
 
 			return array(
-				'tos_accepted',
 				'store_guid',
 				'debug_logging_enabled',
 				'payment_methods',
