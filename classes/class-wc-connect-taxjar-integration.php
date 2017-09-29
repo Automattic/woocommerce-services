@@ -205,7 +205,7 @@ class WC_Connect_TaxJar_Integration {
 			$quantity = $cart_item['quantity'];
 			$unit_price = $product->get_price();
 			$line_subtotal = $cart_item['line_subtotal'];
-			$discount = ( $unit_price - $wc_cart_object->get_discounted_price( $cart_item, $unit_price ) ) * $quantity;
+			$discount = $line_subtotal - $cart_item['line_total'];
 			$tax_class = explode( '-', $product->get_tax_class() );
 			$tax_code = '';
 
