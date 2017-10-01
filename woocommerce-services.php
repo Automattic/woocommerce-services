@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: WooCommerce Services
- * Plugin URI: http://woocommerce.com/
+ * Plugin URI: https://woocommerce.com/
  * Description: WooCommerce Services: Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
  * Author: Automattic
- * Author URI: http://woocommerce.com/
+ * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
  * Version: 1.7.0

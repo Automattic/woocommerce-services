@@ -28,6 +28,15 @@ const babelSettings = {
 	plugins: [
 		'add-module-exports',
 		'lodash',
+		[
+			'transform-imports',
+			{
+				'state/selectors': {
+					transform: 'state/selectors/${member}',
+					kebabCase: true,
+				},
+			},
+		],
 	],
 	babelrc: false,
 };
