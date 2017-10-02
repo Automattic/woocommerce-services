@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,13 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 8. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.7.1 =
+* Support plain permalinks setting
+* Fix PHP Fatal error when order contains a deleted product
+* Fix use of non-SSL URLs in plugin header
+* Fix some React console warnings
+* Add asynchronous label purchase flow (will be used for future performance gains)
 
 = 1.7.0 =
 * Fix bug that allows accidental double click of label purchase button
