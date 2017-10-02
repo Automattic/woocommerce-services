@@ -692,18 +692,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'formSchema'         => $this->get_form_schema(),
 				'formLayout'         => $this->get_form_layout(),
 				'formData'           => $this->get_form_data(),
-				'methodId'           => 'self_help',
-				'instanceId'         => 'self_help',
-				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'callbackURL'        => get_rest_url( null, '/wc/v1/connect/self-help' ),
+				'formType'           => 'self-help',
 				'noticeDismissed'    => true,
 			) );
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-admin-test-print', array(
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
 				'paperSize'          => $this->service_settings_store->get_preferred_paper_size(),
-				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'labelsPreviewURL'   => get_rest_url( null, '/wc/v1/connect/label/preview' ),
 			) );
 		}
 
