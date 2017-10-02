@@ -23,18 +23,17 @@ class WC_REST_Connect_Stripe_Oauth_Connect_Controller extends WC_REST_Connect_Ba
 		$response = $this->stripe->connect_oauth( $data['state'], $data['code'] );
 
 		if ( is_wp_error( $response ) ) {
+			$response->add_data( array(
+				'message' => $response->get_error_message(),
+			), $response->get_error_code() );
+
 			$this->logger->debug( $response, __CLASS__ );
-			return new WP_REST_Response( array(
-				'success'   => false,
-				'data'      => array(
-					'message' => $response->get_error_message(),
-				),
-			), 400 );
+			return $response;
 		}
 
-		return new WP_REST_Response( array(
+		return array(
 			'success'         => true,
 			'account_id'      => $response->accountId,
-		), 200 );
+		);
 	}
 }
