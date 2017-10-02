@@ -631,7 +631,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store = $this->get_service_schemas_store();
 			$service_schema = $schemas_store->get_service_schema_by_id_or_instance_id( $instance_id ? $instance_id : $method_id );
 			if ( ! $service_schema ) {
-				return array_merge( $settings, array (
+				return array_merge( $settings, array(
+					'formType'   => 'services',
 					'methodId'   => $method_id,
 					'instanceId' => $instance_id,
 				) );
@@ -642,6 +643,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'formSchema'         => $service_schema->service_settings,
 				'formLayout'         => $service_schema->form_layout,
 				'formData'           => $settings_store->get_service_settings( $method_id, $instance_id ),
+				'formType'           => 'services',
 				'methodId'           => $method_id,
 				'instanceId'         => $instance_id,
 				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),

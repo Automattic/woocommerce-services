@@ -1,3 +1,8 @@
+/**
+ * External dependencies
+ */
+import _ from 'lodash';
+
 const namespace = 'wc/v1/connect/';
 
 export const accountSettings = () => namespace + 'account/settings';
@@ -18,8 +23,10 @@ export const labelTestPrint = () => `${ namespace }label/preview`;
 
 export const addressNormalization = () => `${ namespace }normalize-address`;
 
-export const shippingServiceSettings = ( methodId, instanceId = false ) => instanceId
-	? `${ namespace }services/${ methodId }/${ instanceId }`
-	: `${ namespace }services/${ methodId }`;
+export const settingsForm = ( methodId, instanceId = false, formType = false ) => {
+	const path = _.filter( [ formType, methodId, instanceId ] ).join( '/' );
+
+	return namespace + path;
+};
 
 export const dismissShippingSettingsNuxNotice = () => `${ namespace }services/dismiss_notice`;

@@ -692,10 +692,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'formSchema'         => $this->get_form_schema(),
 				'formLayout'         => $this->get_form_layout(),
 				'formData'           => $this->get_form_data(),
-				'methodId'           => 'self_help',
-				'instanceId'         => 'self_help',
+				'methodId'           => 'self-help',
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'callbackURL'        => get_rest_url( null, '/wc/v1/connect/self-help' ),
 				'noticeDismissed'    => true,
 			) );
 
