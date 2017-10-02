@@ -23,7 +23,7 @@ export const labelTestPrint = () => `${ namespace }label/preview`;
 
 export const addressNormalization = () => `${ namespace }normalize-address`;
 
-export const settingsForm = ( methodId, instanceId = false, formType = false ) => {
+export const settingsForm = ( formType, methodId, instanceId ) => {
 	const path = _.filter( [ formType, methodId, instanceId ] ).join( '/' );
 
 	return namespace + path;
