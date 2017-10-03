@@ -103,13 +103,24 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields = array();
 			$wc_address_fields[ 'company' ] = get_bloginfo( 'name' );
 			$wc_address_fields[ 'name' ] = wp_get_current_user()->display_name;
-			$base_location = wc_get_base_location();
-			$wc_address_fields[ 'country' ] = $base_location[ 'country' ];
-			$wc_address_fields[ 'state' ] = $base_location[ 'state' ];
-			$wc_address_fields[ 'address' ] = '';
-			$wc_address_fields[ 'address_2' ] = '';
-			$wc_address_fields[ 'city' ] = '';
-			$wc_address_fields[ 'postcode' ] = '';
+
+			$wc_countries = WC()->countries;
+			if ( method_exists( $wc_countries, 'get_base_address' ) ) {
+				$wc_address_fields[ 'country' ] = $wc_countries->get_base_country();
+				$wc_address_fields[ 'state' ] = $wc_countries->get_base_state();
+				$wc_address_fields[ 'address' ] = $wc_countries->get_base_address();
+				$wc_address_fields[ 'address_2' ] = $wc_countries->get_base_address_2();
+				$wc_address_fields[ 'city' ] = $wc_countries->get_base_city();
+				$wc_address_fields[ 'postcode' ] = $wc_countries->get_base_postcode();
+			} else {
+				$base_location = wc_get_base_location();
+				$wc_address_fields[ 'country' ] = $base_location[ 'country' ];
+				$wc_address_fields[ 'state' ] = $base_location[ 'state' ];
+				$wc_address_fields[ 'address' ] = '';
+				$wc_address_fields[ 'address_2' ] = '';
+				$wc_address_fields[ 'city' ] = '';
+				$wc_address_fields[ 'postcode' ] = '';
+			}
 			$wc_address_fields[ 'phone' ] = '';
 
 			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
