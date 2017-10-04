@@ -23,6 +23,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * WooCommerce Services incorporates code from WooCommerce Sales Tax Plugin by TaxJar, Copyright 2014-2017 TaxJar.
+ * WooCommerce Sales Tax Plugin by TaxJar is distributed under the terms of the GNU GPL, Version 2 (or later).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -387,7 +390,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
-			$this->taxjar->init();
 		}
 
 		public function get_service_schema_defaults( $schema ) {
@@ -499,7 +501,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client );
+			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -568,6 +570,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
+
+			$this->taxjar->init();
 		}
 
 		public function tos_rest_init() {
