@@ -494,6 +494,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
+			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 1 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -665,6 +666,58 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wc-connect-service-settings',
 				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
 		}
+
+		/**
+		 * Add tracking info (if available) to outgoing emails using the woocommerce_email_after_order_table hook
+		 *
+		 * @param $order
+		 *
+		 * @return string
+		 */
+		function add_tracking_info_to_emails( $order ) {
+            $id = $order->id;
+
+            if (!$id) return;
+
+            $labels = maybe_unserialize( get_post_meta( $id, 'wc_connect_labels', false ) );
+
+            if ( empty( $labels ) ) return;
+
+            echo '<h2>' . __( 'Tracking', 'woocommerce-services' ) . '</h2>';
+
+            echo '<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif;">';
+            echo '<thead>';
+            echo '<tr>';
+            echo '<th class="td" scope="col">' . __( 'Provider', 'woocommerce-services' ) . '</th>';
+            echo '<th class="td" scope="col">' . __( 'Tracking number', 'woocommerce-services' ) . '</th>';
+            echo '</tr>';
+            echo '</thead>';
+            echo '<tbody>';
+            echo '<tr>';
+
+            foreach ( $labels as &$label ) {
+                $label = $label[0];
+                $carrier = $label['carrier_id'];
+                $tracking = $label['tracking'];
+
+                echo '<td class="td" scope="col">' . strtoupper($carrier) . '</td>';
+
+                switch ( $carrier ) {
+                    case "fedex":
+                        $tracking_url = 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=' . $tracking;
+                        break;
+                    case "usps":
+                        $tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . $tracking;
+                        break;
+                }
+
+                echo '<td class="td" scope="col"><a href="' . $tracking_url . '">' . $tracking . '</a></td>';
+            }
+
+            echo '</tr>';
+            echo '</tbody>';
+            echo '</table>';
+        }
 
 		/**
 		 * Hook fetching the available services from the connect server
