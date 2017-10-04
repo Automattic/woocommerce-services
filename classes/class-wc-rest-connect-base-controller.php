@@ -77,7 +77,12 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 	 * Validate the requester's permissions
 	 */
 	public function check_permission( $request ) {
-		return current_user_can( 'manage_woocommerce' );
+		$request_params = $request->get_params();
+		$tos_accepted = array_key_exists( '_terms_of_service', $request_params )
+			? $request_params[ '_terms_of_service' ] === 'accept'
+			: WC_Connect_Options::get_option( 'tos_accepted' );
+
+		return $tos_accepted && current_user_can( 'manage_woocommerce' );
 	}
 
 }

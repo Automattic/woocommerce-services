@@ -161,11 +161,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $taxjar;
 
-		/**
-		 * @var WC_REST_Connect_Tos_Controller
-		 */
-		protected $rest_tos_controller;
-
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -236,10 +231,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function get_rest_account_settings_controller() {
 			return $this->rest_account_settings_controller;
-		}
-
-		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
-			$this->rest_tos_controller = $rest_tos_controller;
 		}
 
 		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
@@ -383,7 +374,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			add_action( 'rest_api_init', array( $this, 'tos_rest_init' ) );
+			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+			add_action( 'woocommerce_init', array( $this, 'schedule_service_schemas_fetch' ) );
 
 			if ( ! $tos_accepted ) {
 				return;
@@ -467,7 +459,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @codeCoverageIgnore
 		 */
 		public function after_wc_init() {
-			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
 		}
@@ -553,7 +544,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$this->init_core_wizard_shipping_config();
 			}
 
-			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
 			add_action( 'woocommerce_settings_saved', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
@@ -572,18 +562,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks->init();
 
 			$this->taxjar->init();
-		}
-
-		public function tos_rest_init() {
-			$settings_store = $this->get_service_settings_store();
-			$logger = $this->get_logger();
-
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-base-controller.php' ) );
-
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-tos-controller.php' ) );
-			$rest_tos_controller = new WC_REST_Connect_Tos_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_tos_controller( $rest_tos_controller );
-			$rest_tos_controller->register_routes();
 		}
 
 		/**
