@@ -674,7 +674,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return string
 		 */
-		function add_tracking_info_to_emails( $order ) {
+		public function add_tracking_info_to_emails( $order ) {
             $id = $order->id;
 
             if (!$id) return;
