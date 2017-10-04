@@ -390,6 +390,75 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->taxjar->init();
 		}
 
+		public function get_service_schema_defaults( $schema ) {
+			$defaults = array();
+
+			if ( ! property_exists( $schema, 'properties' ) ) {
+				return $defaults;
+			}
+
+			foreach ( get_object_vars( $schema->properties ) as $prop_id => $prop_schema ) {
+				if ( property_exists( $prop_schema, 'default' ) ) {
+					$defaults[ $prop_id ] = $prop_schema->default;
+				}
+
+				if (
+					property_exists( $prop_schema, 'type' ) &&
+					'object' === $prop_schema->type
+				) {
+					$defaults[ $prop_id ] = $this->get_service_schema_defaults( $prop_schema );
+				}
+			}
+
+			return $defaults;
+		}
+
+		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
+			$method      = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
+			$zone        = WC_Shipping_Zones::get_zone( $zone_id );
+			$instance_id = $zone->add_shipping_method( $method->method_id );
+
+			$zone->save();
+
+			$instance = WC_Shipping_Zones::get_shipping_method( $instance_id );
+			$schema   = $instance->get_service_schema();
+			$defaults = (object) $this->get_service_schema_defaults( $schema->service_settings );
+
+			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $method->method_id, $instance_id );
+		}
+
+		public function init_core_wizard_shipping_config() {
+			$store_country = WC()->countries->get_base_country();
+
+			if ( 'US' === $store_country ) {
+				$country_method = 'usps';
+			} elseif ( 'CA' === $store_country ) {
+				$country_method = 'canada_post';
+			} else {
+				return; // Only set up live rates for US and CA
+			}
+
+			if ( get_option( 'woocommerce_setup_intl_live_rates_zone' ) ) {
+				$this->add_method_to_shipping_zone( 0, $country_method );
+				delete_option( 'woocommerce_setup_intl_live_rates_zone' );
+			}
+
+			if ( get_option( 'woocommerce_setup_domestic_live_rates_zone' ) ) {
+				// Find the "domestic" zone (only location must be the base country)
+				foreach ( WC_Shipping_Zones::get_zones() as $zone ) {
+					if (
+						1 === count( $zone['zone_locations'] ) &&
+						'country' === $zone['zone_locations'][0]->type &&
+						$store_country === $zone['zone_locations'][0]->code
+					) {
+						$this->add_method_to_shipping_zone( $zone['id'], $country_method );
+						break;
+					}
+				}
+				delete_option( 'woocommerce_setup_domestic_live_rates_zone' );
+			}
+		}
+
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
@@ -478,6 +547,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
+
+				$this->init_core_wizard_shipping_config();
 			}
 
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
