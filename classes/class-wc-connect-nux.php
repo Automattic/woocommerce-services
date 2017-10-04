@@ -163,51 +163,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
-		/**
-		 * Check that the current user is the owner of the Jetpack connection
-		 * - Only that person can accept the TOS
-		 *
-		 * @uses self::get_jetpack_install_status()
-		 *
-		 * @return bool
-		 */
-		public function can_accept_tos() {
-			$jetpack_status = $this->get_jetpack_install_status();
-
-			if (
-				( self::JETPACK_NOT_INSTALLED === $jetpack_status ) ||
-				( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_status )
-			) {
-				return false;
-			}
-
-			// Developer case
-			if ( self::JETPACK_DEV === $jetpack_status ) {
-				return true;
-			}
-
-			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			$can_accept = (
-				isset( $user_token->external_user_id ) &&
-				get_current_user_id() === $user_token->external_user_id
-			);
-
-			return $can_accept;
-		}
-
 		public static function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
 				return false;
 			}
 
 			/* The NUX Flow:
-			- Case 1: Jetpack not connected (with TOS or no TOS accepted):
+			- Case 1: Jetpack not connected
 				1. show_banner_before_connection()
 				2. connect to JP
-				3. show_banner_after_connection(), which sets the TOS acceptance in options
-			- Case 2: Jetpack connected, no TOS
-				1. show_tos_only_banner(), which accepts TOS on button click
-			- Case 3: Jetpack connected, and TOS accepted
+				3. show_banner_after_connection()
+			- Case 2: Jetpack connected
 				This is an existing user. Do nothing.
 			*/
 			switch ( $status['jetpack_connection_status'] ) {
@@ -220,17 +186,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					// Has the user just gone through our NUX connection flow?
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
 						return 'after_jetpack_connection';
-					}
-
-					// Has the user already accepted our TOS? Then do nothing.
-					// Note: TOS is accepted during the after_connection banner
-					if (
-						isset( $status['tos_accepted'] )
-						&& ! $status['tos_accepted']
-						&& isset( $status['can_accept_tos'] )
-						&& $status['can_accept_tos']
-					) {
-						return 'tos_only_banner';
 					}
 
 					return false;
@@ -335,8 +290,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			$banner_to_display = self::get_banner_type_to_display( array(
 				'jetpack_connection_status'       => $jetpack_install_status,
-				'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
-				'can_accept_tos'                  => $this->can_accept_tos(),
 				'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
 			) );
 
@@ -367,10 +320,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case 'after_jetpack_connection':
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
-					break;
-				case 'tos_only_banner':
-					wp_enqueue_style( 'wc_connect_banner' );
-					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 			}
 		}
@@ -447,9 +396,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				exit;
 			}
 
-			// By going through the connection process, the user has accepted our TOS
-			WC_Connect_Options::update_option( 'tos_accepted', true );
-
 			$this->tracks->opted_in( 'connection_banner' );
 
 			$this->show_nux_banner( array(
@@ -464,38 +410,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				),
 				'should_show_jp' => false,
 				'should_show_terms' => false,
-			) );
-		}
-
-		public function show_tos_banner() {
-			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
-				WC_Connect_Options::update_option( 'tos_accepted', true );
-
-				$this->tracks->opted_in( 'tos_banner' );
-
-				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
-				exit;
-			}
-
-			$this->show_nux_banner( array(
-				'title'          => __( 'Almost ready to enjoy discounted shipping rates', 'woocommerce-services' ),
-				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>.', 'woocommerce-services' ),
-					array(
-						'a' => array(
-							'href' => array(),
-						),
-					) ),
-					'https://woocommerce.com/terms-conditions/'
-				),
-				'button_text'    => __( 'I accept', 'woocommerce-services' ),
-				'button_link'    => add_query_arg( array(
-					'wcs-nux-tos' => 'accept',
-				) ),
-				'image_url'      => plugins_url(
-					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
-				),
-				'should_show_jp' => false,
-				'should_show_terms' => true,
 			) );
 		}
 
