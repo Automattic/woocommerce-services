@@ -486,8 +486,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					$this->logger->debug( $response, __CLASS__ );
 				}
 
+				$stripe_settings = get_option( 'woocommerce_stripe_settings', array() );
 				unset( $stripe_settings['create_account'] );
-				// $stripe_settings['create_account'] = 'no';
 				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 			}
 		}
