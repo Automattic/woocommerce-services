@@ -417,10 +417,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'should_show_terms' => true,
 			);
 
-			$base_location = wc_get_base_location();
-			$country = isset( $base_location['country'] )
-				? $base_location['country']
-				: '';
+			$country = WC()->countries->get_base_country();
+
 			switch ( $country ) {
 				case 'CA':
 					$localized_content = array(
@@ -452,9 +450,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$this->tracks->opted_in( 'connection_banner' );
 
+			$country = WC()->countries->get_base_country();
+
+			if ( 'US' === $country ) {
+				$description = __( 'You can now enjoy automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
+			} else {
+				$description = __( 'You can now enjoy automated tax calculation, live shipping rates, and smoother payment setup.', 'woocommerce-services' );
+			}
+
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! You can now enjoy discounted shipping rates and print labels directly from your dashboard.', 'woocommerce-services' ),
-				'description'    => esc_html( __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ) ),
+				'title'          => __( 'Setup complete.', 'woocommerce-services' ),
+				'description'    => esc_html( $description ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
