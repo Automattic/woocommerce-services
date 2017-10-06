@@ -395,25 +395,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 
-			$button_text = __( 'Connect', 'woocommerce-services' );
+			$button_text  = __( 'Connect', 'woocommerce-services' );
+			$banner_title = __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' );
 
 			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
 					$button_text = __( 'Install Jetpack and connect', 'woocommerce-services' );
+					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
+					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 			}
 
 			$default_content = array(
-				'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
-				'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ) ),
-				'button_text'     => $button_text,
-				'image_url'       => $image_url,
-				'should_show_jp'  => true,
+				'title'             => $banner_title,
+				'description'       => esc_html( __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup.", 'woocommerce-services' ) ),
+				'button_text'       => $button_text,
+				'image_url'         => $image_url,
+				'should_show_jp'    => true,
 				'should_show_terms' => true,
 			);
 
@@ -424,7 +427,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			switch ( $country ) {
 				case 'CA':
 					$localized_content = array(
-						'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ) ),
+						'description'     => esc_html( __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to automated tax calculation, live shipping rates, and smoother payment setup.", 'woocommerce-services' ) ),
 					);
 					break;
 				default:
@@ -516,15 +519,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<p class="wcs-nux__notice-content-tos"><?php
 						/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 						printf(
-							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that <a href="%3$s">some of your data will be passed to external servers</a>.', 'woocommerce-services' ),
+							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and to <a href="%3$s">share certain data and settings</a> with WordPress.com and/or third parties.', 'woocommerce-services' ),
 								array(
 								'a' => array(
 									'href' => array(),
 								),
 							) ),
 							esc_html( $content['button_text'] ),
-							'https://woocommerce.com/terms-conditions/',
-							'https://woocommerce.com/terms-conditions/services-privacy/'
+							'https://wordpress.com/tos/',
+							'https://jetpack.com/support/what-data-does-jetpack-sync/'
 						); ?></p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
