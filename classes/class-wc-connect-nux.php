@@ -342,6 +342,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			switch ( $banner_to_display ) {
 				case 'before_jetpack_connection':
+				case 'tos_only_banner':
 					$ajax_data = array(
 						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 						'initial_install_status' => $jetpack_install_status,
@@ -367,10 +368,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case 'after_jetpack_connection':
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
-					break;
-				case 'tos_only_banner':
-					wp_enqueue_style( 'wc_connect_banner' );
-					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 			}
 		}
@@ -467,38 +464,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				),
 				'should_show_jp' => false,
 				'should_show_terms' => false,
-			) );
-		}
-
-		public function show_tos_banner() {
-			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
-				WC_Connect_Options::update_option( 'tos_accepted', true );
-
-				$this->tracks->opted_in( 'tos_banner' );
-
-				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
-				exit;
-			}
-
-			$this->show_nux_banner( array(
-				'title'          => __( 'Almost ready to enjoy discounted shipping rates', 'woocommerce-services' ),
-				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>.', 'woocommerce-services' ),
-					array(
-						'a' => array(
-							'href' => array(),
-						),
-					) ),
-					'https://woocommerce.com/terms-conditions/'
-				),
-				'button_text'    => __( 'I accept', 'woocommerce-services' ),
-				'button_link'    => add_query_arg( array(
-					'wcs-nux-tos' => 'accept',
-				) ),
-				'image_url'      => plugins_url(
-					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
-				),
-				'should_show_jp' => false,
-				'should_show_terms' => true,
 			) );
 		}
 
