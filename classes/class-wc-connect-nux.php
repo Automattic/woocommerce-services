@@ -395,7 +395,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$button_text  = __( 'Connect', 'woocommerce-services' );
 			$banner_title = __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' );
 
-			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
+			$image_url = plugins_url( 'assets/images/wcs-notice.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
@@ -466,7 +466,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'wcs-nux-notice' => 'dismiss',
 				) ),
 				'image_url'      => plugins_url(
-					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
+					'assets/images/wcs-notice.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
 				'should_show_terms' => false,
@@ -519,7 +519,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php if ( $content['should_show_jp'] ) : ?>
 					<div class="wcs-nux__notice-jetpack">
 						<img src="<?php
-						echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) );
+						echo esc_url( plugins_url( 'assets/images/jetpack-logo.png', dirname( __FILE__ ) ) );
 						?>">
 						<p class="wcs-nux__notice-jetpack-text"><?php echo esc_html( __( 'Powered by Jetpack', 'woocommerce-services' ) ); ?></p>
 					</div>
