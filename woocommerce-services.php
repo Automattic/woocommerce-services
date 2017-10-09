@@ -470,6 +470,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		public function init_core_wizard_payments_config() {
+			$stripe_settings = get_option( 'woocommerce_stripe_settings', false );
+			$stripe_enabled  = is_array( $stripe_settings )
+				&& ( isset( $stripe_settings['create_account'] ) && 'yes' === $stripe_settings['create_account'] )
+				&& ( isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'] );
+
+			if ( $stripe_enabled && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
+				$email = isset( $stripe_settings['email'] ) ? $stripe_settings['email'] : wp_get_current_user()->user_email;
+				$country = WC()->countries->get_base_country();
+				$response = $this->stripe->create_account( $email, $country );
+
+				if ( is_wp_error( $response ) ) {
+					// TODO handle case of existing account
+					$this->logger->debug( $response, __CLASS__ );
+				}
+
+				$stripe_settings = get_option( 'woocommerce_stripe_settings', array() );
+				unset( $stripe_settings['create_account'] );
+				update_option( 'woocommerce_stripe_settings', $stripe_settings );
+			}
+		}
+
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
@@ -563,6 +585,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 
 				$this->init_core_wizard_shipping_config();
+				$this->init_core_wizard_payments_config();
 			}
 
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
