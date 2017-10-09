@@ -594,8 +594,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 
-				$this->init_core_wizard_shipping_config();
-				$this->init_core_wizard_payments_config();
+				// Initialize user choices from the core setup wizard.
+				// Note: Avoid doing so from AJAX requests so we don't duplicate efforts.
+				if ( ! defined( 'DOING_AJAX' ) ) {
+					$this->init_core_wizard_shipping_config();
+					$this->init_core_wizard_payments_config();
+				}
 			}
 
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
