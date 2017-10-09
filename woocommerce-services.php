@@ -380,6 +380,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function pre_wc_init() {
 			$this->load_dependencies();
 
+			// Prevent presenting users with TOS they've already
+			// accepted in the core WC Setup Wizard
+			if ( get_option( 'woocommerce_setup_jetpack_opted_in' ) ) {
+				WC_Connect_Options::update_option( 'tos_accepted', true );
+				delete_option( 'woocommerce_setup_jetpack_opted_in' );
+
+				$tos_accepted = true;
+			} else {
+				$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
+			}
+
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
@@ -387,7 +398,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$jetpack_status = $this->nux->get_jetpack_install_status();
 			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status;
 			$is_jetpack_dev_mode = WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
-			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
+
 			if (  ! $is_jetpack_connected && ! $is_jetpack_dev_mode ) {
 				return;
 			}
