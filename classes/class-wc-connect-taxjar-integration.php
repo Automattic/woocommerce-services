@@ -66,7 +66,7 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function is_enabled() {
 		// Migrate automated taxes selection from the setup wizard
-		if ( 'yes' === get_option( self::SETUP_WIZARD_OPTION_NAME ) ) {
+		if ( get_option( self::SETUP_WIZARD_OPTION_NAME ) ) {
 			update_option( self::OPTION_NAME, 'yes' );
 			delete_option( self::SETUP_WIZARD_OPTION_NAME );
 
