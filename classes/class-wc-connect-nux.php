@@ -407,10 +407,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
-				return;
-			}
-
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			$banner_to_display = self::get_banner_type_to_display( array(
 				'jetpack_connection_status'       => $jetpack_install_status,
@@ -452,6 +448,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_before_connection() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
@@ -505,6 +505,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_after_connection() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
