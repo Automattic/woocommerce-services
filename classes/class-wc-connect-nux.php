@@ -300,16 +300,95 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return false;
 		}
 
+		/**
+		 * https://stripe.com/global
+		 */
+		public function is_stripe_supported_country( $country_code ) {
+			$stripe_supported_countries = array(
+				'AU',
+				'AT',
+				'BE',
+				'CA',
+				'DK',
+				'FI',
+				'FR',
+				'DE',
+				'HK',
+				'IE',
+				'JP',
+				'LU',
+				'NL',
+				'NZ',
+				'NO',
+				'SG',
+				'ES',
+				'SE',
+				'CH',
+				'GB',
+				'US',
+			);
+
+			return in_array( $country_code, $stripe_supported_countries );
+		}
+
+		/**
+		 * https://developers.taxjar.com/api/reference/#countries
+		 */
+		public function is_taxjar_supported_country( $country_code ) {
+			$taxjar_supported_countries = array_merge(
+				array(
+					'US',
+					'CA',
+					'AU',
+				),
+				WC()->countries->get_european_union_countries()
+			);
+
+			return in_array( $country_code, $taxjar_supported_countries );
+		}
+
 		public function should_display_nux_notice_for_current_store_locale() {
-			$base_location = wc_get_base_location();
-			$country = isset( $base_location['country'] )
-				? $base_location['country']
-				: '';
-			// Do not display for non-US, non-CA stores.
-			if ( 'CA' === $country || 'US' === $country ) {
-				return true;
+			$store_country = WC()->countries->get_base_country();
+
+			$supports_stripe   = $this->is_stripe_supported_country( $store_country );
+			$supports_taxes    = $this->is_taxjar_supported_country( $store_country );
+			$supports_shipping = in_array( $store_country, array( 'US', 'CA' ) );
+
+			return $supports_shipping || $supports_stripe || $supports_taxes;
+		}
+
+		public function get_feature_list_for_country( $country ) {
+			$feature_list    = false;
+			$supports_stripe = $this->is_stripe_supported_country( $country );
+			$supports_taxes  = $this->is_taxjar_supported_country( $country );
+			$supports_rates  = in_array( $country, array( 'US', 'CA' ) );
+			$supports_labels = ( 'US' === $country );
+
+			if ( $supports_stripe && $supports_taxes && $supports_rates && $supports_labels ) {
+				$feature_list = __( 'automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
+			} elseif ( $supports_stripe && $supports_taxes && $supports_rates ) {
+				$feature_list = __( 'automated tax calculation, live shipping rates, and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe && $supports_taxes ) {
+				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe && $supports_rates && $supports_labels ) {
+				$feature_list = __( 'live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe && $supports_rates ) {
+				$feature_list = __( 'live shipping rates and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe ) {
+				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_taxes && $supports_rates && $supports_labels ) {
+				$feature_list = __( 'automated tax calculation, live shipping rates, and shipping label printing', 'woocommerce-services' );
+			} else if ( $supports_taxes && $supports_rates ) {
+				$feature_list = __( 'automated tax calculation and live shipping rates', 'woocommerce-services' );
+			} else if ( $supports_taxes ) {
+				$feature_list = __( 'automated tax calculation', 'woocommerce-services' );
+			} else if ( $supports_rates && $supports_labels ) {
+				$feature_list = __( 'live shipping rates and shipping label printing', 'woocommerce-services' );
+			} else if ( $supports_rates ) {
+				$feature_list = __( 'live shipping rates', 'woocommerce-services' );
 			}
-			return false;
+
+			return $feature_list;
 		}
 
 		public function get_jetpack_redirect_url() {
@@ -328,10 +407,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
-			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
-				return;
-			}
-
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			$banner_to_display = self::get_banner_type_to_display( array(
 				'jetpack_connection_status'       => $jetpack_install_status,
@@ -342,6 +417,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			switch ( $banner_to_display ) {
 				case 'before_jetpack_connection':
+				case 'tos_only_banner':
 					$ajax_data = array(
 						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 						'initial_install_status' => $jetpack_install_status,
@@ -368,14 +444,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
-				case 'tos_only_banner':
-					wp_enqueue_style( 'wc_connect_banner' );
-					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
-					break;
 			}
 		}
 
 		public function show_banner_before_connection() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
@@ -394,47 +470,45 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 
 			$jetpack_status = $this->get_jetpack_install_status();
-
-			$button_text = __( 'Connect', 'woocommerce-services' );
-
-			$image_url = plugins_url( 'images/nux-printer-laptop-illustration.png', dirname( __FILE__ ) );
+			$button_text    = __( 'Connect', 'woocommerce-services' );
+			$banner_title   = __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' );
+			$image_url      = plugins_url( 'assets/images/wcs-notice.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
-					$button_text = __( 'Install Jetpack and connect', 'woocommerce-services' );
+					$button_text  = __( 'Install Jetpack and connect', 'woocommerce-services' );
+					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
-					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
+					$button_text  = __( 'Activate Jetpack and connect', 'woocommerce-services' );
+					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
+					break;
+				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
+					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 			}
 
-			$default_content = array(
-				'title'           => __( 'Connect your store to activate WooCommerce Shipping', 'woocommerce-services' ),
-				'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to access discounted rates and printing services for USPS and Canada Post from your dashboard (fewer trips to the post office, winning).", 'woocommerce-services' ) ),
-				'button_text'     => $button_text,
-				'image_url'       => $image_url,
-				'should_show_jp'  => true,
+			$country = WC()->countries->get_base_country();
+			/* translators: %s: list of features, potentially comma separated */
+			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
+			$feature_list     = $this->get_feature_list_for_country( $country );
+			$banner_content   = array(
+				'title'             => $banner_title,
+				'description'       => sprintf( $description_base, $feature_list ),
+				'button_text'       => $button_text,
+				'image_url'         => $image_url,
+				'should_show_jp'    => true,
 				'should_show_terms' => true,
 			);
 
-			$base_location = wc_get_base_location();
-			$country = isset( $base_location['country'] )
-				? $base_location['country']
-				: '';
-			switch ( $country ) {
-				case 'CA':
-					$localized_content = array(
-						'description'     => esc_html( __( "WooCommerce Shipping is almost ready to go! Once you connect your store you'll be able to show your customers live shipping rates when they check out.", 'woocommerce-services' ) ),
-					);
-					break;
-				default:
-					$localized_content = array();
-			}
-
-			$this->show_nux_banner( array_merge( $default_content, $localized_content ) );
+			$this->show_nux_banner( $banner_content );
 		}
 
 		public function show_banner_after_connection() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
 				return;
 			}
@@ -452,50 +526,23 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$this->tracks->opted_in( 'connection_banner' );
 
+			$country = WC()->countries->get_base_country();
+			/* translators: %s: list of features, potentially comma separated */
+			$description_base = __( 'You can now enjoy %s.', 'woocommerce-services' );
+			$feature_list     = $this->get_feature_list_for_country( $country );
+
 			$this->show_nux_banner( array(
-				'title'          => __( 'Setup complete! You can now enjoy discounted shipping rates and print labels directly from your dashboard.', 'woocommerce-services' ),
-				'description'    => esc_html( __( 'When you’re ready, you can purchase discounted labels from USPS, and print USPS labels at home.', 'woocommerce-services' ) ),
+				'title'          => __( 'Setup complete.', 'woocommerce-services' ),
+				'description'    => esc_html( sprintf( $description_base, $feature_list ) ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
 				) ),
 				'image_url'      => plugins_url(
-					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
+					'assets/images/wcs-notice.png', dirname( __FILE__ )
 				),
 				'should_show_jp' => false,
 				'should_show_terms' => false,
-			) );
-		}
-
-		public function show_tos_banner() {
-			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
-				WC_Connect_Options::update_option( 'tos_accepted', true );
-
-				$this->tracks->opted_in( 'tos_banner' );
-
-				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
-				exit;
-			}
-
-			$this->show_nux_banner( array(
-				'title'          => __( 'Almost ready to enjoy discounted shipping rates', 'woocommerce-services' ),
-				'description'    => sprintf( wp_kses( __( 'Everything is ready to roll, we just need you to agree to our <a href="%1$s">Terms of Service</a>.', 'woocommerce-services' ),
-					array(
-						'a' => array(
-							'href' => array(),
-						),
-					) ),
-					'https://woocommerce.com/terms-conditions/'
-				),
-				'button_text'    => __( 'I accept', 'woocommerce-services' ),
-				'button_link'    => add_query_arg( array(
-					'wcs-nux-tos' => 'accept',
-				) ),
-				'image_url'      => plugins_url(
-					'images/nux-printer-laptop-illustration.png', dirname( __FILE__ )
-				),
-				'should_show_jp' => false,
-				'should_show_terms' => true,
 			) );
 		}
 
@@ -516,15 +563,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<p class="wcs-nux__notice-content-tos"><?php
 						/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 						printf(
-							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and understand that <a href="%3$s">some of your data will be passed to external servers</a>.', 'woocommerce-services' ),
+							wp_kses( __( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and to <a href="%3$s">share certain data and settings</a> with WordPress.com and/or third parties.', 'woocommerce-services' ),
 								array(
 								'a' => array(
 									'href' => array(),
 								),
 							) ),
 							esc_html( $content['button_text'] ),
-							'https://woocommerce.com/terms-conditions/',
-							'https://woocommerce.com/terms-conditions/services-privacy/'
+							'https://wordpress.com/tos/',
+							'https://jetpack.com/support/what-data-does-jetpack-sync/'
 						); ?></p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
@@ -545,7 +592,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php if ( $content['should_show_jp'] ) : ?>
 					<div class="wcs-nux__notice-jetpack">
 						<img src="<?php
-						echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) );
+						echo esc_url( plugins_url( 'assets/images/jetpack-logo.png', dirname( __FILE__ ) ) );
 						?>">
 						<p class="wcs-nux__notice-jetpack-text"><?php echo esc_html( __( 'Powered by Jetpack', 'woocommerce-services' ) ); ?></p>
 					</div>
