@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.7.1
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -88,6 +88,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.8.0 =
+* Automatically configure live rates based on setup wizard choices
+* Add automated tax calculation
+* Add deferred Stripe account setup (if chosen in wizard)
 
 = 1.7.1 =
 * Support plain permalinks setting
