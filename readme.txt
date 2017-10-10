@@ -1,13 +1,13 @@
 === WooCommerce Services ===
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov
-Tags: canada-post, shipping, stamps, usps, woocommerce
+Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.8
 Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Hosted services for WooCommerce, including free real-time USPS and Canada Post rates and discounted USPS shipping labels.
+Hosted services for WooCommerce including automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup.
 
 == Description ==
 
@@ -24,23 +24,32 @@ Show your customers accurate shipping rates automatically for both USPS, the lar
 = Print shipping labels for USPS at a discounted rate =
 Give customers lower rates on their shipping. Create ready-to-print shipping labels for USPS directly in WooCommerce and take advantage of our special discount rate.
 
+= Collect accurate taxes at checkout =
+We've got taxes for you - no need to enter tax rates manually.
+
+= Be ready to accept payments instantly =
+Have a Stripe account created on your behalf from the WooCommerce setup wizard.
+
 == Installation ==
 
 This section describes how to install the plugin and get it working.
 
 1. Upload the plugin files to the `/wp-content/plugins/plugin-name` directory, or install the plugin through the WordPress plugins screen directly.
 1. Activate the plugin through the 'Plugins' screen in WordPress
-1. Accept the terms of service
 1. Install and activate WooCommerce if you haven't already done so
 1. Install, activate and connect Jetpack if you haven't already done so
 1. Add a USPS or Canada Post shipping method instance to any shipping zone
 1. Want to buy shipping labels? First, add your credit card to https://wordpress.com/me/purchases/billing and then print labels for orders right from the Edit Order page
+1. Enable automated taxes from WooCommerce > Settings > Tax (make sure "enable taxes" is checked in General settings first)
 
 == Frequently Asked Questions ==
 
 = What services are included? =
 
-For this first release, we’re including free real-time USPS and Canada Post Shipping rates in checkout. We are also including discounted USPS shipping labels for domestic packages. More services will roll out over upcoming releases.
+* Real-time shipping rates from USPS and Canada Post
+* USPS label purchase/printing (domestic USA only)
+* Automated tax calculation
+* Stripe account provisioning (through WooCommerce setup wizard)
 
 = Are Real-Time Rates in Checkout Free? =
 
@@ -48,7 +57,7 @@ Yes, real-time rates in checkout are totally free.
 
 = Can I buy and print shipping labels for US domestic and international packages? =
 
-For this first release, you can buy and print USPS shipping labels for domestic packages only. International shipping is not yet supported.
+You can buy and print USPS shipping labels for domestic packages only. International shipping is not yet supported.
 
 = This works with WooCommerce, right? =
 
