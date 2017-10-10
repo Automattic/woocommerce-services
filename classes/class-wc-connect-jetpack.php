@@ -45,6 +45,8 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		public static function is_atomic_site() {
 			if ( function_exists( 'jetpack_is_atomic_site' ) ) {
 				return jetpack_is_atomic_site();
+			} elseif ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
+				return jetpack_is_automated_transfer_site();
 			}
 
 			return false;
