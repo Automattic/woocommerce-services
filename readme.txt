@@ -77,14 +77,15 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Screenshots ==
 
-1. Buying a USPS shipping label for a package
-2. Setting up real-time USPS rates
-3. Setting up real-time Canada Post rates
+1. Buying a USPS shipping label for an order
+2. Adding a shipping method
+3. Setting up real-time USPS rates
 4. Real-time rate display in checkout
 5. Setting up custom packages
 6. Selecting your preferred payment method
-7. Managing your saved cards on WordPress.com
-8. Checking on the health of WooCommerce Services
+7. Enabling automated taxes
+8. Creating a Stripe account from the setup wizard
+9. Checking on the health of WooCommerce Services
 
 == Changelog ==
 
