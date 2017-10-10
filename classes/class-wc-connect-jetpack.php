@@ -39,6 +39,20 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
+		 * Helper method to get whether the current site is an Atomic site
+		 * @return bool
+		 */
+		public static function is_atomic_site() {
+			if ( function_exists( 'jetpack_is_atomic_site' ) ) {
+				return jetpack_is_atomic_site();
+			} elseif ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
+				return jetpack_is_automated_transfer_site();
+			}
+
+			return false;
+		}
+
+		/**
 		 * Helper method to get the Jetpack master user, IF we are connected
 		 * @return WP_User | false
 		 */
