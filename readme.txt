@@ -69,7 +69,7 @@ We use the Jetpack connection to authenticate each request and, if you use the s
 
 = Are there Terms of Service and data usage policies? =
 
-Absolutely! You can read our Terms of Service [here](https://woocommerce.com/terms-conditions/) and our data policy [here](https://woocommerce.com/terms-conditions/connect-privacy).
+Absolutely! You can read our Terms of Service [here](https://en.wordpress.com/tos) and our data policy [here](https://jetpack.com/support/what-data-does-jetpack-sync/).
 
 = Where can I see the source code for this plugin? =
 
