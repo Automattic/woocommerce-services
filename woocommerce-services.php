@@ -381,8 +381,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->load_dependencies();
 
 			// Prevent presenting users with TOS they've already
-			// accepted in the core WC Setup Wizard
-			if ( get_option( 'woocommerce_setup_jetpack_opted_in' ) ) {
+			// accepted in the core WC Setup Wizard or on WP.com
+			if ( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() ) {
 				WC_Connect_Options::update_option( 'tos_accepted', true );
 				delete_option( 'woocommerce_setup_jetpack_opted_in' );
 
