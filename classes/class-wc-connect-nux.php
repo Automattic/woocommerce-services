@@ -357,6 +357,40 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $supports_shipping || $supports_stripe || $supports_taxes;
 		}
 
+		public function get_feature_list_for_country( $country ) {
+			$feature_list    = false;
+			$supports_stripe = $this->is_stripe_supported_country( $country );
+			$supports_taxes  = $this->is_taxjar_supported_country( $country );
+			$supports_rates  = in_array( $country, array( 'US', 'CA' ) );
+			$supports_labels = ( 'US' === $country );
+
+			if ( $supports_stripe && $supports_taxes && $supports_rates && $supports_labels ) {
+				$feature_list = __( 'automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
+			} elseif ( $supports_stripe && $supports_taxes && $supports_rates ) {
+				$feature_list = __( 'automated tax calculation, live shipping rates, and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe && $supports_taxes ) {
+				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe && $supports_rates && $supports_labels ) {
+				$feature_list = __( 'live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe && $supports_rates ) {
+				$feature_list = __( 'live shipping rates and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_stripe ) {
+				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_taxes && $supports_rates && $supports_labels ) {
+				$feature_list = __( 'automated tax calculation, live shipping rates, and shipping label printing', 'woocommerce-services' );
+			} else if ( $supports_taxes && $supports_rates ) {
+				$feature_list = __( 'automated tax calculation and live shipping rates', 'woocommerce-services' );
+			} else if ( $supports_taxes ) {
+				$feature_list = __( 'automated tax calculation', 'woocommerce-services' );
+			} else if ( $supports_rates && $supports_labels ) {
+				$feature_list = __( 'live shipping rates and shipping label printing', 'woocommerce-services' );
+			} else if ( $supports_rates ) {
+				$feature_list = __( 'live shipping rates', 'woocommerce-services' );
+			}
+
+			return $feature_list;
+		}
+
 		public function get_jetpack_redirect_url() {
 			$full_path = add_query_arg( array() );
 			// Remove [...]/wp-admin so we can use admin_url().
@@ -436,45 +470,38 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 
 			$jetpack_status = $this->get_jetpack_install_status();
-
-			$button_text  = __( 'Connect', 'woocommerce-services' );
-			$banner_title = __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' );
-
-			$image_url = plugins_url( 'assets/images/wcs-notice.png', dirname( __FILE__ ) );
+			$button_text    = __( 'Connect', 'woocommerce-services' );
+			$banner_title   = __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' );
+			$image_url      = plugins_url( 'assets/images/wcs-notice.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
-					$button_text = __( 'Install Jetpack and connect', 'woocommerce-services' );
+					$button_text  = __( 'Install Jetpack and connect', 'woocommerce-services' );
 					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
-					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
+					$button_text  = __( 'Activate Jetpack and connect', 'woocommerce-services' );
+					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
+					break;
+				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
 					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 			}
 
-			$default_content = array(
+			$country = WC()->countries->get_base_country();
+			/* translators: %s: list of features, potentially comma separated */
+			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
+			$feature_list     = $this->get_feature_list_for_country( $country );
+			$banner_content   = array(
 				'title'             => $banner_title,
-				'description'       => esc_html( __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup.", 'woocommerce-services' ) ),
+				'description'       => sprintf( $description_base, $feature_list ),
 				'button_text'       => $button_text,
 				'image_url'         => $image_url,
 				'should_show_jp'    => true,
 				'should_show_terms' => true,
 			);
 
-			$country = WC()->countries->get_base_country();
-
-			switch ( $country ) {
-				case 'CA':
-					$localized_content = array(
-						'description'     => esc_html( __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to automated tax calculation, live shipping rates, and smoother payment setup.", 'woocommerce-services' ) ),
-					);
-					break;
-				default:
-					$localized_content = array();
-			}
-
-			$this->show_nux_banner( array_merge( $default_content, $localized_content ) );
+			$this->show_nux_banner( $banner_content );
 		}
 
 		public function show_banner_after_connection() {
@@ -496,16 +523,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$this->tracks->opted_in( 'connection_banner' );
 
 			$country = WC()->countries->get_base_country();
-
-			if ( 'US' === $country ) {
-				$description = __( 'You can now enjoy automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
-			} else {
-				$description = __( 'You can now enjoy automated tax calculation, live shipping rates, and smoother payment setup.', 'woocommerce-services' );
-			}
+			/* translators: %s: list of features, potentially comma separated */
+			$description_base = __( 'You can now enjoy %s.', 'woocommerce-services' );
+			$feature_list     = $this->get_feature_list_for_country( $country );
 
 			$this->show_nux_banner( array(
 				'title'          => __( 'Setup complete.', 'woocommerce-services' ),
-				'description'    => esc_html( $description ),
+				'description'    => esc_html( sprintf( $description_base, $feature_list ) ),
 				'button_text'    => __( 'Got it, thanks!', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(
 					'wcs-nux-notice' => 'dismiss',
