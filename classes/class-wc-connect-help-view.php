@@ -643,7 +643,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			foreach ( $this->fieldsets as $fieldset ) {
 				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
 					if ( 'indicators' === $fieldsetitem->type ) {
-						$form_data[ $fieldsetitem->key ] = current( $fieldsetitem->items );
+						$form_data[ $fieldsetitem->key ] = reset( $fieldsetitem->items );
 					} else {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->value;
 					}
