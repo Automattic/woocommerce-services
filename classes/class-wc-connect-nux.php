@@ -300,16 +300,61 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return false;
 		}
 
+		/**
+		 * https://stripe.com/global
+		 */
+		public function is_stripe_supported_country( $country_code ) {
+			$stripe_supported_countries = array(
+				'AU',
+				'AT',
+				'BE',
+				'CA',
+				'DK',
+				'FI',
+				'FR',
+				'DE',
+				'HK',
+				'IE',
+				'JP',
+				'LU',
+				'NL',
+				'NZ',
+				'NO',
+				'SG',
+				'ES',
+				'SE',
+				'CH',
+				'GB',
+				'US',
+			);
+
+			return in_array( $country_code, $stripe_supported_countries );
+		}
+
+		/**
+		 * https://developers.taxjar.com/api/reference/#countries
+		 */
+		public function is_taxjar_supported_country( $country_code ) {
+			$taxjar_supported_countries = array_merge(
+				array(
+					'US',
+					'CA',
+					'AU',
+				),
+				WC()->countries->get_european_union_countries()
+			);
+
+			return in_array( $country_code, $taxjar_supported_countries );
+		}
+
 		public function should_display_nux_notice_for_current_store_locale() {
-			$base_location = wc_get_base_location();
-			$country = isset( $base_location['country'] )
-				? $base_location['country']
-				: '';
-			// Do not display for non-US, non-CA stores.
-			if ( 'CA' === $country || 'US' === $country ) {
-				return true;
-			}
-			return false;
+			$store_country = WC()->countries->get_base_country();
+
+			$supports_stripe   = $this->is_stripe_supported_country( $store_country );
+			$supports_taxes    = $this->is_taxjar_supported_country( $store_country );
+			$supports_shipping = in_array( $store_country, array( 'US', 'CA' ) );
+
+			return $supports_shipping || $supports_stripe || $supports_taxes;
 		}
 
 		public function get_jetpack_redirect_url() {
