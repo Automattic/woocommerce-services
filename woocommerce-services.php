@@ -488,6 +488,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				&& ( isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'] );
 
 			if ( $stripe_enabled && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
+				unset( $stripe_settings['create_account'] );
+				update_option( 'woocommerce_stripe_settings', $stripe_settings );
+
 				$email = isset( $stripe_settings['email'] ) ? $stripe_settings['email'] : wp_get_current_user()->user_email;
 				$country = WC()->countries->get_base_country();
 				$response = $this->stripe->create_account( $email, $country );
@@ -496,10 +499,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					// TODO handle case of existing account
 					$this->logger->debug( $response, __CLASS__ );
 				}
-
-				$stripe_settings = get_option( 'woocommerce_stripe_settings', array() );
-				unset( $stripe_settings['create_account'] );
-				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 			}
 		}
 
@@ -595,8 +594,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 
-				$this->init_core_wizard_shipping_config();
-				$this->init_core_wizard_payments_config();
+				// Initialize user choices from the core setup wizard.
+				// Note: Avoid doing so from AJAX requests so we don't duplicate efforts.
+				if ( ! defined( 'DOING_AJAX' ) ) {
+					$this->init_core_wizard_shipping_config();
+					$this->init_core_wizard_payments_config();
+				}
 			}
 
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
