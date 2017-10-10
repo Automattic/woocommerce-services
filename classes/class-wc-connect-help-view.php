@@ -524,11 +524,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
 
 					if ( 'indicators' === $fieldsetitem->type ) {
+						$indicator_schema = $this->get_indicator_schema();
+
 						$form_properties[ $fieldsetitem->key ] = array(
-							'title' => $fieldsetitem->title,
-							'type' => 'object',
+							'title'      => $fieldsetitem->title,
+							'type'       => 'object',
 							'definition' => $fieldsetitem->key . '_definitions',
-							'items' => $this->get_indicator_schema()
+							'items'      => $indicator_schema,
+							'properties' => $indicator_schema->properties,
 						);
 
 						if ( property_exists( $fieldsetitem, 'subtitle' ) ) {
@@ -640,7 +643,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			foreach ( $this->fieldsets as $fieldset ) {
 				foreach ( $fieldset[ 'items' ] as $fieldsetitem ) {
 					if ( 'indicators' === $fieldsetitem->type ) {
-						$form_data[ $fieldsetitem->key ] = $fieldsetitem->items;
+						$form_data[ $fieldsetitem->key ] = reset( $fieldsetitem->items );
 					} else {
 						$form_data[ $fieldsetitem->key ] = $fieldsetitem->value;
 					}

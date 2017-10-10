@@ -96,7 +96,7 @@ const SettingsItem = ( {
 				<Indicators
 					title={ fieldSchema.title }
 					subtitle={ fieldSchema.subtitle }
-					indicators={ Object.values( fieldValue ) }
+					indicators={ [ fieldValue ] }
 				/>
 			);
 
