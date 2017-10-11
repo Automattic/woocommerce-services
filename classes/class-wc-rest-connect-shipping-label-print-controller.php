@@ -53,9 +53,16 @@ class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Ba
 			return $raw_response;
 		}
 
-		header( 'content-type: ' . $raw_response[ 'headers' ][ 'content-type' ] );
-		echo $raw_response[ 'body' ];
-		die();
+		if ( isset( $raw_params[ 'json' ] ) && $raw_params[ 'json' ] ) {
+			return array(
+				'mimeType' => $raw_response[ 'headers' ][ 'content-type' ],
+				'b64Content' => base64_encode( $raw_response[ 'body' ] ),
+			);
+		} else {
+			header( 'content-type: ' . $raw_response[ 'headers' ][ 'content-type' ] );
+			echo $raw_response[ 'body' ];
+			die();
+		}
 	}
 
 }
