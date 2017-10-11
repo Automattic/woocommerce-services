@@ -4,11 +4,9 @@ WooCommerce Services makes basic eCommerce features like shipping more reliable 
 
 With WooCommerce Services, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-The emphasis for initial release of WooCommerce Services is shipping simplified. We are providing USPS and Canada Post shipping methods and USPS shipping labels (stamps).
+The current emphasis for WooCommerce Services is to provide "everything you need" to start selling. When combined with the WooCommerce 3.2 setup wizard, your store can have live shipping rates, shipping label printing, automated tax calculation, and a ready-to-go Stripe payment account with just a few clicks.
 
-To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
-
-Our USPS shipping method pulls rates for customers' carts in real time from the USPS server. No USPS account is needed - use the default one if you like.
+To use the features if you've already installed WooCommerce, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
 There are many ways to contribute – reporting bugs, feature suggestions and fixing bugs. For full details, please see [CONTRIBUTING.md](./CONTRIBUTING.md)
 
