@@ -119,7 +119,7 @@ _n( "%(numSelected)d service selected", "%(numSelected)d services selected", 1, 
 __( "All services selected", "woocommerce-services" ), // dist/woocommerce-services.js:1
 __( "Add and edit saved packages using the {{a}}Packaging Manager{{/a}}.", "woocommerce-services" ), // dist/woocommerce-services.js:1
 __( "Saved Packages", "woocommerce-services" ), // dist/woocommerce-services.js:1
-__( "Now add your zip code and chose which services you want to offer your customers.", "woocommerce-services" ), // dist/woocommerce-services.js:1
+__( "Now add your zip code and choose which services you want to offer your customers.", "woocommerce-services" ), // dist/woocommerce-services.js:1
 __( "Print", "woocommerce-services" ), // dist/woocommerce-services.js:1
 __( "Paper size", "woocommerce-services" ), // dist/woocommerce-services.js:1
 __( "You can run a test print for shipping labels by selecting the paper size, then print.", "woocommerce-services" ), // dist/woocommerce-services.js:1

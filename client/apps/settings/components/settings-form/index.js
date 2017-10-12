@@ -40,7 +40,7 @@ const SettingsForm = ( props ) => {
 		<div>
 			{ ! props.form.noticeDismissed && (
 				<NuxNotice onDismiss={ props.formActions.dismissNotice } >
-					{ __( 'Now add your zip code and chose which services you want to offer your customers.' ) }
+					{ __( 'Now add your zip code and choose which services you want to offer your customers.' ) }
 				</NuxNotice>
 			) }
 			{ props.layout.map( ( group, idx ) => renderGroup( idx ) ) }

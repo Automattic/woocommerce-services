@@ -964,7 +964,7 @@ msgstr ""
 
 #: i18n/strings.php:122
 msgid ""
-"Now add your zip code and chose which services you want to offer your "
+"Now add your zip code and choose which services you want to offer your "
 "customers."
 msgstr ""
 
