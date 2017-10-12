@@ -13,6 +13,9 @@ import _ from 'lodash';
  */
 export default _.memoize( () => {
 	if ( /iPad|iPhone|iPod/.test( navigator.userAgent ) && ! window.MSStream ) {
+		// iOS doesn't support triggering a print dialog, so we should load the pdf in a new tab
+		// instead. Windows Phones are filtered out with `! window.MSStream` since the user agent
+		// string can contain the false positive 'like iPhone'
 		return 'addon';
 	}
 
