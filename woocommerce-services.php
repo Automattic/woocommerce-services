@@ -494,7 +494,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
-			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 4 );
+			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -673,9 +673,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param $order
 		 * @param $sent_to_admin
 		 * @param $plain_text
-		 * @param $email
 		 */
-		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text, $email ) {
+		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text ) {
 			$id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 
 			// Abort if no id was passed or if the order is not marked as 'completed'
@@ -683,7 +682,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			$labels = $this->service_settings_store->get_label_order_meta_data( $id );;
+			$labels = $this->service_settings_store->get_label_order_meta_data( $id );
 
 			// Abort if there are no labels
 			if ( empty( $labels ) ) {
@@ -694,28 +693,35 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Generate a table row for each label
 			foreach ( $labels as $label ) {
-				$carrier = esc_html( $label['carrier_id'] );
-				$tracking = esc_html( $label['tracking'] );
+				$carrier = strtoupper( $label['carrier_id'] );
+				$tracking = $label['tracking'];
 				$refunded = array_key_exists( 'refund', $label );
 
 				if ( $refunded ) {
 					continue;
 				}
 
+				if ( $plain_text ) {
+					// Should look like '- USPS: 9405536897846173912345' in plain text mode
+					$bullet = '- ';
+					$markup .= $bullet . $carrier . ': ' . $tracking . "\n";
+					continue;
+				}
+
 				$markup .= '<tr>';
-				$markup .= '<td class="td" scope="col">' . strtoupper( $carrier ) . '</td>';
+				$markup .= '<td class="td" scope="col">' . esc_html( $carrier ) . '</td>';
 
 				switch ( $carrier ) {
-					case "fedex":
-						$tracking_url = 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=' . $tracking;
+					case 'fedex':
+						$tracking_url = 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=' . esc_html( $tracking );
 						break;
-					case "usps":
-						$tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . $tracking;
+					case 'usps':
+						$tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . esc_html( $tracking );
 						break;
 				}
 
 				$markup .= '<td class="td" scope="col">';
-				$markup .= '<a href="' . esc_html( $tracking_url ) . '">' . $tracking . '</a>';
+				$markup .= '<a href="' . esc_html( $tracking_url ) . '">' . esc_html( $tracking ) . '</a>';
 				$markup .= '</td>';
 				$markup .= '</tr>';
 			}
@@ -725,16 +731,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			echo '<h2>' . __( 'Tracking', 'woocommerce-services' ) . '</h2>';
-			echo '<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif;">';
-			echo '<thead>';
-			echo '<tr>';
-			echo '<th class="td" scope="col">' . __( 'Provider', 'woocommerce-services' ) . '</th>';
-			echo '<th class="td" scope="col">' . __( 'Tracking number', 'woocommerce-services' ) . '</th>';
-			echo '</tr>';
-			echo '</thead>';
-			echo '<tbody>' . $markup . '</tbody>';
-			echo '</table>';
+			if ( $plain_text ) {
+				echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
+				echo strtoupper( __( 'Tracking', 'woocommerce-services' ) ) . "\n\n";
+				echo $markup;
+				return;
+			}
+
+			?>
+				<h2><?php echo __( 'Tracking', 'woocommerce-services' ) ?></h2>
+				<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif;">
+					<thead>
+						<tr>
+							<th class="td" scope="col"><?php echo __( 'Provider', 'woocommerce-services' ) ?></th>
+							<th class="td" scope="col"><?php echo __( 'Tracking number', 'woocommerce-services' ) ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php echo $markup ?>
+					</tbody>
+				</table>
+			<?php
 		}
 
 		/**
