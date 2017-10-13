@@ -14,7 +14,6 @@ const dirsToCopy = [
 	'classes',
 	'dist',
 	'i18n',
-	'vendor',
 	'images',
 ];
 
