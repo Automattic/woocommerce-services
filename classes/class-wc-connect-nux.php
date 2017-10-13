@@ -577,7 +577,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'image_url'      => plugins_url(
 					'images/wcs-notice.png', dirname( __FILE__ )
 				),
-				'should_show_jp'    => true,
+				'should_show_jp'    => false,
 				'should_show_terms' => true,
 			) );
 		}
