@@ -457,6 +457,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'base_postcode' => WC()->countries->get_base_postcode(),
 				'currency' => get_woocommerce_currency(),
 				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+				'wcs_version' => WOOCOMMERCE_CONNECT_VERSION,
 				'jetpack_version' => JETPACK__VERSION,
 				'wc_version' => WC()->version,
 				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
