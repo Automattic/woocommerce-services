@@ -474,26 +474,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 			$button_text    = __( 'Connect', 'woocommerce-services' );
-			$banner_title   = __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' );
+			$banner_title   = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 			$image_url      = plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
 				case self::JETPACK_NOT_INSTALLED:
 					$button_text  = __( 'Install Jetpack and connect', 'woocommerce-services' );
-					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text  = __( 'Activate Jetpack and connect', 'woocommerce-services' );
-					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
-					break;
-				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
-					$banner_title = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 					break;
 			}
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect Jetpack you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
 				'title'             => $banner_title,
@@ -580,7 +575,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'wcs-nux-tos' => 'accept',
 				) ),
 				'image_url'      => plugins_url(
-					'assets/images/wcs-notice.png', dirname( __FILE__ )
+					'images/wcs-notice.png', dirname( __FILE__ )
 				),
 				'should_show_jp'    => true,
 				'should_show_terms' => true,
