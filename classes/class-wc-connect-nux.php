@@ -417,7 +417,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			switch ( $banner_to_display ) {
 				case 'before_jetpack_connection':
-				case 'tos_only_banner':
 					$ajax_data = array(
 						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
 						'initial_install_status' => $jetpack_install_status,
@@ -439,6 +438,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					);
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
+					break;
+				case 'tos_only_banner':
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 				case 'after_jetpack_connection':
 					wp_enqueue_style( 'wc_connect_banner' );
@@ -543,6 +546,44 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				),
 				'should_show_jp' => false,
 				'should_show_terms' => false,
+			) );
+		}
+
+		public function show_tos_banner() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
+			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
+				return;
+			}
+
+			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
+				WC_Connect_Options::update_option( 'tos_accepted', true );
+
+				$this->tracks->opted_in( 'tos_banner' );
+
+				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
+				exit;
+			}
+
+			$country = WC()->countries->get_base_country();
+			/* translators: %s: list of features, potentially comma separated */
+			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
+			$feature_list     = $this->get_feature_list_for_country( $country );
+
+			$this->show_nux_banner( array(
+				'title'          => __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' ),
+				'description'    => esc_html( sprintf( $description_base, $feature_list ) ),
+				'button_text'    => __( 'Connect', 'woocommerce-services' ),
+				'button_link'    => add_query_arg( array(
+					'wcs-nux-tos' => 'accept',
+				) ),
+				'image_url'      => plugins_url(
+					'assets/images/wcs-notice.png', dirname( __FILE__ )
+				),
+				'should_show_jp'    => true,
+				'should_show_terms' => true,
 			) );
 		}
 
