@@ -439,15 +439,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
 			$method      = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
+			if ( empty( $method ) ) {
+				return;
+			}
+
 			$zone        = WC_Shipping_Zones::get_zone( $zone_id );
 			$instance_id = $zone->add_shipping_method( $method->method_id );
-
 			$zone->save();
 
 			$instance = WC_Shipping_Zones::get_shipping_method( $instance_id );
+			if ( empty( $instance ) ) {
+				return;
+			}
+
 			$schema   = $instance->get_service_schema();
 			$defaults = (object) $this->get_service_schema_defaults( $schema->service_settings );
-
 			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $method->method_id, $instance_id );
 		}
 
