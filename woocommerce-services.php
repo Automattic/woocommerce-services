@@ -438,12 +438,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
-			$method      = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
+			$method = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
 			if ( empty( $method ) ) {
 				return;
 			}
 
-			$zone        = WC_Shipping_Zones::get_zone( $zone_id );
+			$zone = WC_Shipping_Zones::get_zone( $zone_id );
 			$instance_id = $zone->add_shipping_method( $method->method_id );
 			$zone->save();
 
