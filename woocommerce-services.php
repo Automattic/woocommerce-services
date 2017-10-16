@@ -458,18 +458,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function init_core_wizard_shipping_config() {
-			$store_country = WC()->countries->get_base_country();
+			$store_currency = get_woocommerce_currency();
 
-			if ( 'US' === $store_country ) {
-				$country_method = 'usps';
-			} elseif ( 'CA' === $store_country ) {
-				$country_method = 'canada_post';
+			if ( 'USD' === $store_currency ) {
+				$currency_method = 'usps';
+			} elseif ( 'CAD' === $store_currency ) {
+				$currency_method = 'canada_post';
 			} else {
-				return; // Only set up live rates for US and CA
+				return; // Only set up live rates for USD and CAD
 			}
 
 			if ( get_option( 'woocommerce_setup_intl_live_rates_zone' ) ) {
-				$this->add_method_to_shipping_zone( 0, $country_method );
+				$this->add_method_to_shipping_zone( 0, $currency_method );
 				delete_option( 'woocommerce_setup_intl_live_rates_zone' );
 			}
 
@@ -479,9 +479,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					if (
 						1 === count( $zone['zone_locations'] ) &&
 						'country' === $zone['zone_locations'][0]->type &&
-						$store_country === $zone['zone_locations'][0]->code
+						WC()->countries->get_base_country() === $zone['zone_locations'][0]->code
 					) {
-						$this->add_method_to_shipping_zone( $zone['id'], $country_method );
+						$this->add_method_to_shipping_zone( $zone['id'], $currency_method );
 						break;
 					}
 				}
