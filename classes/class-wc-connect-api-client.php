@@ -301,6 +301,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'POST', '/stripe/oauth-keys', $request );
 		}
 
+		public function deauthorize_stripe_account() {
+			return $this->request( 'POST', '/stripe/account/deauthorize' );
+		}
 		/**
 		 * Sends a request to the WooCommerce Services Server
 		 *
