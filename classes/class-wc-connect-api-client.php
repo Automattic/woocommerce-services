@@ -443,7 +443,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		protected function get_wcs_version() {
 			$file_path = plugin_dir_path( __DIR__ ) . 'woocommerce-services.php';
-			return get_file_data( $file_path, array( 'Version' => 'Version' ) )[ 'Version' ];
+			$plugin_data = get_file_data( $file_path, array( 'Version' => 'Version' ) );
+			return $plugin_data[ 'Version' ];
 		}
 
 		/**
