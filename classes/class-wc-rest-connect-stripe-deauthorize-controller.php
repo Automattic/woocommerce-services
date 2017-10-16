@@ -18,8 +18,6 @@ class WC_REST_Connect_Stripe_Deauthorize_Controller extends WC_REST_Connect_Base
 	}
 
 	public function post( $request ) {
-		$data = $request->get_json_params();
-
 		$response = $this->stripe->deauthorize_account();
 
 		if ( is_wp_error( $response ) ) {
