@@ -597,8 +597,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 
 				// Initialize user choices from the core setup wizard.
-				// Note: Avoid doing so from AJAX requests so we don't duplicate efforts.
-				if ( ! defined( 'DOING_AJAX' ) ) {
+				// Note: Avoid doing so on non-primary requests so we don't duplicate efforts.
+				if ( ! defined( 'DOING_AJAX' ) && is_admin() && ! isset( $_GET['noheader'] ) ) {
 					$this->init_core_wizard_shipping_config();
 					$this->init_core_wizard_payments_config();
 				}
