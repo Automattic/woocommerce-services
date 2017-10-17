@@ -474,12 +474,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( get_option( 'woocommerce_setup_domestic_live_rates_zone' ) ) {
+				$store_country = WC()->countries->get_base_country();
+
 				// Find the "domestic" zone (only location must be the base country)
 				foreach ( WC_Shipping_Zones::get_zones() as $zone ) {
 					if (
 						1 === count( $zone['zone_locations'] ) &&
 						'country' === $zone['zone_locations'][0]->type &&
-						WC()->countries->get_base_country() === $zone['zone_locations'][0]->code
+						$store_country === $zone['zone_locations'][0]->code
 					) {
 						$this->add_method_to_shipping_zone( $zone['id'], $currency_method );
 						break;
