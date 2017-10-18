@@ -30,7 +30,8 @@ class WC_REST_Connect_Stripe_Deauthorize_Controller extends WC_REST_Connect_Base
 		}
 
 		return array(
-			'success' => true
+			'success' => true,
+			'account_id' => $response->accountId,
 		);
 	}
 }
