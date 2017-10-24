@@ -105,6 +105,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields[ 'name' ] = wp_get_current_user()->display_name;
 
 			$wc_countries = WC()->countries;
+			// WC 3.2 introduces ability to configure a full address in the settings
+			// Use it for address defaults if available
 			if ( method_exists( $wc_countries, 'get_base_address' ) ) {
 				$wc_address_fields[ 'country' ] = $wc_countries->get_base_country();
 				$wc_address_fields[ 'state' ] = $wc_countries->get_base_state();
