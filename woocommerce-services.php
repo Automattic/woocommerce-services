@@ -438,36 +438,44 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
-			$method      = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
-			$zone        = WC_Shipping_Zones::get_zone( $zone_id );
-			$instance_id = $zone->add_shipping_method( $method->method_id );
+			$method = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
+			if ( empty( $method ) ) {
+				return;
+			}
 
+			$zone = WC_Shipping_Zones::get_zone( $zone_id );
+			$instance_id = $zone->add_shipping_method( $method->method_id );
 			$zone->save();
 
 			$instance = WC_Shipping_Zones::get_shipping_method( $instance_id );
+			if ( empty( $instance ) ) {
+				return;
+			}
+
 			$schema   = $instance->get_service_schema();
 			$defaults = (object) $this->get_service_schema_defaults( $schema->service_settings );
-
 			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $method->method_id, $instance_id );
 		}
 
 		public function init_core_wizard_shipping_config() {
-			$store_country = WC()->countries->get_base_country();
+			$store_currency = get_woocommerce_currency();
 
-			if ( 'US' === $store_country ) {
-				$country_method = 'usps';
-			} elseif ( 'CA' === $store_country ) {
-				$country_method = 'canada_post';
+			if ( 'USD' === $store_currency ) {
+				$currency_method = 'usps';
+			} elseif ( 'CAD' === $store_currency ) {
+				$currency_method = 'canada_post';
 			} else {
-				return; // Only set up live rates for US and CA
+				return; // Only set up live rates for USD and CAD
 			}
 
 			if ( get_option( 'woocommerce_setup_intl_live_rates_zone' ) ) {
-				$this->add_method_to_shipping_zone( 0, $country_method );
+				$this->add_method_to_shipping_zone( 0, $currency_method );
 				delete_option( 'woocommerce_setup_intl_live_rates_zone' );
 			}
 
 			if ( get_option( 'woocommerce_setup_domestic_live_rates_zone' ) ) {
+				$store_country = WC()->countries->get_base_country();
+
 				// Find the "domestic" zone (only location must be the base country)
 				foreach ( WC_Shipping_Zones::get_zones() as $zone ) {
 					if (
@@ -475,7 +483,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						'country' === $zone['zone_locations'][0]->type &&
 						$store_country === $zone['zone_locations'][0]->code
 					) {
-						$this->add_method_to_shipping_zone( $zone['id'], $country_method );
+						$this->add_method_to_shipping_zone( $zone['id'], $currency_method );
 						break;
 					}
 				}
