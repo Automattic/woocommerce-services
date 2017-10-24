@@ -353,8 +353,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$dest_address = $order->get_address( 'shipping' );
 			if ( ( $dest_address['country'] && 'US' !== $dest_address['country']
-				//special case - include PR and VI since it's treated as domestic
-				&& 'PR' !== $dest_address['country'] && 'VI' !== $dest_address['country'] )
+				//special case - include PR since it's treated as domestic
+				&& 'PR' !== $dest_address['country'] )
 				|| in_array( $dest_address['state'], $this->unsupported_states ) ) {
 				return false;
 			}
