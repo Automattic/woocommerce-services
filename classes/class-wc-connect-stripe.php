@@ -56,11 +56,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function get_account_details() {
-			$response = $this->api->get_stripe_account_details();
-			if ( is_wp_error( $response ) ) {
-				return $response;
-			}
-			return $response;
+			return $this->api->get_stripe_account_details();
 		}
 
 		public function connect_oauth( $state, $code ) {
