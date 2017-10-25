@@ -103,6 +103,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$wc_address_fields = array();
 			$wc_address_fields['company'] = get_bloginfo( 'name' );
 			$wc_address_fields['name'] = wp_get_current_user()->display_name;
+			$wc_address_fields['phone'] = '';
 
 			$wc_countries = WC()->countries;
 			// WC 3.2 introduces ability to configure a full address in the settings
@@ -123,7 +124,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$wc_address_fields['city'] = '';
 				$wc_address_fields['postcode'] = '';
 			}
-			$wc_address_fields['phone'] = '';
 
 			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
