@@ -40,7 +40,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				'currency_symbol' => $currency_symbol,
 				'dimension_unit' => $this->translate_unit( $dimension_unit ),
 				'weight_unit' => $this->translate_unit( $weight_unit ),
-				'origin_country' => $base_location[ 'country' ],
+				'origin_country' => $base_location['country'],
 			);
 		}
 
@@ -56,7 +56,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			);
 
 			$result = WC_Connect_Options::get_option( 'account_settings', $default );
-			$result[ 'paper_size' ] = $this->get_preferred_paper_size();
+			$result['paper_size'] = $this->get_preferred_paper_size();
 			$result = array_merge( $default, $result );
 
 			return $result;
@@ -85,32 +85,45 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 		public function get_selected_payment_method_id() {
 			$account_settings = $this->get_account_settings();
-			return intval( $account_settings[ 'selected_payment_method_id' ] );
+			return intval( $account_settings['selected_payment_method_id'] );
 		}
 
 		public function set_selected_payment_method_id( $new_payment_method_id ) {
 			$new_payment_method_id = intval( $new_payment_method_id );
 			$account_settings = $this->get_account_settings();
-			$old_payment_method_id = intval( $account_settings[ 'selected_payment_method_id' ] );
+			$old_payment_method_id = intval( $account_settings['selected_payment_method_id'] );
 			if ( $old_payment_method_id === $new_payment_method_id ) {
 				return;
 			}
-			$account_settings[ 'selected_payment_method_id' ] = $new_payment_method_id;
+			$account_settings['selected_payment_method_id'] = $new_payment_method_id;
 			$this->update_account_settings( $account_settings );
 		}
 
 		public function get_origin_address() {
 			$wc_address_fields = array();
-			$wc_address_fields[ 'company' ] = get_bloginfo( 'name' );
-			$wc_address_fields[ 'name' ] = wp_get_current_user()->display_name;
-			$base_location = wc_get_base_location();
-			$wc_address_fields[ 'country' ] = $base_location[ 'country' ];
-			$wc_address_fields[ 'state' ] = $base_location[ 'state' ];
-			$wc_address_fields[ 'address' ] = '';
-			$wc_address_fields[ 'address_2' ] = '';
-			$wc_address_fields[ 'city' ] = '';
-			$wc_address_fields[ 'postcode' ] = '';
-			$wc_address_fields[ 'phone' ] = '';
+			$wc_address_fields['company'] = get_bloginfo( 'name' );
+			$wc_address_fields['name'] = wp_get_current_user()->display_name;
+			$wc_address_fields['phone'] = '';
+
+			$wc_countries = WC()->countries;
+			// WC 3.2 introduces ability to configure a full address in the settings
+			// Use it for address defaults if available
+			if ( method_exists( $wc_countries, 'get_base_address' ) ) {
+				$wc_address_fields['country'] = $wc_countries->get_base_country();
+				$wc_address_fields['state'] = $wc_countries->get_base_state();
+				$wc_address_fields['address'] = $wc_countries->get_base_address();
+				$wc_address_fields['address_2'] = $wc_countries->get_base_address_2();
+				$wc_address_fields['city'] = $wc_countries->get_base_city();
+				$wc_address_fields['postcode'] = $wc_countries->get_base_postcode();
+			} else {
+				$base_location = wc_get_base_location();
+				$wc_address_fields['country'] = $base_location['country'];
+				$wc_address_fields['state'] = $base_location['state'];
+				$wc_address_fields['address'] = '';
+				$wc_address_fields['address_2'] = '';
+				$wc_address_fields['city'] = '';
+				$wc_address_fields['postcode'] = '';
+			}
 
 			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
 			return array_merge( $wc_address_fields, $stored_address_fields );
@@ -124,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			// According to https://en.wikipedia.org/wiki/Letter_(paper_size) US, Mexico, Canada and Dominican Republic
 			// use "Letter" size, and pretty much all the rest of the world use A4, so those are sensible defaults
 			$base_location = wc_get_base_location();
-			if ( in_array( $base_location[ 'country' ], array( 'US', 'CA', 'MX', 'DO' ) ) ) {
+			if ( in_array( $base_location['country'], array( 'US', 'CA', 'MX', 'DO' ), true ) ) {
 				return 'letter';
 			}
 			return 'a4';
@@ -228,7 +241,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$result = $new_label_data;
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			foreach( $labels_data as $index => $label_data ) {
-				if ( $label_data[ 'label_id' ] === $new_label_data->label_id ) {
+				if ( $label_data['label_id'] === $new_label_data->label_id ) {
 					$result = array_merge( $label_data, (array) $new_label_data );
 					$labels_data[ $index ] = $result;
 				}
@@ -259,9 +272,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			$new_address = array_merge( array(), ( array ) $wc_address, ( array ) $api_address );
 			//rename address to address_1
-			$new_address[ 'address_1' ] = $new_address[ 'address' ];
+			$new_address['address_1'] = $new_address['address'];
 			//remove api-specific fields
-			unset( $new_address[ 'address' ], $new_address[ 'name' ] );
+			unset( $new_address['address'], $new_address['name'] );
 
 			$order->set_address( $new_address, 'shipping' );
 			update_post_meta( $order_id, '_wc_connect_destination_normalized', true );
@@ -515,7 +528,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			$custom_packages =  $this->get_packages();
 			foreach ( $custom_packages as $custom_package ) {
-				$lookup[ $custom_package[ 'name' ] ] = $custom_package;
+				$lookup[ $custom_package['name'] ] = $custom_package;
 			}
 
 			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
