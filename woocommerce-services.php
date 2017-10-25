@@ -693,7 +693,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Generate a table row for each label
 			foreach ( $labels as $label ) {
-				$carrier = strtoupper( $label['carrier_id'] );
+				$carrier = $label['carrier_id'];
+				$carrierLabel = strtoupper( $carrier );
 				$tracking = $label['tracking'];
 				$refunded = array_key_exists( 'refund', $label );
 
@@ -703,25 +704,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 				if ( $plain_text ) {
 					// Should look like '- USPS: 9405536897846173912345' in plain text mode
-					$bullet = '- ';
-					$markup .= $bullet . $carrier . ': ' . $tracking . "\n";
+					$markup .= '- ' . $carrierLabel . ': ' . $tracking . "\n";
 					continue;
 				}
 
 				$markup .= '<tr>';
-				$markup .= '<td class="td" scope="col">' . esc_html( $carrier ) . '</td>';
+				$markup .= '<td class="td" scope="col">' . esc_html( $carrierLabel ) . '</td>';
 
 				switch ( $carrier ) {
 					case 'fedex':
-						$tracking_url = 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=' . esc_html( $tracking );
+						$tracking_url = 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=' . $tracking;
 						break;
 					case 'usps':
-						$tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . esc_html( $tracking );
+						$tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . $tracking;
 						break;
 				}
 
 				$markup .= '<td class="td" scope="col">';
-				$markup .= '<a href="' . esc_html( $tracking_url ) . '">' . esc_html( $tracking ) . '</a>';
+				$markup .= '<a href="' . esc_url( $tracking_url ) . '">' . esc_html( $tracking ) . '</a>';
 				$markup .= '</td>';
 				$markup .= '</tr>';
 			}
@@ -733,24 +733,26 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( $plain_text ) {
 				echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
-				echo strtoupper( __( 'Tracking', 'woocommerce-services' ) ) . "\n\n";
+				echo mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' ) . "\n\n";
 				echo $markup;
 				return;
 			}
 
 			?>
-				<h2><?php echo __( 'Tracking', 'woocommerce-services' ) ?></h2>
-				<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif;">
-					<thead>
-						<tr>
-							<th class="td" scope="col"><?php echo __( 'Provider', 'woocommerce-services' ) ?></th>
-							<th class="td" scope="col"><?php echo __( 'Tracking number', 'woocommerce-services' ) ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php echo $markup ?>
-					</tbody>
-				</table>
+				<div style="font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; margin-bottom: 40px;">
+					<h2><?php echo __( 'Tracking', 'woocommerce-services' ); ?></h2>
+					<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%;">
+						<thead>
+							<tr>
+								<th class="td" scope="col"><?php echo __( 'Provider', 'woocommerce-services' ); ?></th>
+								<th class="td" scope="col"><?php echo __( 'Tracking number', 'woocommerce-services' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php echo $markup; ?>
+						</tbody>
+					</table>
+				</div>
 			<?php
 		}
 
