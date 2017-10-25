@@ -309,19 +309,27 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		protected function get_states_map() {
 			$result = array();
-			foreach ( WC()->countries->get_countries() as $code => $name ) {
-				$result[ $code ] = array( 'name' => html_entity_decode( $name ) );
-			}
-			foreach ( WC()->countries->get_states() as $country => $states ) {
-				$result[ $country ]['states'] = array();
-				foreach ( $states as $code => $name ) {
-					if ( 'US' === $country && in_array( $code, $this->unsupported_states ) ) {
-						continue;
-					}
+			$all_countries = WC()->countries->get_countries();
+			$all_states = WC()->countries->get_states();
+			$allowed_countries = array( 'US', 'PR' );
 
-					$result[ $country ]['states'][ $code ] = html_entity_decode( $name );
+			foreach ( $allowed_countries as $code ) {
+				$country_data = array( 'name' => html_entity_decode( $all_countries[ $code ] ) );
+
+				if ( array_key_exists( $code, $all_states ) ) {
+					$states = $all_states[ $code ];
+					$country_data['states'] = array();
+					foreach ( $states as $state_code => $name ) {
+						if ( 'US' === $code && in_array( $state_code, $this->unsupported_states ) ) {
+						  continue;
+						}
+						$country_data['states'][ $state_code ] = html_entity_decode( $name );
+					}
 				}
+
+				$result[ $code ] = $country_data;
 			}
+
 			return $result;
 		}
 
