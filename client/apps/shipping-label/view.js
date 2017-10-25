@@ -130,7 +130,7 @@ ShippingLabelRootView.propTypes = {
 	loaded: PropTypes.bool.isRequired,
 	needToFetchLabelStatus: PropTypes.bool.isRequired,
 	numPaymentMethods: PropTypes.number.isRequired,
-	paymentMethod: PropTypes.string.isRequired,
+	paymentMethod: PropTypes.string,
 	labels: PropTypes.array.isRequired,
 	fetchLabelsStatus: PropTypes.func.isRequired,
 	openPrintingFlow: PropTypes.func.isRequired,
