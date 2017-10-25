@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			// According to https://en.wikipedia.org/wiki/Letter_(paper_size) US, Mexico, Canada and Dominican Republic
 			// use "Letter" size, and pretty much all the rest of the world use A4, so those are sensible defaults
 			$base_location = wc_get_base_location();
-			if ( in_array( $base_location['country'], array( 'US', 'CA', 'MX', 'DO' ) ) ) {
+			if ( in_array( $base_location['country'], array( 'US', 'CA', 'MX', 'DO' ), true ) ) {
 				return 'letter';
 			}
 			return 'a4';
