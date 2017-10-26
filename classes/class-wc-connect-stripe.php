@@ -59,6 +59,14 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $this->api->get_stripe_account_details();
 		}
 
+		public function deauthorize_account() {
+			return $this->api->deauthorize_stripe_account();
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+			return $this->save_stripe_keys( array( 'accountId' => '', 'publishableKey' => '', 'secretKey' => '' ) );
+		}
+
 		public function connect_oauth( $state, $code ) {
 			if ( $state !== $this->options->get_option( self::STATE_VAR_NAME, false ) ) {
 				return new WP_Error( 'Invalid stripe state' );
