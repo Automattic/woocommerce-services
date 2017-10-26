@@ -185,6 +185,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			WC_Connect_Options::delete_all_options();
 		}
 
+		/**
+		 * Get WCS plugin version
+		 *
+		 * @return string
+		 */
+		static function get_wcs_version() {
+			$file_path = plugin_dir_path( __FILE__ ) . 'woocommerce-services.php';
+			$plugin_data = get_file_data( $file_path, array( 'Version' => 'Version' ) );
+			return $plugin_data[ 'Version' ];
+		}
+
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );

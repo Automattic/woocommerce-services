@@ -437,17 +437,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Get WCS plugin version
-		 *
-		 * @return string
-		 */
-		protected function get_wcs_version() {
-			$file_path = plugin_dir_path( __DIR__ ) . 'woocommerce-services.php';
-			$plugin_data = get_file_data( $file_path, array( 'Version' => 'Version' ) );
-			return $plugin_data[ 'Version' ];
-		}
-
-		/**
 		 * Adds useful WP/WC/WCC information to request bodies
 		 *
 		 * @param array $initial_body
@@ -469,7 +458,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'currency' => get_woocommerce_currency(),
 				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
 				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
-				'wcs_version' => $this->get_wcs_version(),
+				'wcs_version' => WC_Connect_Loader::get_wcs_version(),
 				'jetpack_version' => JETPACK__VERSION,
 				'is_atomic' => WC_Connect_Jetpack::is_atomic_site(),
 				'wc_version' => WC()->version,
