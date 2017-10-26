@@ -17,6 +17,33 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$this->stripe = $stripe;
 	}
 
+	public function get( $request ) {
+		$response = $this->stripe->get_account_details();
+
+		if ( is_wp_error( $response ) ) {
+			$response->add_data( array(
+				'message' => $response->get_error_message(),
+			), $response->get_error_code() );
+
+			$this->logger->debug( $response, __CLASS__ );
+			return $response;
+		}
+
+		return array(
+			'success'         => true,
+			'account_id'      => $response->accountId,
+			'display_name'    => $response->displayName,
+			'email'           => $response->email,
+			'business_logo'   => $response->businessLogo,
+			'legal_entity'    => array(
+				'first_name'      => $response->legalEntity->firstName,
+				'last_name'       => $response->legalEntity->lastName
+			),
+			'payouts_enabled' => $response->payoutsEnabled
+		);
+
+	}
+
 	public function post( $request ) {
 		$data = $request->get_json_params();
 

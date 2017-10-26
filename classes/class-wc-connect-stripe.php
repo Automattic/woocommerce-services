@@ -55,6 +55,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $this->save_stripe_keys( $response );
 		}
 
+		public function get_account_details() {
+			return $this->api->get_stripe_account_details();
+		}
+
 		public function connect_oauth( $state, $code ) {
 			if ( $state !== $this->options->get_option( self::STATE_VAR_NAME, false ) ) {
 				return new WP_Error( 'Invalid stripe state' );

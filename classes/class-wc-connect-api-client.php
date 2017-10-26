@@ -283,6 +283,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'POST', '/stripe/account', $request );
 		}
 
+		public function get_stripe_account_details() {
+			return $this->request( 'GET', '/stripe/account' );
+		}
+
 		public function get_stripe_oauth_init( $return_url ) {
 			$request = array(
 				'returnUrl' => $return_url,
