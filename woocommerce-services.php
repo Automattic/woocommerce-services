@@ -191,8 +191,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return string
 		 */
 		static function get_wcs_version() {
-			$file_path = plugin_dir_path( __FILE__ ) . 'woocommerce-services.php';
-			$plugin_data = get_file_data( $file_path, array( 'Version' => 'Version' ) );
+			$plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
 			return $plugin_data[ 'Version' ];
 		}
 
