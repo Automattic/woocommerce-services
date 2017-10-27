@@ -74,6 +74,8 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$user = wp_get_current_user();
 			$site_url = get_option( 'siteurl' );
 
+			$wcs_version = WC_Connect_Loader::get_wcs_version();
+
 			// Check for WooCommerce
 			$wc_version = 'unavailable';
 			if ( function_exists( 'WC' ) ) {
@@ -85,6 +87,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			if ( defined( 'JETPACK__VERSION' ) ) {
 				$jp_version = JETPACK__VERSION;
 			}
+			$is_atomic = WC_Connect_Jetpack::is_atomic_site();
 
 			$jetpack_blog_id = -1;
 			if ( class_exists( 'Jetpack_Options' ) && method_exists( 'Jetpack_Options', 'get_option' ) ) {
@@ -100,7 +103,9 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$data['_lg'] = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
 			$data['blog_url'] = $site_url;
 			$data['blog_id'] = $jetpack_blog_id;
+			$data['wcs_version'] = $wcs_version;
 			$data['jetpack_version'] = $jp_version;
+			$data['is_atomic'] = $is_atomic;
 			$data['wc_version'] = $wc_version;
 			$data['wp_version'] = get_bloginfo( 'version' );
 
