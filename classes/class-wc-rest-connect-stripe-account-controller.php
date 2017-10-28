@@ -21,12 +21,15 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$response = $this->stripe->get_account_details();
 
 		if ( is_wp_error( $response ) ) {
-			$response->add_data( array(
-				'message' => $response->get_error_message(),
-			), $response->get_error_code() );
-
 			$this->logger->debug( $response, __CLASS__ );
-			return $response;
+
+			return new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message(),
+				array(
+					'status' => 400
+				)
+			);
 		}
 
 		return array(
@@ -50,12 +53,15 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$response = $this->stripe->create_account( $data['email'], $data['country'] );
 
 		if ( is_wp_error( $response ) ) {
-			$response->add_data( array(
-				'message' => $response->get_error_message(),
-			), $response->get_error_code() );
-
 			$this->logger->debug( $response, __CLASS__ );
-			return $response;
+
+			return new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message(),
+				array(
+					'status' => 400
+				)
+			);
 		}
 
 		return array(
