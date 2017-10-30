@@ -501,8 +501,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					// TODO handle case of existing account
 					$this->logger->debug( $response, __CLASS__ );
 				} else {
-					$stripe_settings = get_option( 'woocommerce_stripe_settings', false );
-					$stripe_settings[ 'connect' ] = 'yes';
+					$stripe_settings = get_option( 'woocommerce_stripe_settings', array() );
+					$stripe_settings['connect'] = 'yes';
 					update_option( 'woocommerce_stripe_settings', $stripe_settings );
 				}
 			}
@@ -587,7 +587,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Hook plugin classes into WP/WC core.
 		 */
 		public function attach_hooks() {
-			add_filter( 'woocommerce_stripe_request_body', array( $this, 'woocommerce_stripe_request_metadata' ) );
+			add_filter( 'woocommerce_stripe_request_headers', array( $this, 'woocommerce_stripe_request_headers' ) );
 
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas = $schemas_store->get_service_schemas();
@@ -903,16 +903,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $payment_gateways;
 		}
 
-		public function woocommerce_stripe_request_metadata( $request ) {
+		public function woocommerce_stripe_request_headers( $headers ) {
 			$stripe_settings = get_option( 'woocommerce_stripe_settings', array() );
-			if ( 'yes' === $stripe_settings[ 'connect' ] ) {
-				// Add metadata to request. See https://stripe.com/docs/api#metadata
-				if ( ! isset( $request[ 'metadata' ] ) ) {
-					$request[ 'metadata' ] = array();
-				}
-				$request[ 'metadata' ][ 'connect' ] = true;
+			if ( isset( $stripe_settings['connect'] ) && 'yes' === $stripe_settings['connect'] ) {
+				unset( $headers['User-Agent'] );
 			}
-			return $request;
+			return $headers;
 		}
 
 		function get_i18n_json() {
