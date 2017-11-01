@@ -500,10 +500,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				if ( is_wp_error( $response ) ) {
 					// TODO handle case of existing account
 					$this->logger->debug( $response, __CLASS__ );
-				} else {
-					$stripe_settings = get_option( 'woocommerce_stripe_settings', array() );
-					$stripe_settings['connect'] = 'yes';
-					update_option( 'woocommerce_stripe_settings', $stripe_settings );
 				}
 			}
 		}
