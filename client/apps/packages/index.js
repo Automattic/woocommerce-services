@@ -7,7 +7,7 @@ import React from 'react';
  * Internal dependencies
  */
 import Packages from 'woocommerce/woocommerce-services/views/packages';
-import reducer from './state/reducer';
+import reducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import { fetchSettings } from './state/actions';
 // from calypso
 import notices from 'state/notices/reducer';
@@ -40,25 +40,7 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 	},
 
 	getInitialState() {
-		storeOptions = storeOptions || {};
-		formSchema = formSchema || { custom: {} };
-		return {
-			form: {
-				pristine: true,
-				isSaving: false,
-				isFetching: false,
-				showModal: false,
-				modalErrors: {},
-				packages: formData,
-				dimensionUnit: storeOptions.dimension_unit,
-				weightUnit: storeOptions.weight_unit,
-				packageSchema: formSchema.custom.items,
-				predefinedSchema: formSchema.predefined,
-				packageData: {
-					is_user_defined: true,
-				},
-			},
-		};
+		return {};
 	},
 
 	getStateForPersisting( state ) {
