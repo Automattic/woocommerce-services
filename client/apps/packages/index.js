@@ -6,14 +6,13 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import Packages from 'woocommerce/woocommerce-services/views/packages';
-import reducer from 'woocommerce/woocommerce-services/state/packages/reducer';
-import { fetchSettings } from './state/actions';
+import ViewWrapper from './view-wrapper';
 // from calypso
+import reducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
 
-export default ( { formData, formSchema, storeOptions } ) => ( {
+export default () => ( {
 	getReducer() {
 		return combineReducers( {
 			extensions: combineReducers( {
@@ -32,13 +31,6 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 		} );
 	},
 
-	getHotReducer() {
-		return combineReducers( {
-			form: require( './state/reducer' ),
-			notices,
-		} );
-	},
-
 	getInitialState() {
 		return {};
 	},
@@ -53,6 +45,6 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 	},
 
 	View: () => {
-		return <Packages />;
+		return <ViewWrapper />;
 	},
 } );

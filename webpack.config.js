@@ -96,6 +96,7 @@ const config = {
 								includePaths: [
 									path.resolve( __dirname, 'client' ),
 									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
 									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
 								],
 							},

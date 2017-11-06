@@ -9,6 +9,10 @@
 @import 'components/popover/style';
 @import 'components/tooltip/style';
 
+.woocommerce {
+	@import 'woocommerce/woocommerce-services/style';
+}
+
 .wcc-root {
 	// Shared
 	@import 'shared/reset'; // css reset before the rest of the styles are defined
@@ -270,7 +274,6 @@
 	// WCC Components
 	@import '../../client/apps/account-settings/style';
 	@import '../../client/apps/shipping-label/style';
-	@import '../../client/apps/packages/style';
 	@import '../../client/apps/print-test-label/style';
 	@import '../../client/apps/settings/style';
 	@import '../../client/components/checkbox/style';

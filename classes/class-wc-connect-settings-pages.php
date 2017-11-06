@@ -129,7 +129,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			?>
-				<div class="wcc-root">
+				<div class="wcc-root woocommerce">
 					<div class="wc-connect-no-priv-settings">
 						<h3 class="settings-group-header form-section-heading">
 							<?php echo esc_html( __( 'Payment Method', 'woocommerce-services' ) ); ?>
