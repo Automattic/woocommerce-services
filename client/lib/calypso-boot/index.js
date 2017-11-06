@@ -1,12 +1,12 @@
 /**
  * External dependencies
  */
-import ReactClass from 'react/lib/ReactClass';
+//import ReactClass from 'react/lib/ReactClass';
 import i18n from 'i18n-calypso';
 
 export default function boot() {
 	// Initialize i18n mixin
-	ReactClass.injection.injectMixin( i18n.mixin );
+	//ReactClass.injection.injectMixin( i18n.mixin );
 
 	if ( ! window.i18nLocale ) {
 		return;

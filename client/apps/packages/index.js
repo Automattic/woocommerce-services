@@ -6,7 +6,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import PackagesView from './view';
+import Packages from 'woocommerce/woocommerce-services/views/packages';
 import reducer from './state/reducer';
 import { fetchSettings } from './state/actions';
 // from calypso
@@ -16,8 +16,19 @@ import { combineReducers } from 'state/utils';
 export default ( { formData, formSchema, storeOptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
-			form: reducer,
+			extensions: combineReducers( {
+				woocommerce: combineReducers( {
+					woocommerceServices: combineReducers( {
+						1: combineReducers( {
+							packages: reducer,
+						} ),
+					} ),
+				} ),
+			} ),
 			notices,
+			ui: () => ( {
+				selectedSiteId: 1,
+			} ),
 		} );
 	},
 
@@ -50,10 +61,6 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 		};
 	},
 
-	getInitialAction() {
-		return fetchSettings();
-	},
-
 	getStateForPersisting( state ) {
 		delete state.notices;
 		return state;
@@ -64,6 +71,6 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 	},
 
 	View: () => {
-		return <PackagesView />;
+		return <Packages />;
 	},
 } );

@@ -139,8 +139,12 @@ const config = {
 			path.resolve( __dirname, 'client' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
 		],
+	},
+	node: {
+		fs: 'empty'
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {

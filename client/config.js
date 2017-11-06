@@ -5,12 +5,16 @@ const data = {
 	env: ( process && process.env.NODE_ENV ) || 'development',
 };
 
-export default ( key ) => {
+const d = ( key ) => {
 	if ( key in data ) {
 		return data[ key ];
 	}
 	throw new Error( 'config key `' + key + '` does not exist' );
 };
 
-export const isEnabled = () => false;
-export const anyEnabled = () => false;
+d.isEnabled = () => true;
+
+export default d;
+
+export const isEnabled = () => true;
+export const anyEnabled = () => true;
