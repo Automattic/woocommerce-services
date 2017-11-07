@@ -25,9 +25,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $payment_methods_store;
 
 		/**
-		 * @var array array of currently unsupported US states
+		 * @var array array of currently supported countries
 		 */
-		private $unsupported_states = array( 'AA', 'AE', 'AP' );
+		private $supported_countries = array( 'US', 'PR' );
+
+		/**
+		 * @var array array of currently unsupported states, by country
+		 */
+		private $unsupported_states = array(
+			'US' => array( 'AA', 'AE', 'AP' ),
+		);
 
 		private $show_metabox = null;
 
@@ -307,19 +314,44 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
+		private function is_supported_state( $country_code, $state_code ) {
+			if ( ! $country_code || ! $state_code ) {
+				return true;
+			}
+
+			if ( ! array_key_exists( $country_code, $this->unsupported_states ) ) {
+				return true;
+			}
+
+			return ! in_array( $state_code, $this->unsupported_states[ $country_code ] );
+		}
+
+		private function is_supported_address( $address ) {
+			$country_code = $address['country'];
+			if ( ! $country_code ) {
+				return true;
+			}
+
+			if ( ! in_array( $country_code, $this->supported_countries ) ) {
+				return false;
+			}
+
+			$state_code = $address['state'];
+			return $this->is_supported_state( $country_code, $state_code );
+		}
+
 		protected function get_states_map() {
 			$result = array();
 			$all_countries = WC()->countries->get_countries();
-			$allowed_countries = array( 'US', 'PR' );
 
-			foreach ( $allowed_countries as $country_code ) {
+			foreach ( $this->supported_countries as $country_code ) {
 				$country_data = array( 'name' => html_entity_decode( $all_countries[ $country_code ] ) );
 				$states = WC()->countries->get_states( $country_code );
 
 				if ( $states ) {
 					$country_data['states'] = array();
 					foreach ( $states as $state_code => $name ) {
-						if ( 'US' === $country_code && in_array( $state_code, $this->unsupported_states ) ) {
+						if ( ! $this->is_supported_state( $country_code, $state_code ) ) {
 						  continue;
 						}
 						$country_data['states'][ $state_code ] = html_entity_decode( $name );
@@ -359,10 +391,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$dest_address = $order->get_address( 'shipping' );
-			if ( ( $dest_address['country'] && 'US' !== $dest_address['country']
-				//special case - include PR since it's treated as domestic
-				&& 'PR' !== $dest_address['country'] )
-				|| in_array( $dest_address['state'], $this->unsupported_states ) ) {
+			if ( ! $this->is_supported_address( $dest_address ) ) {
 				return false;
 			}
 
