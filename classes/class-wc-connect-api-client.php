@@ -304,6 +304,40 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function deauthorize_stripe_account() {
 			return $this->request( 'POST', '/stripe/account/deauthorize' );
 		}
+
+		/**
+		 * Creates a PayPal payment
+		 * @param $payee string The user's email address
+		 * @param $total string The transaction total amount
+		 * @param $currency string The transaction currency
+		 * @return object|WP_Error
+		 */
+		public function create_paypal_payment( $payee, $total, $currency ) {
+			$request = array(
+				'payee' => $payee,
+				'amount' => array(
+					'total' => $total,
+					'currency' => $currency,
+				),
+			);
+			return $this->request( 'POST', '/paypal/payment', $request );
+		}
+
+
+		/**
+		 * Executes a PayPal payment
+		 * @param $payment_id string The payment ID
+		 * @param $payer_id string The payer ID supplied by PPEC
+		 * @return object|WP_Error
+		 */
+		public function execute_paypal_payment( $payment_id, $payer_id ) {
+			$request = array(
+				'payer_id' => $payer_id,
+			);
+			return $this->request( 'POST', '/paypal/payment/' . $payment_id . '/execute', $request );
+		}
+
+		
 		/**
 		 * Sends a request to the WooCommerce Services Server
 		 *

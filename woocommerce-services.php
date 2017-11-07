@@ -167,6 +167,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $stripe;
 
 		/**
+		 * @var WC_Connect_PayPal
+		 */
+		protected $paypal;
+
+		/**
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;
@@ -372,6 +377,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function set_stripe( WC_Connect_Stripe $stripe ) {
 			$this->stripe = $stripe;
 		}
+		
+		public function set_paypal( WC_Connect_PayPal $paypal ) {
+			$this->paypal = $paypal;
+		}
 
 		/**
 		 * Load our textdomain
@@ -552,6 +561,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-stripe.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-paypal.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-paypal-button.php' ) );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -565,6 +576,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 			$options               = new WC_Connect_Options();
 			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger );
+			$paypal                = new WC_Connect_PayPal( $api_client, $options, $logger );
+			$paypal_button         = new WC_Connect_PayPal_Button();
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -577,6 +590,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_nux( $nux );
 			$this->set_taxjar( $taxjar );
 			$this->set_stripe( $stripe );
+			$this->set_paypal( $paypal );
 		}
 
 		/**
@@ -749,6 +763,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Deauthorize_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
 				$rest_stripe_account_controller->register_routes();
 			}
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-paypal-payment-create-controller.php' ) );
+			$rest_paypal_payment_create_controller = new WC_REST_Connect_PayPal_Payment_Create_Controller( $this->paypal, $this->api_client, $settings_store, $logger );
+			$rest_paypal_payment_create_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-paypal-payment-execute-controller.php' ) );
+			$rest_paypal_payment_execute_controller = new WC_REST_Connect_PayPal_Payment_Execute_Controller( $this->paypal, $this->api_client, $settings_store, $logger );
+			$rest_paypal_payment_execute_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
