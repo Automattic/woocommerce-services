@@ -2,6 +2,12 @@
 @import './components/label-refund-modal/style';
 @import './components/label-reprint-modal/style';
 
+.button {
+	&.is-placeholder {
+		@include placeholder();
+	}
+}
+
 
 .shipping-label__container {
 	margin-bottom: 0;
