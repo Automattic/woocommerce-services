@@ -11,6 +11,8 @@ import initializeLabelsState from 'lib/initialize-labels-state';
 // from calypso
 import notices from 'state/notices/reducer';
 import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
+import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
+import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
 import { combineReducers } from 'state/utils';
 
 export default ( { orderId, formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => ( {
@@ -21,6 +23,8 @@ export default ( { orderId, formData, labelsData, paperSize, storeOptions, payme
 					woocommerceServices: combineReducers( {
 						1: combineReducers( {
 							shippingLabel: reducer,
+							packages: packagesReducer,
+							labelSettings: labelSettingsReducer,
 						} ),
 					} ),
 				} ),
