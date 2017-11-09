@@ -10,22 +10,6 @@
 @import 'components/tooltip/style';
 
 .wcc-root {
-	// Shared
-	@import 'shared/reset'; // css reset before the rest of the styles are defined
-	@import 'shared/typography'; // all the typographic rules, variables, etc.
-	@import 'shared/extends'; // sass extends for commonly used styles
-	@import 'shared/animation'; // all UI animation
-	@import 'shared/forms'; // form styling
-	@import 'shared/dropdowns'; // dropdown styling
-
-	// Main
-	@import 'main'; // global layout and responsive styles
-
-	// Components
-	@import 'components';
-
-	@import 'woocommerce/woocommerce-services/style';
-
 	// Buttons
 	.button {
 		background: $gray-light;
@@ -265,6 +249,22 @@
 	.gridicon {
 		fill: currentColor;
 	}
+
+	// Shared
+	@import 'shared/reset'; // css reset before the rest of the styles are defined
+	@import 'shared/typography'; // all the typographic rules, variables, etc.
+	@import 'shared/extends'; // sass extends for commonly used styles
+	@import 'shared/animation'; // all UI animation
+	@import 'shared/forms'; // form styling
+	@import 'shared/dropdowns'; // dropdown styling
+
+	// Main
+	@import 'main'; // global layout and responsive styles
+
+	// Components
+	@import 'components';
+
+	@import 'woocommerce/woocommerce-services/style';
 
 	// WCC Components
 	@import '../../client/apps/account-settings/style';
