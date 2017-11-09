@@ -6,18 +6,29 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import ShippingLabelRootView from './view';
-import shippingLabel from './state/reducer';
+import ShippingLabelViewWrapper from './view-wrapper';
 import initializeLabelsState from 'lib/initialize-labels-state';
 // from calypso
 import notices from 'state/notices/reducer';
+import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
 import { combineReducers } from 'state/utils';
 
 export default ( { orderId, formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => ( {
 	getReducer() {
 		return combineReducers( {
-			shippingLabel,
+			extensions: combineReducers( {
+				woocommerce: combineReducers( {
+					woocommerceServices: combineReducers( {
+						1: combineReducers( {
+							shippingLabel: reducer,
+						} ),
+					} ),
+				} ),
+			} ),
 			notices,
+			ui: () => ( {
+				selectedSiteId: 1,
+			} ),
 		} );
 	},
 
@@ -43,6 +54,6 @@ export default ( { orderId, formData, labelsData, paperSize, storeOptions, payme
 	},
 
 	View: () => (
-		<ShippingLabelRootView />
+		<ShippingLabelViewWrapper orderId={ orderId } />
 	),
 } );
