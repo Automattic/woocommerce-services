@@ -20,7 +20,12 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 import { getPackagesForm } from 'woocommerce/woocommerce-services/state/packages/selectors';
 
 const PackagesWrapper = ( props ) => {
-	const { translate, noticeActions, buttonDisabled } = props;
+	const {
+		translate,
+		noticeActions,
+		buttonDisabled,
+		isSaving,
+	} = props;
 
 	const onSaveSuccess = () => noticeActions.successNotice( translate( 'Your packages have been saved.' ), { duration: 5000 } );
 	const onSaveFailure = () => noticeActions.errorNotice( translate( 'Unable to save your packages. Please try again.' ) );
@@ -33,6 +38,7 @@ const PackagesWrapper = ( props ) => {
 			<Button
 				primary
 				onClick={ onSaveChanges }
+				busy={ isSaving }
 				disabled={ buttonDisabled }
 			>
 				{ translate( 'Save' ) }
@@ -47,7 +53,8 @@ export default connect(
 		const form = getPackagesForm( state, siteId );
 
 		return {
-			buttonDisabled: form.isSaving || form.pristine,
+			isSaving: form.isSaving,
+			buttonDisabled: form.pristine,
 		};
 	},
 	( dispatch ) => ( {
