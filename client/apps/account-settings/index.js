@@ -6,40 +6,33 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import AccountSettingsRootView from './view';
-import reducer, { initialState } from './state/reducer';
-import { fetchSettings } from './state/actions';
+import ViewWrapper from './view-wrapper';
 // from calypso
+import reducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
 
-export default ( { formData, formMeta, storeOptions } ) => ( {
+export default () => ( {
 	getReducer() {
 		return combineReducers( {
-			form: reducer,
+			extensions: combineReducers( {
+				woocommerce: combineReducers( {
+					woocommerceServices: combineReducers( {
+						1: combineReducers( {
+							labelSettings: reducer,
+						} ),
+					} ),
+				} ),
+			} ),
 			notices,
-		} );
-	},
-
-	getHotReducer() {
-		return combineReducers( {
-			form: require( './state/reducer' ),
-			notices,
+			ui: () => ( {
+				selectedSiteId: 1,
+			} ),
 		} );
 	},
 
 	getInitialState() {
-		return {
-			form: {
-				data: formData,
-				meta: { ...initialState.meta, ...formMeta },
-				storeOptions,
-			},
-		};
-	},
-
-	getInitialAction() {
-		return fetchSettings();
+		return {};
 	},
 
 	getStateForPersisting( state ) {
@@ -52,6 +45,6 @@ export default ( { formData, formMeta, storeOptions } ) => ( {
 	},
 
 	View: () => (
-		<AccountSettingsRootView />
+		<ViewWrapper />
 	),
 } );
