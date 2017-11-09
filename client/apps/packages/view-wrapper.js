@@ -29,7 +29,7 @@ const PackagesWrapper = ( props ) => {
 
 	const onSaveSuccess = () => noticeActions.successNotice( translate( 'Your packages have been saved.' ), { duration: 5000 } );
 	const onSaveFailure = () => noticeActions.errorNotice( translate( 'Unable to save your packages. Please try again.' ) );
-	const onSaveChanges = () => props.submit( 1, onSaveSuccess, onSaveFailure );
+	const onSaveChanges = () => props.submit( props.siteId, onSaveSuccess, onSaveFailure );
 
 	return (
 		<div>
@@ -53,6 +53,7 @@ export default connect(
 		const form = getPackagesForm( state, siteId );
 
 		return {
+			siteId,
 			isSaving: form.isSaving,
 			buttonDisabled: form.pristine,
 		};
