@@ -1082,7 +1082,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			) );
 
 			?>
-				<div class="wcc-root <?php echo esc_attr( $root_view ) ?>" data-args="<?php echo esc_attr( wp_json_encode( $extra_args ) ) ?>">
+				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ) ?>" data-args="<?php echo esc_attr( wp_json_encode( $extra_args ) ) ?>">
 					<span class="form-troubles" style="opacity: 0">
 						<?php printf( __( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
 					</span>
