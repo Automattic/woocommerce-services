@@ -123,7 +123,6 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 		module.hot.accept( [
 			'./apps/settings/view',
-			'./apps/shipping-label/view',
 			'./apps/account-settings/view',
 		], () => {
 			setTimeout( render );
@@ -131,7 +130,6 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 		module.hot.accept( [
 			'./apps/settings/state/reducer',
-			'./apps/shipping-label/state/reducer',
 			'./apps/account-settings/state/reducer',
 		], () => {
 			store.replaceReducer( Route.getHotReducer() );
