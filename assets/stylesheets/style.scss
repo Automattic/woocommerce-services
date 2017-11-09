@@ -5,9 +5,6 @@
 @import 'colors'; // import wcc colors
 @import 'shared/mixins/mixins'; // sass mixins for gradients, bordius radii, etc.
 //@import 'shared/colors'; // import all of our wpcom colors
-@import 'components/dialog/style';
-@import 'components/popover/style';
-@import 'components/tooltip/style';
 
 .wcc-root {
 	// Buttons
@@ -284,6 +281,10 @@
 	@import '../../client/components/toggle/style';
 	@import '../../client/components/settings-group-card/style';
 }
+
+@import 'components/dialog/style';
+@import 'components/popover/style';
+@import 'components/tooltip/style';
 
 #woocommerce-order-label .inside {
 	margin: 0;
