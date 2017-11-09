@@ -107,7 +107,9 @@ const ShippingLabelViewWrapper = ( props ) => {
 				{ renderPaymentInfo() }
 				{ shouldRenderButton && renderLabelButton() }
 			</div>
-			<ActivityLog orderId={ orderId } siteId={ siteId } />
+			<div className="shipping-label__dummy-class order-activity-log">
+				<ActivityLog orderId={ orderId } siteId={ siteId } />
+			</div>
 		</div>
 	);
 };
