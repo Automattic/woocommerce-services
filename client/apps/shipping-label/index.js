@@ -27,6 +27,16 @@ export default ( { orderId, formData, labelsData, paperSize, storeOptions, payme
 							labelSettings: labelSettingsReducer,
 						} ),
 					} ),
+					sites: combineReducers( {
+						1: combineReducers( {
+							orders: combineReducers( {
+								notes: combineReducers( {
+									isLoading: () => ( { [ orderId ]: false } ),
+									isLoaded: () => ( { [ orderId ]: true } ),
+								} ),
+							} ),
+						} ),
+					} ),
 				} ),
 			} ),
 			notices,

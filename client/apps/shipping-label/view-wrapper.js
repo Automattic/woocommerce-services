@@ -29,6 +29,7 @@ import {
 	getSelectedPaymentMethodId,
 	getLabelSettingsFormMeta,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+import ActivityLog from 'woocommerce/app/order/order-activity-log/events';
 
 const ShippingLabelViewWrapper = ( props ) => {
 	const {
@@ -106,6 +107,7 @@ const ShippingLabelViewWrapper = ( props ) => {
 				{ renderPaymentInfo() }
 				{ shouldRenderButton && renderLabelButton() }
 			</div>
+			<ActivityLog orderId={ orderId } siteId={ siteId } />
 		</div>
 	);
 };
