@@ -51,6 +51,8 @@ class WC_Connect_TaxJar_Integration {
 
 		// Calculate Taxes at Cart / Checkout
 		add_action( 'woocommerce_calculate_totals', array( $this, 'calculate_totals' ), 20 );
+		// WC 3.2+ compatibility: filter taxes to collect in to the calculated total
+		add_filter( 'woocommerce_calculated_total', array( $this, 'calculated_total' ), 10, 2 );
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
@@ -262,6 +264,21 @@ class WC_Connect_TaxJar_Integration {
 				$wc_cart_object->cart_contents[ $cart_item_key ]['line_tax'] = $this->line_items[ $product->get_id() ]->tax_collectable;
 			}
 		}
+	}
+
+	/**
+	 * Modify total if missing tax for WooCommerce 3.2+
+	 *
+	 * @return float
+	 */
+	public function calculated_total( $total, $cart ) {
+		if ( method_exists( $cart, 'get_total_tax' ) ) { // Woo 3.2+
+			if ( $cart->get_total_tax() < $this->amount_to_collect && $this->amount_to_collect > 0 ) {
+				$total += $this->amount_to_collect;
+			}
+		}
+
+		return $total;
 	}
 
 	/**
