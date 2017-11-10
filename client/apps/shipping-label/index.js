@@ -6,32 +6,47 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import ShippingLabelRootView from './view';
-import shippingLabel from './state/reducer';
-import initializeLabelsState from 'lib/initialize-labels-state';
+import ShippingLabelViewWrapper from './view-wrapper';
 // from calypso
 import notices from 'state/notices/reducer';
+import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
+import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
+import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
 import { combineReducers } from 'state/utils';
 
-export default ( { orderId, formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods } ) => ( {
+export default ( { orderId } ) => ( {
 	getReducer() {
 		return combineReducers( {
-			shippingLabel,
+			extensions: combineReducers( {
+				woocommerce: combineReducers( {
+					woocommerceServices: combineReducers( {
+						1: combineReducers( {
+							shippingLabel: reducer,
+							packages: packagesReducer,
+							labelSettings: labelSettingsReducer,
+						} ),
+					} ),
+					sites: combineReducers( {
+						1: combineReducers( {
+							orders: combineReducers( {
+								notes: combineReducers( {
+									isLoading: () => ( { [ orderId ]: false } ),
+									isLoaded: () => ( { [ orderId ]: true } ),
+								} ),
+							} ),
+						} ),
+					} ),
+				} ),
+			} ),
 			notices,
-		} );
-	},
-
-	getHotReducer() {
-		return combineReducers( {
-			shippingLabel: require( './state/reducer' ).default,
-			notices,
+			ui: () => ( {
+				selectedSiteId: 1,
+			} ),
 		} );
 	},
 
 	getInitialState() {
-		return {
-			shippingLabel: initializeLabelsState( formData, labelsData, paperSize, storeOptions, paymentMethod, numPaymentMethods ),
-		};
+		return {};
 	},
 
 	getStateForPersisting() {
@@ -43,6 +58,6 @@ export default ( { orderId, formData, labelsData, paperSize, storeOptions, payme
 	},
 
 	View: () => (
-		<ShippingLabelRootView />
+		<ShippingLabelViewWrapper orderId={ orderId } />
 	),
 } );

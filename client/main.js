@@ -21,7 +21,7 @@ import ShippingLabel from './apps/shipping-label';
 import AccountSettings from './apps/account-settings';
 import PrintTestLabel from './apps/print-test-label';
 import Packages from './apps/packages';
-import { setNonce, setBaseURL } from 'woocommerce/state/sites/request';
+import { setNonce, setBaseURL } from 'api/request';
 
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
@@ -101,8 +101,6 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	};
 
 	if ( module.hot ) {
-		// Support hot reloading of components
-		// and display an overlay for runtime errors
 		const renderApp = render;
 		const renderError = ( error ) => {
 			const RedBox = require( 'redbox-react' ).default;
@@ -120,20 +118,6 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 				throw error;
 			}
 		};
-
-		module.hot.accept( [
-			'./apps/settings/view',
-			'./apps/shipping-label/view',
-		], () => {
-			setTimeout( render );
-		} );
-
-		module.hot.accept( [
-			'./apps/settings/state/reducer',
-			'./apps/shipping-label/state/reducer',
-		], () => {
-			store.replaceReducer( Route.getHotReducer() );
-		} );
 	}
 
 	render();
