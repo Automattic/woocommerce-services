@@ -230,48 +230,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $items;
 		}
 
-		protected function get_all_packages() {
-			$custom_packages = $this->settings_store->get_packages();
-
-			$formatted_packages = array();
-
-			foreach ( $custom_packages as $package ) {
-				$package_id = $package['name'];
-				$formatted_packages[ $package_id ] = $package;
-			}
-
-			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
-			$enabled_predefined_packages = $this->settings_store->get_predefined_packages();
-
-			foreach ( $predefined_packages_schema as $service_id => $service_predefined_packages_schema ) {
-				$service_enabled_predefined_packages = isset( $enabled_predefined_packages[ $service_id ] ) ? $enabled_predefined_packages[ $service_id ] : array();
-				foreach ( $service_predefined_packages_schema as $group ) {
-					foreach ( $group->definitions as $package ) {
-						if ( ! $package->is_flat_rate && ! in_array( $package->id, $service_enabled_predefined_packages ) ) {
-							continue;
-						}
-
-						$formatted_packages[ $package->id ] = $package;
-					}
-				}
-			}
-
-			return ( object ) $formatted_packages;
-		}
-
-		protected function get_flat_rate_packages_groups() {
-			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
-			$groups = array();
-
-			foreach ( $predefined_packages_schema as $service_id => $service_predefined_packages_schema ) {
-				foreach ( $service_predefined_packages_schema as $group_id => $group ) {
-					$groups[ $group_id ] = $group->title;
-				}
-			}
-
-			return $groups;
-		}
-
 		public function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method = reset( $shipping_methods );
@@ -327,8 +285,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected function get_form_data( WC_Order $order ) {
 			$order_id               = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$selected_packages      = $this->get_selected_packages( $order );
-			$all_packages           = $this->get_all_packages();
-			$flat_rate_groups       = $this->get_flat_rate_packages_groups();
 			$is_packed              = ( false !== $this->get_packaging_metadata( $order ) );
 			$origin                 = $this->get_origin_address();
 			$selected_rates         = $this->get_selected_rates( $order );
@@ -340,7 +296,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$destination_normalized = ( bool ) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'all_packages', 'flat_rate_groups', 'origin', 'destination', 'destination_normalized' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'destination_normalized' );
 
 			$form_data['rates'] = array(
 				'selected'  => (object) $selected_rates,
@@ -417,36 +373,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return false;
 		}
 
-		public function get_selected_payment_method() {
-			// Account settings contains the payment method id
-			$account_settings = $this->settings_store->get_account_settings();
-
-			// No selected payment method case
-			if ( ! isset( $account_settings['selected_payment_method_id'] ) ) {
-				return null;
-			}
-
-			$selected_payment_method_id = $account_settings['selected_payment_method_id'];
-
-			// Get all known payment methods
-			$payment_methods = $this->payment_methods_store->get_payment_methods();
-
-			// Find the selected payment method and return the card digits (e.g. "4242")
-			foreach ( (array) $payment_methods as $payment_method ) {
-				if ( ! property_exists( $payment_method, 'payment_method_id' ) ) {
-					continue;
-				}
-
-				if ( $selected_payment_method_id != $payment_method->payment_method_id ) {
-					continue;
-				}
-
-				return property_exists( $payment_method, 'card_digits' ) ? $payment_method->card_digits : null;
-			}
-
-			return null;
-		}
-
 		public function get_label_payload( $post_order_or_id ) {
 			$order = wc_get_order( $post_order_or_id );
 			if ( ! $order ) {
@@ -460,7 +386,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'orderId'                 => $order_id,
 				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
 				'formData'                => $this->get_form_data( $order ),
-				'paymentMethod'           => $this->get_selected_payment_method(),
 				'numPaymentMethods'       => count( $this->payment_methods_store->get_payment_methods() ),
 				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
 				'enabled'                 => $account_settings[ 'enabled' ],
@@ -475,11 +400,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		public function meta_box( $post ) {
 			$order = wc_get_order( $post );
-
-			$payload = $this->get_label_payload( $order );
-			if ( ! $payload ) {
-				return;
-			}
+			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$payload = array(
+				'orderId' => $order_id,
+			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
 		}
