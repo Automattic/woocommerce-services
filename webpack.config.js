@@ -138,6 +138,8 @@ const config = {
 		extensions: [ '.json', '.js', '.jsx' ],
 		modules: [
 			path.resolve( __dirname, 'client' ),
+			path.resolve( __dirname, 'client', 'calypso-stubs' ),
+			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),

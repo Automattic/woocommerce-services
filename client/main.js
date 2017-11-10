@@ -21,7 +21,7 @@ import ShippingLabel from './apps/shipping-label';
 import AccountSettings from './apps/account-settings';
 import PrintTestLabel from './apps/print-test-label';
 import Packages from './apps/packages';
-import { setNonce, setBaseURL } from 'woocommerce/state/sites/request';
+import { setNonce, setBaseURL } from 'api/request';
 
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
