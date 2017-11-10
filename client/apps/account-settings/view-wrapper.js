@@ -11,7 +11,7 @@ import { localize } from 'i18n-calypso';
  */
 // from calypso
 import LabelSettings from 'woocommerce/woocommerce-services/views/label-settings';
-import ActionButtonsCard from 'components/action-buttons-card';
+import Button from 'components/button';
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
 import * as NoticeActions from 'state/notices/actions';
@@ -23,7 +23,8 @@ const LabelSettingsWrapper = ( props ) => {
 	const {
 		translate,
 		noticeActions,
-		formMeta,
+		buttonDisabled,
+		isSaving,
 	} = props;
 
 	const onSaveSuccess = () => {
@@ -32,28 +33,28 @@ const LabelSettingsWrapper = ( props ) => {
 	const onSaveFailure = () => noticeActions.errorNotice( translate( 'Unable to save your shipping label settings. Please try again.' ) );
 	const onSaveChanges = () => props.submit( props.siteId, onSaveSuccess, onSaveFailure );
 
-	const buttons = [
-		{
-			label: translate( 'Save changes' ),
-			onClick: onSaveChanges,
-			isPrimary: true,
-			isDisabled: formMeta.pristine || formMeta.isSaving,
-		},
-	];
-
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<LabelSettings />
-			<ActionButtonsCard buttons={ buttons } />
+			<Button
+				primary
+				onClick={ onSaveChanges }
+				busy={ isSaving }
+				disabled={ buttonDisabled }
+			>
+				{ translate( 'Save changes' ) }
+			</Button>
 		</div>
 	);
 };
 
 function mapStateToProps( state ) {
+	const form = getLabelSettingsFormMeta( state );
 	return {
 		siteId: getSelectedSiteId( state ),
-		formMeta: getLabelSettingsFormMeta( state ),
+		isSaving: form.isSaving,
+		buttonDisabled: form.pristine,
 	};
 }
 
