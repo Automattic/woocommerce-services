@@ -101,8 +101,6 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	};
 
 	if ( module.hot ) {
-		// Support hot reloading of components
-		// and display an overlay for runtime errors
 		const renderApp = render;
 		const renderError = ( error ) => {
 			const RedBox = require( 'redbox-react' ).default;
@@ -120,20 +118,6 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 				throw error;
 			}
 		};
-
-		module.hot.accept( [
-			'./apps/settings/view',
-			'./apps/account-settings/view',
-		], () => {
-			setTimeout( render );
-		} );
-
-		module.hot.accept( [
-			'./apps/settings/state/reducer',
-			'./apps/account-settings/state/reducer',
-		], () => {
-			store.replaceReducer( Route.getHotReducer() );
-		} );
 	}
 
 	render();
