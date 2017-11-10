@@ -19,6 +19,7 @@ import QueryLabels from 'woocommerce/woocommerce-services/components/query-label
 import {
 	openPrintingFlow,
 	setEmailDetailsOption,
+	setFulfillOrderOption,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import GlobalNotices from 'components/global-notices';
 import Notice from 'components/notice';
@@ -84,8 +85,12 @@ const ShippingLabelViewWrapper = ( props ) => {
 	};
 
 	const handleButtonClick = () => {
-		// We don't support automatically emailing the customer once the order is fulfilled
+		// We don't support automatically emailing the customer
+		// or marking the order as fulfilled
+		// once the order is fulfilled
 		props.setEmailDetailsOption( orderId, siteId, false );
+		props.setFulfillOrderOption( orderId, siteId, false );
+
 		props.openPrintingFlow( orderId, siteId );
 	};
 
@@ -146,6 +151,7 @@ export default connect(
 		...bindActionCreators( {
 			openPrintingFlow,
 			setEmailDetailsOption,
+			setFulfillOrderOption,
 		}, dispatch ),
 	} ),
 )( localize( ShippingLabelViewWrapper ) );
