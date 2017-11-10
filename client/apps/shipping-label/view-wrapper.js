@@ -16,7 +16,10 @@ import { find } from 'lodash';
 import Button from 'components/button';
 import LabelPurchaseDialog from 'woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
 import QueryLabels from 'woocommerce/woocommerce-services/components/query-labels';
-import { openPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import {
+	openPrintingFlow,
+	setEmailDetailsOption,
+} from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import GlobalNotices from 'components/global-notices';
 import Notice from 'components/notice';
 import notices from 'notices';
@@ -80,7 +83,11 @@ const ShippingLabelViewWrapper = ( props ) => {
 		);
 	};
 
-	const onLabelPrint = () => props.openPrintingFlow( orderId, siteId );
+	const handleButtonClick = () => {
+		// We don't support automatically emailing the customer once the order is fulfilled
+		props.setEmailDetailsOption( orderId, siteId, false );
+		props.openPrintingFlow( orderId, siteId );
+	};
 
 	const renderLabelButton = () => {
 		const className = classNames( 'shipping-label__new-label-button', {
@@ -90,7 +97,7 @@ const ShippingLabelViewWrapper = ( props ) => {
 		return (
 			<Button
 				className={ className }
-				onClick={ onLabelPrint } >
+				onClick={ handleButtonClick } >
 				{ translate( 'Create new label' ) }
 			</Button>
 		);
@@ -136,6 +143,9 @@ export default connect(
 		};
 	},
 	( dispatch ) => ( {
-		...bindActionCreators( { openPrintingFlow }, dispatch ),
+		...bindActionCreators( {
+			openPrintingFlow,
+			setEmailDetailsOption,
+		}, dispatch ),
 	} ),
 )( localize( ShippingLabelViewWrapper ) );
