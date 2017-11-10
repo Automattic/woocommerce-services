@@ -108,7 +108,7 @@
 	}
 
 	.global-notices {
-		z-index: 999999; // Make sure notices are shown on top of modals
+		z-index: z-index( 'root', '.is-section-woocommerce .global-notices' ) !important; // Make sure notices are shown on top of modals
 		top: 16px;
 		right: 16px;
 		@include breakpoint( '<660px' ) {
