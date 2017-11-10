@@ -41,7 +41,7 @@ const PackagesWrapper = ( props ) => {
 				busy={ isSaving }
 				disabled={ buttonDisabled }
 			>
-				{ translate( 'Save' ) }
+				{ translate( 'Save changes' ) }
 			</Button>
 		</div>
 	);
