@@ -100,7 +100,7 @@ const ShippingLabelViewWrapper = ( props ) => {
 
 	return (
 		<div className="shipping-label__container">
-			<div className="shipping-label__item" >
+			<div className="shipping-label__new" >
 				<GlobalNotices notices={ notices.list } />
 				<QueryLabels orderId={ orderId } siteId={ siteId } />
 				<LabelPurchaseDialog orderId={ orderId } siteId={ siteId } />
