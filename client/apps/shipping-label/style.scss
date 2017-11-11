@@ -31,3 +31,24 @@
 .label-purchase-modal__option-mark-order-fulfilled {
 	display: none;
 }
+
+.order-activity-log {
+	.foldable-card .foldable-card__content {
+		padding-left: 0;
+		padding-right: 8px;
+
+		&:before {
+			left: 30px;
+		}
+	}
+
+	.order-activity-log__note-body {
+		margin-left: 0;
+		padding-left: 8px;
+		padding-right: 8px;
+	}
+
+	.order-activity-log__note-meta {
+		flex-basis: 48px;
+	}
+}
