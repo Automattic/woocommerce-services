@@ -9,7 +9,7 @@ if ( class_exists( 'WC_REST_Connect_PayPal_Payment_Execute_Controller' ) ) {
 }
 
 class WC_REST_Connect_PayPal_Payment_Execute_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/paypal/payment/(?P<payment_id>\d+)/execute';
+	protected $rest_base = 'connect/paypal/payment/(?P<paymentID>[\w-]+)/execute';
 	private $paypal;
 
 	public function __construct( WC_Connect_PayPal $paypal, WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger ) {
@@ -18,9 +18,7 @@ class WC_REST_Connect_PayPal_Payment_Execute_Controller extends WC_REST_Connect_
 	}
 
 	public function post( $request ) {
-		$data = $request->get_json_params();
-
-		$response = $this->paypal->execute_payment( $data['payment_id'], $data['payer_id'] );
+		$response = $this->paypal->execute_payment( $request['paymentID'], $request['payerID'] );
 
 		if ( is_wp_error( $response ) ) {
 			$response->add_data( array(

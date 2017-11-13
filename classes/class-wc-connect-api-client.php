@@ -312,9 +312,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $currency string The transaction currency
 		 * @return object|WP_Error
 		 */
-		public function create_paypal_payment( $payee, $total, $currency ) {
+		public function create_paypal_payment( $email, $total, $currency ) {
 			$request = array(
-				'payee' => $payee,
+				'payee' => array(
+					'email' => $email,
+				),
 				'amount' => array(
 					'total' => $total,
 					'currency' => $currency,

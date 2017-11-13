@@ -18,9 +18,7 @@ class WC_REST_Connect_PayPal_Payment_Create_Controller extends WC_REST_Connect_B
 	}
 
 	public function post( $request ) {
-		$data = $request->get_json_params();
-
-		$response = $this->paypal->create_payment( $data['payee'], $data['amount'], $data['currency'] );
+		$response = $this->paypal->create_payment( $request['email'], $request['amount'], $request['currency'] );
 
 		if ( is_wp_error( $response ) ) {
 			$response->add_data( array(

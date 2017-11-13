@@ -35,9 +35,9 @@ if ( ! class_exists( 'WC_Connect_PayPal' ) ) {
 		// 	return class_exists( 'WC_Gateway_PPEC_Plugin' );
 		// }
 
-		public function create_payment( $payee, $total, $currency ) {
+		public function create_payment( $email, $total, $currency ) {
 			// TODO get info from WC data instead of REST request. See how stripe / paypal plugins do it!
-			$result = $this->api->create_paypal_payment( $payee, $total, $currency );
+			$result = $this->api->create_paypal_payment( $email, $total, $currency );
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
