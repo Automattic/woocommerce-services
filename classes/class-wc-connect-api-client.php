@@ -307,7 +307,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 		/**
 		 * Creates a PayPal payment
-		 * @param $payee string The user's email address
+		 * @param $email string The user's email address
 		 * @param $total string The transaction total amount
 		 * @param $currency string The transaction currency
 		 * @return object|WP_Error
