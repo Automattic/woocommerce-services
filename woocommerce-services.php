@@ -377,7 +377,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function set_stripe( WC_Connect_Stripe $stripe ) {
 			$this->stripe = $stripe;
 		}
-		
+
 		public function set_paypal( WC_Connect_PayPal $paypal ) {
 			$this->paypal = $paypal;
 		}

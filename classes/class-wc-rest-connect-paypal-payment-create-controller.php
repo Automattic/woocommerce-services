@@ -35,4 +35,8 @@ class WC_REST_Connect_PayPal_Payment_Create_Controller extends WC_REST_Connect_B
 			'state' => $response->state,
 		);
 	}
+
+	public function check_permission( $request ) {
+		return true;
+	}
 }
