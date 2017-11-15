@@ -678,7 +678,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 
 			// Abort if no id was passed or if the order is not marked as 'completed'
-			if ( ! $id || ! $order->has_status( 'completed' )) {
+			if ( ! $id || ! $order->has_status( 'completed' ) ) {
 				return;
 			}
 
@@ -694,9 +694,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Generate a table row for each label
 			foreach ( $labels as $label ) {
 				$carrier = $label['carrier_id'];
-				$carrierLabel = strtoupper( $carrier );
+				$carrier_label = strtoupper( $carrier );
 				$tracking = $label['tracking'];
 				$refunded = array_key_exists( 'refund', $label );
+				$link_color = get_option( 'woocommerce_email_text_color' );
 
 				if ( $refunded ) {
 					continue;
@@ -704,12 +705,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 				if ( $plain_text ) {
 					// Should look like '- USPS: 9405536897846173912345' in plain text mode
-					$markup .= '- ' . $carrierLabel . ': ' . $tracking . "\n";
+					$markup .= '- ' . $carrier_label . ': ' . $tracking . "\n";
 					continue;
 				}
 
 				$markup .= '<tr>';
-				$markup .= '<td class="td" scope="col">' . esc_html( $carrierLabel ) . '</td>';
+				$markup .= '<td class="td" scope="col">' . esc_html( $carrier_label ) . '</td>';
 
 				switch ( $carrier ) {
 					case 'fedex':
@@ -721,7 +722,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 
 				$markup .= '<td class="td" scope="col">';
-				$markup .= '<a href="' . esc_url( $tracking_url ) . '">' . esc_html( $tracking ) . '</a>';
+				$markup .= '<a href="' . esc_url( $tracking_url ) . '" style="color: ' . esc_attr ( $link_color ) . '">' . esc_html( $tracking ) . '</a>';
 				$markup .= '</td>';
 				$markup .= '</tr>';
 			}
