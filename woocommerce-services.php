@@ -722,7 +722,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 
 				$markup .= '<td class="td" scope="col">';
-				$markup .= '<a href="' . esc_url( $tracking_url ) . '" style="color: ' . esc_attr ( $link_color ) . '">' . esc_html( $tracking ) . '</a>';
+				$markup .= '<a href="' . esc_url( $tracking_url ) . '" style="color: ' . esc_attr( $link_color ) . '">' . esc_html( $tracking ) . '</a>';
 				$markup .= '</td>';
 				$markup .= '</tr>';
 			}
