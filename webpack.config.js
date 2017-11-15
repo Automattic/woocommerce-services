@@ -159,10 +159,12 @@ const config = {
 		} ),
 		//rewrite calypso images path
 		new webpack.NormalModuleReplacementPlugin( /calypso\/images/, ( resource ) => {
-			resource.request = resource.request.replace(
-				/^.+calypso\/images/,
-				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
-			);
+			resource.request = resource.request
+				.replace(
+					/^.+calypso\/images/,
+					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
+				)
+				.replace( /is-([^/]+)$/, '$1' );
 		} ),
 	],
 };
