@@ -690,6 +690,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			$markup = '';
+			$link_color = get_option( 'woocommerce_email_text_color' );
 
 			// Generate a table row for each label
 			foreach ( $labels as $label ) {
@@ -697,7 +698,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$carrier_label = strtoupper( $carrier );
 				$tracking = $label['tracking'];
 				$refunded = array_key_exists( 'refund', $label );
-				$link_color = get_option( 'woocommerce_email_text_color' );
 
 				if ( $refunded ) {
 					continue;
