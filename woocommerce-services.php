@@ -636,6 +636,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
+			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -826,6 +827,98 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			do_action( 'enqueue_wc_connect_script',
 				'wc-connect-service-settings',
 				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
+		}
+
+		/**
+		 * Add tracking info (if available) to completed emails using the woocommerce_email_after_order_table hook
+		 *
+		 * @param $order
+		 * @param $sent_to_admin
+		 * @param $plain_text
+		 */
+		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text ) {
+			$id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+
+			// Abort if no id was passed or if the order is not marked as 'completed'
+			if ( ! $id || ! $order->has_status( 'completed' ) ) {
+				return;
+			}
+
+			$labels = $this->service_settings_store->get_label_order_meta_data( $id );
+
+			// Abort if there are no labels
+			if ( empty( $labels ) ) {
+				return;
+			}
+
+			$markup = '';
+			$link_color = get_option( 'woocommerce_email_text_color' );
+
+			// Generate a table row for each label
+			foreach ( $labels as $label ) {
+				$carrier = $label['carrier_id'];
+				$carrier_label = strtoupper( $carrier );
+				$tracking = $label['tracking'];
+				$error = array_key_exists( 'error', $label );
+				$refunded = array_key_exists( 'refund', $label );
+
+				// If the label has an error or is refunded, move to the next label
+				if ( $error || $refunded ) {
+					continue;
+				}
+
+				if ( $plain_text ) {
+					// Should look like '- USPS: 9405536897846173912345' in plain text mode
+					$markup .= '- ' . $carrier_label . ': ' . $tracking . "\n";
+					continue;
+				}
+
+				$markup .= '<tr>';
+				$markup .= '<td class="td" scope="col">' . esc_html( $carrier_label ) . '</td>';
+
+				switch ( $carrier ) {
+					case 'fedex':
+						$tracking_url = 'https://www.fedex.com/apps/fedextrack/?action=track&tracknumbers=' . $tracking;
+						break;
+					case 'usps':
+						$tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . $tracking;
+						break;
+				}
+
+				$markup .= '<td class="td" scope="col">';
+				$markup .= '<a href="' . esc_url( $tracking_url ) . '" style="color: ' . esc_attr( $link_color ) . '">' . esc_html( $tracking ) . '</a>';
+				$markup .= '</td>';
+				$markup .= '</tr>';
+			}
+
+			// Abort if all labels are refunded
+			if ( empty( $markup ) ) {
+				return;
+			}
+
+			if ( $plain_text ) {
+				echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
+				echo mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' ) . "\n\n";
+				echo $markup;
+				return;
+			}
+
+			?>
+				<div style="font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; margin-bottom: 40px;">
+					<h2><?php echo __( 'Tracking', 'woocommerce-services' ); ?></h2>
+					<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%;">
+						<thead>
+							<tr>
+								<th class="td" scope="col"><?php echo __( 'Provider', 'woocommerce-services' ); ?></th>
+								<th class="td" scope="col"><?php echo __( 'Tracking number', 'woocommerce-services' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php echo $markup; ?>
+						</tbody>
+					</table>
+				</div>
+			<?php
 		}
 
 		/**
