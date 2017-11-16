@@ -697,9 +697,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$carrier = $label['carrier_id'];
 				$carrier_label = strtoupper( $carrier );
 				$tracking = $label['tracking'];
+				$error = array_key_exists( 'error', $label );
 				$refunded = array_key_exists( 'refund', $label );
 
-				if ( $refunded ) {
+				// If the label has an error or is refunded, move to the next label
+				if ( $error || $refunded ) {
 					continue;
 				}
 
