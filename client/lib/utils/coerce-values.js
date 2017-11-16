@@ -24,9 +24,13 @@ const getFieldSchema = ( fieldSchema, definitions ) => {
  * @param {Object} definitions - Schema definitions.
  * @returns {*} - Coerced value.
  */
-const coerceValue = ( schema, value, definitions ) => {
+export const coerceValue = ( schema, value, definitions ) => {
 	// If the value is undefined or we don't have a schema type to reference, leave it be.
-	if ( ( undefined === value ) || ! schema ) {
+	if (
+		undefined === value ||
+		null === value ||
+		! schema
+	) {
 		return value;
 	}
 	schema = getFieldSchema( schema, definitions );
