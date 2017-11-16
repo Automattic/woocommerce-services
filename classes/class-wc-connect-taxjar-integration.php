@@ -430,7 +430,6 @@ class WC_Connect_TaxJar_Integration {
 		$this->freight_taxable      = 1;
 		$this->line_items           = array();
 		$this->has_nexus            = 0;
-		$this->tax_source           = 'origin';
 		$this->rate_ids             = array();
 
 		// Strict conditions to be met before API call can be conducted
@@ -476,7 +475,6 @@ class WC_Connect_TaxJar_Integration {
 
 			// Update Properties based on Response
 			$this->has_nexus          = (int) $taxjar_response->has_nexus;
-			$this->tax_source         = empty( $taxjar_response->tax_source ) ? 'origin' : $taxjar_response->tax_source;
 			$this->amount_to_collect  = $taxjar_response->amount_to_collect;
 			$this->tax_rate           = $taxjar_response->rate;
 			$this->freight_taxable    = (int) $taxjar_response->freight_taxable;
@@ -503,18 +501,11 @@ class WC_Connect_TaxJar_Integration {
 			$wc_cart_object->remove_taxes();
 		} elseif ( $this->has_nexus ) {
 			// Use Woo core to find matching rates for taxable address
-			$source_zip = 'destination' == $this->tax_source ? $to_zip : $from_zip;
-			$source_city = 'destination' == $this->tax_source ? $to_city : $from_city;
-
-			if ( strtoupper( $to_city ) == strtoupper( $from_city ) ) {
-				$source_city = $to_city;
-			}
-
 			$location = array(
 				'to_country' => $to_country,
 				'to_state' => $to_state,
-				'to_zip' => $source_zip,
-				'to_city' => $source_city,
+				'to_zip' => $to_zip,
+				'to_city' => $to_city,
 			);
 
 			// Add line item tax rates
