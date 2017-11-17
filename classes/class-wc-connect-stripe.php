@@ -110,6 +110,9 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $result;
 		}
 
+		/**
+		 * Differentiate Stripe Connect account requests by omitting User-Agent
+		 */
 		public function modify_request_headers( $headers ) {
 			$options = get_option( 'woocommerce_stripe_settings', array() );
 			if ( isset( $options['connect'] ) && 'yes' === $options['connect'] ) {
