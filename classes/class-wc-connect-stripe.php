@@ -29,6 +29,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$this->api = $client;
 			$this->options = $options;
 			$this->logger = $logger;
+
+			add_filter( 'woocommerce_stripe_request_headers', array( $this, 'modify_request_headers' ) );
 		}
 
 		public function is_stripe_plugin_enabled() {
@@ -106,6 +108,14 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			return $result;
+		}
+
+		public function modify_request_headers( $headers ) {
+			$options = get_option( 'woocommerce_stripe_settings', array() );
+			if ( isset( $options['connect'] ) && 'yes' === $options['connect'] ) {
+				unset( $headers['User-Agent'] );
+			}
+			return $headers;
 		}
 	}
 }
