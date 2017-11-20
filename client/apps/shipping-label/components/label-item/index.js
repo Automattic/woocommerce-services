@@ -19,6 +19,13 @@ import timeAgo from 'lib/utils/time-ago';
 import { openRefundDialog, openReprintDialog } from '../../state/actions';
 
 class LabelItem extends Component {
+	constructor( props ) {
+		super( props );
+
+		this.shipmentTracking = document.querySelector( '#woocommerce-shipment-tracking' );
+		this.feedToShipmentTracking = this.feedToShipmentTracking.bind( this );
+	}
+
 	renderRefundLink = ( label ) => {
 		const today = new Date();
 		const thirtyDaysAgo = new Date().setDate( today.getDate() - 30 );
@@ -119,6 +126,28 @@ class LabelItem extends Component {
 		);
 	};
 
+	feedToShipmentTracking( event ) {
+		this.shipmentTracking.querySelector( '[name=tracking_number]' ).value = this.props.label.tracking;
+
+		const providerControl = this.shipmentTracking.querySelector( '[name=tracking_provider]' );
+		providerControl.value = 'usps';
+
+		// this.shipmentTracking.querySelector( '.button-save-form' ).click();
+		// Don't automatically save so that user can set ship date
+		this.shipmentTracking.scrollIntoView();
+		this.shipmentTracking.querySelector( '.button-show-form' ).click();
+		this.shipmentTracking.querySelector( '[name=tracking_number]' ).focus();
+		if ( 'createEvent' in document ) {
+			const evt = document.createEvent( 'HTMLEvents' );
+			evt.initEvent( 'change', false, true );
+			providerControl.dispatchEvent( evt );
+		} else {
+			providerControl.fireEvent( 'onchange' );
+		}
+
+		event.preventDefault();
+	}
+
 	render() {
 		const { label } = this.props;
 		const purchased = timeAgo( label.created );
@@ -135,6 +164,12 @@ class LabelItem extends Component {
 				</p>
 				<p className="label-item__tracking">
 					{ __( 'Tracking #: {{trackingLink/}}', { components: { trackingLink: <TrackingLink { ...label } /> } } ) }
+					{ ' ' }
+					{ this.shipmentTracking && (
+						<a href="#" onClick={ this.feedToShipmentTracking } title="Feed to Shipment Tracking" >
+							<Gridicon icon="arrow-up" size={ 12 } />
+						</a>
+					) }
 				</p>
 				<p className="label-item__actions" >
 					{ this.renderRefund( label ) }
