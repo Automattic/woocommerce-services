@@ -41,13 +41,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function __construct(
 			WC_Connect_API_Client $api_client,
 			WC_Connect_Service_Settings_Store $settings_store,
-			WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_Payment_Methods_Store $payment_methods_store
+			WC_Connect_Service_Schemas_Store $service_schemas_store
 		) {
 			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
 			$this->service_schemas_store = $service_schemas_store;
-			$this->payment_methods_store = $payment_methods_store;
 		}
 
 		public function get_item_data( WC_Order $order, $item ) {
@@ -421,12 +419,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
-				'orderId'                 => $order_id,
-				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
-				'formData'                => $this->get_form_data( $order ),
-				'numPaymentMethods'       => count( $this->payment_methods_store->get_payment_methods() ),
-				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
-				'enabled'                 => $account_settings[ 'enabled' ],
+				'orderId'            => $order_id,
+				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
+				'formData'           => $this->get_form_data( $order ),
+				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
+				//for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions
+				'canChangeCountries' => true,
 			);
 
 			$store_options = $this->settings_store->get_store_options();
