@@ -25,22 +25,27 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $payment_methods_store;
 
 		/**
-		 * @var array array of currently unsupported US states
+		 * @var array array of currently supported countries
 		 */
-		private $unsupported_states = array( 'AA', 'AE', 'AP' );
+		private $supported_countries = array( 'US', 'PR' );
+
+		/**
+		 * @var array array of currently unsupported states, by country
+		 */
+		private $unsupported_states = array(
+			'US' => array( 'AA', 'AE', 'AP' ),
+		);
 
 		private $show_metabox = null;
 
 		public function __construct(
 			WC_Connect_API_Client $api_client,
 			WC_Connect_Service_Settings_Store $settings_store,
-			WC_Connect_Service_Schemas_Store $service_schemas_store,
-			WC_Connect_Payment_Methods_Store $payment_methods_store
+			WC_Connect_Service_Schemas_Store $service_schemas_store
 		) {
 			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
 			$this->service_schemas_store = $service_schemas_store;
-			$this->payment_methods_store = $payment_methods_store;
 		}
 
 		public function get_item_data( WC_Order $order, $item ) {
@@ -307,21 +312,53 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
+		private function is_supported_state( $country_code, $state_code ) {
+			if ( ! $country_code || ! $state_code ) {
+				return true;
+			}
+
+			if ( ! array_key_exists( $country_code, $this->unsupported_states ) ) {
+				return true;
+			}
+
+			return ! in_array( $state_code, $this->unsupported_states[ $country_code ] );
+		}
+
+		private function is_supported_address( $address ) {
+			$country_code = $address['country'];
+			if ( ! $country_code ) {
+				return true;
+			}
+
+			if ( ! in_array( $country_code, $this->supported_countries ) ) {
+				return false;
+			}
+
+			$state_code = $address['state'];
+			return $this->is_supported_state( $country_code, $state_code );
+		}
+
 		protected function get_states_map() {
 			$result = array();
-			foreach ( WC()->countries->get_countries() as $code => $name ) {
-				$result[ $code ] = array( 'name' => html_entity_decode( $name ) );
-			}
-			foreach ( WC()->countries->get_states() as $country => $states ) {
-				$result[ $country ]['states'] = array();
-				foreach ( $states as $code => $name ) {
-					if ( 'US' === $country && in_array( $code, $this->unsupported_states ) ) {
-						continue;
-					}
+			$all_countries = WC()->countries->get_countries();
 
-					$result[ $country ]['states'][ $code ] = html_entity_decode( $name );
+			foreach ( $this->supported_countries as $country_code ) {
+				$country_data = array( 'name' => html_entity_decode( $all_countries[ $country_code ] ) );
+				$states = WC()->countries->get_states( $country_code );
+
+				if ( $states ) {
+					$country_data['states'] = array();
+					foreach ( $states as $state_code => $name ) {
+						if ( ! $this->is_supported_state( $country_code, $state_code ) ) {
+						  continue;
+						}
+						$country_data['states'][ $state_code ] = html_entity_decode( $name );
+					}
 				}
+
+				$result[ $country_code ] = $country_data;
 			}
+
 			return $result;
 		}
 
@@ -352,8 +389,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$dest_address = $order->get_address( 'shipping' );
-			if ( ( $dest_address['country'] && 'US' !== $dest_address['country'] )
-				|| in_array( $dest_address['state'], $this->unsupported_states ) ) {
+			if ( ! $this->is_supported_address( $dest_address ) ) {
 				return false;
 			}
 
@@ -383,12 +419,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
-				'orderId'                 => $order_id,
-				'paperSize'               => $this->settings_store->get_preferred_paper_size(),
-				'formData'                => $this->get_form_data( $order ),
-				'numPaymentMethods'       => count( $this->payment_methods_store->get_payment_methods() ),
-				'labelsData'              => $this->settings_store->get_label_order_meta_data( $order_id ),
-				'enabled'                 => $account_settings[ 'enabled' ],
+				'orderId'            => $order_id,
+				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
+				'formData'           => $this->get_form_data( $order ),
+				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
+				//for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions
+				'canChangeCountries' => true,
 			);
 
 			$store_options = $this->settings_store->get_store_options();
