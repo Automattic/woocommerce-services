@@ -49,12 +49,7 @@ const _request = ( url, data, method, namespace = '' ) => {
 	} );
 };
 
-export default () => ( {
-	post: ( url, data, namespace ) => _request( url, data, 'POST', namespace ),
-	get: ( url, namespace ) => _request( url, null, 'GET', namespace ),
-} );
-
-export const createGetUrlWithNonce = ( url, queryString ) => {
+const createGetUrlWithNonce = ( url, queryString ) => {
 	if ( queryString ) {
 		if ( startsWith( queryString, '?' ) ) {
 			queryString = queryString.substring( 1 );
@@ -69,3 +64,9 @@ export const createGetUrlWithNonce = ( url, queryString ) => {
 
 	return `${ baseURL }${ url }${ queryStart }_wpnonce=${ nonce }${ queryString }`;
 };
+
+export default () => ( {
+	post: ( url, data, namespace ) => _request( url, data, 'POST', namespace ),
+	get: ( url, namespace ) => _request( url, null, 'GET', namespace ),
+	createGetUrlWithNonce,
+} );
