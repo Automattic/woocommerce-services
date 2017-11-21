@@ -15,7 +15,7 @@ export const setNonce = ( _nonce ) => nonce = _nonce;
 let baseURL;
 export const setBaseURL = ( _baseURL ) => baseURL = _baseURL;
 
-const _request = ( url, data, method ) => {
+const _request = ( url, data, method, namespace = '' ) => {
 	const request = {
 		method,
 		credentials: 'same-origin',
@@ -28,7 +28,10 @@ const _request = ( url, data, method ) => {
 		request.body = JSON.stringify( data );
 	}
 
-	return fetch( baseURL + url, request ).then( ( response ) => {
+	if ( namespace && ! namespace.endsWith( '/' ) ) {
+		namespace += '/';
+	}
+	return fetch( baseURL + namespace + url, request ).then( ( response ) => {
 		return parseJson( response ).then( ( json ) => {
 			if ( json.success ) {
 				return json;
@@ -46,9 +49,10 @@ const _request = ( url, data, method ) => {
 	} );
 };
 
-export const post = ( url, data ) => _request( url, data, 'POST' );
-
-export const get = ( url ) => _request( url, null, 'GET' );
+export default () => ( {
+	post: ( url, data, namespace ) => _request( url, data, 'POST', namespace ),
+	get: ( url, namespace ) => _request( url, null, 'GET', namespace ),
+} );
 
 export const createGetUrlWithNonce = ( url, queryString ) => {
 	if ( queryString ) {

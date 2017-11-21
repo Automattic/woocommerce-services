@@ -96,6 +96,7 @@ const config = {
 								includePaths: [
 									path.resolve( __dirname, 'client' ),
 									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
 									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
 								],
 							},
@@ -137,10 +138,17 @@ const config = {
 		extensions: [ '.json', '.js', '.jsx' ],
 		modules: [
 			path.resolve( __dirname, 'client' ),
+			path.resolve( __dirname, 'client', 'calypso-stubs' ),
+			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
 			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
 		],
+		symlinks: false,
+	},
+	node: {
+		fs: 'empty'
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
@@ -151,10 +159,12 @@ const config = {
 		} ),
 		//rewrite calypso images path
 		new webpack.NormalModuleReplacementPlugin( /calypso\/images/, ( resource ) => {
-			resource.request = resource.request.replace(
-				/^.+calypso\/images/,
-				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
-			);
+			resource.request = resource.request
+				.replace(
+					/^.+calypso\/images/,
+					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
+				)
+				.replace( /is-([^/]+)$/, '$1' );
 		} ),
 	],
 };

@@ -5,29 +5,8 @@
 @import 'colors'; // import wcc colors
 @import 'shared/mixins/mixins'; // sass mixins for gradients, bordius radii, etc.
 //@import 'shared/colors'; // import all of our wpcom colors
-@import 'components/dialog/style';
-@import 'components/popover/style';
-@import 'components/tooltip/style';
 
 .wcc-root {
-	// Shared
-	@import 'shared/reset'; // css reset before the rest of the styles are defined
-	@import 'shared/typography'; // all the typographic rules, variables, etc.
-	@import 'shared/extends'; // sass extends for commonly used styles
-	@import 'shared/animation'; // all UI animation
-	@import 'shared/forms'; // form styling
-	@import 'shared/dropdowns'; // dropdown styling
-	//@import 'shared/toolbar-bulk'; // The toolbar used for bulk actions including bulk selecting and deselecting
-	//@import 'shared/livechat'; // styles for the popup livechat box
-	//@import 'shared/welcome'; // welcome messages
-	//@import 'shared/infinite-scroll-end'; // Last page marker once infinite scroll has reached end
-
-	// Main
-	@import 'main'; // global layout and responsive styles
-
-	// Components
-	@import 'components';
-
 	// Buttons
 	.button {
 		background: $gray-light;
@@ -75,6 +54,7 @@
 
 	%form-field {
 		box-shadow: none;
+		height: auto;
 		&::placeholder {
 			color: lighten( $gray, 10% );
 		}
@@ -114,59 +94,6 @@
 		}
 	}
 
-	// Dialog
-	&.dialog.card {
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
-		max-width: none;
-		padding: 0;
-
-		@include breakpoint( ">480px" ) {
-			top: 5%;
-			bottom: 5%;
-			left: 5%;
-			right: 5%;
-			width: 90%;
-		}
-
-		@include breakpoint( ">960px" ) {
-			left: 12.5%;
-			right: 12.5%;
-			width: 75%;
-		}
-
-		.form-section-heading {
-			padding: 24px 16px 0;
-			@include breakpoint( ">480px" ) {
-				padding: 0;
-			}
-		}
-
-		.dialog__content {
-			height: calc( 100% - 90px );
-			overflow-y: auto;
-
-			@include breakpoint( ">480px" ) {
-				padding: 32px;
-			}
-		}
-
-		.form-buttons-bar,
-		.dialog__action-buttons {
-			position: absolute;
-				right: 0;
-				bottom: 0;
-				left: 0;
-			margin: 0;
-			padding: 12px 16px;
-			background-color: $gray-light;
-			border-top: 1px solid lighten( $gray, 20 );
-		}
-	}
-
 	.share-package-option {
 		display: inline-block;
 		margin-top: 8px;
@@ -181,7 +108,7 @@
 	}
 
 	.global-notices {
-		z-index: 999999; // Make sure notices are shown on top of modals
+		z-index: z-index( 'root', '.is-section-woocommerce .global-notices' ) !important; // Make sure notices are shown on top of modals
 		top: 16px;
 		right: 16px;
 		@include breakpoint( '<660px' ) {
@@ -267,14 +194,28 @@
 		fill: currentColor;
 	}
 
+	// Shared
+	@import 'shared/reset'; // css reset before the rest of the styles are defined
+	@import 'shared/typography'; // all the typographic rules, variables, etc.
+	@import 'shared/extends'; // sass extends for commonly used styles
+	@import 'shared/animation'; // all UI animation
+	@import 'shared/forms'; // form styling
+	@import 'shared/dropdowns'; // dropdown styling
+
+	// Main
+	@import 'main'; // global layout and responsive styles
+
+	// Components
+	@import 'components';
+
+	@import 'woocommerce/woocommerce-services/style';
+	@import 'woocommerce/app/order/order-activity-log/style';
+
 	// WCC Components
-	@import '../../client/apps/account-settings/style';
 	@import '../../client/apps/shipping-label/style';
-	@import '../../client/apps/packages/style';
 	@import '../../client/apps/print-test-label/style';
 	@import '../../client/apps/settings/style';
 	@import '../../client/components/checkbox/style';
-	@import '../../client/components/error-message/style';
 	@import '../../client/components/error-notice/style';
 	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';
@@ -285,6 +226,10 @@
 	@import '../../client/components/toggle/style';
 	@import '../../client/components/settings-group-card/style';
 }
+
+@import 'components/dialog/style';
+@import 'components/popover/style';
+@import 'components/tooltip/style';
 
 #woocommerce-order-label .inside {
 	margin: 0;

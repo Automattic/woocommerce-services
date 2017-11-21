@@ -9,6 +9,7 @@
 @import 'components/button/style';
 @import 'components/button-group/style';
 @import 'components/card/style';
+@import 'components/dialog/style';
 @import 'components/foldable-card/style';
 @import 'components/forms/form-button/style';
 @import 'components/forms/form-fieldset/style';
@@ -19,10 +20,19 @@
 @import 'components/forms/form-select/style';
 @import 'components/forms/form-setting-explanation/style';
 @import 'components/forms/form-text-input/style';
+@import 'components/forms/form-text-input-with-affixes/style';
 @import 'components/forms/form-toggle/style';
 @import 'components/global-notices/style';
 @import 'components/info-popover/style';
 @import 'components/notice/style';
 @import 'components/payment-logo/style';
 @import 'components/screen-reader-text/style';
+@import 'components/section-header/style';
+@import 'components/segmented-control/style';
 @import 'components/spinner/style';
+
+&.woocommerce {
+	@import 'woocommerce/components/bulk-select/style';
+	@import 'woocommerce/components/extended-header/style';
+	@import 'woocommerce/components/form-dimensions-input/style';
+}

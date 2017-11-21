@@ -6,52 +6,33 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import PackagesView from './view';
-import reducer from './state/reducer';
-import { fetchSettings } from './state/actions';
+import ViewWrapper from './view-wrapper';
 // from calypso
+import reducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
 
-export default ( { formData, formSchema, storeOptions } ) => ( {
+export default () => ( {
 	getReducer() {
 		return combineReducers( {
-			form: reducer,
+			extensions: combineReducers( {
+				woocommerce: combineReducers( {
+					woocommerceServices: combineReducers( {
+						1: combineReducers( {
+							packages: reducer,
+						} ),
+					} ),
+				} ),
+			} ),
 			notices,
-		} );
-	},
-
-	getHotReducer() {
-		return combineReducers( {
-			form: require( './state/reducer' ),
-			notices,
+			ui: () => ( {
+				selectedSiteId: 1,
+			} ),
 		} );
 	},
 
 	getInitialState() {
-		storeOptions = storeOptions || {};
-		formSchema = formSchema || { custom: {} };
-		return {
-			form: {
-				pristine: true,
-				isSaving: false,
-				isFetching: false,
-				showModal: false,
-				modalErrors: {},
-				packages: formData,
-				dimensionUnit: storeOptions.dimension_unit,
-				weightUnit: storeOptions.weight_unit,
-				packageSchema: formSchema.custom.items,
-				predefinedSchema: formSchema.predefined,
-				packageData: {
-					is_user_defined: true,
-				},
-			},
-		};
-	},
-
-	getInitialAction() {
-		return fetchSettings();
+		return {};
 	},
 
 	getStateForPersisting( state ) {
@@ -64,6 +45,6 @@ export default ( { formData, formSchema, storeOptions } ) => ( {
 	},
 
 	View: () => {
-		return <PackagesView />;
+		return <ViewWrapper />;
 	},
 } );
