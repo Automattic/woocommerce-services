@@ -34,6 +34,9 @@ import {
 	getLabelSettingsFormMeta,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import ActivityLog from 'woocommerce/app/order/order-activity-log/events';
+import {
+	getActivityLogEvents,
+} from 'woocommerce/state/sites/orders/activity-log/selectors';
 
 const ShippingLabelViewWrapper = ( props ) => {
 	const {
@@ -44,6 +47,7 @@ const ShippingLabelViewWrapper = ( props ) => {
 		labelsEnabled,
 		selectedPaymentMethod,
 		paymentMethods,
+		events,
 	} = props;
 
 	const renderPaymentInfo = () => {
@@ -108,6 +112,18 @@ const ShippingLabelViewWrapper = ( props ) => {
 		);
 	};
 
+	const renderActivityLog = () => {
+		if ( 0 === events.length ) {
+			return null;
+		}
+
+		return (
+			<div className="shipping-label__dummy-class order-activity-log">
+				<ActivityLog orderId={ orderId } siteId={ siteId } />
+			</div>
+		);
+	};
+
 	const shouldRenderButton = ! loaded || labelsEnabled && selectedPaymentMethod;
 
 	return (
@@ -119,9 +135,7 @@ const ShippingLabelViewWrapper = ( props ) => {
 				{ renderPaymentInfo() }
 				{ shouldRenderButton && renderLabelButton() }
 			</div>
-			<div className="shipping-label__dummy-class order-activity-log">
-				<ActivityLog orderId={ orderId } siteId={ siteId } />
-			</div>
+			{ renderActivityLog() }
 		</div>
 	);
 };
@@ -138,6 +152,7 @@ export default connect(
 		const formMeta = getLabelSettingsFormMeta( state, siteId ) || {};
 		const paymentMethods = formMeta.payment_methods;
 		const selectedPaymentMethod = loaded ? find( paymentMethods, { payment_method_id: paymentMethodId } ) : null;
+		const events = getActivityLogEvents( state, orderId );
 
 		return {
 			siteId,
@@ -145,6 +160,7 @@ export default connect(
 			labelsEnabled: areLabelsEnabled( state, siteId ),
 			selectedPaymentMethod,
 			paymentMethods,
+			events,
 		};
 	},
 	( dispatch ) => ( {
