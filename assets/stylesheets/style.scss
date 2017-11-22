@@ -29,10 +29,12 @@
 			background: $button-hover;
 		}
 		// overwrite core styles
-		&:disabled {
-			background: tint( $blue-light, 50% ) !important;
-			border-color: tint( $blue-wordpress, 55% ) !important;
-			color: $white !important;
+		&[disabled],
+		&:disabled,
+		&.disabled {
+			color: lighten( $gray, 30% ) !important;
+			background: $white !important;
+			border-color: lighten( $gray, 30% ) !important;
 			text-shadow: none !important;
 		}
 		//wp-admin styles override the disabled button with !important, so need to do the same here
