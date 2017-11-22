@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.8.3
-Stable tag: 1.8.3
+Tested up to: 4.9
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,8 +17,8 @@ With WooCommerce Services, critical services are hosted on Automattic’s best-i
 
 To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
-= Show live rates for USPS and Canada Post =
-Show your customers accurate shipping rates automatically for both USPS, the largest delivery network in the US, and Canada Post.
+= Show live rates for USPS or Canada Post =
+Show your customers accurate shipping rates automatically for USPS, the largest delivery network in the US, or Canada Post.
 
 
 = Print shipping labels for USPS at a discounted rate =
@@ -46,7 +46,7 @@ This section describes how to install the plugin and get it working.
 
 = What services are included? =
 
-* Real-time shipping rates from USPS and Canada Post
+* Real-time shipping rates from USPS or Canada Post
 * USPS label purchase/printing (domestic USA only)
 * Automated tax calculation
 * Stripe account provisioning (through WooCommerce setup wizard)
@@ -88,6 +88,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.9.0 =
+* Add tracking numbers to completed order emails
+* Add USPS support for Puerto Rico
+* Fix some tax bugs related to discount calculation and taxable address
+* Updated Calypso-based UI
 
 = 1.8.3 =
 * Fix tax calculation in order total bug (WooCommerce 3.2+)
