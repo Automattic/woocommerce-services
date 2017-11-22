@@ -35,7 +35,7 @@
 	.dialog__action-buttons {
 		.button.is-busy {
 			background-size: 120px 100% !important;
-			background-image: linear-gradient(-45deg, #00a0d2 28%, #008db9 28%, #008db9 72%, #00a0d2 72%) !important;
+			background-image: linear-gradient( -45deg, $blue-medium 28%, darken( $blue-medium, 5% ) 28%, darken( $blue-medium, 5% ) 72%, $blue-medium 72%) !important;
 			border-color: #0081a9 !important;
 		}
 	}
