@@ -35,7 +35,12 @@
 			color: $white !important;
 			text-shadow: none !important;
 		}
-
+		//wp-admin styles override the disabled button with !important, so need to do the same here
+		&.is-busy {
+			background-size: 120px 100% !important;
+			background-image: linear-gradient( -45deg, $blue-medium 28%, darken( $blue-medium, 5% ) 28%, darken( $blue-medium, 5% ) 72%, $blue-medium 72%) !important;
+			border-color: #0081a9 !important;
+		}
 	}
 
     // Forms

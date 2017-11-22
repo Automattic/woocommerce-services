@@ -63,19 +63,21 @@ const SettingsGroup = ( props ) => {
 			const buttons = group.items.map( ( button ) => {
 				let onClick = _.noop;
 				let isDisabled = false;
+				let isBusy = false;
 				let label = button.title;
 				let isPrimary = false;
 				if ( 'submit' === button.type ) {
 					isPrimary = true;
 					if ( form.isSaving ) {
 						isDisabled = true;
+						isBusy = true;
 						label = button.progressTitle || label;
 					} else {
 						onClick = () => saveForm( schema );
 						isDisabled = ! _.isEmpty( errors );
 					}
 				}
-				return { label, onClick, isDisabled, isPrimary };
+				return { label, onClick, isDisabled, isPrimary, isBusy };
 			} );
 			return <ActionButtonsCard buttons={ buttons } />;
 
