@@ -34,6 +34,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 			'formData' => $this->settings_store->get_account_settings(),
 			'formMeta' => array(
 				'can_manage_payments' => $this->can_user_manage_payment_methods(),
+				'can_edit_settings' => true,
 				'master_user_name' => is_a( $master_user, 'WP_User' ) ? $master_user->display_name : '',
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
  				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
@@ -42,12 +43,15 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 	}
 
 	public function post( $request ) {
+		$settings = $request->get_json_params();
+
 		if ( ! $this->can_user_manage_payment_methods() ) {
-			return new WP_Error( 'forbidden', __( 'You are not allowed to do that', 'woocommerce-services' ), array( 'status' => 403 ) );
+			// Ignore the user-provided payment method ID if he doesn't have permission to change it
+			$old_settings = $this->settings_store->get_account_settings();
+			$settings['selected_payment_method_id'] = $old_settings['selected_payment_method_id'];
 		}
 
-		$settings = $request->get_json_params();
-		$result   = $this->settings_store->update_account_settings( $settings );
+		$result = $this->settings_store->update_account_settings( $settings );
 
 		if ( is_wp_error( $result ) ) {
 			$error = new WP_Error( 'save_failed',
