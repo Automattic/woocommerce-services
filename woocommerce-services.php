@@ -531,6 +531,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Reroute requests from the PPEC extension via WCS to pick up API credentials
+		 */
+		public function paypal_ec_endpoint( $endpoint, $api_username ) {
+			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			if (
+				empty( $api_username ) &&
+				isset( $ppec_settings['reroute_requests'] ) &&
+				'yes' === $ppec_settings['reroute_requests']
+			) {
+				return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp';
+			}
+			return $endpoint;
+		}
+
+		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
 		 * @codeCoverageIgnore
@@ -645,6 +660,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ), 10, 2 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
