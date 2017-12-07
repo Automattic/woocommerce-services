@@ -546,6 +546,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', function() use ( $ppec_settings ) {
 					return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $ppec_settings[ 'environment' ];
 				} );
+
+				// Hide prompt to link PayPal account
+				delete_option( 'wc_gateway_ppce_prompt_to_connect' );
 			}
 		}
 
