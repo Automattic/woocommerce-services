@@ -547,6 +547,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $ppec_settings[ 'environment' ];
 				} );
 
+				// If empty, populate Sandbox API Subject with Live API Subject value
+				if ( empty( $ppec_settings['sandbox_api_subject'] ) && empty( $ppec_settings['sandbox_api_username'] ) ) {
+					$ppec_settings['sandbox_api_subject'] = $ppec_settings['api_subject'];
+					update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
+				}
+
 				// Hide prompt to link PayPal account
 				delete_option( 'wc_gateway_ppce_prompt_to_connect' );
 			}
