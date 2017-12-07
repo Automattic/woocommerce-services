@@ -531,6 +531,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Get WCS PayPal proxy endpoint
+		 */
+		public function paypal_ec_endpoint() {
+			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $ppec_settings[ 'environment' ];
+		}
+
+		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
@@ -543,9 +551,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'yes' === $ppec_settings['reroute_requests']
 			) {
 				// Reroute requests from the PPEC extension via WCS to pick up API credentials
-				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', function() use ( $ppec_settings ) {
-					return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $ppec_settings[ 'environment' ];
-				} );
+				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
 				// If empty, populate Sandbox API Subject with Live API Subject value
 				if ( empty( $ppec_settings['sandbox_api_subject'] ) && empty( $ppec_settings['sandbox_api_username'] ) ) {
