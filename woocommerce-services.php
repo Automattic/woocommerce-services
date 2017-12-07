@@ -543,8 +543,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'yes' === $ppec_settings['reroute_requests']
 			) {
 				// Reroute requests from the PPEC extension via WCS to pick up API credentials
-				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', function() {
-					return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp';
+				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', function() use ( $ppec_settings ) {
+					return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $ppec_settings[ 'environment' ];
 				} );
 			}
 		}
