@@ -547,9 +547,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( isset( $ppec_settings['reroute_requests'] ) && 'yes' === $ppec_settings['reroute_requests'] ) {
 				// If empty, populate Sandbox API Subject with Live API Subject value
 				if (
-					empty( $ppec_settings['sandbox_api_subject'] ) &&
-					empty( $ppec_settings['sandbox_api_username'] ) &&
-					empty( $ppec_settings['api_username'] )
+					! isset( $ppec_settings['sandbox_api_subject'] ) &&
+					! isset( $ppec_settings['sandbox_api_username'] ) &&
+					! isset( $ppec_settings['api_username'] )
 				) {
 					$ppec_settings['sandbox_api_subject'] = $ppec_settings['api_subject'];
 					update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
