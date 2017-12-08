@@ -172,7 +172,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			);
 			if ( ! is_null( $last_fetch_timestamp ) ) {
 				$last_fetch_timestamp_formatted = sprintf(
-					_x( 'Last updated %s ago. %s', '1st %s = human-readable time difference, 2nd %s = refresh url', 'woocommerce-services' ),
+					_x( 'Last updated %1s ago. %2s', '%1s = human-readable time difference, %2s = refresh url', 'woocommerce-services' ),
 					human_time_diff( $last_fetch_timestamp ),
 					$refresh_link
 				);
