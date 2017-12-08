@@ -675,7 +675,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 */
 		public function page() {
 			if ( isset( $_GET['refresh'] ) && 'true' === $_GET['refresh'] ) {
-				$schemas = $this->service_schemas_store->fetch_service_schemas_from_connect_server();
+				$this->service_schemas_store->fetch_service_schemas_from_connect_server();
 				$url = remove_query_arg( 'refresh' );
 				wp_safe_redirect( $url );
 			}
