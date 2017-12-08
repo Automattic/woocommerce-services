@@ -1,4 +1,4 @@
-/*global wcSevicesAdminPointers, ajaxurl */
+/*global wcServicesAdminPointers, ajaxurl */
 /**
  * External dependencies
  */
@@ -44,5 +44,5 @@ jQuery( document ).ready( function( $ ) {
 			$( '#wcs-pointer-page-dimmer' ).fadeIn( 500 );
 		}
 	}
-	show_pointer( wcSevicesAdminPointers, 0 );
+	show_pointer( wcServicesAdminPointers, 0 );
 } );
