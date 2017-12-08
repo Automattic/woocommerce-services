@@ -158,7 +158,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
 			$refresh_link = sprintf(
 				wp_kses(
-					__( '<a href="%s">Refresh</a>', 'woocommerce-services' ),
+					'<a href="%s">' . __( 'Refresh', 'woocommerce-services' ) . '</a>',
 					array( 'a' => array( 'href' => array() ) )
 				),
 				add_query_arg(
