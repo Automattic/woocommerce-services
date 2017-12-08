@@ -543,24 +543,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function paypal_ec_setup() {
 			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
-			$username_key = 'sandbox' === $ppec_settings[ 'environment' ] ? 'sandbox_api_username' : 'api_username';
 
-			if (
-				empty( $ppec_settings[ $username_key ] ) &&
-				isset( $ppec_settings['reroute_requests'] ) &&
-				'yes' === $ppec_settings['reroute_requests']
-			) {
-				// Reroute requests from the PPEC extension via WCS to pick up API credentials
-				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
-
+			if ( isset( $ppec_settings['reroute_requests'] ) && 'yes' === $ppec_settings['reroute_requests'] ) {
 				// If empty, populate Sandbox API Subject with Live API Subject value
-				if ( empty( $ppec_settings['sandbox_api_subject'] ) && empty( $ppec_settings['sandbox_api_username'] ) ) {
+				if (
+					empty( $ppec_settings['sandbox_api_subject'] ) &&
+					empty( $ppec_settings['sandbox_api_username'] ) &&
+					empty( $ppec_settings['api_username'] )
+				) {
 					$ppec_settings['sandbox_api_subject'] = $ppec_settings['api_subject'];
 					update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
 				}
 
-				// Hide prompt to link PayPal account
-				delete_option( 'wc_gateway_ppce_prompt_to_connect' );
+				$username_key = 'sandbox' === $ppec_settings[ 'environment' ] ? 'sandbox_api_username' : 'api_username';
+				if ( empty( $ppec_settings[ $username_key ] ) ) {
+					// Reroute requests from the PPEC extension via WCS to pick up API credentials
+					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
+
+					// Hide default prompt to link PayPal account
+					delete_option( 'wc_gateway_ppce_prompt_to_connect' );
+				}
+
 			}
 		}
 
