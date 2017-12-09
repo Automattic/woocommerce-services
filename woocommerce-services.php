@@ -539,6 +539,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Limit supported payment gateway features to payments
+		 */
+		public function paypal_ec_supports( $supported, $feature, $gateway ) {
+			return 'ppec_paypal' === $gateway->id ? 'products' === $feature : $supported;
+		}
+
+		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
@@ -562,6 +569,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 					// Hide default prompt to link PayPal account
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
+
+					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
 				}
 
 			}
