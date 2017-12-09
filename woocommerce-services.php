@@ -561,7 +561,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
 					// Hide default prompt to link PayPal account
-					delete_option( 'wc_gateway_ppce_prompt_to_connect' );
+					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 				}
 
 			}
