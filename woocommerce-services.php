@@ -546,6 +546,50 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
+		 */
+		public function paypal_ec_prompt_to_connect() {
+			function uses_ppec_payment_method( $order ) {
+				return $order->get_payment_method() === 'ppec_paypal';  // TODO WC <3.0 compatibility
+			}
+			if ( ! count( array_filter( wc_get_orders( array() ), 'uses_ppec_payment_method' ) ) ) {
+				return;
+			}
+
+			$prompt = sprintf( __( '<strong><a href="%s">Link</a> a new or existing PayPal account</strong> to enable PayPal Express Checkout Gateway functionality beyond simply taking payments, such as issuing refunds, capturing charges, and taking subscriptions with <a href="https://woocommerce.com/products/woocommerce-subscriptions/">WooCommerce Subscriptions</a>.', 'woocommerce-services' ), esc_url( wc_gateway_ppec()->ips->get_signup_url( 'live' ) ) );
+
+			$screen = get_current_screen();
+			if ( // Display if on any of these admin pages.
+				( // Orders list.
+					'shop_order' === $screen->post_type
+					&& 'edit' === $screen->base
+					)
+				|| ( // Edit order page.
+					'shop_order' === $screen->post_type
+					&& 'post' === $screen->base
+					)
+				|| ( // WooCommerce settings.
+					'woocommerce_page_wc-settings' === $screen->base
+					)
+				|| ( // WooCommerce featured extension page
+					'woocommerce_page_wc-addons' === $screen->base
+					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
+					)
+				|| ( // WooCommerce payment gateway extension page
+					'woocommerce_page_wc-addons' === $screen->base
+					&& isset( $_GET['section'] ) && 'payment_gateways' === $_GET['section']
+					)
+				|| 'plugins' === $screen->base
+			) {
+				?>
+				<div class="notice notice-warning">
+					<p><?php echo wp_kses( $prompt, array( 'a' => array( 'href' => array() ), 'strong' => array() ) ); ?></p>
+				</div>
+				<?php
+			}
+		}
+
+		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
@@ -567,8 +611,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
-					// Hide default prompt to link PayPal account
+					// Hide default prompt to link PayPal account, and show a notice once a payment is received
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
+					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
 
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
 				}
@@ -691,12 +736,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_action( 'wp_loaded', array( $this, 'paypal_ec_setup' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
 
 			$this->taxjar->init();
-			$this->paypal_ec_setup();
 		}
 
 		public function tos_rest_init() {
