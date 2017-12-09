@@ -556,7 +556,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			$prompt = sprintf( __( '<strong><a href="%s">Link</a> a new or existing PayPal account</strong> to enable PayPal Express Checkout Gateway functionality beyond simply taking payments, such as issuing refunds, capturing charges, and taking subscriptions with <a href="https://woocommerce.com/products/woocommerce-subscriptions/">WooCommerce Subscriptions</a>.', 'woocommerce-services' ), esc_url( wc_gateway_ppec()->ips->get_signup_url( 'live' ) ) );
+			$prompt = sprintf( __( '<strong><a href="%s">Link</a> a new or existing PayPal account</strong> to enable PayPal Express Checkout Gateway functionality beyond simply taking payments, such as issuing refunds, capturing charges after order is complete, and taking subscriptions with <a href="https://woocommerce.com/products/woocommerce-subscriptions/">WooCommerce Subscriptions</a>.', 'woocommerce-services' ), esc_url( wc_gateway_ppec()->ips->get_signup_url( 'live' ) ) );
 
 			$screen = get_current_screen();
 			if ( // Display if on any of these admin pages.
