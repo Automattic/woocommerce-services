@@ -624,7 +624,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
-			$ppec_settings['reroute_requests'] = $_GET['reroute_requests'];
+			$ppec_settings['reroute_requests'] = 'yes' === $_GET['reroute_requests'] ? 'yes' : 'no';
 			update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
 
 			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
