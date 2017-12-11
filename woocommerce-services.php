@@ -590,6 +590,43 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Modify PPEC settings
+		 */
+		public function paypal_ec_settings( $settings ) {
+			// Communicate WCS proxying and provide option to disable
+			$reset_link = add_query_arg(
+				array(
+					'reroute_requests' => 'no',
+					'nonce'                => wp_create_nonce( 'reroute_requests' ),
+				),
+				wc_gateway_ppec()->get_admin_setting_link()
+			);
+			$api_creds_text = sprintf( __( 'Payments will be authenticated by WooCommerce Services. To disable rerouting payment requests and link an account, <a href="%s">click here</a>.', 'woocommerce-services' ), $reset_link );
+			$settings['api_credentials']['description'] = $api_creds_text;
+			$settings['sandbox_api_credentials']['description'] = $api_creds_text;
+
+			unset( $settings['api_username'], $settings['api_password'], $settings['api_signature'], $settings['api_certificate'] );
+			unset( $settings['sandbox_api_username'], $settings['sandbox_api_password'], $settings['sandbox_api_signature'], $settings['sandbox_api_certificate'] );
+
+			return $settings;
+		}
+
+		public function maybe_set_reroute_requests() {
+			if (
+				empty( $_GET['reroute_requests'] ) ||
+				empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' )
+			) {
+				return;
+			}
+
+			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			$ppec_settings['reroute_requests'] = $_GET['reroute_requests'];
+			update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
+
+			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
+		}
+
+		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
@@ -611,13 +648,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
+					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
+					add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings' ) );
+					add_action( 'load-woocommerce_page_wc-settings', array( $this, 'maybe_set_reroute_requests' ) );
+
 					// Hide default prompt to link PayPal account, and show a notice once a payment is received
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
-
-					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
 				}
-
 			}
 		}
 
