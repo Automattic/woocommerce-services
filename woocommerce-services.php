@@ -593,6 +593,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Modify PPEC settings
 		 */
 		public function paypal_ec_settings( $settings ) {
+			// Prevent user from choosing option that will cause requests to fail
+			$settings['paymentaction']['disabled'] = true;
+			$settings['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking an account.)', 'woocommerce-services' ), $settings['paymentaction']['description'] );
+
 			// Communicate WCS proxying and provide option to disable
 			$reset_link = add_query_arg(
 				array(
