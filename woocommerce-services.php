@@ -592,30 +592,51 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Modify PPEC settings
 		 */
-		public function paypal_ec_settings( $settings ) {
-			// Prevent user from choosing option that will cause requests to fail
-			$settings['paymentaction']['disabled'] = true;
-			$settings['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking an account.)', 'woocommerce-services' ), $settings['paymentaction']['description'] );
+		public function paypal_ec_settings( $settings_meta ) {
+			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
 
-			// Communicate WCS proxying and provide option to disable
-			$reset_link = add_query_arg(
-				array(
-					'reroute_requests' => 'no',
-					'nonce'                => wp_create_nonce( 'reroute_requests' ),
-				),
-				wc_gateway_ppec()->get_admin_setting_link()
-			);
-			$api_creds_text = sprintf( __( 'Payments will be authenticated by WooCommerce Services. To disable rerouting payment requests and link an account, <a href="%s">click here</a>.', 'woocommerce-services' ), $reset_link );
-			$settings['api_credentials']['description'] = $api_creds_text;
-			$settings['sandbox_api_credentials']['description'] = $api_creds_text;
+			if ( isset( $settings['reroute_requests'] ) && 'yes' === $settings['reroute_requests'] ) {
+				// Prevent user from choosing option that will cause requests to fail
+				$settings_meta['paymentaction']['disabled'] = true;
+				$settings_meta['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking an account.)', 'woocommerce-services' ), $settings_meta['paymentaction']['description'] );
 
-			unset( $settings['api_username'], $settings['api_password'], $settings['api_signature'], $settings['api_certificate'] );
-			unset( $settings['sandbox_api_username'], $settings['sandbox_api_password'], $settings['sandbox_api_signature'], $settings['sandbox_api_certificate'] );
+				// Communicate WCS proxying and provide option to disable
+				$reset_link = add_query_arg(
+					array( 'reroute_requests' => 'no', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
+					wc_gateway_ppec()->get_admin_setting_link()
+				);
+				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Services and directed to the following email address. To disable this and link an account, <a href="%s">click here</a>.', 'woocommerce-services' );
 
-			return $settings;
+				$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
+				$settings_meta['api_credentials']['description'] = $api_creds_text;
+
+				$sandbox_api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
+				$settings_meta['sandbox_api_credentials']['description'] = $sandbox_api_creds_text;
+
+				unset( $settings_meta['api_username'], $settings_meta['api_password'], $settings_meta['api_signature'], $settings_meta['api_certificate'] );
+				unset( $settings_meta['sandbox_api_username'], $settings_meta['sandbox_api_password'], $settings_meta['sandbox_api_signature'], $settings_meta['sandbox_api_certificate'] );
+
+			} else {
+				$reset_link = add_query_arg(
+					array( 'reroute_requests' => 'yes', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
+					wc_gateway_ppec()->get_admin_setting_link()
+				);
+				$api_creds_template = __( 'To authenticate payments with WooCommerce Services, <a href="%s">click here</a>.', 'woocommerce-services' );
+
+				if ( empty( $settings['api_username'] ) ) {
+					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
+					$settings_meta['api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
+				}
+				if ( empty( $settings['sandbox_api_username'] ) ) {
+					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
+					$settings_meta['sandbox_api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
+				}
+			}
+
+			return $settings_meta;
 		}
 
-		public function maybe_set_reroute_requests() {
+		public function paypal_ec_maybe_set_reroute_requests() {
 			if (
 				empty( $_GET['reroute_requests'] ) ||
 				empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' )
@@ -625,6 +646,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
 			$ppec_settings['reroute_requests'] = 'yes' === $_GET['reroute_requests'] ? 'yes' : 'no';
+			$ppec_settings['environment'] = 'sandbox' === $_GET['environment'] ? 'sandbox' : 'live';
 			update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
 
 			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
@@ -635,6 +657,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function paypal_ec_setup() {
 			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings' ) );
+			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'paypal_ec_maybe_set_reroute_requests' ) );
 
 			if ( isset( $ppec_settings['reroute_requests'] ) && 'yes' === $ppec_settings['reroute_requests'] ) {
 				// If empty, populate Sandbox API Subject with Live API Subject value
@@ -653,8 +677,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
-					add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings' ) );
-					add_action( 'load-woocommerce_page_wc-settings', array( $this, 'maybe_set_reroute_requests' ) );
 
 					// Hide default prompt to link PayPal account, and show a notice once a payment is received
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
