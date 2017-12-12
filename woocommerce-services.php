@@ -553,10 +553,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return $order->get_payment_method() === 'ppec_paypal';  // TODO WC <3.0 compatibility
 			}
 			if ( ! count( array_filter( wc_get_orders( array() ), 'uses_ppec_payment_method' ) ) ) {
-				return;
+				return '';
 			}
 
-			$prompt = sprintf( __( '<strong><a href="%s">Link</a> a new or existing PayPal account</strong> to enable PayPal Express Checkout Gateway functionality beyond simply taking payments, such as issuing refunds, capturing charges after order is complete, and taking subscriptions with <a href="https://woocommerce.com/products/woocommerce-subscriptions/">WooCommerce Subscriptions</a>.', 'woocommerce-services' ), esc_url( wc_gateway_ppec()->ips->get_signup_url( 'live' ) ) );
+			$reset_link = add_query_arg(
+				array( 'reroute_requests' => 'no', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
+				wc_gateway_ppec()->get_admin_setting_link()
+			);
+			$prompt_template = __( '<a href="%s">Link a new or existing PayPal account</a> to enable PayPal Express Checkout Gateway functionality beyond simply taking payments, such as: issuing refunds, capturing charges after order is complete, and taking subscriptions with <a href="https://woocommerce.com/products/woocommerce-subscriptions/">WooCommerce Subscriptions</a>.', 'woocommerce-services' );
+			$prompt = sprintf( $prompt_template, $reset_link );
 
 			$screen = get_current_screen();
 			if ( // Display if on any of these admin pages.
@@ -581,11 +586,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					)
 				|| 'plugins' === $screen->base
 			) {
-				?>
-				<div class="notice notice-warning">
-					<p><?php echo wp_kses( $prompt, array( 'a' => array( 'href' => array() ), 'strong' => array() ) ); ?></p>
-				</div>
-				<?php
+				return $prompt;
 			}
 		}
 
@@ -678,9 +679,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
 
-					// Hide default prompt to link PayPal account, and show a notice once a payment is received
-					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
-					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
+					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', array( $this, 'paypal_ec_prompt_to_connect' ) );
 				}
 			}
 		}
