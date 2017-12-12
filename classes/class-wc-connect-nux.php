@@ -364,17 +364,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$supports_rates  = in_array( $country, array( 'US', 'CA' ) );
 			$supports_labels = ( 'US' === $country );
 
-			if ( $supports_stripe && $supports_taxes && $supports_rates && $supports_labels ) {
+			$is_stripe_active  = is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' );
+			$is_ppec_active    = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
+			$supports_payments = ( $supports_stripe && $is_stripe_active ) || $is_ppec_active;
+
+			if ( $supports_payments && $supports_taxes && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_stripe && $supports_taxes && $supports_rates ) {
+			} elseif ( $supports_payments && $supports_taxes && $supports_rates ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe && $supports_taxes ) {
+			} else if ( $supports_payments && $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe && $supports_rates && $supports_labels ) {
+			} else if ( $supports_payments && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe && $supports_rates ) {
+			} else if ( $supports_payments && $supports_rates ) {
 				$feature_list = __( 'live shipping rates and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe ) {
+			} else if ( $supports_payments ) {
 				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
 			} else if ( $supports_taxes && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, and shipping label printing', 'woocommerce-services' );
