@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 /**
  * Internal dependencies
  */
-import { getPaperSizes } from 'lib/pdf-label-utils';
+import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
 import * as PrintTestLabelActions from './state/actions';
 import ErrorNotice from 'components/error-notice';
 import FormButton from 'components/forms/form-button';

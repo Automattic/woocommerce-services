@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { translate as __ } from 'i18n-calypso';
-import { startsWith, endsWith } from 'lodash';
+import { startsWith } from 'lodash';
 
 /**
  * Internal dependencies
@@ -63,7 +63,7 @@ const createGetUrlWithNonce = ( url, queryString ) => {
 		}
 	}
 
-	const queryStart = endsWith( baseURL, 'index.php?rest_route=/' ) ? '&' : '?';
+	const queryStart = -1 !== baseURL.indexOf( '?' ) ? '&' : '?';
 
 	return `${ baseURL }${ url }${ queryStart }_wpnonce=${ nonce }${ queryString }`;
 };

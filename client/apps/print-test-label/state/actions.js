@@ -6,7 +6,7 @@ import { translate as __ } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import { getPreviewURL } from 'lib/pdf-label-utils';
+import { getPreviewURL } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
 import printDocument from 'lib/utils/print-document';
 
 export const UPDATE_PAPER_SIZE = 'UPDATE_PAPER_SIZE';
