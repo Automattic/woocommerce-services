@@ -593,7 +593,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Modify PPEC settings
 		 */
-		public function paypal_ec_settings( $settings_meta ) {
+		public function paypal_ec_settings_meta( $settings_meta ) {
 			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
 
 			if ( isset( $settings['reroute_requests'] ) && 'yes' === $settings['reroute_requests'] ) {
@@ -653,12 +653,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
 		}
 
+		public function paypal_ec_settings( $settings ) {
+			if ( empty( $settings['api_username'] ) ) {
+				$settings['api_username'] = '';
+			}
+			if ( empty( $settings['sandbox_api_username'] ) ) {
+				$settings['sandbox_api_username'] = '';
+			}
+
+			return $settings;
+		}
+
 		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
 			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
-			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings' ) );
+			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings_meta' ) );
 			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'paypal_ec_maybe_set_reroute_requests' ) );
 
 			if ( isset( $ppec_settings['reroute_requests'] ) && 'yes' === $ppec_settings['reroute_requests'] ) {
@@ -678,8 +689,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
-
 					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', array( $this, 'paypal_ec_prompt_to_connect' ) );
+					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
 				}
 			}
 		}
