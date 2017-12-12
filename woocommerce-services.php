@@ -654,6 +654,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function paypal_ec_settings( $settings ) {
+			$settings['paymentaction'] = 'sale';
+
 			if ( empty( $settings['api_username'] ) ) {
 				$settings['api_username'] = '';
 			}
