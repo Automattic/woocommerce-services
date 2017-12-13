@@ -463,6 +463,18 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
+
+			add_action( 'wp_ajax_wc_connect_dismiss_banner', array( $this, 'ajax_dismiss_banner' ) );
+		}
+
+		public function ajax_dismiss_banner() {
+			if ( empty( $_POST['dismiss_option'] ) ) {
+				return;
+			}
+
+			check_ajax_referer( 'wc_connect_dismiss_banner', 'nonce' );
+			update_option( 'wc_connect_dismiss_banner_' . $_POST['dismiss_option'], 'yes' );
+			wp_die();
 		}
 
 		public function show_banner_before_connection() {
@@ -599,7 +611,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function show_nux_banner( $content ) {
 			?>
-			<div class="notice wcs-nux__notice">
+			<div class="notice wcs-nux__notice <?php echo isset( $content['dismiss_option'] ) ? 'is-dismissible' : ''; ?>">
 				<div class="wcs-nux__notice-logo">
 					<img src="<?php echo esc_url( $content['image_url'] );  ?>">
 				</div>
@@ -650,6 +662,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php endif; ?>
 			</div>
 			<?php
+			if ( isset( $content['dismiss_option'] ) ) :
+			?>
+				<script>
+				( function( $ ) {
+					$( '.wcs-nux__notice' ).on( 'click', '.notice-dismiss', function() {
+						jQuery.post( "<?php echo admin_url( 'admin-ajax.php' ); ?>", {
+							action: "wc_connect_dismiss_banner",
+							dismiss_option: "<?php echo esc_js( $content['dismiss_option'] ); ?>",
+							nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_banner' ) ); ?>"
+						} );
+					} );
+				} )( jQuery );
+				</script>
+			<?php
+			endif;
 		}
 
 		/**
