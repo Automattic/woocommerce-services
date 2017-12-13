@@ -31,6 +31,9 @@ const _request = ( url, data, method, namespace = '' ) => {
 	if ( namespace && ! namespace.endsWith( '/' ) ) {
 		namespace += '/';
 	}
+	if ( -1 !== baseURL.indexOf( '?' ) ) {
+		url = url.replace( '?', '&' );
+	}
 	return fetch( baseURL + namespace + url, request ).then( ( response ) => {
 		return parseJson( response ).then( ( json ) => {
 			if ( json.success ) {
