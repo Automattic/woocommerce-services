@@ -556,7 +556,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout functionality beyond simply taking payments, such as: issuing refunds, capturing charges after order is complete, and more.', 'woocommerce-services' );
+			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout features beyond simply taking payments: issue refunds, capture charges after order completion, and more.', 'woocommerce-services' );
 
 			$screen = get_current_screen();
 			if ( // Display if on any of these admin pages.
