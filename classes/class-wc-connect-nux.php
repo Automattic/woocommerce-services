@@ -364,9 +364,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$supports_rates  = in_array( $country, array( 'US', 'CA' ) );
 			$supports_labels = ( 'US' === $country );
 
-			$is_stripe_active  = is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' );
-			$is_ppec_active    = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
-			$supports_payments = ( $supports_stripe && $is_stripe_active ) || $is_ppec_active;
+			$is_stripe_active = is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' );
+			$stripe_settings  = get_option( 'woocommerce_stripe_settings', array() );
+			$is_stripe_ready  = isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'];
+
+			$is_ppec_active = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
+			$ppec_settings  = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			$is_ppec_ready  = isset( $ppec_settings['enabled'] ) && 'yes' === $ppec_settings['enabled'];
+
+			$supports_payments = ( $supports_stripe && $is_stripe_ready ) || $is_ppec_ready;
 
 			if ( $supports_payments && $supports_taxes && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
