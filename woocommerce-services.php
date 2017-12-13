@@ -549,6 +549,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
 		public function paypal_ec_prompt_to_connect() {
+			if ( 'yes' === get_option( 'wc_connect_dismiss_banner_ppec' ) ) {
+				return;
+			}
+
 			function uses_ppec_payment_method( $order ) {
 				return $order->get_payment_method() === 'ppec_paypal';  // TODO WC <3.0 compatibility
 			}
@@ -589,6 +593,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
 					'image_url'      => plugins_url( 'images/cashier.svg', __FILE__ ),
 					'should_show_jp' => false,
+					'dismiss_option' => 'ppec',
 				) );
 			}
 		}
