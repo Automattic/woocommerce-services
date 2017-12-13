@@ -553,15 +553,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return $order->get_payment_method() === 'ppec_paypal';  // TODO WC <3.0 compatibility
 			}
 			if ( ! count( array_filter( wc_get_orders( array() ), 'uses_ppec_payment_method' ) ) ) {
-				return '';
+				return;
 			}
 
-			$reset_link = add_query_arg(
-				array( 'reroute_requests' => 'no', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
-				wc_gateway_ppec()->get_admin_setting_link()
-			);
-			$prompt_template = __( '<a href="%s">Link a new or existing PayPal account</a> to enable PayPal Express Checkout Gateway functionality beyond simply taking payments, such as: issuing refunds, capturing charges after order is complete, and taking subscriptions with <a href="https://woocommerce.com/products/woocommerce-subscriptions/">WooCommerce Subscriptions</a>.', 'woocommerce-services' );
-			$prompt = sprintf( $prompt_template, $reset_link );
+			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout functionality beyond simply taking payments, such as: issuing refunds, capturing charges after order is complete, and more.', 'woocommerce-services' );
 
 			$screen = get_current_screen();
 			if ( // Display if on any of these admin pages.
@@ -586,7 +581,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					)
 				|| 'plugins' === $screen->base
 			) {
-				return $prompt;
+				wp_enqueue_style( 'wc_connect_banner' );
+				$this->nux->show_nux_banner( array(
+					'title'          => __( 'Connect a PayPal account', 'woocommerce-services' ),
+					'description'    => esc_html( $prompt ),
+					'button_text'    => __( 'Connect', 'woocommerce-services' ),
+					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
+					'image_url'      => plugins_url( 'images/cashier.svg', __FILE__ ),
+					'should_show_jp' => false,
+				) );
 			}
 		}
 
@@ -693,7 +696,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
-					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', array( $this, 'paypal_ec_prompt_to_connect' ) );
+					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
+					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
 				}
 			}
