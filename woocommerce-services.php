@@ -687,6 +687,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
+			if ( ! function_exists( 'wc_gateway_ppec' ) ) {
+				return;
+			}
+
 			$this->paypal_ec_initialize_settings();
 
 			$settings = wc_gateway_ppec()->settings;
