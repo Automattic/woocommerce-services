@@ -156,13 +156,29 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Check that we are able to talk to the WooCommerce Services server
 			$schemas = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
+			$refresh_link = sprintf(
+				wp_kses(
+					'<a href="%s">' . __( 'Refresh', 'woocommerce-services' ) . '</a>',
+					array( 'a' => array( 'href' => array() ) )
+				),
+				add_query_arg(
+					array(
+						'page' => 'wc-status',
+						'tab' => 'connect',
+						'refresh' => 'true',
+					),
+					admin_url( 'admin.php' )
+				)
+			);
 			if ( ! is_null( $last_fetch_timestamp ) ) {
 				$last_fetch_timestamp_formatted = sprintf(
-					_x( 'Last updated %s ago', '%s = human-readable time difference', 'woocommerce-services' ),
-					human_time_diff( $last_fetch_timestamp )
+					_x( 'Last updated %1s ago. %2s', '%1s = human-readable time difference, %2s = refresh url', 'woocommerce-services' ),
+					human_time_diff( $last_fetch_timestamp ),
+					$refresh_link
 				);
 			} else {
 				$last_fetch_timestamp = '';
+				$last_fetch_timestamp_formatted = $refresh_link;
 			}
 			if ( is_null( $schemas ) ) {
 				$health_item = $this->build_indicator(
@@ -170,7 +186,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'notice',
 					'is-error',
 					__( 'No service data available', 'woocommerce-services' ),
-					''
+					$last_fetch_timestamp_formatted
 				);
 			} else if ( is_null( $last_fetch_timestamp ) ) {
 				$health_item = $this->build_indicator(
@@ -178,7 +194,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'notice',
 					'is-warning',
 					__( 'Service data was found, but may be out of date', 'woocommerce-services' ),
-					''
+					$last_fetch_timestamp_formatted
 				);
 			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD ) {
 				$health_item = $this->build_indicator(
@@ -658,6 +674,12 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 * Localizes the bootstrap, enqueues the script and styles for the help page
 		 */
 		public function page() {
+			if ( isset( $_GET['refresh'] ) && 'true' === $_GET['refresh'] ) {
+				$this->service_schemas_store->fetch_service_schemas_from_connect_server();
+				$url = remove_query_arg( 'refresh' );
+				wp_safe_redirect( $url );
+			}
+
 			$this->help_sections = array();
 
 			$this->add_fieldset(
