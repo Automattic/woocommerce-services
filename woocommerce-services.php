@@ -598,6 +598,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		public function paypal_ec_initialize_settings() {
+			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+
+			if ( ! isset( $settings['button_size'] ) ) {
+				$settings_meta = ( new WC_Gateway_PPEC_With_PayPal() )->form_fields;
+				foreach ( $settings_meta as $key => $setting_meta ) {
+					if ( ! isset( $settings[ $key ] ) && isset( $setting_meta['default'] ) ) {
+						$settings[ $key ] = $setting_meta['default'];
+					}
+				}
+				update_option( 'woocommerce_ppec_paypal_settings', $settings );
+				wc_gateway_ppec()->settings->load( true );
+			}
+		}
+
 		/**
 		 * Modify PPEC settings
 		 */
@@ -665,14 +680,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function paypal_ec_settings( $settings ) {
 			$settings['paymentaction'] = 'sale';
-
-			if ( empty( $settings['api_username'] ) ) {
-				$settings['api_username'] = '';
-			}
-			if ( empty( $settings['sandbox_api_username'] ) ) {
-				$settings['sandbox_api_username'] = '';
-			}
-
 			return $settings;
 		}
 
@@ -704,6 +711,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
+
+					add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'paypal_ec_initialize_settings' ), 15 );
+					add_action( 'woocommerce_proceed_to_checkout', array( $this, 'paypal_ec_initialize_settings' ), 15 );
 				}
 			}
 		}
