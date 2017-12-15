@@ -534,8 +534,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Get WCS PayPal proxy endpoint
 		 */
 		public function paypal_ec_endpoint() {
-			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
-			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $ppec_settings[ 'environment' ];
+			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . wc_gateway_ppec()->settings->environment;
 		}
 
 		/**
@@ -613,13 +612,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		public function paypal_ec_settings( $settings ) {
+			$settings['paymentaction'] = 'sale';
+			return $settings;
+		}
+
 		/**
 		 * Modify PPEC settings
 		 */
 		public function paypal_ec_settings_meta( $settings_meta ) {
-			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			$settings = wc_gateway_ppec()->settings;
 
-			if ( isset( $settings['reroute_requests'] ) && 'yes' === $settings['reroute_requests'] ) {
+			if ( 'yes' === $settings->reroute_requests ) {
 				// Prevent user from choosing option that will cause requests to fail
 				$settings_meta['paymentaction']['disabled'] = true;
 				$settings_meta['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking an account.)', 'woocommerce-services' ), $settings_meta['paymentaction']['description'] );
@@ -647,11 +651,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				);
 				$api_creds_template = __( 'To authenticate payments with WooCommerce Services, <a href="%s">click here</a>.', 'woocommerce-services' );
 
-				if ( empty( $settings['api_username'] ) ) {
+				if ( empty( $settings->api_username ) ) {
 					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
 					$settings_meta['api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
 				}
-				if ( empty( $settings['sandbox_api_username'] ) ) {
+				if ( empty( $settings->sandbox_api_username ) ) {
 					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
 					$settings_meta['sandbox_api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
 				}
@@ -674,36 +678,34 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$ppec_settings['environment'] = 'sandbox' === $_GET['environment'] ? 'sandbox' : 'live';
 			}
 			update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
+			wc_gateway_ppec()->settings->load( true );
 
 			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
-		}
-
-		public function paypal_ec_settings( $settings ) {
-			$settings['paymentaction'] = 'sale';
-			return $settings;
 		}
 
 		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
 		 */
 		public function paypal_ec_setup() {
-			$ppec_settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			$this->paypal_ec_initialize_settings();
+
+			$settings = wc_gateway_ppec()->settings;
 			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings_meta' ) );
 			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'paypal_ec_maybe_set_reroute_requests' ) );
 
-			if ( isset( $ppec_settings['reroute_requests'] ) && 'yes' === $ppec_settings['reroute_requests'] ) {
+			if ( 'yes' === $settings->reroute_requests ) {
 				// If empty, populate Sandbox API Subject with Live API Subject value
 				if (
-					! isset( $ppec_settings['sandbox_api_subject'] ) &&
-					! isset( $ppec_settings['sandbox_api_username'] ) &&
-					! isset( $ppec_settings['api_username'] )
+					is_null( $settings->sandbox_api_subject ) &&
+					is_null( $settings->sandbox_api_username ) &&
+					is_null( $settings->api_username )
 				) {
-					$ppec_settings['sandbox_api_subject'] = $ppec_settings['api_subject'];
-					update_option( 'woocommerce_ppec_paypal_settings', $ppec_settings );
+					$settings->sandbox_api_subject = $settings->api_subject;
+					$settings->save();
 				}
 
-				$username_key = 'sandbox' === $ppec_settings[ 'environment' ] ? 'sandbox_api_username' : 'api_username';
-				if ( empty( $ppec_settings[ $username_key ] ) ) {
+				$username_key = 'sandbox' === $settings->environment ? 'sandbox_api_username' : 'api_username';
+				if ( empty( $settings->$username_key ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
@@ -711,9 +713,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
-
-					add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'paypal_ec_initialize_settings' ), 15 );
-					add_action( 'woocommerce_proceed_to_checkout', array( $this, 'paypal_ec_initialize_settings' ), 15 );
 				}
 			}
 		}
