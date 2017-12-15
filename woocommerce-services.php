@@ -601,7 +601,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
 
 			if ( ! isset( $settings['button_size'] ) ) {
-				$settings_meta = ( new WC_Gateway_PPEC_With_PayPal() )->form_fields;
+				$gateway = new WC_Gateway_PPEC_With_PayPal();
+				$settings_meta = $gateway->form_fields;
 				foreach ( $settings_meta as $key => $setting_meta ) {
 					if ( ! isset( $settings[ $key ] ) && isset( $setting_meta['default'] ) ) {
 						$settings[ $key ] = $setting_meta['default'];
