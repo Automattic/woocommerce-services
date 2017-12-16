@@ -169,6 +169,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $stripe;
 
 		/**
+		 * @var WC_Connect_PayPal_EC
+		 */
+		protected $paypal_ec;
+
+		/**
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;
@@ -381,6 +386,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->stripe = $stripe;
 		}
 
+		public function set_paypal_ec( WC_Connect_PayPal_EC $paypal_ec ) {
+			$this->paypal_ec = $paypal_ec;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -531,205 +540,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Get WCS PayPal proxy endpoint
-		 */
-		public function paypal_ec_endpoint() {
-			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . wc_gateway_ppec()->settings->environment;
-		}
-
-		/**
-		 * Limit supported payment gateway features to payments
-		 */
-		public function paypal_ec_supports( $supported, $feature, $gateway ) {
-			return 'ppec_paypal' === $gateway->id ? 'products' === $feature : $supported;
-		}
-
-		public function paypal_ec_maybe_set_banner( $order_id ) {
-			$order = wc_get_order( $order_id );
-			if ( 'ppec_paypal' === $order->get_payment_method() ) {
-				update_option( 'wc_connect_banner_ppec', 'yes' );
-			}
-		}
-
-		/**
-		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
-		 */
-		public function paypal_ec_prompt_to_connect() {
-			if (
-				'yes' !== get_option( 'wc_connect_banner_ppec', null ) ||
-				'yes' === get_option( 'wc_connect_dismiss_banner_ppec', null )
-			) {
-				return;
-			}
-
-			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout features beyond simply taking payments: issue refunds, capture charges after order completion, and more.', 'woocommerce-services' );
-
-			$screen = get_current_screen();
-			if ( // Display if on any of these admin pages.
-				( // Orders list.
-					'shop_order' === $screen->post_type
-					&& 'edit' === $screen->base
-					)
-				|| ( // Edit order page.
-					'shop_order' === $screen->post_type
-					&& 'post' === $screen->base
-					)
-				|| ( // WooCommerce settings.
-					'woocommerce_page_wc-settings' === $screen->base
-					)
-				|| ( // WooCommerce featured extension page
-					'woocommerce_page_wc-addons' === $screen->base
-					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
-					)
-				|| ( // WooCommerce payment gateway extension page
-					'woocommerce_page_wc-addons' === $screen->base
-					&& isset( $_GET['section'] ) && 'payment_gateways' === $_GET['section']
-					)
-				|| 'plugins' === $screen->base
-			) {
-				wp_enqueue_style( 'wc_connect_banner' );
-				$this->nux->show_nux_banner( array(
-					'title'          => __( 'Connect a PayPal account', 'woocommerce-services' ),
-					'description'    => esc_html( $prompt ),
-					'button_text'    => __( 'Connect', 'woocommerce-services' ),
-					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
-					'image_url'      => plugins_url( 'images/cashier.svg', __FILE__ ),
-					'should_show_jp' => false,
-					'dismiss_option' => 'ppec',
-				) );
-			}
-		}
-
-		public function paypal_ec_initialize_settings() {
-			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
-
-			if ( ! isset( $settings['button_size'] ) ) {
-				$gateway = new WC_Gateway_PPEC_With_PayPal();
-				$settings_meta = $gateway->form_fields;
-				foreach ( $settings_meta as $key => $setting_meta ) {
-					if ( ! isset( $settings[ $key ] ) && isset( $setting_meta['default'] ) ) {
-						$settings[ $key ] = $setting_meta['default'];
-					}
-				}
-				if ( ! isset( $settings['reroute_requests'] ) ) {
-					$settings['reroute_requests'] = 'no';
-				}
-				update_option( 'woocommerce_ppec_paypal_settings', $settings );
-				wc_gateway_ppec()->settings->load( true );
-			}
-		}
-
-		public function paypal_ec_settings( $settings ) {
-			$settings['paymentaction'] = 'sale';
-			return $settings;
-		}
-
-		/**
-		 * Modify PPEC settings
-		 */
-		public function paypal_ec_settings_meta( $settings_meta ) {
-			$settings = wc_gateway_ppec()->settings;
-
-			if ( 'yes' === $settings->reroute_requests ) {
-				// Prevent user from choosing option that will cause requests to fail
-				$settings_meta['paymentaction']['disabled'] = true;
-				$settings_meta['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking a PayPal account.)', 'woocommerce-services' ), $settings_meta['paymentaction']['description'] );
-
-				// Communicate WCS proxying and provide option to disable
-				$reset_link = add_query_arg(
-					array( 'reroute_requests' => 'no', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
-					wc_gateway_ppec()->get_admin_setting_link()
-				);
-				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Services and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
-				if ( empty( $settings->api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
-					$settings_meta['api_credentials']['description'] = $api_creds_text;
-					unset( $settings_meta['api_username'], $settings_meta['api_password'], $settings_meta['api_signature'], $settings_meta['api_certificate'] );
-				}
-				if ( empty( $settings->sandbox_api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
-					$settings_meta['sandbox_api_credentials']['description'] = $api_creds_text;
-					unset( $settings_meta['sandbox_api_username'], $settings_meta['sandbox_api_password'], $settings_meta['sandbox_api_signature'], $settings_meta['sandbox_api_certificate'] );
-				}
-
-			} else {
-				$reset_link = add_query_arg(
-					array( 'reroute_requests' => 'yes', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
-					wc_gateway_ppec()->get_admin_setting_link()
-				);
-				$api_creds_template = __( 'To authenticate payments with WooCommerce Services, <a href="%s">click here</a>.', 'woocommerce-services' );
-				if ( empty( $settings->api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
-					$settings_meta['api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
-				}
-				if ( empty( $settings->sandbox_api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
-					$settings_meta['sandbox_api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
-				}
-			}
-
-			return $settings_meta;
-		}
-
-		public function paypal_ec_maybe_set_reroute_requests() {
-			if (
-				empty( $_GET['reroute_requests'] ) ||
-				empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' )
-			) {
-				return;
-			}
-
-			$settings = wc_gateway_ppec()->settings;
-			$settings->reroute_requests = 'yes' === $_GET['reroute_requests'] ? 'yes' : 'no';
-			if ( isset( $_GET['environment'] ) ) {
-				$settings->environment = 'sandbox' === $_GET['environment'] ? 'sandbox' : 'live';
-			}
-			$settings->save();
-
-			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
-		}
-
-		/**
-		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
-		 */
-		public function paypal_ec_setup() {
-			if ( ! function_exists( 'wc_gateway_ppec' ) ) {
-				return;
-			}
-
-			$this->paypal_ec_initialize_settings();
-
-			$settings = wc_gateway_ppec()->settings;
-			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'paypal_ec_settings_meta' ) );
-			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'paypal_ec_maybe_set_reroute_requests' ) );
-
-			if ( 'yes' === $settings->reroute_requests ) {
-				// If empty, populate Sandbox API Subject with Live API Subject value
-				if (
-					is_null( $settings->sandbox_api_subject ) &&
-					is_null( $settings->sandbox_api_username ) &&
-					is_null( $settings->api_username )
-				) {
-					$settings->sandbox_api_subject = $settings->api_subject;
-					$settings->save();
-				}
-
-				if ( empty( $settings->get_active_api_credentials()->get_username() ) ) {
-					// Reroute requests from the PPEC extension via WCS to pick up API credentials
-					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
-
-					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
-					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
-
-					add_action( 'woocommerce_order_status_on-hold', array( $this, 'paypal_ec_maybe_set_banner' ) );
-					add_action( 'woocommerce_payment_complete', array( $this, 'paypal_ec_maybe_set_banner' ) );
-					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
-					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
-				}
-			}
-		}
-
-		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
 		 * @codeCoverageIgnore
@@ -759,6 +569,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-stripe.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-paypal-ec.php' ) );
 
 			$logger                = new WC_Connect_Logger( new WC_Logger() );
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -772,6 +583,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 			$options               = new WC_Connect_Options();
 			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger );
+			$paypal_ec             = new WC_Connect_PayPal_EC();
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );
@@ -784,6 +596,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_nux( $nux );
 			$this->set_taxjar( $taxjar );
 			$this->set_stripe( $stripe );
+			$this->set_paypal_ec( $paypal_ec );
 		}
 
 		/**
@@ -844,12 +657,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
-			add_action( 'wp_loaded', array( $this, 'paypal_ec_setup' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
 
 			$this->taxjar->init();
+			$this->paypal_ec->init();
 		}
 
 		public function tos_rest_init() {
