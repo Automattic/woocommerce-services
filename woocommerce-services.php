@@ -544,18 +544,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return 'ppec_paypal' === $gateway->id ? 'products' === $feature : $supported;
 		}
 
+		public function paypal_ec_maybe_set_banner( $order_id ) {
+			$order = wc_get_order( $order_id );
+			if ( 'ppec_paypal' === $order->get_payment_method() ) {
+				update_option( 'wc_connect_banner_ppec', 'yes' );
+			}
+		}
+
 		/**
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
 		public function paypal_ec_prompt_to_connect() {
-			if ( 'yes' === get_option( 'wc_connect_dismiss_banner_ppec' ) ) {
-				return;
-			}
-
-			function uses_ppec_payment_method( $order ) {
-				return $order->get_payment_method() === 'ppec_paypal';  // TODO WC <3.0 compatibility
-			}
-			if ( ! count( array_filter( wc_get_orders( array() ), 'uses_ppec_payment_method' ) ) ) {
+			if (
+				'yes' !== get_option( 'wc_connect_banner_ppec', null ) ||
+				'yes' === get_option( 'wc_connect_dismiss_banner_ppec', null )
+			) {
 				return;
 			}
 
@@ -715,10 +718,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'paypal_ec_endpoint' ) );
 
-					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
-					add_filter( 'option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
-					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
+					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'paypal_ec_supports' ), 10, 3 );
+
+					add_action( 'woocommerce_order_status_on-hold', array( $this, 'paypal_ec_maybe_set_banner' ) );
+					add_action( 'woocommerce_payment_complete', array( $this, 'paypal_ec_maybe_set_banner' ) );
+					add_action( 'admin_notices', array( $this, 'paypal_ec_prompt_to_connect' ) );
+					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 				}
 			}
 		}
