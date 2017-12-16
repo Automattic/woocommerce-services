@@ -30,7 +30,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		private $supported_countries = array( 'US', 'PR' );
 
 		/**
-		 * @var array array of currently unsupported states, by country
+		 * @var array Supported currencies
+		 */
+		private $supported_currencies = array( 'USD' );
+
+		/**
+		 * @var array Unsupported states, by country
 		 */
 		private $unsupported_states = array(
 			'US' => array( 'AA', 'AE', 'AP' ),
@@ -328,6 +333,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return in_array( $country_code, $this->supported_countries );
 		}
 
+		private function is_supported_currency( $currency_code ) {
+			return in_array( $currency_code, $this->supported_currencies );
+		}
+
 		private function is_supported_address( $address ) {
 			$country_code = $address['country'];
 			if ( ! $country_code ) {
@@ -384,6 +393,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			// If the order already has purchased labels, show the meta-box no matter what
 			if ( get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true ) ) {
 				return true;
+			}
+
+			// Restrict showing the metabox to supported store currencies.
+			$base_currency = get_woocommerce_currency();
+			if ( ! $this->is_supported_currency( $base_currency ) ) {
+				return false;
 			}
 
 			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
