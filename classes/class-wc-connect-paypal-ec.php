@@ -44,7 +44,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					$settings->save();
 				}
 
-				if ( empty( $settings->get_active_api_credentials()->get_username() ) ) {
+				$username = $settings->get_active_api_credentials()->get_username();
+				if ( empty( $username ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'endpoint' ) );
 
