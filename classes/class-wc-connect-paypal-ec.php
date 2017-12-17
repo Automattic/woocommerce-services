@@ -6,6 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
+	/**
+	 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
+	 */
 	class WC_Connect_PayPal_EC {
 
 		/**
@@ -18,20 +21,10 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		public function init() {
-			if ( function_exists( 'wc_gateway_ppec' ) ) {
-				add_action( 'wp_loaded', array( $this, 'setup' ) );
-
-				if ( isset( $_GET['api_username'] ) ) {
-					add_action( 'wc_connect_ppec_check_transaction_status', array( $this, 'update_order_status' ) );
-					wp_schedule_single_event( time(), 'wc_connect_ppec_check_transaction_status' );
-				}
+			if ( ! function_exists( 'wc_gateway_ppec' ) ) {
+				return;
 			}
-		}
 
-		/**
-		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
-		 */
-		public function setup() {
 			$this->initialize_settings();
 
 			$settings = wc_gateway_ppec()->settings;
@@ -65,8 +58,12 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					}
 				}
 			}
-		}
 
+			if ( isset( $_GET['api_username'] ) ) {
+				add_action( 'wc_connect_ppec_check_transaction_status', array( $this, 'update_order_status' ) );
+				wp_schedule_single_event( time(), 'wc_connect_ppec_check_transaction_status' );
+			}
+		}
 
 		/**
 		 * Get WCS PayPal proxy endpoint
