@@ -7,15 +7,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 	class WC_Connect_PayPal_EC {
-        public function __construct() {
 
-        }
+		/**
+		 * @var WC_Connect_Nux
+		 */
+		private $nux;
 
-        public function init() {
+		public function __construct( WC_Connect_Nux $nux ) {
+			$this->nux = $nux;
+		}
+
+		public function init() {
 			if ( function_exists( 'wc_gateway_ppec' ) ) {
-                add_action( 'wp_loaded', array( $this, 'setup' ) );
+				add_action( 'wp_loaded', array( $this, 'setup' ) );
 			}
-        }
+		}
 
 		/**
 		 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
@@ -119,7 +125,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					'description'    => esc_html( $prompt ),
 					'button_text'    => __( 'Connect', 'woocommerce-services' ),
 					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
-					'image_url'      => plugins_url( 'images/cashier.svg', __FILE__ ),
+					'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
 					'should_show_jp' => false,
 					'dismiss_option' => 'ppec',
 				) );
