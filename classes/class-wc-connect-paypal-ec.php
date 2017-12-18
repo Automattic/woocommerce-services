@@ -45,7 +45,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				$username = $settings->get_active_api_credentials()->get_username();
 				if ( empty( $username ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
-					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'endpoint' ) );
+					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'endpoint' ), 10, 2 );
 
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'supports' ), 10, 3 );
@@ -68,8 +68,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		/**
 		 * Get WCS PayPal proxy endpoint
 		 */
-		public function endpoint() {
-			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . wc_gateway_ppec()->settings->environment;
+		public function endpoint( $endpoint, $environment ) {
+			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $environment;
 		}
 
 		/**
