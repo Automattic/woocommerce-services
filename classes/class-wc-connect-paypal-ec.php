@@ -58,11 +58,6 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					}
 				}
 			}
-
-			if ( isset( $_GET['api_username'] ) ) {
-				add_action( 'wc_connect_ppec_check_transaction_status', array( $this, 'update_order_status' ) );
-				wp_schedule_single_event( time(), 'wc_connect_ppec_check_transaction_status' );
-			}
 		}
 
 		/**
@@ -222,31 +217,6 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$settings->save();
 
 			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
-		}
-
-		public function update_order_status() {
-			$orders = wc_get_orders( array( 'status' => 'on-hold' ) );
-			error_log( count( $orders ) );
-
-			foreach ( $orders as $order ) {
-				$old_wc         = version_compare( WC_VERSION, '3.0', '<' );
-				$order_id       = $old_wc ? $order->id : $order->get_id();
-				$payment_method = $old_wc ? $order->payment_method : $order->get_payment_method();
-
-				if ( 'ppec_paypal' === $payment_method ) {
-					$payment_status = get_post_meta( $order_id, '_paypal_status', true );
-
-					if ( 'completed' !== strtolower( $payment_status ) ) {
-						$txn_id = get_post_meta( $order_id, '_transaction_id', true );
-						$txn_details = wc_gateway_ppec()->client->get_transaction_details( array( 'TRANSACTIONID' => $txn_id ) );
-
-						if ( isset( $txn_details['PAYMENTSTATUS'] ) && 'completed' === strtolower( $txn_details['PAYMENTSTATUS'] ) ) {
-							$order->payment_complete( $txn_id );
-						}
-					}
-				}
-
-			}
 		}
 	}
 }
