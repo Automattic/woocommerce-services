@@ -29,8 +29,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$this->api = $client;
 			$this->options = $options;
 			$this->logger = $logger;
-
-			add_filter( 'woocommerce_stripe_request_headers', array( $this, 'modify_request_headers' ) );
 		}
 
 		public function is_stripe_plugin_enabled() {
@@ -96,7 +94,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$option_name = 'woocommerce_stripe_settings';
 			$options = array_merge( $default_options, get_option( $option_name, array() ) );
 			$options['enabled']                     = 'yes';
-			$options['connect']                     = 'yes';
 			$options['testmode']                    = $is_test ? 'yes' : 'no';
 			$options[ $prefix . 'account_id' ]      = $result->accountId;
 			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
@@ -120,17 +117,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			return $result;
-		}
-
-		/**
-		 * Differentiate Stripe Connect account requests by omitting User-Agent
-		 */
-		public function modify_request_headers( $headers ) {
-			$options = get_option( 'woocommerce_stripe_settings', array() );
-			if ( isset( $options['connect'] ) && 'yes' === $options['connect'] ) {
-				unset( $headers['User-Agent'] );
-			}
-			return $headers;
 		}
 	}
 }
