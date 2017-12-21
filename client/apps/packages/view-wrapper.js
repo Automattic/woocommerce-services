@@ -5,6 +5,7 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import { noop } from 'lodash';
 
 /**
  * Internal dependencies
@@ -34,7 +35,7 @@ const PackagesWrapper = ( props ) => {
 	return (
 		<div>
 			<GlobalNotices notices={ notices.list } />
-			<Packages />
+			<Packages onChange={ noop } />
 			<Button
 				primary
 				onClick={ onSaveChanges }
