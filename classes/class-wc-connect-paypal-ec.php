@@ -38,7 +38,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					empty( $settings->sandbox_api_username ) &&
 					empty( $settings->api_username )
 				) {
-					$settings->sandbox_api_subject = $settings->api_subject;
+					$email = isset( $settings->email ) ? $settings->email : $settings->api_subject;
+					$settings->api_subject = $email;
+					$settings->sandbox_api_subject = $email;
 					$settings->save();
 				}
 
