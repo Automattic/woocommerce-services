@@ -34,9 +34,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			if ( 'yes' === $settings->reroute_requests ) {
 				// If empty, populate Sandbox API Subject with Live API Subject value
 				if (
-					is_null( $settings->sandbox_api_subject ) &&
-					is_null( $settings->sandbox_api_username ) &&
-					is_null( $settings->api_username )
+					empty( $settings->sandbox_api_subject ) &&
+					empty( $settings->sandbox_api_username ) &&
+					empty( $settings->api_username )
 				) {
 					$settings->sandbox_api_subject = $settings->api_subject;
 					$settings->save();
