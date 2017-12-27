@@ -125,13 +125,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$wc_address_fields['postcode'] = '';
 			}
 
-			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', false );
-			if ( $stored_address_fields ) {
-				$wc_address_fields['normalized'] = true;
-				return array_merge( $wc_address_fields, $stored_address_fields );
-			}
-
-			return $wc_address_fields;
+			$stored_address_fields = WC_Connect_Options::get_option( 'origin_address', array() );
+			return array_merge( $wc_address_fields, $stored_address_fields );
 		}
 
 		public function get_preferred_paper_size() {

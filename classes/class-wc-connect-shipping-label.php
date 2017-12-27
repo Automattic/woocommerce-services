@@ -299,9 +299,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$destination['country'] = $origin['country'];
 			}
 
+			$origin_normalized = ( bool ) WC_Connect_Options::get_option( 'origin_address', false );
 			$destination_normalized = ( bool ) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'destination_normalized' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'origin_normalized', 'destination_normalized' );
 
 			$form_data['rates'] = array(
 				'selected'  => (object) $selected_rates,
