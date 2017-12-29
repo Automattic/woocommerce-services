@@ -83,7 +83,9 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 			return;
 		}
 
-		if ( ! state.form || ( state.form.meta && state.form.meta.pristine ) || _.every( state.form.pristine ) ) {
+		//this only handles the shipping service settings page. Other pages use ProtectFormGuard and Component state
+		//TODO: remove once the service settings are Calypso-fied
+		if ( ! state.form || _.every( state.form.pristine ) ) {
 			return;
 		}
 		const text = __( 'You have unsaved changes.' );
