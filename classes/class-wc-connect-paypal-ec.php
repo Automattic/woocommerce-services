@@ -79,8 +79,10 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		public function maybe_set_banner( $order_id ) {
-			$order = wc_get_order( $order_id );
-			if ( 'ppec_paypal' === $order->get_payment_method() ) {
+			$order          = wc_get_order( $order_id );
+			$payment_method = WC_Connect_Compatibility::instance()->get_payment_method( $order );
+
+			if ( 'ppec_paypal' === $payment_method ) {
 				update_option( 'wc_connect_banner_ppec', 'yes' );
 			}
 		}

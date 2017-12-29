@@ -24,6 +24,17 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		}
 
 		/**
+		 * Get the payment method for a given Order.
+		 *
+		 * @param WC_Order $order
+		 *
+		 * @return string
+		 */
+		public function get_payment_method( WC_Order $order ) {
+			return $order->payment_method;
+		}
+
+		/**
 		 * Retrieve the corresponding Product for the given Order Item.
 		 *
 		 * @param WC_Order $order
