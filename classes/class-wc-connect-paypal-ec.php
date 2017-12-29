@@ -45,7 +45,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				}
 
 				$username = $settings->get_active_api_credentials()->get_username();
-				if ( empty( $username ) ) {
+				$subject  = $settings->get_active_api_credentials()->get_subject();
+
+				if ( empty( $username ) && ! empty( $subject ) ) {
 					// Reroute requests from the PPEC extension via WCS to pick up API credentials
 					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'endpoint' ), 10, 2 );
 
@@ -183,6 +185,14 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					$settings_meta['sandbox_api_credentials']['description'] = $api_creds_text;
 					unset( $settings_meta['sandbox_api_username'], $settings_meta['sandbox_api_password'], $settings_meta['sandbox_api_signature'], $settings_meta['sandbox_api_certificate'] );
 				}
+
+				$api_subject_title = __( 'Payment Email', 'woocommerce-services' );
+				$api_subject_description = __( 'Enter your email address at which to accept payments. You\'ll need to link your own account in order to perform anything other than "sale" transactions.', 'woocommerce-services' );
+				$api_subject_placeholder = __( 'Required', 'woocommerce-services' );
+
+				$settings_meta['api_subject']['title'] = $settings_meta['sandbox_api_subject']['title'] = $api_subject_title;
+				$settings_meta['api_subject']['description'] = $settings_meta['sandbox_api_subject']['description'] = $api_subject_description;
+				$settings_meta['api_subject']['placeholder'] = $settings_meta['sandbox_api_subject']['placeholder'] = $api_subject_placeholder;
 
 			} else {
 				$reset_link = add_query_arg(
