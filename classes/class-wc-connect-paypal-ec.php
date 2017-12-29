@@ -48,8 +48,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				$subject  = $settings->get_active_api_credentials()->get_subject();
 
 				if ( empty( $username ) && ! empty( $subject ) ) {
-					// Reroute requests from the PPEC extension via WCS to pick up API credentials
-					add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'endpoint' ), 10, 2 );
+					// Reroute Express Checkout requests from the PPEC extension via WCS to pick up API credentials
+					add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
 
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'paypal_ec_settings' ) );
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'supports' ), 10, 3 );
@@ -64,10 +64,20 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			}
 		}
 
+		public function request_body( $body ) {
+			$methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
+			if ( in_array( $body['METHOD'], $methods_to_proxy ) ) {
+				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'request_endpoint' ), 10, 2 );
+			} else {
+				remove_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'request_endpoint' ), 10, 2 );
+			}
+			return $body;
+		}
+
 		/**
 		 * Get WCS PayPal proxy endpoint
 		 */
-		public function endpoint( $endpoint, $environment ) {
+		public function request_endpoint( $endpoint, $environment ) {
 			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $environment;
 		}
 
