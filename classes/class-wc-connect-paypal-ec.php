@@ -32,7 +32,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'maybe_set_reroute_requests' ) );
 
 			if ( 'yes' === $settings->reroute_requests ) {
-				// If empty, populate Sandbox API Subject with Live API Subject value
+				// If empty, populate Sandbox and Live API Subject values with provided email
 				if (
 					empty( $settings->sandbox_api_subject ) &&
 					empty( $settings->sandbox_api_username ) &&
