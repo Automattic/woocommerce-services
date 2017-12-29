@@ -680,9 +680,6 @@ class WC_Connect_TaxJar_Integration {
 		// Rate calculations assume tax not included
 		update_option( 'woocommerce_prices_include_tax', 'no' );
 
-		// Don't ever set a default customer address
-		update_option( 'woocommerce_default_customer_address', '' );
-
 		// Use no special handling on shipping taxes, our API handles that
 		update_option( 'woocommerce_shipping_tax_class', '' );
 
