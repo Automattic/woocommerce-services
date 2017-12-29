@@ -58,7 +58,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					if ( 'sandbox' !== $settings->environment ) {
 						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_set_banner' ) );
 						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_set_banner' ) );
-						add_action( 'admin_notices', array( $this, 'banner' ) );
+						add_action( 'current_screen', array( $this, 'maybe_init_banner' ) );
 					}
 				}
 			}
@@ -88,15 +88,13 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		/**
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
-		public function banner() {
+		public function maybe_init_banner() {
 			if (
 				'yes' !== get_option( 'wc_connect_banner_ppec', null ) ||
 				'yes' === get_option( 'wc_connect_dismiss_banner_ppec', null )
 			) {
 				return;
 			}
-
-			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout features beyond simply taking payments: issue refunds, capture charges after order completion, and more.', 'woocommerce-services' );
 
 			$screen = get_current_screen();
 			if ( // Display if on any of these admin pages.
@@ -122,16 +120,22 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				|| 'plugins' === $screen->base
 			) {
 				wp_enqueue_style( 'wc_connect_banner' );
-				$this->nux->show_nux_banner( array(
-					'title'          => __( 'Connect a PayPal account', 'woocommerce-services' ),
-					'description'    => esc_html( $prompt ),
-					'button_text'    => __( 'Connect', 'woocommerce-services' ),
-					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
-					'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
-					'should_show_jp' => false,
-					'dismiss_option' => 'ppec',
-				) );
+				add_action( 'admin_notices', array( $this, 'banner' ) );
 			}
+		}
+
+		public function banner() {
+			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout features beyond simply taking payments: issue refunds, capture charges after order completion, and more.', 'woocommerce-services' );
+
+			$this->nux->show_nux_banner( array(
+				'title'          => __( 'Connect a PayPal account', 'woocommerce-services' ),
+				'description'    => esc_html( $prompt ),
+				'button_text'    => __( 'Connect', 'woocommerce-services' ),
+				'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
+				'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
+				'should_show_jp' => false,
+				'dismiss_option' => 'ppec',
+			) );
 		}
 
 		public function initialize_settings() {
