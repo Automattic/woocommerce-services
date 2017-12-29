@@ -9,6 +9,7 @@ import React from 'react';
 import ShippingLabelViewWrapper from './view-wrapper';
 // from calypso
 import notices from 'state/notices/reducer';
+import plugins from 'state/plugins/reducer';
 import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
 import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
@@ -39,6 +40,7 @@ export default ( { orderId } ) => ( {
 				} ),
 			} ),
 			notices,
+			plugins,
 			ui: () => ( {
 				selectedSiteId: 1,
 			} ),
