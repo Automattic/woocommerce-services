@@ -663,6 +663,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			</div>
 			<?php
 			if ( isset( $content['dismiss_option'] ) ) :
+			// Add handler for dismissing banner. Only supports a single banner at a time
 			?>
 				<script>
 				( function( $ ) {
