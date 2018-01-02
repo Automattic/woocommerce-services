@@ -55,7 +55,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'supports' ), 10, 3 );
 
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
-					if ( 'sandbox' !== $settings->environment ) {
+					if ( 'live' === $settings->environment ) {
 						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_set_banner' ) );
 						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_set_banner' ) );
 						add_action( 'current_screen', array( $this, 'maybe_init_banner' ) );
