@@ -108,7 +108,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		/**
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
-		public function maybe_init_banner() {
+		public function maybe_init_banner( $screen ) {
 			if (
 				'yes' !== get_option( 'wc_connect_banner_ppec', null ) ||
 				'yes' === get_option( 'wc_connect_dismiss_banner_ppec', null )
@@ -116,7 +116,6 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				return;
 			}
 
-			$screen = get_current_screen();
 			if ( // Display if on any of these admin pages.
 				( // Orders list.
 					'shop_order' === $screen->post_type
