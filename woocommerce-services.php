@@ -583,7 +583,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
 			$options               = new WC_Connect_Options();
 			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger );
-			$paypal_ec             = new WC_Connect_PayPal_EC( $nux );
+			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 
 			$this->set_logger( $logger );
 			$this->set_api_client( $api_client );

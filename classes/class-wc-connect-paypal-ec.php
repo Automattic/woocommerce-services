@@ -12,11 +12,17 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 	class WC_Connect_PayPal_EC {
 
 		/**
+		 * @var WC_Connect_API_Client
+		 */
+		private $api_client;
+
+		/**
 		 * @var WC_Connect_Nux
 		 */
 		private $nux;
 
-		public function __construct( WC_Connect_Nux $nux ) {
+		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Nux $nux ) {
+			$this->api_client = $api_client;
 			$this->nux = $nux;
 		}
 
@@ -67,18 +73,20 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		public function request_body( $body ) {
 			$methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
 			if ( in_array( $body['METHOD'], $methods_to_proxy ) ) {
-				add_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'request_endpoint' ), 10, 2 );
+				add_filter( 'pre_http_request', array( $this, 'proxy_request' ), 10, 3 );
 			} else {
-				remove_filter( 'woocommerce_paypal_express_checkout_request_endpoint', array( $this, 'request_endpoint' ), 10, 2 );
+				remove_filter( 'pre_http_request', array( $this, 'proxy_request' ), 10, 3 );
 			}
 			return $body;
 		}
 
-		/**
-		 * Get WCS PayPal proxy endpoint
-		 */
-		public function request_endpoint( $endpoint, $environment ) {
-			return trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL ) . 'paypal/nvp/' . $environment;
+		public function proxy_request( $preempt, $r, $url ) {
+			if ( ! preg_match( '/paypal.com\/nvp$/', $url ) ) {
+				return false;
+			}
+
+			$settings = wc_gateway_ppec()->settings;
+			return $this->api_client->proxy_request( 'paypal/nvp/' . $settings->environment, $r );
 		}
 
 		/**
