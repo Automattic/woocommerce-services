@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
@@ -18,34 +18,59 @@ import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import { getPackagesForm } from 'woocommerce/woocommerce-services/state/packages/selectors';
+import { ProtectFormGuard } from 'lib/protect-form';
 
-const PackagesWrapper = ( props ) => {
-	const {
-		translate,
-		noticeActions,
-		buttonDisabled,
-		isSaving,
-	} = props;
+class PackagesWrapper extends Component {
+	constructor( props ) {
+		super( props );
+		this.state = {
+			pristine: true,
+		};
+	}
 
-	const onSaveSuccess = () => noticeActions.successNotice( translate( 'Your packages have been saved.' ), { duration: 5000 } );
-	const onSaveFailure = () => noticeActions.errorNotice( translate( 'Unable to save your packages. Please try again.' ) );
-	const onSaveChanges = () => props.submit( props.siteId, onSaveSuccess, onSaveFailure );
+	onChange = () => {
+		this.setState( { pristine: false } );
+	}
 
-	return (
-		<div>
-			<GlobalNotices notices={ notices.list } />
-			<Packages />
-			<Button
-				primary
-				onClick={ onSaveChanges }
-				busy={ isSaving }
-				disabled={ buttonDisabled }
-			>
-				{ translate( 'Save changes' ) }
-			</Button>
-		</div>
-	);
-};
+	onSaveSuccess = () => {
+		const { noticeActions, translate } = this.props;
+		noticeActions.successNotice( translate( 'Your packages have been saved.' ), { duration: 5000 } );
+		this.setState( { pristine: true } );
+	}
+
+	onSaveFailure = () => {
+		const { noticeActions, translate } = this.props;
+		noticeActions.errorNotice( translate( 'Unable to save your packages. Please try again.' ) );
+	}
+
+	onSaveChanges = () => {
+		this.props.submit( this.props.siteId, this.onSaveSuccess, this.onSaveFailure );
+	}
+
+	render() {
+		const {
+			translate,
+			buttonDisabled,
+			isSaving,
+		} = this.props;
+
+		return (
+			<div>
+				<GlobalNotices notices={ notices.list } />
+				<Packages onChange={ this.onChange } />
+				<Button
+					primary
+					onClick={ this.onSaveChanges }
+					busy={ isSaving }
+					disabled={ buttonDisabled }
+				>
+					{ translate( 'Save changes' ) }
+				</Button>
+				<ProtectFormGuard isChanged={ ! this.state.pristine } />
+			</div>
+		);
+	}
+}
 
 export default connect(
 	( state ) => {
