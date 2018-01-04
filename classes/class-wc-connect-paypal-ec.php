@@ -109,10 +109,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
 		public function maybe_init_banner( $screen ) {
-			if (
-				'yes' !== get_option( 'wc_connect_banner_ppec', null ) ||
-				'yes' === get_option( 'wc_connect_dismiss_banner_ppec', null )
-			) {
+			if ( 'yes' !== get_option( 'wc_connect_banner_ppec', null ) ) {
 				return;
 			}
 

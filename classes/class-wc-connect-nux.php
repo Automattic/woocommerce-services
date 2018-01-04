@@ -610,6 +610,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_nux_banner( $content ) {
+			if ( isset( $content['dismiss_option'] ) && 'yes' === get_option( 'wc_connect_dismiss_banner_' . $content['dismiss_option'], null ) ) {
+				return;
+			}
+
 			?>
 			<div class="notice wcs-nux__notice <?php echo isset( $content['dismiss_option'] ) ? 'is-dismissible' : ''; ?>">
 				<div class="wcs-nux__notice-logo">
