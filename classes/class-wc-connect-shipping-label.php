@@ -25,12 +25,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $payment_methods_store;
 
 		/**
-		 * @var array array of currently supported countries
+		 * @var array Supported countries
 		 */
 		private $supported_countries = array( 'US', 'PR' );
 
 		/**
-		 * @var array array of currently unsupported states, by country
+		 * @var array Supported currencies
+		 */
+		private $supported_currencies = array( 'USD' );
+
+		/**
+		 * @var array Unsupported states, by country
 		 */
 		private $unsupported_states = array(
 			'US' => array( 'AA', 'AE', 'AP' ),
@@ -325,13 +330,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return ! in_array( $state_code, $this->unsupported_states[ $country_code ] );
 		}
 
+		private function is_supported_country( $country_code ) {
+			return in_array( $country_code, $this->supported_countries );
+		}
+
+		private function is_supported_currency( $currency_code ) {
+			return in_array( $currency_code, $this->supported_currencies );
+		}
+
 		private function is_supported_address( $address ) {
 			$country_code = $address['country'];
 			if ( ! $country_code ) {
 				return true;
 			}
 
-			if ( ! in_array( $country_code, $this->supported_countries ) ) {
+			if ( ! $this->is_supported_country( $country_code ) ) {
 				return false;
 			}
 
@@ -383,9 +396,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return true;
 			}
 
+			// Restrict showing the metabox to supported store currencies.
+			$base_currency = get_woocommerce_currency();
+			if ( ! $this->is_supported_currency( $base_currency ) ) {
+				return false;
+			}
+
 			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
 			$base_location = wc_get_base_location();
-			if ( 'US' !== $base_location['country'] ) {
+			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
 				return false;
 			}
 
