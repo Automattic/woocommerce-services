@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.9.1
-Stable tag: 1.9.1
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -88,6 +88,16 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.10.0 =
+* Add WooCommerce compatibility to plugin header
+* Add ability to refresh server schemas from status page
+* Fix tax calculations for subscription products
+* Fix "limit usage to X items" coupon tax calculation
+* Fix tax calculation for product bundles and add-ons
+* Make phone number optional for shipping labels
+* Only allow label printing for stores using USD
+* Add label printing for stores in Puerto Rico
 
 = 1.9.1 =
 * Fix PHP Warning when Jetpack is disabled or missing
