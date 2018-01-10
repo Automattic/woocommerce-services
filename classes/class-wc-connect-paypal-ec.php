@@ -128,19 +128,16 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				|| ( // Edit order page.
 					'shop_order' === $screen->post_type
 					&& 'post' === $screen->base
+					&& 'ppec_paypal' === WC_Connect_Compatibility::instance()->get_payment_method( new WC_Order( $_GET['post'] ) )
 					)
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
-					)
-				|| ( // WooCommerce featured extension page
-					'woocommerce_page_wc-addons' === $screen->base
-					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
+					&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
 					)
 				|| ( // WooCommerce payment gateway extension page
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'payment_gateways' === $_GET['section']
 					)
-				|| 'plugins' === $screen->base
 			) {
 				wp_enqueue_style( 'wc_connect_banner' );
 				add_action( 'admin_notices', array( $this, 'banner' ) );
