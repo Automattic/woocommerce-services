@@ -667,12 +667,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			</div>
 			<?php
 			if ( isset( $content['dismiss_option'] ) ) :
-			// Add handler for dismissing banner. Only supports a single banner at a time
+				// Add handler for dismissing banner. Only supports a single banner at a time
+				wp_enqueue_script( 'wp-util' );
 			?>
 				<script>
 				( function( $ ) {
 					$( '.wcs-nux__notice' ).on( 'click', '.notice-dismiss', function() {
-						jQuery.post( "<?php echo admin_url( 'admin-ajax.php' ); ?>", {
+						wp.ajax.post( {
 							action: "wc_connect_dismiss_banner",
 							dismiss_option: "<?php echo esc_js( $content['dismiss_option'] ); ?>",
 							nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_banner' ) ); ?>"
