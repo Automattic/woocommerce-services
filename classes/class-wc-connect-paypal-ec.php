@@ -57,6 +57,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'adjust_settings' ) );
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
+					add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 					if ( 'live' === $settings->environment ) {
@@ -66,6 +67,40 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					}
 				}
 			}
+		}
+
+		public function register_refund_pointer( $pointers ) {
+			$target = '.refund-actions > button:first-child';
+			$link_url = wc_gateway_ppec()->ips->get_signup_url( wc_gateway_ppec()->settings->environment );
+			$pointers[] = array(
+				'id' => 'wc_services_refund_via_ppec',
+				'target' => $target,
+				'options' => array(
+					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+						__( 'Link a PayPal account' ,'woocommerce-services' ),
+						sprintf( __( "To issue refunds via PayPal Express Checkout, you will need to <a href=\"%s\">link a PayPal account</a> with the email address that received this payment.", 'woocommerce-services' ), $link_url )
+					),
+					'position' => array( 'edge' => 'bottom', 'align' => 'top' ),
+				),
+			);
+
+			wp_add_inline_script( 'wc_services_admin_pointers', sprintf( "
+				jQuery( document ).ready( function( $ ) {
+					$( '#woocommerce-order-items' )
+						.one( 'click', 'button.refund-items', function() {
+							setTimeout( function() {
+								$( 'div.wc-order-refund-items' ).promise().then( function() {
+									$( '%1\$s' ).pointer( 'open' );
+								} );
+							}, 0 );
+						} )
+						.one( 'click', '.cancel-action', function() {
+							$( '%1\$s' ).pointer( 'close' );
+						} )
+				} );
+			", $target ) );
+
+			return $pointers;
 		}
 
 		/**
