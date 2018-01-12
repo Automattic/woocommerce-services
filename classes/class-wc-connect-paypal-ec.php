@@ -183,12 +183,10 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 * Show a NUX banner prompting the merchant to link a PayPal account
 		 */
 		public function banner() {
-			$prompt = __( 'Link a new or existing PayPal account to enable PayPal Express Checkout features beyond simply taking payments: issue refunds, capture charges after order completion, and more.', 'woocommerce-services' );
-
 			$this->nux->show_nux_banner( array(
-				'title'          => __( 'Connect a PayPal account', 'woocommerce-services' ),
-				'description'    => esc_html( $prompt ),
-				'button_text'    => __( 'Connect', 'woocommerce-services' ),
+				'title'          => __( 'Link your PayPal account', 'woocommerce-services' ),
+				'description'    => esc_html( __( 'Link a new or existing PayPal account to make sure future orders are marked “Processing” instead of “On hold”, and so refunds can be issued without leaving WooCommerce.', 'woocommerce-services' ) ),
+				'button_text'    => __( 'Link account', 'woocommerce-services' ),
 				'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
 				'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
 				'should_show_jp' => false,
