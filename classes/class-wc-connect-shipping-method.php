@@ -340,7 +340,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							/** @var WC_Product $product */
 							$product = $this->lookup_product( $package, $package_item->product_id );
 							if ( $product ) {
-								$items[] = $product->get_title();
+								$items[] = $product->get_name();
 							}
 						}
 
