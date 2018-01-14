@@ -230,7 +230,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		private function lookup_product( $package, $product_id ) {
 			foreach ( $package[ 'contents' ] as $item ) {
-				if ( $item[ 'product_id' ] === $product_id ) {
+				if ( $item[ 'product_id' ] === $product_id || $item[ 'variation_id' ] === $product_id ) {
 					return $item[ 'data' ];
 				}
 			}
