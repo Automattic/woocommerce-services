@@ -230,7 +230,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		private function lookup_product( $package, $product_id ) {
 			foreach ( $package[ 'contents' ] as $item ) {
-				if ( $item[ 'product_id' ] === $product_id ) {
+				if ( $item[ 'product_id' ] === $product_id || $item[ 'variation_id' ] === $product_id ) {
 					return $item[ 'data' ];
 				}
 			}
@@ -340,7 +340,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							/** @var WC_Product $product */
 							$product = $this->lookup_product( $package, $package_item->product_id );
 							if ( $product ) {
-								$items[] = $product->get_title();
+								$items[] = WC_Connect_Compatibility::instance()->get_product_name( $product );
 							}
 						}
 
