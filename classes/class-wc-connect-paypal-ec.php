@@ -63,7 +63,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					if ( 'live' === $settings->environment ) {
 						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_set_banner' ) );
 						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_set_banner' ) );
-						add_action( 'current_screen', array( $this, 'maybe_init_banner' ) );
+						add_action( 'admin_enqueue_scripts', array( $this, 'maybe_init_banner' ) );
 					}
 				}
 			}
@@ -155,10 +155,12 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		/**
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
-		public function maybe_init_banner( $screen ) {
+		public function maybe_init_banner() {
 			if ( 'yes' !== get_option( 'wc_connect_banner_ppec', null ) ) {
 				return;
 			}
+
+			$screen = get_current_screen();
 
 			if ( // Display if on any of these admin pages.
 				( // Orders list.
@@ -168,7 +170,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				|| ( // Edit order page.
 					'shop_order' === $screen->post_type
 					&& 'post' === $screen->base
-					&& 'ppec_paypal' === WC_Connect_Compatibility::instance()->get_payment_method( new WC_Order( $_GET['post'] ) )
+					&& 'ppec_paypal' === WC_Connect_Compatibility::instance()->get_payment_method( wc_get_order() )
 					)
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
