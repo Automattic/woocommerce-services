@@ -121,7 +121,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		public function proxy_request( $preempt, $r, $url ) {
 			if ( ! preg_match( '/paypal.com\/nvp$/', $url ) ) {
-				return false;
+				return $preempt;
 			}
 
 			$settings = wc_gateway_ppec()->settings;
