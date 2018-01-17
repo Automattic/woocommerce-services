@@ -70,10 +70,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		public function register_refund_pointer( $pointers ) {
-			$target = '.refund-actions > button:first-child';
 			$pointers[] = array(
 				'id' => 'wc_services_refund_via_ppec',
-				'target' => $target,
+				'target' => '.refund-actions > button:first-child',
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 						__( 'Link a PayPal account' ,'woocommerce-services' ),
@@ -87,24 +86,13 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					),
 					'position' => array( 'edge' => 'bottom', 'align' => 'top' ),
 				),
+				'delayed_opening' => array(
+					'show_button' => '.refund-items',
+					'hide_button' => '.cancel-action',
+					'dynamic_container' => '.wc-order-refund-items',
+					'static_container' => '#woocommerce-order-items',
+				),
 			);
-
-			wp_add_inline_script( 'wc_services_admin_pointers', sprintf( "
-				jQuery( document ).ready( function( $ ) {
-					$( '#woocommerce-order-items' )
-						.one( 'click', 'button.refund-items', function() {
-							setTimeout( function() {
-								$( 'div.wc-order-refund-items' ).promise().then( function() {
-									$( '%1\$s' ).pointer( 'open' );
-								} );
-							}, 0 );
-						} )
-						.one( 'click', '.cancel-action', function() {
-							$( '%1\$s' ).pointer( 'close' );
-						} )
-				} );
-			", $target ) );
-
 			return $pointers;
 		}
 
