@@ -65,7 +65,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			check_ajax_referer( 'wc_connect_dismiss_notice', 'nonce' );
-			$this->dismiss_notice( $_POST['dismissible_id'] );
+			$this->dismiss_notice( sanitize_key( $_POST['dismissible_id'] ) );
 			wp_die();
 		}
 
@@ -610,7 +610,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_nux_banner( $content ) {
-			if ( isset( $content['dismissible_id'] ) && $this->is_notice_dismissed( $content['dismissible_id'] ) ) {
+			if ( isset( $content['dismissible_id'] ) && $this->is_notice_dismissed( sanitize_key( $content['dismissible_id'] ) ) ) {
 				return;
 			}
 
