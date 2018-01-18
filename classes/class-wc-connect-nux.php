@@ -59,6 +59,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_nux_notices', $notices );
 		}
 
+		public function ajax_dismiss_notice() {
+			if ( empty( $_POST['dismissible_id'] ) ) {
+				return;
+			}
+
+			check_ajax_referer( 'wc_connect_dismiss_notice', 'nonce' );
+			$this->dismiss_notice( $_POST['dismissible_id'] );
+			wp_die();
+		}
+
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
 			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
@@ -464,17 +474,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					break;
 			}
 
-			add_action( 'wp_ajax_wc_connect_dismiss_banner', array( $this, 'ajax_dismiss_banner' ) );
-		}
-
-		public function ajax_dismiss_banner() {
-			if ( empty( $_POST['dismiss_option'] ) ) {
-				return;
-			}
-
-			check_ajax_referer( 'wc_connect_dismiss_banner', 'nonce' );
-			update_option( 'wc_connect_dismiss_banner_' . $_POST['dismiss_option'], 'yes' );
-			wp_die();
+			add_action( 'wp_ajax_wc_connect_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
 		}
 
 		public function show_banner_before_connection() {
@@ -610,12 +610,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_nux_banner( $content ) {
-			if ( isset( $content['dismiss_option'] ) && 'yes' === get_option( 'wc_connect_dismiss_banner_' . $content['dismiss_option'], null ) ) {
+			if ( isset( $content['dismissible_id'] ) && $this->is_notice_dismissed( $content['dismissible_id'] ) ) {
 				return;
 			}
 
 			?>
-			<div class="notice wcs-nux__notice <?php echo isset( $content['dismiss_option'] ) ? 'is-dismissible' : ''; ?>">
+			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
 				<div class="wcs-nux__notice-logo">
 					<img src="<?php echo esc_url( $content['image_url'] );  ?>">
 				</div>
@@ -666,7 +666,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php endif; ?>
 			</div>
 			<?php
-			if ( isset( $content['dismiss_option'] ) ) :
+			if ( isset( $content['dismissible_id'] ) ) :
 				// Add handler for dismissing banner. Only supports a single banner at a time
 				wp_enqueue_script( 'wp-util' );
 			?>
@@ -674,9 +674,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				( function( $ ) {
 					$( '.wcs-nux__notice' ).on( 'click', '.notice-dismiss', function() {
 						wp.ajax.post( {
-							action: "wc_connect_dismiss_banner",
-							dismiss_option: "<?php echo esc_js( $content['dismiss_option'] ); ?>",
-							nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_banner' ) ); ?>"
+							action: "wc_connect_dismiss_notice",
+							dismissible_id: "<?php echo esc_js( $content['dismissible_id'] ); ?>",
+							nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_notice' ) ); ?>"
 						} );
 					} );
 				} )( jQuery );

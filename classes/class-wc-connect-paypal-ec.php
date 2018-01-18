@@ -185,7 +185,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
 				'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
 				'should_show_jp' => false,
-				'dismiss_option' => 'ppec',
+				'dismissible_id' => 'ppec',
 			) );
 		}
 
