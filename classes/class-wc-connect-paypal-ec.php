@@ -24,13 +24,11 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		/**
 		 * Express Checkout API methods to proxy.
 		 */
-		private $methods_to_proxy;
+		private $methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
 
 		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Nux $nux ) {
 			$this->api_client = $api_client;
 			$this->nux = $nux;
-
-			$this->methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
 		}
 
 		public function init() {
@@ -120,7 +118,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 						__( 'Link a PayPal account' ,'woocommerce-services' ),
 						sprintf(
 							wp_kses(
-								__( 'To issue refunds via PayPal Express Checkout, you will need to <a href=\"%s\">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
+								__( 'To issue refunds via PayPal Express Checkout, you will need to <a href="%s">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
 								array(  'a' => array( 'href' => array() ) )
 							),
 							wc_gateway_ppec()->ips->get_signup_url( wc_gateway_ppec()->settings->environment )
