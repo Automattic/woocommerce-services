@@ -129,8 +129,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				'delayed_opening' => array(
 					'show_button' => '.refund-items',
 					'hide_button' => '.cancel-action',
-					'dynamic_container' => '.wc-order-refund-items',
-					'static_container' => '#woocommerce-order-items',
+					'animating_container' => '.wc-order-refund-items',
+					'delegation_container' => '#woocommerce-order-items',
 				),
 			);
 
