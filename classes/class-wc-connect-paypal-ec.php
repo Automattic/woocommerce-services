@@ -78,36 +78,6 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Add a pointer clarifying the need to link an account before refunding payment
-		 */
-		public function register_refund_pointer( $pointers ) {
-			$pointers[] = array(
-				'id' => 'wc_services_refund_via_ppec',
-				'target' => '.refund-actions > button:first-child',
-				'options' => array(
-					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
-						__( 'Link a PayPal account' ,'woocommerce-services' ),
-						sprintf(
-							wp_kses(
-								__( 'To issue refunds via PayPal Express Checkout, you will need to <a href=\"%s\">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
-								array(  'a' => array( 'href' => array() ) )
-							),
-							wc_gateway_ppec()->ips->get_signup_url( wc_gateway_ppec()->settings->environment )
-						)
-					),
-					'position' => array( 'edge' => 'bottom', 'align' => 'top' ),
-				),
-				'delayed_opening' => array(
-					'show_button' => '.refund-items',
-					'hide_button' => '.cancel-action',
-					'dynamic_container' => '.wc-order-refund-items',
-					'static_container' => '#woocommerce-order-items',
-				),
-			);
-			return $pointers;
-		}
-
-		/**
 		 * Attach request proxying hook if it's an Express Checkout method
 		 */
 		public function request_body( $body ) {
@@ -136,6 +106,37 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		public function ppec_supports( $supported, $feature, $gateway ) {
 			return 'ppec_paypal' === $gateway->id ? 'products' === $feature : $supported;
+		}
+
+		/**
+		 * Add a pointer clarifying the need to link an account before refunding payment
+		 */
+		public function register_refund_pointer( $pointers ) {
+			$pointers[] = array(
+				'id' => 'wc_services_refund_via_ppec',
+				'target' => '.refund-actions > button:first-child',
+				'options' => array(
+					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+						__( 'Link a PayPal account' ,'woocommerce-services' ),
+						sprintf(
+							wp_kses(
+								__( 'To issue refunds via PayPal Express Checkout, you will need to <a href=\"%s\">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
+								array(  'a' => array( 'href' => array() ) )
+							),
+							wc_gateway_ppec()->ips->get_signup_url( wc_gateway_ppec()->settings->environment )
+						)
+					),
+					'position' => array( 'edge' => 'bottom', 'align' => 'top' ),
+				),
+				'delayed_opening' => array(
+					'show_button' => '.refund-items',
+					'hide_button' => '.cancel-action',
+					'dynamic_container' => '.wc-order-refund-items',
+					'static_container' => '#woocommerce-order-items',
+				),
+			);
+
+			return $pointers;
 		}
 
 		/**
