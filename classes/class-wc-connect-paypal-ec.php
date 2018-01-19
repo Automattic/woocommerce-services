@@ -55,20 +55,24 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 				if ( empty( $username ) && ! empty( $subject ) ) {
 					add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
+
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'adjust_settings' ) );
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
 					add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 
-					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
 					if ( 'live' === $settings->environment ) {
 						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_set_banner' ) );
 						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_set_banner' ) );
 						add_action( 'admin_enqueue_scripts', array( $this, 'maybe_init_banner' ) );
 					}
+					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' ); // Disable default PPEC notice.
 				}
 			}
 		}
 
+		/**
+		 * Add a pointer clarifying the need to link an account before refunding payment
+		 */
 		public function register_refund_pointer( $pointers ) {
 			$pointers[] = array(
 				'id' => 'wc_services_refund_via_ppec',
@@ -206,6 +210,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				if ( ! isset( $settings['reroute_requests'] ) ) {
 					$settings['reroute_requests'] = 'no';
 				}
+
 				update_option( 'woocommerce_ppec_paypal_settings', $settings );
 				wc_gateway_ppec()->settings->load( true );
 			}
@@ -226,6 +231,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$settings = wc_gateway_ppec()->settings;
 
 			if ( 'yes' === $settings->reroute_requests ) {
+				$this->adjust_api_subject_setting( $form_fields );
+
 				// Prevent user from choosing option that will cause requests to fail
 				$form_fields['paymentaction']['disabled'] = true;
 				$form_fields['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking a PayPal account.)', 'woocommerce-services' ), $form_fields['paymentaction']['description'] );
@@ -247,19 +254,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					unset( $form_fields['sandbox_api_username'], $form_fields['sandbox_api_password'], $form_fields['sandbox_api_signature'], $form_fields['sandbox_api_certificate'] );
 				}
 
-				$api_subject_title = __( 'Payment Email', 'woocommerce-services' );
-				$form_fields['api_subject']['title'] = $api_subject_title;
-				$form_fields['sandbox_api_subject']['title'] = $api_subject_title;
-
-				$api_subject_description = __( 'Enter your email address at which to accept payments. You\'ll need to link your own account in order to perform anything other than "sale" transactions.', 'woocommerce-services' );
-				$form_fields['api_subject']['description'] = $api_subject_description;
-				$form_fields['sandbox_api_subject']['description'] = $api_subject_description;
-
-				$api_subject_placeholder = __( 'Required', 'woocommerce-services' );
-				$form_fields['api_subject']['placeholder'] = $api_subject_placeholder;
-				$form_fields['sandbox_api_subject']['placeholder'] = $api_subject_placeholder;
-
 			} else {
+				// Provide option to enable request proxying
 				$reset_link = add_query_arg(
 					array( 'reroute_requests' => 'yes', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
 					wc_gateway_ppec()->get_admin_setting_link()
@@ -276,6 +272,23 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			}
 
 			return $form_fields;
+		}
+
+		/**
+		 * Clarify Live API Subject and Sandbox API Subject labels to adapt to proxying use case
+		 */
+		public function adjust_api_subject_setting( $form_fields ) {
+			$api_subject_title = __( 'Payment Email', 'woocommerce-services' );
+			$form_fields['api_subject']['title'] = $api_subject_title;
+			$form_fields['sandbox_api_subject']['title'] = $api_subject_title;
+
+			$api_subject_description = __( 'Enter your email address at which to accept payments. You\'ll need to link your own account in order to perform anything other than "sale" transactions.', 'woocommerce-services' );
+			$form_fields['api_subject']['description'] = $api_subject_description;
+			$form_fields['sandbox_api_subject']['description'] = $api_subject_description;
+
+			$api_subject_placeholder = __( 'Required', 'woocommerce-services' );
+			$form_fields['api_subject']['placeholder'] = $api_subject_placeholder;
+			$form_fields['sandbox_api_subject']['placeholder'] = $api_subject_placeholder;
 		}
 
 		/**
