@@ -21,9 +21,16 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		private $nux;
 
+		/**
+		 * Express Checkout API methods to proxy.
+		 */
+		private $methods_to_proxy;
+
 		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Nux $nux ) {
 			$this->api_client = $api_client;
 			$this->nux = $nux;
+
+			$this->methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
 		}
 
 		public function init() {
@@ -104,8 +111,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 * Attach request proxying hook if it's an Express Checkout method
 		 */
 		public function request_body( $body ) {
-			$methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
-			if ( in_array( $body['METHOD'], $methods_to_proxy ) ) {
+			if ( in_array( $body['METHOD'], $this->methods_to_proxy ) ) {
 				add_filter( 'pre_http_request', array( $this, 'proxy_request' ), 10, 3 );
 			} else {
 				remove_filter( 'pre_http_request', array( $this, 'proxy_request' ), 10, 3 );
