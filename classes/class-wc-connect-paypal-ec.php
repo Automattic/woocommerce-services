@@ -136,7 +136,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$payment_method = WC_Connect_Compatibility::instance()->get_payment_method( $order );
 
 			if ( 'ppec_paypal' === $payment_method ) {
-				update_option( 'wc_connect_banner_ppec', 'yes' );
+				WC_Connect_Options::update_option( 'banner_ppec', 'yes' );
 			}
 		}
 
@@ -144,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
 		 */
 		public function maybe_init_banner() {
-			if ( 'yes' !== get_option( 'wc_connect_banner_ppec', null ) ) {
+			if ( 'yes' !== WC_Connect_Options::get_option( 'banner_ppec', null ) ) {
 				return;
 			}
 
