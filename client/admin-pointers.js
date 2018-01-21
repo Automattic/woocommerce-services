@@ -46,7 +46,6 @@ jQuery( document ).ready( function( $ ) {
 			}
 		}
 
-		// Selectors for delayed opening. Only show_button is required.
 		/**
 		 * Selectors for delayed opening
 		 * - show_button: element to trigger pointer open on click (required)
