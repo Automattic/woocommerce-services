@@ -236,7 +236,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$settings = wc_gateway_ppec()->settings;
 
 			if ( 'yes' === $settings->reroute_requests ) {
-				$this->adjust_api_subject_setting( $form_fields );
+				$form_fields = $this->adjust_api_subject_form_field( $form_fields );
 
 				// Prevent user from choosing option that will cause requests to fail
 				$form_fields['paymentaction']['disabled'] = true;
@@ -282,7 +282,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		/**
 		 * Clarify Live API Subject and Sandbox API Subject labels to adapt to proxying use case
 		 */
-		public function adjust_api_subject_setting( $form_fields ) {
+		public function adjust_api_subject_form_field( $form_fields ) {
 			$api_subject_title = __( 'Payment Email', 'woocommerce-services' );
 			$form_fields['api_subject']['title'] = $api_subject_title;
 			$form_fields['sandbox_api_subject']['title'] = $api_subject_title;
@@ -294,6 +294,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$api_subject_placeholder = __( 'Required', 'woocommerce-services' );
 			$form_fields['api_subject']['placeholder'] = $api_subject_placeholder;
 			$form_fields['sandbox_api_subject']['placeholder'] = $api_subject_placeholder;
+
+			return $form_fields;
 		}
 
 		/**
