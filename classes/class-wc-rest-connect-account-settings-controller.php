@@ -27,6 +27,12 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		$this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
 		$master_user = WC_Connect_Jetpack::get_master_user();
+		if ( is_a( $master_user, 'WP_User' ) ) {
+			$connected_data = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+			$email = $connected_data['email'];
+		} else {
+			$email = '';
+		}
 
 		return new WP_REST_Response( array(
 			'success'  => true,
@@ -37,6 +43,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 				'can_edit_settings' => true,
 				'master_user_name' => is_a( $master_user, 'WP_User' ) ? $master_user->display_name : '',
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
+				'master_user_email' => $email,
  				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
 			)
 		), 200 );

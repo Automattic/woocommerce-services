@@ -52,6 +52,14 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			return false;
 		}
 
+		public static function get_connected_user_data( $user_id ) {
+			if ( method_exists( 'Jetpack', 'get_connected_user_data' ) ) {
+				return Jetpack::get_connected_user_data( $user_id );
+			}
+
+			return false;
+		}
+
 		/**
 		 * Helper method to get the Jetpack master user, IF we are connected
 		 * @return WP_User | false
