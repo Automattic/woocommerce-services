@@ -404,6 +404,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			// Check for plugin install and activate permissions to handle Jetpack on multisites:
+			// Admins might not be able to install or activate plugins, but Jetpack might already have been installed by a superadmin.
+			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			if ( ( self::JETPACK_NOT_INSTALLED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) )
 				|| ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'activate_plugins' ) ) ) {
