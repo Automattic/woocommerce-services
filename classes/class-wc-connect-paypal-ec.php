@@ -65,9 +65,13 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
 
 					if ( 'live' === $settings->environment ) {
-						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_set_banner' ) );
-						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_set_banner' ) );
-						add_action( 'admin_enqueue_scripts', array( $this, 'maybe_init_banner' ) );
+						// If PPEC order comes in, activate prompt to connect a PayPal account
+						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_trigger_banner' ) );
+						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_trigger_banner' ) );
+
+						// Once a payment is received, show prompt to connect a PayPal account on certain screens
+						add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_banner' ) );
+
 						add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 					}
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' ); // Disable default PPEC notice.
@@ -138,9 +142,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * If PPEC order comes in, activate prompt to connect a PayPal account
+		 * Trigger banner to appear based on order paid with PPEC
 		 */
-		public function maybe_set_banner( $order_id ) {
+		public function maybe_trigger_banner( $order_id ) {
 			$order          = wc_get_order( $order_id );
 			$payment_method = WC_Connect_Compatibility::instance()->get_payment_method( $order );
 
@@ -150,9 +154,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Once a payment is received, show prompt to connect a PayPal account on certain screens
+		 * Show banner if it has been triggered and if this screen is an appropriate place for it
 		 */
-		public function maybe_init_banner() {
+		public function maybe_show_banner() {
 			if ( 'yes' !== WC_Connect_Options::get_option( 'banner_ppec', null ) ) {
 				return;
 			}
