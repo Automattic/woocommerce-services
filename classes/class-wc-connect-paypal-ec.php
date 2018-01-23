@@ -63,12 +63,12 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'adjust_settings' ) );
 					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
-					add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 
 					if ( 'live' === $settings->environment ) {
 						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_set_banner' ) );
 						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_set_banner' ) );
 						add_action( 'admin_enqueue_scripts', array( $this, 'maybe_init_banner' ) );
+						add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 					}
 					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' ); // Disable default PPEC notice.
 				}
