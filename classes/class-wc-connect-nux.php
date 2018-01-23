@@ -406,7 +406,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_install_status = $this->get_jetpack_install_status();
 			if ( ( self::JETPACK_NOT_INSTALLED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) )
-				|| ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) ) ) {
+				|| ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'activate_plugins' ) ) ) {
 				return;
 			}
 
