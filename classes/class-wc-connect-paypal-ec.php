@@ -42,40 +42,43 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'adjust_form_fields' ) );
 			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'maybe_set_reroute_requests' ) );
 
-			if ( 'yes' === $settings->reroute_requests ) {
-				// If empty, populate Sandbox and Live API Subject values with provided email
-				if (
-					empty( $settings->sandbox_api_subject ) &&
-					empty( $settings->sandbox_api_username ) &&
-					empty( $settings->api_username )
-				) {
-					$email = isset( $settings->email ) ? $settings->email : $settings->api_subject;
-					$settings->api_subject = $email;
-					$settings->sandbox_api_subject = $email;
-					$settings->save();
+			// Don't modify any PPEC plugin behavior if WCS request proxying is not enabled
+			if ( 'yes' !== $settings->reroute_requests ) {
+				return;
+			}
+
+			// If empty, populate Sandbox and Live API Subject values with provided email
+			if (
+				empty( $settings->sandbox_api_subject ) &&
+				empty( $settings->sandbox_api_username ) &&
+				empty( $settings->api_username )
+			) {
+				$email = isset( $settings->email ) ? $settings->email : $settings->api_subject;
+				$settings->api_subject = $email;
+				$settings->sandbox_api_subject = $email;
+				$settings->save();
+			}
+
+			$username = $settings->get_active_api_credentials()->get_username();
+			$subject  = $settings->get_active_api_credentials()->get_subject();
+
+			if ( empty( $username ) && ! empty( $subject ) ) {
+				add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
+
+				add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'adjust_settings' ) );
+				add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
+
+				if ( 'live' === $settings->environment ) {
+					// If PPEC order comes in, activate prompt to connect a PayPal account
+					add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_trigger_banner' ) );
+					add_action( 'woocommerce_payment_complete', array( $this, 'maybe_trigger_banner' ) );
+
+					// Once a payment is received, show prompt to connect a PayPal account on certain screens
+					add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_banner' ) );
+
+					add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 				}
-
-				$username = $settings->get_active_api_credentials()->get_username();
-				$subject  = $settings->get_active_api_credentials()->get_subject();
-
-				if ( empty( $username ) && ! empty( $subject ) ) {
-					add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
-
-					add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'adjust_settings' ) );
-					add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
-
-					if ( 'live' === $settings->environment ) {
-						// If PPEC order comes in, activate prompt to connect a PayPal account
-						add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_trigger_banner' ) );
-						add_action( 'woocommerce_payment_complete', array( $this, 'maybe_trigger_banner' ) );
-
-						// Once a payment is received, show prompt to connect a PayPal account on certain screens
-						add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_banner' ) );
-
-						add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
-					}
-					add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' ); // Disable default PPEC notice.
-				}
+				add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' ); // Disable default PPEC notice.
 			}
 		}
 
@@ -239,6 +242,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		public function adjust_form_fields( $form_fields ) {
 			$settings = wc_gateway_ppec()->settings;
 
+			// Modify form fields and descriptions depending on whether WCS request proxying is enabled
 			if ( 'yes' === $settings->reroute_requests ) {
 				$form_fields = $this->adjust_api_subject_form_field( $form_fields );
 
