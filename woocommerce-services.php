@@ -657,12 +657,39 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_action( 'save_post', array( $this, 'maybe_trigger_product_notice' ), 10, 2 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
 
 			$this->taxjar->init();
 			$this->paypal_ec->init();
+		}
+
+		public function maybe_trigger_product_notice( $post_id, $post ) {
+			if (
+				'publish' !== $post->post_status ||
+				'product' !== $post->post_type ||
+				! ( $product = wc_get_product( $post ) )
+			) {
+				return;
+			}
+
+			if ( $product->get_weight() && $product->get_length() && $product->get_width() && $product->get_height() ) {
+				// If details are all present, check all other products to see if notice should be disabled
+				$all_products_ready = true;
+				foreach ( wc_get_products( array( 'limit' => -1 ) ) as $product ) {
+					if ( ! ( $product->get_weight() && $product->get_length() && $product->get_width() && $product->get_height() ) ) {
+						$all_products_ready = false;
+						break;
+					}
+				}
+				if ( $all_products_ready ) {
+					WC_Connect_Options::update_option( 'product_notice', false );
+				}
+			} else {
+				WC_Connect_Options::update_option( 'product_notice', true );
+			}
 		}
 
 		public function tos_rest_init() {

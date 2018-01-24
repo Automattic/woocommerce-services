@@ -43,6 +43,8 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			if ( $this->notice_enabled() ) {
 				$this->show_notice();
 			}
+
+			$this->render_product_notice();
 		}
 
 		private function notice_enabled() {
@@ -64,6 +66,19 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			</div>
 <?php
 			echo "";
+		}
+
+		public function render_product_notice() {
+			if ( ! WC_Connect_Options::get_option( 'product_notice', false ) ) {
+				return;
+			}
+
+			$message = __( 'Make sure to supply shipping weight and dimensions, in order for live rates to work with your products.', 'woocommerce-services' );
+?>
+			<div class="notice notice-warning">
+				<p><?php echo $message; ?></p>
+			</div>
+<?php
 		}
 	}
 
