@@ -400,14 +400,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function set_up_nux_notices() {
-			if ( ! current_user_can( 'manage_woocommerce' )
-				|| ! current_user_can( 'install_plugins' )
-				|| ! current_user_can( 'activate_plugins' )
-			) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
 				return;
 			}
 
+			// Check for plugin install and activate permissions to handle Jetpack on multisites:
+			// Admins might not be able to install or activate plugins, but Jetpack might already have been installed by a superadmin.
+			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
 			$jetpack_install_status = $this->get_jetpack_install_status();
+			if ( ( self::JETPACK_NOT_INSTALLED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) )
+				|| ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'activate_plugins' ) ) ) {
+				return;
+			}
+
 			$banner_to_display = self::get_banner_type_to_display( array(
 				'jetpack_connection_status'       => $jetpack_install_status,
 				'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
