@@ -36,11 +36,11 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				return;
 			}
 
-			$this->initialize_settings();
+			$this->maybe_set_reroute_requests();
 
-			$settings = wc_gateway_ppec()->settings;
 			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'adjust_form_fields' ) );
-			add_action( 'load-woocommerce_page_wc-settings', array( $this, 'maybe_set_reroute_requests' ) );
+			$this->initialize_settings();
+			$settings = wc_gateway_ppec()->settings;
 
 			// Don't modify any PPEC plugin behavior if WCS request proxying is not enabled
 			if ( 'yes' !== $settings->reroute_requests ) {
@@ -210,21 +210,23 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		public function initialize_settings() {
 			$settings = get_option( 'woocommerce_ppec_paypal_settings', array() );
 
-			// Check if settings are initialized, specifically button_size as its absence would be first to affect the customer
-			if ( ! isset( $settings['button_size'] ) ) {
-				$gateway = new WC_Gateway_PPEC_With_PayPal();
+			if ( ! isset( $settings['reroute_requests'] ) ) {
+				$settings['reroute_requests'] = 'no';
+			} elseif ( 'no' === $settings['reroute_requests'] ) {
+				return;
+			} elseif ( ! isset( $settings['button_size'] ) ) { // Check if settings are initialized, represented by button_size as its absence would be first to affect the customer
+				$payment_gateways = WC()->payment_gateways->payment_gateways();
+				$gateway = $payment_gateways['ppec_paypal'];
+
 				foreach ( $gateway->form_fields as $key => $form_field ) {
 					if ( ! isset( $settings[ $key ] ) && isset( $form_field['default'] ) ) {
 						$settings[ $key ] = $form_field['default'];
 					}
 				}
-				if ( ! isset( $settings['reroute_requests'] ) ) {
-					$settings['reroute_requests'] = 'no';
-				}
-
-				update_option( 'woocommerce_ppec_paypal_settings', $settings );
-				wc_gateway_ppec()->settings->load( true );
 			}
+
+			update_option( 'woocommerce_ppec_paypal_settings', $settings );
+			wc_gateway_ppec()->settings->load( true );
 		}
 
 		/**
@@ -310,6 +312,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		public function maybe_set_reroute_requests() {
 			if (
+				! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] ||
 				empty( $_GET['reroute_requests'] ) ||
 				empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' )
 			) {
@@ -324,6 +327,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$settings->save();
 
 			wp_safe_redirect( wc_gateway_ppec()->get_admin_setting_link() );
+			exit;
 		}
 	}
 }
