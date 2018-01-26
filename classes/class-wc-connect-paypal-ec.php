@@ -7,7 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 	/**
-	 * Modify PPEC plugin behavior to facilitate proxying and authenticating requests via server
+	 * Integrates with WooCommerce PayPal Express Checkout Payment Gateway,
+	 * modifying that plugin's behavior to facilitate authenticating requests
+	 * not by linking an account but via the WCS server through which we proxy.
 	 */
 	class WC_Connect_PayPal_EC {
 
@@ -106,7 +108,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Limit supported payment gateway features to payments
+		 * Limit supported payment gateway features to payments alone
 		 */
 		public function ppec_supports( $supported, $feature, $gateway ) {
 			return 'ppec_paypal' === $gateway->id ? 'products' === $feature : $supported;
@@ -238,7 +240,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Modify PPEC settings form
+		 * Modify PPEC settings form to include a toggle (and other accommodations) for WCS request proxying
 		 */
 		public function adjust_form_fields( $form_fields ) {
 			$settings = wc_gateway_ppec()->settings;
@@ -247,7 +249,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			if ( 'yes' === $settings->reroute_requests ) {
 				$form_fields = $this->adjust_api_subject_form_field( $form_fields );
 
-				// Prevent user from choosing option that will cause requests to fail
+				// Prevent user from changing Payment Action away from "Sale", the only option for which payments will work
 				$form_fields['paymentaction']['disabled'] = true;
 				$form_fields['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking a PayPal account.)', 'woocommerce-services' ), $form_fields['paymentaction']['description'] );
 
@@ -289,7 +291,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Clarify Live API Subject and Sandbox API Subject labels to adapt to proxying use case
+		 * Present the "API Subject" setting in a way that's simpler, more comprehensible, and more appropriate to the way it's being used
 		 */
 		public function adjust_api_subject_form_field( $form_fields ) {
 			$api_subject_title = __( 'Payment Email', 'woocommerce-services' );
