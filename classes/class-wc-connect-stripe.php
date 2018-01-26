@@ -24,6 +24,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		private $logger;
 
 		const STATE_VAR_NAME = 'stripe_state';
+		const WOOCOMMERCE_CONNECT_STRIPE_OPTION = 'woocommerce_stripe_settings';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
 			$this->api = $client;
@@ -60,11 +61,13 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function deauthorize_account() {
-			return $this->api->deauthorize_stripe_account();
+			$response = $this->api->deauthorize_stripe_account();
 			if ( is_wp_error( $response ) ) {
 				return $response;
 			}
-			return $this->save_stripe_keys( array( 'accountId' => '', 'publishableKey' => '', 'secretKey' => '' ) );
+
+			$this->clear_stripe_keys_and_accounts();
+			return $response;
 		}
 
 		public function connect_oauth( $state, $code ) {
@@ -91,16 +94,35 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 			$default_options = $this->get_default_stripe_config();
 
-			$option_name = 'woocommerce_stripe_settings';
-			$options = array_merge( $default_options, get_option( $option_name, array() ) );
+			$options = array_merge( $default_options, get_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, array() ) );
 			$options['enabled']                     = 'yes';
 			$options['testmode']                    = $is_test ? 'yes' : 'no';
 			$options[ $prefix . 'account_id' ]      = $result->accountId;
 			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
 			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
 
-			update_option( $option_name, $options );
+			update_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, $options );
 			return $result;
+		}
+
+		/**
+		 * Clears keys and accounts for both test and production.
+		 * Especially useful after Stripe Connect account deauthorization.
+		 */
+		private function clear_stripe_keys_and_accounts() {
+			$default_options = $this->get_default_stripe_config();
+			$options = array_merge( $default_options, get_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, array() ) );
+
+			$keys_to_clear = array(
+				'account_id', 'publishable_key', 'secret_key',
+				'test_account_id', 'test_publishable_key', 'test_secret_key'
+			);
+
+			foreach ( (array) $keys_to_clear as $key_to_clear ) {
+				$options[ $key_to_clear ] = '';
+			}
+
+			update_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, $options );
 		}
 
 		private function get_default_stripe_config() {
