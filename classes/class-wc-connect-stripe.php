@@ -66,7 +66,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				return $response;
 			}
 
-			$this->clear_stripe_keys_and_accounts();
+			$this->clear_stripe_keys();
 			return $response;
 		}
 
@@ -85,7 +85,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		private function save_stripe_keys( $result ) {
-			if ( ! isset( $result->accountId, $result->publishableKey, $result->secretKey ) ) {
+			if ( ! isset( $result->publishableKey, $result->secretKey ) ) {
 				return new WP_Error( 'Invalid credentials received from server' );
 			}
 
@@ -97,30 +97,46 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$options = array_merge( $default_options, get_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, array() ) );
 			$options['enabled']                     = 'yes';
 			$options['testmode']                    = $is_test ? 'yes' : 'no';
-			$options[ $prefix . 'account_id' ]      = $result->accountId;
 			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
 			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
+
+			// While we are at it, let's also clear the account_id and
+			// test_account_id if present
+
+			// Those used to be stored by save_stripe_keys but should not have
+			// been since they were not used by anyone
+
+			unset( $options[ 'account_id' ] );
+			unset( $options[ 'test_account_id' ] );
 
 			update_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, $options );
 			return $result;
 		}
 
 		/**
-		 * Clears keys and accounts for both test and production.
+		 * Clears keys for test or production (whichever is presently enabled).
 		 * Especially useful after Stripe Connect account deauthorization.
 		 */
-		private function clear_stripe_keys_and_accounts() {
+		private function clear_stripe_keys() {
 			$default_options = $this->get_default_stripe_config();
 			$options = array_merge( $default_options, get_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, array() ) );
 
-			$keys_to_clear = array(
-				'account_id', 'publishable_key', 'secret_key',
-				'test_account_id', 'test_publishable_key', 'test_secret_key'
-			);
-
-			foreach ( (array) $keys_to_clear as $key_to_clear ) {
-				$options[ $key_to_clear ] = '';
+			if ( 'yes' === $options['testmode'] ) {
+				$options[ 'test_publishable_key' ] = '';
+				$options[ 'test_secret_key' ] = '';
+			} else {
+				$options[ 'publishable_key' ] = '';
+				$options[ 'secret_key' ] = '';
 			}
+
+			// While we are at it, let's also clear the account_id and
+			// test_account_id if present
+
+			// Those used to be stored by save_stripe_keys but should not have
+			// been since they were not used by anyone
+
+			unset( $options[ 'account_id' ] );
+			unset( $options[ 'test_account_id' ] );
 
 			update_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, $options );
 		}
