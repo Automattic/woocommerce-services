@@ -61,9 +61,11 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				$settings->save();
 			}
 
+			$username = $settings->get_active_api_credentials()->get_username();
+			$subject  = $settings->get_active_api_credentials()->get_subject();
+
 			// Proceed to attach PPEC-related hooks if email address is present but credentials are missing
-			$credentials = $settings->get_active_api_credentials();
-			if ( empty( $credentials->get_username() ) && ! empty( $credentials->get_subject() ) ) {
+			if ( empty( $username ) && ! empty( $subject ) ) {
 				add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
 
 				add_filter( 'option_woocommerce_ppec_paypal_settings', array( $this, 'adjust_settings' ) );
