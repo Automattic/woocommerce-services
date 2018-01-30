@@ -2,7 +2,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -13,64 +13,72 @@ import FormLabel from 'components/forms/form-label';
 import FormToggle from 'components/forms/form-toggle/compact';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
+// import { Component } from '../../../../../Library/Caches/typescript/2.6/node_modules/@types/react';
 
-const renderToggleText = ( text ) => {
-	return (
+class Toggle extends Component {
+	static propTypes = {
+		id: PropTypes.string.isRequired,
+		title: PropTypes.string,
+		description: PropTypes.string,
+		trueText: PropTypes.string.isRequired,
+		falseText: PropTypes.string.isRequired,
+		saveOnToggle: PropTypes.bool,
+		checked: PropTypes.bool,
+		saveForm: PropTypes.func,
+		updateValue: PropTypes.func,
+		className: PropTypes.string,
+	};
+
+	static defaultProps = {
+		checked: false,
+	};
+
+	renderToggleText = ( text ) => (
 		text ? <span className="toggle__text" dangerouslySetInnerHTML={ sanitizeHTML( text ) } /> : null
-	);
-};
+	)
 
-const Toggle = ( {
-		id,
-		title,
-		description,
-		trueText,
-		falseText,
-		saveOnToggle,
-		checked,
-		placeholder,
-		saveForm,
-		updateValue,
-		className,
-	} ) => {
-	const handleChangeEvent = () => {
+	handleChangeEvent = () => {
+		const {
+			updateValue,
+			checked,
+			saveForm,
+			saveOnToggle,
+		} = this.props;
+
 		updateValue( ! checked );
+
 		if ( saveOnToggle && saveForm ) {
 			saveForm();
 		}
 	};
 
-	return (
-		<FormFieldset className={ className }>
-			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
-			<FormToggle
-				id={ id }
-				name={ id }
-				placeholder={ placeholder }
-				checked={ checked }
-				onChange={ handleChangeEvent }
-			/>
-			{ renderToggleText( checked ? trueText : falseText ) }
-			<FieldDescription text={ description } />
-		</FormFieldset>
-	);
-};
+	render() {
+		const {
+			id,
+			title,
+			description,
+			trueText,
+			falseText,
+			checked,
+			placeholder,
+			className,
+		} = this.props;
 
-Toggle.propTypes = {
-	id: PropTypes.string.isRequired,
-	title: PropTypes.string,
-	description: PropTypes.string,
-	trueText: PropTypes.string.isRequired,
-	falseText: PropTypes.string.isRequired,
-	saveOnToggle: PropTypes.bool,
-	checked: PropTypes.bool,
-	saveForm: PropTypes.func,
-	updateValue: PropTypes.func,
-	className: PropTypes.string,
-};
-
-Toggle.defaultProps = {
-	checked: false,
-};
+		return (
+			<FormFieldset className={ className }>
+				<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+				<FormToggle
+					id={ id }
+					name={ id }
+					placeholder={ placeholder }
+					checked={ checked }
+					onChange={ this.handleChangeEvent }
+				/>
+				{ this.renderToggleText( checked ? trueText : falseText ) }
+				<FieldDescription text={ description } />
+			</FormFieldset>
+		);
+	}
+}
 
 export default Toggle;
