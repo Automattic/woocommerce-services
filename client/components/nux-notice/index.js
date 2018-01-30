@@ -13,7 +13,7 @@ const NuxNotice = ( { children, onDismiss } ) => {
 			<div className="nux-notice__copy">
 				{ children }
 			</div>
-			{ onDismiss && <a href="#" onClick={ onDismiss }>{ __( 'Okay' ) }</a> }
+			{ onDismiss && <button onClick={ onDismiss }>{ __( 'Okay' ) }</button> }
 		</div>
 	);
 };
