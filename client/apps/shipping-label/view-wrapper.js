@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -38,19 +38,19 @@ import {
 	getActivityLogEvents,
 } from 'woocommerce/state/sites/orders/activity-log/selectors';
 
-const ShippingLabelViewWrapper = ( props ) => {
-	const {
-		translate,
-		siteId,
-		orderId,
-		loaded,
-		labelsEnabled,
-		selectedPaymentMethod,
-		paymentMethods,
-		events,
-	} = props;
+class ShippingLabelViewWrapper extends Component {
+	static propTypes = {
+		orderId: PropTypes.number.isRequired,
+	};
 
-	const renderPaymentInfo = () => {
+	renderPaymentInfo = () => {
+		const {
+			translate,
+			loaded,
+			selectedPaymentMethod,
+			paymentMethods,
+		} = this.props;
+
 		if ( ! loaded ) {
 			return null;
 		}
@@ -88,17 +88,12 @@ const ShippingLabelViewWrapper = ( props ) => {
 		);
 	};
 
-	const handleButtonClick = () => {
-		// We don't support automatically emailing the customer
-		// or marking the order as fulfilled
-		// once the order is fulfilled
-		props.setEmailDetailsOption( orderId, siteId, false );
-		props.setFulfillOrderOption( orderId, siteId, false );
+	renderLabelButton = () => {
+		const {
+			loaded,
+			translate,
+		} = this.props;
 
-		props.openPrintingFlow( orderId, siteId );
-	};
-
-	const renderLabelButton = () => {
 		const className = classNames( 'shipping-label__new-label-button', {
 			'is-placeholder': ! loaded,
 		} );
@@ -106,13 +101,19 @@ const ShippingLabelViewWrapper = ( props ) => {
 		return (
 			<Button
 				className={ className }
-				onClick={ handleButtonClick } >
+				onClick={ this.handleButtonClick } >
 				{ translate( 'Create new label' ) }
 			</Button>
 		);
 	};
 
-	const renderActivityLog = () => {
+	renderActivityLog = () => {
+		const {
+			siteId,
+			orderId,
+			events,
+		} = this.props;
+
 		if ( 0 === events.length ) {
 			return null;
 		}
@@ -124,25 +125,46 @@ const ShippingLabelViewWrapper = ( props ) => {
 		);
 	};
 
-	const shouldRenderButton = ! loaded || labelsEnabled && selectedPaymentMethod;
+	handleButtonClick = () => {
+		const {
+			orderId,
+			siteId,
+		} = this.props;
 
-	return (
-		<div className="shipping-label__container">
-			<div className="shipping-label__new" >
-				<GlobalNotices notices={ notices.list } />
-				<QueryLabels orderId={ orderId } siteId={ siteId } />
-				<LabelPurchaseDialog orderId={ orderId } siteId={ siteId } />
-				{ renderPaymentInfo() }
-				{ shouldRenderButton && renderLabelButton() }
+		// We don't support automatically emailing the customer
+		// or marking the order as fulfilled
+		// once the order is fulfilled
+		this.props.setEmailDetailsOption( orderId, siteId, false );
+		this.props.setFulfillOrderOption( orderId, siteId, false );
+
+		this.props.openPrintingFlow( orderId, siteId );
+	};
+
+	render() {
+		const {
+			siteId,
+			orderId,
+			loaded,
+			labelsEnabled,
+			selectedPaymentMethod,
+		} = this.props;
+
+		const shouldRenderButton = ! loaded || labelsEnabled && selectedPaymentMethod;
+
+		return (
+			<div className="shipping-label__container">
+				<div className="shipping-label__new" >
+					<GlobalNotices notices={ notices.list } />
+					<QueryLabels orderId={ orderId } siteId={ siteId } />
+					<LabelPurchaseDialog orderId={ orderId } siteId={ siteId } />
+					{ this.renderPaymentInfo() }
+					{ shouldRenderButton && this.renderLabelButton() }
+				</div>
+				{ this.renderActivityLog() }
 			</div>
-			{ renderActivityLog() }
-		</div>
-	);
-};
-
-ShippingLabelViewWrapper.propTypes = {
-	orderId: PropTypes.number.isRequired,
-};
+		);
+	}
+}
 
 export default connect(
 	( state, { orderId } ) => {
