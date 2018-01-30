@@ -59,6 +59,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_nux_notices', $notices );
 		}
 
+		public function ajax_dismiss_notice() {
+			if ( empty( $_POST['dismissible_id'] ) ) {
+				return;
+			}
+
+			check_ajax_referer( 'wc_connect_dismiss_notice', 'nonce' );
+			$this->dismiss_notice( sanitize_key( $_POST['dismissible_id'] ) );
+			wp_die();
+		}
+
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
 			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
@@ -364,17 +374,27 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$supports_rates  = in_array( $country, array( 'US', 'CA' ) );
 			$supports_labels = ( 'US' === $country );
 
-			if ( $supports_stripe && $supports_taxes && $supports_rates && $supports_labels ) {
+			$is_stripe_active = is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' );
+			$stripe_settings  = get_option( 'woocommerce_stripe_settings', array() );
+			$is_stripe_ready  = $is_stripe_active && isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'];
+
+			$is_ppec_active = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
+			$ppec_settings  = get_option( 'woocommerce_ppec_paypal_settings', array() );
+			$is_ppec_ready  = $is_ppec_active && ( ! isset( $ppec_settings['enabled'] ) || 'yes' === $ppec_settings['enabled'] );
+
+			$supports_payments = ( $supports_stripe && $is_stripe_ready ) || $is_ppec_ready;
+
+			if ( $supports_payments && $supports_taxes && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_stripe && $supports_taxes && $supports_rates ) {
+			} elseif ( $supports_payments && $supports_taxes && $supports_rates ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe && $supports_taxes ) {
+			} else if ( $supports_payments && $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe && $supports_rates && $supports_labels ) {
+			} else if ( $supports_payments && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe && $supports_rates ) {
+			} else if ( $supports_payments && $supports_rates ) {
 				$feature_list = __( 'live shipping rates and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_stripe ) {
+			} else if ( $supports_payments ) {
 				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
 			} else if ( $supports_taxes && $supports_rates && $supports_labels ) {
 				$feature_list = __( 'automated tax calculation, live shipping rates, and shipping label printing', 'woocommerce-services' );
@@ -453,6 +473,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
 			}
+
+			add_action( 'wp_ajax_wc_connect_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
 		}
 
 		public function show_banner_before_connection() {
@@ -588,8 +610,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_nux_banner( $content ) {
+			if ( isset( $content['dismissible_id'] ) && $this->is_notice_dismissed( sanitize_key( $content['dismissible_id'] ) ) ) {
+				return;
+			}
+
 			?>
-			<div class="notice wcs-nux__notice">
+			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
 				<div class="wcs-nux__notice-logo">
 					<img src="<?php echo esc_url( $content['image_url'] );  ?>">
 				</div>
@@ -640,6 +666,23 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				<?php endif; ?>
 			</div>
 			<?php
+			if ( isset( $content['dismissible_id'] ) ) :
+				// Add handler for dismissing banner. Only supports a single banner at a time
+				wp_enqueue_script( 'wp-util' );
+			?>
+				<script>
+				( function( $ ) {
+					$( '.wcs-nux__notice' ).on( 'click', '.notice-dismiss', function() {
+						wp.ajax.post( {
+							action: "wc_connect_dismiss_notice",
+							dismissible_id: "<?php echo esc_js( $content['dismissible_id'] ); ?>",
+							nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_notice' ) ); ?>"
+						} );
+					} );
+				} )( jQuery );
+				</script>
+			<?php
+			endif;
 		}
 
 		/**

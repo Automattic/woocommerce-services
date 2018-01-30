@@ -2,7 +2,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -15,44 +15,63 @@ import FormRadio from 'components/forms/form-radio';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 import FieldDescription from 'components/field-description';
 
-const RadioButton = ( { value, currentValue, setValue, description } ) => {
-	const onChange = () => setValue( value );
+class RadioButton extends Component {
+	onChange = () => this.props.setValue( this.props.value );
 
-	return (
-		<FormLabel>
-			<FormRadio value={ value } checked={ value === currentValue } onChange={ onChange } />
-			<span dangerouslySetInnerHTML={ sanitizeHTML( description ) } />
-		</FormLabel>
-	);
-};
+	render() {
+		const {
+			value,
+			currentValue,
+			description,
+		} = this.props;
 
-const RadioButtons = ( { valuesMap, title, description, value, setValue, className } ) => {
-	return (
-		<FormFieldset className={ className }>
-			<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
-			<FieldDescription text={ description } />
-			{ Object.keys( valuesMap ).map( ( key ) => {
-				return (
-					<RadioButton
-						key={ key }
-						value={ key }
-						currentValue={ value }
-						setValue={ setValue }
-						description={ valuesMap[ key ] }
-					/>
-				);
-			} ) }
-		</FormFieldset>
-	);
-};
+		return (
+			<FormLabel>
+				<FormRadio value={ value } checked={ value === currentValue } onChange={ this.onChange } />
+				<span dangerouslySetInnerHTML={ sanitizeHTML( description ) } />
+			</FormLabel>
+		);
+	}
+}
 
-RadioButtons.propTypes = {
-	valuesMap: PropTypes.object.isRequired,
-	title: PropTypes.string,
-	description: PropTypes.string,
-	value: PropTypes.string.isRequired,
-	setValue: PropTypes.func.isRequired,
-	className: PropTypes.string,
-};
+class RadioButtons extends Component {
+	static propTypes = {
+		valuesMap: PropTypes.object.isRequired,
+		title: PropTypes.string,
+		description: PropTypes.string,
+		value: PropTypes.string.isRequired,
+		setValue: PropTypes.func.isRequired,
+		className: PropTypes.string,
+	};
+
+	render() {
+		const {
+			valuesMap,
+			title,
+			description,
+			value,
+			setValue,
+			className,
+		} = this.props;
+
+		return (
+			<FormFieldset className={ className }>
+				<FormLegend dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+				<FieldDescription text={ description } />
+				{ Object.keys( valuesMap ).map( ( key ) => {
+					return (
+						<RadioButton
+							key={ key }
+							value={ key }
+							currentValue={ value }
+							setValue={ setValue }
+							description={ valuesMap[ key ] }
+						/>
+					);
+				} ) }
+			</FormFieldset>
+		);
+	}
+}
 
 export default RadioButtons;
