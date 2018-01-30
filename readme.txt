@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.1
-Stable tag: 1.10.1
+Tested up to: 4.9.2
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +50,7 @@ This section describes how to install the plugin and get it working.
 * USPS label purchase/printing (domestic USA only)
 * Automated tax calculation
 * Stripe account provisioning (through WooCommerce setup wizard)
+* PayPal Express Checkout payment authorization
 
 = Are Real-Time Rates in Checkout Free? =
 
@@ -88,6 +89,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.11.0 =
+* Fix bug with TOS acceptance on WordPress Multisite
+* Add PayPal Express Checkout payment authorization
 
 = 1.10.1 =
 * Fix bug with product variation names in Packaging description
