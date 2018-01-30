@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -14,37 +14,50 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const TextArea = ( { id, readonly, title, description, value, placeholder, updateValue, error, className } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
+class TextArea extends Component {
+	static propTypes = {
+		id: PropTypes.string.isRequired,
+		readonly: PropTypes.bool,
+		title: PropTypes.string,
+		description: PropTypes.string,
+		value: PropTypes.string.isRequired,
+		updateValue: PropTypes.func,
+		error: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.bool,
+		] ),
+		className: PropTypes.string,
+	};
 
-	return (
-		<FormFieldset className={ className }>
-			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
-			<FormTextarea
-				id={ id }
-				name={ id }
-				placeholder={ placeholder }
-				readOnly={ readonly }
-				value={ value }
-				onChange={ handleChangeEvent }
-			/>
-			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
-		</FormFieldset>
-	);
-};
+	handleChangeEvent = ( event ) => this.props.updateValue( event.target.value );
 
-TextArea.propTypes = {
-	id: PropTypes.string.isRequired,
-	readonly: PropTypes.bool,
-	title: PropTypes.string,
-	description: PropTypes.string,
-	value: PropTypes.string.isRequired,
-	updateValue: PropTypes.func,
-	error: PropTypes.oneOfType( [
-		PropTypes.string,
-		PropTypes.bool,
-	] ),
-	className: PropTypes.string,
-};
+	render() {
+		const {
+			id,
+			readonly,
+			title,
+			description,
+			value,
+			placeholder,
+			error,
+			className,
+		} = this.props;
+
+		return (
+			<FormFieldset className={ className }>
+				<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+				<FormTextarea
+					id={ id }
+					name={ id }
+					placeholder={ placeholder }
+					readOnly={ readonly }
+					value={ value }
+					onChange={ this.handleChangeEvent }
+				/>
+				{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
+			</FormFieldset>
+		);
+	}
+}
 
 export default TextArea;

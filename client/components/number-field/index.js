@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -15,39 +15,51 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const NumberField = ( { id, title, description, value, placeholder, updateValue, error, className } ) => {
-	const onChange = ( event ) => updateValue( parseNumber( event.target.value ) );
+class NumberField extends Component {
+	static propTypes = {
+		id: PropTypes.string.isRequired,
+		title: PropTypes.string,
+		description: PropTypes.string,
+		value: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.number,
+		] ).isRequired,
+		updateValue: PropTypes.func,
+		error: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.bool,
+		] ),
+		className: PropTypes.string,
+	};
 
-	return (
-		<FormFieldset className={ className }>
-			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
-			<NumberInput
-				id={ id }
-				name={ id }
-				placeholder={ placeholder }
-				value={ value }
-				onChange={ onChange }
-				isError={ Boolean( error ) }
-			/>
-			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
-		</FormFieldset>
-	);
-};
+	onChange = ( event ) => this.props.updateValue( parseNumber( event.target.value ) );
 
-NumberField.propTypes = {
-	id: PropTypes.string.isRequired,
-	title: PropTypes.string,
-	description: PropTypes.string,
-	value: PropTypes.oneOfType( [
-		PropTypes.string,
-		PropTypes.number,
-	] ).isRequired,
-	updateValue: PropTypes.func,
-	error: PropTypes.oneOfType( [
-		PropTypes.string,
-		PropTypes.bool,
-	] ),
-	className: PropTypes.string,
-};
+	render() {
+		const {
+			id,
+			title,
+			description,
+			value,
+			placeholder,
+			error,
+			className,
+		} = this.props;
+
+		return (
+			<FormFieldset className={ className }>
+				<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+				<NumberInput
+					id={ id }
+					name={ id }
+					placeholder={ placeholder }
+					value={ value }
+					onChange={ this.onChange }
+					isError={ Boolean( error ) }
+				/>
+				{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
+			</FormFieldset>
+		);
+	}
+}
 
 export default NumberField;

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -14,36 +14,48 @@ import FieldError from 'components/field-error';
 import FieldDescription from 'components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
-const TextField = ( { id, title, description, value, placeholder, updateValue, error, className } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
+class TextField extends Component {
+	static propTypes = {
+		id: PropTypes.string.isRequired,
+		title: PropTypes.string,
+		description: PropTypes.string,
+		value: PropTypes.string.isRequired,
+		updateValue: PropTypes.func,
+		error: PropTypes.oneOfType( [
+			PropTypes.string,
+			PropTypes.bool,
+		] ),
+		className: PropTypes.string,
+	};
 
-	return (
-		<FormFieldset className={ className }>
-			<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
-			<FormTextInput
-				id={ id }
-				name={ id }
-				placeholder={ placeholder }
-				value={ value }
-				onChange={ handleChangeEvent }
-				isError={ Boolean( error ) }
-			/>
-			{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
-		</FormFieldset>
-	);
-};
+	handleChangeEvent = ( event ) => this.props.updateValue( event.target.value );
 
-TextField.propTypes = {
-	id: PropTypes.string.isRequired,
-	title: PropTypes.string,
-	description: PropTypes.string,
-	value: PropTypes.string.isRequired,
-	updateValue: PropTypes.func,
-	error: PropTypes.oneOfType( [
-		PropTypes.string,
-		PropTypes.bool,
-	] ),
-	className: PropTypes.string,
-};
+	render() {
+		const {
+			id,
+			title,
+			description,
+			value,
+			placeholder,
+			error,
+			className,
+		} = this.props;
+
+		return (
+			<FormFieldset className={ className }>
+				<FormLabel htmlFor={ id } dangerouslySetInnerHTML={ sanitizeHTML( title ) } />
+				<FormTextInput
+					id={ id }
+					name={ id }
+					placeholder={ placeholder }
+					value={ value }
+					onChange={ this.handleChangeEvent }
+					isError={ Boolean( error ) }
+				/>
+				{ error ? <FieldError text={ error } /> : <FieldDescription text={ description } /> }
+			</FormFieldset>
+		);
+	}
+}
 
 export default TextField;
