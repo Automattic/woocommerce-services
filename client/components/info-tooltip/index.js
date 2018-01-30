@@ -30,20 +30,21 @@ export default class InfoTooltip extends Component {
 	constructor( props ) {
 		super( props );
 
-		this.openTooltip = this.openTooltip.bind( this );
-		this.closeTooltip = this.closeTooltip.bind( this );
-
 		this.state = {
 			showTooltip: false,
 		};
 	}
 
-	openTooltip() {
+	openTooltip = () => {
 		this.setState( { showTooltip: true } );
 	}
 
-	closeTooltip() {
+	closeTooltip = () => {
 		this.setState( { showTooltip: false } );
+	}
+
+	setToolTipRef = ( input ) => {
+		this.toolTipSpan = input;
 	}
 
 	render() {
@@ -51,7 +52,7 @@ export default class InfoTooltip extends Component {
 
 		return (
 			<span className={ classNames( 'info-tooltip', this.props.className ) } >
-				<span ref="anchor"
+				<span ref={ this.setToolTipRef }
 					onMouseEnter={ this.openTooltip }
 					onMouseLeave={ this.closeTooltip } >
 					{ anchor }
@@ -62,7 +63,7 @@ export default class InfoTooltip extends Component {
 					showOnMobile
 					onClose={ this.closeTooltip }
 					position={ this.props.position }
-					context={ this.refs && this.refs.anchor }>
+					context={ this.toolTipSpan }>
 					<div className="info-tooltip__contents"
 						style={ { maxWidth: this.props.maxWidth } } >
 						{ this.props.children }
