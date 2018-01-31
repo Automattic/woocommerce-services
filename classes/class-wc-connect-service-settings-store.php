@@ -59,6 +59,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$result['paper_size'] = $this->get_preferred_paper_size();
 			$result = array_merge( $default, $result );
 
+			if ( ! isset( $result['email_receipts'] ) ) {
+				$result['email_receipts'] = true;
+			}
+
 			return $result;
 		}
 
