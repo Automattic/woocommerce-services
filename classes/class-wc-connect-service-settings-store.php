@@ -321,6 +321,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function get_enabled_services_by_ids( $service_ids ) {
+			if ( empty( $service_ids ) ) {
+				return array();
+			}
+
 			$enabled_services = array();
 
 			// Note: We use esc_sql here instead of prepare because we are using WHERE IN
