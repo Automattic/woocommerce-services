@@ -332,9 +332,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
 					$package_names = array();
+					$service_ids   = array();
+
 					foreach ( $rate->packages as $rate_package ) {
 						$package_format = '';
-						$items = array();
+						$items          = array();
+						$service_ids[]  = $rate_package->service_id;
 
 						foreach ( $rate_package->items as $package_item ) {
 							/** @var WC_Product $product */
@@ -357,9 +360,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					}
 
 					$packaging_info = implode( ', ', $package_names );
+					$services_list  = implode( '-', array_unique( $service_ids ) );
 
 					$rate_to_add = array(
-						'id'        => self::format_rate_id( $instance->id, $instance->instance, $rate_idx ),
+						// Make sure the rate ID is identifiable for extensions like Conditional Shipping and Payments.
+						// The new format looks like: `wc_services_usps:1:pri_medium_flat_box_top`.
+						'id'        => self::format_rate_id( $this->id, $instance->instance, $services_list ),
 						'label'     => self::format_rate_title( $rate->title ),
 						'cost'      => $rate->rate,
 						'meta_data' => array(
@@ -405,8 +411,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
 		}
 
-		public static function format_rate_id( $method_id, $instance, $rate_idx ) {
-			return sprintf( '%s:%d:%d', $method_id, $instance, $rate_idx );
+		/**
+		 * @param string $method_id
+		 * @param int $instance_id
+		 * @param string $service_ids
+		 *
+		 * @return string
+		 */
+		public static function format_rate_id( $method_id, $instance_id, $service_ids ) {
+			return sprintf( '%s:%d:%s', $method_id, $instance_id, $service_ids );
 		}
 
 		public static function format_rate_title( $rate_title ) {
