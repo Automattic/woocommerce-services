@@ -33,8 +33,9 @@ class LabelSettingsWrapper extends Component {
 	}
 
 	onSaveSuccess = () => {
-		const { noticeActions, translate } = this.props;
-		noticeActions.successNotice( translate( 'Your shipping label settings have been saved.' ), { duration: 5000 } );
+		const { noticeActions, translate, orderHref } = this.props;
+		const options = orderHref ? { button: 'Back to order', href: orderHref } : { duration: 5000 };
+		noticeActions.successNotice( translate( 'Your shipping label settings have been saved.' ), options );
 		this.setState( { pristine: true } );
 	}
 
@@ -78,6 +79,7 @@ function mapStateToProps( state ) {
 		siteId: getSelectedSiteId( state ),
 		isSaving: form.isSaving,
 		buttonDisabled: form.pristine,
+		orderHref: form.order_href,
 	};
 }
 
