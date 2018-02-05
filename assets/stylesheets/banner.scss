@@ -6,16 +6,21 @@
 	.wcs-nux__notice-logo {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		justify-content: center;
 		margin-left: 1em;
+		padding: 1.5em 2em;
+
+		.wcs-nux__notice-logo-jetpack {
+			width: 135px;
+			margin: -10px 0 0.75em 21px;
+		}
+
+		.wcs-nux__notice-logo-graphic {
+			width: 220px;
+			height: 121px;
+		}
 	}
 
-	.wcs-nux__notice-logo img {
-		width: 220px;
-		height: 121px;
-		margin: 2em;
-	}
 
 	.wcs-nux__notice-content {
 		display: flex;
@@ -59,35 +64,7 @@
 		max-width: 90%;
 		margin: 0 0 1em;
 		line-height: 1.6;
-    padding: 0;
-	}
-
-	.wcs-nux__notice-jetpack {
-		display: flex;
-		flex-direction: column;
-		flex-wrap: nowrap;
-		align-items: center;
-		justify-content: center;
-		background-color: #F4F8FA;
-		padding: 3.5em;
-		white-space: nowrap;
-
-		p {
-			margin: 1em 0 0 0; // override default style
-		}
-	}
-
-	.wcs-nux__notice-jetpack img {
-		height: 60px;
-		width: 60px;
-		margin: 1em;
-	}
-
-	.wcs-nux__notice-jetpack-text {
-		text-transform: uppercase;
-		font-size: 0.6em;
-		letter-spacing: 2px;
-		color: #82B1D2;
+		padding: 0;
 	}
 }
 
