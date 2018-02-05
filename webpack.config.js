@@ -1,6 +1,5 @@
 const webpack = require( 'webpack' );
 const path = require( 'path' );
-const fs = require( 'fs' );
 const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 const autoprefixer = require( 'autoprefixer' );
 const escapeStringRegexp = require( 'escape-string-regexp' );
@@ -160,18 +159,11 @@ const config = {
 		} ),
 		//rewrite calypso images path
 		new webpack.NormalModuleReplacementPlugin( /calypso\/images/, ( resource ) => {
-			let newPath = resource.request
+			resource.request = resource.request
 				.replace(
 					/^.+calypso\/images/,
 					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
-				)
-				.replace( /is-([^/]+)$/, '$1' );
-
-			if ( ! fs.existsSync( newPath ) ) {
-				newPath = newPath.replace( /cc-([^/]+)$/, '$1' );
-			}
-
-			resource.request = newPath;
+				);
 		} ),
 	],
 };
