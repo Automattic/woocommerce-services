@@ -618,9 +618,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
 				<div class="wcs-nux__notice-logo">
 					<?php if ( $content['should_show_jp'] ) : ?>
-						<img class="wcs-nux__notice-logo-jetpack" src="<?php
-						echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) );
-						?>">
+						<img
+							class="wcs-nux__notice-logo-jetpack"
+							src="<?php echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) ); ?>"
+						>
 					<?php endif; ?>
 					<img class="wcs-nux__notice-logo-graphic" src="<?php echo esc_url( $content['image_url'] );  ?>">
 				</div>
