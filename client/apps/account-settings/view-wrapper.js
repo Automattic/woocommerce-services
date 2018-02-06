@@ -18,7 +18,7 @@ import { ProtectFormGuard } from 'lib/protect-form';
 import * as NoticeActions from 'state/notices/actions';
 import { submit } from 'woocommerce/woocommerce-services/state/label-settings/actions';
 import { getSelectedSiteId } from 'state/ui/selectors';
-import { getLabelSettingsFormMeta } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+import { getLabelSettingsFormMeta, getLabelSettingsFormData } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 
 class LabelSettingsWrapper extends Component {
 	constructor( props ) {
@@ -33,8 +33,12 @@ class LabelSettingsWrapper extends Component {
 	}
 
 	onSaveSuccess = () => {
-		const { noticeActions, translate, orderHref } = this.props;
-		const options = orderHref ? { button: translate( 'Back to order' ), href: orderHref } : { duration: 5000 };
+		const { noticeActions, translate, orderHref, paymentMethodSelected } = this.props;
+		const options =
+			orderHref && paymentMethodSelected
+				? { button: translate( 'Back to order' ), href: orderHref }
+				: { duration: 5000 };
+
 		noticeActions.successNotice( translate( 'Your shipping label settings have been saved.' ), options );
 		this.setState( { pristine: true } );
 	}
@@ -74,12 +78,13 @@ class LabelSettingsWrapper extends Component {
 }
 
 function mapStateToProps( state ) {
-	const form = getLabelSettingsFormMeta( state );
+	const formMeta = getLabelSettingsFormMeta( state );
+	const formData = getLabelSettingsFormData( state );
 	return {
 		siteId: getSelectedSiteId( state ),
-		isSaving: form.isSaving,
-		buttonDisabled: form.pristine,
-		orderHref: form.order_href,
+		isSaving: formMeta.isSaving,
+		buttonDisabled: formMeta.pristine,
+		paymentMethodSelected: Boolean( formData && formData.selected_payment_method_id ),
 	};
 }
 

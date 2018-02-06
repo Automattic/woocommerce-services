@@ -34,12 +34,10 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 			$email = '';
 		}
 
-		$formData = $this->settings_store->get_account_settings();
-
 		return new WP_REST_Response( array(
 			'success'  => true,
 			'storeOptions' => $this->settings_store->get_store_options(),
-			'formData' => $formData,
+			'formData' => $this->settings_store->get_account_settings(),
 			'formMeta' => array(
 				'can_manage_payments' => $this->can_user_manage_payment_methods(),
 				'can_edit_settings' => true,
@@ -47,7 +45,6 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
 				'master_user_email' => $email,
 				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
-				'order_href' => $formData['selected_payment_method_id'] ? WC_Connect_Options::get_option( 'label_settings_redirect' ) : '',
 			)
 		), 200 );
 	}

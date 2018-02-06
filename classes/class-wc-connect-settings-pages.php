@@ -76,15 +76,14 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
+			$extra_args = array();
 			$referer_url = wp_get_referer();
 			$referer = parse_url( $referer_url );
 			if ( preg_match( '/\/wp-admin\/post\.php$/', $referer['path'] ) ) {
-				WC_Connect_Options::update_option( 'label_settings_redirect', $referer_url );
-			} else {
-				WC_Connect_Options::delete_option( 'label_settings_redirect' );
+				$extra_args['order_href'] = $referer_url;
 			}
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings' );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings', $extra_args );
 		}
 
 		public function output_no_priv_account_screen() {

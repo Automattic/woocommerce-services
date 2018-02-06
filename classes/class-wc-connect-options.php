@@ -49,7 +49,6 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'needs_tax_environment_setup',
 				'stripe_state',
 				'banner_ppec',
-				'label_settings_redirect',
 			);
 		}
 
