@@ -393,7 +393,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						sprintf(
 							'Received rate: %s (%s)<br/><ul><li>%s</li></ul>',
 							$rate_to_add['label'],
-							$rate->rate,
+							wc_price( $rate->rate ),
 							implode( '</li><li>', $package_names )
 						),
 						'success'
