@@ -33,10 +33,10 @@ class LabelSettingsWrapper extends Component {
 	}
 
 	onSaveSuccess = () => {
-		const { noticeActions, translate, orderHref, paymentMethodSelected } = this.props;
+		const { noticeActions, translate, orderId, orderHref, paymentMethodSelected } = this.props;
 		const options =
 			orderHref && paymentMethodSelected
-				? { button: translate( 'Back to order' ), href: orderHref }
+				? { button: translate( 'Back to Order #%(orderId)s', { args: { orderId } } ), href: orderHref }
 				: { duration: 5000 };
 
 		noticeActions.successNotice( translate( 'Your shipping label settings have been saved.' ), options );

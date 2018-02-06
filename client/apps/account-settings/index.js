@@ -12,7 +12,7 @@ import reducer from 'woocommerce/woocommerce-services/state/label-settings/reduc
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
 
-export default ( { order_href: orderHref } ) => ( {
+export default ( { order_id: orderId, order_href: orderHref } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			extensions: combineReducers( {
@@ -45,6 +45,6 @@ export default ( { order_href: orderHref } ) => ( {
 	},
 
 	View: () => (
-		<ViewWrapper orderHref={ orderHref } />
+		<ViewWrapper orderId={ orderId } orderHref={ orderHref } />
 	),
 } );

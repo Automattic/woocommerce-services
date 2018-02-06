@@ -80,6 +80,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$referer_url = wp_get_referer();
 			$referer = parse_url( $referer_url );
 			if ( preg_match( '/\/wp-admin\/post\.php$/', $referer['path'] ) ) {
+				parse_str( $referer['query'], $query );
+				$extra_args['order_id'] = $query['post'];
 				$extra_args['order_href'] = $referer_url;
 			}
 
