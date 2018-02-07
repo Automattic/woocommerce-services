@@ -209,13 +209,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			// Ensure that Country is specified
 			if ( empty( $country ) ) {
-				$this->debug( 'Skipping rate calculation - missing country' );
+				$this->debug( 'Skipping rate calculation - missing country', 'error' );
 				return false;
 			}
 
 			// Validate Postcode
 			if ( ! WC_Validation::is_postcode( $postcode, $country ) ) {
-				$this->debug( 'Skipping rate calculation - invalid postcode' );
+				$this->debug( 'Skipping rate calculation - invalid postcode', 'error' );
 				return false;
 			}
 
@@ -223,7 +223,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$valid_states = WC()->countries->get_states( $country );
 
 			if ( $valid_states && ! array_key_exists( $state, $valid_states ) ) {
-				$this->debug( 'Skipping rate calculation - invalid/unsupported state' );
+				$this->debug( 'Skipping rate calculation - invalid/unsupported state', 'error' );
 				return false;
 			}
 
