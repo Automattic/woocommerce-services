@@ -389,15 +389,28 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						),
 					);
 
-					$this->debug(
-						sprintf(
+					if ( $this->logger->is_debug_enabled() ) {
+						$rate_debug_message = sprintf(
 							'Received rate: %s (%s)<br/><ul><li>%s</li></ul>',
 							$rate_to_add['label'],
 							wc_price( $rate->rate ),
 							implode( '</li><li>', $package_names )
-						),
-						'success'
-					);
+						);
+
+						// Notify the merchant when the fallback rate is added by the WCS server.
+						if (
+							property_exists( $service_settings, 'fallback_rate' )
+							&& $rate->rate == $service_settings->fallback_rate
+							&& self::format_rate_title( $this->service_schema->carrier_name ) == $rate_to_add['label']
+						) {
+							$rate_debug_message .= '<strong>Note: this appears to be the fallback rate</strong><br/>';
+						}
+
+						$this->debug(
+							$rate_debug_message,
+							'success'
+						);
+					}
 
 					$this->add_rate( $rate_to_add );
 				}
