@@ -53,6 +53,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $logger;
 
 		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $shipping_logger;
+
+		/**
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
@@ -220,6 +225,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_logger( WC_Connect_Logger $logger ) {
 			$this->logger = $logger;
+		}
+
+		public function get_shipping_logger() {
+			return $this->shipping_logger;
+		}
+
+		public function set_shipping_logger( WC_Connect_Logger $logger ) {
+			$this->shipping_logger = $logger;
 		}
 
 		public function get_api_client() {
@@ -571,7 +584,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-stripe.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-paypal-ec.php' ) );
 
-			$logger                = new WC_Connect_Logger( new WC_Logger() );
+			$core_logger           = new WC_Logger();
+			$logger                = new WC_Connect_Logger( $core_logger );
+			$taxes_logger          = new WC_Connect_Logger( $core_logger, 'taxes' );
+			$payments_logger       = new WC_Connect_Logger( $core_logger, 'payments' );
+			$shipping_logger       = new WC_Connect_Logger( $core_logger, 'shipping' );
+
 			$validator             = new WC_Connect_Service_Schemas_Validator();
 			$api_client            = new WC_Connect_API_Client( $validator, $this );
 			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
@@ -580,12 +598,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $logger );
+			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger );
 			$options               = new WC_Connect_Options();
-			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger );
+			$stripe                = new WC_Connect_Stripe( $api_client, $options, $payments_logger );
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 
 			$this->set_logger( $logger );
+			$this->set_shipping_logger( $shipping_logger );
 			$this->set_api_client( $api_client );
 			$this->set_service_schemas_validator( $validator );
 			$this->set_service_schemas_store( $schemas_store );
@@ -971,7 +990,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// TODO - make more generic - allow things other than WC_Connect_Shipping_Method to work here
 
 			$method->set_api_client( $this->get_api_client() );
-			$method->set_logger( $this->get_logger() );
+			$method->set_logger( $this->get_shipping_logger() );
 			$method->set_service_settings_store( $this->get_service_settings_store() );
 
 			$service_schema = $this->get_service_schemas_store()->get_service_schema_by_id_or_instance_id( $id_or_instance_id );
