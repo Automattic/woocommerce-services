@@ -178,7 +178,7 @@ class WC_Connect_TaxJar_Integration {
 	public function _log( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
-		$this->logger->debug( $formatted_message, 'WCS Tax' );
+		$this->logger->log( $formatted_message, 'WCS Tax' );
 	}
 
 	/**

@@ -26,11 +26,11 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			$response_body = $this->api_client->get_service_schemas();
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->logger->debug( $response_body, __FUNCTION__ );
+				$this->logger->log( $response_body, __FUNCTION__ );
 				return false;
 			}
 
-			$this->logger->debug( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
+			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
 			$this->update_last_fetch_timestamp();
 			$this->maybe_update_heartbeat();
 

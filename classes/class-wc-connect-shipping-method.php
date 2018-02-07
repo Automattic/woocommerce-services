@@ -470,8 +470,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( $this->logger->is_debug_enabled() && ( is_cart() || is_checkout() ) ) {
-				wc_add_notice( sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id ), $type );
+			if ( is_cart() || is_checkout() ) {
+				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
+
+				$this->logger->debug( $debug_message, $type );
 			}
 		}
 

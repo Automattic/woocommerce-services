@@ -33,7 +33,7 @@ class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Ba
 					'status' => 400
 				)
 			);
-			$this->logger->debug( $error, __CLASS__ );
+			$this->logger->log( $error, __CLASS__ );
 			return $error;
 		}
 		$params[ 'labels' ] = array();
@@ -49,7 +49,7 @@ class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Ba
 		$raw_response = $this->api_client->get_labels_print_pdf( $params );
 
 		if ( is_wp_error( $raw_response ) ) {
-			$this->logger->debug( $raw_response, __CLASS__ );
+			$this->logger->log( $raw_response, __CLASS__ );
 			return $raw_response;
 		}
 

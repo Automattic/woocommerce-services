@@ -21,7 +21,7 @@ class WC_REST_Connect_Stripe_Deauthorize_Controller extends WC_REST_Connect_Base
 		$response = $this->stripe->deauthorize_account();
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->debug( $response, __CLASS__ );
+			$this->logger->log( $response, __CLASS__ );
 
 			return new WP_Error(
 				$response->get_error_code(),

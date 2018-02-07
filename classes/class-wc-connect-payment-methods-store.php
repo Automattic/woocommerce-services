@@ -33,13 +33,13 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			$response_body = $this->api_client->get_payment_methods();
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->logger->debug( $response_body, __FUNCTION__ );
+				$this->logger->log( $response_body, __FUNCTION__ );
 				return;
 			}
 
 			$payment_methods = $this->get_payment_methods_from_response_body( $response_body );
 			if ( is_wp_error( $payment_methods ) ) {
-				$this->logger->debug( $payment_methods, __FUNCTION__ );
+				$this->logger->log( $payment_methods, __FUNCTION__ );
 				return;
 			}
 
