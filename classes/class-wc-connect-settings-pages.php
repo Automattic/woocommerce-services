@@ -77,12 +77,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			$extra_args = array();
-			$referer_url = wp_get_referer();
-			$referer = parse_url( $referer_url );
-			if ( preg_match( '/\/wp-admin\/post\.php$/', $referer['path'] ) ) {
-				parse_str( $referer['query'], $query );
-				$extra_args['order_id'] = $query['post'];
-				$extra_args['order_href'] = $referer_url;
+			if ( isset( $_GET['from_order'] ) ) {
+				$extra_args['order_id'] = $_GET['from_order'];
+				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );
 			}
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings', $extra_args );
