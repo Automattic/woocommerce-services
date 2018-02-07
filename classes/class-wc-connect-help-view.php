@@ -388,16 +388,28 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		protected function get_debug_items() {
 			$debug_items = array();
 
+			// add logging on/off boolean
+			$debug_items[] = (object) array(
+				'key'            => 'wcc_logging_on',
+				'title'          => 'Logging',
+				'type'           => 'boolean',
+				'true_text'      => __( 'Enabled', 'woocommerce-services' ),
+				'false_text'     => __( 'Disabled', 'woocommerce-services' ),
+				'description'    => __( 'Write diagnostic messages to log files. Helpful when contacting support.', 'woocommerce-services' ),
+				'value'          => $this->logger->is_logging_enabled(),
+				'save_on_toggle' => true,
+			);
+
 			// add debug on/off boolean
 			$debug_items[] = (object) array(
-				'key' => 'wcc_debug_on',
-				'title' => 'Debug Logging',
-				'type' => 'boolean',
-				'true_text' => __( 'Enabled', 'woocommerce-services' ),
-				'false_text' => __( 'Disabled', 'woocommerce-services' ),
-				'description' => '',
-				'value' => $this->logger->is_debug_enabled(),
-				'save_on_toggle' => true
+				'key'            => 'wcc_debug_on',
+				'title'          => 'Debug',
+				'type'           => 'boolean',
+				'true_text'      => __( 'Enabled', 'woocommerce-services' ),
+				'false_text'     => __( 'Disabled', 'woocommerce-services' ),
+				'description'    => __( 'Display troubleshooting information on the Cart and Checkout pages.', 'woocommerce-services' ),
+				'value'          => $this->logger->is_debug_enabled(),
+				'save_on_toggle' => true,
 			);
 
 			// add connect log tail
