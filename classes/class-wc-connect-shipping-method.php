@@ -250,7 +250,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			$this->debug( 'No rates found, adding fallback' );
+			$this->debug( 'No rates found, adding fallback', 'success' );
 
 			$rate_to_add = array(
 				'id'        => self::format_rate_id( 'fallback', $this->id, 0 ),
