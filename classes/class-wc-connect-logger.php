@@ -12,9 +12,12 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		private $is_logging_enabled = false;
 		private $is_debug_enabled   = false;
 
-		public function __construct( WC_Logger $logger ) {
+		private $feature;
 
-			$this->logger = $logger;
+		public function __construct( WC_Logger $logger, $feature = '' ) {
+
+			$this->logger  = $logger;
+			$this->feature = strtolower( $feature );
 
 			$this->is_logging_enabled = WC_Connect_Options::get_option( 'debug_logging_enabled', false );
 			$this->is_debug_enabled   = WC_Connect_Options::get_option( 'debug_display_enabled', false );
@@ -116,7 +119,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 				return;
 			}
 
-			$this->logger->add( 'wc-services', $log_message );
+			$log_file = 'wc-services';
+
+			if ( ! empty( $this->feature ) ) {
+				$log_file .= '-' . $this->feature;
+			}
+
+			$this->logger->add( $log_file, $log_message );
+
 
 		}
 
