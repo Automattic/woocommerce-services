@@ -1,50 +1,9 @@
-// Blues
-$blue-wordpress:         #0087be;
-$blue-light:             #99d9ed;
-$blue-medium:            #00a0d2;
-$blue-dark:              #005082;
-
-// Grays
-$gray:                   #87a6bc;
-$gray-light:             lighten( $gray, 33% ); //#f3f6f8
-$gray-dark:              darken( $gray, 38% ); //#2e4453
-
-// $gray-text: ideal for standard, non placeholder text
-// $gray-text-min: minimum contrast needed for WCAG 2.0 AA on white background
-$gray-text:              $gray-dark;
-$gray-text-min:          darken( $gray, 18% ); //#537994
+@import "~wp-calypso/assets/stylesheets/shared/_colors";
 
 //Purples
 $purple:                 #96588a;
 $purple-dark:            #a36597;
 $purple-light:           #bb77ae;
 
-// $gray color functions:
-//
-// lighten( $gray, 10% )
-// lighten( $gray, 20% )
-// lighten( $gray, 30% )
-// darken( $gray, 10% )
-// darken( $gray, 20% )
-// darken( $gray, 30% )
-//
-// See wordpress.com/design-handbook/colors/ for more info.
-
-// Oranges
-$orange-jazzy:           #f56e28;
-$orange-fire:            #d54e21;
-
-// Alerts
-$alert-yellow:           #ffb900;
-$alert-red:              #dc3232;
-$alert-green:            #46b450;
-
 // Link hovers
-$link-highlight:         tint($blue-medium, 20%);
 $button-hover:           #008ec2; //is-primary button
-
-// Essentials
-$white:                  rgba(255,255,255,1);
-$transparent:            rgba(255,255,255,0);
-
-$border-ultra-light-gray: #e8f0f5;

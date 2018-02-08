@@ -81,8 +81,8 @@ const config = {
 						{
 							loader: 'css-loader',
 							options: {
-								root: '', //force absolute paths in url() to be rewritten
-							}
+								root: 'https://wordpress.com',
+							},
 						},
 						{
 							loader: 'postcss-loader',
@@ -107,17 +107,6 @@ const config = {
 			{
 				test: /\.html$/,
 				use: 'html-loader',
-			},
-			{
-				test: /\.svg$/,
-				use: 'svg-url-loader',
-			},
-			{
-				test: /\.png$/,
-				use: {
-					loader: 'url-loader',
-					options: { limit: 10000 },
-				},
 			},
 			{
 				test: /\.jsx?$/,
@@ -156,15 +145,6 @@ const config = {
 		} ),
 		new ExtractTextPlugin( {
 			filename: '[name].css',
-		} ),
-		//rewrite calypso images path
-		new webpack.NormalModuleReplacementPlugin( /calypso\/images/, ( resource ) => {
-			resource.request = resource.request
-				.replace(
-					/^.+calypso\/images/,
-					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'public', 'images' )
-				)
-				.replace( /is-([^/]+)$/, '$1' );
 		} ),
 	],
 };
