@@ -144,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
 
-				$logger->debug( $message, $context );
+				$logger->log( $message, $context );
 
 			}
 
