@@ -76,7 +76,13 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings' );
+			$extra_args = array();
+			if ( isset( $_GET['from_order'] ) ) {
+				$extra_args['order_id'] = $_GET['from_order'];
+				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );
+			}
+
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings', $extra_args );
 		}
 
 		public function output_no_priv_account_screen() {

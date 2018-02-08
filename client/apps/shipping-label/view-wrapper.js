@@ -46,6 +46,7 @@ class ShippingLabelViewWrapper extends Component {
 	renderPaymentInfo = () => {
 		const {
 			translate,
+			orderId,
 			loaded,
 			selectedPaymentMethod,
 			paymentMethods,
@@ -64,7 +65,11 @@ class ShippingLabelViewWrapper extends Component {
 							args: { cardDigits: selectedPaymentMethod.card_digits },
 						} ) }
 					</p>
-					<p><a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ translate( 'Manage cards' ) }</a></p>
+					<p>
+						<a href={ `admin.php?page=wc-settings&tab=shipping&section=label-settings&from_order=${ orderId }` }>
+							{ translate( 'Manage cards' ) }
+						</a>
+					</p>
 				</Notice>
 			);
 		}
@@ -74,7 +79,9 @@ class ShippingLabelViewWrapper extends Component {
 				<Notice isCompact={ true } showDismiss={ false } className="shipping-label__payment inline">
 					<p>{ translate( 'To purchase shipping labels, you will first need to select a credit card.' ) }</p>
 					<p>
-						<a href="admin.php?page=wc-settings&tab=shipping&section=label-settings">{ translate( 'Select a credit card' ) }</a>
+						<a href={ `admin.php?page=wc-settings&tab=shipping&section=label-settings&from_order=${ orderId }` }>
+							{ translate( 'Select a credit card' ) }
+						</a>
 					</p>
 				</Notice>
 			);

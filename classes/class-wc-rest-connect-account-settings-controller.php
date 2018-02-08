@@ -44,7 +44,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 				'master_user_name' => is_a( $master_user, 'WP_User' ) ? $master_user->display_name : '',
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
 				'master_user_email' => $email,
- 				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
+				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
 			)
 		), 200 );
 	}
