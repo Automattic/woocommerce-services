@@ -1,9 +1,5 @@
-@import "~wp-calypso/assets/stylesheets/shared/_colors";
-
-//Purples
-$purple:                 #96588a;
-$purple-dark:            #a36597;
-$purple-light:           #bb77ae;
+// Import colors from Calypso
+@import "shared/_colors";
 
 // Link hovers
 $button-hover:           #008ec2; //is-primary button
