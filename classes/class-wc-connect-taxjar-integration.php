@@ -77,7 +77,7 @@ class WC_Connect_TaxJar_Integration {
 			return true;
 		}
 
-		return ( 'yes' === get_option( self::OPTION_NAME ) );
+		return ( wc_tax_enabled() && 'yes' === get_option( self::OPTION_NAME ) );
 	}
 
 	/**
