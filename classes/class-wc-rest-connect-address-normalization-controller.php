@@ -39,7 +39,11 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			$error = new WP_Error(
 				$response->error->code,
 				$response->error->message,
-				array( 'message' => $response->error->message, 'fieldErrors' => $response->fieldErrors )
+				array(
+					'status' => 400,
+					'message' => $response->error->message,
+					'fieldErrors' => $response->fieldErrors,
+				)
 			);
 			$this->logger->log( $error, __CLASS__ );
 			return $error;
