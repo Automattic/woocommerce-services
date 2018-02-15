@@ -35,18 +35,13 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			return $error;
 		}
 
-		if ( isset( $response->error ) ) {
-			$error = new WP_Error(
-				$response->error->code,
-				$response->error->message,
-				array(
-					'status' => 400,
-					'message' => $response->error->message,
-					'fieldErrors' => $response->fieldErrors,
-				)
+		if ( isset( $response->fieldErrors ) ) {
+			$response = array(
+				'success' => true,
+				'fieldErrors' => $response->fieldErrors,
 			);
-			$this->logger->log( $error, __CLASS__ );
-			return $error;
+			$this->logger->log( $response, __CLASS__ );
+			return $response;
 		}
 
 		$response->normalized->name = $name;
