@@ -466,7 +466,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$debug_items[] = $this->add_log_view( __( 'Taxes Log', 'woocommerce-services' ), 'taxes' );
 			$debug_items[] = $this->add_log_view( __( 'Shipping Log', 'woocommerce-services' ), 'shipping' );
-			$debug_items[] = $this->add_log_view( __( 'Debug Log', 'woocommerce-services' ) );
+			$debug_items[] = $this->add_log_view( __( 'Other Log', 'woocommerce-services' ) );
 
 			return $debug_items;
 		}
