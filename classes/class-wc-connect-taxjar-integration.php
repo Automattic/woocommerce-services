@@ -197,8 +197,10 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		// Skip during Jetpack REST API proxy requests (via XMLRPC)
-		if ( defined( 'XMLRPC_REQUEST' ) ) {
+		// Skip during REST API or XMLRPC requests
+		if ( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) {
+			return;
+		}
 			return;
 		}
 
