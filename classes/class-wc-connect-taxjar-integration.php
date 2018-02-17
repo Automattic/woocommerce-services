@@ -192,8 +192,8 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		// Skip during Jetpack JITM requests
-		if ( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/jitm' ) ) {
+		// Skip during Jetpack API requests
+		if ( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) {
 			return;
 		}
 
