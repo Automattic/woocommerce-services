@@ -187,13 +187,18 @@ class WC_Connect_TaxJar_Integration {
 	 * @param $wc_cart_object
 	 */
 	public function maybe_calculate_totals( $wc_cart_object ) {
-		// Skip tax calculations for carts loaded from session in the dashboard
+		// Skip for carts loaded from session in the dashboard
 		if ( is_admin() && did_action( 'woocommerce_cart_loaded_from_session' ) ) {
 			return;
 		}
 
-		// Skip tax calculations during Jetpack JITM requests
+		// Skip during Jetpack JITM requests
 		if ( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/jitm' ) ) {
+			return;
+		}
+
+		// Skip during Jetpack REST API proxy requests (via XMLRPC)
+		if ( defined( 'XMLRPC_REQUEST' ) ) {
 			return;
 		}
 
