@@ -36,12 +36,11 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		}
 
 		if ( isset( $response->fieldErrors ) ) {
-			$response = array(
+			$this->logger->log( 'Address validation errors: ' . implode( '; ', array_values( (array) $response->fieldErrors ) ), __CLASS__ );
+			return array(
 				'success' => true,
 				'fieldErrors' => $response->fieldErrors,
 			);
-			$this->logger->log( $response, __CLASS__ );
-			return $response;
 		}
 
 		$response->normalized->name = $name;
