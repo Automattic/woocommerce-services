@@ -477,7 +477,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( is_cart() || is_checkout() ) {
+			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) ) {
 				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
 
 				$this->logger->debug( $debug_message, $type );
