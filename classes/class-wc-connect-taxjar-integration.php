@@ -201,6 +201,9 @@ class WC_Connect_TaxJar_Integration {
 		if ( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) {
 			return;
 		}
+
+		// Skip during Jetpack REST API proxy requests
+		if ( isset( $_GET['rest_route'] ) && isset( $_GET['_for'] ) && ( 'jetpack' === $_GET['_for'] ) ) {
 			return;
 		}
 
