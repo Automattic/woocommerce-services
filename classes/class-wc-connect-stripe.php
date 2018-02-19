@@ -24,7 +24,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		private $logger;
 
 		const STATE_VAR_NAME = 'stripe_state';
-		const WOOCOMMERCE_CONNECT_STRIPE_OPTION = 'woocommerce_stripe_settings';
+		const SETTINGS_OPTION = 'woocommerce_stripe_settings';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
 			$this->api = $client;
@@ -94,7 +94,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 			$default_options = $this->get_default_stripe_config();
 
-			$options = array_merge( $default_options, get_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, array() ) );
+			$options = array_merge( $default_options, get_option( self::SETTINGS_OPTION, array() ) );
 			$options['enabled']                     = 'yes';
 			$options['testmode']                    = $is_test ? 'yes' : 'no';
 			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
@@ -109,7 +109,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			unset( $options[ 'account_id' ] );
 			unset( $options[ 'test_account_id' ] );
 
-			update_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, $options );
+			update_option( self::SETTINGS_OPTION, $options );
 			return $result;
 		}
 
@@ -119,7 +119,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		private function clear_stripe_keys() {
 			$default_options = $this->get_default_stripe_config();
-			$options = array_merge( $default_options, get_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, array() ) );
+			$options = array_merge( $default_options, get_option( self::SETTINGS_OPTION, array() ) );
 
 			if ( 'yes' === $options['testmode'] ) {
 				$options[ 'test_publishable_key' ] = '';
@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			unset( $options[ 'account_id' ] );
 			unset( $options[ 'test_account_id' ] );
 
-			update_option( self::WOOCOMMERCE_CONNECT_STRIPE_OPTION, $options );
+			update_option( self::SETTINGS_OPTION, $options );
 		}
 
 		private function get_default_stripe_config() {
