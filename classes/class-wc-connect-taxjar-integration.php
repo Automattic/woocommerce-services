@@ -51,9 +51,9 @@ class WC_Connect_TaxJar_Integration {
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
-			add_action( 'woocommerce_after_calculate_totals', array( $this, 'calculate_totals' ), 20 );
+			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 		} else {
-			add_action( 'woocommerce_calculate_totals', array( $this, 'calculate_totals' ), 20 );
+			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 		}
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
@@ -77,7 +77,7 @@ class WC_Connect_TaxJar_Integration {
 			return true;
 		}
 
-		return ( 'yes' === get_option( self::OPTION_NAME ) );
+		return ( wc_tax_enabled() && 'yes' === get_option( self::OPTION_NAME ) );
 	}
 
 	/**
@@ -179,6 +179,35 @@ class WC_Connect_TaxJar_Integration {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
 		$this->logger->debug( $formatted_message, 'WCS Tax' );
+	}
+
+	/**
+	 * Wrapper to avoid calling calculate_totals() for admin carts.
+	 *
+	 * @param $wc_cart_object
+	 */
+	public function maybe_calculate_totals( $wc_cart_object ) {
+		// Skip for carts loaded from session in the dashboard
+		if ( is_admin() && did_action( 'woocommerce_cart_loaded_from_session' ) ) {
+			return;
+		}
+
+		// Skip during Jetpack API requests
+		if ( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) {
+			return;
+		}
+
+		// Skip during REST API or XMLRPC requests
+		if ( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) {
+			return;
+		}
+
+		// Skip during Jetpack REST API proxy requests
+		if ( isset( $_GET['rest_route'] ) && isset( $_GET['_for'] ) && ( 'jetpack' === $_GET['_for'] ) ) {
+			return;
+		}
+
+		$this->calculate_totals( $wc_cart_object );
 	}
 
 	/**
