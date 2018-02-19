@@ -22,7 +22,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'get_service_schemas_store', 'get_api_client', 'get_logger', 'get_tracks' ) )
+			->setMethods( array( 'get_service_schemas_store', 'get_api_client', 'get_logger', 'get_shipping_logger', 'get_tracks' ) )
 			->getMock();
 
 		$loader->expects( $this->any() )
@@ -47,6 +47,10 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$loader->expects( $this->any() )
 			->method( 'get_logger' )
+			->will( $this->returnValue( $logger ) );
+
+		$loader->expects( $this->any() )
+			->method( 'get_shipping_logger' )
 			->will( $this->returnValue( $logger ) );
 
 		if ( ! $tracks ) {

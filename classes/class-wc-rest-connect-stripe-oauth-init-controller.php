@@ -22,7 +22,7 @@ class WC_REST_Connect_Stripe_Oauth_Init_Controller extends WC_REST_Connect_Base_
 		$response = $this->stripe->get_oauth_url( $data['returnUrl'] );
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->debug( $response, __CLASS__ );
+			$this->logger->log( $response, __CLASS__ );
 
 			return new WP_Error(
 				$response->get_error_code(),

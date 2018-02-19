@@ -117,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
 		protected function debug( $message ) {
 			if ( ! is_null( $this->logger ) ) {
-				$this->logger->debug( $message );
+				$this->logger->log( $message );
 			}
 		}
 

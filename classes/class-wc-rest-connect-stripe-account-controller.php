@@ -21,7 +21,7 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$response = $this->stripe->get_account_details();
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->debug( $response, __CLASS__ );
+			$this->logger->log( $response, __CLASS__ );
 
 			return new WP_Error(
 				$response->get_error_code(),
@@ -53,7 +53,7 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 		$response = $this->stripe->create_account( $data['email'], $data['country'] );
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->debug( $response, __CLASS__ );
+			$this->logger->log( $response, __CLASS__ );
 
 			return new WP_Error(
 				$response->get_error_code(),

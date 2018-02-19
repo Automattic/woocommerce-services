@@ -49,7 +49,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			do_action( 'wc_connect_service_init', $this, $id_or_instance_id );
 
 			if ( ! $this->service_schema ) {
-				$this->debug(
+				$this->log_error(
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
 				);
@@ -138,19 +138,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param string|WP_Error $message
 		 * @param string $context
 		 */
-		protected function debug( $message, $context = '' ) {
+		protected function log( $message, $context = '' ) {
 
 			$logger = $this->get_logger();
 
 			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
 
-				$logger->debug( $message, $context );
+				$logger->log( $message, $context );
 
 			}
 
 		}
 
-		protected function error( $message, $context = '' ) {
+		protected function log_error( $message, $context = '' ) {
 			$logger = $this->get_logger();
 			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
 				$logger->error( $message, $context );
@@ -209,11 +209,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			// Ensure that Country is specified
 			if ( empty( $country ) ) {
+				$this->debug( 'Skipping rate calculation - missing country', 'error' );
 				return false;
 			}
 
 			// Validate Postcode
 			if ( ! WC_Validation::is_postcode( $postcode, $country ) ) {
+				$this->debug( 'Skipping rate calculation - invalid postcode', 'error' );
 				return false;
 			}
 
@@ -221,6 +223,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$valid_states = WC()->countries->get_states( $country );
 
 			if ( $valid_states && ! array_key_exists( $state, $valid_states ) ) {
+				$this->debug( 'Skipping rate calculation - invalid/unsupported state', 'error' );
 				return false;
 			}
 
@@ -247,6 +250,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
+			$this->debug( 'No rates found, adding fallback.', 'error' );
+
 			$rate_to_add = array(
 				'id'        => self::format_rate_id( 'fallback', $this->id, 0 ),
 				'label'     => self::format_rate_title( $this->service_schema->carrier_name ),
@@ -258,6 +263,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		public function calculate_shipping( $package = array() ) {
 
+			$this->debug( sprintf(
+				'WooCommerce Services debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
+				admin_url( 'admin.php?page=wc-status&tab=connect' )
+			) );
+
 			if ( ! $this->is_valid_package_destination( $package ) ) {
 				return;
 			}
@@ -266,7 +276,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$settings_keys    = get_object_vars( $service_settings );
 
 			if ( empty( $settings_keys ) ) {
-				$this->debug(
+				$this->log(
 					sprintf(
 						'Service settings empty. Skipping %s rate request (instance id %d).',
 						$this->id,
@@ -294,7 +304,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
 
 			if ( is_wp_error( $response_body ) ) {
-				$this->error(
+				$this->debug(
+					sprintf(
+						'Request failed: %s',
+						$response_body->get_error_message()
+					),
+					'error'
+				);
+				$this->log_error(
 					sprintf(
 						'Error. Unable to get shipping rate(s) for %s instance id %d.',
 						$this->id,
@@ -305,12 +322,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 				$this->set_last_request_failed();
 
-				$this->error( $response_body, __FUNCTION__ );
+				$this->log_error( $response_body, __FUNCTION__ );
 				$this->add_fallback_rate( $service_settings );
 				return;
 			}
 
 			if ( ! property_exists( $response_body, 'rates' ) ) {
+				$this->debug( 'Response is missing `rates` property', 'error' );
 				$this->set_last_request_failed();
 				$this->add_fallback_rate( $service_settings );
 				return;
@@ -320,7 +338,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			foreach ( (array) $instances as $instance ) {
 				if ( property_exists( $instance, 'error' ) ) {
-					$this->error( $instance->error, __FUNCTION__ );
+					$this->log_error( $instance->error, __FUNCTION__ );
 					$this->set_last_request_failed();
 				}
 
@@ -373,6 +391,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
 						),
 					);
+
+					if ( $this->logger->is_debug_enabled() ) {
+						if ( 'fallback' === $services_list ) {
+							// Notify the merchant when the fallback rate is added by the WCS server.
+							$this->debug( 'No rates found, adding fallback.', 'error' );
+						} else {
+							$this->debug(
+								sprintf(
+									'Received rate: %s (%s)<br/><ul><li>%s</li></ul>',
+									$rate_to_add['label'],
+									wc_price( $rate->rate ),
+									implode( '</li><li>', $package_names )
+								),
+								'success'
+							);
+						}
+					}
 
 					$this->add_rate( $rate_to_add );
 				}
@@ -436,6 +471,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			);
 
 			return $formatted_title;
+		}
+
+		/**
+		 * Log debug by printing it as notice.
+		 *
+		 * @param string $message Debug message.
+		 * @param string $type    Notice type.
+		 */
+		public function debug( $message, $type = 'notice' ) {
+			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) ) {
+				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
+
+				$this->logger->debug( $debug_message, $type );
+			}
 		}
 
 	}

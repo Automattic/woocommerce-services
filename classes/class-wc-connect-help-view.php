@@ -350,89 +350,123 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		/**
-		 * Gets the last 10 lines from the WooCommerce Services log, if it exists
+		 * Gets the last 10 lines from the WooCommerce Services log by feature, if it exists
 		 */
-		protected function get_debug_log_data() {
-			$data = new stdClass;
-			$data->key = '';
-			$data->file = '';
+		protected function get_debug_log_data( $feature = '' ) {
+			$data       = new stdClass;
+			$data->key  = '';
+			$data->file = null;
 			$data->tail = array();
 
-			if ( method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
-				$logs = WC_Admin_Status::scan_log_files();
-				$latest_file_date = 0;
-				$file = null;
-				$key = null;
+			if ( ! method_exists( 'WC_Admin_Status', 'scan_log_files' ) ) {
+				return $data;
+			}
 
-				foreach ( $logs as $log_key => $log_file ) {
-				    $log_file = WC_LOG_DIR . $log_file;
-					$file_date = filemtime( $log_file );
-					if ( 'wc-services-' === substr( $log_key, 0, 12 ) && $latest_file_date < $file_date ) {
-						$latest_file_date = $file_date;
-						$file = $log_file;
-						$key = $log_key;
-					}
+			$log_prefix = 'wc\-services';
+
+			if ( ! empty( $feature ) ) {
+				$log_prefix .= '\-' . $feature;
+			}
+
+			$logs             = WC_Admin_Status::scan_log_files();
+			$latest_file_date = 0;
+
+			foreach ( $logs as $log_key => $log_file ) {
+				if ( ! preg_match( '/' . $log_prefix . '\-[0-9a-f]{32}\-log/', $log_key ) ) {
+					continue;
 				}
 
-				if ( null !== $file ) {
-					$complete_log = file( $file );
-					$data->key = $key;
-					$data->file = $file;
-					$data->tail = array_slice( $complete_log, -10 );
+				$log_file_path = WC_LOG_DIR . $log_file;
+				$file_date     = filemtime( $log_file_path );
+
+				if ( $latest_file_date < $file_date ) {
+					$latest_file_date = $file_date;
+					$data->file       = $log_file_path;
+					$data->key        = $log_key;
 				}
+			}
+
+			if ( null !== $data->file ) {
+				$complete_log = file( $data->file );
+				$data->tail   = array_slice( $complete_log, -10 );
 			}
 
 			return $data;
 		}
 
-		protected function get_debug_items() {
-			$debug_items = array();
-
-			// add debug on/off boolean
-			$debug_items[] = (object) array(
-				'key' => 'wcc_debug_on',
-				'title' => 'Debug Logging',
-				'type' => 'boolean',
-				'true_text' => __( 'Enabled', 'woocommerce-services' ),
-				'false_text' => __( 'Disabled', 'woocommerce-services' ),
-				'description' => '',
-				'value' => $this->logger->is_debug_enabled(),
-				'save_on_toggle' => true
-			);
-
+		protected function add_log_view( $title, $feature = '' ) {
 			// add connect log tail
-			$log_data = $this->get_debug_log_data();
-			$log_tail_line_count = count( $log_data->tail );
-			if ( $log_tail_line_count < 1 ) {
+			$log_data   = $this->get_debug_log_data( $feature );
+			$line_count = count( $log_data->tail );
+
+			if ( $line_count < 1 ) {
+
 				$description = '';
-				$log_tail = __( 'Log is empty', 'woocommerce-services' );
+				$log_tail    = __( 'Log is empty', 'woocommerce-services' );
+
 			} else {
+
 				$url = add_query_arg(
 					array(
-						'page' => 'wc-status',
-						'tab' => 'logs',
+						'page'     => 'wc-status',
+						'tab'      => 'logs',
 						'log_file' => $log_data->key
 					),
 					admin_url( 'admin.php' )
 				);
+
 				$description = sprintf(
 					wp_kses(
 						__( 'Last %d entries <a href="%s">Show full log</a>', 'woocommerce-services' ),
 						array(  'a' => array( 'href' => array() ) ) ),
-					$log_tail_line_count,
+					$line_count,
 					esc_url( $url )
 				);
+
 				$log_tail = implode( $log_data->tail, '' );
+
 			}
 
-			$debug_items[] = (object) array(
-				'key' => 'wcc_debug_log_tail',
-				'title' => __( 'Debug Log', 'woocommerce-services' ),
-				'type' => 'textarea',
+			return (object) array(
+				'key'         => 'wcc_' . $feature . '_log_tail',
+				'title'       => $title,
+				'type'        => 'textarea',
 				'description' => $description,
-				'readonly' => true,
-				'value' => $log_tail
+				'readonly'    => true,
+				'value'       => $log_tail,
 			);
+		}
+
+		protected function get_debug_items() {
+			$debug_items = array();
+
+			// add logging on/off boolean
+			$debug_items[] = (object) array(
+				'key'            => 'wcc_logging_on',
+				'title'          => 'Logging',
+				'type'           => 'boolean',
+				'true_text'      => __( 'Enabled', 'woocommerce-services' ),
+				'false_text'     => __( 'Disabled', 'woocommerce-services' ),
+				'description'    => __( 'Write diagnostic messages to log files. Helpful when contacting support.', 'woocommerce-services' ),
+				'value'          => $this->logger->is_logging_enabled(),
+				'save_on_toggle' => true,
+			);
+
+			// add debug on/off boolean
+			$debug_items[] = (object) array(
+				'key'            => 'wcc_debug_on',
+				'title'          => 'Debug',
+				'type'           => 'boolean',
+				'true_text'      => __( 'Enabled', 'woocommerce-services' ),
+				'false_text'     => __( 'Disabled', 'woocommerce-services' ),
+				'description'    => __( 'Display troubleshooting information on the Cart and Checkout pages.', 'woocommerce-services' ),
+				'value'          => $this->logger->is_debug_enabled(),
+				'save_on_toggle' => true,
+			);
+
+			$debug_items[] = $this->add_log_view( __( 'Shipping Log', 'woocommerce-services' ), 'shipping' );
+			$debug_items[] = $this->add_log_view( __( 'Taxes Log', 'woocommerce-services' ), 'taxes' );
+			$debug_items[] = $this->add_log_view( __( 'Other Log', 'woocommerce-services' ) );
 
 			return $debug_items;
 		}
