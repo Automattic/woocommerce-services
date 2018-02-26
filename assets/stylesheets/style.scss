@@ -201,6 +201,16 @@
 		fill: currentColor;
 	}
 
+	.label-settings__labels-container {
+		.label-settings__external {
+			display: block !important;
+		}
+
+		.label-settings__internal {
+			display: none;
+		}
+	}
+
 	// Shared
 	@import 'shared/reset'; // css reset before the rest of the styles are defined
 	@import 'shared/typography'; // all the typographic rules, variables, etc.
