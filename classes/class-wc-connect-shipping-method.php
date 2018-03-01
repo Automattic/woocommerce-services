@@ -395,7 +395,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							);
 						}
 
-						$package_summaries[] = sprintf( '%s (%s)', $package_name, $package_measurements ) . '<ul><li>' . implode( '</li><li>', $item_summaries ) . '</li></ul>';
+						$package_summaries[] = sprintf( '%s (%s)', $package_name, $package_measurements )
+							. '<ul><li>' . implode( '</li><li>', $item_summaries ) . '</li></ul>';
 					}
 
 					$packaging_info = implode( ', ', $package_summaries );
