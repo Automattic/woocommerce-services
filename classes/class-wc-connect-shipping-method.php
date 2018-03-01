@@ -373,7 +373,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 									$package_item->height,
 									$package_item->weight
 								);
-								$item_summaries[] = sprintf( '%s (%s)', $item_name, $item_measurements );
+								$item_summaries[] = sprintf( '<strong>%s</strong> (%s)', $item_name, $item_measurements );
 							}
 						}
 
@@ -395,7 +395,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							);
 						}
 
-						$package_summaries[] = sprintf( '%s (%s)', $package_name, $package_measurements )
+						$package_summaries[] = sprintf( '<strong>%s</strong> (%s)', $package_name, $package_measurements )
 							. '<ul><li>' . implode( '</li><li>', $item_summaries ) . '</li></ul>';
 					}
 
@@ -421,7 +421,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						} else {
 							$this->debug(
 								sprintf(
-									'Received rate: %s (%s)<br/><ul><li>%s</li></ul>',
+									'Received rate: <strong>%s</strong> (%s)<br/><ul><li>%s</li></ul>',
 									$rate_to_add['label'],
 									wc_price( $rate->rate ),
 									implode( '</li><li>', $package_summaries )
