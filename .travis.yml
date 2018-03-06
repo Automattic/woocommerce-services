@@ -3,20 +3,7 @@
 # Tell Travis CI we're using PHP
 language: php
 
-# PHP version used in first build configuration.
-php:
-    - 7.2
-
-# WordPress version used in first build configuration.
-env:
-    - WP_VERSION=latest WC_VERSION=3.3.3
-
-# Next we define our matrix of additional build configurations to test against.
-# The versions listed above will automatically create our first configuration,
-# so it doesn't need to be re-defined below.
-
-# WP_VERSION specifies the tag to use. The way these tests are configured to run
-# requires at least WordPress 3.8. Specify "master" to test against SVN trunk.
+# Next we define our matrix of build configurations to test against.
 
 matrix:
   include:
@@ -44,7 +31,8 @@ matrix:
      env: WP_VERSION=latest WC_VERSION=3.0.3
    - php: 7.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
-     # 7.2 / latest / 3.3 already included above as first build.
+   - php: 7.2
+     env: WP_VERSION=latest WC_VERSION=3.3.3
 
 # Cache the NPM dependencies
 cache:
