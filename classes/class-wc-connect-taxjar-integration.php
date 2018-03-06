@@ -42,6 +42,10 @@ class WC_Connect_TaxJar_Integration {
 		// Add toggle for automated taxes to the core settings page
 		add_filter( 'woocommerce_tax_settings', array( $this, 'add_tax_settings' ) );
 
+		// Settings Page
+		add_action( 'woocommerce_sections_tax', array( $this, 'output_sections_before' ),  9 );
+		add_action( 'woocommerce_sections_tax', array( $this, 'output_sections_after' ),  11 );
+
 		// Bow out if we're not wanted
 		if ( ! $this->is_enabled() ) {
 			return;
@@ -101,10 +105,47 @@ class WC_Connect_TaxJar_Integration {
 			),
 		);
 
-		// Insert the "automated taxes" setting at the top (under the section title)
-		array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
+		if ( $this->is_enabled() ) {
+			// If the automated taxes are enabled, then don't show any other settings besides title and save button
+			array_splice( $tax_settings, 1, count( $tax_settings ) - 2, array( $automated_taxes ) );
+		} else {
+			// Insert the "automated taxes" setting at the top (under the section title)
+			array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
+		}
 
 		return $tax_settings;
+	}
+
+	/**
+	 * Hack to hide the tax sections for additional tax class rate tables.
+	 *
+	 */
+	public function output_sections_before() {
+		if ( ! $this->is_enabled() ) {
+			return;
+		}
+
+		?>
+		<div class="updated">
+			<p>
+				<b><? esc_html_e( 'Powered by WooCommerce Services', 'woocommerce-services' ) ?></b>
+				<? esc_html_e( ' ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) ?>
+			</p>
+		</div>
+		<div style="display: none">
+		<?
+	}
+
+	/**
+	 * Hack to hide the tax sections for additional tax class rate tables.
+	 *
+	 */
+	public function output_sections_after() {
+		if ( ! $this->is_enabled() ) {
+			return;
+		}
+
+		?></div><?
 	}
 
 	/**
