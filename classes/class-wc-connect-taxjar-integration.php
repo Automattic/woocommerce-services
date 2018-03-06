@@ -128,12 +128,12 @@ class WC_Connect_TaxJar_Integration {
 		?>
 		<div class="updated">
 			<p>
-				<b><? esc_html_e( 'Powered by WooCommerce Services', 'woocommerce-services' ) ?></b>
-				<? esc_html_e( ' ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) ?>
+				<b><?php esc_html_e( 'Powered by WooCommerce Services', 'woocommerce-services' ) ?></b>
+				<?php esc_html_e( ' ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) ?>
 			</p>
 		</div>
 		<div style="display: none">
-		<?
+		<?php
 	}
 
 	/**
@@ -145,7 +145,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		?></div><?
+		?></div><?php
 	}
 
 	/**
