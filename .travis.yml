@@ -5,20 +5,16 @@ language: php
 
 # PHP version used in first build configuration.
 php:
-    - 5.6
+    - 7.2
 
 # WordPress version used in first build configuration.
 env:
     - WP_VERSION=latest
+    - wC_VERSION=3.3.3
 
 # Next we define our matrix of additional build configurations to test against.
 # The versions listed above will automatically create our first configuration,
 # so it doesn't need to be re-defined below.
-
-# Test WP trunk/master and two latest versions on minimum (5.2).
-# Test WP latest two versions (4.4, 4.4) on most popular (5.5, 5.6).
-# Test WP latest stable (4.4) on other supported PHP (5.3, 5.4).
-# Test WP trunk/master on edge platforms (7.0, hhvm, PHP nightly).
 
 # WP_VERSION specifies the tag to use. The way these tests are configured to run
 # requires at least WordPress 3.8. Specify "master" to test against SVN trunk.
@@ -26,36 +22,30 @@ env:
 matrix:
   include:
    - php: 5.2
-     env: WP_VERSION=latest WC_VERSION=2.6.14
+     env: WP_VERSION=4.4 WC_VERSION=2.6.14
      sudo: true
      dist: precise
    - php: 5.2
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     env: WP_VERSION=latest WC_VERSION=3.3.3
      sudo: true
      dist: precise
    - php: 5.3
-     env: WP_VERSION=latest WC_VERSION=2.6.14
-     sudo: true
-     dist: precise
-   - php: 5.3
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     env: WP_VERSION=4.5 WC_VERSION=3.2.6
      sudo: true
      dist: precise
    - php: 5.4
+     env: WP_VERSION=4.6 WC_VERSION=3.1.2
+   - php: 5.5
+     env: WP_VERSION=4.7 WC_VERSION=3.0.9
+   - php: 5.6
+     env: WP_VERSION=4.8 WC_VERSION=2.6.14
+   - php: 7.0
      env: WP_VERSION=latest WC_VERSION=2.6.14
-   - php: 5.4
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
-   - php: 5.5
-     env: WP_VERSION=latest WC_VERSION=2.6.14
-   - php: 5.5
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
-   - php: 5.5
+   - php: 7.1
      env: WP_VERSION=latest WC_VERSION=3.0.3
-     # 5.6 / master already included above as first build.
-   - php: 5.6
+   - php: 7.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
-   - php: 5.6
-     env: WP_VERSION=4.4 WC_VERSION=3.0.3
+     # 7.2 / latest / 3.3 already included above as first build.
 
 # Cache the NPM dependencies
 cache:
