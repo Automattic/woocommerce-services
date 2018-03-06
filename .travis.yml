@@ -3,8 +3,7 @@
 # Tell Travis CI we're using PHP
 language: php
 
-# Next we define our matrix of build configurations to test against.
-
+# Define our matrix of build configurations to test against.
 matrix:
   include:
    - php: 5.2
@@ -33,26 +32,12 @@ matrix:
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
    - php: 7.2
      env: WP_VERSION=latest WC_VERSION=3.3.3
-
-# Cache the NPM dependencies
-cache:
-  directories:
-    - node_modules
-    - "$HOME/.nvm"
-
-# Use an updated Node runtime
-# See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
-install:
-    - . $HOME/.nvm/nvm.sh
-    - nvm install 8.9.3
-    - nvm use 8.9.3
-    - npm install
+     # Run the JS tests in a separate container
+   - language: node_js
+     before_script: ""
 
 # Clones WordPress and configures our testing environment.
-before_script:
-    - bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
-
-script: phpunit && npm test
+before_script: bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
 
 sudo: false
 

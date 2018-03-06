@@ -13,7 +13,7 @@ WP_VERSION=${5-latest}
 WC_VERSION=${6-"2.6.14"}
 
 install_wc() {
-	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
+	wget -q -O- https://github.com/woocommerce/woocommerce/archive/${WC_VERSION}.tar.gz | tar xvz -C /tmp/woocommerce
 }
 
 install_wp() {
