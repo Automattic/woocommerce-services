@@ -66,7 +66,10 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		Route.getReducer(),
 		{ ...serverState, ...persistedState },
 		compose(
-			applyMiddleware( thunk.withExtraArgument( args ) ),
+			applyMiddleware(
+				thunk.withExtraArgument( args ),
+				Route.getMiddleware ? Route.getMiddleware() : () => ( next ) => ( action ) => next( action ),
+			),
 			window.devToolsExtension ? window.devToolsExtension() : f => f
 		)
 	);

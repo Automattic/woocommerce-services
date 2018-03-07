@@ -12,6 +12,7 @@ import notices from 'state/notices/reducer';
 import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
 import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
+import reduxMiddleware from './redux-middleware';
 import { combineReducers } from 'state/utils';
 
 export default ( { orderId } ) => ( {
@@ -55,6 +56,10 @@ export default ( { orderId } ) => ( {
 
 	getStateKey() {
 		return `wcs-label-${ orderId }`;
+	},
+
+	getMiddleware() {
+		return reduxMiddleware;
 	},
 
 	View: () => (
