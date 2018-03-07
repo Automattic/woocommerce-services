@@ -18,6 +18,7 @@ import RadioButtons from 'components/radio-buttons';
 import Dropdown from 'components/dropdown';
 import ShippingServiceGroups from '../shipping-services';
 import FormLegend from 'components/forms/form-legend';
+import ShippingClasses from '../shipping-classes';
 
 class SettingsItem extends Component {
 	static propTypes = {
@@ -123,6 +124,17 @@ class SettingsItem extends Component {
 							}
 						) }
 					</div>
+				);
+
+			case 'shipping_classes':
+				return (
+					<ShippingClasses
+						title={ fieldSchema.title }
+						description={ fieldSchema.description }
+						shippingClasses={ [ { value: '1', name: 'One' }, { value: '2', name: 'Two' } ] }
+						value={ [] }
+						updateValue={ this.updateValue }
+					/>
 				);
 
 			case 'indicators':
