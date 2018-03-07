@@ -3,11 +3,14 @@
  */
 //from calypso
 import {
-	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_EXIT_PRINTING_FLOW,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
 } from 'woocommerce/woocommerce-services/state/action-types';
 
 const middlewareActions = {
-	[  WOOCOMMERCE_SERVICES_SHIPPING_LABEL_EXIT_PRINTING_FLOW ]: () => {
+	[  WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE ]: ( { error } ) => {
+		if ( error ) {
+			return;
+		}
 		window.wc_shipment_tracking_refresh && window.wc_shipment_tracking_refresh();
 	},
 };
@@ -22,5 +25,5 @@ export default () => ( next ) => ( action ) => {
 	}
 
 	// perform the action
-	setTimeout( () => middlewareAction( action ) );
+	middlewareAction( action );
 };
