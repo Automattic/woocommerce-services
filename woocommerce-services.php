@@ -36,6 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-jetpack.php' ) );
+require_once( plugin_basename( 'classes/class-wc-connect-extension-compatibility.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
@@ -879,8 +880,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text ) {
 			$id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 
-			// Abort if no id was passed or if the order is not marked as 'completed'
-			if ( ! $id || ! $order->has_status( 'completed' ) ) {
+			// Abort if no id was passed, if the order is not marked as 'completed' or if another extension is handling the emailing
+			if ( ! $id
+				|| ! $order->has_status( 'completed' )
+				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $id ) ) {
 				return;
 			}
 

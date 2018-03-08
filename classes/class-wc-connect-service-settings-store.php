@@ -248,6 +248,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				if ( $label_data['label_id'] === $new_label_data->label_id ) {
 					$result = array_merge( $label_data, (array) $new_label_data );
 					$labels_data[ $index ] = $result;
+
+					if ( ! isset( $label_data['tracking'] )
+						&& isset( $result['tracking'] ) ) {
+							WC_Connect_Extension_Compatibility::on_new_tracking_number( $order_id, $result['carrier_id'], $result['tracking'] );
+					}
 				}
 			}
 			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
