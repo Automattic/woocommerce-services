@@ -26,7 +26,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$shipping_tabs = array();
 			}
 
-			$shipping_tabs[ 'package-settings' ] = __( 'Packages', 'woocommerce-services' );
+			$shipping_tabs[ 'package-settings' ] = __( 'Services packaging', 'woocommerce-services' );
 			$shipping_tabs[ 'label-settings'] = __( 'Shipping labels', 'woocommerce-services' );
 			return $shipping_tabs;
 		}
