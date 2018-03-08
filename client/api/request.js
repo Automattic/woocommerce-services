@@ -11,9 +11,11 @@ import parseJson from 'lib/utils/parse-json';
 
 let nonce;
 export const setNonce = ( _nonce ) => nonce = _nonce;
+export const getNonce = () => nonce;
 
 let baseURL;
 export const setBaseURL = ( _baseURL ) => baseURL = _baseURL;
+export const getBaseURL = () => baseURL;
 
 const _request = ( url, data, method, namespace = '' ) => {
 	const request = {
