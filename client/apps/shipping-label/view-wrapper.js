@@ -37,11 +37,20 @@ import ActivityLog from 'woocommerce/app/order/order-activity-log/events';
 import {
 	getActivityLogEvents,
 } from 'woocommerce/state/sites/orders/activity-log/selectors';
+import { fetchOrder } from 'woocommerce/state/sites/orders/actions';
 
 class ShippingLabelViewWrapper extends Component {
 	static propTypes = {
 		orderId: PropTypes.number.isRequired,
 	};
+
+	componentDidMount() {
+		const { siteId, orderId } = this.props;
+
+		if ( siteId && orderId ) {
+			this.props.fetchOrder( siteId, orderId );
+		}
+	}
 
 	renderPaymentInfo = () => {
 		const {
@@ -197,6 +206,7 @@ export default connect(
 			openPrintingFlow,
 			setEmailDetailsOption,
 			setFulfillOrderOption,
+			fetchOrder,
 		}, dispatch ),
 	} ),
 )( localize( ShippingLabelViewWrapper ) );
