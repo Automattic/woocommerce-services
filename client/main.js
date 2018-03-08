@@ -24,6 +24,7 @@ import Packages from './apps/packages';
 import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware.js';
 import extensionsMiddleware from 'state/data-layer/extensions-middleware.js';
+import localApiMiddleware from 'lib/local-api-middleware';
 
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
@@ -68,6 +69,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	const middlewares = [
 		thunk.withExtraArgument( args ),
 		wpcomApiMiddleware,
+		localApiMiddleware,
 		extensionsMiddleware,
 	];
 
