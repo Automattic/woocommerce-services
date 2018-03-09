@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-/*eslint no-process-exit: 0, no-undef: 0, strict: 0 */
+/* eslint-disable no-console, import/no-nodejs-modules */
+/* eslint no-process-exit: 0, no-undef: 0, strict: 0 */
 'use strict';
 require( 'shelljs/global' );
 const colors = require( 'colors' );

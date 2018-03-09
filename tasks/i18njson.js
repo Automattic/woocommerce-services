@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console, import/no-nodejs-modules */
 const fs = require( 'fs' ),
 	globby = require( 'globby' ),
 	path = require( 'path' ),
