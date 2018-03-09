@@ -30,9 +30,11 @@ matrix:
      env: WP_VERSION=latest WC_VERSION=3.0.3
    - php: 7.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
-     script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+     # Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
+     script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar && phpunit
    - php: 7.2
      env: WP_VERSION=latest WC_VERSION=3.3.3
+     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
      # Run the JS tests in a separate container
    - language: node_js
