@@ -229,11 +229,11 @@
 	@import 'woocommerce/app/order/order-activity-log/style';
 
 	// WCC Components
+	@import '../../client/apps/plugin-status/style';
 	@import '../../client/apps/shipping-label/style';
 	@import '../../client/apps/print-test-label/style';
 	@import '../../client/apps/settings/style';
 	@import '../../client/components/checkbox/style';
-	@import '../../client/components/indicators/style';
 	@import '../../client/components/info-tooltip/style';
 	@import '../../client/components/loading-spinner/style';
 	@import '../../client/components/nux-notice/style';
