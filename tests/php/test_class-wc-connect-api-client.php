@@ -27,10 +27,12 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		WC_Helper_Product::delete_product( $this->product->get_id() );
 	}
 
-	public function test_build_shipment_contents_simple_product_no_dimensions() {
+	public function test_build_shipment_contents_simple_product_no_weight() {
 		$this->product = WC_Helper_Product::create_simple_product();
+		$product_id = $this->product->get_id();
+		update_post_meta( $product_id, '_weight', '' );
 
-		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		WC()->cart->add_to_cart( $product_id, 1 );
 
 		$actual = $this->api_client->build_shipment_contents( array( 'contents' => WC()->cart->get_cart() ) );
 
