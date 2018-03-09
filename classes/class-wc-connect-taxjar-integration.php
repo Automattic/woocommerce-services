@@ -182,6 +182,15 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * @param $message
+	 */
+	public function _error( $message ) {
+		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
+
+		$this->logger->error( $formatted_message, 'WCS Tax' );
+	}
+
+	/**
 	 * Wrapper to avoid calling calculate_totals() for admin carts.
 	 *
 	 * @param $wc_cart_object
@@ -685,11 +694,11 @@ class WC_Connect_TaxJar_Integration {
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'request', __( 'There was an error retrieving the tax rates. Please check your server configuration.' ) );
+			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
 		} elseif ( 200 == $response['response']['code'] ) {
 			return $response;
 		} else {
-			$this->_log( 'Received (' . $response['response']['code'] . '): ' . $response['body'] );
+			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
 	}
 
