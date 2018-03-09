@@ -105,20 +105,30 @@ class WC_Connect_TaxJar_Integration {
 			),
 		);
 
+		// Insert the "automated taxes" setting at the top (under the section title)
+		array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
+
 		if ( $this->is_enabled() ) {
-			// If the automated taxes are enabled, then don't show any other settings besides title and save button
-			array_splice( $tax_settings, 1, count( $tax_settings ) - 2, array( $automated_taxes ) );
-		} else {
-			// Insert the "automated taxes" setting at the top (under the section title)
-			array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
+			// If the automated taxes are enabled, only show the settings that will not be overriden
+			$tax_settings = array_filter( $tax_settings, array( $this, 'tax_settings_filter' ) );
 		}
 
 		return $tax_settings;
 	}
 
 	/**
-	 * Hack to hide the tax sections for additional tax class rate tables.
+	 * Filter callback for tax settings when automated taxes are enabled
 	 *
+	 * @param $setting - woocommerce setting schema, see woocommerce/includes/admin/settings/views/settings-tax.php
+	 * @return boolean true if the setting control should be shown with automated taxes enabled, false otherwise
+	 */
+	private function tax_settings_filter( $setting ) {
+		//only show title, automated taxes control, additional tax classes and the save button
+		return in_array( $setting['id'], array( 'tax_options', 'woocommerce_tax_classes', self::OPTION_NAME ) );
+	}
+
+	/**
+	 * Hack to hide the tax sections for additional tax class rate tables.
 	 */
 	public function output_sections_before() {
 		if ( ! $this->is_enabled() ) {
@@ -138,7 +148,6 @@ class WC_Connect_TaxJar_Integration {
 
 	/**
 	 * Hack to hide the tax sections for additional tax class rate tables.
-	 *
 	 */
 	public function output_sections_after() {
 		if ( ! $this->is_enabled() ) {
