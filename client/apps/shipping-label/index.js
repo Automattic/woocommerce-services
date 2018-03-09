@@ -48,7 +48,23 @@ export default ( { orderId } ) => {
 		},
 
 		getInitialState() {
-			return {};
+			return {
+				extensions: {
+					woocommerce: {
+						sites: {
+							1: {
+								orders: {
+									notes: {
+										isLoading: {
+											[ orderId ]: false,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			};
 		},
 
 		getStateForPersisting() {
