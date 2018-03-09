@@ -3,79 +3,45 @@
 # Tell Travis CI we're using PHP
 language: php
 
-# PHP version used in first build configuration.
-php:
-    - 5.6
-
-# WordPress version used in first build configuration.
-env:
-    - WP_VERSION=latest
-
-# Next we define our matrix of additional build configurations to test against.
-# The versions listed above will automatically create our first configuration,
-# so it doesn't need to be re-defined below.
-
-# Test WP trunk/master and two latest versions on minimum (5.2).
-# Test WP latest two versions (4.4, 4.4) on most popular (5.5, 5.6).
-# Test WP latest stable (4.4) on other supported PHP (5.3, 5.4).
-# Test WP trunk/master on edge platforms (7.0, hhvm, PHP nightly).
-
-# WP_VERSION specifies the tag to use. The way these tests are configured to run
-# requires at least WordPress 3.8. Specify "master" to test against SVN trunk.
-
+# Define our matrix of build configurations to test against.
 matrix:
   include:
    - php: 5.2
-     env: WP_VERSION=latest WC_VERSION=2.6.14
+     env: WP_VERSION=4.4 WC_VERSION=2.6.14
      sudo: true
      dist: precise
    - php: 5.2
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     env: WP_VERSION=latest WC_VERSION=3.3.3
      sudo: true
      dist: precise
    - php: 5.3
-     env: WP_VERSION=latest WC_VERSION=2.6.14
-     sudo: true
-     dist: precise
-   - php: 5.3
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     env: WP_VERSION=4.5 WC_VERSION=3.2.6
      sudo: true
      dist: precise
    - php: 5.4
+     env: WP_VERSION=4.6 WC_VERSION=3.1.2
+   - php: 5.5
+     env: WP_VERSION=4.7 WC_VERSION=3.0.9
+   - php: 5.6
+     env: WP_VERSION=4.8 WC_VERSION=2.6.14
+   - php: 7.0
      env: WP_VERSION=latest WC_VERSION=2.6.14
-   - php: 5.4
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
-   - php: 5.5
-     env: WP_VERSION=latest WC_VERSION=2.6.14
-   - php: 5.5
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
-   - php: 5.5
+   - php: 7.1
      env: WP_VERSION=latest WC_VERSION=3.0.3
-     # 5.6 / master already included above as first build.
-   - php: 5.6
+   - php: 7.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
-   - php: 5.6
-     env: WP_VERSION=4.4 WC_VERSION=3.0.3
-
-# Cache the NPM dependencies
-cache:
-  directories:
-    - node_modules
-    - "$HOME/.nvm"
-
-# Use an updated Node runtime
-# See: http://entulho.fiatjaf.alhur.es/guias/how-to-use-node-along-with-other-language-on-travis-ci/
-install:
-    - . $HOME/.nvm/nvm.sh
-    - nvm install 8.9.3
-    - nvm use 8.9.3
-    - npm install
+     # Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
+     script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar && phpunit
+   - php: 7.2
+     env: WP_VERSION=latest WC_VERSION=3.3.3
+     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
+     script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+     # Run the JS tests in a separate container
+   - language: node_js
+     before_script: ""
 
 # Clones WordPress and configures our testing environment.
-before_script:
-    - bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
-
-script: phpunit && npm test
+before_script: bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
 
 sudo: false
 
