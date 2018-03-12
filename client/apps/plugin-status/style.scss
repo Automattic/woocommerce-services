@@ -10,6 +10,10 @@
 		}
 	}
 
+	.plugin-status__indicator-message {
+		margin: 0 0 4px 4px;
+	}
+
 	&.is-success .plugin-status__indicator-icon-and-message {
 		color: $alert-green;
 
