@@ -63,3 +63,11 @@
 	font-weight: 400;
 	line-height: 1.5;
 }
+
+.plugin-status__log-explanation {
+	display: flex;
+}
+
+.plugin-status__log-explanation-span {
+	flex-grow: 1;
+}
