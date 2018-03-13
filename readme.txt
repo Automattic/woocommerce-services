@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.2
-Stable tag: 1.11.0
+Tested up to: 4.9.4
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,18 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.12.0 =
+* Add email receipts for purchased shipping labels
+* Clean up Stripe account keys when deauthorized
+* Fix bug in database migration script for older plugin versions
+* Add "back to order" link when adding a credit card from order details
+* Add frontend debugging messages for shipping rates
+* Separate troubleshooting logs by feature (taxes, shipping, etc)
+* Avoid making unnecessary automated tax requests
+* Fix PHP Fatal bug in tax request error handling
+* Integrate with WooCommerce Shipment Tracking extension
+* Add Conditional Shipping and Payments compatibility
 
 = 1.11.0 =
 * Fix bug with TOS acceptance on WordPress Multisite
