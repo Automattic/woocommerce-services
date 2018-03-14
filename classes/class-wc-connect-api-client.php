@@ -372,11 +372,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// If the received response is not JSON, return the raw response
 			$content_type = wp_remote_retrieve_header( $response, 'content-type' );
 			if ( false === strpos( $content_type, 'application/json' ) ) {
-				if ( 200 != $response_code ) {
-					return new WP_Error(
-						'wcc_server_error',
-						sprintf( 'Error: The WooCommerce Services server returned HTTP code: %d', $response_code )
-					);
+				if ( ! $response_code ) {
+					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not be reached. Please make sure your server can make requests to api.woocommerce.com, and try again.' );
+				} elseif ( 500 == $response_code ) {
+					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API encountered an error. Please try again.' );
+				} elseif ( 200 != $response_code ) {
+					return new WP_Error( 'wcc_server_error', sprintf( 'The WooCommerce Services API returned HTTP status code: %d', $response_code ) );
 				}
 				return $response;
 			}
@@ -391,7 +392,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
-							'Error: The WooCommerce Services server returned ( %d ) and an empty response body.',
+							'The WooCommerce Services API returned HTTP status code %d and an empty response body.',
 							$response_code
 						)
 					);
@@ -401,13 +402,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				$message = property_exists( $response_body, 'message' ) ? $response_body->message : '';
 				$data    = property_exists( $response_body, 'data' ) ? $response_body->data : '';
 
+				if ( 500 == $response_code ) {
+					return new WP_Error( 'wcc_server_error_response', 'The WooCommerce Services API encountered an error. Please try again.' );
+				}
+
 				return new WP_Error(
 					'wcc_server_error_response',
 					sprintf(
-						'Error: The WooCommerce Services server returned: %s %s ( %d )',
+						'The WooCommerce Services API returned HTTP status code %d: %s. %s',
+						$response_code,
 						$error,
-						$message,
-						$response_code
+						$message
 					),
 					$data
 				);
