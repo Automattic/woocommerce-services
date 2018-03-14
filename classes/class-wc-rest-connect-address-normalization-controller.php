@@ -39,7 +39,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			$this->logger->log( 'Address validation errors: ' . implode( '; ', array_values( (array) $response->field_errors ) ), __CLASS__ );
 			return array(
 				'success' => true,
-				'fieldErrors' => $response->field_errors,
+				'field_errors' => $response->field_errors,
 			);
 		}
 
