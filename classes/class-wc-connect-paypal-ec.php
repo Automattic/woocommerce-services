@@ -38,11 +38,16 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				return;
 			}
 
+			$ppec_plugin = wc_gateway_ppec();
+			if ( ! property_exists( $ppec_plugin, 'settings' ) || empty( $ppec_plugin->settings ) ) {
+				return;
+			}
+
 			$this->maybe_set_reroute_requests();
 
 			add_filter( 'woocommerce_paypal_express_checkout_settings', array( $this, 'adjust_form_fields' ) );
 			$this->initialize_settings();
-			$settings = wc_gateway_ppec()->settings;
+			$settings = $ppec_plugin->settings;
 
 			// Don't modify any PPEC plugin behavior if WCS request proxying is not enabled
 			if ( 'yes' !== $settings->reroute_requests ) {
