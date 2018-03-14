@@ -47,6 +47,7 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			$this->update_payment_methods( $payment_methods );
 
 			$this->potentially_update_selected_payment_method_from_payment_methods( $payment_methods );
+			return true;
 		}
 
 		protected function potentially_update_selected_payment_method_from_payment_methods( $payment_methods ) {

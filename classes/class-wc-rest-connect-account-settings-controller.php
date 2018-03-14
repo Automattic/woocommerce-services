@@ -24,7 +24,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 
 	public function get() {
 		// Always get a fresh copy when hitting this endpoint
-		$this->payment_methods_store->fetch_payment_methods_from_connect_server();
+		$payment_methods_fetched = $this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
 		$master_user = WC_Connect_Jetpack::get_master_user();
 		if ( is_a( $master_user, 'WP_User' ) ) {
@@ -45,7 +45,8 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
 				'master_user_email' => $email,
 				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
-			)
+				'warnings' => ! $payment_methods_fetched ? array( 'payment_methods' => 'WooCommerce Services encountered an error while retrieving stored payment methods. Please refresh to try again.' ) : array(),
+			),
 		), 200 );
 	}
 
