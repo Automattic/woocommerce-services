@@ -28,19 +28,24 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 
 		}
 
+		/**
+		 * Fetch stored payment methods from server and store in options.
+		 *
+		 * @return bool Were payment methods successfully retrieved?
+		 */
 		public function fetch_payment_methods_from_connect_server() {
 
 			$response_body = $this->api_client->get_payment_methods();
 
 			if ( is_wp_error( $response_body ) ) {
 				$this->logger->log( $response_body, __FUNCTION__ );
-				return;
+				return false;
 			}
 
 			$payment_methods = $this->get_payment_methods_from_response_body( $response_body );
 			if ( is_wp_error( $payment_methods ) ) {
 				$this->logger->log( $payment_methods, __FUNCTION__ );
-				return;
+				return false;
 			}
 
 			// If we made it this far, it is safe to store the object

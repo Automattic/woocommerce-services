@@ -45,7 +45,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
 				'master_user_email' => $email,
 				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
-				'warnings' => ! $payment_methods_fetched ? array( 'payment_methods' => 'Encountered an error while retrieving stored payment methods.' ) : array(),
+				'warnings' => array( 'payment_methods' => $payment_methods_fetched ? false : 'Encountered an error while retrieving stored payment methods.' ),
 			),
 		), 200 );
 	}
