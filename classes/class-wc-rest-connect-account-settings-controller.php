@@ -28,7 +28,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		$payment_methods_success = $this->payment_methods_store->fetch_payment_methods_from_connect_server();
 
 		if ( ! $payment_methods_success ) {
-			$payment_methods_warning = __( 'There was a problem fetching your saved credit cards.', 'woocommerce-services' );
+			$payment_methods_warning = __( 'There was a problem updating your saved credit cards.', 'woocommerce-services' );
 		}
 
 		$master_user = WC_Connect_Jetpack::get_master_user();
