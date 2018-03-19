@@ -35,14 +35,12 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			return $error;
 		}
 
-		if ( isset( $response->error ) ) {
-			$error = new WP_Error(
-				$response->error->code,
-				$response->error->message,
-				array( 'message' => $response->error->message )
+		if ( isset( $response->field_errors ) ) {
+			$this->logger->log( 'Address validation errors: ' . implode( '; ', array_values( (array) $response->field_errors ) ), __CLASS__ );
+			return array(
+				'success' => true,
+				'field_errors' => $response->field_errors,
 			);
-			$this->logger->log( $error, __CLASS__ );
-			return $error;
 		}
 
 		$response->normalized->name = $name;
