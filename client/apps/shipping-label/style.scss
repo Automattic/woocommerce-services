@@ -32,14 +32,6 @@
 	font-size: 15px;
 }
 
-.label-purchase-modal__content {
-	.is-success, .is-error, .is-warning {
-		.gridicon {
-			margin-top: 1px;
-		}
-	}
-}
-
 .label-purchase-modal__option-email-customer,
 .label-purchase-modal__option-mark-order-fulfilled {
 	display: none;
@@ -53,6 +45,10 @@
 		&:before {
 			left: 30px;
 		}
+	}
+
+	.foldable-card.card.order-activity-log__day-header {
+		margin: 0;
 	}
 
 	.order-activity-log__note-body {

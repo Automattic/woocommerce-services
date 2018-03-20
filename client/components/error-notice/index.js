@@ -12,7 +12,6 @@ import Notice from 'components/notice';
 const ErrorNotice = ( { children, isWarning } ) => {
 	return (
 		<Notice
-			className="error-notice"
 			status={ isWarning ? 'is-warning' : 'is-error' }
 			showDismiss={ false }>
 			{ children }
