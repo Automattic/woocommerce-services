@@ -127,6 +127,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * When automated taxes are enabled, overwrite core tax settings that might break the API integration
 	 * This is similar to the original plugin functionality where these options were reverted on page load
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L66-L91
 	 *
 	 * @param mixed $value - option value
 	 * @param array $option - option metadata
@@ -207,7 +208,6 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->configure_tax_settings();
 		$this->backup_existing_tax_rates();
 
 		WC_Connect_Options::update_option( self::ENV_SETUP_FLAG, false );
@@ -781,38 +781,6 @@ class WC_Connect_TaxJar_Integration {
 		} else {
 			$this->_log( 'Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
-	}
-
-	/**
-	 * Configure WooCommerce core tax settings for TaxJar integration.
-	 *
-	 * Ported from TaxJar's plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L66-L91
-	 */
-	public function configure_tax_settings() {
-		// If TaxJar is enabled and a user disables taxes we renable them
-		update_option( 'woocommerce_calc_taxes', 'yes' );
-
-		// Users can set either billing or shipping address for tax rates but not shop
-		update_option( 'woocommerce_tax_based_on', 'shipping' );
-
-		// Rate calculations assume tax not included
-		update_option( 'woocommerce_prices_include_tax', 'no' );
-
-		// Use no special handling on shipping taxes, our API handles that
-		update_option( 'woocommerce_shipping_tax_class', '' );
-
-		// API handles rounding precision
-		update_option( 'woocommerce_tax_round_at_subtotal', 'no' );
-
-		// Rates are calculated in the cart assuming tax not included
-		update_option( 'woocommerce_tax_display_shop', 'excl' );
-
-		// TaxJar returns one total amount, not line item amounts
-		update_option( 'woocommerce_tax_display_cart', 'excl' );
-
-		// TaxJar returns one total amount, not line item amounts
-		update_option( 'woocommerce_tax_total_display', 'single' );
 	}
 
 	/**
