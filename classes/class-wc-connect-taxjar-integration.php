@@ -141,7 +141,7 @@ class WC_Connect_TaxJar_Integration {
 			case 'woocommerce_calc_taxes':
 				// If automated taxes are enabled and user disables taxes we re-enable them
 				return 'yes';
-			case 'woocommerce_calc_taxes':
+			case 'woocommerce_tax_based_on':
 				// Users can set either billing or shipping address for tax rates but not shop
 				return $value === 'billing' ? $value : 'shipping';
 			case 'woocommerce_prices_include_tax':
