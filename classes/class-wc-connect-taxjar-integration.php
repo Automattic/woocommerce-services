@@ -114,6 +114,10 @@ class WC_Connect_TaxJar_Integration {
 		if ( $this->is_enabled() ) {
 			// If the automated taxes are enabled, disable the settings that would be reverted in the original plugin
 			foreach ( $tax_settings as $index => $tax_setting ) {
+				if ( 'tax_options' === $tax_setting['id'] && 'title' === $tax_setting['type'] ) {
+					$tax_settings[$index]['desc'] = __( 'Powered by WooCommerce Services ― Your tax rates and settings are automatically configured.', 'woocommerce-services' );
+				}
+
 				if ( in_array( $tax_setting['id'], array( 'tax_options', 'woocommerce_tax_classes', self::OPTION_NAME ) ) ) {
 					continue;
 				}
@@ -175,14 +179,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! $this->is_enabled() ) {
 			return;
 		}
-
 		?>
-		<div class="updated">
-			<p>
-				<b><?php esc_html_e( 'Powered by WooCommerce Services', 'woocommerce-services' ) ?></b>
-				<?php esc_html_e( ' ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) ?>
-			</p>
-		</div>
 		<div style="display: none">
 		<?php
 	}
@@ -194,7 +191,6 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! $this->is_enabled() ) {
 			return;
 		}
-
 		?></div><?php
 	}
 
