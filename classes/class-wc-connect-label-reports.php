@@ -119,6 +119,28 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			return '<a href="' . WC_Connect_Compatibility::instance()->get_edit_order_url( $order ) . '">' . WC_Connect_Compatibility::instance()->get_order_id( $order ) . '</a>';
 		}
 
+		private function get_label_refund_status( $label ) {
+			if ( ! isset( $label['refund'] ) ) {
+				return '';
+			}
+
+			$refund = ( array ) $label['refund'];
+
+			if ( ! isset( $refund['status'] ) ) {
+				return __( 'Requested', 'woocommerce-services' );
+			}
+
+			if ( 'rejected' === $refund['status'] ) {
+				return __( 'Rejected', 'woocommerce-services' );
+			}
+
+			if ( 'complete' === $refund['status'] ) {
+				return __( 'Completed', 'woocommerce-services' );
+			}
+
+			return __( 'Requested', 'woocommerce-services' );
+		}
+
 		/**
 		 * Get the main chart.
 		 */
@@ -141,6 +163,9 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 						<th>
 							<?php esc_html_e( 'Service', 'woocommerce-services' ); ?>
 						</th>
+						<th>
+							<?php esc_html_e( 'Refund', 'woocommerce-services' ); ?>
+						</th>
 					</tr>
 				</thead>
 				<?php if ( ! empty( $labels ) ) : ?>
@@ -159,6 +184,9 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 								<td>
 									<?php echo $label['service_name']; ?>
 								</td>
+								<td>
+									<?php echo $this->get_label_refund_status( $label ); ?>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -176,6 +204,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 							<th>
 								<?php echo wc_price( $total ); ?>
 							</th>
+							<th></th>
 							<th></th>
 						</tr>
 				<?php else : ?>
