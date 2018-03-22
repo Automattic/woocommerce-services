@@ -37,7 +37,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			$db_results = $wpdb->get_results( $query );
 			$results = array();
 
-			foreach( $db_results as $meta ) {
+			foreach ( $db_results as $meta ) {
 				$labels = maybe_unserialize( $meta->meta_value );
 
 				if ( ! is_array( $labels ) ) {
@@ -118,35 +118,55 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			<table class="widefat">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Time', 'woocommerce-services' ); ?></th>
-						<th><?php esc_html_e( 'Order', 'woocommerce-services' ); ?></th>
-						<th><?php esc_html_e( 'Price', 'woocommerce-services' ); ?></th>
-						<th><?php esc_html_e( 'Service', 'woocommerce-services' ); ?></th>
+						<th>
+							<?php esc_html_e( 'Time', 'woocommerce-services' ); ?>
+						</th>
+						<th>
+							<?php esc_html_e( 'Order', 'woocommerce-services' ); ?>
+						</th>
+						<th>
+							<?php esc_html_e( 'Price', 'woocommerce-services' ); ?>
+						</th>
+						<th>
+							<?php esc_html_e( 'Service', 'woocommerce-services' ); ?>
+						</th>
 					</tr>
 				</thead>
 				<?php if ( ! empty( $labels ) ) : ?>
 					<tbody>
-						<?php
-						foreach ( $labels as $label ) {
-							?>
+						<?php foreach ( $labels as $label ) : ?>
 							<tr>
-								<th scope="row"><?php echo date_i18n( get_option( 'date_format' ) . ' g:i a', $label['created'] / 1000 ); ?></th>
-								<td><a href="<?php echo admin_url( 'post.php?post=' . $label['order_id'] . '&action=edit' ); ?>"><?php echo $label['order_id']; ?></a></td>
-								<td><?php echo wc_price( $label['rate'] ); ?></td>
-								<td><?php echo $label['service_name'] ?></td>
+								<th scope="row">
+									<?php echo date_i18n( get_option( 'date_format' ) . ' g:i a', $label['created'] / 1000 ); ?>
+								</th>
+								<td>
+									<a href="<?php echo admin_url( 'post.php?post=' . $label['order_id'] . '&action=edit' ); ?>">
+										<?php echo $label['order_id']; ?>
+									</a>
+								</td>
+								<td>
+									<?php echo wc_price( $label['rate'] ); ?>
+								</td>
+								<td>
+									<?php echo $label['service_name'] ?>
+								</td>
 							</tr>
-							<?php
-						}
-						?>
+						<?php endforeach; ?>
 					</tbody>
 					<tfoot>
 						<?php
 							$total = array_sum( wp_list_pluck( $labels, 'rate' ) );
 						?>
 						<tr>
-							<th scope="row"><?php _e( 'Total', 'woocommerce-services' ); ?></th>
-							<th><?php echo count( $labels ); ?></th>
-							<th><?php echo wc_price( $total ); ?></th>
+							<th scope="row">
+								<?php _e( 'Total', 'woocommerce-services' ); ?>
+							</th>
+							<th>
+								<?php echo count( $labels ); ?>
+							</th>
+							<th>
+								<?php echo wc_price( $total ); ?>
+							</th>
 							<th></th>
 						</tr>
 				<?php else : ?>
