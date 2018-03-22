@@ -886,10 +886,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function reports_tabs( $reports ) {
 			$reports[ 'wcs_labels' ] = array(
-				'title' => __( 'Labels', 'woocommerce-services' ),
+				'title' => __( 'Shipping Labels', 'woocommerce-services' ),
 				'reports' => array(
 					'connect_labels'     => array(
-						'title'       => __( 'Labels', 'woocommerce' ),
+						'title'       => __( 'Shipping Labels', 'woocommerce-services' ),
 						'description' => '',
 						'hide_title'  => true,
 						'callback'    => array( $this->label_reports, 'output_report' ),
