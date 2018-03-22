@@ -95,10 +95,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function add_tax_settings( $tax_settings ) {
+		$enabled = $this->is_enabled();
+
 		$automated_taxes = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
 			'desc_tip' => __( 'Automate your sales tax calculations with WooCommerce Services, powered by Jetpack.', 'woocommerce-services' ),
+			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Services ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) . '</p>' : '',
 			'default'  => 'no',
 			'type'     => 'select',
 			'class'    => 'wc-enhanced-select',
@@ -111,13 +114,9 @@ class WC_Connect_TaxJar_Integration {
 		// Insert the "automated taxes" setting at the top (under the section title)
 		array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
 
-		if ( $this->is_enabled() ) {
+		if ( $enabled ) {
 			// If the automated taxes are enabled, disable the settings that would be reverted in the original plugin
 			foreach ( $tax_settings as $index => $tax_setting ) {
-				if ( 'tax_options' === $tax_setting['id'] && 'title' === $tax_setting['type'] ) {
-					$tax_settings[$index]['desc'] = __( 'Powered by WooCommerce Services ― Your tax rates and settings are automatically configured.', 'woocommerce-services' );
-				}
-
 				if ( in_array( $tax_setting['id'], array( 'tax_options', 'woocommerce_tax_classes', self::OPTION_NAME ) ) ) {
 					continue;
 				}
