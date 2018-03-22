@@ -193,25 +193,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $json;
 		}
 
-		/**
-		 * Returns labels for the specific order ID
-		 *
-		 * @param $order_id
-		 *
-		 * @return array
-		 */
-		public function get_label_order_meta_data( $order_id ) {
-			$label_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
-			//return an empty array if the data doesn't exist
-			if ( ! $label_data ) {
-				return array();
-			}
-
-			//labels stored as an array, return
-			if ( is_array( $label_data ) ) {
-				return $label_data;
-			}
-
+		public function try_deserialize_labels_json( $label_data ) {
 			//attempt to decode the JSON (legacy way of storing the labels data)
 			$decoded_labels = json_decode( $label_data, true );
 			if ( $decoded_labels ) {
@@ -231,6 +213,28 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return array();
+		}
+
+		/**
+		 * Returns labels for the specific order ID
+		 *
+		 * @param $order_id
+		 *
+		 * @return array
+		 */
+		public function get_label_order_meta_data( $order_id ) {
+			$label_data = get_post_meta( ( int ) $order_id, 'wc_connect_labels', true );
+			//return an empty array if the data doesn't exist
+			if ( ! $label_data ) {
+				return array();
+			}
+
+			//labels stored as an array, return
+			if ( is_array( $label_data ) ) {
+				return $label_data;
+			}
+
+			return $this->try_deserialize_labels_json( $label_data );
 		}
 
 		/**
