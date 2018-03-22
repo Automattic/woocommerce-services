@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 						<?php foreach ( $labels as $label ) : ?>
 							<tr>
 								<th scope="row">
-									<?php echo date_i18n( get_option( 'date_format' ) . ' g:i a', $label['created'] / 1000 ); ?>
+									<?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $label['created'] / 1000 ) ); ?>
 								</th>
 								<td>
 									<a href="<?php echo admin_url( 'post.php?post=' . $label['order_id'] . '&action=edit' ); ?>">
