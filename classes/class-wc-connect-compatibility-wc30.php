@@ -24,6 +24,17 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		}
 
 		/**
+		 * Get admin url for a given order
+		 *
+		 * @param WC_Order $order
+		 *
+		 * @return string
+		 */
+		public function get_edit_order_url( WC_Order $order ) {
+			return $order->get_edit_order_url();
+		}
+
+		/**
 		 * Get the payment method for a given Order.
 		 *
 		 * @param WC_Order $order
