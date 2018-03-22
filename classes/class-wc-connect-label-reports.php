@@ -28,7 +28,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 		}
 
 		private function compare_label_dates_desc( $label_a, $label_b ) {
-			return $label_b['created'] <=> $label_a['created'];
+			return $label_b['created'] - $label_a['created'];
 		}
 
 		private function get_all_labels() {
