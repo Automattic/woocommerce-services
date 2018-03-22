@@ -18,7 +18,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			?>
 			<a
 				href="#"
-				download="report-<?php echo esc_attr( $current_range ); ?>-<?php echo date_i18n( 'Y-m-d', current_time( 'timestamp' ) ); ?>.csv"
+				download="report-shipping-labels-<?php echo esc_attr( $current_range ); ?>-<?php echo date_i18n( 'Y-m-d', current_time( 'timestamp' ) ); ?>.csv"
 				class="export_csv"
 				data-export="table"
 			>
