@@ -116,7 +116,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 
 		private function get_order_url( $post_id ) {
 			$order = wc_get_order( $post_id );
-			return '<a href="' . WC_Connect_Compatibility::instance()->get_edit_order_url( $order ) . '">' . WC_Connect_Compatibility::instance()->get_order_id( $order ) . '</a>';
+			return '<a href="' . WC_Connect_Compatibility::instance()->get_edit_order_url( $order ) . '">' . $order->get_order_number( $order ) . '</a>';
 		}
 
 		private function get_label_refund_status( $label ) {
