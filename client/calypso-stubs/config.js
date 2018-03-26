@@ -3,6 +3,7 @@
 
 const data = {
 	env: ( process && process.env.NODE_ENV ) || 'development',
+	wpcom_concierge_schedule_id: 1,
 };
 
 const d = ( key ) => {

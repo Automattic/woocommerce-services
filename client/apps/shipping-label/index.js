@@ -13,56 +13,74 @@ import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reduc
 import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
 import reduxMiddleware from './redux-middleware';
+import ordersReducer from 'woocommerce/state/sites/orders/reducer';
 import { combineReducers } from 'state/utils';
+import { addHandlers } from 'state/data-layer/extensions-middleware';
+import orders from 'woocommerce/state/data-layer/orders';
 
-export default ( { orderId } ) => ( {
-	getReducer() {
-		return combineReducers( {
-			extensions: combineReducers( {
-				woocommerce: combineReducers( {
-					woocommerceServices: combineReducers( {
-						1: combineReducers( {
-							shippingLabel: reducer,
-							packages: packagesReducer,
-							labelSettings: labelSettingsReducer,
+export default ( { orderId } ) => {
+	addHandlers( 'woocommerce', orders );
+
+	return {
+		getReducer() {
+			return combineReducers( {
+				extensions: combineReducers( {
+					woocommerce: combineReducers( {
+						woocommerceServices: combineReducers( {
+							1: combineReducers( {
+								shippingLabel: reducer,
+								packages: packagesReducer,
+								labelSettings: labelSettingsReducer,
+							} ),
 						} ),
-					} ),
-					sites: combineReducers( {
-						1: combineReducers( {
-							orders: combineReducers( {
-								notes: combineReducers( {
-									isLoading: () => ( { [ orderId ]: false } ),
-									isLoaded: () => ( { [ orderId ]: true } ),
-								} ),
+						sites: combineReducers( {
+							1: combineReducers( {
+								orders: ordersReducer,
 							} ),
 						} ),
 					} ),
 				} ),
-			} ),
-			notices,
-			ui: () => ( {
-				selectedSiteId: 1,
-			} ),
-		} );
-	},
+				notices,
+				ui: () => ( {
+					selectedSiteId: 1,
+				} ),
+			} );
+		},
 
-	getInitialState() {
-		return {};
-	},
+		getInitialState() {
+			return {
+				extensions: {
+					woocommerce: {
+						sites: {
+							1: {
+								orders: {
+									notes: {
+										isLoading: {
+											[ orderId ]: false,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			};
+		},
 
-	getStateForPersisting() {
-		return null; //do not persist any state for labels
-	},
+		getStateForPersisting() {
+			return null; //do not persist any state for labels
+		},
 
-	getStateKey() {
-		return `wcs-label-${ orderId }`;
-	},
+		getStateKey() {
+			return `wcs-label-${ orderId }`;
+		},
 
-	getMiddleware() {
-		return reduxMiddleware;
-	},
+		getMiddleware() {
+			return reduxMiddleware;
+		},
 
-	View: () => (
-		<ShippingLabelViewWrapper orderId={ orderId } />
-	),
-} );
+		View: () => (
+			<ShippingLabelViewWrapper orderId={ orderId } />
+		),
+	};
+};

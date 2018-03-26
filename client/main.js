@@ -22,6 +22,9 @@ import AccountSettings from './apps/account-settings';
 import PrintTestLabel from './apps/print-test-label';
 import Packages from './apps/packages';
 import { setNonce, setBaseURL } from 'api/request';
+import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware.js';
+import extensionsMiddleware from 'state/data-layer/extensions-middleware.js';
+import localApiMiddleware from 'lib/local-api-middleware';
 
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
@@ -61,18 +64,25 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	const persistedState = storageUtils.getWithExpiry( persistedStateKey );
 	storageUtils.remove( persistedStateKey );
 	const serverState = Route.getInitialState();
+	const initialState = { ...serverState, ...persistedState };
 
-	const store = createStore(
-		Route.getReducer(),
-		{ ...serverState, ...persistedState },
-		compose(
-			applyMiddleware(
-				thunk.withExtraArgument( args ),
-				Route.getMiddleware ? Route.getMiddleware() : () => ( next ) => ( action ) => next( action ),
-			),
-			window.devToolsExtension ? window.devToolsExtension() : f => f
-		)
-	);
+	const middlewares = [
+		thunk.withExtraArgument( args ),
+		wpcomApiMiddleware,
+		localApiMiddleware,
+		extensionsMiddleware,
+	];
+
+	if ( _.isFunction( Route.getMiddleware ) ) {
+		middlewares.push( Route.getMiddleware() );
+	}
+
+	const enhancers = [
+		applyMiddleware( ...middlewares ),
+		window.devToolsExtension && window.devToolsExtension(),
+	].filter( Boolean );
+
+	const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
 
 	if ( Route.getInitialAction ) {
 		store.dispatch( Route.getInitialAction() );

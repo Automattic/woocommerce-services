@@ -38,6 +38,7 @@
     "eslint": "3.16.0",
     "eslint-config-wpcalypso": "^2.0.0",
     "eslint-loader": "^1.6.1",
+    "eslint-plugin-import": "^2.9.0",
     "eslint-plugin-jest": "^21.2.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.1.0",
@@ -103,6 +104,6 @@
     "redux-thunk": "^2.2.0",
     "reselect": "^2.5.4",
     "whatwg-fetch": "^2.0.2",
-    "wp-calypso": "github:automattic/wp-calypso#fde036a9ba30c5e1e92434d2f9f66f45a7ff654c"
+    "wp-calypso": "github:automattic/wp-calypso#a8fbbafc0abde1ffbe2c05bd07810037808ec433"
   }
 }
