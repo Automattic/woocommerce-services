@@ -85,6 +85,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 			$package = $settings[ 'packages' ][ $index ];
 			$box_id = $package[ 'box_id' ];
+			$label_meta[ 'box_id' ] = $box_id;
 			if ( 'individual' === $box_id ) {
 				$label_meta[ 'package_name' ] = __( 'Individual packaging', 'woocommerce-services' );
 			} else if ( isset( $package_lookup[ $box_id ] ) ) {
@@ -105,6 +106,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				}
 			}
 
+			$label_meta[ 'product_ids' ] = $package[ 'products' ];
 			$label_meta[ 'product_names' ] = $product_names;
 
 			array_unshift( $purchased_labels_meta, $label_meta );
