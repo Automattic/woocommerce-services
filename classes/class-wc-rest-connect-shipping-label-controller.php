@@ -40,11 +40,9 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 		$service_names = array();
 		foreach ( $settings[ 'packages' ] as $index => $package ) {
-			if ( isset( $package[ 'service_name' ] ) ) {
-				$service_names[] = $package[ 'service_name' ];
-				unset( $package[ 'service_name' ] );
-				$settings[ 'packages' ][ $index ] = $package;
-			}
+			$service_names[] = $package[ 'service_name' ];
+			unset( $package[ 'service_name' ] );
+			$settings[ 'packages' ][ $index ] = $package;
 		}
 
 		$response = $this->api_client->send_shipping_label_request( $settings );
@@ -86,7 +84,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			);
 
 			$package = $settings[ 'packages' ][ $index ];
-			$box_id = isset( $package[ 'box_id' ] ) && $package[ 'box_id' ];
+			$box_id = $package[ 'box_id' ];
 			if ( 'individual' === $box_id ) {
 				$label_meta[ 'package_name' ] = __( 'Individual packaging', 'woocommerce-services' );
 			} else if ( isset( $package_lookup[ $box_id ] ) ) {
