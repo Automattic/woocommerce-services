@@ -45,9 +45,25 @@ const ServicesStatusView = ( { translate, moment, services } ) => {
 		);
 	};
 
+	const renderContent = () => {
+		if ( ! services.length ) {
+			return (
+				<FormSettingExplanation>
+					{ translate( 'No services configured. {{a}}Add a shipping service{{/a}}', {
+						components: {
+							a: <a href="admin.php?page=wc-settings&tab=shipping" />,
+						},
+					} ) }
+				</FormSettingExplanation>
+			);
+		}
+
+		return services.map( renderIndicator );
+	};
+
 	return (
 		<SettingsGroupCard heading={ translate( 'Services' ) }>
-			{ services.map( renderIndicator ) }
+			{ renderContent() }
 		</SettingsGroupCard>
 	);
 };
