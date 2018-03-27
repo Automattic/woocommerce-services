@@ -31,6 +31,17 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 			<HealthView />
 			<ServicesStatusView />
 			<SettingsGroupCard heading={ translate( 'Debug' ) }>
+			<Toggle
+					id="wcs-toggle-debug"
+					checked={ debugEnabled }
+					title={ translate( 'Debug' ) }
+					description={ translate( 'Display troubleshooting information on the Cart and Checkout pages.' ) }
+					trueText={ translate( 'Enabled' ) }
+					falseText={ translate( 'Disabled' ) }
+					saveOnToggle={ true }
+					saveForm={ actions.save }
+					updateValue={ actions.toggleDebug }
+				/>
 				<Toggle
 					id="wcs-toggle-logging"
 					checked={ loggingEnabled }
@@ -41,17 +52,6 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 					saveOnToggle={ true }
 					saveForm={ actions.save }
 					updateValue={ actions.toggleLogging }
-				/>
-				<Toggle
-					id="wcs-toggle-debug"
-					checked={ debugEnabled }
-					title={ translate( 'Debug' ) }
-					description={ translate( 'Display troubleshooting information on the Cart and Checkout pages.' ) }
-					trueText={ translate( 'Enabled' ) }
-					falseText={ translate( 'Disabled' ) }
-					saveOnToggle={ true }
-					saveForm={ actions.save }
-					updateValue={ actions.toggleDebug }
 				/>
 				<LogView
 					logKey="shipping"
@@ -70,8 +70,14 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 						{ translate( 'Our team is here for you. View our {{docsA}}support docs{{/docsA}} ' +
 						'or {{ticketA}}open a support ticket{{/ticketA}}.', {
 							components: {
-								docsA: <a href="https://docs.woocommerce.com/document/woocommerce-services/" />,
-								ticketA: <a href="https://woocommerce.com/my-account/create-a-ticket/" />,
+								docsA: <a
+									href="https://docs.woocommerce.com/document/woocommerce-services/"
+									target="_blank"
+									rel="noopener noreferrer" />,
+								ticketA: <a
+									href="https://woocommerce.com/my-account/create-a-ticket/"
+									target="_blank"
+									rel="noopener noreferrer" />,
 							},
 						} ) }
 					</p>
