@@ -2,7 +2,7 @@
  * External dependencies
  */
 import _ from 'lodash';
-import { translate as __ } from 'i18n-calypso';
+import { translate } from 'i18n-calypso';
 
 /**
  * Internal dependencies
@@ -32,7 +32,7 @@ export const save = () => ( dispatch, getState ) => {
 	};
 
 	api.post( api.url.selfHelp(), data )
-		.then( () => dispatch( NoticeActions.successNotice( __( 'Your changes have been saved.' ), {
+		.then( () => dispatch( NoticeActions.successNotice( translate( 'Your changes have been saved.' ), {
 			duration: 5000,
 		} ) ) )
 		.catch( ( error ) => {
@@ -41,7 +41,7 @@ export const save = () => ( dispatch, getState ) => {
 			}
 
 			if ( _.isObject( error ) ) {
-				dispatch( NoticeActions.errorNotice( __( 'There was a problem when saving your preferences. Please try again.' ) ) );
+				dispatch( NoticeActions.errorNotice( translate( 'There was a problem when saving your preferences. Please try again.' ) ) );
 			}
 		} );
 };
