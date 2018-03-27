@@ -36,10 +36,15 @@ class LogView extends Component {
 				/>
 				<FormSettingExplanation className="plugin-status__log-explanation">
 					<span className="plugin-status__log-explanation-span">
-						{ translate( 'Last %s entries. {{a}}Show full log{{/a}}', {
-							args: count,
-							components: { a: <a href={ url } /> },
-						} ) }
+						{ translate(
+							'Last %s entry. {{a}}Show full log{{/a}}',
+							'Last %s entries. {{a}}Show full log{{/a}}',
+							{
+								args: [ count ],
+								count: count,
+								components: { a: <a href={ url } /> },
+							} )
+						}
 					</span>
 					<ClipboardButton
 						text={ tail }
