@@ -31,7 +31,7 @@ class LogView extends Component {
 				<FormTextarea
 					id={ id }
 					name={ id }
-					readOnly={ true }
+					readOnly
 					value={ tail }
 				/>
 				<FormSettingExplanation className="plugin-status__log-explanation">
@@ -59,5 +59,5 @@ LogView.propTypes = {
 };
 
 export default connect(
-	( state, { logKey } ) => ( state.status.logs[ logKey ] )
+	( state, { logKey } ) => state.status.logs[ logKey ]
 )( localize( LogView ) );

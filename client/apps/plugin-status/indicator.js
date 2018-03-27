@@ -27,7 +27,6 @@ const Indicator = ( { title, subtitle, state, message, children } ) => {
 		default:
 			className = 'is-error';
 			icon = 'notice';
-			break;
 	}
 
 	const renderSubTitle = () => {

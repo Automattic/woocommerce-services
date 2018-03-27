@@ -23,7 +23,7 @@ const reducer = {
 };
 
 export default ( state = {}, action ) => {
-	if ( action && reducer[ action.type ] ) {
+	if ( reducer[ action.type ] ) {
 		return reducer[ action.type ]( state, action );
 	}
 
