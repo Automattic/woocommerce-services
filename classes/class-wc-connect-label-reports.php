@@ -4,7 +4,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 	include_once( WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php' );
 
 	class WC_Connect_Label_Reports extends WC_Admin_Report {
-		const LABELS_CACHE_KEY = 'wcs_label_reports';
+		const LABELS_TRANSIENT_KEY = 'wcs_label_reports';
 
 		/**
 		 * @var WC_Connect_Service_Settings_Store
@@ -60,10 +60,11 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 		}
 
 		private function query_labels() {
-			$all_labels =  wp_cache_get( self::LABELS_CACHE_KEY );
+			$all_labels =  get_transient( self::LABELS_TRANSIENT_KEY );
 			if ( false === $all_labels ) {
 				$all_labels = $this->get_all_labels();
-				wp_cache_set( self::LABELS_CACHE_KEY, $all_labels, '', 1800 );
+				//set transient with ttl of 30 minutes
+				set_transient( self::LABELS_TRANSIENT_KEY, $all_labels, '', 1800 );
 			}
 
 			// translate timestamps to JS timestapms
