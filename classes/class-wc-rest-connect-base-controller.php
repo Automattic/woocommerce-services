@@ -59,17 +59,44 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		}
 	}
 
-	public function get_internal( $request ) {
+	/**
+	 * Consolidate cache prevention mechanisms.
+	 */
+	public function prevent_route_caching() {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
 		}
+
+		// Prevent our REST API endpoint responses from being added to browser cache
+		add_filter( 'rest_post_dispatch', array( $this, 'send_nocache_header' ), PHP_INT_MAX, 2 );
+	}
+
+	/**
+	 * Send a no-cache header for WCS REST API responses. Prompted by cache issues
+	 * on the Pantheon hosting platform.
+	 *
+	 * See: https://pantheon.io/docs/cache-control/
+	 *
+	 * @param WP_REST_Response $response
+	 * @param WP_REST_Server $server
+	 *
+	 * @return WP_REST_Response passthrough $response parameter
+	 */
+	public function send_nocache_header( $response, $server ) {
+		$server->send_header( 'Cache-Control', 'no-cache, must-revalidate, max-age=0' );
+
+		return $response;
+	}
+
+	public function get_internal( $request ) {
+		$this->prevent_route_caching();
+
 		return $this->get( $request );
 	}
 
 	public function post_internal( $request ) {
-		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-			define( 'DONOTCACHEPAGE', true ); // Play nice with WP-Super-Cache
-		}
+		$this->prevent_route_caching();
+
 		return $this->post( $request );
 	}
 
