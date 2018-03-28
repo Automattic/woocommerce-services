@@ -8,7 +8,6 @@ import { translate as __ } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import Indicators from 'components/indicators';
 import Text from 'components/text';
 import TextArea from 'components/text-area';
 import NumberField from 'components/number-field';
@@ -123,15 +122,6 @@ class SettingsItem extends Component {
 							}
 						) }
 					</div>
-				);
-
-			case 'indicators':
-				return (
-					<Indicators
-						title={ fieldSchema.title }
-						subtitle={ fieldSchema.subtitle }
-						indicators={ [ fieldValue ] }
-					/>
 				);
 
 			case 'text':

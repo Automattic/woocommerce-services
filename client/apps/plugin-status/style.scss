@@ -1,4 +1,4 @@
-.indicators__indicator {
+.plugin-status__indicator {
 	margin-top: 4px;
 	margin-bottom: 4px;
 
@@ -10,7 +10,11 @@
 		}
 	}
 
-	&.is-success .indicators__indicator-icon-and-message {
+	.plugin-status__indicator-message {
+		margin: 0 0 4px 4px;
+	}
+
+	&.is-success .plugin-status__indicator-icon-and-message {
 		color: $alert-green;
 
 		.gridicon {
@@ -18,7 +22,7 @@
 		}
 	}
 
-	&.is-warning .indicators__indicator-icon-and-message {
+	&.is-warning .plugin-status__indicator-icon-and-message {
 		color: $alert-yellow;
 
 		.gridicon {
@@ -26,7 +30,7 @@
 		}
 	}
 
-	&.is-error .indicators__indicator-icon-and-message {
+	&.is-error .plugin-status__indicator-icon-and-message {
 		color: $alert-red;
 
 		.gridicon {
@@ -35,7 +39,7 @@
 	}
 }
 
-.indicators__indicator-icon-and-message {
+.plugin-status__indicator-icon-and-message {
 	display: flex;
 	align-items: center;
 
@@ -48,7 +52,7 @@
 	}
 }
 
-.indicators__subtitle {
+.plugin-status__indicator-subtitle {
 	background: lighten( $gray, 30% );
 	border-radius: 2px;
 	color: darken( $gray, 30% );
@@ -56,4 +60,18 @@
 	font-weight: 400;
 	margin-left: 8px;
 	padding: 2px 8px;
+}
+
+.plugin-status__help-description {
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 1.5;
+}
+
+.plugin-status__log-explanation {
+	display: flex;
+}
+
+.plugin-status__log-explanation-span {
+	flex-grow: 1;
 }

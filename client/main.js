@@ -21,6 +21,7 @@ import ShippingLabel from './apps/shipping-label';
 import AccountSettings from './apps/account-settings';
 import PrintTestLabel from './apps/print-test-label';
 import Packages from './apps/packages';
+import PluginStatus from './apps/plugin-status';
 import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware.js';
 import extensionsMiddleware from 'state/data-layer/extensions-middleware.js';
@@ -37,8 +38,9 @@ const getRouteClass = ( classNames ) => {
 			case 'wc-connect-create-shipping-label':
 				return ShippingLabel;
 			case 'wc-connect-service-settings':
-			case 'wc-connect-admin-help':
 				return Settings;
+			case 'wc-connect-admin-status':
+				return PluginStatus;
 			case 'wc-connect-account-settings':
 				return AccountSettings;
 			case 'wc-connect-packages':
