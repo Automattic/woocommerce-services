@@ -64,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			if ( false === $all_labels ) {
 				$all_labels = $this->get_all_labels();
 				//set transient with ttl of 30 minutes
-				set_transient( self::LABELS_TRANSIENT_KEY, $all_labels, '', 1800 );
+				set_transient( self::LABELS_TRANSIENT_KEY, $all_labels, 1800 );
 			}
 
 			// translate timestamps to JS timestapms
