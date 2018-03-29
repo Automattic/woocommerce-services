@@ -404,6 +404,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->paypal_ec = $paypal_ec;
 		}
 
+		public function set_label_reports( WC_Connect_Label_Reports $label_reports ) {
+			$this->label_reports = $label_reports;
+		}
+
 		/**
 		 * Load our textdomain
 		 *
@@ -584,6 +588,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-stripe.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-paypal-ec.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-label-reports.php' ) );
 
 			$core_logger           = new WC_Logger();
 			$logger                = new WC_Connect_Logger( $core_logger );
@@ -603,6 +608,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$options               = new WC_Connect_Options();
 			$stripe                = new WC_Connect_Stripe( $api_client, $options, $payments_logger );
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
+			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
 			$this->set_logger( $logger );
 			$this->set_shipping_logger( $shipping_logger );
@@ -617,6 +623,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_stripe( $stripe );
 			$this->set_paypal_ec( $paypal_ec );
+			$this->set_label_reports( $label_reports );
 		}
 
 		/**
@@ -677,6 +684,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -868,6 +876,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			do_action( 'enqueue_wc_connect_script',
 				'wc-connect-service-settings',
 				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
+		}
+
+		/**
+		 * Filter function for adding the report tabs
+		 *
+		 * @param array $reports - report tabs meta
+		 * @return array report tabs with WCS tabs added
+		 */
+		public function reports_tabs( $reports ) {
+			$reports[ 'wcs_labels' ] = array(
+				'title' => __( 'Shipping Labels', 'woocommerce-services' ),
+				'reports' => array(
+					'connect_labels'     => array(
+						'title'       => __( 'Shipping Labels', 'woocommerce-services' ),
+						'description' => '',
+						'hide_title'  => true,
+						'callback'    => array( $this->label_reports, 'output_report' ),
+					),
+				),
+			);
+
+			return $reports;
 		}
 
 		/**
