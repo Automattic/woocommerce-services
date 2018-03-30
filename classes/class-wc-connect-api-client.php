@@ -376,8 +376,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not be reached.' );
 				} elseif ( 500 == $response_code ) {
 					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API encountered an error. Please try again.' );
-				} elseif ( 200 != $response_code ) {
-					return new WP_Error( 'wcc_server_error', sprintf( 'The WooCommerce Services API returned HTTP status code: %d', $response_code ) );
+				} elseif ( 400 <= $response_code ) {
+					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not process the request.' );
 				}
 				return $response;
 			}
@@ -387,15 +387,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				$response_body = json_decode( $response_body );
 			}
 
-			if ( 200 != $response_code ) {
+			if ( 400 <= $response_code ) {
 				if ( empty( $response_body ) ) {
-					return new WP_Error(
-						'wcc_server_empty_response',
-						sprintf(
-							'The WooCommerce Services API returned HTTP status code %d and an empty response body.',
-							$response_code
-						)
-					);
+					return new WP_Error( 'wcc_server_empty_response', 'The WooCommerce Services API could not process the request.' );
 				}
 
 				$error   = property_exists( $response_body, 'error' ) ? $response_body->error : '';
@@ -406,16 +400,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					return new WP_Error( 'wcc_server_error_response', 'The WooCommerce Services API encountered an error. Please try again.' );
 				}
 
-				return new WP_Error(
-					'wcc_server_error_response',
-					sprintf(
-						'The WooCommerce Services API returned HTTP status code %d: %s. %s',
-						$response_code,
-						$error,
-						$message
-					),
-					$data
-				);
+				return new WP_Error( 'wcc_server_error_response', $message, $data );
 			}
 
 			return $response_body;
