@@ -47,6 +47,15 @@ const _request = ( url, data, method, namespace = '' ) => {
 				return;
 			}
 
+			if ( 403 === response.status ) {
+				throw {
+					data: {
+						message: __( 'Please check the security configuration of your host, and make sure ' +
+							'requests can be made to the WooCommerce Services API (192.0.96.246).' ),
+					},
+				};
+			}
+
 			throw json;
 		} );
 	} );

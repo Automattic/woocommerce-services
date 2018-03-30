@@ -373,7 +373,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$content_type = wp_remote_retrieve_header( $response, 'content-type' );
 			if ( false === strpos( $content_type, 'application/json' ) ) {
 				if ( ! $response_code ) {
-					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not be reached. Please make sure your server can make requests to api.woocommerce.com, and try again.' );
+					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not be reached.' );
 				} elseif ( 500 == $response_code ) {
 					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API encountered an error. Please try again.' );
 				} elseif ( 200 != $response_code ) {
