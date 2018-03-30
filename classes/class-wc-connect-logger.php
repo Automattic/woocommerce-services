@@ -99,7 +99,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 */
 		public function error( $message, $context = '' ) {
 			WC_Connect_Error_Notice::instance()->enable_notice();
-			$this->log( $message, $context );
+			$this->log( $message, $context, true );
 		}
 
 		/**
@@ -108,14 +108,14 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $message Message to log
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
-		public function log( $message, $context = '' ) {
+		public function log( $message, $context = '', $force = false ) {
 			$log_message = $this->format_message( $message, $context );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( $log_message );
 			}
 
-			if ( ! $this->is_logging_enabled() ) {
+			if ( ! $this->is_logging_enabled() && ! $force ) {
 				return;
 			}
 
