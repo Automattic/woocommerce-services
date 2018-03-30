@@ -376,6 +376,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not be reached.' );
 				} elseif ( 500 == $response_code ) {
 					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API encountered an error. Please try again.' );
+				} elseif ( 500 < $response_code ) {
+					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API is unavailable. Please try again in just a moment.' );
 				} elseif ( 400 <= $response_code ) {
 					return new WP_Error( 'wcc_server_error', 'The WooCommerce Services API could not process the request.' );
 				}
@@ -398,6 +400,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 				if ( 500 == $response_code ) {
 					return new WP_Error( 'wcc_server_error_response', 'The WooCommerce Services API encountered an error. Please try again.' );
+				} elseif ( 500 < $response_code ) {
+					return new WP_Error( 'wcc_server_error_response', 'The WooCommerce Services API is unavailable. Please try again in just a moment.' );
 				}
 
 				return new WP_Error( 'wcc_server_error_response', $message, $data );
