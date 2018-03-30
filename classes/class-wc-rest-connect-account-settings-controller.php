@@ -23,8 +23,13 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 	}
 
 	public function get() {
-		// Always get a fresh copy when hitting this endpoint
-		$this->payment_methods_store->fetch_payment_methods_from_connect_server();
+		// Always get a fresh list of payment methods when hitting this endpoint
+		$payment_methods_warning = false;
+		$payment_methods_success = $this->payment_methods_store->fetch_payment_methods_from_connect_server();
+
+		if ( ! $payment_methods_success ) {
+			$payment_methods_warning = __( 'There was a problem updating your saved credit cards.', 'woocommerce-services' );
+		}
 
 		$master_user = WC_Connect_Jetpack::get_master_user();
 		if ( is_a( $master_user, 'WP_User' ) ) {
@@ -45,7 +50,8 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 				'master_user_login' => is_a( $master_user, 'WP_User' ) ? $master_user->user_login : '',
 				'master_user_email' => $email,
 				'payment_methods' => $this->payment_methods_store->get_payment_methods(),
-			)
+				'warnings' => array( 'payment_methods' => $payment_methods_warning ),
+			),
 		), 200 );
 	}
 
