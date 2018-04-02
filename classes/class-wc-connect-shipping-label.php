@@ -25,21 +25,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $payment_methods_store;
 
 		/**
-		 * @var array Supported countries
+		 * @var array Supported countries by USPS, see: https://webpmt.usps.gov/pmt010.cfm
 		 */
-		private $supported_countries = array( 'US', 'PR' );
+		private $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
 
 		/**
 		 * @var array Supported currencies
 		 */
 		private $supported_currencies = array( 'USD' );
-
-		/**
-		 * @var array Unsupported states, by country
-		 */
-		private $unsupported_states = array(
-			'US' => array( 'AA', 'AE', 'AP' ),
-		);
 
 		private $show_metabox = null;
 
@@ -318,18 +311,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		private function is_supported_state( $country_code, $state_code ) {
-			if ( ! $country_code || ! $state_code ) {
-				return true;
-			}
-
-			if ( ! array_key_exists( $country_code, $this->unsupported_states ) ) {
-				return true;
-			}
-
-			return ! in_array( $state_code, $this->unsupported_states[ $country_code ] );
-		}
-
 		private function is_supported_country( $country_code ) {
 			return in_array( $country_code, $this->supported_countries );
 		}
@@ -338,34 +319,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return in_array( $currency_code, $this->supported_currencies );
 		}
 
-		private function is_supported_address( $address ) {
-			$country_code = $address['country'];
-			if ( ! $country_code ) {
-				return true;
-			}
-
-			if ( ! $this->is_supported_country( $country_code ) ) {
-				return false;
-			}
-
-			$state_code = $address['state'];
-			return $this->is_supported_state( $country_code, $state_code );
-		}
-
 		protected function get_states_map() {
 			$result = array();
 			$all_countries = WC()->countries->get_countries();
 
-			foreach ( $this->supported_countries as $country_code ) {
-				$country_data = array( 'name' => html_entity_decode( $all_countries[ $country_code ] ) );
+			foreach ( $all_countries as $country_code => $country_name ) {
+				$country_data = array( 'name' => html_entity_decode( $country_name ) );
 				$states = WC()->countries->get_states( $country_code );
 
 				if ( $states ) {
 					$country_data['states'] = array();
 					foreach ( $states as $state_code => $name ) {
-						if ( ! $this->is_supported_state( $country_code, $state_code ) ) {
-						  continue;
-						}
 						$country_data['states'][ $state_code ] = html_entity_decode( $name );
 					}
 				}
@@ -402,14 +366,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
 			$base_location = wc_get_base_location();
 			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
-				return false;
-			}
-
-			$dest_address = $order->get_address( 'shipping' );
-			if ( ! $this->is_supported_address( $dest_address ) ) {
 				return false;
 			}
 
@@ -448,6 +406,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			);
 
 			$store_options = $this->settings_store->get_store_options();
+			// TODO: Get this country info from the /v3/continents endpoint instead, at least in Calypso
 			$store_options['countriesData'] = $this->get_states_map();
 			$payload['storeOptions'] = $store_options;
 
