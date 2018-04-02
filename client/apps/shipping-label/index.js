@@ -15,12 +15,10 @@ import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-s
 import reduxMiddleware from './redux-middleware';
 import ordersReducer from 'woocommerce/state/sites/orders/reducer';
 import { combineReducers } from 'state/utils';
-import { addHandlers } from 'state/data-layer/extensions-middleware';
 import orders from 'woocommerce/state/data-layer/orders';
+import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 
 export default ( { orderId } ) => {
-	addHandlers( 'woocommerce', orders );
-
 	return {
 		getReducer() {
 			return combineReducers( {
@@ -75,8 +73,8 @@ export default ( { orderId } ) => {
 			return `wcs-label-${ orderId }`;
 		},
 
-		getMiddleware() {
-			return reduxMiddleware;
+		getMiddlewares() {
+			return [ reduxMiddleware, rawWpcomApiMiddleware( orders ) ];
 		},
 
 		View: () => (
