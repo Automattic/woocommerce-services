@@ -137,7 +137,9 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string new option value, based on the automated taxes state or $value
 	 */
 	public function sanitize_tax_option( $value, $option ) {
-		if ( ! is_array( $option ) || ! $this->is_enabled() && 'yes' != $_POST[self::OPTION_NAME] ) {
+		if ( ! is_array( $option ) //skip unrecognized option format
+			//skip if not enabled or not being enabled in the current request
+			|| ! $this->is_enabled() && ( ! isset( $_POST[self::OPTION_NAME] ) || 'yes' != $_POST[self::OPTION_NAME] ) ) {
 			return $value;
 		}
 
