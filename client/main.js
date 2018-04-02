@@ -23,8 +23,7 @@ import PrintTestLabel from './apps/print-test-label';
 import Packages from './apps/packages';
 import PluginStatus from './apps/plugin-status';
 import { setNonce, setBaseURL } from 'api/request';
-import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware.js';
-import extensionsMiddleware from 'state/data-layer/extensions-middleware.js';
+import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware';
 import localApiMiddleware from 'lib/local-api-middleware';
 
 if ( global.wcConnectData ) {
@@ -72,11 +71,10 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		thunk.withExtraArgument( args ),
 		wpcomApiMiddleware,
 		localApiMiddleware,
-		extensionsMiddleware,
 	];
 
-	if ( _.isFunction( Route.getMiddleware ) ) {
-		middlewares.push( Route.getMiddleware() );
+	if ( _.isFunction( Route.getMiddlewares ) ) {
+		middlewares.push.apply( middlewares, Route.getMiddlewares() );
 	}
 
 	const enhancers = [
