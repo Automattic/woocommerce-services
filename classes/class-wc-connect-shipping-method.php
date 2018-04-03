@@ -262,6 +262,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function calculate_shipping( $package = array() ) {
+			if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
+				return;
+			}
 
 			$this->debug( sprintf(
 				'WooCommerce Services debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
