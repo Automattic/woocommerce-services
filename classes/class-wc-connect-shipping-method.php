@@ -245,6 +245,41 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return is_string( $preset_id );
 		}
 
+		private function check_and_handle_response_error( $response_body ) {
+			if ( is_wp_error( $response_body ) ) {
+				$this->debug(
+					sprintf(
+						'Request failed: %s',
+						$response_body->get_error_message()
+					),
+					'error'
+				);
+				$this->log_error(
+					sprintf(
+						'Error. Unable to get shipping rate(s) for %s instance id %d.',
+						$this->id,
+						$this->instance_id
+					),
+					__FUNCTION__
+				);
+
+				$this->set_last_request_failed();
+
+				$this->log_error( $response_body, __FUNCTION__ );
+				$this->add_fallback_rate( $service_settings );
+				return true;
+			}
+
+			if ( ! property_exists( $response_body, 'rates' ) ) {
+				$this->debug( 'Response is missing `rates` property', 'error' );
+				$this->set_last_request_failed();
+				$this->add_fallback_rate( $service_settings );
+				return true;
+			}
+
+			return false;
+		}
+
 		private function add_fallback_rate( $service_settings ) {
 			if ( ! property_exists( $service_settings, 'fallback_rate' ) || 0 >= $service_settings->fallback_rate ) {
 				return;
@@ -301,37 +336,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$predefined_boxes = $this->service_settings_store->get_predefined_packages_for_service( $this->service_schema->id );
 			$predefined_boxes = array_values( array_filter( $predefined_boxes, array( $this, 'filter_preset_boxes' ) ) );
 
-			$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
-
-			if ( is_wp_error( $response_body ) ) {
-				$this->debug(
-					sprintf(
-						'Request failed: %s',
-						$response_body->get_error_message()
-					),
-					'error'
-				);
-				$this->log_error(
-					sprintf(
-						'Error. Unable to get shipping rate(s) for %s instance id %d.',
-						$this->id,
-						$this->instance_id
-					),
-					__FUNCTION__
-				);
-
-				$this->set_last_request_failed();
-
-				$this->log_error( $response_body, __FUNCTION__ );
-				$this->add_fallback_rate( $service_settings );
-				return;
-			}
-
-			if ( ! property_exists( $response_body, 'rates' ) ) {
-				$this->debug( 'Response is missing `rates` property', 'error' );
-				$this->set_last_request_failed();
-				$this->add_fallback_rate( $service_settings );
-				return;
+			$cache_key = sprintf(
+				'wcs_rates_%s',
+				md5( serialize( array( $services, $package, $custom_boxes, $predefined_boxes ) ) )
+			);
+			$response_body = wp_cache_get( $cache_key );
+			if ( false !== $response_body ) {
+				$this->debug( 'Rates response retrieved from cache' );
+			} else {
+				$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
+				if ( $this->check_and_handle_response_error( $response_body ) ) {
+					return;
+				}
+				wp_cache_set( $cache_key, $response_body, '', 3600 );
 			}
 
 			$instances = $response_body->rates;
