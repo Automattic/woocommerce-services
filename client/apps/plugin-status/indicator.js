@@ -41,7 +41,7 @@ const Indicator = ( { title, subtitle, state, message, children } ) => {
 
 	return (
 		<FormFieldset>
-			<FormLegend>
+			<FormLegend className="plugin-status__indicator-title">
 				<span>{ title }</span>
 				{ renderSubTitle( subtitle ) }
 			</FormLegend>
