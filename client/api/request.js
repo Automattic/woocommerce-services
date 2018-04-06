@@ -49,6 +49,15 @@ const _request = ( url, data, method, namespace = '' ) => {
 				return;
 			}
 
+			if ( 403 === response.status ) {
+				const message = __(
+					'The request was not fulfilled. ' +
+					'Please see the status page for diagnostics: ' +
+					'WooCommerce » Status » WooCommerce Services.'
+				);
+				throw { data: { message } };
+			}
+
 			throw json;
 		} );
 	} );
