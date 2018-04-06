@@ -19,39 +19,41 @@ import ServicesStatusView from './services';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 import Toggle from 'components/toggle';
 import {
-	toggleLogging,
-	toggleDebug,
+	setLogging,
+	setDebug,
 	save,
 } from './state/actions';
 
-const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
+const StatusView = ( { actions, loggingEnabled, loggingSaving, debugEnabled, debugSaving, translate } ) => {
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
 			<HealthView />
 			<ServicesStatusView />
 			<SettingsGroupCard heading={ translate( 'Debug' ) }>
-			<Toggle
+				<Toggle
 					id="wcs-toggle-debug"
 					checked={ debugEnabled }
+					disabled={ debugSaving }
 					title={ translate( 'Debug' ) }
 					description={ translate( 'Display troubleshooting information on the Cart and Checkout pages.' ) }
 					trueText={ translate( 'Enabled' ) }
 					falseText={ translate( 'Disabled' ) }
 					saveOnToggle={ true }
 					saveForm={ actions.save }
-					updateValue={ actions.toggleDebug }
+					updateValue={ actions.setDebug }
 				/>
 				<Toggle
 					id="wcs-toggle-logging"
 					checked={ loggingEnabled }
+					disabled={ loggingSaving }
 					title={ translate( 'Logging' ) }
 					description={ translate( 'Write diagnostic messages to log files. Helpful when contacting support.' ) }
 					trueText={ translate( 'Enabled' ) }
 					falseText={ translate( 'Disabled' ) }
 					saveOnToggle={ true }
 					saveForm={ actions.save }
-					updateValue={ actions.toggleLogging }
+					updateValue={ actions.setLogging }
 				/>
 				<LogView
 					logKey="shipping"
@@ -90,12 +92,14 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 export default connect(
 	( state ) => ( {
 		loggingEnabled: Boolean( state.status.logging_enabled ),
+		loggingSaving: Boolean( state.status.logging_saving ),
 		debugEnabled: Boolean( state.status.debug_enabled ),
+		debugSaving: Boolean( state.status.debug_saving ),
 	} ),
 	( dispatch ) => ( {
 		actions: bindActionCreators( {
-			toggleLogging,
-			toggleDebug,
+			setLogging,
+			setDebug,
 			save,
 		}, dispatch ),
 	} )

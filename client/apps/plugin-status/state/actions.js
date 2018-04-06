@@ -10,19 +10,21 @@ import { translate } from 'i18n-calypso';
 import * as api from 'api';
 import * as NoticeActions from 'state/notices/actions';
 
-export const PLUGIN_STATUS_DEBUG_TOGGLE = 'PLUGIN_STATUS_DEBUG_TOGGLE';
-export const PLUGIN_STATUS_LOGGING_TOGGLE = 'PLUGIN_STATUS_LOGGING_TOGGLE';
+export const PLUGIN_STATUS_SET_DEBUG = 'PLUGIN_STATUS_SET_DEBUG';
+export const PLUGIN_STATUS_SET_LOGGING = 'PLUGIN_STATUS_SET_LOGGING';
 export const PLUGIN_STATUS_REST_REQUEST = 'PLUGIN_STATUS_REST_REQUEST';
 export const PLUGIN_STATUS_REST_RESPONSE = 'PLUGIN_STATUS_REST_RESPONSE';
 
-export const toggleLogging = ( value ) => ( {
-	type: PLUGIN_STATUS_LOGGING_TOGGLE,
+export const setLogging = ( value, saving = true ) => ( {
+	type: PLUGIN_STATUS_SET_LOGGING,
 	value,
+	saving,
 } );
 
-export const toggleDebug = ( value ) => ( {
-	type: PLUGIN_STATUS_DEBUG_TOGGLE,
+export const setDebug = ( value, saving = true ) => ( {
+	type: PLUGIN_STATUS_SET_DEBUG,
 	value,
+	saving,
 } );
 
 export const save = () => ( dispatch, getState ) => {
@@ -34,16 +36,30 @@ export const save = () => ( dispatch, getState ) => {
 	};
 
 	api.post( api.url.selfHelp(), data )
-		.then( () => dispatch( NoticeActions.successNotice( translate( 'Your changes have been saved.' ), {
-			duration: 5000,
-		} ) ) )
+		.then( () => {
+			dispatch( NoticeActions.successNotice( translate( 'Your changes have been saved.' ), {
+				duration: 5000,
+			} ) );
+
+			if ( state.debug_saving ) {
+				dispatch( setDebug( state.debug_enabled, false ) );
+			}
+			if ( state.logging_saving ) {
+				dispatch( setLogging( state.logging_enabled, false ) );
+			}
+		} )
 		.catch( ( error ) => {
 			if ( _.isString( error ) ) {
 				dispatch( NoticeActions.errorNotice( error ) );
+			} else if ( _.isObject( error ) ) {
+				dispatch( NoticeActions.errorNotice( translate( 'There was a problem when saving your preferences. Please try again.' ) ) );
 			}
 
-			if ( _.isObject( error ) ) {
-				dispatch( NoticeActions.errorNotice( translate( 'There was a problem when saving your preferences. Please try again.' ) ) );
+			if ( state.debug_saving ) {
+				dispatch( setDebug( ! state.debug_enabled, false ) );
+			}
+			if ( state.logging_saving ) {
+				dispatch( setLogging( ! state.logging_enabled, false ) );
 			}
 		} );
 };

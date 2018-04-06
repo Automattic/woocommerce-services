@@ -23,6 +23,7 @@ class Toggle extends Component {
 		falseText: PropTypes.string.isRequired,
 		saveOnToggle: PropTypes.bool,
 		checked: PropTypes.bool,
+		disabled: PropTypes.bool,
 		saveForm: PropTypes.func,
 		updateValue: PropTypes.func,
 		className: PropTypes.string,
@@ -59,6 +60,7 @@ class Toggle extends Component {
 			trueText,
 			falseText,
 			checked,
+			disabled,
 			placeholder,
 			className,
 		} = this.props;
@@ -71,6 +73,7 @@ class Toggle extends Component {
 					name={ id }
 					placeholder={ placeholder }
 					checked={ checked }
+					disabled={ disabled }
 					onChange={ this.handleChangeEvent }
 				/>
 				{ this.renderToggleText( checked ? trueText : falseText ) }

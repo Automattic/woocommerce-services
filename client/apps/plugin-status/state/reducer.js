@@ -2,24 +2,24 @@
  * Internal dependencies
  */
 import {
-	PLUGIN_STATUS_DEBUG_TOGGLE,
-	PLUGIN_STATUS_LOGGING_TOGGLE,
+	PLUGIN_STATUS_SET_DEBUG,
+	PLUGIN_STATUS_SET_LOGGING,
 	PLUGIN_STATUS_REST_REQUEST,
 	PLUGIN_STATUS_REST_RESPONSE,
 } from './actions';
 
 const reducer = {
-	[ PLUGIN_STATUS_DEBUG_TOGGLE ]: ( state, { value } ) => {
-		return {
-			...state,
+	[ PLUGIN_STATUS_SET_DEBUG ]: ( state, { value, saving } ) => {
+		return { ...state,
 			debug_enabled: value,
+			debug_saving: saving,
 		};
 	},
 
-	[ PLUGIN_STATUS_LOGGING_TOGGLE ]: ( state, { value } ) => {
-		return {
-			...state,
+	[ PLUGIN_STATUS_SET_LOGGING ]: ( state, { value, saving } ) => {
+		return { ...state,
 			logging_enabled: value,
+			logging_saving: saving,
 		};
 	},
 
