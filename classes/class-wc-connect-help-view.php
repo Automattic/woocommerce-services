@@ -34,6 +34,10 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
 			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
+
+			if ( isset( $_GET['refresh'] ) && 'failed' === $_GET['refresh'] ) {
+				add_action( 'admin_notices', array( $this, 'show_failed_refresh_notice' ) );
+			}
 		}
 
 		protected function get_health_items() {
@@ -327,6 +331,17 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
 				'paperSize'          => $this->service_settings_store->get_preferred_paper_size(),
 			) );
+		}
+
+		/**
+		 * Shows a notice indicating failure to manually fetch service schemas
+		 */
+		public function show_failed_refresh_notice() {
+?>
+			<div class='notice notice-error' style="position: relative;">
+				<p><?php _e( 'An error occurred while refreshing service data.', 'woocommerce-services' ); ?></p>
+			</div>
+<?php
 		}
 
 	}
