@@ -82,7 +82,7 @@ export const checkRestApi = () => ( dispatch, getState ) => {
 				message: translate( 'Can manage settings and print shipping labels' ),
 			} );
 		} )
-		.catch( ( error ) => {
+		.catch( () => {
 			dispatch( {
 				type: PLUGIN_STATUS_REST_RESPONSE,
 				success: false,
