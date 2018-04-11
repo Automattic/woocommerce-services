@@ -32,7 +32,6 @@ class WC_Connect_TaxJar_Integration {
 	);
 
 	const PROXY_PATH               = 'taxjar/v2';
-	const ENV_SETUP_FLAG           = 'needs_tax_environment_setup';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
 
@@ -73,7 +72,6 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->setup_environment();
 		$this->configure_tax_settings();
 
 		// Calculate Taxes at Cart / Checkout
@@ -160,10 +158,21 @@ class WC_Connect_TaxJar_Integration {
 		if (
 			//skip unrecognized option format
 			! is_array( $option )
-			//skip if the option is not one of the expected options
-			|| isset( $option['id'] ) && ! array_key_exists( $option['id'], $this->expected_options )
+			//skip if unexpected option format
+			|| ! isset( $option['id'] )
 			//skip if not enabled or not being enabled in the current request
 			|| ! $this->is_enabled() && ( ! isset( $_POST[self::OPTION_NAME] ) || 'yes' != $_POST[self::OPTION_NAME] ) ) {
+			return $value;
+		}
+
+		//the option is currently being enabled - backup the rates and flush the rates table
+		if ( ! $this->is_enabled() && self::OPTION_NAME === $option['id'] && 'yes' === $value ) {
+			$this->backup_existing_tax_rates();
+			return $value;
+		}
+
+		//skip if unexpected option
+		if ( ! array_key_exists( $option['id'], $this->expected_options ) ) {
 			return $value;
 		}
 
@@ -205,21 +214,6 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 		?></div><?php
-	}
-
-	/**
-	 * Put the WooCommerce tax settings in a known-good initial configuration.
-	 */
-	public function setup_environment() {
-		$needs_setup = WC_Connect_Options::get_option( self::ENV_SETUP_FLAG, true );
-
-		if ( ! $needs_setup ) {
-			return;
-		}
-
-		$this->backup_existing_tax_rates();
-
-		WC_Connect_Options::update_option( self::ENV_SETUP_FLAG, false );
 	}
 
 	/**
