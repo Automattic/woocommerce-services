@@ -84,7 +84,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			);
 
 			$package = $settings[ 'packages' ][ $index ];
-			$box_id = $package[ 'box_id' ];
+			$box_id = isset( $package[ 'box_id' ] ) && $package[ 'box_id' ];
 			$label_meta[ 'box_id' ] = $box_id;
 			if ( 'individual' === $box_id ) {
 				$label_meta[ 'package_name' ] = __( 'Individual packaging', 'woocommerce-services' );
@@ -94,20 +94,22 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				$label_meta[ 'package_name' ] = __( 'Unknown package', 'woocommerce-services' );
 			}
 
-			$product_names = array();
-			foreach ( $package[ 'products' ] as $product_id ) {
-				$product = wc_get_product( $product_id );
+			if ( isset( $package[ 'products' ] ) ) {
+				$product_names = array();
+				foreach ( $package[ 'products' ] as $product_id ) {
+					$product = wc_get_product( $product_id );
 
-				if ( $product ) {
-					$product_names[] = $product->get_title();
-				} else {
-					$order = wc_get_order( $order_id );
-					$product_names[] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_id, $order );
+					if ( $product ) {
+						$product_names[] = $product->get_title();
+					} else {
+						$order = wc_get_order( $order_id );
+						$product_names[] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_id, $order );
+					}
 				}
-			}
 
-			$label_meta[ 'product_ids' ] = $package[ 'products' ];
-			$label_meta[ 'product_names' ] = $product_names;
+				$label_meta[ 'product_ids' ] = $package[ 'products' ];
+				$label_meta[ 'product_names' ] = $product_names;
+			}
 
 			array_unshift( $purchased_labels_meta, $label_meta );
 		}
