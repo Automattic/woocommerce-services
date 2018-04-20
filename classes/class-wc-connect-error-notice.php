@@ -55,9 +55,8 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 
 			$error = $this->notice_enabled();
 			if ( is_wp_error( $error ) && 'product_missing_weight' === $error->get_error_code() ) {
-				$matches = array();
-				preg_match( '/ID:\s([0-9]+)/', $error->get_error_message(), $matches );
-				$product_id = $matches[1];
+				$error_data = $error->get_error_data();
+				$product_id = $error_data['product_id'];
 				$product_name = WC_Connect_Compatibility::instance()->get_product_name( wc_get_product( $product_id ) );
 
 				$message = sprintf(
