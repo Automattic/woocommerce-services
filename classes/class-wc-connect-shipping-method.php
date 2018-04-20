@@ -360,8 +360,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						$service_ids[]  = $rate_package->service_id;
 
 						$item_product_ids = array();
+						$item_by_product  = array();
 						foreach ( $rate_package->items as $package_item ) {
 							$item_product_ids[] = $package_item->product_id;
+							$item_by_product[ $package_item->product_id ] = $package_item;
 						}
 
 						$product_summaries = array();
@@ -371,13 +373,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							$product = $this->lookup_product( $package, $product_id );
 							if ( $product ) {
 								$item_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
-								$item_measurements = sprintf(
-									$measurements_format,
-									$package_item->length,
-									$package_item->width,
-									$package_item->height,
-									$package_item->weight
-								);
+								$item = $item_by_product[ $product_id ];
+								$item_measurements = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
 								$product_summaries[] =
 									( $count > 1 ? sprintf( '<em>%s x</em> ', $count ) : '' ) .
 									sprintf( '<strong>%s</strong> (%s)', $item_name, $item_measurements );
