@@ -357,13 +357,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					$measurements_format = '%s x %s x %s ' . $dimension_unit . ', %s ' . $weight_unit;
 
 					foreach ( $rate->packages as $rate_package ) {
-						$package_format = '';
-						$item_summaries = array();
 						$service_ids[]  = $rate_package->service_id;
 
+						$item_product_ids = array();
 						foreach ( $rate_package->items as $package_item ) {
+							$item_product_ids[] = $package_item->product_id;
+						}
+
+						$product_summaries = array();
+						$product_counts = array_count_values( $item_product_ids );
+						foreach ( $product_counts as $product_id => $count ) {
 							/** @var WC_Product $product */
-							$product = $this->lookup_product( $package, $package_item->product_id );
+							$product = $this->lookup_product( $package, $product_id );
 							if ( $product ) {
 								$item_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
 								$item_measurements = sprintf(
@@ -373,7 +378,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 									$package_item->height,
 									$package_item->weight
 								);
-								$item_summaries[] = sprintf( '<strong>%s</strong> (%s)', $item_name, $item_measurements );
+								$product_summaries[] =
+									( $count > 1 ? sprintf( '<em>%s x</em> ', $count ) : '' ) .
+									sprintf( '<strong>%s</strong> (%s)', $item_name, $item_measurements );
 							}
 						}
 
@@ -398,7 +405,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						}
 
 						$package_summaries[] = sprintf( '<strong>%s</strong> (%s)', $package_name, $package_measurements )
-							. '<ul><li>' . implode( '</li><li>', $item_summaries ) . '</li></ul>';
+							. '<ul><li>' . implode( '</li><li>', $product_summaries ) . '</li></ul>';
 					}
 
 					$packaging_info = implode( ', ', $package_summaries );
