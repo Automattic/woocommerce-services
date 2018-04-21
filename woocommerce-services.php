@@ -34,9 +34,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
-require_once( plugin_basename( 'classes/class-wc-connect-jetpack.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-extension-compatibility.php' ) );
+require_once( plugin_basename( 'classes/class-wc-connect-functions.php' ) );
+require_once( plugin_basename( 'classes/class-wc-connect-jetpack.php' ) );
+require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 

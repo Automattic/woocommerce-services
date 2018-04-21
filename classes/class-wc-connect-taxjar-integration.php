@@ -283,23 +283,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param $wc_cart_object
 	 */
 	public function maybe_calculate_totals( $wc_cart_object ) {
-		// Skip for carts loaded from session in the dashboard
-		if ( is_admin() && did_action( 'woocommerce_cart_loaded_from_session' ) ) {
-			return;
-		}
-
-		// Skip during Jetpack API requests
-		if ( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) {
-			return;
-		}
-
-		// Skip during REST API or XMLRPC requests
-		if ( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) {
-			return;
-		}
-
-		// Skip during Jetpack REST API proxy requests
-		if ( isset( $_GET['rest_route'] ) && isset( $_GET['_for'] ) && ( 'jetpack' === $_GET['_for'] ) ) {
+		if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
 			return;
 		}
 
