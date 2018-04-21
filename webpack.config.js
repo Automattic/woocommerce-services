@@ -150,9 +150,6 @@ const config = {
 };
 
 if ( isProd || isI18n ) {
-
-	babelSettings.plugins.push( 'transform-react-remove-prop-types' );
-
 	config.plugins.push( new webpack.LoaderOptionsPlugin( { minimize: true } ) );
 
 	config.plugins.push( new webpack.DefinePlugin( {
