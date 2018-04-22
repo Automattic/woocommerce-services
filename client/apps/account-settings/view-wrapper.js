@@ -10,15 +10,17 @@ import { localize } from 'i18n-calypso';
  * Internal dependencies
  */
 // from calypso
-import LabelSettings from 'woocommerce/woocommerce-services/views/label-settings';
 import Button from 'components/button';
 import GlobalNotices from 'components/global-notices';
+import LabelSettings from 'woocommerce/woocommerce-services/views/label-settings';
 import notices from 'notices';
+import Packages from 'woocommerce/woocommerce-services/views/packages';
 import { ProtectFormGuard } from 'lib/protect-form';
-import * as NoticeActions from 'state/notices/actions';
-import { submit } from 'woocommerce/woocommerce-services/state/label-settings/actions';
+import { successNotice, errorNotice } from 'state/notices/actions';
+import { createWcsShippingSaveActionList } from 'woocommerce/woocommerce-services/state/actions';
 import { getSelectedSiteId } from 'state/ui/selectors';
-import { getLabelSettingsFormMeta, getLabelSettingsFormData } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+import { getLabelSettingsFormMeta, getSelectedPaymentMethodId } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+import { getPackagesForm } from 'woocommerce/woocommerce-services/state/packages/selectors';
 
 class LabelSettingsWrapper extends Component {
 	constructor( props ) {
@@ -33,29 +35,42 @@ class LabelSettingsWrapper extends Component {
 	}
 
 	onSaveSuccess = () => {
-		const { noticeActions, translate, orderId, orderHref, paymentMethodSelected } = this.props;
+		const { translate, orderId, orderHref, paymentMethodSelected } = this.props;
 		const options =
 			orderHref && paymentMethodSelected
 				? { button: translate( 'Return to Order #%(orderId)s', { args: { orderId } } ), href: orderHref }
 				: { duration: 5000 };
 
-		noticeActions.successNotice( translate( 'Your shipping label settings have been saved.' ), options );
 		this.setState( { pristine: true } );
+		return this.props.successNotice( translate( 'Your shipping settings have been saved.' ), options );
 	}
 
 	onSaveFailure = () => {
-		const { noticeActions, translate } = this.props;
-		noticeActions.errorNotice( translate( 'Unable to save your shipping label settings. Please try again.' ) );
+		const { translate } = this.props;
+		return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
+	}
+
+	onPaymentMethodMissing = () => {
+		const { translate } = this.props;
+		return this.props.errorNotice(
+			translate( 'A payment method is required to print shipping labels.' ),
+			{
+				duration: 4000,
+			}
+		);
 	}
 
 	onSaveChanges = () => {
-		this.props.submit( this.props.siteId, this.onSaveSuccess, this.onSaveFailure );
+		this.props.createWcsShippingSaveActionList(
+			this.onSaveSuccess,
+			this.onSaveFailure,
+			this.onPaymentMethodMissing
+		);
 	}
 
 	render() {
 		const {
 			translate,
-			buttonDisabled,
 			isSaving,
 		} = this.props;
 
@@ -63,11 +78,12 @@ class LabelSettingsWrapper extends Component {
 			<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
 				<LabelSettings onChange={ this.onChange } />
+				<Packages onChange={ this.onChange } />
 				<Button
 					primary
 					onClick={ this.onSaveChanges }
 					busy={ isSaving }
-					disabled={ buttonDisabled }
+					disabled={ this.state.pristine }
 				>
 					{ translate( 'Save changes' ) }
 				</Button>
@@ -77,25 +93,20 @@ class LabelSettingsWrapper extends Component {
 	}
 }
 
-function mapStateToProps( state ) {
-	const formMeta = getLabelSettingsFormMeta( state );
-	const formData = getLabelSettingsFormData( state );
-	return {
-		siteId: getSelectedSiteId( state ),
-		isSaving: formMeta.isSaving,
-		buttonDisabled: formMeta.pristine,
-		paymentMethodSelected: Boolean( formData && formData.selected_payment_method_id ),
-	};
-}
-
-function mapDispatchToProps( dispatch ) {
-	return {
-		...bindActionCreators( { submit }, dispatch ),
-		noticeActions: bindActionCreators( NoticeActions, dispatch ),
-	};
-}
-
 export default connect(
-	mapStateToProps,
-	mapDispatchToProps
+	state => {
+		const labelsFormMeta = getLabelSettingsFormMeta( state );
+		const packagesForm = getPackagesForm( state );
+
+		return {
+			siteId: getSelectedSiteId( state ),
+			isSaving: labelsFormMeta.isSaving || packagesForm.isSaving,
+			paymentMethodSelected: Boolean( getSelectedPaymentMethodId( state ) ),
+		};
+	},
+	dispatch => bindActionCreators( {
+		createWcsShippingSaveActionList,
+		errorNotice,
+		successNotice,
+	}, dispatch )
 )( localize( LabelSettingsWrapper ) );

@@ -26,8 +26,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$shipping_tabs = array();
 			}
 
-			$shipping_tabs[ 'package-settings' ] = __( 'Services packaging', 'woocommerce-services' );
-			$shipping_tabs[ 'label-settings'] = __( 'Shipping labels', 'woocommerce-services' );
+			$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Services', 'woocommerce-services' );
 			return $shipping_tabs;
 		}
 
@@ -38,18 +37,15 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			global $current_section;
 			global $current_user;
 
-			switch( $current_section ) {
-				case 'package-settings':
-					$this->output_packages_screen();
-					break;
-				case 'label-settings':
-					$master_user = WC_Connect_Jetpack::get_master_user();
-					if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID ) ) {
-						$this->output_account_screen();
-					} else {
-						$this->output_no_priv_account_screen();
-					}
-					break;
+			if ( 'woocommerce-services-settings' !== $current_section ) {
+				return;
+			}
+
+			$master_user = WC_Connect_Jetpack::get_master_user();
+			if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID ) ) {
+				$this->output_account_screen();
+			} else {
+				$this->output_no_priv_account_screen();
 			}
 		}
 
@@ -114,15 +110,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				</div>
 			<?php
 		}
-
-		public function output_packages_screen() {
-			// hiding the save button because the react container has its own
-			global $hide_save_button;
-			$hide_save_button = true;
-
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-packages' );
-		}
-
 	}
 
 }
