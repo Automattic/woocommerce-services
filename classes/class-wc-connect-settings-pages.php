@@ -35,18 +35,12 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		public function output_settings_screen() {
 			global $current_section;
-			global $current_user;
 
 			if ( 'woocommerce-services-settings' !== $current_section ) {
 				return;
 			}
 
-			$master_user = WC_Connect_Jetpack::get_master_user();
-			if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID ) ) {
-				$this->output_shipping_settings_screen();
-			} else {
-				$this->output_no_priv_shipping_settings_screen();
-			}
+			$this->output_shipping_settings_screen();
 		}
 
 		/**
@@ -79,36 +73,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-shipping-settings', $extra_args );
-		}
-
-		public function output_no_priv_shipping_settings_screen() {
-			// hiding the save button because nothing can be saved
-			global $hide_save_button;
-			$hide_save_button = true;
-
-			wp_enqueue_style( 'wc_connect_admin' );
-
-			$master_user = WC_Connect_Jetpack::get_master_user();
-			if ( is_a( $master_user, 'WP_User' ) ) {
-				$message = sprintf(
-					__( 'Only the primary Jetpack user can manage shipping label payment methods. Please login as %1$s (%2$s) to manage payment methods.', 'woocommerce-services' ),
-					$master_user->display_name,
-					$master_user->user_login
-				);
-			} else {
-				$message = __( 'You must first connect your Jetpack before you can manage your shipping label payment method.', 'woocommerce-services' );
-			}
-
-			?>
-				<div class="wcc-root">
-					<div class="wc-connect-no-priv-settings">
-						<h3 class="settings-group-header form-section-heading">
-							<?php echo esc_html( __( 'Payment Method', 'woocommerce-services' ) ); ?>
-						</h3>
-						<?php echo esc_html( $message ) ?>
-					</div>
-				</div>
-			<?php
 		}
 	}
 
