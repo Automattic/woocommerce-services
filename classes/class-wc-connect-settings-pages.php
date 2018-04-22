@@ -43,16 +43,16 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			$master_user = WC_Connect_Jetpack::get_master_user();
 			if ( WC_Connect_Jetpack::is_development_mode() || ( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID ) ) {
-				$this->output_account_screen();
+				$this->output_shipping_settings_screen();
 			} else {
-				$this->output_no_priv_account_screen();
+				$this->output_no_priv_shipping_settings_screen();
 			}
 		}
 
 		/**
 		 * Localizes the bootstrap, enqueues the script and styles for the settings page
 		 */
-		public function output_account_screen() {
+		public function output_shipping_settings_screen() {
 			// hiding the save button because the react container has its own
 			global $hide_save_button;
 			$hide_save_button = true;
@@ -78,10 +78,10 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );
 			}
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-account-settings', $extra_args );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-shipping-settings', $extra_args );
 		}
 
-		public function output_no_priv_account_screen() {
+		public function output_no_priv_shipping_settings_screen() {
 			// hiding the save button because nothing can be saved
 			global $hide_save_button;
 			$hide_save_button = true;

@@ -18,7 +18,7 @@ import './lib/calypso-boot';
 import * as storageUtils from 'lib/utils/local-storage';
 import Settings from './apps/settings';
 import ShippingLabel from './apps/shipping-label';
-import AccountSettings from './apps/account-settings';
+import ShippingSettings from './apps/shipping-settings';
 import PrintTestLabel from './apps/print-test-label';
 import PluginStatus from './apps/plugin-status';
 import { setNonce, setBaseURL } from 'api/request';
@@ -39,8 +39,8 @@ const getRouteClass = ( classNames ) => {
 				return Settings;
 			case 'wc-connect-admin-status':
 				return PluginStatus;
-			case 'wc-connect-account-settings':
-				return AccountSettings;
+			case 'wc-connect-shipping-settings':
+				return ShippingSettings;
 			case 'wc-connect-admin-test-print':
 				return PrintTestLabel;
 		}
