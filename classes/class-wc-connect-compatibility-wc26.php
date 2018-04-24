@@ -117,6 +117,22 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		}
 
 		/**
+		 * For a given product ID, it tries to find its price inside an order's line items.
+		 *
+		 * @param int $product_id Product ID or variation ID
+		 * @param WC_Order $order
+		 * @return float The product (or variation) price, or NULL if it wasn't found
+		 */
+		public function get_product_price_from_order( $product_id, $order ) {
+			foreach ( $order->get_items() as $line_item ) {
+				if ( (int) $line_item[ 'product_id' ] === $product_id || (int) $line_item[ 'variation_id' ] === $product_id ) {
+					return round( floatval( $line_item[ 'total' ] ) / $line_item[ 'qty' ], 2 );
+				}
+			}
+			return null;
+		}
+
+		/**
 		 * For a given product, return it's name. In supported versions, variable
 		 * products will include their attributes.
 		 *

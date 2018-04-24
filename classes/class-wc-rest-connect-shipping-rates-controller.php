@@ -18,12 +18,37 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 */
 	public function post( $request ) {
 		$payload = $request->get_json_params();
+		$payload[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
 		$order_id = $request[ 'order_id' ];
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
 		$this->settings_store->update_origin_address( $payload[ 'origin' ] );
 		$this->settings_store->update_destination_address( $order_id, $payload[ 'destination' ] );
+
+		// Update the customs information on all this order's products
+		$updated_product_ids = array();
+		foreach ( $payload[ 'packages' ] as $package ) {
+			if ( ! isset( $package[ 'contents_type' ] ) ) {
+				break; // No customs information in this order, bail
+			}
+			foreach ( $package[ 'items' ] as $item ) {
+				if ( ! isset( $updated_product_ids[ $item[ 'product_id' ] ] ) ) {
+					$updated_product_ids[ $item[ 'product_id' ] ] = true;
+					update_post_meta( $item[ 'product_id' ], 'customs_info', array(
+						'description' => $item[ 'description' ],
+						'hs_tariff_code' => $item[ 'hs_tariff_code' ],
+						'origin_country' => $item[ 'origin_country' ],
+					) );
+				}
+			}
+		}
+		foreach ( $payload[ 'packages' ] as $package_id => $package ) {
+			foreach ( $package[ 'items' ] as $index => $item ) {
+				// The server doesn't require the "product_id property
+				unset( $payload[ 'packages' ][ $package_id ][ 'items' ][ $index ][ 'product_id' ] );
+			}
+		}
 
 		$response = $this->api_client->get_label_rates( $payload );
 

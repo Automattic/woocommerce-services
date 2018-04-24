@@ -80,33 +80,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $product_data;
 		}
 
-		public function get_items_as_individual_packages( WC_Order $order ) {
-			$packages   = array();
-			$item_count = 0;
-
-			foreach ( $order->get_items() as $item ) {
-				$item_data = $this->get_item_data( $order, $item );
-				if ( null === $item_data ) {
-					continue;
-				}
-
-				for ( $i = 0; $i < $item['qty']; $i++ ) {
-					$id = 'weight_' . $item_count++ . '_individual';
-					$packages[ $id ] = array(
-						'id'     => $id,
-						'box_id' => 'individual',
-						'height' => $item_data['height'],
-						'length' => $item_data['length'],
-						'weight' => $item_data['weight'],
-						'width'  => $item_data['width'],
-						'items'  => array( $item_data ),
-					);
-				}
-			}
-
-			return $packages;
-		}
-
 		protected function get_packaging_from_shipping_method( $shipping_method ) {
 			if ( ! $shipping_method || ! isset( $shipping_method['wc_connect_packages'] ) ) {
 				return array();
@@ -202,9 +175,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 							$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 							$product_data['attributes'] = $formatted;
 						}
+						$customs_info = get_post_meta( $product_data['product_id'], 'customs_info', true );
+						if ( $customs_info ) {
+							$product_data = array_merge( $product_data, $customs_info );
+						}
 					} else {
 						$product_data['name'] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_data['product_id'], $order );
 					}
+					$product_data['value'] = WC_Connect_Compatibility::instance()->get_product_price_from_order( $product_data['product_id'], $order );
+					if ( ! $product_data['value'] ) {
+						$product_data['value'] = 0;
+					}
+					$product_data['parent_product_id'] = ( $product && $product->is_type( 'variation' ) ) ? $product->get_parent_id() : $product_data['product_id'];
 
 					$formatted_packages[ $package_id ]['items'][ $item_index ] = $product_data;
 				}
