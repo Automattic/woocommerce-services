@@ -83,6 +83,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'weight' => 0.25625,
 			'items' => array ( array(
 				'product_id' => 128,
+				'parent_product_id' => 128,
+				'value' => 0,
 				'length' => 3,
 				'width' => 3,
 				'height' => 2.5,
@@ -104,6 +106,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'weight' => 0.25625,
 			'items' => array ( array(
 				'product_id' => 128,
+				'parent_product_id' => 128,
+				'value' => 0,
 				'length' => 3,
 				'width' => 3,
 				'height' => 2.5,
@@ -123,6 +127,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 			'items' => array (
 				array(
 					'product_id' => 128,
+					'parent_product_id' => 128,
+					'value' => 0,
 					'length' => 3,
 					'width' => 3,
 					'height' => 2.5,
@@ -132,6 +138,8 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 				),
 				array (
 					'product_id' => 129,
+					'parent_product_id' => 129,
+					'value' => 0,
 					'length' => 3,
 					'width' => 3,
 					'height' => 2.5,
