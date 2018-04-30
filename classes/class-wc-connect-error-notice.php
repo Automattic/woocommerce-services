@@ -60,7 +60,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				$product_name = WC_Connect_Compatibility::instance()->get_product_name( wc_get_product( $product_id ) );
 
 				$message = sprintf(
-					__( 'An error occurred in WooCommerce Services: <strong><a href="%s">%s</a> did not include a weight.</strong> Shipping rates cannot be calculated.', 'woocommerce-services' ),
+					__( '<strong>%2$s does not have have a weight defined.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Add a weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
 					get_edit_post_link( $product_id ), $product_name
 				);
 			} else {
