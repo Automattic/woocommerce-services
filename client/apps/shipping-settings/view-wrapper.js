@@ -83,7 +83,7 @@ class LabelSettingsWrapper extends Component {
 					primary
 					onClick={ this.onSaveChanges }
 					busy={ isSaving }
-					disabled={ this.state.pristine }
+					disabled={ isSaving }
 				>
 					{ translate( 'Save changes' ) }
 				</Button>
