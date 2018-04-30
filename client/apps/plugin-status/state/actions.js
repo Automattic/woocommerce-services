@@ -79,14 +79,14 @@ export const checkRestApi = () => ( dispatch, getState ) => {
 			dispatch( {
 				type: PLUGIN_STATUS_REST_RESPONSE,
 				success: true,
-				message: translate( 'Can manage settings and print shipping labels' ),
+				message: translate( 'WooCommerce REST API is working properly' ),
 			} );
 		} )
 		.catch( () => {
 			dispatch( {
 				type: PLUGIN_STATUS_REST_RESPONSE,
 				success: false,
-				message: translate( 'Cannot manage settings or print shipping labels' ),
+				message: translate( 'Encountered an issue with the WooCommerce REST API' ),
 			} );
 		} );
 };
