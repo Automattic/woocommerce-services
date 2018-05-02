@@ -66,7 +66,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				}
 
 				$message = sprintf(
-					__( '<strong>%2$s does not have have a weight defined.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Add a weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
+					__( '<strong>%2$s does not have a weight defined.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Add a weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
 					get_edit_post_link( $product_id ), $product_name
 				);
 			} else {
