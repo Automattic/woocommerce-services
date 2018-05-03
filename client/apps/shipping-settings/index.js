@@ -8,8 +8,13 @@ import React from 'react';
  */
 import ViewWrapper from './view-wrapper';
 // from calypso
-import reducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
+import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
+import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import notices from 'state/notices/reducer';
+import actionList from 'woocommerce/state/data-layer/action-list';
+import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
+import { mergeHandlers } from 'state/action-watchers/utils';
+import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import { combineReducers } from 'state/utils';
 
 export default ( { order_id: orderId, order_href: orderHref } ) => ( {
@@ -19,7 +24,8 @@ export default ( { order_id: orderId, order_href: orderHref } ) => ( {
 				woocommerce: combineReducers( {
 					woocommerceServices: combineReducers( {
 						1: combineReducers( {
-							labelSettings: reducer,
+							packages: packagesReducer,
+							labelSettings: labelSettingsReducer,
 						} ),
 					} ),
 				} ),
@@ -42,6 +48,10 @@ export default ( { order_id: orderId, order_href: orderHref } ) => ( {
 
 	getStateKey() {
 		return 'wcs-account-settings';
+	},
+
+	getMiddlewares() {
+		return [ rawWpcomApiMiddleware( mergeHandlers( wcsUiDataLayer, actionList ) ) ];
 	},
 
 	View: () => (
