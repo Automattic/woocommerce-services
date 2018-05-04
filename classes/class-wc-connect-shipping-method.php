@@ -352,35 +352,63 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$packaging_lookup = $this->service_settings_store->get_package_lookup();
 
 				foreach ( (array) $instance->rates as $rate_idx => $rate ) {
-					$package_names = array();
-					$service_ids   = array();
+					$package_summaries = array();
+					$service_ids       = array();
+
+					$dimension_unit      = get_option( 'woocommerce_dimension_unit' );
+					$weight_unit         = get_option( 'woocommerce_weight_unit' );
+					$measurements_format = '%s x %s x %s ' . $dimension_unit . ', %s ' . $weight_unit;
 
 					foreach ( $rate->packages as $rate_package ) {
-						$package_format = '';
-						$items          = array();
 						$service_ids[]  = $rate_package->service_id;
 
+						$item_product_ids = array();
+						$item_by_product  = array();
 						foreach ( $rate_package->items as $package_item ) {
+							$item_product_ids[] = $package_item->product_id;
+							$item_by_product[ $package_item->product_id ] = $package_item;
+						}
+
+						$product_summaries = array();
+						$product_counts = array_count_values( $item_product_ids );
+						foreach ( $product_counts as $product_id => $count ) {
 							/** @var WC_Product $product */
-							$product = $this->lookup_product( $package, $package_item->product_id );
+							$product = $this->lookup_product( $package, $product_id );
 							if ( $product ) {
-								$items[] = WC_Connect_Compatibility::instance()->get_product_name( $product );
+								$item_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
+								$item = $item_by_product[ $product_id ];
+								$item_measurements = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
+								$product_summaries[] =
+									( $count > 1 ? sprintf( '<em>%s x</em> ', $count ) : '' ) .
+									sprintf( '<strong>%s</strong> (%s)', $item_name, $item_measurements );
 							}
 						}
 
 						if ( ! property_exists( $rate_package, 'box_id' ) ) {
-							$package_format = __( 'Unknown package (%s)', 'woocommerce-services' );
+							$package_name = __( 'Unknown package 📦', 'woocommerce-services' );
 						} else if ( 'individual' === $rate_package->box_id ) {
-							$package_format = __( 'Individual packaging (%s)', 'woocommerce-services' );
-						} else if ( isset( $packaging_lookup[ $rate_package->box_id ] )
-							&& isset( $packaging_lookup[ $rate_package->box_id ][ 'name' ] ) ) {
-							$package_format = $packaging_lookup[ $rate_package->box_id ][ 'name' ] . ' (%s)';
+							$package_name = __( 'Individual packaging 📦', 'woocommerce-services' );
+						} else if (
+							isset( $packaging_lookup[ $rate_package->box_id ] ) &&
+							isset( $packaging_lookup[ $rate_package->box_id ]['name'] )
+						) {
+							$is_letter = isset( $packaging_lookup[ $rate_package->box_id ]['is_letter'] ) && $packaging_lookup[ $rate_package->box_id ]['is_letter'];
+							$icon = $is_letter ? '✉️' : '📦';
+							$package_name = $packaging_lookup[ $rate_package->box_id ]['name'] . ' ' . $icon;
+							$package_measurements = sprintf(
+								$measurements_format,
+								$rate_package->length,
+								$rate_package->width,
+								$rate_package->height,
+								$rate_package->weight
+							);
 						}
 
-						$package_names[] = sprintf( $package_format, implode( ', ', $items ) );
+						$package_summaries[] = sprintf( '<strong>%s</strong> (%s)', $package_name, $package_measurements )
+							. '<ul><li>' . implode( '</li><li>', $product_summaries ) . '</li></ul>';
 					}
 
-					$packaging_info = implode( ', ', $package_names );
+					$packaging_info = implode( ', ', $package_summaries );
 					$services_list  = implode( '-', array_unique( $service_ids ) );
 
 					$rate_to_add = array(
@@ -402,10 +430,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						} else {
 							$this->debug(
 								sprintf(
-									'Received rate: %s (%s)<br/><ul><li>%s</li></ul>',
+									'Received rate: <strong>%s</strong> (%s)<br/><ul><li>%s</li></ul>',
 									$rate_to_add['label'],
 									wc_price( $rate->rate ),
-									implode( '</li><li>', $package_names )
+									implode( '</li><li>', $package_summaries )
 								),
 								'success'
 							);
