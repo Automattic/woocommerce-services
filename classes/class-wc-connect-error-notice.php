@@ -75,10 +75,16 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 					$link_status, $link_dismiss
 				);
 			}
+
+			$allowed_html = array(
+				'a' => array( 'href' => array() ),
+				'strong' => array(),
+				'br' => array(),
+			);
 ?>
 			<div class='notice notice-error' style="position: relative;">
 				<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
-				<p><?php echo $message; ?></p>
+				<p><?php echo wp_kses( $message, $allowed_html ); ?></p>
 			</div>
 <?php
 			echo "";
