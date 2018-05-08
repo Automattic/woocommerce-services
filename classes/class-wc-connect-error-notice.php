@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			} else {
 				$message = sprintf(
 					__( 'An error occurred in WooCommerce Services. Details are logged <a href="%s">here</a>.', 'woocommerce-services' ),
-					$link_status, $link_dismiss
+					$link_status
 				);
 			}
 
