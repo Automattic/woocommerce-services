@@ -98,7 +98,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $context Optional context (e.g. a class or function name)
 		 */
 		public function error( $message, $context = '' ) {
-			WC_Connect_Error_Notice::instance()->enable_notice();
+			WC_Connect_Error_Notice::instance()->enable_notice( $message );
 			$this->log( $message, $context, true );
 		}
 

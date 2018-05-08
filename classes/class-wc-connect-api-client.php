@@ -96,7 +96,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					if ( ! $product->has_weight() ) {
 						return new WP_Error(
 							'product_missing_weight',
-							sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product->get_id() )
+							sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product->get_id() ),
+							array( 'product_id' => $product->get_id() )
 						);
 					}
 
