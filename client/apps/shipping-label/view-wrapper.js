@@ -99,7 +99,11 @@ class ShippingLabelViewWrapper extends Component {
 		return (
 			<Notice isCompact showDismiss={ false } className="shipping-label__payment inline">
 				<p>{ translate( 'To purchase shipping labels, you will first need to add a credit card.' ) }</p>
-				<p><a href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings">{ translate( 'Add a credit card' ) }</a></p>
+				<p>
+					<a href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings">
+						{ translate( 'Add a credit card' ) }
+					</a>
+				</p>
 			</Notice>
 		);
 	};
