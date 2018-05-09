@@ -117,7 +117,7 @@ class SettingsItem extends Component {
 							'Add and edit saved packages using the {{a}}Packaging Manager{{/a}}.',
 							{
 								components: {
-									a: <a href="admin.php?page=wc-settings&tab=shipping&section=package-settings" />,
+									a: <a href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings" />,
 								},
 							}
 						) }
