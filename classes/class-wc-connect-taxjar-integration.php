@@ -447,11 +447,10 @@ class WC_Connect_TaxJar_Integration {
 				$tax_class = explode( '-', $item['tax_class'] );
 			}
 
-			$product = wc_get_product( $id );
-			$unit_price = $product->get_price();
+			$unit_price = $item->get_subtotal();
 			$tax_code = '';
 
-			if ( ! $product->is_taxable() ) {
+			if ( 'taxable' !== $item->get_tax_status() ) {
 				$tax_code = '99999';
 			}
 
