@@ -57,7 +57,14 @@
     input[type="url"],
     textarea {
         @extend %form-field;
-    }
+	}
+
+	input[type=checkbox]:checked:before {
+		font-family: initial;
+		font-size: 16px;
+		font-weight: 600;
+		line-height: 0px;
+	}
 
 	%form-field {
 		box-shadow: none;
