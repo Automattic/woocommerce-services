@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { translate as __ } from 'i18n-calypso';
-import querystring from 'querystring';
+import { stringify } from 'qs';
 import _ from 'lodash';
 
 /**
@@ -48,7 +48,7 @@ const _getPDFURL = ( paperSize, labels, test = false ) => {
 	};
 	const urlBase = test ? api.url.labelTestPrint() : api.url.labelsPrint();
 
-	return api.createGetUrlWithNonce( urlBase, querystring.stringify( params ) );
+	return api.createGetUrlWithNonce( urlBase, stringify( params ) );
 };
 
 export const getPrintURL = ( paperSize, labels ) => {
