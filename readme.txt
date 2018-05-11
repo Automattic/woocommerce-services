@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.4
-Stable tag: 1.12.0
+Tested up to: 4.9.5
+Stable tag: 1.13.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,30 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.13.0 =
+* Show customer selected shipping rate when purchasing a shipping label
+* Add shipping labels to Reports
+* Add USPS signature requirement support to label purchase
+* Add link to view receipt for Shipping Labels
+* Fix bug showing incorrect shipping label rates when changing packages
+* Fix styling for purchasing shipping labels on mobile devices
+* Prevent incompatible settings for Automated Taxes
+* Fix duplicate "packages" section in Shipping Settings (Advanced Shipping Packages extension compatibility)
+* Add "copy to clipboard" button to debug logs on Status page
+* Improved error messaging
+* Fix unnecessary shipping rates requests made in the Dashboard
+* Fix PHP Warning when saving Tax settings
+* Add caching to Shipping Rate requests
+
+= 1.12.3 =
+* Fixed PHP Fatal when PayPal Express Checkout has not fully initialized
+
+= 1.12.2 =
+* Fix some REST API calls being erroneously cached by certain hosting providers
+
+= 1.12.1 =
+* Fix missing file in 1.12.0 plugin release
 
 = 1.12.0 =
 * Add email receipts for purchased shipping labels
