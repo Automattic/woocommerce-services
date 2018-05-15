@@ -375,7 +375,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 					$dimension_unit      = get_option( 'woocommerce_dimension_unit' );
 					$weight_unit         = get_option( 'woocommerce_weight_unit' );
-					$measurements_format = '%s x %s x %s ' . $dimension_unit . ', %s ' . $weight_unit;
+					$measurements_format = '(%s x %s x %s ' . $dimension_unit . ', %s ' . $weight_unit . ')';
 
 					foreach ( $rate->packages as $rate_package ) {
 						$service_ids[]  = $rate_package->service_id;
@@ -398,9 +398,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 								$item_measurements = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
 								$product_summaries[] =
 									( $count > 1 ? sprintf( '<em>%s x</em> ', $count ) : '' ) .
-									sprintf( '<strong>%s</strong> (%s)', $item_name, $item_measurements );
+									sprintf( '<strong>%s</strong> %s', $item_name, $item_measurements );
 							}
 						}
+
+						$package_measurements = '';
 
 						if ( ! property_exists( $rate_package, 'box_id' ) ) {
 							$package_name = __( 'Unknown package 📦', 'woocommerce-services' );
@@ -422,7 +424,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							);
 						}
 
-						$package_summaries[] = sprintf( '<strong>%s</strong> (%s)', $package_name, $package_measurements )
+						$package_summaries[] = sprintf( '<strong>%s</strong> %s', $package_name, $package_measurements )
 							. '<ul><li>' . implode( '</li><li>', $product_summaries ) . '</li></ul>';
 					}
 
