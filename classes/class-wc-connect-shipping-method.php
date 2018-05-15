@@ -402,6 +402,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							}
 						}
 
+						$package_measurements = '';
+
 						if ( ! property_exists( $rate_package, 'box_id' ) ) {
 							$package_name = __( 'Unknown package 📦', 'woocommerce-services' );
 						} else if ( 'individual' === $rate_package->box_id ) {
