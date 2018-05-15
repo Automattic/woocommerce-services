@@ -587,7 +587,8 @@ class WC_Connect_TaxJar_Integration {
 	public function override_woocommerce_tax_rates( $taxes, $price, $rates ) {
 		if ( isset( $this->response_line_items ) && array_values( $rates ) ) {
 			// Get tax rate ID for current item
-			$tax_rate_id = array_keys( $taxes )[0];
+			$keys = array_keys( $taxes );
+			$tax_rate_id = $keys[0];
 			$line_items = array();
 
 			// Map line items using rate ID
