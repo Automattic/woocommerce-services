@@ -87,6 +87,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 7. Enabling automated taxes
 8. Creating a Stripe account from the setup wizard
 9. Checking on the health of WooCommerce Services
+10. Checking and exporting the label purchase reports
 
 == Changelog ==
 
