@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.9.5
-Stable tag: 1.13.0
+Stable tag: 1.13.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 9. Checking on the health of WooCommerce Services
 
 == Changelog ==
+
+= 1.13.1 =
+* Fix PHP Warning for individually packed shipping rates
 
 = 1.13.0 =
 * Show customer selected shipping rate when purchasing a shipping label
