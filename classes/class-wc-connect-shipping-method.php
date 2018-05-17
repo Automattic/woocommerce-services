@@ -245,7 +245,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return is_string( $preset_id );
 		}
 
-		private function check_and_handle_response_error( $response_body ) {
+		private function check_and_handle_response_error( $response_body, $service_settings ) {
 			if ( is_wp_error( $response_body ) ) {
 				$this->debug(
 					sprintf(
@@ -349,7 +349,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->debug( 'Rates response retrieved from cache' );
 			} else {
 				$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
-				if ( $this->check_and_handle_response_error( $response_body ) ) {
+				if ( $this->check_and_handle_response_error( $response_body, $service_settings ) ) {
 					return;
 				}
 				wp_cache_set( $cache_key, $response_body, '', 3600 );
