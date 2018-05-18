@@ -15,6 +15,7 @@ class WC_Connect_Privacy {
 
 		add_action( 'admin_init', array( $this, 'add_privacy_message' ) );
 		add_filter( 'woocommerce_privacy_export_order_personal_data', array( $this, 'label_data_exporter' ), 10, 2 );
+		add_action( 'woocommerce_privacy_before_remove_order_personal_data', array( $this, 'label_data_eraser' ) );
 	}
 
 	/**
@@ -64,5 +65,26 @@ class WC_Connect_Privacy {
 		}
 
 		return $personal_data;
+	}
+
+	/**
+	 * Hooks into woocommerce_privacy_before_remove_order_personal_data to remove WCS personal data from orders
+	 * @param Object  $order
+	 */
+	public function label_data_eraser( $order ) {
+		$order_id = $order->get_id();
+		$labels = $this->settings_store->get_label_order_meta_data( $order_id );
+		$found_personal_data = false;
+
+		foreach ( $labels as $label_idx => $label ) {
+			if ( ! isset( $label['tracking'] ) ) {
+				continue;
+			}
+			$items_removed = true;
+			$labels[ $label_idx ]['tracking'] = '';
+		}
+
+		//TODO: call server
+		update_post_meta( $order_id, 'wc_connect_labels', $labels );
 	}
 }
