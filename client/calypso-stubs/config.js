@@ -4,6 +4,9 @@
 const data = {
 	env: ( process && process.env.NODE_ENV ) || 'development',
 	wpcom_concierge_schedule_id: 1,
+	languages: [],
+	google_adwords_conversion_id: '',
+	google_adwords_conversion_id_jetpack: '',
 };
 
 const d = ( key ) => {

@@ -874,9 +874,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			do_action( 'enqueue_wc_connect_script',
-				'wc-connect-service-settings',
-				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
+				'methodId' => $method_id,
+				'instanceId' => $instance_id,
+			) );
 		}
 
 		/**
