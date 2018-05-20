@@ -16,7 +16,7 @@ import HealthView from './health';
 import LogView from './log';
 import notices from 'notices';
 import ServicesStatusView from './services';
-import SettingsGroupCard from 'components/settings-group-card';
+import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 import Toggle from 'components/toggle';
 import {
 	toggleLogging,

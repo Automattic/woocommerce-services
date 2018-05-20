@@ -11,9 +11,8 @@ import PropTypes from 'prop-types';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormToggle from 'components/forms/form-toggle/compact';
-import FieldDescription from 'components/field-description';
+import FieldDescription from 'woocommerce/woocommerce-services/components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
-// import { Component } from '../../../../../Library/Caches/typescript/2.6/node_modules/@types/react';
 
 class Toggle extends Component {
 	static propTypes = {

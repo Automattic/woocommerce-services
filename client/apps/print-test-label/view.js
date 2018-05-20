@@ -17,7 +17,7 @@ import FormButton from 'components/forms/form-button';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormSelect from 'components/forms/form-select';
 import FormLegend from 'components/forms/form-legend';
-import SettingsGroupCard from 'components/settings-group-card';
+import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 
 class PrintTestLabelView extends Component {
 	static propTypes = {
