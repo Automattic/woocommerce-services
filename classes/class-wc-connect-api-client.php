@@ -252,6 +252,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Gets the shipping label status (refund status, tracking code, etc)
+		 *
+		 * @param $order_id integer
+		 * @return object|WP_Error
+		 */
+		public function anonymize_order( $order_id ) {
+			return $this->request( 'POST', '/privacy/order/' . $order_id . '/anonymize' );
+		}
+
+		/**
 		 * Request a refund for a given shipping label
 		 *
 		 * @param $label_id integer

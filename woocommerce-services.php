@@ -612,7 +612,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
-			new WC_Connect_Privacy( $settings_store );
+			new WC_Connect_Privacy( $settings_store, $api_client );
 
 			$this->set_logger( $logger );
 			$this->set_shipping_logger( $shipping_logger );
