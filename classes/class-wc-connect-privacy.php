@@ -85,10 +85,6 @@ class WC_Connect_Privacy {
 		}
 
 		foreach ( $labels as $label_idx => $label ) {
-			if ( ! isset( $label['tracking'] ) ) {
-				continue;
-			}
-			$items_removed = true;
 			$labels[ $label_idx ]['tracking'] = '';
 			$labels[ $label_idx ]['status'] = 'ANONYMIZED';
 		}
