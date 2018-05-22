@@ -228,7 +228,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$latest_file_date = 0;
 
 			foreach ( $logs as $log_key => $log_file ) {
-				if ( ! preg_match( '/' . $log_prefix . '\-[0-9a-f]{32}\-log/', $log_key ) ) {
+				if ( ! preg_match( '/' . $log_prefix . '\-(?:\d{4}\-\d{2}\-\d{2}\-)?[0-9a-f]{32}\-log/', $log_key ) ) {
 					continue;
 				}
 
