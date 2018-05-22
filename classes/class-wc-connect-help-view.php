@@ -249,13 +249,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			$line_count = count( $data->tail );
 			if ( $line_count < 1 ) {
-				$log_tail = __( 'Log is empty', 'woocommerce-services' );
+				$log_tail = array( __( 'Log is empty', 'woocommerce-services' ) );
 			} else {
 				$log_tail = $data->tail;
 			}
 
 			return array(
-				'tail' => implode( $log_tail, '' ),
+				'tail' => implode( $log_tail ),
 				'url'  => $url = add_query_arg(
 					array(
 						'page'     => 'wc-status',
