@@ -90,6 +90,7 @@ class WC_Connect_Privacy {
 			}
 			$items_removed = true;
 			$labels[ $label_idx ]['tracking'] = '';
+			$labels[ $label_idx ]['status'] = 'ANONYMIZED';
 		}
 
 		$this->api_client->anonymize_order( $order_id );
