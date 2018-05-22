@@ -1,2 +1,15 @@
-@import './components/settings-form/style';
-@import './components/shipping-services/style';
+.settings__placeholder {
+	.form-label,
+	.form-text-input {
+		@include placeholder();
+		pointer-events: none;
+	}
+}
+
+.settings__button-row {
+	background: $gray-light;
+	padding: 16px 24px;
+	margin-right: 0;
+	margin-left: 0;
+	max-width: 100%;
+}

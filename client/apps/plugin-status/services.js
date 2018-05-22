@@ -10,7 +10,7 @@ import { localize } from 'i18n-calypso';
  */
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import Indicator from './indicator';
-import SettingsGroupCard from 'components/settings-group-card';
+import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 
 const ServicesStatusView = ( { translate, moment, services } ) => {
 	const renderDescription = ( { timestamp, url } ) => {

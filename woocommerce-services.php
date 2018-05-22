@@ -95,12 +95,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_services_controller;
 
 		/**
-		 * @var WC_REST_Connect_Services_Dismiss_Service_Notice_Controller
-		 */
-		protected $rest_dismiss_service_notice_controller;
-
-
-		/**
 		 * @var WC_REST_Connect_Self_Help_Controller
 		 */
 		protected $rest_self_help_controller;
@@ -299,10 +293,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_services_controller( WC_REST_Connect_Services_Controller $rest_services_controller ) {
 			$this->rest_services_controller = $rest_services_controller;
-		}
-
-		public function set_rest_dismiss_service_notice_controller( WC_REST_Connect_Services_Dismiss_Service_Notice_Controller $rest_dismiss_service_notice_controller ) {
-			$this->rest_dismiss_service_notice_controller = $rest_dismiss_service_notice_controller;
 		}
 
 		public function get_rest_self_help_controller() {
@@ -741,11 +731,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_services_controller( $rest_services_controller );
 			$rest_services_controller->register_routes();
 
-			require_once( plugin_basename( 'classes/class-wc-rest-connect-dismiss-service-notice-controller.php' ) );
-			$rest_dismiss_service_notice_controller = new WC_REST_Connect_Services_Dismiss_Service_Notice_Controller( $this->api_client, $settings_store, $logger, $this->nux );
-			$this->set_rest_dismiss_service_notice_controller( $rest_dismiss_service_notice_controller );
-			$rest_dismiss_service_notice_controller->register_routes();
-
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-self-help-controller.php' ) );
 			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
@@ -862,7 +847,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'formType'           => 'services',
 				'methodId'           => $method_id,
 				'instanceId'         => $instance_id,
-				'noticeDismissed'    => $this->nux->is_notice_dismissed( 'service_settings' ),
 			) );
 		}
 
@@ -877,9 +861,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			do_action( 'enqueue_wc_connect_script',
-				'wc-connect-service-settings',
-				apply_filters( 'wc_connect_shipping_service_settings', array(), $method_id, $instance_id ) );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
+				'methodId' => $method_id,
+				'instanceId' => $instance_id,
+			) );
 		}
 
 		/**

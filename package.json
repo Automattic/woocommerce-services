@@ -5,7 +5,7 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "dist": "cross-env NODE_ENV=production webpack",
     "eslint": "eslint tasks/ client/",
-    "test": "cross-env NODE_ENV=test karma start --single-run --no-auto-watch && npm run eslint",
+    "test": "cross-env NODE_ENV=test karma start --single-run --no-auto-watch --no-fail-on-empty-test-suite && npm run eslint",
     "test-watch": "cross-env NODE_ENV=test karma start --auto-watch --no-single-run",
     "release": "node tasks/release.js",
     "i18n": "cross-env NODE_ENV=i18n webpack && node tasks/i18n",
@@ -36,6 +36,7 @@
     "enzyme": "^3.2.0",
     "escape-string-regexp": "^1.0.5",
     "eslint": "3.16.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-config-wpcalypso": "^2.0.0",
     "eslint-loader": "^1.6.1",
     "eslint-plugin-import": "^2.9.0",
@@ -104,6 +105,6 @@
     "redux-thunk": "^2.2.0",
     "reselect": "^2.5.4",
     "whatwg-fetch": "^2.0.2",
-    "wp-calypso": "github:automattic/wp-calypso#32d5bb0ee809c38883bbccd1a6e62fba5ee35f9a"
+    "wp-calypso": "github:automattic/wp-calypso#2ad41412b9488bb154145ac6fc4c2876b98c5317"
   }
 }
