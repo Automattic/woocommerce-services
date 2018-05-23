@@ -1,7 +1,6 @@
 /**
  * External dependencies
  */
-import _ from 'lodash';
 import { translate } from 'i18n-calypso';
 
 /**
@@ -49,11 +48,7 @@ export const save = () => ( dispatch, getState ) => {
 			}
 		} )
 		.catch( ( error ) => {
-			if ( _.isString( error ) ) {
-				dispatch( NoticeActions.errorNotice( error ) );
-			} else if ( _.isObject( error ) ) {
-				dispatch( NoticeActions.errorNotice( translate( 'There was a problem when saving your preferences. Please try again.' ) ) );
-			}
+			dispatch( NoticeActions.errorNotice( error ) );
 
 			if ( state.debug_saving ) {
 				dispatch( setDebug( ! state.debug_enabled, false ) );
