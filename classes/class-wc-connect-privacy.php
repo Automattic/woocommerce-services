@@ -51,8 +51,8 @@ class WC_Connect_Privacy {
 	 * If WooCommerce order data erasure is enabled, display a warning on the erasure page
 	 */
 	public function add_erasure_notice() {
-		global $pagenow;
-		if ( ( $pagenow !== 'tools.php' ) || ( $_GET['page'] !== 'remove_personal_data' ) ) {
+		$screen = get_current_screen();
+		if ( 'tools_page_remove_personal_data' !== $screen->id ) {
 			return;
 		}
 
