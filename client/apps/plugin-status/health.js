@@ -11,7 +11,6 @@ import { localize } from 'i18n-calypso';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import Indicator from './indicator';
 import SettingsGroupCard from 'components/settings-group-card';
-import Notice from 'components/notice';
 
 const HealthView = ( { translate, moment, healthItems } ) => {
 	const heading = translate( 'Health', {
@@ -45,14 +44,6 @@ const HealthView = ( { translate, moment, healthItems } ) => {
 				title={ title }
 				state={ healthItem.state }
 				message={ healthItem.message }>
-				{ healthItem.error && (
-					<Notice
-						className="plugin-status__notice inline"
-						status="is-error"
-						showDismiss={ false }>
-						{ healthItem.error }
-					</Notice>
-				) }
 				{ showTimestamp ? renderTimestamp( healthItem ) : null }
 			</Indicator>
 		);

@@ -118,7 +118,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Check that we are able to talk to the WooCommerce Services server
 			$schemas = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
-			if ( is_null( $schemas ) ) {
+			if ( isset( $_GET['refresh'] ) && 'failed' === $_GET['refresh'] ) {
+				$health_item = array(
+					'state' => 'error',
+					'message' => __( 'An error occurred while refreshing service data.', 'woocommerce-services' ),
+					'timestamp' => $last_fetch_timestamp,
+				);
+			} else if ( is_null( $schemas ) ) {
 				$health_item = array(
 					'state' => 'error',
 					'message' => __( 'No service data available', 'woocommerce-services' ),
@@ -147,10 +153,6 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'message' => __( 'Service data is up-to-date', 'woocommerce-services' ),
 					'timestamp' => $last_fetch_timestamp
 				);
-			}
-
-			if ( isset( $_GET['refresh'] ) && 'failed' === $_GET['refresh'] ) {
-				$health_item['error'] = __( 'An error occurred while refreshing service data.', 'woocommerce-services' );
 			}
 
 			$health_items['woocommerce_services'] = $health_item;
