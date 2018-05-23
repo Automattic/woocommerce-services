@@ -20,6 +20,7 @@ class WC_Connect_Privacy {
 		$this->api_client = $api_client;
 
 		add_action( 'admin_init', array( $this, 'add_privacy_message' ) );
+		add_action( 'admin_notices', array( $this, 'add_erasure_notice' ) );
 		add_filter( 'woocommerce_privacy_export_order_personal_data', array( $this, 'label_data_exporter' ), 10, 2 );
 		add_action( 'woocommerce_privacy_before_remove_order_personal_data', array( $this, 'label_data_eraser' ) );
 	}
@@ -44,6 +45,27 @@ class WC_Connect_Privacy {
 		);
 
 		wp_add_privacy_policy_content( $title, $content );
+	}
+
+	/**
+	 * If WooCommerce order data erasure is enabled, display a warning on the erasure page
+	 */
+	public function add_erasure_notice() {
+		$screen = get_current_screen();
+		if ( 'tools_page_remove_personal_data' !== $screen->id ) {
+			return;
+		}
+
+		$erasure_enabled = wc_string_to_bool( get_option( 'woocommerce_erasure_request_removes_order_data', 'no' ) );
+		if ( ! $erasure_enabled ) {
+			return;
+		}
+
+		?>
+			<div class="notice notice-warning" style="position: relative;">
+				<p><?php esc_html_e( 'Warning: Erasing personal data will cause the ability to reprint or refund WooCommerce Services shipping labels to be lost on the affected orders.', 'woocommerce-services' ); ?></p>
+			</div>
+		<?php
 	}
 
 	/**
