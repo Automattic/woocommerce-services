@@ -53,7 +53,7 @@ const _request = ( url, data, method, namespace = '' ) => {
 			if ( 403 === response.status ) {
 				const message = __(
 					'The request was not fulfilled. Please see the {{a}}status page{{/a}} for diagnostics.',
-					{ components: { a: <a href="?page=wc-status&tab=connect" /> } }
+					{ components: { a: <a href="admin.php?page=wc-status&tab=connect" /> } }
 				);
 				throw { data: { message } };
 			}
