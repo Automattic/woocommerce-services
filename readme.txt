@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.9.5
-Stable tag: 1.13.3
+Stable tag: 1.14.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,15 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 10. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.14.0 =
+* GDPR - Added WCS section to the privacy policy guide
+* GDPR - Support for personal data export functionality
+* GDPR - Support for personal data erasure functionality
+* Minor changes to the settings page UI
+* Fix the PHP warning on the Status page when logs are empty
+* Fix log file retrieval on Status page to work with new WC 3.4 format that includes the date
+* Add error message on manual service data refresh failure
 
 = 1.13.3 =
 * Fix broken admin after product featured in 'missing weight' notice is deleted
