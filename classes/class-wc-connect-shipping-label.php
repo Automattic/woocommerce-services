@@ -175,7 +175,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 							$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 							$product_data['attributes'] = $formatted;
 						}
-						$customs_info = get_post_meta( $product_data['product_id'], 'customs_info', true );
+						$customs_info = get_post_meta( $product_data['product_id'], 'wc_connect_customs_info', true );
 						if ( $customs_info ) {
 							$product_data = array_merge( $product_data, $customs_info );
 						}
