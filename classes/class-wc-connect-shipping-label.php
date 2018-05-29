@@ -183,7 +183,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						$product_data['name'] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_data['product_id'], $order );
 					}
 					$product_data['value'] = WC_Connect_Compatibility::instance()->get_product_price_from_order( $product_data['product_id'], $order );
-					if ( ! $product_data['value'] ) {
+					if ( ! isset( $product_data['value'] ) ) {
 						$product_data['value'] = 0;
 					}
 
