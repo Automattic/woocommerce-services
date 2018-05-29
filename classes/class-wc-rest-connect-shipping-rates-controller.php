@@ -35,7 +35,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 			foreach ( $package[ 'items' ] as $item ) {
 				if ( ! isset( $updated_product_ids[ $item[ 'product_id' ] ] ) ) {
 					$updated_product_ids[ $item[ 'product_id' ] ] = true;
-					update_post_meta( $item[ 'product_id' ], 'customs_info', array(
+					update_post_meta( $item[ 'product_id' ], 'wc_connect_customs_info', array(
 						'description' => $item[ 'description' ],
 						'hs_tariff_code' => $item[ 'hs_tariff_code' ],
 						'origin_country' => $item[ 'origin_country' ],
