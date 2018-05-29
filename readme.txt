@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.9.5
-Stable tag: 1.14.0
+Stable tag: 1.14.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 10. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.14.1 =
+* Fix error when adding shipping method price adjustments
 
 = 1.14.0 =
 * GDPR - Added WCS section to the privacy policy guide
