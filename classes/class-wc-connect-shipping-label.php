@@ -186,7 +186,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					if ( ! $product_data['value'] ) {
 						$product_data['value'] = 0;
 					}
-					$product_data['parent_product_id'] = ( $product && $product->is_type( 'variation' ) ) ? $product->get_parent_id() : $product_data['product_id'];
 
 					$formatted_packages[ $package_id ]['items'][ $item_index ] = $product_data;
 				}
