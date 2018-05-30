@@ -56,8 +56,8 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			$error = $this->notice_enabled();
 			if ( is_wp_error( $error ) && 'product_missing_weight' === $error->get_error_code() ) {
 				$error_data = $error->get_error_data();
-				$product_id = $error_data['product_id'];
-				$product = wc_get_product( $product_id );
+				$id = $error_data['product_id'];
+				$product = wc_get_product( $id );
 
 				if ( ! $product || $product->has_weight() ) {
 					$this->disable_notice();
@@ -65,6 +65,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				}
 
 				$product_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
+				$product_id = is_a( $product, 'WC_Product_Variation' ) ? $product->get_parent_id() : $id;
 				$message = sprintf(
 					__( '<strong>%2$s does not have a weight defined.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Add a weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
 					get_edit_post_link( $product_id ), $product_name
