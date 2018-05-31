@@ -447,22 +447,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			if ( ! empty( $instance ) ) {
 				$service_schema = $this->service_schemas_store->get_service_schema_by_instance_id( $instance );
 				if ( ! $service_schema ) {
-					wp_send_json_error(
-						array(
-							'error' => 'bad_instance_id',
-							'message' => __( 'An invalid service instance was received.', 'woocommerce-services' )
-						)
-					);
+					return new WP_Error( 'bad_instance_id', __( 'An invalid service instance was received.', 'woocommerce-services' ) );
 				}
 			} else {
 				$service_schema = $this->service_schemas_store->get_service_schema_by_method_id( $id );
 				if ( ! $service_schema ) {
-					wp_send_json_error(
-						array(
-							'error' => 'bad_service_id',
-							'message' => __( 'An invalid service ID was received.', 'woocommerce-services' )
-						)
-					);
+					return new WP_Error( 'bad_service_id', __( 'An invalid service ID was received.', 'woocommerce-services' ) );
 				}
 			}
 
@@ -471,13 +461,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			if ( is_wp_error( $response_body ) ) {
 				// TODO - handle multiple error messages when the validation endpoint can return them
-				wp_send_json_error(
-					array(
-						'error'   => 'validation_failure',
-					 	'message' => $response_body->get_error_message(),
-						'data'    => $response_body->get_error_data(),
-					)
-				);
+				return $response_body;
 			}
 
 			// On success, save the settings to the database and exit
