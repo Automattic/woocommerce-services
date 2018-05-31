@@ -267,7 +267,7 @@ class WC_Connect_TaxJar_Integration {
 			'taxjar_city_setting'     => WC()->countries->get_base_city(),
 		);
 
-		return apply_filters( 'taxjar_store_settings', $store_settings, $this->settings );
+		return apply_filters( 'taxjar_store_settings', $store_settings, array() );
 	}
 
 	/**
