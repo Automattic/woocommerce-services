@@ -755,8 +755,8 @@ class WC_Connect_TaxJar_Integration {
 
 			// Add line item tax rates
 			foreach ( $taxes['line_items'] as $line_item_key => $line_item ) {
-				$line_item_key_split = explode( '-', $line_item_key );
-				$product_id = $line_item_key_split[0];
+				$line_item_key_chunks = explode( '-', $line_item_key );
+				$product_id = $line_item_key_chunks[0];
 				$product = wc_get_product( $product_id );
 				$tax_class = $product->get_tax_class();
 
