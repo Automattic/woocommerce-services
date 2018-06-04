@@ -82,10 +82,7 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 					__( 'Unable to update service settings. Validation failed. %s', 'woocommerce-services' ),
 					$validation_result->get_error_message()
 				),
-				array_merge(
-					array( 'status' => 400 ),
-					$validation_result->get_error_data()
-				)
+				array( 'status' => 400 )
 			);
 			$this->logger->log( $error, __CLASS__ );
 			return $error;
