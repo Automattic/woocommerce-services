@@ -483,6 +483,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$instance_id = $zone->add_shipping_method( $method->method_id );
 			$zone->save();
 
+			// Dismiss the "add a method to zone" pointer
+			$this->nux->dismiss_pointer( 'wc_services_add_service_to_zone' );
+
 			$instance = WC_Shipping_Zones::get_shipping_method( $instance_id );
 			if ( empty( $instance ) ) {
 				return;
