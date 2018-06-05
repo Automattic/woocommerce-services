@@ -159,11 +159,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			$dismissed_pointers = $this->get_dismissed_pointers();
-			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers, true ) ) {
-				return $pointers;
-			}
-
 			// If the user is not new to labels, we should just dismiss this pointer
 			if ( ! $this->is_new_labels_user() ) {
 				$this->dismiss_pointer( 'wc_services_labels_metabox' );
