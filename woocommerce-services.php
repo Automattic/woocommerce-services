@@ -663,11 +663,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 
-			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
+			// Make sure to update the service schemas when these options change.
+			// TODO: Add other options that change the schema here, or figure out a way to do it automatically.
 			add_action( 'update_option_woocommerce_store_postcode',  array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'update_option_woocommerce_currency', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'update_option_woocommerce_weight_unit', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_action( 'update_option_woocommerce_dimension_unit', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+
+			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
