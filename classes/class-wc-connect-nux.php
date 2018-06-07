@@ -113,6 +113,23 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return array();
 		}
 
+		/**
+		 * Dismiss a WP pointer for the current user.
+		 *
+		 * @param string $pointer_to_dismiss Pointer ID to dismiss for the current user
+		 */
+		public function dismiss_pointer( $pointer_to_dismiss ) {
+			$dismissed_pointers = $this->get_dismissed_pointers();
+
+			if ( in_array( $pointer_to_dismiss, $dismissed_pointers, true ) ) {
+				return;
+			}
+
+			$dismissed_pointers[] = $pointer_to_dismiss;
+			$dismissed_data = implode( ',', $dismissed_pointers );
+			update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', $dismissed_data );
+		}
+
 		public function register_add_service_to_zone_pointer( $pointers ) {
 			$pointers[] = array(
 				'id' => 'wc_services_add_service_to_zone',
@@ -142,16 +159,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function register_order_page_labels_pointer( $pointers ) {
-			$dismissed_pointers = $this->get_dismissed_pointers();
-			if ( in_array( 'wc_services_labels_metabox', $dismissed_pointers, true ) ) {
-				return $pointers;
-			}
-
 			// If the user is not new to labels, we should just dismiss this pointer
 			if ( ! $this->is_new_labels_user() ) {
-				$dismissed_pointers[] = 'wc_services_labels_metabox';
-				$dismissed_data = implode( ',', $dismissed_pointers );
-				update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', $dismissed_data );
+				$this->dismiss_pointer( 'wc_services_labels_metabox' );
 				return $pointers;
 			}
 
