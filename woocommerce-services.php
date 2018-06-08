@@ -680,7 +680,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
-			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_action( 'woocommerce_before_order_object_save', array( $this, 'maybe_add_tracking_info_to_emails' ) );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
 			$tracks = $this->get_tracks();
@@ -890,6 +890,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			return $reports;
+		}
+
+		/**
+		 * Determine if we should add tracking information to "Order Complete" emails.
+		 *
+		 * @param WC_Order $order The Order object.
+		 */
+		public function maybe_add_tracking_info_to_emails( $order ) {
+			// If done by the REST API, look for the flag in the request otherwise use the store-wide setting.
+			if ( defined( 'REST_REQUEST' ) ) {
+				$server  = rest_get_server();
+				$request = new WP_REST_Request();
+				$request->set_headers( $server->get_headers( wp_unslash( $_SERVER ) ) );
+				$request->set_body( $server->get_raw_data() );
+
+				$settings = $request->get_json_params();
+			} else {
+				$settings = $this->service_settings_store->get_account_settings();
+			}
+
+			if ( isset( $settings['email_tracking_info'] ) && $settings['email_tracking_info'] ) {
+				add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			}
 		}
 
 		/**
