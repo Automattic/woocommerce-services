@@ -52,16 +52,15 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function get_account_settings() {
 			$default = array(
 				'selected_payment_method_id' => 0,
-				'enabled' => true,
+				'enabled'                    => true,
+				'email_receipts'             => true,
+				'mark_orders_complete'       => true,
+				'email_tracking_info'        => true,
 			);
 
 			$result = WC_Connect_Options::get_option( 'account_settings', $default );
 			$result['paper_size'] = $this->get_preferred_paper_size();
 			$result = array_merge( $default, $result );
-
-			if ( ! isset( $result['email_receipts'] ) ) {
-				$result['email_receipts'] = true;
-			}
 
 			return $result;
 		}
