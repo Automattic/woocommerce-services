@@ -48,10 +48,12 @@ class ViewWrapper extends Component {
 		};
 		const failureAction = ( dispatch, getState, { error } ) => {
 			this.setState( { isSaving: false } );
-			dispatch( errorNotice( isString( error )
-				? error
-				: translate( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' )
-			) );
+			if ( error ) {
+				dispatch( errorNotice( isString( error )
+					? error
+					: translate( 'There was a problem with one or more entries. Please fix the errors below and try saving again.' )
+				) );
+			}
 		};
 
 		this.setState( { isSaving: true } );
@@ -116,6 +118,7 @@ const saveChanges = ( successAction, failureAction ) => ( dispatch, getState ) =
 	// Trigger a full validation
 	dispatch( closeShippingZoneMethod( siteId ) );
 	if ( getCurrentlyOpenShippingZoneMethod( getState() ) ) {
+		dispatch( failureAction );
 		return;
 	}
 	dispatch( openShippingZoneMethod( siteId, method.id ) );
