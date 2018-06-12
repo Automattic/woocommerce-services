@@ -473,6 +473,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $defaults;
 		}
 
+		public function save_defaults_to_shipping_method( $instance_id, $service_id, $zone_id ) {
+			$shipping_method = WC_Shipping_Zones::get_shipping_method( $instance_id );
+			$schema   = $shipping_method->get_service_schema();
+			$defaults = (object) $this->get_service_schema_defaults( $schema->service_settings );
+			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $service_id, $instance_id );
+		}
+
 		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
 			$method = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
 			if ( empty( $method ) ) {
@@ -485,15 +492,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Dismiss the "add a method to zone" pointer
 			$this->nux->dismiss_pointer( 'wc_services_add_service_to_zone' );
-
-			$instance = WC_Shipping_Zones::get_shipping_method( $instance_id );
-			if ( empty( $instance ) ) {
-				return;
-			}
-
-			$schema   = $instance->get_service_schema();
-			$defaults = (object) $this->get_service_schema_defaults( $schema->service_settings );
-			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $method->method_id, $instance_id );
 		}
 
 		public function init_core_wizard_shipping_config() {
@@ -655,6 +653,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
 				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
 				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
+				add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'save_defaults_to_shipping_method' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
 
