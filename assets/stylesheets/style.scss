@@ -171,6 +171,10 @@
 	.wp-core-ui & {
 		.button {
 			height: auto;
+
+			&:focus {
+				box-shadow: none;
+			}
 		}
 	}
 
