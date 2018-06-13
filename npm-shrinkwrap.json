@@ -5,19 +5,19 @@
   "requires": true,
   "dependencies": {
     "@babel/helper-module-imports": {
-      "version": "7.0.0-beta.49",
-      "resolved": "https://registry.npmjs.org/@babel/helper-module-imports/-/helper-module-imports-7.0.0-beta.49.tgz",
-      "integrity": "sha1-QdfVmJEBbEk0MqRvdGREZVKJDHU=",
+      "version": "7.0.0-beta.51",
+      "resolved": "https://registry.npmjs.org/@babel/helper-module-imports/-/helper-module-imports-7.0.0-beta.51.tgz",
+      "integrity": "sha1-zgBCgEX7t9XrwOp7+DV4nxU2arI=",
       "dev": true,
       "requires": {
-        "@babel/types": "7.0.0-beta.49",
+        "@babel/types": "7.0.0-beta.51",
         "lodash": "^4.17.5"
       }
     },
     "@babel/types": {
-      "version": "7.0.0-beta.49",
-      "resolved": "https://registry.npmjs.org/@babel/types/-/types-7.0.0-beta.49.tgz",
-      "integrity": "sha1-t+Oxw/TUz+Eb34yJ8e/V4WF7h6Y=",
+      "version": "7.0.0-beta.51",
+      "resolved": "https://registry.npmjs.org/@babel/types/-/types-7.0.0-beta.51.tgz",
+      "integrity": "sha1-2AK3tUO1g2x3iqaReXq/APPZfqk=",
       "dev": true,
       "requires": {
         "esutils": "^2.0.2",
@@ -1972,15 +1972,15 @@
       }
     },
     "caniuse-db": {
-      "version": "1.0.30000852",
-      "resolved": "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000852.tgz",
-      "integrity": "sha1-w3pwYEj42B+HlGp8E/Oe1jaHZlk=",
+      "version": "1.0.30000853",
+      "resolved": "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000853.tgz",
+      "integrity": "sha1-MpAafWuTqH1Z8Iqu5H6o/27JD98=",
       "dev": true
     },
     "caniuse-lite": {
-      "version": "1.0.30000852",
-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000852.tgz",
-      "integrity": "sha512-NOuitABlrRbIpjtC8HdDnHL9Fi+yH5phDoXlXT7Im++48kll2bUps9dWWdAnBwqT/oEsjobuOLnnJCBjVqadCw=="
+      "version": "1.0.30000853",
+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000853.tgz",
+      "integrity": "sha512-vMrE8BED4MJC9IhDJKP8ok6bJUfn5+YHvxwXMYfiPqQOJ3r2B9ihcArlUnXu6yPWf7b3jHqiEBwXZEbrbiFUqg=="
     },
     "caseless": {
       "version": "0.12.0",
@@ -9572,9 +9572,9 @@
       "dev": true
     },
     "psl": {
-      "version": "1.1.27",
-      "resolved": "https://registry.npmjs.org/psl/-/psl-1.1.27.tgz",
-      "integrity": "sha512-J8tJX5tAeEp9tQTI2w2aMZ6V1INuU4JmNaNPRuHAqjjVq3ZJ+jV3+tcT3ncgTnBxvwJy740IB/WZrxFus2VdMA==",
+      "version": "1.1.28",
+      "resolved": "https://registry.npmjs.org/psl/-/psl-1.1.28.tgz",
+      "integrity": "sha512-+AqO1Ae+N/4r7Rvchrdm432afjT9hqJRyBN3DQv9At0tPz4hIFSGKbq64fN9dVoCow4oggIIax5/iONx0r9hZw==",
       "dev": true
     },
     "public-encrypt": {
@@ -9729,9 +9729,9 @@
       "dev": true
     },
     "react": {
-      "version": "16.4.0",
-      "resolved": "https://registry.npmjs.org/react/-/react-16.4.0.tgz",
-      "integrity": "sha512-K0UrkLXSAekf5nJu89obKUM7o2vc6MMN9LYoKnCa+c+8MJRAT120xzPLENcWSRc7GYKIg0LlgJRDorrufdglQQ==",
+      "version": "16.4.1",
+      "resolved": "https://registry.npmjs.org/react/-/react-16.4.1.tgz",
+      "integrity": "sha512-3GEs0giKp6E0Oh/Y9ZC60CmYgUPnp7voH9fbjWsvXtYFb4EWtgQub0ADSq0sJR0BbHc4FThLLtzlcFaFXIorwg==",
       "requires": {
         "fbjs": "^0.8.16",
         "loose-envify": "^1.1.0",
@@ -9768,9 +9768,9 @@
       "dev": true
     },
     "react-dom": {
-      "version": "16.4.0",
-      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-16.4.0.tgz",
-      "integrity": "sha512-bbLd+HYpBEnYoNyxDe9XpSG2t9wypMohwQPvKw8Hov3nF7SJiJIgK56b46zHpBUpHb06a1iEuw7G3rbrsnNL6w==",
+      "version": "16.4.1",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-16.4.1.tgz",
+      "integrity": "sha512-1Gin+wghF/7gl4Cqcvr1DxFX2Osz7ugxSwl6gBqCMpdrxHjIFUS7GYxrFftZ9Ln44FHw0JxCFD9YtZsrbR5/4A==",
       "requires": {
         "fbjs": "^0.8.16",
         "loose-envify": "^1.1.0",
@@ -12524,8 +12524,8 @@
       "dev": true
     },
     "wp-calypso": {
-      "version": "github:automattic/wp-calypso#f6e85ee7f515c07147d4dc6f3dc2b7395cd9878c",
-      "from": "github:automattic/wp-calypso#f6e85ee7f515c07147d4dc6f3dc2b7395cd9878c",
+      "version": "github:automattic/wp-calypso#9d78dbb5d3015931691c4d28423b3ce9c10e16c0",
+      "from": "github:automattic/wp-calypso#9d78dbb5d3015931691c4d28423b3ce9c10e16c0",
       "requires": {
         "@babel/cli": "7.0.0-beta.44",
         "@babel/core": "7.0.0-beta.44",
