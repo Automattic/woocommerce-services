@@ -104,6 +104,6 @@
     "redux-thunk": "^2.2.0",
     "reselect": "^2.5.4",
     "whatwg-fetch": "^2.0.2",
-    "wp-calypso": "github:automattic/wp-calypso#2ed3e056afa2be61698fe6ab491668a6652bd51c"
+    "wp-calypso": "github:automattic/wp-calypso#cc49f0a87c039c2267395490a5ec8c5630d4b296"
   }
 }
