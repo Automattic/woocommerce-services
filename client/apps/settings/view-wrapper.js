@@ -115,12 +115,14 @@ const saveChanges = ( successAction, failureAction ) => ( dispatch, getState ) =
 	const siteId = getSelectedSiteId( getState() );
 	const method = getCurrentlyOpenShippingZoneMethod( getState() );
 
-	// Trigger a full validation
+	// Close the shipping method to trigger a full validation
 	dispatch( closeShippingZoneMethod( siteId ) );
 	if ( getCurrentlyOpenShippingZoneMethod( getState() ) ) {
+		// If there's still a shipping method marked as "opened", it means that the full validation triggered by closing it failed
 		dispatch( failureAction );
 		return;
 	}
+	// Open the shipping method again in case the user wants to keep editing it
 	dispatch( openShippingZoneMethod( siteId, method.id ) );
 
 	dispatch(
