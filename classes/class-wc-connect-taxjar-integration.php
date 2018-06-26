@@ -471,7 +471,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Get line items at checkout
 	 *
 	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L626
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L645
 	 *
 	 * @return array
 	 */
@@ -488,12 +488,12 @@ class WC_Connect_TaxJar_Integration {
 			$tax_class = explode( '-', $product->get_tax_class() );
 			$tax_code = '';
 
-			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
-				$tax_code = '99999';
-			}
-
 			if ( isset( $tax_class ) && is_numeric( end( $tax_class ) ) ) {
 				$tax_code = end( $tax_class );
+			}
+
+			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
+				$tax_code = '99999';
 			}
 
 			// Get WC Subscription sign-up fees for calculations
@@ -524,7 +524,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Get line items for backend orders
 	 *
 	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L676
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L695
 	 *
 	 * @return array
 	 */
@@ -553,12 +553,12 @@ class WC_Connect_TaxJar_Integration {
 			$unit_price = $product->get_price();
 			$tax_code = '';
 
-			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
-				$tax_code = '99999';
-			}
-
 			if ( isset( $tax_class[1] ) && is_numeric( $tax_class[1] ) ) {
 				$tax_code = $tax_class[1];
+			}
+
+			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
+				$tax_code = '99999';
 			}
 
 			if ( $unit_price ) {
