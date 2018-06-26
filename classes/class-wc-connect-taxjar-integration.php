@@ -374,7 +374,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Calculate tax / totals using TaxJar for backend orders
 	 *
 	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L538
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
 	 *
 	 * @return void
 	 */
@@ -382,13 +382,11 @@ class WC_Connect_TaxJar_Integration {
 		$order = wc_get_order( $order_id );
 		$address = $this->get_backend_address();
 		$line_items = $this->get_backend_line_items( $order );
-
 		if ( method_exists( $order, 'get_shipping_total' ) ) {
 			$shipping = $order->get_shipping_total(); // Woo 3.0+
 		} else {
 			$shipping = $order->get_total_shipping(); // Woo 2.6
 		}
-
 		$taxes = $this->calculate_tax( array(
 			'to_city' => $address['to_city'],
 			'to_state' => $address['to_state'],
@@ -397,25 +395,23 @@ class WC_Connect_TaxJar_Integration {
 			'shipping_amount' => $shipping,
 			'line_items' => $line_items,
 		) );
-
-		// Add tax rates manually for Woo 3.0+
-		// Woo 2.6 adds the rates automatically
-		foreach ( $order->get_items() as $item_key => $item ) {
-			if ( is_object( $item ) ) { // Woo 3.0+
+		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
+			foreach ( $order->get_items() as $item_key => $item ) {
 				$product_id = $item->get_product_id();
-			}
-
-			$line_item_key = $product_id . '-' . $item_key;
-
-			if ( isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
-				$rate_id = $taxes['rate_ids'][ $line_item_key ];
-
-				if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Woo 3.0+
+				$line_item_key = $product_id . '-' . $item_key;
+				if ( isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
+					$rate_id = $taxes['rate_ids'][ $line_item_key ];
 					$item_tax = new WC_Order_Item_Tax();
 					$item_tax->set_rate( $rate_id );
 					$item_tax->set_order_id( $order_id );
 					$item_tax->save();
 				}
+			}
+		} else { // Recalculate tax for Woo 2.6 to apply new tax rates
+			if ( class_exists( 'WC_AJAX' ) ) {
+				remove_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
+				WC_AJAX::calc_line_taxes();
+				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
 			}
 		}
 	}
@@ -530,37 +526,33 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	protected function get_backend_line_items( $order ) {
 		$line_items = array();
-
+		$this->backend_tax_classes = array();
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
 				$id = $item->get_product_id();
 				$quantity = $item->get_quantity();
+				$unit_price = wc_format_decimal( $item->get_subtotal() / $quantity );
 				$discount = wc_format_decimal( $item->get_subtotal() - $item->get_total() );
-				$tax_class = explode( '-', $item->get_tax_class() );
+				$tax_class_name = $item->get_tax_class();
+				$tax_status = $item->get_tax_status();
 			} else { // Woo 2.6
 				$id = $item['product_id'];
 				$quantity = $item['qty'];
+				$unit_price = wc_format_decimal( $item['line_subtotal'] / $quantity );
 				$discount = wc_format_decimal( $item['line_subtotal'] - $item['line_total'] );
-				$tax_class = explode( '-', $item['tax_class'] );
+				$tax_class_name = $item['tax_class'];
+				$product = $order->get_product_from_item( $item );
+				$tax_status = $product ? $product->get_tax_status() : 'taxable';
 			}
-
-			$product = wc_get_product( $id );
-
-			if ( ! $product ) {
-				continue;
-			}
-
-			$unit_price = $product->get_price();
+			$this->backend_tax_classes[$id] = $tax_class_name;
+			$tax_class = explode( '-', $tax_class_name );
 			$tax_code = '';
-
 			if ( isset( $tax_class[1] ) && is_numeric( $tax_class[1] ) ) {
 				$tax_code = $tax_class[1];
 			}
-
-			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
+			if ( 'taxable' !== $tax_status ) {
 				$tax_code = '99999';
 			}
-
 			if ( $unit_price ) {
 				array_push($line_items, array(
 					'id' => $id . '-' . $item_key,
@@ -571,7 +563,6 @@ class WC_Connect_TaxJar_Integration {
 				));
 			}
 		}
-
 		return $line_items;
 	}
 
@@ -769,7 +760,14 @@ class WC_Connect_TaxJar_Integration {
 				$line_item_key_chunks = explode( '-', $line_item_key );
 				$product_id = $line_item_key_chunks[0];
 				$product = wc_get_product( $product_id );
-				$tax_class = $product->get_tax_class();
+
+				if ( $product ) {
+					$tax_class = $product->get_tax_class();
+				} else {
+					if ( isset( $this->backend_tax_classes[$product_id] ) ) {
+						$tax_class = $this->backend_tax_classes[$product_id];
+					}
+				}
 
 				if ( $line_item->combined_tax_rate ) {
 					$taxes['rate_ids'][ $line_item_key ] = $this->create_or_update_tax_rate(
