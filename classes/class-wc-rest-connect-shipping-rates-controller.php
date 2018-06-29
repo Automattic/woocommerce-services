@@ -37,7 +37,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 					$updated_product_ids[ $item[ 'product_id' ] ] = true;
 					update_post_meta( $item[ 'product_id' ], 'wc_connect_customs_info', array(
 						'description' => $item[ 'description' ],
-						'hs_tariff_code' => $item[ 'hs_tariff_code' ],
+						'hs_tariff_number' => $item[ 'hs_tariff_number' ],
 						'origin_country' => $item[ 'origin_country' ],
 					) );
 				}
