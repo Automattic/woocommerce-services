@@ -32,6 +32,11 @@ const _request = ( method, path, siteId, body, action, namespace ) => {
 	if ( namespace && ! namespace.endsWith( '/' ) ) {
 		namespace += '/';
 	}
+	if ( namespace && namespace.startsWith( '/' ) ) {
+		// baseURL ends in a "/", so if namespace starts with another it must be removed
+		namespace = namespace.substr( 1 );
+	}
+
 	if ( -1 !== baseURL.indexOf( '?' ) ) {
 		path = path.replace( '?', '&' );
 	}

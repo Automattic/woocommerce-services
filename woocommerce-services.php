@@ -821,6 +821,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function wc_api_dev_init() {
 			if ( ! class_exists( 'WC_REST_Dev_Data_Continents_Controller' ) ) {
+				require_once( plugin_basename( 'classes/wc-api-dev/class-wc-rest-dev-data-controller.php' ) );
 				require_once( plugin_basename( 'classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php' ) );
 				$continents = new WC_REST_Dev_Data_Continents_Controller();
 				$continents->register_routes();
