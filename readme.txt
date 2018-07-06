@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.5
-Stable tag: 1.15.0
+Tested up to: 4.9.6
+Stable tag: 1.15.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 10. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.15.1 =
+* Fix the "Save changes" button staying disabled after failing to save the shipping method settings
+* Remove emojis from the shipping rates messages, they were causing problems at checkout on sites with a non-default MySQL charset configuration
 
 = 1.15.0 =
 * Several bugfixes and improvements for Automated Taxes
