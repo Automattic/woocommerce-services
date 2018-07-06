@@ -28,7 +28,7 @@ Give customers lower rates on their shipping. Create ready-to-print shipping lab
 We've got taxes for you - no need to enter tax rates manually.
 
 = Be ready to accept payments instantly =
-Have a Stripe account created on your behalf or accept PayPal Express Checkout payments without having to setup an account.
+Have a Stripe account created on your behalf or accept PayPal Checkout payments without having to setup an account.
 
 == Installation ==
 
@@ -50,7 +50,7 @@ This section describes how to install the plugin and get it working.
 * USPS label purchase/printing (domestic USA only)
 * Automated tax calculation
 * Stripe account provisioning (through WooCommerce setup wizard)
-* PayPal Express Checkout payment authorization
+* PayPal Checkout payment authorization
 
 = Are Real-Time Rates in Checkout Free? =
 

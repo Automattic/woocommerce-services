@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 	/**
-	 * Integrates with WooCommerce PayPal Express Checkout Payment Gateway,
+	 * Integrates with WooCommerce PayPal Checkout Payment Gateway,
 	 * modifying that plugin's behavior to facilitate authenticating requests
 	 * not by linking an account but via the WCS server through which we proxy.
 	 */
@@ -133,7 +133,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 						__( 'Link a PayPal account' ,'woocommerce-services' ),
 						sprintf(
 							wp_kses(
-								__( 'To issue refunds via PayPal Express Checkout, you will need to <a href="%s">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
+								__( 'To issue refunds via PayPal Checkout, you will need to <a href="%s">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
 								array(  'a' => array( 'href' => array() ) )
 							),
 							wc_gateway_ppec()->ips->get_signup_url( wc_gateway_ppec()->settings->environment )
