@@ -405,16 +405,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						$package_measurements = '';
 
 						if ( ! property_exists( $rate_package, 'box_id' ) ) {
-							$package_name = __( 'Unknown package 📦', 'woocommerce-services' );
+							$package_name = __( 'Unknown package', 'woocommerce-services' );
 						} else if ( 'individual' === $rate_package->box_id ) {
-							$package_name = __( 'Individual packaging 📦', 'woocommerce-services' );
+							$package_name = __( 'Individual packaging', 'woocommerce-services' );
 						} else if (
 							isset( $packaging_lookup[ $rate_package->box_id ] ) &&
 							isset( $packaging_lookup[ $rate_package->box_id ]['name'] )
 						) {
-							$is_letter = isset( $packaging_lookup[ $rate_package->box_id ]['is_letter'] ) && $packaging_lookup[ $rate_package->box_id ]['is_letter'];
-							$icon = $is_letter ? '✉️' : '📦';
-							$package_name = $packaging_lookup[ $rate_package->box_id ]['name'] . ' ' . $icon;
+							$package_name = $packaging_lookup[ $rate_package->box_id ]['name'];
 							$package_measurements = sprintf(
 								$measurements_format,
 								$rate_package->length,
