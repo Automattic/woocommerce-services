@@ -77,7 +77,7 @@ const _requestWithHeaders = ( method, path, siteId, body, action, namespace ) =>
  * @return {Object} An object with the properties "get", "post", "put" and "del", which are functions to
  * make an HTTP GET, POST, PUT and DELETE request, respectively.
  */
-export default ( siteId, action, namespace = 'wc/v2' ) => ( {
+export default ( siteId, action, namespace = 'wc/v1' ) => ( {
 	/**
 	 * Sends a GET request to the API
 	 * @param {String} path REST path to hit, omitting the "blog.url/wp-json/wc/v#/" prefix
