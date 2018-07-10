@@ -6,14 +6,8 @@
 /**
  * Internal dependencies
  */
-
 import { bypassDataLayer } from 'state/data-layer/utils';
-import { mergeHandlers } from 'state/action-watchers/utils';
 import httpHandlers from 'state/http';
-
-const mergedHandlers = mergeHandlers(
-	httpHandlers,
-);
 
 const shouldNext = action => {
 	const meta = action.meta;
@@ -95,4 +89,4 @@ export const middleware = handlers => store => next => {
 	};
 };
 
-export default middleware( mergedHandlers );
+export default middleware( httpHandlers );
