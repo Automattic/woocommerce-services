@@ -1,4 +1,7 @@
-/** @format */
+/**
+ * Stubs https://github.com/Automattic/wp-calypso/blob/52cfffdb51c915be3ca0e40413b82bbbee452573/client/state/data-layer/wpcom-api-middleware.js
+ * Imports of the handlers that we do not use were removed
+ */
 
 /**
  * Internal dependencies
