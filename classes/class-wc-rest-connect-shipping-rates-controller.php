@@ -41,8 +41,6 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 						'origin_country' => $item[ 'origin_country' ],
 					) );
 				}
-				// The server doesn't require the "product_id" property
-				unset( $payload[ 'packages' ][ $package_id ][ 'items' ][ $index ][ 'product_id' ] );
 			}
 		}
 
