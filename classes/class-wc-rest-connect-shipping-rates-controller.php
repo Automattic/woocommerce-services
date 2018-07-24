@@ -11,6 +11,10 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Rates_Controller' ) ) {
 class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/label/(?P<order_id>\d+)/rates';
 
+	private function has_customs_data( $package ) {
+		return isset( $package['contents_type'] );
+	}
+
 	/**
 	 *
 	 * @param WP_REST_Request $request - See WC_Connect_API_Client::get_label_rates()
@@ -29,8 +33,8 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		// Update the customs information on all this order's products
 		$updated_product_ids = array();
 		foreach ( $payload[ 'packages' ] as $package_id => $package ) {
-			if ( ! isset( $package[ 'contents_type' ] ) ) {
-				break; // No customs information in this order, bail
+			if ( ! $this->has_customs_data( $package ) ) {
+				break;
 			}
 			foreach ( $package[ 'items' ] as $index => $item ) {
 				if ( ! isset( $updated_product_ids[ $item[ 'product_id' ] ] ) ) {
