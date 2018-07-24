@@ -144,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$items = $this->get_all_items( $order );
 				$weight = array_sum( wp_list_pluck( $items, 'weight' ) );
 
-				return array(
+				$packages = array(
 					'default_box' => array(
 						'id'     => 'default_box',
 						'box_id' => 'not_selected',
