@@ -64,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$product_data = array(
 				'height'     => (float) $height,
-				'product_id' => $item['product_id'],
+				'product_id' => $product->get_id(),
 				'length'     => (float) $length,
 				'quantity'   => 1,
 				'weight'     => (float) $weight,
