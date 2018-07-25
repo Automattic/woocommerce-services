@@ -81,8 +81,8 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 	const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
 
-	if ( Route.getInitialAction ) {
-		store.dispatch( Route.getInitialAction() );
+	if ( Route.getInitialActions ) {
+		_.forEach( Route.getInitialActions(), store.dispatch );
 	}
 
 	window.addEventListener( 'beforeunload', ( event ) => {

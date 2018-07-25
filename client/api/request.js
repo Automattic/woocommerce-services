@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { translate as __ } from 'i18n-calypso';
-import { startsWith, endsWith } from 'lodash';
+import { startsWith, endsWith, isArray } from 'lodash';
 
 /**
  * Internal dependencies
@@ -38,7 +38,8 @@ const _request = ( url, data, method, namespace = '' ) => {
 	}
 	return fetch( baseURL + namespace + url, request ).then( ( response ) => {
 		return parseJson( response ).then( ( json ) => {
-			if ( json.success ) {
+			// Temporary fix for built-in requests w/o .success
+			if ( ( ! isArray( json ) && json.success ) || isArray( json ) ) {
 				return json;
 			}
 

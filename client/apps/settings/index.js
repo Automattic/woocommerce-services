@@ -18,9 +18,11 @@ import { initialState as uiLocationsInitialState } from 'woocommerce/state/ui/sh
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
 import { fetchShippingZoneMethodSettings } from 'woocommerce/woocommerce-services/state/shipping-zone-method-settings/actions';
+import { fetchShippingClasses } from 'woocommerce/woocommerce-services/state/shipping-classes/actions';
 import methodSchemasReducer from 'woocommerce/woocommerce-services/state/shipping-method-schemas/reducer';
 import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
+import shippingClassesReducer from 'woocommerce/woocommerce-services/state/shipping-classes/reducers';
 
 export default ( { methodId, instanceId } ) => ( {
 	getReducer() {
@@ -46,6 +48,7 @@ export default ( { methodId, instanceId } ) => ( {
 						1: combineReducers( {
 							shippingZoneMethodSettings: methodSettingsReducer,
 							shippingMethodSchemas: methodSchemasReducer,
+							shippingClasses: shippingClassesReducer,
 						} ),
 					} ),
 				} ),
@@ -98,8 +101,11 @@ export default ( { methodId, instanceId } ) => ( {
 		return state;
 	},
 
-	getInitialAction() {
-		return fetchShippingZoneMethodSettings( 0, methodId, instanceId );
+	getInitialActions() {
+		return [
+			fetchShippingZoneMethodSettings( 0, methodId, instanceId ),
+			fetchShippingClasses( 0 )
+		];
 	},
 
 	getMiddlewares() {
