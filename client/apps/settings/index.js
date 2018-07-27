@@ -23,6 +23,7 @@ import methodSchemasReducer from 'woocommerce/woocommerce-services/state/shippin
 import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import shippingClassesReducer from 'woocommerce/woocommerce-services/state/shipping-classes/reducers';
+import shippingClassesLayer from 'woocommerce/state/data-layer/shipping-classes/';
 
 export default ( { methodId, instanceId } ) => ( {
 	getReducer() {
@@ -109,7 +110,11 @@ export default ( { methodId, instanceId } ) => ( {
 	},
 
 	getMiddlewares() {
-		return [ reduxMiddleware, rawWpcomApiMiddleware( wcsUiDataLayer ) ];
+		return [
+			reduxMiddleware,
+			rawWpcomApiMiddleware( wcsUiDataLayer ),
+			rawWpcomApiMiddleware( shippingClassesLayer ),
+		];
 	},
 
 	getStateKey() {
