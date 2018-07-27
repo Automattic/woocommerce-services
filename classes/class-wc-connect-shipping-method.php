@@ -536,5 +536,52 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		/**
+		 * Is this method available?
+		 *
+		 * @param array $package Package.
+		 * @return bool
+		 */
+		public function is_available( $package ) {
+			if ( ! parent::is_available( $package ) ) {
+				return false;
+			}
+
+			if ( ! $this->are_shipping_classes_supported( $package ) ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
+		 * Checks whether the shipping classes of all products in a package are
+		 * actually supported by the method. If a single product has an un-supported class,
+		 * the whole package will not be supported by the method.
+		 *
+		 * @param array $package The contents of a package.
+		 * @return bool
+		 */
+		public function are_shipping_classes_supported( $package ) {
+			$settings          = $this->get_service_settings();
+			$available_classes = property_exists( $settings, 'shipping_classes' ) ? $settings->shipping_classes : array();
+
+			// No checks needed if the method is not limited to certain classes.
+			if ( empty( $available_classes ) ) {
+				return true;
+			}
+
+			// Go through the cart contents and check if all products are supported
+			foreach ( $package['contents'] as $item ) {
+				$shpping_class = $item['data']->get_shipping_class_id();
+
+				if ( ! in_array( $shpping_class, $available_classes, true ) ) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
 	}
 }
