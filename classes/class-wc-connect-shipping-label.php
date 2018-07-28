@@ -300,27 +300,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return in_array( $currency_code, $this->supported_currencies );
 		}
 
-		protected function get_states_map() {
-			$result = array();
-			$all_countries = WC()->countries->get_countries();
-
-			foreach ( $all_countries as $country_code => $country_name ) {
-				$country_data = array( 'name' => html_entity_decode( $country_name ) );
-				$states = WC()->countries->get_states( $country_code );
-
-				if ( $states ) {
-					$country_data['states'] = array();
-					foreach ( $states as $state_code => $name ) {
-						$country_data['states'][ $state_code ] = html_entity_decode( $name );
-					}
-				}
-
-				$result[ $country_code ] = $country_data;
-			}
-
-			return $result;
-		}
-
 		public function should_show_meta_box() {
 			if ( null === $this->show_metabox ) {
 				$this->show_metabox = $this->calculate_should_show_meta_box();
@@ -374,22 +353,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			$account_settings = $this->settings_store->get_account_settings();
-
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
 				'orderId'            => $order_id,
 				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
 				'formData'           => $this->get_form_data( $order ),
 				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
+				'storeOptions'       => $this->settings_store->get_store_options(),
 				//for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions
 				'canChangeCountries' => true,
 			);
-
-			$store_options = $this->settings_store->get_store_options();
-			// TODO: Get this country info from the /v3/continents endpoint instead, at least in Calypso
-			$store_options['countriesData'] = $this->get_states_map();
-			$payload['storeOptions'] = $store_options;
 
 			return $payload;
 		}
