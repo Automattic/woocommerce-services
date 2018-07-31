@@ -182,9 +182,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					} else {
 						$product_data['name'] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_data['product_id'], $order );
 					}
-					$product_data['value'] = WC_Connect_Compatibility::instance()->get_product_price_from_order( $product_data['product_id'], $order );
 					if ( ! isset( $product_data['value'] ) ) {
-						$product_data['value'] = 0;
+						$product_data['value'] = WC_Connect_Compatibility::instance()->get_product_price_from_order( $product_data['product_id'], $order );
 					}
 
 					$formatted_packages[ $package_id ]['items'][ $item_index ] = $product_data;

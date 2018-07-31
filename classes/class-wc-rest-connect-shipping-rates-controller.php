@@ -43,6 +43,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 						'description' => $item[ 'description' ],
 						'hs_tariff_number' => $item[ 'hs_tariff_number' ],
 						'origin_country' => $item[ 'origin_country' ],
+						'value' => $item[ 'value' ],
 					) );
 				}
 			}
