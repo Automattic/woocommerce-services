@@ -45,6 +45,11 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 						'origin_country' => $item[ 'origin_country' ],
 						'value' => $item[ 'value' ],
 					) );
+					$product = wc_get_product( $item[ 'product_id' ] );
+					if ( $product && $product->get_weight() !== wc_format_decimal( $item[ 'weight' ] ) ) {
+						$product->set_weight( $item[ 'weight' ] );
+						$product->save();
+					}
 				}
 			}
 		}
