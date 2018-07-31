@@ -573,9 +573,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			// Go through the cart contents and check if all products are supported
 			foreach ( $package['contents'] as $item ) {
-				$shpping_class = $item['data']->get_shipping_class_id();
+				$shipping_class = $item['data']->get_shipping_class_id();
 
-				if ( ! in_array( $shpping_class, $available_classes, true ) ) {
+				if ( ! in_array( $shipping_class, $available_classes, true ) ) {
 					return false;
 				}
 			}
