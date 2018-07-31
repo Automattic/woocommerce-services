@@ -140,7 +140,7 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
 		foreach ( $classes as $shipping_class ) {
 			$data_object = $this->getMockBuilder( 'WC_Product' )
-				->setConstructorArgs( array( 123 ) )
+				->setConstructorArgs( array( null ) )
 				->setMethods( array( 'get_shipping_class_id' ) )
 				->getMock();
 
