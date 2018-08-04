@@ -30,7 +30,7 @@ import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tr
 import CompactCard from 'components/card/compact';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
-import { areShippingClassesLoaded } from 'woocommerce/woocommerce-services/state/shipping-classes/selectors';
+import { areShippingClassesLoaded } from 'woocommerce/state/shipping-classes/selectors';
 
 class ViewWrapper extends Component {
 	constructor( props ) {
