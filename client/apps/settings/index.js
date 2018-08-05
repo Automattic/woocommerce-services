@@ -18,11 +18,11 @@ import { initialState as uiLocationsInitialState } from 'woocommerce/state/ui/sh
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
 import { fetchShippingZoneMethodSettings } from 'woocommerce/woocommerce-services/state/shipping-zone-method-settings/actions';
-import { fetchShippingClasses } from 'woocommerce/state/shipping-classes/actions';
+import { fetchShippingClasses } from 'woocommerce/state/sites/shipping-classes/actions';
 import methodSchemasReducer from 'woocommerce/woocommerce-services/state/shipping-method-schemas/reducer';
 import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
-import shippingClassesReducer from 'woocommerce/state/shipping-classes/reducers';
+import shippingClassesReducer from 'woocommerce/state/sites/shipping-classes/reducers';
 import shippingClassesLayer from 'woocommerce/state/data-layer/shipping-classes/';
 
 export default ( { methodId, instanceId } ) => ( {
@@ -36,6 +36,7 @@ export default ( { methodId, instanceId } ) => ( {
 							shippingZones: zonesReducer,
 							shippingZoneLocations: state => state || null,
 							shippingMethods: state => state || null,
+							shippingClasses: shippingClassesReducer,
 						} ),
 					} ),
 					ui: combineReducers( {
@@ -49,7 +50,6 @@ export default ( { methodId, instanceId } ) => ( {
 						1: combineReducers( {
 							shippingZoneMethodSettings: methodSettingsReducer,
 							shippingMethodSchemas: methodSchemasReducer,
-							shippingClasses: shippingClassesReducer,
 						} ),
 					} ),
 				} ),
