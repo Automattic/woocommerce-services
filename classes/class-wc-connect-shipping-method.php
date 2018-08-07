@@ -68,7 +68,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				);
 
 				// Set title to default value
-				$this->title = $this->service_schema->method_title;
+				$this->title = $this->service_schema->carrier_name;
 
 				// Load form values from options, updating title if present
 				$this->init_form_settings();

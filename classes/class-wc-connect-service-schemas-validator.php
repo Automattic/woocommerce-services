@@ -72,6 +72,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 				'id'                 => 'string',
 				'method_description' => 'string',
 				'method_title'       => 'string',
+				'carrier_name'       => 'string',
 				'service_settings'   => 'object',
 				'form_layout'        => 'array'
 			);
