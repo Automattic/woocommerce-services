@@ -181,8 +181,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $services = array();
 
-		protected $service_object_cache = array();
-
 		protected $wc_connect_base_url;
 
 		static function plugin_deactivation() {
@@ -648,7 +646,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
-				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
 				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
@@ -1046,22 +1043,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Returns a reference to a service (e.g. WC_Connect_Shipping_Method) of
-		 * a particular id so we can avoid instantiating them multiple times
-		 *
-		 * @param string $class_name Class name of service to create (e.g. WC_Connect_Shipping_Method)
-		 * @param string $service_id Service id of service to create (e.g. usps)
-		 * @return mixed
-		 */
-		protected function get_service_object_by_id( $class_name, $service_id ) {
-			if ( ! array_key_exists( $service_id, $this->service_object_cache ) ) {
-				$this->service_object_cache[ $service_id ] = new $class_name( $service_id );
-			}
-
-			return $this->service_object_cache[ $service_id ];
-		}
-
-		/**
 		 * Filters in shipping methods for things like WC_Shipping::get_shipping_method_class_names
 		 *
 		 * @param $shipping_methods
@@ -1071,24 +1052,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
-				$shipping_methods[ $shipping_service_id ] = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
+				$shipping_methods[ $shipping_service_id ] = new WC_Connect_Shipping_Method( $shipping_service_id );
 			}
 
 			return $shipping_methods;
-		}
-
-		/**
-		 * Registers shipping methods for use in things like the Add Shipping Method dialog
-		 * on the Shipping Zones view
-		 *
-		 */
-		public function woocommerce_load_shipping_methods() {
-			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
-
-			foreach ( $shipping_service_ids as $shipping_service_id ) {
-				$shipping_method = $this->get_service_object_by_id( 'WC_Connect_Shipping_Method', $shipping_service_id );
-				WC_Shipping::instance()->register_shipping_method( $shipping_method );
-			}
 		}
 
 
