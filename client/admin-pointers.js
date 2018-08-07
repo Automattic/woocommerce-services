@@ -30,7 +30,9 @@ jQuery( document ).ready( function( $ ) {
 				} );
 
 				if ( pointer.dim ) {
-					$( '#wcs-pointer-page-dimmer' ).fadeOut( 500 );
+					$( '#wcs-pointer-page-dimmer' ).fadeOut( 500, () => $( pointer.target ).css( 'z-index', '' ) );
+				} else {
+					$( pointer.target ).css( 'z-index', '' );
 				}
 
 				show_pointer( pointers, i + 1 );
