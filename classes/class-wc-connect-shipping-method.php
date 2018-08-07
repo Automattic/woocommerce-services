@@ -24,7 +24,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected $api_client;
 
-		public function __construct( $id_or_instance_id = null ) {
+		public function __construct( $id_or_instance_id, $existing_shipping_methods = array() ) {
 			parent::__construct( $id_or_instance_id );
 
 			// If $arg looks like a number, treat it as an instance_id
@@ -60,7 +60,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->title = '';
 			} else {
 				$this->id = $this->service_schema->method_id;
-				$this->method_title = $this->service_schema->method_title;
+				// If there is already a shipping method with the "$service_schema->id" ID ("usps", "canada_post", etc),
+				// use the longer "method_title" property for the method title, which has the "XXX (WooCommerce Services)" disambiguation
+				$this->method_title = isset( $existing_shipping_methods[ $this->service_schema->id ] )
+					? $this->service_schema->method_title
+					: $this->service_schema->carrier_name;
 				$this->method_description = $this->service_schema->method_description;
 				$this->supports = array(
 					'shipping-zones',

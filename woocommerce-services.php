@@ -645,7 +645,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas = $schemas_store->get_service_schemas();
 
 			if ( $schemas ) {
-				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
+				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ), 9999 );
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
 				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
 				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
@@ -1052,7 +1052,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
-				$shipping_methods[ $shipping_service_id ] = new WC_Connect_Shipping_Method( $shipping_service_id );
+				$shipping_methods[ $shipping_service_id ] = new WC_Connect_Shipping_Method( $shipping_service_id, $shipping_methods );
 			}
 
 			return $shipping_methods;
