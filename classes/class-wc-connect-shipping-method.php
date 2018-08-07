@@ -24,7 +24,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected $api_client;
 
-		public function __construct( $id_or_instance_id, $existing_shipping_methods = array() ) {
+		public function __construct( $id_or_instance_id = null, $existing_shipping_methods = array() ) {
 			parent::__construct( $id_or_instance_id );
 
 			// If $arg looks like a number, treat it as an instance_id

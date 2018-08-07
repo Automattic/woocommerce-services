@@ -1027,9 +1027,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param int|string                 $id_or_instance_id
 		 */
 		public function init_service( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
-
-			// TODO - make more generic - allow things other than WC_Connect_Shipping_Method to work here
-
 			$method->set_api_client( $this->get_api_client() );
 			$method->set_logger( $this->get_shipping_logger() );
 			$method->set_service_settings_store( $this->get_service_settings_store() );
