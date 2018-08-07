@@ -1,9 +1,14 @@
+/*
+ * External dependencies
+ */
+import jQuery from 'jquery';
 /**
  * Internal dependencies
  */
 //from calypso
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW,
 } from 'woocommerce/woocommerce-services/state/action-types';
 
 const middlewareActions = {
@@ -12,6 +17,10 @@ const middlewareActions = {
 			return;
 		}
 		window.wc_shipment_tracking_refresh && window.wc_shipment_tracking_refresh();
+	},
+	[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW ]: () => {
+		//dismiss the nux pointer if the user opens the printing flow
+		jQuery( '#woocommerce-order-label' ).pointer( 'close' );
 	},
 };
 
