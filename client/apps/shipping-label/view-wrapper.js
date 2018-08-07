@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
-import { find } from 'lodash';
+import { find, get } from 'lodash';
 
 /**
  * Internal dependencies
@@ -26,6 +26,7 @@ import Notice from 'components/notice';
 import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
+	getForm,
 	areLabelsFullyLoaded,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import {
@@ -38,6 +39,8 @@ import {
 	getActivityLogEvents,
 } from 'woocommerce/state/sites/orders/activity-log/selectors';
 import { fetchOrder } from 'woocommerce/state/sites/orders/actions';
+
+const ACCEPTED_USPS_ORIGIN_COUNTRY_CODES = [ 'US' ];
 
 class ShippingLabelViewWrapper extends Component {
 	static propTypes = {
@@ -145,6 +148,14 @@ class ShippingLabelViewWrapper extends Component {
 		);
 	};
 
+	renderOriginCountryWarning = () => {
+		return (
+			<div>
+				{ this.props.translate( 'We only support shipping from the US. Looks like this order is set in ${country}. You can install ShipStation to print a shipping label using your local service.' ) }
+			</div>
+		);
+	};
+
 	handleButtonClick = () => {
 		const {
 			orderId,
@@ -167,9 +178,17 @@ class ShippingLabelViewWrapper extends Component {
 			loaded,
 			labelsEnabled,
 			selectedPaymentMethod,
+			originCountry,
+			isSupportedOriginCountry,
 		} = this.props;
 
-		const shouldRenderButton = ! loaded || labelsEnabled && selectedPaymentMethod;
+		// while loading, labelsEnabled is false, but we still want to show the button placeholder
+		// TODO: pass shouldRenderButton into renderLabelButton so that this logic is a bit simpler
+		const shouldRenderButton = ! loaded || labelsEnabled
+			&& selectedPaymentMethod
+			&& isSupportedOriginCountry;
+
+		const shouldRenderPaymentInfo = isSupportedOriginCountry;
 
 		return (
 			<div className="shipping-label__container">
@@ -177,7 +196,8 @@ class ShippingLabelViewWrapper extends Component {
 					<GlobalNotices notices={ notices.list } />
 					<QueryLabels orderId={ orderId } siteId={ siteId } />
 					<LabelPurchaseDialog orderId={ orderId } siteId={ siteId } />
-					{ this.renderPaymentInfo() }
+					{ originCountry && ! isSupportedOriginCountry && this.renderOriginCountryWarning() }
+					{ shouldRenderPaymentInfo && this.renderPaymentInfo() }
 					{ shouldRenderButton && this.renderLabelButton() }
 				</div>
 				{ this.renderActivityLog() }
@@ -196,7 +216,13 @@ export default connect(
 		const selectedPaymentMethod = loaded ? find( paymentMethods, { payment_method_id: paymentMethodId } ) : null;
 		const events = getActivityLogEvents( state, orderId );
 
+		const formData = getForm( state, orderId, siteId );
+		const originCountry = get( formData, 'origin.values.country' );
+		const isSupportedOriginCountry = ACCEPTED_USPS_ORIGIN_COUNTRY_CODES.includes( originCountry );
+
 		return {
+			originCountry,
+			isSupportedOriginCountry,
 			siteId,
 			loaded,
 			labelsEnabled: areLabelsEnabled( state, siteId ),

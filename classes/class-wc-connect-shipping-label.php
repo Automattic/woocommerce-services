@@ -396,23 +396,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return true;
 			}
 
-			// Restrict showing the metabox to supported store currencies.
-			$base_currency = get_woocommerce_currency();
-			if ( ! $this->is_supported_currency( $base_currency ) ) {
-				return false;
-			}
-
-			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
-			$base_location = wc_get_base_location();
-			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
-				return false;
-			}
-
-			$dest_address = $order->get_address( 'shipping' );
-			if ( ! $this->is_supported_address( $dest_address ) ) {
-				return false;
-			}
-
 			// If the order was created using WCS checkout rates, show the meta-box regardless of the products' state
 			if ( $this->get_packaging_metadata( $order ) ) {
 				return true;
