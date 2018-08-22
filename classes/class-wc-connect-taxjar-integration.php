@@ -342,6 +342,15 @@ class WC_Connect_TaxJar_Integration {
 		$this->response_rate_ids = $taxes['rate_ids'];
 		$this->response_line_items = $taxes['line_items'];
 
+		if ( isset( $this->response_line_items ) ) {
+			foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
+				$line_item = $this->get_line_item( $response_line_item_key, $line_items );
+ 				if ( isset( $line_item ) ) {
+					$this->response_line_items[ $response_line_item_key ]->line_total = ( $line_item['unit_price'] * $line_item['quantity'] ) - $line_item['discount'];
+				}
+			}
+		}
+
 		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
 			$product = $cart_item['data'];
 			$line_item_key = $product->get_id() . '-' . $cart_item_key;
@@ -566,6 +575,15 @@ class WC_Connect_TaxJar_Integration {
 		return $line_items;
 	}
 
+	protected function get_line_item( $id, $line_items ) {
+		foreach ( $line_items as $line_item ) {
+			if ( $line_item['id'] === $id ) {
+				return $line_item;
+			}
+		}
+ 		return null;
+	}
+
 	/**
 	 * Override Woo's native tax rates to handle multiple line items with the same tax rate
 	 * within the same tax class with different rates due to exemption thresholds
@@ -596,7 +614,7 @@ class WC_Connect_TaxJar_Integration {
 
 			foreach ( $this->response_line_items as $line_item_key => $line_item ) {
 				// If line item belongs to rate and matches the price, manually set the tax
-				if ( in_array( $line_item_key, $line_items ) && $price == $line_item->taxable_amount ) {
+				if ( in_array( $line_item_key, $line_items ) && $price == $line_item->line_total ) {
 					if ( function_exists( 'wc_add_number_precision' ) ) {
 						$taxes[ $tax_rate_id ] = wc_add_number_precision( $line_item->tax_collectable );
 					} else {
