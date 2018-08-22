@@ -66,10 +66,6 @@ class WC_Connect_TaxJar_Integration {
 		// Settings values filter to handle the hardcoded settings
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( $this, 'sanitize_tax_option' ), 10, 2 );
 
-		// Settings Page
-		add_action( 'woocommerce_sections_tax', array( $this, 'output_sections_before' ),  9 );
-		add_action( 'woocommerce_sections_tax', array( $this, 'output_sections_after' ),  11 );
-
 		// Bow out if we're not wanted
 		if ( ! $this->is_enabled() ) {
 			return;
@@ -197,28 +193,6 @@ class WC_Connect_TaxJar_Integration {
 				update_option( $option, $value );
 			}
 		}
-	}
-
-	/**
-	 * Hack to hide the tax sections for additional tax class rate tables.
-	 */
-	public function output_sections_before() {
-		if ( ! $this->is_enabled() ) {
-			return;
-		}
-		?>
-		<div style="display: none">
-		<?php
-	}
-
-	/**
-	 * Hack to hide the tax sections for additional tax class rate tables.
-	 */
-	public function output_sections_after() {
-		if ( ! $this->is_enabled() ) {
-			return;
-		}
-		?></div><?php
 	}
 
 	/**
