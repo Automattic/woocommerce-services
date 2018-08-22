@@ -419,7 +419,9 @@ class WC_Connect_TaxJar_Integration {
 		} else { // Recalculate tax for Woo 2.6 to apply new tax rates
 			if ( class_exists( 'WC_AJAX' ) ) {
 				remove_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-				WC_AJAX::calc_line_taxes();
+				if ( check_ajax_referer( 'calc-totals', 'security', false ) ) {
+					WC_AJAX::calc_line_taxes();
+				}
 				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
 			}
 		}
