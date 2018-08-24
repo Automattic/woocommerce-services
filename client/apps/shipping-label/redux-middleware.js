@@ -20,7 +20,10 @@ const middlewareActions = {
 	},
 	[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW ]: () => {
 		//dismiss the nux pointer if the user opens the printing flow
-		jQuery( '#woocommerce-order-label' ).pointer( 'close' );
+		const labelMetabox = jQuery( '#woocommerce-order-label' );
+		if ( labelMetabox.pointer ) {
+			labelMetabox.pointer().pointer( 'close' );
+		}
 	},
 };
 
