@@ -285,6 +285,12 @@ class WC_Connect_TaxJar_Integration {
 	public function _error( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
+		//ignore error messages caused by customer input
+		if ( 1 === preg_match( '/to_zip .* is not used within to_state/', $formatted_message ) ) {
+			wc_add_notice( __( 'ZIP does not match the selected state.', 'woocommerce-services' ), 'error' );
+			return;
+		}
+
 		$this->logger->error( $formatted_message, 'WCS Tax' );
 	}
 
