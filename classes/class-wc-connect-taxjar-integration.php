@@ -286,8 +286,22 @@ class WC_Connect_TaxJar_Integration {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
 		//ignore error messages caused by customer input
-		if ( 1 === preg_match( '/to_zip .* is not used within to_state/', $formatted_message ) ) {
-			wc_add_notice( __( 'ZIP does not match the selected state.', 'woocommerce-services' ), 'error' );
+		$state_zip_mismatch = 1 === preg_match( '/to_zip [^"}]* is not used within to_state/', $formatted_message );
+		$invalid_postcode = 1 === preg_match( '/isn\'t a valid postal code for/', $formatted_message );
+		if ( $state_zip_mismatch || $invalid_postcode ) {
+			$fields = WC()->countries->get_address_fields();
+			$postcode_field_name = __( 'Postcode / ZIP', 'woocommerce-services' );
+			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
+				$postcode_field_name = $fields['billing_postcode']['label'];
+			}
+
+			if ( $state_zip_mismatch ) {
+				$message = sprintf( __( '%s does not match the selected state.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
+			} else {
+				$message = sprintf( __( 'Invalid %s entered.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
+			}
+			wc_add_notice( $message, 'error' );
+
 			return;
 		}
 
