@@ -296,9 +296,9 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			if ( $state_zip_mismatch ) {
-				$message = sprintf( __( '%s does not match the selected state.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
+				$message = sprintf( _x( '%s does not match the selected state.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			} else {
-				$message = sprintf( __( 'Invalid %s entered.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
+				$message = sprintf( _x( 'Invalid %s entered.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 			wc_add_notice( $message, 'error' );
 
