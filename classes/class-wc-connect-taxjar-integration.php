@@ -12,6 +12,11 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public $logger;
 
+	/**
+	 * @var string
+	 */
+	public $wc_connect_base_url;
+
 	private $expected_options = array(
 		// If automated taxes are enabled and user disables taxes we re-enable them
 		'woocommerce_calc_taxes' => 'yes',
@@ -37,10 +42,12 @@ class WC_Connect_TaxJar_Integration {
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
-		WC_Connect_Logger $logger
+		WC_Connect_Logger $logger,
+		string $wc_connect_base_url
 	) {
 		$this->api_client = $api_client;
 		$this->logger = $logger;
+		$this->wc_connect_base_url = $wc_connect_base_url;
 
 		// Cache rates for 1 hour.
 		$this->cache_time = HOUR_IN_SECONDS;
@@ -70,6 +77,9 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! $this->is_enabled() ) {
 			return;
 		}
+
+		// Scripts / Stylesheets
+		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
 
 		$this->configure_tax_settings();
 
@@ -1079,5 +1089,27 @@ class WC_Connect_TaxJar_Integration {
 		// Delete all tax rates
 		$wpdb->query( 'TRUNCATE ' . $wpdb->prefix . 'woocommerce_tax_rates' );
 		$wpdb->query( 'TRUNCATE ' . $wpdb->prefix . 'woocommerce_tax_rate_locations' );
+	}
+
+	/**
+	 * Checks if currently on the WooCommerce new order page
+	 *
+	 * @return boolean
+	 */
+	public function on_order_page() {
+		global $pagenow;
+		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] );
+	}
+
+	/**
+	 * Admin New Order Assets
+	 */
+	public function load_taxjar_admin_new_order_assets() {
+		if ( ! $this->on_order_page() ) {
+			return;
+		}
+		// Load Javascript for WooCommerce new order page
+		wp_register_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar.js' );
+		wp_enqueue_script( 'wc-taxjar-order' , array( 'jquery' ) );
 	}
 }
