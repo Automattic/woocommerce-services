@@ -12,9 +12,6 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public $logger;
 
-	/**
-	 * @var string
-	 */
 	public $wc_connect_base_url;
 
 	private $expected_options = array(
@@ -43,7 +40,7 @@ class WC_Connect_TaxJar_Integration {
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Logger $logger,
-		string $wc_connect_base_url
+		$wc_connect_base_url
 	) {
 		$this->api_client = $api_client;
 		$this->logger = $logger;
