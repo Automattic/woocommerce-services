@@ -486,11 +486,12 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( 'base' === $tax_based_on ) {
-			$country  = WC()->countries->get_base_country();
-			$state    = WC()->countries->get_base_state();
-			$postcode = WC()->countries->get_base_postcode();
-			$city     = WC()->countries->get_base_city();
-			$street   = WC()->countries->get_base_address();
+			$store_settings = $this->get_store_settings();
+			$country  = $store_settings['country'];
+			$state    = $store_settings['state'];
+			$postcode = $store_settings['postcode'];
+			$city     = $store_settings['city'];
+			$street   = $store_settings['street'];
 		} elseif ( 'billing' === $tax_based_on ) {
 			$country  = WC()->customer->get_billing_country();
 			$state    = WC()->customer->get_billing_state();
