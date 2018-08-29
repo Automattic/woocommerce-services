@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.15.1
+ * Version: 1.16.0
  * WC requires at least: 3.0.0
  * WC tested up to: 3.4.3
  *
@@ -674,6 +674,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'update_option_woocommerce_dimension_unit', array( $this, 'queue_service_schema_refresh' ) );
 
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+			add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
@@ -812,6 +813,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
+		}
+
+		/**
+		 * If the required v3 REST API endpoints haven't been loaded at this point, load the local copies of said endpoints.
+		 * Delete this when the "v3" REST API is included in all the WC versions we support.
+		 */
+		public function wc_api_dev_init() {
+			$rest_server = rest_get_server();
+			$existing_routes = $rest_server->get_routes();
+			if ( ! isset( $existing_routes['/wc/v3/data/continents'] ) ) {
+				require_once( plugin_basename( 'classes/wc-api-dev/class-wc-rest-dev-data-controller.php' ) );
+				require_once( plugin_basename( 'classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php' ) );
+				$continents = new WC_REST_Dev_Data_Continents_Controller();
+				$continents->register_routes();
+			}
 		}
 
 		/**

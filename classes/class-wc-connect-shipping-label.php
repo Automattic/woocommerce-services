@@ -25,21 +25,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $payment_methods_store;
 
 		/**
-		 * @var array Supported countries
+		 * @var array Supported countries by USPS, see: https://webpmt.usps.gov/pmt010.cfm
 		 */
-		private $supported_countries = array( 'US', 'PR' );
+		private $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
 
 		/**
 		 * @var array Supported currencies
 		 */
 		private $supported_currencies = array( 'USD' );
-
-		/**
-		 * @var array Unsupported states, by country
-		 */
-		private $unsupported_states = array(
-			'US' => array( 'AA', 'AE', 'AP' ),
-		);
 
 		private $show_metabox = null;
 
@@ -71,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			$product_data = array(
 				'height'     => (float) $height,
-				'product_id' => $item['product_id'],
+				'product_id' => $product->get_id(),
 				'length'     => (float) $length,
 				'quantity'   => 1,
 				'weight'     => (float) $weight,
@@ -85,33 +78,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			return $product_data;
-		}
-
-		public function get_items_as_individual_packages( WC_Order $order ) {
-			$packages   = array();
-			$item_count = 0;
-
-			foreach ( $order->get_items() as $item ) {
-				$item_data = $this->get_item_data( $order, $item );
-				if ( null === $item_data ) {
-					continue;
-				}
-
-				for ( $i = 0; $i < $item['qty']; $i++ ) {
-					$id = 'weight_' . $item_count++ . '_individual';
-					$packages[ $id ] = array(
-						'id'     => $id,
-						'box_id' => 'individual',
-						'height' => $item_data['height'],
-						'length' => $item_data['length'],
-						'weight' => $item_data['weight'],
-						'width'  => $item_data['width'],
-						'items'  => array( $item_data ),
-					);
-				}
-			}
-
-			return $packages;
 		}
 
 		protected function get_packaging_from_shipping_method( $shipping_method ) {
@@ -178,7 +144,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$items = $this->get_all_items( $order );
 				$weight = array_sum( wp_list_pluck( $items, 'weight' ) );
 
-				return array(
+				$packages = array(
 					'default_box' => array(
 						'id'     => 'default_box',
 						'box_id' => 'not_selected',
@@ -209,8 +175,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 							$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 							$product_data['attributes'] = $formatted;
 						}
+						$customs_info = get_post_meta( $product_data['product_id'], 'wc_connect_customs_info', true );
+						if ( $customs_info ) {
+							$product_data = array_merge( $product_data, $customs_info );
+						}
 					} else {
 						$product_data['name'] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_data['product_id'], $order );
+					}
+					$product_data['value'] = WC_Connect_Compatibility::instance()->get_product_price_from_order( $product_data['product_id'], $order );
+					if ( ! isset( $product_data['value'] ) ) {
+						$product_data['value'] = 0;
 					}
 
 					$formatted_packages[ $package_id ]['items'][ $item_index ] = $product_data;
@@ -318,62 +292,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		private function is_supported_state( $country_code, $state_code ) {
-			if ( ! $country_code || ! $state_code ) {
-				return true;
-			}
-
-			if ( ! array_key_exists( $country_code, $this->unsupported_states ) ) {
-				return true;
-			}
-
-			return ! in_array( $state_code, $this->unsupported_states[ $country_code ] );
-		}
-
 		private function is_supported_country( $country_code ) {
 			return in_array( $country_code, $this->supported_countries );
 		}
 
 		private function is_supported_currency( $currency_code ) {
 			return in_array( $currency_code, $this->supported_currencies );
-		}
-
-		private function is_supported_address( $address ) {
-			$country_code = $address['country'];
-			if ( ! $country_code ) {
-				return true;
-			}
-
-			if ( ! $this->is_supported_country( $country_code ) ) {
-				return false;
-			}
-
-			$state_code = $address['state'];
-			return $this->is_supported_state( $country_code, $state_code );
-		}
-
-		protected function get_states_map() {
-			$result = array();
-			$all_countries = WC()->countries->get_countries();
-
-			foreach ( $this->supported_countries as $country_code ) {
-				$country_data = array( 'name' => html_entity_decode( $all_countries[ $country_code ] ) );
-				$states = WC()->countries->get_states( $country_code );
-
-				if ( $states ) {
-					$country_data['states'] = array();
-					foreach ( $states as $state_code => $name ) {
-						if ( ! $this->is_supported_state( $country_code, $state_code ) ) {
-						  continue;
-						}
-						$country_data['states'][ $state_code ] = html_entity_decode( $name );
-					}
-				}
-
-				$result[ $country_code ] = $country_data;
-			}
-
-			return $result;
 		}
 
 		public function should_show_meta_box() {
@@ -402,14 +326,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			// Restrict showing the meta-box to supported origin and destinations: US domestic, for now
 			$base_location = wc_get_base_location();
 			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
-				return false;
-			}
-
-			$dest_address = $order->get_address( 'shipping' );
-			if ( ! $this->is_supported_address( $dest_address ) ) {
 				return false;
 			}
 
@@ -435,21 +353,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			$account_settings = $this->settings_store->get_account_settings();
-
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
 				'orderId'            => $order_id,
 				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
 				'formData'           => $this->get_form_data( $order ),
 				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
+				'storeOptions'       => $this->settings_store->get_store_options(),
 				//for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions
 				'canChangeCountries' => true,
 			);
-
-			$store_options = $this->settings_store->get_store_options();
-			$store_options['countriesData'] = $this->get_states_map();
-			$payload['storeOptions'] = $store_options;
 
 			return $payload;
 		}

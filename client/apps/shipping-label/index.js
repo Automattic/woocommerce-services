@@ -17,6 +17,9 @@ import ordersReducer from 'woocommerce/state/sites/orders/reducer';
 import { combineReducers } from 'state/utils';
 import orders from 'woocommerce/state/data-layer/orders';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
+import locations from 'woocommerce/state/data-layer/data/locations';
+import locationsReducer from 'woocommerce/state/sites/data/locations/reducer';
+import { mergeHandlers } from 'state/action-watchers/utils';
 
 export default ( { orderId } ) => {
 	return {
@@ -34,6 +37,9 @@ export default ( { orderId } ) => {
 						sites: combineReducers( {
 							1: combineReducers( {
 								orders: ordersReducer,
+								data: combineReducers( {
+									locations: locationsReducer,
+								} )
 							} ),
 						} ),
 					} ),
@@ -74,7 +80,7 @@ export default ( { orderId } ) => {
 		},
 
 		getMiddlewares() {
-			return [ reduxMiddleware, rawWpcomApiMiddleware( orders ) ];
+			return [ reduxMiddleware, rawWpcomApiMiddleware( mergeHandlers( orders, locations ) ) ];
 		},
 
 		View: () => (
