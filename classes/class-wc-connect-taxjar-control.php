@@ -44,6 +44,11 @@ class WC_Connect_TaxJar_Control {
 			return $options;
 		}
 
+		//force TaxJar to validate the order download field to fully disable the functionality if it was enabled
+		$integrations = WC()->integrations->get_integrations();
+		$taxjar_integration = $integrations['taxjar-integration'];
+		$taxjar_integration->validate_taxjar_download_field( 'woocommerce_taxjar-integration_taxjar_download' );
+
 		$options['enabled'] = 'yes';
 		return $options;
 	}
