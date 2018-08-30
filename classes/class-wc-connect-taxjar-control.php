@@ -28,6 +28,7 @@ class WC_Connect_TaxJar_Control {
 			return;
 		}
 
+		add_filter( 'taxjar_enabled', array( $this, 'enable_taxjar' ), 10, 1 );
 		add_filter( 'taxjar_method_description', array( $this, 'taxjar_method_description' ), 10, 1 );
 		add_filter( 'taxjar_should_check_status', array( $this, 'should_check_status' ), 10, 1 );
 		add_filter( 'taxjar_api_token_valid', array( $this, 'validate_api_token' ), 10, 1 );
@@ -37,6 +38,16 @@ class WC_Connect_TaxJar_Control {
 		add_filter( 'taxjar_download_orders', array( $this, 'should_download_orders' ), 10, 1 );
 		add_filter( 'woocommerce_settings_api_sanitized_fields_taxjar-integration', array( $this, 'options_save' ), 10, 1 );
 		add_action( 'taxjar_log', array( $this, 'log' ), 10, 1 );
+	}
+
+	/**
+	 * Filter function that takes the existing TaxJar enabled state and forces the automated taxes to be enabled
+	 * This handles the case where automated taxes were selected in the wizard and the user has not changed anything on the settings page
+	 * @param $value - original TaxJar value
+	 * @return boolean - true if WCS control is enabled, regardless of $value
+	 */
+	public function enable_taxjar( $value ) {
+		return $value || $this->is_enabled();
 	}
 
 	public function options_save( $options ) {
