@@ -190,8 +190,23 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				exit;
 			}
 
-			wp_enqueue_style( 'wc_connect_banner' );
-			add_action( 'admin_notices', array( $this, 'banner' ) );
+			$screen = get_current_screen();
+
+			if ( // Display if on any of these admin pages.
+				'dashboard' === $screen->id
+				|| 'plugins' === $screen->id
+				|| ( // WooCommerce checkout settings.
+					'woocommerce_page_wc-settings' === $screen->base
+					&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
+					)
+				|| ( // WooCommerce payment gateway extension page.
+					'woocommerce_page_wc-addons' === $screen->base
+					&& isset( $_GET['section'] ) && 'payment-gateways' === $_GET['section']
+					)
+			) {
+				wp_enqueue_style( 'wc_connect_banner' );
+				add_action( 'admin_notices', array( $this, 'banner' ) );
+			}
 		}
 
 		public function banner() {
