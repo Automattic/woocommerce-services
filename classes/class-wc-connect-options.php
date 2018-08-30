@@ -49,6 +49,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'should_display_nux_after_jp_cxn_banner',
 				'needs_tax_environment_setup',
 				'stripe_state',
+				'banner_stripe',
 				'banner_ppec',
 			);
 		}

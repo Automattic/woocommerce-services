@@ -23,13 +23,19 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		private $logger;
 
+		/**
+		 * @var WC_Connect_Nux
+		 */
+		private $nux;
+
 		const STATE_VAR_NAME = 'stripe_state';
 		const SETTINGS_OPTION = 'woocommerce_stripe_settings';
 
-		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
+		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger, WC_Connect_Nux $nux ) {
 			$this->api = $client;
 			$this->options = $options;
 			$this->logger = $logger;
+			$this->nux = $nux;
 		}
 
 		public function is_stripe_plugin_enabled() {
@@ -170,6 +176,34 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			return $result;
+		}
+
+		public function maybe_show_banner() {
+			if ( 'yes' !== WC_Connect_Options::get_option( 'banner_stripe', null ) ) {
+				return;
+			}
+
+			if ( isset( $_GET[ 'wcs_stripe_code' ] ) ) {
+				$this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
+				WC_Connect_Options::delete_option( 'banner_stripe' );
+				wp_safe_redirect( remove_query_arg( array( 'wcs_stripe_state', 'wcs_stripe_code' ) ) );
+				exit;
+			}
+
+			wp_enqueue_style( 'wc_connect_banner' );
+			add_action( 'admin_notices', array( $this, 'banner' ) );
+		}
+
+		public function banner() {
+			$this->nux->show_nux_banner( array(
+				'title'          => __( 'Connect your account to activate Stripe', 'woocommerce-services' ),
+				'description'    => esc_html( __( 'To start accepting payments with Stripe, you need to connect your site to a Stripe account.', 'woocommerce-services' ) ),
+				'button_text'    => __( 'Connect', 'woocommerce-services' ),
+				'button_link'    => $this->get_oauth_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' ) ),
+				'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
+				'should_show_jp' => false,
+				'dismissible_id' => 'stripe_connect',
+			) );
 		}
 
 		/**
