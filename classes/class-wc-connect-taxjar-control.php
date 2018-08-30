@@ -60,7 +60,11 @@ class WC_Connect_TaxJar_Control {
 		$taxjar_integration = $integrations['taxjar-integration'];
 		$taxjar_integration->validate_taxjar_download_field( 'woocommerce_taxjar-integration_taxjar_download' );
 
+		$options['api_token'] = '';
 		$options['enabled'] = 'yes';
+		$options['taxjar_download'] = 'no';
+		$options['nexus'] = '';
+
 		return $options;
 	}
 
