@@ -626,7 +626,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			?>
 			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
-				<div class="wcs-nux__notice-logo">
+				<div class="wcs-nux__notice-logo <?php echo isset( $content['compact_logo'] ) && $content['compact_logo'] ? 'is-compact' : ''; ?>">
 					<?php if ( $content['should_show_jp'] ) : ?>
 						<img
 							class="wcs-nux__notice-logo-jetpack"
