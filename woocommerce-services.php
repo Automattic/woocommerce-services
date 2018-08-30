@@ -160,7 +160,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $nux;
 
 		/**
-		 * @var WC_Connect_TaxJar_Integration
+		 * @var WC_Connect_TaxJar_Control
 		 */
 		protected $taxjar;
 
@@ -383,7 +383,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux = $nux;
 		}
 
-		public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
+		public function set_taxjar( WC_Connect_TaxJar_Control $taxjar ) {
 			$this->taxjar = $taxjar;
 		}
 
@@ -447,6 +447,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			$this->taxjar->init();
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
 		}
 
@@ -567,7 +568,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-control.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-compatibility.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-method.php' ) );
@@ -598,6 +599,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
+			$taxjar                = new WC_Connect_TaxJar_Control( $api_client, $taxes_logger );
 			$options               = new WC_Connect_Options();
 			$stripe                = new WC_Connect_Stripe( $api_client, $options, $payments_logger );
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
@@ -693,7 +695,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks = $this->get_tracks();
 			$tracks->init();
 
-			$this->taxjar->init();
 			$this->paypal_ec->init();
 		}
 
