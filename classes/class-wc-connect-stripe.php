@@ -156,5 +156,23 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 			return $result;
 		}
+
+		public function show_connected_account( $settings ) {
+			if ( is_wp_error( $this->get_account_details() ) ) {
+				return $settings;
+			}
+
+			ob_start();
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
+
+			$new_settings = array(
+				'connection_status' => array(
+					'type'        => 'title',
+					'title'       => __( 'Connected Stripe account', 'woocommerce-gateway-stripe' ),
+					'description' => ob_get_clean(),
+				),
+			);
+			return array_merge( $new_settings, $settings );
+		}
 	}
 }

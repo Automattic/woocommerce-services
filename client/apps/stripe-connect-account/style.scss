@@ -1,0 +1,19 @@
+.stripe__connect-account {
+	.stripe__connect-account-heading {
+		display: none;
+	}
+
+	.stripe__connect-account-body {
+		max-width: 545px;
+		border: 1px solid #ccc;
+		line-height: 1.5;
+	}
+
+	.stripe__connect-account-status {
+		vertical-align: sub;
+	}
+
+	.stripe__connect-account-disconnect {
+		vertical-align: bottom;
+	}
+}
