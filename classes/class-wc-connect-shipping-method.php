@@ -564,7 +564,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		public function are_shipping_classes_supported( $package ) {
 			$settings          = $this->get_service_settings();
-			$available_classes = property_exists( $settings, 'shipping_classes' ) ? $settings->shipping_classes : array();
+			$available_classes = property_exists( $settings, 'shipping_classes' )
+				? $settings->shipping_classes
+				: array();
 
 			// No checks needed if the method is not limited to certain classes.
 			if ( empty( $available_classes ) ) {
@@ -573,9 +575,43 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			// Go through the cart contents and check if all products are supported
 			foreach ( $package['contents'] as $item ) {
-				$shipping_class = $item['data']->get_shipping_class_id();
+				$shipping_class_id = $item['data']->get_shipping_class_id();
 
-				if ( ! in_array( $shipping_class, $available_classes, true ) ) {
+				if ( ! in_array( $shipping_class_id, $available_classes, true ) ) {
+					/*
+					 * Translators: %s represents
+					 * 1) The name of the shipping method.
+					 * 2) The name of the product.
+					 * 3) The shipping class of the product.
+					 * 4) The shipping classes supported by the method.
+					 */
+					$message = __( 'Skipping the "%1$s" shipping method because %2$s (%3$s) does not match the shipping classes specified in the method settings (%4$s).', 'woocommerce-services' );
+
+					$product_class_name = __( 'No shipping class', 'woocommerce-services' );
+					if ( $shipping_class_id ) {
+						$shipping_class = get_term_by( 'id', $shipping_class_id, 'product_shipping_class' );
+
+						if ( $shipping_class ) {
+							$product_class_name = $shipping_class->name;
+						}
+					}
+
+					$method_classes = get_terms( array(
+						'taxonomy'   => 'product_shipping_class',
+						'hide_empty' => false,
+						'include'    => $available_classes,
+					) );
+
+					$message = sprintf(
+						$message,
+						$this->title,
+						$item['data']->get_title(),
+						$product_class_name,
+						implode( wp_list_pluck( $method_classes, 'name' ), ', ' )
+					);
+
+					$this->debug( $message );
+
 					return false;
 				}
 			}
