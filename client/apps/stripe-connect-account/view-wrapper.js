@@ -3,7 +3,6 @@
  */
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 
 /**
  * Internal dependencies
@@ -60,8 +59,12 @@ export default connect(
 			isDeauthorizing: getIsDeauthorizing( state, siteId ),
 		};
 	},
-	dispatch => bindActionCreators( {
-		fetchAccountDetails,
-		deauthorizeAccount,
-	}, dispatch )
+	dispatch => ( {
+		fetchAccountDetails: ( siteId ) => dispatch( fetchAccountDetails( siteId ) ),
+		deauthorizeAccount: ( siteId ) => {
+			dispatch( deauthorizeAccount( siteId ) ).then( () => {
+				window.location.reload( true );
+			} );
+		},
+	} ),
 )( StripeConnectAccountWrapper );
