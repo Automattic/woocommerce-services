@@ -166,6 +166,7 @@ class WC_Connect_TaxJar_Control {
 		// Migrate automated taxes selection from the setup wizard
 		if ( get_option( self::SETUP_WIZARD_OPTION_NAME ) ) {
 			$taxjar_settings['wcs_taxjar_control'] = 'yes';
+			update_option( 'woocommerce_taxjar-integration_settings', $taxjar_settings );
 			delete_option( self::SETUP_WIZARD_OPTION_NAME );
 
 			return true;
