@@ -602,12 +602,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'include'    => $available_classes,
 					) );
 
+					if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
+						$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
+					} else {
+						$class_names = __( 'No shipping classes found', 'woocommerce-services' );
+					}
+
 					$message = sprintf(
 						$message,
 						$this->title,
 						$item['data']->get_title(),
 						$product_class_name,
-						implode( wp_list_pluck( $method_classes, 'name' ), ', ' )
+						$class_names
 					);
 
 					$this->debug( $message );
