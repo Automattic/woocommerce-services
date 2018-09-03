@@ -288,7 +288,7 @@ class WC_Connect_TaxJar_Integration {
 		//ignore error messages caused by customer input
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
-		if ( $state_zip_mismatch || $invalid_postcode ) {
+		if ( ! is_admin() && ( $state_zip_mismatch || $invalid_postcode ) ) {
 			$fields = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'Postcode / ZIP', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
