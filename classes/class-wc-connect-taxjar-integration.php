@@ -300,7 +300,10 @@ class WC_Connect_TaxJar_Integration {
 			} else {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - Postcode/Zip checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
-			wc_add_notice( $message, 'error' );
+
+			if ( ! wc_has_notice( $message, 'error' ) ) {
+				wc_add_notice( $message, 'error' );
+			}
 
 			return;
 		}
