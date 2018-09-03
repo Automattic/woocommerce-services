@@ -32,19 +32,7 @@ class WC_REST_Connect_Stripe_Account_Controller extends WC_REST_Connect_Base_Con
 			);
 		}
 
-		return array(
-			'success'         => true,
-			'account_id'      => $response->accountId,
-			'display_name'    => $response->displayName,
-			'email'           => $response->email,
-			'business_logo'   => $response->businessLogo,
-			'legal_entity'    => array(
-				'first_name'      => $response->legalEntity->firstName,
-				'last_name'       => $response->legalEntity->lastName
-			),
-			'payouts_enabled' => $response->payoutsEnabled
-		);
-
+		return array_merge( array( 'success' => true ), $response );
 	}
 
 	public function post( $request ) {
