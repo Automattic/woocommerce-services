@@ -36,7 +36,7 @@ class StripeConnectAccountWrapper extends Component {
 		if ( ! stripeConnectAccount.connectedUserID ) {
 			return (
 				<Notice showDismiss={ false } isCompact isLoading>
-					{ translate( 'Account disconnected. Reloading page...' ) }
+					{ translate( 'Account disconnected. Reloading page…' ) }
 				</Notice>
 			);
 		}
