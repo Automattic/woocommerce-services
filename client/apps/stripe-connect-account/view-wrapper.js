@@ -3,12 +3,14 @@
  */
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { localize } from 'i18n-calypso';
 
 /**
  * Internal dependencies
  */
 // from calypso
 import StripeConnectAccount from 'woocommerce/app/settings/payments/stripe/payment-method-stripe-connect-account';
+import Notice from 'components/notice';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	getStripeConnectAccount,
@@ -28,10 +30,15 @@ class StripeConnectAccountWrapper extends Component {
 		const {
 			stripeConnectAccount,
 			isDeauthorizing,
+			translate,
 		} = this.props;
 
 		if ( ! stripeConnectAccount.connectedUserID ) {
-			return null;
+			return (
+				<Notice showDismiss={ false } isCompact isLoading>
+					{ translate( 'Account disconnected. Reloading page...' ) }
+				</Notice>
+			);
 		}
 
 		return (
@@ -60,4 +67,4 @@ export default connect(
 			} );
 		},
 	} ),
-)( StripeConnectAccountWrapper );
+)( localize( StripeConnectAccountWrapper ) );
