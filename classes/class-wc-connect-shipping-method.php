@@ -547,7 +547,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return false;
 			}
 
-			if ( ! $this->are_shipping_classes_supported( $package ) ) {
+			if ( ! $this->matches_package_shipping_classes( $package ) ) {
 				return false;
 			}
 
@@ -562,14 +562,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param array $package The contents of a package.
 		 * @return bool
 		 */
-		public function are_shipping_classes_supported( $package ) {
-			$settings          = $this->get_service_settings();
-			$available_classes = property_exists( $settings, 'shipping_classes' )
+		public function matches_package_shipping_classes( $package ) {
+			$settings       = $this->get_service_settings();
+			$method_classes = property_exists( $settings, 'shipping_classes' )
 				? $settings->shipping_classes
 				: array();
 
 			// No checks needed if the method is not limited to certain classes.
-			if ( empty( $available_classes ) ) {
+			if ( empty( $method_classes ) ) {
 				return true;
 			}
 
@@ -577,17 +577,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			foreach ( $package['contents'] as $item ) {
 				$shipping_class_id = $item['data']->get_shipping_class_id();
 
-				if ( ! in_array( $shipping_class_id, $available_classes, true ) ) {
-					/*
-					 * Translators: %s represents
-					 * 1) The name of the shipping method.
-					 * 2) The name of the product.
-					 * 3) The shipping class of the product.
-					 * 4) The shipping classes supported by the method.
-					 */
-					$message = __( 'Skipping the "%1$s" shipping method because %2$s (%3$s) does not match the shipping classes specified in the method settings (%4$s).', 'woocommerce-services' );
+				if ( ! in_array( $shipping_class_id, $method_classes, true ) ) {
+					$message = 'Skipping the "%1$s" shipping method because %2$s (%3$s) does not match the shipping classes specified in the method settings (%4$s).';
 
-					$product_class_name = __( 'No shipping class', 'woocommerce-services' );
+					$product_class_name = 'No shipping class';
 					if ( $shipping_class_id ) {
 						$shipping_class = get_term_by( 'id', $shipping_class_id, 'product_shipping_class' );
 
@@ -599,13 +592,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					$method_classes = get_terms( array(
 						'taxonomy'   => 'product_shipping_class',
 						'hide_empty' => false,
-						'include'    => $available_classes,
+						'include'    => $method_classes,
 					) );
 
 					if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
 						$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
 					} else {
-						$class_names = __( 'No shipping classes found', 'woocommerce-services' );
+						$class_names = 'No shipping classes found';
 					}
 
 					$message = sprintf(
