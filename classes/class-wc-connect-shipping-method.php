@@ -581,7 +581,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					continue;
 				}
 
-				if ( ! $this->logger->is_debug_enabled() ) {
+				if (
+					! is_a( $this->logger, 'WC_Connect_Logger' )
+					|| ! $this->logger->is_debug_enabled()
+				) {
 					return false;
 				}
 
