@@ -577,42 +577,48 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			foreach ( $package['contents'] as $item ) {
 				$shipping_class_id = $item['data']->get_shipping_class_id();
 
-				if ( ! in_array( $shipping_class_id, $method_classes, true ) ) {
-					$message = 'Skipping the "%1$s" shipping method because %2$s (%3$s) does not match the shipping classes specified in the method settings (%4$s).';
+				if ( in_array( $shipping_class_id, $method_classes, true ) ) {
+					continue;
+				}
 
-					$product_class_name = 'No shipping class';
-					if ( $shipping_class_id ) {
-						$shipping_class = get_term_by( 'id', $shipping_class_id, 'product_shipping_class' );
-
-						if ( $shipping_class ) {
-							$product_class_name = $shipping_class->name;
-						}
-					}
-
-					$method_classes = get_terms( array(
-						'taxonomy'   => 'product_shipping_class',
-						'hide_empty' => false,
-						'include'    => $method_classes,
-					) );
-
-					if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
-						$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
-					} else {
-						$class_names = 'No shipping classes found';
-					}
-
-					$message = sprintf(
-						$message,
-						$this->title,
-						$item['data']->get_title(),
-						$product_class_name,
-						$class_names
-					);
-
-					$this->debug( $message );
-
+				if ( ! $this->logger->is_debug_enabled() ) {
 					return false;
 				}
+
+				$message = 'Skipping the "%1$s" shipping method because %2$s (%3$s) does not match the shipping classes specified in the method settings (%4$s).';
+
+				$product_class_name = 'No shipping class';
+				if ( $shipping_class_id ) {
+					$shipping_class = get_term_by( 'id', $shipping_class_id, 'product_shipping_class' );
+
+					if ( $shipping_class ) {
+						$product_class_name = $shipping_class->name;
+					}
+				}
+
+				$method_classes = get_terms( array(
+					'taxonomy'   => 'product_shipping_class',
+					'hide_empty' => false,
+					'include'    => $method_classes,
+				) );
+
+				if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
+					$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
+				} else {
+					$class_names = 'No shipping classes found';
+				}
+
+				$message = sprintf(
+					$message,
+					$this->title,
+					$item['data']->get_title(),
+					$product_class_name,
+					$class_names
+				);
+
+				$this->debug( $message );
+
+				return false;
 			}
 
 			return true;
