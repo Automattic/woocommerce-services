@@ -178,6 +178,12 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 			->method( 'get_service_settings' )
 			->will( $this->returnValue( $service_settings ) );
 
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+			->disableOriginalConstructor()
+			->getMock();
+		$logger->enable_debug();
+		$shipping_method->set_logger( $logger );
+
 		return $shipping_method;
 	}
 
