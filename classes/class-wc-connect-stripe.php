@@ -178,14 +178,24 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $result;
 		}
 
-		public function maybe_show_banner() {
-			if ( 'yes' !== WC_Connect_Options::get_option( 'banner_stripe', null ) ) {
+		public function maybe_show_notice() {
+			$setting = WC_Connect_Options::get_option( 'banner_stripe', null );
+			if ( is_null( $setting ) ) {
+				return;
+			}
+
+			if ( 'success' === $setting ) {
+				add_action( 'admin_notices', array( $this, 'connection_success_notice' ) );
+				WC_Connect_Options::delete_option( 'banner_stripe' );
 				return;
 			}
 
 			if ( isset( $_GET[ 'wcs_stripe_code' ] ) ) {
-				$this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
-				WC_Connect_Options::delete_option( 'banner_stripe' );
+				$response = $this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
+				if ( ! is_wp_error( $response ) ) {
+					WC_Connect_Options::update_option( 'banner_stripe', 'success' );
+				}
+
 				wp_safe_redirect( remove_query_arg( array( 'wcs_stripe_state', 'wcs_stripe_code' ) ) );
 				exit;
 			}
@@ -205,11 +215,11 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 					)
 			) {
 				wp_enqueue_style( 'wc_connect_banner' );
-				add_action( 'admin_notices', array( $this, 'banner' ) );
+				add_action( 'admin_notices', array( $this, 'connection_banner' ) );
 			}
 		}
 
-		public function banner() {
+		public function connection_banner() {
 			$this->nux->show_nux_banner( array(
 				'title'          => __( 'Connect your account to activate Stripe', 'woocommerce-services' ),
 				'description'    => esc_html( __( 'To start accepting payments with Stripe, you\'ll need to connect your site to a Stripe account.', 'woocommerce-services' ) ),
@@ -220,6 +230,14 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				'dismissible_id' => 'stripe_connect',
 				'compact_logo'   => true,
 			) );
+		}
+
+		public function connection_success_notice() {
+			?>
+				<div class="notice notice-success">
+					<p><?php echo wp_kses( '<strong>Ready to accept Stripe payments!</strong> Your Stripe account has been successfully connected. Additional settings can be configured on this screen.', array( 'strong' => array() ) ); ?></p>
+				</div>
+			<?php
 		}
 
 		/**
