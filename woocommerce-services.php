@@ -590,7 +590,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$core_logger           = new WC_Logger();
 			$logger                = new WC_Connect_Logger( $core_logger );
 			$taxes_logger          = new WC_Connect_Logger( $core_logger, 'taxes' );
-			$payments_logger       = new WC_Connect_Logger( $core_logger, 'payments' );
 			$shipping_logger       = new WC_Connect_Logger( $core_logger, 'shipping' );
 
 			$validator             = new WC_Connect_Service_Schemas_Validator();
@@ -603,7 +602,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
 			$options               = new WC_Connect_Options();
-			$stripe                = new WC_Connect_Stripe( $api_client, $options, $payments_logger, $nux );
+			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger, $nux );
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 

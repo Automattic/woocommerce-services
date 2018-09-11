@@ -220,11 +220,18 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function connection_banner() {
+			$result = $this->get_oauth_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' ) );
+
+			if ( is_wp_error( $result ) ) {
+				$this->logger->log( $result, __CLASS__ );
+				return;
+			}
+
 			$this->nux->show_nux_banner( array(
 				'title'          => __( 'Connect your account to activate Stripe', 'woocommerce-services' ),
 				'description'    => esc_html( __( 'To start accepting payments with Stripe, you\'ll need to connect your site to a Stripe account.', 'woocommerce-services' ) ),
 				'button_text'    => __( 'Connect', 'woocommerce-services' ),
-				'button_link'    => $this->get_oauth_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' ) ),
+				'button_link'    => $result,
 				'image_url'      => plugins_url( 'images/stripe.png', dirname( __FILE__ ) ),
 				'should_show_jp' => false,
 				'dismissible_id' => 'stripe_connect',
