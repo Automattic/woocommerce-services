@@ -47,7 +47,7 @@ This section describes how to install the plugin and get it working.
 = What services are included? =
 
 * Real-time shipping rates from USPS or Canada Post
-* USPS label purchase/printing (domestic USA only)
+* USPS label purchase/printing
 * Automated tax calculation
 * Stripe account provisioning (through WooCommerce setup wizard)
 * PayPal Checkout payment authorization
@@ -58,11 +58,11 @@ Yes, real-time rates in checkout are totally free.
 
 = Can I buy and print shipping labels for US domestic and international packages? =
 
-You can buy and print USPS shipping labels for domestic packages only. International shipping is not yet supported.
+Yes! You can buy and print USPS shipping labels for domestic and international destinations.
 
 = This works with WooCommerce, right? =
 
-Yep! WooCommerce version 2.6 or newer, please.
+Yep! WooCommerce version 3.0 or newer, please.
 
 = Why is a Jetpack Connection and WordPress.com account required? =
 
