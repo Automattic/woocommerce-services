@@ -172,11 +172,17 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $result;
 		}
 
+		/**
+		 * Make kses exception for attribute containing preloaded state.
+		 */
 		public function allow_args_attribute( $allowed ) {
 			$allowed['div']['data-args'] = true;
 			return $allowed;
 		}
 
+		/**
+		 * Add to settings page container for dynamically rendered connected account view.
+		 */
 		public function show_connected_account( $settings ) {
 			$account_details = $this->get_account_details();
 			if ( is_wp_error( $account_details ) ) {
