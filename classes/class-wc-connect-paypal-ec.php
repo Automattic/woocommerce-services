@@ -184,11 +184,11 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					&& 'post' === $screen->base
 					&& 'ppec_paypal' === WC_Connect_Compatibility::instance()->get_payment_method( wc_get_order() )
 					)
-				|| ( // WooCommerce payments settings.
+				|| ( // WooCommerce » Settings » Payments.
 					'woocommerce_page_wc-settings' === $screen->base
 					&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
 					)
-				|| ( // WooCommerce payment gateway extension page.
+				|| ( // WooCommerce » Extensions » Payments.
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'payment-gateways' === $_GET['section']
 					)

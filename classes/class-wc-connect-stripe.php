@@ -203,13 +203,13 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$screen = get_current_screen();
 
 			if ( // Display if on any of these admin pages.
-				'dashboard' === $screen->id
-				|| 'plugins' === $screen->id
-				|| ( // WooCommerce checkout settings.
+				'dashboard' === $screen->id // Dashboard.
+				|| 'plugins' === $screen->id // Plugins.
+				|| ( // WooCommerce » Settings » Payments.
 					'woocommerce_page_wc-settings' === $screen->base
 					&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
 					)
-				|| ( // WooCommerce payment gateway extension page.
+				|| ( // WooCommerce » Extensions » Payments.
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'payment-gateways' === $_GET['section']
 					)
