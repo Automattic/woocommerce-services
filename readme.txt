@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: canada-post, shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.9.6
-Stable tag: 1.16.0
+Stable tag: 1.16.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 10. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.16.1 =
+* Clear shipping rates when changing package weight or signature requirement so they can be recalculated
+* Correctly purchase a "First Class Envelope" or a "First Class Package Service" label depending if the package is an envelope or not
 
 = 1.16.0 =
 * Add international destinations support to USPS label printing
