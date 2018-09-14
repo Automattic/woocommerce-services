@@ -536,5 +536,93 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		/**
+		 * Is this method available?
+		 *
+		 * @param array $package Package.
+		 * @return bool
+		 */
+		public function is_available( $package ) {
+			if ( ! parent::is_available( $package ) ) {
+				return false;
+			}
+
+			if ( ! $this->matches_package_shipping_classes( $package ) ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
+		 * Checks whether the shipping classes of all products in a package are
+		 * actually supported by the method. If a single product has an un-supported class,
+		 * the whole package will not be supported by the method.
+		 *
+		 * @param array $package The contents of a package.
+		 * @return bool
+		 */
+		public function matches_package_shipping_classes( $package ) {
+			$settings       = $this->get_service_settings();
+			$method_classes = property_exists( $settings, 'shipping_classes' )
+				? $settings->shipping_classes
+				: array();
+
+			// No checks needed if the method is not limited to certain classes.
+			if ( empty( $method_classes ) ) {
+				return true;
+			}
+
+			// Go through the cart contents and check if all products are supported
+			foreach ( $package['contents'] as $item ) {
+				$shipping_class_id = $item['data']->get_shipping_class_id();
+
+				if ( in_array( $shipping_class_id, $method_classes, true ) ) {
+					continue;
+				}
+
+				if ( ! $this->logger->is_debug_enabled() ) {
+					return false;
+				}
+
+				$message = 'Skipping the "%1$s" shipping method because %2$s (%3$s) does not match the shipping classes specified in the method settings (%4$s).';
+
+				$product_class_name = 'No shipping class';
+				if ( $shipping_class_id ) {
+					$shipping_class = get_term_by( 'id', $shipping_class_id, 'product_shipping_class' );
+
+					if ( $shipping_class ) {
+						$product_class_name = $shipping_class->name;
+					}
+				}
+
+				$method_classes = get_terms( array(
+					'taxonomy'   => 'product_shipping_class',
+					'hide_empty' => false,
+					'include'    => $method_classes,
+				) );
+
+				if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
+					$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
+				} else {
+					$class_names = 'No shipping classes found';
+				}
+
+				$message = sprintf(
+					$message,
+					$this->title,
+					$item['data']->get_title(),
+					$product_class_name,
+					$class_names
+				);
+
+				$this->debug( $message );
+
+				return false;
+			}
+
+			return true;
+		}
+
 	}
 }

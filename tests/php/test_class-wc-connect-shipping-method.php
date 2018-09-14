@@ -129,4 +129,98 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Creates a package with mocked products, based on an array of shipping classes.
+	 *
+	 * @param int $classes[] An array of shipping class IDs.
+	 * @return array A fake package.
+	 */
+	public function mock_package_for_shipping_classes( $classes = array() ) {
+		$contents = array();
+
+		foreach ( $classes as $shipping_class ) {
+			$data_object = $this->getMockBuilder( 'WC_Product' )
+				->setConstructorArgs( array( null ) )
+				->setMethods( array( 'get_shipping_class_id' ) )
+				->getMock();
+
+			$data_object->expects( $this->any() )
+				->method( 'get_shipping_class_id' )
+				->will( $this->returnValue( $shipping_class ) );
+
+			$contents[] = array(
+				'data' => $data_object,
+			);
+		}
+
+		return array(
+			'contents' => $contents,
+		);
+	}
+
+	/**
+	 * Creates a new shipping class with certain shipping classes enabled.
+	 *
+	 * @param  int $classes An array of class IDs (optional).
+	 * @return WC_Connect_Shipping_Method
+	 */
+	public function create_with_shipping_classes( $classes = array() ) {
+		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
+			->setConstructorArgs( array( 123 ) )
+			->setMethods( array( 'get_service_settings' ) )
+			->getMock();
+
+		$service_settings = (object) array(
+			'shipping_classes' => $classes,
+		);
+
+		$shipping_method->expects( $this->any() )
+			->method( 'get_service_settings' )
+			->will( $this->returnValue( $service_settings ) );
+
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+			->disableOriginalConstructor()
+			->getMock();
+		$logger->enable_debug();
+		$shipping_method->set_logger( $logger );
+
+		return $shipping_method;
+	}
+
+	/**
+	 * @covers WC_Connect_Shipping_Method::are_shipping_classes_supported
+	 */
+	public function test_shipping_classes() {
+
+		define( 'BOOK', 11 );
+		define( 'CLOTHING', 23 );
+		define( 'OTHERS', 37 );
+
+		$empty           = $this->mock_package_for_shipping_classes();
+		$fully_valid     = $this->mock_package_for_shipping_classes( array( BOOK, CLOTHING ) );
+		$partially_valid = $this->mock_package_for_shipping_classes( array( BOOK, OTHERS ) );
+		$fully_invalid   = $this->mock_package_for_shipping_classes( array( OTHERS, OTHERS ) );
+
+		/**
+		 * Test with entered shipping classes
+		 */
+		$standard_method = $this->create_with_shipping_classes( array( BOOK, CLOTHING ) );
+
+		$this->assertTrue( $standard_method->is_available( $empty ) );
+		$this->assertTrue( $standard_method->is_available( $fully_valid ) );
+		$this->assertFalse( $standard_method->is_available( $partially_valid ) );
+		$this->assertFalse( $standard_method->is_available( $fully_invalid ) );
+
+		/**
+		 * Test without shipping classes, the method should be always available.
+		 */
+		$empty_method = $this->create_with_shipping_classes();
+
+		$this->assertTrue( $empty_method->is_available( $empty ) );
+		$this->assertTrue( $empty_method->is_available( $fully_valid ) );
+		$this->assertTrue( $empty_method->is_available( $partially_valid ) );
+		$this->assertTrue( $empty_method->is_available( $fully_invalid ) );
+
+	}
+
 }

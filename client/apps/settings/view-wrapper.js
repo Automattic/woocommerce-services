@@ -30,10 +30,12 @@ import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tr
 import CompactCard from 'components/card/compact';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
+import { areShippingClassesLoaded } from 'woocommerce/state/sites/shipping-classes/selectors';
 
 class ViewWrapper extends Component {
 	constructor( props ) {
 		super( props );
+
 		this.state = {
 			isSaving: false,
 		};
@@ -140,13 +142,16 @@ const saveChanges = ( successAction, failureAction ) => ( dispatch, getState ) =
 export default connect(
 	( state ) => {
 		const siteId = getSelectedSiteId( state );
-		const methodsLoaded = areShippingMethodsLoaded( state, siteId );
+
+		const dataIsFullyLoaded = areShippingMethodsLoaded( state, siteId )
+			&& areShippingClassesLoaded( state, siteId );
+
 		return {
 			siteId,
-			isLoaded: methodsLoaded,
-			method: methodsLoaded && getCurrentlyOpenShippingZoneMethod( state ),
-			hasEdits: methodsLoaded && hasEdits( state ),
-			anyErrors: methodsLoaded && hasNonEmptyLeaves( getFormErrors( state ) ),
+			isLoaded: dataIsFullyLoaded,
+			method: dataIsFullyLoaded && getCurrentlyOpenShippingZoneMethod( state ),
+			hasEdits: dataIsFullyLoaded && hasEdits( state ),
+			anyErrors: dataIsFullyLoaded && hasNonEmptyLeaves( getFormErrors( state ) ),
 		};
 	},
 	( dispatch ) => ( {
