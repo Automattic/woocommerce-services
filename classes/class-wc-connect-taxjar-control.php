@@ -95,7 +95,7 @@ class WC_Connect_TaxJar_Control {
 		return false;
 	}
 
-	public function smartcalcs_request( $json, $default ) {
+	public function smartcalcs_request( $default, $json ) {
 		if ( ! $this->is_enabled() ) {
 			return $default;
 		}
