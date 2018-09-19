@@ -100,9 +100,8 @@ class WC_Connect_TaxJar_Control {
 			return $default;
 		}
 
-		$this->log( 'Requesting: ' . $path . ' - ' . $json );
-
 		$path = trailingslashit( self::PROXY_PATH ) . 'taxes';
+		$this->log( 'Requesting: ' . $path . ' - ' . $json );
 		$response = $this->api_client->proxy_request( $path, array(
 			'method'  => 'POST',
 			'headers' => array(
