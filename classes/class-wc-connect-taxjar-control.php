@@ -77,7 +77,7 @@ class WC_Connect_TaxJar_Control {
 	}
 
 	public function should_check_status( $value ) {
-		return ! $this->is_enabled();
+		return $value && ! $this->is_enabled();
 	}
 
 	public function validate_api_token( $is_valid ) {
