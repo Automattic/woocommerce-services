@@ -233,9 +233,14 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				return;
 			}
 
+			$options = get_option( self::SETTINGS_OPTION, array() );
+
 			$this->nux->show_nux_banner( array(
-				'title'          => __( 'Connect your account to activate Stripe', 'woocommerce-services' ),
-				'description'    => esc_html( __( 'To start accepting payments with Stripe, you\'ll need to connect your site to a Stripe account.', 'woocommerce-services' ) ),
+				'title'          => __( 'Connect your account', 'woocommerce-services' ),
+				'description'    => wp_kses(
+					sprintf( __( 'It looks like there is an existing Stripe account at <strong>%s</strong>. To start accepting payments with Stripe, you\'ll need to connect it to your store.', 'woocommerce-services' ), $options['email'] ),
+					array( 'strong' => array() )
+				),
 				'button_text'    => __( 'Connect', 'woocommerce-services' ),
 				'button_link'    => $result,
 				'image_url'      => plugins_url( 'images/stripe.png', dirname( __FILE__ ) ),
