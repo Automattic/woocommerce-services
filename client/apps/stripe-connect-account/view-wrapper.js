@@ -17,10 +17,16 @@ import {
 	getIsDeauthorizing,
 } from 'woocommerce/state/sites/settings/stripe-connect-account/selectors';
 import {
+	fetchAccountDetails,
 	deauthorizeAccount,
 } from 'woocommerce/state/sites/settings/stripe-connect-account/actions';
 
 class StripeConnectAccountWrapper extends Component {
+	componentDidMount() {
+		const { siteId } = this.props;
+		this.props.fetchAccountDetails( siteId );
+	}
+
 	onDeauthorize = () => {
 		const { siteId } = this.props;
 		this.props.deauthorizeAccount( siteId );
@@ -61,6 +67,7 @@ export default connect(
 		};
 	},
 	dispatch => ( {
+		fetchAccountDetails: ( siteId ) => dispatch( fetchAccountDetails( siteId ) ),
 		deauthorizeAccount: ( siteId ) => {
 			dispatch( deauthorizeAccount( siteId ) ).then( () => {
 				window.location.reload( true );

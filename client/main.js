@@ -52,7 +52,7 @@ const getRouteClass = ( classNames ) => {
 };
 
 Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
-	const args = JSON.parse( container.dataset.args ) || {};
+	const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
 	delete container.dataset.args;
 
 	const RouteClass = getRouteClass( container.classList );

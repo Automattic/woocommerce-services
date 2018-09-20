@@ -173,25 +173,11 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		/**
-		 * Make kses exception for attribute containing preloaded state.
-		 */
-		public function allow_args_attribute( $allowed ) {
-			$allowed['div']['data-args'] = true;
-			return $allowed;
-		}
-
-		/**
 		 * Add to settings page container for dynamically rendered connected account view.
 		 */
 		public function show_connected_account( $settings ) {
-			$account_details = $this->get_account_details();
-			if ( is_wp_error( $account_details ) ) {
-				return $settings;
-			}
-
 			ob_start();
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account', $account_details );
-			add_filter( 'wp_kses_allowed_html', array( $this, 'allow_args_attribute' ) );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
 
 			$new_settings = array(
 				'connection_status' => array(

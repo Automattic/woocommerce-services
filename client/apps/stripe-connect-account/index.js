@@ -11,7 +11,7 @@ import ViewWrapper from './view-wrapper';
 import reducer from 'woocommerce/state/sites/settings/stripe-connect-account/reducer';
 import { combineReducers } from 'state/utils';
 
-export default ( accountDetails ) => ( {
+export default () => ( {
 	getReducer() {
 		return combineReducers( {
 			extensions: combineReducers( {
@@ -32,28 +32,7 @@ export default ( accountDetails ) => ( {
 	},
 
 	getInitialState() {
-		const { account_id, display_name, email, business_logo, legal_entity, payouts_enabled } = accountDetails;
-		return {
-			extensions: {
-				woocommerce: {
-					sites: {
-						1: {
-							settings: {
-								stripeConnectAccount: {
-									connectedUserID: account_id,
-									displayName: display_name,
-									email,
-									firstName: legal_entity.first_name,
-									isActivated: payouts_enabled,
-									logo: business_logo,
-									lastName: legal_entity.last_name,
-								},
-							},
-						},
-					},
-				},
-			},
-		};
+		return {};
 	},
 
 	getStateForPersisting() {
