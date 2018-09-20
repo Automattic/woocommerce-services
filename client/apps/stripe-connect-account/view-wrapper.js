@@ -13,6 +13,7 @@ import StripeConnectAccount from 'woocommerce/app/settings/payments/stripe/payme
 import Notice from 'components/notice';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
+	getIsRequesting,
 	getStripeConnectAccount,
 	getIsDeauthorizing,
 } from 'woocommerce/state/sites/settings/stripe-connect-account/selectors';
@@ -34,10 +35,19 @@ class StripeConnectAccountWrapper extends Component {
 
 	render() {
 		const {
+			isRequesting,
 			stripeConnectAccount,
 			isDeauthorizing,
 			translate,
 		} = this.props;
+
+		if ( isRequesting ) {
+			return (
+				<div className="stripe-connect-account__placeholder-container">
+					<div className="stripe-connect-account__placeholder-body" />
+				</div>
+			);
+		}
 
 		if ( ! stripeConnectAccount.connectedUserID ) {
 			return (
@@ -62,6 +72,7 @@ export default connect(
 		const siteId = getSelectedSiteId( state );
 		return {
 			siteId,
+			isRequesting: getIsRequesting( state, siteId ),
 			stripeConnectAccount: getStripeConnectAccount( state, siteId ),
 			isDeauthorizing: getIsDeauthorizing( state, siteId ),
 		};
