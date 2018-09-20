@@ -42,7 +42,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return class_exists( 'WC_Stripe' );
 		}
 
-		public function get_oauth_url( $return_url ) {
+		public function get_oauth_url( $return_url = '' ) {
+			if ( empty( $return_url ) ) {
+				$return_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' );
+			}
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
 			if ( is_wp_error( $result ) ) {
@@ -226,7 +229,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 * Render dismissible connection banner with OAuth link as primary action.
 		 */
 		public function connection_banner() {
-			$result = $this->get_oauth_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' ) );
+			$result = $this->get_oauth_url();
 
 			if ( is_wp_error( $result ) ) {
 				$this->logger->log( $result, __CLASS__ );
