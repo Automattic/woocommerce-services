@@ -8,6 +8,7 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
+import { reloadPage } from './state/actions';
 // from calypso
 import StripeConnectAccount from 'woocommerce/app/settings/payments/stripe/payment-method-stripe-connect-account';
 import Notice from 'components/notice';
@@ -38,6 +39,7 @@ class StripeConnectAccountWrapper extends Component {
 			isRequesting,
 			stripeConnectAccount,
 			isDeauthorizing,
+			isReloading,
 			translate,
 		} = this.props;
 
@@ -49,7 +51,7 @@ class StripeConnectAccountWrapper extends Component {
 			);
 		}
 
-		if ( ! stripeConnectAccount.connectedUserID ) {
+		if ( isReloading ) {
 			return (
 				<Notice showDismiss={ false } isCompact isLoading>
 					{ translate( 'Account disconnected. Reloading page…' ) }
@@ -75,13 +77,14 @@ export default connect(
 			isRequesting: getIsRequesting( state, siteId ),
 			stripeConnectAccount: getStripeConnectAccount( state, siteId ),
 			isDeauthorizing: getIsDeauthorizing( state, siteId ),
+			isReloading: state.isReloading,
 		};
 	},
 	dispatch => ( {
 		fetchAccountDetails: ( siteId ) => dispatch( fetchAccountDetails( siteId ) ),
 		deauthorizeAccount: ( siteId ) => {
 			dispatch( deauthorizeAccount( siteId ) ).then( () => {
-				window.location.reload( true );
+				dispatch( reloadPage );
 			} );
 		},
 	} ),

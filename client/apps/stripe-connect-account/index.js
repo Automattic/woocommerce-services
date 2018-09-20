@@ -6,8 +6,9 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-// from calypso
 import ViewWrapper from './view-wrapper';
+import { STRIPE_CONNECT_ACCOUNT_RELOAD_PAGE } from './state/actions';
+// from calypso
 import reducer from 'woocommerce/state/sites/settings/stripe-connect-account/reducer';
 import { combineReducers } from 'state/utils';
 
@@ -28,6 +29,9 @@ export default () => ( {
 			ui: () => ( {
 				selectedSiteId: 1,
 			} ),
+			isReloading: ( state = false, { type } ) => {
+				return state || STRIPE_CONNECT_ACCOUNT_RELOAD_PAGE === type;
+			},
 		} );
 	},
 
