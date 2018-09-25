@@ -262,7 +262,12 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		public function connection_success_notice() {
 			?>
 				<div class="notice notice-success">
-					<p><?php echo wp_kses( '<strong>Ready to accept Stripe payments!</strong> Your Stripe account has been successfully connected. Additional settings can be configured on this screen.', array( 'strong' => array() ) ); ?></p>
+					<p>
+						<?php echo wp_kses(
+							__( '<strong>Ready to accept Stripe payments!</strong> Your Stripe account has been successfully connected. Additional settings can be configured on this screen.', 'woocommerce-services' ),
+							array( 'strong' => array() )
+						); ?>
+					</p>
 				</div>
 			<?php
 		}
