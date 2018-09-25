@@ -544,11 +544,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$response = $this->stripe->create_account( $email, $country );
 
 				if ( is_wp_error( $response ) ) {
+					$this->logger->log( $response, __FUNCTION__ );
+
 					// Handle existing account case.
 					if ( false !== strpos( $response->get_error_message(), 'Account already exists for the provided email.' ) ) {
 						WC_Connect_Options::update_option( 'banner_stripe', 'connection' );
-					} else {
-						$this->logger->log( $response, __CLASS__ );
 					}
 				}
 			}
