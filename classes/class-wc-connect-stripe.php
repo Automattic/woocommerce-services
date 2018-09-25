@@ -196,7 +196,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				return;
 			}
 
-			if ( isset( $_GET[ 'wcs_stripe_code' ] ) ) {
+			if ( isset( $_GET[ 'wcs_stripe_code' ] ) && isset( $_GET[ 'wcs_stripe_state' ] ) ) {
 				$response = $this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
 				if ( ! is_wp_error( $response ) ) {
 					WC_Connect_Options::update_option( 'banner_stripe', 'success' );
@@ -237,6 +237,9 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			$options = get_option( self::SETTINGS_OPTION, array() );
+			if ( ! isset( $options['email'] ) ) {
+				return;
+			}
 
 			$this->nux->show_nux_banner( array(
 				'title'          => __( 'Connect your account', 'woocommerce-services' ),
