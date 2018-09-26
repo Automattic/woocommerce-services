@@ -57,7 +57,22 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function get_account_details() {
-			return $this->api->get_stripe_account_details();
+			$response = $this->api->get_stripe_account_details();
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+
+			return array(
+				'account_id'      => $response->accountId,
+				'display_name'    => $response->displayName,
+				'email'           => $response->email,
+				'business_logo'   => $response->businessLogo,
+				'legal_entity'    => array(
+					'first_name'      => $response->legalEntity->firstName,
+					'last_name'       => $response->legalEntity->lastName
+				),
+				'payouts_enabled' => $response->payoutsEnabled,
+			);
 		}
 
 		public function deauthorize_account() {
@@ -155,6 +170,23 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			return $result;
+		}
+
+		/**
+		 * Add to settings page container for dynamically rendered connected account view.
+		 */
+		public function show_connected_account( $settings ) {
+			ob_start();
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
+
+			$new_settings = array(
+				'connection_status' => array(
+					'type'        => 'title',
+					'title'       => __( 'Connected Stripe account', 'woocommerce-services' ),
+					'description' => ob_get_clean(),
+				),
+			);
+			return array_merge( $new_settings, $settings );
 		}
 	}
 }

@@ -236,12 +236,14 @@
 
 	@import 'woocommerce/woocommerce-services/style';
 	@import 'woocommerce/app/order/order-activity-log/style';
+	@import 'woocommerce/app/settings/payments/stripe/style';
 
 	// WCC Components
 	@import '../../client/apps/plugin-status/style';
 	@import '../../client/apps/shipping-label/style';
 	@import '../../client/apps/print-test-label/style';
 	@import '../../client/apps/settings/style';
+	@import '../../client/apps/stripe-connect-account/style';
 	@import '../../client/components/toggle/style';
 }
 

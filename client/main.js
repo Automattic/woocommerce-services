@@ -21,6 +21,7 @@ import ShippingLabel from './apps/shipping-label';
 import ShippingSettings from './apps/shipping-settings';
 import PrintTestLabel from './apps/print-test-label';
 import PluginStatus from './apps/plugin-status';
+import StripeConnectAccount from './apps/stripe-connect-account';
 import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware';
 import localApiMiddleware from 'lib/local-api-middleware';
@@ -43,13 +44,15 @@ const getRouteClass = ( classNames ) => {
 				return ShippingSettings;
 			case 'wc-connect-admin-test-print':
 				return PrintTestLabel;
+			case 'wc-connect-stripe-connect-account':
+				return StripeConnectAccount;
 		}
 	}
 	return null;
 };
 
 Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
-	const args = JSON.parse( container.dataset.args ) || {};
+	const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
 	delete container.dataset.args;
 
 	const RouteClass = getRouteClass( container.classList );
