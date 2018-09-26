@@ -23,20 +23,29 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		private $logger;
 
+		/**
+		 * @var WC_Connect_Nux
+		 */
+		private $nux;
+
 		const STATE_VAR_NAME = 'stripe_state';
 		const SETTINGS_OPTION = 'woocommerce_stripe_settings';
 
-		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger ) {
+		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger, WC_Connect_Nux $nux ) {
 			$this->api = $client;
 			$this->options = $options;
 			$this->logger = $logger;
+			$this->nux = $nux;
 		}
 
 		public function is_stripe_plugin_enabled() {
 			return class_exists( 'WC_Stripe' );
 		}
 
-		public function get_oauth_url( $return_url ) {
+		public function get_oauth_url( $return_url = '' ) {
+			if ( empty( $return_url ) ) {
+				$return_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' );
+			}
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
 			if ( is_wp_error( $result ) ) {
@@ -170,6 +179,97 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			return $result;
+		}
+
+		/**
+		 * Trigger Stripe connection-related admin notice if one is meant to be shown.
+		 */
+		public function maybe_show_notice() {
+			$setting = WC_Connect_Options::get_option( 'banner_stripe', null );
+			if ( is_null( $setting ) ) {
+				return;
+			}
+
+			if ( 'success' === $setting ) {
+				add_action( 'admin_notices', array( $this, 'connection_success_notice' ) );
+				WC_Connect_Options::delete_option( 'banner_stripe' );
+				return;
+			}
+
+			if ( isset( $_GET[ 'wcs_stripe_code' ] ) && isset( $_GET[ 'wcs_stripe_state' ] ) ) {
+				$response = $this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
+				if ( ! is_wp_error( $response ) ) {
+					WC_Connect_Options::update_option( 'banner_stripe', 'success' );
+				}
+
+				wp_safe_redirect( remove_query_arg( array( 'wcs_stripe_state', 'wcs_stripe_code' ) ) );
+				exit;
+			}
+
+			$screen = get_current_screen();
+
+			if ( // Display if on any of these admin pages.
+				'dashboard' === $screen->id // Dashboard.
+				|| 'plugins' === $screen->id // Plugins.
+				|| ( // WooCommerce » Settings » Payments.
+					'woocommerce_page_wc-settings' === $screen->base
+					&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
+					)
+				|| ( // WooCommerce » Extensions » Payments.
+					'woocommerce_page_wc-addons' === $screen->base
+					&& isset( $_GET['section'] ) && 'payment-gateways' === $_GET['section']
+					)
+			) {
+				wp_enqueue_style( 'wc_connect_banner' );
+				add_action( 'admin_notices', array( $this, 'connection_banner' ) );
+			}
+		}
+
+		/**
+		 * Render dismissible connection banner with OAuth link as primary action.
+		 */
+		public function connection_banner() {
+			$result = $this->get_oauth_url();
+
+			if ( is_wp_error( $result ) ) {
+				$this->logger->log( $result, __CLASS__ );
+				return;
+			}
+
+			$options = get_option( self::SETTINGS_OPTION, array() );
+			if ( ! isset( $options['email'] ) ) {
+				return;
+			}
+
+			$this->nux->show_nux_banner( array(
+				'title'          => __( 'Connect your account', 'woocommerce-services' ),
+				'description'    => wp_kses(
+					sprintf( __( 'It looks like there is an existing Stripe account at <strong>%s</strong>. To start accepting payments with Stripe, you\'ll need to connect it to your store.', 'woocommerce-services' ), $options['email'] ),
+					array( 'strong' => array() )
+				),
+				'button_text'    => __( 'Connect', 'woocommerce-services' ),
+				'button_link'    => $result,
+				'image_url'      => plugins_url( 'images/stripe.png', dirname( __FILE__ ) ),
+				'should_show_jp' => false,
+				'dismissible_id' => 'stripe_connect',
+				'compact_logo'   => true,
+			) );
+		}
+
+		/**
+		 * Render admin notice acknowledging successful OAuth connection.
+		 */
+		public function connection_success_notice() {
+			?>
+				<div class="notice notice-success">
+					<p>
+						<?php echo wp_kses(
+							__( '<strong>Ready to accept Stripe payments!</strong> Your Stripe account has been successfully connected. Additional settings can be configured on this screen.', 'woocommerce-services' ),
+							array( 'strong' => array() )
+						); ?>
+					</p>
+				</div>
+			<?php
 		}
 
 		/**
