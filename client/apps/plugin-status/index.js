@@ -20,13 +20,6 @@ export default ( { formData } ) => ( {
 		} );
 	},
 
-	getHotReducer() {
-		return combineReducers( {
-			status: require( './state/reducer' ).default,
-			notices,
-		} );
-	},
-
 	getInitialState() {
 		return { status: formData };
 	},
