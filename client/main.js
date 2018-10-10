@@ -7,8 +7,6 @@ import ReactDOM from 'react-dom';
 import { applyMiddleware, createStore, compose } from 'redux';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
-import { translate as __ } from 'i18n-calypso';
-import _ from 'lodash';
 
 /**
  * Internal dependencies
@@ -73,7 +71,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		localApiMiddleware,
 	];
 
-	if ( _.isFunction( Route.getMiddlewares ) ) {
+	if ( Route.getMiddlewares ) {
 		middlewares.push.apply( middlewares, Route.getMiddlewares() );
 	}
 
@@ -85,25 +83,15 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
 
 	if ( Route.getInitialActions ) {
-		_.forEach( Route.getInitialActions(), store.dispatch );
+		Route.getInitialActions().forEach( store.dispatch );
 	}
 
-	window.addEventListener( 'beforeunload', ( event ) => {
+	window.addEventListener( 'beforeunload', () => {
 		const state = store.getState();
 
 		if ( window.persistState ) {
 			storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
-			return;
 		}
-
-		//this only handles the shipping service settings page. Other pages use ProtectFormGuard and Component state
-		//TODO: remove once the service settings are Calypso-fied
-		if ( ! state.form || _.every( state.form.pristine ) ) {
-			return;
-		}
-		const text = __( 'You have unsaved changes.' );
-		( event || window.event ).returnValue = text;
-		return text;
 	} );
 
 	ReactDOM.render(
