@@ -3325,15 +3325,6 @@
         "is-arrayish": "^0.2.1"
       }
     },
-    "error-stack-parser": {
-      "version": "1.3.6",
-      "resolved": "https://registry.npmjs.org/error-stack-parser/-/error-stack-parser-1.3.6.tgz",
-      "integrity": "sha1-4Oc7k+QXE40c18C3RrGkoUhUwpI=",
-      "dev": true,
-      "requires": {
-        "stackframe": "^0.3.1"
-      }
-    },
     "es-abstract": {
       "version": "1.12.0",
       "resolved": "https://registry.npmjs.org/es-abstract/-/es-abstract-1.12.0.tgz",
@@ -9873,18 +9864,6 @@
         "resolve": "^1.1.6"
       }
     },
-    "redbox-react": {
-      "version": "1.6.0",
-      "resolved": "https://registry.npmjs.org/redbox-react/-/redbox-react-1.6.0.tgz",
-      "integrity": "sha512-mLjM5eYR41yOp5YKHpd3syFeGq6B4Wj5vZr64nbLvTZW5ZLff4LYk7VE4ITpVxkZpCY6OZuqh0HiP3A3uEaCpg==",
-      "dev": true,
-      "requires": {
-        "error-stack-parser": "^1.3.6",
-        "object-assign": "^4.0.1",
-        "prop-types": "^15.5.4",
-        "sourcemapped-stacktrace": "^1.1.6"
-      }
-    },
     "redent": {
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/redent/-/redent-1.0.0.tgz",
@@ -10931,23 +10910,6 @@
       "integrity": "sha1-PpNdfd1zYxuXZZlW1VEo6HtQhKM=",
       "dev": true
     },
-    "sourcemapped-stacktrace": {
-      "version": "1.1.9",
-      "resolved": "https://registry.npmjs.org/sourcemapped-stacktrace/-/sourcemapped-stacktrace-1.1.9.tgz",
-      "integrity": "sha512-N6SLOT+9OQZdoSpu1PkSjyrxx/B2SGom9LuxjbwZFNNz7+FpMEUpwb3JV+UpaxWvoGM/8k7guuOJxcB6BWEU9Q==",
-      "dev": true,
-      "requires": {
-        "source-map": "0.5.6"
-      },
-      "dependencies": {
-        "source-map": {
-          "version": "0.5.6",
-          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.5.6.tgz",
-          "integrity": "sha1-dc449SvwczxafwwRjYEzSiu19BI=",
-          "dev": true
-        }
-      }
-    },
     "spdx-correct": {
       "version": "3.0.0",
       "resolved": "https://registry.npmjs.org/spdx-correct/-/spdx-correct-3.0.0.tgz",
@@ -11040,12 +11002,6 @@
         "safer-buffer": "^2.0.2",
         "tweetnacl": "~0.14.0"
       }
-    },
-    "stackframe": {
-      "version": "0.3.1",
-      "resolved": "https://registry.npmjs.org/stackframe/-/stackframe-0.3.1.tgz",
-      "integrity": "sha1-M6qE8Rd6VUjIk1Uzy/6zQgl19aQ=",
-      "dev": true
     },
     "static-extend": {
       "version": "0.1.2",
@@ -13199,7 +13155,6 @@
         "lru": "3.1.0",
         "lunr": "2.3.3",
         "marked": "0.5.0",
-        "mini-css-extract-plugin-with-rtl": "github:Automattic/mini-css-extract-plugin-with-rtl#af1300db7027af8caa9a3015f54a34aec545cc54",
         "mkdirp": "0.5.1",
         "moment": "2.22.2",
         "morgan": "1.9.1",
@@ -13209,7 +13164,6 @@
         "page": "1.9.0",
         "path-browserify": "1.0.0",
         "percentage-regex": "3.0.0",
-        "phone": "git+https://github.com/Automattic/node-phone.git#6be6549b03137f2cca01e202250bf2590750119e",
         "photon": "2.0.1",
         "postcss-cli": "6.0.0",
         "postcss-custom-properties": "8.0.5",
@@ -23106,15 +23060,6 @@
           "resolved": "https://registry.npmjs.org/mimic-fn/-/mimic-fn-1.2.0.tgz",
           "integrity": "sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ=="
         },
-        "mini-css-extract-plugin-with-rtl": {
-          "version": "github:Automattic/mini-css-extract-plugin-with-rtl#af1300db7027af8caa9a3015f54a34aec545cc54",
-          "from": "github:Automattic/mini-css-extract-plugin-with-rtl",
-          "requires": {
-            "loader-utils": "^1.1.0",
-            "schema-utils": "^1.0.0",
-            "webpack-sources": "^1.1.0"
-          }
-        },
         "minimalistic-assert": {
           "version": "1.0.1",
           "resolved": "https://registry.npmjs.org/minimalistic-assert/-/minimalistic-assert-1.0.1.tgz",
@@ -24640,10 +24585,6 @@
           "version": "2.1.0",
           "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-2.1.0.tgz",
           "integrity": "sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns="
-        },
-        "phone": {
-          "version": "git+https://github.com/Automattic/node-phone.git#6be6549b03137f2cca01e202250bf2590750119e",
-          "from": "git+https://github.com/Automattic/node-phone.git#1.0.8"
         },
         "photon": {
           "version": "2.0.1",
