@@ -14,10 +14,6 @@ export default ( { paperSize, storeOptions } ) => ( {
 		return reducer;
 	},
 
-	getHotReducer() {
-		return require( './state/reducer' );
-	},
-
 	getInitialState() {
 		return {
 			paperSize,

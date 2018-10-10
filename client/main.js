@@ -106,34 +106,10 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		return text;
 	} );
 
-	let render = () => {
-		ReactDOM.render(
-			<Provider store={ store }>
-				<Route.View />
-			</Provider>,
-			container
-		);
-	};
-
-	if ( module.hot ) {
-		const renderApp = render;
-		const renderError = ( error ) => {
-			const RedBox = require( 'redbox-react' ).default;
-			ReactDOM.render(
-				<RedBox error={ error } />,
-				container
-			);
-		};
-
-		render = () => {
-			try {
-				renderApp();
-			} catch ( error ) {
-				renderError( error );
-				throw error;
-			}
-		};
-	}
-
-	render();
+	ReactDOM.render(
+		<Provider store={ store }>
+			<Route.View />
+		</Provider>,
+		container
+	);
 } );
