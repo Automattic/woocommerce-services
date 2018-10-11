@@ -29,6 +29,7 @@ class WC_Connect_TaxJar_Control {
 		}
 
 		add_filter( 'taxjar_enabled', array( $this, 'enable_taxjar' ), 10, 1 );
+		add_filter( 'taxjar_should_display_connect_notice', array( $this, 'should_display_connect_notice' ), 10, 1 );
 		add_filter( 'taxjar_method_description', array( $this, 'taxjar_method_description' ), 10, 1 );
 		add_filter( 'taxjar_should_check_status', array( $this, 'should_check_status' ), 10, 1 );
 		add_filter( 'taxjar_api_token_valid', array( $this, 'validate_api_token' ), 10, 1 );
@@ -48,6 +49,10 @@ class WC_Connect_TaxJar_Control {
 	 */
 	public function enable_taxjar( $value ) {
 		return $value || $this->is_enabled();
+	}
+
+	public function should_display_connect_notice( $value ) {
+		return ! $this->is_enabled() && $value;
 	}
 
 	public function options_save( $options ) {
