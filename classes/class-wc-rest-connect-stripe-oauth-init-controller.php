@@ -19,7 +19,7 @@ class WC_REST_Connect_Stripe_Oauth_Init_Controller extends WC_REST_Connect_Base_
 
 	public function post( $request ) {
 		$data = $request->get_json_params();
-		$response = $this->stripe->get_oauth_url( $data['returnUrl'] );
+		$response = $this->stripe->get_oauth_url( isset( $data['returnUrl'] ) ? $data['returnUrl'] : '' );
 
 		if ( is_wp_error( $response ) ) {
 			$this->logger->log( $response, __CLASS__ );

@@ -4,7 +4,6 @@
 	}
 
 	.stripe__connect-account-body {
-		max-width: 545px;
 		border: 1px solid #ccc;
 		line-height: 1.5;
 	}
@@ -27,4 +26,8 @@
 		@extend .stripe__connect-account-body;
 		@include placeholder();
 	}
+}
+
+&.wc-connect-stripe-connect-account {
+	max-width: 545px;
 }
