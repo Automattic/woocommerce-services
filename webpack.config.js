@@ -10,33 +10,6 @@ const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 process.noDeprecation = true; // see https://github.com/webpack/loader-utils/issues/56
 
-const babelSettings = {
-	presets: [
-		[ 'env', {
-			useBuiltIns: true,
-			targets: { browsers },
-			loose: true,
-			// modules: false, // add-module-exports breaks with WebPack 2 and modules: false
-		} ],
-		'stage-1',
-		'react'
-	],
-	plugins: [
-		'add-module-exports',
-		'lodash',
-		[
-			'transform-imports',
-			{
-				'state/selectors': {
-					transform: 'state/selectors/${member}',
-					kebabCase: true,
-				},
-			},
-		],
-	],
-	babelrc: false,
-};
-
 const config = {
 	cache: true,
 	entry: {
@@ -109,7 +82,7 @@ const config = {
 				enforce: 'post',
 				use: {
 					loader: 'babel-loader',
-					options: babelSettings,
+					options: { configFile: path.resolve( __dirname, 'node_modules', 'wp-calypso', 'babel.config.js' ) },
 				},
 				include: [
 					path.resolve( __dirname, 'client' ),
