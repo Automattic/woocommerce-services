@@ -10,7 +10,7 @@ import { fetchShippingMethodSchemaSuccess } from 'woocommerce/woocommerce-servic
 import { openShippingZoneMethod } from 'woocommerce/state/ui/shipping/zones/methods/actions';
 
 const middlewareActions = {
-	[  WOOCOMMERCE_SERVICES_SHIPPING_ZONE_METHOD_SETTINGS_REQUEST_SUCCESS ]: ( { siteId, instanceId, data }, dispatch ) => {
+	[  WOOCOMMERCE_SERVICES_SHIPPING_ZONE_METHOD_SETTINGS_REQUEST_SUCCESS ]: ( { siteId, data }, dispatch ) => {
 		// When getting the shipping method settings, store the form schema in the state tree too so we don't make an extra request
 		dispatch( fetchShippingMethodSchemaSuccess( siteId, data.methodId, data ) );
 	},

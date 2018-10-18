@@ -1,16 +1,22 @@
+/* eslint-disable import/no-nodejs-modules */
 const webpack = require( 'webpack' );
 const path = require( 'path' );
-const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
+const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const autoprefixer = require( 'autoprefixer' );
+const TerserPlugin = require( 'terser-webpack-plugin' );
+const os = require( 'os' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
+const isDev = ! isProd && ! isI18n;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
-process.noDeprecation = true; // see https://github.com/webpack/loader-utils/issues/56
-
-const config = {
+module.exports = {
+	bail: ! isDev,
+	context: __dirname,
+	mode: isDev ? 'development' : 'production',
+	devtool: isDev ? 'inline-source-map' : false,
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
@@ -21,6 +27,31 @@ const config = {
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
+		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
+		publicPath: 'http://localhost:8085/',
+	},
+	optimization: {
+		minimize: ! isDev,
+		minimizer: [
+			new TerserPlugin( {
+				cache: true,
+				parallel: true,
+				terserOptions: {
+					ecma: 5,
+					mangle: {
+						reserved: isI18n ? [ 'translate' ] : [],
+						safari10: true,
+					}
+				},
+			} ),
+		],
+	},
+	performance: { hints: false },
+	devServer: {
+		overlay: {
+			errors: true,
+			warnings: false,
+		},
 	},
 	externals: {
 		'jquery': 'jQuery',
@@ -44,34 +75,32 @@ const config = {
 			},
 			{
 				test: /\.scss$/,
-				use: ExtractTextPlugin.extract( {
-					fallback: 'style-loader',
-					use: [
-						{
-							loader: 'css-loader',
-							options: {
-								root: 'https://wordpress.com',
-							},
+				use: [
+					isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
+					{
+						loader: 'css-loader',
+						options: {
+							root: 'https://wordpress.com',
 						},
-						{
-							loader: 'postcss-loader',
-							options: {
-								plugins: () => [ autoprefixer( { browsers } ) ],
-							},
+					},
+					{
+						loader: 'postcss-loader',
+						options: {
+							plugins: () => [ autoprefixer( { browsers } ) ],
 						},
-						{
-							loader: 'sass-loader',
-							options: {
-								includePaths: [
-									path.resolve( __dirname, 'client' ),
-									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
-									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
-									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
-								],
-							},
+					},
+					{
+						loader: 'sass-loader',
+						options: {
+							includePaths: [
+								path.resolve( __dirname, 'client' ),
+								path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+								path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
+								path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
+							],
 						},
-					],
-				} ),
+					},
+				],
 			},
 			{
 				test: /\.html$/,
@@ -80,10 +109,22 @@ const config = {
 			{
 				test: /\.jsx?$/,
 				enforce: 'post',
-				use: {
-					loader: 'babel-loader',
-					options: { configFile: path.resolve( __dirname, 'node_modules', 'wp-calypso', 'babel.config.js' ) },
-				},
+				use: [
+					{
+						loader: 'thread-loader',
+						options: {
+							workers: Math.max( 2, Math.floor( os.cpus().length / 2 ) ),
+						},
+					},
+					{
+						loader: 'babel-loader',
+						options: {
+							configFile: path.resolve( __dirname, 'node_modules', 'wp-calypso', 'babel.config.js' ),
+							cacheDirectory: true,
+							cacheIdentifier: require( 'wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
+						},
+					}
+				],
 				include: [
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
@@ -105,55 +146,22 @@ const config = {
 		symlinks: false,
 	},
 	node: {
-		fs: 'empty'
+		fs: 'empty',
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
 			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
 		} ),
-		new ExtractTextPlugin( {
+		new MiniCssExtractPlugin( {
 			filename: '[name].css',
 		} ),
+		new webpack.DefinePlugin( {
+			'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
+			'typeof window': '"object"',
+			global: 'window',
+		} ),
+		new webpack.LoaderOptionsPlugin( { minimize: ! isDev } ),
+		new webpack.NormalModuleReplacementPlugin( /^path$/, 'path-browserify' ),
+		new webpack.IgnorePlugin( /^props$/ ),
 	],
 };
-
-if ( isProd || isI18n ) {
-	config.plugins.push( new webpack.LoaderOptionsPlugin( { minimize: true } ) );
-
-	config.plugins.push( new webpack.DefinePlugin( {
-		'process.env.NODE_ENV': '"production"',
-		'typeof window': '"object"',
-	} ) );
-
-	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
-		compress: {
-			screw_ie8: true,
-			warnings: false,
-			unsafe: true,
-		},
-		mangle: {
-			screw_ie8: true,
-			except: isProd ? [] : [ 'translate' ]
-		},
-		output: {
-			comments: false,
-			screw_ie8: true,
-		},
-	} ) );
-
-} else {
-
-	config.output.publicPath = 'http://localhost:8085/';
-
-	config.devtool = '#inline-source-map';
-
-	config.devServer = {
-		overlay: {
-			errors: true,
-			warnings: false,
-		},
-	};
-
-}
-
-module.exports = config;
