@@ -381,7 +381,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$feature_list    = false;
 			$supports_stripe = $this->is_stripe_supported_country( $country );
 			$supports_taxes  = $this->is_taxjar_supported_country( $country );
-			$supports_rates  = in_array( $country, array( 'US', 'CA' ) );
 			$supports_labels = ( 'US' === $country );
 
 			$is_stripe_active = is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' );
@@ -394,28 +393,20 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$supports_payments = ( $supports_stripe && $is_stripe_ready ) || $is_ppec_ready;
 
-			if ( $supports_payments && $supports_taxes && $supports_rates && $supports_labels ) {
-				$feature_list = __( 'automated tax calculation, live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_payments && $supports_taxes && $supports_rates ) {
-				$feature_list = __( 'automated tax calculation, live shipping rates, and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_payments && $supports_taxes ) {
+			if ( $supports_payments && $supports_taxes && $supports_labels ) {
+				$feature_list = __( 'automated tax calculation, shipping label printing, and smoother payment setup', 'woocommerce-services' );
+			} elseif ( $supports_payments && $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_payments && $supports_rates && $supports_labels ) {
-				$feature_list = __( 'live shipping rates, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_payments && $supports_rates ) {
-				$feature_list = __( 'live shipping rates and smoother payment setup', 'woocommerce-services' );
+			} else if ( $supports_taxes && $supports_labels ) {
+				$feature_list = __( 'automated tax calculation and shipping label printing', 'woocommerce-services' );
+			} else if ( $supports_payments && $supports_labels ) {
+				$feature_list = __( 'shipping label printing and smoother payment setup', 'woocommerce-services' );
 			} else if ( $supports_payments ) {
 				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
-			} else if ( $supports_taxes && $supports_rates && $supports_labels ) {
-				$feature_list = __( 'automated tax calculation, live shipping rates, and shipping label printing', 'woocommerce-services' );
-			} else if ( $supports_taxes && $supports_rates ) {
-				$feature_list = __( 'automated tax calculation and live shipping rates', 'woocommerce-services' );
 			} else if ( $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation', 'woocommerce-services' );
-			} else if ( $supports_rates && $supports_labels ) {
-				$feature_list = __( 'live shipping rates and shipping label printing', 'woocommerce-services' );
-			} else if ( $supports_rates ) {
-				$feature_list = __( 'live shipping rates', 'woocommerce-services' );
+			} else if ( $supports_labels ) {
+				$feature_list = __( 'shipping label printing', 'woocommerce-services' );
 			}
 
 			return $feature_list;
