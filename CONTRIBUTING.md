@@ -10,17 +10,9 @@ Open [a GitHub issue](https://github.com/Automattic/woocommerce-services/issues/
 
 If you're filing a bug, specific steps to reproduce are helpful. Please include what you expected to see and what happened instead.
 
-## Setting up USPS shipping with the WooCommerce Services
+## Setting up WooCommerce Services features
 
-1. Install or update to [WordPress 4.6 or higher](https://wordpress.org/download/).
-2. Install and activate [WooCommerce 2.6 or higher](https://wordpress.org/plugins/woocommerce/).
-3. Install and activate [Jetpack 4.6 or higher](https://wordpress.org/plugins/jetpack/).
-4. Connect your Jetpack to WordPress.com. Although there is no specific module you need to activate, WooCommerce Services requires the Jetpack connection to authenticate with the WooCommerce Services server.
-5. Install and activate this feature plugin.
-6. Add at least one product with weight and dimensions.
-7. Add at least one shipping zone, and add the WooCommerce Services USPS shipping method to it.
-8. Configure the USPS shipping method origin ZIP code, and select at least one service.
-9. USPS rates will automatically display during checkout once a destination address is given.
+Please refer to our [documentation](https://docs.woocommerce.com/document/woocommerce-services/) for feature setup.
 
 ## Running PHPUnit Tests
 
