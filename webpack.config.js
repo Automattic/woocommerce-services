@@ -22,7 +22,7 @@ const cssLoaders = [
 			plugins: () => [
 				autoprefixer( { browsers } ),
 				url( {
-					url: ( asset ) => 'https://wordpress.com/' + asset.url,
+					url: ( asset ) => asset.url.startsWith( 'data:' ) ? asset.url : ( 'https://wordpress.com/' + asset.url ),
 				} ),
 			],
 		},
