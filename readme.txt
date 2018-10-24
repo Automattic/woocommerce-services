@@ -1,5 +1,5 @@
 === WooCommerce Services ===
-Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain
+Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 4.9.8
