@@ -1,43 +1,50 @@
+/* eslint-disable import/no-nodejs-modules */
 const webpack = require( 'webpack' );
 const path = require( 'path' );
-const ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
+const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const autoprefixer = require( 'autoprefixer' );
+const url = require( 'postcss-url' );
+const TerserPlugin = require( 'terser-webpack-plugin' );
+const os = require( 'os' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
+const isDev = ! isProd && ! isI18n;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
-process.noDeprecation = true; // see https://github.com/webpack/loader-utils/issues/56
+const cssLoaders = [
+	isDev ? 'style-loader?hmr=false' : MiniCssExtractPlugin.loader,
+	'css-loader',
+	{
+		loader: 'postcss-loader',
+		options: {
+			plugins: () => [
+				autoprefixer( { browsers } ),
+				url( {
+					url: ( asset ) => asset.url.startsWith( 'data:' ) ? asset.url : ( 'https://wordpress.com/' + asset.url ),
+				} ),
+			],
+		},
+	},
+	{
+		loader: 'sass-loader',
+		options: {
+			includePaths: [
+				path.resolve( __dirname, 'client' ),
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
+			],
+		},
+	},
+];
 
-const babelSettings = {
-	presets: [
-		[ 'env', {
-			useBuiltIns: true,
-			targets: { browsers },
-			loose: true,
-			// modules: false, // add-module-exports breaks with WebPack 2 and modules: false
-		} ],
-		'stage-1',
-		'react'
-	],
-	plugins: [
-		'add-module-exports',
-		'lodash',
-		[
-			'transform-imports',
-			{
-				'state/selectors': {
-					transform: 'state/selectors/${member}',
-					kebabCase: true,
-				},
-			},
-		],
-	],
-	babelrc: false,
-};
-
-const config = {
+module.exports = {
+	bail: ! isDev,
+	context: __dirname,
+	mode: isDev ? 'development' : 'production',
+	devtool: isDev ? 'inline-source-map' : false,
 	cache: true,
 	entry: {
 		'woocommerce-services': [ './client/main.js' ],
@@ -48,6 +55,32 @@ const config = {
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
+		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
+		publicPath: 'http://localhost:8085/',
+	},
+	optimization: {
+		minimize: ! isDev,
+		minimizer: [
+			new TerserPlugin( {
+				cache: true,
+				parallel: true,
+				terserOptions: {
+					ecma: 5,
+					mangle: {
+						reserved: isI18n ? [ 'translate' ] : [],
+						safari10: true,
+					}
+				},
+			} ),
+		],
+	},
+	performance: { hints: false },
+	devServer: {
+		contentBase: false,
+		overlay: {
+			errors: true,
+			warnings: false,
+		},
 	},
 	externals: {
 		'jquery': 'jQuery',
@@ -71,34 +104,27 @@ const config = {
 			},
 			{
 				test: /\.scss$/,
-				use: ExtractTextPlugin.extract( {
-					fallback: 'style-loader',
-					use: [
-						{
-							loader: 'css-loader',
-							options: {
-								root: 'https://wordpress.com',
-							},
+				include: path.resolve( __dirname, 'assets', 'stylesheets' ),
+				use: cssLoaders,
+			},
+			{
+				test: /\.scss$/,
+				include: [
+					path.resolve( __dirname, 'client' ),
+					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+				],
+				use: cssLoaders.concat( [
+					{
+						loader: 'wrap-loader',
+						options: {
+							before: [
+								"@import 'shared/utils';",
+								'.wcc-root {',
+							],
+							after: '}',
 						},
-						{
-							loader: 'postcss-loader',
-							options: {
-								plugins: () => [ autoprefixer( { browsers } ) ],
-							},
-						},
-						{
-							loader: 'sass-loader',
-							options: {
-								includePaths: [
-									path.resolve( __dirname, 'client' ),
-									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
-									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
-									path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
-								],
-							},
-						},
-					],
-				} ),
+					},
+				] ),
 			},
 			{
 				test: /\.html$/,
@@ -107,10 +133,22 @@ const config = {
 			{
 				test: /\.jsx?$/,
 				enforce: 'post',
-				use: {
-					loader: 'babel-loader',
-					options: babelSettings,
-				},
+				use: [
+					{
+						loader: 'thread-loader',
+						options: {
+							workers: Math.max( 2, Math.floor( os.cpus().length / 2 ) ),
+						},
+					},
+					{
+						loader: 'babel-loader',
+						options: {
+							configFile: path.resolve( __dirname, 'node_modules', 'wp-calypso', 'babel.config.js' ),
+							cacheDirectory: true,
+							cacheIdentifier: require( 'wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
+						},
+					}
+				],
 				include: [
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
@@ -132,55 +170,22 @@ const config = {
 		symlinks: false,
 	},
 	node: {
-		fs: 'empty'
+		fs: 'empty',
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
 			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
 		} ),
-		new ExtractTextPlugin( {
+		new MiniCssExtractPlugin( {
 			filename: '[name].css',
 		} ),
+		new webpack.DefinePlugin( {
+			'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
+			'typeof window': '"object"',
+			global: 'window',
+		} ),
+		new webpack.LoaderOptionsPlugin( { minimize: ! isDev } ),
+		new webpack.NormalModuleReplacementPlugin( /^path$/, 'path-browserify' ),
+		new webpack.IgnorePlugin( /^props$/ ),
 	],
 };
-
-if ( isProd || isI18n ) {
-	config.plugins.push( new webpack.LoaderOptionsPlugin( { minimize: true } ) );
-
-	config.plugins.push( new webpack.DefinePlugin( {
-		'process.env.NODE_ENV': '"production"',
-		'typeof window': '"object"',
-	} ) );
-
-	config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
-		compress: {
-			screw_ie8: true,
-			warnings: false,
-			unsafe: true,
-		},
-		mangle: {
-			screw_ie8: true,
-			except: isProd ? [] : [ 'translate' ]
-		},
-		output: {
-			comments: false,
-			screw_ie8: true,
-		},
-	} ) );
-
-} else {
-
-	config.output.publicPath = 'http://localhost:8085/';
-
-	config.devtool = '#inline-source-map';
-
-	config.devServer = {
-		overlay: {
-			errors: true,
-			warnings: false,
-		},
-	};
-
-}
-
-module.exports = config;
