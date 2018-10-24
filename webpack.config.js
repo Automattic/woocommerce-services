@@ -3,6 +3,7 @@ const webpack = require( 'webpack' );
 const path = require( 'path' );
 const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const autoprefixer = require( 'autoprefixer' );
+const url = require( 'postcss-url' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const os = require( 'os' );
 
@@ -11,6 +12,33 @@ const isI18n = 'i18n' === process.env.NODE_ENV;
 const isDev = ! isProd && ! isI18n;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
+
+const cssLoaders = [
+	isDev ? 'style-loader?hmr=false' : MiniCssExtractPlugin.loader,
+	'css-loader',
+	{
+		loader: 'postcss-loader',
+		options: {
+			plugins: () => [
+				autoprefixer( { browsers } ),
+				url( {
+					url: ( asset ) => 'https://wordpress.com/' + asset.url,
+				} ),
+			],
+		},
+	},
+	{
+		loader: 'sass-loader',
+		options: {
+			includePaths: [
+				path.resolve( __dirname, 'client' ),
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
+				path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
+			],
+		},
+	},
+];
 
 module.exports = {
 	bail: ! isDev,
@@ -48,6 +76,7 @@ module.exports = {
 	},
 	performance: { hints: false },
 	devServer: {
+		contentBase: false,
 		overlay: {
 			errors: true,
 			warnings: false,
@@ -75,32 +104,27 @@ module.exports = {
 			},
 			{
 				test: /\.scss$/,
-				use: [
-					isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
-					{
-						loader: 'css-loader',
-						options: {
-							root: 'https://wordpress.com',
-						},
-					},
-					{
-						loader: 'postcss-loader',
-						options: {
-							plugins: () => [ autoprefixer( { browsers } ) ],
-						},
-					},
-					{
-						loader: 'sass-loader',
-						options: {
-							includePaths: [
-								path.resolve( __dirname, 'client' ),
-								path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
-								path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client', 'extensions' ),
-								path.resolve( __dirname, 'node_modules', 'wp-calypso', 'assets', 'stylesheets' ),
-							],
-						},
-					},
+				include: path.resolve( __dirname, 'assets', 'stylesheets' ),
+				use: cssLoaders,
+			},
+			{
+				test: /\.scss$/,
+				include: [
+					path.resolve( __dirname, 'client' ),
+					path.resolve( __dirname, 'node_modules', 'wp-calypso', 'client' ),
 				],
+				use: cssLoaders.concat( [
+					{
+						loader: 'wrap-loader',
+						options: {
+							before: [
+								"@import 'shared/utils';",
+								'.wcc-root {',
+							],
+							after: '}',
+						},
+					},
+				] ),
 			},
 			{
 				test: /\.html$/,

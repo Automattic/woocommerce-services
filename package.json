@@ -27,7 +27,6 @@
     "xgettext-js": "^1.1.0"
   },
   "dependencies": {
-    "autoprefixer": "^6.7.4",
     "@babel/cli": "7.1.2",
     "@babel/core": "7.1.2",
     "@babel/plugin-proposal-class-properties": "7.1.0",
@@ -40,6 +39,7 @@
     "@babel/preset-env": "7.1.0",
     "@babel/preset-react": "7.0.0",
     "@babel/runtime": "7.1.2",
+    "autoprefixer": "^6.7.4",
     "babel-eslint": "10.0.1",
     "babel-loader": "8.0.4",
     "babel-plugin-add-module-exports": "1.0.0",
@@ -72,6 +72,7 @@
     "object-path-immutable": "^0.5.1",
     "objectpath": "^1.2.1",
     "postcss-loader": "3.0.0",
+    "postcss-url": "^8.0.0",
     "prop-types": "15.5.10",
     "qs": "6.5.1",
     "react": "^16.2.0",
@@ -84,10 +85,11 @@
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "1.1.0",
     "thread-loader": "1.2.0",
-    "whatwg-fetch": "^2.0.2",
     "webpack": "4.19.1",
     "webpack-cli": "3.1.1",
     "webpack-dev-server": "3.1.9",
-    "wp-calypso": "github:automattic/wp-calypso#a26c296e653aac29a6f0fdfa53de0b6204e7e432"
+    "whatwg-fetch": "^2.0.2",
+    "wp-calypso": "github:automattic/wp-calypso#5c892f28b886c821c8047f51eec1e2f0000e2971",
+    "wrap-loader": "^0.2.0"
   }
 }
