@@ -86,7 +86,7 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 * Restrict shipping methods to certain shipping classes
 * Improve Stripe onboarding and show connected account in settings
 * Fix label printing bug in iOS 12
-* Make the HS Tarriff Code optional for international shipments
+* Make the HS Tariff Code optional for international shipments
 * Hide ineligible package types for international shipments
 
 = 1.16.1 =
