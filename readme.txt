@@ -1,9 +1,9 @@
 === WooCommerce Services ===
-Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain
+Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.6
-Stable tag: 1.16.1
+Tested up to: 4.9.8
+Stable tag: 1.17.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,6 +81,13 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.17.0 =
+* Restrict shipping methods to certain shipping classes
+* Improve Stripe onboarding and show connected account in settings
+* Fix label printing bug in iOS 12
+* Make the HS Tariff Code optional for international shipments
+* Hide ineligible package types for international shipments
 
 = 1.16.1 =
 * Clear shipping rates when changing package weight or signature requirement so they can be recalculated
