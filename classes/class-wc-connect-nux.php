@@ -70,7 +70,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		private function init_pointers() {
-			add_filter( 'wc_services_pointer_woocommerce_page_wc-settings', array( $this, 'register_add_service_to_zone_pointer' ) );
 			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
 		}
 
@@ -128,21 +127,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$dismissed_pointers[] = $pointer_to_dismiss;
 			$dismissed_data = implode( ',', $dismissed_pointers );
 			update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', $dismissed_data );
-		}
-
-		public function register_add_service_to_zone_pointer( $pointers ) {
-			$pointers[] = array(
-				'id' => 'wc_services_add_service_to_zone',
-				'target' => 'th.wc-shipping-zone-methods',
-				'options' => array(
-					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
-						__( 'Add a WooCommerce shipping service to a Zone' ,'woocommerce-services' ),
-						__( "To ship products to customers using USPS or Canada Post, you will need to add them as a shipping method to an applicable zone. If you don't have any zones, add one first.", 'woocommerce-services' )
-					),
-					'position' => array( 'edge' => 'right', 'align' => 'left' ),
-				),
-			);
-			return $pointers;
 		}
 
 		public function is_new_labels_user() {
