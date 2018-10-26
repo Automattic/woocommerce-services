@@ -92,6 +92,9 @@ module.exports = {
 	module: {
 		rules: [
 			{
+				parser: { amd: false },
+			},
+			{
 				test: /\.jsx?$/,
 				enforce: 'pre',
 				use: {
