@@ -13,6 +13,8 @@ const isDev = ! isProd && ! isI18n;
 
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
+const PORT = 8085;
+
 const cssLoaders = [
 	isDev ? 'style-loader?hmr=false' : MiniCssExtractPlugin.loader,
 	'css-loader',
@@ -56,7 +58,7 @@ module.exports = {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
 		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
-		publicPath: 'http://localhost:8085/',
+		publicPath: `http://localhost:${PORT}/`,
 	},
 	optimization: {
 		minimize: ! isDev,
@@ -76,6 +78,7 @@ module.exports = {
 	},
 	performance: { hints: false },
 	devServer: {
+		port: PORT,
 		contentBase: false,
 		overlay: {
 			errors: true,
