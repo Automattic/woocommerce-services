@@ -172,6 +172,13 @@ module.exports = {
 		],
 		symlinks: false,
 	},
+	resolveLoader: {
+		modules: [
+			path.resolve( __dirname, 'node_modules' ),
+			path.resolve( __dirname, 'node_modules', 'wp-calypso', 'node_modules' ),
+		],
+		symlinks: false,
+	},
 	node: {
 		fs: 'empty',
 	},
