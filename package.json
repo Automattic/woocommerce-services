@@ -2,15 +2,15 @@
   "name": "woocommerce-services",
   "version": "1.17.0",
   "scripts": {
-	"start": "cross-env-shell NODE_ENV=development npm run exec webpack-dev-server",
-	"dist": "cross-env-shell NODE_ENV=production npm run exec webpack",
-	"eslint": "npm run exec eslint tasks/ client/",
-	"test": "npm run eslint",
-	"release": "npm run exec node tasks/release.js",
-	"i18n": "cross-env-shell NODE_ENV=i18n npm run exec webpack && npm run exec node tasks/i18n",
-	"i18njson": "npm run exec node tasks/i18njson",
-	"update-deps": "npx rimraf npm-shrinkwrap.json node_modules && npm install && npm shrinkwrap",
-	"exec": "cross-env-shell CALYPSO_CLIENT=true DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap PATH=$PATH:./node_modules/wp-calypso/node_modules/.bin NODE_PATH=$NODE_PATH:./node_modules/wp-calypso/node_modules"
+    "start": "cross-env-shell NODE_ENV=development npm run exec webpack-dev-server",
+    "dist": "cross-env-shell NODE_ENV=production npm run exec webpack",
+    "eslint": "npm run exec eslint tasks/ client/",
+    "test": "npm run eslint",
+    "release": "npm run exec node tasks/release.js",
+    "i18n": "cross-env-shell NODE_ENV=i18n npm run exec webpack && npm run exec node tasks/i18n",
+    "i18njson": "npm run exec node tasks/i18njson",
+    "update-deps": "npx rimraf npm-shrinkwrap.json node_modules && npm install && npm shrinkwrap",
+    "exec": "cross-env-shell CALYPSO_CLIENT=true DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap PATH=$PATH:./node_modules/wp-calypso/node_modules/.bin NODE_PATH=$NODE_PATH:./node_modules/wp-calypso/node_modules"
   },
   "repository": {
     "type": "git",
