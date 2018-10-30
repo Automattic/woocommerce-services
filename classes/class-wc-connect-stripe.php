@@ -237,7 +237,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$result = $this->get_oauth_url();
 
 			if ( is_wp_error( $result ) ) {
-				$this->logger->log( $result, __CLASS__ );
+				//do not log the invalid url protocol error when attempting to render the banner
+				if ( 'invalid_url_protocol' !== $result->get_error_code() ) {
+					$this->logger->log( $result, __CLASS__ );
+				}
 				return;
 			}
 
