@@ -455,7 +455,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$proxy_url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
 			$proxy_url .= ltrim( $path, '/' );
 
-			$args['headers']['Authorization'] = $this->authorization_header();
+			$authorization = $this->authorization_header();
+			if ( is_wp_error( $authorization ) ) {
+				return $authorization;
+			}
+			$args['headers']['Authorization'] = $authorization;
+
 
 			$http_timeout = 60; // 1 minute
 
