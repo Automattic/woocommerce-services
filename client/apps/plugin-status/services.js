@@ -13,6 +13,10 @@ import Indicator from './indicator';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 
 const ServicesStatusView = ( { translate, moment, services } ) => {
+	if ( false === services ) {
+		return null;
+	}
+
 	const renderDescription = ( { timestamp, url } ) => {
 		if ( timestamp > 0 ) {
 			return (
