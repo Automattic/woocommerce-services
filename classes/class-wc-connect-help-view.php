@@ -161,6 +161,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		protected function get_services_items() {
+			$available_service_method_ids = $this->service_schemas_store->get_all_shipping_method_ids();
+			if ( empty( $available_service_method_ids ) ) {
+				return false;
+			}
+
 			$service_items = array();
 
 			$enabled_services = $this->service_settings_store->get_enabled_services();
