@@ -101,16 +101,22 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						);
 					}
 
-					$weight = $product->get_weight();
-					$height = 0;
-					$length = 0;
-					$width  = 0;
-
-					if ( $product->has_dimensions() ) {
-						$height = $product->get_height();
-						$length = $product->get_length();
-						$width  = $product->get_width();
+					if (
+						! $product->get_length() ||
+						! $product->get_height() ||
+						! $product->get_width()
+					) {
+						return new WP_Error(
+							'product_missing_dimension',
+							sprintf( "Product ( ID: %d ) is missing a dimension value. Shipping rates cannot be calculated.", $product->get_id() ),
+							array( 'product_id' => $product->get_id() )
+						);
 					}
+
+					$weight = $product->get_weight();
+					$height = $product->get_height();
+					$length = $product->get_length();
+					$width  = $product->get_width();
 
 					$contents[] = array(
 						'height'     => ( float ) $height,
