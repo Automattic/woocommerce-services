@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			if ( substr( $return_url, 0, 8 ) !== 'https://' ) {
-				return new WP_Error( 'invalid_url_protocol', __( 'Your site requires SSL in order to connect your Stripe account via WooCommerce Services', 'woocommerce-services' ) );
+				return new WP_Error( 'invalid_url_protocol', __( 'Your site must be served over HTTPS in order to connect your Stripe account via WooCommerce Services', 'woocommerce-services' ) );
 			}
 
 			$result = $this->api->get_stripe_oauth_init( $return_url );
