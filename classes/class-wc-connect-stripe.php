@@ -46,6 +46,11 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			if ( empty( $return_url ) ) {
 				$return_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=stripe' );
 			}
+
+			if ( substr( $return_url, 0, 8 ) !== 'https://' ) {
+				return new WP_Error( 'invalid_url_protocol', __( 'Your site must be served over HTTPS in order to connect your Stripe account via WooCommerce Services', 'woocommerce-services' ) );
+			}
+
 			$result = $this->api->get_stripe_oauth_init( $return_url );
 
 			if ( is_wp_error( $result ) ) {
@@ -232,7 +237,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$result = $this->get_oauth_url();
 
 			if ( is_wp_error( $result ) ) {
-				$this->logger->log( $result, __CLASS__ );
+				//do not log the invalid url protocol error when attempting to render the banner
+				if ( 'invalid_url_protocol' !== $result->get_error_code() ) {
+					$this->logger->log( $result, __CLASS__ );
+				}
 				return;
 			}
 
