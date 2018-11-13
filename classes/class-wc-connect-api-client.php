@@ -64,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function validate_service_settings( $service_slug, $service_settings ) {
 			// Make sure the service slug only contains underscores or letters
 			if ( 1 === preg_match( '/[^a-z_]/i', $service_slug ) ) {
-				return new WP_Error( 'invalid_service_slug', 'Invalid WooCommerce Services service slug provided' );
+				return new WP_Error( 'invalid_service_slug', __( 'Invalid WooCommerce Services service slug provided', 'woocommerce-services' ) );
 			}
 
 			return $this->request( 'POST', "/services/{$service_slug}/settings", array( 'service_settings' => $service_settings ) );
@@ -96,7 +96,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					if ( ! $product->has_weight() ) {
 						return new WP_Error(
 							'product_missing_weight',
-							sprintf( "Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.", $product->get_id() ),
+							sprintf(
+								__( 'Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.', 'woocommerce-services' ),
+								$product->get_id()
+							),
 							array( 'product_id' => $product->get_id() )
 						);
 					}
@@ -108,7 +111,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					) {
 						return new WP_Error(
 							'product_missing_dimension',
-							sprintf( "Product ( ID: %d ) is missing a dimension value. Shipping rates cannot be calculated.", $product->get_id() ),
+							sprintf(
+								__( 'Product ( ID: %d ) is missing a dimension value. Shipping rates cannot be calculated.', 'woocommerce-services' ),
+								$product->get_id()
+							),
 							array( 'product_id' => $product->get_id() )
 						);
 					}
@@ -152,7 +158,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			if ( empty( $contents ) ) {
-				return new WP_Error( 'nothing_to_ship', 'No shipping rate could be calculated. No items in the package are shippable.' );
+				return new WP_Error(
+					'nothing_to_ship',
+					__( 'No shipping rate could be calculated. No items in the package are shippable.', 'woocommerce-services' )
+				);
 			}
 
 			// Then, make the request
@@ -349,17 +358,23 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			// TODO - incorporate caching for repeated identical requests
 			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				return new WP_Error( 'jetpack_data_class_not_found', 'Unable to send request to WooCommerce Services server. Jetpack_Data was not found.' );
+				return new WP_Error(
+					'jetpack_data_class_not_found',
+					__( 'Unable to send request to WooCommerce Services server. Jetpack_Data was not found.', 'woocommerce-services' )
+				);
 			}
 
 			if ( ! method_exists( 'Jetpack_Data', 'get_access_token' ) ) {
-				return new WP_Error( 'jetpack_data_get_access_token_not_found', 'Unable to send request to WooCommerce Services server. Jetpack_Data does not implement get_access_token.' );
+				return new WP_Error(
+					'jetpack_data_get_access_token_not_found',
+					__( 'Unable to send request to WooCommerce Services server. Jetpack_Data does not implement get_access_token.', 'woocommerce-services' )
+				);
 			}
 
 			if ( ! is_array( $body ) ) {
 				return new WP_Error(
 					'request_body_should_be_array',
-					'Unable to send request to WooCommerce Services server. Body must be an array.'
+					__( 'Unable to send request to WooCommerce Services server. Body must be an array.', 'woocommerce-services' )
 				);
 			}
 
@@ -375,7 +390,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				if ( ! $body ) {
 					return new WP_Error(
 						'unable_to_json_encode_body',
-						'Unable to encode body for request to WooCommerce Services server.'
+						__( 'Unable to encode body for request to WooCommerce Services server.', 'woocommerce-services' )
 					);
 				}
 			}
@@ -408,7 +423,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				if ( 200 != $response_code ) {
 					return new WP_Error(
 						'wcc_server_error',
-						sprintf( 'Error: The WooCommerce Services server returned HTTP code: %d', $response_code )
+						sprintf(
+							__( 'Error: The WooCommerce Services server returned HTTP code: %d', 'woocommerce-services' ),
+							$response_code
+						)
 					);
 				}
 				return $response;
@@ -424,7 +442,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
-							'Error: The WooCommerce Services server returned ( %d ) and an empty response body.',
+							__( 'Error: The WooCommerce Services server returned ( %d ) and an empty response body.', 'woocommerce-services' ),
 							$response_code
 						)
 					);
@@ -437,7 +455,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return new WP_Error(
 					'wcc_server_error_response',
 					sprintf(
-						'Error: The WooCommerce Services server returned: %s %s ( %d )',
+						/* translators: %1$s: error code, %2$s: error message, %3$d: HTTP response code */
+						__( 'Error: The WooCommerce Services server returned: %1$s %2$s ( %3$d )', 'woocommerce-services' ),
 						$error,
 						$message,
 						$response_code
@@ -544,11 +563,17 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$token = Jetpack_Data::get_access_token( 0 );
 			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
-				return new WP_Error( 'missing_token', 'Unable to send request to WooCommerce Services server. Jetpack Token is missing' );
+				return new WP_Error(
+					'missing_token',
+					__( 'Unable to send request to WooCommerce Services server. Jetpack Token is missing', 'woocommerce-services' )
+				);
 			}
 
 			if ( false === strpos( $token->secret, '.' ) ) {
-				return new WP_Error( 'invalid_token', 'Unable to send request to WooCommerce Services server. Jetpack Token is malformed.' );
+				return new WP_Error(
+					'invalid_token',
+					__( 'Unable to send request to WooCommerce Services server. Jetpack Token is malformed.', 'woocommerce-services' )
+				);
 			}
 
 			list( $token_key, $token_secret ) = explode( '.', $token->secret );
@@ -581,7 +606,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		protected function request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff ) {
 			$local_time = $timestamp - $time_diff;
 			if ( $local_time < time() - 600 || $local_time > time() + 300 ) {
-				return new WP_Error( 'invalid_signature', 'Unable to send request to WooCommerce Services server. The timestamp generated for the signature is too old.' );
+				return new WP_Error(
+					'invalid_signature',
+					__( 'Unable to send request to WooCommerce Services server. The timestamp generated for the signature is too old.', 'woocommerce-services' )
+				);
 			}
 
 			$normalized_request_string = join( "\n", array(
