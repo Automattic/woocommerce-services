@@ -50,14 +50,20 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		}
 
 		private function show_notice() {
-			$link_status = admin_url( 'admin.php?page=wc-status&tab=connect' );
+			$link_status  = admin_url( 'admin.php?page=wc-status&tab=connect' );
 			$link_dismiss = add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) );
+			$error        = $this->notice_enabled();
 
-			$error = $this->notice_enabled();
-			if ( is_wp_error( $error ) && 'product_missing_weight' === $error->get_error_code() ) {
+			if ( ! is_wp_error( $error ) ) {
+				return;
+			}
+
+			$message = false;
+
+			if ( 'product_missing_weight' === $error->get_error_code() ) {
 				$error_data = $error->get_error_data();
-				$id = $error_data['product_id'];
-				$product = wc_get_product( $id );
+				$id         = $error_data['product_id'];
+				$product    = wc_get_product( $id );
 
 				if ( ! $product || $product->has_weight() ) {
 					$this->disable_notice();
@@ -65,22 +71,21 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				}
 
 				$product_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
-				$product_id = is_a( $product, 'WC_Product_Variation' ) ? $product->get_parent_id() : $id;
-				$message = sprintf(
+				$product_id   = is_a( $product, 'WC_Product_Variation' ) ? $product->get_parent_id() : $id;
+				$message      = sprintf(
 					__( '<strong>%2$s does not have a weight defined.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Add a weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
 					get_edit_post_link( $product_id ), $product_name
 				);
-			} else {
-				$message = sprintf(
-					__( 'An error occurred in WooCommerce Services. Details are logged <a href="%s">here</a>.', 'woocommerce-services' ),
-					$link_status
-				);
+			}
+
+			if ( ! $message ) {
+				return;
 			}
 
 			$allowed_html = array(
-				'a' => array( 'href' => array() ),
+				'a'      => array( 'href' => array() ),
 				'strong' => array(),
-				'br' => array(),
+				'br'     => array(),
 			);
 ?>
 			<div class='notice notice-error' style="position: relative;">
