@@ -12,7 +12,6 @@ import { reloadPage } from './state/actions';
 // from calypso
 import StripeConnectAccount from 'woocommerce/app/settings/payments/stripe/payment-method-stripe-connect-account';
 import Notice from 'components/notice';
-import ActionCard from 'components/action-card';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	getIsRequesting,
@@ -74,15 +73,9 @@ class StripeConnectAccountWrapper extends Component {
 		if ( oauthURL ) {
 			return (
 				<div className="stripe-connect-account__connect-action">
-					<ActionCard
-						headerText={ translate( 'Connect your account' ) }
-						mainText={ translate( 'To start accepting payments with Stripe, you\'ll need to connect it to your store.' ) }
-						buttonText={ translate( 'Connect' ) }
-						buttonIcon="external"
-						buttonPrimary={ true }
-						buttonHref={ oauthURL }
-						buttonOnClick={ null }
-					/>
+					{ translate( 'To automatically copy keys from a Stripe account, {{a}}connect{{/a}} it to your store.', {
+						components: { a: <a href={ oauthURL } /> },
+					} ) }
 				</div>
 			);
 		}
