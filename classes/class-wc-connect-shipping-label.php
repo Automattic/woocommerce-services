@@ -374,7 +374,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				'orderId' => $order_id,
 			);
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
+			do_action( 'render_wc_connect_view', 'wc-connect-create-shipping-label', $payload );
 		}
 
 	}

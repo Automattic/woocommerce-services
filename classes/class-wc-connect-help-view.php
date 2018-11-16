@@ -330,11 +330,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				</h2>
 			<?php
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-admin-status', array(
+			do_action( 'render_wc_connect_view', 'wc-connect-admin-status', array(
 				'formData'           => $this->get_form_data(),
 			) );
 
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-admin-test-print', array(
+			do_action( 'render_wc_connect_view', 'wc-connect-admin-test-print', array(
 				'storeOptions'       => $this->service_settings_store->get_store_options(),
 				'paperSize'          => $this->service_settings_store->get_preferred_paper_size(),
 			) );
