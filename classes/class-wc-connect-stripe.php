@@ -187,9 +187,21 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		/**
-		 * Trigger Stripe connection-related admin notice if one is meant to be shown.
+		 * Handle connection and just-in-time messaging around OAuth flow.
 		 */
 		public function maybe_show_notice() {
+			// Handle redirect back from OAuth flow.
+			if ( isset( $_GET[ 'wcs_stripe_code' ] ) && isset( $_GET[ 'wcs_stripe_state' ] ) ) {
+				$response = $this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
+				if ( ! is_wp_error( $response ) ) {
+					WC_Connect_Options::update_option( 'banner_stripe', 'success' );
+				}
+
+				wp_safe_redirect( remove_query_arg( array( 'wcs_stripe_state', 'wcs_stripe_code' ) ) );
+				exit;
+			}
+
+			// Trigger connection-related admin notice if triggered and if on relevant screen.
 			$setting = WC_Connect_Options::get_option( 'banner_stripe', null );
 			if ( is_null( $setting ) ) {
 				return;
@@ -199,16 +211,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				add_action( 'admin_notices', array( $this, 'connection_success_notice' ) );
 				WC_Connect_Options::delete_option( 'banner_stripe' );
 				return;
-			}
-
-			if ( isset( $_GET[ 'wcs_stripe_code' ] ) && isset( $_GET[ 'wcs_stripe_state' ] ) ) {
-				$response = $this->connect_oauth( $_GET[ 'wcs_stripe_state' ], $_GET[ 'wcs_stripe_code' ] );
-				if ( ! is_wp_error( $response ) ) {
-					WC_Connect_Options::update_option( 'banner_stripe', 'success' );
-				}
-
-				wp_safe_redirect( remove_query_arg( array( 'wcs_stripe_state', 'wcs_stripe_code' ) ) );
-				exit;
 			}
 
 			$screen = get_current_screen();
