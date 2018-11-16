@@ -285,7 +285,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		public function show_connected_account( $settings ) {
 			ob_start();
-			do_action( 'render_wc_connect_view', 'wc-connect-stripe-connect-account' );
+			do_action( 'print_wc_connect_container', 'wc-connect-stripe-connect-account' );
+			add_action( 'admin_enqueue_scripts', array( $this, 'maybe_enqueue_script' ) );
 
 			$new_settings = array(
 				'connection_status' => array(
@@ -295,6 +296,21 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				),
 			);
 			return array_merge( $new_settings, $settings );
+		}
+
+		/**
+		 * On Stripe settings screen, enqueue script for rendering connected account view.
+		 */
+		public function maybe_enqueue_script() {
+			$screen = get_current_screen();
+
+			if ( // WooCommerce » Settings » Payments » Stripe.
+				'woocommerce_page_wc-settings' === $screen->base
+				&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
+				&& isset( $_GET['section'] ) && 'stripe' === $_GET['section']
+			) {
+				do_action( 'enqueue_wc_connect_script' );
+			}
 		}
 	}
 }
