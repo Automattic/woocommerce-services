@@ -41,6 +41,10 @@
 			background-image: linear-gradient( -45deg, $blue-medium 28%, darken( $blue-medium, 5% ) 28%, darken( $blue-medium, 5% ) 72%, $blue-medium 72%) !important;
 			border-color: #0081a9 !important;
 		}
+
+		&.is-borderless {
+			background: none;
+		}
 	}
 
 	input[type=checkbox]:checked:before {
