@@ -1205,6 +1205,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( $this->shipping_label->should_show_meta_box() ) {
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default' );
 			}
+
+			add_meta_box( 'woocommerce-services-shipping-debug', __( 'Shipping Debug', 'woocommerce-services' ), array( $this, 'shipping_rate_packaging_debug_log_meta_box' ), 'shop_order', 'normal', 'default' );
+		}
+
+		public function shipping_rate_packaging_debug_log_meta_box( $post ) {
+			$order            = wc_get_order( $post );
+			$shipping_methods = $order->get_shipping_methods();
+
+			foreach ( $order->get_shipping_methods() as $method ) {
+				if ( empty( $method['wc_connect_packing_log'] ) ) {
+					continue;
+				}
+
+				echo '<strong>', $method->get_name(), '</strong> <em>(', $method->get_method_id(), ':', $method->get_id(), ')</em>';
+				echo '<pre>', implode( "\n", $method['wc_connect_packing_log'] ), '</pre>';
+			}
 		}
 
 		public function hide_wc_connect_package_meta_data( $hidden_keys ) {
