@@ -448,10 +448,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						} else {
 							$this->debug(
 								sprintf(
-									'Received rate: <strong>%s</strong> (%s)<br/><ul><li>%s</li></ul>',
+									'Received rate: <strong>%s</strong> (%s)<br/><ul><li>%s</li></ul><br/>Packing log: <ul><li>%s</li></ul>',
 									$rate_to_add['label'],
 									wc_price( $rate->rate ),
-									implode( '</li><li>', $package_summaries )
+									implode( '</li><li>', $package_summaries ),
+									implode( '</li><li>', $rate->box_packing_log )
 								),
 								'success'
 							);
