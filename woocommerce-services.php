@@ -1209,6 +1209,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function hide_wc_connect_package_meta_data( $hidden_keys ) {
 			$hidden_keys[] = 'wc_connect_packages';
+			$hidden_keys[] = 'wc_connect_packing_log';
 			return $hidden_keys;
 		}
 

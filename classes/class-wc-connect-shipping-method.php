@@ -437,7 +437,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'cost'      => $rate->rate,
 						'meta_data' => array(
 							'wc_connect_packages' => $rate->packages,
-							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
+							__( 'Packaging', 'woocommerce-services' ) => $packaging_info,
+							'wc_connect_packing_log' => $rate->box_packing_log,
 						),
 					);
 
