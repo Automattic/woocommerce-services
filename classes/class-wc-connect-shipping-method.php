@@ -447,21 +447,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							// Notify the merchant when the fallback rate is added by the WCS server.
 							$this->debug( 'No rates found, adding fallback.', 'error' );
 						} else {
-							$rate_debug = sprintf(
+							$rate_debug  = '<strong>';
+							$rate_debug .= sprintf(
 								/* translators: 1: name of shipping service, 2: shipping rate (price) */
-								__( 'Received rate: <strong>%1$s</strong> (%2$s)', 'woocommerce-services' ),
+								__( 'Received rate: %1$s (%2$s)', 'woocommerce-services' ),
 								$rate_to_add['label'],
 								wc_price( $rate->rate )
 							);
-
-							$rate_debug .= "\n<ul><li>" . implode( '</li><li>', $package_summaries ) . '</li></ul>';
+							$rate_debug .= '</strong><ul><li>' . implode( '</li><li>', $package_summaries ) . '</li></ul>';
+							$rate_debug .= '<strong>' . __( 'Packing log:', 'woocommerce-services' ) . '</strong>';
+							$rate_debug .= '<ul><li>' . implode( '</li><li>', $rate->box_packing_log ) . '</li></ul>';
 
 							$this->debug( $rate_debug, 'success' );
-
-							$packing_debug  = __( 'Packing log:', 'woocommerce-services' );
-							$packing_debug .= '<ul><li>' . implode( '</li><li>', $rate->box_packing_log ) . '</li></ul>';
-
-							$this->debug( $packing_debug, 'success' );
 						}
 					}
 
