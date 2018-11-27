@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2018-11-13T17:13:41+00:00\n"
+"POT-Creation-Date: 2018-11-27T00:35:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.1.0-alpha-f1c9941\n"
 "X-Domain: woocommerce-services\n"
@@ -47,25 +47,29 @@ msgstr ""
 msgid "Unknown package"
 msgstr ""
 
-#: classes/class-wc-connect-stripe.php:245
+#: classes/class-wc-connect-stripe.php:51
+msgid "Your site must be served over HTTPS in order to connect your Stripe account via WooCommerce Services"
+msgstr ""
+
+#: classes/class-wc-connect-stripe.php:253
 msgid "Connect your account"
 msgstr ""
 
-#: classes/class-wc-connect-stripe.php:247
+#: classes/class-wc-connect-stripe.php:255
 msgid "It looks like there is an existing Stripe account at <strong>%s</strong>. To start accepting payments with Stripe, you'll need to connect it to your store."
 msgstr ""
 
-#: classes/class-wc-connect-stripe.php:250
+#: classes/class-wc-connect-stripe.php:258
 #: classes/class-wc-connect-nux.php:488
 #: classes/class-wc-connect-nux.php:585
 msgid "Connect"
 msgstr ""
 
-#: classes/class-wc-connect-stripe.php:267
+#: classes/class-wc-connect-stripe.php:275
 msgid "<strong>Ready to accept Stripe payments!</strong> Your Stripe account has been successfully connected. Additional settings can be configured on this screen."
 msgstr ""
 
-#: classes/class-wc-connect-stripe.php:285
+#: classes/class-wc-connect-stripe.php:293
 msgid "Connected Stripe account"
 msgstr ""
 
@@ -366,15 +370,11 @@ msgstr ""
 msgid "WooCommerce Services Status"
 msgstr ""
 
-#: classes/class-wc-connect-error-notice.php:84
+#: classes/class-wc-connect-error-notice.php:87
 msgid "<strong>\"%2$s\" is missing weight, length, width, or height.</strong><br />Shipping rates cannot be calculated. <a href=\"%1$s\">Enter dimensions and weight for %2$s</a> so your customers can purchase this item."
 msgstr ""
 
-#: classes/class-wc-connect-error-notice.php:89
-msgid "An error occurred in WooCommerce Services. Details are logged <a href=\"%s\">here</a>."
-msgstr ""
-
-#: classes/class-wc-connect-error-notice.php:101
+#: classes/class-wc-connect-error-notice.php:103
 msgid "Dismiss this notice"
 msgstr ""
 
@@ -546,6 +546,15 @@ msgstr ""
 msgid "Packaging"
 msgstr ""
 
+#. translators: 1: name of shipping service, 2: shipping rate (price)
+#: classes/class-wc-connect-shipping-method.php:453
+msgid "Received rate: %1$s (%2$s)"
+msgstr ""
+
+#: classes/class-wc-connect-shipping-method.php:458
+msgid "Packing log:"
+msgstr ""
+
 #: classes/class-wc-connect-service-settings-store.php:371
 msgctxt "A service with an unknown title and unknown method_title"
 msgid "Unknown"
@@ -630,17 +639,21 @@ msgstr ""
 msgid "Shipping Label"
 msgstr ""
 
-#: woocommerce-services.php:1225
-#: woocommerce-services.php:1238
+#: woocommerce-services.php:1209
+msgid "Shipping Debug"
+msgstr ""
+
+#: woocommerce-services.php:1242
+#: woocommerce-services.php:1255
 #: i18n/strings.php:37
 msgid "Phone"
 msgstr ""
 
-#: woocommerce-services.php:1259
+#: woocommerce-services.php:1276
 msgid "<a href=\"%s\">Support</a>"
 msgstr ""
 
-#: woocommerce-services.php:1288
+#: woocommerce-services.php:1305
 msgid "Section not loading? Visit the <a href=\"%s\">status page</a> for troubleshooting steps."
 msgstr ""
 
