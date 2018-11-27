@@ -455,8 +455,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 								wc_price( $rate->rate )
 							);
 							$rate_debug .= '</strong><ul><li>' . implode( '</li><li>', $package_summaries ) . '</li></ul>';
-							$rate_debug .= '<strong>' . __( 'Packing log:', 'woocommerce-services' ) . '</strong>';
-							$rate_debug .= '<ul><li>' . implode( '</li><li>', $rate->box_packing_log ) . '</li></ul>';
+
+							if ( ! empty( $rate->box_packing_log ) ) {
+								$rate_debug .= '<strong>' . __( 'Packing log:', 'woocommerce-services' ) . '</strong>';
+								$rate_debug .= '<ul><li>' . implode( '</li><li>', $rate->box_packing_log ) . '</li></ul>';
+							}
 
 							$this->debug( $rate_debug, 'success' );
 						}
