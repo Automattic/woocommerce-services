@@ -1,6 +1,6 @@
 @import 'shared/utils';
 
-.wcc-root {
+.wp-core-ui.wp-admin .wcc-root {
 	// Buttons
 	.button {
 		background: $gray-light;
@@ -130,7 +130,9 @@
 	}
 
 	// Custom styles
-	max-width: 720px;
+	&:not(.label-purchase-modal) {
+		max-width: 720px;
+	}
 
 	&.wc-connect-shipping-settings {
 		margin-top: 6px;
@@ -142,23 +144,19 @@
 		max-width: none;
 	}
 
-	.wp-admin & {
-		select {
-			height: auto;
-			box-shadow: none;
-			width: 100%;
-			line-height: 18px;
-			padding: 9px 32px 12px 14px;
-		}
+	select {
+		height: auto;
+		box-shadow: none;
+		width: 100%;
+		line-height: 18px;
+		padding: 9px 32px 12px 14px;
 	}
 
-	.wp-core-ui & {
-		.button {
-			height: auto;
+	.button {
+		height: auto;
 
-			&:focus {
-				box-shadow: none;
-			}
+		&:focus {
+			box-shadow: none;
 		}
 	}
 
