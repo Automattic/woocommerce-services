@@ -1221,18 +1221,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$method_instance = new WC_Connect_Shipping_Method( $method->get_instance_id() );
 			?>
 				<p>
-					<strong>Shipping Method:</strong> <?php echo $method_instance->get_method_title(); ?>
+					<strong><?php esc_html_e( 'Shipping Method Name:', 'woocommerce-services' ); ?> </strong> <?php echo $method_instance->get_method_title(); ?>
 				</p>
 				<p>
-					<strong>Instance: </strong>
+					<strong><?php esc_html_e( 'Shipping Method ID:', 'woocommerce-services' ); ?> </strong>
 					<?php echo $method->get_method_id(), ':', $method->get_instance_id(); ?>
 				</p>
 				<p>
-					<strong>Chosen Rate: </strong>
+					<strong><?php esc_html_e( 'Chosen Rate:', 'woocommerce-services' ); ?> </strong>
 					<?php printf( '%s (%s%s)', $method->get_name(), get_woocommerce_currency_symbol(), $method->get_total() ); ?>
 				</p>
 				<p>
-					<strong>Packing Log: </strong>
+					<strong><?php esc_html_e( 'Packing Log:', 'woocommerce-services' ); ?> </strong>
 				</p>
 				<pre><?php echo implode( "\n", $method['wc_connect_packing_log'] ); ?></pre>
 			<?php
