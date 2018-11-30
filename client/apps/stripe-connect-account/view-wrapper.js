@@ -60,7 +60,7 @@ class StripeConnectAccountWrapper extends Component {
 		}
 
 		if ( ! stripeConnectAccount.connectedUserID ) {
-			return translate( 'Stripe account keys may be configured below.' );
+			return translate( 'No account connected via WooCommerce Services. Stripe account keys may be configured below.' );
 		}
 
 		return (

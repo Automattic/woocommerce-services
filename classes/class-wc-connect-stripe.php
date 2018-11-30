@@ -290,7 +290,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$new_settings = array(
 				'connection_status' => array(
 					'type'        => 'title',
-					'title'       => __( 'Connected Stripe account', 'woocommerce-services' ),
+					'title'       => __( 'Stripe Account (connected to WooCommerce Services)', 'woocommerce-services' ),
 					'description' => ob_get_clean(),
 				),
 			);
