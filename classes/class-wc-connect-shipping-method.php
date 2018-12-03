@@ -426,8 +426,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							. '<ul><li>' . implode( '</li><li>', $product_summaries ) . '</li></ul>';
 					}
 
-					$packaging_info = implode( ', ', $package_summaries );
-					$services_list  = implode( '-', array_unique( $service_ids ) );
+					$packaging_info  = implode( ', ', $package_summaries );
+					$services_list   = implode( '-', array_unique( $service_ids ) );
+					$box_packing_log = empty( $rate->box_packing_log ) ? array() : $rate->box_packing_log;
 
 					$rate_to_add = array(
 						// Make sure the rate ID is identifiable for extensions like Conditional Shipping and Payments.
@@ -438,7 +439,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'meta_data' => array(
 							'wc_connect_packages' => $rate->packages,
 							__( 'Packaging', 'woocommerce-services' ) => $packaging_info,
-							'wc_connect_packing_log' => $rate->box_packing_log,
+							'wc_connect_packing_log' => $box_packing_log,
 						),
 					);
 
@@ -456,9 +457,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							);
 							$rate_debug .= '</strong><ul><li>' . implode( '</li><li>', $package_summaries ) . '</li></ul>';
 
-							if ( ! empty( $rate->box_packing_log ) ) {
+							if ( ! empty( $box_packing_log ) ) {
 								$rate_debug .= '<strong>' . __( 'Packing log:', 'woocommerce-services' ) . '</strong>';
-								$rate_debug .= '<ul><li>' . implode( '</li><li>', $rate->box_packing_log ) . '</li></ul>';
+								$rate_debug .= '<ul><li>' . implode( '</li><li>', $box_packing_log ) . '</li></ul>';
 							}
 
 							$this->debug( $rate_debug, 'success' );
