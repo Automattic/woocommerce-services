@@ -1202,7 +1202,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function should_show_shipping_debug_meta_box( $post ) {
-			$order            = wc_get_order( $post );
+			$order = wc_get_order( $post );
+
+			if ( false === $order ) {
+				return false;
+			}
+
 			$shipping_methods = $order->get_shipping_methods();
 			
 			foreach ( $shipping_methods as $method ) {
