@@ -1225,6 +1225,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $this->should_show_shipping_debug_meta_box( $post ) ) {
+				wp_enqueue_style( 'wc_connect_admin' );
 				add_meta_box( 'woocommerce-services-shipping-debug', __( 'Shipping Debug', 'woocommerce-services' ), array( $this, 'shipping_rate_packaging_debug_log_meta_box' ), 'shop_order', 'normal', 'default' );
 			}
 		}
@@ -1254,7 +1255,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				<p>
 					<strong><?php esc_html_e( 'Packing Log:', 'woocommerce-services' ); ?> </strong>
 				</p>
-				<pre><?php echo implode( "\n", $method['wc_connect_packing_log'] ); ?></pre>
+				<pre class="packing-log"><?php echo implode( "\n", $method['wc_connect_packing_log'] ); ?></pre>
 			<?php
 			}
 		}
