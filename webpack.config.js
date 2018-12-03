@@ -122,7 +122,7 @@ module.exports = {
 						options: {
 							before: [
 								"@import 'shared/utils';",
-								'.wcc-root {',
+								'.wp-core-ui.wp-admin .wcc-root {',
 							],
 							after: '}',
 						},
