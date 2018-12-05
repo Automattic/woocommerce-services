@@ -1221,7 +1221,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function add_shipping_phone_to_checkout( $fields ) {
-			$fields[ 'shipping_phone' ] = array(
+			$defaults = array(
 				'label'        => __( 'Phone', 'woocommerce-services' ),
 				'type'         => 'tel',
 				'required'     => false,
@@ -1230,6 +1230,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'validate'     => array( 'phone' ),
 				'autocomplete' => 'tel',
 			);
+
+			// Use existing settings if the field exists
+			$field = isset( $fields['shipping_phone'] )
+				? array_merge( $defaults, $fields['shipping_phone'] )
+				: $defaults;
+
+			// Enforce phone type, autocomplete, and validation.
+			$field['type']         = 'tel';
+			$field['autocomplete'] = 'tel';
+			if ( ! in_array( 'tel', $field['validate'], true ) ) {
+				$field['validate'][] = 'tel';
+			}
+
+			// Add to the list
+			$fields['shipping_phone'] = $field;
 			return $fields;
 		}
 
