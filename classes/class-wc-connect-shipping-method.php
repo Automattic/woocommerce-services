@@ -397,8 +397,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 								$item = $item_by_product[ $product_id ];
 								$item_measurements = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
 								$product_summaries[] =
-									( $count > 1 ? sprintf( '<em>%s x</em> ', $count ) : '' ) .
-									sprintf( '(ID: %d) <strong>%s</strong> %s', $product_id, $item_name, $item_measurements );
+									( $count > 1 ? sprintf( '<em>%d x</em> ', $count ) : '' ) .
+									sprintf( '(ID: %d) <strong>%s</strong> %s', $product_id, esc_html( $item_name ), esc_html( $item_measurements ) );
 							}
 						}
 
@@ -459,7 +459,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 							if ( ! empty( $box_packing_log ) ) {
 								$rate_debug .= '<strong>' . __( 'Packing log:', 'woocommerce-services' ) . '</strong>';
-								$rate_debug .= '<ul><li>' . implode( '</li><li>', $box_packing_log ) . '</li></ul>';
+								$rate_debug .= '<ul><li>' . implode( '</li><li>', array_map( 'esc_html', $box_packing_log ) ) . '</li></ul>';
 							}
 
 							$this->debug( $rate_debug, 'success' );
