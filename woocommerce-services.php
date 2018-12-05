@@ -682,7 +682,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
-			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5 );
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5, 2 );
 			add_filter( 'woocommerce_shipping_fields' , array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
@@ -1201,14 +1201,78 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
-		public function add_meta_boxes() {
+		public function should_show_shipping_debug_meta_box( $post ) {
+			$order = wc_get_order( $post );
+
+			if ( false === $order ) {
+				return false;
+			}
+
+			$shipping_methods = $order->get_shipping_methods();
+
+			foreach ( $shipping_methods as $method ) {
+				if ( ! empty( $method['wc_connect_packing_log'] ) ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public function add_meta_boxes( $post_type, $post ) {
 			if ( $this->shipping_label->should_show_meta_box() ) {
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default' );
+			}
+
+			if ( $this->should_show_shipping_debug_meta_box( $post ) ) {
+				wp_enqueue_style( 'wc_connect_admin' );
+				add_meta_box( 'woocommerce-services-shipping-debug', __( 'Shipping Debug', 'woocommerce-services' ), array( $this, 'shipping_rate_packaging_debug_log_meta_box' ), 'shop_order', 'normal', 'default' );
+			}
+		}
+
+		public function shipping_rate_packaging_debug_log_meta_box( $post ) {
+			$order            = wc_get_order( $post );
+			$shipping_methods = $order->get_shipping_methods();
+
+			foreach ( $shipping_methods as $method ) {
+				if ( empty( $method['wc_connect_packing_log'] ) ) {
+					continue;
+				}
+
+				$method_instance = new WC_Connect_Shipping_Method( $method->get_instance_id() );
+				?>
+				<p>
+					<strong><?php esc_html_e( 'Shipping Method Name:', 'woocommerce-services' ); ?></strong>
+					<?php echo esc_html( $method_instance->get_method_title() ); ?>
+				</p>
+				<p>
+					<strong><?php esc_html_e( 'Shipping Method ID:', 'woocommerce-services' ); ?> </strong>
+					<?php echo esc_html( $method->get_method_id() . ':' . $method->get_instance_id() ); ?>
+				</p>
+				<p>
+					<strong><?php esc_html_e( 'Chosen Rate:', 'woocommerce-services' ); ?> </strong>
+					<?php
+					echo esc_html(
+						printf(
+							'%s (%s%s)',
+							$method->get_name(),
+							get_woocommerce_currency_symbol(),
+							$method->get_total()
+						)
+					);
+					?>
+				</p>
+				<p>
+					<strong><?php esc_html_e( 'Packing Log:', 'woocommerce-services' ); ?> </strong>
+				</p>
+				<pre class="packing-log"><?php echo esc_html( implode( "\n", $method['wc_connect_packing_log'] ) ); ?></pre>
+				<?php
 			}
 		}
 
 		public function hide_wc_connect_package_meta_data( $hidden_keys ) {
 			$hidden_keys[] = 'wc_connect_packages';
+			$hidden_keys[] = 'wc_connect_packing_log';
 			return $hidden_keys;
 		}
 

@@ -397,8 +397,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 								$item = $item_by_product[ $product_id ];
 								$item_measurements = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
 								$product_summaries[] =
-									( $count > 1 ? sprintf( '<em>%s x</em> ', $count ) : '' ) .
-									sprintf( '<strong>%s</strong> %s', $item_name, $item_measurements );
+									( $count > 1 ? sprintf( '<em>%d x</em> ', $count ) : '' ) .
+									sprintf( '(ID: %d) <strong>%s</strong> %s', $product_id, esc_html( $item_name ), esc_html( $item_measurements ) );
 							}
 						}
 
@@ -426,8 +426,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							. '<ul><li>' . implode( '</li><li>', $product_summaries ) . '</li></ul>';
 					}
 
-					$packaging_info = implode( ', ', $package_summaries );
-					$services_list  = implode( '-', array_unique( $service_ids ) );
+					$packaging_info  = implode( ', ', $package_summaries );
+					$services_list   = implode( '-', array_unique( $service_ids ) );
+					$box_packing_log = empty( $rate->box_packing_log ) ? array() : $rate->box_packing_log;
 
 					$rate_to_add = array(
 						// Make sure the rate ID is identifiable for extensions like Conditional Shipping and Payments.
@@ -437,7 +438,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'cost'      => $rate->rate,
 						'meta_data' => array(
 							'wc_connect_packages' => $rate->packages,
-							__( 'Packaging', 'woocommerce-services' ) => $packaging_info
+							__( 'Packaging', 'woocommerce-services' ) => $packaging_info,
+							'wc_connect_packing_log' => $box_packing_log,
 						),
 					);
 
@@ -446,15 +448,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							// Notify the merchant when the fallback rate is added by the WCS server.
 							$this->debug( 'No rates found, adding fallback.', 'error' );
 						} else {
-							$this->debug(
-								sprintf(
-									'Received rate: <strong>%s</strong> (%s)<br/><ul><li>%s</li></ul>',
-									$rate_to_add['label'],
-									wc_price( $rate->rate ),
-									implode( '</li><li>', $package_summaries )
-								),
-								'success'
+							$rate_debug  = '<strong>';
+							$rate_debug .= sprintf(
+								/* translators: 1: name of shipping service, 2: shipping rate (price) */
+								__( 'Received rate: %1$s (%2$s)', 'woocommerce-services' ),
+								$rate_to_add['label'],
+								wc_price( $rate->rate )
 							);
+							$rate_debug .= '</strong><ul><li>' . implode( '</li><li>', $package_summaries ) . '</li></ul>';
+
+							if ( ! empty( $box_packing_log ) ) {
+								$rate_debug .= '<strong>' . __( 'Packing log:', 'woocommerce-services' ) . '</strong>';
+								$rate_debug .= '<ul><li>' . implode( '</li><li>', array_map( 'esc_html', $box_packing_log ) ) . '</li></ul>';
+							}
+
+							$this->debug( $rate_debug, 'success' );
 						}
 					}
 
