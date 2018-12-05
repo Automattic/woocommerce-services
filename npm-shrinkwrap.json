@@ -9405,10 +9405,10 @@
       }
     },
     "wp-calypso": {
-      "version": "github:automattic/wp-calypso#27205995952b1aaef269c23a06fbacba1f563775",
-      "from": "github:automattic/wp-calypso#27205995952b1aaef269c23a06fbacba1f563775",
+      "version": "github:automattic/wp-calypso#e91392e0809e71f945a75707e4f8b08df43238d0",
+      "from": "github:automattic/wp-calypso#e91392e0809e71f945a75707e4f8b08df43238d0",
       "requires": {
-        "@automattic/tree-select": "file:node_modules/wp-calypso/packages/tree-select",
+        "@automattic/tree-select": "1.0.2",
         "@babel/cli": "7.2.0",
         "@babel/core": "7.2.0",
         "@babel/plugin-proposal-class-properties": "7.2.1",
@@ -9460,7 +9460,6 @@
         "classnames": "2.2.6",
         "click-outside": "2.0.2",
         "clipboard": "2.0.1",
-        "color-studio": "github:automattic/color-studio#302bab1a6279ce539cd47cf369bf307a0d300d71",
         "component-closest": "1.0.1",
         "component-file-picker": "0.2.1",
         "cookie": "0.3.1",
@@ -9530,7 +9529,6 @@
         "mapbox-gl": "0.51.0",
         "markdown-it": "8.4.2",
         "marked": "0.5.1",
-        "mini-css-extract-plugin-with-rtl": "github:Automattic/mini-css-extract-plugin-with-rtl#af1300db7027af8caa9a3015f54a34aec545cc54",
         "mkdirp": "0.5.1",
         "moment": "2.22.2",
         "morgan": "1.9.1",
@@ -9540,7 +9538,6 @@
         "page": "1.11.1",
         "path-browserify": "1.0.0",
         "percentage-regex": "3.0.0",
-        "phone": "git+https://github.com/Automattic/node-phone.git#6be6549b03137f2cca01e202250bf2590750119e",
         "photon": "2.0.1",
         "postcss-cli": "6.0.1",
         "postcss-custom-properties": "8.0.9",
@@ -9606,7 +9603,9 @@
           }
         },
         "@automattic/tree-select": {
-          "version": "file:node_modules/wp-calypso/packages/tree-select",
+          "version": "1.0.2",
+          "resolved": "https://registry.npmjs.org/@automattic/tree-select/-/tree-select-1.0.2.tgz",
+          "integrity": "sha512-UCmGnCUNpdPnLM6wTp+us6H5qCgUOO4K9C1+Me1lxEnfvxFVO2AAMGOktzvrsXrOvQ43vHDyNFeXLH550LE7qQ==",
           "requires": {
             "lodash": "^4.17.0"
           }
@@ -14477,10 +14476,6 @@
           "requires": {
             "color-name": "^1.0.0"
           }
-        },
-        "color-studio": {
-          "version": "github:automattic/color-studio#302bab1a6279ce539cd47cf369bf307a0d300d71",
-          "from": "github:automattic/color-studio"
         },
         "colormin": {
           "version": "1.1.2",
@@ -21186,15 +21181,6 @@
           "resolved": "https://registry.npmjs.org/mimic-fn/-/mimic-fn-1.2.0.tgz",
           "integrity": "sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ=="
         },
-        "mini-css-extract-plugin-with-rtl": {
-          "version": "github:Automattic/mini-css-extract-plugin-with-rtl#af1300db7027af8caa9a3015f54a34aec545cc54",
-          "from": "github:Automattic/mini-css-extract-plugin-with-rtl",
-          "requires": {
-            "loader-utils": "^1.1.0",
-            "schema-utils": "^1.0.0",
-            "webpack-sources": "^1.1.0"
-          }
-        },
         "minimalistic-assert": {
           "version": "1.0.1",
           "resolved": "https://registry.npmjs.org/minimalistic-assert/-/minimalistic-assert-1.0.1.tgz",
@@ -23061,10 +23047,6 @@
           "version": "2.1.0",
           "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-2.1.0.tgz",
           "integrity": "sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns="
-        },
-        "phone": {
-          "version": "git+https://github.com/Automattic/node-phone.git#6be6549b03137f2cca01e202250bf2590750119e",
-          "from": "git+https://github.com/Automattic/node-phone.git#1.0.8"
         },
         "photon": {
           "version": "2.0.1",
