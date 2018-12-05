@@ -9405,8 +9405,8 @@
       }
     },
     "wp-calypso": {
-      "version": "github:automattic/wp-calypso#e91392e0809e71f945a75707e4f8b08df43238d0",
-      "from": "github:automattic/wp-calypso#e91392e0809e71f945a75707e4f8b08df43238d0",
+      "version": "github:automattic/wp-calypso#d0c3de2941fa1eb0e0642148249805b10c1c6d54",
+      "from": "github:automattic/wp-calypso#d0c3de2941fa1eb0e0642148249805b10c1c6d54",
       "requires": {
         "@automattic/tree-select": "1.0.2",
         "@babel/cli": "7.2.0",
@@ -9460,6 +9460,7 @@
         "classnames": "2.2.6",
         "click-outside": "2.0.2",
         "clipboard": "2.0.1",
+        "color-studio": "github:automattic/color-studio#302bab1a6279ce539cd47cf369bf307a0d300d71",
         "component-closest": "1.0.1",
         "component-file-picker": "0.2.1",
         "cookie": "0.3.1",
@@ -9529,6 +9530,7 @@
         "mapbox-gl": "0.51.0",
         "markdown-it": "8.4.2",
         "marked": "0.5.1",
+        "mini-css-extract-plugin-with-rtl": "github:Automattic/mini-css-extract-plugin-with-rtl#af1300db7027af8caa9a3015f54a34aec545cc54",
         "mkdirp": "0.5.1",
         "moment": "2.22.2",
         "morgan": "1.9.1",
@@ -9538,6 +9540,7 @@
         "page": "1.11.1",
         "path-browserify": "1.0.0",
         "percentage-regex": "3.0.0",
+        "phone": "git+https://github.com/Automattic/node-phone.git#6be6549b03137f2cca01e202250bf2590750119e",
         "photon": "2.0.1",
         "postcss-cli": "6.0.1",
         "postcss-custom-properties": "8.0.9",
@@ -14477,6 +14480,10 @@
             "color-name": "^1.0.0"
           }
         },
+        "color-studio": {
+          "version": "github:automattic/color-studio#302bab1a6279ce539cd47cf369bf307a0d300d71",
+          "from": "github:automattic/color-studio"
+        },
         "colormin": {
           "version": "1.1.2",
           "resolved": "https://registry.npmjs.org/colormin/-/colormin-1.1.2.tgz",
@@ -15093,7 +15100,7 @@
             },
             "regexpu-core": {
               "version": "1.0.0",
-              "resolved": "https://registry.npmjs.org/regexpu-core/-/regexpu-core-1.0.0.tgz",
+              "resolved": "http://registry.npmjs.org/regexpu-core/-/regexpu-core-1.0.0.tgz",
               "integrity": "sha1-hqdj9Y7k18L2sQLkdkBQ3n7ZDGs=",
               "requires": {
                 "regenerate": "^1.2.1",
@@ -21181,6 +21188,15 @@
           "resolved": "https://registry.npmjs.org/mimic-fn/-/mimic-fn-1.2.0.tgz",
           "integrity": "sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ=="
         },
+        "mini-css-extract-plugin-with-rtl": {
+          "version": "github:Automattic/mini-css-extract-plugin-with-rtl#af1300db7027af8caa9a3015f54a34aec545cc54",
+          "from": "github:Automattic/mini-css-extract-plugin-with-rtl",
+          "requires": {
+            "loader-utils": "^1.1.0",
+            "schema-utils": "^1.0.0",
+            "webpack-sources": "^1.1.0"
+          }
+        },
         "minimalistic-assert": {
           "version": "1.0.1",
           "resolved": "https://registry.npmjs.org/minimalistic-assert/-/minimalistic-assert-1.0.1.tgz",
@@ -23047,6 +23063,10 @@
           "version": "2.1.0",
           "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-2.1.0.tgz",
           "integrity": "sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns="
+        },
+        "phone": {
+          "version": "git+https://github.com/Automattic/node-phone.git#6be6549b03137f2cca01e202250bf2590750119e",
+          "from": "git+https://github.com/Automattic/node-phone.git#1.0.8"
         },
         "photon": {
           "version": "2.0.1",
@@ -26602,27 +26622,27 @@
           "integrity": "sha512-lv0M6+TkDVniA3aD1Eg0DVpfU/booSu7Eev3TDO/mZKHBfVjgCGTV4t4buppESEYDtkArYFOxTJWv6S5C+iaNw=="
         },
         "regexpu-core": {
-          "version": "4.2.0",
-          "resolved": "https://registry.npmjs.org/regexpu-core/-/regexpu-core-4.2.0.tgz",
-          "integrity": "sha512-Z835VSnJJ46CNBttalHD/dB+Sj2ezmY6Xp38npwU87peK6mqOzOpV8eYktdkLTEkzzD+JsTcxd84ozd8I14+rw==",
+          "version": "4.4.0",
+          "resolved": "https://registry.npmjs.org/regexpu-core/-/regexpu-core-4.4.0.tgz",
+          "integrity": "sha512-eDDWElbwwI3K0Lo6CqbQbA6FwgtCz4kYTarrri1okfkRLZAqstU+B3voZBCjg8Fl6iq0gXrJG6MvRgLthfvgOA==",
           "requires": {
             "regenerate": "^1.4.0",
             "regenerate-unicode-properties": "^7.0.0",
-            "regjsgen": "^0.4.0",
-            "regjsparser": "^0.3.0",
+            "regjsgen": "^0.5.0",
+            "regjsparser": "^0.6.0",
             "unicode-match-property-ecmascript": "^1.0.4",
             "unicode-match-property-value-ecmascript": "^1.0.2"
           }
         },
         "regjsgen": {
-          "version": "0.4.0",
-          "resolved": "https://registry.npmjs.org/regjsgen/-/regjsgen-0.4.0.tgz",
-          "integrity": "sha512-X51Lte1gCYUdlwhF28+2YMO0U6WeN0GLpgpA7LK7mbdDnkQYiwvEpmpe0F/cv5L14EbxgrdayAG3JETBv0dbXA=="
+          "version": "0.5.0",
+          "resolved": "https://registry.npmjs.org/regjsgen/-/regjsgen-0.5.0.tgz",
+          "integrity": "sha512-RnIrLhrXCX5ow/E5/Mh2O4e/oa1/jW0eaBKTSy3LaCj+M3Bqvm97GWDp2yUtzIs4LEn65zR2yiYGFqb2ApnzDA=="
         },
         "regjsparser": {
-          "version": "0.3.0",
-          "resolved": "https://registry.npmjs.org/regjsparser/-/regjsparser-0.3.0.tgz",
-          "integrity": "sha512-zza72oZBBHzt64G7DxdqrOo/30bhHkwMUoT0WqfGu98XLd7N+1tsy5MJ96Bk4MD0y74n629RhmrGW6XlnLLwCA==",
+          "version": "0.6.0",
+          "resolved": "https://registry.npmjs.org/regjsparser/-/regjsparser-0.6.0.tgz",
+          "integrity": "sha512-RQ7YyokLiQBomUJuUG8iGVvkgOLxwyZM8k6d3q5SAXpg4r5TZJZigKFvC6PpD+qQ98bCDC5YelPeA3EucDoNeQ==",
           "requires": {
             "jsesc": "~0.5.0"
           },

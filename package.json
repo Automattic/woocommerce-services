@@ -89,7 +89,7 @@
     "webpack-cli": "3.1.1",
     "webpack-dev-server": "3.1.9",
     "whatwg-fetch": "^2.0.2",
-    "wp-calypso": "github:automattic/wp-calypso#1228fefc2ec60e13b05c3efaa1bb1baa3941c174",
+    "wp-calypso": "github:automattic/wp-calypso#d0c3de2941fa1eb0e0642148249805b10c1c6d54",
     "wrap-loader": "^0.2.0"
   }
 }
