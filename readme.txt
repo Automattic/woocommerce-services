@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.8
-Stable tag: 1.17.1
+Tested up to: 5.0
+Stable tag: 1.18.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,6 +81,33 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.18.0 =
+
+**USPS Shipping Labels**
+
+* Show admin notice for missing product dimensions instead of requesting rates
+* Added packing logs to the front-end (with debug enabled) and back-end (order detail screens)
+* Renaming the "Tariff Code" field in the customs section to "HS Tariff number" and adding a **more info** link
+* Once a valid address has been entered as an origin or destination address, the **Verify Address** button immediately redirects to the next step
+* Convert the "Edit Address" link in address sugestions to to a proper button
+* Allow addresses to be entered without verification
+* Omit extra commas from addresses when a state is not selected
+* Failed label downloads are now handled gracefully instead of failing shipping label purchases
+* Shipping methods in the "Rates" step no longer show HTML character codes
+
+**Stripe**
+
+* Stripe will not attempt to connect if the site is not using HTTPS
+* Notices on the Stripe settings page are replaced with a helpful and less alarming text
+* Adding a button for Stripe OAuth connection
+
+**General**
+
+* Prevent crashes when making proxy requests with a broken Jetpack token
+* Admin notices are not shown for for unactionable events
+* Borderless buttons no longer have a background when hovered
+* Updated the behavior of the `shipping_phone` field in order to prevent conflicts with other plugins
 
 = 1.17.1 =
 * Fix the issue with disappearing shipping method settings when Stripe extension is enabled
