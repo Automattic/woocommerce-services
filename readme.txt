@@ -2,8 +2,8 @@
 Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
-Tested up to: 4.9.8
-Stable tag: 1.17.1
+Tested up to: 5.0
+Stable tag: 1.18.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,6 +81,17 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.18.0 =
+
+- Add compatibility with WordPress 5.0
+- Add compatibility with the WordPress.com eCommerce plan
+- Add packing logs to the front-end (with debug enabled) and back-end (order detail screens)
+- When purchasing a shipping label, allow addresses to be entered without verification
+- Make the shipping label purchase process more robust, allowing retries when the label image failed to download
+- UI improvements to the shipping label address form
+- Allow connecting a Stripe account directly from the Stripe settings page
+- Updated behavior of the shipping phone field in order to prevent conflicts with other plugins
 
 = 1.17.1 =
 * Fix the issue with disappearing shipping method settings when Stripe extension is enabled
