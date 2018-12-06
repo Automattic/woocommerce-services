@@ -86,7 +86,7 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 - Add compatibility with WordPress 5.0
 - Add compatibility with the WordPress.com eCommerce plan
-- Add packing logs to the front-end (with debug enabled) and back-end (order detail screens
+- Add packing logs to the front-end (with debug enabled) and back-end (order detail screens)
 - When purchasing a shipping label, allow addresses to be entered without verification
 - Make the shipping label purchase process more robust, allowing retries when the label image failed to download
 - UI improvements to the shipping label address form
