@@ -60,9 +60,9 @@ class StripeConnectAccountWrapper extends Component {
 
 		if ( ! isOAuthInitializing && stripeError ) {
 			return (
-				<Notice showDismiss={ false } isCompact>
+				<div className="stripe-connect-account__placeholder-container">
 					{ stripeError }
-				</Notice>
+				</div>
 			);
 		}
 
