@@ -49,7 +49,6 @@ class StripeConnectAccountWrapper extends Component {
 	render() {
 		const {
 			isLoading,
-			isOAuthInitializing,
 			stripeConnectAccount,
 			stripeError,
 			isDeauthorizing,
@@ -57,14 +56,6 @@ class StripeConnectAccountWrapper extends Component {
 			oauthURL,
 			translate,
 		} = this.props;
-
-		if ( ! isOAuthInitializing && stripeError ) {
-			return (
-				<div className="stripe-connect-account__placeholder-container">
-					{ stripeError }
-				</div>
-			);
-		}
 
 		if ( isLoading ) {
 			return (
@@ -83,13 +74,13 @@ class StripeConnectAccountWrapper extends Component {
 		}
 
 		if ( oauthURL ) {
-			return (
-				<div className="stripe-connect-account__connect-action">
-					{ translate( 'To automatically copy keys from a Stripe account, {{a}}connect{{/a}} it to your store.', {
-						components: { a: <a href={ oauthURL } /> },
-					} ) }
-				</div>
-			);
+			return translate( 'To automatically copy keys from a Stripe account, {{a}}connect{{/a}} it to your store.', {
+				components: { a: <a href={ oauthURL } /> },
+			} );
+		}
+
+		if ( stripeError ) {
+			return stripeError;
 		}
 
 		return (
