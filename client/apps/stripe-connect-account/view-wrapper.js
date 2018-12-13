@@ -14,6 +14,7 @@ import StripeConnectAccount from 'woocommerce/app/settings/payments/stripe/payme
 import Notice from 'components/notice';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
+	getError,
 	getIsRequesting,
 	getStripeConnectAccount,
 	getIsDeauthorizing,
@@ -33,8 +34,9 @@ class StripeConnectAccountWrapper extends Component {
 	}
 
 	componentDidUpdate( prevProps ) {
-		const { siteId, isLoading, connectedUserID, oauthURL } = this.props;
-		if ( ! isLoading && prevProps.isLoading && ! connectedUserID && ! oauthURL ) {
+		const { siteId, isLoading, connectedUserID, oauthURL, isOAuthInitializing, stripeError } = this.props;
+		const isInitError = ! isOAuthInitializing && prevProps.isOAuthInitializing && stripeError;
+		if ( ! isLoading && prevProps.isLoading && ! connectedUserID && ! oauthURL && ! isInitError ) {
 			this.props.oauthInit( siteId );
 		}
 	}
@@ -48,6 +50,7 @@ class StripeConnectAccountWrapper extends Component {
 		const {
 			isLoading,
 			stripeConnectAccount,
+			stripeError,
 			isDeauthorizing,
 			isReloading,
 			oauthURL,
@@ -71,13 +74,13 @@ class StripeConnectAccountWrapper extends Component {
 		}
 
 		if ( oauthURL ) {
-			return (
-				<div className="stripe-connect-account__connect-action">
-					{ translate( 'To automatically copy keys from a Stripe account, {{a}}connect{{/a}} it to your store.', {
-						components: { a: <a href={ oauthURL } /> },
-					} ) }
-				</div>
-			);
+			return translate( 'To automatically copy keys from a Stripe account, {{a}}connect{{/a}} it to your store.', {
+				components: { a: <a href={ oauthURL } /> },
+			} );
+		}
+
+		if ( stripeError ) {
+			return stripeError;
 		}
 
 		return (
@@ -94,11 +97,14 @@ export default connect(
 	state => {
 		const siteId = getSelectedSiteId( state );
 		const stripeConnectAccount = getStripeConnectAccount( state, siteId );
+		const isOAuthInitializing = getIsOAuthInitializing( state, siteId );
 
 		return {
 			siteId,
-			isLoading: getIsRequesting( state, siteId ) || getIsOAuthInitializing( state, siteId ),
+			isLoading: getIsRequesting( state, siteId ) || isOAuthInitializing,
+			isOAuthInitializing,
 			stripeConnectAccount,
+			stripeError: getError( state, siteId ),
 			connectedUserID: stripeConnectAccount.connectedUserID,
 			isDeauthorizing: getIsDeauthorizing( state, siteId ),
 			isReloading: state.isReloading,
