@@ -902,6 +902,8 @@ class WC_Connect_TaxJar_Integration {
 				);
 			}
 		} // End if().
+
+		return $taxes;
 	} // End calculate_tax().
 
 	/**
