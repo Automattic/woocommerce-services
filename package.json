@@ -19,7 +19,7 @@
   "description": "Connect allthethings",
   "devDependencies": {
     "archiver": "^1.3.0",
-    "colors": "^1.1.2",
+    "colors": "^1.3.3",
     "confirm-simple": "^1.0.3",
     "globby": "^6.1.0",
     "po2json": "^0.4.5",
@@ -75,8 +75,8 @@
     "postcss-url": "^8.0.0",
     "prop-types": "15.5.10",
     "qs": "6.5.1",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
     "react-redux": "^5.0.6",
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
@@ -87,7 +87,7 @@
     "thread-loader": "1.2.0",
     "webpack": "4.19.1",
     "webpack-cli": "3.1.1",
-    "webpack-dev-server": "3.1.9",
+    "webpack-dev-server": "^3.1.14",
     "whatwg-fetch": "^2.0.2",
     "wp-calypso": "github:automattic/wp-calypso#d0c3de2941fa1eb0e0642148249805b10c1c6d54",
     "wrap-loader": "^0.2.0"
