@@ -72,9 +72,12 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 				return;
 			}
 
-			// Is there no stored method that's in the list? Select the first available one
+			// Has the stored method ID been removed, or is there only one available? Select the first available one
 			$selected_payment_method_id = $this->service_settings_store->get_selected_payment_method_id();
-			if ( ! in_array( $selected_payment_method_id, $payment_method_ids ) ) {
+			if (
+				( $selected_payment_method_id || 1 === count( $payment_method_ids ) ) &&
+				! in_array( $selected_payment_method_id, $payment_method_ids )
+			) {
 				$this->service_settings_store->set_selected_payment_method_id( $payment_method_ids[ 0 ] );
 			}
 		}
