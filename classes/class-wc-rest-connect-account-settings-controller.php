@@ -52,7 +52,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 			'storeOptions' => $this->settings_store->get_store_options(),
 			'formData' => $this->settings_store->get_account_settings(),
 			'formMeta' => array(
-				'can_manage_payments' => $this->can_user_manage_payment_methods(),
+				'can_manage_payments' => $this->settings_store->can_user_manage_payment_methods(),
 				'can_edit_settings' => true,
 				'master_user_name' => $master_user_name,
 				'master_user_login' => $master_user_login,
@@ -67,8 +67,8 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 	public function post( $request ) {
 		$settings = $request->get_json_params();
 
-		if ( ! $this->can_user_manage_payment_methods() ) {
-			// Ignore the user-provided payment method ID if he doesn't have permission to change it
+		if ( ! $this->settings_store->can_user_manage_payment_methods() ) {
+			// Ignore the user-provided payment method ID if they don't have permission to change it
 			$old_settings = $this->settings_store->get_account_settings();
 			$settings['selected_payment_method_id'] = $old_settings['selected_payment_method_id'];
 		}
@@ -91,12 +91,5 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		}
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
-	}
-
-	private function can_user_manage_payment_methods() {
-		global $current_user;
-		$master_user = WC_Connect_Jetpack::get_master_user();
-		return WC_Connect_Jetpack::is_development_mode() ||
-			( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID );
 	}
 }
