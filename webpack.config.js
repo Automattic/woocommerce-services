@@ -4,6 +4,7 @@ const path = require( 'path' );
 const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const autoprefixer = require( 'autoprefixer' );
 const url = require( 'postcss-url' );
+const customProperties = require( 'postcss-custom-properties' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const os = require( 'os' );
 
@@ -21,6 +22,7 @@ const cssLoaders = [
 		options: {
 			plugins: () => [
 				autoprefixer( { browsers } ),
+				customProperties( { preserve: false } ),
 				url( {
 					url: ( asset ) => asset.url.startsWith( 'data:' ) ? asset.url : ( 'https://wordpress.com/' + asset.url ),
 				} ),

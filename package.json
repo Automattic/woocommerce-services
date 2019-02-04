@@ -71,6 +71,7 @@
     "node-sass": "4.9.4",
     "object-path-immutable": "^0.5.1",
     "objectpath": "^1.2.1",
+    "postcss-custom-properties": "^8.0.9",
     "postcss-loader": "3.0.0",
     "postcss-url": "^8.0.0",
     "prop-types": "15.5.10",
@@ -89,7 +90,7 @@
     "webpack-cli": "3.1.1",
     "webpack-dev-server": "^3.1.14",
     "whatwg-fetch": "^2.0.2",
-    "wp-calypso": "github:automattic/wp-calypso#d0c3de2941fa1eb0e0642148249805b10c1c6d54",
+    "wp-calypso": "github:automattic/wp-calypso#1997e8a24c274b28af9ca63d8335c0913e5f5e55",
     "wrap-loader": "^0.2.0"
   }
 }
