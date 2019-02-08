@@ -81,6 +81,7 @@ module.exports = {
 			errors: true,
 			warnings: false,
 		},
+		disableHostCheck: true,
 	},
 	externals: {
 		'jquery': 'jQuery',
