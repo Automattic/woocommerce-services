@@ -15,26 +15,26 @@
 	}
 
 	&.is-success .plugin-status__indicator-icon-and-message {
-		color: $alert-green;
+		fill: var( --color-success );
 
 		.gridicon {
-			fill: $alert-green;
+			fill: var( --color-success );
 		}
 	}
 
 	&.is-warning .plugin-status__indicator-icon-and-message {
-		color: $alert-yellow;
+		color: var( --color-warning );
 
 		.gridicon {
-			fill: $alert-yellow;
+			fill: var( --color-warning );
 		}
 	}
 
 	&.is-error .plugin-status__indicator-icon-and-message {
-		color: $alert-red;
+		color: var( --color-error );
 
 		.gridicon {
-			fill: $alert-red;
+			fill: var( --color-error );
 		}
 	}
 }
