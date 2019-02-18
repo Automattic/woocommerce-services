@@ -40,6 +40,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				return;
 			}
 
+			add_filter( 'woocommerce_get_settings_shipping', '__return_empty_array' );
 			$this->output_shipping_settings_screen();
 		}
 
