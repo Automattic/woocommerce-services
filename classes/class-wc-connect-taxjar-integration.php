@@ -976,6 +976,17 @@ class WC_Connect_TaxJar_Integration {
 		if ( false === $response ) {
 			$response = $this->smartcalcs_request( $json );
 
+			// Copied over from the original smartcalcs_request
+			if ( is_wp_error( $response ) ) {
+				$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
+				return;
+			} elseif ( 200 == $response['response']['code'] ) {
+				return $response;
+			} else {
+				$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+				return;
+			}
+
 			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 				set_transient( $cache_key, $response, $this->cache_time );
 			}
@@ -1007,13 +1018,9 @@ class WC_Connect_TaxJar_Integration {
 			'body' => $json,
 		) );
 
-		if ( is_wp_error( $response ) ) {
-			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
-		} elseif ( 200 == $response['response']['code'] ) {
-			return $response;
-		} else {
-			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
-		}
+		// Instead of doing something with the error, return the result
+		// of the API call and decide in each scenario what to do with it
+		return $response;
 	}
 
 	/**
