@@ -268,10 +268,21 @@ class WC_Connect_TaxJar_Integration {
 	public function _error( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
-		//ignore error messages caused by customer input
+		// display these error messages directly to the user
+		// this error will be displayed on both cart and checkout pages
+		// and will block any further action
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
-		if ( ! is_admin() && ( $state_zip_mismatch || $invalid_postcode ) ) {
+
+		// We should only block checkout if the user can edit the address on cart
+		$user_can_edit_address_on_cart = 'yes' === get_option( 'woocommerce_enable_shipping_calc' );
+		$should_not_add_wc_error_notice = ! $user_can_edit_address_on_cart && is_checkout();
+
+		if (
+			! is_admin()
+			&& ! $should_not_add_wc_error_notice
+			&& ( $state_zip_mismatch || $invalid_postcode )
+		) {
 			$fields = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'Postcode / ZIP', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
