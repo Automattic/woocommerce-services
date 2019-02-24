@@ -83,6 +83,7 @@ class WC_Connect_TaxJar_Integration {
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
 			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_address' ), 20 );
 		} else {
 			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 		}
@@ -95,6 +96,68 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
+	}
+
+	public function validate_address($data) {
+		// Copied over from calculate_totals
+		$address = $this->get_address( $wc_cart_object );
+		extract( array_replace_recursive(array(
+			'to_country' => null,
+			'to_state' => null,
+			'to_zip' => null,
+			'to_city' => null,
+			'to_street' => null,
+			'shipping_amount' => null, // WC()->shipping->shipping_total
+			'line_items' => null,
+		), $address) );
+
+		// Copied over from calculate_tax
+		$store_settings   = $this->get_store_settings();
+		$from_country     = $store_settings['country'];
+		$from_state       = $store_settings['state'];
+		$from_zip         = $store_settings['postcode'];
+		$from_city        = $store_settings['city'];
+		$from_street      = $store_settings['street'];
+		$shipping_amount  = is_null( $shipping_amount ) ? 0.0 : $shipping_amount;
+
+		// Copied over from calculate_tax
+		$body = array(
+			'from_country' => $from_country,
+			'from_state' => $from_state,
+			'from_zip' => $from_zip,
+			'from_city' => $from_city,
+			'from_street' => $from_street,
+			'to_country' => $to_country,
+			'to_state' => $to_state,
+			'to_zip' => $to_zip,
+			'to_city' => $to_city,
+			'to_street' => $to_street,
+			'shipping' => $shipping_amount,
+			'plugin' => 'woo',
+		);
+
+		// Either `amount` or `line_items` parameters are required to perform tax calculations.
+		if ( empty( $line_items ) ) {
+			$body['amount'] = 0.0;
+		} else {
+			$body['line_items'] = $line_items;
+		}
+
+		$response = $this->smartcalcs_request( wp_json_encode( $body ) );
+
+		// Copied over from the original smartcalcs_request()
+		// These are dummy errors for now
+		if ( is_wp_error( $response ) ) {
+			// $this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
+			wc_add_notice( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message(), 'error' );
+			// return;
+		} elseif ( 200 == $response['response']['code'] ) {
+			// return $response;
+		} else {
+			// $this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+			wc_add_notice( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'], 'error' );
+			// return;
+		}
 	}
 
 	/**
@@ -317,6 +380,7 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->calculate_totals( $wc_cart_object );
 	}
+
 	/**
 	 * Calculate tax / totals using TaxJar at checkout
 	 *
