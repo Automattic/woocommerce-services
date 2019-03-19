@@ -357,18 +357,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		protected function request( $method, $path, $body = array() ) {
 
 			// TODO - incorporate caching for repeated identical requests
-			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				return new WP_Error(
-					'jetpack_data_class_not_found',
-					__( 'Unable to send request to WooCommerce Services server. Jetpack_Data was not found.', 'woocommerce-services' )
-				);
-			}
 
-			if ( ! method_exists( 'Jetpack_Data', 'get_access_token' ) ) {
-				return new WP_Error(
-					'jetpack_data_get_access_token_not_found',
-					__( 'Unable to send request to WooCommerce Services server. Jetpack_Data does not implement get_access_token.', 'woocommerce-services' )
-				);
+			$token_result = WC_Connect_Jetpack::get_access_token();
+			if ( is_wp_error( $token_result ) ) {
+				return $token_result;
 			}
 
 			if ( ! is_array( $body ) ) {
@@ -560,7 +552,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		protected function authorization_header() {
-			$token = Jetpack_Data::get_access_token( 0 );
+			$token = WC_Connect_Jetpack::get_access_token( 0 );
 			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error(

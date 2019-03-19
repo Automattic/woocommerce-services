@@ -3,14 +3,6 @@
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 	class WC_Connect_Nux {
-		/**
-		 * Jetpack status constants.
-		 */
-		const JETPACK_NOT_INSTALLED = 'uninstalled';
-		const JETPACK_INSTALLED_NOT_ACTIVATED = 'installed';
-		const JETPACK_ACTIVATED_NOT_CONNECTED = 'activated';
-		const JETPACK_DEV = 'dev';
-		const JETPACK_CONNECTED = 'connected';
 
 		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
@@ -171,26 +163,24 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Check that the current user is the owner of the Jetpack connection
 		 * - Only that person can accept the TOS
 		 *
-		 * @uses self::get_jetpack_install_status()
-		 *
 		 * @return bool
 		 */
 		public function can_accept_tos() {
-			$jetpack_status = $this->get_jetpack_install_status();
+			$jetpack_status = WC_Connect_Jetpack::get_jetpack_install_status();
 
 			if (
-				( self::JETPACK_NOT_INSTALLED === $jetpack_status ) ||
-				( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_status )
+				( WC_Connect_Jetpack::JETPACK_NOT_INSTALLED === $jetpack_status ) ||
+				( WC_Connect_Jetpack::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_status )
 			) {
 				return false;
 			}
 
 			// Developer case
-			if ( self::JETPACK_DEV === $jetpack_status ) {
+			if ( WC_Connect_Jetpack::JETPACK_DEV === $jetpack_status ) {
 				return true;
 			}
 
-			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			$user_token = WC_Connect_Jetpack::get_access_token( JETPACK_MASTER_USER );
 			$can_accept = (
 				isset( $user_token->external_user_id ) &&
 				get_current_user_id() === $user_token->external_user_id
@@ -215,12 +205,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				This is an existing user. Do nothing.
 			*/
 			switch ( $status['jetpack_connection_status'] ) {
-				case self::JETPACK_NOT_INSTALLED:
-				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
-				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
+				case WC_Connect_Jetpack::JETPACK_NOT_INSTALLED:
+				case WC_Connect_Jetpack::JETPACK_INSTALLED_NOT_ACTIVATED:
+				case WC_Connect_Jetpack::JETPACK_ACTIVATED_NOT_CONNECTED:
 					return 'before_jetpack_connection';
-				case self::JETPACK_CONNECTED:
-				case self::JETPACK_DEV:
+				case WC_Connect_Jetpack::JETPACK_CONNECTED:
+				case WC_Connect_Jetpack::JETPACK_DEV:
 					// Has the user just gone through our NUX connection flow?
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
 						return 'after_jetpack_connection';
@@ -241,35 +231,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				default:
 					return false;
 			}
-		}
-
-		public function get_jetpack_install_status() {
-			// we need to use validate_plugin to check that Jetpack is installed
-			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-
-			// check if jetpack is installed
-			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
-				return self::JETPACK_NOT_INSTALLED;
-			}
-
-			// check if Jetpack is activated
-			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
-			}
-
-			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
-				// installed, activated, and dev mode on
-				return self::JETPACK_DEV;
-			}
-
-			// installed, activated, dev mode off
-			// check if connected
-			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
-			if ( ! isset( $user_token->external_user_id ) ) { // always an int
-				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
-			}
-
-			return self::JETPACK_CONNECTED;
 		}
 
 		public function should_display_nux_notice_on_screen( $screen ) {
@@ -412,9 +373,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Check for plugin install and activate permissions to handle Jetpack on multisites:
 			// Admins might not be able to install or activate plugins, but Jetpack might already have been installed by a superadmin.
 			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
-			$jetpack_install_status = $this->get_jetpack_install_status();
-			if ( ( self::JETPACK_NOT_INSTALLED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) )
-				|| ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'activate_plugins' ) ) ) {
+			$jetpack_install_status = WC_Connect_Jetpack::get_jetpack_install_status();
+			if ( ( WC_Connect_Jetpack::JETPACK_NOT_INSTALLED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) )
+				|| ( WC_Connect_Jetpack::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'activate_plugins' ) ) ) {
 				return;
 			}
 
@@ -484,16 +445,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// so that we don't accept the TOS pre-maturely
 			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 
-			$jetpack_status = $this->get_jetpack_install_status();
+			$jetpack_status = WC_Connect_Jetpack::get_jetpack_install_status();
 			$button_text    = __( 'Connect', 'woocommerce-services' );
 			$banner_title   = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
 			$image_url      = plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
-				case self::JETPACK_NOT_INSTALLED:
+				case WC_Connect_Jetpack::JETPACK_NOT_INSTALLED:
 					$button_text  = __( 'Install Jetpack and connect', 'woocommerce-services' );
 					break;
-				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
+				case WC_Connect_Jetpack::JETPACK_INSTALLED_NOT_ACTIVATED:
 					$button_text  = __( 'Activate Jetpack and connect', 'woocommerce-services' );
 					break;
 			}

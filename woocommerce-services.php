@@ -433,9 +433,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
 			// Plugin should be enabled if dev mode or connected + TOS
-			$jetpack_status = $this->nux->get_jetpack_install_status();
-			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status;
-			$is_jetpack_dev_mode = WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
+			$jetpack_status = WC_Connect_Jetpack::get_jetpack_install_status();
+			$is_jetpack_connected = WC_Connect_Jetpack::JETPACK_CONNECTED === $jetpack_status;
+			$is_jetpack_dev_mode = WC_Connect_Jetpack::JETPACK_DEV === $jetpack_status;
 
 			if (  ! $is_jetpack_connected && ! $is_jetpack_dev_mode ) {
 				return;
