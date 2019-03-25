@@ -80,11 +80,12 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return string
 		 */
 		public static function build_connect_url( $redirect_url ) {
-			return Jetpack::init()->build_connect_url(
-				true,
-				$redirect_url,
-				'woocommerce-services-auto-authorize'
-			);
+			return Jetpack_Dino::build_connect_url( true, $redirect_url, 'woocommerce-services-auto-authorize' );
+			// return Jetpack::init()->build_connect_url(
+			// 	true,
+			// 	$redirect_url,
+			// 	'woocommerce-services-auto-authorize'
+			// );
 		}
 
 		public static function get_access_token( $user_id = false ) {
@@ -115,32 +116,32 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		const JETPACK_CONNECTED = 'connected';
 
 		public static function get_jetpack_install_status() {
-			// we need to use validate_plugin to check that Jetpack is installed
-			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			// // we need to use validate_plugin to check that Jetpack is installed
+			// include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-			// check if jetpack is installed
-			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
-				return self::JETPACK_NOT_INSTALLED;
-			}
+			// // check if jetpack is installed
+			// if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
+			// 	return self::JETPACK_NOT_INSTALLED;
+			// }
 
-			// check if Jetpack is activated
-			if ( ! class_exists( 'Jetpack_Data' ) ) {
-				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
-			}
+			// // check if Jetpack is activated
+			// if ( ! class_exists( 'Jetpack_Data' ) ) {
+			// 	return self::JETPACK_INSTALLED_NOT_ACTIVATED;
+			// }
 
-			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
-				// installed, activated, and dev mode on
-				return self::JETPACK_DEV;
-			}
+			// if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
+			// 	// installed, activated, and dev mode on
+			// 	return self::JETPACK_DEV;
+			// }
 
-			// installed, activated, dev mode off
-			// check if connected
-			$user_token = self::get_access_token( JETPACK_MASTER_USER );
-			if ( ! isset( $user_token->external_user_id ) ) { // always an int
-				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
-			}
+			// // installed, activated, dev mode off
+			// // check if connected
+			// $user_token = self::get_access_token( JETPACK_MASTER_USER );
+			// if ( ! isset( $user_token->external_user_id ) ) { // always an int
+			return self::JETPACK_ACTIVATED_NOT_CONNECTED;
+			// }
 
-			return self::JETPACK_CONNECTED;
+			// return self::JETPACK_CONNECTED;
 		}
 	}
 }

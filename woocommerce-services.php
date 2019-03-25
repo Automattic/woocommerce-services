@@ -38,6 +38,7 @@ require_once( plugin_basename( 'classes/class-wc-connect-extension-compatibility
 require_once( plugin_basename( 'classes/class-wc-connect-functions.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-jetpack.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-options.php' ) );
+require_once( plugin_basename( 'classes/class-jetpack-dino.php' ) );
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
@@ -213,6 +214,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+
+			Jetpack_Dino::init();
 		}
 
 		public function get_logger() {
