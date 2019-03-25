@@ -530,11 +530,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function init_core_wizard_payments_config() {
 			$stripe_settings = get_option( 'woocommerce_stripe_settings', false );
-			$stripe_enabled  = is_array( $stripe_settings )
+
+			$should_create_stripe_account  = is_array( $stripe_settings )
 				&& ( isset( $stripe_settings['create_account'] ) && 'yes' === $stripe_settings['create_account'] )
 				&& ( isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'] );
 
-			if ( $stripe_enabled && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
+			// In certain scenarios, the user can enter an email address but not connect Jetpack in the wizard,
+			// but instead add the Stripe keys manually and connect Jetpack after. If the existing keys are detected,
+			// forget the wizard settings and never retry
+			$stripe_already_connected = is_array( $stripe_settings )
+				&& (
+					! empty( $stripe_settings['test_publishable_key'] )
+					|| ! empty( $stripe_settings['test_secret_key'] )
+					|| ! empty( $stripe_settings['publishable_key'] )
+					|| ! empty( $stripe_settings['secret_key'] )
+				);
+			if ( $should_create_stripe_account && $stripe_already_connected ) {
+				unset( $stripe_settings['email'] );
+				unset( $stripe_settings['create_account'] );
+				update_option( 'woocommerce_stripe_settings', $stripe_settings );
+				return;
+			}
+
+			if ( $should_create_stripe_account && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
 				unset( $stripe_settings['create_account'] );
 				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 				$this->tracks->record_user_event( 'core_wizard_stripe_setup' );
