@@ -122,7 +122,7 @@ class ShippingLabelViewWrapper extends Component {
 			<Button
 				className={ className }
 				onClick={ this.handleButtonClick } >
-				{ translate( 'Create new label' ) }
+				{ translate( 'Create shipping label' ) }
 			</Button>
 		);
 	};
