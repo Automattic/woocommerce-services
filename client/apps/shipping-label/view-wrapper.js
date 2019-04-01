@@ -116,6 +116,7 @@ class ShippingLabelViewWrapper extends Component {
 
 		const className = classNames( 'shipping-label__new-label-button', {
 			'is-placeholder': ! loaded,
+			'is-primary': loaded,
 		} );
 
 		return (
