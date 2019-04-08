@@ -289,10 +289,18 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			ob_start();
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
 
+			// Display a different title based on the connection status.
+			$account_details = $this->api->get_stripe_account_details();
+			if ( ! is_wp_error( $account_details ) ) {
+				$title = __( 'Stripe Account (connected to WooCommerce Services)', 'woocommerce-services' );
+			} else {
+				$title = __( 'Connect via WooCommerce Services', 'woocommerce-services' );
+			}
+
 			$new_settings = array(
 				'connection_status' => array(
 					'type'        => 'title',
-					'title'       => __( 'Stripe Account (connected to WooCommerce Services)', 'woocommerce-services' ),
+					'title'       => $title,
 					'description' => ob_get_clean(),
 				),
 			);
