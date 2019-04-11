@@ -74,7 +74,7 @@ class StripeConnectAccountWrapper extends Component {
 		}
 
 		if ( oauthURL ) {
-			return translate( 'To automatically copy keys from a Stripe account, {{a}}connect{{/a}} it to your store.', {
+			return translate( "You’ve got WooCommerce Services installed. If you’d like, we can automatically copy keys from your Stripe account for you. {{a}}Click here{{/a}} to connect your Stripe account using WooCommerce Services.", {
 				components: { a: <a href={ oauthURL } /> },
 			} );
 		}
