@@ -4,7 +4,7 @@
 .wp-core-ui.wp-admin .wcc-root {
 	// Buttons
 	.button {
-		background: $gray-light;
+		background: var( --color-surface-backdrop );
 		box-shadow: none;
 		padding: 5px 14px 7px;
 
@@ -18,28 +18,28 @@
 	}
 
 	.label-settings__credit-card-description button.is-borderless {
-		color: $blue-wordpress;
+		color: var( --color-primary );
 	}
 
 	.button.is-primary {
-		background: $blue-wordpress;
-		border-color: $blue-dark;
+		background: var( --color-primary );
+		border-color: var( --color-primary-dark );
 		&:hover {
-			background: $blue-medium;
+			background: var( --color-primary );
 		}
 		// overwrite core styles
 		&[disabled],
 		&:disabled,
 		&.disabled {
-			color: lighten( $gray, 30% ) !important;
-			background: $white !important;
-			border-color: lighten( $gray, 30% ) !important;
+			color: var( --color-surface-backdrop ) !important;
+			background: var( --color-white ) !important;
+			border-color: var( --color-surface-backdrop ) !important;
 			text-shadow: none !important;
 		}
 		//wp-admin styles override the disabled button with !important, so need to do the same here
 		&.is-busy {
 			background-size: 120px 100% !important;
-			background-image: linear-gradient( -45deg, $blue-medium 28%, darken( $blue-medium, 5% ) 28%, darken( $blue-medium, 5% ) 72%, $blue-medium 72%) !important;
+			background-image: linear-gradient( -45deg, var( --color-primary ) 28%, var( --color-primary-400 ) 28%, var( --color-primary-400 ) 72%, var( --color-primary ) 72%) !important;
 			border-color: #0081a9 !important;
 		}
 
@@ -60,7 +60,7 @@
 		box-shadow: none;
 		height: auto;
 		&::placeholder {
-			color: lighten( $gray, 10% );
+			color: var( --color-neutral-200 );
 		}
 	}
 
@@ -85,9 +85,9 @@
 		justify-content: space-between;
 
 		.settings-step-summary {
-			background-color: $gray-light;
+			background-color: var( --color-surface-backdrop );
 			border-radius: 5px;
-			border: 1px $gray-dark solid;
+			border: 1px var( --color-neutral-dark ) solid;
 			padding: 12px;
 			margin-bottom: 12px;
 			flex-basis: 44%;
@@ -184,7 +184,7 @@
 	 }
 
 	.wc-connect-no-priv-settings {
-		background: $white;
+		background: var( --color-white );
 		padding: 20px;
 	}
 
@@ -240,7 +240,7 @@
 
 	p {
 		font-style: italic;
-		color: $gray;
+		color: var( --color-neutral-light );
 	}
 }
 
