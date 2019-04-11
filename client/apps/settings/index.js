@@ -23,7 +23,7 @@ import methodSchemasReducer from 'woocommerce/woocommerce-services/state/shippin
 import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import shippingClassesReducer from 'woocommerce/state/sites/shipping-classes/reducers';
-import shippingClassesDataLayer from 'woocommerce/state/data-layer/shipping-classes/';
+import shippingClassesDataLayer from 'woocommerce/state/data-layer/shipping-classes';
 import { mergeHandlers } from 'state/action-watchers/utils';
 
 export default ( { methodId, instanceId } ) => ( {
