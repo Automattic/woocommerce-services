@@ -1,0 +1,3 @@
+[submodule "wp-calypso"]
+	path = wp-calypso
+	url = https://github.com/Automattic/wp-calypso
