@@ -2,8 +2,8 @@
  * Internal dependencies
  */
 //import from calypso
-import localStorageModule from 'lib/local-storage';
-localStorageModule();
+import localStoragePolyfill from 'lib/local-storage-polyfill';
+localStoragePolyfill();
 
 export const MAX_AGE = 86400000;
 
