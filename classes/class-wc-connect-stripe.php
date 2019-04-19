@@ -30,6 +30,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 		const STATE_VAR_NAME = 'stripe_state';
 		const SETTINGS_OPTION = 'woocommerce_stripe_settings';
+		const KEYS_OPTION = 'stripe_keys';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger, WC_Connect_Nux $nux ) {
 			$this->api = $client;
@@ -71,6 +72,16 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function get_account_details() {
+			if ( ! $this->is_connected() ) {
+				return new WP_Error(
+					'stripe_not_connected',
+					__( 'No Stripe account connected', 'woocommerce-services' ),
+					array(
+						'status' => 400
+					)
+				);
+			}
+
 			$response = $this->api->get_stripe_account_details();
 			if ( is_wp_error( $response ) ) {
 				return $response;
@@ -113,6 +124,30 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $this->save_stripe_keys( $response );
 		}
 
+		/**
+		 * Checks if the Stripe keys currently being used are the same as the keys from the connected stripe account
+		 *
+		 * @return bool true if the keys match
+		 */
+		public function is_connected() {
+			$options = get_option( self::SETTINGS_OPTION, array() );
+			if ( empty( $options ) ) {
+				return false;
+			}
+			$is_test = isset( $options['testmode'] ) && 'yes' === $options['testmode'];
+			$prefix = $is_test ? 'test_' : '';
+			$publishable_key_name = $prefix . 'publishable_key';
+			$secret_key_name = $prefix . 'secret_key';
+
+			$connected_keys = WC_Connect_Options::get_option( self::KEYS_OPTION, array() );
+			if ( empty( $connected_keys ) || ! isset( $connected_keys[ $publishable_key_name ] ) || ! isset( $connected_keys[ $secret_key_name ] ) ) {
+				return false;
+			}
+
+			return $options[ $publishable_key_name ] === $connected_keys[ $publishable_key_name ]
+				&& $options[ $secret_key_name ] === $connected_keys[ $secret_key_name ];
+		}
+
 		private function save_stripe_keys( $result ) {
 			if ( ! isset( $result->publishableKey, $result->secretKey ) ) {
 				return new WP_Error( 'Invalid credentials received from server' );
@@ -122,12 +157,21 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$prefix = $is_test ? 'test_' : '';
 
 			$default_options = $this->get_default_stripe_config();
+			$connected_keys = WC_Connect_Options::get_option( self::KEYS_OPTION, array() );
 
 			$options = array_merge( $default_options, get_option( self::SETTINGS_OPTION, array() ) );
-			$options['enabled']                     = 'yes';
-			$options['testmode']                    = $is_test ? 'yes' : 'no';
-			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
-			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
+			$options['enabled']  = 'yes';
+			$options['testmode'] = $is_test ? 'yes' : 'no';
+
+			$publishable_key_name = $prefix . 'publishable_key';
+			$secret_key_name = $prefix . 'secret_key';
+
+			$options[ $publishable_key_name ] = $result->publishableKey;
+			$options[ $secret_key_name ]      = $result->secretKey;
+
+			$connected_keys[ $publishable_key_name ] = $result->publishableKey;
+			$connected_keys[ $secret_key_name ]      = $result->secretKey;
+			WC_Connect_Options::update_option( self::KEYS_OPTION, $connected_keys );
 
 			// While we are at it, let's also clear the account_id and
 			// test_account_id if present
@@ -167,7 +211,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			unset( $options[ 'account_id' ] );
 			unset( $options[ 'test_account_id' ] );
 
-			update_option( self::SETTINGS_OPTION, $options );
+			WC_Connect_Options::delete_option( self::KEYS_OPTION );
 		}
 
 		private function get_default_stripe_config() {
@@ -290,8 +334,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
 
 			// Display a different title based on the connection status.
-			$account_details = $this->api->get_stripe_account_details();
-			if ( ! is_wp_error( $account_details ) ) {
+			if ( $this->is_connected() ) {
 				$title = __( 'Stripe Account (connected to WooCommerce Services)', 'woocommerce-services' );
 			} else {
 				$title = __( 'Connect via WooCommerce Services', 'woocommerce-services' );
