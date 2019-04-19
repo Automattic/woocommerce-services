@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstiel
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Tested up to: 5.0.3
-Stable tag: 1.19.0
+Stable tag: 1.20.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,6 +81,15 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.20.0 =
+
+* Update WooCommerce compatiblity to 3.6
+* Improved wording for the Stripe Connect UI when disconnected
+* Improve detection of when a Stripe account is connected
+* Avoid overwriting Stripe keys after they've already been entered, and WooCommerce Services is connected for the first time
+* Enable notices about WooCommerce Services to be displayed, for example when taxes were incorrectly calculated
+* Update the 'print label' button text and style
 
 = 1.19.0 =
 
