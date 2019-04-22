@@ -531,7 +531,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init_core_wizard_payments_config() {
 			$stripe_settings = get_option( 'woocommerce_stripe_settings', false );
 
-			$should_create_stripe_account  = is_array( $stripe_settings )
+			$user_elected_to_create_stripe_account  = is_array( $stripe_settings )
 				&& ( isset( $stripe_settings['create_account'] ) && 'yes' === $stripe_settings['create_account'] )
 				&& ( isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'] );
 
@@ -545,14 +545,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					|| ! empty( $stripe_settings['publishable_key'] )
 					|| ! empty( $stripe_settings['secret_key'] )
 				);
-			if ( $should_create_stripe_account && $stripe_already_connected ) {
+			if ( $user_elected_to_create_stripe_account && $stripe_already_connected ) {
 				unset( $stripe_settings['email'] );
 				unset( $stripe_settings['create_account'] );
 				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 				return;
 			}
 
-			if ( $should_create_stripe_account && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
+			if ( $user_elected_to_create_stripe_account && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
 				unset( $stripe_settings['create_account'] );
 				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 				$this->tracks->record_user_event( 'core_wizard_stripe_setup' );
