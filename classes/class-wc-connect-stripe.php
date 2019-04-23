@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 		const STATE_VAR_NAME = 'stripe_state';
 		const SETTINGS_OPTION = 'woocommerce_stripe_settings';
-		const KEYS_OPTION = 'stripe_keys';
+		const CONNECTED_KEYS_OPTION = 'stripe_keys';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger, WC_Connect_Nux $nux ) {
 			$this->api = $client;
@@ -139,13 +139,13 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$publishable_key_name = $prefix . 'publishable_key';
 			$secret_key_name = $prefix . 'secret_key';
 
-			$connected_keys = WC_Connect_Options::get_option( self::KEYS_OPTION, array() );
+			$connected_keys = WC_Connect_Options::get_option( self::CONNECTED_KEYS_OPTION, array() );
 			if ( empty( $connected_keys ) || ! isset( $connected_keys[ $publishable_key_name ] ) || ! isset( $connected_keys[ $secret_key_name ] ) ) {
 				return false;
 			}
 
-			return $options[ $publishable_key_name ] === $connected_keys[ $publishable_key_name ]
-				&& $options[ $secret_key_name ] === $connected_keys[ $secret_key_name ];
+			return wp_hash( $options[ $publishable_key_name ] ) === $connected_keys[ $publishable_key_name ]
+				&& wp_hash( $options[ $secret_key_name ] ) === $connected_keys[ $secret_key_name ];
 		}
 
 		private function save_stripe_keys( $result ) {
@@ -157,7 +157,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$prefix = $is_test ? 'test_' : '';
 
 			$default_options = $this->get_default_stripe_config();
-			$connected_keys = WC_Connect_Options::get_option( self::KEYS_OPTION, array() );
+			$connected_keys = WC_Connect_Options::get_option( self::CONNECTED_KEYS_OPTION, array() );
 
 			$options = array_merge( $default_options, get_option( self::SETTINGS_OPTION, array() ) );
 			$options['enabled']  = 'yes';
@@ -169,9 +169,9 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$options[ $publishable_key_name ] = $result->publishableKey;
 			$options[ $secret_key_name ]      = $result->secretKey;
 
-			$connected_keys[ $publishable_key_name ] = $result->publishableKey;
-			$connected_keys[ $secret_key_name ]      = $result->secretKey;
-			WC_Connect_Options::update_option( self::KEYS_OPTION, $connected_keys );
+			$connected_keys[ $publishable_key_name ] = wp_hash( $result->publishableKey );
+			$connected_keys[ $secret_key_name ]      = wp_hash( $result->secretKey );
+			WC_Connect_Options::update_option( self::CONNECTED_KEYS_OPTION, $connected_keys );
 
 			// While we are at it, let's also clear the account_id and
 			// test_account_id if present
@@ -211,7 +211,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			unset( $options[ 'account_id' ] );
 			unset( $options[ 'test_account_id' ] );
 
-			WC_Connect_Options::delete_option( self::KEYS_OPTION );
+			WC_Connect_Options::delete_option( self::CONNECTED_KEYS_OPTION );
 		}
 
 		private function get_default_stripe_config() {
