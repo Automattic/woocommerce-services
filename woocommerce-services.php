@@ -641,6 +641,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$logger = $this->get_logger();
 			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
+			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 		}
 
 		/**
@@ -1368,6 +1369,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					</span>
 				</div>
 			<?php
+		}
+
+		function render_schema_notices() {
+			$schemas = $this->get_service_schemas_store()->get_service_schemas();
+			if ( empty( $schemas ) || ! property_exists( $schemas, 'notices' ) || empty( $schemas->notices ) ) {
+				return;
+			}
+			$allowed_html = array(
+				'a'      => array( 'href' => array() ),
+				'strong' => array(),
+				'br'     => array(),
+			);
+			foreach ( $schemas->notices as $notice ) {
+				?>
+				<div class='<?php echo esc_attr( 'notice notice-' . $notice->type ) ?>' style="position: relative;">
+					<p><?php echo wp_kses( $notice->message, $allowed_html ); ?></p>
+				</div>
+				<?php
+			}
 		}
 	}
 

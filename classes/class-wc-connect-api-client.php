@@ -532,6 +532,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'last_rate_request' => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
 				'active_services' => $this->wc_connect_loader->get_active_services(),
 				'disable_stats' => WC_Connect_Jetpack::is_staging_site(),
+				'taxes_enabled' => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
 			) );
 
 			return $body;
