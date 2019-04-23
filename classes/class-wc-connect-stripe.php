@@ -258,6 +258,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			unset( $options[ 'account_id' ] );
 			unset( $options[ 'test_account_id' ] );
 
+			update_option( self::SETTINGS_OPTION, $options );
+
 			WC_Connect_Options::delete_option( self::CONNECTED_KEYS_OPTION );
 		}
 
