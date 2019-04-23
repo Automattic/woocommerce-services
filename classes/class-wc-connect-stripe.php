@@ -148,6 +148,60 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 				&& wp_hash( $options[ $secret_key_name ] ) === $connected_keys[ $secret_key_name ];
 		}
 
+		/**
+		 * Stores the connected account's API keys in order to determine the account connection status in the future
+		 *
+		 * @param string $publishable_key Publishable key
+		 * @param string $secret_key Secret key
+		 * @param bool $is_test True if the keys are for test environment, false otherwise
+		 */
+		private function set_connected_keys( $publishable_key, $secret_key, $is_test ) {
+			if ( empty( $publishable_key ) || empty( $secret_key ) ) {
+				return;
+			}
+
+			$prefix = $is_test ? 'test_' : '';
+			$publishable_key_name = $prefix . 'publishable_key';
+			$secret_key_name = $prefix . 'secret_key';
+
+			$connected_keys = WC_Connect_Options::get_option( self::CONNECTED_KEYS_OPTION, array() );
+			$connected_keys[ $publishable_key_name ] = wp_hash( $publishable_key );
+			$connected_keys[ $secret_key_name ]      = wp_hash( $secret_key );
+			WC_Connect_Options::update_option( self::CONNECTED_KEYS_OPTION, $connected_keys );
+		}
+
+		/**
+		 * Migrates the connection status if the site is already connected
+		 */
+		private function maybe_migrate_connection_status() {
+			if ( $this->is_connected() ) {
+				return;
+			}
+			$migrated = WC_Connect_Options::get_option( 'stripe_status_migrated', false );
+			if ( $migrated ) {
+				return;
+			}
+
+			$account_info = $this->api->get_stripe_account_details();
+			if ( is_wp_error( $account_info ) ) {
+				//no account connected, mark the status as migrated and return
+				WC_Connect_Options::update_option( 'stripe_status_migrated', true );
+				return;
+			}
+
+			$options = get_option( self::SETTINGS_OPTION, array() );
+			if ( empty( $options ) ) {
+				//no stripe settings found, mark the status as migrated and return
+				WC_Connect_Options::update_option( 'stripe_status_migrated', true );
+				return;
+			}
+
+			//assume the currently set keys are the keys from the connected account
+			$this->set_connected_keys( $options['test_publishable_key'], $options['test_secret_key'], true );
+			$this->set_connected_keys( $options['publishable_key'], $options['secret_key'], false );
+			WC_Connect_Options::update_option( 'stripe_status_migrated', true );
+		}
+
 		private function save_stripe_keys( $result ) {
 			if ( ! isset( $result->publishableKey, $result->secretKey ) ) {
 				return new WP_Error( 'Invalid credentials received from server' );
@@ -157,21 +211,14 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$prefix = $is_test ? 'test_' : '';
 
 			$default_options = $this->get_default_stripe_config();
-			$connected_keys = WC_Connect_Options::get_option( self::CONNECTED_KEYS_OPTION, array() );
 
 			$options = array_merge( $default_options, get_option( self::SETTINGS_OPTION, array() ) );
-			$options['enabled']  = 'yes';
-			$options['testmode'] = $is_test ? 'yes' : 'no';
+			$options['enabled']                     = 'yes';
+			$options['testmode']                    = $is_test ? 'yes' : 'no';
+			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
+			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
 
-			$publishable_key_name = $prefix . 'publishable_key';
-			$secret_key_name = $prefix . 'secret_key';
-
-			$options[ $publishable_key_name ] = $result->publishableKey;
-			$options[ $secret_key_name ]      = $result->secretKey;
-
-			$connected_keys[ $publishable_key_name ] = wp_hash( $result->publishableKey );
-			$connected_keys[ $secret_key_name ]      = wp_hash( $result->secretKey );
-			WC_Connect_Options::update_option( self::CONNECTED_KEYS_OPTION, $connected_keys );
+			$this->set_connected_keys( $result->publishableKey, $result->secretKey, $is_test );
 
 			// While we are at it, let's also clear the account_id and
 			// test_account_id if present
@@ -332,6 +379,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		public function show_connected_account( $settings ) {
 			ob_start();
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
+
+			$this->maybe_migrate_connection_status();
 
 			// Display a different title based on the connection status.
 			if ( $this->is_connected() ) {
