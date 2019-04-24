@@ -86,6 +86,7 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 * Update WooCommerce compatiblity to 3.6
 * Improved wording for the Stripe Connect UI when disconnected
+* Improve detection of when a Stripe account is connected
 
 = 1.19.0 =
 
