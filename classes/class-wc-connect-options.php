@@ -51,6 +51,8 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'stripe_state',
 				'banner_stripe',
 				'banner_ppec',
+				'stripe_keys',
+				'stripe_status_migrated',
 			);
 		}
 

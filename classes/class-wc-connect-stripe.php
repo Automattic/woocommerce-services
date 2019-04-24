@@ -30,6 +30,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 		const STATE_VAR_NAME = 'stripe_state';
 		const SETTINGS_OPTION = 'woocommerce_stripe_settings';
+		const CONNECTED_KEYS_OPTION = 'stripe_keys';
 
 		public function __construct( WC_Connect_API_Client $client, WC_Connect_Options $options, WC_Connect_Logger $logger, WC_Connect_Nux $nux ) {
 			$this->api = $client;
@@ -71,6 +72,16 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		}
 
 		public function get_account_details() {
+			if ( ! $this->is_connected() ) {
+				return new WP_Error(
+					'stripe_not_connected',
+					__( 'No Stripe account connected', 'woocommerce-services' ),
+					array(
+						'status' => 400
+					)
+				);
+			}
+
 			$response = $this->api->get_stripe_account_details();
 			if ( is_wp_error( $response ) ) {
 				return $response;
@@ -113,6 +124,84 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $this->save_stripe_keys( $response );
 		}
 
+		/**
+		 * Checks if the Stripe keys currently being used are the same as the keys from the connected stripe account
+		 *
+		 * @return bool true if the keys match
+		 */
+		public function is_connected() {
+			$options = get_option( self::SETTINGS_OPTION, array() );
+			if ( empty( $options ) ) {
+				return false;
+			}
+			$is_test = isset( $options['testmode'] ) && 'yes' === $options['testmode'];
+			$prefix = $is_test ? 'test_' : '';
+			$publishable_key_name = $prefix . 'publishable_key';
+			$secret_key_name = $prefix . 'secret_key';
+
+			$connected_keys = WC_Connect_Options::get_option( self::CONNECTED_KEYS_OPTION, array() );
+			if ( empty( $connected_keys ) || ! isset( $connected_keys[ $publishable_key_name ] ) || ! isset( $connected_keys[ $secret_key_name ] ) ) {
+				return false;
+			}
+
+			return wp_hash( $options[ $publishable_key_name ] ) === $connected_keys[ $publishable_key_name ]
+				&& wp_hash( $options[ $secret_key_name ] ) === $connected_keys[ $secret_key_name ];
+		}
+
+		/**
+		 * Stores the connected account's API keys in order to determine the account connection status in the future
+		 *
+		 * @param string $publishable_key Publishable key
+		 * @param string $secret_key Secret key
+		 * @param bool $is_test True if the keys are for test environment, false otherwise
+		 */
+		private function set_connected_keys( $publishable_key, $secret_key, $is_test ) {
+			if ( empty( $publishable_key ) || empty( $secret_key ) ) {
+				return;
+			}
+
+			$prefix = $is_test ? 'test_' : '';
+			$publishable_key_name = $prefix . 'publishable_key';
+			$secret_key_name = $prefix . 'secret_key';
+
+			$connected_keys = WC_Connect_Options::get_option( self::CONNECTED_KEYS_OPTION, array() );
+			$connected_keys[ $publishable_key_name ] = wp_hash( $publishable_key );
+			$connected_keys[ $secret_key_name ]      = wp_hash( $secret_key );
+			WC_Connect_Options::update_option( self::CONNECTED_KEYS_OPTION, $connected_keys );
+		}
+
+		/**
+		 * Migrates the connection status if the site is already connected
+		 */
+		private function maybe_migrate_connection_status() {
+			if ( $this->is_connected() ) {
+				return;
+			}
+			$migrated = WC_Connect_Options::get_option( 'stripe_status_migrated', false );
+			if ( $migrated ) {
+				return;
+			}
+
+			$account_info = $this->api->get_stripe_account_details();
+			if ( is_wp_error( $account_info ) ) {
+				//no account connected, mark the status as migrated and return
+				WC_Connect_Options::update_option( 'stripe_status_migrated', true );
+				return;
+			}
+
+			$options = get_option( self::SETTINGS_OPTION, array() );
+			if ( empty( $options ) ) {
+				//no stripe settings found, mark the status as migrated and return
+				WC_Connect_Options::update_option( 'stripe_status_migrated', true );
+				return;
+			}
+
+			//assume the currently set keys are the keys from the connected account
+			$this->set_connected_keys( $options['test_publishable_key'], $options['test_secret_key'], true );
+			$this->set_connected_keys( $options['publishable_key'], $options['secret_key'], false );
+			WC_Connect_Options::update_option( 'stripe_status_migrated', true );
+		}
+
 		private function save_stripe_keys( $result ) {
 			if ( ! isset( $result->publishableKey, $result->secretKey ) ) {
 				return new WP_Error( 'Invalid credentials received from server' );
@@ -128,6 +217,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			$options['testmode']                    = $is_test ? 'yes' : 'no';
 			$options[ $prefix . 'publishable_key' ] = $result->publishableKey;
 			$options[ $prefix . 'secret_key' ]      = $result->secretKey;
+
+			$this->set_connected_keys( $result->publishableKey, $result->secretKey, $is_test );
 
 			// While we are at it, let's also clear the account_id and
 			// test_account_id if present
@@ -168,6 +259,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			unset( $options[ 'test_account_id' ] );
 
 			update_option( self::SETTINGS_OPTION, $options );
+
+			WC_Connect_Options::delete_option( self::CONNECTED_KEYS_OPTION );
 		}
 
 		private function get_default_stripe_config() {
@@ -289,9 +382,10 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			ob_start();
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
 
+			$this->maybe_migrate_connection_status();
+
 			// Display a different title based on the connection status.
-			$account_details = $this->api->get_stripe_account_details();
-			if ( ! is_wp_error( $account_details ) ) {
+			if ( $this->is_connected() ) {
 				$title = __( 'Stripe Account (connected to WooCommerce Services)', 'woocommerce-services' );
 			} else {
 				$title = __( 'Connect via WooCommerce Services', 'woocommerce-services' );
