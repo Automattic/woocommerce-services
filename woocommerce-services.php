@@ -9,7 +9,7 @@
  * Domain Path: /i18n/languages/
  * Version: 1.19.1
  * WC requires at least: 3.0.0
- * WC tested up to: 3.6.1
+ * WC tested up to: 3.6.*
  *
  * Copyright (c) 2017 Automattic
  *
