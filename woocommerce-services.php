@@ -553,8 +553,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $user_elected_to_create_stripe_account && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
-				unset( $stripe_settings['create_account'] );
-				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 				$this->tracks->record_user_event( 'core_wizard_stripe_setup' );
 
 				$email = isset( $stripe_settings['email'] ) ? $stripe_settings['email'] : wp_get_current_user()->user_email;
@@ -569,6 +567,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						WC_Connect_Options::update_option( 'banner_stripe', 'connection' );
 					}
 				}
+
+				unset( $stripe_settings['email'] );
+				unset( $stripe_settings['create_account'] );
+				update_option( 'woocommerce_stripe_settings', $stripe_settings );
 			}
 		}
 
