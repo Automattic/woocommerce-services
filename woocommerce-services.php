@@ -641,6 +641,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$logger = $this->get_logger();
 			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
+			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 		}
 
 		/**
@@ -1368,6 +1369,44 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					</span>
 				</div>
 			<?php
+		}
+
+		function render_schema_notices() {
+			$schemas = $this->get_service_schemas_store()->get_service_schemas();
+			if ( empty( $schemas ) || ! property_exists( $schemas, 'notices' ) || empty( $schemas->notices ) ) {
+				return;
+			}
+			$allowed_html = array(
+				'a'      => array( 'href' => array() ),
+				'strong' => array(),
+				'br'     => array(),
+			);
+			foreach ( $schemas->notices as $notice ) {
+				$dismissible = false;
+				//check if the notice is dismissible
+				if ( property_exists( $notice, 'id' ) && ! empty( $notice->id ) && property_exists( $notice, 'dismissible' ) && $notice->dismissible ) {
+					//check if the notice is being dismissed right now
+					if ( isset( $_GET['wc-connect-dismiss-server-notice'] ) && $_GET['wc-connect-dismiss-server-notice'] === $notice->id ) {
+						set_transient( 'wcc_notice_dismissed_' . $notice->id, true, MONTH_IN_SECONDS );
+						continue;
+					}
+					//check if the notice has already been dismissed
+					if ( false !== get_transient( 'wcc_notice_dismissed_' . $notice->id ) ) {
+						continue;
+					}
+
+					$dismissible = true;
+					$link_dismiss = add_query_arg( array( 'wc-connect-dismiss-server-notice' => $notice->id ) );
+				}
+				?>
+				<div class='<?php echo esc_attr( 'notice notice-' . $notice->type ) ?>' style="position: relative;">
+					<?php if ( $dismissible ): ?>
+					<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
+					<?php endif; ?>
+					<p><?php echo wp_kses( $notice->message, $allowed_html ); ?></p>
+				</div>
+				<?php
+			}
 		}
 	}
 
