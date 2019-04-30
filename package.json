@@ -3,6 +3,7 @@
   "version": "1.19.0",
   "scripts": {
     "start": "cross-env NODE_ENV=development DISABLE_FEATURES=code-splitting CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
+    "prepare": "cd wp-calypso && npm ci && cd ..",
     "dist": "cross-env NODE_ENV=production DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "eslint": "eslint tasks/ client/",
     "test": "npm run eslint",
@@ -27,6 +28,7 @@
     "xgettext-js": "^1.1.0"
   },
   "dependencies": {
+    "@automattic/calypso-color-schemes": "^1.0.0-alpha.1",
     "@babel/cli": "7.1.2",
     "@babel/core": "7.1.2",
     "@babel/plugin-proposal-class-properties": "7.1.0",
@@ -90,7 +92,6 @@
     "webpack-cli": "3.1.1",
     "webpack-dev-server": "^3.1.14",
     "whatwg-fetch": "^2.0.2",
-    "wp-calypso": "github:automattic/wp-calypso#ef35c07f09f2bc62b0f63e753121f9cee0cc3521",
     "wrap-loader": "^0.2.0"
   }
 }

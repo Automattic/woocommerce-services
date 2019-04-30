@@ -53,9 +53,9 @@
 }
 
 .plugin-status__indicator-subtitle {
-	background: lighten( $gray, 30% );
+	background: var( --color-surface-backdrop );
 	border-radius: 2px;
-	color: darken( $gray, 30% );
+	color: var( --color-neutral-dark );
 	font-size: 11px;
 	font-weight: 400;
 	margin-left: 8px;

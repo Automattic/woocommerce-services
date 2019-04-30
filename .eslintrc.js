@@ -1,1 +1,1 @@
-module.exports = require( 'wp-calypso/.eslintrc' );
+module.exports = require( './wp-calypso/.eslintrc' );

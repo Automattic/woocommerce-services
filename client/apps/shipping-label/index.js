@@ -7,12 +7,12 @@ import React from 'react';
  * Internal dependencies
  */
 import ShippingLabelViewWrapper from './view-wrapper';
+import reduxMiddleware from './redux-middleware';
 // from calypso
 import notices from 'state/notices/reducer';
 import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
 import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
 import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
-import reduxMiddleware from './redux-middleware';
 import ordersReducer from 'woocommerce/state/sites/orders/reducer';
 import { combineReducers } from 'state/utils';
 import orders from 'woocommerce/state/data-layer/orders';
