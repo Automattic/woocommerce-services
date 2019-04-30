@@ -26,6 +26,7 @@ If you'd just like to check out the latest code and/or wish to contribute code, 
 
 * Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `10.11.0` and `npm` version 6+
 * Clone this repository into the `plugins` folder of the WordPress installation.
+* This project uses [Git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules). You'll need to run `git submodule update --init`, or enable `submodule.recurse` ([#](https://git-scm.com/docs/git-config#Documentation/git-config.txt-submodulerecurse)) like this: `git config --global submodule.recurse true`
 * Run `npm install` to set up all the dependencies
 * You now have two choices:
     * For Development: Add the following to your `wp-config.php` file: `define( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL', 'http://localhost:8085/' );` and then Run `npm start` which will start a webpack dev server at `localhost:8085`, complete with hot reloading whenever you make changes. You will need to keep the `npm start` task running while developing. You can press `ctrl+c` to exit this process.
