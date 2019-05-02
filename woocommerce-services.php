@@ -545,6 +545,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					|| ! empty( $stripe_settings['publishable_key'] )
 					|| ! empty( $stripe_settings['secret_key'] )
 				);
+
 			if ( $user_elected_to_create_stripe_account && $stripe_already_connected ) {
 				unset( $stripe_settings['email'] );
 				unset( $stripe_settings['create_account'] );
@@ -568,9 +569,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					}
 				}
 
-				unset( $stripe_settings['email'] );
-				unset( $stripe_settings['create_account'] );
-				update_option( 'woocommerce_stripe_settings', $stripe_settings );
+
+				// The Stripe settings have changed here - the keys were added,
+				// so we need to get a fresh copy.
+				$new_stripe_settings = get_option( 'woocommerce_stripe_settings', false );
+				if ( is_array( $new_stripe_settings ) ) {
+					unset( $new_stripe_settings['email'] );
+					unset( $new_stripe_settings['create_account'] );
+					update_option( 'woocommerce_stripe_settings', $new_stripe_settings );
+				}
 			}
 		}
 
