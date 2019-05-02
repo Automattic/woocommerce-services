@@ -74,8 +74,8 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		public function get_account_details() {
 			if ( ! $this->is_connected() ) {
 				return new WP_Error(
-					'stripe_not_connected',
-					__( 'No Stripe account connected', 'woocommerce-services' ),
+					'not_using_wcs_for_stripe_connection',
+					__( 'Not using WooCommerce Services for Stripe keys. Maybe using user supplied keys.', 'woocommerce-services' ),
 					array(
 						'status' => 400
 					)
