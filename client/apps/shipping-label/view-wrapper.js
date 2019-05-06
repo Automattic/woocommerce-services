@@ -116,13 +116,14 @@ class ShippingLabelViewWrapper extends Component {
 
 		const className = classNames( 'shipping-label__new-label-button', {
 			'is-placeholder': ! loaded,
+			'is-primary': loaded,
 		} );
 
 		return (
 			<Button
 				className={ className }
 				onClick={ this.handleButtonClick } >
-				{ translate( 'Create new label' ) }
+				{ translate( 'Create shipping label' ) }
 			</Button>
 		);
 	};
