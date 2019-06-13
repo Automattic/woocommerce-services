@@ -103,6 +103,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$this->update_account_settings( $account_settings );
 		}
 
+		public function can_user_manage_payment_methods() {
+			global $current_user;
+			$master_user = WC_Connect_Jetpack::get_master_user();
+			return WC_Connect_Jetpack::is_development_mode() ||
+				( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID );
+		}
+
 		public function get_origin_address() {
 			$wc_address_fields = array();
 			$wc_address_fields['company'] = get_bloginfo( 'name' );
