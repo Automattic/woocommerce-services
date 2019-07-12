@@ -66,8 +66,8 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		}
 
 		public function record_user_event( $event_type, $data = array() ) {
-			if ( ! function_exists( 'jetpack_tracks_record_event' ) ) {
-				$this->debug( 'Error. jetpack_tracks_record_event is not defined.' );
+			if ( ! class_exists( 'Jetpack' ) || ! defined( 'JETPACK__VERSION' ) ) {
+				$this->debug( 'Error. Jetpack not found. Can\'t record events' );
 				return;
 			}
 
@@ -112,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$event_type = self::$product_name . '_' . $event_type;
 
 			$this->debug( 'Tracked the following event: ' . $event_type );
-			jetpack_tracks_record_event( $user, $event_type, $data );
+			WC_Connect_Jetpack::tracks_record_event( $user, $event_type, $data );
 		}
 
 		protected function debug( $message ) {

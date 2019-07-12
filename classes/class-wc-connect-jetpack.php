@@ -86,5 +86,26 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 				'woocommerce-services-auto-authorize'
 			);
 		}
+
+		/**
+		 * Records a Tracks event
+		 * @param $user
+		 * @param $event_type
+		 * @param
+		 */
+		public static function tracks_record_event( $user, $event_type, $data ) {
+			if ( ! class_exists( 'Jetpack' ) && defined( JETPACK__VERSION ) ) {
+				return false;
+			}
+			if ( version_compare( JETPACK__VERSION, '7.5', '<' ) ) {
+				if ( function_exists( 'jetpack_tracks_record_event' ) ) {
+					return jetpack_tracks_record_event( $user, $event_type, $data );
+				}
+			} else {
+				$tracking = new Automattic\Jetpack\Tracking();
+				return $tracking->tracks_record_event( $user, $event_type, $data );
+			}
+			return false;
+		}
 	}
 }
