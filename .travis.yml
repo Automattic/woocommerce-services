@@ -6,14 +6,6 @@ language: php
 # Define our matrix of build configurations to test against.
 matrix:
   include:
-   - php: 5.2
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
-     sudo: true
-     dist: precise
-   - php: 5.2
-     env: WP_VERSION=5.1 WC_VERSION=3.3.3
-     sudo: true
-     dist: precise
    - php: 5.3
      env: WP_VERSION=4.5 WC_VERSION=3.2.6
      sudo: true
