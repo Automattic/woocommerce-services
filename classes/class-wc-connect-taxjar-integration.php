@@ -926,13 +926,13 @@ class WC_Connect_TaxJar_Integration {
 			'tax_rate_class' => $tax_class,
 		);
 
-		$rate_lookup = WC_Tax::find_rates( array(
+		$rate_lookup = array(
 			'country' => $location['to_country'],
 			'state' => $location['to_state'],
 			'postcode' => $location['to_zip'],
 			'city' => $location['to_city'],
 			'tax_class' => $tax_class,
-		) );
+		);
 
 		if ( version_compare( WC()->version, '3.2.0', '>=' ) ) {
 			$rate_lookup['state'] = sanitize_key( $location['to_state'] );
