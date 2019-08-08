@@ -7,11 +7,11 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.21.0
+ * Version: 1.21.1
  * WC requires at least: 3.0.0
- * WC tested up to: 3.6.*
+ * WC tested up to: 3.7
  *
- * Copyright (c) 2017 Automattic
+ * Copyright (c) 2017-2019 Automattic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
