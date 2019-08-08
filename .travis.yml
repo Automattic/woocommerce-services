@@ -14,6 +14,7 @@ matrix:
      dist: trusty
      env: WP_VERSION=4.6 WC_VERSION=3.1.2
    - php: 5.5
+     dist: trusty
      env: WP_VERSION=4.7 WC_VERSION=3.0.9
    - php: 5.6
      env: WP_VERSION=4.8 WC_VERSION=2.6.14
