@@ -86,6 +86,7 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 = 1.21.1 =
 
 * Update WooCommerce compatibility to 3.7
+* Support namespaced Jetpack methods
 
 = 1.21.0 =
 
