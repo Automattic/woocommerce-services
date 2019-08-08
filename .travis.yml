@@ -23,8 +23,8 @@ matrix:
    - php: 7.1
      env: WP_VERSION=latest WC_VERSION=3.0.3
      # By default, travis attempts PHPUnit 8.0.4 for PHP 7.1 - that version works on 7.2 and 7.3 only
-     # Install and use PHPUnit 7.5 instead
-     script: curl -sSfL -o ~/.phpenv/versions/7.1/bin/phpunit https://phar.phpunit.de/phpunit-7.5.phar && phpunit
+     # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
+     script: curl -sSfL -o ~/.phpenv/versions/7.1/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
      # Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
