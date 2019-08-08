@@ -11,6 +11,7 @@ matrix:
      sudo: true
      dist: precise
    - php: 5.4
+     dist: trusty
      env: WP_VERSION=4.6 WC_VERSION=3.1.2
    - php: 5.5
      env: WP_VERSION=4.7 WC_VERSION=3.0.9
