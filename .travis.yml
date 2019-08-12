@@ -11,15 +11,23 @@ matrix:
      sudo: true
      dist: precise
    - php: 5.4
+     dist: trusty
      env: WP_VERSION=4.6 WC_VERSION=3.1.2
    - php: 5.5
+     dist: trusty
      env: WP_VERSION=4.7 WC_VERSION=3.0.9
    - php: 5.6
      env: WP_VERSION=4.8 WC_VERSION=2.6.14
    - php: 7.0
      env: WP_VERSION=latest WC_VERSION=2.6.14
+     # By default, travis attempts PHPUnit 7.5.0 for PHP 7.0 - that version works on 7.1 and 7.2 only
+     # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
+     script: curl -sSfL -o ~/.phpenv/versions/7.0/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.1
      env: WP_VERSION=latest WC_VERSION=3.0.3
+     # By default, travis attempts PHPUnit 8.0.4 for PHP 7.1 - that version works on 7.2 and 7.3 only
+     # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
+     script: curl -sSfL -o ~/.phpenv/versions/7.1/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.2
      env: WP_VERSION=4.4 WC_VERSION=2.6.14
      # Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
@@ -31,6 +39,9 @@ matrix:
      # Run the JS tests in a separate container
    - language: node_js
      before_script: ""
+
+services:
+   - mysql
 
 # Clones WordPress and configures our testing environment.
 before_script: bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
