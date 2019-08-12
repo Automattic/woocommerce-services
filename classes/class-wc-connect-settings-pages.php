@@ -13,7 +13,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
-			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ) );
+			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ), 5 );
 		}
 
 		/**
