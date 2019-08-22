@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );
 			}
 
-			do_action( 'render_wc_connect_view', 'wc-connect-shipping-settings', $extra_args );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-shipping-settings', $extra_args );
 		}
 	}
 

@@ -285,7 +285,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		public function show_connected_account( $settings ) {
 			ob_start();
-			do_action( 'render_wc_connect_view', 'wc-connect-stripe-connect-account' );
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
 
 			$new_settings = array(
 				'connection_status' => array(

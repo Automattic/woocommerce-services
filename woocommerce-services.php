@@ -689,8 +689,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
-			add_action( 'print_wc_connect_container', array( $this, 'print_wc_connect_container' ), 10, 2 );
-			add_action( 'render_wc_connect_view', array( $this, 'render_wc_connect_view' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
@@ -907,7 +905,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			do_action( 'render_wc_connect_view', 'wc-connect-service-settings', array(
+			do_action( 'enqueue_wc_connect_script', 'wc-connect-service-settings', array(
 				'methodId' => $method_id,
 				'instanceId' => $instance_id,
 			) );
@@ -1266,7 +1264,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $links;
 		}
 
-		function enqueue_wc_connect_script() {
+		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
 			$payload = array(
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'baseURL'      => get_rest_url(),
@@ -1275,9 +1273,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
 			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_style( 'wc_connect_admin' );
-		}
 
-		function print_wc_connect_container( $root_view, $extra_args = array() ) {
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
 					'page' => 'wc-status',
@@ -1293,11 +1289,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					</span>
 				</div>
 			<?php
-		}
-
-		function render_wc_connect_view( $root_view, $extra_args = array() ) {
-			do_action( 'enqueue_wc_connect_script', $root_view, $extra_args ); // Legacy arguments.
-			do_action( 'print_wc_connect_container', $root_view, $extra_args );
 		}
 	}
 
