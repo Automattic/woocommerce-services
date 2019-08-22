@@ -285,7 +285,14 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 		 */
 		public function show_connected_account( $settings ) {
 			ob_start();
-			do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
+
+			if ( // WooCommerce » Settings » Payments » Stripe.
+				isset( $_GET['page'] ) && 'wc-settings' === $_GET['page']
+				&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
+				&& isset( $_GET['section'] ) && 'stripe' === $_GET['section']
+			) {
+				do_action( 'enqueue_wc_connect_script', 'wc-connect-stripe-connect-account' );
+			}
 
 			$new_settings = array(
 				'connection_status' => array(
