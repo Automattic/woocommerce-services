@@ -12,15 +12,15 @@ import { localize } from 'i18n-calypso';
 // from calypso
 import Button from 'components/button';
 import GlobalNotices from 'components/global-notices';
-import LabelSettings from 'woocommerce/woocommerce-services/views/label-settings';
+import LabelSettings from 'views/label-settings';
 import notices from 'notices';
-import Packages from 'woocommerce/woocommerce-services/views/packages';
+import Packages from 'views/packages';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
-import { createWcsShippingSaveActionList } from 'woocommerce/woocommerce-services/state/actions';
+import { createWcsShippingSaveActionList } from 'state/actions';
 import { getSelectedSiteId } from 'state/ui/selectors';
-import { getLabelSettingsFormMeta, getSelectedPaymentMethodId } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
-import { getPackagesForm } from 'woocommerce/woocommerce-services/state/packages/selectors';
+import { getLabelSettingsFormMeta, getSelectedPaymentMethodId } from 'state/label-settings/selectors';
+import { getPackagesForm } from 'state/packages/selectors';
 
 class LabelSettingsWrapper extends Component {
 	constructor( props ) {
