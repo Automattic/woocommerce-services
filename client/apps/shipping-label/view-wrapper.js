@@ -14,30 +14,30 @@ import { find } from 'lodash';
  */
 // from calypso
 import Button from 'components/button';
-import LabelPurchaseDialog from 'woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
-import QueryLabels from 'woocommerce/woocommerce-services/components/query-labels';
+import LabelPurchaseDialog from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
+import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
 import {
 	openPrintingFlow,
 	setEmailDetailsOption,
 	setFulfillOrderOption,
-} from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+} from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/actions';
 import GlobalNotices from 'components/global-notices';
 import Notice from 'components/notice';
 import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	areLabelsFullyLoaded,
-} from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+} from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/selectors';
 import {
 	areLabelsEnabled,
 	getSelectedPaymentMethodId,
 	getLabelSettingsFormMeta,
-} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
-import ActivityLog from 'woocommerce/app/order/order-activity-log/events';
+} from '../../extensions/woocommerce/woocommerce-services/state/label-settings/selectors';
+import ActivityLog from '../../extensions/woocommerce/app/order/order-activity-log/events';
 import {
 	getActivityLogEvents,
-} from 'woocommerce/state/sites/orders/activity-log/selectors';
-import { fetchOrder } from 'woocommerce/state/sites/orders/actions';
+} from '../../extensions/woocommerce/state/sites/orders/activity-log/selectors';
+import { fetchOrder } from '../../extensions/woocommerce/state/sites/orders/actions';
 
 class ShippingLabelViewWrapper extends Component {
 	static propTypes = {

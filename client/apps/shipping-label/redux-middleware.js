@@ -9,7 +9,7 @@ import jQuery from 'jquery';
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW,
-} from 'woocommerce/woocommerce-services/state/action-types';
+} from '../../extensions/woocommerce/woocommerce-services/state/action-types';
 
 const middlewareActions = {
 	[  WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE ]: ( { error } ) => {
