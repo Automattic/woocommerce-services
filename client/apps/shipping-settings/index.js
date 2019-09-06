@@ -8,11 +8,11 @@ import React from 'react';
  */
 import ViewWrapper from './view-wrapper';
 // from calypso
-import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
-import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
+import labelSettingsReducer from '../../extensions/woocommerce/woocommerce-services/state/label-settings/reducer';
+import packagesReducer from '../../extensions/woocommerce/woocommerce-services/state/packages/reducer';
 import notices from 'state/notices/reducer';
-import actionList from 'woocommerce/state/data-layer/action-list';
-import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
+import actionList from '../../extensions/woocommerce/state/data-layer/action-list';
+import wcsUiDataLayer from '../../extensions/woocommerce/state/data-layer/ui/woocommerce-services';
 import { mergeHandlers } from 'state/action-watchers/utils';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import { combineReducers } from 'state/utils';

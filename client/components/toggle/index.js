@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormToggle from 'components/forms/form-toggle/compact';
-import FieldDescription from 'woocommerce/woocommerce-services/components/field-description';
+import FieldDescription from '../../extensions/woocommerce/woocommerce-services/components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
 class Toggle extends Component {

@@ -10,15 +10,15 @@ import ShippingLabelViewWrapper from './view-wrapper';
 import reduxMiddleware from './redux-middleware';
 // from calypso
 import notices from 'state/notices/reducer';
-import reducer from 'woocommerce/woocommerce-services/state/shipping-label/reducer';
-import packagesReducer from 'woocommerce/woocommerce-services/state/packages/reducer';
-import labelSettingsReducer from 'woocommerce/woocommerce-services/state/label-settings/reducer';
-import ordersReducer from 'woocommerce/state/sites/orders/reducer';
+import reducer from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/reducer';
+import packagesReducer from '../../extensions/woocommerce/woocommerce-services/state/packages/reducer';
+import labelSettingsReducer from '../../extensions/woocommerce/woocommerce-services/state/label-settings/reducer';
+import ordersReducer from '../../extensions/woocommerce/state/sites/orders/reducer';
 import { combineReducers } from 'state/utils';
-import orders from 'woocommerce/state/data-layer/orders';
+import orders from '../../extensions/woocommerce/state/data-layer/orders';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
-import locations from 'woocommerce/state/data-layer/data/locations';
-import locationsReducer from 'woocommerce/state/sites/data/locations/reducer';
+import locations from '../../extensions/woocommerce/state/data-layer/data/locations';
+import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
 import { mergeHandlers } from 'state/action-watchers/utils';
 
 export default ( { orderId } ) => {

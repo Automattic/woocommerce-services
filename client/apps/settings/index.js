@@ -9,21 +9,21 @@ import React from 'react';
 import ViewWrapper from './view-wrapper';
 import reduxMiddleware from './redux-middleware';
 // from calypso
-import zoneMethodsReducer from 'woocommerce/state/sites/shipping-zone-methods/reducer';
-import zonesReducer from 'woocommerce/state/sites/shipping-zones/reducer';
-import methodSettingsReducer from 'woocommerce/woocommerce-services/state/shipping-zone-method-settings/reducer';
-import uiZonesReducer, { initialState as uiZonesInitialState } from 'woocommerce/state/ui/shipping/zones/reducer';
-import { initialState as uiMethodsInitialState } from 'woocommerce/state/ui/shipping/zones/methods/reducer';
-import { initialState as uiLocationsInitialState } from 'woocommerce/state/ui/shipping/zones/locations/reducer';
+import zoneMethodsReducer from '../../extensions/woocommerce/state/sites/shipping-zone-methods/reducer';
+import zonesReducer from '../../extensions/woocommerce/state/sites/shipping-zones/reducer';
+import methodSettingsReducer from '../../extensions/woocommerce/woocommerce-services/state/shipping-zone-method-settings/reducer';
+import uiZonesReducer, { initialState as uiZonesInitialState } from '../../extensions/woocommerce/state/ui/shipping/zones/reducer';
+import { initialState as uiMethodsInitialState } from '../../extensions/woocommerce/state/ui/shipping/zones/methods/reducer';
+import { initialState as uiLocationsInitialState } from '../../extensions/woocommerce/state/ui/shipping/zones/locations/reducer';
 import notices from 'state/notices/reducer';
 import { combineReducers } from 'state/utils';
-import { fetchShippingZoneMethodSettings } from 'woocommerce/woocommerce-services/state/shipping-zone-method-settings/actions';
-import { fetchShippingClasses } from 'woocommerce/state/sites/shipping-classes/actions';
-import methodSchemasReducer from 'woocommerce/woocommerce-services/state/shipping-method-schemas/reducer';
-import wcsUiDataLayer from 'woocommerce/state/data-layer/ui/woocommerce-services';
+import { fetchShippingZoneMethodSettings } from '../../extensions/woocommerce/woocommerce-services/state/shipping-zone-method-settings/actions';
+import { fetchShippingClasses } from '../../extensions/woocommerce/state/sites/shipping-classes/actions';
+import methodSchemasReducer from '../../extensions/woocommerce/woocommerce-services/state/shipping-method-schemas/reducer';
+import wcsUiDataLayer from '../../extensions/woocommerce/state/data-layer/ui/woocommerce-services';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
-import shippingClassesReducer from 'woocommerce/state/sites/shipping-classes/reducers';
-import shippingClassesDataLayer from 'woocommerce/state/data-layer/shipping-classes';
+import shippingClassesReducer from '../../extensions/woocommerce/state/sites/shipping-classes/reducers';
+import shippingClassesDataLayer from '../../extensions/woocommerce/state/data-layer/shipping-classes';
 import { mergeHandlers } from 'state/action-watchers/utils';
 
 export default ( { methodId, instanceId } ) => ( {
