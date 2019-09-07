@@ -6,7 +6,8 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import ShippingLabelViewWrapper from './view-wrapper';
+import ShippingLabelViewWrapper from './view-wrapper-label';
+import ShipmentTrackingViewWrapper from './view-wrapper-tracking';
 import reduxMiddleware from './redux-middleware';
 // from calypso
 import notices from 'state/notices/reducer';
@@ -21,7 +22,7 @@ import locations from '../../extensions/woocommerce/state/data-layer/data/locati
 import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
 import { mergeHandlers } from 'state/action-watchers/utils';
 
-export default ( { orderId } ) => {
+export default ( { orderId, context, items } ) => {
 	return {
 		getReducer() {
 			return combineReducers( {
@@ -84,7 +85,10 @@ export default ( { orderId } ) => {
 		},
 
 		View: () => (
-			<ShippingLabelViewWrapper orderId={ orderId } />
+			( 'shipment_tracking' === context ) ?
+				<ShipmentTrackingViewWrapper orderId={ orderId } />
+			:
+				<ShippingLabelViewWrapper orderId={ orderId } items={ items } />
 		),
 	};
 };

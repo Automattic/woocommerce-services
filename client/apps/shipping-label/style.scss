@@ -1,6 +1,18 @@
 .shipping-label__container {
 	margin-bottom: 0;
 	text-align: center;
+	display: flex;
+	justify-content: space-between;
+
+	em {
+		font-size: 18px;
+		display: inline-block;
+		vertical-align: text-bottom;
+		margin-left: 10px;
+		height: 36px;
+		position: relative;
+		top: 3px;
+	}
 
 	.shipping-label__payment .gridicon.notice__icon {
 		align-self: flex-start;
@@ -71,4 +83,10 @@
 	font-weight: normal;
 	font-size: 13px;
 	line-height: 19px;
+}
+
+@media (max-width: 1080px) {
+	.shipping-label__container {
+		display: block;
+	}
 }

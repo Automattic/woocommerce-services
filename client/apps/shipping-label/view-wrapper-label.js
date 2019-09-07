@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
-import { find } from 'lodash';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -22,7 +22,6 @@ import {
 	setFulfillOrderOption,
 } from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/actions';
 import GlobalNotices from 'components/global-notices';
-import Notice from 'components/notice';
 import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
@@ -30,10 +29,8 @@ import {
 } from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/selectors';
 import {
 	areLabelsEnabled,
-	getSelectedPaymentMethodId,
-	getLabelSettingsFormMeta,
 } from '../../extensions/woocommerce/woocommerce-services/state/label-settings/selectors';
-import ActivityLog from '../../extensions/woocommerce/app/order/order-activity-log/events';
+
 import {
 	getActivityLogEvents,
 } from '../../extensions/woocommerce/state/sites/orders/activity-log/selectors';
@@ -51,62 +48,6 @@ class ShippingLabelViewWrapper extends Component {
 			this.props.fetchOrder( siteId, orderId );
 		}
 	}
-
-	renderPaymentInfo = () => {
-		const {
-			translate,
-			orderId,
-			loaded,
-			selectedPaymentMethod,
-			paymentMethods,
-		} = this.props;
-
-		if ( ! loaded ) {
-			return null;
-		}
-
-		if ( selectedPaymentMethod ) {
-			return (
-				<Notice isCompact showDismiss={ false } className="shipping-label__payment inline">
-					<p>
-						{ translate( 'Labels will be purchased using card ending: {{strong}}%(cardDigits)s.{{/strong}}', {
-							components: { strong: <strong /> },
-							args: { cardDigits: selectedPaymentMethod.card_digits },
-						} ) }
-					</p>
-					<p>
-						<a href={ `admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&from_order=${ orderId }` }>
-							{ translate( 'Manage cards' ) }
-						</a>
-					</p>
-				</Notice>
-			);
-		}
-
-		if ( paymentMethods.length ) {
-			return (
-				<Notice isCompact={ true } showDismiss={ false } className="shipping-label__payment inline">
-					<p>{ translate( 'To purchase shipping labels, you will first need to select a credit card.' ) }</p>
-					<p>
-						<a href={ `admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&from_order=${ orderId }` }>
-							{ translate( 'Select a credit card' ) }
-						</a>
-					</p>
-				</Notice>
-			);
-		}
-
-		return (
-			<Notice isCompact showDismiss={ false } className="shipping-label__payment inline">
-				<p>{ translate( 'To purchase shipping labels, you will first need to add a credit card.' ) }</p>
-				<p>
-					<a href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings">
-						{ translate( 'Add a credit card' ) }
-					</a>
-				</p>
-			</Notice>
-		);
-	};
 
 	renderLabelButton = () => {
 		const {
@@ -128,24 +69,6 @@ class ShippingLabelViewWrapper extends Component {
 		);
 	};
 
-	renderActivityLog = () => {
-		const {
-			siteId,
-			orderId,
-			events,
-		} = this.props;
-
-		if ( 0 === events.length ) {
-			return null;
-		}
-
-		return (
-			<div className="shipping-label__dummy-class order-activity-log">
-				<ActivityLog orderId={ orderId } siteId={ siteId } />
-			</div>
-		);
-	};
-
 	handleButtonClick = () => {
 		const {
 			orderId,
@@ -157,7 +80,6 @@ class ShippingLabelViewWrapper extends Component {
 		// once the order is fulfilled
 		this.props.setEmailDetailsOption( orderId, siteId, false );
 		this.props.setFulfillOrderOption( orderId, siteId, false );
-
 		this.props.openPrintingFlow( orderId, siteId );
 	};
 
@@ -167,21 +89,23 @@ class ShippingLabelViewWrapper extends Component {
 			orderId,
 			loaded,
 			labelsEnabled,
-			selectedPaymentMethod,
+			items,
+			translate,
 		} = this.props;
 
-		const shouldRenderButton = ! loaded || labelsEnabled && selectedPaymentMethod;
+		const shouldRenderButton = ! loaded || labelsEnabled;
 
 		return (
 			<div className="shipping-label__container">
-				<div className="shipping-label__new" >
-					<GlobalNotices notices={ notices.list } />
+				<div>
+					<Gridicon size="36" icon="shipping" />
+					<em>{ items + ' ' + translate( 'items need to be fulfilled' ) }</em>
+				</div>
+				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } />
 					<LabelPurchaseDialog orderId={ orderId } siteId={ siteId } />
-					{ this.renderPaymentInfo() }
 					{ shouldRenderButton && this.renderLabelButton() }
 				</div>
-				{ this.renderActivityLog() }
 			</div>
 		);
 	}
@@ -191,18 +115,12 @@ export default connect(
 	( state, { orderId } ) => {
 		const siteId = getSelectedSiteId( state );
 		const loaded = areLabelsFullyLoaded( state, orderId, siteId );
-		const paymentMethodId = getSelectedPaymentMethodId( state, siteId );
-		const formMeta = getLabelSettingsFormMeta( state, siteId ) || {};
-		const paymentMethods = formMeta.payment_methods;
-		const selectedPaymentMethod = loaded ? find( paymentMethods, { payment_method_id: paymentMethodId } ) : null;
 		const events = getActivityLogEvents( state, orderId );
 
 		return {
 			siteId,
 			loaded,
 			labelsEnabled: areLabelsEnabled( state, siteId ),
-			selectedPaymentMethod,
-			paymentMethods,
 			events,
 		};
 	},
