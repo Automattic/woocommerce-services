@@ -21,8 +21,6 @@ import {
 	setEmailDetailsOption,
 	setFulfillOrderOption,
 } from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/actions';
-import GlobalNotices from 'components/global-notices';
-import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	areLabelsFullyLoaded,
