@@ -34,8 +34,8 @@ const cssLoaders = [
 		options: {
 			includePaths: [
 				path.resolve( __dirname, 'client' ),
+				path.resolve( __dirname, 'client', 'extensions' ),
 				path.resolve( __dirname, 'wp-calypso', 'client' ),
-				path.resolve( __dirname, 'wp-calypso', 'client', 'extensions' ),
 				path.resolve( __dirname, 'wp-calypso', 'assets', 'stylesheets' ),
 			],
 		},
@@ -169,8 +169,8 @@ module.exports = {
 			path.resolve( __dirname, 'client', 'calypso-stubs' ),
 			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
+			path.resolve( __dirname, 'client', 'extensions' ),
 			path.resolve( __dirname, 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'wp-calypso', 'client', 'extensions' ),
 			path.resolve( __dirname, 'wp-calypso', 'node_modules' ),
 		],
 		symlinks: false,
