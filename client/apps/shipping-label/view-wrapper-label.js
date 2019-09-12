@@ -113,13 +113,11 @@ export default connect(
 	( state, { orderId } ) => {
 		const siteId = getSelectedSiteId( state );
 		const loaded = areLabelsFullyLoaded( state, orderId, siteId );
-		const events = getActivityLogEvents( state, orderId );
 
 		return {
 			siteId,
 			loaded,
 			labelsEnabled: areLabelsEnabled( state, siteId ),
-			events,
 		};
 	},
 	( dispatch ) => ( {
