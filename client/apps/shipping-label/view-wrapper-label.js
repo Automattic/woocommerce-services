@@ -28,10 +28,6 @@ import {
 import {
 	areLabelsEnabled,
 } from '../../extensions/woocommerce/woocommerce-services/state/label-settings/selectors';
-
-import {
-	getActivityLogEvents,
-} from '../../extensions/woocommerce/state/sites/orders/activity-log/selectors';
 import { fetchOrder } from '../../extensions/woocommerce/state/sites/orders/actions';
 
 class ShippingLabelViewWrapper extends Component {
