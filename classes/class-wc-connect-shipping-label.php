@@ -367,11 +367,26 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $payload;
 		}
 
-		public function meta_box( $post ) {
+		/**
+		 * Filter items needing shipping callback.
+		 *
+		 * @since  3.0.0
+		 * @param  array $item Item to check for shipping.
+		 * @return bool
+		 */
+		protected function filter_items_needing_shipping( $item ) {
+			$product = $item->get_product();
+			return $product && $product->needs_shipping();
+		}
+
+		public function meta_box( $post, $args ) {
 			$order = wc_get_order( $post );
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$payload = array(
 				'orderId' => $order_id,
+				'context' => $args['args']['context'],
+				'items'   => ! empty( $items ) ? count( $items ) : 0,
 			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );

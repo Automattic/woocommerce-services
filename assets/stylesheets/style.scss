@@ -133,7 +133,9 @@
 
 	// Custom styles
 	&:not(.label-purchase-modal) {
-		max-width: 720px;
+		max-width: 100%;
+		padding: 20px;
+		position: relative;
 	}
 
 	&.wc-connect-shipping-settings {
@@ -263,4 +265,35 @@
 
 #woocommerce-services-shipping-debug .packing-log {
 	white-space: pre-wrap;
+}
+
+#woocommerce-order-label {
+	.hndle,
+	.handlediv {
+		display: none;
+	}
+
+	.inside {
+		display: block !important;
+	}
+}
+
+.wp-core-ui.wp-admin #woocommerce-order-shipment-tracking {
+	.wcc-root.wc-connect-create-shipping-label {
+		padding: 0;
+
+		.shipping-label__container {
+			.button.is-placeholder, .button.is-primary {
+				border-width: 1px;
+				border-style: solid;
+				border-radius: 3px;
+				background: #0085ba;
+				border-color: #0073aa #006799 #006799;
+				box-shadow: 0 1px 0 #006799;
+				color: #fff;
+				text-decoration: none;
+				text-shadow: 0 -1px 1px #006799, 1px 0 1px #006799, 0 1px 1px #006799, -1px 0 1px #006799;
+			}
+		}
+	}
 }
