@@ -15,7 +15,7 @@ const isDev = ! isProd && ! isI18n;
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 const cssLoaders = [
-	isDev ? 'style-loader?hmr=false' : MiniCssExtractPlugin.loader,
+	MiniCssExtractPlugin.loader,
 	'css-loader',
 	{
 		loader: 'postcss-loader',
