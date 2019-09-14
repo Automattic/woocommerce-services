@@ -95,7 +95,7 @@ const PackagesStep = props => {
 	const confirmPackagesHandler = () => props.confirmPackages( orderId, siteId );
 	return (
 		<StepContainer
-			title={ translate( 'Packages' ) }
+			title={ translate( 'Packaging' ) }
 			{ ...getContainerState() }
 			expanded={ expanded }
 			toggleStep={ toggleStepHandler }

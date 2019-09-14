@@ -102,7 +102,7 @@ class Packages extends Component {
 			<div>
 				<QueryPackages siteId={ siteId } />
 				<ExtendedHeader
-					label={ translate( 'Packages' ) }
+					label={ translate( 'Packaging' ) }
 					description={ translate(
 						'Add boxes, envelopes, and other packages you use most frequently.'
 					) }
