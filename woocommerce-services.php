@@ -1169,8 +1169,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Use the same version as Jetpack
 			$jetpack_version = defined( 'JETPACK__VERSION' ) ? JETPACK__VERSION : '0';
 			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array(), $plugin_version );
-			wp_enqueue_style( 'wc_connect_admin' );
-
 			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version, true );
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
@@ -1251,6 +1249,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function add_meta_boxes( $post_type, $post ) {
 			if ( $this->shipping_label->should_show_meta_box() ) {
+				wp_enqueue_style( 'wc_connect_admin' );
 				add_meta_box( 'woocommerce-order-shipment-tracking', __( 'Shipment Tracking', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default', array( 'context' => 'shipment_tracking' ) );
 
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'normal', 'high', array( 'context' => 'shipping_label' ) );
