@@ -23,6 +23,9 @@ import inputFilters from './input-filters';
 import PredefinedPackages from './predefined-packages';
 import SimplifiedSegmentedControl from 'components/segmented-control/simplified';
 import { getPredefinedPackagesChangesSummary } from '../../state/packages/selectors';
+import { createWcsShippingSaveActionList } from 'extensions/woocommerce/woocommerce-services/state/actions';
+import {bindActionCreators} from "redux";
+import { successNotice, errorNotice } from 'state/notices/actions';
 
 const AddPackageDialog = props => {
 	const {
@@ -51,6 +54,9 @@ const AddPackageDialog = props => {
 	const onSave = () => {
 		if ( isAddingPredefined ) {
 			savePredefinedPackages( siteId );
+			if ( props.persistOnSave ) {
+
+			}
 			return;
 		}
 
@@ -80,6 +86,40 @@ const AddPackageDialog = props => {
 		}
 
 		savePackage( siteId, filteredPackageData );
+		if ( props.persistOnSave ) {
+
+			const onSaveSuccess = () => {
+				const { translate, orderId, orderHref, paymentMethodSelected } = this.props;
+				const options =
+					orderHref && paymentMethodSelected
+						? { button: translate( 'Return to Order #%(orderId)s', { args: { orderId } } ), href: orderHref }
+						: { duration: 5000 };
+
+				this.setState( { pristine: true } );
+				return this.props.successNotice( translate( 'Your shipping settings have been saved.' ), options );
+			}
+
+			const onSaveFailure = () => {
+				const { translate } = this.props;
+				return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
+			}
+
+			const onPaymentMethodMissing = () => {
+				const { translate } = this.props;
+				return this.props.errorNotice(
+					translate( 'A payment method is required to print shipping labels.' ),
+					{
+						duration: 4000,
+					}
+				);
+			}
+
+			props.createWcsShippingSaveActionList(
+				onSaveSuccess,
+				onSaveFailure,
+				onPaymentMethodMissing
+			);
+		}
 	};
 
 	const onClose = () => dismissModal( siteId );
@@ -166,6 +206,12 @@ AddPackageDialog.propTypes = {
 	setAddMode: PropTypes.func.isRequired,
 };
 
-export default connect( state => ( {
+export default connect(
+	state => ( {
 	predefinedPackagesSummary: getPredefinedPackagesChangesSummary( state ),
-} ) )( localize( AddPackageDialog ) );
+} ),dispatch => bindActionCreators( {
+		createWcsShippingSaveActionList,
+		errorNotice,
+		successNotice,
+	}, dispatch )
+	)( localize( AddPackageDialog ) );

@@ -34,7 +34,9 @@ import {
 	getFormErrors,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { getPackageGroupsForLabelPurchase } from 'woocommerce/woocommerce-services/state/packages/selectors';
-
+import PackageDialog from 'woocommerce/woocommerce-services/views/packages/package-dialog';
+import { getPackagesForm } from "../../../../state/packages/selectors";
+import * as PackagesActions from "../../../../state/packages/actions";
 const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 	return [ dimensions.length, dimensions.width, dimensions.height ]
 		.map( dimension => `${ dimension } ${ dimensionUnit }` )
@@ -150,6 +152,11 @@ const PackageInfo = props => {
 			);
 		}
 
+		const addPackage = () => {
+			//	this.setState( { pristine: false } );
+			props.addPackage( siteId );
+		};
+
 		return (
 			<div>
 				<div className="packages-step__package-items-header">
@@ -176,6 +183,10 @@ const PackageInfo = props => {
 						);
 					} ) }
 				</FormSelect>
+				<Button onClick={ addPackage }>
+					{ translate( 'Add package' ) }
+				</Button>
+				<PackageDialog persistOnSave={ true } { ... props  } />
 			</div>
 		);
 	};
@@ -258,8 +269,11 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	const storeOptions = loaded ? shippingLabel.storeOptions : {};
 	const errors = loaded && getFormErrors( state, orderId, siteId ).packages;
+	const form = getPackagesForm( state, siteId ) || {};
 	return {
+		siteId,
 		errors,
+		form,
 		packageId: shippingLabel.openedPackageId,
 		selected: shippingLabel.form.packages.selected,
 		dimensionUnit: storeOptions.dimension_unit,
@@ -275,6 +289,7 @@ const mapDispatchToProps = dispatch => {
 			setPackageType,
 			openAddItem,
 			setPackageSignature,
+			... PackagesActions,
 		},
 		dispatch
 	);

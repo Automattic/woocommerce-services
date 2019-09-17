@@ -121,7 +121,7 @@ export const getPackageGroupsForLabelPurchase = createSelector(
 						return;
 					}
 
-					if ( ! pckg.is_flat_rate && ! includes( serviceSelectedIds, pckg.id ) ) {
+					if ( ! includes( serviceSelectedIds, pckg.id ) ) {
 						return;
 					}
 
@@ -219,22 +219,16 @@ export const getCurrentlyEditingPredefinedPackages = createSelector(
 			const serviceSelectedIds = currentlyEditingPredefinedPackages[ serviceId ] || [];
 
 			forEach( serviceGroups, ( group, groupId ) => {
-				const definitions = group.definitions;
-				const nonFlatRateDefinitions = reject( group.definitions, 'is_flat_rate' );
-				if ( ! nonFlatRateDefinitions.length ) {
-					return;
-				}
-
 				const groupResult = {
 					groupId,
 					serviceId,
 					title: group.title,
 					packages: [],
-					total: nonFlatRateDefinitions.length,
+					total: group.definitions.length,
 					selected: 0,
 				};
 
-				forEach( definitions, pckg => {
+				forEach( group.definitions, pckg => {
 					const selected = includes( serviceSelectedIds, pckg.id );
 					if ( selected ) {
 						groupResult.selected++;
