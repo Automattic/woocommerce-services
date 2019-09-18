@@ -34,12 +34,7 @@ const getPurchaseButtonLabel = props => {
 		form,
 		ratesTotal,
 		translate,
-		hasLabelsPaymentMethod,
 	} = props;
-
-	if ( ! hasLabelsPaymentMethod ) {
-		return translate( 'Add credit card' );
-	}
 
 	if ( form.needsPrintConfirmation ) {
 		return translate( 'Print' );
@@ -75,22 +70,28 @@ const onAddCardExternal = () => {
 };
 
 const PurchaseButton = props => {
-	const { form, hasLabelsPaymentMethod } = props;
-	let purchaseHandler;
-	if ( hasLabelsPaymentMethod ) {
-		purchaseHandler = form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel;
-	} else {
-		purchaseHandler = onAddCardExternal;
-	}
+	const { form, hasLabelsPaymentMethod, translate } = props;
+	const setupComplete = ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting );
 	return (
-		<Button
-			disabled={ ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting ) }
-			onClick = { purchaseHandler }
-			primary
-			busy={ form.isSubmitting && ! form.needsPrintConfirmation }
-		>
-			{ getPurchaseButtonLabel( props ) }
-		</Button>
+		hasLabelsPaymentMethod ? (
+			<Button
+				disabled={ ! setupComplete }
+				onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
+				primary
+				busy={ form.isSubmitting && ! form.needsPrintConfirmation }
+			>
+				{ getPurchaseButtonLabel( props ) }
+			</Button>
+		) : (
+			<Button
+				disabled={ ! setupComplete }
+				onClick = { onAddCardExternal }
+				primary
+				busy={ form.isSubmitting && ! form.needsPrintConfirmation }
+			>
+				{ translate( 'Add credit card' ) }
+			</Button>
+		)
 	);
 };
 
