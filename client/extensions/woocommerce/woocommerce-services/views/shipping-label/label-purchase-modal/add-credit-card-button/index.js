@@ -3,6 +3,7 @@
  */
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 
 /**
@@ -10,11 +11,26 @@ import { localize } from 'i18n-calypso';
  */
 import Button from 'components/button';
 import { getOrigin } from 'woocommerce/lib/nav-utils';
+import { fetchSettings } from 'woocommerce/woocommerce-services/state/label-settings/actions';
 
 class AddCreditCardButton extends Component {
 
+	onVisibilityChange = () => {
+		if ( ! document.hidden ) {
+			this.refetchSettings();
+		}
+		if ( this.addCreditCardWindow && this.addCreditCardWindow.closed ) {
+			document.removeEventListener( 'visibilitychange', this.onVisibilityChange );
+		}
+	};
+
+	refetchSettings = () => {
+		this.props.fetchSettings( this.props.siteId );
+	};
+
 	onAddCardExternal = () => {
-		window.open( getOrigin() + '/me/purchases/add-credit-card' );
+		this.addCreditCardWindow = window.open( getOrigin() + '/me/purchases/add-credit-card' );
+		document.addEventListener( 'visibilitychange', this.onVisibilityChange );
 	}
 
 	render() {
@@ -35,4 +51,8 @@ class AddCreditCardButton extends Component {
 }
 
 export default connect(
+	( state ) => state,
+	( dispatch ) => bindActionCreators( {
+		fetchSettings,
+	}, dispatch )
 )( localize( AddCreditCardButton ) );
