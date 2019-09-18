@@ -27,7 +27,7 @@ import {
 import {
 	getSelectedPaymentMethodId,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
-import { getOrigin } from 'woocommerce/lib/nav-utils';
+import AddCreditCardButton from './add-credit-card-button';
 
 const getPurchaseButtonLabel = props => {
 	const {
@@ -65,17 +65,13 @@ const getPurchaseButtonLabel = props => {
 	return translate( 'Buy & Print' );
 };
 
-const onAddCardExternal = () => {
-	window.open( getOrigin() + '/me/purchases/add-credit-card' );
-};
-
 const PurchaseButton = props => {
-	const { form, hasLabelsPaymentMethod, translate } = props;
-	const setupComplete = ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting );
+	const { form, hasLabelsPaymentMethod } = props;
+	const disablePurchase = ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting );
 	return (
 		hasLabelsPaymentMethod ? (
 			<Button
-				disabled={ ! setupComplete }
+				disabled={ disablePurchase }
 				onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
 				primary
 				busy={ form.isSubmitting && ! form.needsPrintConfirmation }
@@ -83,14 +79,7 @@ const PurchaseButton = props => {
 				{ getPurchaseButtonLabel( props ) }
 			</Button>
 		) : (
-			<Button
-				disabled={ ! setupComplete }
-				onClick = { onAddCardExternal }
-				primary
-				busy={ form.isSubmitting && ! form.needsPrintConfirmation }
-			>
-				{ translate( 'Add credit card' ) }
-			</Button>
+			<AddCreditCardButton disabled={ disablePurchase } />
 		)
 	);
 };
