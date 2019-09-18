@@ -27,6 +27,7 @@ import {
 import {
 	getSelectedPaymentMethodId,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+import { getOrigin } from 'woocommerce/lib/nav-utils';
 
 const getPurchaseButtonLabel = props => {
 	const {
@@ -70,8 +71,7 @@ const getPurchaseButtonLabel = props => {
 };
 
 const onAddCardExternal = () => {
-	this.addCreditCardWindow = window.open( getOrigin() + '/me/purchases/add-credit-card' );
-	document.addEventListener( 'visibilitychange', this.onVisibilityChange );
+	window.open( getOrigin() + '/me/purchases/add-credit-card' );
 };
 
 const PurchaseButton = props => {
@@ -80,7 +80,7 @@ const PurchaseButton = props => {
 	if ( hasLabelsPaymentMethod ) {
 		purchaseHandler = form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel;
 	} else {
-		purchaseHandler = () => onAddCardExternal;
+		purchaseHandler = onAddCardExternal;
 	}
 	return (
 		<Button
