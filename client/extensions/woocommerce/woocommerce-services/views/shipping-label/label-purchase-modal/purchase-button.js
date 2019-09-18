@@ -24,9 +24,25 @@ import {
 	getTotalPriceBreakdown,
 	canPurchase,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import {
+	getSelectedPaymentMethodId,
+} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 
 const getPurchaseButtonLabel = props => {
-	const { form, ratesTotal, translate } = props;
+	const {
+		form,
+		ratesTotal,
+		translate,
+		hasLabelsPaymentMethod,
+	} = props;
+
+	if ( ! hasLabelsPaymentMethod ) {
+		return translate( 'Add credit card' );
+	}
+
+	if ( form.needsPrintConfirmation ) {
+		return translate( 'Print' );
+	}
 
 	if ( form.needsPrintConfirmation ) {
 		return translate( 'Print' );
@@ -53,12 +69,23 @@ const getPurchaseButtonLabel = props => {
 	return translate( 'Buy & Print' );
 };
 
+const onAddCardExternal = () => {
+	this.addCreditCardWindow = window.open( getOrigin() + '/me/purchases/add-credit-card' );
+	document.addEventListener( 'visibilitychange', this.onVisibilityChange );
+};
+
 const PurchaseButton = props => {
-	const { form } = props;
+	const { form, hasLabelsPaymentMethod } = props;
+	let purchaseHandler;
+	if ( hasLabelsPaymentMethod ) {
+		purchaseHandler = form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel;
+	} else {
+		purchaseHandler = () => onAddCardExternal;
+	}
 	return (
 		<Button
 			disabled={ ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting ) }
-			onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
+			onClick = { purchaseHandler }
 			primary
 			busy={ form.isSubmitting && ! form.needsPrintConfirmation }
 		>
@@ -81,6 +108,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 		form: loaded && shippingLabel.form,
 		canPurchase: loaded && canPurchase( state, orderId, siteId ),
 		ratesTotal: priceBreakdown ? priceBreakdown.total : 0,
+		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 	};
 };
 
