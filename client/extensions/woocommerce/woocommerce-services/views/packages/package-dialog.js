@@ -86,22 +86,15 @@ const AddPackageDialog = props => {
 		if ( props.persistOnSave ) {
 
 			const onSaveSuccess = () => {
-				const { orderId, orderHref, paymentMethodSelected } = this.props;
-				const options =
-					orderHref && paymentMethodSelected
-						? { button: translate( 'Return to Order #%(orderId)s', { args: { orderId } } ), href: orderHref }
-						: { duration: 5000 };
-
-				this.setState( { pristine: true } );
-				return this.props.successNotice( translate( 'Your shipping settings have been saved.' ), options );
+				return props.successNotice( translate( 'Your shipping settings have been saved.' ), options );
 			}
 
 			const onSaveFailure = () => {
-				return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
+				eeturn props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
 			}
 
 			const onPaymentMethodMissing = () => {
-				return this.props.errorNotice(
+				return props.errorNotice(
 					translate( 'A payment method is required to print shipping labels.' ),
 					{
 						duration: 4000,
