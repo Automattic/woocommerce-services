@@ -16,6 +16,7 @@ import labelSettingsReducer from '../../extensions/woocommerce/woocommerce-servi
 import ordersReducer from '../../extensions/woocommerce/state/sites/orders/reducer';
 import { combineReducers } from 'state/utils';
 import orders from '../../extensions/woocommerce/state/data-layer/orders';
+import wcsUiDataLayer from '../../extensions/woocommerce/state/data-layer/ui/woocommerce-services';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import locations from '../../extensions/woocommerce/state/data-layer/data/locations';
 import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
@@ -80,7 +81,7 @@ export default ( { orderId } ) => {
 		},
 
 		getMiddlewares() {
-			return [ reduxMiddleware, rawWpcomApiMiddleware( mergeHandlers( orders, locations ) ) ];
+			return [ reduxMiddleware, rawWpcomApiMiddleware( mergeHandlers( wcsUiDataLayer, orders, locations ) ) ];
 		},
 
 		View: () => (
