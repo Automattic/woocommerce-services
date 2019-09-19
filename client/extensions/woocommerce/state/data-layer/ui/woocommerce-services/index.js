@@ -80,8 +80,14 @@ const getSavePackagesActionListSteps = ( state, siteId ) => {
 	];
 };
 
-const getSaveSettingsActionListSteps = state => {
+const getSaveSettingsActionListSteps = ( state, onlyPackages ) => {
 	const siteId = getSelectedSiteId( state );
+
+	if ( onlyPackages ) {
+		return [
+			...getSavePackagesActionListSteps( state, siteId ),
+		];
+	}
 
 	return [
 		...getSaveLabelSettingsActionListSteps( state, siteId ),
@@ -97,7 +103,7 @@ export default {
 		 * @param {Object} action - an action containing successAction and failureAction
 		 */
 		( store, action ) => {
-			const { successAction, failureAction, noLabelsPaymentAction } = action;
+			const { successAction, failureAction, noLabelsPaymentAction, onlyPackages } = action;
 
 			const state = store.getState();
 			if ( areLabelsEnabled( state ) && ! getSelectedPaymentMethodId( state ) ) {
@@ -121,7 +127,7 @@ export default {
 				dispatch( failureAction );
 				dispatch( actionListClear() );
 			};
-			const nextSteps = getSaveSettingsActionListSteps( store.getState() );
+			const nextSteps = getSaveSettingsActionListSteps( store.getState(), onlyPackages );
 
 			store.dispatch(
 				isEmpty( nextSteps ) ? onSuccess : actionListStepNext( { nextSteps, onSuccess, onFailure } )

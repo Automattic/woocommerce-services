@@ -33,8 +33,9 @@ import {
 	isLoaded,
 	getFormErrors,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import { getPackageGroupsForLabelPurchase } from 'woocommerce/woocommerce-services/state/packages/selectors';
-
+import PackageDialog from '../../../packages/package-dialog.js';
+import { getPackageGroupsForLabelPurchase, getPackagesForm } from "../../../../state/packages/selectors";
+import * as PackagesActions from "../../../../state/packages/actions";
 const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
 	return [ dimensions.length, dimensions.width, dimensions.height ]
 		.map( dimension => `${ dimension } ${ dimensionUnit }` )
@@ -105,6 +106,10 @@ const PackageInfo = props => {
 		props.setPackageType( orderId, siteId, packageId, e.target.value );
 	};
 
+	const onPackageDialogSave = packageName => {
+		props.setPackageType( orderId, siteId, packageId, packageName );
+	};
+
 	const renderItems = () => {
 		const canAddItems = some( selected, ( sel, selId ) => packageId !== selId && sel.items.length );
 
@@ -150,7 +155,12 @@ const PackageInfo = props => {
 			);
 		}
 
+		const addPackage = () => {
+			props.addPackage( siteId );
+		};
+
 		return (
+			<>
 			<div>
 				<div className="packages-step__package-items-header">
 					<FormLegend>{ translate( 'Shipping Package' ) }</FormLegend>
@@ -176,7 +186,14 @@ const PackageInfo = props => {
 						);
 					} ) }
 				</FormSelect>
+				<PackageDialog persistOnSave={ true } { ... props } onSaveSuccess={ onPackageDialogSave } />
 			</div>
+			<div>
+				<Button onClick={ addPackage }>
+					{ translate( 'Add package' ) }
+				</Button>
+			</div>
+			</>
 		);
 	};
 
@@ -258,8 +275,11 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	const storeOptions = loaded ? shippingLabel.storeOptions : {};
 	const errors = loaded && getFormErrors( state, orderId, siteId ).packages;
+	const form = getPackagesForm( state, siteId ) || {};
 	return {
+		siteId,
 		errors,
+		form,
 		packageId: shippingLabel.openedPackageId,
 		selected: shippingLabel.form.packages.selected,
 		dimensionUnit: storeOptions.dimension_unit,
@@ -275,6 +295,7 @@ const mapDispatchToProps = dispatch => {
 			setPackageType,
 			openAddItem,
 			setPackageSignature,
+			... PackagesActions,
 		},
 		dispatch
 	);
