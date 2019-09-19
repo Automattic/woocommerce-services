@@ -152,7 +152,6 @@ const PackageInfo = props => {
 		}
 
 		const addPackage = () => {
-			//	this.setState( { pristine: false } );
 			props.addPackage( siteId );
 		};
 
