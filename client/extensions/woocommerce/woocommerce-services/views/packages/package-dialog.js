@@ -24,7 +24,7 @@ import PredefinedPackages from './predefined-packages';
 import SimplifiedSegmentedControl from 'components/segmented-control/simplified';
 import { getPredefinedPackagesChangesSummary } from '../../state/packages/selectors';
 import { createWcsShippingSaveActionList } from 'extensions/woocommerce/woocommerce-services/state/actions';
-import {bindActionCreators} from "redux";
+import { bindActionCreators } from 'redux';
 import { successNotice, errorNotice } from 'state/notices/actions';
 
 const AddPackageDialog = props => {
@@ -54,9 +54,6 @@ const AddPackageDialog = props => {
 	const onSave = () => {
 		if ( isAddingPredefined ) {
 			savePredefinedPackages( siteId );
-			if ( props.persistOnSave ) {
-
-			}
 			return;
 		}
 
@@ -89,7 +86,7 @@ const AddPackageDialog = props => {
 		if ( props.persistOnSave ) {
 
 			const onSaveSuccess = () => {
-				const { translate, orderId, orderHref, paymentMethodSelected } = this.props;
+				const { orderId, orderHref, paymentMethodSelected } = this.props;
 				const options =
 					orderHref && paymentMethodSelected
 						? { button: translate( 'Return to Order #%(orderId)s', { args: { orderId } } ), href: orderHref }
@@ -100,12 +97,10 @@ const AddPackageDialog = props => {
 			}
 
 			const onSaveFailure = () => {
-				const { translate } = this.props;
 				return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
 			}
 
 			const onPaymentMethodMissing = () => {
-				const { translate } = this.props;
 				return this.props.errorNotice(
 					translate( 'A payment method is required to print shipping labels.' ),
 					{

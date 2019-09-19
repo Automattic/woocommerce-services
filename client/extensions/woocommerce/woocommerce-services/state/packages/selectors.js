@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import { forEach, get, includes, orderBy, reject } from 'lodash';
+import { forEach, get, includes, orderBy } from 'lodash';
 import { translate } from 'i18n-calypso';
 /**
  * Internal dependencies
