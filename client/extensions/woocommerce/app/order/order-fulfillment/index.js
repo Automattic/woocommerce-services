@@ -165,7 +165,7 @@ class OrderFulfillment extends Component {
 	}
 
 	shouldShowLabels() {
-		const { labelsLoaded, labelsEnabled, order, storeAddress, labelsReady } = this.props;
+		const { labelsLoaded, labelsEnabled, order, storeAddress, hasLabelsPaymentMethod } = this.props;
 
 		if ( ! labelsLoaded ) {
 			return false;
@@ -175,7 +175,7 @@ class OrderFulfillment extends Component {
 
 		return (
 			labelsEnabled &&
-			labelsReady &&
+			hasLabelsPaymentMethod &&
 			this.isAddressValidForLabels( storeAddress, 'origin' ) &&
 			this.isAddressValidForLabels( shipping, 'destination' )
 		);
@@ -299,8 +299,8 @@ export default connect(
 			wcsEnabled &&
 			Boolean( areLabelsFullyLoaded( state, order.id, site.ID ) ) &&
 			areSettingsGeneralLoaded( state );
-		const labelsReady =
-			wcsEnabled && labelsLoaded;
+		const hasLabelsPaymentMethod =
+			wcsEnabled && labelsLoaded && getSelectedPaymentMethodId( state, site.ID );
 		const storeAddress = labelsLoaded && getStoreLocation( state );
 		const isSaving = isOrderUpdating( state, order.id );
 
@@ -312,7 +312,7 @@ export default connect(
 			labelsError: isLabelDataFetchError( state, order.id, site.ID ),
 			labelsEnabled: areLabelsEnabled( state, site.ID ),
 			labels: getLabels( state, order.id, site.ID ),
-			labelsReady,
+			hasLabelsPaymentMethod,
 			storeAddress,
 		};
 	},

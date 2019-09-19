@@ -30,11 +30,7 @@ import {
 import AddCreditCardButton from './add-credit-card-button';
 
 const getPurchaseButtonLabel = props => {
-	const {
-		form,
-		ratesTotal,
-		translate,
-	} = props;
+	const { form, ratesTotal, translate } = props;
 
 	if ( form.needsPrintConfirmation ) {
 		return translate( 'Print' );
