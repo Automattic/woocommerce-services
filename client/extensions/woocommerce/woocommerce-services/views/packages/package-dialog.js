@@ -86,11 +86,11 @@ const AddPackageDialog = props => {
 		if ( props.persistOnSave ) {
 
 			const onSaveSuccess = () => {
-				return props.successNotice( translate( 'Your shipping settings have been saved.' ), options );
+				return props.successNotice( translate( 'Your shipping package have been saved.' ) );
 			}
 
 			const onSaveFailure = () => {
-				eeturn props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
+				return props.errorNotice( translate( 'Unable to save your shipping package. Please try again.' ) );
 			}
 
 			const onPaymentMethodMissing = () => {
@@ -105,7 +105,8 @@ const AddPackageDialog = props => {
 			props.createWcsShippingSaveActionList(
 				onSaveSuccess,
 				onSaveFailure,
-				onPaymentMethodMissing
+				onPaymentMethodMissing,
+				true
 			);
 		}
 	};
