@@ -86,6 +86,9 @@ const AddPackageDialog = props => {
 		if ( props.persistOnSave ) {
 
 			const onSaveSuccess = () => {
+				if ( typeof props.onSaveSuccess === 'function' ) {
+					props.onSaveSuccess( packageData.name );
+				}
 				return props.successNotice( translate( 'Your shipping package have been saved.' ) );
 			}
 
@@ -111,7 +114,9 @@ const AddPackageDialog = props => {
 		}
 	};
 
-	const onClose = () => dismissModal( siteId );
+	const onClose = () => {
+		dismissModal( siteId );
+	};
 	const onRemove = () => removePackage( siteId, index );
 
 	const switchMode = option => {

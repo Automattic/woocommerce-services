@@ -106,6 +106,10 @@ const PackageInfo = props => {
 		props.setPackageType( orderId, siteId, packageId, e.target.value );
 	};
 
+	const onPackageDialogSave = packageName => {
+		props.setPackageType( orderId, siteId, packageId, packageName );
+	};
+
 	const renderItems = () => {
 		const canAddItems = some( selected, ( sel, selId ) => packageId !== selId && sel.items.length );
 
@@ -156,6 +160,7 @@ const PackageInfo = props => {
 		};
 
 		return (
+			<>
 			<div>
 				<div className="packages-step__package-items-header">
 					<FormLegend>{ translate( 'Shipping Package' ) }</FormLegend>
@@ -181,11 +186,14 @@ const PackageInfo = props => {
 						);
 					} ) }
 				</FormSelect>
+				<PackageDialog persistOnSave={ true } { ... props } onSaveSuccess={ onPackageDialogSave } />
+			</div>
+			<div>
 				<Button onClick={ addPackage }>
 					{ translate( 'Add package' ) }
 				</Button>
-				<PackageDialog persistOnSave={ true } { ... props  } />
 			</div>
+			</>
 		);
 	};
 
