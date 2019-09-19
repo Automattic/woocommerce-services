@@ -84,6 +84,9 @@ module.exports = {
 			warnings: false,
 		},
 		disableHostCheck: true,
+		headers: {
+			'Access-Control-Allow-Origin': '*'
+		}
 	},
 	externals: {
 		'jquery': 'jQuery',
