@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import { forEach, get, includes, orderBy } from 'lodash';
+import { forEach, get, includes, orderBy, reject } from 'lodash';
 import { translate } from 'i18n-calypso';
 /**
  * Internal dependencies
@@ -121,7 +121,7 @@ export const getPackageGroupsForLabelPurchase = createSelector(
 						return;
 					}
 
-					if ( ! includes( serviceSelectedIds, pckg.id ) ) {
+					if ( ! pckg.is_flat_rate && ! includes( serviceSelectedIds, pckg.id ) ) {
 						return;
 					}
 
@@ -219,16 +219,22 @@ export const getCurrentlyEditingPredefinedPackages = createSelector(
 			const serviceSelectedIds = currentlyEditingPredefinedPackages[ serviceId ] || [];
 
 			forEach( serviceGroups, ( group, groupId ) => {
+				const definitions = group.definitions;
+				const nonFlatRateDefinitions = reject( group.definitions, 'is_flat_rate' );
+				if ( ! nonFlatRateDefinitions.length ) {
+					return;
+				}
+
 				const groupResult = {
 					groupId,
 					serviceId,
 					title: group.title,
 					packages: [],
-					total: group.definitions.length,
+					total: nonFlatRateDefinitions.length,
 					selected: 0,
 				};
 
-				forEach( group.definitions, pckg => {
+				forEach( definitions, pckg => {
 					const selected = includes( serviceSelectedIds, pckg.id );
 					if ( selected ) {
 						groupResult.selected++;
