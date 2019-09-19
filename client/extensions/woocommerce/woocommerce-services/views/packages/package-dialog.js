@@ -203,10 +203,11 @@ AddPackageDialog.propTypes = {
 
 export default connect(
 	state => ( {
-	predefinedPackagesSummary: getPredefinedPackagesChangesSummary( state ),
-} ),dispatch => bindActionCreators( {
+		predefinedPackagesSummary: getPredefinedPackagesChangesSummary( state ),
+	} ),
+	dispatch => bindActionCreators( {
 		createWcsShippingSaveActionList,
 		errorNotice,
 		successNotice,
 	}, dispatch )
-	)( localize( AddPackageDialog ) );
+)( localize( AddPackageDialog ) );
