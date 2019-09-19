@@ -34,7 +34,7 @@ import {
 	getFormErrors,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { getPackageGroupsForLabelPurchase } from 'woocommerce/woocommerce-services/state/packages/selectors';
-import PackageDialog from 'woocommerce/woocommerce-services/views/packages/package-dialog';
+import PackageDialog from '../../../packages/package-dialog.js';
 import { getPackagesForm } from "../../../../state/packages/selectors";
 import * as PackagesActions from "../../../../state/packages/actions";
 const renderPackageDimensions = ( dimensions, dimensionUnit ) => {
