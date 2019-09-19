@@ -1381,6 +1381,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
 			wp_enqueue_script( 'wc_connect_admin' );
+			wp_enqueue_style( 'wc_connect_admin' );
 
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
