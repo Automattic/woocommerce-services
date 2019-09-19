@@ -15,7 +15,7 @@ const isDev = ! isProd && ! isI18n;
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 const cssLoaders = [
-	isDev ? 'style-loader?hmr=false' : MiniCssExtractPlugin.loader,
+	MiniCssExtractPlugin.loader,
 	'css-loader',
 	{
 		loader: 'postcss-loader',
@@ -34,8 +34,8 @@ const cssLoaders = [
 		options: {
 			includePaths: [
 				path.resolve( __dirname, 'client' ),
+				path.resolve( __dirname, 'client', 'extensions' ),
 				path.resolve( __dirname, 'wp-calypso', 'client' ),
-				path.resolve( __dirname, 'wp-calypso', 'client', 'extensions' ),
 				path.resolve( __dirname, 'wp-calypso', 'assets', 'stylesheets' ),
 			],
 		},
@@ -84,6 +84,9 @@ module.exports = {
 			warnings: false,
 		},
 		disableHostCheck: true,
+		headers: {
+			'Access-Control-Allow-Origin': '*'
+		}
 	},
 	externals: {
 		'jquery': 'jQuery',
@@ -169,8 +172,8 @@ module.exports = {
 			path.resolve( __dirname, 'client', 'calypso-stubs' ),
 			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
+			path.resolve( __dirname, 'client', 'extensions' ),
 			path.resolve( __dirname, 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'wp-calypso', 'client', 'extensions' ),
 			path.resolve( __dirname, 'wp-calypso', 'node_modules' ),
 		],
 		symlinks: false,
