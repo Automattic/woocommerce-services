@@ -36,10 +36,6 @@ const getPurchaseButtonLabel = props => {
 		return translate( 'Print' );
 	}
 
-	if ( form.needsPrintConfirmation ) {
-		return translate( 'Print' );
-	}
-
 	if ( form.isSubmitting ) {
 		return translate( 'Purchasing…' );
 	}
