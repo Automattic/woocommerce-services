@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
@@ -39,13 +39,24 @@ class AddCreditCardButton extends Component {
 			disabled
 		} = this.props;
 		return (
-			<Button
-				onClick={ this.onAddCardExternal }
-				disabled={ disabled }
-				primary
-			>
-				{ translate( 'Add credit card' ) }
-			</Button>
+			<Fragment>
+				<Button
+					onClick={ this.onAddCardExternal }
+					disabled={ disabled }
+					primary
+				>
+					{ translate( 'Add credit card' ) }
+				</Button>
+				<div>
+					{
+						/* eslint-disable jsx-a11y/anchor-is-valid */
+						translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {
+							components: { a: <a onClick={ this.onAddCardExternal } href="#" role="button" /> },
+						} )
+						/* eslint-enable jsx-a11y/anchor-is-valid */
+					}
+				</div>
+			</Fragment>
 		);
 	}
 }

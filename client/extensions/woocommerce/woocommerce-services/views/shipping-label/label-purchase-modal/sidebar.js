@@ -29,6 +29,7 @@ import {
 	shouldFulfillOrder,
 	shouldEmailDetails,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import PurchaseButton from './purchase-button';
 
 const Sidebar = props => {
 	const { orderId, siteId, form, errors, paperSize, translate, fulfillOrder, emailDetails } = props;
@@ -56,6 +57,8 @@ const Sidebar = props => {
 				<FormCheckbox checked={ fulfillOrder } onChange={ onFulfillOrderChange } />
 				<span>{ translate( 'Mark the order as fulfilled' ) }</span>
 			</FormLabel>
+			<hr />
+			<PurchaseButton key="purchase" siteId={ props.siteId } orderId={ props.orderId } />
 		</div>
 	);
 };

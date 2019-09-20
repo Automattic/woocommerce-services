@@ -18,7 +18,6 @@ import PackagesStep from './packages-step';
 import CustomsStep from './customs-step';
 import RatesStep from './rates-step';
 import Sidebar from './sidebar';
-import PurchaseButton from './purchase-button';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import { exitPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
@@ -34,12 +33,10 @@ const LabelPurchaseModal = props => {
 		return null;
 	}
 
-	const buttons = [
-		<PurchaseButton key="purchase" siteId={ props.siteId } orderId={ props.orderId } />,
-	];
 
 	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
 
+	const buttons = [];
 	if ( ! props.form.needsPrintConfirmation ) {
 		buttons.unshift( {
 			onClick: onClose,

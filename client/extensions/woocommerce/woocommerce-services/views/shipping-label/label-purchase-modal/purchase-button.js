@@ -61,18 +61,20 @@ const PurchaseButton = props => {
 	const { form, hasLabelsPaymentMethod } = props;
 	const disablePurchase = ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting );
 	return (
-		hasLabelsPaymentMethod ? (
-			<Button
-				disabled={ disablePurchase }
-				onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
-				primary
-				busy={ form.isSubmitting && ! form.needsPrintConfirmation }
-			>
-				{ getPurchaseButtonLabel( props ) }
-			</Button>
-		) : (
-			<AddCreditCardButton disabled={ disablePurchase } />
-		)
+		<div>
+			{ hasLabelsPaymentMethod ? (
+				<Button
+					disabled={ disablePurchase }
+					onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
+					primary
+					busy={ form.isSubmitting && ! form.needsPrintConfirmation }
+				>
+					{ getPurchaseButtonLabel( props ) }
+				</Button>
+			) : (
+				<AddCreditCardButton disabled={ disablePurchase } />
+			) }
+		</div>
 	);
 };
 
