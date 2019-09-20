@@ -17,6 +17,7 @@ import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormLabel from 'components/forms/form-label';
 import PriceSummary from './price-summary';
+import PurchaseSection from './purchase-section';
 import {
 	setEmailDetailsOption,
 	setFulfillOrderOption,
@@ -28,13 +29,7 @@ import {
 	getFormErrors,
 	shouldFulfillOrder,
 	shouldEmailDetails,
-	canPurchase,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import {
-	getSelectedPaymentMethodId,
-} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
-import PurchaseButton from './purchase-button';
-import AddCreditCardButton from './add-credit-card-button';
 
 const Sidebar = props => {
 	const {
@@ -46,10 +41,6 @@ const Sidebar = props => {
 		translate,
 		fulfillOrder,
 		emailDetails,
-		hasLabelsPaymentMethod,
-		disablePurchase,
-		purchaseBusy,
-		purchaseReady,
 	} = props;
 
 	const onEmailDetailsChange = () => props.setEmailDetailsOption( orderId, siteId, ! emailDetails );
@@ -76,20 +67,7 @@ const Sidebar = props => {
 				<span>{ translate( 'Mark the order as fulfilled' ) }</span>
 			</FormLabel>
 			<hr />
-			<div className="label-purchase-modal__purchase-section">
-				{ hasLabelsPaymentMethod ? (
-					<PurchaseButton
-						key="purchase"
-						siteId={ props.siteId }
-						orderId={ props.orderId }
-						canPurchase={ purchaseReady }
-						disabled={ disablePurchase }
-						busy={ purchaseBusy }
-					/>
-				) : (
-					<AddCreditCardButton disabled={ disablePurchase } />
-				) }
-			</div>
+			<PurchaseSection siteId={ siteId } orderId={ orderId } />
 		</div>
 	);
 };
@@ -106,18 +84,12 @@ Sidebar.propTypes = {
 const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const loaded = isLoaded( state, orderId, siteId );
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
-	const purchaseReady = loaded && canPurchase( state, orderId, siteId );
-	const form = shippingLabel.form;
 	return {
 		paperSize: shippingLabel.paperSize,
-		form,
+		form: shippingLabel.form,
 		errors: loaded && getFormErrors( state, orderId, siteId ).sidebar,
 		fulfillOrder: loaded && shouldFulfillOrder( state, orderId, siteId ),
 		emailDetails: loaded && shouldEmailDetails( state, orderId, siteId ),
-		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
-		disablePurchase: ! form.needsPrintConfirmation && ( ! purchaseReady || form.isSubmitting ),
-		purchaseBusy: form.isSubmitting && ! form.needsPrintConfirmation,
-		purchaseReady,
 	};
 };
 

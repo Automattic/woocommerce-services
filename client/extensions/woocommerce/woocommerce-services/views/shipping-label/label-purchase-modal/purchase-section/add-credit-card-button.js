@@ -47,7 +47,7 @@ class AddCreditCardButton extends Component {
 				>
 					{ translate( 'Add credit card' ) }
 				</Button>
-				<div className="add-credit-card-button__explanation">
+				<div className="purchase-section__explanation">
 					{
 						/* eslint-disable jsx-a11y/anchor-is-valid */
 						translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {

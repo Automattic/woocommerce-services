@@ -64,7 +64,7 @@ const PurchaseButton = props => {
 			>
 				{ getPurchaseButtonLabel( props ) }
 			</Button>
-			<div className="label-purchase-modal__explanation">
+			<div className="purchase-section__explanation">
 				{ translate( 'Buying shipping labels will mark items as fulfilled.' ) }
 			</div>
 		</Fragment>
@@ -84,7 +84,6 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	const priceBreakdown = getTotalPriceBreakdown( state, orderId, siteId );
 	return {
-		loaded,
 		form: loaded && shippingLabel.form,
 		ratesTotal: priceBreakdown ? priceBreakdown.total : 0,
 	};
