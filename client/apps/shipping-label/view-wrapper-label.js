@@ -14,7 +14,7 @@ import Gridicon from 'gridicons';
  */
 // from calypso
 import Button from 'components/button';
-import LabelPurchaseDialog from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
+import LabelPurchaseModal from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
 import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
 import {
 	openPrintingFlow,
@@ -97,7 +97,7 @@ class ShippingLabelViewWrapper extends Component {
 				</div>
 				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } />
-					<LabelPurchaseDialog orderId={ orderId } siteId={ siteId } />
+					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 					{ shouldRenderButton && this.renderLabelButton() }
 				</div>
 			</div>

@@ -27,7 +27,7 @@ import {
 	isCustomsFormRequired,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
-const PurchaseDialog = props => {
+const LabelPurchaseModal = props => {
 	const { loaded, translate } = props;
 
 	if ( ! loaded ) {
@@ -88,7 +88,7 @@ const PurchaseDialog = props => {
 	);
 };
 
-PurchaseDialog.propTypes = {
+LabelPurchaseModal.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
 };
@@ -111,4 +111,4 @@ const mapDispatchToProps = dispatch => {
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)( localize( PurchaseDialog ) );
+)( localize( LabelPurchaseModal ) );
