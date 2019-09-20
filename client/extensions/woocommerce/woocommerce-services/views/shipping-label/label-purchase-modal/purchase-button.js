@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
@@ -22,12 +22,7 @@ import {
 	getShippingLabel,
 	isLoaded,
 	getTotalPriceBreakdown,
-	canPurchase,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import {
-	getSelectedPaymentMethodId,
-} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
-import AddCreditCardButton from './add-credit-card-button';
 
 const getPurchaseButtonLabel = props => {
 	const { form, ratesTotal, translate } = props;
@@ -58,29 +53,30 @@ const getPurchaseButtonLabel = props => {
 };
 
 const PurchaseButton = props => {
-	const { form, hasLabelsPaymentMethod } = props;
-	const disablePurchase = ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting );
+	const { form, translate, disabled, busy } = props;
 	return (
-		<div>
-			{ hasLabelsPaymentMethod ? (
-				<Button
-					disabled={ disablePurchase }
-					onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
-					primary
-					busy={ form.isSubmitting && ! form.needsPrintConfirmation }
-				>
-					{ getPurchaseButtonLabel( props ) }
-				</Button>
-			) : (
-				<AddCreditCardButton disabled={ disablePurchase } />
-			) }
-		</div>
+		<Fragment>
+			<Button
+				disabled={ disabled }
+				onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
+				primary
+				busy={ busy }
+			>
+				{ getPurchaseButtonLabel( props ) }
+			</Button>
+			<div className="label-purchase-modal__explanation">
+				{ translate( 'Buying shipping labels will mark items as fulfilled.' ) }
+			</div>
+		</Fragment>
 	);
 };
 
 PurchaseButton.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
+	canPurchase: PropTypes.bool.isRequired,
+	disabled: PropTypes.bool.isRequired,
+	busy: PropTypes.bool.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
@@ -90,9 +86,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	return {
 		loaded,
 		form: loaded && shippingLabel.form,
-		canPurchase: loaded && canPurchase( state, orderId, siteId ),
 		ratesTotal: priceBreakdown ? priceBreakdown.total : 0,
-		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 	};
 };
 
