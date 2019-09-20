@@ -30,9 +30,8 @@ const PurchaseSection = props => {
 		siteId,
 		hasLabelsPaymentMethod,
 		form,
+		disablePurchase,
 	} = props;
-
-	const disablePurchase = ! form.needsPrintConfirmation && ( ! props.canPurchase || form.isSubmitting );
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
 
 	return (
@@ -41,7 +40,6 @@ const PurchaseSection = props => {
 				<PurchaseButton
 					siteId={ siteId }
 					orderId={ orderId }
-					canPurchase={ canPurchase }
 					disabled={ disablePurchase }
 					busy={ purchaseBusy }
 				/>
@@ -55,10 +53,12 @@ const PurchaseSection = props => {
 const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const loaded = isLoaded( state, orderId, siteId );
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
+	const purchaseReady = loaded && canPurchase( state, orderId, siteId );
+	const form = loaded && shippingLabel.form;
 	return {
-		form: loaded && shippingLabel.form,
+		form,
 		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
-		canPurchase: loaded && canPurchase( state, orderId, siteId ),
+		disablePurchase: ! form.needsPrintConfirmation && ( ! purchaseReady || form.isSubmitting ),
 	};
 };
 
