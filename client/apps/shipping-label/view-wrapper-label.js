@@ -93,7 +93,7 @@ class ShippingLabelViewWrapper extends Component {
 			<div className="shipping-label__container">
 				<div>
 					<Gridicon size={36} icon="shipping" />
-					<em>{ items + ' ' + translate( 'items need to be fulfilled' ) }</em>
+					<em>{ items + ' ' + translate( 'item need to be fulfilled', 'items need to be fulfilled', { count: items } ) }</em>
 				</div>
 				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } />
