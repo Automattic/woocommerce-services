@@ -92,7 +92,7 @@ class ShippingLabelViewWrapper extends Component {
 		return (
 			<div className="shipping-label__container">
 				<div>
-					<Gridicon size="36" icon="shipping" />
+					<Gridicon size={36} icon="shipping" />
 					<em>{ items + ' ' + translate( 'items need to be fulfilled' ) }</em>
 				</div>
 				<div>
