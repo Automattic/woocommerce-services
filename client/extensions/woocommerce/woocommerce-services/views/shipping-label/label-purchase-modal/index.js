@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -20,6 +21,7 @@ import RatesStep from './rates-step';
 import Sidebar from './sidebar';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import { exitPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import Button from 'components/button';
 import {
 	getShippingLabel,
 	isLoaded,
@@ -36,28 +38,23 @@ const LabelPurchaseModal = props => {
 
 	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
 
-	const buttons = [];
-	if ( ! props.form.needsPrintConfirmation ) {
-		buttons.unshift( {
-			onClick: onClose,
-			label: translate( 'Cancel' ),
-			action: 'cancel',
-		} );
-	}
-
 	return (
 		<Dialog
 			additionalClassNames="woocommerce label-purchase-modal wcc-root"
 			isVisible={ props.showPurchaseDialog }
 			onClose={ onClose }
-			buttons={ buttons }
 		>
 			<div className="label-purchase-modal__content">
-				<FormSectionHeading>
-					{ 1 === props.form.packages.selected.length
-						? translate( 'Create shipping label' )
-						: translate( 'Create shipping labels' ) }
-				</FormSectionHeading>
+				<div className="label-purchase-modal__header">
+					<FormSectionHeading>
+						{ 1 === props.form.packages.selected.length
+							? translate( 'Create shipping label' )
+							: translate( 'Create shipping labels' ) }
+					</FormSectionHeading>
+					<Button className="label-purchase-modal__close-button" onClick={ onClose }>
+						<Gridicon icon="cross" />
+					</Button>
+				</div>
 				<div className="label-purchase-modal__body">
 					<div className="label-purchase-modal__main-section">
 						<AddressStep
