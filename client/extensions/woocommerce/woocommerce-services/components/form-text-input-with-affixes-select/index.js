@@ -1,3 +1,4 @@
+/* eslint-disable react/no-danger */
 /** @format */
 /**
  * External dependencies
@@ -13,7 +14,7 @@ import FormTextInput from 'components/forms/form-text-input';
 import FormSelect from 'components/forms/form-select';
 import { map } from 'lodash';
 
-export default class extends React.Component {
+class FormTextInputWithAffixesSelect extends React.Component {
 	static displayName = 'FormTextInputWithAffixesSelect';
 
 	static propTypes = {
@@ -67,3 +68,5 @@ export default class extends React.Component {
 		);
 	}
 }
+
+export default FormTextInputWithAffixesSelect;
