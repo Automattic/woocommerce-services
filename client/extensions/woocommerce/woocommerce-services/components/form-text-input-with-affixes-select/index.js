@@ -39,7 +39,6 @@ class FormTextInputWithAffixesSelect extends React.Component {
 			value={ affixValue }
 			{ ...rest }
 		>
-			)
 			{ map( keys, ( key ) => {
 				return (
 					<option label={ key } key={ key }>
