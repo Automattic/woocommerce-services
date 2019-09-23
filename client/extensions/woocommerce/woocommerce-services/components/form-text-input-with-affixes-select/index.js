@@ -26,7 +26,7 @@ class FormTextInputWithAffixesSelect extends React.Component {
 	};
 
 	renderAffix( affixes ) {
-		const { noWrap, prefix, suffix, affixValue, onSelectChange, ...rest } = this.props;
+		const { noWrap, prefix, suffix, affixValue, onSelectChange, onChange, ...rest } = this.props;
 
 		const keys = Object.keys( affixes );
 
