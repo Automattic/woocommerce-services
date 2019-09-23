@@ -167,3 +167,17 @@
 	flex-grow: 1;
 	text-align: right;
 }
+
+.label-purchase-modal__header {
+	display: flex;
+	flex-direction: row;
+	.form-section-heading {
+		flex: 1;
+	}
+	.label-purchase-modal__close-button {
+		border: none;
+		padding: 0;
+		align-self: flex-start;
+		margin-top: -7px;
+	}
+}

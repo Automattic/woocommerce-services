@@ -42,7 +42,7 @@ import FormTextInput from 'components/forms/form-text-input';
 import { isOrderFinished } from 'woocommerce/lib/order-status';
 import { isOrderUpdating } from 'woocommerce/state/sites/orders/selectors';
 import { isWcsEnabled, isWcsInternationalLabelsEnabled } from 'woocommerce/state/selectors/plugins';
-import LabelPurchaseDialog from 'woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
+import LabelPurchaseModal from 'woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
 import Notice from 'components/notice';
 import { openPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import QueryLabels from 'woocommerce/woocommerce-services/components/query-labels';
@@ -286,7 +286,7 @@ class OrderFulfillment extends Component {
 				</Dialog>
 				<QuerySettingsGeneral siteId={ site.ID } />
 				{ wcsEnabled && <QueryLabels orderId={ order.id } siteId={ site.ID } /> }
-				{ wcsEnabled && <LabelPurchaseDialog orderId={ order.id } siteId={ site.ID } /> }
+				{ wcsEnabled && <LabelPurchaseModal orderId={ order.id } siteId={ site.ID } /> }
 			</div>
 		);
 	}
