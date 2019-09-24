@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import classNames from 'classnames';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { isEmpty, map, some } from 'lodash';
+import { isEmpty, map, some, reduce } from 'lodash';
 
 /**
  * Internal dependencies
@@ -160,8 +160,12 @@ const PackageInfo = props => {
 		};
 
 		return (
-			<>
 			<div>
+				{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
+				<a href="#" onClick={ addPackage }>
+					{ translate( 'Add package' ) }
+				</a>
+				{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
 				<div className="packages-step__package-items-header">
 					<FormLegend>{ translate( 'Shipping Package' ) }</FormLegend>
 				</div>
@@ -188,12 +192,6 @@ const PackageInfo = props => {
 				</FormSelect>
 				<PackageDialog persistOnSave={ true } { ... props } onSaveSuccess={ onPackageDialogSave } />
 			</div>
-			<div>
-				<Button onClick={ addPackage }>
-					{ translate( 'Add package' ) }
-				</Button>
-			</div>
-			</>
 		);
 	};
 
