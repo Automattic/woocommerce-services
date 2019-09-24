@@ -17,6 +17,7 @@ import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormLabel from 'components/forms/form-label';
 import PriceSummary from './price-summary';
+import PurchaseSection from './purchase-section';
 import {
 	setEmailDetailsOption,
 	setFulfillOrderOption,
@@ -31,7 +32,16 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const Sidebar = props => {
-	const { orderId, siteId, form, errors, paperSize, translate, fulfillOrder, emailDetails } = props;
+	const {
+		orderId,
+		siteId,
+		form,
+		errors,
+		paperSize,
+		translate,
+		fulfillOrder,
+		emailDetails,
+	} = props;
 
 	const onEmailDetailsChange = () => props.setEmailDetailsOption( orderId, siteId, ! emailDetails );
 	const onFulfillOrderChange = () => props.setFulfillOrderOption( orderId, siteId, ! fulfillOrder );
@@ -56,6 +66,8 @@ const Sidebar = props => {
 				<FormCheckbox checked={ fulfillOrder } onChange={ onFulfillOrderChange } />
 				<span>{ translate( 'Mark the order as fulfilled' ) }</span>
 			</FormLabel>
+			<hr />
+			<PurchaseSection siteId={ siteId } orderId={ orderId } />
 		</div>
 	);
 };
