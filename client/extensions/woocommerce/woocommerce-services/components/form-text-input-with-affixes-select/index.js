@@ -25,12 +25,8 @@ class FormTextInputWithAffixesSelect extends React.Component {
 		onSelectChange: PropTypes.func,
 	};
 
-	onChange = e => {
-		this.props.onSelectChange( e );
-	};
-
 	renderAffix( affixes ) {
-		const { noWrap, prefix, suffix, affixValue, onSelectChange, ...rest } = this.props;
+		const { affixValue, onSelectChange } = this.props;
 
 		const keys = Object.keys( affixes );
 
@@ -39,11 +35,9 @@ class FormTextInputWithAffixesSelect extends React.Component {
 		}
 
 		return <FormSelect
-			onChange={ this.onChange }
+			onChange={ onSelectChange }
 			value={ affixValue }
-			{ ...rest }
 		>
-			)
 			{ map( keys, ( key ) => {
 				return (
 					<option label={ key } key={ key }>
