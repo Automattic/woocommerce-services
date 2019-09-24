@@ -36,7 +36,7 @@ class ProductVariationTypesForm extends Component {
 		editProductAttribute: PropTypes.func.isRequired,
 	};
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		const { product } = this.props;
 		const attributes =
 			( product.attributes && product.attributes.filter( attribute => attribute.variation ) ) || [];

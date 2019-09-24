@@ -42,7 +42,7 @@ class FormWeightInput extends Component {
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps( newProps ) {
+	componentWillReceiveProps( newProps ) {
 		if ( newProps.siteId !== this.props.siteId ) {
 			this.props.fetchSettingsProducts( newProps.siteId );
 		}

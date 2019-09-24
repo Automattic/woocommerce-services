@@ -126,7 +126,7 @@ class MailChimpDashboard extends React.Component {
 		};
 	}
 
-	UNSAFE_componentWillReceiveProps( nextProps ) {
+	componentWillReceiveProps( nextProps ) {
 		const { translate } = nextProps;
 		if ( false === nextProps.isSaving && this.props.isSaving ) {
 			if ( nextProps.newsletterSettingsSubmitError ) {

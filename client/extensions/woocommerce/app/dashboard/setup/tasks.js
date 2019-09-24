@@ -49,7 +49,7 @@ class SetupTasks extends Component {
 		}
 	};
 
-	UNSAFE_componentWillReceiveProps = newProps => {
+	componentWillReceiveProps = newProps => {
 		const { site, productsLoaded } = this.props;
 
 		const newSiteId = ( newProps.site && newProps.site.ID ) || null;

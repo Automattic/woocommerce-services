@@ -49,7 +49,7 @@ class App extends Component {
 		this.fetchData( this.props );
 	}
 
-	UNSAFE_componentWillReceiveProps( newProps ) {
+	componentWillReceiveProps( newProps ) {
 		if ( this.props.children !== newProps.children ) {
 			window.scrollTo( 0, 0 );
 		}

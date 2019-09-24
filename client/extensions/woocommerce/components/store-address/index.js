@@ -39,7 +39,7 @@ class StoreAddress extends Component {
 		showLabel: true,
 	};
 
-	UNSAFE_componentWillReceiveProps = newProps => {
+	componentWillReceiveProps = newProps => {
 		this.setState( { address: newProps.address } );
 	};
 

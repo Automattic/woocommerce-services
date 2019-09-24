@@ -36,7 +36,6 @@ class Example extends Component {
 				) ) }
 			</TableRow>
 		);
-		/* eslint-disable jsx-a11y/anchor-is-valid */
 		const link = <a href="#">An internal Link!</a>;
 		const externalLink = (
 			<a href="#">
@@ -50,7 +49,6 @@ class Example extends Component {
 			[ 'three', externalLink, <div>9</div>, 45 ],
 			[ link, externalLink, <Gridicon icon="cog" size={ 18 } />, 8 ],
 		];
-		/* eslint-enable jsx-a11y/anchor-is-valid */
 		const middleColValues = [
 			[ <FormInputCheckbox />, 'Thing 1', 65 ],
 			[ <FormInputCheckbox />, 'Thing 2', 66 ],
@@ -68,9 +66,7 @@ class Example extends Component {
 		);
 
 		return (
-			/* eslint-disable wpcalypso/jsx-classname-namespace */
 			<div className="woocommerce">
-			/* eslint-enable wpcalypso/jsx-classname-namespace */
 				<div className="docs__design-toggle">
 					<Button onClick={ this.onToggleCompact }>
 						{ this.state.isCompact ? 'Expanded' : 'Compact' }
@@ -80,7 +76,7 @@ class Example extends Component {
 					{ values.map( ( row, i ) => (
 						<TableRow key={ i }>
 							{ row.map( ( item, j ) => (
-								<TableItem key={ j } isTitle={ 0 === j }>
+								<TableItem key={ j } isTitle={ 0 == j }>
 									{ item }
 								</TableItem>
 							) ) }

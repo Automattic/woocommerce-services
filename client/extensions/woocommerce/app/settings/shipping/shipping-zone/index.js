@@ -46,7 +46,7 @@ class Shipping extends Component {
 		this.onDelete = this.onDelete.bind( this );
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		const { params, siteId, loaded, actions } = this.props;
 
 		if ( loaded ) {
@@ -58,7 +58,7 @@ class Shipping extends Component {
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps( { loaded, siteId, zone, site } ) {
+	componentWillReceiveProps( { loaded, siteId, zone, site } ) {
 		const { params, actions } = this.props;
 
 		//zones loaded, either open one for edit or add new

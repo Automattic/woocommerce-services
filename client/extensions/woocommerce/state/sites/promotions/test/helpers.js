@@ -4,9 +4,7 @@
  * External dependencies
  */
 import { expect } from 'chai';
-/* eslint-disable import/no-extraneous-dependencies */
 import moment from 'moment';
-/* eslint-enable import/no-extraneous-dependencies */
 
 /**
  * Internal dependencies

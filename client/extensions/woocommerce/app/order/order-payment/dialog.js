@@ -70,7 +70,7 @@ class RefundDialog extends Component {
 		}
 	};
 
-	UNSAFE_componentWillReceiveProps = newProps => {
+	componentWillReceiveProps = newProps => {
 		const newSiteId = newProps.siteId;
 		const oldSiteId = this.props.siteId;
 

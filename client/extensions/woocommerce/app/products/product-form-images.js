@@ -47,7 +47,7 @@ class ProductFormImages extends Component {
 		};
 	}
 
-	UNSAFE_componentWillReceiveProps( nextProps ) {
+	componentWillReceiveProps( nextProps ) {
 		if ( nextProps.images !== this.props.images ) {
 			this.setState( { images: nextProps.images } );
 		}

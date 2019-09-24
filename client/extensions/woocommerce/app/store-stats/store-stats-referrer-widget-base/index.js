@@ -100,11 +100,11 @@ class StoreStatsReferrerWidgetBase extends Component {
 		}
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.setPage( this.props );
 	}
 
-	UNSAFE_componentWillReceiveProps( nextProps ) {
+	componentWillReceiveProps( nextProps ) {
 		this.setPage( nextProps );
 	}
 

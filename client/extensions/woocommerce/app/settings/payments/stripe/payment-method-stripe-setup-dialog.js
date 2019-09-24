@@ -49,7 +49,7 @@ class PaymentMethodStripeSetupDialog extends Component {
 		};
 	}
 
-	UNSAFE_componentWillMount = () => {
+	componentWillMount = () => {
 		this.props.clearError();
 	};
 

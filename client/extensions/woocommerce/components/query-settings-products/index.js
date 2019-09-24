@@ -23,7 +23,7 @@ class QuerySettingsProducts extends Component {
 		this.props.fetchSettingsProducts( this.props.siteId );
 	}
 
-	UNSAFE_componentWillReceiveProps( nextProps ) {
+	componentWillReceiveProps( nextProps ) {
 		if ( this.props.siteId === nextProps.siteId ) {
 			return;
 		}

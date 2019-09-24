@@ -94,7 +94,7 @@ class RequiredPluginsInstallView extends Component {
 		this.destroyUpdateTimer();
 	}
 
-	UNSAFE_componentWillReceiveProps( nextProps ) {
+	componentWillReceiveProps( nextProps ) {
 		const { automatedTransferStatus: currentATStatus, siteId, hasPendingAT } = this.props;
 		const { automatedTransferStatus: nextATStatus } = nextProps;
 

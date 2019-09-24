@@ -66,7 +66,7 @@ class ReviewsList extends Component {
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps( newProps ) {
+	componentWillReceiveProps( newProps ) {
 		const { currentPage, currentSearch, currentStatus, siteId, productId } = this.props;
 
 		const hasAnythingChanged =

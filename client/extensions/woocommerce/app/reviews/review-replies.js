@@ -34,7 +34,7 @@ class ReviewReplies extends Component {
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps( newProps ) {
+	componentWillReceiveProps( newProps ) {
 		const { siteId, review } = this.props;
 		const newSiteId = newProps.siteId || null;
 		const oldSiteId = siteId || null;
