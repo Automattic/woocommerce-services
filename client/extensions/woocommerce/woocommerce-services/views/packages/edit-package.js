@@ -12,7 +12,6 @@ import { omit, trim } from 'lodash';
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import FormDimensionsInput from 'woocommerce/components/form-dimensions-input';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
@@ -44,41 +43,23 @@ const renderDimensionsInput = ( dimensionsName, dimensionsStr, dimensionsUnit, u
 	);
 };
 
-const OuterDimensionsToggle = ( { siteId, toggleOuterDimensions, translate } ) => {
-	const onClick = event => {
-		event.preventDefault();
-		toggleOuterDimensions( siteId );
-	};
-
-	return (
-		<Button className="packages__setting-explanation" onClick={ onClick } borderless>
-			{ translate( 'Add exterior dimensions' ) }
-		</Button>
-	);
-};
-
 const EditPackage = props => {
 	const {
 		siteId,
 		form,
-		toggleOuterDimensions,
 		setModalErrors,
 		updatePackagesField,
 		translate,
 	} = props;
 
-	const { mode, modalErrors, dimensionUnit, weightUnit, packageData, showOuterDimensions } = form;
+	const { mode, modalErrors, dimensionUnit, weightUnit, packageData } = form;
 
 	const {
 		name,
 		inner_dimensions,
-		outer_dimensions,
 		box_weight,
-		max_weight,
 		is_letter,
 	} = packageData;
-
-	const isOuterDimensionsVisible = showOuterDimensions || outer_dimensions;
 
 	const updateField = ( key, value ) => {
 		setModalErrors( siteId, omit( modalErrors, key ) );
@@ -89,6 +70,9 @@ const EditPackage = props => {
 		const key = event.target.name;
 		const value = event.target.value;
 		updateField( key, value );
+
+		// TODO: Fixme
+		updateField( 'max_weight', 0 );
 	};
 
 	const fieldInfo = ( field, nonEmptyText ) => {
@@ -132,46 +116,25 @@ const EditPackage = props => {
 				/>
 				{ fieldInfo( 'name', translate( 'This field must be unique' ) ) }
 			</FormFieldset>
-			<FormFieldset>
-				<FormLabel>
-					{ translate( 'Inner Dimensions (L x W x H) %(dimensionUnit)s', {
-						args: { dimensionUnit },
-					} ) }
-				</FormLabel>
-				{ renderDimensionsInput(
-					'inner_dimensions',
-					inner_dimensions,
-					dimensionUnit,
-					updateField
-				) }
-				{ fieldInfo( 'inner_dimensions' ) }
-				{ ! isOuterDimensionsVisible ? (
-					<OuterDimensionsToggle { ...{ siteId, toggleOuterDimensions, translate } } />
-				) : null }
-			</FormFieldset>
-			{ isOuterDimensionsVisible ? (
-				<FormFieldset>
+			<FormFieldset className="packages__add-package-weight-group">
+				<div className="packages__add-package-weight">
 					<FormLabel>
-						{ translate( 'Outer Dimensions (L x W x H) %(dimensionUnit)s', {
-							args: { dimensionUnit },
-						} ) }
+						{ translate( 'Dimensions (L x W x H)' ) }
 					</FormLabel>
 					{ renderDimensionsInput(
-						'outer_dimensions',
-						outer_dimensions,
+						'inner_dimensions',
+						inner_dimensions,
 						dimensionUnit,
 						updateField
 					) }
-					{ fieldInfo( 'outer_dimensions' ) }
-				</FormFieldset>
-			) : null }
-			<FormFieldset className="packages__add-package-weight-group">
+					{ fieldInfo( 'inner_dimensions' ) }
+				</div>
 				<div className="packages__add-package-weight">
 					<FormLabel htmlFor="box_weight">{ translate( 'Weight of empty package' ) }</FormLabel>
 					<FormTextInputWithAffixes
 						id="box_weight"
 						name="box_weight"
-						placeholder={ translate( 'Package weight' ) }
+						placeholder={ translate( '0.0' ) }
 						value={ box_weight || '' }
 						onChange={ updateTextField }
 						isError={ modalErrors.box_weight }
@@ -180,23 +143,6 @@ const EditPackage = props => {
 						suffix={ weightUnit }
 					/>
 					{ fieldInfo( 'box_weight' ) }
-				</div>
-				<div className="packages__add-package-weight">
-					<FormLabel htmlFor="max_weight">
-						{ translate( 'Max weight of package and contents' ) }
-					</FormLabel>
-					<FormTextInputWithAffixes
-						id="max_weight"
-						name="max_weight"
-						placeholder={ translate( 'Max weight' ) }
-						value={ max_weight || '' }
-						onChange={ updateTextField }
-						isError={ modalErrors.max_weight }
-						type="number"
-						noWrap
-						suffix={ weightUnit }
-					/>
-					{ fieldInfo( 'max_weight' ) }
 				</div>
 			</FormFieldset>
 		</div>
@@ -207,14 +153,10 @@ EditPackage.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	form: PropTypes.object.isRequired,
 	updatePackagesField: PropTypes.func.isRequired,
-	showOuterDimensions: PropTypes.bool,
-	toggleOuterDimensions: PropTypes.func.isRequired,
 	packageData: PropTypes.shape( {
 		name: PropTypes.string.isRequired,
 		inner_dimensions: PropTypes.string.isRequired,
-		outer_dimensions: PropTypes.string.isRequired,
 		box_weight: PropTypes.number.isRequired,
-		max_weight: PropTypes.number.isRequired,
 		is_user_defined: PropTypes.bool.isRequired,
 		is_letter: PropTypes.bool.isRequired,
 	} ),
