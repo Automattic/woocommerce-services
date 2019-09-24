@@ -70,9 +70,6 @@ const EditPackage = props => {
 		const key = event.target.name;
 		const value = event.target.value;
 		updateField( key, value );
-
-		// TODO: Fixme
-		updateField( 'max_weight', 0 );
 	};
 
 	const fieldInfo = ( field, nonEmptyText ) => {
