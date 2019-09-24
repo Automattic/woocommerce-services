@@ -35,13 +35,9 @@
 		display: inline-block;
 	}
 
-	.dialog__content {
-		flex-grow: 1;
-	}
-
 	@include breakpoint( '>660px' ) {
 		width: 610px;
-		height: 610px;
+		height: 530px;
 	}
 }
 
