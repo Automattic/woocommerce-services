@@ -22,9 +22,11 @@ const ItemInfo = props => {
 
 	const renderMoveToPackage = () => {
 		return (
-			ea href="#" onClick={ onMoveClick }>
+			/* eslint-disable jsx-a11y/anchor-is-valid */
+			<a href="#" onClick={ onMoveClick }>
 				{ translate( 'Move' ) }
 			</a>
+			/* eslint-enable jsx-a11y/anchor-is-valid */
 		);
 	};
 
