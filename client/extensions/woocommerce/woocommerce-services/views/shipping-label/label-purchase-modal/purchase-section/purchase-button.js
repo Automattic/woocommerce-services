@@ -57,8 +57,8 @@ const PurchaseButton = props => {
 PurchaseButton.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
-	disabled: PropTypes.bool.isRequired,
-	busy: PropTypes.bool.isRequired,
+	disabled: PropTypes.bool,
+	busy: PropTypes.bool,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
