@@ -165,7 +165,6 @@ const PackageInfo = props => {
 		return (
 			! totalPackagesCount ?
 			( <div className="packages-step__no-packages">
-				{ /* TODO: Style it! */ }
 				{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
 				<a href="#" onClick={ addPackage }>
 					{ translate( 'Select a package type' ) }
