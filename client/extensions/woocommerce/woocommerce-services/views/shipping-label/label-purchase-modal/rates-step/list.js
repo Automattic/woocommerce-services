@@ -13,7 +13,6 @@ import formatCurrency from '@automattic/format-currency';
  * Internal dependencies
  */
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
-import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import Notice from 'components/notice';
 import ShippingRarte from './shipping-rate';
 import getPackageDescriptions from '../packages-step/get-package-descriptions';
@@ -76,15 +75,6 @@ export const ShippingRates = ( {
 						/>
 					} ) )
 				) }
-				<Dropdown
-					id={ id + '_' + pckgId }
-					valuesMap={ valuesMap }
-					title={ getTitle( pckg, pckgId ) }
-					value={ selectedRate }
-					updateValue={ onRateUpdate }
-					disabled={ isEmpty( packageRates ) }
-					error={ packageErrors[ 0 ] }
-				/>
 				{ packageErrors.slice( 1 ).map( ( error, index ) => {
 					// Print the rest of the errors (if any) below the dropdown
 					return <FieldError type="server-error" key={ index } text={ error } />;
