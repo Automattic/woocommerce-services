@@ -15,6 +15,7 @@ import formatCurrency from '@automattic/format-currency';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import Notice from 'components/notice';
+import ShippingRarte from './shipping-rate';
 import getPackageDescriptions from '../packages-step/get-package-descriptions';
 
 const renderRateNotice = translate => {
@@ -65,6 +66,16 @@ export const ShippingRates = ( {
 		const onRateUpdate = value => updateRate( pckgId, value );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
+				{ Object.values( 
+					mapValues( packageRates, ( ( rateObject ) => {
+						return <ShippingRarte 
+							id={ id + '_' + pckgId }
+							rateObject={ rateObject }
+							updateValue={ onRateUpdate }
+							isSelected={ rateObject.service_id === selectedRate }
+						/>
+					} ) )
+				) }
 				<Dropdown
 					id={ id + '_' + pckgId }
 					valuesMap={ valuesMap }
