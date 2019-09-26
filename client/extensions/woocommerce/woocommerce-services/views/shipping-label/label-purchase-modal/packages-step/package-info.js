@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import classNames from 'classnames';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { isEmpty, map, some } from 'lodash';
+import { isEmpty, map, some, reduce } from 'lodash';
 
 /**
  * Internal dependencies
@@ -26,7 +26,6 @@ import {
 	updatePackageWeight,
 	setPackageType,
 	openAddItem,
-	setPackageSignature,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel,
@@ -159,11 +158,27 @@ const PackageInfo = props => {
 			props.addPackage( siteId );
 		};
 
+		const totalPackagesCount = reduce( packageGroups, ( acc, cur ) => {
+			return acc + cur.definitions.length;
+		}, 0 );
+
 		return (
-			<>
-			<div>
+			! totalPackagesCount ?
+			( <div className="packages-step__no-packages">
+				{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
+				<a href="#" onClick={ addPackage }>
+					{ translate( 'Select a package type' ) }
+				</a>
+				{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
+			</div> ) :
+			( <div>
+				{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
+				<a href="#" onClick={ addPackage }>
+					{ translate( 'Add package' ) }
+				</a>
+				{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
 				<div className="packages-step__package-items-header">
-					<FormLegend>{ translate( 'Shipping Package' ) }</FormLegend>
+					<FormLegend>{ translate( 'Package details' ) }</FormLegend>
 				</div>
 				<FormSelect
 					onChange={ packageOptionChange }
@@ -173,7 +188,6 @@ const PackageInfo = props => {
 					<option value={ 'not_selected' } key={ 'not_selected' }>
 						{ translate( 'Please select a package' ) }
 					</option>{' '}
-					)
 					{ map( packageGroups, ( group, groupId ) => {
 						if ( isEmpty( group.definitions ) ) {
 							return null;
@@ -187,13 +201,7 @@ const PackageInfo = props => {
 					} ) }
 				</FormSelect>
 				<PackageDialog persistOnSave={ true } { ... props } onSaveSuccess={ onPackageDialogSave } />
-			</div>
-			<div>
-				<Button onClick={ addPackage }>
-					{ translate( 'Add package' ) }
-				</Button>
-			</div>
-			</>
+			</div> )
 		);
 	};
 
@@ -201,57 +209,38 @@ const PackageInfo = props => {
 		props.updatePackageWeight( orderId, siteId, packageId, event.target.value );
 	};
 
-	const onSignatureChange = event => {
-		props.setPackageSignature( orderId, siteId, packageId, event.target.value );
-	};
-
 	return (
 		<div className="packages-step__package">
-			{ renderPackageSelect() }
-
 			<div>
-				<div className="packages-step__package-items-header">
-					<FormLegend>{ translate( 'Items to Ship' ) }</FormLegend>
+				<div className="packages-step__package-items-header-name">
+					<FormLegend>{ translate( 'Items to fulfill' ) }</FormLegend>
+				</div>
+				<div className="packages-step__package-items-header-weight">
+					<FormLegend>{ translate( 'Weight' ) }</FormLegend>
+				</div>
+				<div className="packages-step__package-items-header-qty">
+					<FormLegend>{ translate( 'QTY' ) }</FormLegend>
+				</div>
+				<div className="packages-step__package-items-header-move">
 				</div>
 				{ renderItems() }
 			</div>
 
-			<div>
-				<div className="packages-step__package-weight">
-					<FormLabel htmlFor={ `weight_${ packageId }` }>{ translate( 'Total Weight' ) }</FormLabel>
-					<FormTextInputWithAffixes
-						id={ `weight_${ packageId }` }
-						placeholder={ translate( '0' ) }
-						value={ pckg.weight || '' }
-						onChange={ onWeightChange }
-						isError={ Boolean( pckgErrors.weight ) }
-						type="number"
-						noWrap
-						suffix={ weightUnit }
-					/>
-					{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
-				</div>
-				<div className="packages-step__package-signature">
-					<FormLabel htmlFor={ `signature_${ packageId }` }>
-						{ translate( 'Require Signature', {
-							comment: 'Whether or not this package requires a signature during delivery.',
-						} ) }
-					</FormLabel>
-					<FormSelect
-						id={ `signature_${ packageId }` }
-						value={ pckg.signature || 'no' }
-						onChange={ onSignatureChange }
-					>
-						<option value={ 'no' }>{ translate( 'No' ) }</option> )
-						<option value={ 'yes' }>{ translate( 'Yes' ) }</option> )
-						<option value={ 'adult' }>
-							{ translate( 'Yes, from an adult', {
-								comment: 'Package requires signature from an adult during delivery.',
-							} ) }
-						</option>{' '}
-						)
-					</FormSelect>
-				</div>
+			{ renderPackageSelect() }
+
+			<div className="packages-step__package-weight">
+				<FormLabel htmlFor={ `weight_${ packageId }` }>{ translate( 'Total Weight (with package)' ) }</FormLabel>
+				<FormTextInputWithAffixes
+					id={ `weight_${ packageId }` }
+					placeholder={ translate( '0' ) }
+					value={ pckg.weight || '' }
+					onChange={ onWeightChange }
+					isError={ Boolean( pckgErrors.weight ) }
+					type="number"
+					noWrap
+					suffix={ weightUnit }
+				/>
+				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
 			</div>
 		</div>
 	);
@@ -294,7 +283,6 @@ const mapDispatchToProps = dispatch => {
 			updatePackageWeight,
 			setPackageType,
 			openAddItem,
-			setPackageSignature,
 			... PackagesActions,
 		},
 		dispatch

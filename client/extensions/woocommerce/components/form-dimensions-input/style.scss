@@ -40,7 +40,7 @@
 	.form-dimensions-input__width,
 	.form-dimensions-input__height {
 		@include breakpoint( '>480px' ) {
-			width: 70px;
+			width: 60px;
 			flex-grow: 0;
 		}
 
