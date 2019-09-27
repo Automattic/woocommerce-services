@@ -12,6 +12,7 @@ import {
 	getShippingLabel,
 	isLoaded,
 	canPurchase,
+	hasSelectedRates,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import PurchaseButton from './purchase-button';
 import AddCreditCardButton from './add-credit-card-button';
@@ -33,10 +34,11 @@ const PurchaseSection = props => {
 		disablePurchase,
 	} = props;
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
+	const hasSelectedRate = hasSelectedRates( form.rates );
 
 	return (
 			<div className="purchase-section">
-			{ hasLabelsPaymentMethod ? (
+			{ ( hasLabelsPaymentMethod || ! hasSelectedRate ) ? (
 				<PurchaseButton
 					siteId={ siteId }
 					orderId={ orderId }
