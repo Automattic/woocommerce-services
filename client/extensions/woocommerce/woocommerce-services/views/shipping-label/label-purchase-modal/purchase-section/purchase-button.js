@@ -7,7 +7,6 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -19,59 +18,34 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel,
-	hasSelectedRates,
 	isLoaded,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import {
-	getSelectedPaymentMethodId,
-} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 
-const getPurchaseButtonData = props => {
-	const { form, translate, hasLabelsPaymentMethod } = props;
-
-	const hasSelectedRate = hasSelectedRates( form.rates );
-
-	if ( ! hasLabelsPaymentMethod && hasSelectedRate ) {
-		return {
-			buttonLabel: <>{ translate( 'Add credit card' ) } <Gridicon icon="external" /></>,
-			// TODO: Implement this, logic similar to `ShippingLabels` class, but figure out where it belongs in this case
-			onClick: null,
-		};
-	}
+const getPurchaseButtonLabel = props => {
+	const { form, translate } = props;
 
 	if ( form.needsPrintConfirmation ) {
-		return {
-			buttonLabel: translate( 'Print' ),
-			onClick: props.confirmPrintLabel,
-		};
+		return translate( 'Print' );
 	}
 
 	if ( form.isSubmitting ) {
-		return {
-			buttonLabel: translate( 'Purchasing…' ),
-			onClick: null,
-		};
+		return translate( 'Purchasing…' );
 	}
 
-	return {
-		buttonLabel: translate( 'Buy shipping labels' ),
-		onClick: props.purchaseLabel,
-	};
+	return translate( 'Buy shipping labels' );
 };
 
 const PurchaseButton = props => {
-	const { translate, disabled, busy } = props;
-	const { onClick, buttonLabel } = getPurchaseButtonData( props );
-
+	const { form, translate, disabled, busy } = props;
 	return (
 		<Fragment>
 			<Button
 				disabled={ disabled }
-				onClick={ onClick }
+				onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
 				primary
 				busy={ busy }
 			>
-				{ buttonLabel }
+				{ getPurchaseButtonLabel( props ) }
 			</Button>
 			<div className="purchase-section__explanation">
 				{ translate( 'Buying shipping labels will mark items as fulfilled.' ) }
@@ -91,7 +65,6 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const loaded = isLoaded( state, orderId, siteId );
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	return {
-		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 		form: loaded && shippingLabel.form,
 	};
 };
