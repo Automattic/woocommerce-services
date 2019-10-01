@@ -13,13 +13,10 @@ import { localize } from 'i18n-calypso';
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
-import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import {
 	closeReprintDialog,
 	confirmReprint,
-	updatePaperSize,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	isLoaded,
@@ -27,11 +24,10 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const ReprintDialog = props => {
-	const { orderId, siteId, reprintDialog, paperSize, storeOptions, labelId, translate } = props;
+	const { orderId, siteId, reprintDialog, labelId, translate } = props;
 
 	const onClose = () => props.closeReprintDialog( orderId, siteId );
 	const onConfirm = () => props.confirmReprint( orderId, siteId );
-	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
 	const buttons = [
 		{ action: 'cancel', label: translate( 'Cancel' ), onClick: onClose },
@@ -64,13 +60,6 @@ const ReprintDialog = props => {
 						'is a violation of our terms of service and may result in criminal charges.'
 				) }
 			</p>
-			<Dropdown
-				id={ 'paper_size' }
-				valuesMap={ getPaperSizes( storeOptions.origin_country ) }
-				title={ translate( 'Paper size' ) }
-				value={ paperSize }
-				updateValue={ onPaperSizeChange }
-			/>
 		</Dialog>
 	);
 };
@@ -79,7 +68,6 @@ ReprintDialog.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
 	reprintDialog: PropTypes.object,
-	paperSize: PropTypes.string.isRequired,
 	storeOptions: PropTypes.object.isRequired,
 	labelId: PropTypes.number,
 	closeReprintDialog: PropTypes.func.isRequired,
@@ -92,13 +80,12 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	return {
 		reprintDialog: loaded ? shippingLabel.reprintDialog : {},
-		paperSize: shippingLabel.paperSize,
 		storeOptions: loaded ? shippingLabel.storeOptions : {},
 	};
 };
 
 const mapDispatchToProps = dispatch => {
-	return bindActionCreators( { closeReprintDialog, confirmReprint, updatePaperSize }, dispatch );
+	return bindActionCreators( { closeReprintDialog, confirmReprint }, dispatch );
 };
 
 export default connect(
