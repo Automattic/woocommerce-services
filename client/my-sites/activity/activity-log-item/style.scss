@@ -1,0 +1,445 @@
+.activity-log-item {
+	display: flex;
+	position: relative;
+
+	@include breakpoint( '<480px' ) {
+		margin-left: 8px;
+
+		.is-expanded & {
+			margin-left: 0;
+		}
+	}
+
+	.card {
+		flex: 1;
+		margin-top: 8px;
+		margin-bottom: 16px;
+
+		.is-expanded & {
+			margin-bottom: 8px;
+		}
+	}
+}
+
+.activity-log-item .foldable-card {
+	.foldable-card__expand .gridicon {
+		transform: none;
+	}
+
+	&.is-expanded {
+		margin-bottom: 24px;
+
+		.foldable-card__expand .gridicon {
+			transform: rotate( 180deg );
+		}
+	}
+}
+
+.activity-log-item .foldable-card__header {
+	@include breakpoint( '<480px' ) {
+		padding: 12px;
+		display: block;
+	}
+
+	// TODO: Remove when foldable cards become "expandable"
+	.is-clickable {
+		cursor: default;
+	}
+}
+
+.activity-log-item .foldable-card__secondary {
+	flex-grow: 0;
+
+	.foldable-card__summary {
+		display: flex;
+		align-items: center;
+		margin-right: 0;
+	}
+}
+
+.activity-log-item__type {
+	align-self: flex-start;
+	background: var( --color-surface-backdrop );
+	text-align: center;
+	margin: 1px 22px 0 10px;
+	padding: 4px 0 6px;
+	z-index: 1;
+
+	@include breakpoint( '<480px' ) {
+		margin: -2px 8px 0 0;
+	}
+
+	.is-loading & {
+		align-self: center;
+	}
+
+	.activity-log-item__card.is-expanded & {
+		margin-left: 0;
+		margin-right: 16px;
+		background: var( --color-surface );
+	}
+}
+
+.activity-log-item__time {
+	font-size: 11px;
+	color: var( --color-text-subtle );
+	text-transform: uppercase;
+	white-space: nowrap;
+
+	@include breakpoint( '<480px' ) {
+		letter-spacing: -1px;
+	}
+}
+
+.activity-log-item__activity-icon {
+	// General notice
+	background: var( --color-neutral-200 );
+	color: var( --color-white );
+	display: flex;
+	border-radius: 50%;
+	padding: 12px;
+	margin-top: 2px;
+
+	@include breakpoint( '<480px' ) {
+		padding: 7px;
+		box-sizing: border-box;
+		width: 32px;
+		height: 32px;
+		display: inline-block;
+
+		.gridicon {
+			width: 18px;
+			height: 18px;
+		}
+	}
+
+	// Success
+	&.is-success {
+		background: var( --color-success );
+	}
+
+	// Warning
+	&.is-warning {
+		background: var( --color-warning );
+	}
+
+	// Error! OHNO!
+	&.is-error {
+		background: var( --color-error );
+	}
+
+	.is-loading & {
+		width: 48px;
+		height: 48px;
+		margin-top: 0;
+		padding: 0;
+		background-color: var( --color-neutral-100 );
+
+		@include breakpoint( '<480px' ) {
+			width: 32px;
+			height: 32px;
+			margin: 2px 0 0 2px;
+		}
+	}
+}
+
+.activity-log-item__card {
+	min-width: 0;
+
+	.foldable-card__main {
+		min-width: 0;
+
+		@include breakpoint( '<480px' ) {
+			max-width: none;
+			margin: 0;
+		}
+	}
+
+	.foldable-card__content {
+		padding: 16px;
+		font-size: 14px;
+	}
+
+	.is-loading & {
+		height: 80px;
+		animation: loading-fade 1.6s ease-in-out infinite;
+	}
+}
+
+.activity-log-item__card-header {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+	padding-left: 56px;
+
+	@include breakpoint( '<960px' ) {
+		flex-direction: column;
+		align-items: flex-start;
+		padding-left: 0;
+	}
+
+	@include breakpoint( '<480px' ) {
+		margin-right: 0;
+	}
+}
+
+.activity-log-item__actor {
+	display: flex;
+	flex-shrink: 0;
+	min-width: 180px;
+	max-width: 100%;
+	margin-right: 32px;
+	align-items: center;
+
+	@include breakpoint( '>960px' ) {
+		margin-left: -56px;
+	}
+
+	.gravatar,
+	.social-logo,
+	.jetpack-logo {
+		float: left;
+		width: 40px;
+		height: 40px;
+		margin-right: 16px;
+		fill: var( --color-neutral-400 );
+
+		@include breakpoint( '<960px' ) {
+			width: 32px;
+			height: 32px;
+			margin-right: 8px;
+		}
+		@include breakpoint( '<480px' ) {
+			width: 24px;
+			height: 24px;
+			margin-right: 8px;
+		}
+	}
+
+	.social-logo {
+		fill: var( --color-white );
+		background: var( --color-wordpress-org );
+		border-radius: 50%;
+	}
+
+	.jetpack-logo__icon-circle {
+		fill: var( --color-neutral-400 );
+	}
+
+	.gridicon {
+		width: 24px;
+		height: 24px;
+		background: var( --color-neutral-200 );
+		color: var( --color-white );
+		display: flex;
+		padding: 8px;
+		border-radius: 50%;
+		margin-right: 14px;
+		margin-top: 2px;
+		fill: var( --color-white );
+
+		@include breakpoint( '<480px' ) {
+			padding: 7px;
+			box-sizing: border-box;
+			width: 32px;
+			height: 32px;
+			display: inline-block;
+
+			.gridicon {
+				width: 18px;
+				height: 18px;
+			}
+		}
+	}
+}
+
+.activity-log-item__actor-info {
+	min-width: 0;
+}
+
+.activity-log-item__actor-name {
+	font-size: 14px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+
+	@include breakpoint( '<960px' ) {
+		margin-top: 2px;
+		line-height: 1;
+	}
+
+	@include breakpoint( '<480px' ) {
+		display: inline-block;
+	}
+}
+
+.activity-log-item__actor-role {
+	text-transform: capitalize;
+
+	@include breakpoint( '<480px' ) {
+		display: inline-block;
+		margin-left: 8px;
+	}
+}
+
+.activity-log-item__actor-role,
+.activity-log-item__description-summary {
+	font-size: 12px;
+	color: var( --color-text-subtle );
+
+	@include breakpoint( '<480px' ) {
+		font-size: 14px;
+	}
+}
+
+.activity-log-item__description {
+	flex: 1 1 50%;
+	font-size: 14px;
+	word-break: break-word;
+
+	@include breakpoint( '<960px' ) {
+		margin-top: 8px;
+	}
+}
+
+.activity-log-item__description-content {
+	margin-bottom: 8px;
+
+	.activity-log-item.is-aggregated & {
+		margin-bottom: 0;
+	}
+}
+
+.activity-log-item__action {
+	display: flex;
+
+	@include breakpoint( '<480px' ) {
+		margin-top: 16px;
+		text-align: left;
+	}
+
+	.ellipsis-menu {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 0;
+
+		.button {
+			position: relative;
+			top: 50%;
+			width: 48px;
+			transform: translateY( -50% );
+		}
+	}
+}
+
+.activity-log-item__help-action {
+	color: var( --color-neutral-200 );
+	font-weight: 400;
+	font-size: 13px;
+	white-space: nowrap;
+	padding: 2px 7px 3px;
+
+	@include breakpoint( '<480px' ) {
+		display: block;
+		margin-top: rem( 15px );
+	}
+}
+
+.activity-log-item__help-action .gridicon {
+	margin-right: 5px;
+}
+
+.button.activity-log-item__quick-action {
+	font-size: 13px;
+	white-space: nowrap;
+
+	@include breakpoint( '<480px' ) {
+		display: table;
+		margin-top: rem( 15px );
+	}
+}
+
+.activity-log-item__quick-action-success {
+	color: var( --color-success );
+	animation-name: fade-out-success;
+	animation-fill-mode: forwards;
+	animation-delay: 2s;
+	animation-duration: 2s;
+}
+
+.activity-log-item__quick-action-error {
+	color: var( --color-error );
+}
+
+.activity-log-item__activity-media {
+	margin-right: 16px;
+	color: var( --color-white );
+}
+
+.activity-log-item__activity-media .gridicon {
+	background-color: var( --color-neutral-100 );
+}
+.activity-log-item__activity-media .is-thumbnail {
+	width: auto;
+	height: auto;
+	max-width: 48px;
+	max-height: 48px;
+}
+
+.activity-log-item__activity-media .is-full-width {
+	width: 100%;
+	margin-top: 16px;
+}
+
+.activity-log-item__activity-media {
+	&.is-mobile {
+		float: right;
+		margin-right: -50px;
+		display: block;
+		width: 100%;
+		height: auto;
+		min-width: 0;
+	}
+
+	&.is-desktop {
+		display: none;
+	}
+
+	@include breakpoint( '>960px' ) {
+		&.is-mobile {
+			display: none;
+		}
+
+		&.is-desktop {
+			display: inline-block;
+		}
+	}
+}
+
+.activity-log-item__footer {
+	display: flex;
+	justify-content: space-between;
+	padding: 16px 0 0;
+	margin: 0;
+	border-top: 1px solid var( --color-surface-backdrop );
+
+	p {
+		margin-bottom: 0;
+	}
+}
+
+.activity-log-item.is-aggregated > .foldable-card > .foldable-card__header {
+	@include breakpoint( '<480px' ) {
+		padding-right: 44px;
+	}
+}
+
+@keyframes fade-out-success {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}

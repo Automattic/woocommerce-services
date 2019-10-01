@@ -1,0 +1,31 @@
+.form-select {
+	margin-bottom: 1em;
+
+	&.is-error {
+		border-color: var( --color-error );
+	}
+
+	&.is-error:hover {
+		border-color: var( --color-error-dark );
+	}
+
+	&:disabled {
+		color: var( --color-neutral-100 );
+	}
+
+	&:focus {
+		&.is-error {
+			box-shadow: 0 0 0 2px var( --color-error-100 );
+		}
+
+		&.is-error:hover {
+			box-shadow: 0 0 0 2px var( --color-error-200 );
+		}
+	}
+}
+
+// According to CSS tricks, browser support is IE9+
+.form-select:only-of-type,
+.form-select:last-of-type {
+	margin-bottom: 0;
+}

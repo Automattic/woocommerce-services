@@ -1,0 +1,33 @@
+.main {
+	margin: auto;
+	max-width: 720px;
+	z-index: z-index( 'root', '.main' );
+
+	// Themes is a great example of using all this new space ;)
+	&.themes {
+		max-width: 100%;
+	}
+
+	&.sites {
+		max-width: 320px;
+	}
+
+	// The customizer is full-width
+	&.customize {
+		max-width: 100%;
+	}
+
+	&.preview {
+		height: 100%;
+		max-width: none;
+	}
+
+	&.is-wide-layout {
+		max-width: 1040px;
+	}
+}
+
+// Used on views (ex posts & pages ) where the empty-content is already inside a padded div
+.main .empty-content {
+	margin-top: 0;
+}

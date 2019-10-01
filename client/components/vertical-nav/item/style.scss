@@ -1,0 +1,28 @@
+.vertical-nav-item {
+	.gridicon {
+		box-sizing: border-box;
+		color: var( --color-neutral-200 );
+		display: block;
+		height: 100%;
+		position: absolute;
+			top: 0;
+			right: 16px;
+	}
+}
+
+.vertical-nav-item.is-placeholder {
+	span {
+		@include placeholder( 23% );
+
+		display: inline-block;
+
+		&:first-child {
+			width: 35%;
+		}
+
+		&:last-child {
+			float: right;
+			width: 22px;
+		}
+	}
+}

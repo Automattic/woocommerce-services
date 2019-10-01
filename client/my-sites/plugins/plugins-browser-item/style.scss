@@ -1,0 +1,116 @@
+.plugins-browser-item {
+	border-left: 1px solid var( --color-neutral-0 );
+	box-sizing: border-box;
+	cursor: pointer;
+	display: block;
+	float: left;
+	margin: 0;
+	position: relative;
+	overflow: hidden;
+
+	&.is-placeholder,
+	&.is-empty {
+		cursor: default;
+	}
+
+	.plugins-browser-item__link {
+		padding: 16px 16px 48px;
+		display: block;
+	}
+
+	@include breakpoint( '>960px' ) {
+		width: 33.33%;
+
+		&:nth-child( 3n + 1 ) {
+			border-left: 0;
+		}
+
+		&:nth-child( n + 4 ) {
+			border-top: 1px solid var( --color-neutral-0 );
+		}
+	}
+
+	@include breakpoint( '<960px' ) {
+		width: 100%;
+
+		&:nth-child( n + 2 ) {
+			border-top: 1px solid var( --color-neutral-0 );
+		}
+
+		&.is-empty {
+			display: none;
+		}
+	}
+}
+
+.plugins-browser-item {
+	.plugin-icon {
+		width: 48px;
+		height: 48px;
+
+		&.is-placeholder {
+			animation: loading-fade 1.6s ease-in-out infinite;
+		}
+	}
+}
+
+.plugins-browser-item__info {
+	overflow: hidden; // lazy clearfix
+}
+
+.plugins-browser-item__title,
+.plugins-browser-item__author {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	margin-left: 60px;
+
+	.is-placeholder & {
+		color: transparent;
+		background-color: var( --color-neutral-0 );
+		animation: loading-fade 1.6s ease-in-out infinite;
+	}
+}
+
+.plugins-browser-item__title {
+	color: var( --color-neutral-700 );
+	font-weight: 600;
+	font-size: 15px;
+	margin-top: 3px;
+}
+
+.plugins-browser-item__author {
+	color: var( --color-text-subtle );
+	font-size: 13px;
+}
+
+.plugins-browser-item .plugin-icon {
+	margin-right: 0;
+}
+
+.plugins-browser-item .rating {
+	margin-top: 12px;
+	position: absolute;
+}
+
+.plugins-browser-item__installed {
+	display: flex;
+	align-items: center;
+	position: absolute;
+		bottom: 16px;
+		right: 16px;
+	color: var( --color-success );
+	font-size: 12px;
+	font-weight: 500;
+	animation: appear 0.15s ease-in;
+
+	.gridicon {
+		margin-right: 3px;
+	}
+}
+
+.button.plugins-browser-item__upgrade-button {
+	position: absolute;
+		bottom: 16px;
+		right: 16px;
+}

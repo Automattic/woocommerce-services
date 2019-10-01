@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GSuitePurchaseCta it renders GSuitePurchaseCta 1`] = `
+<EmailVerificationGate
+  noticeStatus="is-info"
+  noticeText="You must verify your email to purchase G Suite."
+>
+  <QueryProductsList />
+  <div
+    className="card is-compact"
+  >
+    <header>
+      <h3
+        className="gsuite-purchase-cta__product-logo"
+      >
+        <strong>
+          G Suite
+        </strong>
+      </h3>
+    </header>
+  </div>
+  <div
+    className="card is-compact"
+  >
+    <div
+      className="gsuite-purchase-cta__header"
+    >
+      <div
+        className="gsuite-purchase-cta__header-description"
+      >
+        <h2
+          className="gsuite-purchase-cta__header-description-title"
+        >
+          Professional email and so much more.
+        </h2>
+        <p
+          className="gsuite-purchase-cta__header-description-sub-title"
+        >
+          We've partnered with Google to offer you email, storage, docs, calendars, and more integrated with your site.
+        </p>
+        <div
+          className="gsuite-purchase-cta__skus"
+        >
+          <GSuitePurchaseCtaSkuInfo
+            annualPrice="$72"
+            buttonText="Add G Suite"
+            onButtonClick={[Function]}
+            showButton={true}
+          />
+        </div>
+      </div>
+      <div
+        className="gsuite-purchase-cta__header-image"
+      >
+        <img
+          alt="G Suite Logo"
+          src="/calypso/images/g-suite/g-suite.svg"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    className="card is-compact"
+  >
+    <GSuitePurchaseFeatures
+      domainName="test.com"
+      productSlug="gapps"
+      type="grid"
+    />
+  </div>
+</EmailVerificationGate>
+`;

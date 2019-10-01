@@ -1,0 +1,20 @@
+/**
+ * List End:
+ * ------
+ * Marker that can be appended to indicate the end of a list (e.g. posts).
+ */
+
+.list-end {
+	width: 100%;
+	margin-top: 32px;
+	text-align: center;
+	border-top: solid 1px var( --color-neutral-100 );
+
+	.gridicon {
+		fill: var( --color-neutral-light );
+		position: relative;
+		top: -13px;
+		background: var( --color-neutral-0 );
+		padding: 0 8px;
+	}
+}

@@ -1,0 +1,22 @@
+// domain search
+
+.domain-search__content {
+	overflow: visible;
+	padding: 0 0 20px;
+	position: static;
+}
+
+.domain-search-page-wrapper h2 {
+	@include heading;
+	margin: 0 0 10px;
+}
+
+.domain-search-page-wrapper h3 {
+	color: var( --color-neutral-700 );
+	font-size: 15px;
+	word-wrap: break-word;
+
+	@include breakpoint( '>660px' ) {
+		font-size: 17px;
+	}
+}

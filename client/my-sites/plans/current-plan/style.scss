@@ -1,0 +1,136 @@
+.current-plan__header {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+
+.current-plan__header-content {
+	width: 100%;
+	padding: 32px;
+	background-color: var( --color-white );
+	box-shadow: 0 0 0 1px rgba( var( --color-neutral-100-rgb ), 0.5 ),
+		0 1px 2px var( --color-neutral-0 );
+
+	.is-jetpack-free & {
+		@include breakpoint( '>800px' ) {
+			display: flex;
+			align-items: center;
+			text-align: left;
+		}
+	}
+}
+
+.current-plan__header-icon {
+	display: none;
+
+	@include breakpoint( '>480px' ) {
+		display: flex;
+		width: 80px;
+		height: 80px;
+		float: left;
+		margin-left: 20px;
+		margin-right: 40px;
+	}
+}
+
+.current-plan__header-copy {
+	width: 100%;
+	margin-top: -20px;
+	text-align: left;
+
+	.current-plan__header-content:not( .is-jetpack-free ) & {
+		margin-bottom: 45px;
+	}
+}
+
+.current-plan__header-heading,
+.current-plan__header-text {
+	clear: none;
+}
+
+.current-plan__header-heading {
+	font-size: 24px;
+	font-weight: 400;
+	margin: 24px 0 8px;
+}
+
+.current-plan__header-text {
+	font-size: 18px;
+	font-weight: 300;
+}
+
+.current-plan__header.is-placeholder {
+	.current-plan__header-icon {
+		display: none;
+	}
+
+	.current-plan__header-heading,
+	.current-plan__header-text {
+		@include placeholder( 23% );
+
+		display: block;
+
+		@include breakpoint( '<660px' ) {
+			margin: 0 auto;
+		}
+	}
+
+	.current-plan__header-heading {
+		width: 50%;
+	}
+
+	.current-plan__header-text {
+		line-height: 2em;
+		margin-bottom: 8px;
+		margin-top: 15px;
+		width: 90%;
+
+		@include breakpoint( '>660px' ) {
+			margin-bottom: 18px;
+			margin-top: 18px;
+		}
+	}
+}
+
+.current-plan__header-purchase-info-wrapper.card.is-compact {
+	margin: 24px -32px -32px;
+	display: flex;
+	flex-direction: column;
+}
+
+.current-plan__header-purchase-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+
+	&.is-expiring {
+		.current-plan__expires-in {
+			color: var( --color-error );
+		}
+	}
+
+	.button.is-compact {
+		flex-shrink: 0;
+	}
+}
+
+.current-plan__header-expires-in {
+	color: var( --color-text-subtle );
+}
+
+.current-plan__compare-plans {
+	margin-top: 24px;
+	text-align: center;
+
+	@include breakpoint( '>660px' ) {
+		min-width: 140px;
+		margin: 0 0 0 16px;
+	}
+}
+
+.current-plan__text {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	text-align: center;
+}

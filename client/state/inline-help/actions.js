@@ -1,0 +1,198 @@
+/** @format */
+/**
+ * Internal dependencies
+ */
+import wpcom from 'lib/wp';
+import {
+	INLINE_HELP_SEARCH_REQUEST,
+	INLINE_HELP_SEARCH_REQUEST_FAILURE,
+	INLINE_HELP_SEARCH_REQUEST_SUCCESS,
+	INLINE_HELP_SELECT_RESULT,
+	INLINE_HELP_SELECT_NEXT_RESULT,
+	INLINE_HELP_SELECT_PREVIOUS_RESULT,
+	INLINE_HELP_CONTACT_FORM_RESET,
+	INLINE_HELP_CONTACT_FORM_SHOW_QANDA,
+	INLINE_HELP_POPOVER_SHOW,
+	INLINE_HELP_POPOVER_HIDE,
+	INLINE_HELP_CHECKLIST_PROMPT_SET_TASK_ID,
+	INLINE_HELP_CHECKLIST_PROMPT_SET_STEP,
+	INLINE_HELP_CHECKLIST_PROMPT_SHOW,
+	INLINE_HELP_CHECKLIST_PROMPT_HIDE,
+	INLINE_HELP_ONBOARDING_WELCOME_PROMPT_SHOW,
+	INLINE_HELP_ONBOARDING_WELCOME_PROMPT_HIDE,
+} from 'state/action-types';
+
+/**
+ * Triggers a network request to fetch search results for a query string.
+ *
+ * @param  {?String}  searchQuery Search query
+ * @return {Function}        Action thunk
+ */
+export function requestInlineHelpSearchResults( searchQuery ) {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_SEARCH_REQUEST,
+			searchQuery,
+		} );
+
+		wpcom
+			.undocumented()
+			.getHelpLinks( searchQuery )
+			.then( ( { wordpress_support_links: searchResults } ) => {
+				dispatch( {
+					type: INLINE_HELP_SEARCH_REQUEST_SUCCESS,
+					searchQuery,
+					searchResults,
+				} );
+			} )
+			.catch( error => {
+				dispatch( {
+					type: INLINE_HELP_SEARCH_REQUEST_FAILURE,
+					searchQuery,
+					error,
+				} );
+			} );
+	};
+}
+/**
+ * Selects a specific result in the inline help results list.
+ *
+ * @param  {Number}  resultIndex Index of the result to select
+ * @return {Function}        Action thunk
+ */
+export function selectResult( resultIndex ) {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_SELECT_RESULT,
+			resultIndex,
+		} );
+	};
+}
+
+/**
+ * Resets the inline contact form state.
+ *
+ * @return {Function}  Action thunk
+ */
+export function resetInlineHelpContactForm() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_CONTACT_FORM_RESET,
+		} );
+	};
+}
+
+/**
+ * Shows the Q&A suggestions on the contact form.
+ *
+ * @return {Function}  Action thunk
+ */
+export function showQandAOnInlineHelpContactForm() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_CONTACT_FORM_SHOW_QANDA,
+		} );
+	};
+}
+
+/**
+ * Selects the next result in the inline help results list.
+ *
+ * @return {Function}        Action thunk
+ */
+export function selectNextResult() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_SELECT_NEXT_RESULT,
+		} );
+	};
+}
+
+/**
+ * Selects the previous result in the inline help results list.
+ *
+ * @return {Function}        Action thunk
+ */
+export function selectPreviousResult() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_SELECT_PREVIOUS_RESULT,
+		} );
+	};
+}
+
+export function setSearchResults( searchQuery, searchResults ) {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_SEARCH_REQUEST_SUCCESS,
+			searchQuery,
+			searchResults,
+		} );
+	};
+}
+
+export function showInlineHelpPopover() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_POPOVER_SHOW,
+		} );
+	};
+}
+
+export function hideInlineHelpPopover() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_POPOVER_HIDE,
+		} );
+	};
+}
+
+export function showChecklistPrompt() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_CHECKLIST_PROMPT_SHOW,
+		} );
+	};
+}
+
+export function hideChecklistPrompt() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_CHECKLIST_PROMPT_HIDE,
+		} );
+	};
+}
+
+export function showOnboardingWelcomePrompt() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_ONBOARDING_WELCOME_PROMPT_SHOW,
+		} );
+	};
+}
+
+export function hideOnboardingWelcomePrompt() {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_ONBOARDING_WELCOME_PROMPT_HIDE,
+		} );
+	};
+}
+
+export function setChecklistPromptTaskId( taskId ) {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_CHECKLIST_PROMPT_SET_TASK_ID,
+			taskId,
+		} );
+	};
+}
+
+export function setChecklistPromptStep( step ) {
+	return dispatch => {
+		dispatch( {
+			type: INLINE_HELP_CHECKLIST_PROMPT_SET_STEP,
+			step,
+		} );
+	};
+}

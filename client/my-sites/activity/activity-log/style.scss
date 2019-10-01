@@ -1,0 +1,71 @@
+// Activity Log
+
+.activity-log__wrapper {
+	position: relative;
+
+	&::before,
+	&::after {
+		content: '';
+		position: absolute;
+		left: 33px;
+		width: 2px;
+
+		@include breakpoint( '<480px' ) {
+			left: 25px;
+		}
+	}
+
+	&::before {
+		top: 0;
+		height: 100%;
+		z-index: -2;
+		background: var( --color-neutral-100 );
+	}
+
+	&::after {
+		bottom: 0;
+		height: 16px;
+		z-index: -1;
+		background: var( --color-neutral-100 );
+		background: linear-gradient( var( --color-neutral-100 ), var( --color-surface-backdrop ) );
+	}
+}
+
+.activity-log__time-period {
+	margin: 8px 0;
+	padding: 6px 0 4px;
+	background: var( --color-surface-backdrop );
+	font-weight: 500;
+
+	@include breakpoint( '<660px' ) {
+		margin-left: 10px;
+	}
+
+	&.is-loading span {
+		display: block;
+		height: 23px;
+		width: 100px;
+		margin: 3px 0;
+		background-color: var( --color-neutral-100 );
+		animation: loading-fade 1.6s ease-in-out infinite;
+	}
+}
+
+.activity-log__pagination {
+	margin: 32px 0 14px;
+
+	&.is-bottom-pagination {
+		margin: 14px 0 48px;
+	}
+}
+
+.activity-log__fader {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: linear-gradient( to bottom, rgba( 243, 246, 248, 0.1 ), #f3f6f8 );
+	z-index: 179;
+	height: 15%;
+	pointer-events: none;
+}

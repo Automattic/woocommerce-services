@@ -12,7 +12,7 @@ import { Provider } from 'react-redux';
  * Internal dependencies
  */
 import '../assets/stylesheets/style.scss';
-import './lib/calypso-boot';
+//import './lib/calypso-boot';
 import * as storageUtils from 'lib/utils/local-storage';
 import Settings from './apps/settings';
 import ShippingLabel from './apps/shipping-label';

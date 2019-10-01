@@ -1,0 +1,47 @@
+.plugin-activate-toggle__disabled,
+.plugin-activate-toggle__link {
+	display: inline-flex;
+	flex-direction: row-reverse;
+	font-size: 12px;
+	line-height: 16px;
+}
+
+.plugin-activate-toggle__link:hover,
+.plugin-activate-toggle__link:hover .plugin-activate-toggle__icon {
+	color: var( --color-link-dark );
+}
+
+.plugin-activate-toggle__disabled {
+	color: var( --color-neutral-200 );
+}
+
+.plugin-activate-toggle__disabled .plugin-activate-toggle__icon {
+	color: var( --color-neutral-0 );
+}
+
+.plugin-activate-toggle__label {
+	margin-left: 0;
+	margin-right: 8px;
+}
+
+.plugin-activate-toggle__link {
+	cursor: pointer;
+}
+
+.plugin-activate-toggle__link a {
+	color: currentcolor;
+	line-height: 16px;
+}
+
+.plugin-activate-toggle__link .plugin-activate-toggle__icon {
+	color: var( --color-neutral-light );
+}
+
+.plugin-activate-toggle__icon {
+	flex: none;
+	margin: -1px 3px;
+
+	.gridicon {
+		display: block;
+	}
+}

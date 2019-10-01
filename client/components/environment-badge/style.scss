@@ -1,0 +1,91 @@
+.environment-badge {
+	padding: 16px 0;
+	position: fixed;
+	bottom: 0;
+	right: 86px;
+	z-index: z-index( 'root', '.environment-badge' );
+
+	&:hover .environment {
+		display: inline-block;
+	}
+
+	.bug-report {
+		position: relative;
+		display: inline-block;
+		width: 26px;
+		height: 26px;
+		background-color: var( --color-white );
+		border: solid 1px var( --color-neutral-700 );
+		border-radius: 50%;
+		color: var( --color-neutral-700 );
+		margin-left: -4px;
+		text-decoration: none;
+		text-align: center;
+		z-index: z-index( '.environment-badge', '.environment-badge .bug-report' );
+		transition: border-radius 0.2s ease-out;
+
+		.gridicon {
+			vertical-align: middle;
+		}
+	}
+
+	.environment {
+		position: relative;
+		display: none;
+		font-size: 9px;
+		font-weight: 600;
+		line-height: 1;
+		text-transform: uppercase;
+		padding: 4px 7px 4px 6px;
+		vertical-align: middle;
+		transition: all 0.2s ease-out;
+		background-color: var( --color-white );
+		box-shadow: 0 0 0 1px var( --color-neutral-700 );
+
+		&.is-env {
+			display: inline-block;
+		}
+		a {
+			text-decoration: none;
+			display: inline-block;
+			color: var( --color-neutral-700 );
+
+			&:hover {
+				transform: scale( 1.1 );
+			}
+		}
+		&.is-staging {
+			background-color: var( --color-warning );
+		}
+		&.is-wpcalypso {
+			background-color: #b1eed0;
+		}
+		&.is-dev {
+			background-color: var( --color-error );
+		}
+		&.is-horizon,
+		&.is-feedback {
+			background-color: var( --color-primary-light );
+		}
+		&.branch-name {
+			text-transform: inherit;
+			background-color: var( --color-neutral-700 );
+			color: var( --color-white );
+		}
+	}
+
+	.notouch & {
+		.bug-report {
+			&:hover {
+				border-radius: 4px;
+			}
+		}
+	}
+}
+
+@include breakpoint( '<960px' ) {
+	// Don't show environment badge on smaller screens. It just gets in the way.
+	.environment-badge {
+		display: none;
+	}
+}

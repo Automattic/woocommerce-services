@@ -1,0 +1,44 @@
+.plugins-browser-list {
+	margin-bottom: 16px;
+	background: var( --color-white );
+	box-shadow: 0 1px 2px var( --color-neutral-0 );
+
+	.feature-example & {
+		margin: 0;
+	}
+}
+
+.plugins-browser-list__header {
+	background: var( --color-neutral-0 );
+	border-bottom: 1px solid var( --color-neutral-0 );
+	overflow: hidden; // lazy clearfix
+}
+
+.button.plugins-browser-list__select-all,
+.plugins-browser-list__title {
+	display: inline-block;
+	padding: 5px 0;
+	color: var( --color-neutral-700 );
+	font-size: 12px;
+	line-height: 1.5;
+
+	&.is-expanded {
+		padding-left: 24px;
+		padding-right: 24px;
+	}
+	.gridicon {
+		float: right;
+		top: 2px;
+		margin-left: 3px;
+	}
+}
+
+.button.plugins-browser-list__select-all {
+	float: right;
+}
+
+.plugins-browser-list__elements {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 0;
+}

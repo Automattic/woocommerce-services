@@ -1,0 +1,86 @@
+// ==========================================================================
+// PluginActions
+// ==========================================================================
+
+.plugin-action {
+	clear:both;
+	line-height: 0;
+	margin-top: 16px;
+
+	&:first-child {
+		margin-top: 0;
+	}
+
+	&.is-warning {
+		.plugin-action__label {
+			color: var( --color-error );
+		}
+	}
+
+	.disconnect-jetpack-button {
+		margin-right: 0;
+	}
+
+	.plugin-action__label {
+		@include breakpoint( '<480px' ) {
+			color: var( --color-neutral-700 );
+		}
+	}
+}
+
+.plugin-action .form-toggle__label {
+	display: inline-flex;
+	flex-direction: row-reverse;
+	align-items: center;
+}
+
+.plugin-action .form-toggle__switch {
+	flex: none;
+	align-self: center;
+}
+
+.plugin-action .form-toggle__label-content {
+	flex: none;
+	margin-right: auto;
+}
+
+.plugin-action__label {
+	display: flex;
+	flex-direction: row-reverse;
+	align-items: center;
+	font-size: 12px;
+	line-height: 16px;
+	margin-right: 8px;
+	cursor: pointer;
+
+	.is-disabled & {
+		color: var( --color-neutral-200 );
+		cursor: default;
+	}
+
+	.has-disabled-info & {
+		cursor: default;
+	}
+}
+
+.plugin-action .form-toggle__label .form-toggle__switch {
+	float: right;
+}
+
+.plugin-action__disabled-info.info-popover {
+	flex: none;
+	margin: -1px 4px;
+
+	.gridicon {
+		display: block;
+	}
+
+	.gridicons-info-outline g {
+		// revert the translate(1px,1px) done by needs-offset
+		transform: none;
+	}
+}
+
+.plugin-action__disabled-info-list {
+	margin-left: 16px;
+}
