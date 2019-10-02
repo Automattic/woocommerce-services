@@ -100,11 +100,19 @@ module.exports = {
 			},
 			{
 				test: /\.jsx?$/,
-				enforce: 'pre',
+				exclude: /node_modules/,
 				use: {
-					loader: 'eslint-loader',
+					loader: 'babel-loader?cacheDirectory',
 					options: {
-						emitWarning: true,
+						presets: [ '@wordpress/babel-preset-default' ],
+						plugins: [
+							require.resolve(
+								'@babel/plugin-proposal-class-properties'
+							),
+							require.resolve(
+								'@babel/plugin-proposal-export-namespace-from'
+							),
+						].filter( Boolean ),
 					},
 				},
 				include: path.resolve( __dirname, 'client' ),
@@ -138,11 +146,6 @@ module.exports = {
 			{
 				test: /\.html$/,
 				use: 'html-loader',
-			},
-			{
-				test: /\.jsx?$/,
-				loader: 'babel-loader',
-				exclude: /node_modules/,
 			},
 		],
 	},
