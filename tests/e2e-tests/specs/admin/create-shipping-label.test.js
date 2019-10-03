@@ -1,0 +1,80 @@
+/**
+ * @format
+ */
+
+/**
+ * Internal dependencies
+ */
+import { createSimpleProduct, loginAndConfirmExtensionActivation } from '../../utils/components';
+import { CustomerFlow, StoreOwnerFlow } from '../../utils/flows';
+import { setCheckbox, settingsPageSaveChanges, uiUnblocked, verifyCheckboxIsSet } from "../../utils";
+
+describe( 'Create shipping label', () => {
+	beforeAll( async () => {
+		await loginAndConfirmExtensionActivation();
+		await createSimpleProduct();
+
+		// Go to general settings page
+		await StoreOwnerFlow.openSettings( 'general' );
+
+		// Set base location with state CA.
+		await expect( page ).toSelect( 'select[name="woocommerce_default_country"]', 'United States (US) — California' );
+		// Sell to all countries
+		await expect( page ).toSelect( '#woocommerce_allowed_countries', 'Sell to all countries' );
+		// Set currency to USD
+		await expect( page ).toSelect( '#woocommerce_currency', 'United States (US) dollar ($)' );
+		// Tax calculation should have been enabled by another test - no-op
+		// Save
+		await settingsPageSaveChanges();
+
+		// Verify that settings have been saved
+		await Promise.all( [
+			expect( page ).toMatchElement( '#message', { text: 'Your settings have been saved.' } ),
+			expect( page ).toMatchElement( 'select[name="woocommerce_default_country"]', { text: 'United States (US) — California' } ),
+			expect( page ).toMatchElement( '#woocommerce_allowed_countries', { text: 'Sell to all countries' } ),
+			expect( page ).toMatchElement( '#woocommerce_currency', { text: 'United States (US) dollar ($)' } ),
+		] );
+
+		// Enable COD payment method
+		await StoreOwnerFlow.openSettings( 'checkout', 'cod' );
+		await setCheckbox( '#woocommerce_cod_enabled' );
+		await settingsPageSaveChanges();
+
+		// Verify that settings have been saved
+		await verifyCheckboxIsSet( '#woocommerce_cod_enabled' );
+
+		await StoreOwnerFlow.logout();
+	} );
+
+	it( 'should add item to cart and display cart item in order review', async () => {
+		await CustomerFlow.goToShop();
+		await CustomerFlow.addToCartFromShopPage( 'Simple product' );
+
+		await CustomerFlow.goToCheckout();
+		await CustomerFlow.productIsInCheckout( 'Simple product', 1, 9.99 );
+		await expect( page ).toMatchElement( '.cart-subtotal .amount', { text: '$9.99' } );
+	} );
+
+	it( 'should allow customer to place order', async () => {
+
+		await expect( page ).toFill( '#billing_first_name', 'John' );
+		await expect( page ).toFill( '#billing_last_name', 'Doe' );
+		await expect( page ).toFill( '#billing_company', 'Automattic' );
+		await expect( page ).toFill( '#billing_email', 'john.doe@example.com' );
+		await expect( page ).toFill( '#billing_phone', '123456789' );
+		await expect( page ).toSelect( '#billing_country', 'United States (US)' );
+		await expect( page ).toFill( '#billing_address_1', 'addr 1' );
+		await expect( page ).toFill( '#billing_address_2', 'addr 2' );
+		await expect( page ).toFill( '#billing_city', 'San Francisco' );
+		await expect( page ).toSelect( '#billing_state', 'California' );
+		await expect( page ).toFill( '#billing_postcode', '94107' );
+		await uiUnblocked();
+
+		await expect( page ).toClick( '.wc_payment_method label', { text: 'Cash on delivery' } );
+		await expect( page ).toMatchElement( '.payment_method_cod', { text: 'Pay with cash upon delivery.' } );
+		await uiUnblocked();
+		await CustomerFlow.placeOrder();
+
+		await expect( page ).toMatch( 'Order received' );
+	} );
+} );
