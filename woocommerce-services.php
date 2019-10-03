@@ -46,6 +46,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD', DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD', 3 * DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
+	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true ) ) {
+		if ( ! defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
+			define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
+		}
+		if ( ! defined( 'JETPACK_DEV_DEBUG' ) ) {
+			define( 'JETPACK_DEV_DEBUG', true );
+		}
+	}
 
 	class WC_Connect_Loader {
 
