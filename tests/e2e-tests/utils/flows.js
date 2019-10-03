@@ -1,4 +1,7 @@
 const baseUrl = process.env.WP_BASE_URL;
+const adminUserName = process.env.WP_ADMIN_USER_NAME;
+const adminUserPassword = process.env.WP_ADMIN_USER_PW;
+
 const WP_ADMIN_PLUGINS_PAGE = baseUrl + '/wp-admin/plugins.php';
 const WP_ADMIN_LOGIN = baseUrl + '/wp-login.php';
 
@@ -10,8 +13,8 @@ const StoreOwnerFlow = {
 
 		await expect( page.title() ).resolves.toMatch( 'Log In' );
 
-		await page.type( '#user_login', 'admin' );
-		await page.type( '#user_pass', 'password' );
+		await page.type( '#user_login', adminUserName );
+		await page.type( '#user_pass', adminUserPassword );
 
 		await Promise.all( [
 			page.click( 'input[type=submit]' ),
@@ -39,6 +42,6 @@ const StoreOwnerFlow = {
 	},
 }
 
-module.exports = { 
+module.exports = {
 	StoreOwnerFlow
 };
