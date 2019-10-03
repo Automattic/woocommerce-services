@@ -68,15 +68,12 @@ install:
   - nvm install 10
   - nvm use 10
   - npm ci
-  # - travis_retry composer update --ignore-platform-reqs --no-interaction --prefer-source
 
 # Clones WordPress and configures our testing environment.
 before_script:
-  # - bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
   - phpenv config-rm xdebug.ini
   - curl -sSfL -o /home/travis/.phpenv/shims/phpunit https://phar.phpunit.de/phpunit-5.7.phar # Install phpunit 5.7 for use by legacy test scripts.
   - bash tests/bin/install.sh wc_bookings_test root '' localhost $WP_VERSION
-  # - bash tests/bin/travis.sh before
 
 # Save node_modules to speed up build
 cache:
@@ -91,6 +88,5 @@ notifications:
       - harris.wong@automattic.com
 
 script:
-  # - bash tests/bin/run-e2e-travis.sh
   - npm run test:e2e-travis
 
