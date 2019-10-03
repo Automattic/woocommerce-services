@@ -193,8 +193,8 @@ PHP
 		cp -r $WORKING_DIR/woocommerce-services $WP_CORE_DIR/wp-content/plugins/
 		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
 
-		# Run `npm run test-build` in order to compile JS and CSS files before activating services
-		npm run test-build
+		# Run `npm run dist` in order to compile JS and CSS files before activating services
+		npm run dist
 
 		cd "$WP_CORE_DIR"
 		php wp-cli.phar plugin activate woocommerce-services
