@@ -135,7 +135,7 @@ install_e2e_site() {
 	if [[ ${RUN_E2E} == 1 ]]; then
 
 		# Script Variables
-		CONFIG_DIR="./tests/e2e/config/travis"
+		CONFIG_DIR="./tests/e2e-tests/config/travis"
 		WP_CORE_DIR="$HOME/wordpress"
 		NGINX_DIR="$HOME/nginx"
 		PHP_FPM_BIN="$HOME/.phpenv/versions/$TRAVIS_PHP_VERSION/sbin/php-fpm"
@@ -152,7 +152,7 @@ install_e2e_site() {
 
 		set -ev
 		npm install
-		export NODE_CONFIG_DIR="./tests/e2e/config"
+		export NODE_CONFIG_DIR="./tests/e2e-tests/config"
 
 		# Set up nginx to run the server
 		mkdir -p "$WP_CORE_DIR"
