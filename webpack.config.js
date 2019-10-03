@@ -102,7 +102,7 @@ module.exports = {
 				test: /\.jsx?$/,
 				exclude: /node_modules/,
 				use: {
-					loader: 'babel-loader?cacheDirectory',
+					loader: 'babel-loader',
 					options: {
 						presets: [ '@wordpress/babel-preset-default' ],
 						plugins: [
@@ -115,7 +115,7 @@ module.exports = {
 						].filter( Boolean ),
 					},
 				},
-				include: path.resolve( __dirname, 'client' ),
+				exclude: path.resolve( __dirname, 'node_modules' ),
 			},
 			{
 				test: /\.scss$/,
@@ -165,7 +165,7 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
-			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
+  	  	  	'fetch': 'exports-loader?self.fetch!whatwg-fetch/dist/fetch.umd',
 		} ),
 		new MiniCssExtractPlugin( {
 			filename: '[name].css',
