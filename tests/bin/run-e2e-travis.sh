@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 if [[ ${RUN_E2E} == 1 ]]; then
 	# Set env variables for jest
-	WP_SITE_URL="http://localhost:8080"
+	WP_BASE_URL="http://localhost:8080"
 	WP_CUSTOMER_USER_NAME=customer
 	WP_CUSTOMER_USER_PW=password
 	WP_ADMIN_USER_NAME=admin
