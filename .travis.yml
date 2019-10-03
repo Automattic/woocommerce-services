@@ -91,5 +91,6 @@ notifications:
       - harris.wong@automattic.com
 
 script:
-  - bash tests/bin/run-e2e-travis.sh
+  # - bash tests/bin/run-e2e-travis.sh
+  - npm run test:e2e-travis
 
