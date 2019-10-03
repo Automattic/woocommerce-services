@@ -19,5 +19,5 @@ if [[ ${RUN_E2E} == 1 ]]; then
 
 	# Run the tests
 	# npm run test:e2e-travis
-	./node_modules/jest/bin/jest.js --config=./tests/e2e-tests/config/jest.config.js --rootDir=./ --verbose;
+	./node_modules/jest/bin/jest.js --config=./tests/e2e-tests/config/jest.config.js --rootDir=./ --verbose --runInBand;
 fi

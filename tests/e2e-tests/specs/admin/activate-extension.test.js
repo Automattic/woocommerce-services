@@ -9,7 +9,7 @@ describe( 'Store admin can login and make sure WooCommerce Service extension is 
 		let slug = 'woocommerce-services';
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openPluginsPage();
-		const disableLink = await page.$( `tr[data-slug="${ slug }"] .2deactivate a` );
+		const disableLink = await page.$( `tr[data-slug="${ slug }"] .deactivate a` );
 		if ( disableLink ) {
 			return;
 		}
