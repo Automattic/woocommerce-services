@@ -91,5 +91,5 @@ notifications:
       - harris.wong@automattic.com
 
 script:
-  - if [ ! -v RUN_E2E ] ; then npm run test:e2e; fi
+  - if [ -v RUN_E2E ] ; then npm run test:e2e; fi
 
