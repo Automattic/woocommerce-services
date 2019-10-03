@@ -1,0 +1,32 @@
+.form-password-input {
+	position: relative;
+
+	.form-text-input {
+		/*!rtl:ignore*/
+		padding-right: 32px;
+		/*!rtl:ignore*/
+		direction: ltr;
+	}
+
+	.form-password-input__toggle {
+		display: none;
+	}
+
+	.form-password-input__toggle-visibility {
+		display: block;
+		cursor: pointer;
+		position: absolute;
+		/*!rtl:ignore*/
+		right: 8px;
+		top: 8px;
+		user-select: none;
+
+		.gridicon {
+			fill: var( --color-neutral-200 );
+
+			&:hover {
+				fill: var( --color-neutral-400 );
+			}
+		}
+	}
+}

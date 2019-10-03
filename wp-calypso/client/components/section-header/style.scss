@@ -1,0 +1,56 @@
+
+.section-header.card {
+	display: flex;
+	align-items: center;
+	padding-top: 11px;
+	padding-bottom: 11px;
+	position: relative;
+	line-height: 28px;
+
+	&::after {
+		content: '';
+	}
+
+	&.is-empty .section-header__label::after {
+		content: '\00a0';
+	}
+}
+
+.section-header__label {
+	display: flex;
+	align-items: center;
+	flex-grow: 1;
+	position: relative;
+	overflow: hidden;
+
+	&::before {
+		@include long-content-fade();
+	}
+
+	.count {
+		margin-left: 8px;
+	}
+}
+
+.section-header__actions {
+	flex-grow: 0;
+	position: relative;
+
+	@include clear-fix;
+}
+
+.section-header__label {
+	color: var( --color-neutral-700 );
+	font-size: 14px;
+}
+
+.section-header__actions {
+	.button {
+		float: left;
+		margin-right: 8px;
+	}
+
+	& > .button:last-child {
+		margin-right: 0;
+	}
+}

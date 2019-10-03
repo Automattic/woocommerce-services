@@ -1,0 +1,79 @@
+/** @format */
+
+.payment-logo {
+	background-position: 0 center;
+	background-repeat: no-repeat;
+	background-size: 35px auto;
+	display: inline-block;
+	height: 20px;
+	vertical-align: middle;
+	width: 35px;
+
+	$payment-cc-brands: 'amex', 'diners', 'discover', 'jcb', 'mastercard', 'unionpay', 'visa';
+	$payment-types: 'alipay', 'bancontact', 'giropay', 'eps', 'ideal', 'paypal', 'p24', 'brazil-tef',
+					'wechat', 'sofort';
+
+	@each $brand in $payment-cc-brands {
+		&.is-#{$brand} {
+			background-image: url( '/calypso/images/upgrades/cc-#{$brand}.svg' );
+		}
+	}
+
+	@each $type in $payment-types {
+		&.is-#{$type} {
+			background-image: url( '/calypso/images/upgrades/#{$type}.svg' );
+		}
+	}
+
+	&.is-paypal {
+		background-size: 70px;
+		width: 70px;
+
+		&.is-compact {
+			width: 16px;
+		}
+	}
+
+	&.is-ideal {
+		height: 30px;
+	}
+
+	&.is-giropay {
+		background-size: 60px auto;
+		width: 60px;
+		height: 20px;
+	}
+
+	&.is-bancontact {
+		height: 20px;
+		background-size: 100px auto;
+		width: 100px;
+	}
+
+	&.is-p24 {
+		height: 20px;
+		background-size: 70px auto;
+		width: 70px;
+	}
+
+	&.is-alipay {
+		height: 20px;
+		background-size: 70px auto;
+		width: 70px;
+	}
+
+	&.is-brazil-tef {
+		background-size: 100px auto;
+		width: 100px;
+	}
+
+	&.is-sofort {
+		background-size: 60px auto;
+		width: 80px;
+		height: 20px;
+
+		&.is-compact {
+			width: 16px;
+		}
+	}
+}

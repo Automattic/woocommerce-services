@@ -1,0 +1,167 @@
+.tooltip.popover {
+	.popover__arrow {
+		border-width: 6px;
+	}
+
+	&.is-bottom-right,
+	&.is-bottom-left,
+	&.is-bottom {
+		.popover__arrow {
+			border-bottom-color: var( --color-neutral-600 );
+			top: 4px;
+			right: 10px;
+
+			&::before {
+				display: none;
+			}
+		}
+
+		&.is-error {
+			.popover__arrow {
+				border-bottom-color: var( --color-error );
+			}
+		}
+
+		&.is-warning {
+			.popover__arrow {
+				border-bottom-color: var( --color-warning );
+			}
+		}
+
+		&.is-success {
+			.popover__arrow {
+				border-bottom-color: var( --color-success );
+			}
+		}
+	}
+
+	&.is-top,
+	&.is-top-left,
+	&.is-top-right {
+		.popover__arrow {
+			border-top-color: var( --color-neutral-600 );
+			bottom: 4px;
+			right: 10px;
+
+			&::before {
+				display: none;
+			}
+		}
+
+		&.is-error {
+			.popover__arrow {
+				border-top-color: var( --color-error );
+			}
+		}
+
+		&.is-warning {
+			.popover__arrow {
+				border-top-color: var( --color-warning );
+			}
+		}
+
+		&.is-success {
+			.popover__arrow {
+				border-top-color: var( --color-success );
+			}
+		}
+	}
+
+	&.is-top,
+	&.is-bottom {
+		.popover__arrow {
+			margin-left: -6px;
+		}
+	}
+
+	&.is-left,
+	&.is-right {
+		padding-top: 0;
+		.popover__arrow {
+			margin-top: -6px;
+
+			&::before {
+				display: none;
+			}
+		}
+
+		&.is-error {
+			.popover__arrow {
+				border-right-color: var( --color-error );
+			}
+		}
+
+		&.is-warning {
+			.popover__arrow {
+				border-right-color: var( --color-warning );
+			}
+		}
+
+		&.is-success {
+			.popover__arrow {
+				border-right-color: var( --color-success );
+			}
+		}
+	}
+
+	&.is-left {
+		.popover__arrow {
+			margin-right: 4px;
+			border-left-color: var( --color-neutral-600 );
+		}
+	}
+
+	&.is-right {
+		.popover__arrow {
+			margin-left: 4px;
+			border-right-color: var( --color-neutral-600 );
+		}
+	}
+
+	.popover__inner {
+		border: 0;
+		box-shadow: none;
+		border-radius: 2px;
+		color: var( --color-white );
+		background: var( --color-neutral-600 );
+		font-size: 12px;
+		padding: 6px 10px;
+		text-align: left;
+	}
+
+	&.is-error {
+		.popover__inner {
+			background: var( --color-error );
+		}
+	}
+
+	&.is-warning {
+		.popover__inner {
+			background: var( --color-warning );
+		}
+	}
+
+	&.is-success {
+		.popover__inner {
+			background: var( --color-success );
+		}
+	}
+
+	ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+
+		li {
+			font-size: 11px;
+			font-weight: 100;
+			border: 0;
+			padding: 2px 0;
+		}
+	}
+}
+
+.tooltip__hr {
+	margin: 8px 0;
+	background: var( --color-neutral-light );
+}
