@@ -14,9 +14,9 @@ if [[ ${RUN_E2E} == 1 ]]; then
 	export WP_ADMIN_USER_NAME
 	export WP_ADMIN_USER_PW
 	export DISPLAY=:99.0
-	sh -e /etc/init.d/xvfb start
-	sleep 3
+	# sh -e /etc/init.d/xvfb start
+	# sleep 3
 
 	# Run the tests
-	npm run test-e2e
+	npm run test:e2e
 fi
