@@ -46,8 +46,8 @@ matrix:
      script: curl -sSfL -o ~/.phpenv/versions/7.4snapshot/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
      # Run the JS tests in a separate container
-   - language: node_js
-     before_script: ""
+  #  - language: node_js
+  #    before_script: ""
 
 addons:
       apt:
@@ -61,7 +61,7 @@ install:
   - . $HOME/.nvm/nvm.sh
   - nvm install 11.3.0
   - nvm use 11.3.0
-  - npm install
+  - npm ci
   - travis_retry composer update --ignore-platform-reqs --no-interaction --prefer-source
 
 # Clones WordPress and configures our testing environment.
