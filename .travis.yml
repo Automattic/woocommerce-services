@@ -62,7 +62,7 @@ install:
   - nvm install 10
   - nvm use 10
   - npm ci
-  - travis_retry composer update --ignore-platform-reqs --no-interaction --prefer-source
+  # - travis_retry composer update --ignore-platform-reqs --no-interaction --prefer-source
 
 # Clones WordPress and configures our testing environment.
 before_script: 
