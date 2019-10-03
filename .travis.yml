@@ -59,8 +59,8 @@ services:
   
 install:
   - . $HOME/.nvm/nvm.sh
-  - nvm install 11.3.0
-  - nvm use 11.3.0
+  - nvm install 10
+  - nvm use 10
   - npm ci
   - travis_retry composer update --ignore-platform-reqs --no-interaction --prefer-source
 
