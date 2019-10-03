@@ -135,7 +135,7 @@ module.exports = {
 						loader: 'wrap-loader',
 						options: {
 							before: [
-								"@import 'shared/utils';",
+								"@import 'assets/stylesheets/shared/_utils.scss';",
 								'.wp-core-ui.wp-admin .wcc-root {',
 							],
 							after: '}',
