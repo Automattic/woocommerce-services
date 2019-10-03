@@ -48,15 +48,21 @@ matrix:
      # Run the JS tests in a separate container
   #  - language: node_js
   #    before_script: ""
+   - name: "E2E tests"
+     php: 7.2
+     env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=latest RUN_E2E=1
+     addons:
+       apt:
+        packages:
+        - nginx
+
 
 addons:
       apt:
-        packages:
-          - nginx
 
 services:
    - mysql
-  
+
 install:
   - . $HOME/.nvm/nvm.sh
   - nvm install 10
@@ -65,7 +71,7 @@ install:
   # - travis_retry composer update --ignore-platform-reqs --no-interaction --prefer-source
 
 # Clones WordPress and configures our testing environment.
-before_script: 
+before_script:
   # - bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
   - phpenv config-rm xdebug.ini
   - curl -sSfL -o /home/travis/.phpenv/shims/phpunit https://phar.phpunit.de/phpunit-5.7.phar # Install phpunit 5.7 for use by legacy test scripts.
@@ -83,9 +89,7 @@ notifications:
    email:
       #  - hydra@matticspace.com
       - harris.wong@automattic.com
-      
+
 script:
-  # - if [ ${TRAVIS_PHP_VERSION:0:1} == "7" ] && [ ! -v RUN_E2E ] ; then npm run test; fi
-  # - if [ ! -v RUN_E2E ] ; then npm run test:legacy ; fi
-  - bash tests/bin/run-e2e-travis.sh
+  - if [ ! -v RUN_E2E ] ; then npm run test:e2e; fi
 
