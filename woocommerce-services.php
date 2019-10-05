@@ -46,6 +46,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD', DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD', 3 * DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
+
+	// Check for CI environment variable to trigger test mode.
 	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true ) ) {
 		if ( ! defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
 			define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
