@@ -12,7 +12,9 @@ import { setCheckbox, settingsPageSaveChanges, uiUnblocked, verifyCheckboxIsSet 
 describe( 'Create shipping label', () => {
 	beforeAll( async () => {
 		await loginAndConfirmExtensionActivation();
+		console.log( 'I am logged in!' );
 		await createSimpleProduct();
+		console.log( 'Simple product is created!' );
 
 		// Go to general settings page
 		await StoreOwnerFlow.openSettings( 'general' );
@@ -26,6 +28,7 @@ describe( 'Create shipping label', () => {
 		// Tax calculation should have been enabled by another test - no-op
 		// Save
 		await settingsPageSaveChanges();
+		console.log( 'General settings have been set and saved!' );
 
 		// Verify that settings have been saved
 		await Promise.all( [
@@ -42,12 +45,15 @@ describe( 'Create shipping label', () => {
 
 		// Verify that settings have been saved
 		await verifyCheckboxIsSet( '#woocommerce_cod_enabled' );
+		console.log( 'Payment settings have been set and saved!' );
 
 		await StoreOwnerFlow.logout();
+		console.log( 'I am logged out!' );
 	} );
 
 	it( 'should add item to cart and display cart item in order review', async () => {
 		await CustomerFlow.goToShop();
+		console.log( 'I am on the shop page!' );
 		await CustomerFlow.addToCartFromShopPage( 'Simple product' );
 
 		await CustomerFlow.goToCheckout();
