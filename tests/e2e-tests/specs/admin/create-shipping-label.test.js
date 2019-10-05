@@ -103,11 +103,12 @@ describe( 'Create shipping label', () => {
 		await expect( page ).toFill( '#origin_city', 'New York' );
 		await expect( page ).toSelect( '#origin_state', 'New York' );
 		await expect( page ).toFill( '#origin_postcode', '10075' );
-		await expect( page ).toFill( '#origin_country', 'United States (US)' );
 
 		// Verify address
 		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
 		await page.waitForSelector( '.dialog__content' );
+
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root input[type="radio"]' );
 
 		// Use selected address
 		await expect( page ).toClick( '.address-step__suggestion-title' );
@@ -121,5 +122,17 @@ describe( 'Create shipping label', () => {
 		// Use selected address
 		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
 		await page.waitForSelector( '.packages-step__contents' );
+
+		// Work on packages section
+		await expect( page ).toSelect( '.form-select.is-error', 'Flat Rate Envelope - 12.5 in x 9.5 in x 0.5 in' );
+		await expect( page ).toFill( '#weight_default_box', '5' );
+
+		// Use these packages
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .step-confirmation-button .form-button, .wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button' );
+		await page.waitForSelector( '.rates-step__shipping-info' );
+
+		// Work on rates section
+		await expect( page ).toSelect( '#rates_default_box', 'USPS - Mock 1 ($12.30)' );
+		await page.waitForSelector( '.wp-core-ui.wp-admin .wcc-root .button.is-primary' );
 	} );
 } );

@@ -4,8 +4,7 @@ const adminUserPassword = process.env.WP_ADMIN_USER_PW;
 
 const WP_ADMIN_LOGIN = baseUrl + '/wp-login.php';
 const WP_ADMIN_PLUGINS_PAGE = baseUrl + '/wp-admin/plugins.php';
-const WP_ADMIN_ALL_ORDERS_PAGE = baseUrl + '/wp-admin/edit.php?post_type=shop_order';
-const WP_ADMIN_EXISTING_ORDER_PAGE = baseUrl + '/wp-admin/post.php?post=54&action=edit';
+const WP_ADMIN_EXISTING_ORDER_PAGE = baseUrl + '/wp-admin/post.php?post=82&action=edit';
 const WP_ADMIN_NEW_PRODUCT = baseUrl + '/wp-admin/post-new.php?post_type=product';
 const WP_ADMIN_WC_SETTINGS = baseUrl + '/wp-admin/admin.php?page=wc-settings&tab=';
 
@@ -81,12 +80,6 @@ const StoreOwnerFlow = {
 			page.waitForNavigation( { waitUntil: 'networkidle0' } ),
 			page.click( 'a' ),
 		] );
-	},
-
-	openAllOrdersPage: async () => {
-		await page.goto( WP_ADMIN_ALL_ORDERS_PAGE, {
-			waitUntil: 'networkidle0',
-		} );
 	},
 
 	openExistingOrderPage: async () => {
