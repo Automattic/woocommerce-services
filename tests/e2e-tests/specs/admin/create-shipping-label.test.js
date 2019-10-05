@@ -83,4 +83,43 @@ describe( 'Create shipping label', () => {
 
 		await expect( page ).toMatch( 'Order received' );
 	} );
+
+	it( 'should login as Admin and navigate to order page', async () => {
+		await StoreOwnerFlow.login();
+		await StoreOwnerFlow.openExistingOrderPage();
+	} );
+
+	it( 'should create shipping label', async () => {
+		// Click on Create shipping label button
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .button.is-primary' );
+		await page.waitForSelector( '.dialog__content' );
+
+		// Work on origin address section
+		await expect( page ).toClick( '.gridicons-chevron-down' );
+		await page.waitForSelector( '.address-step__actions' );
+
+		// Fill in origin address details
+		await expect( page ).toFill( '#origin_address', '1480 York Ave' );
+		await expect( page ).toFill( '#origin_city', 'New York' );
+		await expect( page ).toSelect( '#origin_state', 'New York' );
+		await expect( page ).toFill( '#origin_postcode', '10075' );
+		await expect( page ).toFill( '#origin_country', 'United States (US)' );
+
+		// Verify address
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
+		await page.waitForSelector( '.dialog__content' );
+
+		// Use selected address
+		await expect( page ).toClick( '.address-step__suggestion-title' );
+		await page.waitForSelector( '.dialog__content' );
+
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
+		await page.waitForSelector( '.foldable-card__content' );
+
+		// Work on destination address section
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root input[type="radio"]' );
+		// Use selected address
+		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
+		await page.waitForSelector( '.packages-step__contents' );
+	} );
 } );
