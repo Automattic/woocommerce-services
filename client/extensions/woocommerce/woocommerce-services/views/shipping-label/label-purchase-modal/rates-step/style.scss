@@ -28,18 +28,35 @@
 
 .rates-step__shipping-rate-container {
 	display: flex;
-	align-items: center;
+	align-items: stretch;
+	height: 100px;
 }
 
 .rates-step__carier-logo-image-usps {
-	width: 80px;
-	height: 80px;
+	width: 40px;
+	height: 40px;
 }
 
 .rates-step__shipping-rate-information{
 	display: flex;
-	align-items: center;
 	flex-grow: 1;
+	padding-left: 8px;
+	border-bottom: 1px solid #EDEFF0;
+	margin-bottom: 24px;
+}
+
+.rates-step__shipping-rate-radio-control{
+	padding: 8px 8px 0 0;
+	input[type='radio'] {
+		border: 2px solid gray;
+	}
+	input[type='radio']:checked {
+		border-color: #d52c82;
+	}
+	input[type='radio']:checked::before {
+		margin: 2px;
+		background-color: #d52c82;
+	}
 }
 
 .rates-step__shipping-rate-description {
@@ -48,7 +65,7 @@
 }
 
 .rates-step__shipping-rate-description-title {
-	font-size: 16px;
+	font-size: 15px;
 }
 
 .rates-step__shipping-rate-rate {
