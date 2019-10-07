@@ -36,7 +36,7 @@ const getPurchaseButtonLabel = props => {
 };
 
 const PurchaseButton = props => {
-	const { form, translate, disabled, busy } = props;
+	const { form, disabled, busy } = props;
 	return (
 		<Fragment>
 			<Button
@@ -47,9 +47,6 @@ const PurchaseButton = props => {
 			>
 				{ getPurchaseButtonLabel( props ) }
 			</Button>
-			<div className="purchase-section__explanation">
-				{ translate( 'Buying shipping labels will mark items as fulfilled.' ) }
-			</div>
 		</Fragment>
 	);
 };
