@@ -11,19 +11,25 @@ import { RadioControl } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import Card from 'components/card';
+import CarrierLogo from './carrier-logo';
+import formatCurrency from '@automattic/format-currency';
 
-function ShippingRate( { rateObject: { service_id }, isSelected, updateValue } ) {
-	return <Card>
+function ShippingRate( { rateObject: { title, service_id, carrier_id, rate }, isSelected, updateValue } ) {
+	return <div className="rates-step__shipping-rate-container">
 		<RadioControl
-			help="The type of the current user"
 			selected={ isSelected ? service_id : null }
 			options={ [
 				{ label: '', value: service_id },
 			] }
 			onChange={ () => { updateValue( service_id ) } }
 		/>
-		</Card>
+		<CarrierLogo carrier_id={ carrier_id }/>
+		<div className="rates-step__shipping-rate-description">
+			<div className="rates-step__shipping-rate-description-title">{ title }</div>
+			<div className="rates-step__shipping-rate-description-details"></div>
+		</div>
+		<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
+	</div>
 }
 
 ShippingRate.propTypes = {
