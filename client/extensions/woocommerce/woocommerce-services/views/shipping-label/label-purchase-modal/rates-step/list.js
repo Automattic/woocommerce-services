@@ -6,8 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { get, isEmpty, mapValues } from 'lodash';
-import formatCurrency from '@automattic/format-currency';
+import { get, mapValues } from 'lodash';
 
 /**
  * Internal dependencies
@@ -15,7 +14,6 @@ import formatCurrency from '@automattic/format-currency';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import Notice from 'components/notice';
 import ShippingRarte from './shipping-rate';
-import getPackageDescriptions from '../packages-step/get-package-descriptions';
 
 const renderRateNotice = translate => {
 	return (
@@ -35,32 +33,16 @@ export const ShippingRates = ( {
 	selectedRates, // Store owner selected rates, not customer
 	availableRates,
 	selectedPackages,
-	allPackages,
 	updateRate,
 	errors,
 	shouldShowRateNotice,
 	translate,
 } ) => {
-	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
-	const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
-
-	const getTitle = ( pckg, pckgId ) => {
-		if ( hasSinglePackage ) {
-			return translate( 'Choose rate' );
-		}
-		return translate( 'Choose rate: %(pckg)s', { args: { pckg: packageNames[ pckgId ] } } );
-	};
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = get( availableRates, [ pckgId, 'rates' ], [] );
-		const valuesMap = { '': translate( 'Select one…' ) };
 		const packageErrors = errors[ pckgId ] || [];
-
-		packageRates.forEach( rateObject => {
-			valuesMap[ rateObject.service_id ] =
-				rateObject.title + ' (' + formatCurrency( rateObject.rate, 'USD' ) + ')';
-		} );
 
 		const onRateUpdate = value => updateRate( pckgId, value );
 		return (
