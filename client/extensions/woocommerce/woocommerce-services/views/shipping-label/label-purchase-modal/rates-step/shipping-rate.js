@@ -17,6 +17,7 @@ import formatCurrency from '@automattic/format-currency';
 function ShippingRate( { rateObject: { title, service_id, carrier_id, rate }, isSelected, updateValue } ) {
 	return <div className="rates-step__shipping-rate-container">
 		<RadioControl
+			className="rates-step__shipping-rate-radio-control"
 			selected={ isSelected ? service_id : null }
 			options={ [
 				{ label: '', value: service_id },
