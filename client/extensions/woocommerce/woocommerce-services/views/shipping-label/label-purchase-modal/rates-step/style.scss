@@ -24,3 +24,28 @@
 .rates-step__shipping-info-cost {
 	font-weight: 600;
 }
+
+
+.rates-step__shipping-rate-container {
+	display: flex;
+	align-items: center;
+}
+
+.rates-step__carier-logo-image-usps {
+	width: 80px;
+	height: 80px;
+}
+
+.rates-step__shipping-rate-description {
+	display: flex;
+	flex-direction: column;
+}
+
+.rates-step__shipping-rate-description-title {
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.rates-step__shipping-rate-rate {
+	margin-left: auto;
+}
