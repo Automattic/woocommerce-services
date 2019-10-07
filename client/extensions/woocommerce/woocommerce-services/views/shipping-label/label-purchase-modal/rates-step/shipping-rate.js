@@ -24,11 +24,13 @@ function ShippingRate( { rateObject: { title, service_id, carrier_id, rate }, is
 			onChange={ () => { updateValue( service_id ) } }
 		/>
 		<CarrierLogo carrier_id={ carrier_id }/>
-		<div className="rates-step__shipping-rate-description">
-			<div className="rates-step__shipping-rate-description-title">{ title }</div>
-			<div className="rates-step__shipping-rate-description-details"></div>
+		<div className="rates-step__shipping-rate-information">
+			<div className="rates-step__shipping-rate-description">
+				<div className="rates-step__shipping-rate-description-title">{ title }</div>
+				<div className="rates-step__shipping-rate-description-details"></div>
+			</div>
+			<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
 		</div>
-		<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
 	</div>
 }
 
