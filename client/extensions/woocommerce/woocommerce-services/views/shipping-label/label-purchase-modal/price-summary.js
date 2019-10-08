@@ -89,7 +89,7 @@ class PriceSummary extends Component {
 		const { prices, discount, total } = priceBreakdown;
 
 		return (
-			<Card>
+			<div>
 				{ prices.map( ( service, index ) =>
 					this.renderRow( service.title, service.retailRate, index )
 				) }
@@ -97,7 +97,7 @@ class PriceSummary extends Component {
 					? this.renderRow( translate( 'Your discount' ), -discount, 'discount', false, true )
 					: null }
 				{ this.renderRow( translate( 'Total' ), total, 'total', true ) }
-			</Card>
+			</div>
 		);
 	}
 }
