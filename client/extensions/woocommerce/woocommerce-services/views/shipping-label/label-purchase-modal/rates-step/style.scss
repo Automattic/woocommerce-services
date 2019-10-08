@@ -20,7 +20,6 @@
 	width: inherit;
 }
 
-.rates-step__shipping-info-method,
 .rates-step__shipping-info-cost {
 	font-weight: 600;
 }
@@ -70,4 +69,21 @@
 
 .rates-step__shipping-rate-rate {
 	margin-left: auto;
+}
+
+.rates-step__shipping-info {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 56px;
+	background: #EBF7F1;
+	border: 1px solid #008A20;
+	box-sizing: border-box;
+	border-radius: 3px;
+	margin-bottom: 36px;
+
+	.gridicon {
+		padding-right: 8px;
+		color:#008A20;
+	}
 }
