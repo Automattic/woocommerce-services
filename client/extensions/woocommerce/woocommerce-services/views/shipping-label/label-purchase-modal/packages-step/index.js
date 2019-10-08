@@ -13,7 +13,6 @@ import { find, isEmpty } from 'lodash';
 /**
  * Internal dependencies
  */
-import PackageList from './list';
 import PackageInfo from './package-info';
 import MoveItemDialog from './move-item';
 import AddItemDialog from './add-item';
@@ -101,14 +100,7 @@ const PackagesStep = props => {
 			toggleStep={ toggleStepHandler }
 		>
 			<div className="packages-step__contents">
-				<PackageList siteId={ props.siteId } orderId={ props.orderId } />
-				{ packageIds.length ? (
-					<PackageInfo siteId={ props.siteId } orderId={ props.orderId } />
-				) : (
-					<div key="no-packages" className="packages-step__package">
-						{ translate( 'There are no packages or items associated with this order' ) }
-					</div>
-				) }
+				<PackageInfo siteId={ props.siteId } orderId={ props.orderId } />
 			</div>
 
 			<StepConfirmationButton

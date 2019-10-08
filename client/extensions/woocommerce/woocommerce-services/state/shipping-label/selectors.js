@@ -4,6 +4,7 @@
  * External dependencies
  */
 import {
+	every,
 	fill,
 	find,
 	flatten,
@@ -400,6 +401,12 @@ export const getCustomsErrors = (
 			return itemErrors;
 		} ),
 	};
+};
+
+export const hasSelectedRates = ( { values: selectedRates, available: allRates } ) => {
+	const selections = map( allRates, ( rate, boxId ) => selectedRates[ boxId ] );
+
+	return ! isEmpty( selections ) && every( selections );
 };
 
 export const getRatesErrors = ( { values: selectedRates, available: allRates } ) =>

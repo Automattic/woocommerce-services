@@ -12,7 +12,6 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import getProductLink from 'woocommerce/woocommerce-services/lib/utils/get-product-link';
 import { getSite } from 'state/sites/selectors';
 import { openItemMove } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
@@ -23,9 +22,11 @@ const ItemInfo = props => {
 
 	const renderMoveToPackage = () => {
 		return (
-			<Button className="packages-step__item-move" compact onClick={ onMoveClick }>
+			/* eslint-disable jsx-a11y/anchor-is-valid */
+			<a href="#" onClick={ onMoveClick }>
 				{ translate( 'Move' ) }
-			</Button>
+			</a>
+			/* eslint-enable jsx-a11y/anchor-is-valid */
 		);
 	};
 
@@ -43,7 +44,15 @@ const ItemInfo = props => {
 				<span>{ productLink }</span>
 				{ item.attributes && <p>{ item.attributes }</p> }
 			</div>
-			<div>{ renderMoveToPackage() }</div>
+			<div className="packages-step__item-weight">
+				{ item.weight && <p>{ item.weight }</p> }
+			</div>
+			<div className="packages-step__item-qty">
+				{ item.quantity && <p>{ item.quantity }</p> }
+			</div>
+			<div className="packages-step__item-move">
+				{ renderMoveToPackage() }
+			</div>
 		</div>
 	);
 };

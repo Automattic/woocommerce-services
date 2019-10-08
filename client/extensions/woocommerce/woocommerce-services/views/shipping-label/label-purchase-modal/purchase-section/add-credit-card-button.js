@@ -5,6 +5,7 @@ import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -45,7 +46,7 @@ class AddCreditCardButton extends Component {
 					disabled={ disabled }
 					primary
 				>
-					{ translate( 'Add credit card' ) }
+					{ translate( 'Add credit card' ) } <Gridicon icon="external" />
 				</Button>
 				<div className="purchase-section__explanation">
 					{
