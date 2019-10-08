@@ -5,8 +5,12 @@
 @import './rates-step/style';
 
 &.label-purchase-modal {
-	height: 90%;
-	width: 90%;
+	height: calc(100% - 10vmin);
+	width: calc(100% - 10vmin);
+    max-height: 1080px;
+    max-width: 1920px;
+	background: $studio-gray-0;
+  	box-shadow: rgba(151,150,150,.5) 2px 2px 7px;
 
 	.dialog__content {
 		flex-grow: 1;
@@ -37,7 +41,7 @@
 		flex-basis: 40%;
 		padding: 24px;
 		margin-left: 24px;
-		background: var( --color-neutral-0 );
+		background: $studio-gray-0;
 	}
 
 	@include breakpoint( '>960px' ) {
@@ -173,6 +177,7 @@
 	flex-direction: row;
 	.form-section-heading {
 		flex: 1;
+        margin: 0 0 45px;
 	}
 	.label-purchase-modal__close-button {
 		border: none;
