@@ -27,7 +27,7 @@ import { createWcsShippingSaveActionList } from 'extensions/woocommerce/woocomme
 import { bindActionCreators } from 'redux';
 import { successNotice, errorNotice } from 'state/notices/actions';
 
-const AddPackageDialog = props => {
+const PackageDialog = props => {
 	const {
 		siteId,
 		form,
@@ -186,7 +186,7 @@ const AddPackageDialog = props => {
 	);
 };
 
-AddPackageDialog.propTypes = {
+PackageDialog.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	dismissModal: PropTypes.func.isRequired,
 	form: PropTypes.object.isRequired,
@@ -209,4 +209,4 @@ export default connect(
 		errorNotice,
 		successNotice,
 	}, dispatch )
-)( localize( AddPackageDialog ) );
+)( localize( PackageDialog ) );
