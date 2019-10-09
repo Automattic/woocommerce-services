@@ -1,7 +1,12 @@
 @import 'shared/utils';
 @import '~@automattic/calypso-color-schemes/src/shared/color-schemes';
+@import 'colors';
 
 .wp-core-ui.wp-admin .wcc-root {
+	a, a:visited {
+		text-decoration: none;
+	}
+
 	// Buttons
 	.button {
 		background: var( --color-surface-backdrop );
