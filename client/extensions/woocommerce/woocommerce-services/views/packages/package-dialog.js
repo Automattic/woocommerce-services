@@ -26,6 +26,7 @@ import { getPredefinedPackagesChangesSummary } from '../../state/packages/select
 import { createWcsShippingSaveActionList } from 'extensions/woocommerce/woocommerce-services/state/actions';
 import { bindActionCreators } from 'redux';
 import { successNotice, errorNotice } from 'state/notices/actions';
+import * as PackagesActions from "../../state/packages/actions";
 
 const PackageDialog = props => {
 	const {
@@ -208,5 +209,6 @@ export default connect(
 		createWcsShippingSaveActionList,
 		errorNotice,
 		successNotice,
+		... PackagesActions,
 	}, dispatch )
 )( localize( PackageDialog ) );
