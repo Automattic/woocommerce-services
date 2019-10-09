@@ -17,6 +17,10 @@
 			width: 50%;
 		}
 	}
+
+	.form-text-input-with-affixes__suffix {
+		background: inherit;
+	}
 }
 
 .packages__add-package-weight-group {
@@ -37,7 +41,44 @@
 
 	@include breakpoint( '>660px' ) {
 		width: 610px;
-		height: 530px;
+		height: auto;
+		padding: 0;
+
+		.dialog__content {
+			padding: 0;
+
+			.packages__add-edit-title {
+				padding: 22px;
+				margin: 0;
+				border-bottom: 1px solid #EDEFF0;
+				font-size: 20px;
+			}
+
+			.packages__mode-select {
+
+				.segmented-control__link {
+					border-radius: 0;
+					border: 0 none;
+					padding: 15px 0;
+				}
+
+				.is-selected {
+					.segmented-control__link,
+					.segmented-control__link:focus {
+						background-color: inherit;
+						color: black;
+						font-weight: bold;
+						border-bottom: 3px solid #96588A;
+						outline: 0;
+					}
+				}
+
+			}
+
+			.packages__properties-group {
+				margin: 24px;
+			}
+		}
 	}
 }
 
