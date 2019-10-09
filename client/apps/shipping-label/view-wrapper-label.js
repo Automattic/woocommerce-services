@@ -28,6 +28,9 @@ import {
 import {
 	areLabelsEnabled,
 } from '../../extensions/woocommerce/woocommerce-services/state/label-settings/selectors';
+import {
+	getActivityLogEvents,
+} from '../../extensions/woocommerce/state/sites/orders/activity-log/selectors';
 import { fetchOrder } from '../../extensions/woocommerce/state/sites/orders/actions';
 
 class ShippingLabelViewWrapper extends Component {
@@ -47,6 +50,7 @@ class ShippingLabelViewWrapper extends Component {
 		const {
 			loaded,
 			translate,
+			events,
 		} = this.props;
 
 		const className = classNames( 'shipping-label__new-label-button', {
@@ -54,16 +58,25 @@ class ShippingLabelViewWrapper extends Component {
 			'is-primary': loaded,
 		} );
 
+		if ( 0 === events.length ) {
+			return (
+				<Button
+					className={ className }
+					onClick={ this.handleCreateLabelButtonClick } >
+					{ translate( 'Create shipping label' ) }
+				</Button>
+			);
+		}
+
 		return (
 			<Button
-				className={ className }
-				onClick={ this.handleButtonClick } >
-				{ translate( 'Create shipping label' ) }
+				onClick={ this.handleTrackPackagesButtonClick }>
+				{ translate( 'Track Packages' ) }
 			</Button>
 		);
 	};
 
-	handleButtonClick = () => {
+	handleCreateLabelButtonClick = () => {
 		const {
 			orderId,
 			siteId,
@@ -75,6 +88,10 @@ class ShippingLabelViewWrapper extends Component {
 		this.props.setEmailDetailsOption( orderId, siteId, false );
 		this.props.setFulfillOrderOption( orderId, siteId, false );
 		this.props.openPrintingFlow( orderId, siteId );
+	};
+
+	handleTrackPackagesButtonClick = () => {
+
 	};
 
 	render() {
@@ -109,10 +126,12 @@ export default connect(
 	( state, { orderId } ) => {
 		const siteId = getSelectedSiteId( state );
 		const loaded = areLabelsFullyLoaded( state, orderId, siteId );
+		const events = getActivityLogEvents( state, orderId );
 
 		return {
 			siteId,
 			loaded,
+			events,
 			labelsEnabled: areLabelsEnabled( state, siteId ),
 		};
 	},
