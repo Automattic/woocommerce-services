@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
 import { isEmpty, map, reduce } from 'lodash';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -95,49 +96,56 @@ const PackageSelect = props => {
 	}, 0 );
 
 	return (
-		! totalPackagesCount ?
-		( <div className="packages-step__no-packages">
-			{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
-			<a href="#" onClick={ () => props.addPackage( siteId ) }>
-				{ translate( 'Select a package type' ) }
-			</a>
-			{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
-		</div> ) :
-		( <div>
-			{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
-			<a href="#" onClick={ () => props.addPackage( siteId ) }>
-				{ translate( 'Add package' ) }
-			</a>
-			{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
-			<div className="packages-step__package-items-header">
+		<div>
+			<div className="packages-step__package-items-header packages-step__package-details-header">
 				<FormLegend>{ translate( 'Package details' ) }</FormLegend>
+				{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
+				{ 0 !== totalPackagesCount ? (
+					<a href="#" onClick={ () => props.addPackage( siteId ) }>
+						{ translate( 'Add package' ) }
+					</a>
+				) : null }
+				{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
 			</div>
-			<FormSelect
-				onChange={ packageOptionChange }
-				value={ pckg.box_id }
-				isError={ pckgErrors.box_id || pckgErrors.dimensions }
-			>
-				<option value={ 'not_selected' } key={ 'not_selected' }>
-					{ translate( 'Please select a package' ) }
-				</option>{' '}
-				{ map( packageGroups, ( group, groupId ) => {
-					if ( isEmpty( group.definitions ) ) {
-						return null;
-					}
+			{ 0 === totalPackagesCount ? (
+				<div className="packages-step__no-packages">
+					<Gridicon icon="product" size="20" />
+					{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
+					<a href="#" onClick={ () => props.addPackage( siteId ) }>
+						{ translate( 'Select a package type' ) }
+					</a>
+					{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
+				</div>
+			) : (
+				<div className="packages-step__with-packages">
+					<FormSelect
+						onChange={ packageOptionChange }
+						value={ pckg.box_id }
+						isError={ pckgErrors.box_id || pckgErrors.dimensions }
+					>
+						<option value={ 'not_selected' } key={ 'not_selected' }>
+							{ translate( 'Please select a package' ) }
+						</option>{' '}
+						{ map( packageGroups, ( group, groupId ) => {
+							if ( isEmpty( group.definitions ) ) {
+								return null;
+							}
 
-					return (
-						<optgroup label={ group.title } key={ groupId }>
-							{ map( group.definitions, renderPackageOption ) }
-						</optgroup>
-					);
-				} ) }
-			</FormSelect>
+							return (
+								<optgroup label={ group.title } key={ groupId }>
+									{ map( group.definitions, renderPackageOption ) }
+								</optgroup>
+							);
+						} ) }
+					</FormSelect>
+				</div>
+			) }
 			<PackageDialog
 				persistOnSave={ true }
 				{ ... props }
 				onSaveSuccess={ onPackageDialogSave }
 			/>
-		</div> )
+		</div>
 	);
 }
 
