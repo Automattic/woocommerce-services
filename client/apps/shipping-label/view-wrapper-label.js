@@ -68,7 +68,7 @@ class ShippingLabelViewWrapper extends Component {
 						primary
 						busy= { ! loaded }
 						disabled= { ! loaded }
-						onClick={ this.handleButtonClick }
+						onClick={ this.handleCreateLabelButtonClick }
 					>
 						{ translate( 'Create shipping label' ) }
 					</Button>
