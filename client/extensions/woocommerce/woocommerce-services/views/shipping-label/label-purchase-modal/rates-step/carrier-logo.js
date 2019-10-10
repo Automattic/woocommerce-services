@@ -18,7 +18,7 @@ function CarrierLogo( { carrier_id } ) {
 			return <img className="rates-step__carier-logo-image-usps" src={ usps } alt="" />;
 	
 		default:
-			return <div/>
+			return <div/>;
 	}
 }
 
