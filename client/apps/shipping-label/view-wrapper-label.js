@@ -51,7 +51,6 @@ class ShippingLabelViewWrapper extends Component {
 
 		const className = classNames( 'shipping-label__new-label-button', {
 			'is-placeholder': ! loaded,
-			'is-primary': loaded,
 		} );
 
 		// eslint-disable-next-line no-undef
@@ -59,7 +58,11 @@ class ShippingLabelViewWrapper extends Component {
 			return (
 				<Button
 					className={ className }
-					onClick={ this.handleButtonClick } >
+					primary
+					busy= { ! loaded }
+					disabled= { ! loaded }
+					onClick={ this.handleButtonClick }
+				>
 					{ translate( 'Create shipping label' ) }
 				</Button>
 			);
