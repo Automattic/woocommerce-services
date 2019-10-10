@@ -36,7 +36,7 @@
 	height: 40px;
 }
 
-.rates-step__shipping-rate-information{
+.rates-step__shipping-rate-information {
 	display: flex;
 	flex-grow: 1;
 	padding-left: 8px;
@@ -44,7 +44,7 @@
 	margin-bottom: 24px;
 }
 
-.rates-step__shipping-rate-radio-control{
+.rates-step__shipping-rate-radio-control {
 	padding: 8px 8px 0 0;
 	input[type='radio'] {
 		border: 2px solid gray;
@@ -67,8 +67,24 @@
 	font-size: 15px;
 }
 
-.rates-step__shipping-rate-rate {
+.rates-step__shipping-rate-description-details {
+	color: var( --color-neutral-200 );
+	font-size: 12px;
+}
+
+.rates-step__shipping-rate-details {
+	display: flex;
+	flex-direction: column;
 	margin-left: auto;
+}
+
+.rates-step__shipping-rate-delivery-date {
+	color: var( --color-neutral-200 );
+	font-size: 12px;
+}
+
+.rates-step__shipping-rate-rate {
+	text-align: right;
 }
 
 .rates-step__shipping-info {
