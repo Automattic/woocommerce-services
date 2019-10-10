@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { find, get, isEmpty, mapValues, some } from 'lodash';
 import formatCurrency from '@automattic/format-currency';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -31,7 +32,6 @@ import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state
 import { getOrderShippingTotal } from 'woocommerce/lib/order-values/totals';
 import { getOrderShippingMethod } from 'woocommerce/lib/order-values';
 import { getOrder } from 'woocommerce/state/sites/orders/selectors';
-import Notice from 'components/notice';
 
 const ratesSummary = ( selectedRates, availableRates, total, packagesSaved, translate ) => {
 	if ( ! packagesSaved ) {
@@ -108,11 +108,11 @@ const showCheckoutShippingInfo = props => {
 
 		if ( 0 < shippingCost ) {
 			shippingInfo = translate(
-				'Your customer selected {{shippingMethod/}} and paid {{shippingCost/}}',
+				'Customer paid a {{shippingMethod/}} of {{shippingCost/}} for shipping',
 				{
 					components: {
 						shippingMethod: (
-							<span className="rates-step__shipping-info-method">{ decodedShippingMethod }</span>
+							<span>{ decodedShippingMethod }</span>
 						),
 						shippingCost: (
 							<span className="rates-step__shipping-info-cost">
@@ -134,7 +134,8 @@ const showCheckoutShippingInfo = props => {
 
 		return (
 			<div className="rates-step__shipping-info">
-				<Notice showDismiss={ false }>{ shippingInfo }</Notice>
+				<Gridicon icon="info-outline" />
+				<div >{ shippingInfo }</div>
 			</div>
 		);
 	}
@@ -160,7 +161,7 @@ const RatesStep = props => {
 
 	return (
 		<StepContainer
-			title={ translate( 'Rates' ) }
+			title={ translate( 'Shipping rates' ) }
 			summary={ summary }
 			expanded={ expanded }
 			toggleStep={ toggleStepHandler }

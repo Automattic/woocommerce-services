@@ -57,23 +57,36 @@ class ShippingLabelViewWrapper extends Component {
 
 		const className = classNames( 'shipping-label__new-label-button', {
 			'is-placeholder': ! loaded,
-			'is-primary': loaded,
 		} );
 
-		if ( 0 === events.length ) {
+		// eslint-disable-next-line no-undef
+		if ( wcConnectData.wcs_server_connection ) {
+			if ( 0 === events.length ) {
+				return (
+					<Button
+						className={ className }
+						primary
+						busy= { ! loaded }
+						disabled= { ! loaded }
+						onClick={ this.handleButtonClick }
+					>
+						{ translate( 'Create shipping label' ) }
+					</Button>
+				);
+			}
+
 			return (
 				<Button
-					className={ className }
-					onClick={ this.handleCreateLabelButtonClick } >
-					{ translate( 'Create shipping label' ) }
+					onClick={ this.handleTrackPackagesButtonClick }
+				>
+					{ translate( 'Track Packages' ) }
 				</Button>
 			);
 		}
 
 		return (
-			<Button
-				onClick={ this.handleTrackPackagesButtonClick }>
-				{ translate( 'Track Packages' ) }
+			<Button>
+				{ translate( 'Connection error: unable to create label at this time' ) }
 			</Button>
 		);
 	};

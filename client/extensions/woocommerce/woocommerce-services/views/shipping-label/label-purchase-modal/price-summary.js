@@ -14,7 +14,6 @@ import formatCurrency from '@automattic/format-currency';
 /**
  * Internal dependencies
  */
-import Card from 'components/card';
 import Tooltip from 'components/tooltip';
 import { getTotalPriceBreakdown } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
@@ -89,7 +88,7 @@ class PriceSummary extends Component {
 		const { prices, discount, total } = priceBreakdown;
 
 		return (
-			<Card>
+			<div>
 				{ prices.map( ( service, index ) =>
 					this.renderRow( service.title, service.retailRate, index )
 				) }
@@ -97,7 +96,7 @@ class PriceSummary extends Component {
 					? this.renderRow( translate( 'Your discount' ), -discount, 'discount', false, true )
 					: null }
 				{ this.renderRow( translate( 'Total' ), total, 'total', true ) }
-			</Card>
+			</div>
 		);
 	}
 }

@@ -51,6 +51,7 @@ const Sidebar = props => {
 				<FormCheckbox checked={ fulfillOrder } onChange={ onFulfillOrderChange } />
 				<span>{ translate( 'Mark the order as fulfilled' ) }</span>
 			</FormLabel>
+			<hr />
 			<PurchaseSection siteId={ siteId } orderId={ orderId } />
 		</div>
 	);
