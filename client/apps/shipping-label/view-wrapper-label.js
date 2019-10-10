@@ -15,9 +15,11 @@ import Gridicon from 'gridicons';
 // from calypso
 import Button from 'components/button';
 import LabelPurchaseModal from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
+import TrackingModal from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal';
 import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
 import {
 	openPrintingFlow,
+	openTrackingFlow,
 	setEmailDetailsOption,
 	setFulfillOrderOption,
 } from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/actions';
@@ -91,7 +93,12 @@ class ShippingLabelViewWrapper extends Component {
 	};
 
 	handleTrackPackagesButtonClick = () => {
+		const {
+			orderId,
+			siteId,
+		} = this.props;
 
+		this.props.openTrackingFlow( orderId, siteId );
 	};
 
 	render() {
@@ -115,6 +122,7 @@ class ShippingLabelViewWrapper extends Component {
 				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } />
 					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+					<TrackingModal orderId={ orderId } siteId={ siteId } />
 					{ shouldRenderButton && this.renderLabelButton() }
 				</div>
 			</div>
@@ -138,6 +146,7 @@ export default connect(
 	( dispatch ) => ( {
 		...bindActionCreators( {
 			openPrintingFlow,
+			openTrackingFlow,
 			setEmailDetailsOption,
 			setFulfillOrderOption,
 			fetchOrder,
