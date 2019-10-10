@@ -81,11 +81,6 @@
 		&:last-child {
 			margin-bottom: 0;
 		}
-
-		> a {
-			float: right;
-		}
-
 	}
 }
 
@@ -183,4 +178,24 @@
 .packages-step__package-signature {
 	width: 180px;
 	float: left;
+}
+
+.packages-step__no-packages {
+	background: #f6f6f6;
+	width:  100%;
+	text-align: center;
+	padding: 20px 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	> a {
+		margin-left: 8px;
+	}
+}
+.packages-step__with-packages {
+	margin-top: 5px;
+}
+.packages-step__package-details-header {
+	display: flex;
+	justify-content: space-between;
 }

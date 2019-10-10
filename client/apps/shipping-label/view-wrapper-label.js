@@ -53,14 +53,24 @@ class ShippingLabelViewWrapper extends Component {
 			'is-placeholder': ! loaded,
 		} );
 
+		// eslint-disable-next-line no-undef
+		if ( wcConnectData.wcs_server_connection ) {
+			return (
+				<Button
+					className={ className }
+					primary
+					busy= { ! loaded }
+					disabled= { ! loaded }
+					onClick={ this.handleButtonClick }
+				>
+					{ translate( 'Create shipping label' ) }
+				</Button>
+			);
+		}
+
 		return (
-			<Button
-				className={ className }
-				primary
-				busy= { ! loaded }
-				disabled= { ! loaded }
-				onClick={ this.handleButtonClick } >
-				{ translate( 'Create shipping label' ) }
+			<Button>
+				{ translate( 'Connection error: unable to create label at this time' ) }
 			</Button>
 		);
 	};
