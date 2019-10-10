@@ -163,6 +163,14 @@ module.exports = {
 					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 			},
+			{
+				test: /\.(png|jpe?g|gif)$/i,
+				use: [
+				  {
+					loader: 'file-loader',
+				  },
+				],
+			},
 		],
 	},
 	resolve: {
