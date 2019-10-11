@@ -57,6 +57,11 @@
 					border-radius: 0;
 					border: 0 none;
 					padding: 15px 0;
+
+					&:focus {
+						box-shadow: none;
+					}
+
 				}
 
 				.is-selected {
