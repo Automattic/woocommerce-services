@@ -29,73 +29,94 @@ if ( global.wcConnectData ) {
 	setBaseURL( global.wcConnectData.baseURL );
 }
 
-const getRouteClass = ( classNames ) => {
+const getRouteClassName = ( classNames ) => {
 	for ( let i = 0; i < classNames.length; i++ ) {
 		switch ( classNames[ i ] ) {
 			case 'wc-connect-create-shipping-label':
-				return ShippingLabel;
 			case 'wc-connect-service-settings':
-				return Settings;
 			case 'wc-connect-admin-status':
-				return PluginStatus;
 			case 'wc-connect-shipping-settings':
-				return ShippingSettings;
 			case 'wc-connect-admin-test-print':
-				return PrintTestLabel;
 			case 'wc-connect-stripe-connect-account':
-				return StripeConnectAccount;
+				return classNames[ i ];
 		}
 	}
 	return null;
 };
 
+const getRouteClass = ( className ) => {
+	switch ( className) {
+		case 'wc-connect-create-shipping-label':
+			return ShippingLabel;
+		case 'wc-connect-service-settings':
+			return Settings;
+		case 'wc-connect-admin-status':
+			return PluginStatus;
+		case 'wc-connect-shipping-settings':
+			return ShippingSettings;
+		case 'wc-connect-admin-test-print':
+			return PrintTestLabel;
+		case 'wc-connect-stripe-connect-account':
+			return StripeConnectAccount;
+		default:
+			return null;
+	}
+};
+
+const createdStores = {};
+
 Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
 	const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
 	delete container.dataset.args;
-
-	const RouteClass = getRouteClass( container.classList );
+	const routeClassName = getRouteClassName( container.classList );
+	
+	const RouteClass = getRouteClass( routeClassName );
 	if ( ! RouteClass ) {
 		return;
 	}
 	const Route = RouteClass( args );
 
-	const persistedStateKey = Route.getStateKey();
-	const persistedState = storageUtils.getWithExpiry( persistedStateKey );
-	storageUtils.remove( persistedStateKey );
-	const serverState = Route.getInitialState();
-	const initialState = { ...serverState, ...persistedState };
+	if( typeof createdStores[ routeClassName ] === 'undefined' ) {
+		const persistedStateKey = Route.getStateKey();
+		const persistedState = storageUtils.getWithExpiry( persistedStateKey );
+		storageUtils.remove( persistedStateKey );
+		const serverState = Route.getInitialState();
+		const initialState = { ...serverState, ...persistedState };
 
-	const middlewares = [
-		thunk.withExtraArgument( args ),
-		wpcomApiMiddleware,
-		localApiMiddleware,
-	];
+		const middlewares = [
+			thunk.withExtraArgument( args ),
+			wpcomApiMiddleware,
+			localApiMiddleware,
+		];
 
-	if ( Route.getMiddlewares ) {
-		middlewares.push.apply( middlewares, Route.getMiddlewares() );
-	}
-
-	const enhancers = [
-		applyMiddleware( ...middlewares ),
-		window.devToolsExtension && window.devToolsExtension(),
-	].filter( Boolean );
-
-	const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
-
-	if ( Route.getInitialActions ) {
-		Route.getInitialActions().forEach( store.dispatch );
-	}
-
-	window.addEventListener( 'beforeunload', () => {
-		const state = store.getState();
-
-		if ( window.persistState ) {
-			storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
+		if ( Route.getMiddlewares ) {
+			middlewares.push.apply( middlewares, Route.getMiddlewares() );
 		}
-	} );
+
+		const enhancers = [
+			applyMiddleware( ...middlewares ),
+			window.devToolsExtension && window.devToolsExtension(),
+		].filter( Boolean );
+
+		const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
+
+		if ( Route.getInitialActions ) {
+			Route.getInitialActions().forEach( store.dispatch );
+		}
+
+		window.addEventListener( 'beforeunload', () => {
+			const state = store.getState();
+
+			if ( window.persistState ) {
+				storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
+			}
+		} );
+
+		createdStores[ routeClassName ] = store;
+	}
 
 	ReactDOM.render(
-		<Provider store={ store }>
+		<Provider store={ createdStores[ routeClassName ] }>
 			<Route.View />
 		</Provider>,
 		container
