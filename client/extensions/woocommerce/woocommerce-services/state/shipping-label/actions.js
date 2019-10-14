@@ -1098,7 +1098,6 @@ export const fetchLabelsStatus = ( orderId, siteId ) => ( dispatch, getState ) =
 		const setSuccess = json => {
 			response = json.label;
 		};
-		console.log( WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS );
 		dispatch( {
 			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
 			orderId,
