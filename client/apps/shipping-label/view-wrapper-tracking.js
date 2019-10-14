@@ -19,6 +19,10 @@ import ActivityLog from '../../extensions/woocommerce/app/order/order-activity-l
 import {
 	getActivityLogEvents,
 } from '../../extensions/woocommerce/state/sites/orders/activity-log/selectors';
+import {
+	isOrderLoaded,
+	isOrderLoading
+ } from '../../extensions/woocommerce/state/sites/orders/selectors';
 import { fetchOrder } from '../../extensions/woocommerce/state/sites/orders/actions';
 
 class ShipmentTrackingViewWrapper extends Component {
@@ -27,9 +31,9 @@ class ShipmentTrackingViewWrapper extends Component {
 	};
 
 	componentDidMount() {
-		const { siteId, orderId } = this.props;
+		const { siteId, orderId, orderLoading, orderLoaded } = this.props;
 
-		if ( siteId && orderId ) {
+		if ( siteId && orderId && ! orderLoading && ! orderLoaded) {
 			this.props.fetchOrder( siteId, orderId );
 		}
 	}
@@ -64,7 +68,7 @@ class ShipmentTrackingViewWrapper extends Component {
 			// eslint-disable-next-line wpcalypso/jsx-classname-namespace
 			<div className="shipment-tracking__container">
 				<GlobalNotices notices={ notices.list } />
-				<QueryLabels orderId={ orderId } siteId={ siteId } />
+				<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "tracking" } />
 				{ this.renderActivityLog() }
 			</div>
 		);
@@ -75,10 +79,14 @@ export default connect(
 	( state, { orderId } ) => {
 		const siteId = getSelectedSiteId( state );
 		const events = getActivityLogEvents( state, orderId );
+		const orderLoading = isOrderLoading( state, orderId, siteId );
+		const orderLoaded = isOrderLoaded( state, orderId, siteId );
 
 		return {
 			siteId,
 			events,
+			orderLoading,
+			orderLoaded,
 		};
 	},
 	( dispatch ) => ( {
