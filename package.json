@@ -10,7 +10,8 @@
     "release": "node tasks/release.js",
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
-    "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap"
+    "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
+    "woorelease": "npm run dist"
   },
   "repository": {
     "type": "git",
@@ -95,5 +96,8 @@
     "webpack-dev-server": "^3.1.14",
     "whatwg-fetch": "^2.0.2",
     "wrap-loader": "^0.2.0"
+  },
+  "config": {
+    "wp_org_slug": "woocommerce-services"
   }
 }
