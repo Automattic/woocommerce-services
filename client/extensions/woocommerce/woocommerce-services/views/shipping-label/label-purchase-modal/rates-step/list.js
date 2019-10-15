@@ -13,7 +13,7 @@ import { get, mapValues } from 'lodash';
  */
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import Notice from 'components/notice';
-import ShippingRarte from './shipping-rate';
+import ShippingRate from './shipping-rate';
 
 const renderRateNotice = translate => {
 	return (
@@ -47,9 +47,9 @@ export const ShippingRates = ( {
 		const onRateUpdate = value => updateRate( pckgId, value );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
-				{ Object.values( 
+				{ Object.values(
 					mapValues( packageRates, ( ( rateObject ) => {
-						return <ShippingRarte 
+						return <ShippingRate
 							id={ id + '_' + pckgId }
 							rateObject={ rateObject }
 							updateValue={ onRateUpdate }
