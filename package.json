@@ -10,7 +10,8 @@
     "release": "node tasks/release.js",
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
-    "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap"
+    "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
+    "woorelease": "npm run dist"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
     "archiver": "^1.3.0",
     "colors": "^1.3.3",
     "confirm-simple": "^1.0.3",
+    "file-loader": "^4.2.0",
     "globby": "^6.1.0",
     "po2json": "^0.4.5",
     "shelljs": "^0.7.6",
@@ -29,6 +31,7 @@
   },
   "dependencies": {
     "@automattic/calypso-color-schemes": "^1.0.0-alpha.1",
+    "@automattic/color-studio": "^2.2.0",
     "@babel/cli": "7.1.2",
     "@babel/core": "7.1.2",
     "@babel/plugin-proposal-class-properties": "7.1.0",
@@ -93,5 +96,8 @@
     "webpack-dev-server": "^3.1.14",
     "whatwg-fetch": "^2.0.2",
     "wrap-loader": "^0.2.0"
+  },
+  "config": {
+    "wp_org_slug": "woocommerce-services"
   }
 }

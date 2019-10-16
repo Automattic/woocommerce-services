@@ -72,7 +72,6 @@ ReprintDialog.propTypes = {
 	labelId: PropTypes.number,
 	closeReprintDialog: PropTypes.func.isRequired,
 	confirmReprint: PropTypes.func.isRequired,
-	updatePaperSize: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
