@@ -168,7 +168,7 @@ const PackageDialog = props => {
 			onClose={ onClose }
 			buttons={ buttons }
 		>
-			<FormSectionHeading>{ heading }</FormSectionHeading>
+			<FormSectionHeading className="packages__add-edit-title" >{ heading }</FormSectionHeading>
 			{ showSegmentedControl && (
 				<SimplifiedSegmentedControl
 					primary
