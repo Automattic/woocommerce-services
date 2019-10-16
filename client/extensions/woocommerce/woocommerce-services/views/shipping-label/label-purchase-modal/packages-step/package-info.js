@@ -56,7 +56,6 @@ const PackageInfo = props => {
 	const pckg = selected[ packageId ];
 
 	if ( 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
-		console.log( userMeta.last_box_id );
 		props.setPackageType( orderId, siteId, packageId, userMeta.last_box_id );
 	}
 
