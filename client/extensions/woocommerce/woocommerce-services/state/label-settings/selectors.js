@@ -35,8 +35,8 @@ export const getLabelSettingsStoreOptions = ( state, siteId = getSelectedSiteId(
 };
 
 export const getLabelSettingsUserMeta = ( state, siteId = getSelectedSiteId( state ) ) => {
-	const form = getLabelSettingsForm( state, siteId );
-	return form && form.meta.user;
+	const formMeta = getLabelSettingsFormMeta( state, siteId );
+	return formMeta && formMeta.user;
 };
 
 export const areSettingsLoaded = ( state, siteId = getSelectedSiteId( state ) ) => {
