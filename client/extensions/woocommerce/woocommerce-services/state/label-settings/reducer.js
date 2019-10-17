@@ -29,7 +29,7 @@ const reducers = {};
 
 reducers[ WOOCOMMERCE_SERVICES_LABELS_INIT_FORM ] = (
 	state,
-	{ storeOptions, formData, formMeta }
+	{ storeOptions, formData, formMeta, userMeta }
 ) => {
 	return {
 		...state,
@@ -39,6 +39,7 @@ reducers[ WOOCOMMERCE_SERVICES_LABELS_INIT_FORM ] = (
 			...formMeta,
 			pristine: true,
 			isLoaded: true,
+			user: userMeta,
 		},
 		data: {
 			...state.data,
