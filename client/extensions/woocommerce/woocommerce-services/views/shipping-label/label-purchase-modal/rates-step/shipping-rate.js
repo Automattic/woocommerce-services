@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { translate, localize } from 'i18n-calypso';
-import { RadioControl } from '@wordpress/components';
+import { RadioControl, CheckboxControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -14,7 +14,21 @@ import { RadioControl } from '@wordpress/components';
 import CarrierLogo from './carrier-logo';
 import formatCurrency from '@automattic/format-currency';
 
-function ShippingRate( { rateObject: { title, service_id, carrier_id, rate, delivery_days }, isSelected, updateValue } ) {
+function ShippingRate( props ) {
+	const {
+		rateObject: {
+			title,
+			service_id,
+			carrier_id,
+			rate,
+			delivery_days,
+			required_signature_cost = null,
+		},
+		isSelected,
+		updateValue,
+		updateSignatureRequired,
+		signatureRequired,
+	} = props;
 	let details = 'Includes tracking';
 
 	switch ( carrier_id ) {
@@ -40,6 +54,17 @@ function ShippingRate( { rateObject: { title, service_id, carrier_id, rate, deli
 			<div className="rates-step__shipping-rate-description">
 				<div className="rates-step__shipping-rate-description-title">{ title }</div>
 				<div className="rates-step__shipping-rate-description-details">{ details }</div>
+				{ null !== required_signature_cost ? (
+					<CheckboxControl
+						label={ translate(
+							'Signature Required (+%(price)s)',
+							{ args: { price: formatCurrency( required_signature_cost, 'USD') } }
+						) }
+						disabled={ ! isSelected }
+						checked={ signatureRequired }
+						onChange={ () => { updateSignatureRequired( ! signatureRequired ) } }
+					/>
+				) : null }
 			</div>
 			<div className="rates-step__shipping-rate-details">
 				<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
@@ -53,6 +78,7 @@ function ShippingRate( { rateObject: { title, service_id, carrier_id, rate, deli
 
 ShippingRate.propTypes = {
 	rateObject: PropTypes.object.isRequired,
+	signatureRequired: PropTypes.bool.isRequired,
 };
 
 export default localize( ShippingRate );

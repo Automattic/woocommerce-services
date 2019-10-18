@@ -28,15 +28,24 @@ const renderRateNotice = translate => {
 	);
 };
 
+function getSignatureRequired( rateOptions, packageId, serviceId ) {
+	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
+		return rateOptions[ packageId ][ serviceId ].signatureRequired;
+	}
+	return false;
+}
+
 export const ShippingRates = ( {
 	id,
 	selectedRates, // Store owner selected rates, not customer
 	availableRates,
 	selectedPackages,
 	updateRate,
+	updateSignatureRequired,
 	errors,
 	shouldShowRateNotice,
 	translate,
+	rateOptions,
 } ) => {
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
@@ -45,15 +54,19 @@ export const ShippingRates = ( {
 		const packageErrors = errors[ pckgId ] || [];
 
 		const onRateUpdate = value => updateRate( pckgId, value );
+		const onSignatureRequiredUpdate = ( srvId, sigRqrd ) => updateSignatureRequired( pckgId, srvId, sigRqrd );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 				{ Object.values(
 					mapValues( packageRates, ( ( rateObject ) => {
+						const { service_id } = rateObject;
 						return <ShippingRate
 							id={ id + '_' + pckgId }
 							rateObject={ rateObject }
 							updateValue={ onRateUpdate }
-							isSelected={ rateObject.service_id === selectedRate }
+							updateSignatureRequired={ ( val ) => onSignatureRequiredUpdate( service_id, val ) }
+							isSelected={ service_id === selectedRate }
+							signatureRequired={ getSignatureRequired( rateOptions, pckgId, service_id ) }
 						/>
 					} ) )
 				) }
@@ -80,6 +93,7 @@ ShippingRates.propTypes = {
 	selectedPackages: PropTypes.object.isRequired,
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
+	updateSignatureRequired: PropTypes.func.isRequired,
 	errors: PropTypes.object.isRequired,
 };
 

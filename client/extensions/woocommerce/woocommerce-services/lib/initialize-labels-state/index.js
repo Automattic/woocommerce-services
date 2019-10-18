@@ -131,6 +131,7 @@ export default data => {
 				available: {},
 				retrievalInProgress: false,
 			},
+			rateOptions: {},
 		},
 		openedPackageId: Object.keys( formData.selected_packages )[ 0 ] || '',
 	};

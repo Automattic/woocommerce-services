@@ -113,6 +113,13 @@ export const getForm = ( state, orderId, siteId = getSelectedSiteId( state ) ) =
 	return shippingLabel && shippingLabel.form;
 };
 
+function getSignatureRequired( rateOptions, packageId, serviceId ) {
+	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
+		return rateOptions[ packageId ][ serviceId ].signatureRequired;
+	}
+	return false;
+}
+
 /**
  * Returns a breakdown of the total price for selected labels in form of { prices, discount, total }
  * @param {Object} state global state tree
@@ -132,16 +139,23 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 	let discount = 0;
 	let total = 0;
 	for ( const packageId in selectedRates ) {
+		const serviceId = selectedRates[ packageId ];
 		const packageRates = get( availableRates, [ packageId, 'rates' ], false );
-		const foundRate = find( packageRates, [ 'service_id', selectedRates[ packageId ] ] );
+		const foundRate = find( packageRates, [ 'service_id', serviceId ] );
+
+		const signatureRequired = getSignatureRequired( form.rateOptions, packageId, serviceId );
+		let offset = 0;
+		if ( signatureRequired && 'required_signature_cost' in foundRate ) {
+			offset = foundRate.required_signature_cost;
+		}
 		if ( foundRate ) {
 			prices.push( {
 				title: foundRate.title,
-				retailRate: foundRate.retail_rate,
+				retailRate: foundRate.retail_rate + offset,
 			} );
 
-			discount += round( foundRate.retail_rate - foundRate.rate, 2 );
-			total += foundRate.rate;
+			discount += round( foundRate.retail_rate - foundRate.rate,  2 );
+			total += foundRate.rate + offset;
 		}
 	}
 
