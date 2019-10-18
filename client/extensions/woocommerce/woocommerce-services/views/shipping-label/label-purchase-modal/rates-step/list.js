@@ -28,6 +28,7 @@ const renderRateNotice = translate => {
 	);
 };
 
+// TODO: find a place to consolidate this function definition to
 function getSignatureRequired( rateOptions, packageId, serviceId ) {
 	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
 		return rateOptions[ packageId ][ serviceId ].signatureRequired;

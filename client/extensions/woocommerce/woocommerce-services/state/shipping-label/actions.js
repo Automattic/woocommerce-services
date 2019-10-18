@@ -978,6 +978,14 @@ const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) =>
 	downloadAndPrint( orderId, siteId, dispatch, getState, labels );
 };
 
+// TODO: find a place to consolidate this function definition to
+function getSignatureRequired( rateOptions, packageId, serviceId ) {
+	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
+		return rateOptions[ packageId ][ serviceId ].signatureRequired;
+	}
+	return false;
+}
+
 export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 	let error = null;
 	let labels = null;
@@ -1028,20 +1036,25 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {
 					const packageFields = convertToApiPackage( pckg, customsItems );
+					const serviceId = form.rates.values[ pckgId ];
 					const rate = find( form.rates.available[ pckgId ].rates, {
-						service_id: form.rates.values[ pckgId ],
+						service_id: serviceId,
 					} );
-					return {
+					const packageData = {
 						...packageFields,
 						shipment_id: form.rates.available[ pckgId ].shipment_id,
 						rate_id: rate.rate_id,
-						service_id: form.rates.values[ pckgId ],
+						service_id: serviceId,
 						carrier_id: rate.carrier_id,
 						service_name: rate.title,
 						products: flatten(
 							pckg.items.map( item => fill( new Array( item.quantity ), item.product_id ) )
 						),
 					};
+					if ( getSignatureRequired( form.rateOptions, pckgId, serviceId ) ) {
+						packageData.signature_required = true;
+					}
+					return packageData;
 				} ),
 			};
 
