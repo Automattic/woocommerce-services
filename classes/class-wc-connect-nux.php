@@ -152,13 +152,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( $this->shipping_label->should_show_meta_box() ) {
 				$pointers[] = array(
 					'id' => 'wc_services_labels_metabox',
-					'target' => '#woocommerce-order-label',
+					'target' => '#woocommerce-order-label .button',
 					'options' => array(
 						'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 							__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
 							__( "When you're ready, purchase and print discounted labels from USPS right here.", 'woocommerce-services' )
 						),
-						'position' => array( 'edge' => 'right', 'align' => 'left' ),
+						'position' => array( 'edge' => 'top', 'align' => 'left' ),
 					),
 					'dim' => true,
 				);
