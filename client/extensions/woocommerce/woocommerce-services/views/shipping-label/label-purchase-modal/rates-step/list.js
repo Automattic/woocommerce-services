@@ -59,11 +59,11 @@ export const ShippingRates = ( {
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 				{ Object.values(
-					mapValues( packageRates, ( ( rateObject ) => {
-						const { service_id } = rateObject;
+					mapValues( packageRates, ( ( serviceRateObject ) => {
+						const { service_id } = serviceRateObject.no_signature;
 						return <ShippingRate
 							id={ id + '_' + pckgId }
-							rateObject={ rateObject }
+							rateObject={ serviceRateObject }
 							updateValue={ onRateUpdate }
 							updateSignatureRequired={ ( val ) => onSignatureRequiredUpdate( service_id, val ) }
 							isSelected={ service_id === selectedRate }

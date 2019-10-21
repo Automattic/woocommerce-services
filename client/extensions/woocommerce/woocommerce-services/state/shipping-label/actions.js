@@ -1035,11 +1035,13 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				origin: getAddressValues( form.origin ),
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {
-					const packageFields = convertToApiPackage( pckg, customsItems );
 					const serviceId = form.rates.values[ pckgId ];
-					const rate = find( form.rates.available[ pckgId ].rates, {
-						service_id: serviceId,
-					} );
+					let rateType = 'no_signature';
+					if ( getSignatureRequired( form.rateOptions, pckgId, serviceId ) ) {
+						rateType = 'signature_required';
+					}
+					const packageFields = convertToApiPackage( pckg, customsItems );
+					const rate = form.rates.available[ pckgId ].rates[ serviceId ][ rateType ];
 					const packageData = {
 						...packageFields,
 						shipment_id: form.rates.available[ pckgId ].shipment_id,
@@ -1051,9 +1053,6 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 							pckg.items.map( item => fill( new Array( item.quantity ), item.product_id ) )
 						),
 					};
-					if ( getSignatureRequired( form.rateOptions, pckgId, serviceId ) ) {
-						packageData.signature_required = true;
-					}
 					return packageData;
 				} ),
 			};

@@ -48,6 +48,74 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 			}
 		}
 
+		$response = $this->get_all_rates( $payload );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		return array(
+			'success' => true,
+			'rates'   => $response,
+		);
+	}
+
+	public function get_all_rates( $payload ) {
+		$signature_packages = [];
+
+		// Create duplicate packages with signature required enabled.
+		foreach ( $payload['packages'] as $package_id => $package ) {
+			$new_package = $package;
+			$new_package['signature'] = 'yes';
+			$signature_packages[] = $new_package;
+		}
+		$payload['packages'] = array_merge( $payload['packages'], $signature_packages );
+
+		$response = $this->request_rates( $payload );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		if ( property_exists( $response, 'rates' ) ) {
+			return $this->merge_all_rates( $response->rates );
+		}
+		return new stdClass();
+	}
+
+	// Merge signature rates with non-signature rates.
+	public function merge_all_rates( $rates ) {
+
+		// Group rates objects together under their service for with/without signature required.
+		foreach ( $rates as $package_id => $package ) {
+			$merged_rates = new stdClass();
+			foreach( $package->rates as $rate_key => $rate ) {
+				if ( ! property_exists( $merged_rates, $rate->service_id ) ) {
+					$merged_rates->{ $rate->service_id } = new stdClass();
+				}
+				if ( 'yes' === $rate->signature ) {
+					$merged_rates->{ $rate->service_id }->signature_required = $rate;
+				} else {
+					$merged_rates->{ $rate->service_id }->no_signature = $rate;
+				}
+			}
+			$rates->$package_id->rates = $merged_rates;
+		}
+
+		/**
+		 * Remove rate if cost is the same for with/without signature, that means that
+		 * signature_required is not a valid service.
+		 */
+		foreach ( $rates as $package_id => $package ) {
+			foreach( $package->rates as $service_id => $service_rates ) {
+				if ( property_exists( $service_rates, 'signature_required') && property_exists( $service_rates, 'no_signature') ) {
+					if ( $service_rates->signature_required->rate === $service_rates->no_signature->rate ) {
+						unset( $rates->$package_id->rates->$service_id->signature_required );
+					}
+				}
+			}
+		}
+		return $rates;
+	}
+
+	public function request_rates( $payload ) {
 		$response = $this->api_client->get_label_rates( $payload );
 
 		if ( is_wp_error( $response ) ) {
@@ -59,10 +127,6 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 			$this->logger->log( $error, __CLASS__ );
 			return $error;
 		}
-
-		return array(
-			'success' => true,
-			'rates'   => property_exists( $response, 'rates' ) ? $response->rates : new stdClass(),
-		);
+		return $response;
 	}
 }

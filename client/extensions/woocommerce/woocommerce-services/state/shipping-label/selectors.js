@@ -6,7 +6,6 @@
 import {
 	every,
 	fill,
-	find,
 	flatten,
 	forEach,
 	get,
@@ -142,21 +141,24 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 	for ( const packageId in selectedRates ) {
 		const serviceId = selectedRates[ packageId ];
 		const packageRates = get( availableRates, [ packageId, 'rates' ], false );
-		const foundRate = find( packageRates, [ 'service_id', serviceId ] );
-
+		const foundRate = packageRates[ serviceId ];
 		const signatureRequired = getSignatureRequired( form.rateOptions, packageId, serviceId );
-		let offset = 0;
-		if ( signatureRequired && 'required_signature_cost' in foundRate ) {
-			offset = foundRate.required_signature_cost;
-		}
+
 		if ( foundRate ) {
+			let rate = foundRate.no_signature.rate;
+			let retailRate = foundRate.no_signature.retail_rate;
+			if ( signatureRequired && 'signature_required' in foundRate ) {
+				rate = foundRate.signature_required.rate;
+				retailRate = foundRate.signature_required.retail_rate;
+			}
+
 			prices.push( {
-				title: foundRate.title,
-				retailRate: foundRate.retail_rate + offset,
+				title: foundRate.no_signature.title,
+				retailRate,
 			} );
 
-			discount += round( foundRate.retail_rate - foundRate.rate,  2 );
-			total += foundRate.rate + offset;
+			discount += round( retailRate - rate,  2 );
+			total += rate;
 		}
 	}
 

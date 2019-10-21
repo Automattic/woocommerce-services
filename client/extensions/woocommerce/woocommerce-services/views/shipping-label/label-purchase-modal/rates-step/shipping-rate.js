@@ -17,19 +17,28 @@ import formatCurrency from '@automattic/format-currency';
 function ShippingRate( props ) {
 	const {
 		rateObject: {
-			title,
-			service_id,
-			carrier_id,
-			rate,
-			delivery_days,
-			required_signature_cost = null,
+			no_signature: {
+				title,
+				service_id,
+				carrier_id,
+				rate,
+				delivery_days,
+			},
 		},
+		rateObject,
 		isSelected,
 		updateValue,
 		updateSignatureRequired,
 		signatureRequired,
 	} = props;
+	let requiredSignatureCost = null;
 	let details = 'Includes tracking';
+
+	if ( 'signature_required' in rateObject ) {
+		if ( rateObject.no_signature.rate !== rateObject.signature_required.rate ) {
+				requiredSignatureCost = rateObject.signature_required.rate - rateObject.no_signature.rate;
+		}
+	}
 
 	switch ( carrier_id ) {
 		case 'usps':
@@ -54,11 +63,11 @@ function ShippingRate( props ) {
 			<div className="rates-step__shipping-rate-description">
 				<div className="rates-step__shipping-rate-description-title">{ title }</div>
 				<div className="rates-step__shipping-rate-description-details">{ details }</div>
-				{ null !== required_signature_cost ? (
+				{ null !== requiredSignatureCost ? (
 					<CheckboxControl
 						label={ translate(
 							'Signature Required (+%(price)s)',
-							{ args: { price: formatCurrency( required_signature_cost, 'USD') } }
+							{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
 						) }
 						disabled={ ! isSelected }
 						checked={ signatureRequired }
