@@ -25,6 +25,7 @@ function ShippingRate( props ) {
 				delivery_days,
 			},
 		},
+		rateObjectSignatureRequired,
 		rateObject,
 		isSelected,
 		updateValue,
@@ -34,10 +35,8 @@ function ShippingRate( props ) {
 	let requiredSignatureCost = null;
 	let details = 'Includes tracking';
 
-	if ( 'signature_required' in rateObject ) {
-		if ( rateObject.no_signature.rate !== rateObject.signature_required.rate ) {
-				requiredSignatureCost = rateObject.signature_required.rate - rateObject.no_signature.rate;
-		}
+	if ( null !== rateObjectSignatureRequired ) {
+		requiredSignatureCost = rateObjectSignatureRequired.signature_required.rate - rateObject.no_signature.rate;
 	}
 
 	switch ( carrier_id ) {

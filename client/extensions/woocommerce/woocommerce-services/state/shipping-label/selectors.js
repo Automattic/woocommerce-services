@@ -141,15 +141,18 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 	for ( const packageId in selectedRates ) {
 		const serviceId = selectedRates[ packageId ];
 		const packageRates = get( availableRates, [ packageId, 'rates' ], false );
+		const packageRatesSignatureRequired = get( availableRates, [ packageId + '_wcs_signature_required_rate', 'rates' ], false );
+
 		const foundRate = packageRates[ serviceId ];
+		const foundRateSignatureRequired = packageRatesSignatureRequired[ serviceId ] || null;
 		const signatureRequired = getSignatureRequired( form.rateOptions, packageId, serviceId );
 
 		if ( foundRate ) {
 			let rate = foundRate.no_signature.rate;
 			let retailRate = foundRate.no_signature.retail_rate;
-			if ( signatureRequired && 'signature_required' in foundRate ) {
-				rate = foundRate.signature_required.rate;
-				retailRate = foundRate.signature_required.retail_rate;
+			if ( signatureRequired && null !== foundRateSignatureRequired ) {
+				rate = foundRateSignatureRequired.signature_required.rate;
+				retailRate = foundRateSignatureRequired.signature_required.retail_rate;
 			}
 
 			prices.push( {

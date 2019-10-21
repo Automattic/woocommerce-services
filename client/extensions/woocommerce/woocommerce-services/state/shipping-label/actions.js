@@ -1036,15 +1036,17 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {
 					const serviceId = form.rates.values[ pckgId ];
+					let pckgSuffix = '';
 					let rateType = 'no_signature';
 					if ( getSignatureRequired( form.rateOptions, pckgId, serviceId ) ) {
+						pckgSuffix = '_wcs_signature_required_rate';
 						rateType = 'signature_required';
 					}
 					const packageFields = convertToApiPackage( pckg, customsItems );
-					const rate = form.rates.available[ pckgId ].rates[ serviceId ][ rateType ];
+					const rate = form.rates.available[ pckgId + pckgSuffix ].rates[ serviceId ][ rateType ];
 					const packageData = {
 						...packageFields,
-						shipment_id: form.rates.available[ pckgId ].shipment_id,
+						shipment_id: form.rates.available[ pckgId + pckgSuffix ].shipment_id,
 						rate_id: rate.rate_id,
 						service_id: serviceId,
 						carrier_id: rate.carrier_id,

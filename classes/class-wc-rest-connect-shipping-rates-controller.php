@@ -66,6 +66,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		foreach ( $payload['packages'] as $package_id => $package ) {
 			$new_package = $package;
 			$new_package['signature'] = 'yes';
+			$new_package['id'] .= '_wcs_signature_required_rate';
 			$signature_packages[] = $new_package;
 		}
 		$payload['packages'] = array_merge( $payload['packages'], $signature_packages );

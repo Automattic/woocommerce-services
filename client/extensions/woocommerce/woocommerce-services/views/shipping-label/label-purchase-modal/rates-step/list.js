@@ -52,6 +52,7 @@ export const ShippingRates = ( {
 	const renderSinglePackage = ( pckg, pckgId ) => {
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = get( availableRates, [ pckgId, 'rates' ], [] );
+		const packageSignatureRates = get( availableRates, [ pckgId + '_wcs_signature_required_rate', 'rates' ], [] );
 		const packageErrors = errors[ pckgId ] || [];
 
 		const onRateUpdate = value => updateRate( pckgId, value );
@@ -61,9 +62,11 @@ export const ShippingRates = ( {
 				{ Object.values(
 					mapValues( packageRates, ( ( serviceRateObject ) => {
 						const { service_id } = serviceRateObject.no_signature;
+						const rateObjectSignatureRequired = packageSignatureRates[ service_id ] || null;
 						return <ShippingRate
 							id={ id + '_' + pckgId }
 							rateObject={ serviceRateObject }
+							rateObjectSignatureRequired={ rateObjectSignatureRequired }
 							updateValue={ onRateUpdate }
 							updateSignatureRequired={ ( val ) => onSignatureRequiredUpdate( service_id, val ) }
 							isSelected={ service_id === selectedRate }
