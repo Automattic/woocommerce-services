@@ -6,6 +6,7 @@
 import {
 	every,
 	fill,
+	find,
 	flatten,
 	forEach,
 	get,
@@ -139,24 +140,31 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 	let discount = 0;
 	let total = 0;
 	for ( const packageId in selectedRates ) {
+		if ( ! ( packageId in availableRates ) ) {
+			continue;
+		}
 		const serviceId = selectedRates[ packageId ];
-		const packageRates = get( availableRates, [ packageId, 'rates' ], false );
-		const packageRatesSignatureRequired = get( availableRates, [ packageId + '_wcs_signature_required_rate', 'rates' ], false );
+		const packageRates = availableRates[ packageId ].default.rates;
+		let signatureRates = null;
+		let foundRateSignatureRequired = null;
+		if ( 'signature_required' in availableRates[ packageId ] ) {
+			signatureRates = availableRates[ packageId ].signature_required.rates;
+			foundRateSignatureRequired = find( signatureRates, r => serviceId === r.service_id ) || null;
+		}
 
-		const foundRate = packageRates[ serviceId ];
-		const foundRateSignatureRequired = packageRatesSignatureRequired[ serviceId ] || null;
+		const foundRate = find( packageRates, r => serviceId === r.service_id );
 		const signatureRequired = getSignatureRequired( form.rateOptions, packageId, serviceId );
 
 		if ( foundRate ) {
-			let rate = foundRate.no_signature.rate;
-			let retailRate = foundRate.no_signature.retail_rate;
+			let rate = foundRate.rate;
+			let retailRate = foundRate.retail_rate;
 			if ( signatureRequired && null !== foundRateSignatureRequired ) {
-				rate = foundRateSignatureRequired.signature_required.rate;
-				retailRate = foundRateSignatureRequired.signature_required.retail_rate;
+				rate = foundRateSignatureRequired.rate;
+				retailRate = foundRateSignatureRequired.retail_rate;
 			}
 
 			prices.push( {
-				title: foundRate.no_signature.title,
+				title: foundRate.title,
 				retailRate,
 			} );
 

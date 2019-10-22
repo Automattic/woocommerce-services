@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { find, get, isEmpty, mapValues, some } from 'lodash';
+import { find, isEmpty, mapValues, some } from 'lodash';
 import formatCurrency from '@automattic/format-currency';
 import Gridicon from 'gridicons';
 
@@ -39,7 +39,7 @@ const ratesSummary = ( selectedRates, availableRates, total, packagesSaved, tran
 		return translate( 'Unsaved changes made to packages' );
 	}
 
-	if ( some( mapValues( availableRates, rateObject => isEmpty( rateObject.rates ) ) ) ) {
+	if ( some( mapValues( availableRates, rateObject => isEmpty( rateObject.default.rates ) ) ) ) {
 		return translate( 'No rates found' );
 	}
 
@@ -53,7 +53,7 @@ const ratesSummary = ( selectedRates, availableRates, total, packagesSaved, tran
 	if ( 1 === packageIds.length ) {
 		const packageId = packageIds[ 0 ];
 		const selectedRate = selectedRates[ packageId ];
-		const packageRates = get( availableRates, [ packageId, 'rates' ], [] );
+		const packageRates = availableRates[ packageId ].default.rates;
 		const rateInfo = find( packageRates, [ 'service_id', selectedRate ] );
 
 		if ( rateInfo ) {

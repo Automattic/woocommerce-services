@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { get, mapValues } from 'lodash';
+import { mapValues, find } from 'lodash';
 
 /**
  * Internal dependencies
@@ -50,9 +50,15 @@ export const ShippingRates = ( {
 } ) => {
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
+		if ( ! ( pckgId in availableRates ) ) {
+			return null;
+		}
 		const selectedRate = selectedRates[ pckgId ] || '';
-		const packageRates = get( availableRates, [ pckgId, 'rates' ], [] );
-		const packageSignatureRates = get( availableRates, [ pckgId + '_wcs_signature_required_rate', 'rates' ], [] );
+		const packageRates = availableRates[ pckgId ].default.rates;
+		let signatureRates = null;
+		if ( 'signature_required' in availableRates[ pckgId ] ) {
+			signatureRates = availableRates[ pckgId ].signature_required.rates || null;
+		}
 		const packageErrors = errors[ pckgId ] || [];
 
 		const onRateUpdate = value => updateRate( pckgId, value );
@@ -61,8 +67,8 @@ export const ShippingRates = ( {
 			<div key={ pckgId } className="rates-step__package-container">
 				{ Object.values(
 					mapValues( packageRates, ( ( serviceRateObject ) => {
-						const { service_id } = serviceRateObject.no_signature;
-						const rateObjectSignatureRequired = packageSignatureRates[ service_id ] || null;
+						const { service_id } = serviceRateObject;
+						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
 						return <ShippingRate
 							id={ id + '_' + pckgId }
 							rateObject={ serviceRateObject }

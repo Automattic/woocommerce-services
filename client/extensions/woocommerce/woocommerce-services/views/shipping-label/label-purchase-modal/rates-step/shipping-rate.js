@@ -17,13 +17,11 @@ import formatCurrency from '@automattic/format-currency';
 function ShippingRate( props ) {
 	const {
 		rateObject: {
-			no_signature: {
-				title,
-				service_id,
-				carrier_id,
-				rate,
-				delivery_days,
-			},
+			title,
+			service_id,
+			carrier_id,
+			rate,
+			delivery_days,
 		},
 		rateObjectSignatureRequired,
 		rateObject,
@@ -36,7 +34,7 @@ function ShippingRate( props ) {
 	let details = 'Includes tracking';
 
 	if ( null !== rateObjectSignatureRequired ) {
-		requiredSignatureCost = rateObjectSignatureRequired.signature_required.rate - rateObject.no_signature.rate;
+		requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
 	}
 
 	switch ( carrier_id ) {
