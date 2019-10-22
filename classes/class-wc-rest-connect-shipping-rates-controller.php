@@ -11,6 +11,20 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Rates_Controller' ) ) {
 class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/label/(?P<order_id>\d+)/rates';
 
+	/**
+	 * Prefix to add in package name for making requests with multiple rates.
+	 */
+	public $SPECIAL_RATE_PREFIX = '_wcs_rate_type_';
+
+	/**
+	 * Array of extra options to collect rates for.
+	 */
+	protected $extra_rates = array(
+		'signature_required' => array(
+			'signature' => 'yes',
+		),
+	);
+
 	private function has_customs_data( $package ) {
 		return isset( $package['contents_type'] );
 	}
@@ -59,15 +73,29 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		);
 	}
 
+	/**
+	 * Get standard rates along with rates for special options
+	 * that are defined in $this->extra_rates
+	 *
+	 * @param stdClass $payload Request payload.
+	 * @return WPError|stdClass
+	 */
 	public function get_all_rates( $payload ) {
-		$signature_packages = [];
+		$signature_packages     = [];
+		$original_package_names = [];
 
-		// Create duplicate packages with signature required enabled.
-		foreach ( $payload['packages'] as $package_id => $package ) {
-			$new_package = $package;
-			$new_package['signature'] = 'yes';
-			$new_package['id'] .= '_wcs_signature_required_rate';
-			$signature_packages[] = $new_package;
+		// Add extra package requests with special options set.
+		foreach( $this->extra_rates as $rate_name => $rate_option ) {
+			foreach( $rate_option as $option_name => $option_value ) {
+				foreach ( $payload['packages'] as $package_id => $package ) {
+					$original_package_names[]    = $package['id'];
+					$new_package                 = $package;
+					$new_package[ $option_name ] = $option_value;
+
+					$new_package['id'] .= $this->SPECIAL_RATE_PREFIX . $rate_name;
+					$signature_packages[] = $new_package;
+				}
+			}
 		}
 		$payload['packages'] = array_merge( $payload['packages'], $signature_packages );
 
@@ -76,46 +104,51 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 			return $response;
 		}
 		if ( property_exists( $response, 'rates' ) ) {
-			return $this->merge_all_rates( $response->rates );
+			return $this->merge_all_rates( $response->rates, $original_package_names );
 		}
 		return new stdClass();
 	}
 
-	// Merge signature rates with non-signature rates.
-	public function merge_all_rates( $rates ) {
+	/**
+	 * Merge default rates together with extra rates.
+	 *
+	 * get_all_rates requests extra rate options as separate
+	 * packages. This function groups these separate packages
+	 * under the original the package name for easier parsing
+	 * on the frontend.
+	 *
+	 * @param stdClass $rates                  Rate response for server.
+	 * @param array    $original_package_names Package names.
+	 *
+	 * @return array Rates
+	 */
+	public function merge_all_rates( $rates, $original_package_names ) {
+		$parsed_rates = [];
 
-		// Group rates objects together under their service for with/without signature required.
-		foreach ( $rates as $package_id => $package ) {
-			$merged_rates = new stdClass();
-			foreach( $package->rates as $rate_key => $rate ) {
-				if ( ! property_exists( $merged_rates, $rate->service_id ) ) {
-					$merged_rates->{ $rate->service_id } = new stdClass();
-				}
-				if ( 'yes' === $rate->signature ) {
-					$merged_rates->{ $rate->service_id }->signature_required = $rate;
-				} else {
-					$merged_rates->{ $rate->service_id }->no_signature = $rate;
-				}
-			}
-			$rates->$package_id->rates = $merged_rates;
-		}
+		foreach( $original_package_names as $name ) {
+			// Add a 'default' entry for the rate with no special options.
+			$parsed_rates[ $name ] = array(
+				'default' => $rates->{ $name },
+			);
 
-		/**
-		 * Remove rate if cost is the same for with/without signature, that means that
-		 * signature_required is not a valid service.
-		 */
-		foreach ( $rates as $package_id => $package ) {
-			foreach( $package->rates as $service_id => $service_rates ) {
-				if ( property_exists( $service_rates, 'signature_required') && property_exists( $service_rates, 'no_signature') ) {
-					if ( $service_rates->signature_required->rate === $service_rates->no_signature->rate ) {
-						unset( $rates->$package_id->rates->$service_id->signature_required );
-					}
+			// Get package for each extra rate to group them under the original package name.
+			foreach( $this->extra_rates as $extra_rate_name => $option ) {
+				$extra_rate_package_name = $name . $this->SPECIAL_RATE_PREFIX . $extra_rate_name;
+				if ( isset( $rates->{ $extra_rate_package_name } ) ) {
+					$parsed_rates[ $name ][ $extra_rate_name ] = $rates->{ $extra_rate_package_name };
 				}
+
 			}
 		}
-		return $rates;
+		return $parsed_rates;
 	}
 
+	/**
+	 * Make rate request.
+	 *
+	 * @param stdClass $payload Request payload.
+	 * @return WPError|stdClass
+	 */
 	public function request_rates( $payload ) {
 		$response = $this->api_client->get_label_rates( $payload );
 
