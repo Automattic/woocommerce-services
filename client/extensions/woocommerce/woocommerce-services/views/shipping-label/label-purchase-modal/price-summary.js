@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
@@ -89,9 +89,18 @@ class PriceSummary extends Component {
 
 		return (
 			<div>
-				{ prices.map( ( service, index ) =>
-					this.renderRow( service.title, service.retailRate, index )
-				) }
+				{ prices.map( ( service, index ) => {
+					return (
+						<Fragment key={ index }>
+							{ this.renderRow( service.title, service.retailRate, index ) }
+							{ service.addons.map( ( addon, addonIndex ) =>
+								<div key={ 'addons-' + index } className="label-purchase-modal__price-item-addons">
+									{ this.renderRow( addon.title, addon.rate, 'addon-' + addonIndex ) }
+								</div>
+							) }
+						</Fragment>
+					);
+				} ) }
 				{ 0 < discount
 					? this.renderRow( translate( 'Your discount' ), -discount, 'discount', false, true )
 					: null }

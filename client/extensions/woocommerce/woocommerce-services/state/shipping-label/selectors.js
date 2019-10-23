@@ -163,20 +163,25 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 		const signatureRequired = getSignatureRequired( form.rateOptions, packageId, serviceId );
 
 		if ( foundRate ) {
-			let rate = foundRate.rate;
-			let retailRate = foundRate.retail_rate;
-			if ( signatureRequired && null !== foundRateSignatureRequired ) {
-				rate = foundRateSignatureRequired.rate;
-				retailRate = foundRateSignatureRequired.retail_rate;
-			}
+			const rateDiscount = foundRate.retail_rate - foundRate.rate;
+			let rateTotal = foundRate.rate;
 
-			prices.push( {
+			const price = {
 				title: foundRate.title,
-				retailRate,
-			} );
+				retailRate: foundRate.retail_rate,
+				addons: [],
+			}
+			if ( signatureRequired && null !== foundRateSignatureRequired ) {
+				price.addons = [ {
+					title: translate( 'Signature Required' ),
+					rate: foundRateSignatureRequired.rate - foundRate.rate,
+				} ];
+				rateTotal = foundRateSignatureRequired.rate;
+			}
+			prices.push( price );
 
-			discount += round( retailRate - rate,  2 );
-			total += rate;
+			discount += round( rateDiscount,  2 );
+			total += rateTotal;
 		}
 	}
 

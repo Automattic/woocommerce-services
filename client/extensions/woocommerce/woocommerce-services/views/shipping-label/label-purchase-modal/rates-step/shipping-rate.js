@@ -46,42 +46,44 @@ function ShippingRate( props ) {
 			break;
 	}
 
-	return <div className="rates-step__shipping-rate-container">
-		<RadioControl
-			className="rates-step__shipping-rate-radio-control"
-			selected={ isSelected ? service_id : null }
-			options={ [
-				{ label: '', value: service_id },
-			] }
-			onChange={ () => { updateValue( service_id ) } }
-		/>
-		<CarrierLogo carrier_id={ carrier_id }/>
-		<div className="rates-step__shipping-rate-information">
-			<div className="rates-step__shipping-rate-description">
-				<div className="rates-step__shipping-rate-description-title">{ title }</div>
-				<div className="rates-step__shipping-rate-description-details">
-					{ details }
-					{ null !== requiredSignatureCost && requiredSignatureCost > 0 ? (
-						<CheckboxControl
-							label={ translate(
-								'Signature Required (+%(price)s)',
-								{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
-							) }
-							disabled={ ! isSelected }
-							checked={ signatureRequired }
-							onChange={ () => { updateSignatureRequired( ! signatureRequired ) } }
-						/>
-					) : null }
+	return (
+		<div className="rates-step__shipping-rate-container">
+			<RadioControl
+				className="rates-step__shipping-rate-radio-control"
+				selected={ isSelected ? service_id : null }
+				options={ [
+					{ label: '', value: service_id },
+				] }
+				onChange={ () => { updateValue( service_id ) } }
+			/>
+			<CarrierLogo carrier_id={ carrier_id }/>
+			<div className="rates-step__shipping-rate-information">
+				<div className="rates-step__shipping-rate-description">
+					<div className="rates-step__shipping-rate-description-title">{ title }</div>
+					<div className="rates-step__shipping-rate-description-details">
+						{ details }
+						{ null !== requiredSignatureCost && requiredSignatureCost > 0 ? (
+							<CheckboxControl
+								label={ translate(
+									'Signature Required (+%(price)s)',
+									{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
+								) }
+								disabled={ ! isSelected }
+								checked={ signatureRequired }
+								onChange={ () => { updateSignatureRequired( ! signatureRequired ) } }
+							/>
+						) : null }
+					</div>
 				</div>
-			</div>
-			<div className="rates-step__shipping-rate-details">
-				<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
-				<div className="rates-step__shipping-rate-delivery-date">
-					{ ! delivery_days ? '' : translate( '%(delivery_days)s business day', '%(delivery_days)s business days', { count: delivery_days, args: { delivery_days } } ) }
+				<div className="rates-step__shipping-rate-details">
+					<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
+					<div className="rates-step__shipping-rate-delivery-date">
+						{ ! delivery_days ? '' : translate( '%(delivery_days)s business day', '%(delivery_days)s business days', { count: delivery_days, args: { delivery_days } } ) }
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	);
 }
 
 ShippingRate.propTypes = {
