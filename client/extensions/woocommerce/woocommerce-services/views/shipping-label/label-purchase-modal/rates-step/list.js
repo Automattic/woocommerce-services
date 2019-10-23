@@ -64,6 +64,7 @@ export const ShippingRates = ( {
 						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
 						return <ShippingRate
 							id={ id + '_' + pckgId }
+							key={ id + '_' + pckgId + '_' + service_id }
 							rateObject={ serviceRateObject }
 							rateObjectSignatureRequired={ rateObjectSignatureRequired }
 							updateValue={ onRateUpdate }
