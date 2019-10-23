@@ -38,14 +38,14 @@ matrix:
      script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.3
    	 env: WP_VERSION=5.3 WC_VERSION=3.8.0-rc.1
-	 # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
+     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.4
-	 env: WP_VERSION=5.3 WC_VERSION=3.8.0-rc.1
-	 # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-	 script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+     env: WP_VERSION=5.3 WC_VERSION=3.8.0-rc.1
+     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
+     script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
-		# Run the JS tests in a separate container
+     # Run the JS tests in a separate container
    - language: node_js
      before_script: ""
 
