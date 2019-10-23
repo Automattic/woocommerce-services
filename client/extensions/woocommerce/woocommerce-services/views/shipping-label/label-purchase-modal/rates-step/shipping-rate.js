@@ -61,7 +61,7 @@ function ShippingRate( props ) {
 				<div className="rates-step__shipping-rate-description-title">{ title }</div>
 				<div className="rates-step__shipping-rate-description-details">
 					{ details }
-					{ null !== requiredSignatureCost ? (
+					{ null !== requiredSignatureCost && requiredSignatureCost > 0 ? (
 						<CheckboxControl
 							label={ translate(
 								'Signature Required (+%(price)s)',
