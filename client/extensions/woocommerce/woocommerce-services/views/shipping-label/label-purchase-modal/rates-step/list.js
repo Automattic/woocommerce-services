@@ -14,6 +14,7 @@ import { mapValues, find } from 'lodash';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import Notice from 'components/notice';
 import ShippingRate from './shipping-rate';
+import { getSignatureRequired } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const renderRateNotice = translate => {
 	return (
@@ -27,14 +28,6 @@ const renderRateNotice = translate => {
 		/>
 	);
 };
-
-// TODO: find a place to consolidate this function definition to
-function getSignatureRequired( rateOptions, packageId, serviceId ) {
-	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
-		return rateOptions[ packageId ][ serviceId ].signatureRequired;
-	}
-	return false;
-}
 
 export const ShippingRates = ( {
 	id,

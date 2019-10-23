@@ -113,8 +113,15 @@ export const getForm = ( state, orderId, siteId = getSelectedSiteId( state ) ) =
 	return shippingLabel && shippingLabel.form;
 };
 
-// TODO: find a place to consolidate this function definition to
-function getSignatureRequired( rateOptions, packageId, serviceId ) {
+/**
+ * Returns whether or not signatureRequired has been enabled for a given package/service selection.
+ *
+ * @param {Object} rateOptions Special rate options.
+ * @param {String} packageId ID of package to look up rate option for.
+ * @param {String} serviceId ID of service to look up rate option for.
+ * @return {Boolean} True if signatureRequired is enabled.
+ */
+export const getSignatureRequired = ( rateOptions, packageId, serviceId ) => {
 	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
 		return rateOptions[ packageId ][ serviceId ].signatureRequired;
 	}

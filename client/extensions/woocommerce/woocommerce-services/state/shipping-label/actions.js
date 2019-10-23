@@ -47,6 +47,7 @@ import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import { getEmailReceipts } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
+import { getSignatureRequired } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_INIT,
@@ -977,14 +978,6 @@ const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) =>
 
 	downloadAndPrint( orderId, siteId, dispatch, getState, labels );
 };
-
-// TODO: find a place to consolidate this function definition to
-function getSignatureRequired( rateOptions, packageId, serviceId ) {
-	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
-		return rateOptions[ packageId ][ serviceId ].signatureRequired;
-	}
-	return false;
-}
 
 export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 	let error = null;
