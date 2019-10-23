@@ -76,7 +76,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	}
 	const Route = RouteClass( args );
 
-	if( typeof createdStores[ routeClassName ] === 'undefined' ) {
+	if( typeof createdStores[ routeClassName ] === 'undefined' || routeClassName !== 'wc-connect-create-shipping-label' ) {
 		const persistedStateKey = Route.getStateKey();
 		const persistedState = storageUtils.getWithExpiry( persistedStateKey );
 		storageUtils.remove( persistedStateKey );
