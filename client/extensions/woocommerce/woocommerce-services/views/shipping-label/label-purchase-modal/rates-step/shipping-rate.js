@@ -59,18 +59,20 @@ function ShippingRate( props ) {
 		<div className="rates-step__shipping-rate-information">
 			<div className="rates-step__shipping-rate-description">
 				<div className="rates-step__shipping-rate-description-title">{ title }</div>
-				<div className="rates-step__shipping-rate-description-details">{ details }</div>
-				{ null !== requiredSignatureCost ? (
-					<CheckboxControl
-						label={ translate(
-							'Signature Required (+%(price)s)',
-							{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
-						) }
-						disabled={ ! isSelected }
-						checked={ signatureRequired }
-						onChange={ () => { updateSignatureRequired( ! signatureRequired ) } }
-					/>
-				) : null }
+				<div className="rates-step__shipping-rate-description-details">
+					{ details }
+					{ null !== requiredSignatureCost ? (
+						<CheckboxControl
+							label={ translate(
+								'Signature Required (+%(price)s)',
+								{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
+							) }
+							disabled={ ! isSelected }
+							checked={ signatureRequired }
+							onChange={ () => { updateSignatureRequired( ! signatureRequired ) } }
+						/>
+					) : null }
+				</div>
 			</div>
 			<div className="rates-step__shipping-rate-details">
 				<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
