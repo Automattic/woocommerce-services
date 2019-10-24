@@ -52,9 +52,41 @@ const PackageDialog = props => {
 	const isAddingCustom = 'add-custom' === mode;
 	const isAddingPredefined = 'add-predefined' === mode;
 
+	const triggerImmediateSave = () => {
+		const onSaveSuccess = () => {
+			if ( typeof props.onSaveSuccess === 'function' && 'name' in packageData ) {
+				props.onSaveSuccess( packageData.name );
+			}
+			return props.successNotice( translate( 'Your shipping packages have been saved.' ) );
+		}
+
+		const onSaveFailure = () => {
+			return props.errorNotice( translate( 'Unable to save your shipping packages. Please try again.' ) );
+		}
+
+		const onPaymentMethodMissing = () => {
+			return props.errorNotice(
+				translate( 'A payment method is required to print shipping labels.' ),
+				{
+					duration: 4000,
+				}
+			);
+		}
+
+		props.createWcsShippingSaveActionList(
+			onSaveSuccess,
+			onSaveFailure,
+			onPaymentMethodMissing,
+			true
+		);
+	};
+
 	const onSave = () => {
 		if ( isAddingPredefined ) {
 			savePredefinedPackages( siteId );
+			if ( props.persistOnSave ) {
+				triggerImmediateSave();
+			}
 			return;
 		}
 
@@ -85,33 +117,7 @@ const PackageDialog = props => {
 
 		savePackage( siteId, filteredPackageData );
 		if ( props.persistOnSave ) {
-
-			const onSaveSuccess = () => {
-				if ( typeof props.onSaveSuccess === 'function' ) {
-					props.onSaveSuccess( packageData.name );
-				}
-				return props.successNotice( translate( 'Your shipping package have been saved.' ) );
-			}
-
-			const onSaveFailure = () => {
-				return props.errorNotice( translate( 'Unable to save your shipping package. Please try again.' ) );
-			}
-
-			const onPaymentMethodMissing = () => {
-				return props.errorNotice(
-					translate( 'A payment method is required to print shipping labels.' ),
-					{
-						duration: 4000,
-					}
-				);
-			}
-
-			props.createWcsShippingSaveActionList(
-				onSaveSuccess,
-				onSaveFailure,
-				onPaymentMethodMissing,
-				true
-			);
+			triggerImmediateSave();
 		}
 	};
 
