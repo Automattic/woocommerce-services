@@ -23,6 +23,7 @@ import {
 	WOOCOMMERCE_SERVICES_PACKAGES_INIT_PACKAGES_FORM,
 } from '../action-types';
 import { getPackagesForm } from './selectors';
+import { loadSettingFromLocalStorage, storeSettingInLocalStorage } from '../../api/localStorage';
 
 export const addPackage = siteId => ( {
 	type: WOOCOMMERCE_SERVICES_PACKAGES_ADD_PACKAGE,
@@ -120,26 +121,37 @@ export const setAddMode = ( siteId, mode ) => ( {
 	mode,
 } );
 
+const fetchSettingsSuccess = ( siteId, { formData, formSchema, storeOptions } ) => {
+	return {
+		type: WOOCOMMERCE_SERVICES_PACKAGES_INIT_PACKAGES_FORM,
+		packages: formData,
+		dimensionUnit: storeOptions.dimension_unit,
+		weightUnit: storeOptions.weight_unit,
+		packageSchema: formSchema.custom.items,
+		predefinedSchema: formSchema.predefined,
+		siteId,
+	}
+}
+
 export const fetchSettings = siteId => ( dispatch, getState ) => {
 	const form = getPackagesForm( getState(), siteId );
 
 	if ( form && ( form.packages || form.isFetching ) ) {
 		return;
 	}
+	const localStorageSettings = loadSettingFromLocalStorage( siteId, 'packages', 60000 );
+	if( undefined !== localStorageSettings ) {
+		dispatch( fetchSettingsSuccess( siteId, localStorageSettings ) );
+		return;
+	}
+
 	dispatch( setIsFetching( siteId, true ) );
 
 	api
 		.get( siteId, api.url.packages )
-		.then( ( { formData, formSchema, storeOptions } ) => {
-			dispatch( {
-				type: WOOCOMMERCE_SERVICES_PACKAGES_INIT_PACKAGES_FORM,
-				packages: formData,
-				dimensionUnit: storeOptions.dimension_unit,
-				weightUnit: storeOptions.weight_unit,
-				packageSchema: formSchema.custom.items,
-				predefinedSchema: formSchema.predefined,
-				siteId,
-			} );
+		.then( ( settings ) => {
+			storeSettingInLocalStorage( siteId, 'packages', settings );
+			dispatch( fetchSettingsSuccess( siteId, settings ) );
 		} )
 		.catch( error => {
 			//TODO: add better error handling
