@@ -99,7 +99,7 @@ const EditPackage = props => {
 	};
 
 	return (
-		<div>
+		<div className="packages__properties-group">
 			{ 'add-custom' === mode ? renderTypeSelection() : null }
 			<FormFieldset>
 				<FormLabel htmlFor="name">{ translate( 'Package name' ) }</FormLabel>

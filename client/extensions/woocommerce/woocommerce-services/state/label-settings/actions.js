@@ -13,13 +13,14 @@ import {
 } from '../action-types';
 import { getLabelSettingsFormData } from './selectors';
 
-export const initForm = ( siteId, storeOptions, formData, formMeta ) => {
+export const initForm = ( siteId, storeOptions, formData, formMeta, userMeta ) => {
 	return {
 		type: WOOCOMMERCE_SERVICES_LABELS_INIT_FORM,
 		siteId,
 		storeOptions,
 		formData,
 		formMeta,
+		userMeta,
 	};
 };
 
@@ -44,8 +45,8 @@ export const fetchSettings = siteId => dispatch => {
 
 	api
 		.get( siteId, api.url.accountSettings )
-		.then( ( { storeOptions, formMeta, formData } ) => {
-			dispatch( initForm( siteId, storeOptions, formData, formMeta ) );
+		.then( ( { storeOptions, formMeta, formData, userMeta } ) => {
+			dispatch( initForm( siteId, storeOptions, formData, formMeta, userMeta ) );
 		} )
 		.catch( error => {
 			dispatch( setFormMetaProperty( siteId, 'isFetchError', true ) );

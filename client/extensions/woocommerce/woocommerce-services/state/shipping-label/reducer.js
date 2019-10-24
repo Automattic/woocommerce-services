@@ -53,6 +53,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_REFUND_DIALOG,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_REFUND_DIALOG,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REFUND_REQUEST,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REFUND_RESPONSE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_REPRINT_DIALOG,
@@ -1169,6 +1170,21 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_REFUND_DIALOG ] = state => {
 	};
 };
 
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS ] = ( state, { labelId } ) => {
+	const labelIndex = findIndex( state.labels, { label_id: labelId } );
+	const labelData = {
+		...state.labels[ labelIndex ],
+		statusRetrivalInProgress: true,
+	};
+
+	const newState = {
+		...state,
+		labels: [ ...state.labels ],
+	};
+	newState.labels[ labelIndex ] = labelData;
+	return newState;
+};
+
 reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE ] = (
 	state,
 	{ labelId, response, error }
@@ -1182,6 +1198,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE ] = (
 		...state.labels[ labelIndex ],
 		...response,
 		statusUpdated: true,
+		statusRetrivalInProgress: false,
 	};
 
 	const newState = {

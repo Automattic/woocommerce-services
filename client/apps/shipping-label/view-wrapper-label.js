@@ -34,6 +34,10 @@ import {
 	getActivityLogEvents,
 } from '../../extensions/woocommerce/state/sites/orders/activity-log/selectors';
 import { fetchOrder } from '../../extensions/woocommerce/state/sites/orders/actions';
+import {
+	isOrderLoaded,
+	isOrderLoading
+ } from '../../extensions/woocommerce/state/sites/orders/selectors';
 
 class ShippingLabelViewWrapper extends Component {
 	static propTypes = {
@@ -41,9 +45,9 @@ class ShippingLabelViewWrapper extends Component {
 	};
 
 	componentDidMount() {
-		const { siteId, orderId } = this.props;
+		const { siteId, orderId, orderLoading, orderLoaded } = this.props;
 
-		if ( siteId && orderId ) {
+		if ( siteId && orderId && ! orderLoading && ! orderLoaded) {
 			this.props.fetchOrder( siteId, orderId );
 		}
 	}
@@ -133,7 +137,7 @@ class ShippingLabelViewWrapper extends Component {
 					<em>{ items + ' ' + translate( 'item is ready for shipment', 'items are ready for shipment', { count: items } ) }</em>
 				</div>
 				<div>
-					<QueryLabels orderId={ orderId } siteId={ siteId } />
+					<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />
 					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 					<TrackingModal orderId={ orderId } siteId={ siteId } />
 					{ shouldRenderButton && this.renderLabelButton() }
@@ -148,11 +152,15 @@ export default connect(
 		const siteId = getSelectedSiteId( state );
 		const loaded = areLabelsFullyLoaded( state, orderId, siteId );
 		const events = getActivityLogEvents( state, orderId );
+		const orderLoading = isOrderLoading( state, orderId, siteId );
+		const orderLoaded = isOrderLoaded( state, orderId, siteId );
 
 		return {
 			siteId,
 			loaded,
 			events,
+			orderLoading,
+			orderLoaded,
 			labelsEnabled: areLabelsEnabled( state, siteId ),
 		};
 	},

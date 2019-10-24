@@ -71,7 +71,6 @@ reducers[ WOOCOMMERCE_SERVICES_PACKAGES_DISMISS_MODAL ] = state => {
 		modalErrors: {},
 		showModal: false,
 		showOuterDimensions: false,
-		currentlyEditingPredefinedPackages: null,
 	} );
 };
 

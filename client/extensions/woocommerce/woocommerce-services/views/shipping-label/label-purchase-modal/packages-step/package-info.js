@@ -23,12 +23,17 @@ import PackageSelect from './package-select';
 import {
 	updatePackageWeight,
 	openAddItem,
+	setPackageType,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel,
 	isLoaded,
 	getFormErrors,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import {
+	getLabelSettingsUserMeta,
+} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+
 import * as PackagesActions from "../../../../state/packages/actions";
 
 const PackageInfo = props => {
@@ -40,6 +45,7 @@ const PackageInfo = props => {
 		weightUnit,
 		errors,
 		translate,
+		userMeta,
 	} = props;
 
 	const pckgErrors = errors[ packageId ] || {};
@@ -48,6 +54,11 @@ const PackageInfo = props => {
 	}
 
 	const pckg = selected[ packageId ];
+
+	if ( 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
+		props.setPackageType( orderId, siteId, packageId, userMeta.last_box_id );
+	}
+
 	const isIndividualPackage = 'individual' === pckg.box_id;
 
 	const renderItemInfo = ( item, itemIndex ) => {
@@ -135,6 +146,7 @@ const PackageInfo = props => {
 				pckgErrors={ pckgErrors }
 				pckg={ pckg }
 				packageId={ packageId }
+				lastBoxId={ userMeta.last_box_id }
 			/>
 
 			<div className="packages-step__package-weight">
@@ -165,6 +177,7 @@ PackageInfo.propTypes = {
 	weightUnit: PropTypes.string.isRequired,
 	errors: PropTypes.object.isRequired,
 	openAddItem: PropTypes.func.isRequired,
+	userMeta: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
@@ -172,6 +185,8 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	const storeOptions = loaded ? shippingLabel.storeOptions : {};
 	const errors = loaded && getFormErrors( state, orderId, siteId ).packages;
+	const userMeta = loaded ? getLabelSettingsUserMeta( state, siteId ) : {};
+
 	return {
 		siteId,
 		errors,
@@ -179,6 +194,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 		selected: shippingLabel.form.packages.selected,
 		dimensionUnit: storeOptions.dimension_unit,
 		weightUnit: storeOptions.weight_unit,
+		userMeta: userMeta,
 	};
 };
 
@@ -187,6 +203,7 @@ const mapDispatchToProps = dispatch => {
 		{
 			updatePackageWeight,
 			openAddItem,
+			setPackageType,
 			... PackagesActions,
 		},
 		dispatch

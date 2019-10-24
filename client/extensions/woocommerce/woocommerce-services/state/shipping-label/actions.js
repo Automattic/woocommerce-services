@@ -13,6 +13,7 @@ import {
 	find,
 	first,
 	flatten,
+	get,
 	includes,
 	isBoolean,
 	isEqual,
@@ -74,6 +75,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_REFUND_DIALOG,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_REFUND_DIALOG,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REFUND_REQUEST,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REFUND_RESPONSE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_REPRINT_DIALOG,
@@ -1093,11 +1095,14 @@ export const openRefundDialog = ( orderId, siteId, labelId ) => {
 	};
 };
 
+const isRefreshingLabelStatus = ( label ) => {
+	return get( label, "statusRetrivalInProgress", false ) ;
+};
+
 export const fetchLabelsStatus = ( orderId, siteId ) => ( dispatch, getState ) => {
 	const shippingLabel = getShippingLabel( getState(), orderId, siteId );
-
 	const labelRequests = shippingLabel.labels.map( label => {
-		if ( label.statusUpdated ) {
+		if ( label.statusUpdated || isRefreshingLabelStatus( label ) ) {
 			return;
 		}
 		const labelId = label.label_id;
@@ -1107,7 +1112,11 @@ export const fetchLabelsStatus = ( orderId, siteId ) => ( dispatch, getState ) =
 		const setSuccess = json => {
 			response = json.label;
 		};
-
+		dispatch( {
+			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
+			orderId,
+			labelId,
+		} );
 		return api
 			.get( siteId, api.url.labelStatus( orderId, labelId ) )
 			.then( setSuccess )

@@ -13,19 +13,27 @@ import { bindActionCreators } from 'redux';
  * Internal dependencies
  */
 import { fetchLocations } from 'woocommerce/state/sites/data/locations/actions';
+import { areLocationsLoading, areLocationsLoaded } from 'woocommerce/state/sites/data/locations/selectors';
 
 class QueryLocations extends Component {
 	static propTypes = {
 		fetchLocations: PropTypes.func,
 		siteId: PropTypes.number.isRequired,
+		loadingLocations: PropTypes.bool.isRequired,
+		locationsLoaded: PropTypes.bool.isRequired,
 	};
 
+	fetch = () => {
+		const { fetchLocations: _fetchLocations, loadingLocations, locationsLoaded,  siteId } = this.props;
+		( ! loadingLocations && ! locationsLoaded ) && _fetchLocations( siteId );
+	}
+
 	componentDidMount = () => {
-		this.props.fetchLocations( this.props.siteId );
+		this.fetch();
 	};
 
 	componentDidUpdate = () => {
-		this.props.fetchLocations( this.props.siteId );
+		this.fetch();
 	};
 
 	render = () => {
@@ -34,6 +42,10 @@ class QueryLocations extends Component {
 }
 
 export default connect(
-	null,
+	state => ( 
+		{ 
+			loadingLocations: areLocationsLoading( state ),
+			locationsLoaded: areLocationsLoaded( state ),
+		} ),
 	dispatch => bindActionCreators( { fetchLocations }, dispatch )
 )( QueryLocations );
