@@ -153,7 +153,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_EXIT_PRINTING_FLOW ] = ( state, { 
 	};
 };
 
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_EXIT_TRACKING_FLOW ] = ( state ) => {
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_EXIT_TRACKING_FLOW ] = state => {
 	return {
 		...state,
 		showTrackingDialog: false,
