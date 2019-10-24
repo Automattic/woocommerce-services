@@ -3,6 +3,7 @@
  * Internal dependencies
  */
 import * as api from '../../api';
+import { loadSettingFromLocalStorage, storeSettingInLocalStorage } from '../../api/localStorage';
 import {
 	WOOCOMMERCE_SERVICES_LABELS_INIT_FORM,
 	WOOCOMMERCE_SERVICES_LABELS_RESTORE_PRISTINE,
@@ -41,12 +42,20 @@ export const setFormMetaProperty = ( siteId, key, value ) => {
 };
 
 export const fetchSettings = siteId => dispatch => {
-	dispatch( setFormMetaProperty( siteId, 'isFetching', true ) );
+	const localStorageSettings = loadSettingFromLocalStorage( siteId, 'site-settings', 60000 );
+	if( undefined !== localStorageSettings ) {
+		const { storeOptions, formMeta, formData } = localStorageSettings;
+		dispatch( initForm( siteId, storeOptions, formData, formMeta ) );
+		return;
+	}
 
+	dispatch( setFormMetaProperty( siteId, 'isFetching', true ) );
 	api
 		.get( siteId, api.url.accountSettings )
-		.then( ( { storeOptions, formMeta, formData, userMeta } ) => {
-			dispatch( initForm( siteId, storeOptions, formData, formMeta, userMeta ) );
+		.then( ( settings ) => {
+			storeSettingInLocalStorage( siteId, 'site-settings', settings );
+			const { storeOptions, formMeta, formData } = settings;
+			dispatch( initForm( siteId, storeOptions, formData, formMeta ) );
 		} )
 		.catch( error => {
 			dispatch( setFormMetaProperty( siteId, 'isFetchError', true ) );
