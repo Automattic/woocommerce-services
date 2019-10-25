@@ -115,7 +115,8 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 		createdStores[ routeClassName ] = store;
 	}
-ReactModal.setAppElement( container );
+
+	ReactModal.setAppElement( container );
 	ReactDOM.render(
 		<Provider store={ createdStores[ routeClassName ] }>
 			<Route.View />
