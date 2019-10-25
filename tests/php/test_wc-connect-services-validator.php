@@ -167,7 +167,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 
 		$result = $this->validator->validate_service_schemas( $services );
 
-		$this->assertIsWPError( $result );
+		$this->assertWPError( $result );
 		$this->assertEquals( $expected, $result->get_error_code() );
 
 	}
