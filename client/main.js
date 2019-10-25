@@ -4,6 +4,7 @@
 import '@babel/polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import ReactModal from 'react-modal';
 import { applyMiddleware, createStore, compose } from 'redux';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
@@ -69,7 +70,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
 	delete container.dataset.args;
 	const routeClassName = getRouteClassName( container.classList );
-	
+
 	const RouteClass = getRouteClass( routeClassName );
 	if ( ! RouteClass ) {
 		return;
@@ -114,7 +115,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 		createdStores[ routeClassName ] = store;
 	}
-
+ReactModal.setAppElement( container );
 	ReactDOM.render(
 		<Provider store={ createdStores[ routeClassName ] }>
 			<Route.View />
