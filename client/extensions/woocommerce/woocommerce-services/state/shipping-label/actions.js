@@ -54,6 +54,8 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_FETCHING,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_FETCH_ERROR,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW,
+	WOOCOMMERCE_SERVICES_SHIPPING_OPEN_TRACKING_FLOW,
+	WOOCOMMERCE_SERVICES_SHIPPING_EXIT_TRACKING_FLOW,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_EXIT_PRINTING_FLOW,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_ADDRESS_VALUE,
@@ -311,6 +313,10 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
 };
 
+export const openTrackingFlow = ( orderId, siteId ) => ( dispatch ) => {
+	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_OPEN_TRACKING_FLOW, orderId, siteId } );
+};
+
 export const exitPrintingFlow = ( orderId, siteId, force ) => ( dispatch, getState ) => {
 	dispatch( {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_EXIT_PRINTING_FLOW,
@@ -324,6 +330,14 @@ export const exitPrintingFlow = ( orderId, siteId, force ) => ( dispatch, getSta
 	if ( form.needsPrintConfirmation ) {
 		dispatch( clearAvailableRates( orderId, siteId ) );
 	}
+};
+
+export const exitTrackingFlow = ( orderId, siteId ) => ( dispatch ) => {
+	dispatch( {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_EXIT_TRACKING_FLOW,
+		orderId,
+		siteId,
+	} );
 };
 
 export const updateAddressValue = ( orderId, siteId, group, name, value ) => {

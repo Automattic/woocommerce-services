@@ -41,6 +41,31 @@
 	}
 }
 
+&.tracking-modal {
+	height: 60%;
+	width: 40%;
+
+	.dialog__content {
+		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
+
+		@include breakpoint( '<660px' ) {
+			padding: inherit;
+			overflow-y: scroll;
+		}
+	}
+
+	@include breakpoint( '<660px' ) {
+		&.dialog.card {
+			height: 100%;
+			max-height: 100%;
+			width: 100%;
+			max-width: 100%;
+		}
+	}
+}
+
 .label-purchase-modal__sidebar {
 	flex-basis: 100%;
 	padding: 32px;
@@ -180,14 +205,14 @@
 	text-align: right;
 }
 
-.label-purchase-modal__header {
+.label-purchase-modal__header, .tracking-modal__header {
 	display: flex;
 	flex-direction: row;
 	.form-section-heading {
 		flex: 1;
         margin: 0 0 45px;
 	}
-	.label-purchase-modal__close-button {
+	.label-purchase-modal__close-button, .tracking-modal__close-button {
 		border: none;
 		padding: 0;
 		align-self: flex-start;
