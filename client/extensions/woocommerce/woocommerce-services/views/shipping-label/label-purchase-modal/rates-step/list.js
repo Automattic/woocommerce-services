@@ -14,7 +14,6 @@ import { mapValues, find } from 'lodash';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import Notice from 'components/notice';
 import ShippingRate from './shipping-rate';
-import { getSignatureRequired } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const renderRateNotice = translate => {
 	return (
@@ -35,11 +34,9 @@ export const ShippingRates = ( {
 	availableRates,
 	selectedPackages,
 	updateRate,
-	updateSignatureRequired,
 	errors,
 	shouldShowRateNotice,
 	translate,
-	rateOptions,
 } ) => {
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
@@ -54,8 +51,7 @@ export const ShippingRates = ( {
 		}
 		const packageErrors = errors[ pckgId ] || [];
 
-		const onRateUpdate = value => updateRate( pckgId, value );
-		const onSignatureRequiredUpdate = ( srvId, sigRqrd ) => updateSignatureRequired( pckgId, srvId, sigRqrd );
+		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 				{ Object.values(
@@ -68,9 +64,7 @@ export const ShippingRates = ( {
 							rateObject={ serviceRateObject }
 							rateObjectSignatureRequired={ rateObjectSignatureRequired }
 							updateValue={ onRateUpdate }
-							updateSignatureRequired={ ( val ) => onSignatureRequiredUpdate( service_id, val ) }
-							isSelected={ service_id === selectedRate }
-							signatureRequired={ getSignatureRequired( rateOptions, pckgId, service_id ) }
+							isSelected={ service_id === selectedRate.serviceId }
 						/>
 					} ) )
 				) }
@@ -97,7 +91,6 @@ ShippingRates.propTypes = {
 	selectedPackages: PropTypes.object.isRequired,
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
-	updateSignatureRequired: PropTypes.func.isRequired,
 	errors: PropTypes.object.isRequired,
 };
 

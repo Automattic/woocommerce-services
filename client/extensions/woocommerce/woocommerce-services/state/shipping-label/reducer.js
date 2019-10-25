@@ -40,7 +40,6 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PACKAGE_WEIGHT,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_SIGNATURE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE,
-	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_SIGNATURE_REQUIRED,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PAPER_SIZE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_REQUEST,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
@@ -350,7 +349,10 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PACKAGE_WEIGHT ] = (
 				...state.form.rates,
 				values: {
 					...state.form.rates.values,
-					[ packageId ]: '',
+					[ packageId ]: {
+						serviceId: '',
+						signatureRequired: false,
+					},
 				},
 				available: {},
 			},
@@ -382,7 +384,10 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_SIGNATURE ] = (
 				...state.form.rates,
 				values: {
 					...state.form.rates.values,
-					[ packageId ]: '',
+					[ packageId ]: {
+						serviceId: '',
+						signatureRequired: false,
+					},
 				},
 				available: {},
 			},
@@ -490,7 +495,10 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 			},
 			rates: {
 				...state.form.rates,
-				values: mapValues( newPackages, () => '' ),
+				values: mapValues( newPackages, () => ( {
+						serviceId: '',
+						signatureRequired: false,
+				} ) ),
 				available: {},
 			},
 		},
@@ -597,7 +605,10 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_ADD_PACKAGE ] = state => {
 			},
 			rates: {
 				...state.form.rates,
-				values: mapValues( newPackages, () => '' ),
+				values: mapValues( newPackages, () => ( {
+						serviceId: '',
+						signatureRequired: false,
+				} ) ),
 				available: {},
 			},
 		},
@@ -628,7 +639,10 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REMOVE_PACKAGE ] = ( state, { pack
 			},
 			rates: {
 				...state.form.rates,
-				values: mapValues( newPackages, () => '' ),
+				values: mapValues( newPackages, () => ( {
+						serviceId: '',
+						signatureRequired: false,
+				} ) ),
 				available: {},
 			},
 		},
@@ -683,7 +697,10 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE ] = (
 			},
 			rates: {
 				...state.form.rates,
-				values: mapValues( newPackages, () => '' ),
+				values: mapValues( newPackages, () => ( {
+					serviceId: '',
+					signatureRequired: false,
+				} ) ),
 				available: {},
 			},
 		},
@@ -968,9 +985,12 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS ] = state => {
 	};
 };
 
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE ] = ( state, { packageId, value } ) => {
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE ] = ( state, { packageId, serviceId, signatureRequired } ) => {
 	const newRates = { ...state.form.rates.values };
-	newRates[ packageId ] = value;
+	newRates[ packageId ] = {
+		serviceId,
+		signatureRequired,
+	};
 
 	return {
 		...state,
@@ -980,26 +1000,6 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE ] = ( state, { package
 				...state.form.rates,
 				values: newRates,
 			},
-		},
-	};
-};
-
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_SIGNATURE_REQUIRED ] = ( state, { packageId, serviceId, signatureRequired } ) => {
-	const newRateOptions = { ...state.form.rateOptions };
-
-	if ( packageId in newRateOptions ) {
-		newRateOptions[ packageId ][ serviceId ] = { signatureRequired };
-	} else {
-		newRateOptions[ packageId ] = {
-			[ serviceId ]: { signatureRequired },
-		}
-	}
-
-	return {
-		...state,
-		form: {
-			...state.form,
-			rateOptions: newRateOptions,
 		},
 	};
 };

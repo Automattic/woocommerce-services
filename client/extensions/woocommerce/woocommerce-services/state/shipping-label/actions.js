@@ -47,7 +47,6 @@ import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import { getEmailReceipts } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
-import { getSignatureRequired } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_INIT,
@@ -65,7 +64,6 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PACKAGE_WEIGHT,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_SIGNATURE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE,
-	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_SIGNATURE_REQUIRED,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PAPER_SIZE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_REQUEST,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
@@ -685,24 +683,14 @@ export const confirmCustoms = ( orderId, siteId ) => ( dispatch, getState ) => {
 	tryGetLabelRates( orderId, siteId, dispatch, getState );
 };
 
-export const updateRate = ( orderId, siteId, packageId, value ) => {
+export const updateRate = ( orderId, siteId, packageId, serviceId, signatureRequired ) => {
 	return {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE,
 		siteId,
 		orderId,
 		packageId,
-		value,
-	};
-};
-
-export const updateSignatureRequired = ( orderId, siteId, packageId, serviceId, signatureRequired ) => {
-	return {
-		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_SIGNATURE_REQUIRED,
-		siteId,
-		orderId,
-		packageId,
 		serviceId,
-		signatureRequired
+		signatureRequired,
 	};
 };
 
@@ -1028,9 +1016,9 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				origin: getAddressValues( form.origin ),
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {
-					const serviceId = form.rates.values[ pckgId ];
+					const { serviceId, signatureRequired } = form.rates.values[ pckgId ];
 					let rateType = 'default';
-					if ( getSignatureRequired( form.rateOptions, pckgId, serviceId ) ) {
+					if ( signatureRequired ) {
 						rateType = 'signature_required';
 					}
 					const packageFields = convertToApiPackage( pckg, customsItems );

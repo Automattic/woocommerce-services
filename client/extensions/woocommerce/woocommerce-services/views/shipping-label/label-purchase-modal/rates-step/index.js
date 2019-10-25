@@ -21,7 +21,6 @@ import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tr
 import {
 	toggleStep,
 	updateRate,
-	updateSignatureRequired,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel,
@@ -157,11 +156,8 @@ const RatesStep = props => {
 	} = props;
 	const summary = ratesSummary( values, available, ratesTotal, form.packages.saved, translate );
 	const toggleStepHandler = () => props.toggleStep( orderId, siteId, 'rates' );
-	const updateRateHandler = ( packageId, value ) =>
-		props.updateRate( orderId, siteId, packageId, value );
-
-	const updateSignatureRequiredHandler = ( packageId, serviceId, signatureRequired ) =>
-		props.updateSignatureRequired( orderId, siteId, packageId, serviceId, signatureRequired );
+	const updateRateHandler = ( packageId, serviceId, signatureRequired ) =>
+		props.updateRate( orderId, siteId, packageId, serviceId, signatureRequired );
 
 	return (
 		<StepContainer
@@ -180,9 +176,7 @@ const RatesStep = props => {
 				selectedRates={ values }
 				availableRates={ available }
 				updateRate={ updateRateHandler }
-				updateSignatureRequired={ updateSignatureRequiredHandler }
 				errors={ errors }
-				rateOptions={ form.rateOptions }
 			/>
 		</StepContainer>
 	);
@@ -197,7 +191,6 @@ RatesStep.propTypes = {
 	errors: PropTypes.object.isRequired,
 	toggleStep: PropTypes.func.isRequired,
 	updateRate: PropTypes.func.isRequired,
-	updateSignatureRequired: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
@@ -218,7 +211,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 };
 
 const mapDispatchToProps = dispatch => {
-	return bindActionCreators( { toggleStep, updateRate, updateSignatureRequired }, dispatch );
+	return bindActionCreators( { toggleStep, updateRate }, dispatch );
 };
 
 export default connect(

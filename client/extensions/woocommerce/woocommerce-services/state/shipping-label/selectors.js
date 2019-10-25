@@ -114,21 +114,6 @@ export const getForm = ( state, orderId, siteId = getSelectedSiteId( state ) ) =
 };
 
 /**
- * Returns whether or not signatureRequired has been enabled for a given package/service selection.
- *
- * @param {Object} rateOptions Special rate options.
- * @param {String} packageId ID of package to look up rate option for.
- * @param {String} serviceId ID of service to look up rate option for.
- * @return {Boolean} True if signatureRequired is enabled.
- */
-export const getSignatureRequired = ( rateOptions, packageId, serviceId ) => {
-	if ( packageId in rateOptions && serviceId in rateOptions[ packageId ] ) {
-		return rateOptions[ packageId ][ serviceId ].signatureRequired;
-	}
-	return false;
-}
-
-/**
  * Returns a breakdown of the total price for selected labels in form of { prices, discount, total }
  * @param {Object} state global state tree
  * @param {Number} orderId order Id
@@ -150,7 +135,7 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 		if ( ! ( packageId in availableRates ) ) {
 			continue;
 		}
-		const serviceId = selectedRates[ packageId ];
+		const { serviceId, signatureRequired } = selectedRates[ packageId ];
 		const packageRates = availableRates[ packageId ].default.rates;
 		let signatureRates = null;
 		let foundRateSignatureRequired = null;
@@ -160,7 +145,6 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 		}
 
 		const foundRate = find( packageRates, r => serviceId === r.service_id );
-		const signatureRequired = getSignatureRequired( form.rateOptions, packageId, serviceId );
 
 		if ( foundRate ) {
 			const rateDiscount = foundRate.retail_rate - foundRate.rate;
