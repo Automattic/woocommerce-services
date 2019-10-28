@@ -5,10 +5,10 @@ module.exports = {
 		'^config$': '<rootDir>/server/config/index.js',
 	},
 	transform: {
-		'^.+\\.jsx?$': 'babel-jest',
+		'^.+\\.jsx?$': '<rootDir>/tests/test/helpers/assets/babel-transform.js',
 		'\\.(gif|jpg|jpeg|png|svg|scss|sass|css)$': '<rootDir>/tests/test/helpers/assets/transform.js',
 	},
-	modulePaths: [ '<rootDir>/tests/', '<rootDir>/client/', '<rootDir>/client/extensions/' ],
+	modulePaths: [ '<rootDir>/tests/', '<rootDir>/client/', '<rootDir>/client/extensions/', '<rootDir>/wp-calypso' ],
 	rootDir: './../../',
 	roots: [ '<rootDir>/client/' ],
 	testEnvironment: 'node',
