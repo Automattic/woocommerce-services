@@ -1,6 +1,9 @@
 /** @format */
 
 module.exports = {
+	moduleNameMapper: {
+		'^config$': '<rootDir>/wp-calypso/server/config/index.js',
+	},
 	transform: {
 		'^.+\\.jsx?$': '<rootDir>/tests/test/helpers/assets/babel-transform.js',
 		'\\.(gif|jpg|jpeg|png|svg|scss|sass|css)$': '<rootDir>/tests/test/helpers/assets/transform.js',
