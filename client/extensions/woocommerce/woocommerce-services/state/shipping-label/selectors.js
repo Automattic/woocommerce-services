@@ -132,16 +132,40 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 	let discount = 0;
 	let total = 0;
 	for ( const packageId in selectedRates ) {
-		const packageRates = get( availableRates, [ packageId, 'rates' ], false );
-		const foundRate = find( packageRates, [ 'service_id', selectedRates[ packageId ] ] );
+		if ( ! ( packageId in availableRates ) ) {
+			continue;
+		}
+		const { serviceId, signatureRequired } = selectedRates[ packageId ];
+		const packageRates = availableRates[ packageId ].default.rates;
+		let signatureRates = null;
+		let foundRateSignatureRequired = null;
+		if ( 'signature_required' in availableRates[ packageId ] ) {
+			signatureRates = availableRates[ packageId ].signature_required.rates;
+			foundRateSignatureRequired = find( signatureRates, r => serviceId === r.service_id ) || null;
+		}
+
+		const foundRate = find( packageRates, r => serviceId === r.service_id );
+
 		if ( foundRate ) {
-			prices.push( {
+			const rateDiscount = foundRate.retail_rate - foundRate.rate;
+			let rateTotal = foundRate.rate;
+
+			const price = {
 				title: foundRate.title,
 				retailRate: foundRate.retail_rate,
-			} );
+				addons: [],
+			}
+			if ( signatureRequired && null !== foundRateSignatureRequired ) {
+				price.addons = [ {
+					title: translate( 'Signature Required' ),
+					rate: foundRateSignatureRequired.rate - foundRate.rate,
+				} ];
+				rateTotal = foundRateSignatureRequired.rate;
+			}
+			prices.push( price );
 
-			discount += round( foundRate.retail_rate - foundRate.rate, 2 );
-			total += foundRate.rate;
+			discount += round( rateDiscount,  2 );
+			total += rateTotal;
 		}
 	}
 

@@ -126,11 +126,14 @@ export default data => {
 			},
 			rates: {
 				values: isEmpty( formData.rates.selected )
-					? mapValues( formData.packages, () => '' )
-					: formData.rates.selected,
+					? mapValues( formData.packages, () => ( {
+						serviceId: '',
+						signatureRequired: false,
+					} ) ) : formData.rates.selected,
 				available: {},
 				retrievalInProgress: false,
 			},
+			rateOptions: {},
 		},
 		openedPackageId: Object.keys( formData.selected_packages )[ 0 ] || '',
 	};

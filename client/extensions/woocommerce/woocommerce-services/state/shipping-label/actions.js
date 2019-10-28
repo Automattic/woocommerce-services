@@ -699,13 +699,14 @@ export const confirmCustoms = ( orderId, siteId ) => ( dispatch, getState ) => {
 	tryGetLabelRates( orderId, siteId, dispatch, getState );
 };
 
-export const updateRate = ( orderId, siteId, packageId, value ) => {
+export const updateRate = ( orderId, siteId, packageId, serviceId, signatureRequired ) => {
 	return {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE,
 		siteId,
 		orderId,
 		packageId,
-		value,
+		serviceId,
+		signatureRequired,
 	};
 };
 
@@ -1031,21 +1032,25 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				origin: getAddressValues( form.origin ),
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {
+					const { serviceId, signatureRequired } = form.rates.values[ pckgId ];
+					let rateType = 'default';
+					if ( signatureRequired ) {
+						rateType = 'signature_required';
+					}
 					const packageFields = convertToApiPackage( pckg, customsItems );
-					const rate = find( form.rates.available[ pckgId ].rates, {
-						service_id: form.rates.values[ pckgId ],
-					} );
-					return {
+					const rate = find( form.rates.available[ pckgId ][ rateType ].rates, r => serviceId === r.service_id );
+					const packageData = {
 						...packageFields,
-						shipment_id: form.rates.available[ pckgId ].shipment_id,
+						shipment_id: form.rates.available[ pckgId ][ rateType ].shipment_id,
 						rate_id: rate.rate_id,
-						service_id: form.rates.values[ pckgId ],
+						service_id: serviceId,
 						carrier_id: rate.carrier_id,
 						service_name: rate.title,
 						products: flatten(
 							pckg.items.map( item => fill( new Array( item.quantity ), item.product_id ) )
 						),
 					};
+					return packageData;
 				} ),
 			};
 

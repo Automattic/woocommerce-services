@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { get, mapValues } from 'lodash';
+import { mapValues, find } from 'lodash';
 
 /**
  * Internal dependencies
@@ -40,20 +40,31 @@ export const ShippingRates = ( {
 } ) => {
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
+		if ( ! ( pckgId in availableRates ) ) {
+			return null;
+		}
 		const selectedRate = selectedRates[ pckgId ] || '';
-		const packageRates = get( availableRates, [ pckgId, 'rates' ], [] );
+		const packageRates = availableRates[ pckgId ].default.rates;
+		let signatureRates = null;
+		if ( 'signature_required' in availableRates[ pckgId ] ) {
+			signatureRates = availableRates[ pckgId ].signature_required.rates || null;
+		}
 		const packageErrors = errors[ pckgId ] || [];
 
-		const onRateUpdate = value => updateRate( pckgId, value );
+		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 				{ Object.values(
-					mapValues( packageRates, ( ( rateObject ) => {
+					mapValues( packageRates, ( ( serviceRateObject ) => {
+						const { service_id } = serviceRateObject;
+						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
 						return <ShippingRate
 							id={ id + '_' + pckgId }
-							rateObject={ rateObject }
+							key={ id + '_' + pckgId + '_' + service_id }
+							rateObject={ serviceRateObject }
+							rateObjectSignatureRequired={ rateObjectSignatureRequired }
 							updateValue={ onRateUpdate }
-							isSelected={ rateObject.service_id === selectedRate }
+							isSelected={ service_id === selectedRate.serviceId }
 						/>
 					} ) )
 				) }
