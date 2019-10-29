@@ -22,7 +22,6 @@ import {
 	pick,
 	sumBy,
 	uniqBy,
-	isNull,
 } from 'lodash';
 
 /**

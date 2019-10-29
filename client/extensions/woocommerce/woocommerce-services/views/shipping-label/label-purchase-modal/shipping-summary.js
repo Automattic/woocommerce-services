@@ -41,7 +41,9 @@ const ShippingSummary = props => {
 						</div>
 						<div>
 							{ origin.values.address }
+							{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
 							<a href="#" onClick={ () => props.toggleStep( orderId, siteId, 'origin', true ) }>Edit</a>
+							{ /* eslint-enable jsx-a11y/anchor-is-valid */ }
 						</div>
 					</div>
 				) : null }
