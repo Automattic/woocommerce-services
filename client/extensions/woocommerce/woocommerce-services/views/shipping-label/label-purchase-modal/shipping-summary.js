@@ -29,7 +29,7 @@ const ShippingSummary = props => {
 	const labelCount = Object.keys( rates.values ).length;
 
 	return (
-		<div>
+		<div className="label-purchase-modal__shipping-summary-section">
 			<div className="label-purchase-modal__shipping-summary-header">
 				{ translate( 'Shipping summary' ) }
 			</div>

@@ -88,7 +88,7 @@ class PriceSummary extends Component {
 		const { prices, discount, total } = priceBreakdown;
 
 		return (
-			<div>
+			<div className="label-purchase-modal__shipping-summary-section">
 				<hr />
 				{ prices.map( ( service, index ) => {
 					return (
@@ -103,7 +103,7 @@ class PriceSummary extends Component {
 					);
 				} ) }
 				{ 0 < discount
-					? this.renderRow( translate( 'Your discount' ), -discount, 'discount', false, true )
+					? this.renderRow( translate( 'You save' ), -discount, 'discount', false, true )
 					: null }
 				{ this.renderRow( translate( 'Total' ), total, 'total', true ) }
 			</div>
