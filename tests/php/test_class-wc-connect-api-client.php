@@ -36,7 +36,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 
 		$actual = $this->api_client->build_shipment_contents( array( 'contents' => WC()->cart->get_cart() ) );
 
-		$this->assertIsWPError( $actual );
+		$this->assertWPError( $actual );
 		$this->assertEquals( 'product_missing_weight', $actual->get_error_code() );
 	}
 
