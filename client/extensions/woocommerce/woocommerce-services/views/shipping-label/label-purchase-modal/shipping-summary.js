@@ -36,10 +36,13 @@ const ShippingSummary = props => {
 			<div className="label-purchase-modal__shipping-summary-info">
 				{ normalizationStatus.isSuccess ? (
 					<div className="label-purchase-modal__shipping-summary-street">
-						{ translate( 'Shipping from %(address)s', {
-							args: { address: origin.values.address },
-						} ) }
-						<a href="#" onClick={ () => props.toggleStep( orderId, siteId, 'origin', true ) }>Edit</a>
+						<div>
+							{ translate( 'Shipping from' ) }
+						</div>
+						<div>
+							{ origin.values.address }
+							<a href="#" onClick={ () => props.toggleStep( orderId, siteId, 'origin', true ) }>Edit</a>
+						</div>
 					</div>
 				) : null }
 			</div>
