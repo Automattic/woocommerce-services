@@ -63,6 +63,19 @@ class ShippingLabelViewWrapper extends Component {
 			'is-placeholder': ! loaded,
 		} );
 
+		if ( false === events ) {
+			return (
+				<Button
+					className={ 'shipping-label__button-loading' }
+					primary
+					busy={ true }
+					disabled={ true }
+				>
+
+				</Button>
+			);
+		}
+
 		// eslint-disable-next-line no-undef
 		if ( wcConnectData.wcs_server_connection ) {
 			if ( 0 === events.length ) {
