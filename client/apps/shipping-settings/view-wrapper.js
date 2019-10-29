@@ -63,8 +63,7 @@ class LabelSettingsWrapper extends Component {
 	onSaveChanges = () => {
 		this.props.createWcsShippingSaveActionList(
 			this.onSaveSuccess,
-			this.onSaveFailure,
-			this.onPaymentMethodMissing
+			this.onSaveFailure
 		);
 	}
 
