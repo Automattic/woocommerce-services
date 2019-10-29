@@ -22,6 +22,7 @@ import {
 	pick,
 	sumBy,
 	uniqBy,
+	isNull,
 } from 'lodash';
 
 /**
@@ -154,12 +155,13 @@ export const fetchLabelsData = ( orderId, siteId ) => dispatch => {
 		);
 };
 
-export const toggleStep = ( orderId, siteId, stepName ) => {
+export const toggleStep = ( orderId, siteId, stepName, expanded = null ) => {
 	return {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 		siteId,
 		orderId,
 		stepName,
+		expanded
 	};
 };
 
