@@ -89,6 +89,7 @@ class PriceSummary extends Component {
 
 		return (
 			<div>
+				<hr />
 				{ prices.map( ( service, index ) => {
 					return (
 						<Fragment key={ index }>
