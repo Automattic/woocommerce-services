@@ -17,9 +17,7 @@ import {
 	actionListClear,
 } from 'woocommerce/state/action-list/actions';
 import {
-	areLabelsEnabled,
 	getLabelSettingsFormMeta,
-	getSelectedPaymentMethodId,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import { getPackagesForm } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import { submit as submitLabels } from 'woocommerce/woocommerce-services/state/label-settings/actions';
@@ -103,13 +101,7 @@ export default {
 		 * @param {Object} action - an action containing successAction and failureAction
 		 */
 		( store, action ) => {
-			const { successAction, failureAction, noLabelsPaymentAction, onlyPackages } = action;
-
-			const state = store.getState();
-			if ( areLabelsEnabled( state ) && ! getSelectedPaymentMethodId( state ) ) {
-				store.dispatch( noLabelsPaymentAction );
-				return;
-			}
+			const { successAction, failureAction, onlyPackages } = action;
 
 			/**
 			 * A callback issued after a successful request

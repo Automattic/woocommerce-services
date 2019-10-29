@@ -82,17 +82,9 @@ class ShippingSettingsSaveButton extends Component {
 			translate( 'There was a problem saving the shipping settings. Please try again.' )
 		);
 
-		const noLabelsPaymentAction = errorNotice(
-			translate( 'A payment method is required to print shipping labels.' ),
-			{
-				duration: 4000,
-			}
-		);
-
 		this.props.createWcsShippingSaveActionList(
 			this.onSaveSuccess,
-			failureAction,
-			noLabelsPaymentAction
+			failureAction
 		);
 	};
 

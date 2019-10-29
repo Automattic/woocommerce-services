@@ -64,19 +64,9 @@ const PackageDialog = props => {
 			return props.errorNotice( translate( 'Unable to save your shipping packages. Please try again.' ) );
 		}
 
-		const onPaymentMethodMissing = () => {
-			return props.errorNotice(
-				translate( 'A payment method is required to print shipping labels.' ),
-				{
-					duration: 4000,
-				}
-			);
-		}
-
 		props.createWcsShippingSaveActionList(
 			onSaveSuccess,
 			onSaveFailure,
-			onPaymentMethodMissing,
 			true
 		);
 	};
