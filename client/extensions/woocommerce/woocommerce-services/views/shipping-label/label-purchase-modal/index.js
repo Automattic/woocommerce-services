@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
+import { map } from 'lodash';
 
 /**
  * Internal dependencies
@@ -28,7 +29,7 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const LabelPurchaseModal = props => {
-	const { loaded, translate } = props;
+	const { loaded, translate, packages } = props;
 
 	if ( ! loaded ) {
 		return null;
@@ -68,7 +69,15 @@ const LabelPurchaseModal = props => {
 							siteId={ props.siteId }
 							orderId={ props.orderId }
 						/>
-						<PackagesStep siteId={ props.siteId } orderId={ props.orderId } />
+
+						{ map( packages, ( p, index ) => (
+							<PackagesStep
+								siteId={ props.siteId }
+								orderId={ props.orderId }
+								pckg={ p }
+								key={ index }
+							/>
+						) ) }
 						{ props.isCustomsFormRequired && (
 							<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
 						) }
@@ -91,6 +100,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	return {
 		loaded,
 		form: loaded && shippingLabel.form,
+		packages: loaded && shippingLabel.form.packages.selected,
 		showPurchaseDialog: shippingLabel.showPurchaseDialog,
 		isCustomsFormRequired: isCustomsFormRequired( state, orderId, siteId ),
 	};

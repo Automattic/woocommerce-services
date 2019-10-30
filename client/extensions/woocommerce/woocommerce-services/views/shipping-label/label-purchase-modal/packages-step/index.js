@@ -31,14 +31,25 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 
 const PackagesStep = props => {
-	const { siteId, orderId, selected, weightUnit, errors, expanded, translate } = props;
+	const {
+		siteId,
+		orderId,
+		selected,
+		weightUnit,
+		errors,
+		expanded,
+		translate,
+		pckg,
+		key,
+	} = props;
+
+	if ( ! ( 'items' in pckg ) ) {
+		return null;
+	}
 
 	const packageIds = Object.keys( selected );
-	const itemsCount = packageIds.reduce(
-		( result, pId ) => result + selected[ pId ].items.length,
-		0
-	);
-	const totalWeight = packageIds.reduce( ( result, pId ) => result + selected[ pId ].weight, 0 );
+	const itemsCount = pckg.items.length;
+	const totalWeight = pckg.items.reduce( ( result, item ) => result + item.weight, 0 );
 	const isValidPackages = 0 < packageIds.length;
 
 	const getContainerState = () => {
@@ -101,7 +112,11 @@ const PackagesStep = props => {
 			toggleStep={ toggleStepHandler }
 		>
 			<div className="packages-step__contents">
-				<PackageInfo siteId={ props.siteId } orderId={ props.orderId } />
+				<PackageInfo
+					siteId={ props.siteId }
+					orderId={ props.orderId }
+					pckg={ pckg }
+				/>
 			</div>
 
 			<StepConfirmationButton

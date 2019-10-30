@@ -40,23 +40,24 @@ const PackageInfo = props => {
 	const {
 		siteId,
 		orderId,
-		packageId,
 		selected,
 		weightUnit,
 		errors,
 		translate,
 		userMeta,
+		pckg,
 	} = props;
 
-	const pckgErrors = errors[ packageId ] || {};
+	const packageId = pckg.id;
 	if ( ! packageId ) {
 		return null;
 	}
+	const pckgErrors = errors[ packageId ] || {};
 
-	const pckg = selected[ packageId ];
+	//const pckg = selected[ packageId ];
 
 	if ( 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
-		props.setPackageType( orderId, siteId, packageId, userMeta.last_box_id );
+		//props.setPackageType( orderId, siteId, packageId, userMeta.last_box_id );
 	}
 
 	const isIndividualPackage = 'individual' === pckg.box_id;
@@ -156,12 +157,11 @@ const PackageInfo = props => {
 					placeholder={ translate( '0' ) }
 					value={ pckg.weight || '' }
 					onChange={ onWeightChange }
-					isError={ Boolean( pckgErrors.weight ) }
+					isError={ false }
 					type="number"
 					noWrap
 					suffix={ weightUnit }
 				/>
-				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
 			</div>
 		</div>
 	);
@@ -190,8 +190,8 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	return {
 		siteId,
 		errors,
-		packageId: shippingLabel.openedPackageId,
-		selected: shippingLabel.form.packages.selected,
+		//packageId: shippingLabel.openedPackageId,
+		//selected: shippingLabel.form.packages.selected,
 		dimensionUnit: storeOptions.dimension_unit,
 		weightUnit: storeOptions.weight_unit,
 		userMeta: userMeta,
