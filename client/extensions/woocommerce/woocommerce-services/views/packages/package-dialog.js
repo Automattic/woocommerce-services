@@ -95,7 +95,7 @@ const PackageDialog = props => {
 			inner_dimensions: inputFilters.dimensions( packageData.inner_dimensions ),
 			outer_dimensions: inputFilters.dimensions( packageData.outer_dimensions ),
 			box_weight: inputFilters.number( packageData.box_weight ),
-			max_weight: inputFilters.number( packageData.max_weight ),
+			max_weight: 0,
 		} );
 
 		const errors = checkInputs( filteredPackageData, boxNames, packageSchema );

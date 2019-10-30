@@ -83,7 +83,6 @@ reducers[ WOOCOMMERCE_SERVICES_PACKAGES_SET_MODAL_ERRORS ] = ( state, action ) =
 reducers[ WOOCOMMERCE_SERVICES_PACKAGES_UPDATE_PACKAGES_FIELD ] = ( state, action ) => {
 	const mergedPackageData = Object.assign( {}, state.packageData, action.values );
 	const newPackageData = omitBy( mergedPackageData, isNullOrEmpty );
-	newPackageData.max_weight = 0;
 	return Object.assign( {}, state, {
 		packageData: newPackageData,
 		pristine: false,
