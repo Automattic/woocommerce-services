@@ -212,7 +212,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * environment_check function.
 		 *
-		 * @access public
 		 * @return void
 		 */
 		public function environment_check() {
@@ -229,7 +228,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				echo '<div class="error">
 					<p>' . sprintf( __( 'WooCommerce Services requires that the <a href="%s">currency</a> is set to US Dollars.', 'woocommerce-services' ), admin_url( 'admin.php?page=' . $admin_page . '&tab=general' ) ) . '</p>
 				</div>';
-			} else if ( ! WC_Connect_Shipping_Label::is_supported_country( $base_location['country'] ) ) {
+			}
+
+			if ( ! WC_Connect_Shipping_Label::is_supported_country( $base_location['country'] ) ) {
 				echo '<div class="error">
 					<p>' . sprintf( __( 'WooCommerce Services requires that the <a href="%s">base country/region</a> is the United States.', 'woocommerce-services' ), admin_url( 'admin.php?page=' . $admin_page . '&tab=general' ) ) . '</p>
 				</div>';
