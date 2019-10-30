@@ -680,7 +680,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE ] = (
 		8
 	);
 
-	if ( 'not_selected' === boxTypeId ) {
+	if ( 'not_selected' === boxTypeId || ! box ) {
 		// This is when no box is selected
 		newPackages[ packageId ] = {
 			...omit( oldPackage, 'service_id' ),
