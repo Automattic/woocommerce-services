@@ -112,7 +112,6 @@ describe( 'Packages form reducer', () => {
 			modalErrors: {},
 			showModal: false,
 			showOuterDimensions: false,
-			currentlyEditingPredefinedPackages: null,
 		} );
 	} );
 
