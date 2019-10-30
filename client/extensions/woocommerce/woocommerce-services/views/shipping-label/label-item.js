@@ -101,7 +101,7 @@ export class LabelItem extends Component {
 		} = label;
 
 		return (
-			<div className="shipping-label__item">a
+			<div className="shipping-label__item">
 				<p className="shipping-label__item-detail">
 					{ translate( '%(service)s label (#%(labelIndex)d)', {
 						args: {
