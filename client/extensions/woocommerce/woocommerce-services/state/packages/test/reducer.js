@@ -297,7 +297,7 @@ describe( 'Packages form reducer', () => {
 			service: [ 'box', 'box1', 'box2' ],
 			otherService: [],
 		} );
-		expect( result.currentlyEditingPredefinedPackages ).to.eql( null );
+		expect( result.currentlyEditingPredefinedPackages ).to.eql( { service: [ 'box', 'box1', 'box2' ], otherService: [] } );
 		expect( result.pristine ).to.eql( false );
 		expect( result.showModal ).to.eql( false );
 	} );
