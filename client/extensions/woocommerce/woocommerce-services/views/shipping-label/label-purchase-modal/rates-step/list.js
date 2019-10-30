@@ -14,6 +14,7 @@ import { mapValues, find } from 'lodash';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import Notice from 'components/notice';
 import ShippingRate from './shipping-rate';
+import getPackageDescriptions from '../packages-step/get-package-descriptions';
 
 const renderRateNotice = translate => {
 	return (
@@ -33,11 +34,14 @@ export const ShippingRates = ( {
 	selectedRates, // Store owner selected rates, not customer
 	availableRates,
 	selectedPackages,
+	allPackages,
 	updateRate,
 	errors,
 	shouldShowRateNotice,
 	translate,
 } ) => {
+	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
+	const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
 
 	const renderSinglePackage = ( pckg, pckgId ) => {
 		if ( ! ( pckgId in availableRates ) ) {
@@ -54,6 +58,12 @@ export const ShippingRates = ( {
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
+
+				{ ! hasSinglePackage ? (
+					<div className="rates-step__package-container-rates-header">
+						{ translate( 'Choose rate: %(pckg)s', { args: { pckg: packageNames[ pckgId ] } } ) }
+					</div>
+				) : null }
 				{ Object.values(
 					mapValues( packageRates, ( ( serviceRateObject ) => {
 						const { service_id } = serviceRateObject;
