@@ -435,16 +435,15 @@ export const hasSelectedRates = ( { values: selectedRates, available: allRates }
 
 export const getRatesErrors = ( { values: selectedRates, available: allRates } ) =>
 	mapValues( allRates, ( rate, boxId ) => {
-		if ( ! isEmpty( rate.errors ) ) {
-			const messages = rate.errors.map( err => err.userMessage || err.message ).filter( Boolean );
+		if ( ! isEmpty( rate.default.errors ) ) {
+			const messages = rate.default.errors.map( err => err.userMessage || err.message ).filter( Boolean );
 			return messages.length
 				? messages
 				: [ "We couldn't get a rate for this package, please try again." ];
 		}
-
-		if ( selectedRates[ boxId ] ) {
+		if ( selectedRates[ boxId ] && selectedRates[ boxId ].serviceId ) {
 			return [];
-		} else if ( isEmpty( rate.rates ) ) {
+		} else if ( isEmpty( rate.default.rates ) ) {
 			return [
 				translate(
 					'No rates available, please double check dimensions and weight or try using different packaging.'

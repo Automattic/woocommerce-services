@@ -457,7 +457,7 @@ describe( 'Label purchase form reducer', () => {
 		expect( state[ orderId ].form.packages.selected.weight_0_custom1.signature ).to.eql( 'yes' );
 		expect( state[ orderId ].form.packages.saved ).to.be.false;
 		expect( state[ orderId ].form.rates.available ).to.be.an( 'object' ).that.is.empty;
-		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( '' );
+		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( { serviceId: '', signatureRequired: false } );
 	} );
 
 	it( 'WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PACKAGE_WEIGHT updates package weight option and clears rates', () => {
@@ -475,7 +475,7 @@ describe( 'Label purchase form reducer', () => {
 			.true;
 		expect( state[ orderId ].form.packages.saved ).to.be.false;
 		expect( state[ orderId ].form.rates.available ).to.be.an( 'object' ).that.is.empty;
-		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( '' );
+		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( { serviceId: '', signatureRequired: false } );
 	} );
 
 	it( 'WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_ADDRESS_SUGGESTION saves the address and proceeds to the next step', () => {

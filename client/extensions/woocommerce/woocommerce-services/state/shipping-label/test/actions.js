@@ -113,6 +113,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( true );
 			} );
@@ -123,6 +124,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( false );
 			} );
@@ -151,6 +153,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( true );
 			} );
@@ -161,6 +164,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( false );
 			} );
@@ -194,6 +198,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( true );
 			} );
@@ -204,6 +209,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( false );
 			} );
@@ -232,6 +238,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( true );
 			} );
@@ -242,6 +249,7 @@ describe( 'Shipping label Actions', () => {
 						type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( false );
 			} );
@@ -350,6 +358,7 @@ describe( 'Shipping label Actions', () => {
 						stepName: 'destination',
 						orderId,
 						siteId,
+						expanded: null
 					} )
 				).to.equal( true );
 			} );
