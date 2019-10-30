@@ -14,108 +14,120 @@ describe( '#getRatesErrors', () => {
 	// when there are selected rates
 	// the values match `service_id` in the rate object
 	const firstBoxSelectedValues = {
-		box_1: 'Priority',
+		serviceId: 'Priority', signatureRequired: false,
 	};
 	const secondBoxSelectedValues = {
-		box_2: 'Express',
+		serviceId: 'Express', signatureRequired: false,
 	};
 
 	// rates when there are no server errors, for each box
 	const firstBoxRatesWithNoServerErrors = {
 		box_1: {
-			shipment_id: 'shp_1',
-			rates: [
-				{
-					rate_id: 'rate_box_1_a',
-					service_id: 'Priority',
-					carrier_id: 'usps',
-					title: 'USPS - Priority Mail',
-					rate: 10,
-					is_selected: true,
-				},
-				{
-					rate_id: 'rate_box_1_b',
-					service_id: 'Express',
-					carrier_id: 'usps',
-					title: 'USPS - Express Mail',
-					rate: 11,
-					is_selected: false,
-				},
-			],
-			errors: [],
+			default: {
+				shipment_id: 'shp_1',
+				rates: [
+					{
+						rate_id: 'rate_box_1_a',
+						service_id: 'Priority',
+						carrier_id: 'usps',
+						title: 'USPS - Priority Mail',
+						rate: 10,
+						is_selected: true,
+					},
+					{
+						rate_id: 'rate_box_1_b',
+						service_id: 'Express',
+						carrier_id: 'usps',
+						title: 'USPS - Express Mail',
+						rate: 11,
+						is_selected: false,
+					},
+				],
+				errors: [],
+			}
 		},
 	};
 	const secondBoxRatesWithNoServerErrors = {
 		box_2: {
-			shipment_id: 'shp_2',
-			rates: [
-				{
-					rate_id: 'rate_box_2_a',
-					service_id: 'Priority',
-					carrier_id: 'usps',
-					title: 'USPS - Priority Mail',
-					rate: 20,
-					is_selected: false,
-				},
-				{
-					rate_id: 'rate_box_2_b',
-					service_id: 'Express',
-					carrier_id: 'usps',
-					title: 'USPS - Express Mail',
-					rate: 21,
-					is_selected: true,
-				},
-			],
-			errors: [],
+			default: {
+				shipment_id: 'shp_2',
+				rates: [
+					{
+						rate_id: 'rate_box_2_a',
+						service_id: 'Priority',
+						carrier_id: 'usps',
+						title: 'USPS - Priority Mail',
+						rate: 20,
+						is_selected: false,
+					},
+					{
+						rate_id: 'rate_box_2_b',
+						service_id: 'Express',
+						carrier_id: 'usps',
+						title: 'USPS - Express Mail',
+						rate: 21,
+						is_selected: true,
+					},
+				],
+				errors: [],
+			}
 		},
 	};
 
 	// rates when there are server errors
 	const firstBoxRatesWithError = {
 		box_1: {
-			rates: [],
-			errors: [
-				{
-					code: 'ERROR 1',
-					message: 'There was an error!',
-				},
-			],
+			default: {
+				rates: [],
+				errors: [
+					{
+						code: 'ERROR 1',
+						message: 'There was an error!',
+					},
+				],
+			}
 		},
 	};
 	const firstBoxRatesWithUserMessageError = {
 		box_1: {
-			rates: [],
-			errors: [
-				{
-					code: 'ERROR 1',
-					userMessage: 'This is a friendly error message!',
-				},
-			],
+			default: {
+				rates: [],
+				errors: [
+					{
+						code: 'ERROR 1',
+						userMessage: 'This is a friendly error message!',
+					},
+				],
+			}
 		},
 	};
 	const firstBoxRatesWithErrorButNoErrorMessage = {
 		box_1: {
-			rates: [],
-			errors: [
-				{
-					code: 'ERROR 1',
-				},
-			],
+			default: {
+				rates: [],
+				errors: [
+					{
+						code: 'ERROR 1',
+					},
+				],
+			}
 		},
 	};
 	const firstBoxRatesWithMultipleErrors = {
 		box_1: {
-			rates: [],
-			errors: [
-				{
-					code: 'ERROR A',
-					message: 'Error 1',
-				},
-				{
-					code: 'ERROR B',
-					message: 'Error 2',
-				},
-			],
+			default: {
+				rates: [],
+				errors: [
+					{
+						code: 'ERROR A',
+						message: 'Error 1',
+					},
+					{
+						code: 'ERROR B',
+						message: 'Error 2',
+					},
+				],
+			}
 		},
 	};
 
@@ -130,7 +142,7 @@ describe( '#getRatesErrors', () => {
 		// rates with a message prop in the error object
 		const rates = {
 			values: {
-				box_1: '',
+				box_1: { serviceId: '', signatureRequired: false }
 			},
 			available: firstBoxRatesWithError,
 		};
@@ -171,7 +183,7 @@ describe( '#getRatesErrors', () => {
 		describe( 'multiple errors', () => {
 			const ratesWithMultipleErrors = {
 				values: {
-					box_1: '',
+					box_1: { serviceId: '', signatureRequired: false }
 				},
 				available: firstBoxRatesWithMultipleErrors,
 			};
@@ -190,7 +202,9 @@ describe( '#getRatesErrors', () => {
 
 		describe( 'rate is selected', () => {
 			const rates = {
-				values: Object.assign( {}, firstBoxSelectedValues ),
+				values: {
+					box_1: Object.assign( {}, firstBoxSelectedValues ),
+				},
 				available: firstBoxRatesWithNoServerErrors,
 			};
 			const result = getRatesErrors( rates );
@@ -205,7 +219,7 @@ describe( '#getRatesErrors', () => {
 		describe( 'rate is not selected', () => {
 			const rates = {
 				values: {
-					box_1: '',
+					box_1: { serviceId: '', signatureRequired: false }
 				},
 				available: firstBoxRatesWithNoServerErrors,
 			};
@@ -223,7 +237,7 @@ describe( '#getRatesErrors', () => {
 		describe( 'rate is selected for box 2', () => {
 			const rates = {
 				values: {
-					box_1: '',
+					box_1: { serviceId: '', signatureRequired: false },
 					box_2: Object.assign( {}, secondBoxSelectedValues ),
 				},
 				available: Object.assign( {}, firstBoxRatesWithError, secondBoxRatesWithNoServerErrors ),
@@ -241,8 +255,8 @@ describe( '#getRatesErrors', () => {
 		describe( 'rate not selected for box 2', () => {
 			const rates = {
 				values: {
-					box_1: '',
-					box_2: '',
+					box_1: { serviceId: '', signatureRequired: false },
+					box_2: { serviceId: '', signatureRequired: false }
 				},
 				available: Object.assign( {}, firstBoxRatesWithError, secondBoxRatesWithNoServerErrors ),
 			};
@@ -327,7 +341,7 @@ describe( 'Shipping label selectors', () => {
 			form: {
 				rates: {
 					values: {
-						default_box: '',
+						default_box: { serviceId: '', signatureRequired: false },
 					},
 					available: {},
 				},
@@ -342,21 +356,23 @@ describe( 'Shipping label selectors', () => {
 			form: {
 				rates: {
 					values: {
-						default_box: '',
+						default_box: { serviceId: '', signatureRequired: false },
 					},
 					available: {
 						default_box: {
-							rates: [
-								{
-									carrier_id: 'usps',
-									is_selected: false,
-									rate: 6.61,
-									rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
-									retail_rate: 7.8,
-									service_id: 'Priority',
-									title: 'USPS - Priority Mail',
-								},
-							],
+							default: {
+								rates: [
+									{
+										carrier_id: 'usps',
+										is_selected: false,
+										rate: 6.61,
+										rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
+										retail_rate: 7.8,
+										service_id: 'Priority',
+										title: 'USPS - Priority Mail',
+									},
+								],
+							}
 						},
 					},
 				},
@@ -371,28 +387,30 @@ describe( 'Shipping label selectors', () => {
 			form: {
 				rates: {
 					values: {
-						default_box: 'Priority',
+						default_box: { serviceId: 'Priority', signatureRequired: false }
 					},
 					available: {
 						default_box: {
-							rates: [
-								{
-									carrier_id: 'usps',
-									is_selected: false,
-									rate: 6.61,
-									rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
-									retail_rate: 7.8,
-									service_id: 'Priority',
-									title: 'USPS - Priority Mail',
-								},
-							],
+							default: {
+								rates: [
+									{
+										carrier_id: 'usps',
+										is_selected: false,
+										rate: 6.61,
+										rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
+										retail_rate: 7.8,
+										service_id: 'Priority',
+										title: 'USPS - Priority Mail',
+									},
+								],
+							}
 						},
 					},
 				},
 			},
 		} );
 		const result = getTotalPriceBreakdown( state, orderId, siteId );
-		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8 } ] );
+		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8, addons: [] } ] );
 		expect( result.discount ).to.eql( 1.19 );
 		expect( result.total ).to.eql( 6.61 );
 	} );
@@ -402,42 +420,46 @@ describe( 'Shipping label selectors', () => {
 			form: {
 				rates: {
 					values: {
-						box1: 'Priority',
-						box2: '',
+						box1: { serviceId: 'Priority', signatureRequired: false },
+						box2: { serviceId: '', signatureRequired: false },
 					},
 					available: {
 						box1: {
-							rates: [
-								{
-									carrier_id: 'usps',
-									is_selected: false,
-									rate: 6.61,
-									rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
-									retail_rate: 7.8,
-									service_id: 'Priority',
-									title: 'USPS - Priority Mail',
-								},
-							],
+							default: {
+								rates: [
+									{
+										carrier_id: 'usps',
+										is_selected: false,
+										rate: 6.61,
+										rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
+										retail_rate: 7.8,
+										service_id: 'Priority',
+										title: 'USPS - Priority Mail',
+									},
+								],
+							}
 						},
 						box2: {
-							rates: [
-								{
-									carrier_id: 'usps',
-									is_selected: false,
-									rate: 21.18,
-									rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfb',
-									retail_rate: 23.85,
-									service_id: 'Express',
-									title: 'USPS - Express Mail',
-								},
-							],
+							default: {
+								rates: [
+									{
+										carrier_id: 'usps',
+										is_selected: false,
+										rate: 21.18,
+										rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfb',
+										retail_rate: 23.85,
+										service_id: 'Express',
+										title: 'USPS - Express Mail',
+									},
+								],
+							}
 						},
 					},
 				},
 			},
 		} );
 		const result = getTotalPriceBreakdown( state, orderId, siteId );
-		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8 } ] );
+		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8, addons: [] } ] );
 		expect( result.discount ).to.eql( 1.19 );
 		expect( result.total ).to.eql( 6.61 );
 	} );
@@ -447,35 +469,39 @@ describe( 'Shipping label selectors', () => {
 			form: {
 				rates: {
 					values: {
-						box1: 'Priority',
-						box2: 'Express',
+						box1: { serviceId: 'Priority', signatureRequired: false },
+						box2: { serviceId: 'Express', signatureRequired: false }
 					},
 					available: {
 						box1: {
-							rates: [
-								{
-									carrier_id: 'usps',
-									is_selected: false,
-									rate: 6.61,
-									rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
-									retail_rate: 7.8,
-									service_id: 'Priority',
-									title: 'USPS - Priority Mail',
-								},
-							],
+							default: {
+								rates: [
+									{
+										carrier_id: 'usps',
+										is_selected: false,
+										rate: 6.61,
+										rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfa',
+										retail_rate: 7.8,
+										service_id: 'Priority',
+										title: 'USPS - Priority Mail',
+									},
+								],
+							}
 						},
 						box2: {
-							rates: [
-								{
-									carrier_id: 'usps',
-									is_selected: false,
-									rate: 21.18,
-									rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfb',
-									retail_rate: 23.85,
-									service_id: 'Express',
-									title: 'USPS - Express Mail',
-								},
-							],
+							default: {
+								rates: [
+									{
+										carrier_id: 'usps',
+										is_selected: false,
+										rate: 21.18,
+										rate_id: 'rate_f2afdd2045d84b8394a47730cf264bfb',
+										retail_rate: 23.85,
+										service_id: 'Express',
+										title: 'USPS - Express Mail',
+									},
+								],
+							}
 						},
 					},
 				},
@@ -483,8 +509,8 @@ describe( 'Shipping label selectors', () => {
 		} );
 		const result = getTotalPriceBreakdown( state, orderId, siteId );
 		expect( result.prices ).to.eql( [
-			{ title: 'USPS - Priority Mail', retailRate: 7.8 },
-			{ title: 'USPS - Express Mail', retailRate: 23.85 },
+			{ title: 'USPS - Priority Mail', retailRate: 7.8, addons: [] },
+			{ title: 'USPS - Express Mail', retailRate: 23.85, addons: [] },
 		] );
 		expect( result.discount ).to.eql( 3.86 );
 		expect( result.total ).to.eql( 27.79 );
