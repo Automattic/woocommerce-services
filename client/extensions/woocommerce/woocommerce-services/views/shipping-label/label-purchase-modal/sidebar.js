@@ -15,6 +15,7 @@ import { localize } from 'i18n-calypso';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormLabel from 'components/forms/form-label';
 import PriceSummary from './price-summary';
+import ShippingSummary from './shipping-summary';
 import PurchaseSection from './purchase-section';
 import {
 	setEmailDetailsOption,
@@ -42,6 +43,7 @@ const Sidebar = props => {
 
 	return (
 		<div className="label-purchase-modal__sidebar">
+			<ShippingSummary siteId={ siteId } orderId={ orderId } />
 			<PriceSummary siteId={ siteId } orderId={ orderId } />
 			<FormLabel className="label-purchase-modal__option-email-customer">
 				<FormCheckbox checked={ emailDetails } onChange={ onEmailDetailsChange } />

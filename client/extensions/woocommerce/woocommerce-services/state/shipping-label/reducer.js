@@ -16,6 +16,7 @@ import {
 	sortBy,
 	sumBy,
 	without,
+	isBoolean,
 } from 'lodash';
 
 /**
@@ -161,14 +162,14 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_EXIT_TRACKING_FLOW ] = state => {
 	};
 };
 
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP ] = ( state, { stepName } ) => {
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP ] = ( state, { stepName, expanded = null } ) => {
 	return {
 		...state,
 		form: {
 			...state.form,
 			[ stepName ]: {
 				...state.form[ stepName ],
-				expanded: ! state.form[ stepName ].expanded,
+				expanded: isBoolean( expanded ) ? expanded : ! state.form[ stepName ].expanded,
 			},
 		},
 	};
