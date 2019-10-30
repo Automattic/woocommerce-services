@@ -87,7 +87,7 @@ export class LabelItem extends Component {
 	};
 
 	render() {
-		const { siteId, orderId, label, translate } = this.props;
+		const { siteId, orderId, label, translate, isModal } = this.props;
 		const {
 			labelIndex,
 			serviceName,
@@ -111,11 +111,13 @@ export class LabelItem extends Component {
 					} ) }
 					{ label.showDetails && (
 						<span>
-							<EllipsisMenu position="bottom left">
-								{ this.renderLabelDetails( label ) }
-								{ this.renderRefund( label ) }
-								{ this.renderReprint( label ) }
-							</EllipsisMenu>
+							{ ( ! isModal && (
+								<EllipsisMenu position="bottom left">
+									{ this.renderLabelDetails( label ) }
+									{ this.renderRefund( label ) }
+									{ this.renderReprint( label ) }
+								</EllipsisMenu>
+							) ) }
 							<DetailsDialog
 								siteId={ siteId }
 								orderId={ orderId }
@@ -154,6 +156,7 @@ LabelItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
 	label: PropTypes.object.isRequired,
+	isModal: PropTypes.bool.isRequired,
 	openRefundDialog: PropTypes.func.isRequired,
 	openReprintDialog: PropTypes.func.isRequired,
 	openDetailsDialog: PropTypes.func.isRequired,

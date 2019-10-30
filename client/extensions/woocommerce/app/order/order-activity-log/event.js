@@ -69,7 +69,7 @@ class OrderEvent extends Component {
 			return {
 				icon: 'print',
 				content: (
-					<LabelItem label={ event } orderId={ this.props.orderId } siteId={ this.props.siteId } />
+					<LabelItem label={ event } orderId={ this.props.orderId } siteId={ this.props.siteId } isModal={ this.props.isModal } />
 				),
 			};
 		},

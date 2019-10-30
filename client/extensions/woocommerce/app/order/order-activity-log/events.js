@@ -81,6 +81,7 @@ class OrderEvents extends Component {
 									event={ event }
 									orderId={ this.props.orderId }
 									siteId={ this.props.siteId }
+									isModal={ this.props.isModal }
 								/>
 							) ) }
 						</OrderEventsByDay>

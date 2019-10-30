@@ -23,11 +23,13 @@ class OrderActivityLog extends Component {
 	render() {
 		const { orderId, siteId, translate } = this.props;
 
+		const isModal = !! this.props.isModal;
+
 		return (
 			<div className="order-activity-log">
 				<SectionHeader label={ translate( 'Activity Log' ) } />
 				<Card>
-					<OrderEvents orderId={ orderId } siteId={ siteId } />
+					<OrderEvents orderId={ orderId } siteId={ siteId } isModal={ isModal }/>
 					<CreateOrderNote orderId={ orderId } siteId={ siteId } />
 				</Card>
 			</div>
