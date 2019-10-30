@@ -52,7 +52,7 @@ const TrackingModal = props => {
 					<div className="tracking-modal__main-section">
                         { /* eslint-disable-next-line wpcalypso/jsx-classname-namespace */ }
                         <div className="shipment-tracking__dummy-class order-activity-log">
-                            <ActivityLog orderId={ props.orderId } siteId={ props.siteId } />
+                            <ActivityLog orderId={ props.orderId } siteId={ props.siteId } isModal={ true } />
                         </div>
 					</div>
 				</div>
