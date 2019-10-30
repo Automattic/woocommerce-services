@@ -126,10 +126,6 @@ export const getActivityLogEvents = ( state, orderId, siteId = getSelectedSiteId
 		content: note.note,
 	} ) );
 
-	if ( null === order ) {
-		return false;
-	}
-
 	getOrderRefunds( state, orderId, siteId ).forEach( refund => {
 		events.push( {
 			key: refund.id,

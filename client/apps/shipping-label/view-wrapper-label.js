@@ -63,7 +63,7 @@ class ShippingLabelViewWrapper extends Component {
 			'is-placeholder': ! loaded,
 		} );
 
-		if ( false === events ) {
+		if ( ! loaded ) {
 			return (
 				<Button
 					className={ 'shipping-label__button-loading' }
