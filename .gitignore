@@ -12,7 +12,8 @@ build
 sftp-config.json
 /deploy/
 /wc-apidocs/
-/languages/
+i18n/
+release/
 
 # Ignore all log files except for .htaccess
 /logs/*
