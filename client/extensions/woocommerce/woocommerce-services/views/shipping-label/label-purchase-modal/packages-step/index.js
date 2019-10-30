@@ -19,6 +19,7 @@ import AddItemDialog from './add-item';
 import StepConfirmationButton from '../step-confirmation-button';
 import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tree';
 import StepContainer from '../step-container';
+import RatesStep from '../rates-step';
 import {
 	getShippingLabel,
 	isLoaded,
@@ -112,6 +113,8 @@ const PackagesStep = props => {
 
 			<MoveItemDialog siteId={ props.siteId } orderId={ props.orderId } />
 			<AddItemDialog siteId={ props.siteId } orderId={ props.orderId } />
+			<hr/>
+			<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
 		</StepContainer>
 	);
 };

@@ -17,7 +17,6 @@ import Dialog from 'components/dialog';
 import AddressStep from './address-step';
 import PackagesStep from './packages-step';
 import CustomsStep from './customs-step';
-import RatesStep from './rates-step';
 import Sidebar from './sidebar';
 import FormSectionHeading from 'components/forms/form-section-heading';
 import { exitPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
@@ -73,7 +72,6 @@ const LabelPurchaseModal = props => {
 						{ props.isCustomsFormRequired && (
 							<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
 						) }
-						<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
 					</div>
 					<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
 				</div>

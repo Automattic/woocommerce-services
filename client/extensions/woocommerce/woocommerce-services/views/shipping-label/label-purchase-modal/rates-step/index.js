@@ -16,10 +16,9 @@ import Gridicon from 'gridicons';
  * Internal dependencies
  */
 import ShippingRates from './list';
-import StepContainer from '../step-container';
+import FormLegend from 'components/forms/form-legend';
 import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tree';
 import {
-	toggleStep,
 	updateRate,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
@@ -150,23 +149,14 @@ const RatesStep = props => {
 		values,
 		available,
 		errors,
-		expanded,
-		ratesTotal,
 		translate,
 	} = props;
-	const summary = ratesSummary( values, available, ratesTotal, form.packages.saved, translate );
-	const toggleStepHandler = () => props.toggleStep( orderId, siteId, 'rates' );
 	const updateRateHandler = ( packageId, serviceId, signatureRequired ) =>
 		props.updateRate( orderId, siteId, packageId, serviceId, signatureRequired );
 
 	return (
-		<StepContainer
-			title={ translate( 'Shipping rates' ) }
-			summary={ summary }
-			expanded={ expanded }
-			toggleStep={ toggleStepHandler }
-			{ ...getRatesStatus( props ) }
-		>
+		<div>
+			<FormLegend>{ translate( 'Shipping rates' ) }</FormLegend>
 			{ ! isEmpty( available ) && showCheckoutShippingInfo( props ) }
 			<ShippingRates
 				id="rates"
@@ -178,7 +168,7 @@ const RatesStep = props => {
 				updateRate={ updateRateHandler }
 				errors={ errors }
 			/>
-		</StepContainer>
+		</div>
 	);
 };
 
@@ -189,7 +179,6 @@ RatesStep.propTypes = {
 	values: PropTypes.object.isRequired,
 	available: PropTypes.object.isRequired,
 	errors: PropTypes.object.isRequired,
-	toggleStep: PropTypes.func.isRequired,
 	updateRate: PropTypes.func.isRequired,
 };
 
@@ -211,7 +200,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 };
 
 const mapDispatchToProps = dispatch => {
-	return bindActionCreators( { toggleStep, updateRate }, dispatch );
+	return bindActionCreators( { updateRate }, dispatch );
 };
 
 export default connect(
