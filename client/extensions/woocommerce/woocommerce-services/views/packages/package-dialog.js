@@ -53,15 +53,17 @@ const PackageDialog = props => {
 	const isAddingPredefined = 'add-predefined' === mode;
 
 	const triggerImmediateSave = () => {
+		const options = { duration: 5000 };
+
 		const onSaveSuccess = () => {
 			if ( typeof props.onSaveSuccess === 'function' && 'name' in packageData ) {
 				props.onSaveSuccess( packageData.name );
 			}
-			return props.successNotice( translate( 'Your shipping packages have been saved.' ) );
+			return props.successNotice( translate( 'Your shipping packages have been saved.' ), options );
 		}
 
 		const onSaveFailure = () => {
-			return props.errorNotice( translate( 'Unable to save your shipping packages. Please try again.' ) );
+			return props.errorNotice( translate( 'Unable to save your shipping packages. Please try again.' ), options );
 		}
 
 		props.createWcsShippingSaveActionList(
