@@ -394,11 +394,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$order = wc_get_order( $post );
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
-			$items = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
+			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
 			$payload = array(
 				'orderId' => $order_id,
 				'context' => $args['args']['context'],
-				'items'   => $items,
+				'items'   => $items_count,
 			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
