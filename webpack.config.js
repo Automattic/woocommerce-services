@@ -58,7 +58,7 @@ module.exports = {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name].js',
 		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
-		publicPath: 'http://localhost:8085/',
+		publicPath: isDev ? 'http://localhost:8085/' : '/wp-content/plugins/woocommerce-services/dist/',
 	},
 	optimization: {
 		minimize: ! isDev,
