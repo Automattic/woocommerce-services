@@ -328,7 +328,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_ADDRESS_SUGGESTION ] = (
 		isNormalized: true,
 	};
 
-	if ( groupState.selectNormalized ) {
+	if ( groupState.selectNormalized && groupState.normalized ) {
 		groupState.values = groupState.normalized;
 	} else {
 		groupState.normalized = groupState.values;
