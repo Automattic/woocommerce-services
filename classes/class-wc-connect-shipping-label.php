@@ -379,14 +379,26 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $product && $product->needs_shipping();
 		}
 
+		/**
+		 * Reduce items to sum their quantities.
+		 *
+		 * @param  int   $sum  Current sum.
+		 * @param  array $item Item to add to sum.
+		 * @return int
+		 */
+		protected function reducer_items_quantity( $sum, $item ) {
+			return $sum + $item->get_quantity();
+		}
+
 		public function meta_box( $post, $args ) {
 			$order = wc_get_order( $post );
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
+			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
 			$payload = array(
 				'orderId' => $order_id,
 				'context' => $args['args']['context'],
-				'items'   => ! empty( $items ) ? count( $items ) : 0,
+				'items'   => $items_count,
 			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
