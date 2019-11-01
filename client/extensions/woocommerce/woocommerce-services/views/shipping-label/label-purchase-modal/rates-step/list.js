@@ -34,21 +34,23 @@ class ShippingRates extends Component {
 		console.log(this.props.selectedPackages, this.props.availableRates);
 
 		const packageNames = getPackageDescriptions( this.props.selectedPackages, this.props.allPackages, true );
+		const hasSinglePackage = 1 === Object.keys( this.props.selectedPackages ).length;
 
 		const shippingRates = Object.keys(this.props.selectedPackages).map((pckgId) => {
 			console.log("inside shipping rates loop", this.props.selectedPackages);
-			const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
 			const pckg = this.props.selectedPackages.pckgId
-
-
 			return <PackageShippingRates
-				{...this.props}
+				id={this.props.id}
+				availableRates={this.props.availableRates}
+				updateRate={this.props.updateRate}
+				translate={this.props.translate}
 				pckg={pckg}
 				pckgId={pckgId}
 				selectedRate={this.props.selectedRates[ pckgId ] || ''}  // Store owner selected rates, not customer
 				availableRates={this.props.availableRates[ pckgId ]}
 				packageErrors = {this.props.errors[ pckgId ] || []}
 				packageNames = {packageNames[ pckgId ]}
+				hasSinglePackage = { hasSinglePackage }
 			/>
 		});
 		return <div>
@@ -88,15 +90,11 @@ class PackageShippingRates extends Component {
 			id,
 			selectedRate,
 			availableRates,
-			selectedPackages,
-			allPackages,
 			updateRate,
-			errors,
-			shouldShowRateNotice,
 			translate
 		} = this.props;
 
-		const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
+		const hasSinglePackage = this.props.hasSinglePackage;
 
 		if ( ! availableRates ) {
 			return null;
