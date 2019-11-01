@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { mapValues, find } from 'lodash';
@@ -29,70 +29,75 @@ const renderRateNotice = translate => {
 	);
 };
 
-export const ShippingRates = ( {
-	id,
-	selectedRates, // Store owner selected rates, not customer
-	availableRates,
-	selectedPackages,
-	allPackages,
-	updateRate,
-	errors,
-	shouldShowRateNotice,
-	translate,
-} ) => {
-	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
-	const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
+class ShippingRates extends Component {
+	constructor(props) {
+		super(props);
+	}
 
-	const renderSinglePackage = ( pckg, pckgId ) => {
-		if ( ! ( pckgId in availableRates ) ) {
-			return null;
-		}
-		const selectedRate = selectedRates[ pckgId ] || '';
-		const packageRates = availableRates[ pckgId ].default.rates;
-		let signatureRates = null;
-		if ( 'signature_required' in availableRates[ pckgId ] ) {
-			signatureRates = availableRates[ pckgId ].signature_required.rates || null;
-		}
-		const packageErrors = errors[ pckgId ] || [];
+	render() {
+		const {
+			id,
+			selectedRates, // Store owner selected rates, not customer
+			availableRates,
+			selectedPackages,
+			allPackages,
+			updateRate,
+			errors,
+			shouldShowRateNotice,
+			translate
+		} = this.props;
+		const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
+		const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
 
-		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
-		return (
-			<div key={ pckgId } className="rates-step__package-container">
+		const renderSinglePackage = ( pckg, pckgId ) => {
+			if ( ! ( pckgId in availableRates ) ) {
+				return null;
+			}
+			const selectedRate = selectedRates[ pckgId ] || '';
+			const packageRates = availableRates[ pckgId ].default.rates;
+			let signatureRates = null;
+			if ( 'signature_required' in availableRates[ pckgId ] ) {
+				signatureRates = availableRates[ pckgId ].signature_required.rates || null;
+			}
+			const packageErrors = errors[ pckgId ] || [];
 
-				{ ! hasSinglePackage ? (
-					<div className="rates-step__package-container-rates-header">
-						{ translate( 'Choose rate: %(pckg)s', { args: { pckg: packageNames[ pckgId ] } } ) }
-					</div>
-				) : null }
-				{ Object.values(
-					mapValues( packageRates, ( ( serviceRateObject ) => {
-						const { service_id } = serviceRateObject;
-						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
-						return <ShippingRate
-							id={ id + '_' + pckgId }
-							key={ id + '_' + pckgId + '_' + service_id }
-							rateObject={ serviceRateObject }
-							rateObjectSignatureRequired={ rateObjectSignatureRequired }
-							updateValue={ onRateUpdate }
-							isSelected={ service_id === selectedRate.serviceId }
-						/>
-					} ) )
-				) }
-				{ packageErrors.slice( 1 ).map( ( error, index ) => {
-					// Print the rest of the errors (if any) below the dropdown
-					return <FieldError type="server-error" key={ index } text={ error } />;
-				} ) }
-			</div>
-		);
-	};
+			const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 
-	return (
-		<div>
+			return (
+				<div key={ pckgId } className="rates-step__package-container">
+					{ ! hasSinglePackage ? (
+						<div className="rates-step__package-container-rates-header">
+							{ translate( 'Choose rate: %(pckg)s', { args: { pckg: packageNames[ pckgId ] } } ) }
+						</div>
+					) : null }
+					{ Object.values(
+						mapValues( packageRates, ( ( serviceRateObject ) => {
+							const { service_id } = serviceRateObject;
+							const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
+							return <ShippingRate
+								id={ id + '_' + pckgId }
+								key={ id + '_' + pckgId + '_' + service_id }
+								rateObject={ serviceRateObject }
+								rateObjectSignatureRequired={ rateObjectSignatureRequired }
+								updateValue={ onRateUpdate }
+								isSelected={ service_id === selectedRate.serviceId }
+							/>
+						} ) )
+					) }
+					{ packageErrors.slice( 1 ).map( ( error, index ) => {
+						// Print the rest of the errors (if any) below the dropdown
+						return <FieldError type="server-error" key={ index } text={ error } />;
+					} ) }
+				</div>
+			);
+		};
+
+		return <div>
 			{ shouldShowRateNotice && renderRateNotice( translate ) }
 			{ Object.values( mapValues( selectedPackages, renderSinglePackage ) ) }
 		</div>
-	);
-};
+	}
+}
 
 ShippingRates.propTypes = {
 	id: PropTypes.string.isRequired,
