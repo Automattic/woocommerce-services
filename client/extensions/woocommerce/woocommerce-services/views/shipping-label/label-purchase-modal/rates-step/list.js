@@ -41,7 +41,6 @@ class ShippingRates extends Component {
 			const pckg = this.props.selectedPackages.pckgId
 			return <PackageShippingRates
 				id={this.props.id}
-				availableRates={this.props.availableRates}
 				updateRate={this.props.updateRate}
 				translate={this.props.translate}
 				pckg={pckg}
@@ -70,7 +69,6 @@ class PackageShippingRates extends Component {
 		}
 
 		this.handleShowMore = this.handleShowMore.bind(this);
-		this.renderSinglePackage = this.renderSinglePackage.bind(this);
 	}
 
 	handleShowMore() {
@@ -82,16 +80,14 @@ class PackageShippingRates extends Component {
 	}
 
 	render() {
-		return this.renderSinglePackage(this.props.pckg, this.props.pckgId);
-	}
-
-	renderSinglePackage ( pckg, pckgId ) {
 		const {
 			id,
 			selectedRate,
 			availableRates,
 			updateRate,
-			translate
+			translate,
+			pckg,
+			pckgId
 		} = this.props;
 
 		const hasSinglePackage = this.props.hasSinglePackage;
