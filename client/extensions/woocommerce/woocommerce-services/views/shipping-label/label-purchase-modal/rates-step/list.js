@@ -87,10 +87,11 @@ class PackageShippingRates extends Component {
 			updateRate,
 			translate,
 			pckg,
-			pckgId
+			pckgId,
+			hasSinglePackage,
+			packageNames,
+			packageErrors
 		} = this.props;
-
-		const hasSinglePackage = this.props.hasSinglePackage;
 
 		if ( ! availableRates ) {
 			return null;
@@ -98,7 +99,6 @@ class PackageShippingRates extends Component {
 
 		// this.state.packageRates = availableRates[ pckgId ].default.rates;
 		const packageRates = availableRates.default.rates;
-		const packageNames = this.props.packageNames;
 
 		console.log(this.state.packageRates);
 		// this.state.visiblePackageRates = this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
@@ -107,7 +107,6 @@ class PackageShippingRates extends Component {
 		if ( 'signature_required' in availableRates ) {
 			signatureRates = availableRates.signature_required.rates || null;
 		}
-		const packageErrors = this.props.packageErrors;
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 
