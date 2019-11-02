@@ -40,6 +40,7 @@ class ShippingRates extends Component {
 			console.log("inside shipping rates loop", this.props.selectedPackages);
 			const pckg = this.props.selectedPackages.pckgId
 			return <PackageShippingRates
+				key={pckgId}
 				id={this.props.id}
 				updateRate={this.props.updateRate}
 				translate={this.props.translate}
@@ -64,18 +65,23 @@ class PackageShippingRates extends Component {
 		super(props);
 
 		this.state = {
-			packageRates: [],
+			packageRates: this.props.availableRates.default.rates,
 			visiblePackageRates: []
 		}
 
 		this.handleShowMore = this.handleShowMore.bind(this);
 	}
 
+	componentDidMount() {
+		this.setState({
+			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
+		});
+	}
+
 	handleShowMore() {
-		this.setState((state) => {
-			return {
-				visiblePackageRates: state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
-			};
+		console.log("on click ====>", this.state.visiblePackageRates, this.state.packageRates);
+		this.setState({
+			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
 		});
 	}
 
@@ -97,9 +103,6 @@ class PackageShippingRates extends Component {
 			return null;
 		}
 
-		// this.state.packageRates = availableRates[ pckgId ].default.rates;
-		const packageRates = availableRates.default.rates;
-
 		console.log(this.state.packageRates);
 		// this.state.visiblePackageRates = this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
 
@@ -108,7 +111,10 @@ class PackageShippingRates extends Component {
 			signatureRates = availableRates.signature_required.rates || null;
 		}
 
-		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
+		const onRateUpdate = ( serviceId, signatureRequired ) => {
+			console.log("on rate update", pckgId, serviceId, signatureRequired);
+			return updateRate( pckgId, serviceId, signatureRequired );
+		}
 
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
@@ -118,7 +124,9 @@ class PackageShippingRates extends Component {
 					</div>
 				) : null }
 				{ Object.values(
-					mapValues( packageRates, ( ( serviceRateObject ) => {
+					// TODO: figure out why this doesn't work
+					// mapValues( this.state.visiblePackageRates, ( ( serviceRateObject ) => {
+					mapValues( this.props.availableRates.default.rates, ( ( serviceRateObject ) => {
 						const { service_id } = serviceRateObject;
 						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
 						return <ShippingRate
