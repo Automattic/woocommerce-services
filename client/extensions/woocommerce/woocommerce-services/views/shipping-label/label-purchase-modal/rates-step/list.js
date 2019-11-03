@@ -3,10 +3,10 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { mapValues, find } from 'lodash';
+import { mapValues, find, take } from 'lodash';
 
 /**
  * Internal dependencies
@@ -40,6 +40,8 @@ export const ShippingRates = ( {
 	shouldShowRateNotice,
 	translate,
 } ) => {
+	const showMoreItemsIncrement = 1;
+	const [ numOfItemsToShow , setNumOfItemsToShow ] = useState( showMoreItemsIncrement );
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
 	const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
 
@@ -48,7 +50,9 @@ export const ShippingRates = ( {
 			return null;
 		}
 		const selectedRate = selectedRates[ pckgId ] || '';
-		const packageRates = availableRates[ pckgId ].default.rates;
+		const packageRates = take( availableRates[ pckgId ].default.rates, numOfItemsToShow );
+		const totalRatesCount = availableRates[ pckgId ].default.rates.length;
+		const showShowMore = totalRatesCount > numOfItemsToShow;
 		let signatureRates = null;
 		if ( 'signature_required' in availableRates[ pckgId ] ) {
 			signatureRates = availableRates[ pckgId ].signature_required.rates || null;
@@ -56,6 +60,7 @@ export const ShippingRates = ( {
 		const packageErrors = errors[ pckgId ] || [];
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
+		const showMoreClick = () => setNumOfItemsToShow( numOfItemsToShow + showMoreItemsIncrement );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 
@@ -82,6 +87,16 @@ export const ShippingRates = ( {
 					// Print the rest of the errors (if any) below the dropdown
 					return <FieldError type="server-error" key={ index } text={ error } />;
 				} ) }
+				{ showShowMore ? ( 
+					<div 
+						className="rates-step__package-container-rates-show-more"
+						onClick={ showMoreClick }
+						onKeyDown={ showMoreClick }
+						role="button"
+						tabIndex="0">
+						Show more rates.
+					</div> 
+				) : null }
 			</div>
 		);
 	};
