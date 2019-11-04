@@ -5,7 +5,7 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { translate, localize } from 'i18n-calypso';
+import { translate, localize, moment } from 'i18n-calypso';
 import { RadioControl, CheckboxControl } from '@wordpress/components';
 
 /**
@@ -44,6 +44,8 @@ class ShippingRate extends Component {
 				carrier_id,
 				rate,
 				delivery_days,
+				delivery_date_guaranteed,
+				delivery_date,
 			},
 			rateObjectSignatureRequired,
 			rateObject,
@@ -97,7 +99,10 @@ class ShippingRate extends Component {
 					<div className="rates-step__shipping-rate-details">
 						<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
 						<div className="rates-step__shipping-rate-delivery-date">
-							{ ! delivery_days ? '' : translate( '%(delivery_days)s business day', '%(delivery_days)s business days', { count: delivery_days, args: { delivery_days } } ) }
+							{
+								delivery_date_guaranteed && delivery_date ? moment( delivery_date ).format( 'MMM D' ) :
+								! delivery_days ? '' : translate( '%(delivery_days)s business day', '%(delivery_days)s business days', { count: delivery_days, args: { delivery_days } } )
+							}
 						</div>
 					</div>
 				</div>
