@@ -37,13 +37,11 @@ class ShippingRates extends Component {
 		const hasSinglePackage = 1 === Object.keys( this.props.selectedPackages ).length;
 
 		const shippingRates = Object.keys(this.props.selectedPackages).map((pckgId) => {
-			const pckg = this.props.selectedPackages.pckgId
 			return <PackageShippingRates
 				key={pckgId}
 				id={this.props.id}
 				updateRate={this.props.updateRate}
 				translate={this.props.translate}
-				pckg={pckg}
 				pckgId={pckgId}
 				selectedRate={this.props.selectedRates[ pckgId ] || ''}  // Store owner selected rates, not customer
 				availableRates={this.props.availableRates[ pckgId ]}
@@ -68,13 +66,8 @@ class PackageShippingRates extends Component {
 			visiblePackageRates: []
 		}
 
+		this.state.visiblePackageRates = this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, MAX_VISIBLE_RATE))
 		this.handleShowMore = this.handleShowMore.bind(this);
-	}
-
-	componentDidMount() {
-		this.setState({
-			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, MAX_VISIBLE_RATE))
-		});
 	}
 
 	handleShowMore() {
@@ -90,7 +83,6 @@ class PackageShippingRates extends Component {
 			availableRates,
 			updateRate,
 			translate,
-			pckg,
 			pckgId,
 			hasSinglePackage,
 			packageNames,
@@ -134,8 +126,13 @@ class PackageShippingRates extends Component {
 				) }
 
 				{ this.state.packageRates.length > 0 ? (
-					<div className="rates-step__package-container-rates-show-more" role="button" onClick={ this.handleShowMore }
-						>Show more rates
+					<div
+						className="rates-step__package-container-rates-show-more"
+						role="button"
+						onClick={ this.handleShowMore }
+						onKeyDown={ this.handleShowMore }
+						tabIndex="0">
+					Show more rates
 					</div>
 				) : null }
 
