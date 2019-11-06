@@ -29,6 +29,8 @@ const renderRateNotice = translate => {
 	);
 };
 
+const MAX_VISIBLE_RATE = 5; // Maximum number of rates to display in the shipping label modal
+
 class ShippingRates extends Component {
 	render() {
 		console.log(this.props.selectedPackages, this.props.availableRates);
@@ -74,14 +76,14 @@ class PackageShippingRates extends Component {
 
 	componentDidMount() {
 		this.setState({
-			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
+			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, MAX_VISIBLE_RATE))
 		});
 	}
 
 	handleShowMore() {
 		console.log("on click ====>", this.state.visiblePackageRates, this.state.packageRates);
 		this.setState({
-			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
+			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, MAX_VISIBLE_RATE))
 		});
 	}
 
