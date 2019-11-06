@@ -65,7 +65,7 @@ class PackageShippingRates extends Component {
 		super(props);
 
 		this.state = {
-			packageRates: this.props.availableRates.default.rates,
+			packageRates: JSON.parse(JSON.stringify(this.props.availableRates.default.rates)),
 			visiblePackageRates: []
 		}
 
@@ -125,8 +125,7 @@ class PackageShippingRates extends Component {
 				) : null }
 				{ Object.values(
 					// TODO: figure out why this doesn't work
-					// mapValues( this.state.visiblePackageRates, ( ( serviceRateObject ) => {
-					mapValues( this.props.availableRates.default.rates, ( ( serviceRateObject ) => {
+					mapValues( this.state.visiblePackageRates, ( ( serviceRateObject ) => {
 						const { service_id } = serviceRateObject;
 						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
 						return <ShippingRate
