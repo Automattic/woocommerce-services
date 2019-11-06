@@ -140,7 +140,13 @@ class PackageShippingRates extends Component {
 						/>
 					} ) )
 				) }
-				<button onClick={ this.handleShowMore } >Show more</button>
+
+				{ this.state.packageRates.length > 0 ? (
+					<div className="rates-step__package-container-rates-show-more" role="button" onClick={ this.handleShowMore }
+						>Show more rates
+					</div>
+				) : null }
+
 				{ packageErrors.slice( 1 ).map( ( error, index ) => {
 					// Print the rest of the errors (if any) below the dropdown
 					return <FieldError type="server-error" key={ index } text={ error } />;
