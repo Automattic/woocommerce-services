@@ -52,10 +52,21 @@ class ShippingRate extends Component {
 		} = this.props;
 		let requiredSignatureCost = null;
 		let details = 'Includes tracking';
+		let requiredSignatureCostText;
 
 		if ( null !== rateObjectSignatureRequired ) {
 			requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
+			if ( requiredSignatureCost > 0 ) {
+				requiredSignatureCostText = translate( '+%(price)s',
+					{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
+				);
+			} else {
+				requiredSignatureCostText = translate( 'free' );
+			}
 		}
+
+		// USPS express service includes signature confirmation for free.
+		const signatureRequirementAllowed = requiredSignatureCost > 0 || ( 'Express' === service_id );
 
 		switch ( carrier_id ) {
 			case 'usps':
@@ -81,11 +92,11 @@ class ShippingRate extends Component {
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
 							{ details }
-							{ null !== requiredSignatureCost && requiredSignatureCost > 0 ? (
+							{ null !== requiredSignatureCost && signatureRequirementAllowed ? (
 								<CheckboxControl
 									label={ translate(
-										'Signature Required (+%(price)s)',
-										{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
+										'Signature required (%(price)s)',
+										{ args: { price: requiredSignatureCostText } }
 									) }
 									disabled={ ! isSelected }
 									checked={ signatureRequired }
