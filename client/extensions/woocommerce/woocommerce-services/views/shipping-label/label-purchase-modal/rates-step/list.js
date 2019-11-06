@@ -33,13 +33,10 @@ const MAX_VISIBLE_RATE = 5; // Maximum number of rates to display in the shippin
 
 class ShippingRates extends Component {
 	render() {
-		console.log(this.props.selectedPackages, this.props.availableRates);
-
 		const packageNames = getPackageDescriptions( this.props.selectedPackages, this.props.allPackages, true );
 		const hasSinglePackage = 1 === Object.keys( this.props.selectedPackages ).length;
 
 		const shippingRates = Object.keys(this.props.selectedPackages).map((pckgId) => {
-			console.log("inside shipping rates loop", this.props.selectedPackages);
 			const pckg = this.props.selectedPackages.pckgId
 			return <PackageShippingRates
 				key={pckgId}
@@ -81,7 +78,6 @@ class PackageShippingRates extends Component {
 	}
 
 	handleShowMore() {
-		console.log("on click ====>", this.state.visiblePackageRates, this.state.packageRates);
 		this.setState({
 			visiblePackageRates: this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, MAX_VISIBLE_RATE))
 		});
@@ -105,16 +101,12 @@ class PackageShippingRates extends Component {
 			return null;
 		}
 
-		console.log(this.state.packageRates);
-		// this.state.visiblePackageRates = this.state.visiblePackageRates.concat(this.state.packageRates.splice(0, 1))
-
 		let signatureRates = null;
 		if ( 'signature_required' in availableRates ) {
 			signatureRates = availableRates.signature_required.rates || null;
 		}
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => {
-			console.log("on rate update", pckgId, serviceId, signatureRequired);
 			return updateRate( pckgId, serviceId, signatureRequired );
 		}
 
