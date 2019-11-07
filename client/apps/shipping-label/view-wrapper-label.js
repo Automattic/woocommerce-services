@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
 import Gridicon from 'gridicons';
+import { differenceBy, filter } from 'lodash';
 
 /**
  * Internal dependencies
@@ -78,7 +79,12 @@ class ShippingLabelViewWrapper extends Component {
 
 		// eslint-disable-next-line no-undef
 		if ( wcConnectData.wcs_server_connection ) {
-			if ( 0 === events.length ) {
+
+			const labels = filter( events, { type: 'LABEL_PURCHASED' } );
+			const refunds = filter( events, { type: 'LABEL_REFUND_REQUESTED' } );
+			const activeLabels = differenceBy( labels, refunds, "labelIndex" );
+
+			if( activeLabels.length === 0 ) {
 				return (
 					<Button
 						className={ className }
