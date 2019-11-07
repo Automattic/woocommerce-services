@@ -84,7 +84,7 @@ class ShippingLabelViewWrapper extends Component {
 			const refunds = filter( events, { type: 'LABEL_REFUND_REQUESTED' } );
 			const activeLabels = differenceBy( labels, refunds, "labelIndex" );
 
-			if( activeLabels.length === 0 ) {
+			if ( activeLabels.length === 0 ) {
 				return (
 					<Button
 						className={ className }
