@@ -11,16 +11,15 @@ import Gridicon from 'gridicons';
  * Internal dependencies
  */
 import Button from 'components/button';
-import { getOrigin } from 'woocommerce/lib/nav-utils';
 import { fetchSettings } from 'woocommerce/woocommerce-services/state/label-settings/actions';
 
-class AddCreditCardButton extends Component {
+class CreditCardButton extends Component {
 
 	onVisibilityChange = () => {
 		if ( ! document.hidden ) {
 			this.refetchSettings();
 		}
-		if ( this.addCreditCardWindow && this.addCreditCardWindow.closed ) {
+		if ( this.creditCardWindow && this.creditCardWindow.closed ) {
 			document.removeEventListener( 'visibilitychange', this.onVisibilityChange );
 		}
 	};
@@ -29,32 +28,30 @@ class AddCreditCardButton extends Component {
 		this.props.fetchSettings( this.props.siteId );
 	};
 
-	onAddCardExternal = () => {
-		this.addCreditCardWindow = window.open( getOrigin() + '/me/purchases/add-credit-card' );
+	onChooseCard = () => {
+		this.creditCardWindow = window.open( this.props.url );
 		document.addEventListener( 'visibilitychange', this.onVisibilityChange );
 	}
 
 	render() {
 		const { 
-			translate,
-			disabled
+			disabled,
+			buttonLabel,
+			buttonDescription
 		} = this.props;
+
 		return (
 			<Fragment>
 				<Button
-					onClick={ this.onAddCardExternal }
+					onClick={ this.onChooseCard }
 					disabled={ disabled }
 					primary
 				>
-					{ translate( 'Add credit card' ) } <Gridicon icon="external" />
+					{ buttonLabel } <Gridicon icon="external" />
 				</Button>
 				<div className="purchase-section__explanation">
 					{
-						/* eslint-disable jsx-a11y/anchor-is-valid */
-						translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {
-							components: { a: <a onClick={ this.onAddCardExternal } href="#" role="button" /> },
-						} )
-						/* eslint-enable jsx-a11y/anchor-is-valid */
+						buttonDescription( this.onChooseCard )
 					}
 				</div>
 			</Fragment>
@@ -67,4 +64,4 @@ export default connect(
 	( dispatch ) => bindActionCreators( {
 		fetchSettings,
 	}, dispatch )
-)( localize( AddCreditCardButton ) );
+)( localize( CreditCardButton ) );
