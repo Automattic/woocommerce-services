@@ -54,11 +54,19 @@ class ShippingRate extends Component {
 		} = this.props;
 		let requiredSignatureCost = null;
 		let details = 'Includes tracking';
+		let deliveryDateMessage = '';
 
 		if ( null !== rateObjectSignatureRequired ) {
 			requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
 		}
-
+		if (delivery_date_guaranteed && delivery_date) {
+			deliveryDateMessage = moment( delivery_date ).format( 'MMMM D' )
+		} else if (delivery_days) {
+			deliveryDateMessage = translate( '%(delivery_days)s business day', '%(delivery_days)s business days', {
+				count: delivery_days,
+				args: { delivery_days }
+			} );
+		}
 		switch ( carrier_id ) {
 			case 'usps':
 				// Ideally this would come from connect-server, but we have no info from EasyPost API
@@ -98,12 +106,7 @@ class ShippingRate extends Component {
 					</div>
 					<div className="rates-step__shipping-rate-details">
 						<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
-						<div className="rates-step__shipping-rate-delivery-date">
-							{
-								delivery_date_guaranteed && delivery_date ? moment( delivery_date ).format( 'MMM D' ) :
-								! delivery_days ? '' : translate( '%(delivery_days)s business day', '%(delivery_days)s business days', { count: delivery_days, args: { delivery_days } } )
-							}
-						</div>
+						<div className="rates-step__shipping-rate-delivery-date">{ deliveryDateMessage }</div>
 					</div>
 				</div>
 			</div>
