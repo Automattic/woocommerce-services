@@ -4,7 +4,7 @@
  */
 import jQuery from 'jquery';
 
-jQuery( document ).ready( function( $ ) {
+( function( $ ) {
 	function show_pointer( pointers, i ) {
 		if ( ! ( Array.isArray( pointers ) && pointers[ i ] ) ) {
 			return;
@@ -49,12 +49,12 @@ jQuery( document ).ready( function( $ ) {
 		}
 
 		/**
-		 * Selectors for delayed opening
-		 * - show_button: element to trigger pointer open on click (required)
-		 * - hide_button: if specified, element to trigger pointer close on click
-		 * - animating_container: if specified, queues opening of pointer after element's animation completes
-		 * - delegation_container: if specified, scopes event delegation to this parent element
-		 */
+ 	 	 * Selectors for delayed opening
+ 	 	 * - show_button: element to trigger pointer open on click (required)
+ 	 	 * - hide_button: if specified, element to trigger pointer close on click
+ 	 	 * - animating_container: if specified, queues opening of pointer after element's animation completes
+ 	 	 * - delegation_container: if specified, scopes event delegation to this parent element
+ 	 	 */
 		if ( pointer.delayed_opening ) {
 			const container = $( pointer.delayed_opening.delegation_container || document );
 			container.one( 'click', pointer.delayed_opening.show_button, function() {
@@ -75,5 +75,9 @@ jQuery( document ).ready( function( $ ) {
 			open();
 		}
 	}
-	show_pointer( wcServicesAdminPointers, 0 );
-} );
+
+	$( window ).load( function() {
+		show_pointer( wcServicesAdminPointers, 0 );
+	} );
+} )( jQuery );
+
