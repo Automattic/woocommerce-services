@@ -86,14 +86,15 @@ class PriceSummary extends Component {
 		}
 
 		const { prices, discount, total } = priceBreakdown;
-
+		
 		return (
 			<div className="label-purchase-modal__shipping-summary-section">
 				<hr />
 				{ prices.map( ( service, index ) => {
 					return (
 						<Fragment key={ index }>
-							{ this.renderRow( service.title, service.retailRate, index ) }
+							{ ( service.retailRate !== service.rate ) ? this.renderRow( service.title, service.retailRate, index ) : null }
+							{ this.renderRow( translate( "Your price"), service.rate, 'rate-' + index ) }
 							{ service.addons.map( ( addon, addonIndex ) =>
 								<div key={ 'addons-' + index } className="label-purchase-modal__price-item-addons">
 									{ this.renderRow( addon.title, addon.rate, 'addon-' + addonIndex ) }
