@@ -52,7 +52,7 @@ class ShippingRate extends Component {
 		let details = 'Includes tracking';
 
 		const defaultOption = {
-			label: translate( 'None' ),
+			label: translate( 'No signature required' ),
 			value: false,
 		};
 		const signatureOptions = concat( defaultOption, values(
@@ -94,7 +94,7 @@ class ShippingRate extends Component {
 							{ details }
 							{ signatureOptions.length > 1 ? (
 								<SelectControl
-									label={ translate( 'Signature confirmation' ) }
+									className="rates-step__shipping-rate-description-signature-select"
 									options={ signatureOptions }
 									onChange={ this.setSignatureOption }
 								/>

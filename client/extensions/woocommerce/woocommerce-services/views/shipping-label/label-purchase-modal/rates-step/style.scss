@@ -80,6 +80,14 @@
 	}
 }
 
+.rates-step__shipping-rate-description-signature-select {
+	* select {
+		color: #646970;
+		font-size: 12px;
+		min-width: 250px;
+	}
+}
+
 .rates-step__shipping-rate-details {
 	display: flex;
 	flex-direction: column;
