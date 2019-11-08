@@ -6,7 +6,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { translate, localize } from 'i18n-calypso';
-import { RadioControl, CheckboxControl } from '@wordpress/components';
+import { RadioControl, SelectControl } from '@wordpress/components';
+import { mapValues, concat, values } from 'lodash';
 
 /**
  * Internal dependencies
@@ -18,12 +19,11 @@ class ShippingRate extends Component {
 	constructor() {
 		super();
 		this.state = {
-			signatureRequired: false,
+			signatureOption: false,
 		}
 	}
 
-	toggleSignatureRequired = () => {
-		const { signatureRequired } = this.state;
+	setSignatureOption = ( val ) => {
 		const {
 			rateObject: {
 				service_id,
@@ -31,12 +31,12 @@ class ShippingRate extends Component {
 			updateValue,
 		} = this.props;
 
-		this.setState( { signatureRequired: ! signatureRequired } );
-		updateValue( service_id, ! signatureRequired );
+		this.setState( { signatureOption: val } );
+		updateValue( service_id, val );
 	}
 
 	render() {
-		const { signatureRequired } = this.state;
+		const { signatureOption } = this.state;
 		const {
 			rateObject: {
 				title,
@@ -45,28 +45,28 @@ class ShippingRate extends Component {
 				rate,
 				delivery_days,
 			},
-			rateObjectSignatureRequired,
-			rateObject,
 			isSelected,
 			updateValue,
+			signatureRates,
 		} = this.props;
-		let requiredSignatureCost = null;
 		let details = 'Includes tracking';
-		let requiredSignatureCostText;
 
-		if ( null !== rateObjectSignatureRequired ) {
-			requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
-			if ( requiredSignatureCost > 0 ) {
-				requiredSignatureCostText = translate( '+%(price)s',
-					{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
-				);
-			} else {
-				requiredSignatureCostText = translate( 'free' );
+		const defaultOption = {
+			label: translate( 'None' ),
+			value: false,
+		};
+		const signatureOptions = concat( defaultOption, values(
+			mapValues( signatureRates, ( r, key ) => {
+				const priceString = ( 0 === r.optionNetCost ) ? translate( 'free' ) :
+					translate( '+%s', { args: [ formatCurrency( r.optionNetCost, 'USD') ] } );
+				return {
+					label: translate( '%(label)s (%(price)s)', {
+						args: { label: r.label, price: priceString },
+					} ),
+					value: key,
+				};
 			}
-		}
-
-		// USPS express service includes signature confirmation for free.
-		const signatureRequirementAllowed = requiredSignatureCost > 0 || ( 'Express' === service_id );
+		) ) );
 
 		switch ( carrier_id ) {
 			case 'usps':
@@ -84,7 +84,7 @@ class ShippingRate extends Component {
 					options={ [
 						{ label: '', value: service_id },
 					] }
-					onChange={ () => { updateValue( service_id, signatureRequired ) } }
+					onChange={ () => { updateValue( service_id, signatureOption ) } }
 				/>
 				<CarrierLogo carrier_id={ carrier_id }/>
 				<div className="rates-step__shipping-rate-information">
@@ -92,15 +92,12 @@ class ShippingRate extends Component {
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
 							{ details }
-							{ null !== requiredSignatureCost && signatureRequirementAllowed ? (
-								<CheckboxControl
-									label={ translate(
-										'Signature required (%(price)s)',
-										{ args: { price: requiredSignatureCostText } }
-									) }
+							{ signatureOptions.length > 1 ? (
+								<SelectControl
+									label={ translate( 'Signature confirmation' ) }
+									options={ signatureOptions }
 									disabled={ ! isSelected }
-									checked={ signatureRequired }
-									onChange={ this.toggleSignatureRequired }
+									onChange={ this.setSignatureRequired }
 								/>
 							) : null }
 						</div>
