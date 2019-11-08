@@ -13,13 +13,13 @@ import Gridicon from 'gridicons';
 import Button from 'components/button';
 import { fetchSettings } from 'woocommerce/woocommerce-services/state/label-settings/actions';
 
-class ChooseCreditCardButton extends Component {
+class CreditCardButton extends Component {
 
 	onVisibilityChange = () => {
 		if ( ! document.hidden ) {
 			this.refetchSettings();
 		}
-		if ( this.chooseCreditCardWindow && this.chooseCreditCardWindow.closed ) {
+		if ( this.creditCardWindow && this.creditCardWindow.closed ) {
 			document.removeEventListener( 'visibilitychange', this.onVisibilityChange );
 		}
 	};
@@ -29,15 +29,17 @@ class ChooseCreditCardButton extends Component {
 	};
 
 	onChooseCard = () => {
-		this.chooseCreditCardWindow = window.open( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' );
+		this.creditCardWindow = window.open( this.props.url );
 		document.addEventListener( 'visibilitychange', this.onVisibilityChange );
 	}
 
 	render() {
 		const { 
-			translate,
-			disabled
+			disabled,
+			buttonLabel,
+			buttonDescription
 		} = this.props;
+
 		return (
 			<Fragment>
 				<Button
@@ -45,15 +47,11 @@ class ChooseCreditCardButton extends Component {
 					disabled={ disabled }
 					primary
 				>
-					{ translate( 'Choose credit card' ) } <Gridicon icon="external" />
+					{ buttonLabel } <Gridicon icon="external" />
 				</Button>
 				<div className="purchase-section__explanation">
 					{
-						/* eslint-disable jsx-a11y/anchor-is-valid */
-						translate( 'To print this shipping label, {{a}}choose a credit card to your account{{/a}}.', {
-							components: { a: <a onClick={ this.onChooseCardExternal } href="#" role="button" /> },
-						} )
-						/* eslint-enable jsx-a11y/anchor-is-valid */
+						buttonDescription( this.onChooseCard )
 					}
 				</div>
 			</Fragment>
@@ -66,4 +64,4 @@ export default connect(
 	( dispatch ) => bindActionCreators( {
 		fetchSettings,
 	}, dispatch )
-)( localize( ChooseCreditCardButton ) );
+)( localize( CreditCardButton ) );

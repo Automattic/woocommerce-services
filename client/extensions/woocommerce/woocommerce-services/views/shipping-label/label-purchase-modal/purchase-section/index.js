@@ -15,8 +15,8 @@ import {
 	hasSelectedRates,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import PurchaseButton from './purchase-button';
-import AddCreditCardButton from './add-credit-card-button';
-import ChooseCreditCardButton from './choose-credit-card-button';
+import CreditCardButton from './credit-card-button';
+import { getOrigin } from 'woocommerce/lib/nav-utils';
 import {
 	getSelectedPaymentMethodId,
 	getPaymentMethods,
@@ -35,9 +35,22 @@ const PurchaseSection = props => {
 		paymentMethods,
 		form,
 		disablePurchase,
+		translate,
 	} = props;
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
 	const hasSelectedRate = hasSelectedRates( form.rates );
+	const addCardButtonDescription = ( onChooseCard ) =>
+		/* eslint-disable jsx-a11y/anchor-is-valid */
+		translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {
+			components: { a: <a onClick={ onChooseCard } href="#" role="button" /> },
+		} );
+		/* eslint-enable jsx-a11y/anchor-is-valid */
+	const chooseCardButtonDescription = ( onChooseCard ) =>
+		/* eslint-disable jsx-a11y/anchor-is-valid */
+		translate( 'To print this shipping label, {{a}}choose a credit card to your account{{/a}}.', {
+			components: { a: <a onClick={ onChooseCard } href="#" role="button" /> },
+		} );
+		/* eslint-enable jsx-a11y/anchor-is-valid */
 
 	/* eslint-disable no-nested-ternary */
 	return (
@@ -50,9 +63,20 @@ const PurchaseSection = props => {
 					busy={ purchaseBusy }
 				/>
 			) : ( ! paymentMethods.length ) ? (
-				<AddCreditCardButton disabled={ disablePurchase } />
+				<CreditCardButton
+					disabled={ disablePurchase }
+					url={ getOrigin() + '/me/purchases/add-credit-card' }
+					buttonLabel={ translate( 'Add credit card' ) }
+					buttonDescription={ addCardButtonDescription }
+
+				/>
 			) : (
-				<ChooseCreditCardButton disabled={ disablePurchase } />
+				<CreditCardButton
+					disabled={ disablePurchase }
+					url={ 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' }
+					buttonLabel={ translate( 'Choose credit card' ) }
+					buttonDescription={ chooseCardButtonDescription }
+				/>
 			) }
 		</div>
 	);
