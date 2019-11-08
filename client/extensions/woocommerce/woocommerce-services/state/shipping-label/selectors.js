@@ -153,6 +153,7 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 			const price = {
 				title: foundRate.title,
 				retailRate: foundRate.retail_rate,
+				rate: foundRate.rate,
 				addons: [],
 			}
 			if ( signatureRequired && null !== foundRateSignatureRequired ) {
