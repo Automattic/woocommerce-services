@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { mapValues, find, take } from 'lodash';
@@ -39,9 +39,9 @@ export const ShippingRates = ( {
 	errors,
 	shouldShowRateNotice,
 	translate,
+	numOfItemsToShow,
+	showMoreClick
 } ) => {
-	const showMoreItemsIncrement = 1;
-	const [ numOfItemsToShow , setNumOfItemsToShow ] = useState( showMoreItemsIncrement );
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
 	const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
 
@@ -60,7 +60,6 @@ export const ShippingRates = ( {
 		const packageErrors = errors[ pckgId ] || [];
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
-		const showMoreClick = () => setNumOfItemsToShow( numOfItemsToShow + showMoreItemsIncrement );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 
@@ -117,6 +116,20 @@ ShippingRates.propTypes = {
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
 	errors: PropTypes.object.isRequired,
+	numOfItemsToShow: PropTypes.number.isRequired,
+	showMoreClick: PropTypes.func.isRequired,
 };
 
-export default localize( ShippingRates );
+class ShippingRateWithShowMore extends React.Component {
+	constructor(props) {
+		super(props);
+		this.showMoreItemsIncrement = 1;
+		this.state = { numOfItemsToShow : this.showMoreItemsIncrement };
+	}
+	showMoreClick = () => this.setState( { numOfItemsToShow: this.state.numOfItemsToShow + this.showMoreItemsIncrement } );
+	render() {
+		return <ShippingRates { ...this.props } showMoreClick={ this.showMoreClick } numOfItemsToShow={ this.state.numOfItemsToShow } />;
+	}
+}
+
+export default localize( ShippingRateWithShowMore );
