@@ -110,7 +110,6 @@ class PackageShippingRates extends Component {
 					</div>
 				) : null }
 				{ Object.values(
-					// TODO: figure out why this doesn't work
 					mapValues( this.state.visiblePackageRates, ( ( serviceRateObject ) => {
 						const { service_id } = serviceRateObject;
 						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
