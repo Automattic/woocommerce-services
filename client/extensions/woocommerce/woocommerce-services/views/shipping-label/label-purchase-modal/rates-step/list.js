@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { mapValues, find, take } from 'lodash';
+import { mapValues, find, fromPairs, take, map } from 'lodash';
 
 /**
  * Internal dependencies
@@ -50,9 +50,9 @@ export const ShippingRates = ( {
 			return null;
 		}
 		const selectedRate = selectedRates[ pckgId ] || '';
-		const packageRates = take( availableRates[ pckgId ].default.rates, numOfItemsToShow );
+		const packageRates = take( availableRates[ pckgId ].default.rates, numOfItemsToShow[ pckgId ] );
 		const totalRatesCount = availableRates[ pckgId ].default.rates.length;
-		const showShowMore = totalRatesCount > numOfItemsToShow;
+		const showShowMore = totalRatesCount > numOfItemsToShow[ pckgId ];
 		let signatureRates = null;
 		if ( 'signature_required' in availableRates[ pckgId ] ) {
 			signatureRates = availableRates[ pckgId ].signature_required.rates || null;
@@ -89,8 +89,8 @@ export const ShippingRates = ( {
 				{ showShowMore ? ( 
 					<div 
 						className="rates-step__package-container-rates-show-more"
-						onClick={ showMoreClick }
-						onKeyDown={ showMoreClick }
+						onClick={ () => showMoreClick( pckgId ) }
+						onKeyDown={ () => showMoreClick( pckgId ) }
 						role="button"
 						tabIndex="0">
 						Show more rates.
@@ -116,7 +116,7 @@ ShippingRates.propTypes = {
 	allPackages: PropTypes.object.isRequired,
 	updateRate: PropTypes.func.isRequired,
 	errors: PropTypes.object.isRequired,
-	numOfItemsToShow: PropTypes.number.isRequired,
+	numOfItemsToShow: PropTypes.object.isRequired,
 	showMoreClick: PropTypes.func.isRequired,
 };
 
@@ -124,11 +124,11 @@ class ShippingRateWithShowMore extends React.Component {
 	constructor(props) {
 		super(props);
 		this.showMoreItemsIncrement = 1;
-		this.state = { numOfItemsToShow : this.showMoreItemsIncrement };
+		this.state = fromPairs( map( Object.keys( this.props.selectedPackages ), p => [ p, this.showMoreItemsIncrement] ) );
 	}
-	showMoreClick = () => this.setState( { numOfItemsToShow: this.state.numOfItemsToShow + this.showMoreItemsIncrement } );
+	showMoreClick = ( p ) => this.setState( { [ p ]: this.state[ p ] + this.showMoreItemsIncrement } );
 	render() {
-		return <ShippingRates { ...this.props } showMoreClick={ this.showMoreClick } numOfItemsToShow={ this.state.numOfItemsToShow } />;
+		return <ShippingRates { ...this.props } showMoreClick={ this.showMoreClick } numOfItemsToShow={ this.state } />;
 	}
 }
 
