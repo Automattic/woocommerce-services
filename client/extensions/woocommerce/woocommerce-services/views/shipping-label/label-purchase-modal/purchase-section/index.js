@@ -39,10 +39,10 @@ const PurchaseSection = props => {
 	} = props;
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
 	const hasSelectedRate = hasSelectedRates( form.rates );
-	const addCardButtonDescription = ( onChooseCard ) =>
+	const addCardButtonDescription = ( onAddCard ) =>
 		/* eslint-disable jsx-a11y/anchor-is-valid */
 		translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {
-			components: { a: <a onClick={ onChooseCard } href="#" role="button" /> },
+			components: { a: <a onClick={ onAddCard } href="#" role="button" /> },
 		} );
 		/* eslint-enable jsx-a11y/anchor-is-valid */
 	const chooseCardButtonDescription = ( onChooseCard ) =>
