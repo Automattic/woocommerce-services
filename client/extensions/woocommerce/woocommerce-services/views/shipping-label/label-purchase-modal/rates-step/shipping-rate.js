@@ -55,11 +55,9 @@ class ShippingRate extends Component {
 		let requiredSignatureCost = null;
 		let details = 'Includes tracking';
 		let deliveryDateMessage = '';
+		let requiredSignatureCostText;
 
-		if ( null !== rateObjectSignatureRequired ) {
-			requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
-		}
-		if (delivery_date_guaranteed && delivery_date) {
+    if (delivery_date_guaranteed && delivery_date) {
 			deliveryDateMessage = moment( delivery_date ).format( 'MMMM D' )
 		} else if (delivery_days) {
 			deliveryDateMessage = translate( '%(delivery_days)s business day', '%(delivery_days)s business days', {
@@ -67,6 +65,22 @@ class ShippingRate extends Component {
 				args: { delivery_days }
 			} );
 		}
+
+    
+		if ( null !== rateObjectSignatureRequired ) {
+			requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
+			if ( requiredSignatureCost > 0 ) {
+				requiredSignatureCostText = translate( '+%(price)s',
+					{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
+				);
+			} else {
+				requiredSignatureCostText = translate( 'free' );
+			}
+		}
+    
+		// USPS express service includes signature confirmation for free.
+		const signatureRequirementAllowed = requiredSignatureCost > 0 || ( 'Express' === service_id );
+
 		switch ( carrier_id ) {
 			case 'usps':
 				// Ideally this would come from connect-server, but we have no info from EasyPost API
@@ -91,11 +105,11 @@ class ShippingRate extends Component {
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
 							{ details }
-							{ null !== requiredSignatureCost && requiredSignatureCost > 0 ? (
+							{ null !== requiredSignatureCost && signatureRequirementAllowed ? (
 								<CheckboxControl
 									label={ translate(
-										'Signature Required (+%(price)s)',
-										{ args: { price: formatCurrency( requiredSignatureCost, 'USD') } }
+										'Signature required (%(price)s)',
+										{ args: { price: requiredSignatureCostText } }
 									) }
 									disabled={ ! isSelected }
 									checked={ signatureRequired }
