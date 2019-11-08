@@ -97,7 +97,7 @@ class ShippingRate extends Component {
 									label={ translate( 'Signature confirmation' ) }
 									options={ signatureOptions }
 									disabled={ ! isSelected }
-									onChange={ this.setSignatureRequired }
+									onChange={ this.setSignatureOption }
 								/>
 							) : null }
 						</div>
