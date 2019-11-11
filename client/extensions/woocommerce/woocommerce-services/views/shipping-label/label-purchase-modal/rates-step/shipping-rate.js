@@ -5,7 +5,7 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { translate, localize } from 'i18n-calypso';
+import { translate, localize, moment } from 'i18n-calypso';
 import { RadioControl, SelectControl } from '@wordpress/components';
 import { mapValues, concat, values } from 'lodash';
 
@@ -44,6 +44,8 @@ class ShippingRate extends Component {
 				carrier_id,
 				rate,
 				delivery_days,
+				delivery_date_guaranteed,
+				delivery_date,
 			},
 			isSelected,
 			updateValue,
@@ -67,6 +69,18 @@ class ShippingRate extends Component {
 				};
 			}
 		) ) );
+
+		let deliveryDateMessage = '';
+		let requiredSignatureCostText;
+
+		if ( delivery_date_guaranteed && delivery_date ) {
+			deliveryDateMessage = moment( delivery_date ).format( 'MMMM D' );
+		} else if ( delivery_days ) {
+			deliveryDateMessage = translate( '%(delivery_days)s business day', '%(delivery_days)s business days', {
+				count: delivery_days,
+				args: { delivery_days }
+			} );
+		}
 
 		switch ( carrier_id ) {
 			case 'usps':
@@ -103,9 +117,7 @@ class ShippingRate extends Component {
 					</div>
 					<div className="rates-step__shipping-rate-details">
 						<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
-						<div className="rates-step__shipping-rate-delivery-date">
-							{ ! delivery_days ? '' : translate( '%(delivery_days)s business day', '%(delivery_days)s business days', { count: delivery_days, args: { delivery_days } } ) }
-						</div>
+						<div className="rates-step__shipping-rate-delivery-date">{ deliveryDateMessage }</div>
 					</div>
 				</div>
 			</div>

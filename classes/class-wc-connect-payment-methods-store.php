@@ -104,11 +104,11 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 				return new WP_Error( 'payment_methods_type', 'Expected but did not receive array for payment_methods.' );
 			}
 
-			foreach ( (array) $payment_methods as $payment_method ) {
+			foreach ( $payment_methods as $payment_method ) {
 				$required_keys = array( 'payment_method_id', 'name', 'card_type', 'card_digits', 'expiry' );
-				foreach ( (array) $required_keys as $required_key ) {
-					if ( ! array_key_exists( $required_key, $payment_method ) ) {
-						return new WP_Error( 'payment_methods_key_missing', 'Payment method array element is missing a required key' );
+				foreach ( $required_keys as $required_key ) {
+					if ( ! property_exists( $payment_method, $required_key ) ) {
+						return new WP_Error( 'payment_methods_key_missing', 'Payment method is missing a required property' );
 					}
 				}
 			}

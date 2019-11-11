@@ -5,7 +5,6 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import usps from './logo/usps.png';
 
 
 /**
@@ -14,9 +13,6 @@ import usps from './logo/usps.png';
 
 function CarrierLogo( { carrier_id } ) {
 	switch ( carrier_id ) {
-		case "usps":
-			return <img className="rates-step__carier-logo-image-usps" src={ usps } alt="" />;
-	
 		default:
 			return <div/>;
 	}
