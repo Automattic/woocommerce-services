@@ -1,7 +1,19 @@
 *** WooCommerce Services Changelog ***
 
-2019-*-* - version 1.21.2
+2019-*-* - version 1.22.0
+* Add   - Introduce custom package setting on the label screen.
+* Add   - Shipping Summary to the sidebar on the label screen.
+* Add   - Shipping rates additional data - tracking, delivery time, signatures.
+* Add   - Tracking modal.
+* Add   - Display notices when base country/currency mismatches.
 * Tweak - Credit card no longer required to configure shipping label.
+* Tweak - Preselect last used package on the label screen.
+* Tweak - Remove rates from the dropdown and list them on the page after a package is selected.
+* Tweak - Remove redundant "Paper Size" from the label screen since it's configurable from the Settings screen.
+* Tweak - Show create label button in 'busy' state until data loads.
+* Tweak - UX improvements for the label screen.
+* Fix   - Deprecation notices for PHP 7.4.
+* Fix   - Quantity is not being taken into account for the notice "n items are ready for shipment".
 
 version 1.21.1
 * Update WooCommerce compatibility to 3.7
