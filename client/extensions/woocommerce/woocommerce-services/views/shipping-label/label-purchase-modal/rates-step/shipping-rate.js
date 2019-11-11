@@ -57,16 +57,15 @@ class ShippingRate extends Component {
 		let deliveryDateMessage = '';
 		let requiredSignatureCostText;
 
-    if (delivery_date_guaranteed && delivery_date) {
-			deliveryDateMessage = moment( delivery_date ).format( 'MMMM D' )
-		} else if (delivery_days) {
+		if ( delivery_date_guaranteed && delivery_date ) {
+			deliveryDateMessage = moment( delivery_date ).format( 'MMMM D' );
+		} else if ( delivery_days ) {
 			deliveryDateMessage = translate( '%(delivery_days)s business day', '%(delivery_days)s business days', {
 				count: delivery_days,
 				args: { delivery_days }
 			} );
 		}
 
-    
 		if ( null !== rateObjectSignatureRequired ) {
 			requiredSignatureCost = rateObjectSignatureRequired.rate - rateObject.rate;
 			if ( requiredSignatureCost > 0 ) {
@@ -77,7 +76,7 @@ class ShippingRate extends Component {
 				requiredSignatureCostText = translate( 'free' );
 			}
 		}
-    
+
 		// USPS express service includes signature confirmation for free.
 		const signatureRequirementAllowed = requiredSignatureCost > 0 || ( 'Express' === service_id );
 
