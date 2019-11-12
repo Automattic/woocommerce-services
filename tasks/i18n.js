@@ -9,3 +9,11 @@ i18nCli( {
 	textdomain: 'woocommerce-services',
 } );
 
+i18nCli( {
+	inputPaths: [ 'dist/woocommerce-services.js' ],
+	output: 'i18n/languages/woocommerce-services.pot',
+	format: 'pot',
+	phpArrayName: 'i18nStrings',
+	projectName: 'woocommerce-services',
+	textdomain: 'woocommerce-services',
+} );
