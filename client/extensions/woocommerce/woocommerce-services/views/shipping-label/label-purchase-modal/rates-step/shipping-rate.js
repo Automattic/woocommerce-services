@@ -71,7 +71,6 @@ class ShippingRate extends Component {
 		) ) );
 
 		let deliveryDateMessage = '';
-		let requiredSignatureCostText;
 
 		if ( delivery_date_guaranteed && delivery_date ) {
 			deliveryDateMessage = moment( delivery_date ).format( 'MMMM D' );
