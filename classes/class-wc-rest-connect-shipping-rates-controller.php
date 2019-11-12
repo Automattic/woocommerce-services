@@ -23,6 +23,9 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		'signature_required' => array(
 			'signature' => 'yes',
 		),
+		'adult_signature_required' => array(
+			'signature' => 'adult',
+		),
 	);
 
 	private function has_customs_data( $package ) {

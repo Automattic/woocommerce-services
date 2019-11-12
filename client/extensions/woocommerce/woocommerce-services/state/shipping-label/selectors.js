@@ -113,6 +113,7 @@ export const getForm = ( state, orderId, siteId = getSelectedSiteId( state ) ) =
 	return shippingLabel && shippingLabel.form;
 };
 
+
 /**
  * Returns a breakdown of the total price for selected labels in form of { prices, discount, total }
  * @param {Object} state global state tree
@@ -139,8 +140,8 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 		const packageRates = availableRates[ packageId ].default.rates;
 		let signatureRates = null;
 		let foundRateSignatureRequired = null;
-		if ( 'signature_required' in availableRates[ packageId ] ) {
-			signatureRates = availableRates[ packageId ].signature_required.rates;
+		if ( ( signatureRequired in availableRates[ packageId ] ) ) {
+			signatureRates = availableRates[ packageId ][ signatureRequired ].rates;
 			foundRateSignatureRequired = find( signatureRates, r => serviceId === r.service_id ) || null;
 		}
 
@@ -155,7 +156,7 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 				retailRate: foundRate.retail_rate,
 				addons: [],
 			}
-			if ( signatureRequired && null !== foundRateSignatureRequired ) {
+			if ( null !== foundRateSignatureRequired ) {
 				price.addons = [ {
 					title: translate( 'Signature Required' ),
 					rate: foundRateSignatureRequired.rate - foundRate.rate,

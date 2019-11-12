@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { mapValues, find } from 'lodash';
+import { mapValues } from 'lodash';
 
 /**
  * Internal dependencies
@@ -15,6 +15,7 @@ import FieldError from 'woocommerce/woocommerce-services/components/field-error'
 import Notice from 'components/notice';
 import ShippingRate from './shipping-rate';
 import getPackageDescriptions from '../packages-step/get-package-descriptions';
+import { getSignatureServiceRates } from '../../../../lib/special-rates';
 
 const renderRateNotice = translate => {
 	return (
@@ -28,6 +29,7 @@ const renderRateNotice = translate => {
 		/>
 	);
 };
+
 
 export const ShippingRates = ( {
 	id,
@@ -49,10 +51,6 @@ export const ShippingRates = ( {
 		}
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = availableRates[ pckgId ].default.rates;
-		let signatureRates = null;
-		if ( 'signature_required' in availableRates[ pckgId ] ) {
-			signatureRates = availableRates[ pckgId ].signature_required.rates || null;
-		}
 		const packageErrors = errors[ pckgId ] || [];
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
@@ -67,12 +65,11 @@ export const ShippingRates = ( {
 				{ Object.values(
 					mapValues( packageRates, ( ( serviceRateObject ) => {
 						const { service_id } = serviceRateObject;
-						const rateObjectSignatureRequired = find( signatureRates, r => service_id === r.service_id );
 						return <ShippingRate
 							id={ id + '_' + pckgId }
 							key={ id + '_' + pckgId + '_' + service_id }
 							rateObject={ serviceRateObject }
-							rateObjectSignatureRequired={ rateObjectSignatureRequired }
+							signatureRates={ getSignatureServiceRates( pckgId, service_id, availableRates ) }
 							updateValue={ onRateUpdate }
 							isSelected={ service_id === selectedRate.serviceId }
 						/>

@@ -1034,10 +1034,7 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {
 					const { serviceId, signatureRequired } = form.rates.values[ pckgId ];
-					let rateType = 'default';
-					if ( signatureRequired ) {
-						rateType = 'signature_required';
-					}
+					const rateType = ( signatureRequired in form.rates.available[ pckgId ] ) ? signatureRequired : 'default';
 					const packageFields = convertToApiPackage( pckg, customsItems );
 					const rate = find( form.rates.available[ pckgId ][ rateType ].rates, r => serviceId === r.service_id );
 					const packageData = {

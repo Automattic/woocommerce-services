@@ -46,7 +46,7 @@
 	flex-grow: 1;
 	padding-left: 8px;
 	border-bottom: 1px solid #EDEFF0;
-	margin-bottom: 24px;
+	margin-bottom: 12px;
 }
 
 .rates-step__shipping-rate-radio-control {
@@ -77,6 +77,14 @@
 	font-size: 12px;
 	* label {
 		margin-left: 5px;
+	}
+}
+
+.rates-step__shipping-rate-description-signature-select {
+	* select {
+		color: #646970;
+		font-size: 12px;
+		min-width: 250px;
 	}
 }
 
