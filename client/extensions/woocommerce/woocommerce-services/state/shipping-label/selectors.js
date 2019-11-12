@@ -140,7 +140,7 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 		const packageRates = availableRates[ packageId ].default.rates;
 		let signatureRates = null;
 		let foundRateSignatureRequired = null;
-		if ( ( false !== signatureRequired ) && ( signatureRequired in availableRates[ packageId ] ) ) {
+		if ( ( signatureRequired in availableRates[ packageId ] ) ) {
 			signatureRates = availableRates[ packageId ][ signatureRequired ].rates;
 			foundRateSignatureRequired = find( signatureRates, r => serviceId === r.service_id ) || null;
 		}
