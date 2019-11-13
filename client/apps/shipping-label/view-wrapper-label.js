@@ -104,22 +104,22 @@ class ShippingLabelViewWrapper extends Component {
 			// If not all items are packaged (but some are, per condition above), show both buttons
 			if ( productsPackaged !== items ) {
 				return (
-					<>
-					<Button
-						className={ className }
-						primary
-						busy= { ! loaded }
-						disabled= { ! loaded }
-						onClick={ this.handleCreateLabelButtonClick }
-					>
-						{ translate( 'Create shipping label' ) }
-					</Button>
-					<Button
-						onClick={ this.handleTrackPackagesButtonClick }
-					>
-						{ translate( 'Track non-refunded packages' ) }
-					</Button>
-					</>
+					<div className="shipping-label__multiple-buttons-container">
+						<Button
+							className={ className }
+							primary
+							busy= { ! loaded }
+							disabled= { ! loaded }
+							onClick={ this.handleCreateLabelButtonClick }
+						>
+							{ translate( 'Create shipping label' ) }
+						</Button>
+						<Button
+							onClick={ this.handleTrackPackagesButtonClick }
+						>
+							{ translate( 'Track Packages' ) }
+						</Button>
+					</div>
 				);
 			}
 
