@@ -138,10 +138,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
 
-		public function get_selected_packages( WC_Order $order ) {
+		public function get_selected_packages( WC_Order $order, $fulfilled_items = [] ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
-				$items = $this->get_all_items( $order );
+				$items = $this->get_all_items( $order, $fulfilled_items );
 				$weight = array_sum( wp_list_pluck( $items, 'weight' ) );
 
 				$packages = array(
@@ -194,11 +194,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $formatted_packages;
 		}
 
-		public function get_all_items( WC_Order $order ) {
+		public function get_all_items( WC_Order $order, $fulfilled_items = [] ) {
 			if ( $this->get_packaging_metadata( $order ) ) {
 				return array();
 			}
-
+			
 			$items = array();
 			foreach ( $order->get_items() as $item ) {
 				$item_data = $this->get_item_data( $order, $item );
@@ -207,6 +207,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 
 				for ( $i = 0; $i < $item['qty']; $i++ ) {
+					$index = array_search( $item_data[ 'product_id' ], $fulfilled_items );
+
+					if ( $index !== false ) {
+						unset( $fulfilled_items[ $index ] );
+						continue;
+					}
+
 					$items[] = $item_data;
 				}
 			}
@@ -266,9 +273,24 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $destination;
 		}
 
-		protected function get_form_data( WC_Order $order ) {
+		protected function extract_fulfilled_items_from_labels( $labels_data ) {
+			$active_labels = array_filter( $labels_data, function ( $label ) { 
+				return $label['status'] == 'PURCHASED' && ! array_key_exists( 'refund', $label );
+			} );
+			$fulfilled_items = [];
+			return array_reduce( $active_labels, function ( $fulfilled_items, $label ) { 
+				if ( array_key_exists( 'product_ids', $label ) ) {
+					return array_merge( $fulfilled_items, $label[ 'product_ids' ] );
+				} else {
+					return $fulfilled_items;
+				}
+			}, $fulfilled_items );
+		}
+
+		protected function get_form_data( WC_Order $order, $labels_data ) {
 			$order_id               = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$selected_packages      = $this->get_selected_packages( $order );
+			$fulfilled_items         = $this->extract_fulfilled_items_from_labels( $labels_data );
+			$selected_packages      = $this->get_selected_packages( $order, $fulfilled_items );
 			$is_packed              = ( false !== $this->get_packaging_metadata( $order ) );
 			$origin                 = $this->get_origin_address();
 			$selected_rates         = $this->get_selected_rates( $order );
@@ -288,6 +310,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			);
 
 			$form_data['order_id'] = $order_id;
+			$form_data['has_fulfilled_items'] = ! empty( $fulfilled_items );
 
 			return $form_data;
 		}
@@ -354,11 +377,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$labels_data = $this->settings_store->get_label_order_meta_data( $order_id );
 			$payload = array(
 				'orderId'            => $order_id,
 				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
-				'formData'           => $this->get_form_data( $order ),
-				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
+				'formData'           => $this->get_form_data( $order, $labels_data ),
+				'labelsData'         => $labels_data,
 				'storeOptions'       => $this->settings_store->get_store_options(),
 				//for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions
 				'canChangeCountries' => true,
