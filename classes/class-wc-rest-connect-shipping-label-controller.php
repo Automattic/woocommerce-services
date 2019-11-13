@@ -118,6 +118,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			}
 
 			$label_meta[ 'product_names' ] = $product_names;
+			$label_meta[ 'product_ids'] = $package[ 'products' ];
 
 			array_unshift( $purchased_labels_meta, $label_meta );
 		}
