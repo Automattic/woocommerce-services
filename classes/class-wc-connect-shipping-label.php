@@ -407,11 +407,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
 			$labels = get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true );
-			$refunded_items = array_reduce( $labels, array( $this, 'reducer_refunded_items' ), 0 );
+			$refunded_items_count = array_reduce( $labels, array( $this, 'reducer_refunded_items' ), 0 );
 			$payload = array(
-				'orderId' => $order_id,
-				'context' => $args['args']['context'],
-				'items'   => $items_count - $refunded_items,
+				'orderId'       => $order_id,
+				'context'       => $args['args']['context'],
+				'items'         => $items_count,
+				'refundedItems' => $refunded_items_count,
 			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
