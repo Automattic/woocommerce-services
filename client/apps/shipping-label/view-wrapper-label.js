@@ -87,7 +87,7 @@ class ShippingLabelViewWrapper extends Component {
 			const productsPackaged = sumBy( activeLabels, (l) => l.productNames.length );
 
 			// If there are no purchased labels, just show Create labels button
-			if ( ! labels.length ) {
+			if ( ! activeLabels.length ) {
 				return (
 					<Button
 						className={ className }
