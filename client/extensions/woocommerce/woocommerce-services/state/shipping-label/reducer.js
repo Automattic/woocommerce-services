@@ -481,7 +481,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 			box_id: 'not_selected',
 			items: [ movedItem ],
 		};
-	} else {
+	} else if ( targetPackageId ) {
 		//move to an existing package
 		const targetItems = [ ...newPackages[ targetPackageId ].items ];
 		targetItems.push( movedItem );
