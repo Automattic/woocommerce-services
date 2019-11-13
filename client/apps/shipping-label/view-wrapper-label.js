@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
 import Gridicon from 'gridicons';
-import { differenceBy, filter } from 'lodash';
+import { sumBy, differenceBy, filter } from 'lodash';
 
 /**
  * Internal dependencies
@@ -58,6 +58,7 @@ class ShippingLabelViewWrapper extends Component {
 			loaded,
 			translate,
 			events,
+			items,
 		} = this.props;
 
 		const className = classNames( 'shipping-label__new-label-button', {
@@ -83,8 +84,10 @@ class ShippingLabelViewWrapper extends Component {
 			const labels = filter( events, { type: 'LABEL_PURCHASED' } );
 			const refunds = filter( events, { type: 'LABEL_REFUND_REQUESTED' } );
 			const activeLabels = differenceBy( labels, refunds, "labelIndex" );
+			const productsPackaged = sumBy( activeLabels, (l) => l.productNames.length );
 
-			if ( activeLabels.length === 0 ) {
+			// If there are no purchased labels, just show Create labels button
+			if ( ! labels.length ) {
 				return (
 					<Button
 						className={ className }
@@ -98,6 +101,29 @@ class ShippingLabelViewWrapper extends Component {
 				);
 			}
 
+			// If not all items are packaged (but some are, per condition above), show both buttons
+			if ( productsPackaged !== items ) {
+				return (
+					<>
+					<Button
+						className={ className }
+						primary
+						busy= { ! loaded }
+						disabled= { ! loaded }
+						onClick={ this.handleCreateLabelButtonClick }
+					>
+						{ translate( 'Create shipping label' ) }
+					</Button>
+					<Button
+						onClick={ this.handleTrackPackagesButtonClick }
+					>
+						{ translate( 'Track non-refunded packages' ) }
+					</Button>
+					</>
+				);
+			}
+
+			// All items are packaged, just show track button
 			return (
 				<Button
 					onClick={ this.handleTrackPackagesButtonClick }
