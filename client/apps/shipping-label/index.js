@@ -24,7 +24,7 @@ import locations from '../../extensions/woocommerce/state/data-layer/data/locati
 import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
 import { mergeHandlers } from 'state/action-watchers/utils';
 
-export default ( { orderId, context, items, refundedItems } ) => {
+export default ( { orderId, context, items } ) => {
 	return {
 		getReducer() {
 			return combineReducers( {
@@ -90,7 +90,7 @@ export default ( { orderId, context, items, refundedItems } ) => {
 			( 'shipment_tracking' === context ) ?
 				<ShipmentTrackingViewWrapper orderId={ orderId } />
 			:
-				<ShippingLabelViewWrapper orderId={ orderId } items={ items } refundedItems={ refundedItems } />
+				<ShippingLabelViewWrapper orderId={ orderId } items={ items } />
 		),
 	};
 };

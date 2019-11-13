@@ -390,29 +390,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $sum + $item->get_quantity();
 		}
 
-		/**
-		 * Reduce items to sum refunds.
-		 *
-		 * @param  int   $sum  Current sum.
-		 * @param  array $item Item to add to sum.
-		 * @return int
-		 */
-		protected function reducer_refunded_items( $sum, $item ) {
-			return $sum + ( ! empty( $item['refund'] ) ? count( $item['product_names'] ) : 0 );
-		}
-
 		public function meta_box( $post, $args ) {
 			$order = wc_get_order( $post );
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
-			$labels = get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true );
-			$refunded_items_count = array_reduce( $labels, array( $this, 'reducer_refunded_items' ), 0 );
 			$payload = array(
-				'orderId'       => $order_id,
-				'context'       => $args['args']['context'],
-				'items'         => $items_count,
-				'refundedItems' => $refunded_items_count,
+				'orderId' => $order_id,
+				'context' => $args['args']['context'],
+				'items'   => $items_count,
 			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );

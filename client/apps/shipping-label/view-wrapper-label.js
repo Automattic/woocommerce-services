@@ -59,7 +59,6 @@ class ShippingLabelViewWrapper extends Component {
 			translate,
 			events,
 			items,
-			refundedItems,
 		} = this.props;
 
 		const className = classNames( 'shipping-label__new-label-button', {
@@ -171,18 +170,16 @@ class ShippingLabelViewWrapper extends Component {
 			loaded,
 			labelsEnabled,
 			items,
-			refundedItems,
 			translate,
 		} = this.props;
 
 		const shouldRenderButton = ! loaded || labelsEnabled;
-		const finalItemCount = items - refundedItems;
 
 		return (
 			<div className="shipping-label__container">
 				<div>
 					<Gridicon size={36} icon="shipping" />
-					<em>{ finalItemCount + ' ' + translate( 'item is ready for shipment', 'items are ready for shipment', { count: finalItemCount } ) }</em>
+					<em>{ items + ' ' + translate( 'item is ready for shipment', 'items are ready for shipment', { count: items } ) }</em>
 				</div>
 				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />
