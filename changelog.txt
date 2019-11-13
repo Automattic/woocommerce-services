@@ -7,6 +7,7 @@
 * Add   - Shipping Summary to the sidebar on the label screen.
 * Add   - Shipping rates additional data - tracking, delivery time, signatures.
 * Add   - Tracking modal.
+* Add   - Ability to recreate labels for individual packages that have been refunded in a multi-label package scenario.
 * Fix   - Deprecation notices for PHP 7.4.
 * Fix   - Quantity is not being taken into account for the notice "n items are ready for shipment".
 * Tweak - Credit card no longer required to configure shipping label.
