@@ -60,14 +60,14 @@ const PackagesStep = props => {
 		let summary = '';
 
 		if ( 1 === packageIds.length && 1 === itemsCount ) {
-			summary = translate( '1 item in 1 package: %(weight)f %(unit)s total', {
+			summary = translate( '1 item in 1 package: %(weight).3f %(unit)s total', {
 				args: {
 					weight: totalWeight,
 					unit: weightUnit,
 				},
 			} );
 		} else if ( 1 === packageIds.length ) {
-			summary = translate( '%(itemsCount)d items in 1 package: %(weight)f %(unit)s total', {
+			summary = translate( '%(itemsCount)d items in 1 package: %(weight).3f %(unit)s total', {
 				args: {
 					itemsCount,
 					weight: totalWeight,
@@ -76,7 +76,7 @@ const PackagesStep = props => {
 			} );
 		} else {
 			summary = translate(
-				'%(itemsCount)d items in %(packageCount)d packages: %(weight)f %(unit)s total',
+				'%(itemsCount)d items in %(packageCount)d packages: %(weight).3f %(unit)s total',
 				{
 					args: {
 						itemsCount,
