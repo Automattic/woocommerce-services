@@ -1,10 +1,10 @@
 === WooCommerce Services ===
-Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev
+Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.3
-Stable tag: 1.21.1
+Stable tag: 1.22.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,25 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.22.0 =
+
+* Add   - Display notices when base country/currency mismatches.
+* Add   - Friendlier error codes when the API service is down.
+* Add   - Introduce custom package setting on the label screen.
+* Add   - Shipping Summary to the sidebar on the label screen.
+* Add   - Shipping rates additional data - tracking, delivery time, signatures.
+* Add   - Tracking modal.
+* Add   - Ability to recreate labels for individual packages that have been refunded in a multi-label package scenario.
+* Fix   - Deprecation notices for PHP 7.4.
+* Fix   - Quantity is not being taken into account for the notice "n items are ready for shipment".
+* Tweak - Credit card no longer required to configure shipping label.
+* Tweak - Moved "Create Shipping Label" button from sidebar to the top of the order screen.
+* Tweak - Preselect last used package on the label screen.
+* Tweak - Remove rates from the dropdown and list them on the page after a package is selected.
+* Tweak - Remove redundant "Paper Size" from the label screen since it's configurable from the Settings screen.
+* Tweak - Show create label button in 'busy' state until data loads.
+* Tweak - UX improvements for the label screen.
 
 = 1.21.1 =
 
