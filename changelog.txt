@@ -1,5 +1,8 @@
 *** WooCommerce Services Changelog ***
 
+= 1.22.2 - 2019-XX-XX =
+* Fix   - Packages weigth total value formatting. 
+
 = 1.22.1 - 2019-11-14 =
 * Fix   - Remove nuisance admin notification.
 
