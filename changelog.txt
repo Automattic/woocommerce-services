@@ -1,5 +1,8 @@
 *** WooCommerce Services Changelog ***
 
+2019-11-14 - version 1.22.1
+* Fix   - Remove nuisance admin notification.
+
 2019-11-14 - version 1.22.0
 * Add   - Display notices when base country/currency mismatches.
 * Add   - Friendlier error codes when the API service is down.
