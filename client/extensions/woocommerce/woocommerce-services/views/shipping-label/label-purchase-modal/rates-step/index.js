@@ -159,6 +159,20 @@ const RatesStep = props => {
 	const updateRateHandler = ( packageId, serviceId, signatureRequired ) =>
 		props.updateRate( orderId, siteId, packageId, serviceId, signatureRequired );
 
+	// Preselect rates for packages that have only one rate available.
+	forEach( form.packages.selected, ( selectedRate, pckgId ) => {
+		// Skip preselection for already selected values.
+		if( values[ pckgId ] !== "" ) {
+			return;
+		}
+
+		if ( ( ! isEmpty( available ) ) && ( pckgId in available ) && ( available[ pckgId ].default.rates.length === 1 ) ) {
+			const signatureRequired = false; // Don't preselect signature.
+			const { service_id } = available[ pckgId ].default.rates[ 0 ];
+			updateRateHandler( pckgId, service_id, signatureRequired );
+		}
+	} );
+
 	return (
 		<StepContainer
 			title={ translate( 'Shipping rates' ) }
