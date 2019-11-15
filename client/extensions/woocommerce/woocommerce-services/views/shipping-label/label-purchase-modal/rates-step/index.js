@@ -177,7 +177,7 @@ const RatesStep = props => {
 		<StepContainer
 			title={ translate( 'Shipping rates' ) }
 			summary={ summary }
-			expanded={ expanded }
+			expanded={ ! isEmpty( available ) }
 			toggleStep={ toggleStepHandler }
 			{ ...getRatesStatus( props ) }
 		>
