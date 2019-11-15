@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { find, isEmpty, mapValues, some } from 'lodash';
+import { find, forEach, isEmpty, mapValues, some } from 'lodash';
 import formatCurrency from '@automattic/format-currency';
 import Gridicon from 'gridicons';
 
