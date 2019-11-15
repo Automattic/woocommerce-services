@@ -150,7 +150,6 @@ const RatesStep = props => {
 		values,
 		available,
 		errors,
-		expanded,
 		ratesTotal,
 		translate,
 	} = props;
