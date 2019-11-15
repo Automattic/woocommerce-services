@@ -31,7 +31,7 @@ const createSimpleProduct = async () => {
 	await StoreOwnerFlow.openNewProduct();
 
 	// Make sure we're on the add product page
-	await expect(page.title()).resolves.toMatch('Add New ‹ Products');
+	await expect( page ).toMatchElement( '.wp-heading-inline', { text: 'Add new product' } )
 
 	// Set product data
 	await expect(page).toFill('#title', 'Simple product');
