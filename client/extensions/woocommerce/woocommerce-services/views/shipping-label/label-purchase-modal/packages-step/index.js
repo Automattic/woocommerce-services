@@ -7,7 +7,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { localize } from 'i18n-calypso';
+import { localize, numberFormat } from 'i18n-calypso';
 import { find, isEmpty } from 'lodash';
 
 /**
@@ -29,6 +29,14 @@ import {
 	toggleStep,
 	confirmPackages,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+
+// Display precision for various unit settings.
+const PRECISION = {
+	g: 0,
+	oz: 1,
+	lbs: 3,
+	kg: 3,
+}
 
 const PackagesStep = props => {
 	const { siteId, orderId, selected, weightUnit, errors, expanded, translate } = props;
@@ -57,31 +65,32 @@ const PackagesStep = props => {
 			};
 		}
 
+		const weightString = numberFormat( totalWeight, { decimals: PRECISION[ weightUnit ] } );
 		let summary = '';
 
 		if ( 1 === packageIds.length && 1 === itemsCount ) {
-			summary = translate( '1 item in 1 package: %(weight).3f %(unit)s total', {
+			summary = translate( '1 item in 1 package: %(weight)s %(unit)s total', {
 				args: {
-					weight: totalWeight,
+					weight: weightString,
 					unit: weightUnit,
 				},
 			} );
 		} else if ( 1 === packageIds.length ) {
-			summary = translate( '%(itemsCount)d items in 1 package: %(weight).3f %(unit)s total', {
+			summary = translate( '%(itemsCount)d items in 1 package: %(weight)s %(unit)s total', {
 				args: {
 					itemsCount,
-					weight: totalWeight,
+					weight: weightString,
 					unit: weightUnit,
 				},
 			} );
 		} else {
 			summary = translate(
-				'%(itemsCount)d items in %(packageCount)d packages: %(weight).3f %(unit)s total',
+				'%(itemsCount)d items in %(packageCount)d packages: %(weight)s %(unit)s total',
 				{
 					args: {
 						itemsCount,
 						packageCount: packageIds.length,
-						weight: totalWeight,
+						weight: weightString,
 						unit: weightUnit,
 					},
 				}
