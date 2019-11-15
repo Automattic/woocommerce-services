@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "1.22.0",
+  "version": "1.22.1",
   "scripts": {
     "start": "cross-env NODE_ENV=development DISABLE_FEATURES=code-splitting CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd ..",
@@ -14,7 +14,7 @@
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
     "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
-    "woorelease": "npm run dist"
+    "woorelease": "echo yes | npm run release && cp release/woocommerce-services.zip ./"
   },
   "repository": {
     "type": "git",

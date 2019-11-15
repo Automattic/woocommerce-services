@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.22.0
+ * Version: 1.22.1
  * WC requires at least: 3.0.0
  * WC tested up to: 3.8
  *
@@ -207,34 +207,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$i = hexdec( substr( md5( $file ), -1 ) ) % 2;
 			$url = 'http://s' . $i . '.wp.com' . $file;
 			return set_url_scheme( $url );
-		}
-
-		/**
-		 * environment_check function.
-		 *
-		 * @return void
-		 */
-		public function environment_check() {
-			if ( ! current_user_can( 'manage_woocommerce' ) ) {
-				return;
-			}
-
-			$admin_page = 'wc-settings';
-
-			$base_currency = get_woocommerce_currency();
-			$base_location = wc_get_base_location();
-
-			if ( ! WC_Connect_Shipping_Label::is_supported_currency( $base_currency ) ) {
-				echo '<div class="error">
-					<p>' . sprintf( __( 'WooCommerce Services requires that the <a href="%s">currency</a> is set to US Dollars.', 'woocommerce-services' ), admin_url( 'admin.php?page=' . $admin_page . '&tab=general' ) ) . '</p>
-				</div>';
-			}
-
-			if ( ! WC_Connect_Shipping_Label::is_supported_country( $base_location['country'] ) ) {
-				echo '<div class="error">
-					<p>' . sprintf( __( 'WooCommerce Services requires that the <a href="%s">base country/region</a> is the United States.', 'woocommerce-services' ), admin_url( 'admin.php?page=' . $admin_page . '&tab=general' ) ) . '</p>
-				</div>';
-			}
 		}
 
 		public function __construct() {
@@ -697,7 +669,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
-			add_action( 'admin_notices', array( $this, 'environment_check' ) );
 		}
 
 		/**

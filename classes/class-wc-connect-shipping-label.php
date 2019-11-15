@@ -27,12 +27,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		/**
 		 * @var array Supported countries by USPS, see: https://webpmt.usps.gov/pmt010.cfm
 		 */
-		private static $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
+		private $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
 
 		/**
 		 * @var array Supported currencies
 		 */
-		private static $supported_currencies = array( 'USD' );
+		private $supported_currencies = array( 'USD' );
 
 		private $show_metabox = null;
 
@@ -292,12 +292,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		public static function is_supported_country( $country_code ) {
-			return in_array( $country_code, self::$supported_countries );
+		private function is_supported_country( $country_code ) {
+			return in_array( $country_code, $this->supported_countries );
 		}
 
-		public static function is_supported_currency( $currency_code ) {
-			return in_array( $currency_code, self::$supported_currencies );
+		private function is_supported_currency( $currency_code ) {
+			return in_array( $currency_code, $this->supported_currencies );
 		}
 
 		public function should_show_meta_box() {
@@ -322,12 +322,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			// Restrict showing the metabox to supported store currencies.
 			$base_currency = get_woocommerce_currency();
-			if ( ! self::is_supported_currency( $base_currency ) ) {
+			if ( ! $this->is_supported_currency( $base_currency ) ) {
 				return false;
 			}
 
 			$base_location = wc_get_base_location();
-			if ( ! self::is_supported_country( $base_location['country'] ) ) {
+			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
 				return false;
 			}
 
