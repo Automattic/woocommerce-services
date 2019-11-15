@@ -1,7 +1,7 @@
 *** WooCommerce Services Changelog ***
 
 20XX-XX-XX - version 1.22.1
-* Fix   - Packages weigth total value formatting. 
+* Fix   - Packages weight total value formatting. 
 
 2019-11-14 - version 1.22.0
 * Add   - Display notices when base country/currency mismatches.
