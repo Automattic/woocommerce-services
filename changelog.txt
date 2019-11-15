@@ -1,5 +1,8 @@
 *** WooCommerce Services Changelog ***
 
+= 1.22.2 - 2019-XX-XX =
+* Add   - Preselect rate when there is only one rate available for given shipping configuration.
+
 = 1.22.1 - 2019-11-14 =
 * Fix   - Remove nuisance admin notification.
 
