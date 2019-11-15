@@ -7,10 +7,17 @@
  */
 import { createSimpleProduct, loginAndConfirmExtensionActivation } from '../../utils/components';
 import { CustomerFlow, StoreOwnerFlow } from '../../utils/flows';
+import { clickReactButton } from '../../utils/index';
 import { setCheckbox, settingsPageSaveChanges, uiUnblocked, verifyCheckboxIsSet } from "../../utils";
 
 describe( 'Create shipping label', () => {
 	beforeAll( async () => {
+		page.setDefaultTimeout( 0 );
+		page.setDefaultNavigationTimeout( 0 );
+		page.on( "dialog", ( dialog ) => {
+  	  	  	console.log( `accepting dialog: ${ dialog.message() }` );
+  	  	  	dialog.accept();
+		} );
 		await loginAndConfirmExtensionActivation();
 		console.log( 'I am logged in!' );
 		await createSimpleProduct();
@@ -47,6 +54,13 @@ describe( 'Create shipping label', () => {
 		await verifyCheckboxIsSet( '#woocommerce_cod_enabled' );
 		console.log( 'Payment settings have been set and saved!' );
 
+		// Add missing WooCommerce pages
+		await StoreOwnerFlow.openStatus( 'tools' );
+		await clickReactButton( '.button.install_pages' );
+		await page.waitForSelector( '.updated.inline', { text: 'All missing WooCommerce pages successfully installed' } );
+		console.log( 'Missing WooCommerce pages installed!' );
+
+
 		await StoreOwnerFlow.logout();
 		console.log( 'I am logged out!' );
 	} );
@@ -56,8 +70,11 @@ describe( 'Create shipping label', () => {
 		console.log( 'I am on the shop page!' );
 		await CustomerFlow.addToCartFromShopPage( 'Simple product' );
 
+		console.log( 'Product added to the cart!' );
 		await CustomerFlow.goToCheckout();
+		console.log( 'I am on the checkout page!' );
 		await CustomerFlow.productIsInCheckout( 'Simple product', 1, 9.99 );
+		console.log( 'Product is in the order review page!' );
 		await expect( page ).toMatchElement( '.cart-subtotal .amount', { text: '$9.99' } );
 	} );
 
@@ -85,54 +102,66 @@ describe( 'Create shipping label', () => {
 	} );
 
 	it( 'should login as Admin and navigate to order page', async () => {
+		console.log( 'I am about to log in!' );
 		await StoreOwnerFlow.login();
+		console.log( 'I am logged in!' );
 		await StoreOwnerFlow.openExistingOrderPage();
 	} );
 
 	it( 'should create shipping label', async () => {
 		// Click on Create shipping label button
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .button.is-primary' );
+		await clickReactButton( '.shipping-label__new-label-button' );
 		await page.waitForSelector( '.dialog__content' );
 
-		// Work on origin address section
-		await expect( page ).toClick( '.gridicons-chevron-down' );
-		await page.waitForSelector( '.address-step__actions' );
 
-		// Fill in origin address details
-		await expect( page ).toFill( '#origin_address', '1480 York Ave' );
-		await expect( page ).toFill( '#origin_city', 'New York' );
-		await expect( page ).toSelect( '#origin_state', 'New York' );
-		await expect( page ).toFill( '#origin_postcode', '10075' );
+		const isOriginAddressReady = await page.waitForSelector( '.is-success', { text: 'NEW YORK, NY  10075' } );
+		if ( !isOriginAddressReady ) {
+			// Work on origin address section
+			await page.waitForSelector( '.address-step__actions' );
 
-		// Verify address
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
-		await page.waitForSelector( '.dialog__content' );
+			// Fill in origin address details
+			await expect( page ).toFill( '#origin_address', '1480 York Ave' );
+			await expect( page ).toFill( '#origin_city', 'New York' );
+			await expect( page ).toSelect( '#origin_state', 'New York' );
+			await expect( page ).toFill( '#origin_postcode', '10075' );
 
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root input[type="radio"]' );
+			// Verify address
+			await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
+			await page.waitForSelector( '.is-success', { text: 'NEW YORK, NY  10075' } );
+		}
 
 		// Use selected address
-		await expect( page ).toClick( '.address-step__suggestion-title' );
-		await page.waitForSelector( '.dialog__content' );
+		await page.waitForSelector( '.button.is-primary.is-borderless', { text: 'Use address as entered' } );
+		await expect( page ).toClick( '.button.is-primary.is-borderless', { text: 'Use address as entered' } );
+		await page.waitForSelector( '.is-success', { text: 'San Francisco, CA  94107' } );
 
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
-		await page.waitForSelector( '.foldable-card__content' );
+		const selectAPackageType = await page.$( '.packages-step__no-packages a', { text: 'Select a package type' } );
 
-		// Work on destination address section
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root input[type="radio"]' );
-		// Use selected address
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button:first-child' );
-		await page.waitForSelector( '.packages-step__contents' );
+		if ( selectAPackageType ) {
+			await expect( page ).toClick( 'Select a package type' );
+			await selectAPackageType.click();
+			await expect( page ).toFill( '#weight_default_box', '1' );
 
-		// Work on packages section
-		await expect( page ).toSelect( '.form-select.is-error', 'Flat Rate Envelope - 12.5 in x 9.5 in x 0.5 in' );
-		await expect( page ).toFill( '#weight_default_box', '5' );
+			await page.waitForSelector( '.packages__add-edit-dialog' );
 
-		// Use these packages
-		await expect( page ).toClick( '.wp-core-ui.wp-admin .wcc-root .step-confirmation-button .form-button, .wp-core-ui.wp-admin .wcc-root .address-step__actions .form-button' );
-		await page.waitForSelector( '.rates-step__shipping-info' );
+			await expect( page ).toFill( '.packages__add-edit-dialog #name', 'My Package' );
+			await expect( page ).toFill( '.packages__add-edit-dialog #length', '1' );
+			await expect( page ).toFill( '.packages__add-edit-dialog #width', '1' );
+			await expect( page ).toFill( '.packages__add-edit-dialog #height', '1' );
+			await expect( page ).toFill( '.packages__add-edit-dialog #box_weight', '1' );
 
-		// Work on rates section
-		await expect( page ).toSelect( '#rates_default_box', 'USPS - Mock 1 ($12.30)' );
-		await page.waitForSelector( '.wp-core-ui.wp-admin .wcc-root .button.is-primary' );
+			await expect( page ).toClick( '.button.is-primary', { text: 'Add package' } );
+
+		}
+
+		await expect( page ).toClick( '.button.is-primary', { text: 'Use these packages' } );
+		await page.waitForSelector( '.is-success', { text: '1 item in 1 package: 2 kg total' } );
+
+		await page.waitForSelector( '#inspector-radio-control-0-0' );
+		await expect( page ).toClick( '#inspector-radio-control-0-0' );
+
+		await expect( page ).toClick( '.button.is-primary', { text: 'Buy shipping labels' } );
+
+		await page.waitForSelector( '.notice.is-success .notice__text', { text: 'Your shipping label was purchased successfully' } )
 	} );
 } );

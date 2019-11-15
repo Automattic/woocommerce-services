@@ -6,18 +6,21 @@
  * Internal dependencies
  */
 import { StoreOwnerFlow } from "./flows";
-import { clickTab } from "./index";
+import { clickTab, clickReactButton } from "./index";
 
 const verifyAndPublish = async () => {
 	// Wait for auto save
-	await page.waitFor( 2000 );
+	await page.waitForSelector( '#sample-permalink' );
 
 	// Publish product
-	await expect( page ).toClick( '#publish' );
-	await page.waitForSelector( '.updated.notice' );
+	console.log( 'about to save the product' )
+	await clickReactButton( '#publish' );
+	console.log( 'product saved!' )
 
 	// Verify
+	await page.waitForSelector( '.updated.notice', { text: 'Product published.' }  );
 	await expect( page ).toMatchElement( '.updated.notice', { text: 'Product published.' } );
+	console.log( 'product saved confirmed!' )
 };
 
 /**
@@ -27,8 +30,8 @@ const createSimpleProduct = async () => {
 	// Go to "add product" page
 	await StoreOwnerFlow.openNewProduct();
 
-	// Make sure we're on the add order page
-	await expect(page.title()).resolves.toMatch('Add new product');
+	// Make sure we're on the add product page
+	await expect(page.title()).resolves.toMatch('Add New ‹ Products');
 
 	// Set product data
 	await expect(page).toFill('#title', 'Simple product');
@@ -42,7 +45,7 @@ const createSimpleProduct = async () => {
  * Login and confirm that extension is activated on the site.
  */
 const loginAndConfirmExtensionActivation = async () => {
-	let slug = 'woocommerce-services';
+	const slug = 'woocommerce-services';
 	await StoreOwnerFlow.login();
 	await StoreOwnerFlow.openPluginsPage();
 	const disableLink = await page.$( `tr[data-slug="${ slug }"] .deactivate a` );

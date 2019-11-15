@@ -56,6 +56,12 @@ const verifyCheckboxIsSet = async( selector ) => {
 	await expect( checkboxStatus ).toBe( true );
 };
 
+const clickReactButton = async( selector ) => {
+    await page.waitForSelector( selector );
+    //await page.click( selector );
+    page.$eval( selector, elem => elem.click() );
+};
+
 module.exports = {
 	...flows,
 	clickTab,
@@ -63,4 +69,5 @@ module.exports = {
 	setCheckbox,
 	uiUnblocked,
 	verifyCheckboxIsSet,
+	clickReactButton,
 };

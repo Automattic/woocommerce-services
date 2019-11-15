@@ -4,9 +4,10 @@ const adminUserPassword = process.env.WP_ADMIN_USER_PW;
 
 const WP_ADMIN_LOGIN = baseUrl + '/wp-login.php';
 const WP_ADMIN_PLUGINS_PAGE = baseUrl + '/wp-admin/plugins.php';
-const WP_ADMIN_EXISTING_ORDER_PAGE = baseUrl + '/wp-admin/post.php?post=82&action=edit';
+const WP_ADMIN_ORDERS_PAGE = baseUrl + '/wp-admin/edit.php?post_type=shop_order';
 const WP_ADMIN_NEW_PRODUCT = baseUrl + '/wp-admin/post-new.php?post_type=product';
 const WP_ADMIN_WC_SETTINGS = baseUrl + '/wp-admin/admin.php?page=wc-settings&tab=';
+const WP_ADMIN_WC_STATUS = baseUrl + '/wp-admin/admin.php?page=wc-status&tab=';
 
 const SHOP_PAGE = baseUrl + '/shop/';
 const SHOP_CHECKOUT_PAGE = baseUrl + '/checkout/';
@@ -42,13 +43,9 @@ const CustomerFlow = {
 	},
 
 	productIsInCheckout: async ( productTitle, quantity, total ) => {
-		const checkoutItemXPath =
-			'//tr[@class="cart_item" and ' +
-			`.//td[contains(., "${ productTitle }") and contains(., "× ${ quantity }")] and ` +
-			`.//td[contains(., "${ total }")]` +
-			']';
-
-		await expect( page.$x( checkoutItemXPath ) ).resolves.toHaveLength( 1 );
+		await expect( page ).toMatchElement( '.cart_item .product-name', { text: productTitle } );
+		await expect( page ).toMatchElement( '.cart_item .product-quantity', { text: `× ${quantity}` } );
+		await expect( page ).toMatchElement( '.cart_item .product-total', { text: `\$${ total }` } );
 	},
 };
 
@@ -83,9 +80,27 @@ const StoreOwnerFlow = {
 	},
 
 	openExistingOrderPage: async () => {
-		await page.goto( WP_ADMIN_EXISTING_ORDER_PAGE, {
+		console.log( 'I am about to visit the orders page!' )
+		await page.goto( WP_ADMIN_ORDERS_PAGE, {
 			waitUntil: 'networkidle0',
 		} );
+
+		console.log( 'I am in the orders page!' )
+		await expect( page.title() ).resolves.toMatch( 'Orders' );
+		await page.click( 'a.order-view' );
+		await page.waitForNavigation( { waitUntil: 'networkidle0' } );
+
+		await expect( page.title() ).resolves.toMatch( 'Edit Order ‹ Orders' );
+		await page.waitForSelector(  '.woocommerce-order-data__heading', { text: /Order #[0-9]+ details/ }   )
+
+		// Load the shipping address from the billing address
+		await page.click( '#order_data > div.order_data_column_container > div:nth-child(3) > h3 > a.edit_address' );
+		await page.waitForSelector( '.billing-same-as-shipping', { visible: true } );
+		await page.click( '.billing-same-as-shipping', { text: 'Copy billing address' } );
+		await page.click( '.button.save_order' );
+
+		await page.waitForSelector( '.updated.notice', { text: 'Order updated.' }  );
+		await expect( page ).toMatchElement( '.updated.notice', { text: 'Order updated.' } );
 	},
 
 	openNewProduct: async () => {
@@ -108,6 +123,18 @@ const StoreOwnerFlow = {
 		}
 
 		await page.goto( settingsUrl, {
+			waitUntil: 'networkidle0',
+		} );
+	},
+
+	openStatus: async ( tab, section = null ) => {
+		let statusUrl = WP_ADMIN_WC_STATUS + tab;
+
+		if ( section ) {
+			statusUrl += `&section=${ section }`;
+		}
+
+		await page.goto( statusUrl, {
 			waitUntil: 'networkidle0',
 		} );
 	},
