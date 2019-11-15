@@ -162,11 +162,11 @@ const RatesStep = props => {
 	// Preselect rates for packages that have only one rate available.
 	forEach( form.packages.selected, ( selectedRate, pckgId ) => {
 		// Skip preselection for already selected values.
-		if( values[ pckgId ] !== "" ) {
+		if( "" !==  values[ pckgId ] ) {
 			return;
 		}
 
-		if ( ( ! isEmpty( available ) ) && ( pckgId in available ) && ( available[ pckgId ].default.rates.length === 1 ) ) {
+		if ( ( ! isEmpty( available ) ) && ( pckgId in available ) && ( 1 === available[ pckgId ].default.rates.length ) ) {
 			const signatureRequired = false; // Don't preselect signature.
 			const { service_id } = available[ pckgId ].default.rates[ 0 ];
 			updateRateHandler( pckgId, service_id, signatureRequired );
