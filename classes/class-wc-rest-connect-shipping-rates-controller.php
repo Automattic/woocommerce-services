@@ -38,9 +38,11 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * @return array|WP_Error
 	 */
 	public function post( $request ) {
-		$payload = $request->get_json_params();
+		$payload                        = $request->get_json_params();
 		$payload[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
-		$order_id = $request[ 'order_id' ];
+		$order_id                       = $request[ 'order_id' ];
+		// Don't add extra rates if request is coming from Calypso ( Store on WP.com ).
+		$add_extra_rates_to_request     = ! isset( $request['_via_calypso'] );
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
@@ -65,7 +67,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 			}
 		}
 
-		$response = $this->get_all_rates( $payload );
+		$response = $this->get_rates( $payload, $add_extra_rates_to_request );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -80,34 +82,40 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * Get standard rates along with rates for special options
 	 * that are defined in $this->extra_rates
 	 *
-	 * @param stdClass $payload Request payload.
+	 * @param stdClass $payload         Request payload.
+	 * @param bool     $add_extra_rates Whether extra rate types should be added.
 	 * @return WPError|stdClass
 	 */
-	public function get_all_rates( $payload ) {
+	public function get_rates( $payload, $add_extra_rates = true ) {
 		$signature_packages     = [];
 		$original_package_names = [];
 
-		// Add extra package requests with special options set.
-		foreach( $this->extra_rates as $rate_name => $rate_option ) {
-			foreach( $rate_option as $option_name => $option_value ) {
-				foreach ( $payload['packages'] as $package_id => $package ) {
-					$original_package_names[]    = $package['id'];
-					$new_package                 = $package;
-					$new_package[ $option_name ] = $option_value;
+		if ( $add_extra_rates ) {
+			// Add extra package requests with special options set.
+			foreach( $this->extra_rates as $rate_name => $rate_option ) {
+				foreach( $rate_option as $option_name => $option_value ) {
+					foreach ( $payload['packages'] as $package_id => $package ) {
+						$original_package_names[]    = $package['id'];
+						$new_package                 = $package;
+						$new_package[ $option_name ] = $option_value;
 
-					$new_package['id'] .= $this->SPECIAL_RATE_PREFIX . $rate_name;
-					$signature_packages[] = $new_package;
+						$new_package['id'] .= $this->SPECIAL_RATE_PREFIX . $rate_name;
+						$signature_packages[] = $new_package;
+					}
 				}
 			}
+			$payload['packages'] = array_merge( $payload['packages'], $signature_packages );
 		}
-		$payload['packages'] = array_merge( $payload['packages'], $signature_packages );
 
 		$response = $this->request_rates( $payload );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 		if ( property_exists( $response, 'rates' ) ) {
-			return $this->merge_all_rates( $response->rates, $original_package_names );
+			if ( $add_extra_rates ) {
+				return $this->merge_all_rates( $response->rates, $original_package_names );
+			}
+			return $response->rates;
 		}
 		return new stdClass();
 	}
@@ -115,7 +123,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	/**
 	 * Merge default rates together with extra rates.
 	 *
-	 * get_all_rates requests extra rate options as separate
+	 * get_rates requests extra rate options as separate
 	 * packages. This function groups these separate packages
 	 * under the original the package name for easier parsing
 	 * on the frontend.
