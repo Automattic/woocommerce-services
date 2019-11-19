@@ -23,7 +23,7 @@ const envVars = Object.assign( {}, process.env, testEnvVars );
 spawn(
 	'jest',
 	[
-		'--maxWorkers=1',
+		'--runInBand',
 		'--config=tests/e2e-tests/config/jest.config.js',
 		'--rootDir=./',
 		'--verbose',
