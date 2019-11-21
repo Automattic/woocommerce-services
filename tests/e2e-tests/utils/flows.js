@@ -90,7 +90,7 @@ const StoreOwnerFlow = {
 		await page.click( 'a.order-view' );
 		await page.waitForNavigation( { waitUntil: 'networkidle0' } );
 
-		await expect( page.title() ).resolves.toMatch( 'Edit Order ‹ Orders' );
+		await expect( page.title() ).resolves.toMatch( /Edit Order ‹.*/i );
 		await page.waitForSelector(  '.woocommerce-order-data__heading', { text: /Order #[0-9]+ details/ }   )
 
 		// Load the shipping address from the billing address
