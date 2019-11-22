@@ -32,7 +32,7 @@ const createSimpleProduct = async () => {
 
 	// Make sure we're on the add product page
 	const heading = await page.$( '.wp-heading-inline' );
-	console.log( 'Heading inline: ', heading );
+	console.log( 'Heading inline: ', heading.text() );
 	await expect( page ).toMatchElement( '.wp-heading-inline', { text: 'Add new product' } )
 
 	// Set product data
