@@ -84,8 +84,7 @@ sudo: false
 
 notifications:
    email:
-      #  - hydra@matticspace.com
-      - harris.wong@automattic.com
+      - the-extendables@matticspace.com
 
 script:
   - npm run test:e2e-travis
