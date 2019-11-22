@@ -31,7 +31,7 @@ const createSimpleProduct = async () => {
 	await StoreOwnerFlow.openNewProduct();
 
 	// Make sure we're on the add product page
-	const heading = page.$( '.wp-heading-inline' );
+	const heading = await page.$( '.wp-heading-inline' );
 	console.log( 'Heading inline: ', heading );
 	await expect( page ).toMatchElement( '.wp-heading-inline', { text: 'Add new product' } )
 
