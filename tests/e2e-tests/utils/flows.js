@@ -107,6 +107,7 @@ const StoreOwnerFlow = {
 		await page.goto( WP_ADMIN_NEW_PRODUCT, {
 			waitUntil: 'networkidle0',
 		} );
+		console.log( 'New product page opened', WP_ADMIN_NEW_PRODUCT );
 	},
 
 	openPluginsPage: async () => {
