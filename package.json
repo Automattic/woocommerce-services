@@ -16,7 +16,6 @@
     "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
     "woorelease": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "test:e2e": "./tests/bin/e2e-test-integration.js",
-    "test:e2e-travis": "./tests/bin/run-e2e-travis.sh"
   },
   "repository": {
     "type": "git",

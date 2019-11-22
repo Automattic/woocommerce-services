@@ -87,5 +87,6 @@ notifications:
       - the-extendables@matticspace.com
 
 script:
-  - npm run test:e2e-travis
+  - source ./tests/bin/run-e2e-travis.sh
+  - npm run test:e2e
 
