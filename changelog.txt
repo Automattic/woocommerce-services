@@ -2,7 +2,8 @@
 
 = 1.22.2 - 2019-XX-XX =
 * Add   - Preselect rate when there is only one rate available for given shipping configuration.
-* Fix   - Packages weight total value formatting. 
+* Fix   - Packages weight total value formatting.
+* Fix   - Allow fulfillment flow redo.
 
 = 1.22.1 - 2019-11-14 =
 * Fix   - Remove nuisance admin notification.
