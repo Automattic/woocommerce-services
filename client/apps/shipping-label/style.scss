@@ -46,6 +46,11 @@
 	}
 }
 
+.shipping-label__redo-shipping-button .button.is-borderless {
+	margin-right: 8px;
+	color: #777;
+}
+
 &.label-purchase-modal,
 &.packages-step__dialog {
 	font-size: 15px;
