@@ -125,11 +125,21 @@ class ShippingLabelViewWrapper extends Component {
 
 			// All items are packaged, just show track button
 			return (
-				<Button
-					onClick={ this.handleTrackPackagesButtonClick }
-				>
-					{ translate( 'Track Packages' ) }
-				</Button>
+				<span> 
+					<span className="shipping-label__redo-shipping-button">
+						<Button
+							borderless
+							onClick={ this.handleCreateLabelButtonClick }
+						>
+							{ translate( 'Redo Shipping' ) }
+						</Button>
+					</span>
+					<Button
+						onClick={ this.handleTrackPackagesButtonClick }
+					>
+						{ translate( 'Track Packages' ) }
+					</Button>
+				</span>
 			);
 		}
 
