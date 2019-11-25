@@ -159,9 +159,9 @@ install_e2e_site() {
 		mkdir -p "$NGINX_DIR"
 		mkdir -p "$NGINX_DIR/sites-enabled"
 		mkdir -p "$NGINX_DIR/var"
-
+		pwd
 		cd woocommerce-services
-
+		pwd
 		cp "$CONFIG_DIR/travis_php-fpm.conf" "$PHP_FPM_CONF"
 
 		# Start php-fpm
