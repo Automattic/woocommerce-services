@@ -1,0 +1,358 @@
+[
+    {
+        "model": "Product",
+        "data": {
+            "post_title": "Simple Product Test"
+        }
+    },
+    {
+        "model": "ProductPrice",
+        "data": {
+            "post_id": 1000,
+			"meta_value": "9.99"
+        }
+    },
+    {
+        "model": "Order",
+        "data": {
+            "ID": 10000,
+            "post_title": "My Simple Product Test Order"
+        }
+    },
+	{
+		"model": "OrderMeta",
+		"data": {
+            "post_id": 10000,
+			"meta_key": "_order_key",
+			"meta_value": "my_order_key_temp"
+		}
+	},
+	{
+		"model": "OrderMeta",
+		"data": {
+            "post_id": 10000,
+			"meta_key": "'_customer_user'",
+			"meta_value": "1"
+		}
+	},
+	{
+		"model": "OrderMeta",
+		"data": {
+            "post_id": 10000,
+			"meta_key": "_payment_method",
+			"meta_value": "cod"
+		}
+	},
+	{
+		"model": "OrderMeta",
+		"data": {
+            "post_id": 10000,
+			"meta_key": "_payment_method_title",
+			"meta_value": "Cash on delivery"
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_created_via",
+			"meta_value": "checkout" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_first_name",
+			"meta_value": "John" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_last_name",
+			"meta_value": "Doe" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_company",
+			"meta_value": "Automattic" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_address_1",
+			"meta_value": "addr 1" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_address_2",
+			"meta_value": "addr 2" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_city",
+			"meta_value": "San Francisco" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_state",
+			"meta_value": "CA" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_postcode",
+			"meta_value": "94107" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_country",
+			"meta_value": "US" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_email",
+			"meta_value": "john.doe@example.com" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_billing_phone",
+			"meta_value": "123456789" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_first_name",
+			"meta_value": "John" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_last_name",
+			"meta_value": "Doe" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_company",
+			"meta_value": "Automattic" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_address_1",
+			"meta_value": "addr 1" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_address_2",
+			"meta_value": "addr 2" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_city",
+			"meta_value": "San Francisco" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_state",
+			"meta_value": "CA" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_postcode",
+			"meta_value": "94107" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_country",
+			"meta_value": "US" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_email",
+			"meta_value": "john.doe@example.com" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_shipping_phone",
+			"meta_value": "123456789" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_order_currency",
+			"meta_value": "USD" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_cart_discount",
+			"meta_value": "0" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_cart_discount_tax",
+			"meta_value": "0" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_order_shipping",
+			"meta_value": "0" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_order_shipping_tax",
+			"meta_value": "0" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_order_tax",
+			"meta_value": "0" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_edit_last",
+			"meta_value": "1" 
+		}
+	},
+	{ 
+		"model": "OrderMeta",
+		"data": { 
+            "post_id": 10000,
+			"meta_key": "_order_total",
+			"meta_value": "9.99" 
+		}
+	},
+	{ 
+		"model": "OrderLineItem",
+		"data": { 
+            "order_item_id": 100000,
+			"order_item_name": "Simple Product Test",
+            "order_id": 10000
+		}
+	},
+	{ 
+		"model": "OrderLineItemMeta",
+		"data": { 
+            "order_item_id": 100000,
+			"meta_key": "_product_id",
+			"meta_value": "1000" 
+		}
+	},
+	{ 
+		"model": "OrderLineItemMeta",
+		"data": { 
+            "order_item_id": 100000,
+			"meta_key": "_qty",
+			"meta_value": "1" 
+		}
+	},
+	{ 
+		"model": "OrderLineItemMeta",
+		"data": { 
+            "order_item_id": 100000,
+			"meta_key": "_line_subtotal",
+			"meta_value": "9.99" 
+		}
+	},
+	{ 
+		"model": "OrderLineItemMeta",
+		"data": { 
+            "order_item_id": 100000,
+			"meta_key": "_line_subtotal_tax",
+			"meta_value": "0" 
+		}
+	},
+	{ 
+		"model": "OrderLineItemMeta",
+		"data": { 
+            "order_item_id": 100000,
+			"meta_key": "_line_total",
+			"meta_value": "9.99" 
+		}
+	},
+	{ 
+		"model": "OrderLineItemMeta",
+		"data": { 
+            "order_item_id": 100000,
+			"meta_key": "_line_tax",
+			"meta_value": "0" 
+		}
+	}
+]
