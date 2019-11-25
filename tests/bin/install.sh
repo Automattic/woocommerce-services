@@ -184,6 +184,8 @@ install_e2e_site() {
 /* Change WP_MEMORY_LIMIT to increase the memory limit for public pages. */
 define('WP_MEMORY_LIMIT', '256M');
 define('SCRIPT_DEBUG', true);
+define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_LOG', true );
 PHP
 		php wp-cli.phar core install --url="$WP_SITE_URL" --title="E2E Woo Services Test Site" --admin_user=admin --admin_password=password --admin_email=admin@e2ewootestsite.com --path=$WP_CORE_DIR
 		php wp-cli.phar plugin install woocommerce --activate

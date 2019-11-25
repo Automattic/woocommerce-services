@@ -89,4 +89,5 @@ notifications:
 
 script:
   - npm run test:e2e-travis
+  - cat $HOME/wordpress/wp-content/debug.log
 
