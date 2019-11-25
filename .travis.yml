@@ -71,6 +71,7 @@ install:
 
 # Clones WordPress and configures our testing environment.
 before_script:
+  - source ./tests/bin/run-e2e-travis.sh
   - echo "memory_limit=256M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - phpenv config-rm xdebug.ini
   - curl -sSfL -o /home/travis/.phpenv/shims/phpunit https://phar.phpunit.de/phpunit-5.7.phar # Install phpunit 5.7 for use by legacy test scripts.
@@ -88,6 +89,6 @@ notifications:
       - the-extendables@matticspace.com
 
 script:
-  - npm run test:e2e-travis
+  - npm run test:e2e
   - cat $HOME/wordpress/wp-content/debug.log
 
