@@ -206,6 +206,8 @@ PHP
 		php wp-cli.phar plugin activate woocommerce-services
 		php wp-cli.phar plugin activate wc-services-testing-helper
 
+		php wp-cli.phar option update jetpack_tos_agreed 1
+
 		cd "$WORKING_DIR"
 
 	fi
