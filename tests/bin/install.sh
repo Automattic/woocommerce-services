@@ -208,7 +208,7 @@ PHP
 
 		php wp-cli.phar option update jetpack_tos_agreed 1
 
-		php wp-cli option update wc_connect_options '{"tos_accepted": true }' --format=json
+		php wp-cli.phar option update wc_connect_options '{"tos_accepted": true }' --format=json
 
 		cd "$WORKING_DIR"
 
