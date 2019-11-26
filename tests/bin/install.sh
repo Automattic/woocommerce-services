@@ -196,11 +196,15 @@ PHP
 		cp -r $WORKING_DIR/woocommerce-services $WP_CORE_DIR/wp-content/plugins/
 		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
 
+		# Copy testing helper plugin to wordpress plugins folder
+		cp "$CONFIG_DIR/wc-services-tesing-helper.php" $WP_CORE_DIR/wp-content/plugins/
+
 		# Run `npm run dist` in order to compile JS and CSS files before activating services
 		npm run dist
 
 		cd "$WP_CORE_DIR"
 		php wp-cli.phar plugin activate woocommerce-services
+		php wp-cli.phar plugin activate wc-services-testing-helper
 
 		cd "$WORKING_DIR"
 
