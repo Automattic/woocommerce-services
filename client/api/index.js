@@ -3,7 +3,8 @@
  */
 import request from './request';
 
-export * as url from './url';
+import * as url from './url';
+export { url };
 
 const handleError = ( jsonError ) => {
 	if ( jsonError.data.message ) {
