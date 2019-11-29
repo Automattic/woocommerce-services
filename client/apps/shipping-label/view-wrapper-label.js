@@ -131,7 +131,7 @@ class ShippingLabelViewWrapper extends Component {
 							borderless
 							onClick={ this.handleCreateLabelButtonClick }
 						>
-							{ translate( 'Redo Shipping' ) }
+							{ translate( 'Create new label' ) }
 						</Button>
 					</span>
 					<Button
