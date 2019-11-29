@@ -6,25 +6,23 @@
  * External dependencies
  */
 import Sequelize, { Model } from 'sequelize';
+import sequelize_fixtures from 'sequelize-fixtures';
 
-/**
- * Internal dependencies
- */
-
-const db = {};
-
-const sequelize = new Sequelize(
-	'wordpress-e2e-testing-test',
-	'wordpress',
-	'password',
-	{
-		host: '127.0.0.1',
-		dialect: 'mysql',
-		define: {
-			timestamps: false 
+const db = {
+	models: {},
+	sequelize: new Sequelize(
+		'wordpress-e2e-testing-test',
+		'wordpress',
+		'password',
+		{
+			host: '127.0.0.1',
+			dialect: 'mysql',
+			define: {
+				timestamps: false
+			}
 		}
-	}
-);
+	)
+};
 
 class Product extends Model {};
 class ProductPrice extends Model {};
@@ -33,7 +31,7 @@ class OrderMeta extends Model {};
 class OrderLineItem extends Model {};
 class OrderLineItemMeta extends Model {};
 
-db.Product = Product.init({
+db.models.Product = Product.init({
 	ID: {
 		type: Sequelize.BIGINT( 20 ),
 		primaryKey: true
@@ -148,11 +146,11 @@ db.Product = Product.init({
 		defaultValue: 0
 	}
 }, {
-  	sequelize,
+  	sequelize: db.sequelize,
   	modelName: 'wp_posts'
 });
 
-db.ProductPrice = ProductPrice.init({
+db.models.ProductPrice = ProductPrice.init({
   	meta_id: {
     	type: Sequelize.BIGINT( 20 ),
     	primaryKey: true
@@ -169,15 +167,16 @@ db.ProductPrice = ProductPrice.init({
     	type: Sequelize.STRING
   	}
 }, {
-  	sequelize,
+  	sequelize: db.sequelize,
   	modelName: 'wp_postmeta'
 });
 
 
-db.Order = Order.init({
+db.models.Order = Order.init({
 	ID: {
 		type: Sequelize.BIGINT( 20 ),
-		primaryKey: true
+		primaryKey: true,
+		autoIncrement: true
 	},
 	post_author: {
 		type: Sequelize.BIGINT( 20 ),
@@ -289,11 +288,11 @@ db.Order = Order.init({
 		defaultValue: 0
 	}
 }, {
-  	sequelize,
+  	sequelize: db.sequelize,
   	modelName: 'wp_posts'
 });
 
-db.OrderMeta = OrderMeta.init({
+db.models.OrderMeta = OrderMeta.init({
   	meta_id: {
     	type: Sequelize.BIGINT( 20 ),
     	primaryKey: true
@@ -309,11 +308,11 @@ db.OrderMeta = OrderMeta.init({
     	type: Sequelize.STRING
   	}
 }, {
-  	sequelize,
+  	sequelize: db.sequelize,
   	modelName: 'wp_postmeta'
 });
 
-db.OrderLineItem = OrderLineItem.init({
+db.models.OrderLineItem = OrderLineItem.init({
   	order_item_id: {
     	type: Sequelize.BIGINT( 20 ),
     	primaryKey: true
@@ -332,11 +331,11 @@ db.OrderLineItem = OrderLineItem.init({
     	allowNull: false,
   	}
 }, {
-  	sequelize,
+  	sequelize: db.sequelize,
   	modelName: 'wp_woocommerce_order_items'
 });
 
-db.OrderLineItemMeta = OrderLineItemMeta.init({
+db.models.OrderLineItemMeta = OrderLineItemMeta.init({
   	meta_id: {
     	type: Sequelize.BIGINT( 20 ),
     	primaryKey: true
@@ -352,19 +351,31 @@ db.OrderLineItemMeta = OrderLineItemMeta.init({
     	type: Sequelize.TEXT
   	}
 }, {
-  	sequelize,
+  	sequelize: db.sequelize,
   	modelName: 'wp_woocommerce_order_itemmeta'
 });
 
-db.ProductPrice.belongsTo(db.Product);
-db.Product.hasOne(db.ProductPrice);
-db.Product.hasMany(db.Order);
-db.Order.belongsTo(db.Product);
-db.Order.hasMany(db.OrderLineItem);
-db.OrderLineItem.belongsTo(db.Order);
-db.OrderLineItem.hasMany(db.OrderLineItemMeta);
-db.OrderLineItemMeta.belongsTo(db.OrderLineItem);
+db.models.Product.hasOne(db.models.ProductPrice, { foreignKey: 'post_id', onDelete: 'CASCADE' });
+db.models.ProductPrice.belongsTo(db.models.Product, { as: 'product', foreignKey: 'post_id' });
+db.models.Order.hasMany(db.models.OrderMeta, { foreignKey: 'post_id', onDelete: 'CASCADE' });
+db.models.OrderMeta.belongsTo(db.models.Order, { as: 'order', foreignKey: 'post_id' });
+db.models.Order.hasMany(db.models.OrderLineItem, { foreignKey: 'order_id', onDelete: 'CASCADE' });
+db.models.OrderLineItem.belongsTo(db.models.Order, { as: 'order', foreignKey: 'order_id' });
+db.models.OrderLineItem.hasMany(db.models.OrderLineItemMeta, { foreignKey: 'order_item_id', onDelete: 'CASCADE' });
+db.models.OrderLineItemMeta.belongsTo(db.models.OrderLineItem, {  as: 'order_item', foreignKey: 'order_item_id'  });
 
-db.sequelize = sequelize;
+db.loadFixtures = async function( callback ) {
+    await sequelize_fixtures.loadFile( './tests/e2e-tests/fixtures/test_data.json', db.models ).then( async ( { models } ) => {
+		await callback( models );
+    } );
+
+	await db.models.OrderMeta.destroy({
+    	where: {
+      		meta_key: 'wc_connect_labels'
+    	}
+  	});
+
+	await db.sequelize.close();
+};
 
 export default db;
