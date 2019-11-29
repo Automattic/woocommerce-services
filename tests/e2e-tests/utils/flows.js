@@ -27,15 +27,11 @@ const CustomerFlow = {
 	},
 
 	goToCheckout: async () => {
-		await page.goto( SHOP_CHECKOUT_PAGE, {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( SHOP_CHECKOUT_PAGE );
 	},
 
 	goToShop: async () => {
-		await page.goto(SHOP_PAGE, {
-			waitUntil: 'networkidle0',
-		});
+		await page.goto(SHOP_PAGE);
 	},
 
 	placeOrder: async () => {
@@ -54,9 +50,7 @@ const CustomerFlow = {
 
 const StoreOwnerFlow = {
     login: async () => {
-        await page.goto( WP_ADMIN_LOGIN, {
-			waitUntil: 'networkidle0',
-		} );
+        await page.goto( WP_ADMIN_LOGIN );
 
 		await expect( page.title() ).resolves.toMatch( 'Log In' );
 
@@ -70,9 +64,7 @@ const StoreOwnerFlow = {
 	},
 
 	logout: async () => {
-		await page.goto( baseUrl + '/wp-login.php?action=logout', {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( baseUrl + '/wp-login.php?action=logout' );
 
 		await expect( page ).toMatch( 'You are attempting to log out' );
 
@@ -83,21 +75,15 @@ const StoreOwnerFlow = {
 	},
 
 	openExistingOrderPage: async ( orderId ) => {
-		await page.goto( WP_ADMIN_EDIT_ORDER_PAGE( orderId ), {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( WP_ADMIN_EDIT_ORDER_PAGE( orderId ) );
 	},
 
 	openNewProduct: async () => {
-		await page.goto( WP_ADMIN_NEW_PRODUCT, {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( WP_ADMIN_NEW_PRODUCT );
 	},
 
 	openPluginsPage: async () => {
-		await page.goto( WP_ADMIN_PLUGINS_PAGE, {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( WP_ADMIN_PLUGINS_PAGE );
 	},
 
 	openSettings: async ( tab, section = null ) => {
@@ -107,9 +93,7 @@ const StoreOwnerFlow = {
 			settingsUrl += `&section=${ section }`;
 		}
 
-		await page.goto( settingsUrl, {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( settingsUrl );
 	},
 
 	openStatus: async ( tab, section = null ) => {
@@ -119,9 +103,7 @@ const StoreOwnerFlow = {
 			statusUrl += `&section=${ section }`;
 		}
 
-		await page.goto( statusUrl, {
-			waitUntil: 'networkidle0',
-		} );
+		await page.goto( statusUrl );
 	},
 }
 

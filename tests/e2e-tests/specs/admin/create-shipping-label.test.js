@@ -6,11 +6,9 @@
 /**
  * Internal dependencies
  */
-import { clickReactButton } from '../utils/index';
-import { StoreOwnerFlow } from '../utils/flows';
-import db from '../fixtures/db';
-
-import sequelize_fixtures from 'sequelize-fixtures';
+import { clickReactButton } from '../../utils/index';
+import { StoreOwnerFlow } from '../../utils/flows';
+import db from '../../fixtures/db';
 
 describe( 'Create shipping label', () => {
 	beforeAll( async () => {
@@ -23,10 +21,9 @@ describe( 'Create shipping label', () => {
 	} );
 
 	it( 'should create a new shipping label', async () => {
-
-    	await sequelize_fixtures.loadFile('./tests/e2e-tests/fixtures/test_data.json', db).then( async () => {
+		await db.loadFixtures( async ( models ) => {
 			await StoreOwnerFlow.login();
-			await StoreOwnerFlow.openExistingOrderPage( 10000 );
+			await StoreOwnerFlow.openExistingOrderPage( models.wp_posts[1].ID );
 
 			// Click on Create shipping label button
 			await clickReactButton( '.shipping-label__new-label-button' );
@@ -49,12 +46,17 @@ describe( 'Create shipping label', () => {
 			}
 
 			// Use selected address
-			//await page.waitForSelector( '.button.is-primary.is-borderless', { text: 'Use address as entered' } );
-			//await expect( page ).toClick( '.button.is-primary.is-borderless', { text: 'Use address as entered' } );
-			//await page.waitForSelector( '.is-success', { text: 'San Francisco, CA  94107' } );
+			const isDestinationAddressReady = await page.$( '.is-success', { text: 'San Francisco, CA  94107' } );
+
+			if ( !isDestinationAddressReady ) {
+				await page.waitForSelector( '.address-step__suggestion-container .address-step__suggestion:first-child' );
+				await expect( page ).toClick( '.address-step__suggestion-container .address-step__suggestion:first-child' );
+				await page.waitForSelector( '.button.is-primary', { text: 'Use selected address' } );
+				await expect( page ).toClick( '.button.is-primary', { text: 'Use selected address' } );
+				await page.waitForSelector( '.is-success', { text: 'San Francisco, CA  94107' } );
+			}
 
 			const selectAPackageType = await page.$( '.packages-step__no-packages a', { text: 'Select a package type' } );
-
 			if ( selectAPackageType ) {
 				await expect( page ).toClick( 'Select a package type' );
 				await selectAPackageType.click();
@@ -81,10 +83,7 @@ describe( 'Create shipping label', () => {
 			await expect( page ).toClick( '.button.is-primary', { text: 'Buy shipping labels' } );
 
 			await page.waitForSelector( '.notice.is-success .notice__text', { text: 'Your shipping label was purchased successfully' } )
-    	} );
-
-    	await db.sequelize.close();
+		} );
 
 	} );
-
 } );
