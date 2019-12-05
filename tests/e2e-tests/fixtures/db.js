@@ -11,9 +11,9 @@ import sequelize_fixtures from 'sequelize-fixtures';
 const db = {
 	models: {},
 	sequelize: new Sequelize(
-		'wordpress-e2e-testing-test',
+		process.env.WP_MYSQL_E2E_DB,
 		process.env.WP_MYSQL_E2E_USERNAME,
-		process.env.WP_MYSQL_E2E_PASSWORD,
+		process.env.WP_MYSQL_E2E_PASSWORD || null,
 		{
 			host: ( process.env.WP_MYSQL_E2E_HOST || '127.0.0.1' ),
 			dialect: 'mysql',
