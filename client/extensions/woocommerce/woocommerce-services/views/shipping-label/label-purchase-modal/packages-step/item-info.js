@@ -31,7 +31,7 @@ const ItemInfo = props => {
 	};
 
 	const productLink = item.url ? (
-		<a href={ getProductLink( item.product_id, site ) } target="_blank" rel="noopener noreferrer">
+		<a href={ item.url } target="_blank" rel="noopener noreferrer">
 			{ item.name }
 		</a>
 	) : (
