@@ -12,12 +12,11 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import getProductLink from 'woocommerce/woocommerce-services/lib/utils/get-product-link';
 import { getSite } from 'state/sites/selectors';
 import { openItemMove } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 
 const ItemInfo = props => {
-	const { orderId, siteId, site, item, itemIndex, translate } = props;
+	const { orderId, siteId, item, itemIndex, translate } = props;
 	const onMoveClick = () => props.openItemMove( orderId, siteId, itemIndex );
 
 	const renderMoveToPackage = () => {
