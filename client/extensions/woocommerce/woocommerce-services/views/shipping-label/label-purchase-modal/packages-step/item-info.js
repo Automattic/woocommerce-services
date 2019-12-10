@@ -12,12 +12,11 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import getProductLink from 'woocommerce/woocommerce-services/lib/utils/get-product-link';
 import { getSite } from 'state/sites/selectors';
 import { openItemMove } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 
 const ItemInfo = props => {
-	const { orderId, siteId, site, item, itemIndex, translate } = props;
+	const { orderId, siteId, item, itemIndex, translate } = props;
 	const onMoveClick = () => props.openItemMove( orderId, siteId, itemIndex );
 
 	const renderMoveToPackage = () => {
@@ -31,7 +30,7 @@ const ItemInfo = props => {
 	};
 
 	const productLink = item.url ? (
-		<a href={ getProductLink( item.product_id, site ) } target="_blank" rel="noopener noreferrer">
+		<a href={ item.url } target="_blank" rel="noopener noreferrer">
 			{ item.name }
 		</a>
 	) : (
