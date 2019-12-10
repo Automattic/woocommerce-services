@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.3
-Stable tag: 1.22.1
+Stable tag: 1.22.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,10 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.22.2 - 2019-12-10 =
+* Fix   - Packages weight total value formatting.
+* Fix   - Allow fulfillment flow redo.
 
 = 1.22.1 =
 * Fix   - Remove nuisance admin notification.
