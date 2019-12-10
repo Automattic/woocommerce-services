@@ -52,14 +52,6 @@ const Sidebar = props => {
 		<div className="label-purchase-modal__sidebar">
 			<ShippingSummary siteId={ siteId } orderId={ orderId } />
 			<PriceSummary siteId={ siteId } orderId={ orderId } />
-			<Dropdown
-				id={ 'paper_size' }
-				valuesMap={ getPaperSizes( form.origin.values.country ) }
-				title={ translate( 'Paper size' ) }
-				value={ paperSize }
-				updateValue={ onPaperSizeChange }
-				error={ errors.paperSize }
-			/>
 			<FormLabel className="label-purchase-modal__option-email-customer">
 				<FormCheckbox checked={ emailDetails } onChange={ onEmailDetailsChange } />
 				<span>{ translate( 'Email shipment details to the customer' ) }</span>
@@ -69,7 +61,17 @@ const Sidebar = props => {
 				<span>{ translate( 'Mark the order as fulfilled' ) }</span>
 			</FormLabel>
 			<hr />
-			<PurchaseSection siteId={ siteId } orderId={ orderId } />
+			<div className="label-purchase-modal__purchase-container">
+				<Dropdown
+					id={ 'paper_size' }
+					valuesMap={ getPaperSizes( form.origin.values.country ) }
+					title={ translate( 'Paper size' ) }
+					value={ paperSize }
+					updateValue={ onPaperSizeChange }
+					error={ errors.paperSize }
+				/>
+				<PurchaseSection siteId={ siteId } orderId={ orderId } />
+			</div>
 		</div>
 	);
 };
