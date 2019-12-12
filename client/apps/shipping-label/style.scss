@@ -61,6 +61,26 @@
 	display: none;
 }
 
+.label-purchase-modal__purchase-container {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+
+	.form-fieldset {
+		margin: 0 5px 0 0;
+		width: 50%;
+	}
+
+	.purchase-section {
+		width: 50%;
+		margin-left: 5px;
+
+		.button {
+			width: 100%;
+		}
+	}
+}
+
 .order-activity-log {
 	.foldable-card .foldable-card__content {
 		padding-left: 0;
