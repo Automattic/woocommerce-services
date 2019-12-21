@@ -56,7 +56,7 @@ module.exports = {
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
-		filename: '[name].js',
+		filename: '[name]-' + process.env.npm_package_version + '.js',
 		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
 		publicPath: 'http://localhost:8085/',
 	},
@@ -194,7 +194,7 @@ module.exports = {
 			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
 		} ),
 		new MiniCssExtractPlugin( {
-			filename: '[name].css',
+			filename: '[name]-' + process.env.npm_package_version + '.css',
 		} ),
 		new webpack.DefinePlugin( {
 			'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
