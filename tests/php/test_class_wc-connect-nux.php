@@ -15,7 +15,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 					'can_accept_tos'                  => false,
 					'should_display_after_cxn_banner' => false,
 				)
-			), false
+			), true
 		);
 
 		$this->assertEquals(
