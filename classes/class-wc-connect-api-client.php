@@ -315,7 +315,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$is_alive_request = $this->is_alive();
 			$new_is_alive = ! is_wp_error( $is_alive_request );
-			set_transient( 'connect_server_is_alive_transient', $new_is_alive, MINUTE_IN_SECONDS );
+			if ( $new_is_alive ) {
+				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
+			}
 			return $new_is_alive;
 		}
 
