@@ -309,7 +309,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function is_alive_cached() {
 			$connect_server_is_alive_transient = get_transient( 'connect_server_is_alive_transient' );
-			if ( true === $connect_server_is_alive_transient ) {
+			if ( false !== $connect_server_is_alive_transient ) {
 				return true;
 			}
 
