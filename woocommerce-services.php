@@ -1372,12 +1372,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
-			$wcs_connection_schemas = $this->api_client->get_service_schemas();
+			$is_alive = $this->api_client->is_alive_cached();
 
 			$payload = array(
 				'nonce'                 => wp_create_nonce( 'wp_rest' ),
 				'baseURL'               => get_rest_url(),
-				'wcs_server_connection' => is_wp_error( $wcs_connection_schemas ) ? false : true,
+				'wcs_server_connection' => $is_alive,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );

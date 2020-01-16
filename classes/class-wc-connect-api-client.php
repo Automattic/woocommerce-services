@@ -295,6 +295,30 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'GET', '/connection/test' );
 		}
 
+		/** Heartbet test
+		 * 
+		 * @return true|WP_Error
+		 */
+		public function is_alive() {
+			return $this->request( 'GET', '' );
+		}
+
+		/** Heartbet test with transient cache.
+		 * 
+		 * @return true|WP_Error
+		 */
+		public function is_alive_cached() {
+			$connect_server_is_alive_transient = get_transient( 'connect_server_is_alive_transient' );
+			if ( true === $connect_server_is_alive_transient ) {
+				return true;
+			}
+
+			$is_alive_request = $this->is_alive();
+			$new_is_alive = ! is_wp_error( $is_alive_request );
+			set_transient( 'connect_server_is_alive_transient', $new_is_alive, MINUTE_IN_SECONDS );
+			return $new_is_alive;
+		}
+
 		/**
 		 * Create a deferred Stripe Standard Account
 		 * @param $email string The user's email address
