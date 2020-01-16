@@ -295,7 +295,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'GET', '/connection/test' );
 		}
 
-		/** Heartbet test
+		/** Heartbet test.
 		 * 
 		 * @return true|WP_Error
 		 */
