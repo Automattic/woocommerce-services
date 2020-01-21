@@ -3,6 +3,7 @@
 = 1.22.3 - 2019-XX-XX =
 * Add   - Preselect rate when there is only one rate available for given shipping configuration.
 * Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
+* Add   - Show notice when WooCommerce is not installed or activated.
 * Fix   - Use correct URL for variation products in Packages section.
 
 = 1.22.2 - 2019-12-10 =

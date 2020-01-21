@@ -211,8 +211,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
-			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 		}
 
 		public function get_logger() {
@@ -406,6 +405,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function load_textdomain() {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
+		}
+
+		public function on_plugins_loaded() {
+			$this->load_textdomain();
+
+			if ( ! class_exists( 'WooCommerce' ) ) {
+				add_action( 'admin_notices', function() {
+					/* translators: %s WC download URL link. */
+					echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Services requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
+				} );
+				return;
+			}
+			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init') );
 		}
 
 		/**
