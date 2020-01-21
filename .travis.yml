@@ -43,7 +43,7 @@ matrix:
    - php: 7.4
      env: WP_VERSION=latest WC_VERSION=master
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-     script: curl -sSfL -o ~/.phpenv/versions/7.4snapshot/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+     script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
      # Run the JS tests in a separate container
   #  - language: node_js
@@ -77,7 +77,6 @@ before_script:
   - source ./tests/bin/run-e2e-travis.sh
   - echo "memory_limit=256M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - phpenv config-rm xdebug.ini
-  - curl -sSfL -o /home/travis/.phpenv/shims/phpunit https://phar.phpunit.de/phpunit-5.7.phar # Install phpunit 5.7 for use by legacy test scripts.
   - bash tests/bin/install.sh wcs_test root '' localhost $WP_VERSION
 
 # Save node_modules to speed up build
