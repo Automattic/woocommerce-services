@@ -37,11 +37,11 @@ matrix:
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.3
-     env: WP_VERSION=trunk WC_VERSION=3.8.0-rc.1
+     env: WP_VERSION=latest WC_VERSION=3.8.1
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.4snapshot
-     env: WP_VERSION=trunk WC_VERSION=3.8.0-rc.1
+   - php: 7.4
+     env: WP_VERSION=latest WC_VERSION=master
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.4snapshot/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
@@ -51,6 +51,9 @@ matrix:
    - name: "E2E tests"
      php: 7.2
      env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=latest RUN_E2E=1
+     script:
+         - npm run test:e2e
+         - cat $HOME/wordpress/wp-content/debug.log
      addons:
        apt:
         packages:
@@ -75,7 +78,7 @@ before_script:
   - echo "memory_limit=256M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - phpenv config-rm xdebug.ini
   - curl -sSfL -o /home/travis/.phpenv/shims/phpunit https://phar.phpunit.de/phpunit-5.7.phar # Install phpunit 5.7 for use by legacy test scripts.
-  - bash tests/bin/install.sh wc_bookings_test root '' localhost $WP_VERSION
+  - bash tests/bin/install.sh wcs_test root '' localhost $WP_VERSION
 
 # Save node_modules to speed up build
 cache:
@@ -88,7 +91,4 @@ notifications:
    email:
       - the-extendables@matticspace.com
 
-script:
-  - npm run test:e2e
-  - cat $HOME/wordpress/wp-content/debug.log
 
