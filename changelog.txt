@@ -4,6 +4,7 @@
 * Add   - Preselect rate when there is only one rate available for given shipping configuration.
 * Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
 * Fix   - Use correct URL for variation products in Packages section.
+* Add   - Show notice when WooCommerce is not installed or activated.
 
 = 1.22.2 - 2019-12-10 =
 * Fix   - Packages weight total value formatting.
