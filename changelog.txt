@@ -1,6 +1,6 @@
 *** WooCommerce Services Changelog ***
 
-= 1.22.3 - 2019-XX-XX =
+= 1.22.3 - 2020-xx-xx =
 * Add   - Preselect rate when there is only one rate available for given shipping configuration.
 * Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
 * Add   - Show notice when WooCommerce is not installed or activated.
