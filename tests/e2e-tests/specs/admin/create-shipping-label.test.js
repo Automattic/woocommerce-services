@@ -79,25 +79,40 @@ describe( 'Create shipping label', () => {
 	} );
 
 	it( 'should allow customer to place order', async () => {
-
+		console.log( 'Filling out billing' );
 		await expect( page ).toFill( '#billing_first_name', 'John' );
+		console.log('#billing_last_name');
 		await expect( page ).toFill( '#billing_last_name', 'Doe' );
+		console.log('#billing_company');
 		await expect( page ).toFill( '#billing_company', 'Automattic' );
+		console.log('#billing_email');
 		await expect( page ).toFill( '#billing_email', 'john.doe@example.com' );
+		console.log('#billing_phone');
 		await expect( page ).toFill( '#billing_phone', '123456789' );
+		console.log('#billing_country');
 		await expect( page ).toSelect( '#billing_country', 'United States (US)' );
+		console.log('#billing_address_1');
 		await expect( page ).toFill( '#billing_address_1', 'addr 1' );
+		console.log('#billing_address_2');
 		await expect( page ).toFill( '#billing_address_2', 'addr 2' );
+		console.log('#billing_city');
 		await expect( page ).toFill( '#billing_city', 'San Francisco' );
+		console.log('#billing_state');
 		await expect( page ).toSelect( '#billing_state', 'California' );
+		console.log('#billing_postcode');
 		await expect( page ).toFill( '#billing_postcode', '94107' );
+		console.log('uiUnblocked');
 		await uiUnblocked();
 
+		console.log('fill out billing delivery');
 		await expect( page ).toClick( '.wc_payment_method label', { text: 'Cash on delivery' } );
+		console.log('Have cash on delivery');
 		await expect( page ).toMatchElement( '.payment_method_cod', { text: 'Pay with cash upon delivery.' } );
+		console.log('fill out billing delivery');
 		await uiUnblocked();
+		console.log( 'Placing order' );
 		await CustomerFlow.placeOrder();
-
+		console.log( 'order placed' );
 		await expect( page ).toMatch( 'Order received' );
 	} );
 

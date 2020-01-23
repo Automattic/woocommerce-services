@@ -99,7 +99,7 @@ const StoreOwnerFlow = {
 		await page.click( '.billing-same-as-shipping', { text: 'Copy billing address' } );
 		await page.click( '.button.save_order' );
 
-		await page.waitForSelector( '.updated.notice', { text: 'Order updated.' }  );
+		await page.waitForSelector( '.updated.notice', { text: 'Order updated.', timeout: 1000 }  );
 		await expect( page ).toMatchElement( '.updated.notice', { text: 'Order updated.' } );
 	},
 

@@ -9,7 +9,7 @@ module.exports = {
 		devtools: false,
 		defaultViewport: {
 			width: 1280,
-			height: 800,
+			height: 4000,
 		},
 		args: [
 			'--window-size=1280,1024',

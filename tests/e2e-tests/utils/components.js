@@ -18,7 +18,7 @@ const verifyAndPublish = async () => {
 	console.log( 'product saved!' )
 
 	// Verify
-	await page.waitForSelector( '.updated.notice', { text: 'Product published.' }  );
+	await page.waitForSelector( '.updated.notice', { text: 'Product published.', timeout: 1500 }  );
 	await expect( page ).toMatchElement( '.updated.notice', { text: 'Product published.' } );
 	console.log( 'product saved confirmed!' )
 };

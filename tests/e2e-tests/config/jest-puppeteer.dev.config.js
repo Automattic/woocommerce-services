@@ -12,7 +12,7 @@ module.exports = {
 		devtools: true,
 		defaultViewport: {
 			width: 1280,
-			height: 800,
+			height: 4000,
 		},
 		// Required for the logged out and logged in tests so they don't share app state/token.
         browserContext: 'incognito',
