@@ -70,12 +70,15 @@ const PackageList = props => {
 	const packageLabels = getPackageDescriptions( selected, all, false );
 	const packed = [];
 	const individual = [];
+	const notPacked = [];
 
 	Object.keys( selected ).forEach( pckgId => {
 		const pckg = selected[ pckgId ];
 
 		if ( 'individual' === pckg.box_id ) {
 			individual.push( renderPackageListItem( pckgId, pckg.items[ 0 ].name ) );
+		} else if ( 'unpack_item' === pckg.box_id ) {
+			notPacked.push( renderPackageListItem( pckgId, "Unpackaged items" ) );
 		} else {
 			packed.push( renderPackageListItem( pckgId, packageLabels[ pckgId ], pckg.items.length ) );
 		}
@@ -91,6 +94,7 @@ const PackageList = props => {
 		<div className="packages-step__list">
 			{ packed }
 			{ individual }
+			{ notPacked }
 		</div>
 	);
 };

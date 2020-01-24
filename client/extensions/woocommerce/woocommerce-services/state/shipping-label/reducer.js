@@ -481,6 +481,18 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 			box_id: 'not_selected',
 			items: [ movedItem ],
 		};
+	} else if ( 'unpack_item' === targetPackageId ) {
+		// Remove an item by putting them into "unpack items"
+		const addedPackageId = "unpack_item";
+		newPackages[ addedPackageId ] = {
+			height: 0,
+			length: 0,
+			width: 0,
+			weight: movedItem.weight,
+			id: addedPackageId,
+			box_id: 'unpack_item',
+			items: [ movedItem ],
+		};
 	} else if ( targetPackageId ) {
 		//move to an existing package
 		const targetItems = [ ...newPackages[ targetPackageId ].items ];

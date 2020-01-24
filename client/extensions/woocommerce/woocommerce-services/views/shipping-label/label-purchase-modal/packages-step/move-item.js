@@ -73,7 +73,7 @@ const MoveItemDialog = props => {
 		const elements = [];
 		Object.keys( selected ).forEach( pckgId => {
 			const pckg = selected[ pckgId ];
-			if ( pckgId === openedPackageId || 'individual' === pckg.box_id ) {
+			if ( pckgId === openedPackageId || 'individual' === pckg.box_id || 'unpack_item' === pckg.box_id ) {
 				return;
 			}
 
@@ -88,7 +88,7 @@ const MoveItemDialog = props => {
 	};
 
 	const renderRemoveFromPackageOption = () => {
-		return renderRadioButton( '', translate( 'Remove from package' ) );
+		return renderRadioButton( 'unpack_item', translate( 'Remove from package' ) );
 	};
 
 	const renderIndividualOption = () => {
@@ -129,10 +129,7 @@ const MoveItemDialog = props => {
 			label: translate( 'Submit' ),
 			isPrimary: true,
 			disabled: targetPackageId === openedPackageId, // Result of targetPackageId initialization
-			onClick: () =>
-				( targetPackageId
-					? props.moveItem( orderId, siteId, openedPackageId, movedItemIndex, targetPackageId )
-					: props.removeItem( orderId, siteId, openedPackageId, movedItemIndex ) ),
+			onClick: () => props.moveItem( orderId, siteId, openedPackageId, movedItemIndex, targetPackageId )
 		},
 	];
 
