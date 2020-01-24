@@ -31,6 +31,7 @@ import {
 	shouldFulfillOrder,
 	shouldEmailDetails,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import { getSelectedPaymentMethodId } from 'woocommerce/woocommerce-services/state/label-settings/selectors'
 
 const Sidebar = props => {
 	const {
@@ -42,6 +43,7 @@ const Sidebar = props => {
 		translate,
 		fulfillOrder,
 		emailDetails,
+		hasLabelsPaymentMethod,
 	} = props;
 
 	const onEmailDetailsChange = () => props.setEmailDetailsOption( orderId, siteId, ! emailDetails );
@@ -62,14 +64,14 @@ const Sidebar = props => {
 			</FormLabel>
 			<hr />
 			<div className="label-purchase-modal__purchase-container">
-				<Dropdown
+				{ hasLabelsPaymentMethod ? <Dropdown
 					id={ 'paper_size' }
 					valuesMap={ getPaperSizes( form.origin.values.country ) }
 					title={ translate( 'Paper size' ) }
 					value={ paperSize }
 					updateValue={ onPaperSizeChange }
 					error={ errors.paperSize }
-				/>
+				/> : null }
 				<PurchaseSection siteId={ siteId } orderId={ orderId } />
 			</div>
 		</div>
@@ -91,6 +93,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 	return {
 		paperSize: shippingLabel.paperSize,
 		form: shippingLabel.form,
+		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 		errors: loaded && getFormErrors( state, orderId, siteId ).sidebar,
 		fulfillOrder: loaded && shouldFulfillOrder( state, orderId, siteId ),
 		emailDetails: loaded && shouldEmailDetails( state, orderId, siteId ),
