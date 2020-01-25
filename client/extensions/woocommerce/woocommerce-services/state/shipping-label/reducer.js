@@ -447,13 +447,13 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 
 	const originItems = [ ...newPackages[ originPackageId ].items ];
 	const movedItem = originItems.splice( movedItemIndex, 1 )[ 0 ];
-	const moveItemToExistingPackage = (existingPackages, packageId, item) => {
-		const targetItems = [ ...existingPackages[ packageId ].items ];
-		targetItems.push( item );
-		existingPackages[ packageId ] = {
-			...existingPackages[ packageId ],
+	const moveItemToExistingPackage = () => {
+		const targetItems = [ ...newPackages[ targetPackageId ].items ];
+		targetItems.push( movedItem );
+		newPackages[ targetPackageId ] = {
+			...newPackages[ targetPackageId ],
 			items: targetItems,
-			weight: round( existingPackages[ packageId ].weight + item.weight, 8 ),
+			weight: round( newPackages[ targetPackageId ].weight + movedItem.weight, 8 ),
 		};
 	};
 
@@ -504,11 +504,11 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 				items: [ movedItem ],
 			};
 		} else {
-			moveItemToExistingPackage(newPackages, targetPackageId, movedItem);
+			moveItemToExistingPackage();
 		}
 	} else if ( targetPackageId ) {
 		//move to an existing package
-		moveItemToExistingPackage(newPackages, targetPackageId, movedItem);
+		moveItemToExistingPackage();
 	}
 
 	if ( 0 === newPackages[ originPackageId ].items.length ) {
