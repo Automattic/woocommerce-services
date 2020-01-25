@@ -447,6 +447,15 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 
 	const originItems = [ ...newPackages[ originPackageId ].items ];
 	const movedItem = originItems.splice( movedItemIndex, 1 )[ 0 ];
+	const moveItemToExistingPackage = (newPackages, targetPackageId, movedItem) => {
+		const targetItems = [ ...newPackages[ targetPackageId ].items ];
+		targetItems.push( movedItem );
+		newPackages[ targetPackageId ] = {
+			...newPackages[ targetPackageId ],
+			items: targetItems,
+			weight: round( newPackages[ targetPackageId ].weight + movedItem.weight, 8 ),
+		};
+	};
 
 	newPackages[ originPackageId ] = {
 		...newPackages[ originPackageId ],
@@ -484,24 +493,22 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM ] = (
 	} else if ( 'unpack_item' === targetPackageId ) {
 		// Remove an item by putting them into "unpack items"
 		const addedPackageId = "unpack_item";
-		newPackages[ addedPackageId ] = {
-			height: 0,
-			length: 0,
-			width: 0,
-			weight: movedItem.weight,
-			id: addedPackageId,
-			box_id: 'unpack_item',
-			items: [ movedItem ],
-		};
+		if ( ! newPackages[ addedPackageId ] ) {
+			newPackages[ addedPackageId ] = {
+				height: 0,
+				length: 0,
+				width: 0,
+				weight: movedItem.weight,
+				id: addedPackageId,
+				box_id: 'unpack_item',
+				items: [ movedItem ],
+			};
+		} else {
+			moveItemToExistingPackage(newPackages, targetPackageId, movedItem);
+		}
 	} else if ( targetPackageId ) {
 		//move to an existing package
-		const targetItems = [ ...newPackages[ targetPackageId ].items ];
-		targetItems.push( movedItem );
-		newPackages[ targetPackageId ] = {
-			...newPackages[ targetPackageId ],
-			items: targetItems,
-			weight: round( newPackages[ targetPackageId ].weight + movedItem.weight, 8 ),
-		};
+		moveItemToExistingPackage(newPackages, targetPackageId, movedItem);
 	}
 
 	if ( 0 === newPackages[ originPackageId ].items.length ) {
