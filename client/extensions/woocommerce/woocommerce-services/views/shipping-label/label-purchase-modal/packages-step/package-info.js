@@ -122,6 +122,41 @@ const PackageInfo = props => {
 		props.updatePackageWeight( orderId, siteId, packageId, event.target.value );
 	};
 
+	const renderPackageDetail = () => {
+		if ( pckg.box_id === 'unpack_item' ) {
+			return '';
+		}
+
+		return (
+			<div>
+				<PackageSelect
+					siteId={ siteId }
+					orderId={ orderId }
+					isIndividualPackage={ isIndividualPackage }
+					pckgErrors={ pckgErrors }
+					pckg={ pckg }
+					packageId={ packageId }
+					lastBoxId={ userMeta.last_box_id }
+				/>
+
+				<div className="packages-step__package-weight">
+					<FormLabel htmlFor={ `weight_${ packageId }` }>{ translate( 'Total Weight (with package)' ) }</FormLabel>
+					<FormTextInputWithAffixes
+						id={ `weight_${ packageId }` }
+						placeholder={ translate( '0' ) }
+						value={ pckg.weight || '' }
+						onChange={ onWeightChange }
+						isError={ Boolean( pckgErrors.weight ) }
+						type="number"
+						noWrap
+						suffix={ weightUnit }
+					/>
+					{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
+				</div>
+			</div>
+		);
+	};
+
 	return (
 		<div className="packages-step__package">
 			<div>
@@ -138,31 +173,7 @@ const PackageInfo = props => {
 				</div>
 				{ renderItems() }
 			</div>
-
-			<PackageSelect
-				siteId={ siteId }
-				orderId={ orderId }
-				isIndividualPackage={ isIndividualPackage }
-				pckgErrors={ pckgErrors }
-				pckg={ pckg }
-				packageId={ packageId }
-				lastBoxId={ userMeta.last_box_id }
-			/>
-
-			<div className="packages-step__package-weight">
-				<FormLabel htmlFor={ `weight_${ packageId }` }>{ translate( 'Total Weight (with package)' ) }</FormLabel>
-				<FormTextInputWithAffixes
-					id={ `weight_${ packageId }` }
-					placeholder={ translate( '0' ) }
-					value={ pckg.weight || '' }
-					onChange={ onWeightChange }
-					isError={ Boolean( pckgErrors.weight ) }
-					type="number"
-					noWrap
-					suffix={ weightUnit }
-				/>
-				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
-			</div>
+			{ renderPackageDetail() }
 		</div>
 	);
 };
