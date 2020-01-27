@@ -741,7 +741,11 @@ const purchaseLabelResponse = ( orderId, siteId, response, error ) => {
 
 const handleLabelPurchaseError = ( orderId, siteId, dispatch, getState, error ) => {
 	dispatch( purchaseLabelResponse( orderId, siteId, null, true ) );
-	dispatch( NoticeActions.errorNotice( error.toString() ) );
+	const noticeOptions = {
+		button: translate( 'Go to Credit Cards settings.' ),
+		onClick: () => { window.open('admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings') },
+	}
+	dispatch( NoticeActions.errorNotice( error.toString(), noticeOptions ) );
 	//re-request the rates on failure to avoid attempting repurchase of the same shipment id
 	dispatch( clearAvailableRates( orderId, siteId ) );
 	tryGetLabelRates( orderId, siteId, dispatch, getState, noop );
