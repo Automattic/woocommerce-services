@@ -32,7 +32,7 @@ const getPurchaseButtonLabel = props => {
 		return translate( 'Purchasing…' );
 	}
 
-	return translate( 'Buy shipping labels' );
+	return translate( 'Buy shipping label', 'Buy shipping labels', { count: Object.keys( form.packages.selected ).length } );
 };
 
 const PurchaseButton = props => {
