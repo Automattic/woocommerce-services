@@ -48,6 +48,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 		}
 
 		$last_box_id = get_user_meta( get_current_user_id(), 'wc_connect_last_box_id', true );
+		$last_box_id = $last_box_id === "individual" ? "" : $last_box_id;
 
 		return new WP_REST_Response( array(
 			'success'  => true,

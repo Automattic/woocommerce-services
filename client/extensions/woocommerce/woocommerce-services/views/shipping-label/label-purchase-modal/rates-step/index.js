@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { find, isEmpty, mapValues, some } from 'lodash';
+import { find, forEach, isEmpty, mapValues, some } from 'lodash';
 import formatCurrency from '@automattic/format-currency';
 import Gridicon from 'gridicons';
 
@@ -150,7 +150,6 @@ const RatesStep = props => {
 		values,
 		available,
 		errors,
-		expanded,
 		ratesTotal,
 		translate,
 	} = props;
@@ -159,11 +158,25 @@ const RatesStep = props => {
 	const updateRateHandler = ( packageId, serviceId, signatureRequired ) =>
 		props.updateRate( orderId, siteId, packageId, serviceId, signatureRequired );
 
+	// Preselect rates for packages that have only one rate available.
+	forEach( form.packages.selected, ( selectedRate, pckgId ) => {
+		// Skip preselection for already selected values.
+		if( "" !==  values[ pckgId ] ) {
+			return;
+		}
+
+		if ( ( ! isEmpty( available ) ) && ( pckgId in available ) && ( 1 === available[ pckgId ].default.rates.length ) ) {
+			const signatureRequired = false; // Don't preselect signature.
+			const { service_id } = available[ pckgId ].default.rates[ 0 ];
+			updateRateHandler( pckgId, service_id, signatureRequired );
+		}
+	} );
+
 	return (
 		<StepContainer
 			title={ translate( 'Shipping rates' ) }
 			summary={ summary }
-			expanded={ expanded }
+			expanded={ ! isEmpty( available ) }
 			toggleStep={ toggleStepHandler }
 			{ ...getRatesStatus( props ) }
 		>

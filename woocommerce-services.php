@@ -7,9 +7,9 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.22.1
+ * Version: 1.22.3
  * WC requires at least: 3.0.0
- * WC tested up to: 3.8
+ * WC tested up to: 3.9
  *
  * Copyright (c) 2017-2019 Automattic
  *
@@ -221,8 +221,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function __construct() {
 			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
-			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 		}
 
 		public function get_logger() {
@@ -416,6 +415,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function load_textdomain() {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
+		}
+
+		public function on_plugins_loaded() {
+			$this->load_textdomain();
+
+			if ( ! class_exists( 'WooCommerce' ) ) {
+				add_action( 'admin_notices', function() {
+					/* translators: %s WC download URL link. */
+					echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Services requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
+				} );
+				return;
+			}
+			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init') );
 		}
 
 		/**
@@ -1177,17 +1189,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Registers the React UI bundle
 		 */
 		public function admin_enqueue_scripts() {
-			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them
+			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them.
 			$plugin_data = get_plugin_data( __FILE__, false, false );
 			$plugin_version = $plugin_data[ 'Version' ];
 
-			// Use the same version as Jetpack
-			$jetpack_version = defined( 'JETPACK__VERSION' ) ? JETPACK__VERSION : '0';
-			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.css', array(), $plugin_version );
-			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services.js', array(), $plugin_version, true );
-			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers.js', array( 'wp-pointer', 'jquery' ), $plugin_version );
-			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.css', array(), $plugin_version );
-			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner.js', array( 'updates' ), $plugin_version );
+			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services-' . $plugin_version . '.css', array(), null );
+			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services-' . $plugin_version . '.js', array(), null, true );
+			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
+			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null );
+			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array( 'updates' ), null );
 
 			$i18n_json = $this->get_i18n_json();
 			/** @var array $i18nStrings defined in i18n/strings.php */
@@ -1389,12 +1399,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
-			$wcs_connection_schemas = $this->api_client->get_service_schemas();
+			$is_alive = $this->api_client->is_alive_cached();
 
 			$payload = array(
 				'nonce'                 => wp_create_nonce( 'wp_rest' ),
 				'baseURL'               => get_rest_url(),
-				'wcs_server_connection' => is_wp_error( $wcs_connection_schemas ) ? false : true,
+				'wcs_server_connection' => $is_alive,
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );

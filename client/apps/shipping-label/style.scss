@@ -9,7 +9,7 @@
 		display: inline-block;
 		vertical-align: text-bottom;
 		margin-left: 10px;
-		height: 36px;
+		padding-bottom: 11px;
 		position: relative;
 		top: 3px;
 		font-style: normal;
@@ -46,6 +46,11 @@
 	}
 }
 
+.shipping-label__redo-shipping-button .button.is-borderless {
+	margin-right: 8px;
+	color: #777;
+}
+
 &.label-purchase-modal,
 &.packages-step__dialog {
 	font-size: 15px;
@@ -54,6 +59,26 @@
 .label-purchase-modal__option-email-customer,
 .label-purchase-modal__option-mark-order-fulfilled {
 	display: none;
+}
+
+.label-purchase-modal__purchase-container {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+
+	.form-fieldset {
+		margin: 0 5px 0 0;
+		width: 50%;
+	}
+
+	.purchase-section {
+		width: 50%;
+		margin-left: 5px;
+
+		.button {
+			width: 100%;
+		}
+	}
 }
 
 .order-activity-log {

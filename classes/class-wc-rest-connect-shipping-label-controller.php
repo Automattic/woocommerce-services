@@ -54,7 +54,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			}
 		}
 
-		if ( ! empty( $last_box_id ) ) {
+		if ( ! empty( $last_box_id ) && $last_box_id !== "individual" ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_last_box_id', $last_box_id );
 		}
 

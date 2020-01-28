@@ -1,10 +1,10 @@
 === WooCommerce Services ===
-Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0
+Contributors: automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.3
-Stable tag: 1.22.1
+Stable tag: 1.22.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,16 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
+= 1.22.3 - 2020-01-22 =
+* Add   - Preselect rate when there is only one rate available for given shipping configuration.
+* Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
+* Add   - Show notice when WooCommerce is not installed or activated.
+* Fix   - Use correct URL for variation products in Packages section.
+
+= 1.22.2 - 2019-12-10 =
+* Fix   - Packages weight total value formatting.
+* Fix   - Allow fulfillment flow redo.
+
 = 1.22.1 =
 * Fix   - Remove nuisance admin notification.
 
@@ -124,21 +134,3 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 * Avoid overwriting Stripe keys after they've already been entered, and WooCommerce Services is connected for the first time
 * Enable notices about WooCommerce Services to be displayed, for example when taxes were incorrectly calculated
 * Update the 'print label' button text and style
-
-= 1.19.0 =
-
-* Communicate HTTPS requirement when connecting to Stripe
-* Avoid showing 'Shipping options' at the bottom of the WooCommerce Services shipping settings page
-* Fix a small misalignment of checkmarks in our checkboxes
-* Fix the WC native tax override function by adding a missing return statement
-
-= 1.18.0 =
-
-* Add compatibility with WordPress 5.0
-* Add compatibility with the WordPress.com eCommerce plan
-* Add packing logs to the front-end (with debug enabled) and back-end (order detail screens)
-* When purchasing a shipping label, allow addresses to be entered without verification
-* Make the shipping label purchase process more robust, allowing retries when the label image failed to download
-* UI improvements to the shipping label address form
-* Allow connecting a Stripe account directly from the Stripe settings page
-* Updated behavior of the shipping phone field in order to prevent conflicts with other plugins

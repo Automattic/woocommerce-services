@@ -123,13 +123,23 @@ class ShippingLabelViewWrapper extends Component {
 				);
 			}
 
-			// All items are packaged, just show track button
+			// All items are packaged, show track button and create shipping label button to allow redo fulfillment
 			return (
-				<Button
-					onClick={ this.handleTrackPackagesButtonClick }
-				>
-					{ translate( 'Track Packages' ) }
-				</Button>
+				<span> 
+					<span className="shipping-label__redo-shipping-button">
+						<Button
+							borderless
+							onClick={ this.handleCreateLabelButtonClick }
+						>
+							{ translate( 'Create new label' ) }
+						</Button>
+					</span>
+					<Button
+						onClick={ this.handleTrackPackagesButtonClick }
+					>
+						{ translate( 'Track Packages' ) }
+					</Button>
+				</span>
 			);
 		}
 

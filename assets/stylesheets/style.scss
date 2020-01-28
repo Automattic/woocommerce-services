@@ -273,15 +273,9 @@
 	white-space: pre-wrap;
 }
 
-#woocommerce-order-label {
-	.hndle,
-	.handlediv {
-		display: none;
-	}
-
-	.inside {
-		display: block !important;
-	}
+// When metabox in sidebar display same as small screen.
+.wp-core-ui.wp-admin #side-sortables .wcc-root .shipping-label__container {
+	display: block;
 }
 
 .wp-core-ui.wp-admin #woocommerce-order-shipment-tracking {
