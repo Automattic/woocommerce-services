@@ -47,6 +47,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD', 3 * DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
+	// Check for CI environment variable to trigger test mode.
+	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true ) ) {
+		if ( ! defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
+			define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
+		}
+		if ( ! defined( 'JETPACK_DEV_DEBUG' ) ) {
+			define( 'JETPACK_DEV_DEBUG', true );
+		}
+	}
+
 	class WC_Connect_Loader {
 
 		/**
@@ -609,7 +619,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function load_dependencies() {
 			require_once( plugin_basename( 'classes/class-wc-connect-logger.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-api-client.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-service-schemas-validator.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-taxjar-integration.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-error-notice.php' ) );
@@ -633,7 +642,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_logger       = new WC_Connect_Logger( $core_logger, 'shipping' );
 
 			$validator             = new WC_Connect_Service_Schemas_Validator();
-			$api_client            = new WC_Connect_API_Client( $validator, $this );
+			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
+				require_once( plugin_basename( 'tests/php/class-wc-connect-api-client-local-test-mock.php' ) );
+				$api_client = new WC_Connect_API_Client_Local_Test_Mock( $validator, $this );
+			} else {
+				require_once( plugin_basename( 'classes/class-wc-connect-api-client-live.php' ) );
+				$api_client = new WC_Connect_API_Client_Live( $validator, $this );
+			}
 			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );

@@ -37,26 +37,57 @@ matrix:
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.3
-     env: WP_VERSION=trunk WC_VERSION=3.8.0-rc.1
+     env: WP_VERSION=latest WC_VERSION=3.8.1
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.4snapshot
-     env: WP_VERSION=trunk WC_VERSION=3.8.0-rc.1
+   - php: 7.4
+     env: WP_VERSION=latest WC_VERSION=master
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-     script: curl -sSfL -o ~/.phpenv/versions/7.4snapshot/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+     script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
      # Run the JS tests in a separate container
-   - language: node_js
-     before_script: ""
+  #  - language: node_js
+  #    before_script: ""
+   - name: "E2E tests"
+     php: 7.2
+     env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=latest RUN_E2E=1
+     script:
+         - npm run test:e2e
+         - cat $HOME/wordpress/wp-content/debug.log
+     addons:
+       apt:
+        packages:
+        - nginx
+
+
+addons:
+      apt:
 
 services:
    - mysql
 
+install:
+  - . $HOME/.nvm/nvm.sh
+  - nvm install 10
+  - nvm use 10
+  - npm ci
+
 # Clones WordPress and configures our testing environment.
-before_script: bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
+before_script:
+  - source ./tests/bin/run-e2e-travis.sh
+  - echo "memory_limit=256M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - phpenv config-rm xdebug.ini
+  - bash tests/bin/install.sh wcs_test root '' localhost $WP_VERSION
+
+# Save node_modules to speed up build
+cache:
+  directories:
+    - node_modules
 
 sudo: false
 
 notifications:
    email:
-       - hydra@matticspace.com
+      - the-extendables@matticspace.com
+
+
