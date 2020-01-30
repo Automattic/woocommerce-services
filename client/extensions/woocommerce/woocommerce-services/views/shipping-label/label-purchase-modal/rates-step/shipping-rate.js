@@ -46,6 +46,9 @@ class ShippingRate extends Component {
 				delivery_days,
 				delivery_date_guaranteed,
 				delivery_date,
+				insurance,
+				trackingExcluded,
+				pickupPrice,
 			},
 			isSelected,
 			updateValue,
@@ -81,13 +84,18 @@ class ShippingRate extends Component {
 			} );
 		}
 
-		switch ( carrier_id ) {
-			case 'usps':
-				// Ideally this would come from connect-server, but we have no info from EasyPost API
-				// Refer to: https://www.easypost.com/docs/api/node#trackers, specifically
-				// `A Tracker is created automatically whenever you buy a Shipment through EasyPost`
-				details = translate( 'Includes USPS tracking' );
-				break;
+		if ( ! trackingExcluded && insurance && 0 === pickupPrice ) {
+			details = translate( 'Includes tracking, free pickup and insurance (up to $%(insurance)s)', { args: { insurance } } );
+		} else if ( ! trackingExcluded && insurance ) {
+			details = translate( 'Includes tracking and insurance (up to $%(insurance)s)', { args: { insurance } } );
+		} else if ( ! trackingExcluded && 0 === pickupPrice ) {
+			details = translate( 'Includes tracking and free pickup' );
+		} else if ( ! trackingExcluded ) {
+			details = translate( 'Includes tracking' );
+		} else if ( 0 === pickupPrice ) {
+			details = translate( 'Includes free pickup' );
+		} else if ( trackingExcluded ) {
+			details = translate( 'Tracking not included' );
 		}
 		return(
 			<div className="rates-step__shipping-rate-container">
