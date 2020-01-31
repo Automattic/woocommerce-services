@@ -47,9 +47,7 @@ const LabelPurchaseModal = props => {
 			<div className="label-purchase-modal__content">
 				<div className="label-purchase-modal__header">
 					<FormSectionHeading>
-						{ 1 === Object.keys(props.form.packages.selected).length
-							? translate( 'Create shipping label' )
-							: translate( 'Create shipping labels' ) }
+						{ translate( 'Create shipping label', 'Create shipping labels', { count: Object.keys( props.form.packages.selected ).length } ) }
 					</FormSectionHeading>
 					<Button className="label-purchase-modal__close-button" onClick={ onClose }>
 						<Gridicon icon="cross" />

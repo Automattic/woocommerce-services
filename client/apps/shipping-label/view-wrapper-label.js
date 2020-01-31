@@ -102,7 +102,7 @@ class ShippingLabelViewWrapper extends Component {
 			}
 
 			// If not all items are packaged (but some are, per condition above), show both buttons
-			if ( productsPackaged !== items ) {
+			if ( productsPackaged < items ) {
 				return (
 					<div className="shipping-label__multiple-buttons-container">
 						<Button
@@ -117,7 +117,7 @@ class ShippingLabelViewWrapper extends Component {
 						<Button
 							onClick={ this.handleTrackPackagesButtonClick }
 						>
-							{ translate( 'Track Packages' ) }
+							{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
 						</Button>
 					</div>
 				);
@@ -125,7 +125,7 @@ class ShippingLabelViewWrapper extends Component {
 
 			// All items are packaged, show track button and create shipping label button to allow redo fulfillment
 			return (
-				<span> 
+				<span>
 					<span className="shipping-label__redo-shipping-button">
 						<Button
 							borderless
@@ -137,7 +137,7 @@ class ShippingLabelViewWrapper extends Component {
 					<Button
 						onClick={ this.handleTrackPackagesButtonClick }
 					>
-						{ translate( 'Track Packages' ) }
+						{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
 					</Button>
 				</span>
 			);
