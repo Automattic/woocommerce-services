@@ -47,7 +47,7 @@ const PurchaseSection = props => {
 		/* eslint-enable jsx-a11y/anchor-is-valid */
 	const chooseCardButtonDescription = ( onChooseCard ) =>
 		/* eslint-disable jsx-a11y/anchor-is-valid */
-		translate( 'To print this shipping label, {{a}}choose a credit card to your account{{/a}}.', {
+		translate( 'To print this shipping label, {{a}}choose a credit card to add to your account{{/a}}.', {
 			components: { a: <a onClick={ onChooseCard } href="#" role="button" /> },
 		} );
 		/* eslint-enable jsx-a11y/anchor-is-valid */
