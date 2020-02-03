@@ -868,6 +868,10 @@ class WC_Connect_TaxJar_Integration {
 				'to_city' => $to_city,
 			);
 
+			if ( $to_country === 'GB') {
+				$location['to_state'] = '';
+			}
+
 			// Add line item tax rates
 			foreach ( $taxes['line_items'] as $line_item_key => $line_item ) {
 				$line_item_key_chunks = explode( '-', $line_item_key );
