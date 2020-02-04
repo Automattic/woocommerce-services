@@ -192,6 +192,7 @@ PHP
 		php wp-cli.phar plugin install jetpack --activate
 		php wp-cli.phar user create customer customer@e2ewootestsite.com --user_pass=customer_password --role=customer --path=$WP_CORE_DIR
 
+		php wp-cli.phar eval-file "./tests/bin/wc_rest_api_credentials.php"
 		# Copying contents of services branch manually, since unable to download a private repo zip
 		cp -r $WORKING_DIR/woocommerce-services $WP_CORE_DIR/wp-content/plugins/
 		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
