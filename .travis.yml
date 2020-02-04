@@ -6,44 +6,44 @@ language: php
 # Define our matrix of build configurations to test against.
 matrix:
   include:
-   - php: 5.3
-     env: WP_VERSION=4.5 WC_VERSION=3.2.6
-     sudo: true
-     dist: precise
-   - php: 5.4
-     dist: trusty
-     env: WP_VERSION=4.6 WC_VERSION=3.1.2
-   - php: 5.5
-     dist: trusty
-     env: WP_VERSION=4.7 WC_VERSION=3.0.9
-   - php: 5.6
-     env: WP_VERSION=4.8 WC_VERSION=2.6.14
-   - php: 7.0
-     env: WP_VERSION=latest WC_VERSION=2.6.14
-     # By default, travis attempts PHPUnit 7.5.0 for PHP 7.0 - that version works on 7.1 and 7.2 only
-     # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
-     script: curl -sSfL -o ~/.phpenv/versions/7.0/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.1
-     env: WP_VERSION=latest WC_VERSION=3.0.3
-     # By default, travis attempts PHPUnit 8.0.4 for PHP 7.1 - that version works on 7.2 and 7.3 only
-     # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
-     script: curl -sSfL -o ~/.phpenv/versions/7.1/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.2
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
-     # Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
-     script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar && phpunit
-   - php: 7.2
-     env: WP_VERSION=latest WC_VERSION=3.3.3
-     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-     script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.3
-     env: WP_VERSION=latest WC_VERSION=3.8.1
-     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-     script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.4
-     env: WP_VERSION=latest WC_VERSION=master
-     # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-     script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+   #- php: 5.3
+     #env: WP_VERSION=4.5 WC_VERSION=3.2.6
+     #sudo: true
+     #dist: precise
+   #- php: 5.4
+     #dist: trusty
+     #env: WP_VERSION=4.6 WC_VERSION=3.1.2
+   #- php: 5.5
+     #dist: trusty
+     #env: WP_VERSION=4.7 WC_VERSION=3.0.9
+   #- php: 5.6
+     #env: WP_VERSION=4.8 WC_VERSION=2.6.14
+   #- php: 7.0
+     #env: WP_VERSION=latest WC_VERSION=2.6.14
+     ## By default, travis attempts PHPUnit 7.5.0 for PHP 7.0 - that version works on 7.1 and 7.2 only
+     ## Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
+     #script: curl -sSfL -o ~/.phpenv/versions/7.0/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+   #- php: 7.1
+     #env: WP_VERSION=latest WC_VERSION=3.0.3
+     ## By default, travis attempts PHPUnit 8.0.4 for PHP 7.1 - that version works on 7.2 and 7.3 only
+     ## Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
+     #script: curl -sSfL -o ~/.phpenv/versions/7.1/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+   #- php: 7.2
+     #env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     ## Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
+     #script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar && phpunit
+   #- php: 7.2
+     #env: WP_VERSION=latest WC_VERSION=3.3.3
+     ## Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
+     #script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+   #- php: 7.3
+     #env: WP_VERSION=latest WC_VERSION=3.8.1
+     ## Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
+     #script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+   #- php: 7.4
+     #env: WP_VERSION=latest WC_VERSION=master
+     ## Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
+     #script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
      # Run the JS tests in a separate container
   #  - language: node_js
