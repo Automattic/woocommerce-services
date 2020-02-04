@@ -194,10 +194,11 @@ PHP
 
 		# Copying contents of services branch manually, since unable to download a private repo zip
 		cp -r $WORKING_DIR/woocommerce-services $WP_CORE_DIR/wp-content/plugins/
-		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
 
 		# Creates the WC REST API credentials
-		php wp-cli.phar eval-file "./tests/bin/wc_rest_api_credentials.php"
+		php wp-cli.phar eval-file "$WP_CORE_DIR/wp-content/plugins/woocommerce-services/tests/bin/wc_rest_api_credentials.php"
+
+		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
 
 		# Copy testing helper plugin to wordpress plugins folder
 		cp "$CONFIG_DIR/wc-services-testing-helper.php" $WP_CORE_DIR/wp-content/plugins/
