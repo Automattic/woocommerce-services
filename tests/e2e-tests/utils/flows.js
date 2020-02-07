@@ -50,6 +50,12 @@ const CustomerFlow = {
 
 const StoreOwnerFlow = {
     login: async () => {
+    	console.log( {
+			WP_ADMIN_LOGIN,
+			adminUserName,
+			adminUserPassword,
+			env: process.env
+    	} );
         await page.goto( WP_ADMIN_LOGIN );
 
 		await expect( page.title() ).resolves.toMatch( 'Log In' );
