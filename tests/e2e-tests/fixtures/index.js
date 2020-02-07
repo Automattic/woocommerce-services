@@ -9,11 +9,6 @@ import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 
 import fs from 'fs';
 
-console.log( {
-    url: process.env.WP_BASE_URL,
-    consumerKey: process.env.WC_E2E_REST_API_CONSUMER_KEY,
-    consumerSecret: process.env.WC_E2E_REST_API_CONSUMER_SECRET,
-} );
 const WooCommerce = new WooCommerceRestApi( {
     url: process.env.WP_BASE_URL,
     consumerKey: process.env.WC_E2E_REST_API_CONSUMER_KEY,
