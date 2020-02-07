@@ -24,6 +24,7 @@ module.exports = {
 	setupFilesAfterEnv: [
 		'<rootDir>/tests/e2e-tests/config/jest.setup.js',
 		'expect-puppeteer',
+		'<rootDir>/tests/e2e-tests/jest.test.failure.js'
 	],
 
 	// The glob patterns Jest uses to detect test files

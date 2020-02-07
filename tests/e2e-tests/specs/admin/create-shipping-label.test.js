@@ -22,6 +22,7 @@ describe( 'Create shipping label', () => {
     it( 'should create a new shipping label', async () => {
         await withOrder( async ( order ) => {
 
+
             await StoreOwnerFlow.login();
             await StoreOwnerFlow.openExistingOrderPage( order.id );
 

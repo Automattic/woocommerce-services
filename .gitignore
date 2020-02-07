@@ -27,3 +27,4 @@ tests/e2e/config/local-*
 woocommerce-services.zip
 dist/
 .cache/
+tests/e2e-tests/screenshots
