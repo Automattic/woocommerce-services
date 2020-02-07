@@ -59,3 +59,22 @@ global.it = async ( name, func ) => {
 	} );
 };
 
+global.saveScreenshot = async ( captureName ) => {
+	const savePath = './tests/e2e-tests/screenshots';
+	const fileName = `${ captureName }.png`;
+	const filePath = path.join(
+		savePath,
+		fileName.replace( /[^a-z0-9.-]+/gi, '-' )
+	);
+	mkdirp.sync( savePath );
+
+	await page.screenshot( {
+		path: filePath,
+		fullPage: true,
+	} );
+
+	// If running tests in CI, send failed test details and screenshot to Slack
+	if ( CI ) {
+		await sendFailedTestScreenshotToSlack( filePath );
+	}
+};

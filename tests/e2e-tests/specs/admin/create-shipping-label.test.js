@@ -29,6 +29,7 @@ describe( 'Create shipping label', () => {
 
             // Click on Create shipping label button
 			console.log( '# Creating new shipping label' );
+			saveScreenshot( '# Creating new shipping label' );
             await clickReactButton( '.shipping-label__new-label-button' );
             await page.waitForSelector( '.dialog__content' );
 
