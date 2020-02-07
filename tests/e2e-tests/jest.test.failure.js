@@ -1,5 +1,8 @@
 /** @format */
 
+/**
+ * Internal dependencies
+ */
 import {
 	sendFailedTestScreenshotToSlack,
 	sendFailedTestMessageToSlack

@@ -22,14 +22,17 @@ describe( 'Create shipping label', () => {
     it( 'should create a new shipping label', async () => {
         await withOrder( async ( order ) => {
 
-
+			console.log( '# Login in as Admin' );
             await StoreOwnerFlow.login();
+			console.log( `# Opening order page for order #${order.id}` );
             await StoreOwnerFlow.openExistingOrderPage( order.id );
 
             // Click on Create shipping label button
+			console.log( '# Creating new shipping label' );
             await clickReactButton( '.shipping-label__new-label-button' );
             await page.waitForSelector( '.dialog__content' );
 
+			console.log( '# Shipping label creation window open' );
 			await page.waitForSelector( '.is-success', { text: 'NEW YORK, NY  10075' } );
 
 			await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );
@@ -38,6 +41,7 @@ describe( 'Create shipping label', () => {
 				text: 'Use selected address'
 			} );
 
+			console.log( '# Shipping label selecting packaging' );
             const selectAPackageType = await page.$( '.packages-step__no-packages a', {
                 text: 'Select a package type'
             } );
@@ -68,14 +72,17 @@ describe( 'Create shipping label', () => {
                 text: '1 item in 1 package: 2 kg total'
             } );
 
+			console.log( '# Shipping label selecting rate' );
             await page.waitForSelector( '#inspector-radio-control-0-0' );
             await expect( page ).toClick( '#inspector-radio-control-0-0' );
 
+			console.log( '# Shipping label purchasing...' );
             await expect( page ).toClick( '.button.is-primary', {
                 text: 'Buy shipping labels',
 				timeout: 120000
             } );
 
+			console.log( '# Shipping label purchased!' );
             await page.waitForSelector( '.notice.is-success .notice__text', {
                 text: 'Your shipping label was purchased successfully'
             } )
