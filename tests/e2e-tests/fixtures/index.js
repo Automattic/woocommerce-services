@@ -71,6 +71,11 @@ const withOrder = async ( callback ) => {
 
 	const order = await createOrder( product );
 
+	console.log( {
+		product,
+		order
+	} );
+
 	await callback( order );
 
 	//await destroyOrder( order );
