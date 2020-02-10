@@ -197,6 +197,7 @@ PHP
 
 		# Creates the WC REST API credentials
 		php wp-cli.phar eval-file "$WP_CORE_DIR/wp-content/plugins/woocommerce-services/tests/bin/wc_rest_api_credentials.php"
+		php wp-cli.phar eval "WC_Connect_Options::update_option( 'tos_accepted', true );"
 
 		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
 
