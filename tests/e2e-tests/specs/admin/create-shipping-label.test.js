@@ -29,11 +29,11 @@ describe( 'Create shipping label', () => {
 
             // Click on Create shipping label button
 			console.log( '# Creating new shipping label' );
-			saveScreenshot( '# Creating new shipping label' );
             await clickReactButton( '.shipping-label__new-label-button' );
             await page.waitForSelector( '.dialog__content' );
 
 			console.log( '# Shipping label creation window open' );
+			saveScreenshot( '# Shipping label creation window open' );
 			await page.waitForSelector( '.is-success', { text: 'NEW YORK, NY  10075' } );
 
 			await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );

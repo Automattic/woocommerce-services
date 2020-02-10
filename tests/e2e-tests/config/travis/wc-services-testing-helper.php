@@ -14,11 +14,11 @@ define( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH', true );
 define( 'WOOCOMMERCE_CONNECT_SERVER_URL', 'http://localhost:5000/' );
 define( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true );
 
-if ( get_option( 'woocommerce_default_country' ) !== 'US:OH' ) {
-  update_option( 'woocommerce_store_address', '928  College Avenue' );
-  update_option( 'woocommerce_store_city', 'Dayton' );
-  update_option( 'woocommerce_store_postcode', '45402' );
-  update_option( 'woocommerce_default_country', 'US:OH' );
+if ( get_option( 'woocommerce_default_country' ) !== 'US:NY' ) {
+  update_option( 'woocommerce_store_address', '1480 York Ave' );
+  update_option( 'woocommerce_store_city', 'New York' );
+  update_option( 'woocommerce_store_postcode', '10075' );
+  update_option( 'woocommerce_default_country', 'US:NY' );
   update_option( 'woocommerce_currency', 'USD' );
   update_option( 'woocommerce_weight_unit', 'oz' );
   update_option( 'woocommerce_dimension_unit', 'in' );
