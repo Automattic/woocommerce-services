@@ -8,9 +8,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 	abstract class WC_Connect_API_Client {
+		const API_VERSION = WOOCOMMERCE_CONNECT_SERVER_API_VERSION;
 
 		/**
-		 * @var WC_Connect_Services_Validator
+		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $validator;
 
@@ -292,7 +293,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/** Heartbeat test.
-		 * 
+		 *
 		 * @return true|WP_Error
 		 */
 		public function is_alive() {
@@ -300,7 +301,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/** Heartbeat test with a transient cache.
-		 * 
+		 *
 		 * @return true|WP_Error
 		 */
 		public function is_alive_cached() {
@@ -466,7 +467,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$lang = $locale_elements[ 0 ];
 			$headers[ 'Accept-Language' ] = $locale . ',' . $lang;
 			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
-			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v1';
+			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
 			$headers[ 'Authorization' ] = $authorization;
 			return $headers;
 		}
