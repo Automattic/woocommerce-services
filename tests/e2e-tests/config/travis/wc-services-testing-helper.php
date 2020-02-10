@@ -12,6 +12,17 @@ define( 'JETPACK_DEV_DEBUG', true );
 define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
 define( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH', true );
 define( 'WOOCOMMERCE_CONNECT_SERVER_URL', 'http://localhost:5000/' );
+define( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true );
+
+if ( get_option( 'woocommerce_default_country' ) !== 'US:OH' ) {
+  update_option( 'woocommerce_store_address', '928  College Avenue' );
+  update_option( 'woocommerce_store_city', 'Dayton' );
+  update_option( 'woocommerce_store_postcode', '45402' );
+  update_option( 'woocommerce_default_country', 'US:OH' );
+  update_option( 'woocommerce_currency', 'USD' );
+  update_option( 'woocommerce_weight_unit', 'oz' );
+  update_option( 'woocommerce_dimension_unit', 'in' );
+}
 
 function wc_test_connect_jetpack_access_fake_token( $token ) {
         $token = new stdClass();
