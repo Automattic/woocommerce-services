@@ -76,9 +76,8 @@ describe( 'Create shipping label', () => {
             await expect( page ).toClick( '#inspector-radio-control-0-0' );
 
 			console.log( '# Shipping label purchasing...' );
-			saveScreenshot( '# Shipping label purchasing...' );
             await expect( page ).toClick( '.button.is-primary', {
-                text: 'Buy shipping labels',
+                text: 'Buy shipping label',
 				timeout: 120000
             } );
 
