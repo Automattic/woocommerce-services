@@ -214,6 +214,8 @@ PHP
 
 		php wp-cli.phar option update wc_connect_options '{"tos_accepted": true }' --format=json
 
+		php wp-cli.phar transient set wcc_is_new_label_user false
+
 		cd "$WORKING_DIR"
 
 	fi

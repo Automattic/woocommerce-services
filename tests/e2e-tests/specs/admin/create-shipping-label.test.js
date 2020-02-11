@@ -29,46 +29,44 @@ describe( 'Create shipping label', () => {
 
             // Click on Create shipping label button
 			console.log( '# Creating new shipping label' );
-            await clickReactButton( '.shipping-label__new-label-button' );
+            await clickReactButton( '.shipping-label__new-label-button', { text: 'Create shipping label' } );
             await page.waitForSelector( '.dialog__content' );
 
 			console.log( '# Shipping label creation window open' );
-			saveScreenshot( '# Shipping label creation window open' );
-			await page.waitForSelector( '.is-success', { text: 'NEW YORK, NY  10075' } );
+			await page.waitForSelector( '.address-step__suggestion-title', { text: 'Address entered' } );
+			await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
+            await expect( page ).toFill( '.address-step__company-phone #origin_phone', '11111111111' );
+            await expect( page ).toClick( '.address-step__actions .form-button', { text: 'Use address as entered' } )
 
 			await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );
             await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
-			await expect( page ).toClick( '.button.is-primary', {
-				text: 'Use selected address'
-			} );
+			await expect( page ).toClick( '.button.is-primary', { text: 'Use selected address' } );
 
 			console.log( '# Shipping label selecting packaging' );
             const selectAPackageType = await page.$( '.packages-step__no-packages a', {
                 text: 'Select a package type'
             } );
+			console.log( '# Shipping label selecting package type' );
             if ( selectAPackageType ) {
-                await expect( page ).toClick( 'Select a package type' );
                 await selectAPackageType.click();
                 await expect( page ).toFill( '#weight_default_box', '1' );
 
                 await page.waitForSelector( '.packages__add-edit-dialog' );
 
                 await expect( page ).toFill( '.packages__add-edit-dialog #name', 'My Package' );
-                await expect( page ).toFill( '.packages__add-edit-dialog #length', '1' );
-                await expect( page ).toFill( '.packages__add-edit-dialog #width', '1' );
-                await expect( page ).toFill( '.packages__add-edit-dialog #height', '1' );
-                await expect( page ).toFill( '.packages__add-edit-dialog #box_weight', '1' );
+                await expect( page ).toFill( '.packages__add-edit-dialog input[name="length"]', '1' );
+                await expect( page ).toFill( '.packages__add-edit-dialog input[name="width"]', '1' );
+                await expect( page ).toFill( '.packages__add-edit-dialog input[name="height"]', '1' );
+                await expect( page ).toFill( '.packages__add-edit-dialog input[name="box_weight"]', '1' );
 
-                await expect( page ).toClick( '.button.is-primary', {
-                    text: 'Add package',
-                } );
+                await expect( page ).toClick( '.button.is-primary', { text: 'Add package' } );
 
+				console.log( '# Shipping label package added' );
             }
+            await page.waitForSelector( '.notice.is-success .notice__text', { text: 'Your shipping packages have been saved.' } );
 
-            await expect( page ).toClick( '.button.is-primary', {
-                text: 'Use these packages',
-				timeout: 120000
-            } );
+			await clickReactButton( '.button.is-primary', { text: 'Use these packages' } )
+
             await page.waitForSelector( '.is-success', {
                 text: '1 item in 1 package: 2 kg total'
             } );

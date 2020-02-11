@@ -5,11 +5,11 @@
   "billing": {
     "first_name": "John",
     "last_name": "Doe",
-    "address_1": "969 Market",
+    "address_1": "4590 Oak Drive",
     "address_2": "",
-    "city": "San Francisco",
-    "state": "CA",
-    "postcode": "94103",
+    "city": "Corinth",
+    "state": "NY",
+    "postcode": "12822",
     "country": "US",
     "email": "john.doe@example.com",
     "phone": "(555) 555-5555"
@@ -17,11 +17,11 @@
   "shipping": {
     "first_name": "John",
     "last_name": "Doe",
-    "address_1": "969 MARKET ST",
+    "address_1": "4590 Oak Drive",
     "address_2": "",
-    "city": "San Francisco",
-    "state": "CA",
-    "postcode": "94103-1701",
+    "city": "Corinth",
+    "state": "NY",
+    "postcode": "12822",
     "country": "US"
   },
   "line_items": [
