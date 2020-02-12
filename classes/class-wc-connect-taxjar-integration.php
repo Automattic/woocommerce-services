@@ -868,7 +868,7 @@ class WC_Connect_TaxJar_Integration {
 				'to_city' => $to_city,
 			);
 
-			if ( $to_country === 'GB') {
+			if ( 'GB' === $to_country ) {
 				$location['to_state'] = '';
 			}
 
