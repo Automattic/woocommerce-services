@@ -23,7 +23,6 @@ import {
 	closeItemMove,
 	setTargetPackage,
 	moveItem,
-	removeItem,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import { getShippingLabel } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
@@ -87,10 +86,6 @@ const MoveItemDialog = props => {
 		return renderRadioButton( 'new', translate( 'Add to a New Package' ) );
 	};
 
-	const renderRemoveFromPackageOption = () => {
-		return renderRadioButton( '', translate( 'Remove from package' ) );
-	};
-
 	const renderIndividualOption = () => {
 		if ( openedPackage && 'individual' === openedPackage.box_id ) {
 			return null;
@@ -130,9 +125,7 @@ const MoveItemDialog = props => {
 			isPrimary: true,
 			disabled: targetPackageId === openedPackageId, // Result of targetPackageId initialization
 			onClick: () =>
-				( targetPackageId
-					? props.moveItem( orderId, siteId, openedPackageId, movedItemIndex, targetPackageId )
-					: props.removeItem( orderId, siteId, openedPackageId, movedItemIndex ) ),
+				props.moveItem( orderId, siteId, openedPackageId, movedItemIndex, targetPackageId ),
 		},
 	];
 
@@ -152,7 +145,6 @@ const MoveItemDialog = props => {
 				{ renderPackedOptions() }
 				{ renderNewPackageOption() }
 				{ renderIndividualOption() }
-				{ renderRemoveFromPackageOption() }
 			</div>
 		</Dialog>
 	);
@@ -168,7 +160,6 @@ MoveItemDialog.propTypes = {
 	selected: PropTypes.object.isRequired,
 	all: PropTypes.object.isRequired,
 	moveItem: PropTypes.func.isRequired,
-	removeItem: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
@@ -186,7 +177,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 };
 
 const mapDispatchToProps = dispatch => {
-	return bindActionCreators( { closeItemMove, setTargetPackage, moveItem, removeItem }, dispatch );
+	return bindActionCreators( { closeItemMove, setTargetPackage, moveItem }, dispatch );
 };
 
 export default connect(
