@@ -759,7 +759,7 @@ const getPDFFileName = ( orderId, isReprint = false ) => {
 const labelStatusTask = ( orderId, siteId, labelId, retryCount ) => {
 	let timeout = 1000;
 	if ( retryCount === 0) {
-		timeout = 3000;
+		timeout = 2000;
 	}
 	return api
 		.get( siteId, api.url.labelStatus( orderId, labelId ) )
