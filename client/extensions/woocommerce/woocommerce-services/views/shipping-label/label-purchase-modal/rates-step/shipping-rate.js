@@ -20,7 +20,16 @@ class ShippingRate extends Component {
 		super();
 		this.state = {
 			signatureOption: false,
+			rateActive: false,
 		}
+	}
+
+	setRateActive = () => {
+		this.setState( { rateActive: !this.state.rateActive } );
+	}
+
+	setRateInactive = () => {
+		this.setState( { rateActive: false } );
 	}
 
 	setSignatureOption = ( val ) => {
@@ -35,8 +44,26 @@ class ShippingRate extends Component {
 		updateValue( service_id, val );
 	}
 
+	renderServices( services, includedServices ) {
+		const servicesToRender = [];
+		if ( includedServices.tracking ) {
+			servicesToRender.push( translate( services.tracking ) );
+		}
+		if ( includedServices.insurance ) {
+			servicesToRender.push( translate( services.insurance, { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
+		}
+		if ( includedServices[ 'signature_required' ] ) {
+			servicesToRender.push( translate( services[ 'signature_required' ] ) );
+		}
+		if ( includedServices['free_pickup'] ) {
+			servicesToRender.push( translate( services[ 'free_pickup' ] ) );
+		}
+
+		return servicesToRender.join(', ');
+	}
+
 	render() {
-		const { signatureOption } = this.state;
+		const { signatureOption, rateActive } = this.state;
 		const {
 			rateObject: {
 				title,
@@ -50,13 +77,21 @@ class ShippingRate extends Component {
 			isSelected,
 			updateValue,
 			signatureRates,
+			includedServices = {},
 		} = this.props;
-		let details = 'Includes tracking';
+
+		const services = {
+			tracking: 'Includes tracking',
+			insurance: 'Insurance (up to %s)',
+			free_pickup: 'Eligible for free pickup',
+			signature_required: 'Signature required'
+		};
 
 		const defaultOption = {
 			label: translate( 'No signature required' ),
 			value: false,
 		};
+
 		const signatureOptions = concat( defaultOption, values(
 			mapValues( signatureRates, ( r, key ) => {
 				const priceString = ( 0 === r.optionNetCost ) ? translate( 'free' ) :
@@ -69,6 +104,13 @@ class ShippingRate extends Component {
 				};
 			}
 		) ) );
+
+		if ( includedServices[ 'signature_required' ] ) {
+			signatureOptions.unshift( {
+				label: translate( 'Signature required (Free)' ),
+				value: 0
+			} );
+		}
 
 		let deliveryDateMessage = '';
 
@@ -86,11 +128,12 @@ class ShippingRate extends Component {
 				// Ideally this would come from connect-server, but we have no info from EasyPost API
 				// Refer to: https://www.easypost.com/docs/api/node#trackers, specifically
 				// `A Tracker is created automatically whenever you buy a Shipment through EasyPost`
-				details = translate( 'Includes USPS tracking' );
+				services.tracking = translate( 'Includes USPS tracking' );
 				break;
 		}
+
 		return(
-			<div className="rates-step__shipping-rate-container">
+			<div className="rates-step__shipping-rate-container" onClick={ this.setRateActive } onBlur={ this.setRateInactive }>
 				<RadioControl
 					className="rates-step__shipping-rate-radio-control"
 					selected={ isSelected ? service_id : null }
@@ -104,8 +147,8 @@ class ShippingRate extends Component {
 					<div className="rates-step__shipping-rate-description">
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
-							{ details }
-							{ signatureOptions.length > 1 ? (
+							{ this.renderServices( services, includedServices ) }
+							{ rateActive && signatureOptions.length > 1 ? (
 								<SelectControl
 									className="rates-step__shipping-rate-description-signature-select"
 									options={ signatureOptions }
