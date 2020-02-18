@@ -19,17 +19,8 @@ class ShippingRate extends Component {
 	constructor() {
 		super();
 		this.state = {
-			signatureOption: false,
-			rateActive: false,
+			signatureOption: false
 		}
-	}
-
-	setRateActive = () => {
-		this.setState( { rateActive: !this.state.rateActive } );
-	}
-
-	setRateInactive = () => {
-		this.setState( { rateActive: false } );
 	}
 
 	setSignatureOption = ( val ) => {
@@ -52,20 +43,21 @@ class ShippingRate extends Component {
 		if ( includedServices.insurance ) {
 			servicesToRender.push( translate( services.insurance, { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
 		}
-		if ( includedServices[ 'signature_required' ] ) {
-			servicesToRender.push( translate( services[ 'signature_required' ] ) );
+		if ( includedServices.signature_required ) {
+			servicesToRender.push( translate( services.signature_required ) );
 		}
-		if ( includedServices['free_pickup'] ) {
-			servicesToRender.push( translate( services[ 'free_pickup' ] ) );
+		if ( includedServices.free_pickup ) {
+			servicesToRender.push( translate( services.free_pickup ) );
 		}
 
 		return servicesToRender.join(', ');
 	}
 
 	render() {
-		const { signatureOption, rateActive } = this.state;
+		const { signatureOption } = this.state;
 		const {
 			rateObject: {
+				rate_id,
 				title,
 				service_id,
 				carrier_id,
@@ -78,6 +70,7 @@ class ShippingRate extends Component {
 			updateValue,
 			signatureRates,
 			includedServices = {},
+			activeRateId
 		} = this.props;
 
 		const services = {
@@ -105,7 +98,7 @@ class ShippingRate extends Component {
 			}
 		) ) );
 
-		if ( includedServices[ 'signature_required' ] ) {
+		if ( includedServices.signature_required  ) {
 			signatureOptions.unshift( {
 				label: translate( 'Signature required (Free)' ),
 				value: 0
@@ -132,6 +125,8 @@ class ShippingRate extends Component {
 				break;
 		}
 
+		const isRateActive = activeRateId === rate_id;
+
 		return(
 			<div className="rates-step__shipping-rate-container" onClick={ this.setRateActive } onBlur={ this.setRateInactive }>
 				<RadioControl
@@ -148,7 +143,7 @@ class ShippingRate extends Component {
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
 							{ this.renderServices( services, includedServices ) }
-							{ rateActive && signatureOptions.length > 1 ? (
+							{ isRateActive && signatureOptions.length > 1 ? (
 								<SelectControl
 									className="rates-step__shipping-rate-description-signature-select"
 									options={ signatureOptions }

@@ -18,6 +18,7 @@ import CarrierLogo from '../carrier-logo';
 configure({ adapter: new Adapter() });
 
 function createShippingRateWrapper( {
+	rateId,
 	title,
 	serviceId,
 	carrierId,
@@ -28,11 +29,13 @@ function createShippingRateWrapper( {
 	tracking,
 	insuranceAmount,
 	freePickup,
-	signatureRequired
+	signatureRequired,
+	activeRateId
 } ) {
 
 	const props = {
 		rateObject: {
+			rate_id: rateId || 'rate_1',
 			title: title || 'test title',
 			service_id: serviceId || 'service_1',
 			carrier_id: carrierId || 'random carrier',
@@ -52,7 +55,8 @@ function createShippingRateWrapper( {
 			insurance: insuranceAmount || 100,
 			free_pickup: freePickup || true,
 			signature_required: signatureRequired || false,
-		}
+		},
+		activeRateId
 	};
 
 	return mount( <ShippingRate { ...props } /> );
@@ -76,25 +80,12 @@ describe( 'ShippingRate', () => {
 			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-description-title">test title</div> );
 		} );
 
-		it( 'renders the signature options when clicked and hides it when focus is lost', () => {
-			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.not.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
-			shippingRateWrapper.simulate( 'click' );
-			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
-			shippingRateWrapper.simulate( 'blur' );
-			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.not.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
-		} );
-
 		it( "renders the rate's amount", () => {
 			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-rate">$10.00</div> );
 		} );
 
 		it( 'renders the delivery date', () => {
 			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">February 1</div> );
-		} );
-
-		it( 'does not render the free signature option', () => {
-			shippingRateWrapper.simulate( 'click' );
-			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-signature-select option' ).at( 0 ) ).to.not.have.text( 'Signature required (Free)' );
 		} );
 
 	} );
@@ -133,12 +124,21 @@ describe( 'ShippingRate', () => {
 			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ).text() ).to.match( listOfServices );
 		} );
 
-		it( 'renders the free signature option when the rate has it', () => {
-			shippingRateWrapper.simulate( 'click' );
-			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-signature-select option' ).at( 0 ) ).to.have.text( 'Signature required (Free)' );
+	} );
+
+	describe( 'when has focus', () => {
+
+		const activeShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1', activeRateId: 'rate_1', signatureRequired: true} );
+		const inactiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_2', activeRateId: 'rate_1'} );
+
+		it( 'displays the signatures section', () => {
+
+			expect( activeShippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
+			expect( activeShippingRateWrapper.find( '.rates-step__shipping-rate-description-signature-select option' ).at( 0 ) ).to.have.text( 'Signature required (Free)' );
+			expect( inactiveShippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.not.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
+
 		} );
 
 	} );
-
 }
 );
