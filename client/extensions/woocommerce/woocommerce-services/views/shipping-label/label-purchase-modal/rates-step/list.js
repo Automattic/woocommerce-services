@@ -33,6 +33,7 @@ const renderRateNotice = translate => {
 
 export const ShippingRates = ( {
 	id,
+	orderId,
 	selectedRates, // Store owner selected rates, not customer
 	availableRates,
 	selectedPackages,
@@ -41,6 +42,7 @@ export const ShippingRates = ( {
 	errors,
 	shouldShowRateNotice,
 	translate,
+	activeRateId
 } ) => {
 	const packageNames = getPackageDescriptions( selectedPackages, allPackages, true );
 	const hasSinglePackage = 1 === Object.keys( selectedPackages ).length;
@@ -67,11 +69,14 @@ export const ShippingRates = ( {
 						const { service_id } = serviceRateObject;
 						return <ShippingRate
 							id={ id + '_' + pckgId }
+							orderId={ orderId }
+							siteId={ siteId }
 							key={ id + '_' + pckgId + '_' + service_id }
 							rateObject={ serviceRateObject }
 							signatureRates={ getSignatureServiceRates( pckgId, service_id, availableRates ) }
 							updateValue={ onRateUpdate }
 							isSelected={ service_id === selectedRate.serviceId }
+							activeRateId={ activeRateId }
 						/>
 					} ) )
 				) }
@@ -93,6 +98,8 @@ export const ShippingRates = ( {
 
 ShippingRates.propTypes = {
 	id: PropTypes.string.isRequired,
+	orderId: PropTypes.number.isRequired,
+	siteId: PropTypes.number.isRequired,
 	selectedRates: PropTypes.object.isRequired,
 	availableRates: PropTypes.object.isRequired,
 	selectedPackages: PropTypes.object.isRequired,

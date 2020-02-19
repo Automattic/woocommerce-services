@@ -4,6 +4,8 @@
  * External dependencies
  */
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { translate, localize, moment } from 'i18n-calypso';
 import { RadioControl, SelectControl } from '@wordpress/components';
@@ -14,6 +16,12 @@ import { mapValues, concat, values } from 'lodash';
  */
 import CarrierLogo from './carrier-logo';
 import formatCurrency from '@automattic/format-currency';
+import {
+	openRateSignatureOptions,
+} from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import {
+	getShippingLabel,
+} from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 class ShippingRate extends Component {
 	constructor() {
@@ -21,6 +29,11 @@ class ShippingRate extends Component {
 		this.state = {
 			signatureOption: false
 		}
+	}
+
+	setRateActive = () => {
+		const { orderId, rateObject: { rate_id } } = this.props;
+		this.props.openRateSignatureOptions( orderId, rate_id );
 	}
 
 	setSignatureOption = ( val ) => {
@@ -35,19 +48,30 @@ class ShippingRate extends Component {
 		updateValue( service_id, val );
 	}
 
-	renderServices( services, includedServices ) {
+	renderServices( carrier_id, includedServices ) {
+
 		const servicesToRender = [];
+
 		if ( includedServices.tracking ) {
-			servicesToRender.push( translate( services.tracking ) );
+			switch ( carrier_id ) {
+				case 'usps':
+					// Ideally this would come from connect-server, but we have no info from EasyPost API
+					// Refer to: https://www.easypost.com/docs/api/node#trackers, specifically
+					// `A Tracker is created automatically whenever you buy a Shipment through EasyPost`
+					servicesToRender.push( translate( 'Includes USPS tracking' ) );
+					break;
+				default:
+					servicesToRender.push( translate( 'Includes tracking' ) );
+			}
 		}
 		if ( includedServices.insurance ) {
-			servicesToRender.push( translate( services.insurance, { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
+			servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
 		}
 		if ( includedServices.signature_required ) {
-			servicesToRender.push( translate( services.signature_required ) );
+			servicesToRender.push( translate( 'Signature required' ) );
 		}
 		if ( includedServices.free_pickup ) {
-			servicesToRender.push( translate( services.free_pickup ) );
+			servicesToRender.push( translate( 'Eligible for free pickup' ) );
 		}
 
 		return servicesToRender.join(', ');
@@ -72,13 +96,6 @@ class ShippingRate extends Component {
 			includedServices = {},
 			activeRateId
 		} = this.props;
-
-		const services = {
-			tracking: 'Includes tracking',
-			insurance: 'Insurance (up to %s)',
-			free_pickup: 'Eligible for free pickup',
-			signature_required: 'Signature required'
-		};
 
 		const defaultOption = {
 			label: translate( 'No signature required' ),
@@ -116,19 +133,10 @@ class ShippingRate extends Component {
 			} );
 		}
 
-		switch ( carrier_id ) {
-			case 'usps':
-				// Ideally this would come from connect-server, but we have no info from EasyPost API
-				// Refer to: https://www.easypost.com/docs/api/node#trackers, specifically
-				// `A Tracker is created automatically whenever you buy a Shipment through EasyPost`
-				services.tracking = translate( 'Includes USPS tracking' );
-				break;
-		}
-
 		const isRateActive = activeRateId === rate_id;
 
 		return(
-			<div className="rates-step__shipping-rate-container" onClick={ this.setRateActive } onBlur={ this.setRateInactive }>
+			<div className="rates-step__shipping-rate-container" onClick={ this.setRateActive } >
 				<RadioControl
 					className="rates-step__shipping-rate-radio-control"
 					selected={ isSelected ? service_id : null }
@@ -142,7 +150,7 @@ class ShippingRate extends Component {
 					<div className="rates-step__shipping-rate-description">
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
-							{ this.renderServices( services, includedServices ) }
+							{ this.renderServices( carrier_id, includedServices ) }
 							{ isRateActive && signatureOptions.length > 1 ? (
 								<SelectControl
 									className="rates-step__shipping-rate-description-signature-select"
@@ -163,7 +171,25 @@ class ShippingRate extends Component {
 }
 
 ShippingRate.propTypes = {
+	orderId: PropTypes.number.isRequired,
+	siteId: PropTypes.number.isRequired,
 	rateObject: PropTypes.object.isRequired,
+	//includedServices: PropTypes.object.isRequired,
+	openRateSignatureOptions: PropTypes.func.isRequired,
 };
 
-export default localize( ShippingRate );
+const mapStateToProps = ( state, { orderId, siteId } ) => {
+	const shippingLabelState = getShippingLabel( state, orderId, siteId );
+	return {
+		activeRateId: shippingLabelState.activeRateId
+	};
+};
+
+const mapDispatchToProps = dispatch => {
+	return bindActionCreators( { openRateSignatureOptions }, dispatch );
+};
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)( localize( ShippingRate ) );

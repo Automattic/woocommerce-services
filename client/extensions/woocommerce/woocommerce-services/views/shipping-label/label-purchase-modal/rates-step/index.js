@@ -183,6 +183,8 @@ const RatesStep = props => {
 			{ ! isEmpty( available ) && showCheckoutShippingInfo( props ) }
 			<ShippingRates
 				id="rates"
+				orderId={ orderId }
+				siteId={ siteId }
 				showRateNotice={ false }
 				selectedPackages={ form.packages.selected }
 				allPackages={ allPackages }

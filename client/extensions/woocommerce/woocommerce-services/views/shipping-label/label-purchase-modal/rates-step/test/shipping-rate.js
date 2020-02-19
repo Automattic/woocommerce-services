@@ -4,6 +4,7 @@
  * External dependencies
  */
 import React from 'react';
+import configureStore from 'redux-mock-store';
 import { expect } from 'chai';
 import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16'
@@ -33,7 +34,28 @@ function createShippingRateWrapper( {
 	activeRateId
 } ) {
 
+	const store = configureStore()( {
+		ui: {
+			selectedSiteId: 'site_1'
+		},
+		extensions: {
+			woocommerce: {
+				woocommerceServices: {
+					10: {
+						shippingLabel: {
+							1000: {
+								activeRateId: 'rate_1'
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+
 	const props = {
+		orderId: 1000,
+		siteId: 10,
 		rateObject: {
 			rate_id: rateId || 'rate_1',
 			title: title || 'test title',
@@ -59,7 +81,7 @@ function createShippingRateWrapper( {
 		activeRateId
 	};
 
-	return mount( <ShippingRate { ...props } /> );
+	return mount( <ShippingRate { ...props } store={ store } /> );
 }
 
 describe( 'ShippingRate', () => {

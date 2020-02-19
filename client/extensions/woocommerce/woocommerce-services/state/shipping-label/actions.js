@@ -112,6 +112,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_VALUE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_RATE_SIGNATURE_OPTIONS,
 } from '../action-types.js';
 
 const PRINTING_FAILED_NOTICE_ID = 'label-image-download-failed';
@@ -1285,4 +1286,13 @@ export const openDetailsDialog = ( orderId, siteId, labelId ) => {
 
 export const closeDetailsDialog = ( orderId, siteId ) => {
 	return { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG, orderId, siteId };
+};
+
+
+export const openRateSignatureOptions = ( orderId, rateId ) => {
+	return {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_RATE_SIGNATURE_OPTIONS,
+		orderId,
+		rateId,
+	};
 };
