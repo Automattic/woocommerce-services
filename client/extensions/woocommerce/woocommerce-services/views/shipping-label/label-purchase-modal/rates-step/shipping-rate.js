@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { translate, localize, moment } from 'i18n-calypso';
-import { RadioControl, SelectControl } from '@wordpress/components';
+import { CheckboxControl, RadioControl } from '@wordpress/components';
 import { mapValues, concat, values } from 'lodash';
 
 /**
@@ -31,9 +31,14 @@ class ShippingRate extends Component {
 		}
 	}
 
-	setRateActive = () => {
+	onRateClicked = () => {
 		const { orderId, rateObject: { rate_id } } = this.props;
 		this.props.openRateSignatureOptions( orderId, rate_id );
+	}
+
+	onSignatureChecked = ( isChecked, i ) => {
+		this.setState( { selectedSignature: isChecked ? i : null } );
+		console.debug( 'state', this.state );
 	}
 
 	setSignatureOption = ( val ) => {
@@ -48,7 +53,7 @@ class ShippingRate extends Component {
 		updateValue( service_id, val );
 	}
 
-	renderServices( carrier_id, includedServices ) {
+	renderServices( carrier_id, signatureOptions, includedServices ) {
 
 		const servicesToRender = [];
 
@@ -67,7 +72,7 @@ class ShippingRate extends Component {
 		if ( includedServices.insurance ) {
 			servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
 		}
-		if ( includedServices.signature_required ) {
+		if ( signatureOptions.filter( signatureOption => signatureOption.free ).length > 0 ) {
 			servicesToRender.push( translate( 'Signature required' ) );
 		}
 		if ( includedServices.free_pickup ) {
@@ -75,6 +80,12 @@ class ShippingRate extends Component {
 		}
 
 		return servicesToRender.join(', ');
+	}
+
+	renderSignatureOptions( signatureOptions ) {
+		return ( signatureOptions.map( ( signatureOption, i ) => {
+			return <CheckboxControl key={ i } name={ `signature_option_${i}` } label={ signatureOption.label } checked={ this.state.selectedSignature === i } onChange={ isChecked => this.onSignatureChecked( isChecked, i ) } />;
+		} ) );
 	}
 
 	render() {
@@ -97,12 +108,7 @@ class ShippingRate extends Component {
 			activeRateId
 		} = this.props;
 
-		const defaultOption = {
-			label: translate( 'No signature required' ),
-			value: false,
-		};
-
-		const signatureOptions = concat( defaultOption, values(
+		const signatureOptions = values(
 			mapValues( signatureRates, ( r, key ) => {
 				const priceString = ( 0 === r.optionNetCost ) ? translate( 'free' ) :
 					translate( '+%s', { args: [ formatCurrency( r.optionNetCost, 'USD') ] } );
@@ -111,16 +117,10 @@ class ShippingRate extends Component {
 						args: { label: r.label, price: priceString },
 					} ),
 					value: key,
+					free: 'free' === priceString,
 				};
-			}
-		) ) );
-
-		if ( includedServices.signature_required  ) {
-			signatureOptions.unshift( {
-				label: translate( 'Signature required (Free)' ),
-				value: 0
-			} );
-		}
+			} )
+		);
 
 		let deliveryDateMessage = '';
 
@@ -136,7 +136,7 @@ class ShippingRate extends Component {
 		const isRateActive = activeRateId === rate_id;
 
 		return(
-			<div className="rates-step__shipping-rate-container" onClick={ this.setRateActive } >
+			<div className="rates-step__shipping-rate-container" onClick={ this.onRateClicked } >
 				<RadioControl
 					className="rates-step__shipping-rate-radio-control"
 					selected={ isSelected ? service_id : null }
@@ -150,13 +150,9 @@ class ShippingRate extends Component {
 					<div className="rates-step__shipping-rate-description">
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
-							{ this.renderServices( carrier_id, includedServices ) }
+							{ this.renderServices( carrier_id, signatureOptions, includedServices ) }
 							{ isRateActive && signatureOptions.length > 1 ? (
-								<SelectControl
-									className="rates-step__shipping-rate-description-signature-select"
-									options={ signatureOptions }
-									onChange={ this.setSignatureOption }
-								/>
+								this.renderSignatureOptions( signatureOptions )
 							) : null }
 						</div>
 					</div>

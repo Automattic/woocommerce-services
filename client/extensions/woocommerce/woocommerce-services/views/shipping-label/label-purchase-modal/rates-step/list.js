@@ -34,6 +34,7 @@ const renderRateNotice = translate => {
 export const ShippingRates = ( {
 	id,
 	orderId,
+	siteId,
 	selectedRates, // Store owner selected rates, not customer
 	availableRates,
 	selectedPackages,

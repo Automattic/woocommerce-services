@@ -8,7 +8,7 @@ import configureStore from 'redux-mock-store';
 import { expect } from 'chai';
 import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16'
-import { RadioControl } from '@wordpress/components';
+import { CheckboxControl, RadioControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -17,6 +17,16 @@ import ShippingRate from '../shipping-rate';
 import CarrierLogo from '../carrier-logo';
 
 configure({ adapter: new Adapter() });
+
+const signatureRequiredRate = {
+	optionNetCost: 0,
+	label: 'Signature required'
+};
+
+const adultSignatureRequiredRate = {
+	optionNetCost: 3,
+	label: 'Adult Signature required'
+};
 
 function createShippingRateWrapper( {
 	rateId,
@@ -30,7 +40,7 @@ function createShippingRateWrapper( {
 	tracking,
 	insuranceAmount,
 	freePickup,
-	signatureRequired,
+	signatureRates,
 	activeRateId
 } ) {
 
@@ -66,17 +76,14 @@ function createShippingRateWrapper( {
 			delivery_date_guaranteed: deliveryDateGuaranteed || true,
 			delivery_date: deliveryDate || new Date(2020, 1, 1),
 		},
-		signatureRates: {
-			rate1: {
-				optionNetCost: 3,
-				label: 'signature rate 1'
-			}
+		signatureRates: signatureRates || {
+			rate1: signatureRequiredRate,
+			rate2: adultSignatureRequiredRate
 		},
 		includedServices: {
 			tracking: tracking || true,
 			insurance: insuranceAmount || 100,
 			free_pickup: freePickup || true,
-			signature_required: signatureRequired || false,
 		},
 		activeRateId
 	};
@@ -115,7 +122,7 @@ describe( 'ShippingRate', () => {
 
 	describe( 'for regular carriers', () => {
 
-		const shippingRateWrapper = createShippingRateWrapper( { carrierId: 'not usps' } );
+		const shippingRateWrapper = createShippingRateWrapper( { carrierId: 'not usps', signatureRates: { rate2: adultSignatureRequiredRate } } );
 
 		it( 'displays included tracking in the list of services', () => {
 			const listOfServices = /Includes tracking, Insurance \(up to \$100.00\), Eligible for free pickup/;
@@ -126,7 +133,7 @@ describe( 'ShippingRate', () => {
 
 	describe( 'for USPS carriers', () => {
 
-		const shippingRateWrapper = createShippingRateWrapper( { carrierId: 'usps' } );
+		const shippingRateWrapper = createShippingRateWrapper( { carrierId: 'usps', signatureRates: { rate2: adultSignatureRequiredRate } } );
 
 		it( 'displays USPS included tracking in the list of services', () => {
 			const listOfServices = /Includes USPS tracking, Insurance \(up to \$100.00\), Eligible for free pickup/;
@@ -138,7 +145,7 @@ describe( 'ShippingRate', () => {
 
 	describe( 'for rates with signature required', () => {
 
-		const shippingRateWrapper = createShippingRateWrapper( { signatureRequired: true } );
+		const shippingRateWrapper = createShippingRateWrapper( { signatureRates: { rate1: signatureRequiredRate } } );
 
 		it( 'renders an abreviated list of services, including "Signature required"', () => {
 			const listOfServices = /Includes tracking, Insurance \(up to \$100.00\), Signature required, Eligible for free pickup/;
@@ -148,18 +155,42 @@ describe( 'ShippingRate', () => {
 
 	} );
 
-	describe( 'when has focus', () => {
+	describe( 'for a list of rates', () => {
 
-		const activeShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1', activeRateId: 'rate_1', signatureRequired: true} );
-		const inactiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_2', activeRateId: 'rate_1'} );
+		const activeShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1'} ).find( 'ShippingRate' );
+		const inactiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_2'} ).find( 'ShippingRate' );
 
-		it( 'displays the signatures section', () => {
+		describe( 'when one of them is selected', () => {
 
-			expect( activeShippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
-			expect( activeShippingRateWrapper.find( '.rates-step__shipping-rate-description-signature-select option' ).at( 0 ) ).to.have.text( 'Signature required (Free)' );
-			expect( inactiveShippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.not.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
+			activeShippingRateWrapper.simulate( 'click' );
+			const shippingRateWrapperDetails = activeShippingRateWrapper.find( '.rates-step__shipping-rate-description-details' );
+			const freeSignatureCheckbox = shippingRateWrapperDetails.find( CheckboxControl ).at( 0 );
+			const adultSignatureCheckbox = shippingRateWrapperDetails.find( CheckboxControl ).at( 1 );
 
-		} );
+			it( 'the signatures section is displayed only for the selected rate', () => {
+				expect( inactiveShippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ) ).to.not.have.descendants( '.rates-step__shipping-rate-description-signature-select' );
+				expect( freeSignatureCheckbox.prop( 'label' ) ).to.equal( 'Signature required (free)' );
+				expect( adultSignatureCheckbox.prop( 'label' ) ).to.equal( 'Adult Signature required (+$3.00)' );
+				expect( shippingRateWrapperDetails.find( CheckboxControl ) ).to.have.lengthOf( 2 );
+			} );
+
+			describe( 'the selected one checkboxes', () => {
+
+				it( 'behave as radio buttons', () => {
+					expect( freeSignatureCheckbox.prop( 'checked' ) ).to.equal( false );
+					expect( adultSignatureCheckbox.prop( 'checked' ) ).to.equal( false );
+
+					freeSignatureCheckbox.prop( 'onChange' )( true );
+					activeShippingRateWrapper.update();
+					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( 0 );
+
+					adultSignatureCheckbox.prop( 'onChange' )( true );
+					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( 1 );
+				} );
+
+			} )
+
+		} )
 
 	} );
 }
