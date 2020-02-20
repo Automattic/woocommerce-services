@@ -38,7 +38,6 @@ class ShippingRate extends Component {
 
 	onSignatureChecked = ( isChecked, i ) => {
 		this.setState( { selectedSignature: isChecked ? i : null } );
-		console.debug( 'state', this.state );
 	}
 
 	setSignatureOption = ( val ) => {
