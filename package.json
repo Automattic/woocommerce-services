@@ -15,7 +15,7 @@
     "i18njson": "node tasks/i18njson",
     "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
     "woorelease": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
-    "test:e2e": "./tests/bin/e2e-test-integration.js",
+    "test:e2e": "JEST_PUPPETEER_CONFIG=tests/e2e-tests/jest-puppeteer.config.js jest --config tests/e2e-tests/jest.config.js --verbose --runInBand",
     "test:e2e-travis": "./tests/bin/run-e2e-travis.sh"
   },
   "repository": {
@@ -25,6 +25,8 @@
   "license": "GPL-2.0",
   "description": "Connect allthethings",
   "devDependencies": {
+    "@slack/web-api": "^5.0.1",
+    "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "@wordpress/e2e-test-utils": "^2.4.1",
     "archiver": "^1.3.0",
     "babel-jest": "24.7.1",
@@ -39,9 +41,9 @@
     "enzyme-to-json": "3.3.5",
     "file-loader": "^4.2.0",
     "globby": "^6.1.0",
-    "nock": "10.0.6",
     "jest": "^24.9.0",
     "jest-puppeteer": "^4.3.0",
+    "nock": "10.0.6",
     "po2json": "^0.4.5",
     "puppeteer": "^1.20.0",
     "shelljs": "^0.7.6",

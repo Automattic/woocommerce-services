@@ -194,6 +194,10 @@ PHP
 
 		# Copying contents of services branch manually, since unable to download a private repo zip
 		cp -r $WORKING_DIR/woocommerce-services $WP_CORE_DIR/wp-content/plugins/
+
+		# Creates the WC REST API credentials
+		php wp-cli.phar eval-file "$WP_CORE_DIR/wp-content/plugins/woocommerce-services/tests/bin/wc_rest_api_credentials.php"
+
 		cd $WP_CORE_DIR/wp-content/plugins/woocommerce-services
 
 		# Copy testing helper plugin to wordpress plugins folder
@@ -209,6 +213,8 @@ PHP
 		php wp-cli.phar option update jetpack_tos_agreed 1
 
 		php wp-cli.phar option update wc_connect_options '{"tos_accepted": true }' --format=json
+
+		php wp-cli.phar transient set wcc_is_new_label_user false
 
 		cd "$WORKING_DIR"
 

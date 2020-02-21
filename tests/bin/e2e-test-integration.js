@@ -27,10 +27,6 @@ const testEnvVars = {
 	NODE_CONFIG_DIR: 'tests/e2e-tests/config',
 };
 
-if ( program.dev ) {
-	testEnvVars.JEST_PUPPETEER_CONFIG = 'tests/e2e-tests/config/jest-puppeteer.dev.config.js';
-}
-
 const envVars = Object.assign( {}, process.env, testEnvVars );
 
 spawn(
