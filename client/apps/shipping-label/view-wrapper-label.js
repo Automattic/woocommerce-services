@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
 import Gridicon from 'gridicons';
-import { sumBy, differenceBy, filter } from 'lodash';
+import { sumBy, differenceBy, filter, maxBy } from 'lodash';
 
 /**
  * Internal dependencies
@@ -39,6 +39,7 @@ import {
 	isOrderLoaded,
 	isOrderLoading
  } from '../../extensions/woocommerce/state/sites/orders/selectors';
+import { withLocalizedMoment } from 'components/localized-moment';
 
 class ShippingLabelViewWrapper extends Component {
 	static propTypes = {
@@ -53,11 +54,10 @@ class ShippingLabelViewWrapper extends Component {
 		}
 	}
 
-	renderLabelButton = () => {
+	renderLabelButton = ( activeLabels, productsPackaged ) => {
 		const {
 			loaded,
 			translate,
-			events,
 			items,
 		} = this.props;
 
@@ -80,11 +80,6 @@ class ShippingLabelViewWrapper extends Component {
 
 		// eslint-disable-next-line no-undef
 		if ( wcConnectData.wcs_server_connection ) {
-
-			const labels = filter( events, { type: 'LABEL_PURCHASED' } );
-			const refunds = filter( events, { type: 'LABEL_REFUND_REQUESTED' } );
-			const activeLabels = differenceBy( labels, refunds, "labelIndex" );
-			const productsPackaged = sumBy( activeLabels, (l) => l.productNames.length );
 
 			// If there are no purchased labels, just show Create labels button
 			if ( ! activeLabels.length ) {
@@ -181,21 +176,69 @@ class ShippingLabelViewWrapper extends Component {
 			labelsEnabled,
 			items,
 			translate,
+			events,
+			moment,
 		} = this.props;
 
 		const shouldRenderButton = ! loaded || labelsEnabled;
 
+		const labels = filter( events, { type: 'LABEL_PURCHASED' } );
+		const refunds = filter( events, { type: 'LABEL_REFUND_REQUESTED' } );
+		const activeLabels = differenceBy( labels, refunds, "labelIndex" );
+		const productsPackaged = sumBy( activeLabels, (l) => l.productNames.length );
+
+		// Calculate if order fulfilled and find latest date.
+		let orderFulfilled = false;
+		let createdDate;
+		if ( activeLabels.length > 0 && items <= productsPackaged ) {
+			orderFulfilled = true;
+			const latestLabel = maxBy( activeLabels, 'createdDate' );
+			const createdMoment = moment( latestLabel.createdDate );
+			createdDate = createdMoment.format( 'll' );
+		}
+
 		return (
 			<div className="shipping-label__container">
-				<div>
+				<div className="shipping-label__banner-fulfilled-message">
 					<Gridicon size={36} icon="shipping" />
-					<em>{ items + ' ' + translate( 'item is ready for shipment', 'items are ready for shipment', { count: items } ) }</em>
+					{ loaded && ( orderFulfilled ?
+							(
+								<em>
+									{ translate(
+										'%(itemCount)d item was fulfilled on {{span}}%(createdDate)s{{/span}}',
+										'%(itemCount)d items were fulfilled on {{span}}%(createdDate)s{{/span}}',
+										{
+											count: items,
+											args: {
+												createdDate,
+												itemCount: items,
+											},
+											components: {
+												span: <span className="shipping-label__banner-fulfilled-date" />,
+											},
+										}
+									) }
+								</em>
+						) : (
+								<em>
+									{ translate(
+										'%(itemCount)d item is ready to be fulfilled',
+										'%(itemCount)d items are ready to be fulfilled',
+										{
+											count: items,
+											args: {
+												itemCount: items,
+											},
+										}
+									) }
+								</em> )
+					) }
 				</div>
 				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />
 					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 					<TrackingModal orderId={ orderId } siteId={ siteId } />
-					{ shouldRenderButton && this.renderLabelButton() }
+					{ shouldRenderButton && this.renderLabelButton( activeLabels, productsPackaged ) }
 				</div>
 			</div>
 		);
@@ -228,4 +271,4 @@ export default connect(
 			fetchOrder,
 		}, dispatch ),
 	} ),
-)( localize( ShippingLabelViewWrapper ) );
+)( localize( withLocalizedMoment( ShippingLabelViewWrapper ) ) );
