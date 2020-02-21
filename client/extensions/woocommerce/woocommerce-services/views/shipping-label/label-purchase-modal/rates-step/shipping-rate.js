@@ -9,7 +9,7 @@ import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { translate, localize, moment } from 'i18n-calypso';
 import { CheckboxControl, RadioControl } from '@wordpress/components';
-import { mapValues, concat, values } from 'lodash';
+import { mapValues, values } from 'lodash';
 
 /**
  * Internal dependencies
@@ -36,20 +36,11 @@ class ShippingRate extends Component {
 		this.props.openRateSignatureOptions( orderId, rate_id );
 	}
 
-	onSignatureChecked = ( isChecked, i ) => {
-		this.setState( { selectedSignature: isChecked ? i : null } );
-	}
-
-	setSignatureOption = ( val ) => {
-		const {
-			rateObject: {
-				service_id,
-			},
-			updateValue,
-		} = this.props;
-
-		this.setState( { signatureOption: val } );
-		updateValue( service_id, val );
+	onSignatureChecked = ( isChecked, i, signatureOption ) => {
+		const { rateObject: { service_id }, updateValue } = this.props;
+		const selectedSignature = isChecked ? { id: i, value: signatureOption.netCost } : null;
+		this.setState( { selectedSignature } );
+		updateValue( service_id, signatureOption.value );
 	}
 
 	renderServices( carrier_id, signatureOptions, includedServices ) {
@@ -71,7 +62,7 @@ class ShippingRate extends Component {
 		if ( includedServices.insurance ) {
 			servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
 		}
-		if ( signatureOptions.filter( signatureOption => signatureOption.free ).length > 0 ) {
+		if ( signatureOptions.filter( signatureOption => 0 === signatureOption.netCost ).length > 0 ) {
 			servicesToRender.push( translate( 'Signature required' ) );
 		}
 		if ( includedServices.free_pickup ) {
@@ -83,12 +74,16 @@ class ShippingRate extends Component {
 
 	renderSignatureOptions( signatureOptions ) {
 		return ( signatureOptions.map( ( signatureOption, i ) => {
-			return <CheckboxControl key={ i } name={ `signature_option_${i}` } label={ signatureOption.label } checked={ this.state.selectedSignature === i } onChange={ isChecked => this.onSignatureChecked( isChecked, i ) } />;
+			return <CheckboxControl
+						key={ i }
+						name={ `signature_option_${i}` }
+						label={ signatureOption.label }
+						checked={ !!this.state.selectedSignature && this.state.selectedSignature.id === i }
+						onChange={ isChecked => this.onSignatureChecked( isChecked, i, signatureOption ) } />;
 		} ) );
 	}
 
 	render() {
-		const { signatureOption } = this.state;
 		const {
 			rateObject: {
 				rate_id,
@@ -106,6 +101,7 @@ class ShippingRate extends Component {
 			includedServices = {},
 			activeRateId
 		} = this.props;
+		const { selectedSignature } = this.state;
 
 		const signatureOptions = values(
 			mapValues( signatureRates, ( r, key ) => {
@@ -116,7 +112,7 @@ class ShippingRate extends Component {
 						args: { label: r.label, price: priceString },
 					} ),
 					value: key,
-					free: 'free' === priceString,
+					netCost: r.optionNetCost,
 				};
 			} )
 		);
@@ -134,6 +130,8 @@ class ShippingRate extends Component {
 
 		const isRateActive = activeRateId === rate_id;
 
+		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.value : rate;
+
 		return(
 			<div className="rates-step__shipping-rate-container" onClick={ this.onRateClicked } >
 				<RadioControl
@@ -142,7 +140,7 @@ class ShippingRate extends Component {
 					options={ [
 						{ label: '', value: service_id },
 					] }
-					onChange={ () => { updateValue( service_id, signatureOption ) } }
+					onChange={ () => { updateValue( service_id, false ) } }
 				/>
 				<CarrierLogo carrier_id={ carrier_id }/>
 				<div className="rates-step__shipping-rate-information">
@@ -156,7 +154,7 @@ class ShippingRate extends Component {
 						</div>
 					</div>
 					<div className="rates-step__shipping-rate-details">
-						<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
+						<div className="rates-step__shipping-rate-rate">{ formatCurrency( ratePlusSignatureCost, 'USD' ) }</div>
 						<div className="rates-step__shipping-rate-delivery-date">{ deliveryDateMessage }</div>
 					</div>
 				</div>

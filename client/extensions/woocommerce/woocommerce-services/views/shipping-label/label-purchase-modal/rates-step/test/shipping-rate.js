@@ -71,7 +71,7 @@ function createShippingRateWrapper( {
 			title: title || 'test title',
 			service_id: serviceId || 'service_1',
 			carrier_id: carrierId || 'random carrier',
-			rate: rateAmount || '10',
+			rate: rateAmount || 10,
 			delivery_days: deliveryDays || '2',
 			delivery_date_guaranteed: deliveryDateGuaranteed || true,
 			delivery_date: deliveryDate || new Date(2020, 1, 1),
@@ -85,7 +85,8 @@ function createShippingRateWrapper( {
 			insurance: insuranceAmount || 100,
 			free_pickup: freePickup || true,
 		},
-		activeRateId
+		activeRateId,
+		updateValue() {}
 	};
 
 	return mount( <ShippingRate { ...props } store={ store } /> );
@@ -157,7 +158,8 @@ describe( 'ShippingRate', () => {
 
 	describe( 'for a list of rates', () => {
 
-		const activeShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1'} ).find( 'ShippingRate' );
+		const connectedActiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1'} );
+		const activeShippingRateWrapper = connectedActiveShippingRateWrapper.find( 'ShippingRate' );
 		const inactiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_2'} ).find( 'ShippingRate' );
 
 		describe( 'when one of them is selected', () => {
@@ -177,15 +179,19 @@ describe( 'ShippingRate', () => {
 			describe( 'the selected one checkboxes', () => {
 
 				it( 'behave as radio buttons', () => {
-					expect( freeSignatureCheckbox.prop( 'checked' ) ).to.equal( false );
-					expect( adultSignatureCheckbox.prop( 'checked' ) ).to.equal( false );
-
+					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( undefined );
 					freeSignatureCheckbox.prop( 'onChange' )( true );
 					activeShippingRateWrapper.update();
-					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( 0 );
+					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 0, value: 0 } );
 
 					adultSignatureCheckbox.prop( 'onChange' )( true );
-					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( 1 );
+					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 1, value: 3 } );
+				} );
+
+				it( "add its amount to the rate's total amount", () => {
+					adultSignatureCheckbox.prop( 'onChange' )( true );
+					activeShippingRateWrapper.update();
+					expect( activeShippingRateWrapper.find('.rates-step__shipping-rate-rate').text() ).to.equal( '$13.00' );
 				} );
 
 			} )
