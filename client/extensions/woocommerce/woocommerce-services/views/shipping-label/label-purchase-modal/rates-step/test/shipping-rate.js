@@ -4,7 +4,6 @@
  * External dependencies
  */
 import React from 'react';
-import configureStore from 'redux-mock-store';
 import { expect } from 'chai';
 import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16'
@@ -41,27 +40,8 @@ function createShippingRateWrapper( {
 	insuranceAmount,
 	freePickup,
 	signatureRates,
-	activeRateId
+	isSelected,
 } ) {
-
-	const store = configureStore()( {
-		ui: {
-			selectedSiteId: 'site_1'
-		},
-		extensions: {
-			woocommerce: {
-				woocommerceServices: {
-					10: {
-						shippingLabel: {
-							1000: {
-								activeRateId: 'rate_1'
-							}
-						}
-					}
-				}
-			}
-		}
-	});
 
 	const props = {
 		orderId: 1000,
@@ -75,21 +55,19 @@ function createShippingRateWrapper( {
 			delivery_days: deliveryDays || '2',
 			delivery_date_guaranteed: deliveryDateGuaranteed || true,
 			delivery_date: deliveryDate || new Date(2020, 1, 1),
+			tracking: tracking || true,
+			insurance: insuranceAmount || 100,
+			free_pickup: freePickup || true,
 		},
 		signatureRates: signatureRates || {
 			rate1: signatureRequiredRate,
 			rate2: adultSignatureRequiredRate
 		},
-		includedServices: {
-			tracking: tracking || true,
-			insurance: insuranceAmount || 100,
-			free_pickup: freePickup || true,
-		},
-		activeRateId,
-		updateValue() {}
+		updateValue() {},
+		isSelected: isSelected || true
 	};
 
-	return mount( <ShippingRate { ...props } store={ store } /> );
+	return mount( <ShippingRate { ...props } /> );
 }
 
 describe( 'ShippingRate', () => {
@@ -158,9 +136,8 @@ describe( 'ShippingRate', () => {
 
 	describe( 'for a list of rates', () => {
 
-		const connectedActiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1'} );
-		const activeShippingRateWrapper = connectedActiveShippingRateWrapper.find( 'ShippingRate' );
-		const inactiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_2'} ).find( 'ShippingRate' );
+		const activeShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_1'} );
+		const inactiveShippingRateWrapper = createShippingRateWrapper( { rateId: 'rate_2', isSelected: false} );
 
 		describe( 'when one of them is selected', () => {
 
@@ -179,10 +156,9 @@ describe( 'ShippingRate', () => {
 			describe( 'the selected one checkboxes', () => {
 
 				it( 'behave as radio buttons', () => {
-					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( undefined );
+					expect( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( undefined );
 					freeSignatureCheckbox.prop( 'onChange' )( true );
-					activeShippingRateWrapper.update();
-					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 0, value: 0 } );
+					expect( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 0, value: 0 } );
 
 					adultSignatureCheckbox.prop( 'onChange' )( true );
 					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 1, value: 3 } );

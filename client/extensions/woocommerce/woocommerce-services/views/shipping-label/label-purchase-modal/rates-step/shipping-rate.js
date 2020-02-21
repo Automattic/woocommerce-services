@@ -16,12 +16,6 @@ import { mapValues, values } from 'lodash';
  */
 import CarrierLogo from './carrier-logo';
 import formatCurrency from '@automattic/format-currency';
-import {
-	openRateSignatureOptions,
-} from 'woocommerce/woocommerce-services/state/shipping-label/actions';
-import {
-	getShippingLabel,
-} from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 class ShippingRate extends Component {
 	constructor() {
@@ -29,11 +23,6 @@ class ShippingRate extends Component {
 		this.state = {
 			signatureOption: false
 		}
-	}
-
-	onRateClicked = () => {
-		const { orderId, rateObject: { rate_id } } = this.props;
-		this.props.openRateSignatureOptions( orderId, rate_id );
 	}
 
 	onSignatureChecked = ( isChecked, i, signatureOption ) => {
@@ -94,12 +83,13 @@ class ShippingRate extends Component {
 				delivery_days,
 				delivery_date_guaranteed,
 				delivery_date,
+				tracking,
+				insurance,
+				free_pickup,
 			},
 			isSelected,
 			updateValue,
 			signatureRates,
-			includedServices = {},
-			activeRateId
 		} = this.props;
 		const { selectedSignature } = this.state;
 
@@ -128,12 +118,10 @@ class ShippingRate extends Component {
 			} );
 		}
 
-		const isRateActive = activeRateId === rate_id;
-
 		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.value : rate;
 
 		return(
-			<div className="rates-step__shipping-rate-container" onClick={ this.onRateClicked } >
+			<div className="rates-step__shipping-rate-container" >
 				<RadioControl
 					className="rates-step__shipping-rate-radio-control"
 					selected={ isSelected ? service_id : null }
@@ -147,8 +135,8 @@ class ShippingRate extends Component {
 					<div className="rates-step__shipping-rate-description">
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
-							{ this.renderServices( carrier_id, signatureOptions, includedServices ) }
-							{ isRateActive && signatureOptions.length > 1 ? (
+							{ this.renderServices( carrier_id, signatureOptions, { tracking, insurance, free_pickup } ) }
+							{ isSelected && signatureOptions.length > 1 ? (
 								this.renderSignatureOptions( signatureOptions )
 							) : null }
 						</div>
@@ -164,25 +152,20 @@ class ShippingRate extends Component {
 }
 
 ShippingRate.propTypes = {
-	orderId: PropTypes.number.isRequired,
-	siteId: PropTypes.number.isRequired,
-	rateObject: PropTypes.object.isRequired,
-	//includedServices: PropTypes.object.isRequired,
-	openRateSignatureOptions: PropTypes.func.isRequired,
+	rateObject: PropTypes.shape({
+		rate_id: PropTypes.string.isRequired,
+		title: PropTypes.string.isRequired,
+		service_id: PropTypes.string.isRequired,
+		carrier_id: PropTypes.string.isRequired,
+		rate: PropTypes.number.isRequired,
+		delivery_days: PropTypes.string,
+		delivery_date_guaranteed: PropTypes.bool,
+		delivery_date: PropTypes.instanceOf( Date ),
+		tracking: PropTypes.book,
+		insurance: PropTypes.number,
+		free_pickup: PropTypes.book,
+	}).isRequired,
+	signatureRates: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = ( state, { orderId, siteId } ) => {
-	const shippingLabelState = getShippingLabel( state, orderId, siteId );
-	return {
-		activeRateId: shippingLabelState.activeRateId
-	};
-};
-
-const mapDispatchToProps = dispatch => {
-	return bindActionCreators( { openRateSignatureOptions }, dispatch );
-};
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)( localize( ShippingRate ) );
+export default ShippingRate;

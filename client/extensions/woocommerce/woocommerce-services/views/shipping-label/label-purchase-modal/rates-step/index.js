@@ -33,6 +33,7 @@ import { getOrderShippingTotal } from 'woocommerce/lib/order-values/totals';
 import { getOrderShippingMethod } from 'woocommerce/lib/order-values';
 import { getOrder } from 'woocommerce/state/sites/orders/selectors';
 
+
 const ratesSummary = ( selectedRates, availableRates, total, packagesSaved, translate ) => {
 	if ( ! packagesSaved ) {
 		return translate( 'Unsaved changes made to packages' );
@@ -210,13 +211,13 @@ RatesStep.propTypes = {
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const loaded = isLoaded( state, orderId, siteId );
-	const shippingLabel = getShippingLabel( state, orderId, siteId );
+	const shippingLabelState = getShippingLabel( state, orderId, siteId );
 	const priceBreakdown = getTotalPriceBreakdown( state, orderId, siteId );
 	const order = getOrder( state, orderId, siteId );
 
 	return {
-		...shippingLabel.form.rates,
-		form: shippingLabel.form,
+		...shippingLabelState.form.rates,
+		form: shippingLabelState.form,
 		errors: loaded && getFormErrors( state, orderId, siteId ).rates,
 		ratesTotal: priceBreakdown ? priceBreakdown.total : 0,
 		allPackages: getAllPackageDefinitions( state, siteId ),
