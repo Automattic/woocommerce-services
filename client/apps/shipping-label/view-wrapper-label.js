@@ -97,7 +97,7 @@ class ShippingLabelViewWrapper extends Component {
 			}
 
 			// If not all items are packaged (but some are, per condition above), show both buttons
-			if ( productsPackaged !== items ) {
+			if ( productsPackaged < items ) {
 				return (
 					<div className="shipping-label__multiple-buttons-container">
 						<Button
