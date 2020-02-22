@@ -41,13 +41,13 @@ const ItemInfo = props => {
 		<div key={ itemIndex } className="packages-step__item">
 			<div className="packages-step__item-name">
 				<span>{ productLink }</span>
-				{ item.attributes && <p>{ item.attributes }</p> }
+				{ 'attributes' in item ? <p>{ item.attributes }</p> : '' }
 			</div>
 			<div className="packages-step__item-weight">
-				{ item.weight && <p>{ item.weight }</p> }
+				{ 'weight' in item ? <p>{ item.weight }</p> : '' }
 			</div>
 			<div className="packages-step__item-qty">
-				{ item.quantity && <p>{ item.quantity }</p> }
+				{ 'quantity' in item ? <p>{ item.quantity }</p> : '' }
 			</div>
 			<div className="packages-step__item-move">
 				{ renderMoveToPackage() }
