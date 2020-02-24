@@ -26,7 +26,11 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$shipping_tabs = array();
 			}
 
-			$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Services', 'woocommerce-services' );
+			// Remove "WooCommerce Service" from shipping tabs if it's not connected.
+			if ( WC_Connect_Jetpack::is_active() ) {
+				$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Services', 'woocommerce-services' );
+			}
+
 			return $shipping_tabs;
 		}
 
