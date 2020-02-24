@@ -1405,6 +1405,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'nonce'                 => wp_create_nonce( 'wp_rest' ),
 				'baseURL'               => get_rest_url(),
 				'wcs_server_connection' => $is_alive,
+				'jetpack_status' => $this->nux->get_jetpack_install_status()
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );

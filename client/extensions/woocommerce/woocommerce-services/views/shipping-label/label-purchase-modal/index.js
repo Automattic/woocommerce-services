@@ -38,7 +38,7 @@ const LabelPurchaseModal = props => {
 
 
 	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
-	const hasJetpackAccount = false;
+	const hasJetpackAccount = wcConnectData.jetpack_status === "connected" || wcConnectData.jetpack_status === "dev";
 
 	const labelPurchaseBody = () => {
 		return (
@@ -75,7 +75,7 @@ const LabelPurchaseModal = props => {
 				<TextField
 					id="email"
 					title="Email address"
-					value="Email address"
+					value="Email "
 				/>
 
 				<TextField
