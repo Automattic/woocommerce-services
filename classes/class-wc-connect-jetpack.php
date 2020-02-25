@@ -31,6 +31,10 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_staging_site() {
+			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_staging_site' ) ) {
+				return ( new \Automattic\Jetpack\Status )->is_staging_site();
+			}
+
 			if ( method_exists( 'Jetpack', 'is_staging_site' ) ) {
 				return Jetpack::is_staging_site();
 			}
