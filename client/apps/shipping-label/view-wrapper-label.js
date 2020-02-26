@@ -41,7 +41,7 @@ import {
  } from '../../extensions/woocommerce/state/sites/orders/selectors';
 import { withLocalizedMoment } from 'components/localized-moment';
 
-class ShippingLabelViewWrapper extends Component {
+export class ShippingLabelViewWrapper extends Component {
 	static propTypes = {
 		orderId: PropTypes.number.isRequired,
 	};
