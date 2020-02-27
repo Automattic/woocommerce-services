@@ -155,12 +155,6 @@ class ShippingLabelViewWrapper extends Component {
 			orderId,
 			siteId,
 		} = this.props;
-
-		// We don't support automatically emailing the customer
-		// or marking the order as fulfilled
-		// once the order is fulfilled
-		this.props.setEmailDetailsOption( orderId, siteId, false );
-		this.props.setFulfillOrderOption( orderId, siteId, false );
 		this.props.openPrintingFlow( orderId, siteId );
 	};
 

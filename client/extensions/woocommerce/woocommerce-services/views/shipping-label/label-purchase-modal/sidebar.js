@@ -8,14 +8,13 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { CheckboxControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
-import FormCheckbox from 'components/forms/form-checkbox';
-import FormLabel from 'components/forms/form-label';
 import PriceSummary from './price-summary';
 import ShippingSummary from './shipping-summary';
 import PurchaseSection from './purchase-section';
@@ -31,6 +30,9 @@ import {
 	shouldFulfillOrder,
 	shouldEmailDetails,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import { getOrderWithEdits, isCurrentlyEditingOrder } from 'woocommerce/state/ui/orders/selectors';
+import { getOrder } from "woocommerce/state/sites/orders/selectors";
+import { isOrderFinished } from 'woocommerce/lib/order-status';
 
 const Sidebar = props => {
 	const {
@@ -42,24 +44,21 @@ const Sidebar = props => {
 		translate,
 		fulfillOrder,
 		emailDetails,
+		order,
 	} = props;
 
-	const onEmailDetailsChange = () => props.setEmailDetailsOption( orderId, siteId, ! emailDetails );
-	const onFulfillOrderChange = () => props.setFulfillOrderOption( orderId, siteId, ! fulfillOrder );
+	const onFulfillAndEmailOrderChange = (value) => {
+		// Don't change order status if already finished.
+		props.setFulfillOrderOption( orderId, siteId, value && ! isOrderFinished( order.status ) );
+		// Email only if order is already complete.
+		props.setEmailDetailsOption( orderId, siteId, value && isOrderFinished( order.status ) );
+	};
 	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
 	return (
 		<div className="label-purchase-modal__sidebar">
 			<ShippingSummary siteId={ siteId } orderId={ orderId } />
 			<PriceSummary siteId={ siteId } orderId={ orderId } />
-			<FormLabel className="label-purchase-modal__option-email-customer">
-				<FormCheckbox checked={ emailDetails } onChange={ onEmailDetailsChange } />
-				<span>{ translate( 'Email shipment details to the customer' ) }</span>
-			</FormLabel>
-			<FormLabel className="label-purchase-modal__option-mark-order-fulfilled">
-				<FormCheckbox checked={ fulfillOrder } onChange={ onFulfillOrderChange } />
-				<span>{ translate( 'Mark the order as fulfilled' ) }</span>
-			</FormLabel>
 			<hr />
 			<div className="label-purchase-modal__purchase-container">
 				<Dropdown
@@ -72,6 +71,15 @@ const Sidebar = props => {
 				/>
 				<PurchaseSection siteId={ siteId } orderId={ orderId } />
 			</div>
+			<CheckboxControl
+				className="label-purchase-modal__option-mark-order-fulfilled"
+				label={ isOrderFinished( order.status ) ?
+					translate( 'Notify the customer with shipment details' ) :
+					translate( 'Mark this order as complete and notify the customer' )
+				}
+				checked={ fulfillOrder || emailDetails }
+				onChange={ onFulfillAndEmailOrderChange }
+			/>
 		</div>
 	);
 };
@@ -88,7 +96,10 @@ Sidebar.propTypes = {
 const mapStateToProps = ( state, { orderId, siteId } ) => {
 	const loaded = isLoaded( state, orderId, siteId );
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
+	const isEditing = isCurrentlyEditingOrder( state );
+	const order = isEditing ? getOrderWithEdits( state ) : getOrder( state, orderId );
 	return {
+		order,
 		paperSize: shippingLabel.paperSize,
 		form: shippingLabel.form,
 		errors: loaded && getFormErrors( state, orderId, siteId ).sidebar,
