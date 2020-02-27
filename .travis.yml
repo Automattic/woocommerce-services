@@ -4,11 +4,10 @@
 language: php
 
 # Define our matrix of build configurations to test against.
-matrix:
+jobs:
   include:
    - php: 5.3
      env: WP_VERSION=4.5 WC_VERSION=3.2.6
-     sudo: true
      dist: precise
    - php: 5.4
      dist: trusty
@@ -68,8 +67,8 @@ matrix:
             - nginx
             - libnss3
 
-    - name: "JS Unit Tests"
-      script: npm run test-client
+   - name: "JS Unit Tests"
+     script: npm run test-client
 
 addons:
       apt:
@@ -95,7 +94,7 @@ cache:
   directories:
     - node_modules
 
-sudo: false
+os: linux
 
 notifications:
    email:
