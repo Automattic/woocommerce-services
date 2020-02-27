@@ -45,9 +45,9 @@ function createViewWrapperLabelWrapper( {
 	events,
 	order
 } ) {
+	// Ensure tests are always ran in the same timezone.
+	moment.tz.setDefault("America/Los_Angeles");
 
-	moment().utcOffset("+08:00");
-	
 	const props = {
 		orderId: 1000,
 		siteId: 10,
