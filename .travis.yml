@@ -68,6 +68,8 @@ matrix:
             - nginx
             - libnss3
 
+    - name: "JS Unit Tests"
+      script: npm run test-client
 
 addons:
       apt:
