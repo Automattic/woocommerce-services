@@ -46,6 +46,8 @@ function createViewWrapperLabelWrapper( {
 	order
 } ) {
 
+	moment().utcOffset("+08:00");
+	
 	const props = {
 		orderId: 1000,
 		siteId: 10,
