@@ -29,6 +29,8 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const LabelPurchaseBody = (props) => {
+	const { translate } = props;
+
 	return (
 	<div className="label-purchase-modal__body">
 		<div className="label-purchase-modal__main-section">
