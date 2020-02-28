@@ -35,14 +35,13 @@ const LabelPurchaseModal = props => {
 		return null;
 	}
 
-
 	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
 	let dialogClasses = "woocommerce label-purchase-modal label-purchase-modal__sidebar_background wcc-root";
 	if (props.hasJetpackAccount) {
 		dialogClasses = dialogClasses + " label-purchase-modal__sidebar_background";
 	}
 
-	const labelPurchaseBody = () => {
+	const LabelPurchaseBody = (props) => {
 		return (
 		<div className="label-purchase-modal__body">
 			<div className="label-purchase-modal__main-section">
@@ -69,7 +68,7 @@ const LabelPurchaseModal = props => {
 		);
 	}
 
-	const createJetpackAccountBody = () => {
+	const JetpackConnectBody = (props) => {
 		return (
 			<>
 				<div className="label-purchase-modal__header">
@@ -77,12 +76,7 @@ const LabelPurchaseModal = props => {
 				</div>
 				<iframe
 					src={wcConnectData.jetpack_auth_url}
-					className="jp-jetpack-connect__iframe"
-					style={{
-						background: 'white',
-						height: '100%',
-						'padding-top': '30px'
-					}}
+					className="label-purchase-modal__jetpack-connect"
 				></iframe>
 			</>
 		);
@@ -104,7 +98,7 @@ const LabelPurchaseModal = props => {
 					</Button>
 				</div>
 
-				{ (props.hasJetpackAccount) ? labelPurchaseBody() : createJetpackAccountBody() }
+				{ (props.hasJetpackAccount) ? <LabelPurchaseBody {...props} /> : <JetpackConnectBody {...props} /> }
 			</div>
 		</Dialog>
 	);
@@ -114,6 +108,14 @@ LabelPurchaseModal.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
 	hasJetpackAccount: PropTypes.bool.isRequired
+};
+
+LabelPurchaseBody.propTypes = {
+	...LabelPurchaseModal.propTypes
+};
+
+JetpackConnectBody.propTypes = {
+	...LabelPurchaseModal.propTypes
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
