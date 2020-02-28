@@ -28,6 +28,47 @@ import {
 	isCustomsFormRequired,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
+const LabelPurchaseBody = (props) => {
+	return (
+	<div className="label-purchase-modal__body">
+		<div className="label-purchase-modal__main-section">
+			<AddressStep
+				type="origin"
+				title={ translate( 'Origin address' ) }
+				siteId={ props.siteId }
+				orderId={ props.orderId }
+			/>
+			<AddressStep
+				type="destination"
+				title={ translate( 'Destination address' ) }
+				siteId={ props.siteId }
+				orderId={ props.orderId }
+			/>
+			<PackagesStep siteId={ props.siteId } orderId={ props.orderId } />
+			{ props.isCustomsFormRequired && (
+				<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
+			) }
+			<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
+		</div>
+		<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
+	</div>
+	);
+}
+
+const JetpackConnectBody = (props) => {
+	return (
+		<>
+			<div className="label-purchase-modal__header">
+				<h3 className="form-section-heading">Create a Jetpack account</h3>
+			</div>
+			<iframe
+				src={wcConnectData.jetpack_auth_url}
+				className="label-purchase-modal__jetpack-connect"
+			></iframe>
+		</>
+	);
+}
+
 const LabelPurchaseModal = props => {
 	const { loaded, translate } = props;
 
@@ -39,47 +80,6 @@ const LabelPurchaseModal = props => {
 	let dialogClasses = "woocommerce label-purchase-modal label-purchase-modal__sidebar_background wcc-root";
 	if (props.hasJetpackAccount) {
 		dialogClasses = dialogClasses + " label-purchase-modal__sidebar_background";
-	}
-
-	const LabelPurchaseBody = (props) => {
-		return (
-		<div className="label-purchase-modal__body">
-			<div className="label-purchase-modal__main-section">
-				<AddressStep
-					type="origin"
-					title={ translate( 'Origin address' ) }
-					siteId={ props.siteId }
-					orderId={ props.orderId }
-				/>
-				<AddressStep
-					type="destination"
-					title={ translate( 'Destination address' ) }
-					siteId={ props.siteId }
-					orderId={ props.orderId }
-				/>
-				<PackagesStep siteId={ props.siteId } orderId={ props.orderId } />
-				{ props.isCustomsFormRequired && (
-					<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
-				) }
-				<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
-			</div>
-			<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
-		</div>
-		);
-	}
-
-	const JetpackConnectBody = (props) => {
-		return (
-			<>
-				<div className="label-purchase-modal__header">
-					<h3 className="form-section-heading">Create a Jetpack account</h3>
-				</div>
-				<iframe
-					src={wcConnectData.jetpack_auth_url}
-					className="label-purchase-modal__jetpack-connect"
-				></iframe>
-			</>
-		);
 	}
 
 	return (
