@@ -27,7 +27,6 @@ import {
 	isLoaded,
 	isCustomsFormRequired,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import TextField from 'woocommerce/woocommerce-services/components/text-field';
 
 const LabelPurchaseModal = props => {
 	const { loaded, translate } = props;
@@ -70,42 +69,18 @@ const LabelPurchaseModal = props => {
 	const createJetpackAccountBody = () => {
 		return (
 			<>
-				<h3 class="form-section-heading">Create a Jetpack account</h3>
-				<p>Your Jetpack account will enable you to start using the benefits offered by Jetpack & WooCommerce Services.</p>
-				<TextField
-					id="email"
-					title="Email address"
-					value="Email "
-				/>
-
-				<TextField
-					id="username"
-					title="Choose a username"
-					value="username"
-				/>
-
-				<TextField
-					id="password"
-					title="Choose a password"
-					value="password"
-				/>
-
-				<p>by creating an account via any of the options below, you agree to our Terms of Service</p>
-				<Button
-					className="asd"
-					primary
-				>
-					{ translate( 'Create your account and connect' ) }
-				</Button>
-
-				<p>Or connect your existing profiler to get started faster</p>
-				<Button
-					className="asd"
-				>
-					{ translate( 'Connect with Google' ) }
-				</Button>
-
-				<p>Log in with an existing Jetpack or Wordpress.com account</p>
+				<div className="label-purchase-modal__header">
+					<h3 className="form-section-heading">Create a Jetpack account</h3>
+				</div>
+				<iframe
+					src={wcConnectData.jetpack_auth_url}
+					className="jp-jetpack-connect__iframe"
+					style={{
+						background: 'white',
+						height: '100%',
+						'padding-top': '30px'
+					}}
+				></iframe>
 			</>
 		);
 	}

@@ -34,6 +34,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Automattic\Jetpack\Config;
+use Automattic\Jetpack\Connection\Manager;
+
+$autoloader = __DIR__ . '/vendor/autoload.php';
+if ( is_readable( $autoloader ) ) {
+	require_once $autoloader;
+}
+
 require_once( plugin_basename( 'classes/class-wc-connect-extension-compatibility.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-functions.php' ) );
 require_once( plugin_basename( 'classes/class-wc-connect-jetpack.php' ) );
@@ -1389,13 +1397,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
+			$config = new Config();
+			$config->ensure( 'connection' );
+			$jetpack_connection_manager = new Manager();
+			$jetpack_connection_manager->register();
+			add_filter( 'jetpack_use_iframe_authorization_flow', '__return_true' );
+			$auth_url = $jetpack_connection_manager->get_authorization_url( null, admin_url( '?post=826&action=edit' ) );
+			remove_filter( 'jetpack_use_iframe_authorization_flow', '__return_true' );
+
 			$is_alive = $this->api_client->is_alive_cached();
 
 			$payload = array(
 				'nonce'                 => wp_create_nonce( 'wp_rest' ),
 				'baseURL'               => get_rest_url(),
 				'wcs_server_connection' => $is_alive,
-				'jetpack_status' => $this->nux->get_jetpack_install_status()
+				'jetpack_status' => $this->nux->get_jetpack_install_status(),
+				'jetpack_auth_url' => $auth_url
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
