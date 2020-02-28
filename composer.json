@@ -1,0 +1,5 @@
+{
+    "require": {
+        "automattic/jetpack-connection": "^1.8"
+    }
+}
