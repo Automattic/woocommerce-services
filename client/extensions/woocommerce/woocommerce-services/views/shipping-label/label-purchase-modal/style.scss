@@ -12,13 +12,15 @@
 	background: $studio-gray-0;
   	box-shadow: rgba(151,150,150,.5) 2px 2px 7px;
 
-    // Make sidebar have white background which extends to top of modal.
-    @include breakpoint( '>660px' ) {
-        background: linear-gradient(to right, $studio-gray-0 0%,$studio-gray-0 calc(60% - 32px),var( --color-white ) calc(60% - 32px),var( --color-white ) 100%)
-    }
-    @include breakpoint( '>960px' ) {
-        background: linear-gradient(to right, $studio-gray-0 0%,$studio-gray-0 calc(70% - 48px),var( --color-white ) calc(70% - 48px),var( --color-white ) 100%)
-    }
+	// Make sidebar have white background which extends to top of modal.
+	&.label-purchase-modal__sidebar_background {
+		@include breakpoint( '>660px' ) {
+			background: linear-gradient(to right, $studio-gray-0 0%,$studio-gray-0 calc(60% - 32px),var( --color-white ) calc(60% - 32px),var( --color-white ) 100%)
+		}
+		@include breakpoint( '>960px' ) {
+			background: linear-gradient(to right, $studio-gray-0 0%,$studio-gray-0 calc(70% - 48px),var( --color-white ) calc(70% - 48px),var( --color-white ) 100%)
+		}
+	}
 
 	.dialog__content {
 		flex-grow: 1;

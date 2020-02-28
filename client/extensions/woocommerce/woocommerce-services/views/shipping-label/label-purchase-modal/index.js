@@ -37,7 +37,10 @@ const LabelPurchaseModal = props => {
 
 
 	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
-	const hasJetpackAccount = wcConnectData.jetpack_status === "connected" || wcConnectData.jetpack_status === "dev";
+	let dialogClasses = "woocommerce label-purchase-modal label-purchase-modal__sidebar_background wcc-root";
+	if (props.hasJetpackAccount) {
+		dialogClasses = dialogClasses + " label-purchase-modal__sidebar_background";
+	}
 
 	const labelPurchaseBody = () => {
 		return (
@@ -87,7 +90,7 @@ const LabelPurchaseModal = props => {
 
 	return (
 		<Dialog
-			additionalClassNames="woocommerce label-purchase-modal wcc-root"
+			additionalClassNames={ dialogClasses }
 			isVisible={ props.showPurchaseDialog }
 			onClose={ onClose }
 		>
@@ -101,7 +104,7 @@ const LabelPurchaseModal = props => {
 					</Button>
 				</div>
 
-				{ (hasJetpackAccount) ? labelPurchaseBody() : createJetpackAccountBody() }
+				{ (props.hasJetpackAccount) ? labelPurchaseBody() : createJetpackAccountBody() }
 			</div>
 		</Dialog>
 	);
@@ -110,6 +113,7 @@ const LabelPurchaseModal = props => {
 LabelPurchaseModal.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
+	hasJetpackAccount: PropTypes.bool.isRequired
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {

@@ -45,12 +45,27 @@ class ShippingLabelViewWrapper extends Component {
 		orderId: PropTypes.number.isRequired,
 	};
 
+	constructor(props) {
+		super(props);
+		this.state = {
+			hasJetpackAccount: wcConnectData.jetpack_status === "connected" || wcConnectData.jetpack_status === "dev"
+		};
+	}
+
 	componentDidMount() {
 		const { siteId, orderId, orderLoading, orderLoaded } = this.props;
 
 		if ( siteId && orderId && ! orderLoading && ! orderLoaded) {
 			this.props.fetchOrder( siteId, orderId );
 		}
+
+		window.addEventListener('message', (event) => {
+			if ( 'close' === event.data ) {
+				this.setState({
+					hasJetpackAccount: true
+				});
+			}
+		});
 	}
 
 	renderLabelButton = () => {
@@ -193,7 +208,7 @@ class ShippingLabelViewWrapper extends Component {
 				</div>
 				<div>
 					<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />
-					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } hasJetpackAccount={ this.state.hasJetpackAccount }/>
 					<TrackingModal orderId={ orderId } siteId={ siteId } />
 					{ shouldRenderButton && this.renderLabelButton() }
 				</div>
