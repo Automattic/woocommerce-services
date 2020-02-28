@@ -58,10 +58,12 @@ const LabelPurchaseBody = (props) => {
 }
 
 const JetpackConnectBody = (props) => {
+	const { translate } = props;
+
 	return (
 		<>
 			<div className="label-purchase-modal__header">
-				<h3 className="form-section-heading">Create a Jetpack account</h3>
+				<h3 className="form-section-heading label-purchase-jetpack-connect__header">{ translate( 'Create a Jetpack account' ) }</h3>
 			</div>
 			<iframe
 				src={wcConnectData.jetpack_auth_url}
