@@ -158,9 +158,9 @@ ShippingRate.propTypes = {
 		delivery_days: PropTypes.string,
 		delivery_date_guaranteed: PropTypes.bool,
 		delivery_date: PropTypes.instanceOf( Date ),
-		tracking: PropTypes.book,
+		tracking: PropTypes.bool,
 		insurance: PropTypes.number,
-		free_pickup: PropTypes.book,
+		free_pickup: PropTypes.bool,
 	}).isRequired,
 	signatureRates: PropTypes.object.isRequired,
 };
