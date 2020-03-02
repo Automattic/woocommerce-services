@@ -39,9 +39,6 @@ class ShippingRate extends Component {
 		if ( includedServices.tracking ) {
 			switch ( carrier_id ) {
 				case 'usps':
-					// Ideally this would come from connect-server, but we have no info from EasyPost API
-					// Refer to: https://www.easypost.com/docs/api/node#trackers, specifically
-					// `A Tracker is created automatically whenever you buy a Shipment through EasyPost`
 					servicesToRender.push( translate( 'Includes USPS tracking' ) );
 					break;
 				default:
