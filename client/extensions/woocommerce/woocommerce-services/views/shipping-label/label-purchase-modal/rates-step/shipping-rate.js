@@ -29,7 +29,7 @@ class ShippingRate extends Component {
 		const { rateObject: { service_id }, updateValue } = this.props;
 		const selectedSignature = isChecked ? { id: i, value: signatureOption.netCost } : null;
 		this.setState( { selectedSignature } );
-		updateValue( service_id, signatureOption.value );
+		updateValue( service_id, isChecked ? signatureOption.value : 0 );
 	}
 
 	renderServices( carrier_id, signatureOptions, includedServices ) {
