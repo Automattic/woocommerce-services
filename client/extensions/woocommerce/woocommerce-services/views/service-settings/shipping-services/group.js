@@ -8,14 +8,14 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { isEmpty } from 'lodash';
 import classNames from 'classnames';
-
+import { Tooltip } from '@wordpress/components';
 /**
  * Internal dependencies
  */
 import ShippingServiceEntry from './entry';
 import FoldableCard from 'components/foldable-card';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
-import InfoTooltip from 'woocommerce/woocommerce-services/components/info-tooltip';
+import Gridicon from "gridicons";
 
 const summaryLabel = ( services, numSelected, translate ) => {
 	if ( numSelected === services.length ) {
@@ -77,16 +77,17 @@ const ShippingServiceGroup = props => {
 					<span className="shipping-services__entry-header">{ translate( 'Service' ) }</span>
 					<span className="shipping-services__entry-header shipping-services__entry-price-adjustment">
 						{ translate( 'Price adjustment' ) }
-						<InfoTooltip
-							className="shipping-services__entry-price-adjustment-info"
+						<Tooltip
 							position="top left"
-							maxWidth={ 230 }
-						>
-							{ translate(
+							text={ translate(
 								'Increase the rates calculated by the carrier to account for packaging and handling costs. ' +
 									'You can also add a negative amount to save your customers money.'
-							) }
-						</InfoTooltip>
+								) }
+						>
+							<span>
+								<Gridicon icon="info-outline" size={ 18 } />
+							</span>
+						</Tooltip>
 					</span>
 				</div>
 
