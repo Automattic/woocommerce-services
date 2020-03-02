@@ -83,6 +83,10 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
+= 1.22.4 - 2020-03-02 =
+* Fix   - Stop using deprecated method Jatpack::is_staging_site() when Jatpack
+8.1 is installed.
+
 = 1.22.3 - 2020-01-22 =
 * Add   - Preselect rate when there is only one rate available for given shipping configuration.
 * Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
