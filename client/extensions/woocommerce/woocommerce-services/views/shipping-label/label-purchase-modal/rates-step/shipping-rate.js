@@ -121,7 +121,7 @@ class ShippingRate extends Component {
 		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.value : rate;
 
 		return(
-			<div className="rates-step__shipping-rate-container" >
+			<div className="rates-step__shipping-rate-container">
 				<RadioControl
 					className="rates-step__shipping-rate-radio-control"
 					selected={ isSelected ? service_id : null }
