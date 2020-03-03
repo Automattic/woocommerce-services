@@ -17,31 +17,25 @@ import { Tooltip } from '@wordpress/components';
 import { getTotalPriceBreakdown } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 class PriceSummary extends Component {
-	constructor( props ) {
-		super( props );
-		this.state = {
-			tooltipVisible: false,
-		};
-	}
-
 	renderDiscount = (discount) => {
 		const { translate } = this.props;
-		const tooltipText = translate( "WooCommerce Services gives you access to USPS Commercial Pricing, which is discounted over Retail rates." );
+		const tooltipText = translate( "WooCommerce Services gives you access to USPS Commercial Pricing, which is discounted over Retail rates.");
+
 		return (
 			<div className="label-purchase-modal__price-item-help">
-				<p className="label-purchase-modal__discount">
-					{ translate( 'You save %s with WooCommerce Services', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
-					<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
-				         	 position="top center"
-						text={ tooltipText }>
+				<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
+				         position="top center"
+					text={ tooltipText }>
+					<div className="label-purchase-modal__discount">
+						{ translate( 'You save %s with WooCommerce Services', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
 						<span>
 							<Gridicon
 								icon="help-outline"
 								size={ 18 }
 							/>
 						</span>
-					</Tooltip>
-				</p>
+					</div>
+				</Tooltip>
 			</div>
 		);
 	};
