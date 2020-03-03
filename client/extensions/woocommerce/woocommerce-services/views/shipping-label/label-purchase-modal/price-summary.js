@@ -24,33 +24,35 @@ class PriceSummary extends Component {
 		};
 	}
 
-	renderDiscountExplanation = () => {
+	renderDiscount = (discount) => {
 		const { translate } = this.props;
 		const tooltipText = translate( "WooCommerce Services gives you access to USPS Commercial Pricing, which is discounted over Retail rates." );
 		return (
 			<div className="label-purchase-modal__price-item-help">
-				<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
-				         position="top center"
-					text={ tooltipText }>
-					<span>
-						<Gridicon
-							icon="help-outline"
-							size={ 18 }
-						/>
-					</span>
-				</Tooltip>
+				<p className="label-purchase-modal__discount">
+					{ translate( 'You save %s with WooCommerce Services', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
+					<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
+				         	 position="top center"
+						text={ tooltipText }>
+						<span>
+							<Gridicon
+								icon="help-outline"
+								size={ 18 }
+							/>
+						</span>
+					</Tooltip>
+				</p>
 			</div>
 		);
 	};
 
-	renderRow = ( itemName, itemCost, key, isTotal, isDiscount ) => {
+	renderRow = ( itemName, itemCost, key, isTotal ) => {
 		const className = classNames( 'label-purchase-modal__price-item', {
 			'label-purchase-modal__price-item-total': isTotal,
 		} );
 		return (
 			<div key={ key } className={ className }>
 				<div className="label-purchase-modal__price-item-name">{ itemName }</div>
-				{ isDiscount && this.renderDiscountExplanation() }
 				<div className="label-purchase-modal__price-item-amount">
 					{ formatCurrency( itemCost, 'USD' ) }
 				</div>
@@ -86,10 +88,8 @@ class PriceSummary extends Component {
 						</Fragment>
 					);
 				} ) }
-				{ 0 < discount
-					? this.renderRow( translate( 'You save' ), -discount, 'discount', false, true )
-					: null }
 				{ this.renderRow( translate( 'Total' ), total, 'total', true ) }
+				{ 0 < discount && this.renderDiscount( discount ) }
 			</div>
 		);
 	}
