@@ -86,6 +86,28 @@ export class LabelItem extends Component {
 		);
 	};
 
+	renderPickup = label => {
+		const { translate } = this.props;
+		const pickup_urls = {
+			'usps': 'https://tools.usps.com/schedule-pickup-steps.htm',
+			'fedex': 'https://www.fedex.com/en-us/shipping/schedule-manage-pickups.html',
+		};
+
+		if ( ! ( pickup_urls.hasOwnProperty( label.carrierId ) ) ) {
+			return null;
+		}
+
+		const onClickOpenPage = () => {
+			window.open(pickup_urls[ label.carrierId ], '_blank');
+		};
+
+		return (
+			<PopoverMenuItem onClick={ onClickOpenPage } icon="external">
+				{ translate( 'Schedule a pickup' ) }
+			</PopoverMenuItem>
+		);
+	};
+
 	render() {
 		const { siteId, orderId, label, translate, isModal } = this.props;
 		const {
@@ -114,6 +136,7 @@ export class LabelItem extends Component {
 							{ ( ! isModal && (
 								<EllipsisMenu position="bottom left">
 									{ this.renderLabelDetails( label ) }
+									{ this.renderPickup( label ) }
 									{ this.renderRefund( label ) }
 									{ this.renderReprint( label ) }
 								</EllipsisMenu>

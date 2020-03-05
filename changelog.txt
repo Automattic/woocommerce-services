@@ -3,6 +3,7 @@
 = 1.23.0 - 2020-XX-XX =
 * Fix   - Hide paper selection until valid payment method is selected.
 * Tweak - Shipping banner wording improvements.
+* Add   - Link to carrier's schedule pickup page.
 
 = 1.22.4 - 2020-03-02 =
 * Fix   - Stop using deprecated method Jatpack::is_staging_site() when Jatpack
