@@ -1,0 +1,36 @@
+{
+  "payment_method": "bacs",
+  "payment_method_title": "Direct Bank Transfer",
+  "set_paid": true,
+  "billing": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "address_1": "4590 Oak Drive",
+    "address_2": "",
+    "city": "Corinth",
+    "state": "NY",
+    "postcode": "12822",
+    "country": "US",
+    "email": "john.doe@example.com",
+    "phone": "(555) 555-5555"
+  },
+  "shipping": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "address_1": "4590 Oak Drive",
+    "address_2": "",
+    "city": "Corinth",
+    "state": "NY",
+    "postcode": "12822",
+    "country": "US"
+  },
+  "line_items": [
+  ],
+  "shipping_lines": [
+    {
+      "method_id": "flat_rate",
+      "method_title": "Flat Rate",
+      "total": "10"
+    }
+  ]
+}

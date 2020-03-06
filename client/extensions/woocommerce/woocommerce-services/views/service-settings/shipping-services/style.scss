@@ -61,12 +61,11 @@
 			@include breakpoint( '>480px' ) {
 				padding-right: 8px;
 			}
-		}
 
-		.shipping-services__entry-price-adjustment-info {
-			float: right;
-			margin-left: 4px;
-			height: 0;
+			svg {
+				vertical-align: top;
+				margin: 0 2px;
+			}
 		}
 	}
 

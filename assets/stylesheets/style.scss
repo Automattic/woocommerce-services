@@ -152,6 +152,12 @@
 	.card {
 		min-width: 0;
 		max-width: none;
+		border: 0;
+	}
+
+	p {
+		margin: 0;
+		font-size: 100%;
 	}
 
 	select {
@@ -212,7 +218,6 @@
 	}
 
 	// Shared
-	@import 'shared/reset'; // css reset before the rest of the styles are defined
 	@import 'shared/forms'; // form styling
 
 	// Main
@@ -237,6 +242,9 @@
 @import 'components/dialog/style';
 @import 'components/popover/style';
 @import 'components/tooltip/style';
+
+// All WordPress Component styles
+@import '~@wordpress/components/build-style/style.css';
 
 #woocommerce-order-label .inside {
 	margin: 0;

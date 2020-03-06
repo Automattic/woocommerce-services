@@ -741,7 +741,11 @@ const purchaseLabelResponse = ( orderId, siteId, response, error ) => {
 
 const handleLabelPurchaseError = ( orderId, siteId, dispatch, getState, error ) => {
 	dispatch( purchaseLabelResponse( orderId, siteId, null, true ) );
-	dispatch( NoticeActions.errorNotice( error.toString() ) );
+	const noticeOptions = {
+		button: translate( 'Go to Credit Cards settings.' ),
+		onClick: () => { window.open('admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings') },
+	}
+	dispatch( NoticeActions.errorNotice( error.toString(), noticeOptions ) );
 	//re-request the rates on failure to avoid attempting repurchase of the same shipment id
 	dispatch( clearAvailableRates( orderId, siteId ) );
 	tryGetLabelRates( orderId, siteId, dispatch, getState, noop );
@@ -753,6 +757,10 @@ const getPDFFileName = ( orderId, isReprint = false ) => {
 
 // retireves the single label status, and retries up to 3 times on timeout
 const labelStatusTask = ( orderId, siteId, labelId, retryCount ) => {
+	let timeout = 1000;
+	if ( retryCount === 0) {
+		timeout = 2000;
+	}
 	return api
 		.get( siteId, api.url.labelStatus( orderId, labelId ) )
 		.then( statusResponse => statusResponse.label )
@@ -763,7 +771,7 @@ const labelStatusTask = ( orderId, siteId, labelId, retryCount ) => {
 			return new Promise( resolve => {
 				setTimeout(
 					() => resolve( labelStatusTask( orderId, siteId, labelId, retryCount + 1 ) ),
-					1000
+					timeout
 				);
 			} );
 		} );

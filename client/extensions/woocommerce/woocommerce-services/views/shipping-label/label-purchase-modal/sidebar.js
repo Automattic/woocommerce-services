@@ -33,6 +33,7 @@ import {
 import { getOrderWithEdits, isCurrentlyEditingOrder } from 'woocommerce/state/ui/orders/selectors';
 import { getOrder } from "woocommerce/state/sites/orders/selectors";
 import { isOrderFinished } from 'woocommerce/lib/order-status';
+import { getSelectedPaymentMethodId } from 'woocommerce/woocommerce-services/state/label-settings/selectors'
 
 const Sidebar = props => {
 	const {
@@ -45,6 +46,7 @@ const Sidebar = props => {
 		fulfillOrder,
 		emailDetails,
 		order,
+		hasLabelsPaymentMethod,
 	} = props;
 
 	const onFulfillAndEmailOrderChange = (value) => {
@@ -61,14 +63,14 @@ const Sidebar = props => {
 			<PriceSummary siteId={ siteId } orderId={ orderId } />
 			<hr />
 			<div className="label-purchase-modal__purchase-container">
-				<Dropdown
+				{ hasLabelsPaymentMethod ? <Dropdown
 					id={ 'paper_size' }
 					valuesMap={ getPaperSizes( form.origin.values.country ) }
 					title={ translate( 'Paper size' ) }
 					value={ paperSize }
 					updateValue={ onPaperSizeChange }
 					error={ errors.paperSize }
-				/>
+				/> : null }
 				<PurchaseSection siteId={ siteId } orderId={ orderId } />
 			</div>
 			<CheckboxControl
@@ -102,6 +104,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 		order,
 		paperSize: shippingLabel.paperSize,
 		form: shippingLabel.form,
+		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 		errors: loaded && getFormErrors( state, orderId, siteId ).sidebar,
 		fulfillOrder: loaded && shouldFulfillOrder( state, orderId, siteId ),
 		emailDetails: loaded && shouldEmailDetails( state, orderId, siteId ),

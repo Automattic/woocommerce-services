@@ -5,14 +5,17 @@
 	justify-content: space-between;
 
 	em {
-		font-size: 18px;
+		font-size: 15px;
 		display: inline-block;
 		vertical-align: text-bottom;
 		margin-left: 10px;
 		padding-bottom: 11px;
 		position: relative;
-		top: 3px;
 		font-style: normal;
+		font-weight: bold;
+	}
+	.shipping-label__banner-fulfilled-date {
+		font-weight: normal;
 	}
 
 	.shipping-label__payment .gridicon.notice__icon {

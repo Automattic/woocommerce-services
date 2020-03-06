@@ -5,13 +5,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import { Tooltip } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import ExternalLink from 'components/external-link';
-import InfoTooltip from 'woocommerce/woocommerce-services/components/info-tooltip';
 import { getShippingLabel } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import Gridicon from "gridicons";
 
 export const TariffCodeTitle = localize( ( { translate } ) => (
 	<span>
@@ -30,9 +31,11 @@ export const TariffCodeTitle = localize( ( { translate } ) => (
 export const OriginCountryTitle = localize( ( { translate } ) => (
 	<span>
 		{ translate( 'Origin country' ) }
-		<InfoTooltip>
-			{ translate( 'Country where the product was manufactured or assembled' ) }
-		</InfoTooltip>
+		<Tooltip text={ translate( 'Country where the product was manufactured or assembled' ) }>
+			<span>
+				<Gridicon icon="info-outline" size={ 18 } />
+			</span>
+		</Tooltip>
 	</span>
 ) );
 

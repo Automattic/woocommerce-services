@@ -10,11 +10,10 @@ import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import formatCurrency from '@automattic/format-currency';
-
+import { Tooltip } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import Tooltip from 'components/tooltip';
 import { getTotalPriceBreakdown } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 class PriceSummary extends Component {
@@ -25,40 +24,20 @@ class PriceSummary extends Component {
 		};
 	}
 
-	showTooltip = () => {
-		this.setState( { tooltipVisible: true } );
-	};
-
-	hideTooltip = () => {
-		this.setState( { tooltipVisible: false } );
-	};
-
-	setTooltipContext = tooltipContext => {
-		if ( tooltipContext ) {
-			this.setState( { tooltipContext } );
-		}
-	};
-
 	renderDiscountExplanation = () => {
 		const { translate } = this.props;
+		const tooltipText = translate( "WooCommerce Services gives you access to USPS Commercial Pricing, which is discounted over Retail rates." );
 		return (
 			<div className="label-purchase-modal__price-item-help">
-				<Gridicon
-					ref={ this.setTooltipContext }
-					icon="help-outline"
-					onMouseEnter={ this.showTooltip }
-					onMouseLeave={ this.hideTooltip }
-					size={ 18 }
-				/>
-				<Tooltip
-					className="label-purchase-modal__price-item-tooltip is-dialog-visible"
-					isVisible={ this.state.tooltipVisible }
-					context={ this.state.tooltipContext }
-				>
-					{ translate(
-						'WooCommerce Services gives you access to USPS ' +
-							'Commercial Pricing, which is discounted over Retail rates.'
-					) }
+				<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
+				         position="top center"
+					text={ tooltipText }>
+					<span>
+						<Gridicon
+							icon="help-outline"
+							size={ 18 }
+						/>
+					</span>
 				</Tooltip>
 			</div>
 		);

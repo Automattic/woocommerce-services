@@ -4,59 +4,99 @@
 language: php
 
 # Define our matrix of build configurations to test against.
-matrix:
+jobs:
   include:
    - php: 5.3
-     env: WP_VERSION=4.5 WC_VERSION=3.2.6
-     sudo: true
+     env: WP_VERSION=4.5 WC_VERSION=3.2.6 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      dist: precise
    - php: 5.4
      dist: trusty
-     env: WP_VERSION=4.6 WC_VERSION=3.1.2
+     env: WP_VERSION=4.6 WC_VERSION=3.1.2 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
    - php: 5.5
      dist: trusty
-     env: WP_VERSION=4.7 WC_VERSION=3.0.9
+     env: WP_VERSION=4.7 WC_VERSION=3.0.9 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
    - php: 5.6
-     env: WP_VERSION=4.8 WC_VERSION=2.6.14
+     env: WP_VERSION=4.8 WC_VERSION=2.6.14 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
    - php: 7.0
-     env: WP_VERSION=latest WC_VERSION=2.6.14
+     env: WP_VERSION=latest WC_VERSION=2.6.14 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      # By default, travis attempts PHPUnit 7.5.0 for PHP 7.0 - that version works on 7.1 and 7.2 only
      # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
      script: curl -sSfL -o ~/.phpenv/versions/7.0/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.1
-     env: WP_VERSION=latest WC_VERSION=3.0.3
+     env: WP_VERSION=latest WC_VERSION=3.0.3 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      # By default, travis attempts PHPUnit 8.0.4 for PHP 7.1 - that version works on 7.2 and 7.3 only
      # Install and use PHPUnit 6.4 instead (and because WP itself is not PHPUnit 7 ready)
      script: curl -sSfL -o ~/.phpenv/versions/7.1/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.2
-     env: WP_VERSION=4.4 WC_VERSION=2.6.14
+     env: WP_VERSION=4.4 WC_VERSION=2.6.14 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      # Older versions of WP are not compatible with PHPUnit 6+. Manually install PHPUnit 5.
      script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar && phpunit
    - php: 7.2
-     env: WP_VERSION=latest WC_VERSION=3.3.3
+     env: WP_VERSION=latest WC_VERSION=3.3.3 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.3
-     env: WP_VERSION=trunk WC_VERSION=3.8.0-rc.1
+     env: WP_VERSION=latest WC_VERSION=3.8.1 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
-   - php: 7.4snapshot
-     env: WP_VERSION=trunk WC_VERSION=3.8.0-rc.1
+   - php: 7.4
+     env: WP_VERSION=latest WC_VERSION=master PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
-     script: curl -sSfL -o ~/.phpenv/versions/7.4snapshot/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
+     script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
      # Run the JS tests in a separate container
-   - language: node_js
-     before_script: ""
+  #  - language: node_js
+  #    before_script: ""
+   - name: "E2E tests"
+     dist: trusty
+     php: 7.2
+     env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=latest RUN_E2E=1
+     before_install:
+         # Enable user namespace cloning
+         - "sysctl kernel.unprivileged_userns_clone=1"
+           # Launch XVFB
+         - "export DISPLAY=:99.0"
+         - "sh -e /etc/init.d/xvfb start"
+         - sleep 3
+     script:
+         - npm run test:e2e
+         - cat $HOME/wordpress/wp-content/debug.log
+     addons:
+       apt:
+        packages:
+            - nginx
+            - libnss3
+
+   - name: "JS Unit Tests"
+     env: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+     before_script: skip
+     script: npm run test-client
 
 services:
    - mysql
 
-# Clones WordPress and configures our testing environment.
-before_script: bash tests/bin/install-wc-tests.sh wordpress_test root '' localhost $WP_VERSION $WC_VERSION
+install:
+  - . $HOME/.nvm/nvm.sh
+  - nvm install 10
+  - nvm use 10
+  - npm ci
 
-sudo: false
+# Clones WordPress and configures our testing environment.
+before_script:
+  - source ./tests/bin/run-e2e-travis.sh
+  - echo "memory_limit=256M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - phpenv config-rm xdebug.ini
+  - bash tests/bin/install.sh wcs_test root '' localhost $WP_VERSION
+
+# Save node_modules to speed up build
+cache:
+  directories:
+    - node_modules
+
+os: linux
 
 notifications:
    email:
-       - hydra@matticspace.com
+      - heisenberg@matticspace.com
+
+

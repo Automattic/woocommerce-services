@@ -1,5 +1,14 @@
 *** WooCommerce Services Changelog ***
 
+= 1.23.0 - 2020-XX-XX =
+* Fix   - Hide paper selection until valid payment method is selected.
+* Tweak - Shipping banner wording improvements.
+* Add   - Link to carrier's schedule pickup page.
+
+= 1.22.4 - 2020-03-02 =
+* Fix   - Stop using deprecated method Jatpack::is_staging_site() when Jatpack
+8.1 is installed.
+
 = 1.22.3 - 2020-01-22 =
 * Add   - Preselect rate when there is only one rate available for given shipping configuration.
 * Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.

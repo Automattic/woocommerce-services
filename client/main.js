@@ -124,3 +124,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		container
 	);
 } );
+
+window.wcsGetAppStore = function( storeKey ) {
+	return createdStores[ storeKey ];
+}
