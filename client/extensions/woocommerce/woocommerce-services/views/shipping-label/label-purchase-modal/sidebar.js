@@ -35,7 +35,7 @@ import { getOrder } from "woocommerce/state/sites/orders/selectors";
 import { isOrderFinished } from 'woocommerce/lib/order-status';
 import { getSelectedPaymentMethodId } from 'woocommerce/woocommerce-services/state/label-settings/selectors'
 
-const Sidebar = props => {
+export const Sidebar = props => {
 	const {
 		orderId,
 		siteId,
@@ -52,8 +52,7 @@ const Sidebar = props => {
 	const onFulfillAndEmailOrderChange = (value) => {
 		// Don't change order status if already finished.
 		props.setFulfillOrderOption( orderId, siteId, value && ! isOrderFinished( order.status ) );
-		// Email only if order is already complete.
-		props.setEmailDetailsOption( orderId, siteId, value && isOrderFinished( order.status ) );
+		// Email only if order is already complete.nished( order.status ) );
 	};
 	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
@@ -93,6 +92,12 @@ Sidebar.propTypes = {
 	errors: PropTypes.object.isRequired,
 	form: PropTypes.object.isRequired,
 	updatePaperSize: PropTypes.func.isRequired,
+	fulfillOrder: PropTypes.bool.isRequired,
+	emailDetails: PropTypes.bool.isRequired,
+	order: PropTypes.object.isRequired,
+	hasLabelsPaymentMethod: PropTypes.bool.isRequired,
+	setFulfillOrderOption: PropTypes.func.isRequired,
+	updatePaperSize: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
@@ -126,3 +131,4 @@ export default connect(
 	mapStateToProps,
 	mapDispatchToProps
 )( localize( Sidebar ) );
+
