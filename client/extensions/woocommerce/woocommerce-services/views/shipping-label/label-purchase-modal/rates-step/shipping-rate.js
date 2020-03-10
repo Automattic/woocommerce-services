@@ -152,7 +152,7 @@ ShippingRate.propTypes = {
 		service_id: PropTypes.string.isRequired,
 		carrier_id: PropTypes.string.isRequired,
 		rate: PropTypes.number.isRequired,
-		delivery_days: PropTypes.string,
+		delivery_days: PropTypes.number,
 		delivery_date_guaranteed: PropTypes.bool,
 		delivery_date: PropTypes.instanceOf( Date ),
 		tracking: PropTypes.bool,
