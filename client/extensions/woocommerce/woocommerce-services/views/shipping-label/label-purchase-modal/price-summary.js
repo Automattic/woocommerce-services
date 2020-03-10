@@ -73,7 +73,7 @@ class PriceSummary extends Component {
 					} );
 					return (
 						<Fragment key={ index }>
-							{ this.renderRow( title, service.retailRate, index ) }
+							{ this.renderRow( title, service.rateWithDiscount, index ) }
 							{ service.addons.map( ( addon, addonIndex ) =>
 								<div key={ 'addons-' + index } className="label-purchase-modal__price-item-addons">
 									{ this.renderRow( addon.title, addon.rate, 'addon-' + addonIndex ) }
