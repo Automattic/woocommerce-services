@@ -23,17 +23,16 @@ class PriceSummary extends Component {
 
 		return (
 			<div className="label-purchase-modal__price-item-help">
-				<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
-				         position="top center"
+				<Tooltip
+					className="label-purchase-modal__price-item-tooltip is-dialog-visible"
+				    position="top center"
 					text={ tooltipText }>
 					<div className="label-purchase-modal__discount">
 						{ translate( 'You save %s with WooCommerce Services', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
-						<span>
-							<Gridicon
-								icon="help-outline"
-								size={ 18 }
-							/>
-						</span>
+						<Gridicon
+							icon="help-outline"
+							size={ 18 }
+						/>
 					</div>
 				</Tooltip>
 			</div>
