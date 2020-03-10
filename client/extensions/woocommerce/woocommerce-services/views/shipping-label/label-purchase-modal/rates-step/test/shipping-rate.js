@@ -85,15 +85,16 @@ describe( 'ShippingRate', () => {
 		} );
 
 		it( 'renders the rate title', () => {
-			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-description-title">test title</div> );
+			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-description-title">test title</div> ); // eslint-disable-line
 		} );
 
 		it( "renders the rate's amount", () => {
-			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-rate">$10.00</div> );
+			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-rate">$10.00</div> ); // eslint-disable-line
+
 		} );
 
 		it( 'renders the delivery date', () => {
-			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">February 1</div> );
+			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">February 1</div> ); // eslint-disable-line
 		} );
 
 	} );

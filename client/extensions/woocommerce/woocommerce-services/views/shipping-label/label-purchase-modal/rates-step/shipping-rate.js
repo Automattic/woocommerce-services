@@ -4,10 +4,8 @@
  * External dependencies
  */
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
-import { translate, localize, moment } from 'i18n-calypso';
+import { translate, moment } from 'i18n-calypso';
 import { CheckboxControl, RadioControl } from '@wordpress/components';
 import { mapValues, values } from 'lodash';
 
@@ -72,7 +70,6 @@ class ShippingRate extends Component {
 	render() {
 		const {
 			rateObject: {
-				rate_id,
 				title,
 				service_id,
 				carrier_id,
