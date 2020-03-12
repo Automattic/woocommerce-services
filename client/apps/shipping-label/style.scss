@@ -59,9 +59,12 @@
 	font-size: 15px;
 }
 
-.label-purchase-modal__option-email-customer,
 .label-purchase-modal__option-mark-order-fulfilled {
-	display: none;
+	margin: 27px 0 0;
+	.components-checkbox-control__input {
+		margin: 2px 15px 10px 3px;
+		float: left;
+	}
 }
 
 .label-purchase-modal__purchase-container {
