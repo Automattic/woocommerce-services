@@ -410,7 +410,7 @@ describe( 'Shipping label selectors', () => {
 			},
 		} );
 		const result = getTotalPriceBreakdown( state, orderId, siteId );
-		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8, addons: [] } ] );
+		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8, rateWithDiscount: 6.61, addons: [] } ] );
 		expect( result.discount ).to.eql( 1.19 );
 		expect( result.total ).to.eql( 6.61 );
 	} );
@@ -459,7 +459,7 @@ describe( 'Shipping label selectors', () => {
 			},
 		} );
 		const result = getTotalPriceBreakdown( state, orderId, siteId );
-		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8, addons: [] } ] );
+		expect( result.prices ).to.eql( [ { title: 'USPS - Priority Mail', retailRate: 7.8, rateWithDiscount: 6.61, addons: [] } ] );
 		expect( result.discount ).to.eql( 1.19 );
 		expect( result.total ).to.eql( 6.61 );
 	} );
@@ -509,8 +509,9 @@ describe( 'Shipping label selectors', () => {
 		} );
 		const result = getTotalPriceBreakdown( state, orderId, siteId );
 		expect( result.prices ).to.eql( [
-			{ title: 'USPS - Priority Mail', retailRate: 7.8, addons: [] },
-			{ title: 'USPS - Express Mail', retailRate: 23.85, addons: [] },
+
+			{ title: 'USPS - Priority Mail', retailRate: 7.8, rateWithDiscount: 6.61, addons: [] },
+			{ title: 'USPS - Express Mail', retailRate: 23.85, rateWithDiscount: 21.18, addons: [] },
 		] );
 		expect( result.discount ).to.eql( 3.86 );
 		expect( result.total ).to.eql( 27.79 );

@@ -200,15 +200,27 @@
 .label-purchase-modal__price-item-help {
 	color: var( --color-neutral-200 );
 	cursor: help;
+	text-align: center;
 
-	svg {
-		margin-top: 2px;
-	}
 }
 
 .label-purchase-modal__price-item-amount {
 	flex-grow: 1;
 	text-align: right;
+}
+
+.label-purchase-modal__discount {
+	background-color: var( --color-neutral-0 );
+	color: var( --color-neutral-400 );
+	padding: 3px;
+	margin: 20px 0;
+	font-size: 12px;
+
+	svg {
+		display: inline-block;
+		vertical-align: top;
+		margin-left: 2px;
+	}
 }
 
 .label-purchase-modal__header, .tracking-modal__header {

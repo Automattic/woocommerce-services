@@ -6,5 +6,18 @@ Object.assign( module.exports.globals, {
     browser: true,
     context: true,
     jestPuppeteer: true,
-    process: true
-} );
+    process: true,
+    console: true,
+    document: true,
+    localStorage: true,
+    window: true,
+    setTimeout: true,
+    alert: true,
+    location: true,
+    fetch: true,
+    URL: true,
+    atob: true,
+    Blob: true,
+    Response: true,
+    global: true,
+});

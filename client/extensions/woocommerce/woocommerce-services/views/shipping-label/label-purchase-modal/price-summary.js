@@ -17,40 +17,35 @@ import { Tooltip } from '@wordpress/components';
 import { getTotalPriceBreakdown } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 class PriceSummary extends Component {
-	constructor( props ) {
-		super( props );
-		this.state = {
-			tooltipVisible: false,
-		};
-	}
-
-	renderDiscountExplanation = () => {
+	renderDiscount = (discount) => {
 		const { translate } = this.props;
-		const tooltipText = translate( "WooCommerce Services gives you access to USPS Commercial Pricing, which is discounted over Retail rates." );
+		const tooltipText = translate( "WooCommerce Services gives you access to USPS Commercial Pricing, which is discounted over Retail rates.");
+
 		return (
 			<div className="label-purchase-modal__price-item-help">
-				<Tooltip className="label-purchase-modal__price-item-tooltip is-dialog-visible"
-				         position="top center"
+				<Tooltip
+					className="label-purchase-modal__price-item-tooltip is-dialog-visible"
+				    position="top center"
 					text={ tooltipText }>
-					<span>
+					<div className="label-purchase-modal__discount">
+						{ translate( 'You save %s with WooCommerce Services', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
 						<Gridicon
 							icon="help-outline"
 							size={ 18 }
 						/>
-					</span>
+					</div>
 				</Tooltip>
 			</div>
 		);
 	};
 
-	renderRow = ( itemName, itemCost, key, isTotal, isDiscount ) => {
+	renderRow = ( itemName, itemCost, key, isTotal ) => {
 		const className = classNames( 'label-purchase-modal__price-item', {
 			'label-purchase-modal__price-item-total': isTotal,
 		} );
 		return (
 			<div key={ key } className={ className }>
 				<div className="label-purchase-modal__price-item-name">{ itemName }</div>
-				{ isDiscount && this.renderDiscountExplanation() }
 				<div className="label-purchase-modal__price-item-amount">
 					{ formatCurrency( itemCost, 'USD' ) }
 				</div>
@@ -77,7 +72,7 @@ class PriceSummary extends Component {
 					} );
 					return (
 						<Fragment key={ index }>
-							{ this.renderRow( title, service.retailRate, index ) }
+							{ this.renderRow( title, service.rateWithDiscount, index ) }
 							{ service.addons.map( ( addon, addonIndex ) =>
 								<div key={ 'addons-' + index } className="label-purchase-modal__price-item-addons">
 									{ this.renderRow( addon.title, addon.rate, 'addon-' + addonIndex ) }
@@ -86,10 +81,8 @@ class PriceSummary extends Component {
 						</Fragment>
 					);
 				} ) }
-				{ 0 < discount
-					? this.renderRow( translate( 'You save' ), -discount, 'discount', false, true )
-					: null }
 				{ this.renderRow( translate( 'Total' ), total, 'total', true ) }
+				{ 0 < discount && this.renderDiscount( discount ) }
 			</div>
 		);
 	}

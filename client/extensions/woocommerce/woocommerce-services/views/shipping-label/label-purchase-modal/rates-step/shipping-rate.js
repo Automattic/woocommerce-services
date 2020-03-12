@@ -5,9 +5,9 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { translate, localize, moment } from 'i18n-calypso';
-import { RadioControl, SelectControl } from '@wordpress/components';
-import { mapValues, concat, values } from 'lodash';
+import { translate, moment } from 'i18n-calypso';
+import { CheckboxControl, RadioControl } from '@wordpress/components';
+import { mapValues, values } from 'lodash';
 
 /**
  * Internal dependencies
@@ -19,24 +19,55 @@ class ShippingRate extends Component {
 	constructor() {
 		super();
 		this.state = {
-			signatureOption: false,
+			signatureOption: false
 		}
 	}
 
-	setSignatureOption = ( val ) => {
-		const {
-			rateObject: {
-				service_id,
-			},
-			updateValue,
-		} = this.props;
+	onSignatureChecked = ( isChecked, i, signatureOption ) => {
+		const { rateObject: { service_id }, updateValue } = this.props;
+		const selectedSignature = isChecked ? { id: i, value: signatureOption.netCost } : null;
+		this.setState( { selectedSignature } );
+		updateValue( service_id, isChecked ? signatureOption.value : 0 );
+	}
 
-		this.setState( { signatureOption: val } );
-		updateValue( service_id, val );
+	renderServices( carrier_id, signatureOptions, includedServices ) {
+
+		const servicesToRender = [];
+
+		if ( includedServices.tracking ) {
+			switch ( carrier_id ) {
+				case 'usps':
+					servicesToRender.push( translate( 'Includes USPS tracking' ) );
+					break;
+				default:
+					servicesToRender.push( translate( 'Includes tracking' ) );
+			}
+		}
+		if ( includedServices.insurance ) {
+			servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
+		}
+		if ( signatureOptions.filter( signatureOption => 0 === signatureOption.netCost ).length > 0 ) {
+			servicesToRender.push( translate( 'Signature required' ) );
+		}
+		if ( includedServices.free_pickup ) {
+			servicesToRender.push( translate( 'Eligible for free pickup' ) );
+		}
+
+		return servicesToRender.join(', ');
+	}
+
+	renderSignatureOptions( signatureOptions ) {
+		return ( signatureOptions.map( ( signatureOption, i ) => {
+			return <CheckboxControl
+						key={ i }
+						name={ `signature_option_${i}` }
+						label={ signatureOption.label }
+						checked={ !!this.state.selectedSignature && this.state.selectedSignature.id === i }
+						onChange={ isChecked => this.onSignatureChecked( isChecked, i, signatureOption ) } />;
+		} ) );
 	}
 
 	render() {
-		const { signatureOption } = this.state;
 		const {
 			rateObject: {
 				title,
@@ -46,18 +77,17 @@ class ShippingRate extends Component {
 				delivery_days,
 				delivery_date_guaranteed,
 				delivery_date,
+				tracking,
+				insurance,
+				free_pickup,
 			},
 			isSelected,
 			updateValue,
 			signatureRates,
 		} = this.props;
-		let details = 'Includes tracking';
+		const { selectedSignature } = this.state;
 
-		const defaultOption = {
-			label: translate( 'No signature required' ),
-			value: false,
-		};
-		const signatureOptions = concat( defaultOption, values(
+		const signatureOptions = values(
 			mapValues( signatureRates, ( r, key ) => {
 				const priceString = ( 0 === r.optionNetCost ) ? translate( 'free' ) :
 					translate( '+%s', { args: [ formatCurrency( r.optionNetCost, 'USD') ] } );
@@ -66,9 +96,10 @@ class ShippingRate extends Component {
 						args: { label: r.label, price: priceString },
 					} ),
 					value: key,
+					netCost: r.optionNetCost,
 				};
-			}
-		) ) );
+			} )
+		);
 
 		let deliveryDateMessage = '';
 
@@ -81,14 +112,8 @@ class ShippingRate extends Component {
 			} );
 		}
 
-		switch ( carrier_id ) {
-			case 'usps':
-				// Ideally this would come from connect-server, but we have no info from EasyPost API
-				// Refer to: https://www.easypost.com/docs/api/node#trackers, specifically
-				// `A Tracker is created automatically whenever you buy a Shipment through EasyPost`
-				details = translate( 'Includes USPS tracking' );
-				break;
-		}
+		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.value : rate;
+
 		return(
 			<div className="rates-step__shipping-rate-container">
 				<RadioControl
@@ -97,25 +122,21 @@ class ShippingRate extends Component {
 					options={ [
 						{ label: '', value: service_id },
 					] }
-					onChange={ () => { updateValue( service_id, signatureOption ) } }
+					onChange={ () => { updateValue( service_id, false ) } }
 				/>
 				<CarrierLogo carrier_id={ carrier_id }/>
 				<div className="rates-step__shipping-rate-information">
 					<div className="rates-step__shipping-rate-description">
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
-							{ details }
-							{ signatureOptions.length > 1 ? (
-								<SelectControl
-									className="rates-step__shipping-rate-description-signature-select"
-									options={ signatureOptions }
-									onChange={ this.setSignatureOption }
-								/>
+							{ this.renderServices( carrier_id, signatureOptions, { tracking, insurance, free_pickup } ) }
+							{ isSelected && signatureOptions.length > 1 ? (
+								this.renderSignatureOptions( signatureOptions )
 							) : null }
 						</div>
 					</div>
 					<div className="rates-step__shipping-rate-details">
-						<div className="rates-step__shipping-rate-rate">{ formatCurrency( rate, 'USD' ) }</div>
+						<div className="rates-step__shipping-rate-rate">{ formatCurrency( ratePlusSignatureCost, 'USD' ) }</div>
 						<div className="rates-step__shipping-rate-delivery-date">{ deliveryDateMessage }</div>
 					</div>
 				</div>
@@ -125,7 +146,20 @@ class ShippingRate extends Component {
 }
 
 ShippingRate.propTypes = {
-	rateObject: PropTypes.object.isRequired,
+	rateObject: PropTypes.shape({
+		rate_id: PropTypes.string.isRequired,
+		title: PropTypes.string.isRequired,
+		service_id: PropTypes.string.isRequired,
+		carrier_id: PropTypes.string.isRequired,
+		rate: PropTypes.number.isRequired,
+		delivery_days: PropTypes.number,
+		delivery_date_guaranteed: PropTypes.bool,
+		delivery_date: PropTypes.instanceOf( Date ),
+		tracking: PropTypes.bool,
+		insurance: PropTypes.number,
+		free_pickup: PropTypes.bool,
+	}).isRequired,
+	signatureRates: PropTypes.object.isRequired,
 };
 
-export default localize( ShippingRate );
+export default ShippingRate;
