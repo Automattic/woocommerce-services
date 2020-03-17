@@ -185,6 +185,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $wc_connect_base_url;
 
+		protected static $wcs_version;
+
 		static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 		}
@@ -199,8 +201,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return string
 		 */
 		static function get_wcs_version() {
-			$plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
-			return $plugin_data[ 'Version' ];
+			if ( null === self::$wcs_version ) {
+				$plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
+				self::$wcs_version = $plugin_data[ 'Version' ];
+			}
+			return self::$wcs_version;
 		}
 
 		/**
@@ -218,9 +223,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return string
 		 */
 		static function get_wcs_admin_script_url() {
-			$plugin_data = get_plugin_data( __FILE__, false, false );
-			$plugin_version = $plugin_data[ 'Version' ];
-			return self::get_wc_connect_base_url() . 'woocommerce-services-' . $plugin_version . '.js';
+			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.js';
 		}
 
 		/**
@@ -229,9 +232,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return string
 		 */
 		static function get_wcs_admin_style_url() {
-			$plugin_data = get_plugin_data( __FILE__, false, false );
-			$plugin_version = $plugin_data[ 'Version' ];
-			return self::get_wc_connect_base_url() . 'woocommerce-services-' . $plugin_version . '.css';
+			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.css';
 		}
 
 		function wpcom_static_url($file) {
@@ -1214,9 +1215,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Registers the React UI bundle
 		 */
 		public function admin_enqueue_scripts() {
-			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them.
-			$plugin_data = get_plugin_data( __FILE__, false, false );
-			$plugin_version = $plugin_data[ 'Version' ];
+			$plugin_version = self::get_wcs_version();
 
 			wp_register_style( 'wc_connect_admin', self::get_wcs_admin_style_url(), array(), null );
 			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array(), null, true );
