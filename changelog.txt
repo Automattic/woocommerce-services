@@ -1,6 +1,6 @@
 *** WooCommerce Services Changelog ***
 
-= 1.22.5 - 2020-xx-xx =
+= 1.22.5 - 2020-03-17 =
 * Add   - Admin asset API endpoint.
 * Fix   - GB support for WC 4.0.
 * Fix   - Jetpack staging check for PHP 5.3.
