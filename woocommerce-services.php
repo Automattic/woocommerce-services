@@ -199,6 +199,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $wc_connect_base_url;
 
+		protected static $wcs_version;
+
 		static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 		}
@@ -213,8 +215,38 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return string
 		 */
 		static function get_wcs_version() {
-			$plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
-			return $plugin_data[ 'Version' ];
+			if ( null === self::$wcs_version ) {
+				$plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
+				self::$wcs_version = $plugin_data[ 'Version' ];
+			}
+			return self::$wcs_version;
+		}
+
+		/**
+		 * Get base url.
+		 *
+		 * @return string
+		 */
+		static function get_wc_connect_base_url() {
+			return trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
+		}
+
+		/**
+		 * Get WCS admin script url.
+		 *
+		 * @return string
+		 */
+		static function get_wcs_admin_script_url() {
+			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.js';
+		}
+
+		/**
+		 * Get WCS admin css url.
+		 *
+		 * @return string
+		 */
+		static function get_wcs_admin_style_url() {
+			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.css';
 		}
 
 		function wpcom_static_url($file) {
@@ -224,7 +256,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function __construct() {
-			$this->wc_connect_base_url = trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
+			$this->wc_connect_base_url = self::get_wc_connect_base_url();
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 		}
 
@@ -290,6 +322,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
 			$this->rest_tos_controller = $rest_tos_controller;
+		}
+
+		public function set_rest_assets_controller( WC_REST_Connect_Assets_Controller $rest_assets_controller ) {
+			$this->rest_assets_controller = $rest_assets_controller;
 		}
 
 		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
@@ -859,6 +895,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
 			$rest_address_normalization_controller->register_routes();
 
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-assets-controller.php' ) );
+			$rest_assets_controller = new WC_REST_Connect_Assets_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_assets_controller( $rest_assets_controller );
+			$rest_assets_controller->register_routes();
+
 			if ( $this->stripe->is_stripe_plugin_enabled() ) {
 				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
 				$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
@@ -1193,12 +1234,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Registers the React UI bundle
 		 */
 		public function admin_enqueue_scripts() {
-			// Note: This will break outside of wp-admin, if/when we put user-facing JS/CSS we'll have to figure out another way to version them.
-			$plugin_data = get_plugin_data( __FILE__, false, false );
-			$plugin_version = $plugin_data[ 'Version' ];
+			$plugin_version = self::get_wcs_version();
 
-			wp_register_style( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services-' . $plugin_version . '.css', array(), null );
-			wp_register_script( 'wc_connect_admin', $this->wc_connect_base_url . 'woocommerce-services-' . $plugin_version . '.js', array(), null, true );
+			wp_register_style( 'wc_connect_admin', self::get_wcs_admin_style_url(), array(), null );
+			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array(), null, true );
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null );
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array( 'updates' ), null );
