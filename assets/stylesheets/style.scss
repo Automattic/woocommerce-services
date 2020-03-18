@@ -237,6 +237,11 @@
 	@import '../../client/apps/settings/style';
 	@import '../../client/apps/stripe-connect-account/style';
 	@import '../../client/components/toggle/style';
+
+	// Hide  WordPress Component style checkboxes.
+	input[type='checkbox'] + svg.components-checkbox-control__checked {
+		display: none;
+	}
 }
 
 @import 'components/dialog/style';

@@ -55,6 +55,7 @@
     "@automattic/calypso-color-schemes": "^1.0.0-alpha.1",
     "@automattic/color-studio": "^2.2.0",
     "@automattic/format-currency": "file:./wp-calypso/packages/format-currency",
+    "@wordpress/components": "8.5.0",
     "@babel/cli": "7.1.2",
     "@babel/core": "7.1.2",
     "@babel/plugin-proposal-class-properties": "7.1.0",
