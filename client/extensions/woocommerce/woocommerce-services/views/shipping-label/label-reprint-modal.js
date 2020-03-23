@@ -58,6 +58,11 @@ const ReprintDialog = props => {
 					'If there was a printing error when you purchased the label, you can print it again.'
 				) }
 			</p>
+			<p>
+				{ translate(
+					'Label images older than 180 days are deleted by our technology partners for general security and data privacy concerns.'
+				) }
+			</p>
 			<p className="shipping-label__reprint-modal-notice">
 				{ translate(
 					'NOTE: If you already used the label in a package, printing and using it again ' +
