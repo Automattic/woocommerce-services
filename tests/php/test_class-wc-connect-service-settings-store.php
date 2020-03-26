@@ -43,13 +43,14 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	public static function setupBeforeClass() {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-logger.php' );
 	}
 
 	private function get_settings_store( $service_schemas_store = false, $api_client = false, $logger = false ) {
 		if ( ! $api_client ) {
-			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
 				->disableOriginalConstructor()
 				->setMethods( null )
 				->getMock();

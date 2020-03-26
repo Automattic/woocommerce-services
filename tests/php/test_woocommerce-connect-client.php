@@ -30,7 +30,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 			->will( $this->returnValue( $store ) );
 
 		if ( ! $api_client ) {
-			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
 				->disableOriginalConstructor()
 				->getMock();
 		}
@@ -131,7 +131,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	 */
 	public function test_api_client_getter_setter() {
 
-		$client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+		$client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
 			->disableOriginalConstructor()
 			->getMock();
 		$loader = $this->mockLoader( false, $client );
