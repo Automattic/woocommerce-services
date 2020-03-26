@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { expect } from 'chai';
-import { configure, mount, shallow } from 'enzyme';
+import { configure, shallow } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16'
 import { CheckboxControl } from '@wordpress/components';
 
@@ -76,7 +76,7 @@ describe( 'Sidebar', () => {
 
 	} );
 	describe( 'for completed orders', () => {
-		const { wrapper, props } = createSidebarWrapper( { status: 'completed', fulfillOrder: false, emailDetails: false } );
+		const { wrapper } = createSidebarWrapper( { status: 'completed', fulfillOrder: false, emailDetails: false } );
 		const renderedCheckboxControl = wrapper.find( CheckboxControl )
 
 		it( 'Has a the Correct Label', function () {
@@ -88,8 +88,7 @@ describe( 'Sidebar', () => {
 		} );
 	} );
 	describe( 'for no payment method', () => {
-		const { wrapper, props } = createSidebarWrapper( { hasLabelsPaymentMethod: false } );
-		const renderedCheckboxControl = wrapper.find( CheckboxControl )
+		const { wrapper } = createSidebarWrapper( { hasLabelsPaymentMethod: false } );
 
 		it( 'Has a the Correct Label', function () {
 			expect( wrapper.find( Dropdown ) ).to.have.lengthOf( 1 );
