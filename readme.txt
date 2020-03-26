@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.4
-Stable tag: 1.22.4
+Stable tag: 1.22.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,8 +83,14 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
+= 1.22.5 - 2020-03-17 =
+* Add   - Admin asset API endpoint.
+* Fix   - GB support for WC 4.0.
+* Fix   - Jetpack staging check for PHP 5.3.
+* Tweak - Bump WP tested version to 5.4.
+
 = 1.22.4 - 2020-03-02 =
-* Fix   - Stop using deprecated method Jatpack::is_staging_site() when Jatpack
+* Fix   - Stop using deprecated method Jetpack::is_staging_site() when Jetpack
 8.1 is installed.
 
 = 1.22.3 - 2020-01-22 =
@@ -129,12 +135,3 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 * Update WordPress compatibility to 5.2
 * When there's only one credit card available, select it as the default for purchases
 * Add ability to specify payment method during label purchase to enable choosing a credit card during purchase in the future
-
-= 1.20.0 =
-
-* Update WooCommerce compatibility to 3.6
-* Improved wording for the Stripe Connect UI when disconnected
-* Improve detection of when a Stripe account is connected
-* Avoid overwriting Stripe keys after they've already been entered, and WooCommerce Services is connected for the first time
-* Enable notices about WooCommerce Services to be displayed, for example when taxes were incorrectly calculated
-* Update the 'print label' button text and style
