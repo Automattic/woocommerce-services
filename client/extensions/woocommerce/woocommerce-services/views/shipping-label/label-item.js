@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { Tooltip } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -23,6 +24,7 @@ import {
 	openReprintDialog,
 	openDetailsDialog,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
 	renderRefund = label => {
@@ -49,22 +51,23 @@ export class LabelItem extends Component {
 		);
 	};
 
-	renderReprint = label => {
-		const todayTime = new Date().getTime();
-		if (
-			label.anonymized ||
-			label.usedDate ||
-			( label.expiryDate && label.expiryDate < todayTime )
-		) {
-			return null;
-		}
-
+	renderReprint = ( label, expired ) => {
 		const { orderId, siteId, translate } = this.props;
 
 		const openDialog = () => {
 			this.props.openReprintDialog( orderId, siteId, label.labelId );
 		};
 
+		if ( expired ) {
+			return (
+				<Tooltip position="top left" text={ translate('Label images older than 180 days are deleted by our technology partners for general security and data privacy concerns.') }>
+					<button className="popover__menu-item shipping-label__item-menu-reprint-expired" role="menuitem" tabIndex="-1">
+						<Gridicon icon="print" size={ 18 }/>
+						<span> { translate( 'Reprint' ) } </span>
+					</button>
+				</Tooltip>
+			);
+		}
 		return (
 			<PopoverMenuItem onClick={ openDialog } icon="print">
 				{ translate( 'Reprint' ) }
@@ -122,6 +125,16 @@ export class LabelItem extends Component {
 			currency,
 		} = label;
 
+		const todayTime = new Date().getTime();
+		let expired = false;
+		if (
+			label.anonymized ||
+			label.usedDate ||
+			( label.expiryDate && label.expiryDate < todayTime )
+		) {
+			expired = true;
+		}
+
 		return (
 			<div className="shipping-label__item">
 				<p className="shipping-label__item-detail">
@@ -138,7 +151,7 @@ export class LabelItem extends Component {
 									{ this.renderLabelDetails( label ) }
 									{ this.renderPickup( label ) }
 									{ this.renderRefund( label ) }
-									{ this.renderReprint( label ) }
+									{ this.renderReprint( label, expired ) }
 								</EllipsisMenu>
 							) ) }
 							<DetailsDialog
