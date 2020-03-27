@@ -1090,6 +1090,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SHOW_PRINT_CONFIRMATION ] = (
 			needsPrintConfirmation: true,
 			fileData,
 			labelsToPrint: labels,
+			isSubmitting: false,
 		},
 	};
 };
