@@ -153,6 +153,7 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-label.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-payment-methods-store.php' );
 
@@ -168,7 +169,7 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		}
 
 		if ( ! $api_client ) {
-			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+			$api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
 				->disableOriginalConstructor()
 				->setMethods( null )
 				->getMock();

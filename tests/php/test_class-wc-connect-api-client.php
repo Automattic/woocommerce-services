@@ -7,10 +7,12 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 
 	public static function setupBeforeClass() {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php' );
+
 	}
 
 	public function setUp() {
-		$this->api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+		$this->api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
 			->disableOriginalConstructor()
 			->setMethods( null )
 			->getMock();

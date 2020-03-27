@@ -13,7 +13,6 @@ import { moment, translate } from 'i18n-calypso';
  * Internal dependencies
  */
 import { ShippingLabelViewWrapper } from '../view-wrapper-label';
-import Button from 'components/button';
 
 configure( { adapter: new Adapter() } );
 

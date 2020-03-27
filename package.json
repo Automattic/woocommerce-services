@@ -6,7 +6,7 @@
     "prepare": "cd wp-calypso && npm ci && cd ..",
     "dist": "cross-env NODE_ENV=production DISABLE_FEATURES=code-splitting,wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "eslint": "eslint tasks/ client/",
-    "test": "npm run eslint && npm run test-client",
+    "test": "npm run test-client && npm run eslint",
     "test-client": "jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
     "prerelease": "npm run i18n && npm run i18njson",
