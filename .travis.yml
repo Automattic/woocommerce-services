@@ -53,9 +53,12 @@ jobs:
      env: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
      language: node_js
      before_script: skip
-      # Run the JS tests in a separate container
-      #  - language: node_js
-      #    before_script: ""
+     script: npm run test-client
+   - name: "JS eslint"
+     env: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+     language: node_js
+     before_script: skip
+     script: npm run eslint
    - name: "E2E tests"
      dist: trusty
      php: 7.2

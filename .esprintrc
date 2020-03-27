@@ -1,9 +1,0 @@
-{
-  "paths": [
-    "tasks/**/*.js",
-    "client/**/*.js"
-  ],
-  "ignored": [
-    "**/node_modules/**/*"
-  ]
-}
