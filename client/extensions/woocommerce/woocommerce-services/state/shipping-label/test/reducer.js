@@ -29,6 +29,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_SIGNATURE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PACKAGE_WEIGHT,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SHOW_PRINT_CONFIRMATION,
 } from '../../action-types';
 
 const orderId = 1;
@@ -506,5 +507,42 @@ describe( 'Label purchase form reducer', () => {
 			isNormalized: true,
 			normalized: initialState[ orderId ].form[ group ].values,
 		} );
+	} );
+
+	it( 'WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SHOW_PRINT_CONFIRMATION should allow user to close modal without printing', () => {
+		const action = {
+			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SHOW_PRINT_CONFIRMATION,
+			orderId,
+			siteId,
+			fileData: {
+				mimeType: "application/pdf",
+				b64Content: "JVBERi0xLjMKJf////8KNyAwIG9iago8PAovUHJlZGljdG9yID",
+				success: true
+			},
+			labels: [
+				{
+					label_id: 20,
+					tracking: "9449000897846035789833",
+					refundable_amount: 3.86,
+					created: 1585252278995,
+					carrier_id: "usps",
+					service_name: "USPS - Media Mail",
+					status: "PURCHASED",
+					package_name: "Box",
+					product_names: ["Coffee mug"],
+					receipt_item_id: 24134904,
+					created_date: 1585252283000,
+					main_receipt_id: 19614621,
+					rate: 3.86,
+					currency: "USD"
+				}
+			],
+		};
+		const state = reducer( initialState, action );
+
+		expect( state[ orderId ].form.isSubmitting ).to.equal( false );
+		expect( state[ orderId ].form.needsPrintConfirmation ).to.equal( true );
+		expect( state[ orderId ].form.fileData ).to.equal( action.fileData );
+		expect( initialState[ orderId ].labels ).to.deep.equal( state[ orderId ].labels );
 	} );
 } );
