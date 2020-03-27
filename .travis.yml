@@ -40,7 +40,7 @@ matrix:
      # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.3/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
    - php: 7.4
-     env: WP_VERSION=latest WC_VERSION=4.0.1 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+     env: WP_VERSION=latest WC_VERSION=latest PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
        # Not even the latest WP version is compatible with PHPUnit 7. Manually install PHPUnit 6.
      script: curl -sSfL -o ~/.phpenv/versions/7.4/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
 
