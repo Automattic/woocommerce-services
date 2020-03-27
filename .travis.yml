@@ -59,7 +59,7 @@ jobs:
    - name: "E2E tests"
      dist: trusty
      php: 7.2
-     env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=latest RUN_E2E=1
+     env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=4.0.1 RUN_E2E=1
      before_install:
          # Enable user namespace cloning
          - "sysctl kernel.unprivileged_userns_clone=1"
