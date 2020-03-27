@@ -96,7 +96,8 @@ Sidebar.propTypes = {
 	emailDetails: PropTypes.bool.isRequired,
 	order: PropTypes.object.isRequired,
 	hasLabelsPaymentMethod: PropTypes.bool.isRequired,
-	setFulfillOrderOption: PropTypes.func.isRequired
+	setFulfillOrderOption: PropTypes.func.isRequired,
+	updatePaperSize: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
