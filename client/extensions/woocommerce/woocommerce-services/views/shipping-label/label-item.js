@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { Tooltip } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -23,19 +24,21 @@ import {
 	openReprintDialog,
 	openDetailsDialog,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
-	renderRefund = label => {
+	renderRefund = ( label, expired ) => {
 		const { orderId, siteId, translate } = this.props;
 
-		const today = new Date();
-		const thirtyDaysAgo = new Date().setDate( today.getDate() - 30 );
-		if (
-			label.anonymized ||
-			label.usedDate ||
-			( label.createdDate && label.createdDate < thirtyDaysAgo )
-		) {
-			return null;
+		if ( expired ) {
+			return (
+				<Tooltip position="top left" text={ translate('Labels older than 30 days cannot be refunded.') }>
+					<button className="popover__menu-item shipping-label__item-menu-reprint-expired" role="menuitem" tabIndex="-1">
+						<Gridicon icon="refund" size={ 18 }/>
+						<span> { translate( 'Request refund' ) } </span>
+					</button>
+				</Tooltip>
+			);
 		}
 
 		const openDialog = () => {
@@ -49,20 +52,22 @@ export class LabelItem extends Component {
 		);
 	};
 
-	renderReprint = label => {
-		const todayTime = new Date().getTime();
-		if (
-			label.anonymized ||
-			label.usedDate ||
-			( label.expiryDate && label.expiryDate < todayTime )
-		) {
-			return null;
-		}
-
+	renderReprint = ( labelId, expired ) => {
 		const { orderId, siteId, translate } = this.props;
 
+		if ( expired ) {
+			return (
+				<Tooltip position="top left" text={ translate('Label images older than 180 days are deleted by our technology partners for general security and data privacy concerns.') }>
+					<button className="popover__menu-item shipping-label__item-menu-reprint-expired" role="menuitem" tabIndex="-1">
+						<Gridicon icon="print" size={ 18 }/>
+						<span> { translate( 'Reprint' ) } </span>
+					</button>
+				</Tooltip>
+			);
+		}
+
 		const openDialog = () => {
-			this.props.openReprintDialog( orderId, siteId, label.labelId );
+			this.props.openReprintDialog( orderId, siteId, labelId );
 		};
 
 		return (
@@ -72,11 +77,11 @@ export class LabelItem extends Component {
 		);
 	};
 
-	renderLabelDetails = label => {
+	renderLabelDetails = labelId => {
 		const { orderId, siteId, translate } = this.props;
 
 		const openDialog = () => {
-			this.props.openDetailsDialog( orderId, siteId, label.labelId );
+			this.props.openDetailsDialog( orderId, siteId, labelId );
 		};
 
 		return (
@@ -86,19 +91,19 @@ export class LabelItem extends Component {
 		);
 	};
 
-	renderPickup = label => {
+	renderPickup = carrierId => {
 		const { translate } = this.props;
 		const pickup_urls = {
 			'usps': 'https://tools.usps.com/schedule-pickup-steps.htm',
 			'fedex': 'https://www.fedex.com/en-us/shipping/schedule-manage-pickups.html',
 		};
 
-		if ( ! ( pickup_urls.hasOwnProperty( label.carrierId ) ) ) {
+		if ( ! ( pickup_urls.hasOwnProperty( carrierId ) ) ) {
 			return null;
 		}
 
 		const onClickOpenPage = () => {
-			window.open(pickup_urls[ label.carrierId ], '_blank');
+			window.open(pickup_urls[ carrierId ], '_blank');
 		};
 
 		return (
@@ -109,36 +114,67 @@ export class LabelItem extends Component {
 	};
 
 	render() {
-		const { siteId, orderId, label, translate, isModal } = this.props;
 		const {
-			labelIndex,
-			serviceName,
-			packageName,
-			productNames,
-			receiptId,
-			labelId,
-			createdDate,
-			refundableAmount,
-			currency,
-		} = label;
+			label: {
+				labelIndex,
+				serviceName,
+				packageName,
+				productNames,
+				receiptId,
+				labelId,
+				createdDate,
+				refundableAmount,
+				currency,
+				showDetails,
+				expiryDate,
+				anonymized,
+				usedDate,
+                tracking,
+				carrierId
+			},
+			siteId,
+			orderId,
+			translate,
+			isModal
+		} = this.props;
+
+		const todayTime = new Date().getTime();
+		let expired = false;
+		let refundExpired = false;
+		if (
+			anonymized ||
+			usedDate ||
+			( expiryDate && expiryDate < todayTime )
+		) {
+			expired = true;
+		}
+
+		const thirtyDaysAgo = new Date().setDate( (new Date()).getDate() - 30 );
+		if (
+			anonymized ||
+			usedDate ||
+			( createdDate && createdDate < thirtyDaysAgo )
+		) {
+			refundExpired = true;
+		}
 
 		return (
 			<div className="shipping-label__item">
 				<p className="shipping-label__item-detail">
 					{ translate( '%(service)s label (#%(labelIndex)d)', {
 						args: {
-							service: label.serviceName,
-							labelIndex: label.labelIndex + 1,
+							service: serviceName,
+							labelIndex: labelIndex + 1,
 						},
 					} ) }
-					{ label.showDetails && (
+					{ showDetails && (
 						<span>
 							{ ( ! isModal && (
 								<EllipsisMenu position="bottom left">
-									{ this.renderLabelDetails( label ) }
-									{ this.renderPickup( label ) }
-									{ this.renderRefund( label ) }
-									{ this.renderReprint( label ) }
+									{ this.renderLabelDetails( labelId ) }
+									{ this.renderPickup( carrierId ) }
+									{ this.renderRefund( labelId, refundExpired ) }
+									{ this.renderReprint( labelId, expired ) }
 								</EllipsisMenu>
 							) ) }
 							<DetailsDialog
@@ -163,10 +199,10 @@ export class LabelItem extends Component {
 						</span>
 					) }
 				</p>
-				{ label.showDetails && (
+				{ showDetails && (
 					<p className="shipping-label__item-tracking">
 						{ translate( 'Tracking #: {{trackingLink/}}', {
-							components: { trackingLink: <TrackingLink { ...label } /> },
+							components: { trackingLink: <TrackingLink carrierId={ carrierId } tracking={ tracking }  /> },
 						} ) }
 					</p>
 				) }
@@ -178,7 +214,23 @@ export class LabelItem extends Component {
 LabelItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	orderId: PropTypes.number.isRequired,
-	label: PropTypes.object.isRequired,
+	label: PropTypes.shape({
+		serviceName: PropTypes.string.isRequired,
+		labelIndex: PropTypes.number.isRequired,
+		packageName: PropTypes.string.isRequired,
+		productNames: PropTypes.string.isRequired,
+		receiptId: PropTypes.number.isRequired,
+		labelId: PropTypes.number.isRequired,
+		createdDate: PropTypes.string.isRequired,
+		refundableAmount: PropTypes.number.isRequired,
+		currency: PropTypes.string.isRequired,
+		showDetails: PropTypes.bool.isRequired,
+		expiryDate: PropTypes.string.isRequired,
+		anonymized: PropTypes.bool.isRequired,
+		usedDate: PropTypes.string.isRequired,
+		tracking: PropTypes.string.isRequired,
+		carrierId: PropTypes.number.isRequired
+	}).isRequired,
 	isModal: PropTypes.bool.isRequired,
 	openRefundDialog: PropTypes.func.isRequired,
 	openReprintDialog: PropTypes.func.isRequired,
