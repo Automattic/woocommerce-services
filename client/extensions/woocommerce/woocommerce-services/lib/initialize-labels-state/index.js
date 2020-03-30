@@ -136,5 +136,6 @@ export default data => {
 			rateOptions: {},
 		},
 		openedPackageId: Object.keys( formData.selected_packages )[ 0 ] || '',
+		shouldUpdateOrderDetailPage: false,
 	};
 };

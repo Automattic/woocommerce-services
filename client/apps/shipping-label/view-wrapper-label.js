@@ -27,6 +27,7 @@ import {
 import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	areLabelsFullyLoaded,
+	shouldUpdateOrderDetailPage,
 } from '../../extensions/woocommerce/woocommerce-services/state/shipping-label/selectors';
 import {
 	areLabelsEnabled,
@@ -162,6 +163,17 @@ export class ShippingLabelViewWrapper extends Component {
 		this.props.openTrackingFlow( orderId, siteId );
 	};
 
+	updateOrderDetailScreen = () => {
+		if ( window.jQuery ) {
+			window.jQuery.get( window.location.href, function( result ) {
+				const parsedResult = window.jQuery( result );
+				const updatedOrderDetails = parsedResult.find( '#order_data' );
+				const updatedOrderNotes = parsedResult.find( '#woocommerce-order-notes' );
+				window.jQuery( '#woocommerce-order-notes' ).html( updatedOrderNotes.html() );
+				window.jQuery( '#order_data' ).html( updatedOrderDetails.html() );
+			} );
+		}
+	}
 	render() {
 		const {
 			siteId,
@@ -172,6 +184,7 @@ export class ShippingLabelViewWrapper extends Component {
 			translate,
 			events,
 			moment,
+			updateOrderDetailPage,
 		} = this.props;
 
 		const shouldRenderButton = ! loaded || labelsEnabled;
@@ -189,6 +202,10 @@ export class ShippingLabelViewWrapper extends Component {
 			const latestLabel = maxBy( activeLabels, 'createdDate' );
 			const createdMoment = moment( latestLabel.createdDate );
 			createdDate = createdMoment.format( 'll' );
+		}
+
+		if ( updateOrderDetailPage ) {
+			this.updateOrderDetailScreen();
 		}
 
 		return (
@@ -246,6 +263,7 @@ export default connect(
 		const events = getActivityLogEvents( state, orderId );
 		const orderLoading = isOrderLoading( state, orderId, siteId );
 		const orderLoaded = isOrderLoaded( state, orderId, siteId );
+		const updateOrderDetailPage = shouldUpdateOrderDetailPage( state, orderId, siteId );
 
 		return {
 			siteId,
@@ -254,6 +272,7 @@ export default connect(
 			orderLoading,
 			orderLoaded,
 			labelsEnabled: areLabelsEnabled( state, siteId ),
+			updateOrderDetailPage,
 		};
 	},
 	( dispatch ) => ( {

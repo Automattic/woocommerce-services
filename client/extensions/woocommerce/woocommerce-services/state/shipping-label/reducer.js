@@ -1346,8 +1346,14 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG ] = state => 
 };
 
 // Reset the state when the order changes
-reducers[ WOOCOMMERCE_ORDER_UPDATE_SUCCESS ] = () => {
-	return initializeLabelsState();
+reducers[ WOOCOMMERCE_ORDER_UPDATE_SUCCESS ] = ( { fulfillOrder }, { order: { status } } ) => {
+	const initialState = initializeLabelsState();
+
+	if ( fulfillOrder && "completed" === status ) {
+		initialState[ 'shouldUpdateOrderDetailPage' ] = true;
+	}
+
+	return initialState;
 };
 
 export default keyedReducer( 'orderId', ( state = initializeLabelsState(), action ) => {
