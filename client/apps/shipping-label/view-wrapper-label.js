@@ -167,10 +167,9 @@ export class ShippingLabelViewWrapper extends Component {
 		if ( window.jQuery ) {
 			window.jQuery.get( window.location.href, function( result ) {
 				const parsedResult = window.jQuery( result );
-				const updatedOrderDetails = parsedResult.find( '#order_data' );
 				const updatedOrderNotes = parsedResult.find( '#woocommerce-order-notes' );
 				window.jQuery( '#woocommerce-order-notes' ).html( updatedOrderNotes.html() );
-				window.jQuery( '#order_data' ).html( updatedOrderDetails.html() );
+				window.jQuery('#order_status').val('wc-completed').trigger('change');
 			} );
 		}
 	}

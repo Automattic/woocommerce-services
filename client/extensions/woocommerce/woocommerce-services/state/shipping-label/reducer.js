@@ -1350,7 +1350,7 @@ reducers[ WOOCOMMERCE_ORDER_UPDATE_SUCCESS ] = ( { fulfillOrder }, { order: { st
 	const initialState = initializeLabelsState();
 
 	if ( fulfillOrder && "completed" === status ) {
-		initialState[ 'shouldUpdateOrderDetailPage' ] = true;
+		initialState.shouldUpdateOrderDetailPage = true;
 	}
 
 	return initialState;
