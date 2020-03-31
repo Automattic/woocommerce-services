@@ -34,12 +34,12 @@ const VisaCard5959 = {
 	"name": "John Doe",
 	"card_type": "visa",
 	"card_digits": "5959",
-	"expiry": "2025-12-31"
+	"expiry": "2030-06-10"
 }
 
 const Mastercard2862 = {
 	"payment_method_id": 6717123,
-	"name": "John Doe",
+	"name": "Jane Smith",
 	"card_type": "mastercard",
 	"card_digits": "2862",
 	"expiry": "2025-12-31"
