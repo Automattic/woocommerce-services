@@ -49,7 +49,7 @@ export const Sidebar = props => {
 		hasLabelsPaymentMethod,
 	} = props;
 
-	const onFulfillAndEmailOrderChange = (value) => {
+	const onFulfillAndEmailOrderChange = ( value ) => {
 		// Don't change order status if already finished.
 		props.setFulfillOrderOption( orderId, siteId, value && ! isOrderFinished( order.status ) );
 		// Email only if order is already complete.

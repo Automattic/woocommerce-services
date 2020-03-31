@@ -52,7 +52,7 @@ function createShippingRateWrapper( {
 			service_id: serviceId || 'service_1',
 			carrier_id: carrierId || 'random carrier',
 			rate: rateAmount || 10,
-			delivery_days: deliveryDays || '2',
+			delivery_days: deliveryDays || 2,
 			delivery_date_guaranteed: deliveryDateGuaranteed || true,
 			delivery_date: deliveryDate || new Date(2020, 1, 1),
 			tracking: tracking || true,

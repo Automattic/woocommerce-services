@@ -33,6 +33,7 @@ function createSidebarWrapper( { status = 'processing', fulfillOrder = true, ema
 		emailDetails: emailDetails,
 		hasLabelsPaymentMethod: true,
 		setFulfillOrderOption: jest.fn(),
+		setEmailDetailsOption: jest.fn(),
 	};
 
 	const wrapper = shallow( <Sidebar { ...props } /> );
@@ -44,7 +45,7 @@ function createSidebarWrapper( { status = 'processing', fulfillOrder = true, ema
 }
 
 describe( 'Sidebar', () => {
-	describe( 'for defaulte order state', () => {
+	describe( 'for default order state', () => {
 		const { wrapper, props } = createSidebarWrapper( {} );
 		const renderedCheckboxControl = wrapper.find( CheckboxControl )
 
@@ -56,10 +57,12 @@ describe( 'Sidebar', () => {
 			expect( renderedCheckboxControl.props().label ).to.equal( 'Mark this order as complete and notify the customer' );
 		} );
 
-		it( 'Unchecked checkbox disables fulfilling the order', function() {
-			renderedCheckboxControl.props().onChange(false)
+		it( 'Unchecked checkbox disables fulfilling the order and sending email', function() {
+			renderedCheckboxControl.props().onChange( false )
 			expect( props.setFulfillOrderOption.mock.calls ).to.have.lengthOf( 1 );
 			expect( props.setFulfillOrderOption.mock.calls[0][2] ).to.equal( false );
+			expect( props.setEmailDetailsOption.mock.calls ).to.have.lengthOf( 1 );
+			expect( props.setEmailDetailsOption.mock.calls[0][2] ).to.equal( false );
 		} );
 
 		it( 'it is checked', function() {
