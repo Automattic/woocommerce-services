@@ -52,7 +52,8 @@ export const Sidebar = props => {
 	const onFulfillAndEmailOrderChange = (value) => {
 		// Don't change order status if already finished.
 		props.setFulfillOrderOption( orderId, siteId, value && ! isOrderFinished( order.status ) );
-		// Email only if order is already complete.nished( order.status ) );
+		// Email only if order is already complete.
+		props.setEmailDetailsOption( orderId, siteId, value && isOrderFinished( order.status ) );
 	};
 	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
