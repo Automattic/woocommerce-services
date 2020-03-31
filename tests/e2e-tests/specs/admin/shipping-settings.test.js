@@ -28,69 +28,68 @@ import { AccountWithNoCreditCard, AccountWithOneCreditCard, AccountWithTwoCredit
 // } );
 
 describe( 'Shipping label payment method', () => {
-    // it('should show "Choose a different card" button if Wordpress.com has a credit card', async () => {
-    //     await page.setRequestInterception(true);
-    //     page.on('request', request => {
-    //         if (request.url().match('wp-json/wc/v1/connect/account/settings')) {
-    //             request.respond({
-    //                 status: 200,
-    //                 contentType: 'application/json; charset=UTF-8',
-    //                 body: JSON.stringify(AccountWithOneCreditCard)
-    //             });
-    //         } else {
-    //             request.continue();
-    //         }
-    //     });
+    afterEach(() => {
+        page.removeAllListeners('request');
+    });
 
-    //     await StoreOwnerFlow.login();
-    //     await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-    //     await page.waitForSelector('.button.is-borderless', { text: 'Choose a different card' } );
-    //     await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
-    //     await expect(page).toMatchElement('.label-settings__card-number', {
-    //         text: 'VISA ****5959'
-    //     });
-    //     await expect(page).toMatchElement('.label-settings__card-name', {
-    //         text: 'John Doe'
-    //     });
-    // });
-
-    // it('should show "Add a credit card" button if Wordpress has no credit card', async () => {
-    //     await page.setRequestInterception(true);
-    //     page.on('request', request => {
-    //         if (request.url().match('wp-json/wc/v1/connect/account/settings')) {
-    //             request.respond({
-    //                 status: 200,
-    //                 contentType: 'application/json; charset=UTF-8',
-    //                 body: JSON.stringify(AccountWithNoCreditCard)
-    //             });
-    //         } else {
-    //             request.continue();
-    //         }
-    //     });
-
-    //     await StoreOwnerFlow.login();
-    //     await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-    //     await page.waitForSelector('.button.is-compact', { text: 'Add a credit card' } );
-    // });
-
-    it('should show 2 credit cards with the right information f Wordpress.com has 2 credit cards', async () => {
+    const mockAccountSettingAPI = async (response) => {
         await page.setRequestInterception(true);
         page.on('request', request => {
             if (request.url().match('wp-json/wc/v1/connect/account/settings')) {
                 request.respond({
                     status: 200,
                     contentType: 'application/json; charset=UTF-8',
-                    body: JSON.stringify(AccountWithTwoCreditCard)
+                    body: JSON.stringify(response)
                 });
             } else {
                 request.continue();
             }
         });
+    };
 
+    it('should show "Choose a different card" button if Wordpress.com has a credit card', async () => {
+        // Intercept API before making any HTTP request
+        await mockAccountSettingAPI(AccountWithOneCreditCard);
+
+        // Go to settings page after setting up interception.
         await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        // Test
         await page.waitForSelector('.button.is-borderless', { text: 'Choose a different card' } );
         await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
+        await expect(page).toMatchElement('.label-settings__card-number', {
+            text: 'VISA ****5959'
+        });
+        await expect(page).toMatchElement('.label-settings__card-name', {
+            text: 'John Doe'
+        });
+    });
+
+    it('should show "Add a credit card" button if Wordpress has no credit card', async () => {
+        // Intercept API before making any HTTP request
+        await mockAccountSettingAPI(AccountWithOneCreditCard);
+
+        // No need to login again, refresh page
+        await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        // Test
+        await page.waitForSelector('.button.is-compact', { text: 'Add a credit card' } );
+    });
+
+    it('should show 2 credit cards with the right information f Wordpress.com has 2 credit cards', async () => {
+        // Intercept API before making any HTTP request
+        await mockAccountSettingAPI(AccountWithTwoCreditCard);
+
+        // No need to login again, refresh page
+        await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        // Test
+        await page.waitForSelector('.button.is-borderless', { text: 'Choose a different card' } );
+        await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
+
+        // Verify "Add another credit card" is present after clicking 'Choose a different card'
+        await page.waitForSelector('.button.is-compact', { text: 'Add another credit card' } );
 
         // The index is based on the order in the settings' API. Inside the payment_methods prop.
         // This API end point is mocked, check fixtures/account_settings.js for ordering.
