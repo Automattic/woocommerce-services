@@ -166,3 +166,17 @@ export function transformOrderForApi( order ) {
 
 	return order;
 }
+
+/**
+ * Directly update the order details screen with latest data.
+ */
+export function updateOrderDetailScreen() {
+	if ( window.jQuery ) {
+		window.jQuery.get( window.location.href, function( result ) {
+			const parsedResult = window.jQuery( result );
+			const updatedOrderNotes = parsedResult.find( '#woocommerce-order-notes' );
+			window.jQuery( '#woocommerce-order-notes' ).html( updatedOrderNotes.html() );
+			window.jQuery('#order_status').val('wc-completed').trigger('change');
+		} );
+	}
+}
