@@ -27,7 +27,7 @@ import {
 import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
-	renderRefund = ( label, expired ) => {
+	renderRefund = ( labelId, expired ) => {
 		const { orderId, siteId, translate } = this.props;
 
 		if ( expired ) {
@@ -42,7 +42,7 @@ export class LabelItem extends Component {
 		}
 
 		const openDialog = () => {
-			this.props.openRefundDialog( orderId, siteId, label.labelId );
+			this.props.openRefundDialog( orderId, siteId, labelId );
 		};
 
 		return (
