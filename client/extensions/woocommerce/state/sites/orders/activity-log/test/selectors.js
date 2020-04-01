@@ -370,12 +370,6 @@ describe( 'selectors', () => {
 					timestamp: 1505727471000,
 					content: 'Something internal',
 				},
-				{
-					key: 2,
-					type: 'CUSTOMER_NOTE',
-					timestamp: 1505731071000,
-					content: 'Something customer-facing',
-				},
 			] );
 		} );
 
@@ -386,12 +380,6 @@ describe( 'selectors', () => {
 					type: 'INTERNAL_NOTE',
 					timestamp: 1505727471000,
 					content: 'Something internal',
-				},
-				{
-					key: 2,
-					type: 'CUSTOMER_NOTE',
-					timestamp: 1505731071000,
-					content: 'Something customer-facing',
 				},
 				{
 					key: 4,
