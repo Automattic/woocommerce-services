@@ -5,27 +5,52 @@ import { clickReactButton } from '../../utils/index';
 import { StoreOwnerFlow } from "../../utils/flows";
 import { AccountWithNoCreditCard, AccountWithOneCreditCard, AccountWithTwoCreditCard } from "../../fixtures/account_settings";
 
-// describe( 'Saving shipping label settings', () => {
-// 	it( 'Can toggle shipping labels' , async () => {
-// 		let slug = 'woocommerce-services';
-// 		await StoreOwnerFlow.login();
-// 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-//         await page.waitForSelector('.form-toggle__switch');
-//         await expect(page).toClick('.form-toggle__switch');
-//         await page.waitForSelector('.label-settings__cards-label form-label', {
-//             hidden: true
-//         });
-//         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
-//         // Clicking save should persist the hidden state of the section.
-//         await page.waitForSelector('.label-settings__cards-label form-label', {
-//             hidden: true
-//         });
+// Click save and wait until it's saved.
+const saveAndWait = async () => {
+    await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
+    await page.waitForSelector('[class="button is-primary"]');
+};
 
-//         // Enable
-//         await expect(page).toClick('.form-toggle__switch');
-//         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
-//     });
-// } );
+describe( 'Saving shipping label settings', () => {
+	it( 'Can toggle shipping labels' , async () => {
+		await StoreOwnerFlow.login();
+		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+        await page.waitForSelector('.form-toggle__switch');
+        await expect(page).toClick('.form-toggle__switch');
+        await page.waitForSelector('.card.label-settings__labels-container', {
+            visible: false
+        });
+        await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
+        // Clicking save should persist the visible state of the section.
+        await page.waitForSelector('.card.label-settings__labels-container', {
+            visible: false
+        });
+
+        // Enable
+        await expect(page).toClick('.form-toggle__switch');
+        await saveAndWait();
+    });
+
+    it ('Should be able to select a different paper size', async () => {
+        await page.select('select.form-select', 'label');
+        await saveAndWait();
+        // TODO: Refresh page to see if it is selected.
+        // await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        let paperSize = await page.$('select.form-select');
+        let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
+        expect(selectedOption).toBe('label');
+
+        await page.select('select.form-select', 'legal');
+        await saveAndWait();
+        // TODO: Refresh page to see if it is selected.
+        // await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        paperSize = await page.$('select.form-select');
+        selectedOption = await (await paperSize.getProperty('value')).jsonValue();
+        expect(selectedOption).toBe('legal');
+    });
+} );
 
 describe( 'Shipping label payment method', () => {
     afterEach(() => {
