@@ -119,9 +119,13 @@ export const isActivityLogLoading = ( state, orderId, siteId = getSelectedSiteId
  */
 export const getActivityLogEvents = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
 	const order = getOrder( state, orderId, siteId );
-	const events = getOrderNotes( state, orderId, siteId ).map( note => ( {
+
+	// There's no current need to display a note about customer emails, so just filter it out.
+	const orderNotes = getOrderNotes( state, orderId, siteId ).filter( o => false === o.customer_note );
+
+	const events = orderNotes.map( note => ( {
 		key: note.id,
-		type: note.customer_note ? EVENT_TYPES.CUSTOMER_NOTE : EVENT_TYPES.INTERNAL_NOTE,
+		type: EVENT_TYPES.INTERNAL_NOTE,
 		timestamp: new Date( note.date_created_gmt + 'Z' ).getTime(),
 		content: note.note,
 	} ) );
