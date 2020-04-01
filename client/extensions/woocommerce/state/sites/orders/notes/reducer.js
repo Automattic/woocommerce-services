@@ -99,7 +99,7 @@ export function orders( state = {}, action ) {
 		}
 		case WOOCOMMERCE_ORDER_NOTE_CREATE_SUCCESS: {
 			const { note, orderId } = action;
-			const idList = [ ...state[ orderId ], note.id ];
+			const idList = [ ... ( state[ orderId ] || [] ) , note.id ];
 			return Object.assign( {}, state, { [ orderId ]: idList } );
 		}
 		default:
