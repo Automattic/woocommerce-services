@@ -92,9 +92,10 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
 } from '../action-types';
-import { WOOCOMMERCE_ORDER_UPDATE_SUCCESS } from 'woocommerce/state/action-types';
+import { WOOCOMMERCE_ORDER_REQUEST_SUCCESS } from 'woocommerce/state/action-types';
 import getBoxDimensions from 'woocommerce/woocommerce-services/lib/utils/get-box-dimensions';
 import initializeLabelsState from 'woocommerce/woocommerce-services/lib/initialize-labels-state';
+import { isOrderFinished } from 'woocommerce/lib/order-status';
 
 const generateUniqueBoxId = ( keyBase, boxIds ) => {
 	for ( let i = 0; i <= boxIds.length; i++ ) {
@@ -1346,15 +1347,12 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG ] = state => 
 	};
 };
 
-// Reset the state when the order changes
-reducers[ WOOCOMMERCE_ORDER_UPDATE_SUCCESS ] = ( { fulfillOrder }, { order: { status } } ) => {
-	const initialState = initializeLabelsState();
-
-	if ( fulfillOrder && "completed" === status ) {
-		initialState.shouldUpdateOrderDetailPage = true;
+reducers[ WOOCOMMERCE_ORDER_REQUEST_SUCCESS ] = ( state, { order: { status } } ) => {
+	return {
+		... state,
+		fulfillOrder: ! isOrderFinished( status ),
+		emailDetails: isOrderFinished( status ),
 	}
-
-	return initialState;
 };
 
 export default keyedReducer( 'orderId', ( state = initializeLabelsState(), action ) => {

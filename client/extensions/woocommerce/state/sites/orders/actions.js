@@ -151,7 +151,7 @@ export const saveOrderSuccess = ( siteId, orderId, order = {} ) => {
 	if ( 'undefined' === typeof order.id ) {
 		return saveOrderError( siteId, orderId, order );
 	}
-	updateOrderDetailScreen();
+	updateOrderDetailScreen( order );
 	return {
 		type: WOOCOMMERCE_ORDER_UPDATE_SUCCESS,
 		siteId,
