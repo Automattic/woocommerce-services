@@ -675,6 +675,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-paypal-ec.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-label-reports.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-privacy.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-account-settings.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-package-settings.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-continents.php' ) );
 
 			$core_logger           = new WC_Logger();
 			$logger                = new WC_Connect_Logger( $core_logger );
@@ -693,7 +696,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
 			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
-			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store );
+			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
 			$options               = new WC_Connect_Options();

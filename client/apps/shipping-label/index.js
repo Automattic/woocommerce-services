@@ -24,8 +24,18 @@ import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-
 import locations from '../../extensions/woocommerce/state/data-layer/data/locations';
 import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
 import { mergeHandlers } from 'state/action-watchers/utils';
+import initializeLabelsState from 'woocommerce/woocommerce-services/lib/initialize-labels-state';
 
-export default ( { orderId, context, items } ) => {
+export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, context, items } ) => {
+
+	const orderId = order ? order.id : null;
+	const { storeOptions, formMeta, userMeta, formData } = accountSettings;
+	const packages = packagesSettings.formData;
+	const dimensionUnit = packagesSettings.storeOptions.dimension_unit;
+	const weightUnit = packagesSettings.storeOptions.weight_unit;
+	const packageSchema = packagesSettings.formSchema.custom.items;
+	const predefinedSchema = packagesSettings.formSchema.predefined;
+
 	return {
 		getReducer() {
 			return combineReducers( {
@@ -62,14 +72,53 @@ export default ( { orderId, context, items } ) => {
 						sites: {
 							1: {
 								orders: {
+									isLoading: {
+										[ orderId ]: false,
+									},
+									items: {
+										[ orderId ]: order
+									},
 									notes: {
 										isLoading: {
 											[ orderId ]: false,
 										},
 									},
 								},
+								data: {
+									locations: continents
+								}
 							},
 						},
+						woocommerceServices: {
+							1: {
+								shippingLabel: {
+									[ orderId ]: initializeLabelsState( shippingLabelData )
+								},
+								labelSettings: {
+									storeOptions,
+									meta: {
+										...formMeta,
+										pristine: true,
+										isLoaded: true,
+										user: userMeta,
+									},
+									data: {
+										...formData,
+									},
+								},
+								packages: {
+									packages,
+									dimensionUnit,
+									weightUnit,
+									packageSchema,
+									predefinedSchema,
+									packageData: {
+										is_user_defined: true,
+									},
+									isLoaded: true,
+								}
+							}
+						}
 					},
 				},
 			};
