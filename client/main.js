@@ -15,12 +15,6 @@ import { Provider } from 'react-redux';
 import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
 import * as storageUtils from 'lib/utils/local-storage';
-import Settings from './apps/settings';
-import ShippingLabel from './apps/shipping-label';
-import ShippingSettings from './apps/shipping-settings';
-import PrintTestLabel from './apps/print-test-label';
-import PluginStatus from './apps/plugin-status';
-import StripeConnectAccount from './apps/stripe-connect-account';
 import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware';
 import localApiMiddleware from 'lib/local-api-middleware';
@@ -45,23 +39,31 @@ const getRouteClassName = ( classNames ) => {
 	return null;
 };
 
-const getRouteClass = ( className ) => {
+const getRouteClass = async ( className ) => {
+	let module = null;
 	switch ( className) {
 		case 'wc-connect-create-shipping-label':
-			return ShippingLabel;
+			module = await import(/* webpackChunkName: "shipping-label" */ './apps/shipping-label');
+			break;
 		case 'wc-connect-service-settings':
-			return Settings;
+			module = await import(/* webpackChunkName: "settings" */ './apps/settings');
+			break;
 		case 'wc-connect-admin-status':
-			return PluginStatus;
+			module = await import(/* webpackChunkName: "plugin-status" */ './apps/plugin-status');
+			break;
 		case 'wc-connect-shipping-settings':
-			return ShippingSettings;
+			module = await import(/* webpackChunkName: "shipping-settings" */ './apps/shipping-settings');
+			break;
 		case 'wc-connect-admin-test-print':
-			return PrintTestLabel;
+			module = await import(/* webpackChunkName: "print-test-label" */ './apps/print-test-label');
+			break;
 		case 'wc-connect-stripe-connect-account':
-			return StripeConnectAccount;
+			module = await import(/* webpackChunkName: "shipping-label" */ './apps/stripe-connect-account');
+			break;
 		default:
 			return null;
 	}
+	return module.default;
 };
 
 const createdStores = {};
@@ -71,58 +73,59 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 	delete container.dataset.args;
 	const routeClassName = getRouteClassName( container.classList );
 
-	const RouteClass = getRouteClass( routeClassName );
-	if ( ! RouteClass ) {
-		return;
-	}
-	const Route = RouteClass( args );
-
-	if( typeof createdStores[ routeClassName ] === 'undefined' || routeClassName !== 'wc-connect-create-shipping-label' ) {
-		const persistedStateKey = Route.getStateKey();
-		const persistedState = storageUtils.getWithExpiry( persistedStateKey );
-		storageUtils.remove( persistedStateKey );
-		const serverState = Route.getInitialState();
-		const initialState = { ...serverState, ...persistedState };
-
-		const middlewares = [
-			thunk.withExtraArgument( args ),
-			wpcomApiMiddleware,
-			localApiMiddleware,
-		];
-
-		if ( Route.getMiddlewares ) {
-			middlewares.push.apply( middlewares, Route.getMiddlewares() );
+	getRouteClass( routeClassName ).then( RouteClass => {
+		if ( ! RouteClass ) {
+			return;
 		}
+		const Route = RouteClass( args );
 
-		const enhancers = [
-			applyMiddleware( ...middlewares ),
-			window.devToolsExtension && window.devToolsExtension(),
-		].filter( Boolean );
+		if( typeof createdStores[ routeClassName ] === 'undefined' || routeClassName !== 'wc-connect-create-shipping-label' ) {
+			const persistedStateKey = Route.getStateKey();
+			const persistedState = storageUtils.getWithExpiry( persistedStateKey );
+			storageUtils.remove( persistedStateKey );
+			const serverState = Route.getInitialState();
+			const initialState = { ...serverState, ...persistedState };
 
-		const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
+			const middlewares = [
+				thunk.withExtraArgument( args ),
+				wpcomApiMiddleware,
+				localApiMiddleware,
+			];
 
-		if ( Route.getInitialActions ) {
-			Route.getInitialActions().forEach( store.dispatch );
-		}
-
-		window.addEventListener( 'beforeunload', () => {
-			const state = store.getState();
-
-			if ( window.persistState ) {
-				storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
+			if ( Route.getMiddlewares ) {
+				middlewares.push.apply( middlewares, Route.getMiddlewares() );
 			}
-		} );
 
-		createdStores[ routeClassName ] = store;
-	}
+			const enhancers = [
+				applyMiddleware( ...middlewares ),
+				window.devToolsExtension && window.devToolsExtension(),
+			].filter( Boolean );
 
-	ReactModal.setAppElement( container );
-	ReactDOM.render(
-		<Provider store={ createdStores[ routeClassName ] }>
-			<Route.View />
-		</Provider>,
-		container
-	);
+			const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
+
+			if ( Route.getInitialActions ) {
+				Route.getInitialActions().forEach( store.dispatch );
+			}
+
+			window.addEventListener( 'beforeunload', () => {
+				const state = store.getState();
+
+				if ( window.persistState ) {
+					storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
+				}
+			} );
+
+			createdStores[ routeClassName ] = store;
+		}
+
+		ReactModal.setAppElement( container );
+		ReactDOM.render(
+			<Provider store={ createdStores[ routeClassName ] }>
+				<Route.View />
+			</Provider>,
+			container
+		);
+	});
 } );
 
 window.wcsGetAppStore = function( storeKey ) {
