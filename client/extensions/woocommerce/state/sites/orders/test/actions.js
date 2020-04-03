@@ -145,7 +145,7 @@ describe( 'actions', () => {
 		test( 'should update order detail screen on order save', () => {
 			utils.updateOrderDetailScreen = spy();
 			saveOrderSuccess( siteId, 40, updatedOrder );
-			expect( utils.updateOrderDetailScreen ).to.have.been.called;
+			expect( utils.updateOrderDetailScreen ).to.have.been.called();
 		} );
 
 		test( 'should dispatch a failure action with the error when a the request fails', () => {
