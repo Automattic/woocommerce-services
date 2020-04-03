@@ -7,6 +7,9 @@ const url = require( 'postcss-url' );
 const customProperties = require( 'postcss-custom-properties' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const os = require( 'os' );
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
+const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -57,8 +60,10 @@ module.exports = {
 	output: {
 		path: path.join( __dirname, 'dist' ),
 		filename: '[name]-' + process.env.npm_package_version + '.js',
+		chunkFilename: 'chunks/[name].[chunkhash].min.js',
 		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
 		publicPath: 'http://localhost:8085/',
+		// publicPath: '/wp-content/plugins/woocommerce-services-git/dist/',
 	},
 	optimization: {
 		minimize: ! isDev,
@@ -155,6 +160,14 @@ module.exports = {
 							configFile: path.resolve( __dirname, 'wp-calypso', 'babel.config.js' ),
 							cacheDirectory: true,
 							cacheIdentifier: require( './wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
+
+							// babelrc: false,
+							// configFile: false,
+							// presets: [
+							// 	require.resolve(
+							// 		'@wordpress/babel-preset-default'
+							// 	),
+							// ]
 						},
 					}
 				],
@@ -204,5 +217,13 @@ module.exports = {
 		new webpack.LoaderOptionsPlugin( { minimize: ! isDev } ),
 		new webpack.NormalModuleReplacementPlugin( /^path$/, 'path-browserify' ),
 		new webpack.IgnorePlugin( /^props$/ ),
+		new webpack.IgnorePlugin( /^\.\/locale$/, /moment$/ ),
+		new MomentTimezoneDataPlugin( {
+			startYear: 2000,
+		} ),
+		new DependencyExtractionWebpackPlugin({
+			injectPolyfill: true,
+		}),
+		new BundleAnalyzerPlugin(),
 	],
 };
