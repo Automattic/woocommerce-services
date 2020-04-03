@@ -54,7 +54,7 @@ function createShippingRateWrapper( {
 			rate: rateAmount || 10,
 			delivery_days: deliveryDays || 2,
 			delivery_date_guaranteed: deliveryDateGuaranteed || true,
-			delivery_date: deliveryDate || new Date(2020, 1, 1),
+			delivery_date: deliveryDate || "2020-01-01T23:59:00.000Z",
 			tracking: tracking || true,
 			insurance: insuranceAmount || 100,
 			free_pickup: freePickup || true,
@@ -94,7 +94,7 @@ describe( 'ShippingRate', () => {
 		} );
 
 		it( 'renders the delivery date', () => {
-			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">February 1</div> ); // eslint-disable-line
+			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">January 1</div> ); // eslint-disable-line
 		} );
 
 	} );
