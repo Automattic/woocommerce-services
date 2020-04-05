@@ -4,6 +4,7 @@
  * External dependencies
  */
 import { expect } from 'chai';
+import { spy } from 'sinon';
 import { noop } from 'lodash';
 
 /**
@@ -33,6 +34,9 @@ import {
 	WOOCOMMERCE_ORDERS_REQUEST_FAILURE,
 	WOOCOMMERCE_ORDERS_REQUEST_SUCCESS,
 } from 'woocommerce/state/action-types';
+
+jest.unmock( '../utils' );
+import * as utils from '../utils';
 
 describe( 'actions', () => {
 	describe( '#fetchOrders()', () => {
@@ -129,12 +133,19 @@ describe( 'actions', () => {
 
 		test( 'should dispatch a success action with the order when request completes', () => {
 			const action = saveOrderSuccess( siteId, 40, updatedOrder );
+
 			expect( action ).to.eql( {
 				type: WOOCOMMERCE_ORDER_UPDATE_SUCCESS,
 				siteId: 123,
 				orderId: 40,
 				order: { id: 40, status: 'completed' },
 			} );
+		} );
+
+		test( 'should update order detail screen on order save', () => {
+			utils.updateOrderDetailScreen = spy();
+			saveOrderSuccess( siteId, 40, updatedOrder );
+			expect( utils.updateOrderDetailScreen ).to.have.been.called;
 		} );
 
 		test( 'should dispatch a failure action with the error when a the request fails', () => {
