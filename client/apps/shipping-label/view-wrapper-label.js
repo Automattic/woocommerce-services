@@ -15,10 +15,10 @@ import { sumBy, differenceBy, filter, maxBy } from 'lodash';
  */
 // from calypso
 import Button from 'components/button';
-const LabelPurchaseModal = React.lazy(() => import('../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
+const LabelPurchaseModal = React.lazy(() => import(/* webpackChunkName: "shipping-label-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
+const TrackingModal = React.lazy(() => import(/* webpackChunkName: "tracking-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal'));
 
-import TrackingModal from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal';
-import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
+// import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
 import {
 	openPrintingFlow,
 	openTrackingFlow,
@@ -98,8 +98,8 @@ export class ShippingLabelViewWrapper extends Component {
 					>
 						{ translate( 'Create shipping label' ) }
 					</Button>
-						<Suspense fallback={<div>Loading...</div>}>
-						<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+						<Suspense fallback={<div />}>
+							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 						</Suspense>
 					</span>
 				);
@@ -123,8 +123,9 @@ export class ShippingLabelViewWrapper extends Component {
 						>
 							{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
 						</Button>
-						<Suspense fallback={<div>Loading...</div>}>
-						<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+						<Suspense fallback={<div />}>
+							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+							<TrackingModal orderId={ orderId } siteId={ siteId } />
 						</Suspense>
 					</div>
 				);
@@ -146,8 +147,9 @@ export class ShippingLabelViewWrapper extends Component {
 					>
 						{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
 					</Button>
-					<Suspense fallback={<div>Loading...</div>}>
-					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+					<Suspense fallback={<div />}>
+						<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+						<TrackingModal orderId={ orderId } siteId={ siteId } />
 					</Suspense>
 				</span>
 			);
@@ -189,8 +191,6 @@ export class ShippingLabelViewWrapper extends Component {
 	}
 	render() {
 		const {
-			siteId,
-			orderId,
 			loaded,
 			labelsEnabled,
 			items,
@@ -220,6 +220,8 @@ export class ShippingLabelViewWrapper extends Component {
 		if ( updateOrderDetailPage ) {
 			this.updateOrderDetailScreen();
 		}
+
+		console.log((Date.now() - window.performance.timing.navigationStart )/1000);
 
 		return (
 			<div className="shipping-label__container">
@@ -259,8 +261,7 @@ export class ShippingLabelViewWrapper extends Component {
 					) }
 				</div>
 				<div>
-					<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />
-					<TrackingModal orderId={ orderId } siteId={ siteId } />
+					{/*<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />*/}
 					{ shouldRenderButton && this.renderLabelButton( activeLabels, productsPackaged ) }
 				</div>
 			</div>

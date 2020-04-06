@@ -1,13 +1,15 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, {Suspense} from 'react';
 
 /**
  * Internal dependencies
  */
+
 import ShippingLabelViewWrapper from './view-wrapper-label';
-import ShipmentTrackingViewWrapper from './view-wrapper-tracking';
+// Lazy load ShipmentTrackingViewWrapper so shipping label will render faster.
+const ShipmentTrackingViewWrapper = React.lazy(() => import(/* webpackChunkName: "view-wrapper-tracking" */'./view-wrapper-tracking'));
 import reduxMiddleware from './redux-middleware';
 // from calypso
 import notices from 'state/notices/reducer';
@@ -89,7 +91,9 @@ export default ( { orderId, context, items } ) => {
 
 		View: () => (
 			( 'shipment_tracking' === context ) ?
-				<ShipmentTrackingViewWrapper orderId={ orderId } />
+				<Suspense fallback={ <div /> }>
+					<ShipmentTrackingViewWrapper orderId={ orderId } />
+				</Suspense>
 			:
 				<ShippingLabelViewWrapper orderId={ orderId } items={ items } />
 		),

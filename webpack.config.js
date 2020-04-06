@@ -222,8 +222,8 @@ module.exports = {
 			startYear: 2000,
 		} ),
 		new DependencyExtractionWebpackPlugin({
-			injectPolyfill: true,
+			injectPolyfill: false,
 		}),
-		new BundleAnalyzerPlugin(),
+		// new BundleAnalyzerPlugin(),
 	],
 };
