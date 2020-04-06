@@ -62,8 +62,7 @@ module.exports = {
 		filename: '[name]-' + process.env.npm_package_version + '.js',
 		chunkFilename: 'chunks/[name].[chunkhash].min.js',
 		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
-		publicPath: 'http://localhost:8085/',
-		// publicPath: '/wp-content/plugins/woocommerce-services-git/dist/',
+		publicPath: isDev ? 'http://localhost:8085/' : '/wp-content/plugins/woocommerce-services-git/dist/',
 	},
 	optimization: {
 		minimize: ! isDev,
@@ -99,6 +98,11 @@ module.exports = {
 		'react/addons': true,
 		'react/lib/ExecutionEnvironment': true,
 		'react/lib/ReactContext': true,
+		moment: 'moment',
+		react: 'React',
+		lodash: 'lodash',
+		'react-dom': 'ReactDOM',
+		// WordPress components are too heavy to extern because we only use a few components.
 	},
 	module: {
 		rules: [
@@ -221,9 +225,9 @@ module.exports = {
 		new MomentTimezoneDataPlugin( {
 			startYear: 2000,
 		} ),
-		new DependencyExtractionWebpackPlugin({
-			injectPolyfill: false,
-		}),
-		// new BundleAnalyzerPlugin(),
+		// new DependencyExtractionWebpackPlugin({
+		// 	injectPolyfill: false,
+		// }),
+		new BundleAnalyzerPlugin(),
 	],
 };

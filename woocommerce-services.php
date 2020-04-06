@@ -1237,7 +1237,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$plugin_version = self::get_wcs_version();
 
 			wp_register_style( 'wc_connect_admin', self::get_wcs_admin_style_url(), array(), null );
-			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array('lodash', 'moment', 'react', 'react-dom', 'wp-components', 'wp-compose'), null, true );
+			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array('lodash', 'moment', 'react', 'react-dom'), null, true );
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null );
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js',  array( 'updates' ), null );
