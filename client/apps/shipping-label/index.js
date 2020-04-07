@@ -107,6 +107,8 @@ export default ( { order, accountSettings, packagesSettings, shippingLabelData, 
 									},
 								},
 								packages: {
+									modalErrors: {},
+									pristine: true,
 									packages,
 									dimensionUnit,
 									weightUnit,
