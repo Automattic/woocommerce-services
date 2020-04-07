@@ -32,7 +32,10 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 	}
 
 	public function get() {
-		return new WP_REST_Response( $this->account_settings->get(), 200 );
+		return new WP_REST_Response( array_merge(
+			array( 'success' => true ),
+			$this->account_settings->get()
+		), 200);
 	}
 
 	public function post( $request ) {
