@@ -73,8 +73,8 @@ jobs:
 
      install:
          - . $HOME/.nvm/nvm.sh
-         - nvm install 12
-         - nvm use 12
+         - nvm install 10
+         - nvm use 10
          - npm ci
 
          # Clones WordPress and configures our testing environment.
