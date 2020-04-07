@@ -19,6 +19,9 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_active() {
+			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE') && WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE ) {
+				return true;
+			}
 			if ( method_exists( 'Jetpack', 'is_active' ) ) {
 				return Jetpack::is_active();
 			}
@@ -77,6 +80,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			}
 
 			return false;
+
 		}
 
 		/**
