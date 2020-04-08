@@ -3,13 +3,13 @@ const webpack = require( 'webpack' );
 const path = require( 'path' );
 const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const autoprefixer = require( 'autoprefixer' );
-const url = require( 'postcss-url' );
 const customProperties = require( 'postcss-custom-properties' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const os = require( 'os' );
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
-const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const safePostCssParser = require('postcss-safe-parser');
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -18,7 +18,7 @@ const isDev = ! isProd && ! isI18n;
 const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 const cssLoaders = [
-	MiniCssExtractPlugin.loader,
+	isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
 	'css-loader',
 	{
 		loader: 'postcss-loader',
@@ -26,9 +26,6 @@ const cssLoaders = [
 			plugins: () => [
 				autoprefixer( { browsers } ),
 				customProperties( { preserve: false } ),
-				url( {
-					url: ( asset ) => asset.url.startsWith( 'data:' ) ? asset.url : ( 'https://wordpress.com/' + asset.url ),
-				} ),
 			],
 		},
 	},
@@ -38,6 +35,7 @@ const cssLoaders = [
 			includePaths: [
 				path.resolve( __dirname, 'client' ),
 				path.resolve( __dirname, 'client', 'extensions' ),
+				path.resolve( __dirname, 'assets', 'stylesheets' ),
 				path.resolve( __dirname, 'wp-calypso', 'client' ),
 				path.resolve( __dirname, 'wp-calypso', 'assets', 'stylesheets' ),
 			],
@@ -62,7 +60,6 @@ module.exports = {
 		filename: '[name]-' + process.env.npm_package_version + '.js',
 		chunkFilename: 'chunks/[name].[chunkhash].min.js',
 		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
-		publicPath: isDev ? 'http://localhost:8085/' : '/wp-content/plugins/woocommerce-services-git/dist/',
 	},
 	optimization: {
 		minimize: ! isDev,
@@ -71,13 +68,52 @@ module.exports = {
 				cache: true,
 				parallel: true,
 				terserOptions: {
-					ecma: 5,
+					parse: {
+		              // We want terser to parse ecma 8 code. However, we don't want it
+		              // to apply any minification steps that turns valid ecma 5 code
+		              // into invalid ecma 5 code. This is why the 'compress' and 'output'
+		              // sections only apply transformations that are ecma 5 safe
+		              // https://github.com/facebook/create-react-app/pull/4234
+		              ecma: 8,
+		            },
+					compress: {
+		              ecma: 5,
+		              warnings: false,
+		              // Disabled because of an issue with Uglify breaking seemingly valid code:
+		              // https://github.com/facebook/create-react-app/issues/2376
+		              // Pending further investigation:
+		              // https://github.com/mishoo/UglifyJS2/issues/2011
+		              comparisons: false,
+		              // Disabled because of an issue with Terser breaking valid code:
+		              // https://github.com/facebook/create-react-app/issues/5250
+		              // Pending further investigation:
+		              // https://github.com/terser-js/terser/issues/120
+		              inline: 2,
+		            },
+					keep_classnames: false,
+					keep_fnames: false,
 					mangle: {
 						reserved: isI18n ? [ 'translate' ] : [],
 						safari10: true,
+					},
+					output: {
+						ecma: 5,
+						comments: false,
+						// Turned on because emoji and regex is not minified properly using default
+						// https://github.com/facebook/create-react-app/issues/2488
+						ascii_only: true,
 					}
 				},
 			} ),
+			new OptimizeCSSAssetsPlugin({
+	          cssProcessorOptions: {
+	            parser: safePostCssParser,
+	            map: false,
+	          },
+	          cssProcessorPluginOptions: {
+	            preset: ['default', { minifyFontValues: { removeQuotes: false } }],
+	          },
+	        }),
 		],
 	},
 	performance: { hints: false },
@@ -90,20 +126,29 @@ module.exports = {
 		disableHostCheck: true,
 		headers: {
 			'Access-Control-Allow-Origin': '*'
-		}
+		},
+		hot: true,
+		liveReload: false,
 	},
-	externals: {
-		'jquery': 'jQuery',
-		'cheerio': 'window',
-		'react/addons': true,
-		'react/lib/ExecutionEnvironment': true,
-		'react/lib/ReactContext': true,
-		moment: 'moment',
-		react: 'React',
-		lodash: 'lodash',
-		'react-dom': 'ReactDOM',
-		// WordPress components are too heavy to extern because we only use a few components.
-	},
+	externals:
+		Object.assign(
+			{},
+			{
+				'jquery': 'jQuery',
+				'cheerio': 'window',
+				'react/addons': true,
+				'react/lib/ExecutionEnvironment': true,
+				'react/lib/ReactContext': true,
+				moment: 'moment',
+				react: 'React',
+				lodash: 'lodash',
+				// WordPress components are too heavy to extern because we only use a few components.
+			},
+			! isDev ? {
+				// Dev mode cannot use external react-dom because HMR requires patched @hot-loader/react-dom
+				'react-dom': 'ReactDOM',
+			} : undefined
+		),
 	module: {
 		rules: [
 			{
@@ -136,7 +181,10 @@ module.exports = {
 						loader: 'wrap-loader',
 						options: {
 							before: [
-								"@import 'shared/utils';",
+								"@import 'shared/utils';\n" +
+								"@import 'colors';\n" +
+								"@import '~@automattic/calypso-color-schemes/src/shared/color-schemes';\n" +
+								"@import '~@automattic/color-studio/dist/color-variables';\n",
 								'.wp-core-ui.wp-admin .wcc-root {',
 							],
 							after: '}',
@@ -164,14 +212,7 @@ module.exports = {
 							configFile: path.resolve( __dirname, 'wp-calypso', 'babel.config.js' ),
 							cacheDirectory: true,
 							cacheIdentifier: require( './wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
-
-							// babelrc: false,
-							// configFile: false,
-							// presets: [
-							// 	require.resolve(
-							// 		'@wordpress/babel-preset-default'
-							// 	),
-							// ]
+							plugins: ["react-hot-loader/babel"]
 						},
 					}
 				],
@@ -181,10 +222,13 @@ module.exports = {
 				],
 			},
 			{
-				test: /\.(png|jpe?g|gif)$/i,
+				test: /\.(png|jpe?g|gif|svg)$/i,
 				use: [
 				  {
 					loader: 'file-loader',
+						options: {
+						outputPath: 'images',
+					},
 				  },
 				],
 			},
@@ -202,6 +246,9 @@ module.exports = {
 			path.resolve( __dirname, 'wp-calypso', 'node_modules' ),
 		],
 		symlinks: false,
+		alias: {
+			'react-dom': '@hot-loader/react-dom',
+		},
 	},
 	node: {
 		fs: 'empty',
@@ -210,7 +257,7 @@ module.exports = {
 		new webpack.ProvidePlugin( {
 			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
 		} ),
-		new MiniCssExtractPlugin( {
+		! isDev && new MiniCssExtractPlugin( {
 			filename: '[name]-' + process.env.npm_package_version + '.css',
 		} ),
 		new webpack.DefinePlugin( {
@@ -225,9 +272,6 @@ module.exports = {
 		new MomentTimezoneDataPlugin( {
 			startYear: 2000,
 		} ),
-		// new DependencyExtractionWebpackPlugin({
-		// 	injectPolyfill: false,
-		// }),
-		new BundleAnalyzerPlugin(),
-	],
+		process.env.ANALYZE && new BundleAnalyzerPlugin(),
+	].filter(Boolean),
 };

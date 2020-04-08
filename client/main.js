@@ -1,6 +1,8 @@
 /**
  * External dependencies
  */
+import 'react-hot-loader/patch';
+import { AppContainer } from 'react-hot-loader';
 import '@babel/polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -19,24 +21,22 @@ import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware';
 import localApiMiddleware from 'lib/local-api-middleware';
 
+// Modify webpack pubilcPath at runtime based on location of WordPress Plugin.
+// eslint-disable-next-line no-undef
+__webpack_public_path__ = global.wcsPluginData.assetPath;
+
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
 	setBaseURL( global.wcConnectData.baseURL );
 }
 
-const getRouteClassName = ( classNames ) => {
-	for ( let i = 0; i < classNames.length; i++ ) {
-		switch ( classNames[ i ] ) {
-			case 'wc-connect-create-shipping-label':
-			case 'wc-connect-service-settings':
-			case 'wc-connect-admin-status':
-			case 'wc-connect-shipping-settings':
-			case 'wc-connect-admin-test-print':
-			case 'wc-connect-stripe-connect-account':
-				return classNames[ i ];
-		}
-	}
-	return null;
+const classNamesToRoutes = {
+	'wc-connect-create-shipping-label': './apps/shipping-label',
+	'wc-connect-service-settings': './apps/settings',
+	'wc-connect-admin-status': './apps/plugin-status',
+	'wc-connect-shipping-settings': './apps/shipping-settings',
+	'wc-connect-admin-test-print': './apps/print-test-label',
+	'wc-connect-stripe-connect-account': './apps/stripe-connect-account',
 };
 
 const getRouteClass = async ( className ) => {
@@ -70,8 +70,14 @@ const createdStores = {};
 
 Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
 	const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
-	delete container.dataset.args;
-	const routeClassName = getRouteClassName( container.classList );
+	let routeClassName;
+
+	for ( const className of container.classList ) {
+		if ( classNamesToRoutes.hasOwnProperty( className ) ) {
+			routeClassName = className;
+			break;
+		}
+	}
 
 	getRouteClass( routeClassName ).then( RouteClass => {
 		if ( ! RouteClass ) {
@@ -120,9 +126,11 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 		ReactModal.setAppElement( container );
 		ReactDOM.render(
-			<Provider store={ createdStores[ routeClassName ] }>
-				<Route.View />
-			</Provider>,
+			<AppContainer>
+				<Provider store={ createdStores[ routeClassName ] }>
+					<Route.View />
+				</Provider>
+			</AppContainer>,
 			container
 		);
 	});
@@ -130,4 +138,26 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 window.wcsGetAppStore = function( storeKey ) {
 	return createdStores[ storeKey ];
+};
+
+if ( module.hot ) {
+    for ( const className in classNamesToRoutes ) {
+	    module.hot.accept( './client' + classNamesToRoutes[ className ].substring( 1 ) + '/index.js', () => {
+		    Array.from( document.getElementsByClassName( className ) ).forEach( ( container ) => {
+
+			    const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
+
+			    const NextApp = require( classNamesToRoutes[ className ] ).default( args );
+
+			    ReactDOM.render(
+				    <AppContainer>
+					    <Provider store={ createdStores[ 'wc-connect-create-shipping-label' ] }>
+						    <NextApp.View/>
+					    </Provider>
+				    </AppContainer>,
+				    container
+			    );
+		    });
+	    });
+    }
 }
