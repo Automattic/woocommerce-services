@@ -225,31 +225,26 @@
 
 	// Components
 	@import 'components';
+	@import 'fix-image-paths';
 
 	@import 'woocommerce/woocommerce-services/style';
-	@import 'woocommerce/app/order/order-activity-log/style';
 	@import 'woocommerce/app/settings/payments/stripe/style';
-
-	// WCC Components
-	@import '../../client/apps/plugin-status/style';
-	@import '../../client/apps/shipping-label/style';
-	@import '../../client/apps/print-test-label/style';
-	@import '../../client/apps/settings/style';
-	@import '../../client/apps/stripe-connect-account/style';
-	@import '../../client/components/toggle/style';
 
 	// Hide  WordPress Component style checkboxes.
 	input[type='checkbox'] + svg.components-checkbox-control__checked {
 		display: none;
 	}
+
 }
 
 @import 'components/dialog/style';
 @import 'components/popover/style';
 @import 'components/tooltip/style';
 
-// All WordPress Component styles
-@import '~@wordpress/components/build-style/style.css';
+// Just the tooltip WordPress Component styles is all we use for now.
+@import "~@wordpress/base-styles/colors";
+@import "~@wordpress/base-styles/z-index";
+@import '~@wordpress/components/src/tooltip/style.scss';
 
 #woocommerce-order-label .inside {
 	margin: 0;

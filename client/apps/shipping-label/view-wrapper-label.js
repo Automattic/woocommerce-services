@@ -18,7 +18,6 @@ import Button from 'components/button';
 const LabelPurchaseModal = React.lazy(() => import(/* webpackChunkName: "shipping-label-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
 const TrackingModal = React.lazy(() => import(/* webpackChunkName: "tracking-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal'));
 
-// import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
 import {
 	openPrintingFlow,
 	openTrackingFlow,
@@ -221,8 +220,6 @@ export class ShippingLabelViewWrapper extends Component {
 			this.updateOrderDetailScreen();
 		}
 
-		console.log((Date.now() - window.performance.timing.navigationStart )/1000);
-
 		return (
 			<div className="shipping-label__container">
 				<div className="shipping-label__banner-fulfilled-message">
@@ -261,7 +258,6 @@ export class ShippingLabelViewWrapper extends Component {
 					) }
 				</div>
 				<div>
-					{/*<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />*/}
 					{ shouldRenderButton && this.renderLabelButton( activeLabels, productsPackaged ) }
 				</div>
 			</div>
@@ -297,4 +293,4 @@ export default connect(
 			fetchOrder,
 		}, dispatch ),
 	} ),
-)( localize( withLocalizedMoment( ShippingLabelViewWrapper ) ) );
+)( (localize( withLocalizedMoment( ShippingLabelViewWrapper ) ) ) );

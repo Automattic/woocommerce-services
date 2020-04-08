@@ -27,6 +27,8 @@ import locations from '../../extensions/woocommerce/state/data-layer/data/locati
 import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
 import { mergeHandlers } from 'state/action-watchers/utils';
 
+import './style.scss';
+
 export default ( { orderId, context, items } ) => {
 	return {
 		getReducer() {

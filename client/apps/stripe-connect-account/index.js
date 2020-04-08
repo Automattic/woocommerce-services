@@ -6,6 +6,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
+import './style.scss';
 import ViewWrapper from './view-wrapper';
 import { STRIPE_CONNECT_ACCOUNT_RELOAD_PAGE } from './state/actions';
 // from calypso
