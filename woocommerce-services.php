@@ -1236,8 +1236,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function admin_enqueue_scripts() {
 			$plugin_version = self::get_wcs_version();
 
-			wp_register_style( 'wc_connect_admin', self::get_wcs_admin_style_url(), array(), null );
 			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array('lodash', 'moment', 'react', 'react-dom'), null, true );
+			// Dev mode will handle loading the css itself to support HMR.
+			if ( ! defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ) {
+				// Load CSS async to prevent blocking rendering since this css is non-essential.
+				wp_add_inline_script(
+					'wc_connect_admin',
+					"var link = document.createElement('link');link.rel = 'stylesheet';link.type = 'text/css';link.href = '" . esc_js( self::get_wcs_admin_style_url() ) . "';document.getElementsByTagName('HEAD')[0].appendChild(link);"
+				);
+			}
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null );
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js',  array( 'updates' ), null );
@@ -1248,6 +1255,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'json' => $i18n_json,
 					'localeSlug' => join( '-', explode( '_', get_locale() ) ),
 			) );
+			wp_localize_script(
+				'wc_connect_admin',
+				'wcsPluginData',
+				array(
+					'assetPath' => self::get_wc_connect_base_url(),
+				)
+			);
 		}
 
 		public function get_active_shipping_services() {
@@ -1317,7 +1331,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function add_meta_boxes( $post_type, $post ) {
 			if ( $this->shipping_label->should_show_meta_box() ) {
-				wp_enqueue_style( 'wc_connect_admin' );
 				add_meta_box( 'woocommerce-order-shipment-tracking', __( 'Shipment Tracking', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default', array( 'context' => 'shipment_tracking' ) );
 
 				add_meta_box( 'woocommerce-order-label', __( 'Shipping Label', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'normal', 'high', array( 'context' => 'shipping_label' ) );
@@ -1452,7 +1465,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
 			wp_enqueue_script( 'wc_connect_admin' );
-			wp_enqueue_style( 'wc_connect_admin' );
 
 			$debug_page_uri = esc_url( add_query_arg(
 				array(
