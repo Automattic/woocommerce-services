@@ -83,6 +83,12 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
+= 1.23.0 - 2020-04-08 =
+* Fix   - Hide paper selection until valid payment method is selected.
+* Tweak - Shipping banner wording improvements.
+* Add   - Link to carrier's schedule pickup page.
+* Add   - Improved shipping service feature descriptions.
+
 = 1.22.5 - 2020-03-17 =
 * Add   - Admin asset API endpoint.
 * Fix   - GB support for WC 4.0.
