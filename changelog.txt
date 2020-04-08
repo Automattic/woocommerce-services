@@ -5,6 +5,7 @@
 * Tweak - Shipping banner wording improvements.
 * Add   - Link to carrier's schedule pickup page.
 * Add   - Improved shipping service feature descriptions.
+* Add   - Option to mark order complete when label is printed.
 
 = 1.22.5 - 2020-03-17 =
 * Add   - Admin asset API endpoint.
