@@ -31,11 +31,12 @@ export default data => {
 			loaded: false,
 			isFetching: false,
 			error: false,
+			fulfillOrder: false,
+			emailDetails: false,
 		};
 	}
 
 	const { formData, labelsData, paperSize, storeOptions, canChangeCountries } = data;
-
 	//old WCS required a phone number and detected normalization status based on the existence of the phone field
 	//newer versions send the normalized flag
 	const originNormalized = Boolean( formData.origin_normalized || formData.origin.phone );
@@ -73,12 +74,12 @@ export default data => {
 		loaded: true,
 		isFetching: false,
 		error: false,
+		fulfillOrder: false,
+		emailDetails: false,
 		refreshedLabelStatus: false,
 		labels: labelsData || [],
 		paperSize,
 		storeOptions,
-		fulfillOrder: true,
-		emailDetails: true,
 		form: {
 			orderId: formData.order_id,
 			origin: {
@@ -136,6 +137,5 @@ export default data => {
 			rateOptions: {},
 		},
 		openedPackageId: Object.keys( formData.selected_packages )[ 0 ] || '',
-		shouldUpdateOrderDetailPage: false,
 	};
 };

@@ -11,6 +11,7 @@ import {
 	WOOCOMMERCE_ORDER_NOTES_REQUEST_FAILURE,
 	WOOCOMMERCE_ORDER_NOTES_REQUEST_SUCCESS,
 } from 'woocommerce/state/action-types';
+import { updateOrderDetailScreen } from '../utils';
 
 export const createNote = ( siteId, orderId, note, onSuccess = false, onFailure = false ) => {
 	return {
@@ -33,6 +34,7 @@ export const createNoteFailure = ( siteId, orderId, error = {} ) => {
 };
 
 export const createNoteSuccess = ( siteId, orderId, note ) => {
+	updateOrderDetailScreen({});
 	return {
 		type: WOOCOMMERCE_ORDER_NOTE_CREATE_SUCCESS,
 		siteId,

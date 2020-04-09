@@ -156,6 +156,9 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php' );
 		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-payment-methods-store.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-account-settings.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-package-settings.php' );
+		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-continents.php' );
 
 		WC_Connect_Compatibility::set_version( '3.0.0' );
 	}

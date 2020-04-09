@@ -685,8 +685,3 @@ export const isLabelDataFetchError = ( state, orderId, siteId = getSelectedSiteI
 		areLocationsErrored( state, siteId )
 	);
 };
-
-export const shouldUpdateOrderDetailPage = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
-	const shippingLabel = getShippingLabel( state, orderId, siteId );
-	return shippingLabel && shippingLabel.shouldUpdateOrderDetailPage;
-};

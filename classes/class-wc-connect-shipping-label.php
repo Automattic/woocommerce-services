@@ -20,9 +20,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $service_schemas_store;
 
 		/**
-		 * @var WC_Connect_Payment_Methods_Store
+		 * @var WC_Connect_Account_Settings
 		 */
-		protected $payment_methods_store;
+		protected $account_settings;
+
+		/**
+		 * @var WC_Connect_Package_Settings
+		 */
+		protected $package_settings;
+
+		/**
+		 * @var WC_Connect_Continents
+		 */
+		protected $continents;
 
 		/**
 		 * @var array Supported countries by USPS, see: https://webpmt.usps.gov/pmt010.cfm
@@ -39,11 +49,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function __construct(
 			WC_Connect_API_Client $api_client,
 			WC_Connect_Service_Settings_Store $settings_store,
-			WC_Connect_Service_Schemas_Store $service_schemas_store
+			WC_Connect_Service_Schemas_Store $service_schemas_store,
+			WC_Connect_Payment_Methods_Store $payment_methods_store
 		) {
 			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
 			$this->service_schemas_store = $service_schemas_store;
+			$this->account_settings = new WC_Connect_Account_Settings(
+					$settings_store,
+					$payment_methods_store
+			);
+			$this->package_settings = new WC_Connect_Package_Settings(
+					$settings_store,
+					$service_schemas_store
+			);
+			$this->continents = new WC_Connect_Continents();
 		}
 
 		public function get_item_data( WC_Order $order, $item ) {
@@ -395,10 +415,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
+
 			$payload = array(
-				'orderId' => $order_id,
-				'context' => $args['args']['context'],
-				'items'   => $items_count,
+				'order'             => $order->get_data(),
+				'accountSettings'   => $this->account_settings->get(),
+				'packagesSettings'  => $this->package_settings->get(),
+				'shippingLabelData' => $this->get_label_payload( $order_id ),
+				'continents'        => $this->continents->get(),
+				'context'           => $args['args']['context'],
+				'items'             => $items_count,
 			);
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
