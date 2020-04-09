@@ -140,12 +140,12 @@ module.exports = {
 				'react/lib/ExecutionEnvironment': true,
 				'react/lib/ReactContext': true,
 				moment: 'moment',
-				react: 'React',
 				lodash: 'lodash',
 				// WordPress components are too heavy to extern because we only use a few components.
 			},
 			! isDev ? {
 				// Dev mode cannot use external react-dom because HMR requires patched @hot-loader/react-dom
+				react: 'React',
 				'react-dom': 'ReactDOM',
 			} : undefined
 		),

@@ -147,8 +147,31 @@ if ( module.hot ) {
 
 			    const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
 
-			    const NextApp = require( classNamesToRoutes[ className ] ).default( args );
-
+			    let module = null;
+			    // We have to use a switch because react or webpack cannot find the module if we use dynamic imports.
+			    switch ( className) {
+				    case 'wc-connect-create-shipping-label':
+					    module = require( './apps/shipping-label' );
+					    break;
+				    case 'wc-connect-service-settings':
+					    module = require( './apps/settings') ;
+					    break;
+				    case 'wc-connect-admin-status':
+					    module = require( './apps/plugin-status' );
+					    break;
+				    case 'wc-connect-shipping-settings':
+					    module = require( './apps/shipping-settings' );
+					    break;
+				    case 'wc-connect-admin-test-print':
+					    module = require( './apps/print-test-label' );
+					    break;
+				    case 'wc-connect-stripe-connect-account':
+					    module = require( './apps/stripe-connect-account' );
+					    break;
+				    default:
+				    	return;
+			    }
+			    const NextApp = module.default( args );
 			    ReactDOM.render(
 				    <AppContainer>
 					    <Provider store={ createdStores[ 'wc-connect-create-shipping-label' ] }>
