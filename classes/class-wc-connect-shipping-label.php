@@ -20,11 +20,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		protected $service_schemas_store;
 
 		/**
-		 * @var WC_Connect_Payment_Methods_Store
-		 */
-		protected $payment_methods_store;
-
-		/**
 		 * @var WC_Connect_Account_Settings
 		 */
 		protected $account_settings;
@@ -60,7 +55,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->api_client = $api_client;
 			$this->settings_store = $settings_store;
 			$this->service_schemas_store = $service_schemas_store;
-			$this->payment_methods_store = $payment_methods_store;
 			$this->account_settings = new WC_Connect_Account_Settings(
 					$settings_store,
 					$payment_methods_store

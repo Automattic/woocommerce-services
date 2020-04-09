@@ -4,10 +4,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( class_exists( 'WC_Connect_Package_Settings' ) ) {
-	return;
-}
-
 class WC_Connect_Package_Settings {
 	/**
 	 * @var WC_Connect_Service_Settings_Store
@@ -19,7 +15,7 @@ class WC_Connect_Package_Settings {
 	 */
 	protected $service_schemas_store;
 
-	public function __construct(			
+	public function __construct(
 		WC_Connect_Service_Settings_Store $settings_store,
 		WC_Connect_Service_Schemas_Store $service_schemas_store
 	) {
