@@ -102,7 +102,7 @@ describe( 'Shipping label payment method', () => {
         await page.waitForSelector('.button.is-compact', { text: 'Add a credit card' } );
     });
 
-    it('should show 2 credit cards with the right information f Wordpress.com has 2 credit cards', async () => {
+    it('should show 2 credit cards with the right information if Wordpress.com has 2 credit cards', async () => {
         // Intercept API before making any HTTP request
         await mockAccountSettingAPI(AccountWithTwoCreditCard);
 
