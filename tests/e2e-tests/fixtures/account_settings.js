@@ -45,20 +45,20 @@ const Mastercard2862 = {
 	"expiry": "2025-12-31"
 }
 
-const AccountWithOneCreditCard = {
-	...AccountWithNoCreditCard
-};
+const AccountWithOneCreditCard = JSON.parse(JSON.stringify(AccountWithNoCreditCard));  //parse-stringify for deep cloning
 AccountWithOneCreditCard.formData.selected_payment_method_id = 9273191;
 AccountWithOneCreditCard.formMeta.payment_methods.push(VisaCard5959);
 
-const AccountWithTwoCreditCard = {
-	...AccountWithOneCreditCard
-};
-AccountWithOneCreditCard.formData.selected_payment_method_id = 6717123; // set default card
+const AccountWithTwoCreditCard = JSON.parse(JSON.stringify(AccountWithOneCreditCard));
+AccountWithTwoCreditCard.formData.selected_payment_method_id = 6717123; // set default card
 AccountWithTwoCreditCard.formMeta.payment_methods.push(Mastercard2862);
+
+const AccountWithTwoCreditCardAndNoDefault = JSON.parse(JSON.stringify(AccountWithNoCreditCard));
+AccountWithTwoCreditCardAndNoDefault.formMeta.payment_methods.push(VisaCard5959, Mastercard2862);
 
 module.exports = {
 	AccountWithNoCreditCard,
 	AccountWithOneCreditCard,
-	AccountWithTwoCreditCard
+	AccountWithTwoCreditCard,
+	AccountWithTwoCreditCardAndNoDefault
 };
