@@ -14,11 +14,11 @@ const saveAndWait = async () => {
 /**
  * This function will wait for a button with any CSS selector + text value.
  */
-const waitForButton = async (selector, buttonText) => {
+const waitForSelectorAndText = async (selector, text) => {
     return await page.waitForFunction(
-        (selector, buttonText) => Array.from(document.querySelectorAll(selector)).find(el => el.textContent === buttonText),
+        (selector, text) => Array.from(document.querySelectorAll(selector)).find(el => el.textContent === text),
         {},
-        selector, buttonText
+        selector, text
     );
 };
 
@@ -92,7 +92,7 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await page.waitForSelector('.button.is-borderless', { text: 'Choose a different card' } );
+        await waitForSelectorAndText('.button.is-borderless', 'Choose a different card');
         await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
         await expect(page).toMatchElement('.label-settings__card-number', {
             text: 'VISA ****5959'
@@ -110,7 +110,7 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await page.waitForSelector('.button.is-compact', { text: 'Add a credit card' } );
+        await waitForSelectorAndText('.button.is-compact', 'Add a credit card');
     });
 
     it('should show 2 credit cards with the right information if Wordpress.com has 2 credit cards', async () => {
@@ -121,11 +121,11 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await page.waitForSelector('.button.is-borderless', { text: 'Choose a different card' } );
+        await waitForSelectorAndText('.button.is-borderless', 'Choose a different card' );
         await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
 
         // Verify "Add another credit card" is present after clicking 'Choose a different card'
-        await page.waitForSelector('.button.is-compact', { text: 'Add another credit card' } );
+        await waitForSelectorAndText('.button.is-compact', 'Add another credit card' );
 
         // The index is based on the order in the settings' API. Inside the payment_methods prop.
         // This API end point is mocked, check fixtures/account_settings.js for ordering.
@@ -161,12 +161,11 @@ describe( 'Shipping label payment method', () => {
     it('should have no default card checked if there are multiple cards in Wordpress.com', async () => {
         await mockAccountSettingAPI(AccountWithTwoCreditCardAndNoDefault);
 
-        // Go to settings page after setting up interception.
-        await StoreOwnerFlow.login();
+        // No need to login again, refresh page
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Verify "Add another credit card" is present after clicking 'Choose a different card'
-        await page.waitForSelector('.button.is-compact', { text: 'Add another credit card' } );
+        await waitForSelectorAndText('.button.is-compact', 'Add another credit card' );
 
         // The index is based on the order in the settings' API. Inside the payment_methods prop.
         // This API end point is mocked, check fixtures/account_settings.js for ordering.
@@ -208,11 +207,11 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click to pop up modal
-        await waitForButton('.button:not([disabled])', 'Add package');
+        await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect( page ).toClick( '.button', { text: 'Add package' } );
 
         // Create a new package
-        await page.waitForSelector( '.packages__add-edit-title.form-section-heading', { text: 'Add a package' } );
+        await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Add a package' );
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '5' );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__width', '5' );
@@ -231,7 +230,7 @@ describe( 'Packaging', () => {
 
         // Refresh page and make sure it is saved.
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-        await waitForButton('.button:not([disabled])', 'Add package');
+        await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 cm" });
     });
@@ -242,11 +241,11 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click "edit" once this session is loaded
-        await waitForButton('.button:not([disabled])', 'Add package');
+        await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect( page ).toClick( '.button.is-compact', { text: 'Edit' } );
 
         // Edit package
-        await page.waitForSelector( '.packages__add-edit-title.form-section-heading', { text: 'Add a package' } );
+        await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Edit package' );
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '10' );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__width', '10' );
@@ -264,7 +263,7 @@ describe( 'Packaging', () => {
 
         // Refresh page and make sure it is updated.
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-        await waitForButton('.button:not([disabled])', 'Add package');
+        await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
     });
@@ -275,11 +274,11 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click "edit" once this session is loaded
-        await waitForButton('.button:not([disabled])', 'Add package');
+        await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect( page ).toClick( '.button.is-compact', { text: 'Edit' } );
 
         // Delete package
-        await page.waitForSelector( '.packages__add-edit-title.form-section-heading', { text: 'Add a package' } );
+        await page.waitForSelector( '.packages__add-edit-title.form-section-heading', { text: 'Edit package' } );
         await expect( page ).toClick( '.button.packages__delete.is-scary.is-borderless', { text: 'Delete this package' } )
 
         // Verify package is no longer in the list.
