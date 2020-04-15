@@ -11,6 +11,7 @@ import { keys, last, noop, sortBy } from 'lodash';
 /**
  * Internal dependencies
  */
+import './style.scss';
 import {
 	isActivityLogLoaded,
 	getActivityLogEvents,

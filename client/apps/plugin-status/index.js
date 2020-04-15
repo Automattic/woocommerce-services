@@ -6,6 +6,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
+import './style.scss';
 import status from './state/reducer';
 import View from './view';
 // from calypso

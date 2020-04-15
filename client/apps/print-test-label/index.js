@@ -6,6 +6,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
+import './style.scss';
 import PrintTestLabelView from './view';
 import reducer from './state/reducer';
 

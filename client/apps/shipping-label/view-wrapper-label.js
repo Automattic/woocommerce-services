@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React, { Component } from 'react';
+import React, { Component, Suspense } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -15,9 +15,9 @@ import { sumBy, differenceBy, filter, maxBy } from 'lodash';
  */
 // from calypso
 import Button from 'components/button';
-import LabelPurchaseModal from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
-import TrackingModal from '../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal';
-import QueryLabels from '../../extensions/woocommerce/woocommerce-services/components/query-labels';
+const LabelPurchaseModal = React.lazy(() => import(/* webpackChunkName: "shipping-label-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
+const TrackingModal = React.lazy(() => import(/* webpackChunkName: "tracking-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal'));
+
 import {
 	openPrintingFlow,
 	openTrackingFlow,
@@ -59,6 +59,8 @@ export class ShippingLabelViewWrapper extends Component {
 			loaded,
 			translate,
 			items,
+			orderId,
+			siteId,
 		} = this.props;
 
 		const className = classNames( 'shipping-label__new-label-button', {
@@ -84,15 +86,20 @@ export class ShippingLabelViewWrapper extends Component {
 			// If there are no purchased labels, just show Create labels button
 			if ( ! activeLabels.length ) {
 				return (
-					<Button
-						className={ className }
-						primary
-						busy= { ! loaded }
-						disabled= { ! loaded }
-						onClick={ this.handleCreateLabelButtonClick }
-					>
-						{ translate( 'Create shipping label' ) }
-					</Button>
+					<div>
+						<Button
+							className={ className }
+							primary
+							busy= { ! loaded }
+							disabled= { ! loaded }
+							onClick={ this.handleCreateLabelButtonClick }
+						>
+							{ translate( 'Create shipping label' ) }
+						</Button>
+						<Suspense fallback={<div />}>
+							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+						</Suspense>
+					</div>
 				);
 			}
 
@@ -114,13 +121,17 @@ export class ShippingLabelViewWrapper extends Component {
 						>
 							{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
 						</Button>
+						<Suspense fallback={<div />}>
+							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+							<TrackingModal orderId={ orderId } siteId={ siteId } />
+						</Suspense>
 					</div>
 				);
 			}
 
 			// All items are packaged, show track button and create shipping label button to allow redo fulfillment
 			return (
-				<span>
+				<div>
 					<span className="shipping-label__redo-shipping-button">
 						<Button
 							borderless
@@ -134,7 +145,11 @@ export class ShippingLabelViewWrapper extends Component {
 					>
 						{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
 					</Button>
-				</span>
+					<Suspense fallback={<div />}>
+						<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
+						<TrackingModal orderId={ orderId } siteId={ siteId } />
+					</Suspense>
+				</div>
 			);
 		}
 
@@ -164,8 +179,6 @@ export class ShippingLabelViewWrapper extends Component {
 
 	render() {
 		const {
-			siteId,
-			orderId,
 			loaded,
 			labelsEnabled,
 			items,
@@ -229,9 +242,6 @@ export class ShippingLabelViewWrapper extends Component {
 					) }
 				</div>
 				<div>
-					<QueryLabels orderId={ orderId } siteId={ siteId } origin={ "labels" } />
-					<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
-					<TrackingModal orderId={ orderId } siteId={ siteId } />
 					{ shouldRenderButton && this.renderLabelButton( activeLabels, productsPackaged ) }
 				</div>
 			</div>
@@ -265,4 +275,4 @@ export default connect(
 			fetchOrder,
 		}, dispatch ),
 	} ),
-)( localize( withLocalizedMoment( ShippingLabelViewWrapper ) ) );
+)( (localize( withLocalizedMoment( ShippingLabelViewWrapper ) ) ) );
