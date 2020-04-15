@@ -82,13 +82,19 @@ describe( 'Shipping label payment method', () => {
 
     const mockAccountSettingAPI = async (mockResponse) => {
         response = mockResponse;
-        await page.setRequestInterception(true);
         page.on('request', accountSettingsRequestListener);
     };
 
     afterEach(() => {
         response = '';
         page.removeListener('request', accountSettingsRequestListener);
+    });
+
+    /**
+     * Not really a test case. But needed to run this once, prior to all test case in this describe.
+     */
+    it('should turn on request interception after all credit card test ran', async () => {
+        await page.setRequestInterception(true);
     });
 
     it('should show "Add a credit card" button if Wordpress has no credit card', async () => {
@@ -204,6 +210,13 @@ describe( 'Shipping label payment method', () => {
         expect(firstCardDefaultCheckbox).toBeFalsy();
         const secondCardDefaultCheckbox = await (await cardDefaultCheckbox[MASTERCARD_INDEX].getProperty('checked')).jsonValue();
         expect(secondCardDefaultCheckbox).toBeFalsy();
+    });
+
+    /**
+     * Not really a test case. But needed to run this once, after all test case ran in this describe.
+     */
+    it('should turn off request interception after all credit card test ran', async () => {
+        await page.setRequestInterception(false);
     });
 });
 
