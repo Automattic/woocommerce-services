@@ -39,29 +39,30 @@ describe( 'Saving shipping label settings', () => {
             visible: false
         });
 
-        // Enable
+        // Toggle it back to enable so the following tests can run.
         await expect(page).toClick('.form-toggle__switch');
         await saveAndWait();
     });
 
     it ('Should be able to select a different paper size', async () => {
-        await page.select('select.form-select', 'label');
-        await saveAndWait();
-        // TODO: Refresh page to see if it is selected.
-        // await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-
-        let paperSize = await page.$('select.form-select');
-        let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
-        expect(selectedOption).toBe('label');
-
+        // Save it as legal
         await page.select('select.form-select', 'legal');
         await saveAndWait();
-        // TODO: Refresh page to see if it is selected.
-        // await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+        await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
         paperSize = await page.$('select.form-select');
         selectedOption = await (await paperSize.getProperty('value')).jsonValue();
         expect(selectedOption).toBe('legal');
+
+        // Save it back to label
+        await page.select('select.form-select', 'label');
+        await saveAndWait();
+        await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
+
+        let paperSize = await page.$('select.form-select');
+        let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
+            expect(selectedOption).toBe('label');
+
     });
 } );
 
