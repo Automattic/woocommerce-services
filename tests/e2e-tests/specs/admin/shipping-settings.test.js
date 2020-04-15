@@ -18,7 +18,7 @@ const saveAndWait = async () => {
  */
 const waitForSelectorAndText = async (selector, text) => {
     return await page.waitForFunction(
-        (cssSelector, innerTextContent) => Array.from(document.querySelectorAll(cssSelector)).find(el => el.textContent === innerTextContent),
+        (cssSelector, innerTextContent) => Array.from(document.querySelectorAll(cssSelector)).find(el => el.textContent.trim() === innerTextContent.trim()),
         {},
         selector, text
     );
@@ -50,7 +50,7 @@ describe( 'Saving shipping label settings', () => {
         await saveAndWait();
         await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
-        paperSize = await page.$('select.form-select');
+        let paperSize = await page.$('select.form-select');
         selectedOption = await (await paperSize.getProperty('value')).jsonValue();
         expect(selectedOption).toBe('legal');
 
@@ -59,10 +59,9 @@ describe( 'Saving shipping label settings', () => {
         await saveAndWait();
         await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
-        let paperSize = await page.$('select.form-select');
+        paperSize = await page.$('select.form-select');
         let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
             expect(selectedOption).toBe('label');
-
     });
 } );
 
@@ -86,12 +85,23 @@ describe( 'Shipping label payment method', () => {
         });
     };
 
+    it('should show "Add a credit card" button if Wordpress has no credit card', async () => {
+        // Intercept API before making any HTTP request
+        await mockAccountSettingAPI(AccountWithNoCreditCard);
+
+        // Go to settings page after setting up interception.
+        await StoreOwnerFlow.login();
+        await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        // Test
+        await waitForSelectorAndText('.button.is-compact', 'Add a credit card');
+    });
+
     it('should show "Choose a different card" button if Wordpress.com has a credit card', async () => {
         // Intercept API before making any HTTP request
         await mockAccountSettingAPI(AccountWithOneCreditCard);
 
-        // Go to settings page after setting up interception.
-        await StoreOwnerFlow.login();
+        // No need to login again, refresh page
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
@@ -103,17 +113,6 @@ describe( 'Shipping label payment method', () => {
         await expect(page).toMatchElement('.label-settings__card-name', {
             text: 'John Doe'
         });
-    });
-
-    it('should show "Add a credit card" button if Wordpress has no credit card', async () => {
-        // Intercept API before making any HTTP request
-        await mockAccountSettingAPI(AccountWithNoCreditCard);
-
-        // No need to login again, refresh page
-        await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-
-        // Test
-        await waitForSelectorAndText('.button.is-compact', 'Add a credit card');
     });
 
     it('should show 2 credit cards with the right information if Wordpress.com has 2 credit cards', async () => {
