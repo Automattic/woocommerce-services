@@ -51,7 +51,7 @@ describe( 'Saving shipping label settings', () => {
         await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
         let paperSize = await page.$('select.form-select');
-        selectedOption = await (await paperSize.getProperty('value')).jsonValue();
+        let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
         expect(selectedOption).toBe('legal');
 
         // Save it back to label
@@ -60,8 +60,8 @@ describe( 'Saving shipping label settings', () => {
         await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
         paperSize = await page.$('select.form-select');
-        let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
-            expect(selectedOption).toBe('label');
+        selectedOption = await (await paperSize.getProperty('value')).jsonValue();
+        expect(selectedOption).toBe('label');
     });
 } );
 
