@@ -154,7 +154,7 @@ ShippingRate.propTypes = {
 		rate: PropTypes.number.isRequired,
 		delivery_days: PropTypes.number,
 		delivery_date_guaranteed: PropTypes.bool,
-		delivery_date: PropTypes.instanceOf( Date ),
+		delivery_date: PropTypes.string,
 		tracking: PropTypes.bool,
 		insurance: PropTypes.number,
 		free_pickup: PropTypes.bool,

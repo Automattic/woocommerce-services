@@ -166,3 +166,24 @@ export function transformOrderForApi( order ) {
 
 	return order;
 }
+
+/**
+ * Directly update the order details screen with latest data.
+ */
+export function updateOrderDetailScreen( { status = '' } ) {
+	if ( window.jQuery ) {
+
+		if ( status ) {
+			window.jQuery('#order_status').val( 'wc-' + status ).trigger('change');
+		}
+
+		const notesBox = window.jQuery( '#woocommerce-order-notes' );
+		if ( notesBox.length ) {
+			window.jQuery.get( window.location.href, function( result ) {
+				const parsedResult = window.jQuery( result );
+				const updatedOrderNotes = parsedResult.find( '#woocommerce-order-notes' );
+				window.jQuery( '#woocommerce-order-notes' ).html( updatedOrderNotes.html() );
+			} );
+		}
+	}
+}
