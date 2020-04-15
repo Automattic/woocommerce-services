@@ -87,20 +87,20 @@ export class ShippingLabelViewWrapper extends Component {
 			// If there are no purchased labels, just show Create labels button
 			if ( ! activeLabels.length ) {
 				return (
-					<span>
-					<Button
-						className={ className }
-						primary
-						busy= { ! loaded }
-						disabled= { ! loaded }
-						onClick={ this.handleCreateLabelButtonClick }
-					>
-						{ translate( 'Create shipping label' ) }
-					</Button>
+					<div>
+						<Button
+							className={ className }
+							primary
+							busy= { ! loaded }
+							disabled= { ! loaded }
+							onClick={ this.handleCreateLabelButtonClick }
+						>
+							{ translate( 'Create shipping label' ) }
+						</Button>
 						<Suspense fallback={<div />}>
 							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 						</Suspense>
-					</span>
+					</div>
 				);
 			}
 
@@ -132,7 +132,7 @@ export class ShippingLabelViewWrapper extends Component {
 
 			// All items are packaged, show track button and create shipping label button to allow redo fulfillment
 			return (
-				<span>
+				<div>
 					<span className="shipping-label__redo-shipping-button">
 						<Button
 							borderless
@@ -150,7 +150,7 @@ export class ShippingLabelViewWrapper extends Component {
 						<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 						<TrackingModal orderId={ orderId } siteId={ siteId } />
 					</Suspense>
-				</span>
+				</div>
 			);
 		}
 
