@@ -344,4 +344,27 @@ describe( 'Packaging', () => {
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
         console.log("Started 'Finish delete package'");
     });
+
+    it ( 'Can select and add service package', async () => {
+        const packageName = 'Flat Rate Envelope'; // This is provided in services_data_mock_with_card.json
+
+        console.log("Started 'Can select and add service package'");
+
+        await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
+
+        // Wait for "Add package" to finish loading, then click "Add package"
+        await waitForSelectorAndText('.button:not([disabled])', 'Add package');
+        await expect( page ).toClick( '.button', { text: 'Add package' } );
+
+        // Click the "Service package" tab, pick and add a service package.
+        await expect( page ).toClick( '.segmented-control__link.item-index-1' );
+        await expect( page ).toClick( '.foldable-card__action.foldable-card__expand');
+        await expect( page ).toClick( '.foldable-card__content :first-child .packages__packages-row-actions input');
+        await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } )
+
+        // Verify the package was added to the list
+        console.log('>> Verify package shows up in list');
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "12.5 x 9.5 x 0.5 " + metricSystemValue });
+    });
 });
