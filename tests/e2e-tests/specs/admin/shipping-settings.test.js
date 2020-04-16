@@ -225,6 +225,8 @@ const waitForSelectorAndText = async (selector, text) => {
 // });
 
 describe( 'Packaging', () => {
+    let metricSystemValue = ''; // either "in" or "cm".
+
     console.log("Running 'packaging'");
 
     it( '> Can add package' , async () => {
@@ -250,6 +252,10 @@ describe( 'Packaging', () => {
         await expect( page ).toFill( '.form-text-input-with-affixes #box_weight', '0.5' );
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } )
 
+        // Set this once globally, all following test will use this metric
+        const metricSystem = await page.$$('.form-text-input-with-affixes .form-text-input-with-affixes__suffix');
+        metricSystemValue = await (await metricSystem[0].getProperty('innerText')).jsonValue();
+
         // Verify package shows up in list
         console.log('>> Verify package shows up in list');
         const detailsName = await page.$$('.packages__packages-row .packages__packages-row-details-name');
@@ -262,7 +268,7 @@ describe( 'Packaging', () => {
         const detailsDimension = await page.$$('.packages__packages-row .packages__packages-row-dimensions');
         const detailsDimensionValue = await (await detailsDimension[1].getProperty('innerText')).jsonValue();
         console.log('>> details dimension value: "' + detailsDimensionValue + '"');
-        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 cm" });
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
 
         // Save package
         console.log('>> Save package');
@@ -274,7 +280,7 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
-        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 cm" });
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
         console.log(">> Finished 'Can add package'");
     });
 
@@ -300,7 +306,7 @@ describe( 'Packaging', () => {
         // Verify package shows up in list
         console.log('>> Verify package shows up in list');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
-        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
 
         // Save package
         console.log('>> Save package');
@@ -311,7 +317,7 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
-        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
         console.log("Started 'Finish edit package'");
     });
 
@@ -332,7 +338,7 @@ describe( 'Packaging', () => {
         // Verify package is no longer in the list.
         console.log('>> Verify package shows up in list');
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
-        await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
+        await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
 
         // Save package
         console.log('>> Save package');
@@ -342,7 +348,7 @@ describe( 'Packaging', () => {
         // Refresh page and make sure it is deleted.
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
-        await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
+        await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
         console.log("Started 'Finish delete package'");
     });
 });
