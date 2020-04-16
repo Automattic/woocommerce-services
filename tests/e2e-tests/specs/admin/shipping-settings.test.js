@@ -65,6 +65,10 @@ describe( 'Saving shipping label settings', () => {
         selectedOption = await (await paperSize.getProperty('value')).jsonValue();
         expect(selectedOption).toBe('label');
     });
+
+    it ('Should show the correct email receipts message', async () => {
+        await expect(page).toMatchElement('.label-settings__credit-card-description', { text: /Email the label purchase receipts to \w+ \(\w+\) at .+\@.+/ });
+    });
 } );
 
 describe( 'Shipping label payment method', () => {
