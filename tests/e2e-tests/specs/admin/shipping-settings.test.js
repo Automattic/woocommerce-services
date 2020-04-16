@@ -228,6 +228,7 @@ describe( 'Packaging', () => {
     console.log("Running 'packaging'");
 
     it( 'Can add package' , async () => {
+        console.log("Started 'Can add package'");
         const packageName = 'Package Box 5x5x5';
 
 		await StoreOwnerFlow.login();
@@ -260,9 +261,11 @@ describe( 'Packaging', () => {
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 cm" });
+        console.log("Finished 'Can add package'");
     });
 
     it( 'Can edit package' , async () => {
+        console.log("Started 'Can edit package'");
         const packageName = 'Package Box 10x10x10';
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -293,9 +296,11 @@ describe( 'Packaging', () => {
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
+        console.log("Started 'Finish edit package'");
     });
 
     it( 'Can delete package' , async () => {
+        console.log("Started 'Can delete package'");
         const packageName = 'Package Box 10x10x10';
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -320,5 +325,6 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 cm" });
+        console.log("Started 'Finish delete package'");
     });
 });
