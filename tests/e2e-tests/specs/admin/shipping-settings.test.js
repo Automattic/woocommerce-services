@@ -230,10 +230,8 @@ describe( 'Packaging', () => {
     console.log("Running 'packaging'");
 
     it( '> Can add package' , async () => {
-        console.log(">> Started 'Can add package'");
         const packageName = 'Package Box 5x5x5';
 
-        console.log(">> Login");
 		await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
@@ -258,16 +256,7 @@ describe( 'Packaging', () => {
 
         // Verify package shows up in list
         console.log('>> Verify package shows up in list');
-        const detailsName = await page.$$('.packages__packages-row .packages__packages-row-details-name');
-        const detailValue = await (await detailsName[0].getProperty('innerText')).jsonValue();
-        console.log('>> details name: ', detailValue);
-
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
-        console.log('>> details name matched.');
-
-        const detailsDimension = await page.$$('.packages__packages-row .packages__packages-row-dimensions');
-        const detailsDimensionValue = await (await detailsDimension[1].getProperty('innerText')).jsonValue();
-        console.log('>> details dimension value: "' + detailsDimensionValue + '"');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
 
         // Save package
