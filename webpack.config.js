@@ -55,12 +55,18 @@ module.exports = {
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 		'woocommerce-services-new-order-taxjar': [ './client/new-order-taxjar.js' ],
 	},
-	output: {
-		path: path.join( __dirname, 'dist' ),
-		filename: '[name]-' + process.env.npm_package_version + '.js',
-		chunkFilename: 'chunks/[name].[chunkhash].min.js',
-		devtoolModuleFilenameTemplate: 'app:///[resource-path]',
-	},
+	output: Object.assign(
+			{},
+			{
+			path: path.join( __dirname, 'dist' ),
+			filename: '[name]-' + process.env.npm_package_version + '.js',
+			chunkFilename: 'chunks/[name].[chunkhash].min.js',
+			devtoolModuleFilenameTemplate: 'app:///[resource-path]',
+		},
+		isDev ? {
+			publicPath: 'http://localhost:8085/'
+		} : {}
+	),
 	optimization: {
 		minimize: ! isDev,
 		minimizer: [
