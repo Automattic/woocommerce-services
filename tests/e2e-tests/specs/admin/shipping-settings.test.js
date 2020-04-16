@@ -257,6 +257,11 @@ describe( 'Packaging', () => {
         console.log('>> details name: ', detailValue);
 
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
+        console.log('>> details name matched.');
+
+        const detailsDimension = await page.$$('.packages__packages-row .packages__packages-row-dimensions');
+        const detailsDimensionValue = await (await detailsDimension[1].getProperty('innerText')).jsonValue();
+        console.log('>> details dimension value: "' + detailsDimensionValue + '"');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 cm" });
 
         // Save package
