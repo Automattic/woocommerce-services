@@ -231,14 +231,17 @@ describe( 'Packaging', () => {
         console.log("Started 'Can add package'");
         const packageName = 'Package Box 5x5x5';
 
+        console.log("Login");
 		await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click to pop up modal
+        console.log('Wait for "Add package" to finish loading, click to pop up modal');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect( page ).toClick( '.button', { text: 'Add package' } );
 
         // Create a new package
+        console.log('Create a new package');
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Add a package' );
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '5' );
@@ -248,15 +251,17 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } )
 
         // Verify package shows up in list
-        // await waitForText('.packages__packages-row .packages__packages-row-details-dimensions', '5 x 5 x 5 cm');
+        console.log('Verify package shows up in list');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 cm" });
 
         // Save package
+        console.log('Save package');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
         // Refresh page and make sure it is saved.
+        console.log('Refresh page and make sure it is saved.');
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
