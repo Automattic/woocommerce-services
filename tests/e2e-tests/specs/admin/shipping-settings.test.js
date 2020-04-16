@@ -25,6 +25,8 @@ const waitForSelectorAndText = async (selector, text) => {
 };
 
 describe( 'Saving shipping label settings', () => {
+    console.log( "Running 'Saving shipping label settings'" );
+
 	it( 'Can toggle shipping labels' , async () => {
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -66,6 +68,8 @@ describe( 'Saving shipping label settings', () => {
 } );
 
 describe( 'Shipping label payment method', () => {
+    console.log( "Running 'Shipping label payment method'" );
+
     let response;
 
     const accountSettingsRequestListener = (request) => {
@@ -221,6 +225,8 @@ describe( 'Shipping label payment method', () => {
 });
 
 describe( 'Packaging', () => {
+    console.log("Running 'packaging'");
+
     it( 'Can add package' , async () => {
         const packageName = 'Package Box 5x5x5';
 
