@@ -228,7 +228,7 @@ describe( 'Shipping label payment method', () => {
 describe( 'Packaging', () => {
     let metricSystemValue = ''; // either "in" or "cm".
 
-    it( '> Can add package' , async () => {
+    it( 'Can add package' , async () => {
         const packageName = 'Package Box 5x5x5';
 
 		await StoreOwnerFlow.login();
@@ -266,7 +266,7 @@ describe( 'Packaging', () => {
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
     });
 
-    it( '> Can edit package' , async () => {
+    it( 'Can edit package' , async () => {
         const packageName = 'Package Box 10x10x10';
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -299,7 +299,7 @@ describe( 'Packaging', () => {
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
     });
 
-    it( '> Can delete package' , async () => {
+    it( 'Can delete package' , async () => {
         const packageName = 'Package Box 10x10x10';
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
