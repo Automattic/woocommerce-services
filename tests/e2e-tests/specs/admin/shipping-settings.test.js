@@ -25,8 +25,6 @@ const waitForSelectorAndText = async (selector, text) => {
 };
 
 describe( 'Saving shipping label settings', () => {
-    console.log( "Running 'Saving shipping label settings'" );
-
 	it( 'Can toggle shipping labels' , async () => {
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -68,8 +66,6 @@ describe( 'Saving shipping label settings', () => {
 } );
 
 describe( 'Shipping label payment method', () => {
-    console.log( "Running 'Shipping label payment method'" );
-
     let response;
 
     const accountSettingsRequestListener = (request) => {
@@ -232,8 +228,6 @@ describe( 'Shipping label payment method', () => {
 describe( 'Packaging', () => {
     let metricSystemValue = ''; // either "in" or "cm".
 
-    console.log("Running 'packaging'");
-
     it( '> Can add package' , async () => {
         const packageName = 'Package Box 5x5x5';
 
@@ -241,12 +235,10 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click to pop up modal
-        console.log('>> Wait for "Add package" to finish loading, click to pop up modal');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect( page ).toClick( '.button', { text: 'Add package' } );
 
         // Create a new package
-        console.log('>> Create a new package');
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Add a package' );
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '5' );
@@ -260,26 +252,21 @@ describe( 'Packaging', () => {
         metricSystemValue = await (await metricSystem[0].getProperty('innerText')).jsonValue();
 
         // Verify package shows up in list
-        console.log('>> Verify package shows up in list');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
 
         // Save package
-        console.log('>> Save package');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
         // Refresh page and make sure it is saved.
-        console.log('>> Refresh page and make sure it is saved.');
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
-        console.log(">> Finished 'Can add package'");
     });
 
     it( '> Can edit package' , async () => {
-        console.log("Started 'Can edit package'");
         const packageName = 'Package Box 10x10x10';
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -298,12 +285,10 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Done' } )
 
         // Verify package shows up in list
-        console.log('>> Verify package shows up in list');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
 
         // Save package
-        console.log('>> Save package');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
@@ -312,11 +297,9 @@ describe( 'Packaging', () => {
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
-        console.log("Started 'Finish edit package'");
     });
 
     it( '> Can delete package' , async () => {
-        console.log("Started 'Can delete package'");
         const packageName = 'Package Box 10x10x10';
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -330,12 +313,10 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.packages__delete.is-scary.is-borderless', { text: 'Delete this package' } )
 
         // Verify package is no longer in the list.
-        console.log('>> Verify package shows up in list');
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
 
         // Save package
-        console.log('>> Save package');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
@@ -343,13 +324,10 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
-        console.log("Started 'Finish delete package'");
     });
 
     it ( 'Can select and add service package', async () => {
         const packageName = 'Flat Rate Envelope'; // This is provided in services_data_mock_with_card.json
-
-        console.log("Started 'Can select and add service package'");
 
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
@@ -364,7 +342,6 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } )
 
         // Verify the package was added to the list
-        console.log('>> Verify package shows up in list');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "12.5 x 9.5 x 0.5 " + metricSystemValue });
     });
