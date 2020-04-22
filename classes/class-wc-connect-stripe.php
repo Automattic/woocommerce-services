@@ -63,43 +63,6 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			return $result->oauthUrl;
 		}
 
-		public function create_account( $email, $country ) {
-			$response = $this->api->create_stripe_account( $email, $country );
-			if ( is_wp_error( $response ) ) {
-				return $response;
-			}
-			return $this->save_stripe_keys( $response );
-		}
-
-		public function get_account_details() {
-			if ( ! $this->is_connected() ) {
-				return new WP_Error(
-					'not_using_wcs_for_stripe_connection',
-					__( 'Not using WooCommerce Services for Stripe keys. Maybe using user supplied keys.', 'woocommerce-services' ),
-					array(
-						'status' => 400
-					)
-				);
-			}
-
-			$response = $this->api->get_stripe_account_details();
-			if ( is_wp_error( $response ) ) {
-				return $response;
-			}
-
-			return array(
-				'account_id'      => $response->accountId,
-				'display_name'    => $response->displayName,
-				'email'           => $response->email,
-				'business_logo'   => $response->businessLogo,
-				'legal_entity'    => array(
-					'first_name'      => $response->legalEntity->firstName,
-					'last_name'       => $response->legalEntity->lastName
-				),
-				'payouts_enabled' => $response->payoutsEnabled,
-			);
-		}
-
 		public function deauthorize_account() {
 			$response = $this->api->deauthorize_stripe_account();
 			if ( is_wp_error( $response ) ) {

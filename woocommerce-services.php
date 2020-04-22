@@ -904,10 +904,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_assets_controller->register_routes();
 
 			if ( $this->stripe->is_stripe_plugin_enabled() ) {
-				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
-				$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-				$rest_stripe_account_controller->register_routes();
-
 				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-init-controller.php' ) );
 				$rest_stripe_settings_controller = new WC_REST_Connect_Stripe_Oauth_Init_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
 				$rest_stripe_settings_controller->register_routes();
