@@ -1153,7 +1153,6 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 		// Load Javascript for WooCommerce new order page
-		wp_register_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar.js' );
-		wp_enqueue_script( 'wc-taxjar-order' , array( 'jquery' ) );
+		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
 	}
 }
