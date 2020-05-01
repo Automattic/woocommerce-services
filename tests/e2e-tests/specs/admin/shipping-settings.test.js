@@ -2,26 +2,13 @@
  * Internal dependencies
  */
 import { StoreOwnerFlow } from "../../utils/flows";
+import { waitForSelectorAndText } from "../../utils/index";
 import { AccountWithNoCreditCard, AccountWithOneCreditCard, AccountWithTwoCreditCard, AccountWithTwoCreditCardAndNoDefault } from "../../fixtures/account_settings";
 
 // Click save and wait until it's saved.
 const saveAndWait = async () => {
     await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
     await page.waitForSelector('[class="button is-primary"]');
-};
-
-/**
- * This function will wait for a button with any CSS selector + text value.
- *
- * @param {string} selector CSS selector
- * @param {string} text The text value of the element we want to search for. ie. button's value, div's innertext.
- */
-const waitForSelectorAndText = async (selector, text) => {
-    return await page.waitForFunction(
-        (cssSelector, innerTextContent) => !!Array.from(document.querySelectorAll(cssSelector)).find(el => el.textContent.trim() === innerTextContent.trim()),
-        {},
-        selector, text
-    );
 };
 
 describe( 'Saving shipping label settings', () => {
