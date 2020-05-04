@@ -318,20 +318,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $new_is_alive;
 		}
 
-		/**
-		 * Create a deferred Stripe Standard Account
-		 * @param $email string The user's email address
-		 * @param $country string The user's country
-		 * @return object|WP_Error
-		 */
-		public function create_stripe_account( $email, $country ) {
-			$request = array(
-				'email' => $email,
-				'country' => $country,
-			);
-			return $this->request( 'POST', '/stripe/account', $request );
-		}
-
 		public function get_stripe_account_details() {
 			return $this->request( 'GET', '/stripe/account' );
 		}

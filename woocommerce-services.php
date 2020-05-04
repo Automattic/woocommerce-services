@@ -590,59 +590,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
-		public function init_core_wizard_payments_config() {
-			$stripe_settings = get_option( 'woocommerce_stripe_settings', false );
-
-			$user_elected_to_create_stripe_account  = is_array( $stripe_settings )
-				&& ( isset( $stripe_settings['create_account'] ) && 'yes' === $stripe_settings['create_account'] )
-				&& ( isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'] );
-
-			// In certain scenarios, the user can enter an email address but not connect Jetpack in the wizard,
-			// but instead add the Stripe keys manually and connect Jetpack after. If the existing keys are detected,
-			// forget the wizard settings and never retry
-			$stripe_already_connected = is_array( $stripe_settings )
-				&& (
-					! empty( $stripe_settings['test_publishable_key'] )
-					|| ! empty( $stripe_settings['test_secret_key'] )
-					|| ! empty( $stripe_settings['publishable_key'] )
-					|| ! empty( $stripe_settings['secret_key'] )
-				);
-
-			if ( $user_elected_to_create_stripe_account && $stripe_already_connected ) {
-				unset( $stripe_settings['email'] );
-				unset( $stripe_settings['create_account'] );
-				update_option( 'woocommerce_stripe_settings', $stripe_settings );
-				return;
-			}
-
-			if ( $user_elected_to_create_stripe_account && is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' ) ) {
-				$this->tracks->record_user_event( 'core_wizard_stripe_setup' );
-
-				$email = isset( $stripe_settings['email'] ) ? $stripe_settings['email'] : wp_get_current_user()->user_email;
-				$country = WC()->countries->get_base_country();
-				$response = $this->stripe->create_account( $email, $country );
-
-				if ( is_wp_error( $response ) ) {
-					$this->logger->log( $response, __FUNCTION__ );
-
-					// Handle existing account case.
-					if ( false !== strpos( $response->get_error_message(), 'Account already exists for the provided email.' ) ) {
-						WC_Connect_Options::update_option( 'banner_stripe', 'connection' );
-					}
-				}
-
-
-				// The Stripe settings have changed here - the keys were added,
-				// so we need to get a fresh copy.
-				$new_stripe_settings = get_option( 'woocommerce_stripe_settings', false );
-				if ( is_array( $new_stripe_settings ) ) {
-					unset( $new_stripe_settings['email'] );
-					unset( $new_stripe_settings['create_account'] );
-					update_option( 'woocommerce_stripe_settings', $new_stripe_settings );
-				}
-			}
-		}
-
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
@@ -763,7 +710,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				// Note: Avoid doing so on non-primary requests so we don't duplicate efforts.
 				if ( ! defined( 'DOING_AJAX' ) && is_admin() && ! isset( $_GET['noheader'] ) ) {
 					$this->init_core_wizard_shipping_config();
-					$this->init_core_wizard_payments_config();
 				}
 			}
 
@@ -904,10 +850,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_assets_controller->register_routes();
 
 			if ( $this->stripe->is_stripe_plugin_enabled() ) {
-				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-account-controller.php' ) );
-				$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Account_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-				$rest_stripe_account_controller->register_routes();
-
 				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-init-controller.php' ) );
 				$rest_stripe_settings_controller = new WC_REST_Connect_Stripe_Oauth_Init_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
 				$rest_stripe_settings_controller->register_routes();

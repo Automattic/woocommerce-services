@@ -10,7 +10,6 @@ import { expect } from 'chai';
  */
 import {
 	getError,
-	getIsCreating,
 	getIsDeauthorizing,
 	getIsOAuthConnecting,
 	getIsOAuthInitializing,
@@ -27,42 +26,6 @@ const uninitializedState = {
 				123: {
 					settings: {
 						stripeConnectAccount: {},
-					},
-				},
-			},
-		},
-	},
-};
-
-const creatingState = {
-	extensions: {
-		woocommerce: {
-			sites: {
-				123: {
-					settings: {
-						stripeConnectAccount: {
-							notifyCompleted: false,
-							isCreating: true,
-						},
-					},
-				},
-			},
-		},
-	},
-};
-
-const createdState = {
-	extensions: {
-		woocommerce: {
-			sites: {
-				123: {
-					settings: {
-						stripeConnectAccount: {
-							connectedUserID: 'acct_14qyt6Alijdnw0EA',
-							email: 'foo@bar.com',
-							isCreating: false,
-							notifyCompleted: true,
-						},
 					},
 				},
 			},
@@ -291,39 +254,13 @@ const oauthInitializedState = {
 };
 
 describe( 'selectors', () => {
-	describe( '#getIsCreating', () => {
-		test( 'should be false when state is uninitialized.', () => {
-			expect( getIsCreating( uninitializedState, 123 ) ).to.be.false;
-		} );
-
-		test( 'should be true when attempting to create an account.', () => {
-			expect( getIsCreating( creatingState, 123 ) ).to.be.true;
-		} );
-
-		test( 'should be false after creating an account.', () => {
-			expect( getIsCreating( createdState, 123 ) ).to.be.false;
-		} );
-	} );
-
 	describe( '#getError', () => {
 		test( 'should return error when present.', () => {
 			expect( getError( errorState, 123 ) ).to.eql( 'My error message' );
 		} );
-
-		test( 'should return empty string when not.', () => {
-			expect( getError( createdState, 123 ) ).to.eql( '' );
-		} );
 	} );
 
 	describe( '#getNotifyCompleted', () => {
-		test( 'should return false when account is being created.', () => {
-			expect( getNotifyCompleted( creatingState, 123 ) ).to.eql( false );
-		} );
-
-		test( 'should return true after account has been created.', () => {
-			expect( getNotifyCompleted( createdState, 123 ) ).to.eql( true );
-		} );
-
 		test( 'should return false when oauth is connecting.', () => {
 			expect( getNotifyCompleted( oauthConnectingState, 123 ) ).to.eql( false );
 		} );
