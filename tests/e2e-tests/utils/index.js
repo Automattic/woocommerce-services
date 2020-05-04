@@ -62,6 +62,20 @@ const clickReactButton = async( selector ) => {
     page.$eval( selector, elem => elem.click() );
 };
 
+/**
+ * This function will wait for a button with any CSS selector + text value.
+ *
+ * @param {string} selector CSS selector
+ * @param {string} text The text value of the element we want to search for. ie. button's value, div's innertext.
+ */
+const waitForSelectorAndText = async (selector, text) => {
+    return await page.waitForFunction(
+        (cssSelector, innerTextContent) => !!Array.from(document.querySelectorAll(cssSelector)).find(el => el.textContent.trim() === innerTextContent.trim()),
+        {},
+        selector, text
+    );
+};
+
 module.exports = {
 	...flows,
 	clickTab,
@@ -70,4 +84,5 @@ module.exports = {
 	uiUnblocked,
 	verifyCheckboxIsSet,
 	clickReactButton,
+	waitForSelectorAndText,
 };
