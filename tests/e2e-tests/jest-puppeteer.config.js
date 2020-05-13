@@ -3,7 +3,7 @@
 module.exports = {
 	launch: {
 		slowMo: process.env.PUPPETEER_SLOWMO ? false : 50,
-		headless: false,//process.env.PUPPETEER_HEADLESS || false,
+		headless: process.env.PUPPETEER_HEADLESS || false,
 		// Required for the logged out and logged in tests so they don't share app state/token.
 		browserContext: 'incognito',
 		ignoreHTTPSErrors: true,
