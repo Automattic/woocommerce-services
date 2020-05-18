@@ -124,11 +124,16 @@ class WC_Connect_TaxJar_Integration {
 	public function add_tax_settings( $tax_settings ) {
 		$enabled = $this->is_enabled();
 
+		$store_settings = $this->get_store_settings();
+		$all_states = WC()->countries->get_states( $store_settings['country'] );
+		$full_state = $all_states[ $store_settings['state'] ];
+
 		$automated_taxes = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
-			'desc_tip' => __( 'Automate your sales tax calculations with WooCommerce Services, powered by Jetpack.', 'woocommerce-services' ),
-			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Services ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) . '</p>' : '',
+			/* translators: 1: Full state name */
+			'desc_tip' => sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_state ),
+			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Services.', 'woocommerce-services' ) . '</p>' : '',
 			'default'  => 'no',
 			'type'     => 'select',
 			'class'    => 'wc-enhanced-select',
