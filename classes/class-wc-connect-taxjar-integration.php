@@ -67,6 +67,11 @@ class WC_Connect_TaxJar_Integration {
 		// Add toggle for automated taxes to the core settings page
 		add_filter( 'woocommerce_tax_settings', array( $this, 'add_tax_settings' ) );
 
+		// Fix tooltip with link on older WC.
+		if ( version_compare( WOOCOMMERCE_VERSION, '4.3.0', '<' ) ) {
+			add_action( 'admin_enqueue_scripts', array( $this, 'fix_tooltip_keepalive'), 11 );
+		}
+
 		// Settings values filter to handle the hardcoded settings
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( $this, 'sanitize_tax_option' ), 10, 2 );
 
@@ -74,6 +79,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! $this->is_enabled() ) {
 			return;
 		}
+
 
 		// Scripts / Stylesheets
 		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
@@ -157,6 +163,33 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $tax_settings;
+	}
+
+	/**
+	 * Hack to force keepAlive: true on tax setting tooltip.
+	 */
+	public function fix_tooltip_keepalive() {
+		global $pagenow;
+		if ( 'admin.php' !== $pagenow || ! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] || ! isset( $_GET['tab'] ) || 'tax' !== $_GET['tab'] || ! empty( $_GET['section'] ) ) {
+			return;
+		}
+
+		$tax_settings = $this->add_tax_settings( array() );
+		// Links in tooltips will not work unless keepAlive is true.
+		wp_add_inline_script(
+			'woocommerce_admin',
+			"jQuery( function () {
+					jQuery( 'label[for=wc_connect_taxes_enabled] .woocommerce-help-tip')
+						.off( 'mouseenter mouseleave' )
+						.tipTip( {
+							'fadeIn': 50,
+							'fadeOut': 50,
+							'delay': 200,
+							keepAlive: true,
+							content: '" . $tax_settings[0]['desc_tip'] . "'
+						} );
+				} );"
+		);
 	}
 
 	/**
