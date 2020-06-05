@@ -52,7 +52,7 @@ module.exports = {
 		'woocommerce-services': [ './client/main.js' ],
 		'woocommerce-services-banner': [ './client/banner.js' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
-		'woocommerce-services-new-order-taxjar': [ './client/new-order-taxjar.js' ],
+		'woocommerce-services-admin-order-taxjar': [ './client/admin-order-taxjar.js' ],
 	},
 	output: {
 		path: path.join( __dirname, 'dist' ),
