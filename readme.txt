@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.4
-Stable tag: 1.23.0
+Stable tag: 1.23.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,10 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.23.1 - 2020-xx-xx =
+* Tweak - Update WooCommerce compatibility to 4.2
+* Fix	- Taxjar broken in admin's new order page
 
 = 1.23.0 - 2020-04-08 =
 * Fix   - Hide paper selection until valid payment method is selected.
