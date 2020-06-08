@@ -143,7 +143,7 @@ class ShippingRate extends Component {
 									<Tooltip
 										position="top left"
 										text={translate(
-											'This is an estimate based on the connected UPS account'
+											'This rate is provided by your connected UPS account'
 										)}
 									>
 										<div className="rates-step__shipping-rate-rate-tooltip">
