@@ -83,9 +83,10 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
-= 1.23.1 - 2020-xx-xx =
+= 1.23.1 - 2020-06-10 =
 * Tweak - Update WooCommerce compatibility to 4.2
 * Fix	- Taxjar broken in admin's new order page
+* Fix   - Tax recalculation on admin order screen missing street address.
 
 = 1.23.0 - 2020-04-08 =
 * Fix   - Hide paper selection until valid payment method is selected.
