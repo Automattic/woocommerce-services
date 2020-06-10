@@ -1,0 +1,115 @@
+.carrier-accounts__list {
+	padding: 0;
+
+	.carrier-accounts__list-item {
+		display: flex;
+		align-items: center;
+		padding: 8px 0;
+
+		.carrier-accounts__list-item__carrier-icon {
+			width: 48px;
+			padding-left: 24px;
+		}
+
+		.carrier-accounts__list-item__name {
+			width: 35%;
+		}
+
+		.carrier-accounts__list-item__credentials {
+			width: 30%;
+		}
+
+		.carrier-accounts__list-item__actions {
+			padding-right: 24px;
+			width: 25%;
+			text-align: right;
+		}
+	}
+}
+
+
+.carrier-accounts__header {
+	display: flex;
+	flex-direction: row;
+	padding: 8px 0;
+	align-items: center;
+
+	&:not( :last-child ) {
+		border-bottom: 1px solid var( --color-neutral-0 );
+	}
+
+	&.packages__packages-header {
+		border-bottom-color: var( --color-neutral-100 );
+	}
+
+	&.prefixed {
+		&:first-child {
+			border-top: 1px solid var( --color-neutral-0 );
+		}
+
+		.form-checkbox {
+			margin-left: 16px;
+
+			@include breakpoint( '>480px' ) {
+				margin-left: 24px;
+			}
+		}
+
+		.packages__packages-row-icon {
+			padding-left: 0;
+			text-align: center;
+			color: var( --color-text-subtle );
+		}
+
+		.packages__packages-row-actions {
+			width: 38px;
+			padding-right: 8px;
+		}
+
+		.packages__packages-row-details {
+			width: 50%;
+		}
+	}
+}
+
+.carrier-account-settings {
+	display: flex;
+
+	.carrier-account-settings__info {
+		width: 21%;
+		padding-right: 18px;
+	}
+	.carrier-account-settings__form {
+		width: 100%;
+	}
+
+	.carrier-account-settings__header {
+		margin-bottom: 1em;
+	}
+
+	.carrier-account-settings__subheader {
+		font-size: 18px;
+		margin: 0 0 1em 0;
+	}
+
+	.carrier-account-settings__subheader-description {
+		margin: 0;
+		margin-top: 1em;
+	}
+
+
+	.carrier-account-settings__two-columns {
+		display: flex;
+		justify-content: space-between;
+
+		& > * {
+			width: 48%;
+		}
+	}
+
+	.carrier-account-settings__actions {
+		& :first-child {
+			margin-right: 0.5em;
+		}
+	}
+}

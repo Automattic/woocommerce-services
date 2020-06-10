@@ -41,6 +41,7 @@ class Shipping extends Component {
 	};
 
 	render = () => {
+		alert( 'entra' )
 		const { className, wcsEnabled } = this.props;
 		const { pristine } = this.state;
 		const toSave = { units: ! pristine.units, shipping: ! pristine.shipping };
