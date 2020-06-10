@@ -76,7 +76,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// Scripts / Stylesheets
-		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_order_assets' ) );
 
 		$this->configure_tax_settings();
 
@@ -1136,24 +1136,34 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Checks if currently on the WooCommerce new order page
+	 * Checks if currently on the WooCommerce order page
 	 *
 	 * @return boolean
 	 */
 	public function on_order_page() {
 		global $pagenow;
-		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] );
+		global $post;
+		// On new order page.
+		if ( in_array( $pagenow, array( 'post-new.php', ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] ) {
+			return true;
+		}
+
+		// On order edit page.
+		if ( in_array( $pagenow, array( 'post.php', ) ) && 'shop_order' == $post->post_type ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
-	 * Admin New Order Assets
+	 * Admin Order Assets
 	 */
-	public function load_taxjar_admin_new_order_assets() {
+	public function load_taxjar_admin_order_assets() {
 		if ( ! $this->on_order_page() ) {
 			return;
 		}
-		// Load Javascript for WooCommerce new order page
-		wp_register_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar.js' );
-		wp_enqueue_script( 'wc-taxjar-order' , array( 'jquery' ) );
+		// Load Javascript for WooCommerce order page
+		wp_enqueue_script( 'wc-taxjar-admin-order', $this->wc_connect_base_url . 'woocommerce-services-admin-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
 	}
 }
