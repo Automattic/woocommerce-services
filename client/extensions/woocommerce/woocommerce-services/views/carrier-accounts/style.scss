@@ -31,44 +31,22 @@
 .carrier-accounts__header {
 	display: flex;
 	flex-direction: row;
-	padding: 8px 0;
 	align-items: center;
+	font-weight: 600;
+	padding: 12px 0;
+	font-size: 14px;
+	border-top: 0;
+	border-bottom: 1px solid var( --color-neutral-0 );
+	border-bottom-color: var( --color-neutral-100 );
+	background: var( --color-neutral-0 );
 
-	&:not( :last-child ) {
-		border-bottom: 1px solid var( --color-neutral-0 );
+	.carrier-accounts__header-icon {
+		width: 72px;
 	}
-
-	&.packages__packages-header {
-		border-bottom-color: var( --color-neutral-100 );
+	.carrier-accounts__header-name {
+		width: 35%;
 	}
-
-	&.prefixed {
-		&:first-child {
-			border-top: 1px solid var( --color-neutral-0 );
-		}
-
-		.form-checkbox {
-			margin-left: 16px;
-
-			@include breakpoint( '>480px' ) {
-				margin-left: 24px;
-			}
-		}
-
-		.packages__packages-row-icon {
-			padding-left: 0;
-			text-align: center;
-			color: var( --color-text-subtle );
-		}
-
-		.packages__packages-row-actions {
-			width: 38px;
-			padding-right: 8px;
-		}
-
-		.packages__packages-row-details {
-			width: 50%;
-		}
+	.carrier-accounts__header-credentials {
 	}
 }
 
