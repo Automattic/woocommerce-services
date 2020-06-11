@@ -61,8 +61,12 @@ export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, c
 						woocommerceServices: {
 							1: {
 								carrierAccounts: {
-									settings: {
-										country: 'US'
+									UPS: {
+										settings: {
+											values: {
+												country: 'US'
+											},
+										}
 									}
 								}
 							}

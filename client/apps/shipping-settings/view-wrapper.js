@@ -16,7 +16,7 @@ import LabelSettings from '../../extensions/woocommerce/woocommerce-services/vie
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
-import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/carrier-account-settings';
+import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/settings';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import { createWcsShippingSaveActionList } from '../../extensions/woocommerce/woocommerce-services/state/actions';

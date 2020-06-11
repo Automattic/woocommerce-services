@@ -8,10 +8,10 @@ import { get } from 'lodash';
  */
 import { getSelectedSiteId } from 'state/ui/selectors';
 
-export const getCarrierAccountsState = ( state, siteId = getSelectedSiteId( state ) ) => {
+export const getCarrierAccountsState = ( state, siteId = getSelectedSiteId( state ), carrier ) => {
 	return get(
 		state,
-		[ 'extensions', 'woocommerce', 'woocommerceServices', siteId, 'carrierAccounts' ],
+		[ 'extensions', 'woocommerce', 'woocommerceServices', siteId, 'carrierAccounts', carrier ],
 		null
 	);
 };

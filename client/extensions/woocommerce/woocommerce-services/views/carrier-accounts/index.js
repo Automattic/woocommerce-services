@@ -16,7 +16,7 @@ import { some } from 'lodash';
  */
 import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
-import CarrierAccountListItem from './carrier-account-list-item';
+import CarrierAccountListItem from './list-item';
 import * as CarrierAccountsActions from '../../state/carrier-accounts/actions';
 import { getSelectedSiteId } from 'state/ui/selectors';
 
@@ -24,15 +24,12 @@ class CarrierAccounts extends Component {
 	renderListHeader = carriers => {
 		const { translate } = this.props;
 
-		if ( ! some(carriers, 'credentials' ) ) {
-			return null;
-		}
-
 		return (
 			<div className="carrier-accounts__header">
 				<div className="carrier-accounts__header-icon" />
 				<div className="carrier-accounts__header-name">{ translate( 'Name' ) }</div>
-				<div className="carrier-accounts__header-credentials">{ translate( 'Credentials' ) }</div>
+				{ some(carriers, 'credentials' ) && <div className="carrier-accounts__header-credentials">{ translate( 'Credentials' ) }</div>}
+
 				<div className="carrier-accounts__header-actions" />
 			</div>
 		);

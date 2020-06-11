@@ -50,33 +50,33 @@
 	}
 }
 
-.carrier-account-settings {
+.carrier-accounts__settings {
 	display: flex;
 
-	.carrier-account-settings__info {
+	.carrier-accounts__settings-info {
 		width: 21%;
 		padding-right: 18px;
 	}
-	.carrier-account-settings__form {
+	.carrier-accounts__settings-form {
 		width: 100%;
 	}
 
-	.carrier-account-settings__header {
+	.carrier-accounts__settings-header {
 		margin-bottom: 1em;
 	}
 
-	.carrier-account-settings__subheader {
+	.carrier-accounts__settings-subheader {
 		font-size: 18px;
 		margin: 0 0 1em 0;
 	}
 
-	.carrier-account-settings__subheader-description {
+	.carrier-accounts__settings-subheader-description {
 		margin: 0;
 		margin-top: 1em;
 	}
 
 
-	.carrier-account-settings__two-columns {
+	.carrier-accounts__settings-two-columns {
 		display: flex;
 		justify-content: space-between;
 
@@ -85,7 +85,7 @@
 		}
 	}
 
-	.carrier-account-settings__actions {
+	.carrier-accounts__settings-actions {
 		& :first-child {
 			margin-right: 0.5em;
 		}

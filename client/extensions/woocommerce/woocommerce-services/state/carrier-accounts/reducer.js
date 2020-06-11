@@ -8,7 +8,8 @@
  * Internal dependencies
  */
 import {
-	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SHOW_SETTINGS,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
 } from '../action-types';
 
 export const initialState = {
@@ -18,10 +19,25 @@ export const initialState = {
 
 const reducers = {};
 
-reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SHOW_SETTINGS ] = ( state, { carrier } ) => {
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS ] = ( state, { carrier } ) => {
 	const newState = {
 		...state,
-		showSettings: carrier,
+	};
+
+	return newState;
+};
+
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { carrier, fieldName, newValue } ) => {
+	const { values, fieldErrors } = state[ carrier ].settings;
+	values[ fieldName ] = newValue;
+	const newState = {
+		...state,
+		[ carrier ]: {
+			settings: {
+				fieldErrors,
+				values
+			},
+		},
 	};
 
 	return newState;
