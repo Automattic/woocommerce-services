@@ -83,6 +83,8 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
+= 1.23.2 - 2020-xx-xx =
+
 = 1.23.1 - 2020-06-10 =
 * Tweak - Update WooCommerce compatibility to 4.2
 * Fix	- Taxjar broken in admin's new order page
