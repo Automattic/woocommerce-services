@@ -84,6 +84,7 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 == Changelog ==
 
 = 1.23.2 - 2020-xx-xx =
+* Fix   - Refund not possible on order page.
 
 = 1.23.1 - 2020-06-10 =
 * Tweak - Update WooCommerce compatibility to 4.2
