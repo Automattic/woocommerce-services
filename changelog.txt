@@ -1,6 +1,6 @@
 *** WooCommerce Services Changelog ***
 
-= 1.23.2 - 2020-06-12 =
+= 1.23.2 - 2020-xx-xx =
 * Fix   - Refund not possible on order page.
 
 = 1.23.1 - 2020-06-10 =
