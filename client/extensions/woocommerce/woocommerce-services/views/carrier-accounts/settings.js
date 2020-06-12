@@ -26,7 +26,11 @@ import {
 	getFormErrors,
 	getFormValidState,
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
-import { submitCarrierSettings, updateCarrierSettings } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
+import {
+	submitCarrierSettings,
+	updateCarrierSettings,
+	toggleShowUPSInvoiceFields,
+} from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
 
@@ -39,6 +43,7 @@ const CarrierAccountSettings = props => {
 		values,
 		stateNames,
 		isFormValid,
+		showUPSInvoiceFields,
 		translate,
 	} = props;
 
@@ -51,6 +56,53 @@ const CarrierAccountSettings = props => {
 		props.submitCarrierSettings( siteId, carrier );
 	const cancelHandler = () => {
 		history.back();
+	}
+	const updateShowUPSInvoiceFields = () => {
+		props.toggleShowUPSInvoiceFields( siteId, carrier );
+	}
+
+	const upsInvoiceFields = () => {
+		return <div className="carrier-accounts__settings-ups-invoice">
+			<div className="carrier-accounts__settings-two-columns">
+				<TextField
+					id={ 'ups_invoice_number' }
+					title={ translate( 'UPS invoice number' ) }
+					value={ getValue( 'ups_invoice_number' ) }
+					updateValue={ updateValue( 'ups_invoice_number' ) }
+					error={ fieldErrors.ups_invoice_number }
+				/>
+				<TextField
+					id={ 'ups_invoice_date' }
+					title={ translate( 'UPS invoice date' ) }
+					value={ getValue( 'ups_invoice_date' ) }
+					updateValue={ updateValue( 'ups_invoice_date' ) }
+					error={ fieldErrors.ups_invoice_date }
+				/>
+			</div>
+			<div className="carrier-accounts__settings-two-columns">
+				<TextField
+					id={ 'ups_invoice_amount' }
+					title={ translate( 'UPS invoice amount' ) }
+					value={ getValue( 'ups_invoice_amount' ) }
+					updateValue={ updateValue( 'ups_invoice_amount' ) }
+					error={ fieldErrors.ups_invoice_amount }
+				/>
+				<TextField
+					id={ 'ups_invoice_currency' }
+					title={ translate( 'UPS invoice currency' ) }
+					value={ getValue( 'ups_invoice_currency' ) }
+					updateValue={ updateValue( 'ups_invoice_currency' ) }
+					error={ fieldErrors.ups_invoice_currency }
+				/>
+			</div>
+			<TextField
+				id={ 'ups_invoice_control_id' }
+				title={ translate( 'UPS invoice control id' ) }
+				value={ getValue( 'ups_invoice_control_id' ) }
+				updateValue={ updateValue( 'ups_invoice_control_id' ) }
+				error={ fieldErrors.ups_invoice_control_id }
+			/>
+		</div>;
 	}
 
 	return (
@@ -191,47 +243,12 @@ const CarrierAccountSettings = props => {
 				<CompactCard className="carrier-accounts__settings-ups-info">
 					<div className="carrier-accounts__settings-header">
 						<h4 className="carrier-accounts__settings-subheader">{ translate( 'UPS account information' ) }</h4>
-						<p className="carrier-accounts__settings-subheader-description">{ translate( 'Only required if you have a UPS invoice within the last 90 days' ) }</p>
+						<Checkbox id={ 'license_agreement' } checked={ showUPSInvoiceFields } onChange={ updateShowUPSInvoiceFields  } />
+						<span>{ translate( 'I have been issued an invoice from UPS within the past 90 days' ) }</span>
 					</div>
-					<div className="carrier-accounts__settings-two-columns">
-					<TextField
-						id={ 'ups_invoice_number' }
-						title={ translate( 'UPS invoice number' ) }
-						value={ getValue( 'ups_invoice_number' ) }
-						updateValue={ updateValue( 'ups_invoice_number' ) }
-						error={ fieldErrors.ups_invoice_number }
-					/>
-					<TextField
-						id={ 'ups_invoice_date' }
-						title={ translate( 'UPS invoice date' ) }
-						value={ getValue( 'ups_invoice_date' ) }
-						updateValue={ updateValue( 'ups_invoice_date' ) }
-						error={ fieldErrors.ups_invoice_date }
-					/>
-					</div>
-					<div className="carrier-accounts__settings-two-columns">
-					<TextField
-						id={ 'ups_invoice_amount' }
-						title={ translate( 'UPS invoice amount' ) }
-						value={ getValue( 'ups_invoice_amount' ) }
-						updateValue={ updateValue( 'ups_invoice_amount' ) }
-						error={ fieldErrors.ups_invoice_amount }
-					/>
-					<TextField
-						id={ 'ups_invoice_currency' }
-						title={ translate( 'UPS invoice currency' ) }
-						value={ getValue( 'ups_invoice_currency' ) }
-						updateValue={ updateValue( 'ups_invoice_currency' ) }
-						error={ fieldErrors.ups_invoice_currency }
-					/>
-					</div>
-					<TextField
-						id={ 'ups_invoice_control_id' }
-						title={ translate( 'UPS invoice control id' ) }
-						value={ getValue( 'ups_invoice_control_id' ) }
-						updateValue={ updateValue( 'ups_invoice_control_id' ) }
-						error={ fieldErrors.ups_invoice_control_id }
-					/>
+					{ showUPSInvoiceFields && upsInvoiceFields() }
+				</CompactCard>
+				<CompactCard className="carrier-accounts__settings-license-agreement">
 					<Checkbox id={ 'license_agreement' } checked={ !! getValue( 'license_agreement' ) } onChange={ updateValue( 'license_agreement' )  } />
 					<span>{ translate( 'I have read the {{a}}License Agreement{{/a}}', { components: { a: <a href="https://link.to.terms.com/" />  } } ) }</span>
 				</CompactCard>
@@ -251,7 +268,7 @@ const CarrierAccountSettings = props => {
 const mapStateToProps = ( state, { siteId, carrier } ) => {
 
 	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
-	const { values } = carrierAccountState.settings;
+	const { values, showUPSInvoiceFields } = carrierAccountState.settings;
 	const fieldErrors = getFormErrors( state, siteId, carrier );
 	const isFormValid = getFormValidState( state, siteId, carrier );
 
@@ -271,6 +288,7 @@ const mapStateToProps = ( state, { siteId, carrier } ) => {
 		values,
 		fieldErrors,
 		isFormValid,
+		showUPSInvoiceFields,
 	};
 	return ret;
 };
@@ -280,6 +298,7 @@ const mapDispatchToProps = dispatch => {
 		{
 			submitCarrierSettings,
 			updateCarrierSettings,
+			toggleShowUPSInvoiceFields,
 		},
 		dispatch
 	);

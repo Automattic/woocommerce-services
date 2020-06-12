@@ -69,7 +69,7 @@ const CarrierAccountListItem = ( {
 			</Button>
 		};
 		const disconnectButton = () => {
-			return <Button onClick={ () => { onDisconnect( data ) } } compact scary primary >
+			return <Button onClick={ () => { onDisconnect( data ) } } compact scary borderless >
 				{ translate( 'Disconnect' ) }
 			</Button>
 		};

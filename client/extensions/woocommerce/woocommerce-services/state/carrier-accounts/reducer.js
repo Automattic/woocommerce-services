@@ -10,6 +10,7 @@
 import {
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS,
 } from '../action-types';
 
 export const initialState = {
@@ -60,6 +61,22 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { c
 			[ fieldName ]: false,
 		};
 	}
+
+	return newState;
+};
+
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS ] = ( state, { carrier } ) => {
+	const settings = state[ carrier ].settings;
+
+	const newState = {
+		...state,
+		[ carrier ]: {
+			settings: {
+				...settings,
+				showUPSInvoiceFields: ! settings.showUPSInvoiceFields,
+			}
+		},
+	};
 
 	return newState;
 };

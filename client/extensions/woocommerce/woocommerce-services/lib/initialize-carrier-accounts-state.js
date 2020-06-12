@@ -19,11 +19,6 @@ export default () => {
 		'company_name',
 		'job_title',
 		'company_website',
-		'ups_invoice_number',
-		'ups_invoice_date',
-		'ups_invoice_amount',
-		'ups_invoice_currency',
-		'ups_invoice_control_id',
 		'license_agreement',
 	];
 
@@ -39,6 +34,7 @@ export default () => {
 					accumulator[ currentValue ] = 'country' === currentValue ? false : true;
 					return accumulator
 				}, {} ),
+				showUPSInvoiceFields: false,
 			}
 		}
 	};
