@@ -11,6 +11,7 @@ import ViewWrapper from './view-wrapper';
 import labelSettingsReducer from '../../extensions/woocommerce/woocommerce-services/state/label-settings/reducer';
 import packagesReducer from '../../extensions/woocommerce/woocommerce-services/state/packages/reducer';
 import carrierAccountsReducer from '../../extensions/woocommerce/woocommerce-services/state/carrier-accounts/reducer';
+import initializeCarrierAccountsState from '../../extensions/woocommerce/woocommerce-services/lib/initialize-carrier-accounts-state';
 import notices from 'state/notices/reducer';
 import actionList from '../../extensions/woocommerce/state/data-layer/action-list';
 import wcsUiDataLayer from '../../extensions/woocommerce/state/data-layer/ui/woocommerce-services';
@@ -60,15 +61,7 @@ export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, c
 						},
 						woocommerceServices: {
 							1: {
-								carrierAccounts: {
-									UPS: {
-										settings: {
-											values: {
-												country: 'US'
-											},
-										}
-									}
-								}
+								carrierAccounts: initializeCarrierAccountsState()
 							}
 						}
 					},

@@ -28,17 +28,38 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS ] = ( state, { c
 };
 
 reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { carrier, fieldName, newValue } ) => {
-	const { values, fieldErrors } = state[ carrier ].settings;
-	values[ fieldName ] = newValue;
+	const settings = state[ carrier ].settings;
+	const { ignoreValidation, values } = settings;
+
+	if ( newValue.target ) {
+		switch( newValue.target.type ) {
+			case 'checkbox':
+				newValue = newValue.target.checked;
+				break;
+			default:
+				newValue = newValue.target.value;
+		}
+	}
+
 	const newState = {
 		...state,
 		[ carrier ]: {
 			settings: {
-				fieldErrors,
-				values
-			},
+				...settings,
+				values: {
+					...values,
+					[ fieldName ]: newValue
+				}
+			}
 		},
 	};
+
+	if ( ignoreValidation ) {
+		newState[carrier].settings.ignoreValidation = {
+			...ignoreValidation,
+			[ fieldName ]: false,
+		};
+	}
 
 	return newState;
 };

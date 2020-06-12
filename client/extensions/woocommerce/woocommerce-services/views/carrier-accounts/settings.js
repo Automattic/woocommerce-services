@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { size } from 'lodash';
 
 /**
  * Internal dependencies
@@ -22,7 +21,11 @@ import {
 	getDestinationCountryNames,
 	getStateNames,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import { getCarrierAccountsState } from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
+import {
+	getCarrierAccountsState,
+	getFormErrors,
+	getFormValidState,
+} from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
 import { submitCarrierSettings, updateCarrierSettings } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
@@ -32,15 +35,16 @@ const CarrierAccountSettings = props => {
 		siteId,
 		carrier,
 		countryNames,
-		values,
 		fieldErrors,
+		values,
 		stateNames,
+		isFormValid,
 		translate,
 	} = props;
 
-	const generalErrorOnly = fieldErrors.general && size( fieldErrors ) === 1;
-	const getValue = fieldName =>
-		values[ fieldName ] ? decodeEntities( values[ fieldName ] ) : '';
+	const getValue = fieldName => {
+		return values[ fieldName ] ? decodeEntities( values[ fieldName ] ) : '';
+	}
 	const updateValue = fieldName => newValue =>
 		props.updateCarrierSettings( siteId, carrier, fieldName, newValue );
 	const submitCarrierSettingsHandler = () =>
@@ -67,7 +71,7 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'Account number' ) }
 						value={ getValue( 'account_number' ) }
 						updateValue={ updateValue( 'account_number' ) }
-						error={ fieldErrors.account_number || generalErrorOnly }
+						error={ fieldErrors.account_number }
 					/>
 				</CompactCard>
 				<CompactCard className="carrier-accounts__settings-address">
@@ -76,14 +80,14 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'Name' ) }
 						value={ getValue( 'name' ) }
 						updateValue={ updateValue( 'name' ) }
-						error={ fieldErrors.name || generalErrorOnly }
+						error={ fieldErrors.name }
 					/>
 					<TextField
 						id={ 'address' }
 						title={ translate( 'Address' ) }
 						value={ getValue( 'address' ) }
 						updateValue={ updateValue( 'address' ) }
-						error={ fieldErrors.address || generalErrorOnly }
+						error={ fieldErrors.address }
 					/>
 					<div className="carrier-accounts__settings-two-columns">
 						<TextField
@@ -91,14 +95,14 @@ const CarrierAccountSettings = props => {
 							title={ translate( 'Address 2 (optional)' ) }
 							value={ getValue( 'address_2' ) }
 							updateValue={ updateValue( 'address_2' ) }
-							error={ fieldErrors.address_2 || generalErrorOnly }
+							error={ fieldErrors.address_2 }
 						/>
 						<TextField
 							id={ 'city' }
 							title={ translate( 'city' ) }
 							value={ getValue( 'city' ) }
 							updateValue={ updateValue( 'city' ) }
-							error={ fieldErrors.city || generalErrorOnly }
+							error={ fieldErrors.city }
 						/>
 					</div>
 					<div className="carrier-accounts__settings-two-columns">
@@ -110,7 +114,7 @@ const CarrierAccountSettings = props => {
 								value={ getValue( 'state' ) }
 								valuesMap={ { '': props.translate( 'Select one…' ), ...stateNames } }
 								updateValue={ updateValue( 'state' ) }
-								error={ fieldErrors.state || generalErrorOnly }
+								error={ fieldErrors.state }
 							/>
 						) : (
 							<TextField
@@ -118,7 +122,7 @@ const CarrierAccountSettings = props => {
 								title={ translate( 'State' ) }
 								value={ getValue( 'state' ) }
 								updateValue={ updateValue( 'state' ) }
-								error={ fieldErrors.state || generalErrorOnly }
+								error={ fieldErrors.state }
 							/>
 						) }
 
@@ -128,7 +132,7 @@ const CarrierAccountSettings = props => {
 							value={ getValue( 'country' ) }
 							valuesMap={ countryNames }
 							updateValue={ updateValue( 'country' ) }
-							error={ fieldErrors.country || generalErrorOnly }
+							error={ fieldErrors.country }
 						/>
 					</div>
 					<div className="carrier-accounts__settings-two-columns">
@@ -137,14 +141,14 @@ const CarrierAccountSettings = props => {
 							title={ translate( 'Postal code / Zip' ) }
 							value={ getValue( 'postal_code' ) }
 							updateValue={ updateValue( 'postal_code' ) }
-							error={ fieldErrors.postal_code || generalErrorOnly }
+							error={ fieldErrors.postal_code }
 							/>
 						<TextField
 							id={ 'phone' }
 							title={ translate( 'Phone' ) }
 							value={ getValue( 'phone' ) }
 							updateValue={ updateValue( 'phone' ) }
-							error={ fieldErrors.phone || generalErrorOnly }
+							error={ fieldErrors.phone }
 						/>
 					</div>
 					<TextField
@@ -152,7 +156,7 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'Email' ) }
 						value={ getValue( 'email' ) }
 						updateValue={ updateValue( 'email' ) }
-						error={ fieldErrors.email || generalErrorOnly }
+						error={ fieldErrors.email }
 					/>
 				</CompactCard>
 				<CompactCard className="carrier-accounts__settings-company-info">
@@ -165,7 +169,7 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'Company name' ) }
 						value={ getValue( 'company_name' ) }
 						updateValue={ updateValue( 'company_name' ) }
-						error={ fieldErrors.company_name || generalErrorOnly }
+						error={ fieldErrors.company_name }
 					/>
 					<div className="carrier-accounts__settings-two-columns">
 						<TextField
@@ -173,14 +177,14 @@ const CarrierAccountSettings = props => {
 							title={ translate( 'Job title' ) }
 							value={ getValue( 'job_title' ) }
 							updateValue={ updateValue( 'job_title' ) }
-							error={ fieldErrors.job_title || generalErrorOnly }
+							error={ fieldErrors.job_title }
 						/>
 						<TextField
 							id={ 'company_website' }
 							title={ translate( 'Company website' ) }
 							value={ getValue( 'company_website' ) }
 							updateValue={ updateValue( 'company_website' ) }
-							error={ fieldErrors.company_website || generalErrorOnly }
+							error={ fieldErrors.company_website }
 						/>
 					</div>
 				</CompactCard>
@@ -195,14 +199,14 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'UPS invoice number' ) }
 						value={ getValue( 'ups_invoice_number' ) }
 						updateValue={ updateValue( 'ups_invoice_number' ) }
-						error={ fieldErrors.ups_invoice_number || generalErrorOnly }
+						error={ fieldErrors.ups_invoice_number }
 					/>
 					<TextField
 						id={ 'ups_invoice_date' }
 						title={ translate( 'UPS invoice date' ) }
 						value={ getValue( 'ups_invoice_date' ) }
 						updateValue={ updateValue( 'ups_invoice_date' ) }
-						error={ fieldErrors.ups_invoice_date || generalErrorOnly }
+						error={ fieldErrors.ups_invoice_date }
 					/>
 					</div>
 					<div className="carrier-accounts__settings-two-columns">
@@ -211,14 +215,14 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'UPS invoice amount' ) }
 						value={ getValue( 'ups_invoice_amount' ) }
 						updateValue={ updateValue( 'ups_invoice_amount' ) }
-						error={ fieldErrors.ups_invoice_amount || generalErrorOnly }
+						error={ fieldErrors.ups_invoice_amount }
 					/>
 					<TextField
 						id={ 'ups_invoice_currency' }
 						title={ translate( 'UPS invoice currency' ) }
 						value={ getValue( 'ups_invoice_currency' ) }
 						updateValue={ updateValue( 'ups_invoice_currency' ) }
-						error={ fieldErrors.ups_invoice_currency || generalErrorOnly }
+						error={ fieldErrors.ups_invoice_currency }
 					/>
 					</div>
 					<TextField
@@ -226,13 +230,13 @@ const CarrierAccountSettings = props => {
 						title={ translate( 'UPS invoice control id' ) }
 						value={ getValue( 'ups_invoice_control_id' ) }
 						updateValue={ updateValue( 'ups_invoice_control_id' ) }
-						error={ fieldErrors.ups_invoice_control_id || generalErrorOnly }
+						error={ fieldErrors.ups_invoice_control_id }
 					/>
-					<Checkbox id={ 'license_agreement' } checked={ false } onChange={ () => {}  } />
+					<Checkbox id={ 'license_agreement' } checked={ !! getValue( 'license_agreement' ) } onChange={ updateValue( 'license_agreement' )  } />
 					<span>{ translate( 'I have read the {{a}}License Agreement{{/a}}', { components: { a: <a href="https://link.to.terms.com/" />  } } ) }</span>
 				</CompactCard>
 				<CompactCard className="carrier-accounts__settings-actions">
-					<Button compact primary onClick={ submitCarrierSettingsHandler } disabled={ true  }>
+					<Button compact primary onClick={ submitCarrierSettingsHandler } disabled={ ! isFormValid  }>
 						{ translate( 'Connect' ) }
 					</Button>
 					<Button compact onClick={ cancelHandler }>
@@ -247,9 +251,9 @@ const CarrierAccountSettings = props => {
 const mapStateToProps = ( state, { siteId, carrier } ) => {
 
 	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
-	const formData = carrierAccountState.settings || {};
-	const values = formData.values || {};
-	const fieldErrors = formData.fieldErrors || {};
+	const { values } = carrierAccountState.settings;
+	const fieldErrors = getFormErrors( state, siteId, carrier );
+	const isFormValid = getFormValidState( state, siteId, carrier );
 
 	let countryNames = getDestinationCountryNames( state, siteId );
 
@@ -261,12 +265,14 @@ const mapStateToProps = ( state, { siteId, carrier } ) => {
 		};
 	}
 
-	return {
+	const ret = {
 		countryNames,
 		stateNames: getStateNames( state, values.country, siteId ),
 		values,
 		fieldErrors,
+		isFormValid,
 	};
+	return ret;
 };
 
 const mapDispatchToProps = dispatch => {
