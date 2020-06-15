@@ -83,6 +83,10 @@
 		& > * {
 			width: 48%;
 		}
+
+		select {
+			max-width: 100%;
+		}
 	}
 
 	.carrier-accounts__settings-actions {
@@ -91,3 +95,27 @@
 		}
 	}
 }
+
+@media ( max-width: 1030px ) {
+	.carrier-accounts__settings {
+		flex-direction: column;
+
+		.carrier-accounts__settings-info {
+			width: 100%;
+			margin-bottom: 16px;
+		}
+	}
+}
+@media ( max-width: 782px ) {
+
+	.carrier-accounts__settings {
+		.carrier-accounts__settings-two-columns {
+			flex-direction: column;
+
+			& > * {
+				width: 100%;
+			}
+		}
+	}
+}
+
