@@ -3,7 +3,9 @@
  * Internal dependencies
  */
 import {
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
@@ -15,6 +17,7 @@ export const submitCarrierSettings = ( siteId, carrier ) => ( {
 	siteId,
 	carrier,
 } );
+
 export const updateCarrierSettings = ( siteId, carrier, fieldName, newValue ) => ( {
 	type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
 	siteId,
@@ -34,4 +37,17 @@ export const setVisibilityCancelConnectionDialog = ( siteId, carrier, show ) => 
 	siteId,
 	carrier,
 	show,
+} );
+
+export const setVisibilityDisconnectCarrierDialog = ( siteId, carrier, show ) => ( {
+	type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG,
+	siteId,
+	carrier,
+	show,
+} );
+
+export const disconnectCarrier = ( siteId, carrier ) => ( {
+	type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
+	siteId,
+	carrier,
 } );

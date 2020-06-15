@@ -61,7 +61,7 @@ const CarrierAccountSettings = props => {
 	const showCancelDialogHandler = () => {
 		props.setVisibilityCancelConnectionDialog( siteId, carrier, true );
 	}
-	const hideCancelDialogHandlerancelHandler = () => {
+	const hideCancelDialogHandler = () => {
 		props.setVisibilityCancelConnectionDialog( siteId, carrier, false );
 	}
 	const updateShowUPSInvoiceFields = () => {
@@ -275,12 +275,12 @@ const CarrierAccountSettings = props => {
 			<Dialog
 				isVisible={ showCancelConnectionDialog }
 				additionalClassNames="carrier-accounts__settings-cancel-dialog"
-				onClose={ hideCancelDialogHandlerancelHandler }
+				onClose={ hideCancelDialogHandler }
 				buttons={ cancelDialogButton() }
 			>
 				<div className="carrier-accounts__settings-cancel-dialog-header">
 					<h2 className="carrier-accounts__settings-cancel-dialog-title">{ translate( 'Cancel connection' ) }</h2>
-					<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideCancelDialogHandlerancelHandler } ><Gridicon icon="cross"/></button>
+					<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideCancelDialogHandler } ><Gridicon icon="cross"/></button>
 				</div>
 				<p className="carrier-accounts__settings-cancel-dialog-description">{ translate( 'This action will delete any information entered on the form.' ) }</p>
 			</Dialog>

@@ -8,7 +8,9 @@
  * Internal dependencies
  */
 import {
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS,
@@ -97,6 +99,30 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG 
 				showCancelConnectionDialog: show,
 			}
 		},
+	};
+
+	return newState;
+};
+
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG ] = ( state, { carrier, show } ) => {
+	const carrierData = state[ carrier ];
+
+	const newState = {
+		...state,
+		[ carrier ]: {
+			...carrierData,
+			showDisconnectDialog: show,
+		},
+	};
+
+	return newState;
+};
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER ] = ( state, { carrier } ) => {
+	const settings = state[ carrier ].settings;
+
+	const newState = {
+		...state,
+		[ carrier ]: { settings }
 	};
 
 	return newState;

@@ -6,21 +6,35 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { trim } from 'lodash';
-import CarrierIcon from '../../components/carrier-icon';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
  */
 import Button from 'components/button';
+import CarrierIcon from '../../components/carrier-icon';
+import Dialog from 'components/dialog';
+import {
+	getCarrierAccountsState,
+} from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
+import {
+	setVisibilityDisconnectCarrierDialog,
+	disconnectCarrier,
+} from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 
-const CarrierAccountListItem = ( {
-	isPlaceholder,
-	data,
-	children,
-	translate,
-} ) => {
+const CarrierAccountListItem = ( props ) => {
+	const {
+		isPlaceholder,
+		data,
+		children,
+		translate,
+		siteId,
+		showDisconnectDialog,
+	} = props;
 	if ( isPlaceholder ) {
 		return (
 			<div className="carrier-accounts__list-item">
@@ -58,6 +72,14 @@ const CarrierAccountListItem = ( {
 		</div>;
 	}
 
+	const showDisconnectDialogHandler = () => {
+		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, true );
+	}
+
+	const hideDisconnectDialogHandler = () => {
+		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false );
+	}
+
 	const renderActions = () => {
 		const { credentials,  onConnect, onDisconnect } = data;
 		const connectButton = () => {
@@ -66,7 +88,7 @@ const CarrierAccountListItem = ( {
 			</Button>
 		};
 		const disconnectButton = () => {
-			return <Button onClick={ () => { onDisconnect( data ) } } compact scary borderless >
+			return <Button onClick={ showDisconnectDialogHandler } compact scary borderless >
 				{ translate( 'Disconnect' ) }
 			</Button>
 		};
@@ -75,12 +97,31 @@ const CarrierAccountListItem = ( {
 		</div>;
 	}
 
+	const cancelDialogButton = () => {
+		return [
+			<Button compact primary onClick={ () => props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false ) }>{ translate( 'Cancel' ) }</Button>,
+			<Button compact primary scary onClick={ () => props.disconnectCarrier( data.carrierId ) }>{ translate( 'Disconnect' ) }</Button>
+		];
+	}
+
 	return (
 		<div className="carrier-accounts__list-item">
 			{ renderIcon( data.carrierId ) }
 			{ renderName( data.name ) }
 			{ renderCredentials( data.credentials ) }
 			{ renderActions( data ) }
+			<Dialog
+				isVisible={ showDisconnectDialog }
+				additionalClassNames="carrier-accounts__settings-cancel-dialog"
+				onClose={ hideDisconnectDialogHandler }
+				buttons={ cancelDialogButton() }
+			>
+				<div className="carrier-accounts__settings-cancel-dialog-header">
+					<h2 className="carrier-accounts__settings-cancel-dialog-title">{ translate( 'Disconnect your UPS account' ) }</h2>
+					<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideDisconnectDialogHandler } ><Gridicon icon="cross"/></button>
+				</div>
+				<p className="carrier-accounts__settings-cancel-dialog-description">{ translate( 'This will remove the connection with UPS. All of your UPS account information will be deleted and you won’t see UPS rates when purchasing shipping labels.' ) }</p>
+			</Dialog>
 		</div>
 	);
 };
@@ -95,4 +136,31 @@ CarrierAccountListItem.propTypes = {
 	} ).isRequired,
 };
 
-export default localize( CarrierAccountListItem );
+const mapStateToProps = ( state, { siteId, data } ) => {
+
+	const carrier                  = data.carrierId;
+	const carrierAccountState      = getCarrierAccountsState( state, siteId, carrier );
+	const { showDisconnectDialog } = carrierAccountState;
+
+
+	const ret = {
+		showDisconnectDialog,
+	};
+
+	return ret;
+};
+
+const mapDispatchToProps = dispatch => {
+	return bindActionCreators(
+		{
+			setVisibilityDisconnectCarrierDialog,
+			disconnectCarrier,
+		},
+		dispatch
+	);
+};
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)( localize( CarrierAccountListItem ) );
