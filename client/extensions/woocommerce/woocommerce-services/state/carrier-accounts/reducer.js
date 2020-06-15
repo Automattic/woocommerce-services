@@ -8,6 +8,7 @@
  * Internal dependencies
  */
 import {
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS,
@@ -21,8 +22,11 @@ export const initialState = {
 const reducers = {};
 
 reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS ] = ( state, { carrier } ) => {
+	const settings = state[ carrier ].settings;
+
 	const newState = {
 		...state,
+		[ carrier ]: { settings }
 	};
 
 	return newState;
@@ -80,6 +84,24 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS ]
 
 	return newState;
 };
+
+
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG ] = ( state, { carrier, show } ) => {
+	const settings = state[ carrier ].settings;
+
+	const newState = {
+		...state,
+		[ carrier ]: {
+			settings: {
+				...settings,
+				showCancelConnectionDialog: show,
+			}
+		},
+	};
+
+	return newState;
+};
+
 
 const carrierAccounts = ( state = initialState, action ) => {
 	if ( 'function' === typeof reducers[ action.type ] ) {

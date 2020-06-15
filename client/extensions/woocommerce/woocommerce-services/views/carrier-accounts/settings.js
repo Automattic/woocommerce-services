@@ -8,12 +8,14 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
  */
 import Button from 'components/button';
 import CompactCard from 'components/card/compact';
+import Dialog from 'components/dialog';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
@@ -27,6 +29,7 @@ import {
 	getFormValidState,
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
 import {
+	setVisibilityCancelConnectionDialog,
 	submitCarrierSettings,
 	updateCarrierSettings,
 	toggleShowUPSInvoiceFields,
@@ -44,6 +47,7 @@ const CarrierAccountSettings = props => {
 		stateNames,
 		isFormValid,
 		showUPSInvoiceFields,
+		showCancelConnectionDialog,
 		translate,
 	} = props;
 
@@ -54,8 +58,11 @@ const CarrierAccountSettings = props => {
 		props.updateCarrierSettings( siteId, carrier, fieldName, newValue );
 	const submitCarrierSettingsHandler = () =>
 		props.submitCarrierSettings( siteId, carrier );
-	const cancelHandler = () => {
-		history.back();
+	const showCancelDialogHandler = () => {
+		props.setVisibilityCancelConnectionDialog( siteId, carrier, true );
+	}
+	const hideCancelDialogHandlerancelHandler = () => {
+		props.setVisibilityCancelConnectionDialog( siteId, carrier, false );
 	}
 	const updateShowUPSInvoiceFields = () => {
 		props.toggleShowUPSInvoiceFields( siteId, carrier );
@@ -103,6 +110,10 @@ const CarrierAccountSettings = props => {
 				error={ fieldErrors.ups_invoice_control_id }
 			/>
 		</div>;
+	}
+
+	const cancelDialogButton = () => {
+		return [ <Button compact primary scary onClick={ () => history.back() }>{ translate( 'Cancel' ) }</Button> ];
 	}
 
 	return (
@@ -256,21 +267,37 @@ const CarrierAccountSettings = props => {
 					<Button compact primary onClick={ submitCarrierSettingsHandler } disabled={ ! isFormValid  }>
 						{ translate( 'Connect' ) }
 					</Button>
-					<Button compact onClick={ cancelHandler }>
+					<Button compact primary scary onClick={ showCancelDialogHandler }>
 						{ translate( 'Cancel' ) }
 					</Button>
 				</CompactCard>
 			</div>
+			<Dialog
+				isVisible={ showCancelConnectionDialog }
+				additionalClassNames="carrier-accounts__settings-cancel-dialog"
+				onClose={ hideCancelDialogHandlerancelHandler }
+				buttons={ cancelDialogButton() }
+			>
+				<div className="carrier-accounts__settings-cancel-dialog-header">
+					<h2 className="carrier-accounts__settings-cancel-dialog-title">{ translate( 'Cancel connection' ) }</h2>
+					<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideCancelDialogHandlerancelHandler } ><Gridicon icon="cross"/></button>
+				</div>
+				<p className="carrier-accounts__settings-cancel-dialog-description">{ translate( 'This action will delete any information entered on the form.' ) }</p>
+			</Dialog>
 		</div>
 	);
 };
 
 const mapStateToProps = ( state, { siteId, carrier } ) => {
 
-	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
-	const { values, showUPSInvoiceFields } = carrierAccountState.settings;
-	const fieldErrors = getFormErrors( state, siteId, carrier );
-	const isFormValid = getFormValidState( state, siteId, carrier );
+	const carrierAccountState        = getCarrierAccountsState( state, siteId, carrier );
+	const {
+		values,
+		showCancelConnectionDialog,
+		showUPSInvoiceFields
+	}                                = carrierAccountState.settings;
+	const fieldErrors                = getFormErrors( state, siteId, carrier );
+	const isFormValid                = getFormValidState( state, siteId, carrier );
 
 	let countryNames = getDestinationCountryNames( state, siteId );
 
@@ -289,6 +316,7 @@ const mapStateToProps = ( state, { siteId, carrier } ) => {
 		fieldErrors,
 		isFormValid,
 		showUPSInvoiceFields,
+		showCancelConnectionDialog,
 	};
 	return ret;
 };
@@ -296,6 +324,7 @@ const mapStateToProps = ( state, { siteId, carrier } ) => {
 const mapDispatchToProps = dispatch => {
 	return bindActionCreators(
 		{
+			setVisibilityCancelConnectionDialog,
 			submitCarrierSettings,
 			updateCarrierSettings,
 			toggleShowUPSInvoiceFields,

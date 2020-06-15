@@ -315,3 +315,50 @@
 		color: $muriel-gray-100;
 	}
 }
+
+// Adding here so it will not have the .wp-core-ui.wp-admin .wcc-root prefix
+.carrier-accounts__settings-cancel-dialog {
+	.dialog__content {
+		padding: 0;
+		width: 666px;
+		height: 260px;
+
+		.carrier-accounts__settings-cancel-dialog-header {
+			background-color: #fcfcfc;
+			border-bottom: 1px solid #ececec;
+			display: flex;
+
+			.carrier-accounts__settings-cancel-dialog-title {
+				display: block;
+				margin: 0;
+				padding: 18px 28px;
+			}
+			.carrier-accounts__settings-cancel-dialog-close-button {
+				border: 0 none;
+				outline: 0 none;
+				background-color: inherit;
+				height: 61px;
+				width: 61px;
+				border-left: 1px solid #ececec;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-left: auto;
+				margin-right: 0;
+				cursor: pointer;
+			}
+		}
+		.carrier-accounts__settings-cancel-dialog-description {
+			margin: 28px;
+		}
+
+	}
+	.dialog__action-buttons {
+		.is-primary.is-scary {
+			background-color: #eb0001;
+			border-color: #ac120b;
+			color: #fff;
+		}
+	}
+}
+

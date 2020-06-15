@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { trim } from 'lodash';
 import CarrierIcon from '../../components/carrier-icon';
-import classNames from 'classnames';
 
 /**
  * Internal dependencies
@@ -19,44 +18,42 @@ import Button from 'components/button';
 const CarrierAccountListItem = ( {
 	isPlaceholder,
 	data,
-	dimensionUnit,
-	prefixActions,
 	children,
 	translate,
 } ) => {
 	if ( isPlaceholder ) {
 		return (
 			<div className="carrier-accounts__list-item">
-				<div className="carrier-accounts__list-item__placeholder-carrier-icon">
-					<div className="carrier-accounts__list-item__carrier-icion-placeholder">
+				<div className="carrier-accounts__list-item-placeholder-carrier-icon">
+					<div className="carrier-accounts__list-item-carrier-icion-placeholder">
 						<span />
 					</div>
 				</div>
-				<div className="carrier-accounts__list-item__name">
-					<div className="carrier-accounts__list-item__name-placeholder">
+				<div className="carrier-accounts__list-item-name">
+					<div className="carrier-accounts__list-item-name-placeholder">
 						<span />
 					</div>
 				</div>
-				<div className="carrier-accounts__list-item__actions">{ children }</div>
+				<div className="carrier-accounts__list-item-actions">{ children }</div>
 			</div>
 		);
 	}
 
 	const renderIcon = carrierId => {
-		return <div className="carrier-accounts__list-item__carrier-icon">
+		return <div className="carrier-accounts__list-item-carrier-icon">
 			<CarrierIcon carrier={ carrierId } size={ 18 } />
 		</div>;
 	};
 
 	const renderName = name => {
 		const carrierName = name && '' !== trim( name ) ? name : translate( 'Untitled' );
-		return <div className="carrier-accounts__list-item__name">
+		return <div className="carrier-accounts__list-item-name">
 			<span>{ carrierName }</span>
 		</div>;
 	};
 
 	const renderCredentials = credentials => {
-		return <div className="carrier-accounts__list-item__credentials">
+		return <div className="carrier-accounts__list-item-credentials">
 			<span>{ credentials }</span>
 		</div>;
 	}
@@ -73,7 +70,7 @@ const CarrierAccountListItem = ( {
 				{ translate( 'Disconnect' ) }
 			</Button>
 		};
-		return <div className="carrier-accounts__list-item__actions">
+		return <div className="carrier-accounts__list-item-actions">
 			{ credentials ? disconnectButton() : connectButton() }
 		</div>;
 	}

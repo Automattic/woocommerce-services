@@ -6,20 +6,20 @@
 		align-items: center;
 		padding: 8px 0;
 
-		.carrier-accounts__list-item__carrier-icon {
+		.carrier-accounts__list-item-carrier-icon {
 			width: 48px;
 			padding-left: 24px;
 		}
 
-		.carrier-accounts__list-item__name {
+		.carrier-accounts__list-item-name {
 			width: 35%;
 		}
 
-		.carrier-accounts__list-item__credentials {
+		.carrier-accounts__list-item-credentials {
 			width: 30%;
 		}
 
-		.carrier-accounts__list-item__actions {
+		.carrier-accounts__list-item-actions {
 			padding-right: 24px;
 			width: 25%;
 			text-align: right;
@@ -92,6 +92,18 @@
 	.carrier-accounts__settings-actions {
 		& :first-child {
 			margin-right: 0.5em;
+		}
+	}
+}
+
+.carrier-accounts__settings-cancel-dialog {
+	border: 1px red solid;
+	.dialog__content {
+		padding: 0;
+
+		.carrier-accounts__settings-cancel-dialog-title {
+		}
+		.carrier-accounts__settings-cancel-dialog-description {
 		}
 	}
 }
