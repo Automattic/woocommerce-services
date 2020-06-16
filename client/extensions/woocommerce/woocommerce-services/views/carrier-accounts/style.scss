@@ -67,7 +67,6 @@ $carrier-account-settings-max-width: 800px;
 
 	.carrier-accounts__settings {
 		display: flex;
-		max-width: $carrier-account-settings-max-width;
 
 		.carrier-accounts__settings-info {
 			width: 21%;
@@ -75,6 +74,7 @@ $carrier-account-settings-max-width: 800px;
 		}
 		.carrier-accounts__settings-form {
 			width: 100%;
+			max-width: $carrier-account-settings-max-width;
 		}
 
 		.carrier-accounts__settings-header {
