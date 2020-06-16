@@ -49,50 +49,66 @@
 	.carrier-accounts__header-credentials {
 	}
 }
+$carrier-account-settings-max-width: 800px;
 
-.carrier-accounts__settings {
-	display: flex;
-	max-width: 800px;
-
-	.carrier-accounts__settings-info {
-		width: 21%;
-		padding-right: 18px;
-	}
-	.carrier-accounts__settings-form {
-		width: 100%;
-	}
-
-	.carrier-accounts__settings-header {
-		margin-bottom: 1em;
-	}
-
-	.carrier-accounts__settings-subheader {
-		font-size: 18px;
-		margin: 0 0 1em 0;
-	}
-
-	.carrier-accounts__settings-subheader-description {
-		margin: 0;
-		margin-top: 1em;
-	}
-
-
-	.carrier-accounts__settings-two-columns {
+.carrier-accounts__settings-container {
+	.carrier-accounts__settings-error {
 		display: flex;
-		justify-content: space-between;
-
-		& > * {
-			width: 48%;
-		}
-
-		select {
-			max-width: 100%;
-		}
+    	border-left: 4px solid #CD423B;
+    	background-color: #F8EBEA;
+    	height: 49px;
+    	align-items: center;
+    	justify-content: space-between;
+    	padding: 0 23px;
+    	margin-bottom: 20px;
+		max-width: $carrier-account-settings-max-width;
+		box-sizing: border-box;
 	}
 
-	.carrier-accounts__settings-actions {
-		& :first-child {
-			margin-right: 0.5em;
+	.carrier-accounts__settings {
+		display: flex;
+		max-width: $carrier-account-settings-max-width;
+
+		.carrier-accounts__settings-info {
+			width: 21%;
+			padding-right: 18px;
+		}
+		.carrier-accounts__settings-form {
+			width: 100%;
+		}
+
+		.carrier-accounts__settings-header {
+			margin-bottom: 1em;
+		}
+
+		.carrier-accounts__settings-subheader {
+			font-size: 18px;
+			margin: 0 0 1em 0;
+		}
+
+		.carrier-accounts__settings-subheader-description {
+			margin: 0;
+			margin-top: 1em;
+		}
+
+
+		.carrier-accounts__settings-two-columns {
+			display: flex;
+			justify-content: space-between;
+
+			& > * {
+				width: 48%;
+			}
+
+			select {
+				max-width: 100%;
+			}
+		}
+
+		.carrier-accounts__settings-actions {
+			& :first-child {
+				margin-right: 0.5em;
+			}
 		}
 	}
 }

@@ -3,6 +3,7 @@
 /**
  * External dependencies
  */
+import { isEmpty } from 'lodash';
 
 /**
  * Internal dependencies
@@ -25,10 +26,15 @@ const reducers = {};
 
 reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS ] = ( state, { carrier } ) => {
 	const settings = state[ carrier ].settings;
+	const { fieldErrors } = settings;
+
+	if ( ! isEmpty( fieldErrors ) ) {
+		return state;
+	}
 
 	const newState = {
 		...state,
-		[ carrier ]: { settings }
+		[ carrier ]: { settings: { ...settings, fieldErrors } }
 	};
 
 	return newState;
