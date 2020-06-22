@@ -105,7 +105,7 @@ class ShippingRate extends Component {
 		let deliveryDateMessage = '';
 
 		if ( delivery_date_guaranteed && delivery_date ) {
-			deliveryDateMessage = moment( delivery_date ).format('ll').split(',')[0]; // moment does not have a date format without year so we'll do it this way.
+			deliveryDateMessage = moment( delivery_date ).format('LL').split(',')[0]; // moment does not have a date format without year so we'll do it this way.
 		} else if ( delivery_days ) {
 			deliveryDateMessage = translate( '%(delivery_days)s business day', '%(delivery_days)s business days', {
 				count: delivery_days,
