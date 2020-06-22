@@ -157,7 +157,7 @@ export const getTotalPriceBreakdown = ( state, orderId, siteId = getSelectedSite
 				rateWithDiscount: rateTotal,
 				addons: [],
 				carrierId: foundRate.carrier_id,
-				carrierTitle: foundRate.title.split( '-' )[0],
+				carrierTitle: foundRate.title.split( '-' )[0].trim(),
 			}
 			if ( null !== foundRateSignatureRequired ) {
 				price.addons = [ {
