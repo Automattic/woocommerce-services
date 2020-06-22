@@ -68,7 +68,7 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_tax_settings', array( $this, 'add_tax_settings' ) );
 
 		// Fix tooltip with link on older WC.
-		if ( version_compare( WOOCOMMERCE_VERSION, '4.3.0', '<' ) ) {
+		if ( version_compare( WOOCOMMERCE_VERSION, '4.4.0', '<' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'fix_tooltip_keepalive'), 11 );
 		}
 
@@ -130,15 +130,10 @@ class WC_Connect_TaxJar_Integration {
 	public function add_tax_settings( $tax_settings ) {
 		$enabled = $this->is_enabled();
 
-		$store_settings = $this->get_store_settings();
-		$all_states = WC()->countries->get_states( $store_settings['country'] );
-		$full_state = $all_states[ $store_settings['state'] ];
-
 		$automated_taxes = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
-			/* translators: 1: Full state name */
-			'desc_tip' => sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_state ),
+			'desc_tip' => $this->get_tax_tooltip(),
 			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Services.', 'woocommerce-services' ) . '</p>' : '',
 			'default'  => 'no',
 			'type'     => 'select',
@@ -166,6 +161,23 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Get the text to show in the tooltip next to automatted tax settings.
+	 */
+	private function get_tax_tooltip() {
+		$store_settings = $this->get_store_settings();
+		$all_states = WC()->countries->get_states( $store_settings['country'] );
+		$all_countries = WC()->countries->get_countries();
+		$full_country = $all_countries[ $store_settings['country'] ];
+		$full_state = isset( $all_states[ $store_settings['state'] ] ) ? $all_states[ $store_settings['state'] ] : '';
+		if ( $full_state ) {
+			/* translators: 1: Full state name 2: full country name */
+			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s, %2$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_state, $full_country );
+		}
+		/* translators: 1: full country name */
+		return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_country );
+	}
+
+	/**
 	 * Hack to force keepAlive: true on tax setting tooltip.
 	 */
 	public function fix_tooltip_keepalive() {
@@ -174,7 +186,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$tax_settings = $this->add_tax_settings( array() );
+		$tooltip = $this->get_tax_tooltip();
 		// Links in tooltips will not work unless keepAlive is true.
 		wp_add_inline_script(
 			'woocommerce_admin',
@@ -186,7 +198,7 @@ class WC_Connect_TaxJar_Integration {
 							'fadeOut': 50,
 							'delay': 200,
 							keepAlive: true,
-							content: '" . $tax_settings[0]['desc_tip'] . "'
+							content: '" . $tooltip . "'
 						} );
 				} );"
 		);
