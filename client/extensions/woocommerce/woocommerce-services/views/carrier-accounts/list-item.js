@@ -26,32 +26,13 @@ import {
 	disconnectCarrier,
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 
-const CarrierAccountListItem = ( props ) => {
+export const CarrierAccountListItem = ( props ) => {
 	const {
-		isPlaceholder,
 		data,
-		children,
 		translate,
 		siteId,
 		showDisconnectDialog,
 	} = props;
-	if ( isPlaceholder ) {
-		return (
-			<div className="carrier-accounts__list-item">
-				<div className="carrier-accounts__list-item-placeholder-carrier-icon">
-					<div className="carrier-accounts__list-item-carrier-icion-placeholder">
-						<span />
-					</div>
-				</div>
-				<div className="carrier-accounts__list-item-name">
-					<div className="carrier-accounts__list-item-name-placeholder">
-						<span />
-					</div>
-				</div>
-				<div className="carrier-accounts__list-item-actions">{ children }</div>
-			</div>
-		);
-	}
 
 	const renderIcon = carrierId => {
 		return <div className="carrier-accounts__list-item-carrier-icon">
@@ -80,10 +61,15 @@ const CarrierAccountListItem = ( props ) => {
 		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false );
 	}
 
-	const renderActions = () => {
-		const { credentials,  onConnect, onDisconnect } = data;
+	const connectCarrierHandler = () => {
+		const url = new URL( window.location.href );
+		url.searchParams.set( 'carrier', data.carrierId );
+		window.location.href = url.href;
+	}
+
+	const renderActions = ( credentials ) => {
 		const connectButton = () => {
-			return <Button compact onClick={ () => { onConnect( data ) } }>
+			return <Button compact onClick={ connectCarrierHandler }>
 				{ translate( 'Connect' ) }
 			</Button>
 		};
@@ -109,7 +95,7 @@ const CarrierAccountListItem = ( props ) => {
 			{ renderIcon( data.carrierId ) }
 			{ renderName( data.name ) }
 			{ renderCredentials( data.credentials ) }
-			{ renderActions( data ) }
+			{ renderActions( data.credentials ) }
 			<Dialog
 				isVisible={ showDisconnectDialog }
 				additionalClassNames="carrier-accounts__settings-cancel-dialog"
@@ -128,10 +114,9 @@ const CarrierAccountListItem = ( props ) => {
 
 CarrierAccountListItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
-	isPlaceholder: PropTypes.bool,
 	data: PropTypes.shape( {
-		name: PropTypes.string,
-		carrierId: PropTypes.string,
+		name: PropTypes.string.isRequired,
+		carrierId: PropTypes.string.isRequired,
 		credentials: PropTypes.string,
 	} ).isRequired,
 };

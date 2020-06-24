@@ -6,8 +6,6 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { some } from 'lodash';
 
@@ -17,10 +15,8 @@ import { some } from 'lodash';
 import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import CarrierAccountListItem from './list-item';
-import * as CarrierAccountsActions from '../../state/carrier-accounts/actions';
-import { getSelectedSiteId } from 'state/ui/selectors';
 
-class CarrierAccounts extends Component {
+export class CarrierAccounts extends Component {
 	renderListHeader = carriers => {
 		const { translate } = this.props;
 
@@ -51,19 +47,10 @@ class CarrierAccounts extends Component {
 	render() {
 		const { translate } = this.props;
 
-		const onConnect = ( carrier ) => {
-			const url = new URL( window.location.href );
-			url.searchParams.set( 'carrier', carrier.carrierId );
-			window.location.href = url.href;
-		}
-
-		const onDisconnect = () => {
-		}
-
-		const carriers = [
-			{ carrierId: 'UPS', name: 'UPS', onConnect },
-			{ carrierId: 'UPS', name: 'UPS', credentials: '989999847463', onDisconnect },
-		]
+		const carriers = this.props.carriers || [
+			{ carrierId: 'UPS', name: 'UPS' },
+			{ carrierId: 'UPS', name: 'UPS', credentials: '989999847463' },
+		];
 
 		return (
 			<div>
@@ -84,24 +71,14 @@ class CarrierAccounts extends Component {
 }
 
 CarrierAccounts.propTypes = {
-	isShowingSettings: PropTypes.shape( {
-		carrierId: PropTypes.string.isRequired,
-		name: PropTypes.string.isRequired,
-		credentials: PropTypes.string,
-		onConnect: PropTypes.func,
-		onDisconnect: PropTypes.func,
-	} )
+	siteId: PropTypes.number.isRequired,
+	carriers: PropTypes.arrayOf(
+    	PropTypes.shape( {
+			carrierId: PropTypes.string.isRequired,
+			name: PropTypes.string.isRequired,
+			credentials: PropTypes.string,
+    	} )
+    )
 };
 
-export default connect(
-	state => {
-		const siteId = getSelectedSiteId( state );
-
-		return {
-			siteId,
-		};
-	},
-	dispatch => ( {
-		...bindActionCreators( CarrierAccountsActions, dispatch ),
-	} )
-)( localize( CarrierAccounts ) );
+export default localize( CarrierAccounts );

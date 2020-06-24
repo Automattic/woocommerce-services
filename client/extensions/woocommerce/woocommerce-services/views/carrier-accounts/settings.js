@@ -37,7 +37,7 @@ import {
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
 
-const CarrierAccountSettings = props => {
+export const CarrierAccountSettings = props => {
 	const {
 		siteId,
 		carrier,
@@ -264,7 +264,7 @@ const CarrierAccountSettings = props => {
 					<CompactCard className="carrier-accounts__settings-ups-info">
 						<div className="carrier-accounts__settings-header">
 							<h4 className="carrier-accounts__settings-subheader">{ translate( 'UPS account information' ) }</h4>
-							<Checkbox id={ 'license_agreement' } checked={ showUPSInvoiceFields } onChange={ updateShowUPSInvoiceFields  } />
+							<Checkbox id={ 'enable_ups_invoice_fields' } checked={ showUPSInvoiceFields } onChange={ updateShowUPSInvoiceFields  } />
 							<span>{ translate( 'I have been issued an invoice from UPS within the past 90 days' ) }</span>
 						</div>
 						{ showUPSInvoiceFields && upsInvoiceFields() }
