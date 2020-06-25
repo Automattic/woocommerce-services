@@ -34,7 +34,7 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS ] = ( state, { c
 
 	const newState = {
 		...state,
-		[ carrier ]: { settings: { ...settings, fieldErrors } }
+		[ carrier ]: { settings: { ...settings } }
 	};
 
 	return newState;
