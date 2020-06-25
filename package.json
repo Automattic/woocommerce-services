@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "1.23.0",
+  "version": "1.23.2",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd ..",
@@ -15,7 +15,7 @@
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
     "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
-    "woorelease": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
+    "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "test:e2e": "JEST_PUPPETEER_CONFIG=tests/e2e-tests/jest-puppeteer.config.js jest --config tests/e2e-tests/jest.config.js --verbose --runInBand",
     "test:e2e-travis": "./tests/bin/run-e2e-travis.sh"
   },

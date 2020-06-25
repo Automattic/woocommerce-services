@@ -6,8 +6,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { translate, moment } from 'i18n-calypso';
-import { CheckboxControl, RadioControl } from '@wordpress/components';
+import { CheckboxControl, RadioControl, Tooltip } from '@wordpress/components';
 import { mapValues, values } from 'lodash';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -136,7 +137,23 @@ class ShippingRate extends Component {
 						</div>
 					</div>
 					<div className="rates-step__shipping-rate-details">
-						<div className="rates-step__shipping-rate-rate">{ formatCurrency( ratePlusSignatureCost, 'USD' ) }</div>
+						<div className="rates-step__shipping-rate-rate">
+							{
+								'ups' === carrier_id ?
+									<Tooltip
+										position="top left"
+										text={translate(
+											'This rate is provided by your connected UPS account'
+										)}
+									>
+										<div className="rates-step__shipping-rate-rate-tooltip">
+											<Gridicon icon="help-outline" size={18}/>
+										</div>
+									</Tooltip>
+									: null
+							}
+							{ formatCurrency( ratePlusSignatureCost, 'USD' ) }
+						</div>
 						<div className="rates-step__shipping-rate-delivery-date">{ deliveryDateMessage }</div>
 					</div>
 				</div>
