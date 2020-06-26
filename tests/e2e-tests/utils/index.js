@@ -59,7 +59,12 @@ const verifyCheckboxIsSet = async( selector ) => {
 const clickReactButton = async( selector ) => {
     await page.waitForSelector( selector );
     //await page.click( selector );
-    page.$eval( selector, elem => elem.click() );
+    page.$eval( selector, elem => {
+    	if ( !elem ) {
+    		console.log( `.clickReactButton => Element not found: ${ selector }` );
+    	}
+    	return elem.click();
+    } );
 };
 
 /**
