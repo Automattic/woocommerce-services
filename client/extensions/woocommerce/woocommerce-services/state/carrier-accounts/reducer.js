@@ -1,19 +1,15 @@
 /** @format */
 
 /**
- * External dependencies
- */
-import { isEmpty } from 'lodash';
-
-/**
  * Internal dependencies
  */
 import {
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG,
-	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_CONNECTION_SUCCESS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
+	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_IS_SAVING,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS,
 } from '../action-types';
 
@@ -24,20 +20,18 @@ export const initialState = {
 
 const reducers = {};
 
-reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS ] = ( state, { carrier } ) => {
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_CONNECTION_SUCCESS ] = ( state, { carrier } ) => {
 	const settings = state[ carrier ].settings;
-	const { fieldErrors } = settings;
 
-	if ( ! isEmpty( fieldErrors ) ) {
-		return state;
-	}
-
-	const newState = {
+	return {
 		...state,
-		[ carrier ]: { settings: { ...settings } }
+		[ carrier ]: {
+			settings: {
+				...settings,
+				isConnectionSuccess: true,
+			},
+		},
 	};
-
-	return newState;
 };
 
 reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { carrier, fieldName, newValue } ) => {
@@ -45,7 +39,7 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { c
 	const { ignoreValidation, values } = settings;
 
 	if ( newValue.target ) {
-		switch( newValue.target.type ) {
+		switch ( newValue.target.type ) {
 			case 'checkbox':
 				newValue = newValue.target.checked;
 				break;
@@ -61,18 +55,34 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { c
 				...settings,
 				values: {
 					...values,
-					[ fieldName ]: newValue
-				}
-			}
+					[ fieldName ]: newValue,
+				},
+			},
 		},
 	};
 
 	if ( ignoreValidation ) {
-		newState[carrier].settings.ignoreValidation = {
+		newState[ carrier ].settings.ignoreValidation = {
 			...ignoreValidation,
 			[ fieldName ]: false,
 		};
 	}
+
+	return newState;
+};
+
+reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_IS_SAVING ] = ( state, { carrier } ) => {
+	const settings = state[ carrier ].settings;
+
+	const newState = {
+		...state,
+		[ carrier ]: {
+			settings: {
+				...settings,
+				isSaving: ! settings.isSaving,
+			},
+		},
+	};
 
 	return newState;
 };
@@ -86,13 +96,12 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS ]
 			settings: {
 				...settings,
 				showUPSInvoiceFields: ! settings.showUPSInvoiceFields,
-			}
+			},
 		},
 	};
 
 	return newState;
 };
-
 
 reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG ] = ( state, { carrier, show } ) => {
 	const settings = state[ carrier ].settings;
@@ -103,7 +112,7 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG 
 			settings: {
 				...settings,
 				showCancelConnectionDialog: show,
-			}
+			},
 		},
 	};
 
@@ -128,12 +137,11 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER ] = ( state, 
 
 	const newState = {
 		...state,
-		[ carrier ]: { settings }
+		[ carrier ]: { settings },
 	};
 
 	return newState;
 };
-
 
 const carrierAccounts = ( state = initialState, action ) => {
 	if ( 'function' === typeof reducers[ action.type ] ) {

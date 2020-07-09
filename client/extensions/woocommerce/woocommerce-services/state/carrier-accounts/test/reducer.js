@@ -10,12 +10,14 @@ import { cloneDeep } from 'lodash';
  * Internal dependencies
  */
 import {
-	submitCarrierSettings,
-	updateCarrierSettings,
-	toggleShowUPSInvoiceFields,
+	carrierAccountConnectionSuccess,
+	disconnectCarrier,
 	setVisibilityCancelConnectionDialog,
 	setVisibilityDisconnectCarrierDialog,
-	disconnectCarrier,
+	submitCarrierSettings,
+	toggleSettingsIsSaving,
+	toggleShowUPSInvoiceFields,
+	updateCarrierSettings,
 } from '../actions';
 import reducer from '../reducer';
 
@@ -174,6 +176,53 @@ describe( 'Carrier Accounts reducer', () => {
 			pristine: true,
 			[ carrier ]: {
 				settings: {},
+			},
+		} );
+	} );
+
+	test( 'WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_IS_SAVING toggles a flag', () => {
+		const existingAddState = {
+			modalErrors: {},
+			pristine: true,
+			[ carrier ]: {
+				settings: {
+					isSaving: false,
+				},
+			},
+		};
+		const action = toggleSettingsIsSaving( siteId, carrier, true );
+		const state = reducer( existingAddState, action );
+
+		expect( state ).to.eql( {
+			modalErrors: {},
+			pristine: true,
+			[ carrier ]: {
+				settings: {
+					isSaving: true,
+				},
+			},
+		} );
+	} );
+	test( 'WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_CONNECTION_SUCCESS toggles a flag', () => {
+		const existingAddState = {
+			modalErrors: {},
+			pristine: true,
+			[ carrier ]: {
+				settings: {
+					isConnectionSuccess: false,
+				},
+			},
+		};
+		const action = carrierAccountConnectionSuccess( siteId, carrier, true );
+		const state = reducer( existingAddState, action );
+
+		expect( state ).to.eql( {
+			modalErrors: {},
+			pristine: true,
+			[ carrier ]: {
+				settings: {
+					isConnectionSuccess: true,
+				},
 			},
 		} );
 	} );

@@ -284,6 +284,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Request a refund for a given shipping label
+		 *
+		 * @param $body
+		 * @return object|WP_Error
+		 */
+		public function create_shipping_carrier_account( $body ) {
+			return $this->request( 'POST', '/shipping/carrier', $body );
+		}
+
+		/**
 		 * Tests the connection to the WooCommerce Services Server
 		 *
 		 * @return true|WP_Error

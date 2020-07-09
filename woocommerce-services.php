@@ -328,6 +328,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_assets_controller = $rest_assets_controller;
 		}
 
+		public function set_rest_carriers_controller( WC_REST_Connect_Shipping_Carriers_Controller $rest_carriers_controller ) {
+			$this->rest_carriers_controller = $rest_carriers_controller;
+		}
+
 		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
 			$this->rest_packages_controller = $rest_packages_controller;
 		}
@@ -848,6 +852,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_assets_controller = new WC_REST_Connect_Assets_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_assets_controller( $rest_assets_controller );
 			$rest_assets_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-carriers-controller.php' ) );
+			$rest_carriers_controller = new WC_REST_Connect_Shipping_Carriers_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_carriers_controller( $rest_carriers_controller );
+			$rest_carriers_controller->register_routes();
 
 			if ( $this->stripe->is_stripe_plugin_enabled() ) {
 				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-init-controller.php' ) );

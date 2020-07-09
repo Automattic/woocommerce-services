@@ -8,17 +8,16 @@ export default () => {
 	const requiredFields = [
 		'account_number',
 		'name',
-		'address',
+		'street1',
 		'city',
-		'state',
 		'state',
 		'country',
 		'postal_code',
 		'phone',
 		'email',
-		'company_name',
-		'job_title',
-		'company_website',
+		'name',
+		'title',
+		'website',
 		'license_agreement',
 	];
 
@@ -26,16 +25,18 @@ export default () => {
 		UPS: {
 			settings: {
 				requiredFields,
-				values:{
-					country: 'US'
+				values: {
+					country: 'US',
+					type: 'UpsAccount',
 				},
 				fieldErrors: {},
-				ignoreValidation: requiredFields.reduce( (accumulator, currentValue) => {   
+				ignoreValidation: requiredFields.reduce( ( accumulator, currentValue ) => {
 					accumulator[ currentValue ] = 'country' === currentValue ? false : true;
-					return accumulator
+					return accumulator;
 				}, {} ),
 				showUPSInvoiceFields: false,
-			}
-		}
+				isSaving: false,
+			},
+		},
 	};
-}
+};
