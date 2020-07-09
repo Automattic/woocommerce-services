@@ -735,7 +735,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
-			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_action( 'woocommerce_email_before_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'admin_enqueue_scripts', array( $this->stripe, 'maybe_show_notice' ) );
 			add_filter( 'wc_stripe_settings', array( $this->stripe, 'show_connected_account' ) );
