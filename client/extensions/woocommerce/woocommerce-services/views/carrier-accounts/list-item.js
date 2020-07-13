@@ -81,7 +81,7 @@ const CarrierAccountListItem = ( props ) => {
 	}
 
 	const renderActions = () => {
-		const { credentials,  onConnect, onDisconnect } = data;
+		const { credentials,  onConnect } = data;
 		const connectButton = () => {
 			return <Button compact onClick={ () => { onConnect( data ) } }>
 				{ translate( 'Connect' ) }
