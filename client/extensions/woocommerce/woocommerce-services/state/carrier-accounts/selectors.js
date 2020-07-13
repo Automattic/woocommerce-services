@@ -29,28 +29,24 @@ export const getFormErrors = ( state, siteId, carrier ) => {
 		return {};
 	}
 
-	for (const field of requiredFields) {
+	for ( const field of requiredFields ) {
 		const value = values[ field ];
 		if ( ! value || ( 'string' === typeof value && '' === value.trim() ) ) {
-			fieldErrors[ field ] =  translate( 'This field is required' );
+			fieldErrors[ field ] = translate( 'This field is required' );
 		} else {
 			delete fieldErrors[ field ];
 		}
 	}
 
-	if ( fieldErrors.license_agreement ) {
-		fieldErrors.license_agreement = translate( 'You have to accept the license agreement' );
+	if ( values.email && ! values.email.match( emailRegex ) ) {
+		fieldErrors.email = translate( 'The email format is not valid' );
 	}
-
-	if ( values.email  && ! values.email.match( emailRegex ) ) {
-		fieldErrors.email = translate( "The email format is not valid" );
-	}
-	if ( values.company_website  && ! values.company_website.match( urlRegex ) ) {
-		fieldErrors.company_website = translate( "The company website format is not valid" );
+	if ( values.company_website && ! values.company_website.match( urlRegex ) ) {
+		fieldErrors.company_website = translate( 'The company website format is not valid' );
 	}
 
 	if ( ignoreValidation ) {
-		Object.keys( fieldErrors ).forEach( field => {
+		Object.keys( fieldErrors ).forEach( ( field ) => {
 			if ( ignoreValidation[ field ] ) {
 				delete fieldErrors[ field ];
 			}

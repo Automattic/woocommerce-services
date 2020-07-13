@@ -19,23 +19,22 @@ export default () => {
 		'company_name',
 		'job_title',
 		'company_website',
-		'license_agreement',
 	];
 
 	return {
 		UPS: {
 			settings: {
 				requiredFields,
-				values:{
-					country: 'US'
+				values: {
+					country: 'US',
 				},
 				fieldErrors: {},
-				ignoreValidation: requiredFields.reduce( (accumulator, currentValue) => {   
+				ignoreValidation: requiredFields.reduce( ( accumulator, currentValue ) => {
 					accumulator[ currentValue ] = 'country' === currentValue ? false : true;
-					return accumulator
+					return accumulator;
 				}, {} ),
 				showUPSInvoiceFields: false,
-			}
-		}
+			},
+		},
 	};
-}
+};

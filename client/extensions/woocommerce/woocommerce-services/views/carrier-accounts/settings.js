@@ -37,7 +37,7 @@ import {
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
 
-const CarrierAccountSettings = props => {
+const CarrierAccountSettings = ( props ) => {
 	const {
 		siteId,
 		carrier,
@@ -51,92 +51,104 @@ const CarrierAccountSettings = props => {
 		translate,
 	} = props;
 
-	const getValue = fieldName => {
+	const getValue = ( fieldName ) => {
 		return values[ fieldName ] ? decodeEntities( values[ fieldName ] ) : '';
-	}
-	const updateValue = fieldName => newValue =>
+	};
+	const updateValue = ( fieldName ) => ( newValue ) =>
 		props.updateCarrierSettings( siteId, carrier, fieldName, newValue );
-	const submitCarrierSettingsHandler = () =>
-		props.submitCarrierSettings( siteId, carrier );
+	const submitCarrierSettingsHandler = () => props.submitCarrierSettings( siteId, carrier );
 	const showCancelDialogHandler = () => {
 		props.setVisibilityCancelConnectionDialog( siteId, carrier, true );
-	}
+	};
 	const hideCancelDialogHandler = () => {
 		props.setVisibilityCancelConnectionDialog( siteId, carrier, false );
-	}
+	};
 	const updateShowUPSInvoiceFields = () => {
 		props.toggleShowUPSInvoiceFields( siteId, carrier );
-	}
+	};
 
-	const displayErrors = () => {
-		if ( fieldErrors.license_agreement ) {
-			return <div className="carrier-accounts__settings-error">
-				{ fieldErrors.license_agreement }
-				<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideCancelDialogHandler } ><Gridicon icon="cross"/></button>
-			</div>;
-		}
-	}
+	const displayErrors = () => {};
 	const upsInvoiceFields = () => {
-		return <div className="carrier-accounts__settings-ups-invoice">
-			<div className="carrier-accounts__settings-two-columns">
+		return (
+			<div className="carrier-accounts__settings-ups-invoice">
+				<div className="carrier-accounts__settings-two-columns">
+					<TextField
+						id={ 'ups_invoice_number' }
+						title={ translate( 'UPS invoice number' ) }
+						value={ getValue( 'ups_invoice_number' ) }
+						updateValue={ updateValue( 'ups_invoice_number' ) }
+						error={ fieldErrors.ups_invoice_number }
+					/>
+					<TextField
+						id={ 'ups_invoice_date' }
+						title={ translate( 'UPS invoice date' ) }
+						value={ getValue( 'ups_invoice_date' ) }
+						updateValue={ updateValue( 'ups_invoice_date' ) }
+						error={ fieldErrors.ups_invoice_date }
+					/>
+				</div>
+				<div className="carrier-accounts__settings-two-columns">
+					<TextField
+						id={ 'ups_invoice_amount' }
+						title={ translate( 'UPS invoice amount' ) }
+						value={ getValue( 'ups_invoice_amount' ) }
+						updateValue={ updateValue( 'ups_invoice_amount' ) }
+						error={ fieldErrors.ups_invoice_amount }
+					/>
+					<TextField
+						id={ 'ups_invoice_currency' }
+						title={ translate( 'UPS invoice currency' ) }
+						value={ getValue( 'ups_invoice_currency' ) }
+						updateValue={ updateValue( 'ups_invoice_currency' ) }
+						error={ fieldErrors.ups_invoice_currency }
+					/>
+				</div>
 				<TextField
-					id={ 'ups_invoice_number' }
-					title={ translate( 'UPS invoice number' ) }
-					value={ getValue( 'ups_invoice_number' ) }
-					updateValue={ updateValue( 'ups_invoice_number' ) }
-					error={ fieldErrors.ups_invoice_number }
-				/>
-				<TextField
-					id={ 'ups_invoice_date' }
-					title={ translate( 'UPS invoice date' ) }
-					value={ getValue( 'ups_invoice_date' ) }
-					updateValue={ updateValue( 'ups_invoice_date' ) }
-					error={ fieldErrors.ups_invoice_date }
+					id={ 'ups_invoice_control_id' }
+					title={ translate( 'UPS invoice control id' ) }
+					value={ getValue( 'ups_invoice_control_id' ) }
+					updateValue={ updateValue( 'ups_invoice_control_id' ) }
+					error={ fieldErrors.ups_invoice_control_id }
 				/>
 			</div>
-			<div className="carrier-accounts__settings-two-columns">
-				<TextField
-					id={ 'ups_invoice_amount' }
-					title={ translate( 'UPS invoice amount' ) }
-					value={ getValue( 'ups_invoice_amount' ) }
-					updateValue={ updateValue( 'ups_invoice_amount' ) }
-					error={ fieldErrors.ups_invoice_amount }
-				/>
-				<TextField
-					id={ 'ups_invoice_currency' }
-					title={ translate( 'UPS invoice currency' ) }
-					value={ getValue( 'ups_invoice_currency' ) }
-					updateValue={ updateValue( 'ups_invoice_currency' ) }
-					error={ fieldErrors.ups_invoice_currency }
-				/>
-			</div>
-			<TextField
-				id={ 'ups_invoice_control_id' }
-				title={ translate( 'UPS invoice control id' ) }
-				value={ getValue( 'ups_invoice_control_id' ) }
-				updateValue={ updateValue( 'ups_invoice_control_id' ) }
-				error={ fieldErrors.ups_invoice_control_id }
-			/>
-		</div>;
-	}
+		);
+	};
 
 	const cancelDialogButton = () => {
-		return [ <Button compact primary scary onClick={ () => history.back() }>{ translate( 'Cancel' ) }</Button> ];
-	}
+		return [
+			<Button compact primary scary onClick={ () => history.back() }>
+				{ translate( 'Cancel' ) }
+			</Button>,
+		];
+	};
 
 	return (
 		<div className="carrier-accounts__settings-container">
 			{ displayErrors() }
 			<div className="carrier-accounts__settings">
 				<div className="carrier-accounts__settings-info">
-					<h4 className="carrier-accounts__settings-subheader">{ translate( 'Connect your UPS account' ) }</h4>
-					<p className="carrier-accounts__settings-subheader-description">{ translate( 'Set up your own UPS carrier account to compare rates and print labels from multiple carriers in WooCommerce Services. Learn more about adding {{a}}carrier accounts{{/a}}.', { components: { a: <a href="https://link.to.carrier.accounts.com/" />  } } ) }</p>
-					<p className="carrier-accounts__settings-subheader-description">{ translate( 'If you need a UPS account number, go to {{a}}UPS.com{{/a}} to create a new account.', { components: { a: <a href="https://ups.com/" />  } } ) }</p>
+					<h4 className="carrier-accounts__settings-subheader">
+						{ translate( 'Connect your UPS account' ) }
+					</h4>
+					<p className="carrier-accounts__settings-subheader-description">
+						{ translate(
+							'Set up your own UPS carrier account to compare rates and print labels from multiple carriers in WooCommerce Services. Learn more about adding {{a}}carrier accounts{{/a}}.',
+							{ components: { a: <a href="https://link.to.carrier.accounts.com/" /> } }
+						) }
+					</p>
+					<p className="carrier-accounts__settings-subheader-description">
+						{ translate(
+							'If you need a UPS account number, go to {{a}}UPS.com{{/a}} to create a new account.',
+							{ components: { a: <a href="https://ups.com/" /> } }
+						) }
+					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
 					<CompactCard>
 						<h4 className="carrier-accounts__settings-subheader">{ translate( 'General Information' ) }</h4>
-						<p className="carrier-accounts__settings-subheader-description">{ translate( 'This is the account number an address from your UPS profile' ) }</p>
+						<p className="carrier-accounts__settings-subheader-description">
+							{ translate( 'This is the account number an address from your UPS profile' ) }
+						</p>
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-account-number">
 						<TextField
@@ -179,7 +191,6 @@ const CarrierAccountSettings = props => {
 							/>
 						</div>
 						<div className="carrier-accounts__settings-two-columns">
-
 							{ stateNames ? (
 								<Dropdown
 									id={ 'state' }
@@ -234,8 +245,12 @@ const CarrierAccountSettings = props => {
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-company-info">
 						<div className="carrier-accounts__settings-header">
-							<h4 className="carrier-accounts__settings-subheader">{ translate( 'Company information' ) }</h4>
-							<p className="carrier-accounts__settings-subheader-description">{ translate( 'This is the company info you used to create your UPS account' ) }</p>
+							<h4 className="carrier-accounts__settings-subheader">
+								{ translate( 'Company information' ) }
+							</h4>
+							<p className="carrier-accounts__settings-subheader-description">
+								{ translate( 'This is the company info you used to create your UPS account' ) }
+							</p>
 						</div>
 						<TextField
 							id={ 'company_name' }
@@ -263,18 +278,22 @@ const CarrierAccountSettings = props => {
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-ups-info">
 						<div className="carrier-accounts__settings-header">
-							<h4 className="carrier-accounts__settings-subheader">{ translate( 'UPS account information' ) }</h4>
-							<Checkbox id={ 'license_agreement' } checked={ showUPSInvoiceFields } onChange={ updateShowUPSInvoiceFields  } />
-							<span>{ translate( 'I have been issued an invoice from UPS within the past 90 days' ) }</span>
+							<h4 className="carrier-accounts__settings-subheader">
+								{ translate( 'UPS account information' ) }
+							</h4>
+							<Checkbox
+								id={ 'license_agreement' }
+								checked={ showUPSInvoiceFields }
+								onChange={ updateShowUPSInvoiceFields }
+							/>
+							<span>
+								{ translate( 'I have been issued an invoice from UPS within the past 90 days' ) }
+							</span>
 						</div>
 						{ showUPSInvoiceFields && upsInvoiceFields() }
 					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-license-agreement">
-						<Checkbox id={ 'license_agreement' } checked={ !! getValue( 'license_agreement' ) } onChange={ updateValue( 'license_agreement' )  } />
-						<span>{ translate( 'I have read the {{a}}License Agreement{{/a}}', { components: { a: <a href="https://link.to.terms.com/" />  } } ) }</span>
-					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-actions">
-						<Button compact primary onClick={ submitCarrierSettingsHandler } disabled={ ! isFormValid  }>
+						<Button compact primary onClick={ submitCarrierSettingsHandler } disabled={ ! isFormValid }>
 							{ translate( 'Connect' ) }
 						</Button>
 						<Button compact onClick={ showCancelDialogHandler }>
@@ -289,10 +308,19 @@ const CarrierAccountSettings = props => {
 					buttons={ cancelDialogButton() }
 				>
 					<div className="carrier-accounts__settings-cancel-dialog-header">
-						<h2 className="carrier-accounts__settings-cancel-dialog-title">{ translate( 'Cancel connection' ) }</h2>
-						<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideCancelDialogHandler } ><Gridicon icon="cross"/></button>
+						<h2 className="carrier-accounts__settings-cancel-dialog-title">
+							{ translate( 'Cancel connection' ) }
+						</h2>
+						<button
+							className="carrier-accounts__settings-cancel-dialog-close-button"
+							onClick={ hideCancelDialogHandler }
+						>
+							<Gridicon icon="cross" />
+						</button>
 					</div>
-					<p className="carrier-accounts__settings-cancel-dialog-description">{ translate( 'This action will delete any information entered on the form.' ) }</p>
+					<p className="carrier-accounts__settings-cancel-dialog-description">
+						{ translate( 'This action will delete any information entered on the form.' ) }
+					</p>
 				</Dialog>
 			</div>
 		</div>
@@ -300,15 +328,10 @@ const CarrierAccountSettings = props => {
 };
 
 const mapStateToProps = ( state, { siteId, carrier } ) => {
-
-	const carrierAccountState        = getCarrierAccountsState( state, siteId, carrier );
-	const {
-		values,
-		showCancelConnectionDialog,
-		showUPSInvoiceFields
-	}                                = carrierAccountState.settings;
-	const fieldErrors                = getFormErrors( state, siteId, carrier );
-	const isFormValid                = getFormValidState( state, siteId, carrier );
+	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
+	const { values, showCancelConnectionDialog, showUPSInvoiceFields } = carrierAccountState.settings;
+	const fieldErrors = getFormErrors( state, siteId, carrier );
+	const isFormValid = getFormValidState( state, siteId, carrier );
 
 	let countryNames = getDestinationCountryNames( state, siteId );
 
@@ -332,7 +355,7 @@ const mapStateToProps = ( state, { siteId, carrier } ) => {
 	return ret;
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = ( dispatch ) => {
 	return bindActionCreators(
 		{
 			setVisibilityCancelConnectionDialog,
@@ -348,7 +371,4 @@ CarrierAccountSettings.propTypes = {
 	carrier: PropTypes.string.isRequired,
 };
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)( localize( CarrierAccountSettings ) );
+export default connect( mapStateToProps, mapDispatchToProps )( localize( CarrierAccountSettings ) );
