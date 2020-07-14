@@ -388,6 +388,11 @@ class WC_Connect_TaxJar_Integration {
 			'line_items' => $line_items,
 		) );
 
+		// Return if taxes could not be calculated.
+		if ( false === $taxes ) {
+			return;
+		}
+
 		$this->response_rate_ids = $taxes['rate_ids'];
 		$this->response_line_items = $taxes['line_items'];
 
