@@ -10,7 +10,7 @@
     "test": "npm run test-client && npm run eslint",
     "test-client": "jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
-    "prerelease": "npm run i18n && npm run i18njson",
+    "prerelease": "npm run i18n && node tasks/i18n-download && npm run i18njson",
     "release": "node tasks/release.js",
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
@@ -57,7 +57,8 @@
     "sinon": "7.3.1",
     "sinon-chai": "3.3.0",
     "webpack-bundle-analyzer": "^3.6.1",
-    "xgettext-js": "^1.1.0"
+    "xgettext-js": "^1.1.0",
+    "i18n-calypso-cli": "^1.0.0"
   },
   "dependencies": {
     "@automattic/calypso-color-schemes": "^1.0.0-alpha.1",
@@ -114,7 +115,7 @@
     "loader-utils": "1.1.0",
     "lodash": "^4.17.4",
     "mini-css-extract-plugin": "0.4.4",
-    "node-sass": "4.9.4",
+    "node-sass": "^4.14.1",
     "object-path-immutable": "^0.5.1",
     "objectpath": "^1.2.1",
     "postcss-custom-properties": "^8.0.9",

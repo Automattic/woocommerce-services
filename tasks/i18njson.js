@@ -15,7 +15,7 @@ poFilePaths.forEach( ( inputPath ) => {
 	const json = po2json.parse( file, { stringify: true } );
 
 	const outputFilename = path.basename( inputPath, '.po' ) + '.json';
-	const outputPath = path.join( 'i18n/json', outputFilename );
+	const outputPath = path.join( __dirname, '../i18n/languages', outputFilename );
 
 	fs.writeFile( outputPath, json, ( error ) => {
 		if ( error ) {
