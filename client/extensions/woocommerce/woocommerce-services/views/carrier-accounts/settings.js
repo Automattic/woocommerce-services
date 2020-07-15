@@ -117,8 +117,11 @@ const CarrierAccountSettings = ( props ) => {
 
 	const cancelDialogButton = () => {
 		return [
-			<Button compact primary scary onClick={ () => history.back() }>
+			<Button compact borderless onClick={ hideCancelDialogHandler }>
 				{ translate( 'Cancel' ) }
+			</Button>,
+			<Button compact primary onClick={ () => history.back() }>
+				{ translate( 'Ok' ) }
 			</Button>,
 		];
 	};

@@ -40,5 +40,16 @@
 			border-color: #ac120b;
 			color: #fff;
 		}
+		.is-borderless {
+			border: none;
+			background: none;
+			color: #636d75;
+			padding-left: 0;
+			padding-right: 0;
+
+			&:hover {
+				color: #3d4145;
+			}
+		}
 	}
 }
