@@ -104,7 +104,7 @@ class Packages extends Component {
 				<ExtendedHeader
 					label={ translate( 'Packaging' ) }
 					description={ translate(
-						'Add boxes, envelopes, and other packages you use most frequently.'
+						'Add boxes, envelopes, and other packages you use most frequently'
 					) }
 				>
 					<Button onClick={ addPackage } disabled={ isFetching }>
