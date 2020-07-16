@@ -13,7 +13,7 @@ import Gridicon from 'gridicons';
 /**
  * Internal dependencies
  */
-import CarrierLogo from './carrier-logo';
+import CarrierIcon from 'woocommerce/woocommerce-services/components/carrier-icon';
 import formatCurrency from '@automattic/format-currency';
 
 class ShippingRate extends Component {
@@ -125,8 +125,8 @@ class ShippingRate extends Component {
 					] }
 					onChange={ () => { updateValue( service_id, false ) } }
 				/>
-				<CarrierLogo carrier_id={ carrier_id }/>
 				<div className="rates-step__shipping-rate-information">
+					<CarrierIcon carrier={ carrier_id } size={ 30 } />
 					<div className="rates-step__shipping-rate-description">
 						<div className="rates-step__shipping-rate-description-title">{ title }</div>
 						<div className="rates-step__shipping-rate-description-details">
