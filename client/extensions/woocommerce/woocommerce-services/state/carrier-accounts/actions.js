@@ -79,3 +79,31 @@ export const submitCarrierSettings = ( siteId, carrier, values ) => ( dispatch )
 			dispatch( errorNotice( translate( 'There was an error trying to connect your carrier account' ) ) );
 		} );
 };
+
+export const getCarriers = ( siteId, carrier, values ) => ( dispatch ) => {
+	return api
+		.post( siteId, api.url.shippingCarrier(), omit( values, [ 'license_agreement' ] ) )
+		.then( () => {
+			dispatch( carrierAccountConnectionSuccess( siteId, carrier ) );
+			dispatch( toggleSettingsIsSaving( siteId, carrier ) );
+			dispatch( successNotice( translate( 'Your carrier account was connected succesfully.' ) ) );
+		} )
+		.catch( () => {
+			dispatch( toggleSettingsIsSaving( siteId, carrier ) );
+			dispatch( errorNotice( translate( 'There was an error trying to connect your carrier account' ) ) );
+		} );
+};
+
+export const fetchCarriers = siteId => dispatch => {
+	api
+		.get( siteId, api.url.shippingCarriers )
+		.then( ( carriers ) => {
+			console.log( carriers )
+			dispatch( initForm( siteId, storeOptions, formData, formMeta, userMeta ) );
+		} )
+		.catch( error => {
+			//dispatch( setFormMetaProperty( siteId, 'isFetchError', true ) );
+			console.error( error ); // eslint-disable-line no-console
+		} )
+		//.then( () => dispatch( setFormMetaProperty( siteId, 'isFetching', false ) ) );
+};

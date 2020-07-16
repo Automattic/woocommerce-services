@@ -294,6 +294,26 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Delete shipping carrier.
+		 *
+		 * @param $body
+		 * @return object|WP_Error
+		 */
+		public function delete_shipping_carrier( $body ) {
+			return $this->request( 'POST', '/shipping/carrier/delete', $body );
+		}
+
+		/**
+		 * Get all shipping carriers.
+		 *
+		 * @param $body
+		 * @return object|WP_Error
+		 */
+		public function get_all_shipping_carriers() {
+			return $this->request( 'GET', '/shipping/carriers', $body );
+		}
+
+		/**
 		 * Tests the connection to the WooCommerce Services Server
 		 *
 		 * @return true|WP_Error

@@ -10,3 +10,5 @@ export const labelTestPrint = () => 'connect/label/preview';
 export const addressNormalization = () => 'connect/normalize-address';
 export const serviceSettings = ( methodId, instanceId = 0 ) => `connect/services/${ methodId }/${ instanceId }`;
 export const shippingCarrier = () => 'connect/shipping/carrier';
+export const shippingCarriers = () => 'connect/shipping/carriers';
+export const shippingCarrierDelete = () => 'connect/shipping/carrier/delete';
