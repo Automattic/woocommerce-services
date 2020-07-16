@@ -131,7 +131,7 @@ const CarrierAccountSettings = ( props ) => {
 			{ displayErrors() }
 			<div className="carrier-accounts__settings">
 				<div className="carrier-accounts__settings-info">
-					<h4 className="carrier-accounts__settings-subheader">
+					<h4 className="carrier-accounts__settings-subheader-above-description">
 						{ translate( 'Connect your UPS account' ) }
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
@@ -148,9 +148,9 @@ const CarrierAccountSettings = ( props ) => {
 				</div>
 				<div className="carrier-accounts__settings-form">
 					<CompactCard>
-						<h4 className="carrier-accounts__settings-subheader">{ translate( 'General Information' ) }</h4>
+						<h4 className="carrier-accounts__settings-subheader">{ translate( 'General information' ) }</h4>
 						<p className="carrier-accounts__settings-subheader-description">
-							{ translate( 'This is the account number an address from your UPS profile' ) }
+							{ translate( 'This is the account number and address from your UPS profile' ) }
 						</p>
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-account-number">
@@ -187,7 +187,7 @@ const CarrierAccountSettings = ( props ) => {
 							/>
 							<TextField
 								id={ 'city' }
-								title={ translate( 'city' ) }
+								title={ translate( 'City' ) }
 								value={ getValue( 'city' ) }
 								updateValue={ updateValue( 'city' ) }
 								error={ fieldErrors.city }
