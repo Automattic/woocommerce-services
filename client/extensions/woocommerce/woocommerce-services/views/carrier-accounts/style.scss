@@ -1,0 +1,154 @@
+.carrier-accounts__list {
+	padding: 0;
+
+	.carrier-accounts__list-item {
+		display: flex;
+		align-items: center;
+		padding: 8px 0;
+
+		.carrier-accounts__list-item-carrier-icon {
+			width: 48px;
+			padding-left: 24px;
+		}
+
+		.carrier-accounts__list-item-name {
+			width: 35%;
+		}
+
+		.carrier-accounts__list-item-credentials {
+			width: 30%;
+		}
+
+		.carrier-accounts__list-item-actions {
+			padding-right: 24px;
+			width: 25%;
+			text-align: right;
+		}
+	}
+}
+
+
+.carrier-accounts__header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-weight: 600;
+	padding: 12px 0;
+	font-size: 14px;
+	border-top: 0;
+	border-bottom: 1px solid var( --color-neutral-0 );
+	border-bottom-color: var( --color-neutral-100 );
+	background: var( --color-neutral-0 );
+
+	.carrier-accounts__header-icon {
+		width: 72px;
+	}
+	.carrier-accounts__header-name {
+		width: 35%;
+	}
+	.carrier-accounts__header-credentials {
+	}
+}
+
+$carrier-account-settings-max-width: 800px;
+
+.carrier-accounts__settings-container {
+	.carrier-accounts__settings-error {
+		display: flex;
+		border-left: 4px solid #CD423B;
+		background-color: #F8EBEA;
+		height: 49px;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 23px;
+		margin-bottom: 20px;
+		max-width: $carrier-account-settings-max-width;
+		box-sizing: border-box;
+	}
+
+	.carrier-accounts__settings {
+		display: flex;
+
+		.carrier-accounts__settings-info {
+			width: 21%;
+			padding-right: 18px;
+		}
+		.carrier-accounts__settings-form {
+			width: 100%;
+			max-width: $carrier-account-settings-max-width;
+		}
+
+		.carrier-accounts__settings-header {
+			margin-bottom: 1em;
+		}
+
+		.carrier-accounts__settings-subheader {
+			font-size: 18px;
+			margin: 0 0 1em 0;
+		}
+
+		.carrier-accounts__settings-subheader-description {
+			margin: 0;
+			margin-top: 1em;
+		}
+
+
+		.carrier-accounts__settings-two-columns {
+			display: flex;
+			justify-content: space-between;
+
+			& > * {
+				width: 48%;
+			}
+
+			select {
+				max-width: 100%;
+			}
+		}
+
+		.carrier-accounts__settings-actions {
+			& :first-child {
+				margin-right: 0.5em;
+			}
+		}
+	}
+}
+
+.carrier-accounts__settings-cancel-dialog {
+	border: 1px red solid;
+	.dialog__content {
+		padding: 0;
+
+		.carrier-accounts__settings-cancel-dialog-title {
+		}
+		.carrier-accounts__settings-cancel-dialog-description {
+		}
+	}
+}
+
+@media ( max-width: 1030px ) {
+	.carrier-accounts__settings-container {
+		.carrier-accounts__settings {
+			flex-direction: column;
+
+			.carrier-accounts__settings-info {
+				width: 100%;
+				margin-bottom: 16px;
+			}
+		}
+	}
+}
+@media ( max-width: 782px ) {
+	.carrier-accounts__settings-container {
+		.carrier-accounts__settings {
+			.carrier-accounts__settings-two-columns {
+				flex-direction: column;
+
+				& > * {
+					width: 100%;
+				}
+			}
+		}
+	}
+}
+

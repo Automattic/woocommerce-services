@@ -15,6 +15,8 @@ import GlobalNotices from 'components/global-notices';
 import LabelSettings from '../../extensions/woocommerce/woocommerce-services/views/label-settings';
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
+import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
+import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/settings';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import { createWcsShippingSaveActionList } from '../../extensions/woocommerce/woocommerce-services/state/actions';
@@ -71,24 +73,32 @@ class LabelSettingsWrapper extends Component {
 		const {
 			translate,
 			isSaving,
+			carrier,
 		} = this.props;
 
-		return (
-			<div>
+		if ( carrier ) {
+			return (<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
-				<LabelSettings onChange={ this.onChange } />
-				<Packages onChange={ this.onChange } />
-				<Button
-					primary
-					onClick={ this.onSaveChanges }
-					busy={ isSaving }
-					disabled={ isSaving }
-				>
-					{ translate( 'Save changes' ) }
-				</Button>
+				<CarrierAccountSettings carrier={ carrier } />
 				<ProtectFormGuard isChanged={ ! this.state.pristine } />
-			</div>
-		);
+			</div>);
+		}
+		return (<div>
+			<GlobalNotices id="notices" notices={ notices.list } />
+			<LabelSettings onChange={ this.onChange } />
+			<Packages onChange={ this.onChange } />
+			<CarrierAccounts onChange={ this.onChange } />
+			<Button
+				primary
+				onClick={ this.onSaveChanges }
+				busy={ isSaving }
+				disabled={ isSaving }
+			>
+				{ translate( 'Save changes' ) }
+			</Button>
+			<ProtectFormGuard isChanged={ ! this.state.pristine } />
+		</div>);
+
 	}
 }
 
