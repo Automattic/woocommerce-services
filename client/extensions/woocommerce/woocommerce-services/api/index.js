@@ -6,7 +6,7 @@ import request from 'woocommerce/state/sites/request';
 
 export * as url from './url';
 
-const handleError = jsonError => {
+const handleError = ( jsonError ) => {
 	if ( jsonError && jsonError.message ) {
 		throw jsonError.message;
 	}
@@ -26,4 +26,9 @@ export const post = ( siteId, url, data ) =>
 export const get = ( siteId, url ) =>
 	request( siteId )
 		.get( url, 'wc/v1' ) //WCS exposes it's REST endpoints only over wc/v1
+		.catch( handleError );
+
+export const del = ( siteId, url ) =>
+	request( siteId )
+		.del( url, 'wc/v1' ) //WCS exposes it's REST endpoints only over wc/v1
 		.catch( handleError );

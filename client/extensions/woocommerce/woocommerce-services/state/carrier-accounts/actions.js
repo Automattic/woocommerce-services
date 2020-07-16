@@ -60,11 +60,18 @@ export const setVisibilityDisconnectCarrierDialog = ( siteId, carrier, show ) =>
 	show,
 } );
 
-export const disconnectCarrier = ( siteId, carrier ) => ( {
-	type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
-	siteId,
-	carrier,
-} );
+export const disconnectCarrier = ( siteId, carrier ) => ( dispatch ) => {
+	return api
+		.del( siteId, api.url.shippingCarrierDelete( carrier ) )
+		.then( () => {
+			dispatch( toggleSettingsIsSaving( siteId, carrier ) );
+			dispatch( successNotice( translate( 'Your carrier account was disconnected succesfully.' ) ) );
+		} )
+		.catch( () => {
+			dispatch( toggleSettingsIsSaving( siteId, carrier ) );
+			dispatch( errorNotice( translate( 'There was an error trying to disconnect your carrier account' ) ) );
+		} );
+};
 
 export const submitCarrierSettings = ( siteId, carrier, values ) => ( dispatch ) => {
 	return api
@@ -94,16 +101,15 @@ export const getCarriers = ( siteId, carrier, values ) => ( dispatch ) => {
 		} );
 };
 
-export const fetchCarriers = siteId => dispatch => {
-	api
-		.get( siteId, api.url.shippingCarriers )
+export const fetchCarriers = ( siteId ) => ( dispatch ) => {
+	api.get( siteId, api.url.shippingCarriers )
 		.then( ( carriers ) => {
-			console.log( carriers )
+			console.log( carriers );
 			dispatch( initForm( siteId, storeOptions, formData, formMeta, userMeta ) );
 		} )
-		.catch( error => {
+		.catch( ( error ) => {
 			//dispatch( setFormMetaProperty( siteId, 'isFetchError', true ) );
 			console.error( error ); // eslint-disable-line no-console
-		} )
-		//.then( () => dispatch( setFormMetaProperty( siteId, 'isFetching', false ) ) );
+		} );
+	//.then( () => dispatch( setFormMetaProperty( siteId, 'isFetching', false ) ) );
 };

@@ -97,7 +97,7 @@ export const CarrierAccountListItem = ( props ) => {
 			>
 				{ translate( 'Cancel' ) }
 			</Button>,
-			<Button compact primary scary onClick={ () => props.disconnectCarrier( data.carrier ) }>
+			<Button compact primary scary onClick={ () => props.disconnectCarrier( siteId, data.carrier ) }>
 				{ translate( 'Disconnect' ) }
 			</Button>,
 		];

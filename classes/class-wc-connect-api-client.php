@@ -293,6 +293,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'GET', '/shipping/carriers' );
 		}
 		/**
+		 * Disconnects the provided carrier account
+		 *
+		 * @param $body
+		 * @return object|WP_Error
+		 */
+		public function disconnect_carrier_account( $body ) {
+			return $this->request( 'POST', '/shipping/carrier/delete', $body );
+		}
+		/**
 		 * Request a refund for a given shipping label
 		 *
 		 * @param $body
@@ -310,16 +319,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function delete_shipping_carrier( $body ) {
 			return $this->request( 'POST', '/shipping/carrier/delete', $body );
-		}
-
-		/**
-		 * Get all shipping carriers.
-		 *
-		 * @param $body
-		 * @return object|WP_Error
-		 */
-		public function get_all_shipping_carriers() {
-			return $this->request( 'GET', '/shipping/carriers', $body );
 		}
 
 		/**
