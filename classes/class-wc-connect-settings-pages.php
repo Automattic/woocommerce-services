@@ -13,10 +13,17 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		protected $continents;
 
-		public function __construct() {
+
+		/**
+		 * @var WC_Connect_API_Client
+		 */
+		protected $api_client;
+
+		public function __construct( WC_Connect_API_Client $api_client ) {
 			$this->id    = 'connect';
 			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
 			$this->continents = new WC_Connect_Continents();
+            $this->api_client = $api_client;
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
 			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ), 5 );
@@ -73,7 +80,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
-			$extra_args = array();
+			$extra_args = $this->api_client->get_carrier_accounts();
+
 			if ( isset( $_GET['from_order'] ) ) {
 				$extra_args['order_id'] = $_GET['from_order'];
 				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );

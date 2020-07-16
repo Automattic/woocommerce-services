@@ -689,7 +689,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			new WC_Connect_Debug_Tools( $this->api_client );
 
 			require_once( plugin_basename( 'classes/class-wc-connect-settings-pages.php' ) );
-			$settings_pages = new WC_Connect_Settings_Pages();
+			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client );
 			$this->set_settings_pages( $settings_pages );
 
 			$schema = $this->get_service_schemas_store();
