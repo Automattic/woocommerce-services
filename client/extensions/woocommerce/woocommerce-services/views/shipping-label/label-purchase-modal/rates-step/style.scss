@@ -109,6 +109,18 @@
 	text-align: right;
 }
 
+.rates-step__shipping-rate-rate-tooltip {
+	display: inline-block;
+	cursor: help;
+	margin-right: 4px;
+	svg {
+		display: inline-block;
+		vertical-align: top;
+		margin-left: 2px;
+		fill: #7c848b;
+	}
+}
+
 .rates-step__shipping-info {
 	display: flex;
 	justify-content: center;
