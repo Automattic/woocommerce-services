@@ -58,7 +58,6 @@ const visibleFields = [
 	[ 'company', TextField ],
 	[ 'title', TextField ],
 	[ 'website', TextField ],
-	[ 'license_agreement', Checkbox ],
 ];
 
 const upsInvoiceFields = [

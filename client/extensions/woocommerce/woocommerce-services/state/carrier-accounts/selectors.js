@@ -39,10 +39,6 @@ export const getFormErrors = ( state, siteId, carrier ) => {
 		}
 	}
 
-	if ( fieldErrors.license_agreement ) {
-		fieldErrors.license_agreement = translate( 'You have to accept the license agreement' );
-	}
-
 	if ( values.email && ! values.email.match( emailRegex ) ) {
 		fieldErrors.email = translate( 'The email format is not valid' );
 	}

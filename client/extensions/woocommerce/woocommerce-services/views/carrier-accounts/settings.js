@@ -79,21 +79,7 @@ export const CarrierAccountSettings = ( props ) => {
 		props.toggleShowUPSInvoiceFields( siteId, carrier );
 	};
 
-	const displayErrors = () => {
-		if ( fieldErrors.license_agreement ) {
-			return (
-				<div className="carrier-accounts__settings-error">
-					{ fieldErrors.license_agreement }
-					<button
-						className="carrier-accounts__settings-cancel-dialog-close-button"
-						onClick={ hideCancelDialogHandler }
-					>
-						<Gridicon icon="cross" />
-					</button>
-				</div>
-			);
-		}
-	};
+	const displayErrors = () => {};
 	const upsInvoiceFields = () => {
 		return (
 			<div className="carrier-accounts__settings-ups-invoice">
@@ -317,18 +303,6 @@ export const CarrierAccountSettings = ( props ) => {
 							</span>
 						</div>
 						{ showUPSInvoiceFields && upsInvoiceFields() }
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-license-agreement">
-						<Checkbox
-							id={ 'license_agreement' }
-							checked={ !! getValue( 'license_agreement' ) }
-							onChange={ updateValue( 'license_agreement' ) }
-						/>
-						<span>
-							{ translate( 'I have read the {{a}}License Agreement{{/a}}', {
-								components: { a: <a href="https://link.to.terms.com/" /> },
-							} ) }
-						</span>
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-actions">
 						<Button

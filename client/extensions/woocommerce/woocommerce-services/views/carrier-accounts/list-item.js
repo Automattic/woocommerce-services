@@ -18,77 +18,89 @@ import Gridicon from 'gridicons';
 import Button from 'components/button';
 import CarrierIcon from '../../components/carrier-icon';
 import Dialog from 'components/dialog';
-import {
-	getCarrierAccountsState,
-} from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
+import { getCarrierAccountsState } from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
 import {
 	setVisibilityDisconnectCarrierDialog,
 	disconnectCarrier,
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 
 export const CarrierAccountListItem = ( props ) => {
-	const {
-		data,
-		translate,
-		siteId,
-		showDisconnectDialog,
-	} = props;
+	const { data, translate, siteId, showDisconnectDialog } = props;
 
-	const renderIcon = carrierId => {
-		return <div className="carrier-accounts__list-item-carrier-icon">
-			<CarrierIcon carrier={ carrierId } size={ 18 } />
-		</div>;
+	const renderIcon = ( carrierId ) => {
+		return (
+			<div className="carrier-accounts__list-item-carrier-icon">
+				<CarrierIcon carrier={ carrierId } size={ 18 } />
+			</div>
+		);
 	};
 
-	const renderName = name => {
+	const renderName = ( name ) => {
 		const carrierName = name && '' !== trim( name ) ? name : translate( 'Untitled' );
-		return <div className="carrier-accounts__list-item-name">
-			<span>{ carrierName }</span>
-		</div>;
+		return (
+			<div className="carrier-accounts__list-item-name">
+				<span>{ carrierName }</span>
+			</div>
+		);
 	};
 
-	const renderCredentials = credentials => {
-		return <div className="carrier-accounts__list-item-credentials">
-			<span>{ credentials }</span>
-		</div>;
-	}
+	const renderCredentials = ( credentials ) => {
+		return (
+			<div className="carrier-accounts__list-item-credentials">
+				<span>{ credentials }</span>
+			</div>
+		);
+	};
 
 	const showDisconnectDialogHandler = () => {
 		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, true );
-	}
+	};
 
 	const hideDisconnectDialogHandler = () => {
 		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false );
-	}
-
-	const connectCarrierHandler = () => {
-		const url = new URL( window.location.href );
-		url.searchParams.set( 'carrier', data.carrierId );
-		window.location.href = url.href;
-	}
+	};
 
 	const renderActions = ( credentials ) => {
 		const connectButton = () => {
-			return <Button compact onClick={ connectCarrierHandler }>
-				{ translate( 'Connect' ) }
-			</Button>
+			return (
+				<a
+					href={
+						'/wp-admin/admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=UPS'
+					}
+					className={ 'button is-compact' }
+				>
+					{ translate( 'Connect' ) }
+				</a>
+			);
 		};
 		const disconnectButton = () => {
-			return <Button onClick={ showDisconnectDialogHandler } compact scary borderless >
-				{ translate( 'Disconnect' ) }
-			</Button>
+			return (
+				<Button onClick={ showDisconnectDialogHandler } compact scary borderless>
+					{ translate( 'Disconnect' ) }
+				</Button>
+			);
 		};
-		return <div className="carrier-accounts__list-item-actions">
-			{ credentials ? disconnectButton() : connectButton() }
-		</div>;
-	}
+		return (
+			<div className="carrier-accounts__list-item-actions">
+				{ credentials ? disconnectButton() : connectButton() }
+			</div>
+		);
+	};
 
 	const cancelDialogButton = () => {
 		return [
-			<Button compact primary onClick={ () => props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false ) }>{ translate( 'Cancel' ) }</Button>,
-			<Button compact primary scary onClick={ () => props.disconnectCarrier( data.carrierId ) }>{ translate( 'Disconnect' ) }</Button>
+			<Button
+				compact
+				primary
+				onClick={ () => props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false ) }
+			>
+				{ translate( 'Cancel' ) }
+			</Button>,
+			<Button compact primary scary onClick={ () => props.disconnectCarrier( data.carrierId ) }>
+				{ translate( 'Disconnect' ) }
+			</Button>,
 		];
-	}
+	};
 
 	return (
 		<div className="carrier-accounts__list-item">
@@ -103,10 +115,21 @@ export const CarrierAccountListItem = ( props ) => {
 				buttons={ cancelDialogButton() }
 			>
 				<div className="carrier-accounts__settings-cancel-dialog-header">
-					<h2 className="carrier-accounts__settings-cancel-dialog-title">{ translate( 'Disconnect your UPS account' ) }</h2>
-					<button className="carrier-accounts__settings-cancel-dialog-close-button" onClick={ hideDisconnectDialogHandler } ><Gridicon icon="cross"/></button>
+					<h2 className="carrier-accounts__settings-cancel-dialog-title">
+						{ translate( 'Disconnect your UPS account' ) }
+					</h2>
+					<button
+						className="carrier-accounts__settings-cancel-dialog-close-button"
+						onClick={ hideDisconnectDialogHandler }
+					>
+						<Gridicon icon="cross" />
+					</button>
 				</div>
-				<p className="carrier-accounts__settings-cancel-dialog-description">{ translate( 'This will remove the connection with UPS. All of your UPS account information will be deleted and you won’t see UPS rates when purchasing shipping labels.' ) }</p>
+				<p className="carrier-accounts__settings-cancel-dialog-description">
+					{ translate(
+						'This will remove the connection with UPS. All of your UPS account information will be deleted and you won’t see UPS rates when purchasing shipping labels.'
+					) }
+				</p>
 			</Dialog>
 		</div>
 	);
@@ -122,11 +145,9 @@ CarrierAccountListItem.propTypes = {
 };
 
 const mapStateToProps = ( state, { siteId, data } ) => {
-
-	const carrier                  = data.carrierId;
-	const carrierAccountState      = getCarrierAccountsState( state, siteId, carrier );
+	const carrier = data.carrierId;
+	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
 	const { showDisconnectDialog } = carrierAccountState;
-
 
 	const ret = {
 		showDisconnectDialog,
@@ -135,7 +156,7 @@ const mapStateToProps = ( state, { siteId, data } ) => {
 	return ret;
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = ( dispatch ) => {
 	return bindActionCreators(
 		{
 			setVisibilityDisconnectCarrierDialog,
@@ -145,7 +166,4 @@ const mapDispatchToProps = dispatch => {
 	);
 };
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)( localize( CarrierAccountListItem ) );
+export default connect( mapStateToProps, mapDispatchToProps )( localize( CarrierAccountListItem ) );
