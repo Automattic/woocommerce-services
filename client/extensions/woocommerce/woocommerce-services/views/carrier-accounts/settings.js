@@ -37,26 +37,36 @@ import {
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
 
-const CarrierAccountSettings = ( props ) => {
+export const CarrierAccountSettings = ( props ) => {
 	const {
-		siteId,
 		carrier,
 		countryNames,
 		fieldErrors,
-		values,
-		stateNames,
+		isConnectionSuccess,
 		isFormValid,
-		showUPSInvoiceFields,
+		isSaving,
 		showCancelConnectionDialog,
+		showUPSInvoiceFields,
+		siteId,
+		stateNames,
 		translate,
+		values,
 	} = props;
+
+	if ( isConnectionSuccess ) {
+		const url = new URL( window.location.href );
+		url.searchParams.delete( 'carrier' );
+		window.location.href = url.href;
+	}
 
 	const getValue = ( fieldName ) => {
 		return values[ fieldName ] ? decodeEntities( values[ fieldName ] ) : '';
 	};
 	const updateValue = ( fieldName ) => ( newValue ) =>
 		props.updateCarrierSettings( siteId, carrier, fieldName, newValue );
-	const submitCarrierSettingsHandler = () => props.submitCarrierSettings( siteId, carrier );
+	const submitCarrierSettingsHandler = () => {
+		props.submitCarrierSettings( siteId, carrier, values );
+	};
 	const showCancelDialogHandler = () => {
 		props.setVisibilityCancelConnectionDialog( siteId, carrier, true );
 	};
@@ -73,43 +83,42 @@ const CarrierAccountSettings = ( props ) => {
 			<div className="carrier-accounts__settings-ups-invoice">
 				<div className="carrier-accounts__settings-two-columns">
 					<TextField
-						id={ 'ups_invoice_number' }
+						id={ 'invoice_number' }
 						title={ translate( 'UPS invoice number' ) }
-						value={ getValue( 'ups_invoice_number' ) }
-						updateValue={ updateValue( 'ups_invoice_number' ) }
-						error={ fieldErrors.ups_invoice_number }
+						value={ getValue( 'invoice_number' ) }
+						updateValue={ updateValue( 'invoice_number' ) }
+						error={ fieldErrors.invoice_number }
 					/>
 					<TextField
-						id={ 'ups_invoice_date' }
+						id={ 'invoice_date' }
 						title={ translate( 'UPS invoice date' ) }
-						value={ getValue( 'ups_invoice_date' ) }
-						updateValue={ updateValue( 'ups_invoice_date' ) }
-						error={ fieldErrors.ups_invoice_date }
-						placeholder={ 'YYYY-MM-DD' }
+						value={ getValue( 'invoice_date' ) }
+						updateValue={ updateValue( 'invoice_date' ) }
+						error={ fieldErrors.invoice_date }
 					/>
 				</div>
 				<div className="carrier-accounts__settings-two-columns">
 					<TextField
-						id={ 'ups_invoice_amount' }
+						id={ 'invoice_amount' }
 						title={ translate( 'UPS invoice amount' ) }
-						value={ getValue( 'ups_invoice_amount' ) }
-						updateValue={ updateValue( 'ups_invoice_amount' ) }
-						error={ fieldErrors.ups_invoice_amount }
+						value={ getValue( 'invoice_amount' ) }
+						updateValue={ updateValue( 'invoice_amount' ) }
+						error={ fieldErrors.invoice_amount }
 					/>
 					<TextField
-						id={ 'ups_invoice_currency' }
+						id={ 'invoice_currency' }
 						title={ translate( 'UPS invoice currency' ) }
-						value={ getValue( 'ups_invoice_currency' ) }
-						updateValue={ updateValue( 'ups_invoice_currency' ) }
-						error={ fieldErrors.ups_invoice_currency }
+						value={ getValue( 'invoice_currency' ) }
+						updateValue={ updateValue( 'invoice_currency' ) }
+						error={ fieldErrors.invoice_currency }
 					/>
 				</div>
 				<TextField
-					id={ 'ups_invoice_control_id' }
+					id={ 'invoice_control_id' }
 					title={ translate( 'UPS invoice control id' ) }
-					value={ getValue( 'ups_invoice_control_id' ) }
-					updateValue={ updateValue( 'ups_invoice_control_id' ) }
-					error={ fieldErrors.ups_invoice_control_id }
+					value={ getValue( 'invoice_control_id' ) }
+					updateValue={ updateValue( 'invoice_control_id' ) }
+					error={ fieldErrors.invoice_control_id }
 				/>
 			</div>
 		);
@@ -171,19 +180,19 @@ const CarrierAccountSettings = ( props ) => {
 							error={ fieldErrors.name }
 						/>
 						<TextField
-							id={ 'address' }
+							id={ 'street1' }
 							title={ translate( 'Address' ) }
-							value={ getValue( 'address' ) }
-							updateValue={ updateValue( 'address' ) }
-							error={ fieldErrors.address }
+							value={ getValue( 'street1' ) }
+							updateValue={ updateValue( 'street1' ) }
+							error={ fieldErrors.street1 }
 						/>
 						<div className="carrier-accounts__settings-two-columns">
 							<TextField
-								id={ 'address_2' }
+								id={ 'street2' }
 								title={ translate( 'Address 2 (optional)' ) }
-								value={ getValue( 'address_2' ) }
-								updateValue={ updateValue( 'address_2' ) }
-								error={ fieldErrors.address_2 }
+								value={ getValue( 'street2' ) }
+								updateValue={ updateValue( 'street2' ) }
+								error={ fieldErrors.street2 }
 							/>
 							<TextField
 								id={ 'city' }
@@ -256,26 +265,26 @@ const CarrierAccountSettings = ( props ) => {
 							</p>
 						</div>
 						<TextField
-							id={ 'company_name' }
+							id={ 'company' }
 							title={ translate( 'Company name' ) }
-							value={ getValue( 'company_name' ) }
-							updateValue={ updateValue( 'company_name' ) }
-							error={ fieldErrors.company_name }
+							value={ getValue( 'company' ) }
+							updateValue={ updateValue( 'company' ) }
+							error={ fieldErrors.company }
 						/>
 						<div className="carrier-accounts__settings-two-columns">
 							<TextField
-								id={ 'job_title' }
+								id={ 'title' }
 								title={ translate( 'Job title' ) }
-								value={ getValue( 'job_title' ) }
-								updateValue={ updateValue( 'job_title' ) }
-								error={ fieldErrors.job_title }
+								value={ getValue( 'title' ) }
+								updateValue={ updateValue( 'title' ) }
+								error={ fieldErrors.title }
 							/>
 							<TextField
-								id={ 'company_website' }
+								id={ 'website' }
 								title={ translate( 'Company website' ) }
-								value={ getValue( 'company_website' ) }
-								updateValue={ updateValue( 'company_website' ) }
-								error={ fieldErrors.company_website }
+								value={ getValue( 'website' ) }
+								updateValue={ updateValue( 'website' ) }
+								error={ fieldErrors.website }
 							/>
 						</div>
 					</CompactCard>
@@ -285,7 +294,7 @@ const CarrierAccountSettings = ( props ) => {
 								{ translate( 'UPS account information' ) }
 							</h4>
 							<Checkbox
-								id={ 'license_agreement' }
+								id={ 'enable_ups_invoice_fields' }
 								checked={ showUPSInvoiceFields }
 								onChange={ updateShowUPSInvoiceFields }
 							/>
@@ -296,7 +305,13 @@ const CarrierAccountSettings = ( props ) => {
 						{ showUPSInvoiceFields && upsInvoiceFields() }
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-actions">
-						<Button compact primary onClick={ submitCarrierSettingsHandler } disabled={ ! isFormValid }>
+						<Button
+							compact
+							primary
+							onClick={ submitCarrierSettingsHandler }
+							disabled={ ! isFormValid || isSaving }
+							busy={ isSaving }
+						>
 							{ translate( 'Connect' ) }
 						</Button>
 						<Button compact onClick={ showCancelDialogHandler }>
@@ -332,7 +347,13 @@ const CarrierAccountSettings = ( props ) => {
 
 const mapStateToProps = ( state, { siteId, carrier } ) => {
 	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
-	const { values, showCancelConnectionDialog, showUPSInvoiceFields } = carrierAccountState.settings;
+	const { isSaving } = carrierAccountState;
+	const {
+		values,
+		showCancelConnectionDialog,
+		showUPSInvoiceFields,
+		isConnectionSuccess,
+	} = carrierAccountState.settings;
 	const fieldErrors = getFormErrors( state, siteId, carrier );
 	const isFormValid = getFormValidState( state, siteId, carrier );
 
@@ -348,12 +369,14 @@ const mapStateToProps = ( state, { siteId, carrier } ) => {
 
 	const ret = {
 		countryNames,
+		fieldErrors,
+		isConnectionSuccess,
+		isFormValid,
+		isSaving,
+		showCancelConnectionDialog,
+		showUPSInvoiceFields,
 		stateNames: getStateNames( state, values.country, siteId ),
 		values,
-		fieldErrors,
-		isFormValid,
-		showUPSInvoiceFields,
-		showCancelConnectionDialog,
 	};
 	return ret;
 };
@@ -363,8 +386,8 @@ const mapDispatchToProps = ( dispatch ) => {
 		{
 			setVisibilityCancelConnectionDialog,
 			submitCarrierSettings,
-			updateCarrierSettings,
 			toggleShowUPSInvoiceFields,
+			updateCarrierSettings,
 		},
 		dispatch
 	);

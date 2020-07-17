@@ -6,10 +6,8 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { some } from 'lodash';
+import { isEmpty, some } from 'lodash';
 
 /**
  * Internal dependencies
@@ -17,18 +15,18 @@ import { some } from 'lodash';
 import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import CarrierAccountListItem from './list-item';
-import * as CarrierAccountsActions from '../../state/carrier-accounts/actions';
-import { getSelectedSiteId } from 'state/ui/selectors';
 
-class CarrierAccounts extends Component {
-	renderListHeader = carriers => {
+export class CarrierAccounts extends Component {
+	renderListHeader = ( carriers ) => {
 		const { translate } = this.props;
 
 		return (
 			<div className="carrier-accounts__header">
 				<div className="carrier-accounts__header-icon" />
 				<div className="carrier-accounts__header-name">{ translate( 'Name' ) }</div>
-				{ some(carriers, 'credentials' ) && <div className="carrier-accounts__header-credentials">{ translate( 'Credentials' ) }</div>}
+				{ some( carriers, 'account' ) && (
+					<div className="carrier-accounts__header-credentials">{ translate( 'Credentials' ) }</div>
+				) }
 
 				<div className="carrier-accounts__header-actions" />
 			</div>
@@ -38,32 +36,16 @@ class CarrierAccounts extends Component {
 	renderListItem = ( carrier, index ) => {
 		const { siteId, isFetching } = this.props;
 
-		return (
-			<CarrierAccountListItem
-				key={ index }
-				siteId={ siteId }
-				isPlaceholder={ isFetching }
-				data={ carrier }
-			/>
-		);
+		return <CarrierAccountListItem key={ index } siteId={ siteId } isPlaceholder={ isFetching } data={ carrier } />;
 	};
 
 	render() {
 		const { translate } = this.props;
 
-		const onConnect = ( carrier ) => {
-			const url = new URL( window.location.href );
-			url.searchParams.set( 'carrier', carrier.carrierId );
-			window.location.href = url.href;
+		let carriers = [ { id: null, carrier: 'UPS', account: null } ];
+		if ( ! isEmpty( this.props.carriers ) ) {
+			carriers = this.props.carriers;
 		}
-
-		const onDisconnect = () => {
-		}
-
-		const carriers = [
-			{ carrierId: 'UPS', name: 'UPS', onConnect },
-			{ carrierId: 'UPS', name: 'UPS', credentials: '989999847463', onDisconnect },
-		]
 
 		return (
 			<div>
@@ -84,24 +66,14 @@ class CarrierAccounts extends Component {
 }
 
 CarrierAccounts.propTypes = {
-	isShowingSettings: PropTypes.shape( {
-		carrierId: PropTypes.string.isRequired,
-		name: PropTypes.string.isRequired,
-		credentials: PropTypes.string,
-		onConnect: PropTypes.func,
-		onDisconnect: PropTypes.func,
-	} )
+	siteId: PropTypes.number.isRequired,
+	carriers: PropTypes.arrayOf(
+		PropTypes.shape( {
+			id: PropTypes.string.isRequired,
+			carrier: PropTypes.string.isRequired,
+			account: PropTypes.string,
+		} )
+	),
 };
 
-export default connect(
-	state => {
-		const siteId = getSelectedSiteId( state );
-
-		return {
-			siteId,
-		};
-	},
-	dispatch => ( {
-		...bindActionCreators( CarrierAccountsActions, dispatch ),
-	} )
-)( localize( CarrierAccounts ) );
+export default localize( CarrierAccounts );
