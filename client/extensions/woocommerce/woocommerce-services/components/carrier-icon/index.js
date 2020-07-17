@@ -10,9 +10,11 @@ import PropTypes from 'prop-types';
  * Internal dependencies
  */
 import upsLogo from './logos/ups.png';
+import uspsLogo from './logos/usps.png';
 
 const carrierLogos = {
-	"ups": upsLogo
+	"ups": upsLogo,
+	"usps": uspsLogo,
 };
 
 const sizeToPixels = ( size ) => {

@@ -13,7 +13,7 @@ import { CheckboxControl, RadioControl } from '@wordpress/components';
  * Internal dependencies
  */
 import ShippingRate from '../shipping-rate';
-import CarrierLogo from '../carrier-logo';
+import CarrierIcon from 'woocommerce/woocommerce-services/components/carrier-icon';
 
 configure({ adapter: new Adapter() });
 
@@ -81,7 +81,7 @@ describe( 'ShippingRate', () => {
 		} );
 
 		it( "renders the carrier's logo", () => {
-			expect( shippingRateWrapper.find( CarrierLogo ) ).to.have.lengthOf( 1 );
+			expect( shippingRateWrapper.find( CarrierIcon ) ).to.have.lengthOf( 1 );
 		} );
 
 		it( 'renders the rate title', () => {

@@ -128,8 +128,11 @@ export const CarrierAccountSettings = ( props ) => {
 
 	const cancelDialogButton = () => {
 		return [
-			<Button compact primary scary onClick={ () => history.back() }>
+			<Button compact onClick={ hideCancelDialogHandler }>
 				{ translate( 'Cancel' ) }
+			</Button>,
+			<Button compact primary scary onClick={ () => history.back() }>
+				{ translate( 'Ok' ) }
 			</Button>,
 		];
 	};
@@ -139,13 +142,12 @@ export const CarrierAccountSettings = ( props ) => {
 			{ displayErrors() }
 			<div className="carrier-accounts__settings">
 				<div className="carrier-accounts__settings-info">
-					<h4 className="carrier-accounts__settings-subheader">
+					<h4 className="carrier-accounts__settings-subheader-above-description">
 						{ translate( 'Connect your UPS account' ) }
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
 						{ translate(
-							'Set up your own UPS carrier account to compare rates and print labels from multiple carriers in WooCommerce Services. Learn more about adding {{a}}carrier accounts{{/a}}.',
-							{ components: { a: <a href="https://link.to.carrier.accounts.com/" /> } }
+							'Set up your own UPS carrier account to compare rates and print labels from multiple carriers in WooCommerce Services.'
 						) }
 					</p>
 					<p className="carrier-accounts__settings-subheader-description">
@@ -157,9 +159,9 @@ export const CarrierAccountSettings = ( props ) => {
 				</div>
 				<div className="carrier-accounts__settings-form">
 					<CompactCard>
-						<h4 className="carrier-accounts__settings-subheader">{ translate( 'General Information' ) }</h4>
+						<h4 className="carrier-accounts__settings-subheader">{ translate( 'General information' ) }</h4>
 						<p className="carrier-accounts__settings-subheader-description">
-							{ translate( 'This is the account number an address from your UPS profile' ) }
+							{ translate( 'This is the account number and address from your UPS profile' ) }
 						</p>
 					</CompactCard>
 					<CompactCard className="carrier-accounts__settings-account-number">
@@ -196,7 +198,7 @@ export const CarrierAccountSettings = ( props ) => {
 							/>
 							<TextField
 								id={ 'city' }
-								title={ translate( 'city' ) }
+								title={ translate( 'City' ) }
 								value={ getValue( 'city' ) }
 								updateValue={ updateValue( 'city' ) }
 								error={ fieldErrors.city }

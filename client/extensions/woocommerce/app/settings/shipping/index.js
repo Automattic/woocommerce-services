@@ -36,12 +36,11 @@ class Shipping extends Component {
 		this.setState( { pristine: Object.assign( {}, this.state.pristine, { shipping: false } ) } );
 	};
 
-	onSaveSuccess = option => {
+	onSaveSuccess = ( option ) => {
 		this.setState( { pristine: Object.assign( {}, this.state.pristine, { [ option ]: true } ) } );
 	};
 
 	render = () => {
-		alert( 'entra' )
 		const { className, wcsEnabled } = this.props;
 		const { pristine } = this.state;
 		const toSave = { units: ! pristine.units, shipping: ! pristine.shipping };
@@ -63,7 +62,7 @@ Shipping.propTypes = {
 	className: PropTypes.string,
 };
 
-export default connect( state => {
+export default connect( ( state ) => {
 	const site = getSelectedSite( state );
 	return {
 		wcsEnabled: isWcsEnabled( state, site.ID ),

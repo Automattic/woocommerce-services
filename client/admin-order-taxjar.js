@@ -6,7 +6,7 @@ import jQuery from 'jquery';
 
 jQuery( document ).ready( function() {
 	/*
-	* JavaScript for WooCommerce new order page
+	* JavaScript for WooCommerce order page
 	*/
 	const TaxJarOrder = function( $ ){ // eslint-disable-line no-unused-vars
 		$( document ).ajaxSend( function( event, request, settings ) {

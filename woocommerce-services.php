@@ -7,9 +7,9 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.23.0
+ * Version: 1.23.2
  * WC requires at least: 3.0.0
- * WC tested up to: 4.0
+ * WC tested up to: 4.2
  *
  * Copyright (c) 2017-2020 Automattic
  *
@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION ' ) ) {
-		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '2');
+		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '3');
 	}
 
 	// Check for CI environment variable to trigger test mode.
@@ -1173,7 +1173,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function get_i18n_json() {
-			$i18n_json = plugin_dir_path( __FILE__ ) . 'i18n/json/woocommerce-services-' . get_locale() . '.json';
+			$i18n_json = plugin_dir_path( __FILE__ ) . 'i18n/languages/woocommerce-services-' . get_locale() . '.json';
 			if ( is_file( $i18n_json ) && is_readable( $i18n_json ) ) {
 				$locale_data = @file_get_contents( $i18n_json );
 				if ( $locale_data ) {

@@ -57,7 +57,7 @@ export class CarrierAccounts extends Component {
 				<ExtendedHeader
 					label={ translate( 'Carrier account' ) }
 					description={ translate(
-						'Set up your own carrier account by adding your credentials here.'
+						'Set up your own carrier account by adding your credentials here'
 					) }
 				>
 				</ExtendedHeader>

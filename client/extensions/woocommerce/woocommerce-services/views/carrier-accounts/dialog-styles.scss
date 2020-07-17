@@ -2,7 +2,7 @@
 	.dialog__content {
 		padding: 0;
 		width: 666px;
-		height: 260px;
+		height: 200px;
 
 		.carrier-accounts__settings-cancel-dialog-header {
 			background-color: #fcfcfc;
@@ -39,6 +39,17 @@
 			background-color: #eb0001;
 			border-color: #ac120b;
 			color: #fff;
+		}
+		.is-borderless {
+			border: none;
+			background: none;
+			color: #636d75;
+			padding-left: 0;
+			padding-right: 0;
+
+			&:hover {
+				color: #3d4145;
+			}
 		}
 	}
 }

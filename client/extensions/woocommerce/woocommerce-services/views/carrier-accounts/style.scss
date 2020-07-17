@@ -49,18 +49,19 @@
 	.carrier-accounts__header-credentials {
 	}
 }
+
 $carrier-account-settings-max-width: 800px;
 
 .carrier-accounts__settings-container {
 	.carrier-accounts__settings-error {
 		display: flex;
-    	border-left: 4px solid #CD423B;
-    	background-color: #F8EBEA;
-    	height: 49px;
-    	align-items: center;
-    	justify-content: space-between;
-    	padding: 0 23px;
-    	margin-bottom: 20px;
+		border-left: 4px solid #CD423B;
+		background-color: #F8EBEA;
+		height: 49px;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 23px;
+		margin-bottom: 20px;
 		max-width: $carrier-account-settings-max-width;
 		box-sizing: border-box;
 	}
@@ -82,13 +83,19 @@ $carrier-account-settings-max-width: 800px;
 		}
 
 		.carrier-accounts__settings-subheader {
+			font-size: 16px;
+			margin: .5em 0 .5em 0;
+		}
+
+		.carrier-accounts__settings-subheader-above-description {
 			font-size: 18px;
-			margin: 0 0 1em 0;
+			margin: 1.3em 0 .5em 0;
 		}
 
 		.carrier-accounts__settings-subheader-description {
 			margin: 0;
-			margin-top: 1em;
+			margin-top: .5em;
+			margin-bottom: 1em;
 		}
 
 
@@ -126,23 +133,26 @@ $carrier-account-settings-max-width: 800px;
 }
 
 @media ( max-width: 1030px ) {
-	.carrier-accounts__settings {
-		flex-direction: column;
+	.carrier-accounts__settings-container {
+		.carrier-accounts__settings {
+			flex-direction: column;
 
-		.carrier-accounts__settings-info {
-			width: 100%;
-			margin-bottom: 16px;
+			.carrier-accounts__settings-info {
+				width: 100%;
+				margin-bottom: 16px;
+			}
 		}
 	}
 }
 @media ( max-width: 782px ) {
+	.carrier-accounts__settings-container {
+		.carrier-accounts__settings {
+			.carrier-accounts__settings-two-columns {
+				flex-direction: column;
 
-	.carrier-accounts__settings {
-		.carrier-accounts__settings-two-columns {
-			flex-direction: column;
-
-			& > * {
-				width: 100%;
+				& > * {
+					width: 100%;
+				}
 			}
 		}
 	}
