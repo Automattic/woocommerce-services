@@ -42,8 +42,8 @@ export const getFormErrors = ( state, siteId, carrier ) => {
 	if ( values.email && ! values.email.match( emailRegex ) ) {
 		fieldErrors.email = translate( 'The email format is not valid' );
 	}
-	if ( values.company_website && ! values.company_website.match( urlRegex ) ) {
-		fieldErrors.company_website = translate( 'The company website format is not valid' );
+	if ( values.website && ! values.website.match( urlRegex ) ) {
+		fieldErrors.website = translate( 'The company website format is not valid' );
 	}
 
 	if ( ignoreValidation ) {
