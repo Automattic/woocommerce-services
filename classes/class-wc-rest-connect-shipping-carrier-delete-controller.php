@@ -11,11 +11,10 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Carrier_Delete_Controller' ) ) {
 class WC_REST_Connect_Shipping_Carrier_Delete_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/shipping/carrier/(?P<carrier_id>.+)';
 
-
 	public function delete( $request ) {
-		$payload = array( 'id' => $request['carrier_id'] );
+		$carrier_id = $request['carrier_id'];
 
-		$response = $this->api_client->disconnect_carrier_account( $payload );
+		$response = $this->api_client->disconnect_carrier_account( $carrier_id );
 		if ( is_wp_error( $response ) ) {
 			$error = new WP_Error(
 				$response->get_error_code(),
