@@ -68,7 +68,6 @@ class LabelSettingsWrapper extends Component {
 
 	render() {
 		const { carrier, carriers, isSaving, siteId, translate } = this.props;
-		console.log( { carriers } );
 
 		if ( carrier ) {
 			return (
