@@ -4,12 +4,12 @@
  * External dependencies
  */
 import { mapValues, find, pickBy } from 'lodash';
-import { translate } from 'i18n-calypso';
+import i18n from 'i18n-calypso';
 
 // Mapping of signature service key to human-readable description.
 const signatureLabels = {
-	'signature_required': translate( 'Signature required' ),
-	'adult_signature_required': translate( 'Adult signature required' ),
+	'signature_required': i18n.translate( 'Signature required' ),
+	'adult_signature_required': i18n.translate( 'Adult signature required' ),
 }
 
 // Get the base cost (no special signature options, etc.) for a service.

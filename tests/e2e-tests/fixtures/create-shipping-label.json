@@ -1,0 +1,44 @@
+{
+  "async": true,
+  "origin": {
+    "company": "WCShip Test",
+    "name": "admin",
+    "phone": "",
+    "country": "US",
+    "state": "OH",
+    "address": "928  College Avenue",
+    "address_2": "",
+    "city": "Dayton",
+    "postcode": "45402"
+  },
+  "destination": {
+    "address_2": "",
+    "city": "Corinth",
+    "state": "NY",
+    "postcode": "12822",
+    "country": "US",
+    "address": "4590 Oak Drive",
+    "name": "John Doe",
+    "company": "",
+    "phone": "4121111111"
+  },
+  "packages": [
+    {
+      "id": "default_box",
+      "box_id": "priority_4",
+      "length": 7,
+      "width": 7,
+      "height": 6,
+      "weight": 20,
+      "is_letter": false,
+      "shipment_id": null,
+      "rate_id": null,
+      "service_id": "Priority",
+      "carrier_id": "usps",
+      "service_name": "USPS - Priority Mail",
+      "products": [
+      ]
+    }
+  ],
+  "email_receipt": true
+}

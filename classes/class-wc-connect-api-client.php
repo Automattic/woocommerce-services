@@ -302,7 +302,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'DELETE', '/shipping/carrier/' . $carrier_id );
 		}
 		/**
-		 * Request a refund for a given shipping label
+		 * Register a new carrier account
 		 *
 		 * @param $body
 		 * @return object|WP_Error

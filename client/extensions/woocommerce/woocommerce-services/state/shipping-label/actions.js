@@ -1047,7 +1047,7 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 					const rate = find( form.rates.available[ pckgId ][ rateType ].rates, r => serviceId === r.service_id );
 					const packageData = {
 						...packageFields,
-						shipment_id: form.rates.available[ pckgId ][ rateType ].shipment_id,
+						shipment_id: rate.shipment_id,
 						rate_id: rate.rate_id,
 						service_id: serviceId,
 						carrier_id: rate.carrier_id,

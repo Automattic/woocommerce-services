@@ -65,18 +65,18 @@ export const CarrierAccountListItem = ( props ) => {
 		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrier, false );
 	};
 
-	const connectCarrierHandler = () => {
-		const url = new URL( window.location.href );
-		url.searchParams.set( 'carrier', data.carrier );
-		window.location.href = url.href;
-	};
-
 	const renderActions = ( credentials ) => {
 		const connectButton = () => {
 			return (
-				<Button compact onClick={ connectCarrierHandler }>
+				<a
+					href={
+						'/wp-admin/admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=UPS'
+					}
+					// eslint-disable-next-line wpcalypso/jsx-classname-namespace
+					className={ 'button is-compact' }
+				>
 					{ translate( 'Connect' ) }
-				</Button>
+				</a>
 			);
 		};
 		const disconnectButton = () => {

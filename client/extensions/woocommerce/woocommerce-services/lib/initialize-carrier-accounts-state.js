@@ -18,7 +18,6 @@ export default () => {
 		'name',
 		'title',
 		'website',
-		'license_agreement',
 	];
 
 	return {

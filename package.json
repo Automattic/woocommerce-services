@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "1.23.0",
+  "version": "1.23.2",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd ..",
@@ -10,12 +10,12 @@
     "test": "npm run test-client && npm run eslint",
     "test-client": "jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
-    "prerelease": "npm run i18n && npm run i18njson",
+    "prerelease": "npm run i18n && node tasks/i18n-download && npm run i18njson",
     "release": "node tasks/release.js",
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
     "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
-    "woorelease": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
+    "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "test:e2e": "JEST_PUPPETEER_CONFIG=tests/e2e-tests/jest-puppeteer.config.js jest --config tests/e2e-tests/jest.config.js --verbose --runInBand",
     "test:e2e-travis": "./tests/bin/run-e2e-travis.sh"
   },
@@ -46,6 +46,7 @@
     "globby": "^6.1.0",
     "jest": "^24.9.0",
     "jest-puppeteer": "^4.4.0",
+    "moment": "^2.25.3",
     "moment-timezone-data-webpack-plugin": "^1.1.0",
     "nock": "10.0.6",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
@@ -56,7 +57,8 @@
     "sinon": "7.3.1",
     "sinon-chai": "3.3.0",
     "webpack-bundle-analyzer": "^3.6.1",
-    "xgettext-js": "^1.1.0"
+    "xgettext-js": "^1.1.0",
+    "i18n-calypso-cli": "^1.0.0"
   },
   "dependencies": {
     "@automattic/calypso-color-schemes": "^1.0.0-alpha.1",
@@ -113,7 +115,7 @@
     "loader-utils": "1.1.0",
     "lodash": "^4.17.4",
     "mini-css-extract-plugin": "0.4.4",
-    "node-sass": "4.9.4",
+    "node-sass": "^4.14.1",
     "object-path-immutable": "^0.5.1",
     "objectpath": "^1.2.1",
     "postcss-custom-properties": "^8.0.9",

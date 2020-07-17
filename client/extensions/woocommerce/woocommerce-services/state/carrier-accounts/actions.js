@@ -3,7 +3,6 @@
  * External dependencies
  */
 import { translate } from 'i18n-calypso';
-import { omit } from 'lodash';
 
 /**
  * Internal dependencies
@@ -83,7 +82,7 @@ export const disconnectCarrier = ( siteId, carrier, carrierId ) => ( dispatch ) 
 export const submitCarrierSettings = ( siteId, carrier, values ) => ( dispatch ) => {
 	dispatch( toggleSettingsIsSaving( siteId, carrier ) );
 	return api
-		.post( siteId, api.url.shippingCarrier(), omit( values, [ 'license_agreement' ] ) )
+		.post( siteId, api.url.shippingCarrier(), values )
 		.then( () => {
 			dispatch( carrierAccountConnectionSuccess( siteId, carrier ) );
 			dispatch( toggleSettingsIsSaving( siteId, carrier ) );

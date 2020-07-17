@@ -81,7 +81,7 @@ class AccountSettingsRootView extends Component {
 				<ExtendedHeader
 					label={ translate( 'Shipping Labels' ) }
 					description={ translate(
-						'Print shipping labels yourself and save a trip to the post office.'
+						'Print shipping labels yourself and save a trip to the post office'
 					) }
 				>
 					{ renderToggle && (
