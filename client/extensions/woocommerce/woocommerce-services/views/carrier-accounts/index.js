@@ -7,7 +7,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { some } from 'lodash';
+import { isEmpty, some } from 'lodash';
 
 /**
  * Internal dependencies
@@ -17,14 +17,16 @@ import ExtendedHeader from 'woocommerce/components/extended-header';
 import CarrierAccountListItem from './list-item';
 
 export class CarrierAccounts extends Component {
-	renderListHeader = carriers => {
+	renderListHeader = ( carriers ) => {
 		const { translate } = this.props;
 
 		return (
 			<div className="carrier-accounts__header">
 				<div className="carrier-accounts__header-icon" />
 				<div className="carrier-accounts__header-name">{ translate( 'Name' ) }</div>
-				{ some(carriers, 'credentials' ) && <div className="carrier-accounts__header-credentials">{ translate( 'Credentials' ) }</div>}
+				{ some( carriers, 'account' ) && (
+					<div className="carrier-accounts__header-credentials">{ translate( 'Credentials' ) }</div>
+				) }
 
 				<div className="carrier-accounts__header-actions" />
 			</div>
@@ -34,23 +36,16 @@ export class CarrierAccounts extends Component {
 	renderListItem = ( carrier, index ) => {
 		const { siteId, isFetching } = this.props;
 
-		return (
-			<CarrierAccountListItem
-				key={ index }
-				siteId={ siteId }
-				isPlaceholder={ isFetching }
-				data={ carrier }
-			/>
-		);
+		return <CarrierAccountListItem key={ index } siteId={ siteId } isPlaceholder={ isFetching } data={ carrier } />;
 	};
 
 	render() {
 		const { translate } = this.props;
 
-		const carriers = this.props.carriers || [
-			{ carrierId: 'UPS', name: 'UPS' },
-			{ carrierId: 'UPS', name: 'UPS', credentials: '989999847463' },
-		];
+		let carriers = [ { id: null, carrier: 'UPS', account: null } ];
+		if ( ! isEmpty( this.props.carriers ) ) {
+			carriers = this.props.carriers;
+		}
 
 		return (
 			<div>
@@ -73,12 +68,12 @@ export class CarrierAccounts extends Component {
 CarrierAccounts.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	carriers: PropTypes.arrayOf(
-    	PropTypes.shape( {
-			carrierId: PropTypes.string.isRequired,
-			name: PropTypes.string.isRequired,
-			credentials: PropTypes.string,
-    	} )
-    )
+		PropTypes.shape( {
+			id: PropTypes.string.isRequired,
+			carrier: PropTypes.string.isRequired,
+			account: PropTypes.string,
+		} )
+	),
 };
 
 export default localize( CarrierAccounts );

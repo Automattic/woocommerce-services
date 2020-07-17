@@ -25,7 +25,12 @@ import {
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 
 export const CarrierAccountListItem = ( props ) => {
-	const { data, translate, siteId, showDisconnectDialog } = props;
+	const { data, disconnected, isSaving, translate, siteId, showDisconnectDialog } = props;
+
+	if ( disconnected ) {
+		delete data.id;
+		delete data.account;
+	}
 
 	const renderIcon = ( carrierId ) => {
 		return (
@@ -53,11 +58,11 @@ export const CarrierAccountListItem = ( props ) => {
 	};
 
 	const showDisconnectDialogHandler = () => {
-		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, true );
+		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrier, true );
 	};
 
 	const hideDisconnectDialogHandler = () => {
-		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false );
+		props.setVisibilityDisconnectCarrierDialog( siteId, data.carrier, false );
 	};
 
 	const renderActions = ( credentials ) => {
@@ -67,6 +72,7 @@ export const CarrierAccountListItem = ( props ) => {
 					href={
 						'/wp-admin/admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=UPS'
 					}
+					// eslint-disable-next-line wpcalypso/jsx-classname-namespace
 					className={ 'button is-compact' }
 				>
 					{ translate( 'Connect' ) }
@@ -92,11 +98,19 @@ export const CarrierAccountListItem = ( props ) => {
 			<Button
 				compact
 				primary
-				onClick={ () => props.setVisibilityDisconnectCarrierDialog( siteId, data.carrierId, false ) }
+				disabled={ isSaving }
+				onClick={ () => props.setVisibilityDisconnectCarrierDialog( siteId, data.carrier, false ) }
 			>
 				{ translate( 'Cancel' ) }
 			</Button>,
-			<Button compact primary scary onClick={ () => props.disconnectCarrier( data.carrierId ) }>
+			<Button
+				compact
+				primary
+				scary
+				disabled={ isSaving }
+				busy={ isSaving }
+				onClick={ () => props.disconnectCarrier( siteId, data.carrier, data.id ) }
+			>
 				{ translate( 'Disconnect' ) }
 			</Button>,
 		];
@@ -104,10 +118,10 @@ export const CarrierAccountListItem = ( props ) => {
 
 	return (
 		<div className="carrier-accounts__list-item">
-			{ renderIcon( data.carrierId ) }
-			{ renderName( data.name ) }
-			{ renderCredentials( data.credentials ) }
-			{ renderActions( data.credentials ) }
+			{ renderIcon( data.carrier ) }
+			{ renderName( data.carrier ) }
+			{ renderCredentials( data.account ) }
+			{ renderActions( data.account ) }
 			<Dialog
 				isVisible={ showDisconnectDialog }
 				additionalClassNames="carrier-accounts__settings-cancel-dialog"
@@ -138,18 +152,20 @@ export const CarrierAccountListItem = ( props ) => {
 CarrierAccountListItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	data: PropTypes.shape( {
-		name: PropTypes.string.isRequired,
-		carrierId: PropTypes.string.isRequired,
-		credentials: PropTypes.string,
+		id: PropTypes.string,
+		carrier: PropTypes.string.isRequired,
+		account: PropTypes.string,
 	} ).isRequired,
 };
 
 const mapStateToProps = ( state, { siteId, data } ) => {
-	const carrier = data.carrierId;
+	const carrier = data.carrier;
 	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
-	const { showDisconnectDialog } = carrierAccountState;
+	const { disconnected, isSaving, showDisconnectDialog } = carrierAccountState;
 
 	const ret = {
+		disconnected,
+		isSaving,
 		showDisconnectDialog,
 	};
 

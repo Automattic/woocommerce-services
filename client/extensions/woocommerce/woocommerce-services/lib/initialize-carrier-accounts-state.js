@@ -34,8 +34,9 @@ export default () => {
 					return accumulator;
 				}, {} ),
 				showUPSInvoiceFields: false,
-				isSaving: false,
 			},
+			isSaving: false,
+			showDisconnectDialog: false,
 		},
 	};
 };

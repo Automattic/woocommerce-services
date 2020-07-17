@@ -4,17 +4,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
 
-if ( class_exists( 'WC_REST_Connect_Shipping_Carrier_Controller' ) ) {
+if ( class_exists( 'WC_REST_Connect_Shipping_Carriers_Controller' ) ) {
 	return;
 }
 
 class WC_REST_Connect_Shipping_Carriers_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/shipping/carrier';
+	protected $rest_base = 'connect/shipping/carriers';
 
-	public function post( $request ) {
-		$settings = $request->get_json_params();
-
-		$response = $this->api_client->create_shipping_carrier_account( $settings );
+	public function get() {
+		$response = $this->api_client->get_all_shipping_carriers();
 		if ( is_wp_error( $response ) ) {
 			$error = new WP_Error(
 				$response->get_error_code(),
@@ -25,6 +23,6 @@ class WC_REST_Connect_Shipping_Carriers_Controller extends WC_REST_Connect_Base_
 			return $error;
 		}
 
-		return array( 'success' => true );
+		return $response;
 	}
 }
