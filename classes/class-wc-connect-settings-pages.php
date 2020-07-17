@@ -80,7 +80,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
-			$extra_args = $this->api_client->get_carrier_accounts();
+			$carriers_response = $this->api_client->get_carrier_accounts();
+
+			$extra_args = array( 'carriers' => $carriers_response->carriers);
 
 			if ( isset( $_GET['from_order'] ) ) {
 				$extra_args['order_id'] = $_GET['from_order'];

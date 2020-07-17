@@ -7,7 +7,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { some } from 'lodash';
+import { isEmpty, some } from 'lodash';
 
 /**
  * Internal dependencies
@@ -42,7 +42,10 @@ export class CarrierAccounts extends Component {
 	render() {
 		const { translate } = this.props;
 
-		const carriers = this.props.carriers || [];
+		let carriers = [ { id: null, carrier: 'UPS', account: null } ];
+		if ( ! isEmpty( this.props.carriers ) ) {
+			carriers = this.props.carriers;
+		}
 
 		return (
 			<div>

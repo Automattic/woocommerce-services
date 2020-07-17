@@ -876,7 +876,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_carrier_delete_controller( $rest_carrier_delete_controller );
 			$rest_carrier_delete_controller->register_routes();
 
-
 			if ( $this->stripe->is_stripe_plugin_enabled() ) {
 				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-init-controller.php' ) );
 				$rest_stripe_settings_controller = new WC_REST_Connect_Stripe_Oauth_Init_Controller( $this->stripe, $this->api_client, $settings_store, $logger );

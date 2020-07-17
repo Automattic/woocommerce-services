@@ -32,7 +32,6 @@ import {
 	setVisibilityCancelConnectionDialog,
 	submitCarrierSettings,
 	updateCarrierSettings,
-	toggleSettingsIsSaving,
 	toggleShowUPSInvoiceFields,
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
@@ -66,7 +65,6 @@ export const CarrierAccountSettings = ( props ) => {
 	const updateValue = ( fieldName ) => ( newValue ) =>
 		props.updateCarrierSettings( siteId, carrier, fieldName, newValue );
 	const submitCarrierSettingsHandler = () => {
-		props.toggleSettingsIsSaving( siteId, carrier );
 		props.submitCarrierSettings( siteId, carrier, values );
 	};
 	const showCancelDialogHandler = () => {
@@ -373,11 +371,11 @@ export const CarrierAccountSettings = ( props ) => {
 
 const mapStateToProps = ( state, { siteId, carrier } ) => {
 	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
+	const { isSaving } = carrierAccountState;
 	const {
 		values,
 		showCancelConnectionDialog,
 		showUPSInvoiceFields,
-		isSaving,
 		isConnectionSuccess,
 	} = carrierAccountState.settings;
 	const fieldErrors = getFormErrors( state, siteId, carrier );
@@ -412,7 +410,6 @@ const mapDispatchToProps = ( dispatch ) => {
 		{
 			setVisibilityCancelConnectionDialog,
 			submitCarrierSettings,
-			toggleSettingsIsSaving,
 			toggleShowUPSInvoiceFields,
 			updateCarrierSettings,
 		},

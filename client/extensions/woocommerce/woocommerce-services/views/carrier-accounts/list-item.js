@@ -25,7 +25,12 @@ import {
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 
 export const CarrierAccountListItem = ( props ) => {
-	const { data, translate, siteId, showDisconnectDialog } = props;
+	const { data, disconnected, isSaving, translate, siteId, showDisconnectDialog } = props;
+
+	if ( disconnected ) {
+		delete data.id;
+		delete data.account;
+	}
 
 	const renderIcon = ( carrierId ) => {
 		return (
@@ -93,11 +98,19 @@ export const CarrierAccountListItem = ( props ) => {
 			<Button
 				compact
 				primary
+				disabled={ isSaving }
 				onClick={ () => props.setVisibilityDisconnectCarrierDialog( siteId, data.carrier, false ) }
 			>
 				{ translate( 'Cancel' ) }
 			</Button>,
-			<Button compact primary scary onClick={ () => props.disconnectCarrier( siteId, data.carrier ) }>
+			<Button
+				compact
+				primary
+				scary
+				disabled={ isSaving }
+				busy={ isSaving }
+				onClick={ () => props.disconnectCarrier( siteId, data.carrier, data.id ) }
+			>
 				{ translate( 'Disconnect' ) }
 			</Button>,
 		];
@@ -139,7 +152,7 @@ export const CarrierAccountListItem = ( props ) => {
 CarrierAccountListItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	data: PropTypes.shape( {
-		id: PropTypes.string.isRequired,
+		id: PropTypes.string,
 		carrier: PropTypes.string.isRequired,
 		account: PropTypes.string,
 	} ).isRequired,
@@ -148,9 +161,11 @@ CarrierAccountListItem.propTypes = {
 const mapStateToProps = ( state, { siteId, data } ) => {
 	const carrier = data.carrier;
 	const carrierAccountState = getCarrierAccountsState( state, siteId, carrier );
-	const { showDisconnectDialog } = carrierAccountState;
+	const { disconnected, isSaving, showDisconnectDialog } = carrierAccountState;
 
 	const ret = {
+		disconnected,
+		isSaving,
 		showDisconnectDialog,
 	};
 

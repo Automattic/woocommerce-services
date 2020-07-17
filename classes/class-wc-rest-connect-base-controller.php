@@ -57,6 +57,15 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 				),
 			) );
 		}
+		if ( method_exists( $this, 'delete' ) ) {
+			register_rest_route( $this->namespace, '/' . $this->rest_base, array(
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( $this, 'delete_internal' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+				),
+			) );
+		}
 	}
 
 	/**
@@ -100,6 +109,11 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		return $this->post( $request );
 	}
 
+	public function delete_internal( $request ) {
+		$this->prevent_route_caching();
+
+		return $this->delete( $request );
+	}
 	/**
 	 * Validate the requester's permissions
 	 */
