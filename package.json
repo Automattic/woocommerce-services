@@ -79,6 +79,7 @@
     "@hot-loader/react-dom": "^16.7.0",
     "@wordpress/babel-preset-default": "^4.11.0",
     "@wordpress/components": "8.5.0",
+    "@wordpress/element": "2.10.0",
     "autoprefixer": "^6.7.4",
     "babel-eslint": "10.0.1",
     "babel-loader": "8.0.4",
