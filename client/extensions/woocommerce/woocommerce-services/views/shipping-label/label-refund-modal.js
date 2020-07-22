@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import formatCurrency from '@automattic/format-currency';
-// import 'moment/locale/ro';
 
 /**
  * Internal dependencies
@@ -37,7 +36,6 @@ const RefundDialog = props => {
 		translate,
 		moment,
 	} = props;
-	moment().locale('ro');
 
 	const getRefundableAmount = () => {
 		return formatCurrency( refundableAmount, currency );
