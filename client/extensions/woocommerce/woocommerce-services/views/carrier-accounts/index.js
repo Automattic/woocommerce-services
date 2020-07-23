@@ -42,20 +42,17 @@ export class CarrierAccounts extends Component {
 	render() {
 		const { translate } = this.props;
 
-		let carriers = [ { id: null, carrier: 'UPS', account: null } ];
-		if ( ! isEmpty( this.props.carriers ) ) {
-			carriers = this.props.carriers;
-		}
+		const carriers = this.props.carriers || [];
 
+		if ( isEmpty( carriers ) ) {
+			return <div></div>;
+		}
 		return (
 			<div>
 				<ExtendedHeader
 					label={ translate( 'Carrier account' ) }
-					description={ translate(
-						'Set up your own carrier account by adding your credentials here'
-					) }
-				>
-				</ExtendedHeader>
+					description={ translate( 'Set up your own carrier account by adding your credentials here' ) }
+				></ExtendedHeader>
 				<Card className="carrier-accounts__list">
 					{ this.renderListHeader( carriers ) }
 					{ carriers.map( this.renderListItem ) }
@@ -69,8 +66,8 @@ CarrierAccounts.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	carriers: PropTypes.arrayOf(
 		PropTypes.shape( {
-			id: PropTypes.string.isRequired,
-			carrier: PropTypes.string.isRequired,
+			id: PropTypes.string,
+			carrier: PropTypes.string,
 			account: PropTypes.string,
 		} )
 	),
