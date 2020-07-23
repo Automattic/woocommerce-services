@@ -82,7 +82,7 @@ class WC_Connect_TaxJar_Integration {
 
 
 		// Scripts / Stylesheets
-		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_order_assets' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
 
 		$this->configure_tax_settings();
 
@@ -1191,30 +1191,19 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Checks if currently on the WooCommerce order page
+	 * Checks if currently on the WooCommerce new order page
 	 *
 	 * @return boolean
 	 */
 	public function on_order_page() {
 		global $pagenow;
-		global $post;
-		// On new order page.
-		if ( in_array( $pagenow, array( 'post-new.php', ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] ) {
-			return true;
-		}
-
-		// On order edit page.
-		if ( in_array( $pagenow, array( 'post.php', ) ) && 'shop_order' == $post->post_type ) {
-			return true;
-		}
-
-		return false;
+		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] );
 	}
 
 	/**
-	 * Admin Order Assets
+	 * Admin New Order Assets
 	 */
-	public function load_taxjar_admin_order_assets() {
+	public function load_taxjar_admin_new_order_assets() {
 		if ( ! $this->on_order_page() ) {
 			return;
 		}
