@@ -27,7 +27,7 @@ __webpack_public_path__ = global.wcsPluginData.assetPath;
 
 // We need to lazy load the moment locale files.
 // First we try language code with region if it's different then fall back to language code only.
-if ( window.i18nLocale && window.i18nLocale.localeSlug !== 'en' ) {
+if ( window.i18nLocale && window.i18nLocale.localeSlug !== 'en-US' && window.i18nLocale.localeSlug !== 'en' ) {
 	const localeSlugParts = window.i18nLocale.localeSlug.split('-');
 	let localeFileSlug = window.i18nLocale.localeSlug.toLowerCase();
 	if ( localeSlugParts[0] === localeSlugParts[1] ) {
