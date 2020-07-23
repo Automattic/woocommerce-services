@@ -51,11 +51,8 @@ export class CarrierAccounts extends Component {
 			<div>
 				<ExtendedHeader
 					label={ translate( 'Carrier account' ) }
-					description={ translate(
-						'Set up your own carrier account by adding your credentials here'
-					) }
-				>
-				</ExtendedHeader>
+					description={ translate( 'Set up your own carrier account by adding your credentials here' ) }
+				></ExtendedHeader>
 				<Card className="carrier-accounts__list">
 					{ this.renderListHeader( carriers ) }
 					{ carriers.map( this.renderListItem ) }
@@ -69,7 +66,7 @@ CarrierAccounts.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	carriers: PropTypes.arrayOf(
 		PropTypes.shape( {
-			id: PropTypes.string.isRequired,
+			id: PropTypes.string,
 			carrier: PropTypes.string.isRequired,
 			account: PropTypes.string,
 		} )

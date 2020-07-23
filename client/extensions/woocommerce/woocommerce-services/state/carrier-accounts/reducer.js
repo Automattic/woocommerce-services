@@ -72,13 +72,13 @@ reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS ] = ( state, { c
 };
 
 reducers[ WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_IS_SAVING ] = ( state, { carrier } ) => {
-	const settings = state[ carrier ].settings;
+	const { isSaving, settings } = state[ carrier ];
 
 	const newState = {
 		...state,
 		[ carrier ]: {
 			settings,
-			isSaving: ! settings.isSaving,
+			isSaving: ! isSaving,
 		},
 	};
 

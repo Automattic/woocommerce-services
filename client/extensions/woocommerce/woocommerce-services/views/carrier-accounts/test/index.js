@@ -6,7 +6,7 @@
 import React from 'react';
 import { expect } from 'chai';
 import { configure, shallow } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16'
+import Adapter from 'enzyme-adapter-react-16';
 
 /**
  * Internal dependencies
@@ -16,26 +16,24 @@ import CarrierAccountListItem from '../list-item';
 import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 
-configure({ adapter: new Adapter() });
+configure( { adapter: new Adapter() } );
 
 function createCarrierAccountsWrapper( { carriers = [] } ) {
 	const props = {
 		siteId: 10,
-		translate: (text) => text,
-		carriers: carriers
+		translate: ( text ) => text,
+		carriers: carriers,
 	};
 
 	return shallow( <CarrierAccounts { ...props } /> );
-
 }
 
 describe( 'Carrier Accounts', () => {
 	describe( 'with a disconnected carrier', () => {
 		const carrier = {
-			carrierId: 'carrier',
-			name: 'carrier',
+			id: 'carrier',
+			carrier: 'carrier',
 		};
-
 
 		const wrapper = createCarrierAccountsWrapper( { carriers: [ carrier ] } );
 		const renderedExtendedHeader = wrapper.find( ExtendedHeader );
@@ -46,7 +44,9 @@ describe( 'Carrier Accounts', () => {
 		it( 'renders a title with a description', function () {
 			expect( renderedExtendedHeader ).to.have.lengthOf( 1 );
 			expect( renderedExtendedHeader.props().label ).to.equal( 'Carrier account' );
-			expect( renderedExtendedHeader.props().description ).to.equal( 'Set up your own carrier account by adding your credentials here.' );
+			expect( renderedExtendedHeader.props().description ).to.equal(
+				'Set up your own carrier account by adding your credentials here'
+			);
 		} );
 
 		it( 'renders a card', function () {
@@ -57,28 +57,26 @@ describe( 'Carrier Accounts', () => {
 			expect( renderedCarrierListItem ).to.have.lengthOf( 1 );
 		} );
 
-		it( "doesn't render the credentials column in the carriers list header", function() {
+		it( "doesn't render the credentials column in the carriers list header", function () {
 			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-credentials' ) ).to.have.lengthOf( 0 );
 		} );
 
-		it( 'renders a name column in the carrier accounts list header', function() {
+		it( 'renders a name column in the carrier accounts list header', function () {
 			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-name' ) ).to.have.lengthOf( 1 );
 		} );
 	} );
 	describe( 'with a connected carrier', () => {
 		const carrier = {
-			carrierId: 'carrier',
-			name: 'carrier',
-			credentials: 'carrier-credentials',
+			id: 'carrier',
+			carrier: 'carrier',
+			account: 'carrier-credentials',
 		};
-
 
 		const wrapper = createCarrierAccountsWrapper( { carriers: [ carrier ] } );
 		const renderedCarrierListHeader = wrapper.find( '.carrier-accounts__header' );
 
-		it( "renders the credentials column in the carriers list header", function() {
+		it( 'renders the credentials column in the carriers list header', function () {
 			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-credentials' ) ).to.have.lengthOf( 1 );
 		} );
-
 	} );
 } );
