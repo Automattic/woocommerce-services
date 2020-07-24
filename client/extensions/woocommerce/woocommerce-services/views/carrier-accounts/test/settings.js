@@ -11,11 +11,9 @@ import Adapter from 'enzyme-adapter-react-16';
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import { CarrierAccountSettings } from '../settings';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
-import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 
 configure( { adapter: new Adapter() } );
 
@@ -69,23 +67,23 @@ const upsInvoiceFields = [
 ];
 
 describe( 'Carrier Accounts Settings', () => {
-	const { wrapper } = createCarrierAccountSettingsWrapper( {
+	const { carrierAccountSettingsWrapper } = createCarrierAccountSettingsWrapper( {
 		carrier: 'carrier',
 	} );
 
 	for ( const [ fieldId, fieldType ] of visibleFields ) {
 		it( `renders a ${ fieldId } ${ fieldType.name }`, function () {
-			const field = wrapper.find( `#${ fieldId }` );
+			const field = carrierAccountSettingsWrapper.find( `#${ fieldId }` );
 			expect( field.is( fieldType ) ).to.equal( true );
 		} );
 	}
 
-	const enableUPSINvoiceFieldsCheckboxWrapper = wrapper.find( '#enable_ups_invoice_fields' );
+	const enableUPSINvoiceFieldsCheckboxWrapper = carrierAccountSettingsWrapper.find( '#enable_ups_invoice_fields' );
 	enableUPSINvoiceFieldsCheckboxWrapper.simulate( 'change', { target: { checked: true } } );
 
 	for ( const [ fieldId, fieldType ] of upsInvoiceFields ) {
 		it( `renders the UPS invoice field ${ fieldId }`, function () {
-			const field = wrapper.find( `#${ fieldId }` );
+			const field = carrierAccountSettingsWrapper.find( `#${ fieldId }` );
 			expect( field.is( fieldType ) ).to.equal( true );
 		} );
 	}
