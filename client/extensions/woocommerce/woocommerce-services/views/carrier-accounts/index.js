@@ -67,7 +67,7 @@ CarrierAccounts.propTypes = {
 	carriers: PropTypes.arrayOf(
 		PropTypes.shape( {
 			id: PropTypes.string,
-			carrier: PropTypes.string,
+			carrier: PropTypes.string.isRequired,
 			account: PropTypes.string,
 		} )
 	),

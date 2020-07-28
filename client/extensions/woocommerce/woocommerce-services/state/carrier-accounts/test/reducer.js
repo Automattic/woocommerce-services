@@ -185,9 +185,8 @@ describe( 'Carrier Accounts reducer', () => {
 			modalErrors: {},
 			pristine: true,
 			[ carrier ]: {
-				settings: {
-					isSaving: false,
-				},
+				isSaving: false,
+				settings: {},
 			},
 		};
 		const action = toggleSettingsIsSaving( siteId, carrier, true );
@@ -197,9 +196,8 @@ describe( 'Carrier Accounts reducer', () => {
 			modalErrors: {},
 			pristine: true,
 			[ carrier ]: {
-				settings: {
-					isSaving: true,
-				},
+				isSaving: true,
+				settings: {},
 			},
 		} );
 	} );

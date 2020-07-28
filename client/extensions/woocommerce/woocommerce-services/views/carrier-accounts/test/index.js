@@ -31,9 +31,8 @@ function createCarrierAccountsWrapper( { carriers = [] } ) {
 describe( 'Carrier Accounts', () => {
 	describe( 'with a disconnected carrier', () => {
 		const carrier = {
-			id: null,
-			account: 'carrier',
-			account: null,
+			id: 'carrier',
+			carrier: 'carrier',
 		};
 
 		const wrapper = createCarrierAccountsWrapper( { carriers: [ carrier ] } );
@@ -46,7 +45,7 @@ describe( 'Carrier Accounts', () => {
 			expect( renderedExtendedHeader ).to.have.lengthOf( 1 );
 			expect( renderedExtendedHeader.props().label ).to.equal( 'Carrier account' );
 			expect( renderedExtendedHeader.props().description ).to.equal(
-				'Set up your own carrier account by adding your credentials here.'
+				'Set up your own carrier account by adding your credentials here'
 			);
 		} );
 

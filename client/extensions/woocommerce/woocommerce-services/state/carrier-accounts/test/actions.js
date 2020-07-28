@@ -15,7 +15,6 @@ import {
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_CANCEL_CONNECTION_DIALOG,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG,
-	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_SUBMIT_SETTINGS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_IS_SAVING,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_SHOW_UPS_INVOICE_FIELDS,
 	WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_UPDATE_SETTINGS,
@@ -136,11 +135,50 @@ describe( 'Carrier Accounts state actions', () => {
 			show: true,
 		} );
 	} );
-	test( '#disconnectCarrier', () => {
-		expect( disconnectCarrier( siteId, carrier ) ).to.eql( {
-			type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
+
+	describe( '#disconnectCarrier', () => {
+		const dispatchSpy = sinon.spy();
+		disconnectCarrier(
 			siteId,
-			carrier,
+			carrier
+		)( dispatchSpy ).then( () => {
+			it( 'sets a disconnected flag', () => {
+				expect( disconnectCarrier( siteId, carrier ) ).to.eql( {
+					type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_DISCONNECT_CARRIER,
+					siteId,
+					carrier,
+				} );
+			} );
+			it( 'displays a sucess message', () => {
+				expect(
+					dispatchSpy.calledWith( {
+						type: 'NOTICE_CREATE',
+						notice: {
+							showDismiss: true,
+							noticeId: '1',
+							status: 'is-success',
+							text: 'Your carrier account was disconnected succesfully.',
+						},
+					} )
+				).to.equal( true );
+			} );
+			it( 'stops the spinner', () => {
+				expect(
+					dispatchSpy.calledWith( {
+						type: 'WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_TOGGLE_IS_SAVING',
+						siteId,
+						carrier,
+					} )
+				).to.equal( true );
+			} );
+			it( 'hides the disconnect dialog', () => {
+				expect( disconnectCarrier( siteId, carrier ) ).to.eql( {
+					type: WOOCOMMERCE_SERVICES_CARRIER_ACCOUNTS_ENABLE_DISCONNECT_DIALOG,
+					siteId,
+					carrier,
+					show: false,
+				} );
+			} );
 		} );
 	} );
 

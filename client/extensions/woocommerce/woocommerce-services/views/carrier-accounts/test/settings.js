@@ -11,11 +11,9 @@ import Adapter from 'enzyme-adapter-react-16';
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import { CarrierAccountSettings } from '../settings';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
-import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 
 configure( { adapter: new Adapter() } );
 
@@ -40,8 +38,6 @@ function createCarrierAccountSettingsWrapper( { carrier = {} } ) {
 	};
 
 	wrapper = shallow( <CarrierAccountSettings { ...props } /> );
-
-	return { wrapper, props };
 }
 
 const visibleFields = [
@@ -69,7 +65,7 @@ const upsInvoiceFields = [
 ];
 
 describe( 'Carrier Accounts Settings', () => {
-	const { wrapper } = createCarrierAccountSettingsWrapper( {
+	createCarrierAccountSettingsWrapper( {
 		carrier: 'carrier',
 	} );
 

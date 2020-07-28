@@ -33,6 +33,8 @@ describe( 'Carrier Accounts selectors', () => {
 		const state = getState();
 		const result = getCarrierAccountsState( state, siteId, carrier );
 		expect( result ).to.eql( {
+			isSaving: false,
+			showDisconnectDialog: false,
 			settings: {
 				fieldErrors: {},
 				ignoreValidation: {
@@ -44,7 +46,6 @@ describe( 'Carrier Accounts selectors', () => {
 					country: false,
 					email: true,
 					title: true,
-					name: true,
 					phone: true,
 					postal_code: true,
 					state: true,
@@ -59,13 +60,11 @@ describe( 'Carrier Accounts selectors', () => {
 					'postal_code',
 					'phone',
 					'email',
-					'name',
 					'title',
 					'website',
 				],
 				showUPSInvoiceFields: false,
 				values: { country: 'US', type: 'UpsAccount' },
-				isSaving: false,
 			},
 		} );
 	} );
@@ -105,11 +104,11 @@ describe( 'Carrier Accounts selectors', () => {
 					...settings,
 					values: {
 						...values,
-						company_website: 'http://asdf',
+						website: 'http://asdf',
 					},
 					ignoreValidation: {
 						...ignoreValidation,
-						company_website: false,
+						website: false,
 					},
 				},
 			},
@@ -118,7 +117,7 @@ describe( 'Carrier Accounts selectors', () => {
 		const result = getFormErrors( newState, siteId, carrier );
 
 		expect( result ).to.eql( {
-			company_website: 'The company website format is not valid',
+			website: 'The company website format is not valid',
 		} );
 	} );
 	test( 'getFormErrors validates if email is invalid', () => {
