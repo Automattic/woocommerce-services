@@ -15,7 +15,6 @@ export default () => {
 		'postal_code',
 		'phone',
 		'email',
-		'name',
 		'title',
 		'website',
 	];

@@ -38,8 +38,6 @@ function createCarrierAccountSettingsWrapper( { carrier = {} } ) {
 	};
 
 	wrapper = shallow( <CarrierAccountSettings { ...props } /> );
-
-	return { wrapper, props };
 }
 
 const visibleFields = [
@@ -67,23 +65,23 @@ const upsInvoiceFields = [
 ];
 
 describe( 'Carrier Accounts Settings', () => {
-	const { carrierAccountSettingsWrapper } = createCarrierAccountSettingsWrapper( {
+	createCarrierAccountSettingsWrapper( {
 		carrier: 'carrier',
 	} );
 
 	for ( const [ fieldId, fieldType ] of visibleFields ) {
 		it( `renders a ${ fieldId } ${ fieldType.name }`, function () {
-			const field = carrierAccountSettingsWrapper.find( `#${ fieldId }` );
+			const field = wrapper.find( `#${ fieldId }` );
 			expect( field.is( fieldType ) ).to.equal( true );
 		} );
 	}
 
-	const enableUPSINvoiceFieldsCheckboxWrapper = carrierAccountSettingsWrapper.find( '#enable_ups_invoice_fields' );
+	const enableUPSINvoiceFieldsCheckboxWrapper = wrapper.find( '#enable_ups_invoice_fields' );
 	enableUPSINvoiceFieldsCheckboxWrapper.simulate( 'change', { target: { checked: true } } );
 
 	for ( const [ fieldId, fieldType ] of upsInvoiceFields ) {
 		it( `renders the UPS invoice field ${ fieldId }`, function () {
-			const field = carrierAccountSettingsWrapper.find( `#${ fieldId }` );
+			const field = wrapper.find( `#${ fieldId }` );
 			expect( field.is( fieldType ) ).to.equal( true );
 		} );
 	}
