@@ -145,7 +145,8 @@ export const CarrierAccountSettings = ( props ) => {
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
 						{ translate(
-							'Set up your own UPS carrier account to compare rates and print labels from multiple carriers in WooCommerce Services.'
+							'Set up your own UPS carrier account to compare rates and print labels from multiple carriers in WooCommerce Services. Learn more about adding {{a}}carrier accounts{{/a}}.',
+							{ components: { a: <a href="https://link.to.carrier.accounts.com/" /> } }
 						) }
 					</p>
 					<p className="carrier-accounts__settings-subheader-description">
