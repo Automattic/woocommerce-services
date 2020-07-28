@@ -79,4 +79,16 @@ describe( 'Carrier Accounts', () => {
 			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-credentials' ) ).to.have.lengthOf( 1 );
 		} );
 	} );
+	describe( 'with no carriers', () => {
+		const wrapper = createCarrierAccountsWrapper( { carriers: [] } );
+		const renderedCarrierListHeader = wrapper.find( '.carrier-accounts__header' );
+		const renderedCard = wrapper.find( Card );
+
+		it( 'does not render the carriers header', function () {
+			expect( renderedCarrierListHeader ).to.have.lengthOf( 0 );
+		} );
+		it( 'does not render the carriers list', function () {
+			expect( renderedCard ).to.have.lengthOf( 0 );
+		} );
+	} );
 } );

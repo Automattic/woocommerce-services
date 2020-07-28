@@ -42,11 +42,11 @@ export class CarrierAccounts extends Component {
 	render() {
 		const { translate } = this.props;
 
-		let carriers = [ { id: null, carrier: 'UPS', account: null } ];
-		if ( ! isEmpty( this.props.carriers ) ) {
-			carriers = this.props.carriers;
-		}
+		const carriers = this.props.carriers || [];
 
+		if ( isEmpty( carriers ) ) {
+			return <div></div>;
+		}
 		return (
 			<div>
 				<ExtendedHeader
