@@ -95,6 +95,7 @@ export const CarrierAccountSettings = ( props ) => {
 						value={ getValue( 'invoice_date' ) }
 						updateValue={ updateValue( 'invoice_date' ) }
 						error={ fieldErrors.invoice_date }
+						placeholder={ 'YYYY-MM-DD' }
 					/>
 				</div>
 				<div className="carrier-accounts__settings-two-columns">
