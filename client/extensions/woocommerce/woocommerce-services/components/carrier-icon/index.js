@@ -34,7 +34,7 @@ const CarrierIcon = ( { carrier, size } ) => {
 		return <span/>;
 	}
 	const pixels = `${sizeToPixels( size )}px`;
-	return <div style={{ height: pixels, width: pixels }} className="carrier-icon">
+	return <div style={{ width: pixels }} className="carrier-icon">
 			<img src={ carrierLogos[ carrier.toLowerCase() ] } alt={ carrier } className="carrier-icon__logo" />
 	</div>;
 };
