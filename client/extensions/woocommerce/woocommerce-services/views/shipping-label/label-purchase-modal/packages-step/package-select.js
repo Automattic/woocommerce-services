@@ -109,7 +109,7 @@ const PackageSelect = props => {
 			</div>
 			{ 0 === totalPackagesCount ? (
 				<div className="packages-step__no-packages">
-					<Gridicon icon="product" size="20" />
+					<Gridicon icon="product" size={18} />
 					{ /* eslint-disable jsx-a11y/anchor-is-valid */ }
 					<a href="#" onClick={ () => props.addPackage( siteId ) }>
 						{ translate( 'Select a package type' ) }
