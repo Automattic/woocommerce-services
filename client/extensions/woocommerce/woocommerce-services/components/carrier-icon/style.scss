@@ -1,9 +1,10 @@
 .carrier-icon {
 	text-align: center;
 	line-height: 30px;
+	width: 100%;
 	display: flex;
+	align-items: flex-start;
 	& > .carrier-icon__logo {
-		max-width: 100%;
 		vertical-align: middle;
 	}
 }
