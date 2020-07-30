@@ -788,35 +788,42 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 	if ( shouldEmailDetails( getState(), orderId, siteId ) ) {
 		const trackingNumbers = labels.map( label => label.tracking );
 		const carrierId = first( labels ).carrier_id;
+		let carrierIdReadable = '';
 		let note = '';
-		if ( 'usps' === carrierId ) {
-			note = translate(
-				'Your order has been shipped with USPS. The tracking number is %(trackingNumbers)s.',
-				'Your order consisting of %(packageNum)d packages has been shipped with USPS. ' +
-					'The tracking numbers are %(trackingNumbers)s.',
-				{
-					args: {
-						packageNum: trackingNumbers.length,
-						trackingNumbers: trackingNumbers.join( ', ' ),
-					},
-					count: trackingNumbers.length,
-				}
-			);
-		} else {
-			note = translate(
-				'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
-				'Your order consisting of %(packageNum)d packages has been shipped. ' +
-					'The tracking numbers are %(trackingNumbers)s.',
-				{
-					args: {
-						packageNum: trackingNumbers.length,
-						trackingNumbers: trackingNumbers.join( ', ' ),
-					},
-					count: trackingNumbers.length,
-				}
-			);
-		}
+		switch( carrierId ) {
+			case 'usps':
+				carrierIdReadable = 'USPS';
+			case 'ups':
+				carrierIdReadable = 'UPS';
+				note = translate(
+					'Your order has been shipped with %(carrier)s. The tracking number is %(trackingNumbers)s.',
+					'Your order consisting of %(packageNum)d packages has been shipped with %(carrier)s. ' +
+						'The tracking numbers are %(trackingNumbers)s.',
+					{
+						args: {
+							packageNum: trackingNumbers.length,
+							trackingNumbers: trackingNumbers.join( ', ' ),
+							carrier: carrierIdReadable,
+						},
+						count: trackingNumbers.length,
+					}
+				);
+				break;
+			default:
+				note = translate(
+					'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
+					'Your order consisting of %(packageNum)d packages has been shipped. ' +
+						'The tracking numbers are %(trackingNumbers)s.',
+					{
+						args: {
+							packageNum: trackingNumbers.length,
+							trackingNumbers: trackingNumbers.join( ', ' ),
+						},
+						count: trackingNumbers.length,
+					}
+				);
 
+		}
 		dispatch(
 			createNote( siteId, orderId, {
 				note,
