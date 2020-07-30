@@ -1,11 +1,26 @@
 *** WooCommerce Services Changelog ***
 
+= 1.24.0 - 2020-xx-xx =
+* Fix   - PHP 7.4 notice for taxes at checkout.
+* Add   - Carrier logos next to rates.
+* Tweak - Remove spinner from create shipping label button
+* Add   - Upgrade React to 16.13
+* Add   - Optimize bundle
+* Fix   - Fix svg images not showing on dev
+* Fix   - Fix 404 taxjar.js on new order page
+* Add   - Add e2e tests for toggling shipping label
+* Add   - Add e2e tests for label refund
+* Fix   - Show which nexus automatted taxes will work with and link to doc
+* Fix   - Fix localization issues
+* Tweak - Improve service listing readability
+* Add   - Support UPS as a carrier (beta)
+
 = 1.23.2 - 2020-06-12 =
 * Fix   - Refund not possible on order page.
 
 = 1.23.1 - 2020-06-10 =
 * Tweak - Update WooCommerce compatibility to 4.2
-* Fix	- Taxjar broken in admin's new order page
+* Fix	  - Taxjar broken in admin's new order page
 * Fix   - Tax recalculation on admin order screen missing street address.
 
 = 1.23.0 - 2020-04-08 =

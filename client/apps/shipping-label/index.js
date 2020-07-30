@@ -1,13 +1,15 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, {Suspense} from 'react';
 
 /**
  * Internal dependencies
  */
+
 import ShippingLabelViewWrapper from './view-wrapper-label';
-import ShipmentTrackingViewWrapper from './view-wrapper-tracking';
+// Lazy load ShipmentTrackingViewWrapper so shipping label will render faster.
+const ShipmentTrackingViewWrapper = React.lazy(() => import(/* webpackChunkName: "view-wrapper-tracking" */'./view-wrapper-tracking'));
 import reduxMiddleware from './redux-middleware';
 // from calypso
 import notices from 'state/notices/reducer';
@@ -24,8 +26,19 @@ import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-
 import locations from '../../extensions/woocommerce/state/data-layer/data/locations';
 import locationsReducer from '../../extensions/woocommerce/state/sites/data/locations/reducer';
 import { mergeHandlers } from 'state/action-watchers/utils';
+import initializeLabelsState from 'woocommerce/woocommerce-services/lib/initialize-labels-state';
+import './style.scss';
 
-export default ( { orderId, context, items } ) => {
+export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, context, items } ) => {
+
+	const orderId = order ? order.id : null;
+	const { storeOptions, formMeta, userMeta, formData } = accountSettings;
+	const packages = packagesSettings.formData;
+	const dimensionUnit = packagesSettings.storeOptions.dimension_unit;
+	const weightUnit = packagesSettings.storeOptions.weight_unit;
+	const packageSchema = packagesSettings.formSchema.custom.items;
+	const predefinedSchema = packagesSettings.formSchema.predefined;
+
 	return {
 		getReducer() {
 			return combineReducers( {
@@ -62,14 +75,55 @@ export default ( { orderId, context, items } ) => {
 						sites: {
 							1: {
 								orders: {
+									isLoading: {
+										[ orderId ]: false,
+									},
+									items: {
+										[ orderId ]: order
+									},
 									notes: {
 										isLoading: {
 											[ orderId ]: false,
 										},
 									},
 								},
+								data: {
+									locations: continents
+								}
 							},
 						},
+						woocommerceServices: {
+							1: {
+								shippingLabel: {
+									[ orderId ]: initializeLabelsState( shippingLabelData )
+								},
+								labelSettings: {
+									storeOptions,
+									meta: {
+										...formMeta,
+										pristine: true,
+										isLoaded: true,
+										user: userMeta,
+									},
+									data: {
+										...formData,
+									},
+								},
+								packages: {
+									modalErrors: {},
+									pristine: true,
+									packages,
+									dimensionUnit,
+									weightUnit,
+									packageSchema,
+									predefinedSchema,
+									packageData: {
+										is_user_defined: true,
+									},
+									isLoaded: true,
+								}
+							}
+						}
 					},
 				},
 			};
@@ -89,7 +143,9 @@ export default ( { orderId, context, items } ) => {
 
 		View: () => (
 			( 'shipment_tracking' === context ) ?
-				<ShipmentTrackingViewWrapper orderId={ orderId } />
+				<Suspense fallback={ <div /> }>
+					<ShipmentTrackingViewWrapper orderId={ orderId } />
+				</Suspense>
 			:
 				<ShippingLabelViewWrapper orderId={ orderId } items={ items } />
 		),

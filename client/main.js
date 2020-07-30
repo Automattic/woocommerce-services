@@ -1,6 +1,8 @@
 /**
  * External dependencies
  */
+import 'react-hot-loader/patch';
+import { AppContainer } from 'react-hot-loader';
 import '@babel/polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -15,116 +17,183 @@ import { Provider } from 'react-redux';
 import '../assets/stylesheets/style.scss';
 import './lib/calypso-boot';
 import * as storageUtils from 'lib/utils/local-storage';
-import Settings from './apps/settings';
-import ShippingLabel from './apps/shipping-label';
-import ShippingSettings from './apps/shipping-settings';
-import PrintTestLabel from './apps/print-test-label';
-import PluginStatus from './apps/plugin-status';
-import StripeConnectAccount from './apps/stripe-connect-account';
 import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware';
 import localApiMiddleware from 'lib/local-api-middleware';
+
+// Modify webpack pubilcPath at runtime based on location of WordPress Plugin.
+// eslint-disable-next-line no-undef
+__webpack_public_path__ = global.wcsPluginData.assetPath;
+
+// We need to lazy load the moment locale files.
+// First we try language code with region if it's different then fall back to language code only.
+if ( window.i18nLocale && ! [ 'en-US', 'en' ].includes( window.i18nLocale.localeSlug ) ) {
+	const localeSlugParts = window.i18nLocale.localeSlug.split('-');
+	let localeFileSlug = window.i18nLocale.localeSlug.toLowerCase();
+	if ( localeSlugParts[0] === localeSlugParts[1] ) {
+		localeFileSlug = localeSlugParts[0];
+	}
+	import( 'moment/locale/' + localeFileSlug + '.js' ).catch( () => {
+		import( 'moment/locale/' + localeSlugParts[0] + '.js' );
+	});
+}
 
 if ( global.wcConnectData ) {
 	setNonce( global.wcConnectData.nonce );
 	setBaseURL( global.wcConnectData.baseURL );
 }
 
-const getRouteClassName = ( classNames ) => {
-	for ( let i = 0; i < classNames.length; i++ ) {
-		switch ( classNames[ i ] ) {
-			case 'wc-connect-create-shipping-label':
-			case 'wc-connect-service-settings':
-			case 'wc-connect-admin-status':
-			case 'wc-connect-shipping-settings':
-			case 'wc-connect-admin-test-print':
-			case 'wc-connect-stripe-connect-account':
-				return classNames[ i ];
-		}
-	}
-	return null;
+const classNamesToRoutes = {
+	'wc-connect-create-shipping-label': './apps/shipping-label',
+	'wc-connect-service-settings': './apps/settings',
+	'wc-connect-admin-status': './apps/plugin-status',
+	'wc-connect-shipping-settings': './apps/shipping-settings',
+	'wc-connect-admin-test-print': './apps/print-test-label',
+	'wc-connect-stripe-connect-account': './apps/stripe-connect-account',
 };
 
-const getRouteClass = ( className ) => {
+const getRouteClass = async ( className ) => {
+	let module = null;
 	switch ( className) {
 		case 'wc-connect-create-shipping-label':
-			return ShippingLabel;
+			module = await import(/* webpackChunkName: "shipping-label" */ './apps/shipping-label');
+			break;
 		case 'wc-connect-service-settings':
-			return Settings;
+			module = await import(/* webpackChunkName: "settings" */ './apps/settings');
+			break;
 		case 'wc-connect-admin-status':
-			return PluginStatus;
+			module = await import(/* webpackChunkName: "plugin-status" */ './apps/plugin-status');
+			break;
 		case 'wc-connect-shipping-settings':
-			return ShippingSettings;
+			module = await import(/* webpackChunkName: "shipping-settings" */ './apps/shipping-settings');
+			break;
 		case 'wc-connect-admin-test-print':
-			return PrintTestLabel;
+			module = await import(/* webpackChunkName: "print-test-label" */ './apps/print-test-label');
+			break;
 		case 'wc-connect-stripe-connect-account':
-			return StripeConnectAccount;
+			module = await import(/* webpackChunkName: "shipping-label" */ './apps/stripe-connect-account');
+			break;
 		default:
 			return null;
 	}
+	return module.default;
 };
 
 const createdStores = {};
 
 Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
 	const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
-	delete container.dataset.args;
-	const routeClassName = getRouteClassName( container.classList );
+	let routeClassName;
 
-	const RouteClass = getRouteClass( routeClassName );
-	if ( ! RouteClass ) {
-		return;
+	for ( const className of container.classList ) {
+		if ( classNamesToRoutes.hasOwnProperty( className ) ) {
+			routeClassName = className;
+			break;
+		}
 	}
-	const Route = RouteClass( args );
 
-	if( typeof createdStores[ routeClassName ] === 'undefined' || routeClassName !== 'wc-connect-create-shipping-label' ) {
-		const persistedStateKey = Route.getStateKey();
-		const persistedState = storageUtils.getWithExpiry( persistedStateKey );
-		storageUtils.remove( persistedStateKey );
-		const serverState = Route.getInitialState();
-		const initialState = { ...serverState, ...persistedState };
-
-		const middlewares = [
-			thunk.withExtraArgument( args ),
-			wpcomApiMiddleware,
-			localApiMiddleware,
-		];
-
-		if ( Route.getMiddlewares ) {
-			middlewares.push.apply( middlewares, Route.getMiddlewares() );
+	getRouteClass( routeClassName ).then( RouteClass => {
+		if ( ! RouteClass ) {
+			return;
 		}
+		const Route = RouteClass( args );
 
-		const enhancers = [
-			applyMiddleware( ...middlewares ),
-			window.devToolsExtension && window.devToolsExtension(),
-		].filter( Boolean );
+		if( typeof createdStores[ routeClassName ] === 'undefined' || routeClassName !== 'wc-connect-create-shipping-label' ) {
+			const persistedStateKey = Route.getStateKey();
+			const persistedState = storageUtils.getWithExpiry( persistedStateKey );
+			storageUtils.remove( persistedStateKey );
+			const serverState = Route.getInitialState();
+			const initialState = { ...serverState, ...persistedState };
 
-		const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
+			const middlewares = [
+				thunk.withExtraArgument( args ),
+				wpcomApiMiddleware,
+				localApiMiddleware,
+			];
 
-		if ( Route.getInitialActions ) {
-			Route.getInitialActions().forEach( store.dispatch );
-		}
-
-		window.addEventListener( 'beforeunload', () => {
-			const state = store.getState();
-
-			if ( window.persistState ) {
-				storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
+			if ( Route.getMiddlewares ) {
+				middlewares.push.apply( middlewares, Route.getMiddlewares() );
 			}
-		} );
 
-		createdStores[ routeClassName ] = store;
-	}
+			const enhancers = [
+				applyMiddleware( ...middlewares ),
+				window.devToolsExtension && window.devToolsExtension(),
+			].filter( Boolean );
 
-	ReactModal.setAppElement( container );
-	ReactDOM.render(
-		<Provider store={ createdStores[ routeClassName ] }>
-			<Route.View />
-		</Provider>,
-		container
-	);
+			const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
+
+			if ( Route.getInitialActions ) {
+				Route.getInitialActions().forEach( store.dispatch );
+			}
+
+			window.addEventListener( 'beforeunload', () => {
+				const state = store.getState();
+
+				if ( window.persistState ) {
+					storageUtils.setWithExpiry( persistedStateKey, Route.getStateForPersisting( state ) );
+				}
+			} );
+
+			createdStores[ routeClassName ] = store;
+		}
+
+		ReactModal.setAppElement( container );
+		ReactDOM.render(
+			<AppContainer>
+				<Provider store={ createdStores[ routeClassName ] }>
+					<Route.View />
+				</Provider>
+			</AppContainer>,
+			container
+		);
+	});
 } );
 
 window.wcsGetAppStore = function( storeKey ) {
 	return createdStores[ storeKey ];
+};
+
+if ( module.hot ) {
+    for ( const className in classNamesToRoutes ) {
+	    module.hot.accept( './client' + classNamesToRoutes[ className ].substring( 1 ) + '/index.js', () => {
+		    Array.from( document.getElementsByClassName( className ) ).forEach( ( container ) => {
+
+			    const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
+
+			    let module = null;
+			    // We have to use a switch because react or webpack cannot find the module if we use dynamic imports.
+			    switch ( className) {
+				    case 'wc-connect-create-shipping-label':
+					    module = require( './apps/shipping-label' );
+					    break;
+				    case 'wc-connect-service-settings':
+					    module = require( './apps/settings') ;
+					    break;
+				    case 'wc-connect-admin-status':
+					    module = require( './apps/plugin-status' );
+					    break;
+				    case 'wc-connect-shipping-settings':
+					    module = require( './apps/shipping-settings' );
+					    break;
+				    case 'wc-connect-admin-test-print':
+					    module = require( './apps/print-test-label' );
+					    break;
+				    case 'wc-connect-stripe-connect-account':
+					    module = require( './apps/stripe-connect-account' );
+					    break;
+				    default:
+				    	return;
+			    }
+			    const NextApp = module.default( args );
+			    ReactDOM.render(
+				    <AppContainer>
+					    <Provider store={ createdStores[ 'wc-connect-create-shipping-label' ] }>
+						    <NextApp.View/>
+					    </Provider>
+				    </AppContainer>,
+				    container
+			    );
+		    });
+	    });
+    }
 }

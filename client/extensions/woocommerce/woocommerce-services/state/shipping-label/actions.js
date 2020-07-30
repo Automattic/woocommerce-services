@@ -788,16 +788,27 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 	if ( shouldEmailDetails( getState(), orderId, siteId ) ) {
 		const trackingNumbers = labels.map( label => label.tracking );
 		const carrierId = first( labels ).carrier_id;
+		let carrierIdReadable = '';
 		let note = '';
-		if ( 'usps' === carrierId ) {
+		switch( carrierId ) {
+			case 'usps':
+				carrierIdReadable = 'USPS';
+				break;
+			case 'ups':
+				carrierIdReadable = 'UPS';
+				break;
+		}
+
+		if ( '' !== carrierIdReadable ) {
 			note = translate(
-				'Your order has been shipped with USPS. The tracking number is %(trackingNumbers)s.',
-				'Your order consisting of %(packageNum)d packages has been shipped with USPS. ' +
+				'Your order has been shipped with %(carrier)s. The tracking number is %(trackingNumbers)s.',
+				'Your order consisting of %(packageNum)d packages has been shipped with %(carrier)s. ' +
 					'The tracking numbers are %(trackingNumbers)s.',
 				{
 					args: {
 						packageNum: trackingNumbers.length,
 						trackingNumbers: trackingNumbers.join( ', ' ),
+						carrier: carrierIdReadable,
 					},
 					count: trackingNumbers.length,
 				}
@@ -815,8 +826,8 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 					count: trackingNumbers.length,
 				}
 			);
-		}
 
+		}
 		dispatch(
 			createNote( siteId, orderId, {
 				note,
@@ -1047,7 +1058,7 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 					const rate = find( form.rates.available[ pckgId ][ rateType ].rates, r => serviceId === r.service_id );
 					const packageData = {
 						...packageFields,
-						shipment_id: form.rates.available[ pckgId ][ rateType ].shipment_id,
+						shipment_id: rate.shipment_id,
 						rate_id: rate.rate_id,
 						service_id: serviceId,
 						carrier_id: rate.carrier_id,

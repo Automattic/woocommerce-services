@@ -284,6 +284,34 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Gets the configured carrier accounts
+		 *
+		 * @param $request
+		 * @return object|WP_Error
+		 */
+		public function get_carrier_accounts() {
+			return $this->request( 'GET', '/shipping/carriers' );
+		}
+		/**
+		 * Disconnects the provided carrier account
+		 *
+		 * @param $carrier_id
+		 * @return object|WP_Error
+		 */
+		public function disconnect_carrier_account( $carrier_id ) {
+			return $this->request( 'DELETE', '/shipping/carrier/' . $carrier_id );
+		}
+		/**
+		 * Register a new carrier account
+		 *
+		 * @param $body
+		 * @return object|WP_Error
+		 */
+		public function create_shipping_carrier_account( $body ) {
+			return $this->request( 'POST', '/shipping/carrier', $body );
+		}
+
+		/**
 		 * Tests the connection to the WooCommerce Services Server
 		 *
 		 * @return true|WP_Error
@@ -316,20 +344,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
 			}
 			return $new_is_alive;
-		}
-
-		/**
-		 * Create a deferred Stripe Standard Account
-		 * @param $email string The user's email address
-		 * @param $country string The user's country
-		 * @return object|WP_Error
-		 */
-		public function create_stripe_account( $email, $country ) {
-			$request = array(
-				'email' => $email,
-				'country' => $country,
-			);
-			return $this->request( 'POST', '/stripe/account', $request );
 		}
 
 		public function get_stripe_account_details() {

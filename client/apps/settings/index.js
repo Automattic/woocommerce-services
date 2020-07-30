@@ -6,6 +6,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
+import './style.scss';
 import ViewWrapper from './view-wrapper';
 import reduxMiddleware from './redux-middleware';
 // from calypso

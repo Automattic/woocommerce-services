@@ -72,7 +72,7 @@ const RefundDialog = props => {
 			</p>
 			<dl>
 				<dt>{ translate( 'Purchase date' ) }</dt>
-				<dd>{ moment( createdDate ).format( 'MMMM Do YYYY, h:mm a' ) }</dd>
+				<dd>{ moment( createdDate ).format( 'LLL' ) }</dd>
 
 				<dt>{ translate( 'Amount eligible for refund' ) }</dt>
 				<dd>{ getRefundableAmount() }</dd>

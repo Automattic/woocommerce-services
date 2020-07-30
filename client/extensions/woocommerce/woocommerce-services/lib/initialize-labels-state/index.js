@@ -74,6 +74,8 @@ export default data => {
 		loaded: true,
 		isFetching: false,
 		error: false,
+		fulfillOrder: false,
+		emailDetails: false,
 		refreshedLabelStatus: false,
 		labels: labelsData || [],
 		paperSize,

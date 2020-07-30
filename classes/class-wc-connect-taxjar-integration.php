@@ -67,6 +67,11 @@ class WC_Connect_TaxJar_Integration {
 		// Add toggle for automated taxes to the core settings page
 		add_filter( 'woocommerce_tax_settings', array( $this, 'add_tax_settings' ) );
 
+		// Fix tooltip with link on older WC.
+		if ( version_compare( WOOCOMMERCE_VERSION, '4.4.0', '<' ) ) {
+			add_action( 'admin_enqueue_scripts', array( $this, 'fix_tooltip_keepalive'), 11 );
+		}
+
 		// Settings values filter to handle the hardcoded settings
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( $this, 'sanitize_tax_option' ), 10, 2 );
 
@@ -74,6 +79,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! $this->is_enabled() ) {
 			return;
 		}
+
 
 		// Scripts / Stylesheets
 		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
@@ -127,8 +133,8 @@ class WC_Connect_TaxJar_Integration {
 		$automated_taxes = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
-			'desc_tip' => __( 'Automate your sales tax calculations with WooCommerce Services, powered by Jetpack.', 'woocommerce-services' ),
-			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Services ― Your tax rates and settings are automatically configured.', 'woocommerce-services' ) . '</p>' : '',
+			'desc_tip' => $this->get_tax_tooltip(),
+			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Services.', 'woocommerce-services' ) . '</p>' : '',
 			'default'  => 'no',
 			'type'     => 'select',
 			'class'    => 'wc-enhanced-select',
@@ -152,6 +158,50 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $tax_settings;
+	}
+
+	/**
+	 * Get the text to show in the tooltip next to automatted tax settings.
+	 */
+	private function get_tax_tooltip() {
+		$store_settings = $this->get_store_settings();
+		$all_states = WC()->countries->get_states( $store_settings['country'] );
+		$all_countries = WC()->countries->get_countries();
+		$full_country = $all_countries[ $store_settings['country'] ];
+		$full_state = isset( $all_states[ $store_settings['state'] ] ) ? $all_states[ $store_settings['state'] ] : '';
+		if ( $full_state ) {
+			/* translators: 1: Full state name 2: full country name */
+			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s, %2$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_state, $full_country );
+		}
+		/* translators: 1: full country name */
+		return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_country );
+	}
+
+	/**
+	 * Hack to force keepAlive: true on tax setting tooltip.
+	 */
+	public function fix_tooltip_keepalive() {
+		global $pagenow;
+		if ( 'admin.php' !== $pagenow || ! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] || ! isset( $_GET['tab'] ) || 'tax' !== $_GET['tab'] || ! empty( $_GET['section'] ) ) {
+			return;
+		}
+
+		$tooltip = $this->get_tax_tooltip();
+		// Links in tooltips will not work unless keepAlive is true.
+		wp_add_inline_script(
+			'woocommerce_admin',
+			"jQuery( function () {
+					jQuery( 'label[for=wc_connect_taxes_enabled] .woocommerce-help-tip')
+						.off( 'mouseenter mouseleave' )
+						.tipTip( {
+							'fadeIn': 50,
+							'fadeOut': 50,
+							'delay': 200,
+							keepAlive: true,
+							content: '" . $tooltip . "'
+						} );
+				} );"
+		);
 	}
 
 	/**
@@ -337,6 +387,11 @@ class WC_Connect_TaxJar_Integration {
 			'shipping_amount' => WC()->shipping->shipping_total,
 			'line_items' => $line_items,
 		) );
+
+		// Return if taxes could not be calculated.
+		if ( false === $taxes ) {
+			return;
+		}
 
 		$this->response_rate_ids = $taxes['rate_ids'];
 		$this->response_line_items = $taxes['line_items'];

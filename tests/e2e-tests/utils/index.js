@@ -59,7 +59,26 @@ const verifyCheckboxIsSet = async( selector ) => {
 const clickReactButton = async( selector ) => {
     await page.waitForSelector( selector );
     //await page.click( selector );
-    page.$eval( selector, elem => elem.click() );
+    page.$eval( selector, elem => {
+    	if ( !elem ) {
+    		console.log( `.clickReactButton => Element not found: ${ selector }` );
+    	}
+    	return elem.click();
+    } );
+};
+
+/**
+ * This function will wait for a button with any CSS selector + text value.
+ *
+ * @param {string} selector CSS selector
+ * @param {string} text The text value of the element we want to search for. ie. button's value, div's innertext.
+ */
+const waitForSelectorAndText = async (selector, text) => {
+    return await page.waitForFunction(
+        (cssSelector, innerTextContent) => !!Array.from(document.querySelectorAll(cssSelector)).find(el => el.textContent.trim() === innerTextContent.trim()),
+        {},
+        selector, text
+    );
 };
 
 module.exports = {
@@ -70,4 +89,5 @@ module.exports = {
 	uiUnblocked,
 	verifyCheckboxIsSet,
 	clickReactButton,
+	waitForSelectorAndText,
 };

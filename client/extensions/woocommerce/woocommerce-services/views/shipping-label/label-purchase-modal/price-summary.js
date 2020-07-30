@@ -65,14 +65,16 @@ class PriceSummary extends Component {
 			<div className="label-purchase-modal__shipping-summary-section">
 				<hr />
 				{ prices.map( ( service, index ) => {
-					const title = translate( 'Package %(index)s', {
+					const title = translate( 'Package %(index)s – %(title)s', {
 						args: {
 							index: index + 1,
+							title: service.carrierTitle,
 						}
 					} );
 					return (
 						<Fragment key={ index }>
 							{ this.renderRow( title, service.rateWithDiscount, index ) }
+							{ service.carrierId === 'ups' ? <div className="label-purchase-modal__price-item-carrier-account-notice"> { translate( 'Your UPS account will be charged' ) }</div> : <div /> }
 							{ service.addons.map( ( addon, addonIndex ) =>
 								<div key={ 'addons-' + index } className="label-purchase-modal__price-item-addons">
 									{ this.renderRow( addon.title, addon.rate, 'addon-' + addonIndex ) }

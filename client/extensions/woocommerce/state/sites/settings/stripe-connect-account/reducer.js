@@ -11,8 +11,6 @@ import { createReducer } from 'state/utils';
 import {
 	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CLEAR_COMPLETED_NOTIFICATION,
 	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CLEAR_ERROR,
-	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CREATE,
-	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CREATE_COMPLETE,
 	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_DEAUTHORIZE,
 	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_DEAUTHORIZE_COMPLETE,
 	WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_DETAILS_REQUEST,
@@ -44,43 +42,6 @@ function connectAccountClearError( state = {} ) {
 function connectAccountClearCompletedNotification( state = {} ) {
 	return Object.assign( {}, state, {
 		notifyCompleted: false,
-	} );
-}
-
-/**
- * Updates state to indicate account creation is in progress
- *
- * @param  {Object} state  Current state
- * @return {Object}        Updated state
- */
-function connectAccountCreate( state = {} ) {
-	return Object.assign( {}, state, {
-		error: '',
-		isCreating: true,
-		notifyCompleted: false,
-	} );
-}
-
-/**
- * Updates state to reflect account creation completed (or failed with an error)
- *
- * @param  {Object} state  Current state
- * @param  {Object} action Action payload
- * @return {Object}        Updated state
- */
-function connectAccountCreateComplete( state = {}, action ) {
-	return Object.assign( {}, state, {
-		connectedUserID: action.connectedUserID || '',
-		displayName: '',
-		email: action.email || '',
-		error: action.error || '',
-		firstName: '',
-		isActivated: false,
-		isCreating: false,
-		isRequesting: false,
-		lastName: '',
-		logo: '',
-		notifyCompleted: true,
 	} );
 }
 
@@ -229,8 +190,6 @@ function connectAccountOAuthConnectComplete( state = {}, action ) {
 export default createReducer( null, {
 	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CLEAR_COMPLETED_NOTIFICATION ]: connectAccountClearCompletedNotification,
 	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CLEAR_ERROR ]: connectAccountClearError,
-	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CREATE ]: connectAccountCreate,
-	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_CREATE_COMPLETE ]: connectAccountCreateComplete,
 	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_DEAUTHORIZE ]: connectAccountDeauthorize,
 	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_DEAUTHORIZE_COMPLETE ]: connectAccountDeauthorizeComplete,
 	[ WOOCOMMERCE_SETTINGS_STRIPE_CONNECT_ACCOUNT_DETAILS_REQUEST ]: connectAccountFetch,

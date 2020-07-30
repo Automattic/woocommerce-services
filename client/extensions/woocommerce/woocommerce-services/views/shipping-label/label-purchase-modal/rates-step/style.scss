@@ -33,7 +33,9 @@
 .rates-step__shipping-rate-container {
 	display: flex;
 	align-items: stretch;
-	padding-top: 15px;
+	margin-top: 15px;
+	padding: 0 0 15px;
+	border-bottom: 1px solid #eee
 }
 
 .rates-step__carier-logo-image-usps {
@@ -44,13 +46,16 @@
 .rates-step__shipping-rate-information {
 	display: flex;
 	flex-grow: 1;
-	padding-left: 8px;
-	border-bottom: 1px solid #EDEFF0;
-	padding-bottom: 15px;
+	.carrier-icon {
+		display: flex;
+		height: 30px;
+		max-width: 30px;
+		margin: 15px 15px;
+	}
 }
 
 .rates-step__shipping-rate-radio-control {
-	padding: 8px 8px 0 0;
+	margin: 21px 0 0 0;
 	input[type='radio'] {
 		border: 2px solid gray;
 	}
@@ -66,6 +71,8 @@
 .rates-step__shipping-rate-description {
 	display: flex;
 	flex-direction: column;
+	width: 75%;
+	margin: 15px 0 0 0;
 }
 
 .rates-step__shipping-rate-description-title {
@@ -73,13 +80,16 @@
 }
 
 .rates-step__shipping-rate-description-details {
-	color: #646970;
+	color: #636d75;
 	font-size: 12px;
+	margin-bottom: 4px;
 	* label {
-		margin-left: 5px;
 	}
 	.components-base-control {
-		margin-bottom: 0px;
+		padding: 4px 0;
+	.components-base-control__field {
+		margin: 0;
+	}
 	}
 }
 
@@ -94,16 +104,30 @@
 .rates-step__shipping-rate-details {
 	display: flex;
 	flex-direction: column;
-	margin-left: auto;
+	margin: 15px auto;
+	width: 25%;
 }
 
 .rates-step__shipping-rate-delivery-date {
 	color: #646970;
 	font-size: 12px;
+	text-align: right;
 }
 
 .rates-step__shipping-rate-rate {
 	text-align: right;
+}
+
+.rates-step__shipping-rate-rate-tooltip {
+	display: inline-block;
+	cursor: help;
+	margin-right: 4px;
+	svg {
+		display: inline-block;
+		vertical-align: top;
+		margin-left: 2px;
+		fill: #7c848b;
+	}
 }
 
 .rates-step__shipping-info {

@@ -10,11 +10,11 @@ import { startsWith, endsWith } from 'lodash';
 import parseJson from 'lib/utils/parse-json';
 
 let nonce;
-export const setNonce = ( _nonce ) => nonce = _nonce;
+export const setNonce = ( _nonce ) => ( nonce = _nonce );
 export const getNonce = () => nonce;
 
 let baseURL;
-export const setBaseURL = ( _baseURL ) => baseURL = _baseURL;
+export const setBaseURL = ( _baseURL ) => ( baseURL = _baseURL );
 export const getBaseURL = () => baseURL;
 
 const _request = ( url, data, method, namespace = '' ) => {
@@ -73,5 +73,6 @@ const createGetUrlWithNonce = ( url, queryString ) => {
 export default () => ( {
 	post: ( url, data, namespace ) => _request( url, data, 'POST', namespace ),
 	get: ( url, namespace ) => _request( url, null, 'GET', namespace ),
+	del: ( url, namespace ) => _request( url, null, 'DELETE', namespace ),
 	createGetUrlWithNonce,
 } );
