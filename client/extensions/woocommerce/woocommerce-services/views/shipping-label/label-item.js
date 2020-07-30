@@ -96,6 +96,7 @@ export class LabelItem extends Component {
 		const pickup_urls = {
 			'usps': 'https://tools.usps.com/schedule-pickup-steps.htm',
 			'fedex': 'https://www.fedex.com/en-us/shipping/schedule-manage-pickups.html',
+			'ups': 'https://wwwapps.ups.com/pickup/request',
 		};
 
 		if ( ! ( pickup_urls.hasOwnProperty( carrierId ) ) ) {
