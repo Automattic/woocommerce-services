@@ -793,35 +793,39 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 		switch( carrierId ) {
 			case 'usps':
 				carrierIdReadable = 'USPS';
+				break;
 			case 'ups':
 				carrierIdReadable = 'UPS';
-				note = translate(
-					'Your order has been shipped with %(carrier)s. The tracking number is %(trackingNumbers)s.',
-					'Your order consisting of %(packageNum)d packages has been shipped with %(carrier)s. ' +
-						'The tracking numbers are %(trackingNumbers)s.',
-					{
-						args: {
-							packageNum: trackingNumbers.length,
-							trackingNumbers: trackingNumbers.join( ', ' ),
-							carrier: carrierIdReadable,
-						},
-						count: trackingNumbers.length,
-					}
-				);
 				break;
-			default:
-				note = translate(
-					'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
-					'Your order consisting of %(packageNum)d packages has been shipped. ' +
-						'The tracking numbers are %(trackingNumbers)s.',
-					{
-						args: {
-							packageNum: trackingNumbers.length,
-							trackingNumbers: trackingNumbers.join( ', ' ),
-						},
-						count: trackingNumbers.length,
-					}
-				);
+		}
+
+		if ( '' !== carrierIdReadable ) {
+			note = translate(
+				'Your order has been shipped with %(carrier)s. The tracking number is %(trackingNumbers)s.',
+				'Your order consisting of %(packageNum)d packages has been shipped with %(carrier)s. ' +
+					'The tracking numbers are %(trackingNumbers)s.',
+				{
+					args: {
+						packageNum: trackingNumbers.length,
+						trackingNumbers: trackingNumbers.join( ', ' ),
+						carrier: carrierIdReadable,
+					},
+					count: trackingNumbers.length,
+				}
+			);
+		} else {
+			note = translate(
+				'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
+				'Your order consisting of %(packageNum)d packages has been shipped. ' +
+					'The tracking numbers are %(trackingNumbers)s.',
+				{
+					args: {
+						packageNum: trackingNumbers.length,
+						trackingNumbers: trackingNumbers.join( ', ' ),
+					},
+					count: trackingNumbers.length,
+				}
+			);
 
 		}
 		dispatch(
