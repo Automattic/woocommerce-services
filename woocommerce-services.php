@@ -1061,6 +1061,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					case 'usps':
 						$tracking_url = 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=' . $tracking;
 						break;
+					case 'ups':
+						$tracking_url = 'https://www.ups.com/track?tracknum=' . $tracking;
+						break;
+
 				}
 
 				$markup .= '<td class="td" scope="col">';
