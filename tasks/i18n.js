@@ -1,3 +1,4 @@
+/* eslint-disable no-console, import/no-nodejs-modules */
 const i18nCli = require( 'i18n-calypso-cli' );
 const glob = require('glob');
 
