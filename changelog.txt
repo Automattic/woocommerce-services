@@ -1,5 +1,8 @@
 *** WooCommerce Services Changelog ***
 
+= 1.24.1 - 2020-xx-xx =
+* Tweak - Zip/Postcode/Postal code messaging consistency
+
 = 1.24.0 - 2020-xx-xx =
 * Fix   - PHP 7.4 notice for taxes at checkout.
 * Add   - Carrier logos next to rates.
@@ -14,7 +17,6 @@
 * Fix   - Fix localization issues
 * Tweak - Improve service listing readability
 * Add   - Support UPS as a carrier (beta)
-* Tweak - Zip/Postcode/Postal code messaging consistency
 
 = 1.23.2 - 2020-06-12 =
 * Fix   - Refund not possible on order page.
