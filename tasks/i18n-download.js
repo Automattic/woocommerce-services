@@ -1,3 +1,4 @@
+/* eslint-disable no-console, import/no-nodejs-modules */
 const fs = require('fs');
 const request = require('request');
 
