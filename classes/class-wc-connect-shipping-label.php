@@ -411,12 +411,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		public function meta_box( $post, $args ) {
+			$connectOrderPresenter = new WC_Connect_Order_Presenter();
+
 			$order = wc_get_order( $post );
+			print_r($connectOrderPresenter->get_order_for_api($order));exit;
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
 			$payload = array(
-				'order'             => $this->get_order_for_api($order),
+				'order'             => $connectOrderPresenter->get_order_for_api($order),
 				'accountSettings'   => $this->account_settings->get(),
 				'packagesSettings'  => $this->package_settings->get(),
 				'shippingLabelData' => $this->get_label_payload( $order_id ),
@@ -427,169 +430,5 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
 		}
-
-		private function get_order_for_api( $order ) {
-			$dp = 2;
-			$order_data = array(
-				'id'                        => $order->get_id(),
-				'order_number'              => $order->get_order_number(),
-				'order_key'                 => $order->get_order_key(),
-				'created_at'                => $order->get_date_created()->getTimestamp(),
-				'updated_at'                => wc_format_datetime( $order->get_date_modified() ? $order->get_date_modified()->getTimestamp() : 0 ),
-				'completed_at'              => wc_format_datetime( $order->get_date_completed() ? $order->get_date_completed()->getTimestamp() : 0 ),
-				'status'                    => $order->get_status(),
-				'currency'                  => $order->get_currency(),
-				'total'                     => wc_format_decimal( $order->get_total(), $dp ),
-				'subtotal'                  => wc_format_decimal( $order->get_subtotal(), $dp ),
-				'total_line_items_quantity' => $order->get_item_count(),
-				'total_tax'                 => wc_format_decimal( $order->get_total_tax(), $dp ),
-				'total_shipping'            => wc_format_decimal( $order->get_shipping_total(), $dp ),
-				'cart_tax'                  => wc_format_decimal( $order->get_cart_tax(), $dp ),
-				'shipping_tax'              => wc_format_decimal( $order->get_shipping_tax(), $dp ),
-				'total_discount'            => wc_format_decimal( $order->get_total_discount(), $dp ),
-				'shipping_methods'          => $order->get_shipping_method(),
-				'payment_details' => array(
-					'method_id'    => $order->get_payment_method(),
-					'method_title' => $order->get_payment_method_title(),
-					'paid'         => ! is_null( $order->get_date_paid() ),
-				),
-				'billing_address' => array(
-					'first_name' => $order->get_billing_first_name(),
-					'last_name'  => $order->get_billing_last_name(),
-					'company'    => $order->get_billing_company(),
-					'address_1'  => $order->get_billing_address_1(),
-					'address_2'  => $order->get_billing_address_2(),
-					'city'       => $order->get_billing_city(),
-					'state'      => $order->get_billing_state(),
-					'postcode'   => $order->get_billing_postcode(),
-					'country'    => $order->get_billing_country(),
-					'email'      => $order->get_billing_email(),
-					'phone'      => $order->get_billing_phone(),
-				),
-				'shipping_address' => array(
-					'first_name' => $order->get_shipping_first_name(),
-					'last_name'  => $order->get_shipping_last_name(),
-					'company'    => $order->get_shipping_company(),
-					'address_1'  => $order->get_shipping_address_1(),
-					'address_2'  => $order->get_shipping_address_2(),
-					'city'       => $order->get_shipping_city(),
-					'state'      => $order->get_shipping_state(),
-					'postcode'   => $order->get_shipping_postcode(),
-					'country'    => $order->get_shipping_country(),
-				),
-				'note'                      => $order->get_customer_note(),
-				'customer_ip'               => $order->get_customer_ip_address(),
-				'customer_user_agent'       => $order->get_customer_user_agent(),
-				'customer_id'               => $order->get_user_id(),
-				'view_order_url'            => $order->get_view_order_url(),
-				'line_items'                => array(),
-				'shipping_lines'            => array(),
-				'tax_lines'                 => array(),
-				'fee_lines'                 => array(),
-				'coupon_lines'              => array(),
-			);
-
-			// Add line items.
-			foreach ( $order->get_items() as $item_id => $item ) {
-				$product    = $item->get_product();
-				$item_meta  = $item->get_formatted_meta_data();
-
-				foreach ( $item_meta as $key => $values ) {
-					$item_meta[ $key ]->label = $values->display_key;
-					unset( $item_meta[ $key ]->display_key );
-					unset( $item_meta[ $key ]->display_value );
-				}
-
-				$line_item = array(
-					'id'           => $item_id,
-					'subtotal'     => wc_format_decimal( $order->get_line_subtotal( $item, false, false ), $dp ),
-					'subtotal_tax' => wc_format_decimal( $item->get_subtotal_tax(), $dp ),
-					'total'        => wc_format_decimal( $order->get_line_total( $item, false, false ), $dp ),
-					'total_tax'    => wc_format_decimal( $item->get_total_tax(), $dp ),
-					'price'        => wc_format_decimal( $order->get_item_total( $item, false, false ), $dp ),
-					'quantity'     => $item->get_quantity(),
-					'tax_class'    => $item->get_tax_class(),
-					'name'         => $item->get_name(),
-					'product_id'   => $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id(),
-					'sku'          => is_object( $product ) ? $product->get_sku() : null,
-					'meta'         => array_values( $item_meta ),
-				);
-
-				if ( in_array( 'products', $expand ) && is_object( $product ) ) {
-					$_product_data = WC()->api->WC_API_Products->get_product( $product->get_id() );
-
-					if ( isset( $_product_data['product'] ) ) {
-						$line_item['product_data'] = $_product_data['product'];
-					}
-				}
-
-				$order_data['line_items'][] = $line_item;
-			}
-
-			// Add shipping.
-			foreach ( $order->get_shipping_methods() as $shipping_item_id => $shipping_item ) {
-				$order_data['shipping_lines'][] = array(
-					'id'           => $shipping_item_id,
-					'method_id'    => $shipping_item->get_method_id(),
-					'method_title' => $shipping_item->get_name(),
-					'total'        => wc_format_decimal( $shipping_item->get_total(), $dp ),
-				);
-			}
-
-			// Add taxes.
-			foreach ( $order->get_tax_totals() as $tax_code => $tax ) {
-				$tax_line = array(
-					'id'       => $tax->id,
-					'rate_id'  => $tax->rate_id,
-					'code'     => $tax_code,
-					'title'    => $tax->label,
-					'total'    => wc_format_decimal( $tax->amount, $dp ),
-					'compound' => (bool) $tax->is_compound,
-				);
-
-				if ( in_array( 'taxes', $expand ) ) {
-					$_rate_data = WC()->api->WC_API_Taxes->get_tax( $tax->rate_id );
-
-					if ( isset( $_rate_data['tax'] ) ) {
-						$tax_line['rate_data'] = $_rate_data['tax'];
-					}
-				}
-
-				$order_data['tax_lines'][] = $tax_line;
-			}
-
-			// Add fees.
-			foreach ( $order->get_fees() as $fee_item_id => $fee_item ) {
-				$order_data['fee_lines'][] = array(
-					'id'        => $fee_item_id,
-					'title'     => $fee_item->get_name(),
-					'tax_class' => $fee_item->get_tax_class(),
-					'total'     => wc_format_decimal( $order->get_line_total( $fee_item ), $dp ),
-					'total_tax' => wc_format_decimal( $order->get_line_tax( $fee_item ), $dp ),
-				);
-			}
-
-			// Add coupons.
-			foreach ( $order->get_items( 'coupon' ) as $coupon_item_id => $coupon_item ) {
-				$coupon_line = array(
-					'id'     => $coupon_item_id,
-					'code'   => $coupon_item->get_code(),
-					'amount' => wc_format_decimal( $coupon_item->get_discount(), $dp ),
-				);
-
-				if ( in_array( 'coupons', $expand ) ) {
-					$_coupon_data = WC()->api->WC_API_Coupons->get_coupon_by_code( $coupon_item->get_code() );
-
-					if ( ! is_wp_error( $_coupon_data ) && isset( $_coupon_data['coupon'] ) ) {
-						$coupon_line['coupon_data'] = $_coupon_data['coupon'];
-					}
-				}
-
-				$order_data['coupon_lines'][] = $coupon_line;
-			}
-
-			return $order_data;
-		}
-
 	}
 }
