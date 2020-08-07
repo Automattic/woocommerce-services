@@ -784,34 +784,34 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 		return;
 	}
 
-	if (shouldEmailDetails(getState(), orderId, siteId)) {
+	if ( shouldEmailDetails( getState(), orderId, siteId ) ) {
 		dispatch(
-			createNote(siteId, orderId, {
+			createNote( siteId, orderId, {
 				note: translate(
 					'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
 					'Your order consisting of %(packageCount)d packages has been shipped. The tracking numbers are %(trackingNumbers)s.',
 					{
 						args: {
 							packageCount: labels.length,
-							trackingNumbers: labels.map(({tracking, carrier_id}) => {
+							trackingNumbers: labels.map( ( {tracking, carrier_id} ) => {
 								const carrierNamesMap = {
 									usps: "USPS",
 									ups: "UPS",
 								};
 								const carrierNameForLabel = carrierNamesMap[carrier_id || ''];
 
-								if (!carrierNameForLabel) {
+								if ( !carrierNameForLabel ) {
 									return tracking;
 								}
 
 								return `${tracking} (${carrierNameForLabel})`;
-							}).join(', '),
+							} ).join( ', ' ),
 						},
 						count: labels.length
 					}
 				),
 				customer_note: true,
-			})
+			} )
 		);
 	}
 
