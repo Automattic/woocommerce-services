@@ -4,7 +4,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 
 	class WC_Connect_Order_Presenter {
 
-		public function get_order_for_api( $order ) {
+		public function get_order_for_api( WC_Order $order ) {
 			$dp = 2; //decimal point defaults
 			$order_data = array(
 				'id'                        => $order->get_id(),

@@ -411,15 +411,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		public function meta_box( $post, $args ) {
-			$connectOrderPresenter = new WC_Connect_Order_Presenter();
+			$connect_order_presenter = new WC_Connect_Order_Presenter();
 
 			$order = wc_get_order( $post );
-			print_r($connectOrderPresenter->get_order_for_api($order));exit;
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
 			$payload = array(
-				'order'             => $connectOrderPresenter->get_order_for_api($order),
+				'order'             => $connect_order_presenter->get_order_for_api( $order ),
 				'accountSettings'   => $this->account_settings->get(),
 				'packagesSettings'  => $this->package_settings->get(),
 				'shippingLabelData' => $this->get_label_payload( $order_id ),
