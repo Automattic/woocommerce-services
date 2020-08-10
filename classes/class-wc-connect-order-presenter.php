@@ -4,6 +4,13 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 
 	class WC_Connect_Order_Presenter {
 
+		/**
+		 * This function transform the WC_Order object to a representational JSON form for the react app.
+		 * This is based on WooCommerce v3's get_order API woocommerce/includes/legacy/api/v3/class-wc-api-orders.php
+		 *
+		 * @param WC_Order $order
+		 * @return array
+		 */
 		public function get_order_for_api( WC_Order $order ) {
 			$dp = 2; //decimal point defaults
 			$order_data = array(
