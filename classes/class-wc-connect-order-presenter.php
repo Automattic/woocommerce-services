@@ -91,14 +91,6 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'meta'         => array_values( $item_meta ),
 				);
 
-				if ( in_array( 'products', $expand ) && is_object( $product ) ) {
-					$_product_data = WC()->api->WC_API_Products->get_product( $product->get_id() );
-
-					if ( isset( $_product_data['product'] ) ) {
-						$line_item['product_data'] = $_product_data['product'];
-					}
-				}
-
 				$order_data['line_items'][] = $line_item;
 			}
 
@@ -123,14 +115,6 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'compound' => (bool) $tax->is_compound,
 				);
 
-				if ( in_array( 'taxes', $expand ) ) {
-					$_rate_data = WC()->api->WC_API_Taxes->get_tax( $tax->rate_id );
-
-					if ( isset( $_rate_data['tax'] ) ) {
-						$tax_line['rate_data'] = $_rate_data['tax'];
-					}
-				}
-
 				$order_data['tax_lines'][] = $tax_line;
 			}
 
@@ -152,14 +136,6 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'code'   => $coupon_item->get_code(),
 					'amount' => wc_format_decimal( $coupon_item->get_discount(), $dp ),
 				);
-
-				if ( in_array( 'coupons', $expand ) ) {
-					$_coupon_data = WC()->api->WC_API_Coupons->get_coupon_by_code( $coupon_item->get_code() );
-
-					if ( ! is_wp_error( $_coupon_data ) && isset( $_coupon_data['coupon'] ) ) {
-						$coupon_line['coupon_data'] = $_coupon_data['coupon'];
-					}
-				}
 
 				$order_data['coupon_lines'][] = $coupon_line;
 			}

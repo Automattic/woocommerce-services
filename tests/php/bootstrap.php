@@ -18,7 +18,16 @@ if( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	exit( 'Could not determine test root directory. Aborting.' );
 }
 
-$wp_tests_dir = getenv( 'WP_TESTS_DIR' ) ? getenv( 'WP_TESTS_DIR' ) : '/tmp/wordpress-tests-lib';
+$wp_tests_dir = getenv( 'WP_TESTS_DIR' );
+
+if ( ! $wp_tests_dir ) {
+	$wp_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
+}
+
+if ( ! file_exists( $wp_tests_dir . '/includes/functions.php' ) ) {
+	echo "Could not find $wp_tests_dir/includes/functions.php, have you run bin/install-wp-tests.sh ?" . PHP_EOL; // WPCS: XSS ok.
+	exit( 1 );
+}
 
 // load test function so tests_add_filter() is available
 require_once( $wp_tests_dir . '/includes/functions.php' );
@@ -33,4 +42,4 @@ if ( ! defined( 'WC_UNIT_TESTING' ) ) {
 	define( 'WC_UNIT_TESTING', true );
 }
 
-require $wc_root . '/bootstrap.php';
+require $wc_root . '/tests/legacy/bootstrap.php';
