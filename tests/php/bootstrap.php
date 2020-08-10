@@ -42,4 +42,4 @@ if ( ! defined( 'WC_UNIT_TESTING' ) ) {
 	define( 'WC_UNIT_TESTING', true );
 }
 
-require $wc_root . '/tests/legacy/bootstrap.php';
+require $wc_root . '/bootstrap.php';
