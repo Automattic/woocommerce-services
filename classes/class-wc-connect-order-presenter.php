@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 		 * @return array
 		 */
 		public function get_order_for_api( WC_Order $order ) {
-			$dp = 2; //decimal point defaults
+			$decimal_point = 2;
 			$order_data = array(
 				'id'                        => $order->get_id(),
 				'order_number'              => $order->get_order_number(),
@@ -22,14 +22,14 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 				'completed_at'              => wc_format_datetime( $order->get_date_completed() ? $order->get_date_completed()->getTimestamp() : 0 ),
 				'status'                    => $order->get_status(),
 				'currency'                  => $order->get_currency(),
-				'total'                     => wc_format_decimal( $order->get_total(), $dp ),
-				'subtotal'                  => wc_format_decimal( $order->get_subtotal(), $dp ),
+				'total'                     => wc_format_decimal( $order->get_total(), $decimal_point ),
+				'subtotal'                  => wc_format_decimal( $order->get_subtotal(), $decimal_point ),
 				'total_line_items_quantity' => $order->get_item_count(),
-				'total_tax'                 => wc_format_decimal( $order->get_total_tax(), $dp ),
-				'total_shipping'            => wc_format_decimal( $order->get_shipping_total(), $dp ),
-				'cart_tax'                  => wc_format_decimal( $order->get_cart_tax(), $dp ),
-				'shipping_tax'              => wc_format_decimal( $order->get_shipping_tax(), $dp ),
-				'total_discount'            => wc_format_decimal( $order->get_total_discount(), $dp ),
+				'total_tax'                 => wc_format_decimal( $order->get_total_tax(), $decimal_point ),
+				'total_shipping'            => wc_format_decimal( $order->get_shipping_total(), $decimal_point ),
+				'cart_tax'                  => wc_format_decimal( $order->get_cart_tax(), $decimal_point ),
+				'shipping_tax'              => wc_format_decimal( $order->get_shipping_tax(), $decimal_point ),
+				'total_discount'            => wc_format_decimal( $order->get_total_discount(), $decimal_point ),
 				'shipping_methods'          => $order->get_shipping_method(),
 				'payment_details' => array(
 					'method_id'    => $order->get_payment_method(),
@@ -85,11 +85,11 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 
 				$line_item = array(
 					'id'           => $item_id,
-					'subtotal'     => wc_format_decimal( $order->get_line_subtotal( $item, false, false ), $dp ),
-					'subtotal_tax' => wc_format_decimal( $item->get_subtotal_tax(), $dp ),
-					'total'        => wc_format_decimal( $order->get_line_total( $item, false, false ), $dp ),
-					'total_tax'    => wc_format_decimal( $item->get_total_tax(), $dp ),
-					'price'        => wc_format_decimal( $order->get_item_total( $item, false, false ), $dp ),
+					'subtotal'     => wc_format_decimal( $order->get_line_subtotal( $item, false, false ), $decimal_point ),
+					'subtotal_tax' => wc_format_decimal( $item->get_subtotal_tax(), $decimal_point ),
+					'total'        => wc_format_decimal( $order->get_line_total( $item, false, false ), $decimal_point ),
+					'total_tax'    => wc_format_decimal( $item->get_total_tax(), $decimal_point ),
+					'price'        => wc_format_decimal( $order->get_item_total( $item, false, false ), $decimal_point ),
 					'quantity'     => $item->get_quantity(),
 					'tax_class'    => $item->get_tax_class(),
 					'name'         => $item->get_name(),
@@ -107,7 +107,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'id'           => $shipping_item_id,
 					'method_id'    => $shipping_item->get_method_id(),
 					'method_title' => $shipping_item->get_name(),
-					'total'        => wc_format_decimal( $shipping_item->get_total(), $dp ),
+					'total'        => wc_format_decimal( $shipping_item->get_total(), $decimal_point ),
 				);
 			}
 
@@ -118,7 +118,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'rate_id'  => $tax->rate_id,
 					'code'     => $tax_code,
 					'title'    => $tax->label,
-					'total'    => wc_format_decimal( $tax->amount, $dp ),
+					'total'    => wc_format_decimal( $tax->amount, $decimal_point ),
 					'compound' => (bool) $tax->is_compound,
 				);
 
@@ -131,8 +131,8 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'id'        => $fee_item_id,
 					'title'     => $fee_item->get_name(),
 					'tax_class' => $fee_item->get_tax_class(),
-					'total'     => wc_format_decimal( $order->get_line_total( $fee_item ), $dp ),
-					'total_tax' => wc_format_decimal( $order->get_line_tax( $fee_item ), $dp ),
+					'total'     => wc_format_decimal( $order->get_line_total( $fee_item ), $decimal_point ),
+					'total_tax' => wc_format_decimal( $order->get_line_tax( $fee_item ), $decimal_point ),
 				);
 			}
 
@@ -141,7 +141,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 				$coupon_line = array(
 					'id'     => $coupon_item_id,
 					'code'   => $coupon_item->get_code(),
-					'amount' => wc_format_decimal( $coupon_item->get_discount(), $dp ),
+					'amount' => wc_format_decimal( $coupon_item->get_discount(), $decimal_point ),
 				);
 
 				$order_data['coupon_lines'][] = $coupon_line;
