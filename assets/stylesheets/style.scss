@@ -122,6 +122,7 @@
 
 		.notice {
 			max-width: 740px;
+			padding: 0;
 
 			@include breakpoint( '<660px' ) {
 				margin-left: 0;
