@@ -315,7 +315,7 @@ class WC_Connect_TaxJar_Integration {
 		$invalid_postcode = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
 		if ( ! is_admin() && ( $state_zip_mismatch || $invalid_postcode ) ) {
 			$fields = WC()->countries->get_address_fields();
-			$postcode_field_name = __( 'ZIP / Postal code', 'woocommerce-services' );
+			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
 				$postcode_field_name = $fields['billing_postcode']['label'];
 			}
