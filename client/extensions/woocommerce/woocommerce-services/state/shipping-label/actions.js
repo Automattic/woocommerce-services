@@ -11,7 +11,6 @@ import {
 	fill,
 	filter,
 	find,
-	first,
 	flatten,
 	get,
 	includes,
@@ -786,51 +785,31 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 	}
 
 	if ( shouldEmailDetails( getState(), orderId, siteId ) ) {
-		const trackingNumbers = labels.map( label => label.tracking );
-		const carrierId = first( labels ).carrier_id;
-		let carrierIdReadable = '';
-		let note = '';
-		switch( carrierId ) {
-			case 'usps':
-				carrierIdReadable = 'USPS';
-				break;
-			case 'ups':
-				carrierIdReadable = 'UPS';
-				break;
-		}
-
-		if ( '' !== carrierIdReadable ) {
-			note = translate(
-				'Your order has been shipped with %(carrier)s. The tracking number is %(trackingNumbers)s.',
-				'Your order consisting of %(packageNum)d packages has been shipped with %(carrier)s. ' +
-					'The tracking numbers are %(trackingNumbers)s.',
-				{
-					args: {
-						packageNum: trackingNumbers.length,
-						trackingNumbers: trackingNumbers.join( ', ' ),
-						carrier: carrierIdReadable,
-					},
-					count: trackingNumbers.length,
-				}
-			);
-		} else {
-			note = translate(
-				'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
-				'Your order consisting of %(packageNum)d packages has been shipped. ' +
-					'The tracking numbers are %(trackingNumbers)s.',
-				{
-					args: {
-						packageNum: trackingNumbers.length,
-						trackingNumbers: trackingNumbers.join( ', ' ),
-					},
-					count: trackingNumbers.length,
-				}
-			);
-
-		}
 		dispatch(
 			createNote( siteId, orderId, {
-				note,
+				note: translate(
+					'Your order has been shipped. The tracking number is %(trackingNumbers)s.',
+					'Your order consisting of %(packageCount)d packages has been shipped. The tracking numbers are %(trackingNumbers)s.',
+					{
+						args: {
+							packageCount: labels.length,
+							trackingNumbers: labels.map( ( {tracking, carrier_id} ) => {
+								const carrierNamesMap = {
+									usps: "USPS",
+									ups: "UPS",
+								};
+								const carrierNameForLabel = carrierNamesMap[carrier_id || ''];
+
+								if ( !carrierNameForLabel ) {
+									return tracking;
+								}
+
+								return `${tracking} (${carrierNameForLabel})`;
+							} ).join( ', ' ),
+						},
+						count: labels.length
+					}
+				),
 				customer_note: true,
 			} )
 		);
