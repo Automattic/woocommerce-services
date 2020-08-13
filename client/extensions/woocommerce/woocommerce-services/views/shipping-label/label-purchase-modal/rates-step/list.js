@@ -75,7 +75,7 @@ export const ShippingRates = ( {
 						/>
 					} ) )
 				) }
-				{ packageErrors.slice( 1 ).map( ( error, index ) => {
+				{ packageErrors.map( ( error, index ) => {
 					// Print the rest of the errors (if any) below the dropdown
 					return <FieldError type="server-error" key={ index } text={ error } />;
 				} ) }
