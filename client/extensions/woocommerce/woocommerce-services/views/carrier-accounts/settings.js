@@ -236,7 +236,7 @@ export const CarrierAccountSettings = ( props ) => {
 						<div className="carrier-accounts__settings-two-columns">
 							<TextField
 								id={ 'postal_code' }
-								title={ translate( 'Postal code / Zip' ) }
+								title={ translate( 'ZIP/Postal code' ) }
 								value={ getValue( 'postal_code' ) }
 								updateValue={ updateValue( 'postal_code' ) }
 								error={ fieldErrors.postal_code }
