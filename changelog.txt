@@ -4,6 +4,7 @@
 * Tweak - Zip/Postcode/Postal code messaging consistency
 * Fix   - Services management CSS table layout
 * Fix   - Carrier "disconnect modal" layout
+* Fix   - Remove padding from notice bar
 
 = 1.24.0 - 2020-07-30 =
 * Fix   - PHP 7.4 notice for taxes at checkout.
