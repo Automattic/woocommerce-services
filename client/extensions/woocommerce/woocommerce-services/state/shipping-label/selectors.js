@@ -235,7 +235,7 @@ const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone
 		includes( ACCEPTED_USPS_ORIGIN_COUNTRIES, country ) &&
 		! /^\d{5}(?:-\d{4})?$/.test( postcode )
 	) {
-		errors.postcode = translate( 'Invalid ZIP code format' );
+		errors.postcode = translate( 'Invalid ZIP/Postal code format' );
 	}
 
 	if ( ! state && hasStates( appState, country, siteId ) ) {

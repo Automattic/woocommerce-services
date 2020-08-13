@@ -162,7 +162,7 @@ class AddressView extends Component {
 					</FormFieldSet>
 					{ this.renderEditableState() }
 					<FormFieldSet>
-						<FormLabel>{ translate( 'Postal code' ) }</FormLabel>
+						<FormLabel>{ translate( 'ZIP/Postal code' ) }</FormLabel>
 						<FormTextInput
 							autoComplete="postal-code"
 							name="postcode"
