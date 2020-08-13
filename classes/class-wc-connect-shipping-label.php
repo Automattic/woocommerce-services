@@ -427,6 +427,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'items'             => $items_count
 				),
 				$args,
+				$order,
 				$this
 			);
 
