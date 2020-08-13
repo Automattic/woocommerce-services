@@ -416,7 +416,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$items       = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
 
-			$payload = add_filter( 'wc_connect_meta_box_payload',
+			$payload = apply_filters( 'wc_connect_meta_box_payload',
 				array(
 					'order'             => $order->get_data(),
 					'accountSettings'   => $this->account_settings->get(),
