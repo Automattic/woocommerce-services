@@ -45,14 +45,15 @@
 		//wp-admin styles override the disabled button with !important, so need to do the same here
 		
 		&.is-busy {
+			background-size: 120px 100% !important;
 			background-image: linear-gradient(
 				-45deg,
 				var( --color-accent ) 28%,
 				var( --color-accent-600 ) 28%,
 				var( --color-accent-600 ) 72%,
 				var( --color-accent ) 72%
-			);
-			border-color: var( --color-accent-dark );
+			) !important;
+			border-color: var( --color-accent-dark ) !important;
 		}
 
 		&.is-borderless {
