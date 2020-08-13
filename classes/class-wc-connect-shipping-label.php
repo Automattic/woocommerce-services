@@ -394,7 +394,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @param  array $item Item to check for shipping.
 		 * @return bool
 		 */
-		protected function filter_items_needing_shipping( $item ) {
+		public function filter_items_needing_shipping( $item ) {
 			$product = $item->get_product();
 			return $product && $product->needs_shipping();
 		}
