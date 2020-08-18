@@ -52,7 +52,7 @@ export const ShippingRates = ( {
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = availableRates[ pckgId ].default.rates;
 		// filter out duplicate error messages
-		const packageErrors = errors[ pckgId ].filter( ( item, index ) => errors[ pckgId ].indexOf( item ) === index ) || [];
+		const packageErrors = ( errors[ pckgId ] || [] ).filter( ( item, index ) => errors[ pckgId ].indexOf( item ) === index );
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 		return (
