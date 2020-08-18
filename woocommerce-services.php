@@ -637,6 +637,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-account-settings.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-package-settings.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-continents.php' ) );
+			require_once( plugin_basename( 'classes/class-wc-connect-order-presenter.php' ) );
 
 			$core_logger           = new WC_Logger();
 			$logger                = new WC_Connect_Logger( $core_logger );
