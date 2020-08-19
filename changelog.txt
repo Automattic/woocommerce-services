@@ -1,6 +1,6 @@
 *** WooCommerce Services Changelog ***
 
-= 1.24.1 - 2020-xx-xx =
+= 1.24.1 - 2020-08-19 =
 * Tweak - Zip/Postcode/Postal code messaging consistency
 * Fix   - Services management CSS table layout
 * Fix   - Carrier "disconnect modal" layout
