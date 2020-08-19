@@ -1,8 +1,8 @@
 .carrier-accounts__settings-cancel-dialog {
 	.dialog__content {
 		padding: 0;
-		width: 666px;
-		height: 200px;
+		max-width: 666px;
+		min-height: 200px;
 
 		.carrier-accounts__settings-cancel-dialog-header {
 			background-color: #fcfcfc;
@@ -11,9 +11,9 @@
 
 			.carrier-accounts__settings-cancel-dialog-title {
 				display: block;
-				margin: 0;
-				padding: 18px 28px;
+				margin: auto 28px;
 			}
+
 			.carrier-accounts__settings-cancel-dialog-close-button {
 				border: 0 none;
 				outline: 0 none;
