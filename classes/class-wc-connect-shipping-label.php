@@ -413,11 +413,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function meta_box( $post, $args ) {
 
 			$connect_order_presenter = new WC_Connect_Order_Presenter();
-			$order                   = wc_get_order( $post );
-			$order_id                = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$items                   = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
-			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
-			$payload                 = apply_filters( 'wc_connect_meta_box_payload',
+
+ 			$order = wc_get_order( $post );
+ 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+ 			$items = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
+ 			$items_count = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
+
+			$payload = apply_filters( 'wc_connect_meta_box_payload',
 				array(
 					'order'             => $connect_order_presenter->get_order_for_api( $order ),
 					'accountSettings'   => $this->account_settings->get(),
