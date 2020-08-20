@@ -7,7 +7,9 @@
 * Fix   - Primary button busy state updated to match color
 * Fix   - Remove padding from notice bar
 * Fix   - Add missing box in rate step for how much customer paid for shipping
-* Fix   - Remove rates error array slice
+* Tweak - Bump WP tested version to 5.5
+* Fix   - Issue with dismiss modal popup blocking access to edit order
+* Fix   - Remove duplicate rate errors
 
 = 1.24.0 - 2020-07-30 =
 * Fix   - PHP 7.4 notice for taxes at checkout.

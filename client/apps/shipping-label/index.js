@@ -36,7 +36,7 @@ export default ( { order, accountSettings, packagesSettings, shippingLabelData, 
 	const packages = packagesSettings.formData;
 	const dimensionUnit = packagesSettings.storeOptions.dimension_unit;
 	const weightUnit = packagesSettings.storeOptions.weight_unit;
-	const packageSchema = packagesSettings.formSchema.custom.items;
+	const packageSchema = packagesSettings.formSchema.custom ? packagesSettings.formSchema.custom.items : undefined;
 	const predefinedSchema = packagesSettings.formSchema.predefined;
 
 	return {
