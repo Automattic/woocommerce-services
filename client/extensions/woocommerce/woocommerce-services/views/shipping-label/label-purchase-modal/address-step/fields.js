@@ -189,7 +189,7 @@ const AddressFields = props => {
 				) }
 				<TextField
 					id={ getId( 'postcode' ) }
-					title={ translate( 'Postal code' ) }
+					title={ translate( 'ZIP/Postal code' ) }
 					value={ getValue( 'postcode' ) }
 					updateValue={ updateValue( 'postcode' ) }
 					className="address-step__postal-code"

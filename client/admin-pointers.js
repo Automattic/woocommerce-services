@@ -37,15 +37,21 @@ import jQuery from 'jquery';
 
 				show_pointer( pointers, i + 1 );
 			},
+			open: function() {
+				if ( !pointer.dim ) {
+					return;
+				}
+
+				target.css( 'z-index', 9999 );
+				$( 'body' ).append( '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
+				$( '#wcs-pointer-page-dimmer' ).fadeIn( 500 ).one( 'click', function () {
+					target.pointer( 'close' );
+				} );
+			}
 		} );
 
 		function open() {
 			target.pointer( options ).pointer( 'open' );
-			if ( pointer.dim ) {
-				target.css( 'z-index', 9999 );
-				$( 'body' ).append( '<div id="wcs-pointer-page-dimmer" class="wcs-pointer-page-dimmer"></div>' );
-				$( '#wcs-pointer-page-dimmer' ).fadeIn( 500 );
-			}
 		}
 
 		/**

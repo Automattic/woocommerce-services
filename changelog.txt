@@ -1,8 +1,14 @@
 *** WooCommerce Services Changelog ***
 
 = 1.24.1 - 2020-xx-xx =
+* Tweak - Zip/Postcode/Postal code messaging consistency
 * Fix   - Services management CSS table layout
 * Fix   - Carrier "disconnect modal" layout
+* Fix   - Primary button busy state updated to match color
+* Fix   - Remove padding from notice bar
+* Fix   - Add missing box in rate step for how much customer paid for shipping
+* Tweak - Bump WP tested version to 5.5
+* Fix   - Issue with dismiss modal popup blocking access to edit order
 
 = 1.24.0 - 2020-07-30 =
 * Fix   - PHP 7.4 notice for taxes at checkout.
