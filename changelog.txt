@@ -9,6 +9,7 @@
 * Fix   - Add missing box in rate step for how much customer paid for shipping
 * Tweak - Bump WP tested version to 5.5
 * Fix   - Issue with dismiss modal popup blocking access to edit order
+* Add   - Introduce 'wc_connect_meta_box_payload' filter for modifying order data
 
 = 1.24.0 - 2020-07-30 =
 * Fix   - PHP 7.4 notice for taxes at checkout.
