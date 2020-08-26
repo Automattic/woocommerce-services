@@ -79,6 +79,7 @@ const getRouteClass = async ( className ) => {
 	return module.default;
 };
 
+const createdStoresAsync = {};
 const createdStores = {};
 
 Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container ) => {
@@ -92,7 +93,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		}
 	}
 
-	getRouteClass( routeClassName ).then( RouteClass => {
+	createdStoresAsync[ routeClassName ] = getRouteClass( routeClassName ).then( RouteClass => {
 		if ( ! RouteClass ) {
 			return;
 		}
@@ -146,11 +147,12 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 			</AppContainer>,
 			container
 		);
+		return createdStores[ routeClassName ];
 	});
 } );
 
-window.wcsGetAppStore = function( storeKey ) {
-	return createdStores[ storeKey ];
+window.wcsGetAppStoreAsync = function( storeKey ) {
+	return createdStoresAsync[ storeKey ];
 };
 
 if ( module.hot ) {
