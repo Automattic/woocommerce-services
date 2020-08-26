@@ -1222,11 +1222,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array('lodash', 'moment', 'react', 'react-dom'), null, true );
 			// Dev mode will handle loading the css itself to support HMR.
-			if ( ! empty( self::get_wcs_admin_style_url() ) ) {
+			$stylesheet_url = self::get_wcs_admin_style_url();
+			if ( ! empty( $stylesheet_url ) ) {
 				// Load CSS async to prevent blocking rendering since this css is non-essential.
 				wp_add_inline_script(
 					'wc_connect_admin',
-					"var link = document.createElement('link');link.rel = 'stylesheet';link.type = 'text/css';link.href = '" . esc_js( self::get_wcs_admin_style_url() ) . "';document.getElementsByTagName('HEAD')[0].appendChild(link);"
+					"var link = document.createElement('link');link.rel = 'stylesheet';link.type = 'text/css';link.href = '" . esc_js( $stylesheet_url ) . "';document.getElementsByTagName('HEAD')[0].appendChild(link);"
 				);
 			}
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
