@@ -246,7 +246,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return string
 		 */
 		static function get_wcs_admin_style_url() {
-			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.css';
+			if ( ! defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ) {
+				return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.css';
+			} else {
+				return '';
+			}
 		}
 
 		function wpcom_static_url($file) {
@@ -1218,7 +1222,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			wp_register_script( 'wc_connect_admin', self::get_wcs_admin_script_url(), array('lodash', 'moment', 'react', 'react-dom'), null, true );
 			// Dev mode will handle loading the css itself to support HMR.
-			if ( ! defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ) {
+			if ( ! empty( self::get_wcs_admin_style_url() ) ) {
 				// Load CSS async to prevent blocking rendering since this css is non-essential.
 				wp_add_inline_script(
 					'wc_connect_admin',
