@@ -31,10 +31,7 @@ import './style.scss';
 
 export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, context, items } ) => {
 	const orderId = order ? order.id : null;
-	let isPreloaded = false;
-	if ( undefined !== accountSettings ) {
-		isPreloaded = true;
-	}
+	const isPreloaded = ( undefined !== accountSettings );
 
 	const addPreloadedState = function( initialState ) {
 		const { storeOptions, formMeta, userMeta, formData } = accountSettings;
