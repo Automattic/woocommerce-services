@@ -31,9 +31,9 @@ import './style.scss';
 
 export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, context, items } ) => {
 	const orderId = order ? order.id : null;
-	let preLoadedState = false;
+	let isPreloaded = false;
 	if ( undefined !== accountSettings ) {
-		preLoadedState = true;
+		isPreloaded = true;
 	}
 
 	const addPreloadedState = function( initialState ) {
@@ -136,7 +136,7 @@ export default ( { order, accountSettings, packagesSettings, shippingLabelData, 
 					},
 				},
 			};
-			return preLoadedState ? addPreloadedState( initialState ) : initialState;
+			return isPreloaded ? addPreloadedState( initialState ) : initialState;
 		},
 
 		getStateForPersisting() {
