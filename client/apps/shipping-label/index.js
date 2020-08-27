@@ -30,14 +30,61 @@ import initializeLabelsState from 'woocommerce/woocommerce-services/lib/initiali
 import './style.scss';
 
 export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, context, items } ) => {
-
 	const orderId = order ? order.id : null;
-	const { storeOptions, formMeta, userMeta, formData } = accountSettings;
-	const packages = packagesSettings.formData;
-	const dimensionUnit = packagesSettings.storeOptions.dimension_unit;
-	const weightUnit = packagesSettings.storeOptions.weight_unit;
-	const packageSchema = packagesSettings.formSchema.custom ? packagesSettings.formSchema.custom.items : undefined;
-	const predefinedSchema = packagesSettings.formSchema.predefined;
+	const isPreloaded = ( undefined !== accountSettings );
+
+	const addPreloadedState = function( initialState ) {
+		const { storeOptions, formMeta, userMeta, formData } = accountSettings;
+		const packages = packagesSettings.formData;
+		const dimensionUnit = packagesSettings.storeOptions.dimension_unit;
+		const weightUnit = packagesSettings.storeOptions.weight_unit;
+		const packageSchema = packagesSettings.formSchema.custom ? packagesSettings.formSchema.custom.items : undefined;
+		const predefinedSchema = packagesSettings.formSchema.predefined;
+		initialState.extensions.woocommerce.woocommerceServices = {
+			1: {
+				shippingLabel: {
+					[ orderId ]: initializeLabelsState( shippingLabelData )
+				},
+				labelSettings: {
+					storeOptions,
+					meta: {
+						...formMeta,
+						pristine: true,
+						isLoaded: true,
+						user: userMeta,
+					},
+					data: {
+						...formData,
+					},
+				},
+				packages: {
+					modalErrors: {},
+					pristine: true,
+					packages,
+					dimensionUnit,
+					weightUnit,
+					packageSchema,
+					predefinedSchema,
+					packageData: {
+						is_user_defined: true,
+					},
+					isLoaded: true,
+				}
+			}
+		};
+		initialState.extensions.woocommerce.sites[1].orders.isLoading = {
+			[ orderId ]: false,
+		}
+
+		initialState.extensions.woocommerce.sites[1].orders.items = {
+			[ orderId ]: order,
+		}
+		initialState.extensions.woocommerce.sites[1].data = {
+			locations: continents,
+		}
+
+		return initialState;
+	}
 
 	return {
 		getReducer() {
@@ -69,64 +116,24 @@ export default ( { order, accountSettings, packagesSettings, shippingLabelData, 
 		},
 
 		getInitialState() {
-			return {
+			const initialState = {
 				extensions: {
 					woocommerce: {
 						sites: {
 							1: {
 								orders: {
-									isLoading: {
-										[ orderId ]: false,
-									},
-									items: {
-										[ orderId ]: order
-									},
 									notes: {
 										isLoading: {
 											[ orderId ]: false,
 										},
 									},
 								},
-								data: {
-									locations: continents
-								}
 							},
 						},
-						woocommerceServices: {
-							1: {
-								shippingLabel: {
-									[ orderId ]: initializeLabelsState( shippingLabelData )
-								},
-								labelSettings: {
-									storeOptions,
-									meta: {
-										...formMeta,
-										pristine: true,
-										isLoaded: true,
-										user: userMeta,
-									},
-									data: {
-										...formData,
-									},
-								},
-								packages: {
-									modalErrors: {},
-									pristine: true,
-									packages,
-									dimensionUnit,
-									weightUnit,
-									packageSchema,
-									predefinedSchema,
-									packageData: {
-										is_user_defined: true,
-									},
-									isLoaded: true,
-								}
-							}
-						}
 					},
 				},
 			};
+			return isPreloaded ? addPreloadedState( initialState ) : initialState;
 		},
 
 		getStateForPersisting() {
