@@ -104,7 +104,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				?>
 					<h2>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Services', 'woocommerce-services' ); ?></a> &gt;
-						<span class="wc-shipping-zone-name"><?php echo esc_html( $translated_carrier_name ); ?></span>
+						<span><?php echo esc_html( $translated_carrier_name ); ?></span>
 					</h2>
 				<?php
 				}
