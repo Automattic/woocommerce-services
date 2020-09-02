@@ -37,6 +37,7 @@ export const builtInShippingMethods = {
 	wc_services_canada_post: wcsServiceSettings,
 	wc_services_fedex: wcsServiceSettings,
 	wc_services_ups: wcsServiceSettings,
+	wc_services_dhl: wcsServiceSettings,
 };
 
 export const initialState = {

@@ -1,5 +1,12 @@
 *** WooCommerce Services Changelog ***
 
+= 1.24.2 - 2020-xx-xx =
+* Fix   - Optional preloading for wc-admin install compatibility
+* Fix   - Remove duplicate rate errors
+* Fix   - Compatibility with WooCommerce order page install prompt
+* Add   - Introduce 'wc_connect_meta_box_payload' filter for modifying order data
+* Tweak - Update UPS failed connection error message
+
 = 1.24.1 - 2020-08-19 =
 * Tweak - Zip/Postcode/Postal code messaging consistency
 * Fix   - Services management CSS table layout

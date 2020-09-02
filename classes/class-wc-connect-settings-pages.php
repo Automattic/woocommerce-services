@@ -89,9 +89,25 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['order_id'] = $_GET['from_order'];
 				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );
 			}
-			if ( isset( $_GET[ 'carrier' ] ) ) {
-				$extra_args['carrier'] = $_GET[ 'carrier' ];
+			if ( isset( $_GET['carrier'] ) ) {
+				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
+				$translated_carrier_name  = null;
+				switch ( strtolower( $extra_args['carrier'] ) ) {
+					case 'ups':
+						$translated_carrier_name = __( 'UPS', 'woocommerce-services' );
+						break;
+					default:
+						break;
+				}
+				if ( $translated_carrier_name ) {
+				?>
+					<h2>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Services', 'woocommerce-services' ); ?></a> &gt;
+						<span><?php echo esc_html( $translated_carrier_name ); ?></span>
+					</h2>
+				<?php
+				}
 			}
 
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-shipping-settings', $extra_args );

@@ -51,7 +51,8 @@ export const ShippingRates = ( {
 		}
 		const selectedRate = selectedRates[ pckgId ] || '';
 		const packageRates = availableRates[ pckgId ].default.rates;
-		const packageErrors = errors[ pckgId ] || [];
+		// filter out duplicate error messages
+		const packageErrors = ( errors[ pckgId ] || [] ).filter( ( item, index ) => errors[ pckgId ].indexOf( item ) === index );
 
 		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
 		return (
@@ -75,7 +76,7 @@ export const ShippingRates = ( {
 						/>
 					} ) )
 				) }
-				{ packageErrors.slice( 1 ).map( ( error, index ) => {
+				{ packageErrors.map( ( error, index ) => {
 					// Print the rest of the errors (if any) below the dropdown
 					return <FieldError type="server-error" key={ index } text={ error } />;
 				} ) }
