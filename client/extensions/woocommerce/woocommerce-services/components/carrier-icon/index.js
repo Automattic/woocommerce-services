@@ -11,10 +11,12 @@ import PropTypes from 'prop-types';
  */
 import upsLogo from './logos/ups.png';
 import uspsLogo from './logos/usps.png';
+import dhlExpressLogo from './logos/dhlExpress.png';
 
 const carrierLogos = {
 	"ups": upsLogo,
 	"usps": uspsLogo,
+	"dhl_express": dhlExpressLogo,
 };
 
 const sizeToPixels = ( size ) => {
