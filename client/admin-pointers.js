@@ -82,7 +82,7 @@ import jQuery from 'jquery';
 		}
 	}
 
-	$( window ).load( function() {
+	$( window ).on('load', function() {
 		show_pointer( wcServicesAdminPointers, 0 );
 	} );
 } )( jQuery );
