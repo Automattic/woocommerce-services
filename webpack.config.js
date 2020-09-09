@@ -60,7 +60,7 @@ module.exports = {
 			{
 			path: path.join( __dirname, 'dist' ),
 			filename: '[name]-' + process.env.npm_package_version + '.js',
-			chunkFilename: 'chunks/[name].[chunkhash].min.js',
+			chunkFilename: 'chunks/[chunkhash].min.js',
 			devtoolModuleFilenameTemplate: 'app:///[resource-path]',
 		},
 		isDev ? {
@@ -253,6 +253,7 @@ module.exports = {
 		} ),
 		! isDev && new MiniCssExtractPlugin( {
 			filename: '[name]-' + process.env.npm_package_version + '.css',
+			chunkFilename: './chunks/[chunkhash].css'
 		} ),
 		new webpack.DefinePlugin( {
 			'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
