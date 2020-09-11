@@ -1069,7 +1069,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					case 'ups':
 						$tracking_url = 'https://www.ups.com/track?tracknum=' . $tracking;
 						break;
-					case 'dhl':
+					case 'dhlexpress':
 						$tracking_url = 'https://www.dhl.com/en/express/tracking.html?AWB=' . $tracking . '&brand=DHL';
 						break;
 
