@@ -38,11 +38,6 @@
 	border-bottom: 1px solid #eee
 }
 
-.rates-step__carier-logo-image-usps {
-	width: 40px;
-	height: 40px;
-}
-
 .rates-step__shipping-rate-information {
 	display: flex;
 	flex-grow: 1;
@@ -51,6 +46,7 @@
 		height: 30px;
 		max-width: 30px;
 		margin: 15px 15px;
+		align-items: center;
 	}
 }
 
