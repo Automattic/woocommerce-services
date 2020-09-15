@@ -9,7 +9,7 @@ import React, {Suspense} from 'react';
 
 import ShippingLabelViewWrapper from './view-wrapper-label';
 // Lazy load ShipmentTrackingViewWrapper so shipping label will render faster.
-const ShipmentTrackingViewWrapper = React.lazy(() => import(/* webpackChunkName: "view-wrapper-tracking" */'./view-wrapper-tracking'));
+const ShipmentTrackingViewWrapper = React.lazy(() => import('./view-wrapper-tracking'));
 import reduxMiddleware from './redux-middleware';
 // from calypso
 import notices from 'state/notices/reducer';
