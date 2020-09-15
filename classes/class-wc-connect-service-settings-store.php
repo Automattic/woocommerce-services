@@ -321,7 +321,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
-		 * Returns the service type and id for each enabled WooCommerce Services service
+		 * Returns the service type and id for each enabled WooCommerce Shipping & Tax service
 		 *
 		 * Shipping services also include instance_id and shipping zone id
 		 *

@@ -62,7 +62,7 @@ export const cancelShippingZoneMethod = siteId => {
  */
 export const closeShippingZoneMethod = siteId => ( dispatch, getState ) => {
 	const method = getCurrentlyOpenShippingZoneMethod( getState(), siteId );
-	// Perform validation if the method is from WooCommerce Services
+	// Perform validation if the method is from WooCommerce Shipping & Tax
 	if ( startsWith( method.methodType, 'wc_services' ) ) {
 		const methodFields = omit( method, [ 'id', 'enabled', 'methodType' ] );
 		// Mark all the fields as "interacted with" to trigger a full validation

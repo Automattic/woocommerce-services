@@ -14,7 +14,7 @@ import SettingsGroupCard from 'woocommerce/woocommerce-services/components/setti
 
 const HealthView = ( { translate, moment, healthItems } ) => {
 	const heading = translate( 'Health', {
-		context: 'This section displays the overall health of WooCommerce Services and the things it depends on',
+		context: 'This section displays the overall health of WooCommerce Shipping & Tax and the things it depends on',
 	} );
 
 	const renderTimestamp = ( { timestamp } ) => {
@@ -53,7 +53,7 @@ const HealthView = ( { translate, moment, healthItems } ) => {
 		<SettingsGroupCard heading={ heading }>
 			{ renderIndicator( translate( 'WooCommerce' ), healthItems.woocommerce, false ) }
 			{ renderIndicator( translate( 'Jetpack' ), healthItems.jetpack, false ) }
-			{ renderIndicator( translate( 'WooCommerce Services Data' ), healthItems.woocommerce_services, true ) }
+			{ renderIndicator( translate( 'WooCommerce Shipping & Tax Data' ), healthItems.woocommerce_services, true ) }
 		</SettingsGroupCard>
 	);
 };

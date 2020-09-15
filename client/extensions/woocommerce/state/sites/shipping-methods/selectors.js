@@ -19,8 +19,8 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-method-schemas/selectors';
 
 /*
- * By default, those methods are called "XXXX (WooCommerce Services)".
- * We aren't pushing the "WooCommerce Services" brand anywhere in Calypso, so the method names must be changed.
+ * By default, those methods are called "XXXX (WooCommerce Shipping & Tax)".
+ * We aren't pushing the "WooCommerce Shipping & Tax" brand anywhere in Calypso, so the method names must be changed.
  */
 const METHOD_NAMES = {
 	wc_services_usps: translate( 'USPS', { comment: 'United States Postal Services' } ),

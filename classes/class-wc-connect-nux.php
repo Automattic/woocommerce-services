@@ -486,7 +486,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$jetpack_status = $this->get_jetpack_install_status();
 			$button_text    = __( 'Connect', 'woocommerce-services' );
-			$banner_title   = __( 'Connect Jetpack to activate WooCommerce Services', 'woocommerce-services' );
+			$banner_title   = __( 'Connect Jetpack to activate WooCommerce Shipping & Tax', 'woocommerce-services' );
 			$image_url      = plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) );
 
 			switch ( $jetpack_status ) {
@@ -500,7 +500,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect Jetpack you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect Jetpack you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
 				'title'             => $banner_title,
@@ -576,11 +576,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Services is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 
 			$this->show_nux_banner( array(
-				'title'          => __( 'Connect your store to activate WooCommerce Services', 'woocommerce-services' ),
+				'title'          => __( 'Connect your store to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
 				'description'    => esc_html( sprintf( $description_base, $feature_list ) ),
 				'button_text'    => __( 'Connect', 'woocommerce-services' ),
 				'button_link'    => add_query_arg( array(

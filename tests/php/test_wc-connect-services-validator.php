@@ -19,7 +19,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 				(object) array(
 					'id' => 'usps',
 					'method_description' => 'Obtains rates dynamically from the USPS API during cart/checkout.',
-					'method_title' => 'USPS (WooCommerce Services)',
+					'method_title' => 'USPS (WooCommerce Shipping & Tax)',
 					'form_layout' => array(),
 					'service_settings' => (object) array(
 						'type' => 'object',

@@ -3,9 +3,9 @@
  */
 import { StoreOwnerFlow } from "../../utils/flows";
 
-describe( 'Store admin can login and make sure WooCommerce Service extension is activated', () => {
-	
-	it( 'Can activate WooCommerce Service extension if it is deactivated' , async () => {
+describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extension is activated', () => {
+
+	it( 'Can activate WooCommerce Shipping & Tax extension if it is deactivated' , async () => {
 		let slug = 'woocommerce-services';
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openPluginsPage();

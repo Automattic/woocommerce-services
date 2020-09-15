@@ -265,7 +265,7 @@ describe( 'selectors', () => {
 			expect( isActivityLogLoaded( labelsLoadingState, 45, 123 ) ).to.not.be.ok;
 		} );
 
-		it( 'should be true when notes are loaded and the WooCommerce Services extension is disabled.', () => {
+		it( 'should be true when notes are loaded and the WooCommerce Shipping & Tax extension is disabled.', () => {
 			wcsEnabledStub.restore();
 			wcsEnabledStub = sinon.stub( plugins, 'isWcsEnabled' ).returns( false );
 			expect( isActivityLogLoaded( labelsLoadingState, 45, 123 ) ).to.be.true;
@@ -315,7 +315,7 @@ describe( 'selectors', () => {
 			expect( isActivityLogLoading( labelsLoadingState, 45, 123 ) ).to.be.true;
 		} );
 
-		it( 'should be false when notes are loaded and the WooCommerce Services extension is disabled.', () => {
+		it( 'should be false when notes are loaded and the WooCommerce Shipping & Tax extension is disabled.', () => {
 			wcsEnabledStub.restore();
 			wcsEnabledStub = sinon.stub( plugins, 'isWcsEnabled' ).returns( false );
 			expect( isActivityLogLoading( labelsLoadingState, 45, 123 ) ).to.be.false;

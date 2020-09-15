@@ -21,7 +21,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		public function __construct( WC_Connect_API_Client $api_client ) {
 			$this->id    = 'connect';
-			$this->label = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
+			$this->label = _x( 'WooCommerce Shipping & Tax', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
 			$this->continents = new WC_Connect_Continents();
             $this->api_client = $api_client;
 
@@ -39,7 +39,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$shipping_tabs = array();
 			}
 
-			$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Services', 'woocommerce-services' );
+			$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Shipping & Tax', 'woocommerce-services' );
 			return $shipping_tabs;
 		}
 
@@ -69,7 +69,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				if ( WC_Connect_Jetpack::is_active() ) {
 					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'woocommerce-services' );
 				} else {
-					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from WooCommerce Services production servers.', 'woocommerce-services' );
+					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from WooCommerce Shipping & Tax production servers.', 'woocommerce-services' );
 				}
 				?>
 					<div class="wc-connect-admin-dev-notice">
@@ -103,7 +103,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				if ( $translated_carrier_name ) {
 				?>
 					<h2>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Services', 'woocommerce-services' ); ?></a> &gt;
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Shipping & Tax', 'woocommerce-services' ); ?></a> &gt;
 						<span><?php echo esc_html( $translated_carrier_name ); ?></span>
 					</h2>
 				<?php

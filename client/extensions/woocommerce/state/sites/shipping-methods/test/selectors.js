@@ -134,7 +134,7 @@ describe( 'selectors', () => {
 			expect( areShippingMethodsLoading( stateLoading ) ).to.be.true;
 		} );
 
-		test( 'when methods are loaded but the method schemas are not, with WooCommerce Services disabled.', () => {
+		test( 'when methods are loaded but the method schemas are not, with WooCommerce Shipping & Tax disabled.', () => {
 			const state = {
 				extensions: {
 					woocommerce: {
@@ -157,7 +157,7 @@ describe( 'selectors', () => {
 			expect( areShippingMethodsLoading( state, 123 ) ).to.be.false;
 		} );
 
-		test( 'when methods are loaded but the method schemas are not, with WooCommerce Services enabled.', () => {
+		test( 'when methods are loaded but the method schemas are not, with WooCommerce Shipping & Tax enabled.', () => {
 			wcsEnabledStub.restore();
 			wcsEnabledStub = sinon.stub( plugins, 'isWcsEnabled' ).returns( true );
 			const state = {
