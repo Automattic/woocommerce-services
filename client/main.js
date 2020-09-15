@@ -56,22 +56,22 @@ const getRouteClass = async ( className ) => {
 	let module = null;
 	switch ( className) {
 		case 'wc-connect-create-shipping-label':
-			module = await import(/* webpackChunkName: "shipping-label" */ './apps/shipping-label');
+			module = await import('./apps/shipping-label');
 			break;
 		case 'wc-connect-service-settings':
-			module = await import(/* webpackChunkName: "settings" */ './apps/settings');
+			module = await import('./apps/settings');
 			break;
 		case 'wc-connect-admin-status':
-			module = await import(/* webpackChunkName: "plugin-status" */ './apps/plugin-status');
+			module = await import('./apps/plugin-status');
 			break;
 		case 'wc-connect-shipping-settings':
-			module = await import(/* webpackChunkName: "shipping-settings" */ './apps/shipping-settings');
+			module = await import('./apps/shipping-settings');
 			break;
 		case 'wc-connect-admin-test-print':
-			module = await import(/* webpackChunkName: "print-test-label" */ './apps/print-test-label');
+			module = await import('./apps/print-test-label');
 			break;
 		case 'wc-connect-stripe-connect-account':
-			module = await import(/* webpackChunkName: "shipping-label" */ './apps/stripe-connect-account');
+			module = await import('./apps/stripe-connect-account');
 			break;
 		default:
 			return null;

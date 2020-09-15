@@ -15,8 +15,8 @@ import { sumBy, differenceBy, filter, maxBy } from 'lodash';
  */
 // from calypso
 import Button from 'components/button';
-const LabelPurchaseModal = React.lazy(() => import(/* webpackChunkName: "shipping-label-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
-const TrackingModal = React.lazy(() => import(/* webpackChunkName: "tracking-modal" */'../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal'));
+const LabelPurchaseModal = React.lazy(() => import('../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
+const TrackingModal = React.lazy(() => import('../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal'));
 
 import {
 	openPrintingFlow,
