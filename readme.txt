@@ -83,6 +83,9 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
+= 1.24.3 - 2020-XX-XX =
+* Tweak - Updating carrier logo and tracking links
+
 = 1.24.2 - 2020-09-03 =
 * Fix   - Optional preloading for wc-admin install compatibility
 * Fix   - Remove duplicate rate errors
