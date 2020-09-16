@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.5
-Stable tag: 1.24.2
+Stable tag: 1.24.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,7 +83,7 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 
 == Changelog ==
 
-= 1.24.3 - 2020-XX-XX =
+= 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts
 * Fix   - Select all posts checkbox not working
 * Fix   - Use of deprecated jQuery.load
