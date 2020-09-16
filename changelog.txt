@@ -1,5 +1,11 @@
 *** WooCommerce Services Changelog ***
 
+= 1.24.3 - 2020-XX-XX =
+* Fix   - Asset paths incompatible with some hosts.
+* Fix   - Select all posts checkbox not working.
+* Fix   - Use of deprecated jQuery.load.
+* Tweak - Updating carrier logo and tracking links
+
 = 1.24.2 - 2020-09-03 =
 * Fix   - Optional preloading for wc-admin install compatibility
 * Fix   - Remove duplicate rate errors

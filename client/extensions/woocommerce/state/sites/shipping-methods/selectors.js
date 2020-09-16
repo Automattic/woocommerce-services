@@ -27,7 +27,7 @@ const METHOD_NAMES = {
 	wc_services_canada_post: translate( 'Canada Post' ),
 	wc_services_fedex: translate( 'FedEx' ),
 	wc_services_ups: translate( 'UPS' ),
-	wc_services_dhl: translate( 'DHL' ),
+	wc_services_dhlexpress: translate( 'DHL Express' ),
 };
 
 /**
