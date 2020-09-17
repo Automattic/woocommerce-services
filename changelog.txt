@@ -1,5 +1,8 @@
 *** WooCommerce Services Changelog ***
 
+= 1.24.4 - 2020-XX-XX =
+* Fix   - UPS connect redirect prompt
+
 = 1.24.3 - 2020-XX-XX =
 * Fix   - Asset paths incompatible with some hosts.
 * Fix   - Select all posts checkbox not working.

@@ -56,6 +56,7 @@ export const CarrierAccountSettings = ( props ) => {
 	if ( isConnectionSuccess ) {
 		const url = new URL( window.location.href );
 		url.searchParams.delete( 'carrier' );
+		window.onbeforeunload = null;
 		window.location.href = url.href;
 	}
 
