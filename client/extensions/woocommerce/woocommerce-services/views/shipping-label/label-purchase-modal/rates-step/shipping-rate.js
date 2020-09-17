@@ -123,7 +123,7 @@ class ShippingRate extends Component {
 					options={ [
 						{ label: '', value: service_id },
 					] }
-					onChange={ () => { updateValue( service_id, false ) } }
+					onChange={ () => { updateValue( service_id, carrier_id, false ) } }
 				/>
 				<div className="rates-step__shipping-rate-information">
 					<CarrierIcon carrier={ carrier_id } size={ 30 } />
