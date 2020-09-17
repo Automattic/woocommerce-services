@@ -4,6 +4,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import { forEach } from 'lodash';
 
 /**
  * Internal dependencies
@@ -39,6 +40,16 @@ const PurchaseSection = props => {
 	} = props;
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
 	const hasSelectedRate = hasSelectedRates( form.rates );
+	let labelRequiresPaymentMethod = false;
+	if( hasSelectedRate ) {
+		forEach( form.rates.values , ( label ) => {
+			if( 'ups' !== label.carrierId ) {
+				labelRequiresPaymentMethod = true;
+			}
+		});
+	}
+	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
+	
 	const addCardButtonDescription = ( onAddCard ) =>
 		/* eslint-disable jsx-a11y/anchor-is-valid */
 		translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {
@@ -55,7 +66,7 @@ const PurchaseSection = props => {
 	/* eslint-disable no-nested-ternary */
 	return (
 		<div className="purchase-section">
-			{ ( hasLabelsPaymentMethod || ! hasSelectedRate ) ? (
+			{ ( canPurchaseLabel || ! hasSelectedRate ) ? (
 				<PurchaseButton
 					siteId={ siteId }
 					orderId={ orderId }

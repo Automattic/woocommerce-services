@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { CheckboxControl } from '@wordpress/components';
+import { forEach } from 'lodash';
 
 /**
  * Internal dependencies
@@ -29,6 +30,7 @@ import {
 	getFormErrors,
 	shouldFulfillOrder,
 	shouldEmailDetails,
+	hasSelectedRates,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { getOrderWithEdits, isCurrentlyEditingOrder } from 'woocommerce/state/ui/orders/selectors';
 import { getOrder } from "woocommerce/state/sites/orders/selectors";
@@ -57,13 +59,24 @@ export const Sidebar = props => {
 	};
 	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
+	const hasSelectedRate = hasSelectedRates( form.rates );
+	let labelRequiresPaymentMethod = false;
+	if( hasSelectedRate ) {
+		forEach( form.rates.values , ( label ) => {
+			if( 'ups' !== label.carrierId ) {
+				labelRequiresPaymentMethod = true;
+			}
+		});
+	}
+	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
+
 	return (
 		<div className="label-purchase-modal__sidebar">
 			<ShippingSummary siteId={ siteId } orderId={ orderId } />
 			<PriceSummary siteId={ siteId } orderId={ orderId } />
 			<hr />
 			<div className="label-purchase-modal__purchase-container">
-				{ hasLabelsPaymentMethod ? <Dropdown
+				{ canPurchaseLabel ? <Dropdown
 					id={ 'paper_size' }
 					valuesMap={ getPaperSizes( form.origin.values.country ) }
 					title={ translate( 'Paper size' ) }
