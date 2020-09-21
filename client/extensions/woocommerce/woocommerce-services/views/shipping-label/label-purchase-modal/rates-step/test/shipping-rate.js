@@ -56,7 +56,7 @@ function createShippingRateWrapper( {
 			delivery_date_guaranteed: deliveryDateGuaranteed || true,
 			delivery_date: deliveryDate || "2020-01-01T23:59:00.000Z",
 			tracking: tracking || true,
-			insurance: insuranceAmount || 100,
+			insurance: insuranceAmount || '100',
 			free_pickup: freePickup || true,
 		},
 		signatureRates: signatureRates || {
@@ -129,6 +129,18 @@ describe( 'ShippingRate', () => {
 
 		it( 'renders an abreviated list of services, including "Signature required"', () => {
 			const listOfServices = /Includes tracking, Insurance \(up to \$100.00\), Signature required, Eligible for free pickup/;
+
+			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ).text() ).to.match( listOfServices );
+		} );
+
+	} );
+
+	describe( 'for rates with insurance in string format', () => {
+
+		const shippingRateWrapper = createShippingRateWrapper( { insuranceAmount: 'limited', signatureRates: { rate1: signatureRequiredRate } } );
+
+		it( 'renders an abreviated list of services, including "Signature required"', () => {
+			const listOfServices = /Includes tracking, Insurance \(limited\), Signature required, Eligible for free pickup/;
 
 			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ).text() ).to.match( listOfServices );
 		} );

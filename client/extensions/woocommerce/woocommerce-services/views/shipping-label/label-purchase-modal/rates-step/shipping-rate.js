@@ -178,7 +178,7 @@ ShippingRate.propTypes = {
 		delivery_date_guaranteed: PropTypes.bool,
 		delivery_date: PropTypes.string,
 		tracking: PropTypes.bool,
-		insurance: PropTypes.number,
+		insurance: PropTypes.string,
 		free_pickup: PropTypes.bool,
 	}).isRequired,
 	signatureRates: PropTypes.object.isRequired,
