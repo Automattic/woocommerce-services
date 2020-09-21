@@ -45,10 +45,10 @@ class ShippingRate extends Component {
 			}
 		}
 		if ( includedServices.insurance ) {
-			const numericInsurance = parseInt(includedServices.insurance);
-			if (isNaN(numericInsurance)) {
+			const numericInsurance = parseInt( includedServices.insurance );
+			if ( isNaN( numericInsurance ) ) {
 				servicesToRender.push( translate( 'Insurance (%s)', { args: [ includedServices.insurance ] } ) );
-			} else if (numericInsurance) {
+			} else if ( numericInsurance ) {
 				servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( numericInsurance, 'USD') ] } ) );
 			}
 		}
