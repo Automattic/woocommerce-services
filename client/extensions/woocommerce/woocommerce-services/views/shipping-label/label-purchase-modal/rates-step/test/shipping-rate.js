@@ -135,12 +135,24 @@ describe( 'ShippingRate', () => {
 
 	} );
 
-	describe( 'for rates with insurance in string format', () => {
-
-		const shippingRateWrapper = createShippingRateWrapper( { insuranceAmount: 'limited', signatureRates: { rate1: signatureRequiredRate } } );
-
-		it( 'renders an abreviated list of services, including "Signature required"', () => {
+	describe( 'for rates with insurance', () => {
+		it( 'renders the string without additional dollar sign in front ', () => {
+			const shippingRateWrapper = createShippingRateWrapper( { insuranceAmount: 'limited', signatureRates: { rate1: signatureRequiredRate } } );
 			const listOfServices = /Includes tracking, Insurance \(limited\), Signature required, Eligible for free pickup/;
+
+			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ).text() ).to.match( listOfServices );
+		} );
+
+		it( 'renders the number with additional dollar sign in front ', () => {
+			const shippingRateWrapper = createShippingRateWrapper( { insuranceAmount: '100', signatureRates: { rate1: signatureRequiredRate } } );
+			const listOfServices = /Includes tracking, Insurance \(up to \$100.00\), Signature required, Eligible for free pickup/;
+
+			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ).text() ).to.match( listOfServices );
+		} );
+
+		it( 'should not include insurance if it is 0 ', () => {
+			const shippingRateWrapper = createShippingRateWrapper( { insuranceAmount: '0', signatureRates: { rate1: signatureRequiredRate } } );
+			const listOfServices = /Includes tracking, Signature required, Eligible for free pickup/;
 
 			expect( shippingRateWrapper.find( '.rates-step__shipping-rate-description-details' ).text() ).to.match( listOfServices );
 		} );
