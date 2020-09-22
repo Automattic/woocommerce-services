@@ -4,7 +4,7 @@
 * Fix   - UPS connect redirect prompt
 * Fix   - Allow UPS label purchase without payment method
 * Fix   - PHP implode arguments order
-* Fix   - Validate insurance value as string instead of number
+* Fix   - Validate insurance value as both string and number
 
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts.
