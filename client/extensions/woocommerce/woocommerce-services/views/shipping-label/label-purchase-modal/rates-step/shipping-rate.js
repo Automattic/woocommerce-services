@@ -45,10 +45,10 @@ class ShippingRate extends Component {
 			}
 		}
 		if ( includedServices.insurance ) {
-			const numericInsurance = parseInt( includedServices.insurance );
+			const numericInsurance = Number( includedServices.insurance );
 			if ( isNaN( numericInsurance ) ) {
 				servicesToRender.push( translate( 'Insurance (%s)', { args: [ includedServices.insurance ] } ) );
-			} else if ( numericInsurance ) {
+			} else if ( numericInsurance > 0 ) {
 				servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( numericInsurance, 'USD') ] } ) );
 			}
 		}
@@ -178,7 +178,10 @@ ShippingRate.propTypes = {
 		delivery_date_guaranteed: PropTypes.bool,
 		delivery_date: PropTypes.string,
 		tracking: PropTypes.bool,
-		insurance: PropTypes.string,
+		insurance: PropTypes.oneOfType([
+			PropTypes.string,
+			PropTypes.number
+		]),
 		free_pickup: PropTypes.bool,
 	}).isRequired,
 	signatureRates: PropTypes.object.isRequired,
