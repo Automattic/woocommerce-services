@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { CheckboxControl } from '@wordpress/components';
-import { forEach } from 'lodash';
 
 /**
  * Internal dependencies
@@ -60,14 +59,9 @@ export const Sidebar = props => {
 	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
 	const hasSelectedRate = hasSelectedRates( form.rates );
-	let labelRequiresPaymentMethod = false;
-	if( hasSelectedRate ) {
-		forEach( form.rates.values , ( label ) => {
-			if( 'ups' !== label.carrierId ) {
-				labelRequiresPaymentMethod = true;
-			}
-		});
-	}
+	const labelRequiresPaymentMethod = hasSelectedRate && Object.values( form.rates.values ).some( ( label ) => {
+		return 'ups' !== label.carrierId;
+	} );
 	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
 
 	return (

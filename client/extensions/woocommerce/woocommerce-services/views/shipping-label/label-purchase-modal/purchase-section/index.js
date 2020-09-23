@@ -4,7 +4,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { forEach } from 'lodash';
 
 /**
  * Internal dependencies
@@ -40,14 +39,9 @@ export const PurchaseSection = props => {
 	} = props;
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
 	const hasSelectedRate = hasSelectedRates( form.rates );
-	let labelRequiresPaymentMethod = false;
-	if( hasSelectedRate ) {
-		forEach( form.rates.values , ( label ) => {
-			if( 'ups' !== label.carrierId ) {
-				labelRequiresPaymentMethod = true;
-			}
-		});
-	}
+	const labelRequiresPaymentMethod = hasSelectedRate && Object.values( form.rates.values ).some( ( label ) => {
+		return 'ups' !== label.carrierId;
+	} );
 	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
 	
 	const addCardButtonDescription = ( onAddCard ) =>
