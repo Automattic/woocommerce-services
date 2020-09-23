@@ -81,7 +81,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			$extra_args = array();
-			if( $carriers_response = $this->api_client->get_carrier_accounts() ) {
+			$carriers_response = $this->api_client->get_carrier_accounts();
+			if ( ! is_wp_error( $carriers_response ) && $carriers_response ) {
 				$extra_args[ 'carriers' ] = $carriers_response->carriers;
 			}
 
