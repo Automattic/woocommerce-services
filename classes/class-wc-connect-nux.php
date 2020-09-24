@@ -71,6 +71,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
+			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_new_carrier_dhl_pointer' ) );
 		}
 
 		public function show_pointers( $hook ) {
@@ -163,6 +164,33 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'dim' => true,
 				);
 			}
+
+			return $pointers;
+		}
+
+		public function register_new_carrier_dhl_pointer( $pointers ) {
+			// new user? no need to show this alert, `wc_services_labels_metabox` will take care of communicating about DHL
+			if ( $this->is_new_labels_user() ) {
+				return $pointers;
+			}
+
+			// existing user? figure out if the order supports DHL, then let them know DHL is a new carrier!
+			if ( ! $this->shipping_label->is_dhl_express_eligible() ) {
+				return $pointers;
+			}
+
+			$pointers[] = array(
+				'id' => 'wc_services_new_carrier_dhl',
+				'target' => '#woocommerce-order-label .button',
+				'options' => array(
+					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+						__( 'Discounted DHL Shipping Labels' ,'woocommerce-services' ),
+						__( "WooCommerce Shipping now supports DHL. Purchase and print discounted labels from DHL and USPS right here.", 'woocommerce-services' )
+					),
+					'position' => array( 'edge' => 'top', 'align' => 'left' ),
+				),
+				'dim' => true,
+			);
 
 			return $pointers;
 		}
