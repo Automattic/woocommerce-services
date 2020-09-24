@@ -322,9 +322,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		public function is_dhl_express_available() {
 			$dhl_express = $this->service_schemas_store->get_service_schema_by_id( 'dhlexpress' );
-			if( ! $dhl_express ) return false;
 
-			return true;
+			return !! $dhl_express;
 		}
 
 		public function is_order_dhl_express_eligible() {
