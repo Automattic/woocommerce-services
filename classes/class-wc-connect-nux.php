@@ -147,23 +147,31 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// If the user is not new to labels, we should just dismiss this pointer
 			if ( ! $this->is_new_labels_user() ) {
 				$this->dismiss_pointer( 'wc_services_labels_metabox' );
+
 				return $pointers;
 			}
 
-			if ( $this->shipping_label->should_show_meta_box() ) {
-				$pointers[] = array(
-					'id' => 'wc_services_labels_metabox',
-					'target' => '#woocommerce-order-label .button',
-					'options' => array(
-						'content' => sprintf( '<h3>%s</h3><p>%s</p>',
-							__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
-							__( "When you're ready, purchase and print discounted labels from USPS right here.", 'woocommerce-services' )
-						),
-						'position' => array( 'edge' => 'top', 'align' => 'left' ),
-					),
-					'dim' => true,
-				);
+			if ( ! $this->shipping_label->should_show_meta_box() ) {
+				return $pointers;
 			}
+
+			$supported_carriers = [ 'USPS' ];
+			if ( $this->shipping_label->is_dhl_express_available() ) {
+				$supported_carriers[] = 'DHL';
+			}
+
+			$pointers[] = array(
+				'id' => 'wc_services_labels_metabox',
+				'target' => '#woocommerce-order-label .button',
+				'options' => array(
+					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
+						__( 'Discounted Shipping Labels' ,'woocommerce-services' ),
+						sprintf( __( "When you're ready, purchase and print discounted labels from %s right here.", 'woocommerce-services' ), implode(' or ', $supported_carriers) )
+					),
+					'position' => array( 'edge' => 'top', 'align' => 'left' ),
+				),
+				'dim' => true,
+			);
 
 			return $pointers;
 		}
@@ -171,16 +179,18 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function register_new_carrier_dhl_pointer( $pointers ) {
 			// new user? no need to show this alert, `wc_services_labels_metabox` will take care of communicating about DHL
 			if ( $this->is_new_labels_user() ) {
+				$this->dismiss_pointer( 'wc_services_new_carrier_dhl_express' );
+
 				return $pointers;
 			}
 
 			// existing user? figure out if the order supports DHL, then let them know DHL is a new carrier!
-			if ( ! $this->shipping_label->is_dhl_express_eligible() ) {
+			if ( ! $this->shipping_label->is_order_dhl_express_eligible() ) {
 				return $pointers;
 			}
 
 			$pointers[] = array(
-				'id' => 'wc_services_new_carrier_dhl',
+				'id' => 'wc_services_new_carrier_dhl_express',
 				'target' => '#woocommerce-order-label .button',
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',

@@ -320,12 +320,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return in_array( $currency_code, $this->supported_currencies );
 		}
 
-		public function is_dhl_express_eligible() {
-			$order = wc_get_order();
-			if ( ! $order ) return false;
-
+		public function is_dhl_express_available() {
 			$dhl_express = $this->service_schemas_store->get_service_schema_by_id( 'dhlexpress' );
 			if( ! $dhl_express ) return false;
+
+			return true;
+		}
+
+		public function is_order_dhl_express_eligible() {
+			if( ! $this-> is_dhl_express_available() ) return false;
+
+			$order = wc_get_order();
+			if ( ! $order ) return false;
 
 			$origin         = $this->get_origin_address();
 			$destination    = $this->get_destination_address( $order );
