@@ -45,7 +45,12 @@ class ShippingRate extends Component {
 			}
 		}
 		if ( includedServices.insurance ) {
-			servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( includedServices.insurance, 'USD') ] } ) );
+			const numericInsurance = Number( includedServices.insurance );
+			if ( isNaN( numericInsurance ) ) {
+				servicesToRender.push( translate( 'Insurance (%s)', { args: [ includedServices.insurance ] } ) );
+			} else if ( numericInsurance > 0 ) {
+				servicesToRender.push( translate( 'Insurance (up to %s)', { args: [ formatCurrency( numericInsurance, 'USD') ] } ) );
+			}
 		}
 		if ( signatureOptions.filter( signatureOption => 0 === signatureOption.netCost ).length > 0 ) {
 			servicesToRender.push( translate( 'Signature required' ) );
@@ -173,7 +178,10 @@ ShippingRate.propTypes = {
 		delivery_date_guaranteed: PropTypes.bool,
 		delivery_date: PropTypes.string,
 		tracking: PropTypes.bool,
-		insurance: PropTypes.number,
+		insurance: PropTypes.oneOfType([
+			PropTypes.string,
+			PropTypes.number
+		]),
 		free_pickup: PropTypes.bool,
 	}).isRequired,
 	signatureRates: PropTypes.object.isRequired,
