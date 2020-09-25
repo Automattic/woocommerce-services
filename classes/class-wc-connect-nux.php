@@ -155,7 +155,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return $pointers;
 			}
 
-			$supported_carriers = [ 'USPS' ];
+			$supported_carriers = array( 'USPS' );
 			if ( $this->shipping_label->is_dhl_express_available() ) {
 				$supported_carriers[] = 'DHL';
 			}
