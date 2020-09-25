@@ -611,7 +611,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				) );
 
 				if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
-					$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
+					$class_names = implode( ', ', wp_list_pluck( $method_classes, 'name' ) );
 				} else {
 					$class_names = 'No shipping classes found';
 				}

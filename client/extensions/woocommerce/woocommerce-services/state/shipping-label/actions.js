@@ -699,10 +699,11 @@ export const confirmCustoms = ( orderId, siteId ) => ( dispatch, getState ) => {
 	tryGetLabelRates( orderId, siteId, dispatch, getState );
 };
 
-export const updateRate = ( orderId, siteId, packageId, serviceId, signatureRequired ) => {
+export const updateRate = ( orderId, siteId, packageId, serviceId, carrierId, signatureRequired ) => {
 	return {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE,
 		siteId,
+		carrierId,
 		orderId,
 		packageId,
 		serviceId,
