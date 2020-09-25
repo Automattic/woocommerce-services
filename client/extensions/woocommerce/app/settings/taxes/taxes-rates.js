@@ -202,8 +202,8 @@ class TaxesRates extends Component {
 		return (
 			<div className="taxes__taxes-taxjar-notice">
 				{ translate(
-					'Sales tax calculations are provided by WooCommerce Shipping & Tax. When this option is enabled, ' +
-						'WooCommerce Shipping & Tax will share some of your data with a third party.'
+					'Sales tax calculations are provided by WooCommerce Tax. When this option is enabled, ' +
+						'WooCommerce Tax will share some of your data with a third party.'
 				) }
 				<ExternalLink
 					icon

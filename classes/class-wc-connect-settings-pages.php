@@ -21,7 +21,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		public function __construct( WC_Connect_API_Client $api_client ) {
 			$this->id    = 'connect';
-			$this->label = _x( 'WooCommerce Shipping & Tax', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
+			$this->label = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
 			$this->continents = new WC_Connect_Continents();
             $this->api_client = $api_client;
 
@@ -39,7 +39,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$shipping_tabs = array();
 			}
 
-			$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Shipping & Tax', 'woocommerce-services' );
+			$shipping_tabs[ 'woocommerce-services-settings' ] = __( 'WooCommerce Shipping', 'woocommerce-services' );
 			return $shipping_tabs;
 		}
 

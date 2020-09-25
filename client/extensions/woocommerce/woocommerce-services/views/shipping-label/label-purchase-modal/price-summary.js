@@ -19,7 +19,7 @@ import { getTotalPriceBreakdown } from 'woocommerce/woocommerce-services/state/s
 class PriceSummary extends Component {
 	renderDiscount = (discount) => {
 		const { translate } = this.props;
-		const tooltipText = translate( "WooCommerce Shipping & Tax gives you access to USPS Commercial Pricing, which is discounted over Retail rates.");
+		const tooltipText = translate( "WooCommerce Shipping gives you access to USPS Commercial Pricing, which is discounted over Retail rates.");
 
 		return (
 			<div className="label-purchase-modal__price-item-help">
@@ -28,7 +28,7 @@ class PriceSummary extends Component {
 				    position="top center"
 					text={ tooltipText }>
 					<div className="label-purchase-modal__discount">
-						{ translate( 'You save %s with WooCommerce Shipping & Tax', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
+						{ translate( 'You save %s with WooCommerce Shipping', { args: [ formatCurrency( discount, 'USD' ) ]} ) }
 						<Gridicon
 							icon="help-outline"
 							size={ 18 }
