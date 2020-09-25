@@ -156,8 +156,8 @@ const RatesStep = props => {
 	} = props;
 	const summary = ratesSummary( values, available, ratesTotal, form.packages.saved, translate );
 	const toggleStepHandler = () => props.toggleStep( orderId, siteId, 'rates' );
-	const updateRateHandler = ( packageId, serviceId, signatureRequired ) =>
-		props.updateRate( orderId, siteId, packageId, serviceId, signatureRequired );
+	const updateRateHandler = ( packageId, serviceId, carrierId, signatureRequired ) =>
+		props.updateRate( orderId, siteId, packageId, serviceId, carrierId, signatureRequired );
 
 	// Preselect rates for packages that have only one rate available.
 	forEach( form.packages.selected, ( selectedRate, pckgId ) => {
