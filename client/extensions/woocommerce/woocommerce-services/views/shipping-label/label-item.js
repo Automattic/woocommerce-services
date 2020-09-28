@@ -24,7 +24,6 @@ import {
 	openReprintDialog,
 	openDetailsDialog,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
-import printDocument from 'lib/utils/print-document';
 import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
