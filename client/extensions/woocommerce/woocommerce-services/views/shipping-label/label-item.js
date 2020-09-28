@@ -73,7 +73,7 @@ export class LabelItem extends Component {
 
 		return (
 			<PopoverMenuItem onClick={ openDialog } icon="print">
-				{ translate( 'Reprint Shipping Label' ) }
+				{ translate( 'Reprint shipping label' ) }
 			</PopoverMenuItem>
 		);
 	};
@@ -123,7 +123,7 @@ export class LabelItem extends Component {
 		}
 		return (
 			<PopoverMenuItem onClick={ printCommercialInvoice } icon="print">
-				{ translate( 'Print Customs Form' ) }
+				{ translate( 'Print customs form' ) }
 			</PopoverMenuItem>
 		);
 	}
