@@ -24,6 +24,7 @@ import {
 	openReprintDialog,
 	openDetailsDialog,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import printDocument from 'lib/utils/print-document';
 import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
@@ -72,7 +73,7 @@ export class LabelItem extends Component {
 
 		return (
 			<PopoverMenuItem onClick={ openDialog } icon="print">
-				{ translate( 'Reprint' ) }
+				{ translate( 'Reprint Shipping Label' ) }
 			</PopoverMenuItem>
 		);
 	};
@@ -114,6 +115,19 @@ export class LabelItem extends Component {
 		);
 	};
 
+	renderCommercialInvoiceLink ( commercialInvoiceUrl ) {
+		const { translate } = this.props;
+
+		const printCommercialInvoice = () => {
+			window.open( commercialInvoiceUrl );
+		}
+		return (
+			<PopoverMenuItem onClick={ printCommercialInvoice } icon="print">
+				{ translate( 'Print Customs Form' ) }
+			</PopoverMenuItem>
+		);
+	}
+
 	render() {
 		const {
 			label: {
@@ -131,7 +145,8 @@ export class LabelItem extends Component {
 				anonymized,
 				usedDate,
                 tracking,
-				carrierId
+				carrierId,
+				commercialInvoiceUrl,
 			},
 			siteId,
 			orderId,
@@ -176,6 +191,7 @@ export class LabelItem extends Component {
 									{ this.renderPickup( carrierId ) }
 									{ this.renderRefund( labelId, refundExpired ) }
 									{ this.renderReprint( labelId, expired ) }
+									{ commercialInvoiceUrl && this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
 								</EllipsisMenu>
 							) ) }
 							<DetailsDialog
@@ -230,7 +246,8 @@ LabelItem.propTypes = {
 		anonymized: PropTypes.bool.isRequired,
 		usedDate: PropTypes.string.isRequired,
 		tracking: PropTypes.string.isRequired,
-		carrierId: PropTypes.number.isRequired
+		carrierId: PropTypes.number.isRequired,
+		commercialInvoiceUrl: PropTypes.string,
 	}).isRequired,
 	isModal: PropTypes.bool.isRequired,
 	openRefundDialog: PropTypes.func.isRequired,
