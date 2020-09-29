@@ -195,7 +195,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'options' => array(
 					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
 						__( 'Discounted DHL Shipping Labels' ,'woocommerce-services' ),
-						__( "WooCommerce Shipping now supports DHL. Purchase and print discounted labels from DHL and USPS right here.", 'woocommerce-services' )
+						__( "WooCommerce Shipping now supports DHL Express labels for international shipments. Purchase and print discounted labels from DHL and USPS right here.", 'woocommerce-services' )
 					),
 					'position' => array( 'edge' => 'top', 'align' => 'left' ),
 				),
