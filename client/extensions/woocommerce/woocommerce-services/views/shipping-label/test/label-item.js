@@ -77,7 +77,7 @@ describe( 'Label item', () => {
 			return n.is( PopoverMenuItem ) && 'Print customs form' === n.children().text();
 		}  );
 
-		it( 'renders a link to print it', function () {
+		it( 'doest not render a link to print it', function () {
 			expect( renderedPrintCustomsFormLink ).to.have.lengthOf( 0 );
 		} );
 

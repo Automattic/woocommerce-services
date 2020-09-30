@@ -114,12 +114,17 @@ export class LabelItem extends Component {
 		);
 	};
 
-	renderCommercialInvoiceLink ( commercialInvoiceUrl ) {
-		const { translate } = this.props;
+	renderCommercialInvoiceLink () {
+		const { translate, label: { commercialInvoiceUrl } } = this.props;
+
+		if ( ! commercialInvoiceUrl ) {
+			return null;
+		}
 
 		const printCommercialInvoice = () => {
 			window.open( commercialInvoiceUrl );
 		}
+
 		return (
 			<PopoverMenuItem onClick={ printCommercialInvoice } icon="print">
 				{ translate( 'Print customs form' ) }
