@@ -4,7 +4,6 @@
  * External dependencies
  */
 import React from 'react';
-import { expect } from 'chai';
 import { shallow } from 'enzyme';
 import { merge } from 'lodash';
 import { translate } from 'i18n-calypso';
@@ -56,17 +55,14 @@ describe( 'Label item', () => {
 			}
 		};
 		const wrapper = createLabelItemWrapper( props );
-		const renderedPrintCustomsFormLink = wrapper.findWhere( ( n ) => {
-			return n.is( PopoverMenuItem ) && 'Print customs form' === n.children().text();
-		}  );
+		const renderedPrintCustomsFormLink = wrapper.find('PopoverMenuItem[children="Print customs form"]');
 
 		it( 'renders a link to print it', function () {
-			expect( renderedPrintCustomsFormLink ).to.have.lengthOf( 1 );
+			expect( renderedPrintCustomsFormLink.length ).toBe( 1 );
 
 			window.open = jest.fn();
 			renderedPrintCustomsFormLink.simulate( 'click' );
-			expect( window.open.mock.calls.length ).to.equal( 1 );
-			expect( window.open.mock.calls[0][0] ).to.equal( 'commercial-invoice.pdf' );
+			expect( window.open ).toHaveBeenCalledWith( 'commercial-invoice.pdf' );
 		} );
 
 	} );
@@ -78,7 +74,7 @@ describe( 'Label item', () => {
 		}  );
 
 		it( 'doest not render a link to print it', function () {
-			expect( renderedPrintCustomsFormLink ).to.have.lengthOf( 0 );
+			expect( renderedPrintCustomsFormLink.length ).toBe( 0 );
 		} );
 
 	} );
