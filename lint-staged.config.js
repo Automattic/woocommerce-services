@@ -1,5 +1,5 @@
 module.exports = {
 	'*.js': [
-		'eslint --fix',
+		'npm run eslint:fix',
 	],
 };
