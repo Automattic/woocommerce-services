@@ -7,6 +7,7 @@
     "dist": "cross-env NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "analyze": "cross-env ANALYZE=true NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "eslint": "eslint tasks/ client/",
+    "eslint:fix": "eslint --fix tasks/ client/",
     "test": "npm run test-client && npm run eslint",
     "test-client": "jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
@@ -45,6 +46,7 @@
     "file-loader": "^4.3.0",
     "glob": "^7.1.6",
     "globby": "^6.1.0",
+    "husky": "^4.3.0",
     "i18n-calypso-cli": "^1.0.0",
     "jest": "^24.9.0",
     "jest-puppeteer": "^4.4.0",
@@ -145,5 +147,11 @@
   },
   "config": {
     "wp_org_slug": "woocommerce-services"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "eslint",
+      "pre-push": "npm test"
+    }
   }
 }
