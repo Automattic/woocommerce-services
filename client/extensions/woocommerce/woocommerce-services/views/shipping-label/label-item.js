@@ -195,7 +195,7 @@ export class LabelItem extends Component {
 									{ this.renderPickup( carrierId ) }
 									{ this.renderRefund( labelId, refundExpired ) }
 									{ this.renderReprint( labelId, expired ) }
-									{ commercialInvoiceUrl && this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
+									{ this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
 								</EllipsisMenu>
 							) ) }
 							<DetailsDialog
