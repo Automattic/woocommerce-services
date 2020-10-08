@@ -54,7 +54,7 @@ export const ShippingRates = ( {
 		// filter out duplicate error messages
 		const packageErrors = ( errors[ pckgId ] || [] ).filter( ( item, index ) => errors[ pckgId ].indexOf( item ) === index );
 
-		const onRateUpdate = ( serviceId, signatureRequired ) => updateRate( pckgId, serviceId, signatureRequired );
+		const onRateUpdate = ( serviceId, carrierId, signatureRequired ) => updateRate( pckgId, serviceId, carrierId, signatureRequired );
 		return (
 			<div key={ pckgId } className="rates-step__package-container">
 

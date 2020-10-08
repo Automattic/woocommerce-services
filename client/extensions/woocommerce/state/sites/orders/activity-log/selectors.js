@@ -220,6 +220,7 @@ export const getActivityLogEvents = ( state, orderId, siteId = getSelectedSiteId
 				// If there's a refund in progress or completed, the Reprint/Refund buttons or the tracking number must *not* be shown
 				showDetails:
 					! label.refund || 'rejected' === label.refund.status || 'unknown' === label.refund.status,
+				commercialInvoiceUrl: label.commercial_invoice_url,
 			} );
 		} );
 	}

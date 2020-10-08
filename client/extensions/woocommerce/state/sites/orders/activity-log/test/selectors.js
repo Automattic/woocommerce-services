@@ -408,6 +408,7 @@ describe( 'selectors', () => {
 					serviceName: 'Xpress',
 					receiptId: 12345,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 3,
@@ -438,6 +439,7 @@ describe( 'selectors', () => {
 					serviceName: 'First Class',
 					receiptId: 12345,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 2,
@@ -468,6 +470,7 @@ describe( 'selectors', () => {
 					serviceName: 'Xpress',
 					receiptId: 67890,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 1,
@@ -489,6 +492,7 @@ describe( 'selectors', () => {
 					serviceName: 'First Class',
 					receiptId: 654321,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 10001,
