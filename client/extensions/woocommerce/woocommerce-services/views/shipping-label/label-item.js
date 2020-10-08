@@ -72,7 +72,7 @@ export class LabelItem extends Component {
 
 		return (
 			<PopoverMenuItem onClick={ openDialog } icon="print">
-				{ translate( 'Reprint' ) }
+				{ translate( 'Reprint shipping label' ) }
 			</PopoverMenuItem>
 		);
 	};
@@ -114,6 +114,24 @@ export class LabelItem extends Component {
 		);
 	};
 
+	renderCommercialInvoiceLink () {
+		const { translate, label: { commercialInvoiceUrl } } = this.props;
+
+		if ( ! commercialInvoiceUrl ) {
+			return null;
+		}
+
+		const printCommercialInvoice = () => {
+			window.open( commercialInvoiceUrl );
+		}
+
+		return (
+			<PopoverMenuItem onClick={ printCommercialInvoice } icon="print">
+				{ translate( 'Print customs form' ) }
+			</PopoverMenuItem>
+		);
+	}
+
 	render() {
 		const {
 			label: {
@@ -131,7 +149,8 @@ export class LabelItem extends Component {
 				anonymized,
 				usedDate,
                 tracking,
-				carrierId
+				carrierId,
+				commercialInvoiceUrl,
 			},
 			siteId,
 			orderId,
@@ -176,6 +195,7 @@ export class LabelItem extends Component {
 									{ this.renderPickup( carrierId ) }
 									{ this.renderRefund( labelId, refundExpired ) }
 									{ this.renderReprint( labelId, expired ) }
+									{ this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
 								</EllipsisMenu>
 							) ) }
 							<DetailsDialog
@@ -230,7 +250,8 @@ LabelItem.propTypes = {
 		anonymized: PropTypes.bool.isRequired,
 		usedDate: PropTypes.string.isRequired,
 		tracking: PropTypes.string.isRequired,
-		carrierId: PropTypes.number.isRequired
+		carrierId: PropTypes.number.isRequired,
+		commercialInvoiceUrl: PropTypes.string,
 	}).isRequired,
 	isModal: PropTypes.bool.isRequired,
 	openRefundDialog: PropTypes.func.isRequired,

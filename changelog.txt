@@ -7,6 +7,7 @@
 * Fix   - Validate insurance value as both string and number
 * Tweak - Adjusted messaging on label pointers
 * Tweak - Update carrier logo.
+* Add   - Link to print the customs form for all shipments that need it.
 
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts.
