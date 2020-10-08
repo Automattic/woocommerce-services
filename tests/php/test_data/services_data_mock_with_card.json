@@ -75,8 +75,8 @@
       "shipping": [
         {
           "id": "usps",
-          "method_description": "USPS Shipping Rates, Powered by WooCommerce Services",
-          "method_title": "USPS (WooCommerce Services)",
+          "method_description": "USPS Shipping Rates, Powered by WooCommerce Shipping & Tax",
+          "method_title": "USPS (WooCommerce Shipping & Tax)",
           "form_layout": [
             {
               "type": "fieldset",

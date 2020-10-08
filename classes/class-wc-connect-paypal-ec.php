@@ -265,7 +265,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					array( 'reroute_requests' => 'no', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
-				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Services and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
+				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Shipping & Tax and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
 					$form_fields['api_credentials']['description'] = $api_creds_text;
@@ -283,7 +283,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					array( 'reroute_requests' => 'yes', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
-				$api_creds_template = __( 'To authenticate payments with WooCommerce Services, <a href="%s">click here</a>.', 'woocommerce-services' );
+				$api_creds_template = __( 'To authenticate payments with WooCommerce Shipping & Tax, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
 					$form_fields['api_credentials']['description'] .= '<br /><br />' . $api_creds_text;

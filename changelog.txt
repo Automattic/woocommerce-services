@@ -1,4 +1,4 @@
-*** WooCommerce Services Changelog ***
+*** WooCommerce Shipping & Tax Changelog ***
 
 = 1.24.4 - 2020-XX-XX =
 * Fix   - UPS connect redirect prompt
@@ -8,6 +8,7 @@
 * Tweak - Adjusted messaging on label pointers
 * Tweak - Update carrier logo.
 * Add   - Link to print the customs form for all shipments that need it.
+* Tweak - Plugin rename
 
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts.

@@ -113,9 +113,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 			$health_items['jetpack'] = $health_item;
 
-			// Lastly, do the WooCommerce Services health check
+			// Lastly, do the WooCommerce Shipping & Tax health check
 			// Check that we have schema
-			// Check that we are able to talk to the WooCommerce Services server
+			// Check that we are able to talk to the WooCommerce Shipping & Tax server
 			$schemas = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
 			if ( isset( $_GET['refresh'] ) && 'failed' === $_GET['refresh'] ) {
@@ -217,7 +217,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		/**
-		 * Gets the last 10 lines from the WooCommerce Services log by feature, if it exists
+		 * Gets the last 10 lines from the WooCommerce Shipping & Tax log by feature, if it exists
 		 */
 		protected function get_debug_log_data( $feature = '' ) {
 			$data       = new stdClass;
@@ -289,7 +289,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs[ 'connect' ] = _x( 'WooCommerce Services', 'The WooCommerce Services brandname', 'woocommerce-services' );
+			$tabs[ 'connect' ] = _x( 'WooCommerce Shipping & Tax', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
 			return $tabs;
 		}
 
@@ -326,7 +326,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			?>
 				<h2>
-					<?php _e( 'WooCommerce Services Status', 'woocommerce-services' ); ?>
+					<?php _e( 'WooCommerce Shipping & Tax Status', 'woocommerce-services' ); ?>
 				</h2>
 			<?php
 
