@@ -83,6 +83,16 @@ As of the WooCommerce 3.5 release, WooCommerce Shipping and Taxes no longer prov
 
 == Changelog ==
 
+= 1.25.0 - 2020-XX-XX =
+* Fix   - UPS connect redirect prompt
+* Fix   - Allow UPS label purchase without payment method
+* Fix   - PHP implode arguments order
+* Fix   - Validate insurance value as both string and number
+* Tweak - Adjusted messaging on label pointers
+* Tweak - Update carrier logo
+* Tweak - Plugin rename
+* Add   - Link to print the customs form for all shipments that need it
+
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts
 * Fix   - Select all posts checkbox not working
@@ -145,16 +155,3 @@ As of the WooCommerce 3.5 release, WooCommerce Shipping and Taxes no longer prov
 = 1.22.4 - 2020-03-02 =
 * Fix   - Stop using deprecated method Jetpack::is_staging_site() when Jetpack
 8.1 is installed.
-
-= 1.22.3 - 2020-01-22 =
-* Add   - Preselect rate when there is only one rate available for given shipping configuration.
-* Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
-* Add   - Show notice when WooCommerce is not installed or activated.
-* Fix   - Use correct URL for variation products in Packages section.
-
-= 1.22.2 - 2019-12-10 =
-* Fix   - Packages weight total value formatting.
-* Fix   - Allow fulfillment flow redo.
-
-= 1.22.1 =
-* Fix   - Remove nuisance admin notification.
