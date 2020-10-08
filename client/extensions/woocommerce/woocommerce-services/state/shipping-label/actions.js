@@ -920,6 +920,17 @@ function downloadAndPrint( orderId, siteId, dispatch, getState, labels ) {
 
 	let hasError = false;
 
+	const customsForms = labels.map( ( label ) => label.commercial_invoice_url ).filter( ( url ) => url );
+	if ( customsForms && 0 < customsForms.length) {
+		dispatch(
+			NoticeActions.infoNotice( translate( "Note: A customs form will open in a new tab and must be printed and included on this international shipment." ), {
+			} )
+		);
+		for (const customsFormsUrl of customsForms) {
+			window.open( customsFormsUrl );
+		}
+	}
+
 	api
 		.get( siteId, printUrl )
 		.then( fileData => {
