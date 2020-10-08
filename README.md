@@ -1,10 +1,10 @@
 # WooCommerce Shipping & Tax
 
-WooCommerce Shipping & Taxes makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+WooCommerce Shipping & Tax makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
-With WooCommerce Shipping & Taxes, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
+With WooCommerce Shipping & Tax, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-The current emphasis for WooCommerce Shipping & Taxes is to provide "everything you need" to start selling. When combined with the WooCommerce 3.5 setup wizard, your store can have shipping label printing, automated tax calculation, and a ready-to-go Stripe payment account with just a few clicks.
+The current emphasis for WooCommerce Shipping & Tax is to provide "everything you need" to start selling. When combined with the WooCommerce 3.5 setup wizard, your store can have shipping label printing, automated tax calculation, and a ready-to-go Stripe payment account with just a few clicks.
 
 To use the features if you've already installed WooCommerce, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
