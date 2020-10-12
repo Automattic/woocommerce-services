@@ -9,6 +9,7 @@
 * Tweak - Update carrier logo.
 * Add   - Link to print the customs form for all shipments that need it.
 * Tweak - Plugin rename
+* Tweak - Add new icons and banners with new plugin name
 
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts.
