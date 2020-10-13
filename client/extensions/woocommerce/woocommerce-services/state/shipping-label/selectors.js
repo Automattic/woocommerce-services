@@ -87,7 +87,7 @@ export const getLabels = ( state, orderId, siteId = getSelectedSiteId( state ) )
 export const getLabelById = ( state, orderId, siteId, labelId ) => {
 	const labels = getLabels( state, orderId, siteId );
 
-	return labels.find( ({label_id}) => label_id === labelId );
+	return labels.find( ( { label_id } ) => label_id === labelId );
 };
 
 export const shouldFulfillOrder = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
