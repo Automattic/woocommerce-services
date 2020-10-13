@@ -36,7 +36,7 @@ const RefundDialog = props => {
 		labelId,
 		translate,
 		moment,
-		label,
+		label = {},
 	} = props;
 
 	const getRefundableAmount = () => {
