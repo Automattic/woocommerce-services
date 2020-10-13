@@ -101,7 +101,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		$this->product = WC_Helper_Product::create_variation_product();
 
 		$all_variations     = $this->product->get_available_variations();
-		$first_variation_id = $all_variations[0]['variation_id'];
+		$first_variation_id = $all_variations[2]['variation_id'];
 		$product_id         = $this->product->get_id();
 
 		// set base product dimensions.
@@ -116,7 +116,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		update_post_meta( $first_variation_id, '_width', '3' );
 		update_post_meta( $first_variation_id, '_length', '4' );
 
-		WC()->cart->add_to_cart( $first_variation_id, 1 );
+		WC()->cart->add_to_cart( $product_id, 1, $first_variation_id );
 
 		$actual = $this->api_client->build_shipment_contents( array( 'contents' => WC()->cart->get_cart() ) );
 
