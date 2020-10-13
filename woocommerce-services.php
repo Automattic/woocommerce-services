@@ -1041,7 +1041,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			foreach ( $labels as $label ) {
 				$carrier = $label['carrier_id'];
 				$carrier_service = $this->get_service_schemas_store()->get_service_schema_by_id( $carrier );
-				$carrier_label = ( ! empty( $carrier_service->carrier_name ) ) ? $carrier_service->carrier_name : strtoupper( $carrier );
+				$carrier_label = ( ! $carrier_service || empty( $carrier_service->carrier_name ) ) ? strtoupper( $carrier ) : $carrier_service->carrier_name;
 				$tracking = $label['tracking'];
 				$error = array_key_exists( 'error', $label );
 				$refunded = array_key_exists( 'refund', $label );
