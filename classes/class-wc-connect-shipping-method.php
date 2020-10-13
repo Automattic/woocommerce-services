@@ -302,7 +302,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			$this->debug( sprintf(
-				'WooCommerce Services debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
+				'WooCommerce Shipping & Tax debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
 				admin_url( 'admin.php?page=wc-status&tab=connect' )
 			) );
 
@@ -325,7 +325,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			// TODO: Request rates for all WooCommerce Services powered methods in
+			// TODO: Request rates for all WooCommerce Shipping & Tax powered methods in
 			// the current shipping zone to avoid each method making an independent request
 			$services = array(
 				array(
@@ -611,7 +611,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				) );
 
 				if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
-					$class_names = implode( wp_list_pluck( $method_classes, 'name' ), ', ' );
+					$class_names = implode( ', ', wp_list_pluck( $method_classes, 'name' ) );
 				} else {
 					$class_names = 'No shipping classes found';
 				}

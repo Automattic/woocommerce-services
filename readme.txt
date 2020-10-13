@@ -1,4 +1,4 @@
-=== WooCommerce Services ===
+=== WooCommerce Shipping & Tax ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
@@ -8,15 +8,15 @@ Stable tag: 1.24.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Hosted services for WooCommerce including automated tax calculation, shipping label printing, and smoother payment setup.
+WooCommerce Shipping and Taxes offers automated tax calculation, shipping label printing, smoother payment setup, and other hosted services for WooCommerce.
 
 == Description ==
 
-WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+WooCommerce Shipping and Taxes makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
-With WooCommerce Services, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
+With WooCommerce Shipping and Taxes, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
+To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce – making setup simpler.
 
-To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
 = Print shipping labels for USPS at a discounted rate =
 Give customers lower rates on their shipping. Create ready-to-print shipping labels for USPS directly in WooCommerce and take advantage of our special discount rate.
@@ -69,7 +69,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = Can I show shipping rates at checkout? =
 
-As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipping rates for new stores. If you're already using shipping rates in WooCommerce Services, they will continue to work.
+As of the WooCommerce 3.5 release, WooCommerce Shipping and Taxes no longer provides shipping rates for new stores. If you’re already using shipping rates in WooCommerce Shipping and Taxes, they will continue to work.
 
 == Screenshots ==
 
@@ -78,10 +78,20 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 3. Selecting your preferred payment method
 4. Enabling automated taxes
 5. Creating a Stripe account from the setup wizard
-6. Checking on the health of WooCommerce Services
+6. Checking on the health of WooCommerce Shipping & Tax
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.0 - 2020-XX-XX =
+* Fix   - UPS connect redirect prompt
+* Fix   - Allow UPS label purchase without payment method
+* Fix   - PHP implode arguments order
+* Fix   - Validate insurance value as both string and number
+* Tweak - Adjusted messaging on label pointers
+* Tweak - Update carrier logo
+* Tweak - Plugin rename
+* Add   - Link to print the customs form for all shipments that need it
 
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts
@@ -145,16 +155,3 @@ As of the WooCommerce 3.5 release, WooCommerce Services no longer provides shipp
 = 1.22.4 - 2020-03-02 =
 * Fix   - Stop using deprecated method Jetpack::is_staging_site() when Jetpack
 8.1 is installed.
-
-= 1.22.3 - 2020-01-22 =
-* Add   - Preselect rate when there is only one rate available for given shipping configuration.
-* Add   - Paper size selection into purchase modal sidebar and reprint modal which was previously removed.
-* Add   - Show notice when WooCommerce is not installed or activated.
-* Fix   - Use correct URL for variation products in Packages section.
-
-= 1.22.2 - 2019-12-10 =
-* Fix   - Packages weight total value formatting.
-* Fix   - Allow fulfillment flow redo.
-
-= 1.22.1 =
-* Fix   - Remove nuisance admin notification.

@@ -504,7 +504,7 @@ describe( 'selectors', () => {
 			] );
 		} );
 
-		test( 'should omit any WooCommerce Services methods if the plugin is disabled', () => {
+		test( 'should omit any WooCommerce Shipping & Tax methods if the plugin is disabled', () => {
 			const state = createState( {
 				site: {
 					shippingMethods: [
@@ -534,7 +534,7 @@ describe( 'selectors', () => {
 			] );
 		} );
 
-		test( 'should include WooCommerce Services methods if the plugin is enabled', () => {
+		test( 'should include WooCommerce Shipping & Tax methods if the plugin is enabled', () => {
 			wcsEnabledStub.restore();
 			wcsEnabledStub = sinon.stub( plugins, 'isWcsEnabled' ).returns( true );
 			const state = createState( {

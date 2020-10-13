@@ -361,8 +361,8 @@ function oauthConnectSuccess( siteId, action, { account_id } ) {
  * @param {Object} error Error and message returned (from the error object).
  * @return {Object} Action object
  */
-// Note: Stripe and WooCommerce Services server errors will be returned in message, but
-// message will be empty for errors that the WooCommerce Services client generates itself
+// Note: Stripe and WooCommerce Shipping & Tax server errors will be returned in message, but
+// message will be empty for errors that the WooCommerce Shipping & Tax client generates itself
 // so we need to grab the string from the error field inside the error object for those.
 function oauthConnectFailure( siteId, action, { error, message } ) {
 	return {

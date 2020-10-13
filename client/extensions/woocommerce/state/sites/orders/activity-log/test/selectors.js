@@ -265,7 +265,7 @@ describe( 'selectors', () => {
 			expect( isActivityLogLoaded( labelsLoadingState, 45, 123 ) ).to.not.be.ok;
 		} );
 
-		it( 'should be true when notes are loaded and the WooCommerce Services extension is disabled.', () => {
+		it( 'should be true when notes are loaded and the WooCommerce Shipping & Tax extension is disabled.', () => {
 			wcsEnabledStub.restore();
 			wcsEnabledStub = sinon.stub( plugins, 'isWcsEnabled' ).returns( false );
 			expect( isActivityLogLoaded( labelsLoadingState, 45, 123 ) ).to.be.true;
@@ -315,7 +315,7 @@ describe( 'selectors', () => {
 			expect( isActivityLogLoading( labelsLoadingState, 45, 123 ) ).to.be.true;
 		} );
 
-		it( 'should be false when notes are loaded and the WooCommerce Services extension is disabled.', () => {
+		it( 'should be false when notes are loaded and the WooCommerce Shipping & Tax extension is disabled.', () => {
 			wcsEnabledStub.restore();
 			wcsEnabledStub = sinon.stub( plugins, 'isWcsEnabled' ).returns( false );
 			expect( isActivityLogLoading( labelsLoadingState, 45, 123 ) ).to.be.false;
@@ -408,6 +408,7 @@ describe( 'selectors', () => {
 					serviceName: 'Xpress',
 					receiptId: 12345,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 3,
@@ -438,6 +439,7 @@ describe( 'selectors', () => {
 					serviceName: 'First Class',
 					receiptId: 12345,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 2,
@@ -468,6 +470,7 @@ describe( 'selectors', () => {
 					serviceName: 'Xpress',
 					receiptId: 67890,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 1,
@@ -489,6 +492,7 @@ describe( 'selectors', () => {
 					serviceName: 'First Class',
 					receiptId: 654321,
 					anonymized: false,
+					commercialInvoiceUrl: undefined,
 				},
 				{
 					key: 10001,

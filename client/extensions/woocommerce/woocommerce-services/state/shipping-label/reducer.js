@@ -1004,10 +1004,11 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS ] = state => {
 	};
 };
 
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE ] = ( state, { packageId, serviceId, signatureRequired } ) => {
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_RATE ] = ( state, { packageId, serviceId, carrierId, signatureRequired } ) => {
 	const newRates = { ...state.form.rates.values };
 	newRates[ packageId ] = {
 		serviceId,
+		carrierId,
 		signatureRequired,
 	};
 

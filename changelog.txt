@@ -1,9 +1,19 @@
-*** WooCommerce Services Changelog ***
+*** WooCommerce Shipping & Tax Changelog ***
+
+= 1.25.0 - 2020-XX-XX =
+* Fix   - UPS connect redirect prompt
+* Fix   - Allow UPS label purchase without payment method
+* Fix   - PHP implode arguments order
+* Fix   - Validate insurance value as both string and number
+* Tweak - Adjusted messaging on label pointers
+* Tweak - Update carrier logo
+* Tweak - Plugin rename
+* Add   - Link to print the customs form for all shipments that need it
 
 = 1.24.3 - 2020-09-16 =
-* Fix   - Asset paths incompatible with some hosts
-* Fix   - Select all posts checkbox not working
-* Fix   - Use of deprecated jQuery.load
+* Fix   - Asset paths incompatible with some hosts.
+* Fix   - Select all posts checkbox not working.
+* Fix   - Use of deprecated jQuery.load.
 * Tweak - Updating carrier logo and tracking links
 
 = 1.24.2 - 2020-09-03 =

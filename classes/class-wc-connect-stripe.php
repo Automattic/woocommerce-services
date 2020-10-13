@@ -49,7 +49,7 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 			}
 
 			if ( substr( $return_url, 0, 8 ) !== 'https://' ) {
-				return new WP_Error( 'invalid_url_protocol', __( 'Your site must be served over HTTPS in order to connect your Stripe account via WooCommerce Services', 'woocommerce-services' ) );
+				return new WP_Error( 'invalid_url_protocol', __( 'Your site must be served over HTTPS in order to connect your Stripe account via WooCommerce Shipping & Tax', 'woocommerce-services' ) );
 			}
 
 			$result = $this->api->get_stripe_oauth_init( $return_url );
@@ -349,9 +349,9 @@ if ( ! class_exists( 'WC_Connect_Stripe' ) ) {
 
 			// Display a different title based on the connection status.
 			if ( $this->is_connected() ) {
-				$title = __( 'Stripe Account (connected to WooCommerce Services)', 'woocommerce-services' );
+				$title = __( 'Stripe Account (connected to WooCommerce Shipping & Tax)', 'woocommerce-services' );
 			} else {
-				$title = __( 'Connect via WooCommerce Services', 'woocommerce-services' );
+				$title = __( 'Connect via WooCommerce Shipping & Tax', 'woocommerce-services' );
 			}
 
 			$new_settings = array(

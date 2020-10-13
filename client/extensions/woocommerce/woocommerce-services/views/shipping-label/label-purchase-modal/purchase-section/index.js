@@ -27,7 +27,7 @@ import {
  */
 import './style.scss';
 
-const PurchaseSection = props => {
+export const PurchaseSection = props => {
 	const {
 		orderId,
 		siteId,
@@ -39,6 +39,11 @@ const PurchaseSection = props => {
 	} = props;
 	const purchaseBusy = form.isSubmitting && ! form.needsPrintConfirmation;
 	const hasSelectedRate = hasSelectedRates( form.rates );
+	const labelRequiresPaymentMethod = hasSelectedRate && Object.values( form.rates.values ).some( ( label ) => {
+		return 'ups' !== label.carrierId;
+	} );
+	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
+	
 	const addCardButtonDescription = ( onAddCard ) =>
 		/* eslint-disable jsx-a11y/anchor-is-valid */
 		translate( 'To print this shipping label, {{a}}add a credit card to your account{{/a}}.', {
@@ -55,7 +60,7 @@ const PurchaseSection = props => {
 	/* eslint-disable no-nested-ternary */
 	return (
 		<div className="purchase-section">
-			{ ( hasLabelsPaymentMethod || ! hasSelectedRate ) ? (
+			{ ( canPurchaseLabel || ! hasSelectedRate ) ? (
 				<PurchaseButton
 					siteId={ siteId }
 					orderId={ orderId }

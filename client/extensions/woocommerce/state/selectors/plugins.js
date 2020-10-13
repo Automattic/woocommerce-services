@@ -27,7 +27,7 @@ const getWcsPluginData = createSelector(
 /**
  * @param {Object} state Whole Redux state tree
  * @param {Number} [siteId] Site ID to check. If not provided, the Site ID selected in the UI will be used
- * @return {boolean} Whether the given site has woocommerce services installed & active
+ * @return {boolean} Whether the given site has WooCommerce Shipping & Tax installed & active
  */
 export const isWcsEnabled = ( state, siteId = getSelectedSiteId( state ) ) =>
 	config.isEnabled( 'woocommerce/extension-wcservices' ) &&
@@ -48,7 +48,7 @@ const isVersionAtLeast = ( minimumVersion, pluginVersion ) => {
 /**
  * @param {Object} state Whole Redux state tree
  * @param {Number} [siteId] Site ID to check. If not provided, the Site ID selected in the UI will be used
- * @return {boolean} Whether the given site has a version of WooCommerce Services new enough to support international labels
+ * @return {boolean} Whether the given site has a version of WooCommerce Shipping & Tax new enough to support international labels
  */
 export const isWcsInternationalLabelsEnabled = ( state, siteId = getSelectedSiteId( state ) ) =>
 	isWcsEnabled( state, siteId ) &&

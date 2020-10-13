@@ -1,10 +1,10 @@
-# WooCommerce Services
+# WooCommerce Shipping & Tax
 
-WooCommerce Services makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+WooCommerce Shipping & Tax makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
 
-With WooCommerce Services, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
+With WooCommerce Shipping & Tax, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 
-The current emphasis for WooCommerce Services is to provide "everything you need" to start selling. When combined with the WooCommerce 3.5 setup wizard, your store can have shipping label printing, automated tax calculation, and a ready-to-go Stripe payment account with just a few clicks.
+The current emphasis for WooCommerce Shipping & Tax is to provide "everything you need" to start selling. When combined with the WooCommerce 3.5 setup wizard, your store can have shipping label printing, automated tax calculation, and a ready-to-go Stripe payment account with just a few clicks.
 
 To use the features if you've already installed WooCommerce, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce - making setup simpler.
 
@@ -42,4 +42,4 @@ We support the latest two versions of all major browsers, except IE, where we cu
 
 ## License
 
-WooCommerce Services is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).
+WooCommerce Shipping & Tax is licensed under [GNU General Public License v2 (or later)](./LICENSE.md).
