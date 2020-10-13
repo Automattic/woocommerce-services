@@ -15,7 +15,7 @@
 if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	$wc_root = getenv( 'WC_DEVELOP_DIR' );
 } elseif ( file_exists( '/tmp/woocommerce/tests/bootstrap.php' ) ) {
-	$wc_root = '/tmp/woocommerce/tests';
+	$wc_root = '/tmp/woocommerce';
 } else {
 	exit( 'Could not determine test root directory. Aborting.' );
 }
