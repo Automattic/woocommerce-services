@@ -17,6 +17,7 @@ WooCommerce Shipping and Taxes makes basic eCommerce features like shipping more
 With WooCommerce Shipping and Taxes, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
 To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce – making setup simpler.
 
+NOTE: This extensions was previously referred to as WooCommerce Services.
 
 = Print shipping labels for USPS at a discounted rate =
 Give customers lower rates on their shipping. Create ready-to-print shipping labels for USPS directly in WooCommerce and take advantage of our special discount rate.
