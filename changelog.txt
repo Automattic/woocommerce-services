@@ -1,14 +1,14 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.24.4 - 2020-XX-XX =
+= 1.25.0 - 2020-10-13 =
 * Fix   - UPS connect redirect prompt
 * Fix   - Allow UPS label purchase without payment method
 * Fix   - PHP implode arguments order
 * Fix   - Validate insurance value as both string and number
 * Tweak - Adjusted messaging on label pointers
-* Tweak - Update carrier logo.
-* Add   - Link to print the customs form for all shipments that need it.
+* Tweak - Update carrier logo
 * Tweak - Plugin rename
+* Add   - Link to print the customs form for all shipments that need it
 * Tweak - Add new icons and banners with new plugin name
 
 = 1.24.3 - 2020-09-16 =
