@@ -106,6 +106,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				$label_meta[ 'package_name' ] = __( 'Unknown package', 'woocommerce-services' );
 			}
 
+			$label_meta['is_letter'] = $package['is_letter'];
+
 			$product_names = array();
 			$product_ids = array();
 			foreach ( $package[ 'products' ] as $product_id ) {

@@ -27,12 +27,23 @@ import {
 import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
-	renderRefund = ( labelId, expired ) => {
+	renderRefund = ( labelId, expired, isLetter, carrierId ) => {
 		const { orderId, siteId, translate } = this.props;
+		let toolTipMessage = '';
+		let disabled = false;
 
 		if ( expired ) {
+			toolTipMessage = translate( 'Labels older than 30 days cannot be refunded.' );
+			disabled       = true;
+		} 
+		else if ( isLetter && 'usps' === carrierId ) {
+			toolTipMessage = translate( 'USPS letters are not eligible for refund.' );
+			disabled       = true
+		}
+
+		if ( disabled ) {
 			return (
-				<Tooltip position="top left" text={ translate('Labels older than 30 days cannot be refunded.') }>
+				<Tooltip position="top left" text={ toolTipMessage }>
 					<button className="popover__menu-item shipping-label__item-menu-reprint-expired" role="menuitem" tabIndex="-1">
 						<Gridicon icon="refund" size={ 18 }/>
 						<span> { translate( 'Request refund' ) } </span>
@@ -138,6 +149,7 @@ export class LabelItem extends Component {
 				labelIndex,
 				serviceName,
 				packageName,
+				isLetter,
 				productNames,
 				receiptId,
 				labelId,
@@ -193,7 +205,7 @@ export class LabelItem extends Component {
 								<EllipsisMenu position="bottom left">
 									{ this.renderLabelDetails( labelId ) }
 									{ this.renderPickup( carrierId ) }
-									{ this.renderRefund( labelId, refundExpired ) }
+									{ this.renderRefund( labelId, refundExpired, isLetter, carrierId ) }
 									{ this.renderReprint( labelId, expired ) }
 									{ this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
 								</EllipsisMenu>

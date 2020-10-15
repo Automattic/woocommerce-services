@@ -395,6 +395,7 @@ describe( 'selectors', () => {
 					createdDate: 4000000,
 					usedDate: null,
 					expiryDate: 4500000,
+					isLetter: undefined,
 					showDetails: true, // Refund rejected, user can refund/reprint again
 					labelId: 4,
 					labelIndex: 4,
@@ -426,6 +427,7 @@ describe( 'selectors', () => {
 					createdDate: 3000000,
 					usedDate: null,
 					expiryDate: null,
+					isLetter: undefined,
 					showDetails: false, // Already requested refund
 					labelId: 3,
 					labelIndex: 3,
@@ -457,6 +459,7 @@ describe( 'selectors', () => {
 					createdDate: 2000000,
 					usedDate: null,
 					expiryDate: 2500000,
+					isLetter: undefined,
 					showDetails: false, // Already requested refund
 					labelId: 2,
 					labelIndex: 2,
@@ -479,6 +482,7 @@ describe( 'selectors', () => {
 					createdDate: 1000000,
 					usedDate: 1100000,
 					expiryDate: 1500000,
+					isLetter: undefined,
 					showDetails: true,
 					labelId: 1,
 					labelIndex: 1,
