@@ -22,6 +22,7 @@ import {
 import {
 	isLoaded,
 	getShippingLabel,
+	getLabelById,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const RefundDialog = props => {
@@ -35,6 +36,7 @@ const RefundDialog = props => {
 		labelId,
 		translate,
 		moment,
+		label = {},
 	} = props;
 
 	const getRefundableAmount = () => {
@@ -66,8 +68,8 @@ const RefundDialog = props => {
 			<FormSectionHeading>{ translate( 'Request a refund' ) }</FormSectionHeading>
 			<p>
 				{ translate(
-					'You can request a refund for a shipping label that has not been used to ship a package. ' +
-						'It will take at least 14 days to process.'
+					'You can request a refund for a shipping label that has not been used to ship a package. It will take at least %(days)s days to process.',
+					{ args: { days: label.carrier_id === 'dhlexpress' ? '31' : '14' } }
 				) }
 			</p>
 			<dl>
@@ -93,11 +95,12 @@ RefundDialog.propTypes = {
 	confirmRefund: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = ( state, { orderId, siteId } ) => {
+const mapStateToProps = ( state, { orderId, siteId, labelId } ) => {
 	const loaded = isLoaded( state, orderId, siteId );
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	return {
 		refundDialog: loaded ? shippingLabel.refundDialog : {},
+		label: getLabelById(state, orderId, siteId, labelId),
 	};
 };
 
