@@ -94,9 +94,11 @@ describe( 'Label item', () => {
 		it( 'Request refund is disabled', function () {
 			expect( requestRefundLink.length ).toBe( 0 );
 		} );
+
 		const tooltip = wrapper.findWhere( ( n ) => {
 			return n.is( Tooltip );
 		}  );
+
 		it( 'Tooltip message is displayed', function () {
 			expect( tooltip.props().text ).toEqual('USPS letters are not eligible for refund.');
 		} );
@@ -117,7 +119,6 @@ describe( 'Label item', () => {
 		it( 'Request refund is not disabled', function () {
 			expect( requestRefundLink.length ).toBe( 1 );
 		} );
-
 	} );
 
 	describe( 'with non usps carrier letter', () => {
@@ -135,6 +136,5 @@ describe( 'Label item', () => {
 		it( 'Request refund is not disabled', function () {
 			expect( requestRefundLink.length ).toBe( 1 );
 		} );
-
 	} );
 } );
