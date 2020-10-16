@@ -1,7 +1,9 @@
 module.exports = require( './wp-calypso/.eslintrc' );
+const { esLintConfig: baseConfig } = require( '@woocommerce/e2e-environment' );
 
 module.exports.env.jest = true;
 Object.assign( module.exports.globals, {
+	...baseConfig,
     page: true,
     browser: true,
     context: true,

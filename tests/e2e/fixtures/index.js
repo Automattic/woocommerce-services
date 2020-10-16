@@ -6,7 +6,7 @@
 /**
  * External dependencies
  */
-import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+var WPAPI = require( 'wpapi' );
 /* eslint import/no-nodejs-modules: [ "error", { "allow": [ "fs" ] } ] */
 import fs from 'fs';
 import moment from 'moment';
@@ -17,38 +17,25 @@ import moment from 'moment';
  */
 import { withMockedShippingLabel } from '../mocks/index';
 
-const WooCommerce = new WooCommerceRestApi( {
-	url: process.env.WP_BASE_URL,
-	consumerKey: process.env.WC_E2E_REST_API_CONSUMER_KEY,
-	consumerSecret: process.env.WC_E2E_REST_API_CONSUMER_SECRET,
-	wpAPI: true,
-	version: 'wc/v3'
-} );
-
-const WooCommerceServices = new WooCommerceRestApi( {
-	url: process.env.WP_BASE_URL,
-	consumerKey: process.env.WC_E2E_REST_API_CONSUMER_KEY,
-	consumerSecret: process.env.WC_E2E_REST_API_CONSUMER_SECRET,
-	wpAPI: true,
-	version: 'wc/v1'
-} );
+var WooCommerce = WPAPI.discover( process.env.WP_BASE_URL ).then(function( site ) {
+    return site.auth({
+		username: process.env.WP_ADMIN_USER_NAME,
+		password: process.env.WP_ADMIN_USER_PW,
+    });
+});
 
 const loadJSON = ( jsonFileName ) => {
 	return JSON.parse(
-		fs.readFileSync( `./tests/e2e-tests/fixtures/${ jsonFileName }` ) );
+		fs.readFileSync( `${__dirname}/${ jsonFileName }` )
+	);
 }
 
 const createProduct = async () => {
 	const ProductsJson = loadJSON( 'products.json' );
 
-	return await new Promise( ( resolve, reject ) => {
-		WooCommerce.post( "products", ProductsJson ).then( ( response ) => {
-			resolve( response.data );
-		} ).catch( ( error ) => {
-			console.log( error.response.data );
-			reject( error );
-		} );
-	} );
+	return WooCommerce.then(function( site ) {
+		return site.namespace( 'wc/v3' ).products().create( ProductsJson );
+	});
 }
 
 const createOrder = async ( product ) => {
@@ -59,43 +46,39 @@ const createOrder = async ( product ) => {
 		"quantity": 1
 	} );
 
-	return await new Promise( ( resolve, reject ) => {
-		WooCommerce.post( "orders", OrdersJson ).then( ( response ) => {
-			resolve( response.data );
-		} ).catch( ( error ) => {
-			console.log( error.response.data );
-			reject( error );
-		} );
-	} );
+	return WooCommerce.then(function( site ) {
+		return site.namespace( 'wc/v3' ).orders().create( OrdersJson );
+	});
 }
 
-const createShippingLabel = async( order	) => {
+const createShippingLabel = async( order ) => {
 	const createShippingLabelJson = loadJSON( 'create-shipping-label.json' );
 
 	createShippingLabelJson.shipment_id = `shp_${ order.id }`;
 	createShippingLabelJson.rate_id = `rate_${ order.id }`;
 	createShippingLabelJson.packages[0].products = [ order.line_items[0].product_id ];
 
-	return await new Promise( ( resolve, reject ) => {
-		WooCommerceServices.post( `connect/label/${ order.id }`, createShippingLabelJson ).then( ( response ) => {
-			resolve( response.data );
-		} ).catch( ( error ) => {
-			console.log( error.response.data );
-			reject( error );
-		} );
-	} );
+	// return await new Promise( ( resolve, reject ) => {
+	// 	WooCommerceServices.post( `connect/label/${ order.id }`, createShippingLabelJson ).then( ( response ) => {
+	// 		resolve( response.data );
+	// 	} ).catch( ( error ) => {
+	// 		console.log( error.response.data );
+	// 		reject( error );
+	// 	} );
+	// } );
+	return WooCommerce.then(function( site ) {
+		console.log({site: site});
+		console.log({wc: site.namespace( 'wc/v1' )});
+		return site.namespace( 'wc/v1' ).orders().create( createShippingLabelJson );
+	});
 }
 
 const destroyProduct = async ( product ) => {
-	WooCommerce.delete( `products/${ product.id }`, {
-		force: true
-	} );
+	return site.namespace( 'wc/v3' ).products().delete( product.id );
 }
 
 const destroyOrder = async ( order ) => {
-	WooCommerce.delete( `orders/${ order.id }`, {
-		force: true
-	} );
+	return site.namespace( 'wc/v3' ).products().delete( order.id );
 }
 
 const withOrder = async ( callback ) => {
@@ -104,11 +87,15 @@ const withOrder = async ( callback ) => {
 
 	const order = await createOrder( product );
 
-	await callback( order );
+	try {
+		await callback( order );
+	} catch (error) {
+		console.error( error );
+	} finally {
+		await destroyOrder( order );
 
-	await destroyOrder( order );
-
-	await destroyProduct( product );
+		await destroyProduct( product );
+	}
 };
 
 const withShippingLabelAndOrder = async( callback ) => {
