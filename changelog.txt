@@ -3,6 +3,7 @@
 = 1.25.1 - 2020-XX-XX =
 * Tweak - DHL refund days copy adjustment
 * Fix   - Update carrier name in tracking notification email
+* Add   - Add pre-commit and pre-push git hooks for linting and unit tests.
 
 = 1.25.0 - 2020-10-13 =
 * Fix   - UPS connect redirect prompt
