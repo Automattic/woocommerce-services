@@ -262,7 +262,7 @@ LabelItem.propTypes = {
 		anonymized: PropTypes.bool.isRequired,
 		usedDate: PropTypes.string.isRequired,
 		tracking: PropTypes.string.isRequired,
-		carrierId: PropTypes.number.isRequired,
+		carrierId: PropTypes.string.isRequired,
 		commercialInvoiceUrl: PropTypes.string,
 	}).isRequired,
 	isModal: PropTypes.bool.isRequired,
