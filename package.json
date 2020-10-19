@@ -8,7 +8,7 @@
     "analyze": "cross-env ANALYZE=true NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "eslint": "eslint tasks/ client/",
     "eslint:fix": "eslint --fix tasks/ client/",
-    "test": "npm run test-client && npm run eslint",
+    "test": "npm run test-client",
     "test-client": "jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
     "prerelease": "npm run i18n && node tasks/i18n-download && npm run i18njson",
