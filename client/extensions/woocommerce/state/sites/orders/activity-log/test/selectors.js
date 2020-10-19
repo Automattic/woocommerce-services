@@ -103,6 +103,7 @@ const labelsLoadedSubtree = {
 			product_names: [ 'poutine' ],
 			package_name: 'box',
 			tracking: '12345',
+			is_letter: false,
 			carrier_id: 'canada_post',
 			service_name: 'Xpress',
 			main_receipt_id: 12345,
@@ -124,6 +125,7 @@ const labelsLoadedSubtree = {
 			product_names: [ 'Autograph' ],
 			package_name: 'Small Envelope',
 			tracking: '12345',
+			is_letter: true,
 			carrier_id: 'usps',
 			service_name: 'First Class',
 			main_receipt_id: 12345,
@@ -395,6 +397,7 @@ describe( 'selectors', () => {
 					createdDate: 4000000,
 					usedDate: null,
 					expiryDate: 4500000,
+					isLetter: false,
 					showDetails: true, // Refund rejected, user can refund/reprint again
 					labelId: 4,
 					labelIndex: 4,
@@ -426,6 +429,7 @@ describe( 'selectors', () => {
 					createdDate: 3000000,
 					usedDate: null,
 					expiryDate: null,
+					isLetter: true,
 					showDetails: false, // Already requested refund
 					labelId: 3,
 					labelIndex: 3,
@@ -457,6 +461,7 @@ describe( 'selectors', () => {
 					createdDate: 2000000,
 					usedDate: null,
 					expiryDate: 2500000,
+					isLetter: undefined,
 					showDetails: false, // Already requested refund
 					labelId: 2,
 					labelIndex: 2,
@@ -479,6 +484,7 @@ describe( 'selectors', () => {
 					createdDate: 1000000,
 					usedDate: 1100000,
 					expiryDate: 1500000,
+					isLetter: undefined,
 					showDetails: true,
 					labelId: 1,
 					labelIndex: 1,
