@@ -28,11 +28,11 @@
 * Fix   - Allow UPS label purchase without payment method
 * Fix   - PHP implode arguments order
 * Fix   - Validate insurance value as both string and number
-* Tweak - Adjusted messaging on label pointers
+* Tweak - Add new icons and banners with new plugin name
 * Tweak - Update carrier logo
 * Tweak - Plugin rename
 * Add   - Link to print the customs form for all shipments that need it
-* Tweak - Add new icons and banners with new plugin name
+* Tweak - Inform users of products that should be entered exclusive of tax.
 
 = 1.24.3 - 2020-09-16 =
 * Fix   - Asset paths incompatible with some hosts.
