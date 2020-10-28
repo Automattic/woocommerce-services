@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.1 - 2020-XX-XX =
+= 1.25.1 - 2020-10-28 =
 * Tweak - DHL refund days copy adjustment
 * Tweak - Stop using deprecated Jetpack method is_development_mode().
 * Fix   - Update carrier name in tracking notification email
