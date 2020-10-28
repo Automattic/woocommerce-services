@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.5
-Stable tag: 1.25.0
+Stable tag: 1.25.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,13 @@ As of the WooCommerce 3.5 release, WooCommerce Shipping & Tax no longer provides
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.1 - 2020-10-28 =
+* Tweak - DHL refund days copy adjustment
+* Tweak - Stop using deprecated Jetpack method is_development_mode().
+* Fix   - Update carrier name in tracking notification email
+* Add   - Add pre-commit and pre-push git hooks for linting and unit tests.
+* Add   - Disable refunds for USPS letters.
 
 = 1.25.0 - 2020-10-13 =
 * Fix   - UPS connect redirect prompt
