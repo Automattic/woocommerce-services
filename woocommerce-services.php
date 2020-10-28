@@ -1040,7 +1040,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Generate a table row for each label
 			foreach ( $labels as $label ) {
 				$carrier = $label['carrier_id'];
-				$carrier_label = strtoupper( $carrier );
+				$carrier_service = $this->get_service_schemas_store()->get_service_schema_by_id( $carrier );
+				$carrier_label = ( ! $carrier_service || empty( $carrier_service->carrier_name ) ) ? strtoupper( $carrier ) : $carrier_service->carrier_name;
 				$tracking = $label['tracking'];
 				$error = array_key_exists( 'error', $label );
 				$refunded = array_key_exists( 'refund', $label );

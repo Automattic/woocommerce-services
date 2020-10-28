@@ -84,6 +84,13 @@ As of the WooCommerce 3.5 release, WooCommerce Shipping & Tax no longer provides
 
 == Changelog ==
 
+= 1.25.1 - 2020-XX-XX =
+* Tweak - DHL refund days copy adjustment
+* Tweak - Stop using deprecated Jetpack method is_development_mode().
+* Fix   - Update carrier name in tracking notification email
+* Add   - Add pre-commit and pre-push git hooks for linting and unit tests.
+* Add   - Disable refunds for USPS letters.
+
 = 1.25.0 - 2020-10-13 =
 * Fix   - UPS connect redirect prompt
 * Fix   - Allow UPS label purchase without payment method
