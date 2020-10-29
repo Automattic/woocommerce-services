@@ -23,10 +23,9 @@ class WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_REST_Connect_
 	/**
 	 * GET request
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array
 	 */
-	public function get( $request ) {
+	public function get() {
 		$response = $this->api_client->get_carrier_types();
 		if ( is_wp_error( $response ) ) {
 			$error = new WP_Error(
@@ -37,8 +36,7 @@ class WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_REST_Connect_
 			$this->logger->log( $error, __CLASS__ );
 			return $error;
 		}
-
-		return array( 'success' => $response );
+		return new WP_REST_Response( $response );
 	}
 
 }
