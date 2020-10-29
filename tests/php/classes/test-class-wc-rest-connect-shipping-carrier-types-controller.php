@@ -61,4 +61,26 @@ class WP_Test_WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_Unit_
 		$this->assertEquals( 200, $actual->status );
 		$this->assertEquals( $api_client_response, $actual->data );
 	}
+
+	/**
+	 * Test error thrown during a GET request on connect/shipping/carrier-types end point.
+	 */
+	public function test_get_with_error() {
+		$api_response = new WP_Error( 'error_code_123', 'something is wrong' );
+
+		$this->api_client_mock->expects( $this->once() )
+			->method( 'request' )
+			->with( 'GET', '/shipping/carrier-types' )
+			->willReturn( $api_response );
+
+		$this->connect_logger_mock->expects( $this->once() )
+			->method( 'log' )
+			->with( $api_response, WC_REST_Connect_Shipping_Carrier_Types_Controller::class );
+
+		$wc_connect_shipping_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client_mock, $this->setting_store_mock, $this->connect_logger_mock );
+		$actual                                       = $wc_connect_shipping_carrier_types_controller->get();
+
+		$this->assertInstanceOf( WP_Error::class, $actual );
+		$this->assertEquals( $api_response, $actual );
+	}
 }
