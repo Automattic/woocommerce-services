@@ -8,6 +8,7 @@
 * Add   - Add pre-commit and pre-push git hooks for linting and unit tests.
 * Add   - Disable refunds for USPS letters.
 * Fix   - Issue with printing labels in some iOS devices through Safari.
+* Fix   - UI fix for input validation for package dimensions and weights.
 
 = 1.25.0 - 2020-10-13 =
 * Fix   - UPS connect redirect prompt
