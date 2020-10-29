@@ -343,37 +343,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
-		 * https://stripe.com/global
-		 */
-		public function is_stripe_supported_country( $country_code ) {
-			$stripe_supported_countries = array(
-				'AU',
-				'AT',
-				'BE',
-				'CA',
-				'DK',
-				'FI',
-				'FR',
-				'DE',
-				'HK',
-				'IE',
-				'JP',
-				'LU',
-				'NL',
-				'NZ',
-				'NO',
-				'SG',
-				'ES',
-				'SE',
-				'CH',
-				'GB',
-				'US',
-			);
-
-			return in_array( $country_code, $stripe_supported_countries );
-		}
-
-		/**
 		 * https://developers.taxjar.com/api/reference/#countries
 		 */
 		public function is_taxjar_supported_country( $country_code ) {
@@ -392,28 +361,20 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function should_display_nux_notice_for_current_store_locale() {
 			$store_country = WC()->countries->get_base_country();
 
-			$supports_stripe   = $this->is_stripe_supported_country( $store_country );
 			$supports_taxes    = $this->is_taxjar_supported_country( $store_country );
 			$supports_shipping = in_array( $store_country, array( 'US', 'CA' ) );
 
-			return $supports_shipping || $supports_stripe || $supports_taxes;
+			return $supports_shipping || $supports_taxes;
 		}
 
 		public function get_feature_list_for_country( $country ) {
 			$feature_list    = false;
-			$supports_stripe = $this->is_stripe_supported_country( $country );
 			$supports_taxes  = $this->is_taxjar_supported_country( $country );
 			$supports_labels = ( 'US' === $country );
 
-			$is_stripe_active = is_plugin_active( 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php' );
-			$stripe_settings  = get_option( 'woocommerce_stripe_settings', array() );
-			$is_stripe_ready  = $is_stripe_active && isset( $stripe_settings['enabled'] ) && 'yes' === $stripe_settings['enabled'];
-
 			$is_ppec_active = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
 			$ppec_settings  = get_option( 'woocommerce_ppec_paypal_settings', array() );
-			$is_ppec_ready  = $is_ppec_active && ( ! isset( $ppec_settings['enabled'] ) || 'yes' === $ppec_settings['enabled'] );
-
-			$supports_payments = ( $supports_stripe && $is_stripe_ready ) || $is_ppec_ready;
+			$supports_payments  = $is_ppec_active && ( ! isset( $ppec_settings['enabled'] ) || 'yes' === $ppec_settings['enabled'] );
 
 			if ( $supports_payments && $supports_taxes && $supports_labels ) {
 				$feature_list = __( 'automated tax calculation, shipping label printing, and smoother payment setup', 'woocommerce-services' );

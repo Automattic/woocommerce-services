@@ -236,7 +236,6 @@
 	@import 'fix-image-paths';
 
 	@import 'woocommerce/woocommerce-services/style';
-	@import 'woocommerce/app/settings/payments/stripe/style';
 
 	// Hide  WordPress Component style checkboxes.
 	input[type='checkbox'] + svg.components-checkbox-control__checked {
