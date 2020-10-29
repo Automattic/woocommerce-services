@@ -52,7 +52,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	}
 
 	// Check for CI environment variable to trigger test mode.
-	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true ) ) {
+	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE' ) ) {
 		if ( ! defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
 			define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
 		}
