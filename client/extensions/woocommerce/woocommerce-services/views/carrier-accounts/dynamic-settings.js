@@ -30,10 +30,7 @@ import {
 	getFormValidState,
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
 import {
-	setVisibilityCancelConnectionDialog,
-	submitCarrierSettings,
-	updateCarrierSettings,
-	toggleShowUPSInvoiceFields,
+	getCarrierRegistrationFields
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
@@ -41,22 +38,18 @@ import { decodeEntities } from 'lib/formatting';
 export const DynamicCarrierAccountSettings = ( props ) => {
 	const {
 		carrier,
-		countryNames,
-		fieldErrors,
-		isConnectionSuccess,
-		isFormValid,
-		isSaving,
-		showCancelConnectionDialog,
-		showUPSInvoiceFields,
 		siteId,
-		stateNames,
-		translate,
-		values,
 	} = props;
 
     return (
 		<div>
             Hello world
+            <Button
+				onClick={ props.getCarrierRegistrationFields }
+				primary
+			>
+            Click to retrieve registration fields
+            </Button>
 		</div>
 	);
 };
@@ -66,10 +59,14 @@ const mapStateToProps = ( state ) => {
     };
 };
 
+const mapDispatchToProps = ( dispatch, {siteId} ) => ( {
+	getCarrierRegistrationFields: () => dispatch( getCarrierRegistrationFields( siteId ) ),
+} );
+
 DynamicCarrierAccountSettings.propTypes = {
 	carrier: PropTypes.string.isRequired,
 };
 
-export default connect( mapStateToProps )( localize( DynamicCarrierAccountSettings ) );
+export default connect( mapStateToProps, mapDispatchToProps )( localize( DynamicCarrierAccountSettings ) );
 
 /* eslint-enable */

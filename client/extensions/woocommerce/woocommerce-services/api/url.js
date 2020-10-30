@@ -12,3 +12,4 @@ export const serviceSettings = ( methodId, instanceId = 0 ) => `connect/services
 export const shippingCarrier = () => 'connect/shipping/carrier';
 export const shippingCarriers = () => 'connect/shipping/carriers';
 export const shippingCarrierDelete = ( carrier ) => `connect/shipping/carrier/${ carrier }`;
+export const shippingCarrierTypes = () => 'connect/shipping/carrier-types';
