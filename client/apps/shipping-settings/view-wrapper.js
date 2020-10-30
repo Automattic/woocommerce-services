@@ -17,6 +17,7 @@ import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
 import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/settings';
+import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import { createWcsShippingSaveActionList } from '../../extensions/woocommerce/woocommerce-services/state/actions';
@@ -70,13 +71,25 @@ class LabelSettingsWrapper extends Component {
 		const { carrier, carriers, isSaving, siteId, translate } = this.props;
 
 		if ( carrier ) {
-			return (
-				<div>
-					<GlobalNotices id="notices" notices={ notices.list } />
-					<CarrierAccountSettings carrier={ carrier } />
-					<ProtectFormGuard isChanged={ ! this.state.pristine } />
-				</div>
-			);
+			if ( carrier.toLowerCase() === 'ups' ) {
+				return (
+					<div>
+						<GlobalNotices id="notices" notices={ notices.list } />
+						<CarrierAccountSettings carrier={ carrier } />
+						<ProtectFormGuard isChanged={ ! this.state.pristine } />
+					</div>
+				);
+			} 
+				// Dynamically create registration form
+				return (
+					<div>
+						<GlobalNotices id="notices" notices={ notices.list } />
+						<DynamicCarrierAccountSettings carrier={ carrier } />
+						<ProtectFormGuard isChanged={ ! this.state.pristine } />
+					</div>
+				);
+			
+
 		}
 		return (
 			<div>
