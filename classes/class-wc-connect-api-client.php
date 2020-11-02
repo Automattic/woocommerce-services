@@ -436,30 +436,35 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$default_body = array(
 				'settings' => array(),
 			);
-			$body = array_merge( $default_body, $initial_body );
+			$body         = array_merge( $default_body, $initial_body );
+
+			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
 
 			// Add interesting fields to the body of each request
 			$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
-				'store_guid' => $this->get_guid(),
-				'base_city' => WC()->countries->get_base_city(),
-				'base_country' => WC()->countries->get_base_country(),
-				'base_state' => WC()->countries->get_base_state(),
-				'base_postcode' => WC()->countries->get_base_postcode(),
-				'currency' => get_woocommerce_currency(),
-				'dimension_unit' => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
-				'weight_unit' => strtolower( get_option( 'woocommerce_weight_unit' ) ),
-				'wcs_version' => WC_Connect_Loader::get_wcs_version(),
-				'jetpack_version' => JETPACK__VERSION,
-				'is_atomic' => WC_Connect_Jetpack::is_atomic_site(),
-				'wc_version' => WC()->version,
-				'wp_version' => get_bloginfo( 'version' ),
+				'store_guid'           => $this->get_guid(),
+				'base_city'            => WC()->countries->get_base_city(),
+				'base_country'         => WC()->countries->get_base_country(),
+				'base_state'           => WC()->countries->get_base_state(),
+				'base_postcode'        => WC()->countries->get_base_postcode(),
+				'currency'             => get_woocommerce_currency(),
+				'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+				'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
+				'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
+				'jetpack_version'      => JETPACK__VERSION,
+				'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
+				'wc_version'           => WC()->version,
+				'wp_version'           => get_bloginfo( 'version' ),
 				'last_services_update' => WC_Connect_Options::get_option( 'services_last_update', 0 ),
-				'last_heartbeat' => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
-				'last_rate_request' => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
-				'active_services' => $this->wc_connect_loader->get_active_services(),
-				'disable_stats' => WC_Connect_Jetpack::is_staging_site(),
-				'taxes_enabled' => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
-			) );
+				'last_heartbeat'       => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
+				'last_rate_request'    => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
+				'active_services'      => $this->wc_connect_loader->get_active_services(),
+				'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
+				'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
+				'access_token'         => $helper_auth_data['access_token'],
+				'site_id'              => $helper_auth_data['site_id'],
+				)
+			);
 
 			return $body;
 		}

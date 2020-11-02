@@ -19,5 +19,23 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				( isset( $_GET['rest_route'] ) && isset( $_GET['_for'] ) && ( 'jetpack' === $_GET['_for'] ) )
 			);
 		}
+
+		/**
+		 * Get the WC Helper authorization information to use with WC Connect Server requests( e.g. site ID, access token).
+		 *
+		 * @return array
+		 */
+		public static function get_wc_helper_auth_info() {
+			$helper_auth_data_default = array(
+				'access_token' => '',
+				'site_id'      => '',
+			);
+
+			if ( class_exists( 'WC_Helper_Options' ) && is_callable( 'WC_Helper_Options::get' ) ) {
+				$helper_auth_data = WC_Helper_Options::get( 'auth' );
+			}
+			// It's possible for WC_Helper_Options::get() to return false so conditionally send the default array rather than false.
+			return $helper_auth_data ? $helper_auth_data : $helper_auth_data_default;
+		}
 	}
 }
