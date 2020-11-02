@@ -4,7 +4,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -34,12 +34,24 @@ import {
 } from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
 import { decodeEntities } from 'lib/formatting';
+import * as api from 'woocommerce/woocommerce-services/api';
+import { getSelectedSiteId } from 'state/ui/selectors';
 
 export const DynamicCarrierAccountSettings = ( props ) => {
 	const {
 		carrier,
 		siteId,
 	} = props;
+
+	const [carrierRegistrationFields, setCarrierRegistrationFields] = useState({});
+
+	useEffect(() => {
+		const fetchRegistrationFields = async () => {
+			const registrationFields = await api.get(props.siteId, api.url.shippingCarrierTypes());
+			setCarrierRegistrationFields(registrationFields);
+		}
+		fetchRegistrationFields();
+	}, [props.siteId]);
 
     return (
 		<div>
@@ -56,6 +68,7 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 
 const mapStateToProps = ( state ) => {
 	return {
+		siteId: getSelectedSiteId( state ),
     };
 };
 
