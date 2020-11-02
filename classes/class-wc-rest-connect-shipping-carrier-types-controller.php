@@ -31,7 +31,12 @@ class WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_REST_Connect_
 			$this->logger->log( $response, __CLASS__ );
 			return $response;
 		}
-		return new WP_REST_Response( $response );
+		return new WP_REST_Response(
+			[
+				'success' => true,
+				'fields'  => $response,
+			]
+		);
 	}
 
 }
