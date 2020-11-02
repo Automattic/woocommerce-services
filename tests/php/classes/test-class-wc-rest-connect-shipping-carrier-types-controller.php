@@ -58,8 +58,8 @@ class WP_Test_WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_Unit_
 		$wc_connect_shipping_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client_mock, $this->setting_store_mock, $this->connect_logger_mock );
 		$actual                                       = $wc_connect_shipping_carrier_types_controller->get();
 		$expected                                     = [
-			'success' => true,
-			'fields'  => $api_client_response,
+			'success'  => true,
+			'carriers' => $api_client_response->carriers,
 		];
 
 		$this->assertEquals( 200, $actual->status );

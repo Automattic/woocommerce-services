@@ -33,8 +33,8 @@ class WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_REST_Connect_
 		}
 		return new WP_REST_Response(
 			[
-				'success' => true,
-				'fields'  => $response,
+				'success'  => true,
+				'carriers' => $response->carriers,
 			]
 		);
 	}
