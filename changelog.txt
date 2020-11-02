@@ -3,6 +3,7 @@
 = 1.25.2 - 2020-XX-XX =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.
 * Fix   - Issue with printing labels in some iOS devices through Safari.
+* Fix   - Correct validation for UPS fields in Carrier Account connect form.
 
 = 1.25.1 - 2020-10-28 =
 * Tweak - DHL refund days copy adjustment

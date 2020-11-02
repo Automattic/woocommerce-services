@@ -52,13 +52,13 @@ export const getFormErrors = ( state, siteId, carrier ) => {
 	}
 
 	if ( values.country === 'US' && values.postal_code && ! values.postal_code.match( USPostalCodeRegex ) ) {
-		fieldErrors.postal_code = translate( 'The ZIP/Postal code needs to be 5 digits in length');
+		fieldErrors.postal_code = translate( 'The ZIP/Postal code needs to be 5 digits in length' );
 	}
 
 	if ( values.email && ! values.email.match( emailRegex ) ) {
 		fieldErrors.email = translate( 'The email format is not valid' );
 	}
-	
+
 	if ( values.website && ! values.website.match( urlRegex ) ) {
 		fieldErrors.website = translate( 'The company website format is not valid' );
 	}
