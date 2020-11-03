@@ -27,8 +27,9 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 */
 		public static function get_wc_helper_auth_info() {
 			$helper_auth_data_default = array(
-				'access_token' => '',
-				'site_id'      => '',
+				'access_token'        => '',
+				'site_id'             => '',
+				'access_token_secret' => '',
 			);
 
 			if ( class_exists( 'WC_Helper_Options' ) && is_callable( 'WC_Helper_Options::get' ) ) {

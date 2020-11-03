@@ -312,6 +312,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Get a list of the subscriptions for WooCommerce.com linked account.
+		 * @param $body
+		 * @param object|WP_Error
+		 */
+		public function get_wccom_subscriptions( $body ) {
+			return $this->request( 'POST', '/subscriptions', $body );
+		}
+
+		/**
 		 * Tests the connection to the WooCommerce Shipping & Tax Server
 		 *
 		 * @return true|WP_Error
@@ -488,6 +497,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
 			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
 			$headers[ 'Authorization' ] = $authorization;
+
+			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
+			$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'] );
 			return $headers;
 		}
 
@@ -533,6 +545,21 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$authorization = 'X_JP_Auth ' . join( ' ', $header_pieces );
 			return $authorization;
+		}
+
+		protected function request_signature_wccom( $token_secret ) {
+			$method = strtoupper( $_SERVER['REQUEST_METHOD'] );
+			$data = array(
+				'host'        => 'woocommerce.com', // host URL.
+				'request_uri' => '/wp-json/helper/1.0/subscriptions', // endpoint URL.
+				'method'      => $method,
+			);
+
+			if ( in_array( $method, array( 'POST', 'PUT' ) ) ) {
+				$data['body'] = $this->request_body();
+			}
+
+			return hash_hmac( 'sha256', wp_json_encode( $data ), $token_secret );
 		}
 
 		protected function request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff ) {
