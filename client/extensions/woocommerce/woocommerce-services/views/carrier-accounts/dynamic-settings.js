@@ -36,6 +36,7 @@ import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors
 import { decodeEntities } from 'lib/formatting';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { getSelectedSiteId } from 'state/ui/selectors';
+import DynamicCarrierAccountSettingsForm from './dynamic-settings-form';
 
 export const DynamicCarrierAccountSettings = ( props ) => {
 	const {
@@ -43,25 +44,48 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 		siteId,
 	} = props;
 
-	const [carrierRegistrationFields, setCarrierRegistrationFields] = useState({});
+	/**
+	 * This maps the URL querystring to the API response name for the carrier.
+	 * Keys are in lowercase.
+	 */
+	const carrierNameMapper = {
+		dhl: 'DhlExpressAccount',
+		ups: 'UpsAccount'
+	};
+
+	const [carrierRegistrationFields, setCarrierRegistrationFields] = useState([]);
 
 	useEffect(() => {
 		const fetchRegistrationFields = async () => {
 			const registrationFields = await api.get(props.siteId, api.url.shippingCarrierTypes());
-			setCarrierRegistrationFields(registrationFields);
+			setCarrierRegistrationFields(registrationFields.carriers);
 		}
 		fetchRegistrationFields();
 	}, [props.siteId]);
 
+	const apiResponseCarrierName = carrierNameMapper[props.carrier.toLowerCase()];
+
+	if (!apiResponseCarrierName && Object.keys(apiResponseCarrierName).length > 0) {
+		return (
+			<div>{props.carrier} not supported.</div>
+		);
+	}
+
+	if (!carrierRegistrationFields || carrierRegistrationFields.length < 1) {
+		return (
+			<div>Loading...</div>
+		);
+	}
+
+	const currentCarrierRegistrationField = carrierRegistrationFields.filter(carrier => carrier.type === apiResponseCarrierName)[0];
+
     return (
 		<div>
-            Hello world
-            <Button
-				onClick={ props.getCarrierRegistrationFields }
-				primary
-			>
-            Click to retrieve registration fields
-            </Button>
+			<DynamicCarrierAccountSettingsForm
+				carrierType={currentCarrierRegistrationField.type}
+				carrierName={currentCarrierRegistrationField.name}
+				registrationFields={currentCarrierRegistrationField.fields}
+			/>
 		</div>
 	);
 };
