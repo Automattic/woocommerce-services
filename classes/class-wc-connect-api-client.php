@@ -451,7 +451,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$access_token = '';
 			$site_id      = '';
 
-			if ( ! is_wp_error( $authorization ) ) {
+			if ( ! is_wp_error( $helper_auth_data ) ) {
 				$access_token = $helper_auth_data['access_token'];
 				$site_id      = $helper_auth_data['site_id'];
 			}
