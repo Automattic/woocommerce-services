@@ -62,16 +62,6 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
         let formComponent;
 
         switch (visibility) {
-            case 'password':
-                // TODO: We will need to create a PasswordField component
-                formComponent = <TextField
-                    id={ fieldKey }
-                    key={ fieldKey }
-                    title={ labelName }
-                    updateValue={ updateValue( fieldKey ) }
-                    value={formFields[fieldKey]||""}
-                />;
-                break;
             case 'select':
             case 'checkbox':
                 formComponent = <CheckboxFormFieldSet
@@ -86,7 +76,9 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
             case 'invisible':
             case 'masked':
             case 'readonly':
-                // TODO: We will need to handle these invisible/readonly fields separately. For now, use default.
+                // TODO: We will need to handle the above invisible/readonly fields separately. For now, use default.
+            case 'password':
+                // TODO: We will need to create a PasswordField component, for now, use default.
             case 'visible':
             default:
                 formComponent = <TextField
