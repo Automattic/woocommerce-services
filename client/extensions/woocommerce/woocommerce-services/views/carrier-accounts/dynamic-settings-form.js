@@ -38,51 +38,134 @@ import * as api from 'woocommerce/woocommerce-services/api';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import { forEach } from 'lodash';
 
-const FormFieldSet = ( props ) => {
+const CheckboxFormFieldSet = ( props ) => {
+    const changeHandler = () => {
+    };
+
     return (
-        <div className="card carrier-accounts__settings-account-number is-compact">
-            <fieldset className="form-fieldset">
-                <label htmlFor={props.labelKey} className="form-label">{props.labelName}</label>
-                <input type={props.inputType} id={props.labelKey} name={props.labelKey} className="form-text-input" value="" />
-            </fieldset>
-        </div>
+        <>
+            <Checkbox
+                id={ props.labelKey }
+                onChange={changeHandler}
+                checked={false}
+            />
+            <span>{props.labelName}</span>
+        </>
     );
 };
+
 
 export const DynamicCarrierAccountSettingsForm = ( props ) => {
 	const {
         carrierType,
         carrierName,
         registrationFields,
-		siteId,
+        siteId,
+        translate,
     } = props;
 
     const listOfFormFieldSet = [];
+
+    const getInputComponent = (props, fieldKey) => {
+        const visibility = props.registrationFields[fieldKey].visibility;
+        const labelName = props.registrationFields[fieldKey].label;
+        const labelKey = fieldKey;
+
+        let formComponent;
+
+        switch (visibility) {
+            case 'password':
+                formComponent = <TextField
+                    id={ labelKey }
+                    title={ translate( labelName ) }
+                    value=""
+                />;
+                break;
+            case 'select':
+            case 'checkbox':
+                formComponent = <CheckboxFormFieldSet
+                    labelKey={ labelKey }
+                    labelName={ translate( labelName ) }
+                />
+
+                break;
+            case 'visible':
+            case 'invisible':
+            case 'masked':
+            case 'readonly':
+            default:
+                formComponent = <TextField
+                    id={ labelKey }
+                    title={ translate( labelName ) }
+                    value=""
+                />
+                break;
+        }
+        return formComponent;
+    };
+
+    const submitCarrierSettingsHandler = () => {
+        //TODO: Call register end point
+    }
+
+    const showCancelDialogHandler = () => {
+        //TODO: when clicked cancel
+    }
 
     console.log("re-render=>>>", props);
     if (props.registrationFields) {
         const listOfFields = Object.keys(props.registrationFields);
         listOfFields.forEach( fieldKey => {
-            const inputType = props.registrationFields[fieldKey].visibility === 'visible' ? 'text' : 'password';
-            listOfFormFieldSet.push(
-                <FormFieldSet
-                    labelName={props.registrationFields[fieldKey].label}
-                    labelKey={fieldKey}
-                    inputType={inputType}
-                />
-            );
+            const inputComponent = getInputComponent(props, fieldKey);
+            listOfFormFieldSet.push(inputComponent);
         });
     }
 
     return (
-		<div className="carrier-accounts__settings-form">
-            <div className="card is-compact">
-                <h4 className="carrier-accounts__settings-subheader">General Information</h4>
-                <p className="carrier-accounts__settings-subheader-description">This is the account number and address from your UPS profile</p>
-            </div>
+        <div className="carrier-accounts__settings-container">
+			<div className="carrier-accounts__settings">
+				<div className="carrier-accounts__settings-info">
+					<h4 className="carrier-accounts__settings-subheader-above-description">
+						{ translate( 'Connect your %(carrierName)s account', {
+                            args: {
+                                carrierName: props.carrierName
+                            }
+                        } ) }
+					</h4>
+					<p className="carrier-accounts__settings-subheader-description">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et dolor quam.
+					</p>
+				</div>
+				<div className="carrier-accounts__settings-form">
+                    <CompactCard>
+                        <h4 className="carrier-accounts__settings-subheader">General Information</h4>
+                        <p className="carrier-accounts__settings-subheader-description">
+                            { translate( 'This is the account number and address from your %(carrierName)s profile', {
+                            args: {
+                                carrierName: props.carrierName
+                            }
+                        } ) }
+                        </p>
+                    </CompactCard>
 
-            {listOfFormFieldSet}
-		</div>
+                    <CompactCard>
+                        {listOfFormFieldSet}
+                    </CompactCard>
+
+                    <CompactCard className="carrier-accounts__settings-actions">
+						<Button
+							compact
+							primary
+							onClick={ submitCarrierSettingsHandler }>
+							{ translate( 'Connect' ) }
+						</Button>
+						<Button compact onClick={ showCancelDialogHandler }>
+							{ translate( 'Cancel' ) }
+						</Button>
+					</CompactCard>
+                </div>
+            </div>
+        </div>
 	);
 };
 
