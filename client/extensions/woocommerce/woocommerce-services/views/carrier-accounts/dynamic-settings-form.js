@@ -1,15 +1,13 @@
 /** @format */
-/* eslint-disable */
 
 /**
  * External dependencies
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -26,21 +24,17 @@ const CheckboxFormFieldSet = ( props ) => {
     return (
         <>
             <Checkbox
-                id={ props.labelKey }
+                id={ props.fieldKey }
                 onChange={props.onChange}
                 checked={props.checked||false}
             />
-            <span>{props.labelName}</span>
+            <label htmlFor={ props.fieldKey }><span>{props.labelName}</span></label>
         </>
     );
 };
 
 export const DynamicCarrierAccountSettingsForm = ( props ) => {
 	const {
-        carrierType,
-        carrierName,
-        registrationFields,
-        siteId,
         translate,
     } = props;
 
@@ -49,25 +43,21 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
     const [formFields, setFormFields] = useState({});
     const [isSaving, setIsSaving] = useState(false);
 
-    /**
-     * Update the state for given form's fieldKey.
-     */
-    const updateValue = ( labelKey ) => ( newValue ) => {
+    const updateValue = ( fieldKey ) => ( newValue ) => {
         const formFieldsCopy = {...formFields};
-        formFieldsCopy[labelKey] = newValue;
+        formFieldsCopy[fieldKey] = newValue;
         setFormFields(formFieldsCopy);
     }
 
-    const toggleCheckbox = ( labelKey ) => () => {
+    const toggleCheckbox = ( fieldKey ) => () => {
         const formFieldsCopy = {...formFields};
-        formFieldsCopy[labelKey] = !formFieldsCopy[labelKey];
+        formFieldsCopy[fieldKey] = !formFieldsCopy[fieldKey];
         setFormFields(formFieldsCopy);
     };
 
-    const getInputComponent = (props, fieldKey) => {
+    const getInputComponent = (fieldKey) => {
         const visibility = props.registrationFields[fieldKey].visibility;
         const labelName = props.registrationFields[fieldKey].label;
-        const labelKey = fieldKey;
 
         let formComponent;
 
@@ -75,21 +65,21 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
             case 'password':
                 // TODO: We will need to create a PasswordField component
                 formComponent = <TextField
-                    id={ labelKey }
-                    key={ labelKey }
-                    title={ translate( labelName ) }
-                    updateValue={ updateValue( labelKey ) }
-                    value={formFields[labelKey]||""}
+                    id={ fieldKey }
+                    key={ fieldKey }
+                    title={ labelName }
+                    updateValue={ updateValue( fieldKey ) }
+                    value={formFields[fieldKey]||""}
                 />;
                 break;
             case 'select':
             case 'checkbox':
                 formComponent = <CheckboxFormFieldSet
-                    key={ labelKey }
-                    labelKey={ labelKey }
-                    labelName={ translate( labelName ) }
-                    onChange={toggleCheckbox(labelKey)}
-                    checked={formFields[labelKey]}
+                    key={ fieldKey }
+                    fieldKey={ fieldKey }
+                    labelName={ labelName }
+                    onChange={toggleCheckbox(fieldKey)}
+                    checked={formFields[fieldKey]}
                 />
 
                 break;
@@ -100,11 +90,11 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
             case 'visible':
             default:
                 formComponent = <TextField
-                    id={ labelKey }
-                    key={ labelKey }
-                    title={ translate( labelName ) }
-                    updateValue={ updateValue( labelKey ) }
-                    value={formFields[labelKey]||""}
+                    id={ fieldKey }
+                    key={ fieldKey }
+                    title={ labelName }
+                    updateValue={ updateValue( fieldKey ) }
+                    value={formFields[fieldKey]||""}
                 />
                 break;
         }
@@ -114,7 +104,7 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
     const submitCarrierSettingsHandler = async () => {
         setIsSaving(true);
         try {
-            const apiPost = await api.post( props.siteId, api.url.shippingCarrier(), {
+            await api.post( props.siteId, api.url.shippingCarrier(), {
                 type: props.carrierType,
                 settings: formFields
             } );
@@ -131,7 +121,7 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
     if (props.registrationFields) {
         const listOfFields = Object.keys(props.registrationFields);
         listOfFields.forEach( fieldKey => {
-            const inputComponent = getInputComponent(props, fieldKey);
+            const inputComponent = getInputComponent(fieldKey);
             listOfFormFieldSet.push(inputComponent);
         });
     }
@@ -199,9 +189,19 @@ const mapDispatchToProps = ( dispatch ) => ({
 	noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
 });
 
+CheckboxFormFieldSet.propTypes = {
+    fieldKey: PropTypes.string,
+    labelName: PropTypes.string,
+    onChange: PropTypes.func,
+    checked: PropTypes.bool,
+};
+
 DynamicCarrierAccountSettingsForm.propTypes = {
+    carrierType: PropTypes.string,
+    carrierName: PropTypes.string,
+    registrationFields: PropTypes.object,
+    siteId: PropTypes.number,
+    translate: PropTypes.func,
 };
 
 export default connect( mapStateToProps, mapDispatchToProps )( localize( DynamicCarrierAccountSettingsForm ) );
-
-/* eslint-enable */
