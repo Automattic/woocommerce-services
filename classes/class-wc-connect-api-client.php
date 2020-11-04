@@ -555,7 +555,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'method'      => $method,
 			);
 
-			if ( in_array( $method, array( 'POST', 'PUT' ) ) ) {
+			if ( in_array( $method, array( 'POST', 'PUT' ), true ) ) {
 				$data['body'] = $this->request_body();
 			}
 

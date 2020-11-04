@@ -23,20 +23,21 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		/**
 		 * Get the WC Helper authorization information to use with WC Connect Server requests( e.g. site ID, access token).
 		 *
-		 * @return array
+		 * @return array|WP_Error
 		 */
 		public static function get_wc_helper_auth_info() {
-			$helper_auth_data_default = array(
-				'access_token'        => '',
-				'site_id'             => '',
-				'access_token_secret' => '',
-			);
-
 			if ( class_exists( 'WC_Helper_Options' ) && is_callable( 'WC_Helper_Options::get' ) ) {
 				$helper_auth_data = WC_Helper_Options::get( 'auth' );
 			}
-			// It's possible for WC_Helper_Options::get() to return false so conditionally send the default array rather than false.
-			return $helper_auth_data ? $helper_auth_data : $helper_auth_data_default;
+
+			// It's possible for WC_Helper_Options::get() to return false, throw error if this is the case.
+			if ( ! $helper_auth_data ) {
+				return new WP_Error(
+					'missing_wccom_auth',
+					__( 'Unable to send request to WooCommerce Shipping & Tax server. WooCommerce Helper auth is missing', 'woocommerce-services' )
+				);
+			}
+			return $helper_auth_data;
 		}
 	}
 }
