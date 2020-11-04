@@ -448,6 +448,13 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$body         = array_merge( $default_body, $initial_body );
 
 			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
+			$access_token = '';
+			$site_id      = '';
+
+			if ( ! is_wp_error( $authorization ) ) {
+				$access_token = $helper_auth_data['access_token'];
+				$site_id      = $helper_auth_data['site_id'];
+			}
 
 			// Add interesting fields to the body of each request
 			$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
@@ -470,8 +477,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'active_services'      => $this->wc_connect_loader->get_active_services(),
 				'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
 				'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
-				'access_token'         => $helper_auth_data['access_token'],
-				'site_id'              => $helper_auth_data['site_id'],
+				'access_token'         => $access_token,
+				'site_id'              => $site_id,
 				)
 			);
 
