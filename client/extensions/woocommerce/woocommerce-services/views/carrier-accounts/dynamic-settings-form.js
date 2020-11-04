@@ -23,15 +23,12 @@ import * as api from 'woocommerce/woocommerce-services/api';
 import { errorNotice, successNotice } from 'state/notices/actions';
 
 const CheckboxFormFieldSet = ( props ) => {
-    const changeHandler = () => {
-    };
-
     return (
         <>
             <Checkbox
                 id={ props.labelKey }
-                onChange={changeHandler}
-                checked={false}
+                onChange={props.onChange}
+                checked={props.checked||false}
             />
             <span>{props.labelName}</span>
         </>
@@ -61,6 +58,12 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
         setFormFields(formFieldsCopy);
     }
 
+    const toggleCheckbox = ( labelKey ) => () => {
+        const formFieldsCopy = {...formFields};
+        formFieldsCopy[labelKey] = !formFieldsCopy[labelKey];
+        setFormFields(formFieldsCopy);
+    };
+
     const getInputComponent = (props, fieldKey) => {
         const visibility = props.registrationFields[fieldKey].visibility;
         const labelName = props.registrationFields[fieldKey].label;
@@ -85,6 +88,8 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
                     key={ labelKey }
                     labelKey={ labelKey }
                     labelName={ translate( labelName ) }
+                    onChange={toggleCheckbox(labelKey)}
+                    checked={formFields[labelKey]}
                 />
 
                 break;
