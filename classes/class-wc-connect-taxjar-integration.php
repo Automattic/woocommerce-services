@@ -339,7 +339,9 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Wrapper to avoid calling calculate_totals() for admin carts.
 	 *
-	 * @param $wc_cart_object
+	 * @param WC_Cart $wc_cart_object
+	 *
+	 * @throws Exception
 	 */
 	public function maybe_calculate_totals( $wc_cart_object ) {
 		if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
@@ -348,22 +350,31 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->calculate_totals( $wc_cart_object );
 	}
+
 	/**
 	 * Calculate tax / totals using TaxJar at checkout
 	 *
 	 * Unchanged from the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L471
 	 *
+	 * @param WC_Cart $wc_cart_object
+	 *
 	 * @return void
+	 * @throws Exception
 	 */
 	public function calculate_totals( $wc_cart_object ) {
 		// If outside of cart and checkout page or within mini-cart, skip calculations
-		if ( ( ! is_cart() && ! is_checkout() ) || ( is_cart() && is_ajax() ) ) {
+		if ( ( ! is_cart() && ! is_checkout() )) {
 			return;
 		}
 
-		$cart_taxes = array();
-		$cart_tax_total = 0;
+		if ( ( is_cart() && is_ajax() ) ) {
+			return;
+		}
+
+		if( is_checkout() && ! is_ajax() ) {
+			return;
+		}
 
 		foreach ( $wc_cart_object->coupons as $coupon ) {
 			if ( method_exists( $coupon, 'get_id' ) ) { // Woo 3.0+
@@ -425,7 +436,8 @@ class WC_Connect_TaxJar_Integration {
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
 			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
 			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
-			new WC_Cart_Totals( $wc_cart_object );
+			$c=new WC_Cart_Totals( $wc_cart_object );
+//			var_dump($c);
 			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
 			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
