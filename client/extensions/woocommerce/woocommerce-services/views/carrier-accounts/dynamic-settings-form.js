@@ -16,27 +16,11 @@ import Gridicon from 'gridicons';
  */
 import Button from 'components/button';
 import CompactCard from 'components/card/compact';
-import Dialog from 'components/dialog';
-import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
-import {
-	getDestinationCountryNames,
-	getStateNames,
-} from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import {
-	getCarrierAccountsState,
-	getFormErrors,
-	getFormValidState,
-} from 'woocommerce/woocommerce-services/state/carrier-accounts/selectors';
-import {
-	getCarrierRegistrationFields
-} from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
-import { getCountryName } from 'woocommerce/state/sites/data/locations/selectors';
-import { decodeEntities } from 'lib/formatting';
-import * as api from 'woocommerce/woocommerce-services/api';
 import { getSelectedSiteId } from 'state/ui/selectors';
-import { forEach } from 'lodash';
+import * as api from 'woocommerce/woocommerce-services/api';
+import { errorNotice, successNotice } from 'state/notices/actions';
 
 const CheckboxFormFieldSet = ( props ) => {
     const changeHandler = () => {
@@ -54,7 +38,6 @@ const CheckboxFormFieldSet = ( props ) => {
     );
 };
 
-
 export const DynamicCarrierAccountSettingsForm = ( props ) => {
 	const {
         carrierType,
@@ -66,6 +49,18 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 
     const listOfFormFieldSet = [];
 
+    const [formFields, setFormFields] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
+
+    /**
+     * Update the state for given form's fieldKey.
+     */
+    const updateValue = ( labelKey ) => ( newValue ) => {
+        const formFieldsCopy = {...formFields};
+        formFieldsCopy[labelKey] = newValue;
+        setFormFields(formFieldsCopy);
+    }
+
     const getInputComponent = (props, fieldKey) => {
         const visibility = props.registrationFields[fieldKey].visibility;
         const labelName = props.registrationFields[fieldKey].label;
@@ -75,44 +70,59 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 
         switch (visibility) {
             case 'password':
+                // TODO: We will need to create a PasswordField component
                 formComponent = <TextField
                     id={ labelKey }
+                    key={ labelKey }
                     title={ translate( labelName ) }
-                    value=""
+                    updateValue={ updateValue( labelKey ) }
+                    value={formFields[labelKey]||""}
                 />;
                 break;
             case 'select':
             case 'checkbox':
                 formComponent = <CheckboxFormFieldSet
+                    key={ labelKey }
                     labelKey={ labelKey }
                     labelName={ translate( labelName ) }
                 />
 
                 break;
-            case 'visible':
             case 'invisible':
             case 'masked':
             case 'readonly':
+                // TODO: We will need to handle these invisible/readonly fields separately. For now, use default.
+            case 'visible':
             default:
                 formComponent = <TextField
                     id={ labelKey }
+                    key={ labelKey }
                     title={ translate( labelName ) }
-                    value=""
+                    updateValue={ updateValue( labelKey ) }
+                    value={formFields[labelKey]||""}
                 />
                 break;
         }
         return formComponent;
     };
 
-    const submitCarrierSettingsHandler = () => {
-        //TODO: Call register end point
-    }
+    const submitCarrierSettingsHandler = async () => {
+        setIsSaving(true);
+        try {
+            const apiPost = await api.post( props.siteId, api.url.shippingCarrier(), {
+                type: props.carrierType,
+                settings: formFields
+            } );
+        } catch (error) {
+            props.noticeActions.errorNotice(`Failed to register the carrier. ${ error }`);
+        }
+        setIsSaving(false);
+	};
 
     const showCancelDialogHandler = () => {
-        //TODO: when clicked cancel
+        history.back();
     }
 
-    console.log("re-render=>>>", props);
     if (props.registrationFields) {
         const listOfFields = Object.keys(props.registrationFields);
         listOfFields.forEach( fieldKey => {
@@ -156,10 +166,15 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 						<Button
 							compact
 							primary
-							onClick={ submitCarrierSettingsHandler }>
+                            onClick={ submitCarrierSettingsHandler }
+                            disabled={ isSaving }
+                        >
 							{ translate( 'Connect' ) }
 						</Button>
-						<Button compact onClick={ showCancelDialogHandler }>
+                        <Button
+                            compact
+                            onClick={ showCancelDialogHandler }
+                        >
 							{ translate( 'Cancel' ) }
 						</Button>
 					</CompactCard>
@@ -175,8 +190,9 @@ const mapStateToProps = ( state ) => {
     };
 };
 
-const mapDispatchToProps = ( dispatch, {siteId} ) => ( {
-} );
+const mapDispatchToProps = ( dispatch ) => ({
+	noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
+});
 
 DynamicCarrierAccountSettingsForm.propTypes = {
 };
