@@ -20,7 +20,7 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { errorNotice, successNotice } from 'state/notices/actions';
 
-const CheckboxFormFieldSet = ( props ) => {
+export const CheckboxFormFieldSet = ( props ) => {
     return (
         <>
             <Checkbox
