@@ -26,14 +26,12 @@ import { getSelectedSiteWithFallback } from 'woocommerce/state/sites/selectors';
 import ExternalLink from 'components/external-link';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import { hasStripeKeyPairForMode } from './stripe/payment-method-stripe-utils';
 import ListItem from 'woocommerce/components/list/list-item';
 import ListItemField from 'woocommerce/components/list/list-item-field';
 import PaymentMethodBACS from './payment-method-bacs';
 import PaymentMethodEditDialog from './payment-method-edit-dialog';
 import PaymentMethodEditFormToggle from './payment-method-edit-form-toggle';
 import PaymentMethodPaypal from './payment-method-paypal';
-import PaymentMethodStripe from './payment-method-stripe';
 import PaymentMethodCheque from './payment-method-cheque';
 import { recordTrack } from 'woocommerce/lib/analytics';
 
@@ -119,7 +117,7 @@ class PaymentMethodItem extends Component {
 	};
 
 	outputEditComponent = () => {
-		const { currentlyEditingMethod, method, site } = this.props;
+		const { currentlyEditingMethod, method } = this.props;
 		if ( method.id === 'paypal' ) {
 			return (
 				<PaymentMethodPaypal
@@ -130,17 +128,7 @@ class PaymentMethodItem extends Component {
 				/>
 			);
 		}
-		if ( method.id === 'stripe' ) {
-			return (
-				<PaymentMethodStripe
-					method={ currentlyEditingMethod }
-					onCancel={ this.onCancel }
-					onEditField={ this.onEditField }
-					onDone={ this.onDoneAndEnable }
-					site={ site }
-				/>
-			);
-		}
+
 		if ( method.id === 'cheque' ) {
 			return (
 				<PaymentMethodCheque
@@ -175,22 +163,15 @@ class PaymentMethodItem extends Component {
 
 	renderEnabledField = method => {
 		const { translate } = this.props;
-		let showEnableField = true;
-		if ( method.id === 'stripe' ) {
-			showEnableField = hasStripeKeyPairForMode( method );
-		}
-
 		return (
-			showEnableField && (
-				<div>
-					<FormLabel>{ translate( 'Enabled' ) }</FormLabel>
-					<PaymentMethodEditFormToggle
-						checked={ method.enabled }
-						name="enabled"
-						onChange={ this.onChangeEnabled }
-					/>
-				</div>
-			)
+			<div>
+				<FormLabel>{ translate( 'Enabled' ) }</FormLabel>
+				<PaymentMethodEditFormToggle
+					checked={ method.enabled }
+					name="enabled"
+					onChange={ this.onChangeEnabled }
+				/>
+			</div>
 		);
 	};
 
@@ -199,9 +180,6 @@ class PaymentMethodItem extends Component {
 			this.props.currentlyEditingMethod && this.props.currentlyEditingMethod.id;
 		const { method, translate } = this.props;
 		let editButtonText = method.enabled ? translate( 'Manage' ) : translate( 'Set up' );
-		if ( method.id === 'stripe' && hasStripeKeyPairForMode( method ) ) {
-			editButtonText = translate( 'Manage' );
-		}
 		if ( currentlyEditingId === method.id ) {
 			editButtonText = translate( 'Cancel' );
 		}
