@@ -41,7 +41,7 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 
 	const apiResponseCarrierName = carrierNameMapper[props.carrier.toLowerCase()];
 
-	if (!apiResponseCarrierName && Object.keys(apiResponseCarrierName).length > 0) {
+	if (!apiResponseCarrierName) {
 		return (
 			<div>{props.carrier} not supported.</div>
 		);

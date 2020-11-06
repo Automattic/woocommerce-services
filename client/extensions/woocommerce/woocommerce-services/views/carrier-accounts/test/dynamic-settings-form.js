@@ -19,7 +19,7 @@ import { DynamicCarrierAccountSettingsForm, CheckboxFormFieldSet } from '../dyna
 
 configure( { adapter: new Adapter() } );
 
-function createCarrierAccountsWrapper() {
+function createDynamicCarrierAccountSettingsFormWrapper() {
 	const props = {
 		siteId: 1234,
 		translate: ( text ) => text,
@@ -50,7 +50,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
       });
 
 	describe( 'with the correct sub-components', () => {
-        const wrapper = createCarrierAccountsWrapper();
+        const wrapper = createDynamicCarrierAccountSettingsFormWrapper();
 		it( 'renders 3 fields from the provided props', function () {
 			expect(wrapper.find( CompactCard )).to.have.lengthOf(3);
         } );
@@ -65,7 +65,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
     } );
 
     describe( 'should submit the form when data are input into the fields', () => {
-        const wrapper = createCarrierAccountsWrapper();
+        const wrapper = createDynamicCarrierAccountSettingsFormWrapper();
         const apiPostSpy = spy(api, 'post');
 
         /**
