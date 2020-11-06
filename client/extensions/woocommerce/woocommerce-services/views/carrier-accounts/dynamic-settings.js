@@ -20,15 +20,6 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 import DynamicCarrierAccountSettingsForm from './dynamic-settings-form';
 
 export const DynamicCarrierAccountSettings = ( props ) => {
-	/**
-	 * This maps the URL querystring to the API response name for the carrier.
-	 * Keys are in lowercase.
-	 */
-	const carrierNameMapper = {
-		dhl: 'DhlExpressAccount',
-		ups: 'UpsAccount'
-	};
-
 	const [carrierRegistrationFields, setCarrierRegistrationFields] = useState([]);
 
 	useEffect(() => {
@@ -39,21 +30,21 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 		fetchRegistrationFields();
 	}, [props.siteId]);
 
-	const apiResponseCarrierName = carrierNameMapper[props.carrier.toLowerCase()];
-
-	if (!apiResponseCarrierName) {
-		return (
-			<div>{props.carrier} not supported.</div>
-		);
-	}
-
 	if (!carrierRegistrationFields || carrierRegistrationFields.length < 1) {
 		return (
 			<div>Loading...</div>
 		);
 	}
 
-	const currentCarrierRegistrationField = carrierRegistrationFields.filter(carrier => carrier.type === apiResponseCarrierName)[0];
+	const supportedCarriers = carrierRegistrationFields.filter(carrier => carrier.type === props.carrier);
+
+	if (!supportedCarriers || supportedCarriers.length === 0) {
+		return (
+			<div>{props.carrier} not supported.</div>
+		);
+	}
+
+	const currentCarrierRegistrationField = supportedCarriers[0];
 
     return (
 		<div>

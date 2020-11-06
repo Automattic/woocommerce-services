@@ -50,7 +50,7 @@ describe( 'Dynamic carrier registration settings', () => {
 	describe( 'with supported carrier', () => {
         const props = {
             siteId: 1234,
-            carrier: 'DHL'
+            carrier: 'DhlExpressAccount'
         };
 		it( 'should render the Connect, Localized, and DynamicCarrierAccountSettingsForm sub components', function () {
             const wrapper = shallow( <DynamicCarrierAccountSettings { ...props } /> );
