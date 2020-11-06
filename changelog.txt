@@ -5,6 +5,8 @@
 * Fix   - Issue with printing labels in some iOS devices through Safari.
 * Fix   - Prevents warning when using PHP 5.5 or lesser
 * Add   - Add new API end point to retrieve carrier registration requirements.
+* Add   - Add composer command to run PHPUnit.
+* Tweak - Update readme with DHL information.
 
 = 1.25.1 - 2020-10-28 =
 * Tweak - DHL refund days copy adjustment
