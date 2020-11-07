@@ -4,13 +4,12 @@
  * External dependencies
  */
 import React from 'react';
-import { expect } from 'chai';
-import { configure, shallow } from 'enzyme';
+import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import CompactCard from 'components/card/compact';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import * as api from 'woocommerce/woocommerce-services/api';
-import { spy } from 'sinon';
+import { act } from 'react-dom/test-utils';
 
 /**
  * Internal dependencies
@@ -18,6 +17,16 @@ import { spy } from 'sinon';
 import { DynamicCarrierAccountSettingsForm, CheckboxFormFieldSet } from '../dynamic-settings-form.js';
 
 configure( { adapter: new Adapter() } );
+
+jest.mock('components/forms/form-text-input', () => {
+    return function DummyFormTextField(props) {
+        return (
+        <div>
+            <input className="test__dummy-form-text-field" onChange={props.onChange}/>
+        </div>
+        );
+    }
+});
 
 function createDynamicCarrierAccountSettingsFormWrapper() {
 	const props = {
@@ -41,7 +50,7 @@ function createDynamicCarrierAccountSettingsFormWrapper() {
         }
 	};
 
-	return shallow( <DynamicCarrierAccountSettingsForm { ...props } /> );
+	return mount( <DynamicCarrierAccountSettingsForm { ...props } /> );
 }
 
 describe( 'Carrier Account Dynamic Registration Form', () => {
@@ -52,53 +61,59 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 	describe( 'with the correct sub-components', () => {
         const wrapper = createDynamicCarrierAccountSettingsFormWrapper();
 		it( 'renders 3 fields from the provided props', function () {
-			expect(wrapper.find( CompactCard )).to.have.lengthOf(3);
+			expect(wrapper.find( CompactCard )).toHaveLength(3);
         } );
 
         it( 'renders 2 visible fields as TextField', function () {
-			expect(wrapper.find( TextField )).to.have.lengthOf(2);
+			expect(wrapper.find( TextField )).toHaveLength(2);
         } );
 
         it( 'renders 1 checkbox fields as Checkbox', function () {
-			expect(wrapper.find( CheckboxFormFieldSet )).to.have.lengthOf(1);
-		} );
+			expect(wrapper.find( CheckboxFormFieldSet )).toHaveLength(1);
+        } );
     } );
 
-    describe( 'should submit the form when data are input into the fields', () => {
-        const wrapper = createDynamicCarrierAccountSettingsFormWrapper();
-        const apiPostSpy = spy(api, 'post');
+    describe( 'when clicked registration button', () => {
+        it ('should submit the form when data are input into the fields', async () => {
+            let wrapper;
 
-        /**
-         * Note. We uses ShallowMount and we are not able to simulate text typing into <TextField>
-         * because it doesn't listen to "change" event, nor any React's SyntheticEvent.
-         * We could not use Enzyme.mount either because <TextField> uses Calypso's FormTextInput, which
-         * uses the deprecated "refs" in function component. As a reuslt, Enzyme fails to mount and can
-         * only do shallow mount here.
-         *
-         * ref: woocommerce-services/wp-calypso/client/components/forms/form-text-input/index.jsx
-         */
-        // wrapper.find( '#account_number' ).simulate('change', {target: {
-        //     value: 'A123456'
-        // }});
-        // wrapper.find( '#country' ).simulate('change', {target: {
-        //     value: 'US'
-        // }});
-        wrapper.find( CheckboxFormFieldSet ).simulate('change', {target: {
-            checked: true
-        }});
+            const apiSpy = jest.spyOn(api, "post").mockImplementation(() =>
+                Promise.resolve({})
+            );
 
-        // Click the register button
-        wrapper.find( '.carrier-accounts__settings-actions' ).children().first().simulate('click');
+            await act(async () => {
+                wrapper = createDynamicCarrierAccountSettingsFormWrapper();
+            });
 
-        // Expect API to be called
-        expect(apiPostSpy.called).to.be.true;
-        expect(apiPostSpy).to.have.been.calledWith(1234, 'connect/shipping/carrier', {
-            type: 'DhlExpressAccount',
-            settings: {
-                // account_number: 'A123456',
-                // country: 'US',
-                is_reseller: true
-            }
+            await act(async () => {
+                 wrapper.find( 'input.test__dummy-form-text-field' ).first().simulate('change', {target: {
+                    value: 'A123456'
+                }});
+            });
+            await act(async () => {
+                wrapper.find( 'input.test__dummy-form-text-field' ).at(1).simulate('change', {target: {
+                    value: 'US'
+                }});
+            });
+            await act(async () => {
+                wrapper.find( 'input#is_reseller' ).simulate('change', {target: {
+                    checked: true
+                }});
+            });
+            await act(async () => {
+                // Click the register button
+                wrapper.find( 'button.is-primary' ).simulate('click');
+                expect(apiSpy).toHaveBeenCalledTimes(1);
+                expect(apiSpy).toHaveBeenCalledWith(1234, 'connect/shipping/carrier', {
+                        type: 'DhlExpressAccount',
+                        settings: {
+                            account_number: 'A123456',
+                            country: 'US',
+                            is_reseller: true
+                        }
+                    }
+                );
+            });
         });
     } );
 } );

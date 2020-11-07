@@ -25,10 +25,10 @@ export const CheckboxFormFieldSet = ( props ) => {
         <>
             <Checkbox
                 id={ props.fieldKey }
-                onChange={props.onChange}
-                checked={props.checked||false}
+                onChange={ props.onChange }
+                checked={ props.checked || false }
             />
-            <label htmlFor={ props.fieldKey }><span>{props.labelName}</span></label>
+            <label htmlFor={ props.fieldKey }><span>{ props.labelName }</span></label>
         </>
     );
 };
