@@ -510,7 +510,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
 			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
 			$headers[ 'Authorization' ] = $authorization;
-			$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'] );
+			$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET' );
 			return $headers;
 		}
 
@@ -558,11 +558,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $authorization;
 		}
 
-		protected function request_signature_wccom( $token_secret ) {
-			$method = strtoupper( $_SERVER['REQUEST_METHOD'] );
+		protected function request_signature_wccom( $token_secret, $endpoint, $method ) {
+			$request_url = WC_Helper_API::url( $endpoint );
+
 			$data = array(
-				'host'        => 'woocommerce.com', // host URL.
-				'request_uri' => '/wp-json/helper/1.0/subscriptions', // endpoint URL.
+				'host'        => parse_url( $request_url, PHP_URL_HOST ), // host URL.
+				'request_uri' => parse_url( $request_url, PHP_URL_PATH ), // endpoint URL.
 				'method'      => $method,
 			);
 
