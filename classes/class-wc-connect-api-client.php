@@ -476,8 +476,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			if ( ! is_wp_error( $helper_auth_data ) ) {
 				$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
-					'access_token'         => $helper_auth_data['access_token'],
-					'site_id'              => $helper_auth_data['site_id'],
+					'access_token' => $helper_auth_data['access_token'],
+					'site_id'      => $helper_auth_data['site_id'],
 					)
 				);
 			}
