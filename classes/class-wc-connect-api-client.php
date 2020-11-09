@@ -37,7 +37,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function get_service_schemas() {
 			$response_body = $this->request( 'POST', '/services' );
-			$extra_response = $this->get_wccom_subscriptions( $this->request_body() );
 
 			if ( is_wp_error( $response_body ) ) {
 				return $response_body;
