@@ -447,15 +447,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			);
 			$body         = array_merge( $default_body, $initial_body );
 
-			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
-			$access_token = '';
-			$site_id      = '';
-
-			if ( ! is_wp_error( $helper_auth_data ) ) {
-				$access_token = $helper_auth_data['access_token'];
-				$site_id      = $helper_auth_data['site_id'];
-			}
-
 			// Add interesting fields to the body of each request
 			$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
 				'store_guid'           => $this->get_guid(),
@@ -477,11 +468,22 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'active_services'      => $this->wc_connect_loader->get_active_services(),
 				'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
 				'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
-				'access_token'         => $access_token,
-				'site_id'              => $site_id,
 				)
 			);
 
+			// Add WC Helper auth info if connected to WC.com.
+			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
+
+			if ( ! is_wp_error( $helper_auth_data ) ) {
+				$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
+					'access_token'         => $helper_auth_data['access_token'],
+					'site_id'              => $helper_auth_data['site_id'],
+					)
+				);
+			}
+
+			write_log('this is the body');
+			write_log($body);
 			return $body;
 		}
 
@@ -496,11 +498,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return $authorization;
 			}
 
-			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
-			if ( is_wp_error( $wc_helper_auth_info ) ) {
-				return $wc_helper_auth_info;
-			}
-
 			$headers = array();
 			$locale = strtolower( str_replace( '_', '-', get_locale() ) );
 			$locale_elements = explode( '-', $locale );
@@ -509,7 +506,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
 			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
 			$headers[ 'Authorization' ] = $authorization;
-			$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET' );
+
+			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
+			if ( ! is_wp_error( $wc_helper_auth_info ) ) {
+				$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET' );
+			}
 			return $headers;
 		}
 
