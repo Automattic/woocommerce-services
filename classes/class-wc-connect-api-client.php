@@ -37,6 +37,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function get_service_schemas() {
 			$response_body = $this->request( 'POST', '/services' );
+			$extra_response = $this->get_wccom_subscriptions( $this->request_body() );
 
 			if ( is_wp_error( $response_body ) ) {
 				return $response_body;
@@ -496,6 +497,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return $authorization;
 			}
 
+			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
+			if ( is_wp_error( $wc_helper_auth_info ) ) {
+				return $wc_helper_auth_info;
+			}
+
 			$headers = array();
 			$locale = strtolower( str_replace( '_', '-', get_locale() ) );
 			$locale_elements = explode( '-', $locale );
@@ -504,8 +510,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
 			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
 			$headers[ 'Authorization' ] = $authorization;
-
-			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
 			$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'] );
 			return $headers;
 		}
