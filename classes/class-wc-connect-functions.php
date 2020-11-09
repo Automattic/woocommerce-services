@@ -34,7 +34,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			if ( ! $helper_auth_data ) {
 				return new WP_Error(
 					'missing_wccom_auth',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. WooCommerce Helper auth is missing', 'woocommerce-services' )
+					__( 'WooCommerce Helper auth is missing', 'woocommerce-services' )
 				);
 			}
 			return $helper_auth_data;

@@ -482,8 +482,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			write_log('this is the body');
-			write_log($body);
 			return $body;
 		}
 
