@@ -507,7 +507,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
 			if ( ! is_wp_error( $wc_helper_auth_info ) ) {
-				$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET' );
+				$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
 			}
 			return $headers;
 		}
@@ -556,7 +556,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $authorization;
 		}
 
-		protected function request_signature_wccom( $token_secret, $endpoint, $method ) {
+		/**
+		 * Generate a signature for WCCOM API request validation.
+		 *
+		 * @param string $token_secret
+		 * @param string $endpoint
+		 * @param string $method
+		 * @param array $body
+		 * @return string
+		 */
+		protected function request_signature_wccom( $token_secret, $endpoint, $method, $body = array() ) {
 			$request_url = WC_Helper_API::url( $endpoint );
 
 			$data = array(
@@ -565,8 +574,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'method'      => $method,
 			);
 
-			if ( in_array( $method, array( 'POST', 'PUT' ), true ) ) {
-				$data['body'] = $this->request_body();
+			if ( ! empty( $body ) ) {
+				$data['body'] = $body;
 			}
 
 			return hash_hmac( 'sha256', wp_json_encode( $data ), $token_secret );
