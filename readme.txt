@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.5
-Stable tag: 1.25.1
+Stable tag: 1.25.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,6 +81,14 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.2 - 2020-11-10 =
+* Tweak - Add ZIP code validation to UPS(beta) signup form.
+* Fix   - Issue with printing labels in some iOS devices through Safari.
+* Fix   - Prevents warning when using PHP 5.5 or lesser
+* Add   - Add new API end point to retrieve carrier registration requirements.
+* Add   - Add composer command to run PHPUnit.
+* Tweak - Update readme with DHL information.
+
 = 1.25.1 - 2020-10-28 =
 * Tweak - DHL refund days copy adjustment
 * Tweak - Stop using deprecated Jetpack method is_development_mode().
@@ -150,13 +158,3 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 * Add   - Link to carrier's schedule pickup page.
 * Add   - Improved shipping service feature descriptions.
 * Add   - Option to mark order complete when label is printed.
-
-= 1.22.5 - 2020-03-17 =
-* Add   - Admin asset API endpoint.
-* Fix   - GB support for WC 4.0.
-* Fix   - Jetpack staging check for PHP 5.3.
-* Tweak - Bump WP tested version to 5.4.
-
-= 1.22.4 - 2020-03-02 =
-* Fix   - Stop using deprecated method Jetpack::is_staging_site() when Jetpack
-8.1 is installed.
