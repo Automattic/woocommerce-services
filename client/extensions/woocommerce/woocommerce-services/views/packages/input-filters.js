@@ -41,7 +41,8 @@ const checkDimension = dimension => {
 		return '';
 	}
 
-	if ( 0 >= dimension ) {
+	// Allow users to type `0`, but not negative numbers
+	if ( 0 > dimension ) {
 		return '';
 	}
 
@@ -63,9 +64,16 @@ const parseDimensions = value => {
 	return { length, width, height };
 };
 
+// Final dimensions must all be positive numbers
+const validateDimensions = value => {
+	const { length, width, height } = parseDimensions( value );
+	return ( 0 < length ) && ( 0 < width ) && ( 0 < height );
+};
+
 export default {
 	string,
 	number,
 	dimensions,
 	parseDimensions,
+	validateDimensions,
 };

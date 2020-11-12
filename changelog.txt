@@ -2,6 +2,7 @@
 
 = 1.25.3 - 2020-**-** =
 * Add   - Initial code for WooCommerce.com subscriptions API.
+* Fix   - UI fix for input validation for package dimensions and weights.
 
 = 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.

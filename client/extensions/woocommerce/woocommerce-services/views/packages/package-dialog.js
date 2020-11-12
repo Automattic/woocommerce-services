@@ -101,6 +101,10 @@ const PackageDialog = props => {
 		} );
 
 		const errors = checkInputs( filteredPackageData, boxNames, packageSchema );
+		if( ! inputFilters.validateDimensions( filteredPackageData.inner_dimensions ) ) {
+			errors.any = true;
+			errors.inner_dimensions = true;
+		}
 		if ( errors.any ) {
 			updatePackagesField( siteId, filteredPackageData );
 			setModalErrors( siteId, errors );
