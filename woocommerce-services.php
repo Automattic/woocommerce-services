@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.25.0
+ * Version: 1.25.2
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2
  *
@@ -52,7 +52,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	}
 
 	// Check for CI environment variable to trigger test mode.
-	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE', true ) ) {
+	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE' ) ) {
 		if ( ! defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
 			define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
 		}
@@ -147,6 +147,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @var WC_REST_Connect_Address_Normalization_Controller
 		 */
 		protected $rest_address_normalization_controller;
+
+		/**
+		 *
+		 * WC_REST_Connect_Shipping_Carrier_Types_Controller
+		 *
+		 * @var WC_REST_Connect_Shipping_Carrier_Types_Controller
+		 */
+		protected $rest_carrier_types_controller;
 
 		/**
 		 * @var WC_Connect_Service_Schemas_Validator
@@ -414,6 +422,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
 			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
+		}
+
+		public function set_carrier_types_controller( WC_REST_Connect_Shipping_Carrier_Types_Controller $rest_carrier_types_controller ) {
+			$this->rest_carrier_types_controller = $rest_carrier_types_controller;
+		}
+
+		public function get_carrier_types_controller() {
+			return $this->rest_carrier_types_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -880,6 +896,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_carrier_delete_controller = new WC_REST_Connect_Shipping_Carrier_Delete_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_carrier_delete_controller( $rest_carrier_delete_controller );
 			$rest_carrier_delete_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-carrier-types-controller.php' ) );
+			$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_carrier_types_controller( $rest_carrier_types_controller );
+			$rest_carrier_types_controller->register_routes();
 
 			if ( $this->stripe->is_stripe_plugin_enabled() ) {
 				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-init-controller.php' ) );
