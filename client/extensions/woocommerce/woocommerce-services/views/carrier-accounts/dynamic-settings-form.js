@@ -1,9 +1,7 @@
-/** @format */
-
 /**
  * External dependencies
  */
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -20,103 +18,89 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { errorNotice, successNotice } from 'state/notices/actions';
 
-export const CheckboxFormFieldSet = ( props ) => {
-    return (
-        <>
-            <Checkbox
-                id={ props.fieldKey }
-                onChange={ props.onChange }
-                checked={ props.checked || false }
-            />
-            <label htmlFor={ props.fieldKey }><span>{ props.labelName }</span></label>
-        </>
-    );
-};
+const FormFieldFactory = ( { visibility, label, id, value, onChange } ) => {
+	const handleToggle = useCallback(() => {
+		onChange(id, !value);
+	}, [id, value, onChange]);
+
+	const handleTextChange = useCallback(( newValue ) => {
+		onChange(id, newValue);
+	}, [id, value, onChange]);
+
+	switch (visibility) {
+		case 'select':
+		case 'checkbox':
+			return (
+				<>
+					<Checkbox
+						id={ id }
+						onChange={ handleToggle }
+						checked={ value || false }
+					/>
+					<label htmlFor={ id }><span>{ label }</span></label>
+				</>
+			);
+
+		case 'invisible':
+		case 'masked':
+		case 'readonly':
+		// TODO: We will need to handle the above invisible/readonly fields separately. For now, use default.
+		case 'password':
+		// TODO: We will need to create a PasswordField component, for now, use default.
+		case 'visible':
+		default:
+			return (
+				<TextField
+					id={ id }
+					title={ label }
+					updateValue={ handleTextChange }
+					value={ value || '' }
+				/>
+			);
+	}
+}
 
 export const DynamicCarrierAccountSettingsForm = ( props ) => {
 	const {
         translate,
+		siteId,
+		carrierType,
+		noticeActions,
+		carrierName,
     } = props;
 
-    const listOfFormFieldSet = [];
-
-    const [formFields, setFormFields] = useState({});
+    const [formValues, setFormValues] = useState({});
     const [isSaving, setIsSaving] = useState(false);
 
-    const updateValue = ( fieldKey ) => ( newValue ) => {
-        const formFieldsCopy = {...formFields};
-        formFieldsCopy[fieldKey] = newValue;
-        setFormFields(formFieldsCopy);
-    }
+    const handleFormFieldChange = useCallback((id, newValue) => {
+    	setFormValues((oldValues) => ({
+    		...oldValues,
+		    [id]: newValue,
+	    }))
+    }, [setFormValues]);
 
-    const toggleCheckbox = ( fieldKey ) => () => {
-        const formFieldsCopy = {...formFields};
-        formFieldsCopy[fieldKey] = !formFieldsCopy[fieldKey];
-        setFormFields(formFieldsCopy);
-    };
+	const handleSubmit = useCallback( () => {
+		const submit = async () => {
+			setIsSaving(true);
 
-    const getInputComponent = (fieldKey) => {
-        const visibility = props.registrationFields[fieldKey].visibility;
-        const labelName = props.registrationFields[fieldKey].label;
+			try {
+				await api.post( siteId, api.url.shippingCarrier(), {
+					type: carrierType,
+					settings: formValues
+				} );
+			} catch (error) {
+				noticeActions.errorNotice(`Failed to register the carrier. ${ error }`);
+			}
 
-        let formComponent;
+			setIsSaving(false);
+		}
 
-        switch (visibility) {
-            case 'select':
-            case 'checkbox':
-                formComponent = <CheckboxFormFieldSet
-                    key={ fieldKey }
-                    fieldKey={ fieldKey }
-                    labelName={ labelName }
-                    onChange={toggleCheckbox(fieldKey)}
-                    checked={formFields[fieldKey]}
-                />
+		submit();
+	}, [isSaving, setIsSaving, siteId, carrierType, formValues, noticeActions] );
 
-                break;
-            case 'invisible':
-            case 'masked':
-            case 'readonly':
-                // TODO: We will need to handle the above invisible/readonly fields separately. For now, use default.
-            case 'password':
-                // TODO: We will need to create a PasswordField component, for now, use default.
-            case 'visible':
-            default:
-                formComponent = <TextField
-                    id={ fieldKey }
-                    key={ fieldKey }
-                    title={ labelName }
-                    updateValue={ updateValue( fieldKey ) }
-                    value={formFields[fieldKey]||""}
-                />
-                break;
-        }
-        return formComponent;
-    };
-
-    const submitCarrierSettingsHandler = async () => {
-        setIsSaving(true);
-        try {
-            await api.post( props.siteId, api.url.shippingCarrier(), {
-                type: props.carrierType,
-                settings: formFields
-            } );
-        } catch (error) {
-            props.noticeActions.errorNotice(`Failed to register the carrier. ${ error }`);
-        }
-        setIsSaving(false);
-	};
-
-    const showCancelDialogHandler = () => {
+    const handleCancel = useCallback(() => {
         history.back();
-    }
-
-    if (props.registrationFields) {
-        const listOfFields = Object.keys(props.registrationFields);
-        listOfFields.forEach( fieldKey => {
-            const inputComponent = getInputComponent(fieldKey);
-            listOfFormFieldSet.push(inputComponent);
-        });
-    }
+    }, []);
 
     return (
         <div className="carrier-accounts__settings-container">
@@ -125,7 +109,7 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 					<h4 className="carrier-accounts__settings-subheader-above-description">
 						{ translate( 'Connect your %(carrierName)s account', {
                             args: {
-                                carrierName: props.carrierName
+                                carrierName,
                             }
                         } ) }
 					</h4>
@@ -139,28 +123,30 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
                         <p className="carrier-accounts__settings-subheader-description">
                             { translate( 'This is the account number and address from your %(carrierName)s profile', {
                             args: {
-                                carrierName: props.carrierName
+                                carrierName,
                             }
                         } ) }
                         </p>
                     </CompactCard>
 
                     <CompactCard>
-                        {listOfFormFieldSet}
+                        {props.registrationFields && Object.entries(props.registrationFields).map( ( [key, field] ) => (
+                        	<FormFieldFactory key={key} id={key} visibility={field.visibility} label={field.label} value={formValues[key]} onChange={handleFormFieldChange} />
+                        ))}
                     </CompactCard>
 
                     <CompactCard className="carrier-accounts__settings-actions">
 						<Button
 							compact
 							primary
-                            onClick={ submitCarrierSettingsHandler }
+                            onClick={ handleSubmit }
                             disabled={ isSaving }
                         >
 							{ translate( 'Connect' ) }
 						</Button>
                         <Button
                             compact
-                            onClick={ showCancelDialogHandler }
+                            onClick={ handleCancel }
                         >
 							{ translate( 'Cancel' ) }
 						</Button>
@@ -180,13 +166,6 @@ const mapStateToProps = ( state ) => {
 const mapDispatchToProps = ( dispatch ) => ({
 	noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
 });
-
-CheckboxFormFieldSet.propTypes = {
-    fieldKey: PropTypes.string,
-    labelName: PropTypes.string,
-    onChange: PropTypes.func,
-    checked: PropTypes.bool,
-};
 
 DynamicCarrierAccountSettingsForm.propTypes = {
     carrierType: PropTypes.string,
