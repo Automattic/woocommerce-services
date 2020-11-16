@@ -36,15 +36,13 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 		);
 	}
 
-	const supportedCarriers = carrierRegistrationFields.filter(carrier => carrier.type === props.carrier);
+	const [ currentCarrierRegistrationField ] = carrierRegistrationFields.filter(carrier => carrier.type === props.carrier);
 
-	if (!supportedCarriers || supportedCarriers.length === 0) {
+	if (!currentCarrierRegistrationField) {
 		return (
 			<div>{props.carrier} not supported.</div>
 		);
 	}
-
-	const currentCarrierRegistrationField = supportedCarriers[0];
 
     return (
 		<div>
