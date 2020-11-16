@@ -93,8 +93,3 @@ export const submitCarrierSettings = ( siteId, carrier, values ) => ( dispatch )
 			dispatch( errorNotice( translate( 'There was an error connecting to your UPS account. Please check that all of the information entered matches your UPS account and try to connect again.' ) ) );
 		} );
 };
-
-export const getCarrierRegistrationFields = ( siteId ) => () => {
-	return api.get(siteId, api.url.shippingCarrierTypes())
-	.then( carrierTypesResponse => carrierTypesResponse)
-};

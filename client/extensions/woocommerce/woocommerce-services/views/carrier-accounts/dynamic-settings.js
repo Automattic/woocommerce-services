@@ -12,9 +12,6 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import {
-	getCarrierRegistrationFields
-} from 'woocommerce/woocommerce-services/state/carrier-accounts/actions';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import DynamicCarrierAccountSettingsForm from './dynamic-settings-form';
@@ -61,13 +58,9 @@ const mapStateToProps = ( state ) => {
     };
 };
 
-const mapDispatchToProps = ( dispatch, {siteId} ) => ( {
-	getCarrierRegistrationFields: () => dispatch( getCarrierRegistrationFields( siteId ) ),
-} );
-
 DynamicCarrierAccountSettings.propTypes = {
 	carrier: PropTypes.string.isRequired,
 	siteId: PropTypes.number
 };
 
-export default connect( mapStateToProps, mapDispatchToProps )( localize( DynamicCarrierAccountSettings ) );
+export default connect( mapStateToProps )( localize( DynamicCarrierAccountSettings ) );
