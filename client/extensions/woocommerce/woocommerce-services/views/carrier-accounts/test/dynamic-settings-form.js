@@ -8,13 +8,14 @@ import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import CompactCard from 'components/card/compact';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
+import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { act } from 'react-dom/test-utils';
 
 /**
  * Internal dependencies
  */
-import { DynamicCarrierAccountSettingsForm, CheckboxFormFieldSet } from '../dynamic-settings-form.js';
+import { DynamicCarrierAccountSettingsForm } from '../dynamic-settings-form.js';
 
 configure( { adapter: new Adapter() } );
 
@@ -69,7 +70,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
         } );
 
         it( 'renders 1 checkbox fields as Checkbox', function () {
-			expect(wrapper.find( CheckboxFormFieldSet )).toHaveLength(1);
+			expect(wrapper.find( Checkbox )).toHaveLength(1);
         } );
     } );
 
