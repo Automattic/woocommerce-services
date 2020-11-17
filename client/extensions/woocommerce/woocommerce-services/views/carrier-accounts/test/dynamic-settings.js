@@ -18,110 +18,110 @@ import { DynamicCarrierAccountSettings } from '../dynamic-settings.js';
 configure( { adapter: new Adapter() } );
 
 const mockCarrierRegistrationFieldsState = [{
-    "type": "DhlExpressAccount",
-    "name": "Test DHL Express",
-    "fields": {
-        "account_number": {
-            "visibility": "visible",
-            "label": "DHL Account Number"
-        },
-        "country": {
-            "visibility": "visible",
-            "label": "Account Country Code (2 Letter)"
-        },
-        "is_reseller": {
-            "visibility": "checkbox",
-            "label": "Reseller Account? (check if yes)"
-        }
-    }
+	"type": "DhlExpressAccount",
+	"name": "Test DHL Express",
+	"fields": {
+		"account_number": {
+			"visibility": "visible",
+			"label": "DHL Account Number"
+		},
+		"country": {
+			"visibility": "visible",
+			"label": "Account Country Code (2 Letter)"
+		},
+		"is_reseller": {
+			"visibility": "checkbox",
+			"label": "Reseller Account? (check if yes)"
+		}
+	}
 }];
 
 jest.mock('../dynamic-settings-form', () => {
-    return function DummyDynamicSettingsForm(props) {
-        return (
-        <div>
-            {JSON.stringify(props)}
-        </div>
-        );
-    }
+	return function DummyDynamicSettingsForm(props) {
+		return (
+		<div>
+			{JSON.stringify(props)}
+		</div>
+		);
+	}
 });
 
 describe( 'Dynamic carrier registration settings', () => {
-    beforeEach(() => {
-        jest.spyOn(api, "get").mockImplementation(() =>
-            Promise.resolve({
-                carriers: mockCarrierRegistrationFieldsState
-            })
-        );
-    });
+	beforeEach(() => {
+		jest.spyOn(api, "get").mockImplementation(() =>
+			Promise.resolve({
+				carriers: mockCarrierRegistrationFieldsState
+			})
+		);
+	});
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+	afterEach(() => {
+		jest.clearAllMocks();
+	});
 
 	describe( 'with supported carrier', () => {
-        const props = {
-            siteId: 1234,
-            carrier: 'DhlExpressAccount'
-        };
+		const props = {
+			siteId: 1234,
+			carrier: 'DhlExpressAccount'
+		};
 
 
 		it( 'should render the Connect, Localized, and DynamicCarrierAccountSettingsForm sub components', async () => {
-            let wrapper;
-            await act(async () => {
-                wrapper = mount(<DynamicCarrierAccountSettings { ...props } />);
-            });
+			let wrapper;
+			await act(async () => {
+				wrapper = mount(<DynamicCarrierAccountSettings { ...props } />);
+			});
 
-            const actualDynamicCarrierAccountSettingsFormProps = JSON.parse(wrapper.text());
-            expect(actualDynamicCarrierAccountSettingsFormProps.carrierName).to.equal(mockCarrierRegistrationFieldsState[0].name);
-            expect(actualDynamicCarrierAccountSettingsFormProps.carrierType).to.equal(mockCarrierRegistrationFieldsState[0].type);
-            expect(actualDynamicCarrierAccountSettingsFormProps.registrationFields).to.deep.equal(mockCarrierRegistrationFieldsState[0].fields);
-        } );
-    } );
+			const actualDynamicCarrierAccountSettingsFormProps = JSON.parse(wrapper.text());
+			expect(actualDynamicCarrierAccountSettingsFormProps.carrierName).to.equal(mockCarrierRegistrationFieldsState[0].name);
+			expect(actualDynamicCarrierAccountSettingsFormProps.carrierType).to.equal(mockCarrierRegistrationFieldsState[0].type);
+			expect(actualDynamicCarrierAccountSettingsFormProps.registrationFields).to.deep.equal(mockCarrierRegistrationFieldsState[0].fields);
+		} );
+	} );
 
-    describe( 'with non-supported carrier', () => {
-        const props = {
-            siteId: 1234,
-            carrier: 'ASDASDASD'
-        };
+	describe( 'with non-supported carrier', () => {
+		const props = {
+			siteId: 1234,
+			carrier: 'ASDASDASD'
+		};
 
 
 		it( 'should display not supported message', async () => {
-            let wrapper;
-            await act(async () => {
-                wrapper = mount(<DynamicCarrierAccountSettings { ...props } />);
-            });
-            expect(wrapper.text()).to.equal('ASDASDASD not supported.');
-        } );
-    } );
+			let wrapper;
+			await act(async () => {
+				wrapper = mount(<DynamicCarrierAccountSettings { ...props } />);
+			});
+			expect(wrapper.text()).to.equal('ASDASDASD not supported.');
+		} );
+	} );
 } );
 
 describe( 'Dynamic carrier registration settings with pending promises', () => {
-    /**
-     * Moved this into its own describe block to test pending promise
-     * so that it doesn't change all the async-await promises in the above
-     * test cases.
-     */
-    beforeEach(() => {
-        jest.spyOn(api, "get").mockImplementation(() =>
-            Promise.resolve({})
-        );
-    });
+	/**
+	 * Moved this into its own describe block to test pending promise
+	 * so that it doesn't change all the async-await promises in the above
+	 * test cases.
+	 */
+	beforeEach(() => {
+		jest.spyOn(api, "get").mockImplementation(() =>
+			Promise.resolve({})
+		);
+	});
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+	afterEach(() => {
+		jest.clearAllMocks();
+	});
 
-    const props = {
-        siteId: 1234,
-        carrier: 'DhlExpressAccount'
-    };
+	const props = {
+		siteId: 1234,
+		carrier: 'DhlExpressAccount'
+	};
 
-    it( 'should display a loading message', async () => {
-        let wrapper;
-        await act(async () => {
-            wrapper = mount(<DynamicCarrierAccountSettings { ...props } />);
-        });
-        expect(wrapper.text()).to.equal('Loading...');
-    } );
+	it( 'should display a loading message', async () => {
+		let wrapper;
+		await act(async () => {
+			wrapper = mount(<DynamicCarrierAccountSettings { ...props } />);
+		});
+		expect(wrapper.text()).to.equal('Loading...');
+	} );
 } );
