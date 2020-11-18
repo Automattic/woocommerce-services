@@ -25,10 +25,10 @@ class ShippingRate extends Component {
 	}
 
 	onSignatureChecked = ( isChecked, i, signatureOption ) => {
-		const { rateObject: { service_id }, updateValue } = this.props;
+		const { rateObject: { service_id, carrier_id }, updateValue } = this.props;
 		const selectedSignature = isChecked ? { id: i, value: signatureOption.netCost } : null;
 		this.setState( { selectedSignature } );
-		updateValue( service_id, isChecked ? signatureOption.value : 0 );
+		updateValue( service_id, carrier_id, isChecked ? signatureOption.value : 0 );
 	}
 
 	renderServices( carrier_id, signatureOptions, includedServices ) {
