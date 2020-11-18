@@ -62,22 +62,22 @@ const FormFieldFactory = ( { visibility, label, id, value, onChange } ) => {
 
 export const DynamicCarrierAccountSettingsForm = ( props ) => {
 	const {
-        translate,
+		translate,
 		siteId,
 		carrierType,
 		noticeActions,
 		carrierName,
-    } = props;
+	} = props;
 
-    const [formValues, setFormValues] = useState({});
-    const [isSaving, setIsSaving] = useState(false);
+	const [formValues, setFormValues] = useState({});
+	const [isSaving, setIsSaving] = useState(false);
 
-    const handleFormFieldChange = useCallback((id, newValue) => {
-    	setFormValues((oldValues) => ({
-    		...oldValues,
-		    [id]: newValue,
-	    }))
-    }, [setFormValues]);
+	const handleFormFieldChange = useCallback((id, newValue) => {
+		setFormValues((oldValues) => ({
+			...oldValues,
+			[id]: newValue,
+		}))
+	}, [setFormValues]);
 
 	const handleSubmit = useCallback( () => {
 		const submit = async () => {
@@ -98,69 +98,69 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 		submit();
 	}, [isSaving, setIsSaving, siteId, carrierType, formValues, noticeActions] );
 
-    const handleCancel = useCallback(() => {
-        history.back();
-    }, []);
+	const handleCancel = useCallback(() => {
+		history.back();
+	}, []);
 
-    return (
-        <div className="carrier-accounts__settings-container">
+	return (
+		<div className="carrier-accounts__settings-container">
 			<div className="carrier-accounts__settings">
 				<div className="carrier-accounts__settings-info">
 					<h4 className="carrier-accounts__settings-subheader-above-description">
 						{ translate( 'Connect your %(carrierName)s account', {
-                            args: {
-                                carrierName,
-                            }
-                        } ) }
+							args: {
+								carrierName,
+							}
+						} ) }
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et dolor quam.
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et dolor quam.
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
-                    <CompactCard>
-                        <h4 className="carrier-accounts__settings-subheader">General Information</h4>
-                        <p className="carrier-accounts__settings-subheader-description">
-                            { translate( 'This is the account number and address from your %(carrierName)s profile', {
-                            args: {
-                                carrierName,
-                            }
-                        } ) }
-                        </p>
-                    </CompactCard>
+					<CompactCard>
+					<h4 className="carrier-accounts__settings-subheader">{ translate ( 'General Information' ) }</h4>
+						<p className="carrier-accounts__settings-subheader-description">
+						{ translate( 'This is the account number and address from your %(carrierName)s profile', {
+							args: {
+								carrierName,
+							}
+						} ) }
+						</p>
+					</CompactCard>
 
-                    <CompactCard>
-                        {props.registrationFields && Object.entries(props.registrationFields).map( ( [key, field] ) => (
-                        	<FormFieldFactory key={key} id={key} visibility={field.visibility} label={field.label} value={formValues[key]} onChange={handleFormFieldChange} />
-                        ))}
-                    </CompactCard>
+					<CompactCard>
+						{props.registrationFields && Object.entries(props.registrationFields).map( ( [key, field] ) => (
+							<FormFieldFactory key={key} id={key} visibility={field.visibility} label={field.label} value={formValues[key]} onChange={handleFormFieldChange} />
+						))}
+					</CompactCard>
 
-                    <CompactCard className="carrier-accounts__settings-actions">
+					<CompactCard className="carrier-accounts__settings-actions">
 						<Button
 							compact
 							primary
-                            onClick={ handleSubmit }
-                            disabled={ isSaving }
-                        >
+							onClick={ handleSubmit }
+							disabled={ isSaving }
+						>
 							{ translate( 'Connect' ) }
 						</Button>
-                        <Button
-                            compact
-                            onClick={ handleCancel }
-                        >
+						<Button
+							compact
+							onClick={ handleCancel }
+						>
 							{ translate( 'Cancel' ) }
 						</Button>
 					</CompactCard>
-                </div>
-            </div>
-        </div>
+				</div>
+			</div>
+		</div>
 	);
 };
 
 const mapStateToProps = ( state ) => {
 	return {
 		siteId: getSelectedSiteId( state ),
-    };
+	};
 };
 
 const mapDispatchToProps = ( dispatch ) => ({
@@ -168,11 +168,11 @@ const mapDispatchToProps = ( dispatch ) => ({
 });
 
 DynamicCarrierAccountSettingsForm.propTypes = {
-    carrierType: PropTypes.string,
-    carrierName: PropTypes.string,
-    registrationFields: PropTypes.object,
-    siteId: PropTypes.number,
-    translate: PropTypes.func,
+	carrierType: PropTypes.string,
+	carrierName: PropTypes.string,
+	registrationFields: PropTypes.object,
+	siteId: PropTypes.number,
+	translate: PropTypes.func,
 };
 
 export default connect( mapStateToProps, mapDispatchToProps )( localize( DynamicCarrierAccountSettingsForm ) );

@@ -17,6 +17,7 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 import DynamicCarrierAccountSettingsForm from './dynamic-settings-form';
 
 export const DynamicCarrierAccountSettings = ( props ) => {
+	const { translate } = props;
 	const [carrierRegistrationFields, setCarrierRegistrationFields] = useState([]);
 
 	useEffect(() => {
@@ -27,9 +28,9 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 		fetchRegistrationFields();
 	}, [props.siteId]);
 
-	if (!carrierRegistrationFields || carrierRegistrationFields.length < 1) {
+	if ( ! carrierRegistrationFields || carrierRegistrationFields.length < 1) {
 		return (
-			<div>Loading...</div>
+			<div>{ translate( 'Loading' ) }...</div>
 		);
 	}
 
@@ -37,7 +38,13 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 
 	if (!currentCarrierRegistrationField) {
 		return (
-			<div>{props.carrier} not supported.</div>
+			<div>
+			{ translate( '%(carrierName)s not supported.', {
+				args: {
+					carrierName: props.carrier,
+				}
+			} ) }
+			</div>
 		);
 	}
 

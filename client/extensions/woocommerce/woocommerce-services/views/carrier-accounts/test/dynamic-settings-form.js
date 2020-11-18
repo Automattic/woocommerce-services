@@ -11,6 +11,7 @@ import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { act } from 'react-dom/test-utils';
+import { translate } from 'i18n-calypso';
 
 /**
  * Internal dependencies
@@ -32,7 +33,7 @@ jest.mock('components/forms/form-text-input', () => {
 function createDynamicCarrierAccountSettingsFormWrapper() {
 	const props = {
 		siteId: 1234,
-		translate: ( text ) => text,
+		translate: translate,
 		carrierType: 'DhlExpressAccount',
 		carrierName: 'DHL Express',
 		registrationFields: {

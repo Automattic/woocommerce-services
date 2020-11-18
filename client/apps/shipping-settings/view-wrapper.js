@@ -70,7 +70,7 @@ class LabelSettingsWrapper extends Component {
 	render() {
 		const { carrier, carriers, isSaving, siteId, translate } = this.props;
 
-		if (!carrier) {
+		if ( ! carrier ) {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />

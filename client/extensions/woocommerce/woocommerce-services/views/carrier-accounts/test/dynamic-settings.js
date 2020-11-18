@@ -9,6 +9,7 @@ import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { act } from 'react-dom/test-utils';
+import { translate } from 'i18n-calypso';
 
 /**
  * Internal dependencies
@@ -62,7 +63,8 @@ describe( 'Dynamic carrier registration settings', () => {
 	describe( 'with supported carrier', () => {
 		const props = {
 			siteId: 1234,
-			carrier: 'DhlExpressAccount'
+			carrier: 'DhlExpressAccount',
+			translate: translate
 		};
 
 
@@ -82,7 +84,8 @@ describe( 'Dynamic carrier registration settings', () => {
 	describe( 'with non-supported carrier', () => {
 		const props = {
 			siteId: 1234,
-			carrier: 'ASDASDASD'
+			carrier: 'ASDASDASD',
+			translate: translate
 		};
 
 
@@ -114,7 +117,8 @@ describe( 'Dynamic carrier registration settings with pending promises', () => {
 
 	const props = {
 		siteId: 1234,
-		carrier: 'DhlExpressAccount'
+		carrier: 'DhlExpressAccount',
+		translate: translate
 	};
 
 	it( 'should display a loading message', async () => {
