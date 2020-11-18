@@ -197,10 +197,10 @@ describe( 'ShippingRate', () => {
 				it( 'behave as radio buttons', () => {
 					expect( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.equal( undefined );
 					freeSignatureCheckbox.prop( 'onChange' )( true );
-					expect( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 0, value: 0 } );
+					expect( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 0, netCost: 0, value: "rate1" } );
 
 					adultSignatureCheckbox.prop( 'onChange' )( true );
-					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 1, value: 3 } );
+					expect ( activeShippingRateWrapper.state( 'selectedSignature' ) ).to.deep.equal( { id: 1, netCost: 3, value: "rate2" } );
 				} );
 
 				it( "add its amount to the rate's total amount", () => {
