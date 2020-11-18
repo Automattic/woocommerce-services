@@ -17,6 +17,7 @@ import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
 import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/settings';
+import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import { createWcsShippingSaveActionList } from '../../extensions/woocommerce/woocommerce-services/state/actions';
@@ -69,7 +70,22 @@ class LabelSettingsWrapper extends Component {
 	render() {
 		const { carrier, carriers, isSaving, siteId, translate } = this.props;
 
-		if ( carrier ) {
+		if ( ! carrier ) {
+			return (
+				<div>
+					<GlobalNotices id="notices" notices={ notices.list } />
+					<LabelSettings onChange={ this.onChange } />
+					<Packages onChange={ this.onChange } />
+					<CarrierAccounts siteId={ siteId } carriers={ carriers } onChange={ this.onChange } />
+					<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
+						{ translate( 'Save changes' ) }
+					</Button>
+					<ProtectFormGuard isChanged={ ! this.state.pristine } />
+				</div>
+			);
+		}
+
+		if ( carrier.toLowerCase() === 'ups' ) {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
@@ -78,15 +94,12 @@ class LabelSettingsWrapper extends Component {
 				</div>
 			);
 		}
+
+		// Dynamically create registration form
 		return (
 			<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
-				<LabelSettings onChange={ this.onChange } />
-				<Packages onChange={ this.onChange } />
-				<CarrierAccounts siteId={ siteId } carriers={ carriers } onChange={ this.onChange } />
-				<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
-					{ translate( 'Save changes' ) }
-				</Button>
+				<DynamicCarrierAccountSettings carrier={ carrier } />
 				<ProtectFormGuard isChanged={ ! this.state.pristine } />
 			</div>
 		);
