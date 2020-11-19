@@ -67,7 +67,16 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 		carrierType,
 		noticeActions,
 		carrierName,
+		carrierDesc,
 	} = props;
+
+	const carrierText = carrierDesc ?
+		carrierDesc
+		:
+		translate(
+			'Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping. Learn more about adding {{a}}carrier accounts{{/a}}.',
+			{ components: { a: <a href="https://docs.woocommerce.com/document/using-your-own-carrier-account-in-woocommerce-shipping" /> } }
+	);
 
 	const [formValues, setFormValues] = useState({});
 	const [isSaving, setIsSaving] = useState(false);
@@ -114,7 +123,7 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 						} ) }
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
-					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et dolor quam.
+						{ carrierText }
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
@@ -170,6 +179,7 @@ const mapDispatchToProps = ( dispatch ) => ({
 DynamicCarrierAccountSettingsForm.propTypes = {
 	carrierType: PropTypes.string,
 	carrierName: PropTypes.string,
+	carrierDesc: PropTypes.string,
 	registrationFields: PropTypes.object,
 	siteId: PropTypes.number,
 	translate: PropTypes.func,
