@@ -86,7 +86,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 				const carrierAccountDesc = wrapper.find( 'div.carrier-accounts__settings-info > p.carrier-accounts__settings-subheader-description' );
 				expect( carrierAccountDesc.text() ).toEqual(
 					'Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping.' +
-					'Learn more about adding carrier accounts.'
+					' Learn more about adding carrier accounts.'
 				);
 			} );
 		} );
