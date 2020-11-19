@@ -119,6 +119,41 @@ describe( 'Label item', () => {
 		it( 'Request refund is not disabled', function () {
 			expect( requestRefundLink.length ).toBe( 1 );
 		} );
+
+		const requestShipmentLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Schedule a pickup' === n.children().text();
+		})
+
+		it( 'Request shipment pickup is available', function () {
+			expect( requestShipmentLink.length ).toBe( 1 );
+		} );
+
+	} );
+
+	describe( 'with DHL package', () => {
+		const props = {
+			label: {
+				isLetter: false,
+				carrierId: 'dhlexpress',
+			}
+		}
+		const wrapper = createLabelItemWrapper( props );
+		const requestRefundLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Request refund' === n.children().text();
+		}  );
+
+		it( 'Request refund is not disabled', function () {
+			expect( requestRefundLink.length ).toBe( 1 );
+		} );
+
+		const requestShipmentLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Schedule a pickup' === n.children().text();
+		})
+
+		it( 'Request shipment pickup is available', function () {
+			expect( requestShipmentLink.length ).toBe( 1 );
+		} );
+
 	} );
 
 	describe( 'with non usps carrier letter', () => {
