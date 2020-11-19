@@ -1,9 +1,18 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.2 - 2020-XX-XX =
+= 1.25.3 - 2020-**-** =
+* Add   - Initial code for WooCommerce.com subscriptions API.
+* Fix   - UI fix for input validation for package dimensions and weights.
+* Add   - Dynamic carrier registration form.
+* Fix   - Correct validation for UPS fields in Carrier Account connect form.
+
+= 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.
 * Fix   - Issue with printing labels in some iOS devices through Safari.
-* Fix   - Correct validation for UPS fields in Carrier Account connect form.
+* Fix   - Prevents warning when using PHP 5.5 or lesser
+* Add   - Add new API end point to retrieve carrier registration requirements.
+* Add   - Add composer command to run PHPUnit.
+* Tweak - Update readme with DHL information.
 
 = 1.25.1 - 2020-10-28 =
 * Tweak - DHL refund days copy adjustment

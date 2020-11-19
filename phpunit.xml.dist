@@ -1,17 +1,16 @@
-<phpunit bootstrap="tests/php/bootstrap.php" backupGlobals="false" colors="true">
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	bootstrap="tests/php/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	verbose="true"
+	>
 	<testsuites>
-		<!-- Default test suite to run all tests -->
-		<testsuite>
-			<directory prefix="test_" suffix=".php">tests</directory>
+		<testsuite name="WooCommerce Services Test Suite">
+			<directory suffix=".php">./tests/</directory>
 		</testsuite>
 	</testsuites>
-	<filter>
-		<whitelist processUncoveredFilesFromWhitelist="false">
-			<directory suffix=".php">.</directory>
-			<exclude>
-				<directory suffix=".php">tests</directory>
-			</exclude>
-		</whitelist>
-	</filter>
 </phpunit>
-
