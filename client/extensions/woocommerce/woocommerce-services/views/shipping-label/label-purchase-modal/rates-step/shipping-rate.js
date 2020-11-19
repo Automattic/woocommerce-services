@@ -25,10 +25,10 @@ class ShippingRate extends Component {
 	}
 
 	onSignatureChecked = ( isChecked, i, signatureOption ) => {
-		const { rateObject: { service_id }, updateValue } = this.props;
-		const selectedSignature = isChecked ? { id: i, value: signatureOption.netCost } : null;
+		const { rateObject: { service_id, carrier_id }, updateValue } = this.props;
+		const selectedSignature = isChecked ? { id: i, value: signatureOption.value, netCost: signatureOption.netCost } : null;
 		this.setState( { selectedSignature } );
-		updateValue( service_id, isChecked ? signatureOption.value : 0 );
+		updateValue( service_id, carrier_id, isChecked ? signatureOption.value : 0 );
 	}
 
 	renderServices( carrier_id, signatureOptions, includedServices ) {
@@ -118,7 +118,7 @@ class ShippingRate extends Component {
 			} );
 		}
 
-		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.value : rate;
+		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.netCost : rate;
 
 		return(
 			<div className="rates-step__shipping-rate-container">
@@ -128,7 +128,7 @@ class ShippingRate extends Component {
 					options={ [
 						{ label: '', value: service_id },
 					] }
-					onChange={ () => { updateValue( service_id, carrier_id, false ) } }
+					onChange={ () => { updateValue( service_id, carrier_id, selectedSignature ? selectedSignature.value : false ) } }
 				/>
 				<div className="rates-step__shipping-rate-information">
 					<CarrierIcon carrier={ carrier_id } size={ 30 } />

@@ -108,6 +108,7 @@ export class LabelItem extends Component {
 			'usps': 'https://tools.usps.com/schedule-pickup-steps.htm',
 			'fedex': 'https://www.fedex.com/en-us/shipping/schedule-manage-pickups.html',
 			'ups': 'https://wwwapps.ups.com/pickup/request',
+			'dhlexpress': 'https://mydhl.express.dhl/us/en/home.html#/schedulePickupTab',
 		};
 
 		if ( ! ( pickup_urls.hasOwnProperty( carrierId ) ) ) {
