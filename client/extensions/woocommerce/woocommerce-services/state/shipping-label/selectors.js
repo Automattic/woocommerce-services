@@ -643,7 +643,6 @@ export const getOriginCountryNames = createSelector(
 export const getDestinationCountryNames = createSelector(
 	( state, siteId = getSelectedSiteId( state ) ) => {
 		const allNames = getAllCountryNames( state, siteId );
-
 		return isWcsInternationalLabelsEnabled( state, siteId )
 			? allNames
 			: pick( allNames, DOMESTIC_US_TERRITORIES );

@@ -44,12 +44,12 @@ if ( global.wcConnectData ) {
 }
 
 const classNamesToRoutes = {
-	'wc-connect-create-shipping-label': '/apps/shipping-label',
-	'wc-connect-service-settings': '/apps/settings',
-	'wc-connect-admin-status': '/apps/plugin-status',
-	'wc-connect-shipping-settings': '/apps/shipping-settings',
-	'wc-connect-admin-test-print': '/apps/print-test-label',
-	'wc-connect-stripe-connect-account': '/apps/stripe-connect-account',
+	'wc-connect-create-shipping-label': './apps/shipping-label',
+	'wc-connect-service-settings': './apps/settings',
+	'wc-connect-admin-status': './apps/plugin-status',
+	'wc-connect-shipping-settings': './apps/shipping-settings',
+	'wc-connect-admin-test-print': './apps/print-test-label',
+	'wc-connect-stripe-connect-account': './apps/stripe-connect-account',
 };
 
 const getRouteClass = async ( className ) => {
@@ -74,7 +74,7 @@ const getRouteClass = async ( className ) => {
 			module = await import('./apps/stripe-connect-account');
 			break;
 		default:
-			return Promise.resolve();
+			return null;
 	}
 	return module.default;
 };
@@ -157,7 +157,7 @@ window.wcsGetAppStoreAsync = function( storeKey ) {
 
 if ( module.hot ) {
     for ( const className in classNamesToRoutes ) {
-	    module.hot.accept( './client' + classNamesToRoutes[ className ] + '/index.js', () => {
+	    module.hot.accept( './client' + classNamesToRoutes[ className ].substring( 1 ) + '/index.js', () => {
 		    Array.from( document.getElementsByClassName( className ) ).forEach( ( container ) => {
 
 			    const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
