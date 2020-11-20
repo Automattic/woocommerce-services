@@ -75,12 +75,17 @@ const CarrierAccountListItem = ( props ) => {
 				{ translate( 'Disconnect' ) }
 			</Button>,
 		];
-	}, [handleDisconnectDialogCancel, handleDisconnectConfirmation, isSaving])
+	}, [handleDisconnectDialogCancel, handleDisconnectConfirmation, isSaving]);
+
+	const carrierTypeIconMap = {
+		DhlExpressAccount: 'dhl',
+		UpsAccount: 'dhl',
+	}
 
 	return (
 		<div className="carrier-accounts__list-item">
 			<div className="carrier-accounts__list-item-carrier-icon">
-				<CarrierIcon carrier={ data.type.toLowerCase() } size={ 18 } />
+				<CarrierIcon carrier={ carrierTypeIconMap[data.type] } size={ 18 } />
 			</div>
 			<div className="carrier-accounts__list-item-name">
 				<span>{ data.carrier }</span>
