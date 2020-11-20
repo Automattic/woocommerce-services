@@ -37,7 +37,7 @@ export class LabelItem extends Component {
 			disabled       = true;
 		} 
 		else if ( 'usps' === carrierId && ! trackingId ) {
-			toolTipMessage = translate( 'USPS untracked labels are not eligible for refund.' );
+			toolTipMessage = translate( 'USPS labels without tracking are not eligible for refund.' );
 			disabled       = true
 		}
 

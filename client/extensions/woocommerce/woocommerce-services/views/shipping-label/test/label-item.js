@@ -100,7 +100,7 @@ describe( 'Label item', () => {
 		}  );
 
 		it( 'Tooltip message is displayed', function () {
-			expect( tooltip.props().text ).toEqual('USPS untracked labels are not eligible for refund.');
+			expect( tooltip.props().text ).toEqual ('USPS labels without tracking are not eligible for refund.' );
 		} );
 	} );
 
