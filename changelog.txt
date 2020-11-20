@@ -7,6 +7,7 @@
 * Add   - DHL Schedule Pickup link within order notes.
 * Fix   - UI fix for input validation for package dimensions and weights.
 * Fix   - Correct validation for UPS fields in Carrier Account connect form.
+* Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
 
 = 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.
