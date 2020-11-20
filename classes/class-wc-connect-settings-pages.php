@@ -90,15 +90,16 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['order_id'] = $_GET['from_order'];
 				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );
 			}
-			if ( isset( $_GET['carrier'] ) ) {
+
+			if ( !empty( $_GET['carrier'] ) ) {
 				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
 				$translated_carrier_name  = null;
 				switch ( strtolower( $extra_args['carrier'] ) ) {
-					case 'ups':
+					case 'upsaccount':
 						$translated_carrier_name = __( 'UPS', 'woocommerce-services' );
 						break;
-					case 'dhl':
+					case 'dhlexpressaccount':
 						$translated_carrier_name = __( 'DHL Express', 'woocommerce-services' );
 					default:
 						break;

@@ -4,7 +4,6 @@
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 
 /**
@@ -16,7 +15,7 @@ import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import * as api from 'woocommerce/woocommerce-services/api';
-import { errorNotice, successNotice } from 'state/notices/actions';
+import { errorNotice as errorNoticeAction, successNotice as successNoticeAction } from 'state/notices/actions';
 
 const FormFieldFactory = ( { visibility, label, id, value, onChange } ) => {
 	const handleToggle = useCallback(() => {
@@ -65,7 +64,8 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 		translate,
 		siteId,
 		carrierType,
-		noticeActions,
+		errorNotice,
+		successNotice,
 		carrierName,
 	} = props;
 
@@ -84,19 +84,37 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 			setIsSaving(true);
 
 			try {
-				await api.post( siteId, api.url.shippingCarrier(), {
+				const result = await api.post( siteId, api.url.shippingCarrier(), {
+					...formValues,
 					type: carrierType,
-					settings: formValues
 				} );
+
+				if( ! result.success ) {
+					throw new Error();
+				}
+
+				successNotice( translate( 'Your carrier account was connected successfully.' ) )
+
+				return;
+
+				const url = new URL(window.location.href)
+				url.searchParams.delete('carrier')
+				window.onbeforeunload = null
+				window.location.href = url.href
 			} catch (error) {
-				noticeActions.errorNotice(`Failed to register the carrier. ${ error }`);
+				errorNotice(translate(
+					'There was an error connecting to your %(carrierName)s account. Please check that all of the information entered matches your %(carrierName)s account and try to connect again.',
+					{
+						args: { carrierName },
+					}
+				));
 			}
 
 			setIsSaving(false);
 		}
 
 		submit();
-	}, [isSaving, setIsSaving, siteId, carrierType, formValues, noticeActions] );
+	}, [isSaving, setIsSaving, siteId, carrierType, carrierName, formValues, errorNotice, translate] );
 
 	const handleCancel = useCallback(() => {
 		history.back();
@@ -163,11 +181,14 @@ const mapStateToProps = ( state ) => {
 	};
 };
 
-const mapDispatchToProps = ( dispatch ) => ({
-	noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
-});
+const mapDispatchToProps = {
+	errorNotice: errorNoticeAction,
+	successNotice: successNoticeAction,
+};
 
 DynamicCarrierAccountSettingsForm.propTypes = {
+	errorNotice: PropTypes.func,
+	successNotice: PropTypes.func,
 	carrierType: PropTypes.string,
 	carrierName: PropTypes.string,
 	registrationFields: PropTypes.object,

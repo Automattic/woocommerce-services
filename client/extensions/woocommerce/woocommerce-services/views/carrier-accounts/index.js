@@ -16,9 +16,9 @@ import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import CarrierAccountListItem from './list-item';
 
-export class CarrierAccounts extends Component {
-	renderListHeader = ( carriers ) => {
-		const { translate } = this.props;
+class CarrierAccounts extends Component {
+	renderListHeader() {
+		const { translate, carriers } = this.props;
 
 		return (
 			<div className="carrier-accounts__header">
@@ -34,28 +34,27 @@ export class CarrierAccounts extends Component {
 	};
 
 	renderListItem = ( carrier, index ) => {
-		const { siteId, isFetching } = this.props;
+		const { siteId } = this.props;
 
-		return <CarrierAccountListItem key={ index } siteId={ siteId } isPlaceholder={ isFetching } data={ carrier } />;
+		return <CarrierAccountListItem key={ index } siteId={ siteId } data={ carrier } />;
 	};
 
 	render() {
-		const { translate } = this.props;
-
-		const carriers = this.props.carriers || [];
+		const { translate, carriers = [] } = this.props;
 
 		if ( isEmpty( carriers ) ) {
 			return <div></div>;
 		}
+
 		return (
 			<div>
 				<ExtendedHeader
-					label={ translate( 'Carrier account' ) }
-					description={ translate( 'Set up your own carrier account by adding your credentials here' ) }
-				></ExtendedHeader>
+					label={translate('Carrier account')}
+					description={translate('Set up your own carrier account by adding your credentials here')}
+				/>
 				<Card className="carrier-accounts__list">
-					{ this.renderListHeader( carriers ) }
-					{ carriers.map( this.renderListItem ) }
+					{ this.renderListHeader() }
+					{ (carriers).map( this.renderListItem ) }
 				</Card>
 			</div>
 		);

@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -24,8 +24,9 @@ const TextField = ( {
 	updateValue,
 	error,
 	className,
+	defaultValue
 } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
+	const handleChangeEvent = useCallback(event => updateValue( event.target.value, event ), [updateValue]);
 
 	return (
 		<FormFieldset className={ className }>
@@ -37,6 +38,7 @@ const TextField = ( {
 				value={ value }
 				onChange={ handleChangeEvent }
 				isError={ Boolean( error ) }
+				defaultValue={defaultValue}
 			/>
 			{ error && typeof error === 'string' && <FieldError text={ error } /> }
 			{ ! error && description && <FormSettingExplanation>{ description }</FormSettingExplanation> }
@@ -48,7 +50,7 @@ TextField.propTypes = {
 	id: PropTypes.string.isRequired,
 	title: PropTypes.node,
 	description: PropTypes.string,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.string,
 	updateValue: PropTypes.func,
 	error: PropTypes.oneOfType( [ PropTypes.string, PropTypes.bool ] ),
 	className: PropTypes.string,

@@ -11,7 +11,7 @@ import Adapter from 'enzyme-adapter-react-16';
 /**
  * Internal dependencies
  */
-import { CarrierAccounts } from '../index.js';
+import CarrierAccounts from '../index.js';
 import CarrierAccountListItem from '../list-item';
 import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
@@ -19,13 +19,7 @@ import ExtendedHeader from 'woocommerce/components/extended-header';
 configure( { adapter: new Adapter() } );
 
 function createCarrierAccountsWrapper( { carriers = [] } ) {
-	const props = {
-		siteId: 10,
-		translate: ( text ) => text,
-		carriers: carriers,
-	};
-
-	return shallow( <CarrierAccounts { ...props } /> );
+	return shallow( <CarrierAccounts siteId={10} carriers={carriers} /> );
 }
 
 describe( 'Carrier Accounts', () => {

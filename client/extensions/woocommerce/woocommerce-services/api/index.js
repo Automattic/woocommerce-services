@@ -20,15 +20,15 @@ const handleError = ( jsonError ) => {
 
 export const post = ( siteId, url, data ) =>
 	request( siteId )
-		.post( url, data, 'wc/v1' ) //WCS exposes it's REST endpoints only over wc/v1
+		.post( url, data, 'wc/v1' ) //WCS exposes its REST endpoints only over wc/v1
 		.catch( handleError );
 
 export const get = ( siteId, url ) =>
 	request( siteId )
-		.get( url, 'wc/v1' ) //WCS exposes it's REST endpoints only over wc/v1
+		.get( url, 'wc/v1' ) //WCS exposes its REST endpoints only over wc/v1
 		.catch( handleError );
 
 export const del = ( siteId, url ) =>
 	request( siteId )
-		.del( url, 'wc/v1' ) //WCS exposes it's REST endpoints only over wc/v1
+		.del( url, 'wc/v1' ) //WCS exposes its REST endpoints only over wc/v1
 		.catch( handleError );

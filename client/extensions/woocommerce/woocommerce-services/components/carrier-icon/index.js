@@ -15,8 +15,10 @@ import dhlExpressLogo from './logos/dhlExpress.png';
 
 const carrierLogos = {
 	"ups": upsLogo,
+	"upsaccount": upsLogo,
 	"usps": uspsLogo,
 	"dhlexpress": dhlExpressLogo,
+	"dhlexpressaccount": dhlExpressLogo,
 };
 
 const sizeToPixels = ( size ) => {

@@ -142,8 +142,6 @@ describe( 'Shipping label Actions', () => {
 		describe( 'origin errors exist', () => {
 			const dispatchSpy = sinon.spy();
 
-			const errorStub = sinon.stub( selectors, 'getFormErrors' ).returns( { origin: true } );
-
 			openPrintingFlow( orderId, siteId )( dispatchSpy, createGetStateFn() );
 
 			it( 'toggles origin', () => {
@@ -178,7 +176,6 @@ describe( 'Shipping label Actions', () => {
 				).to.equal( true );
 			} );
 
-			errorStub.restore();
 		} );
 
 		describe( 'destination validation ignored', () => {
@@ -227,8 +224,6 @@ describe( 'Shipping label Actions', () => {
 		describe( 'destination errors exist', () => {
 			const dispatchSpy = sinon.spy();
 
-			const errorStub = sinon.stub( selectors, 'getFormErrors' ).returns( { destination: true } );
-
 			openPrintingFlow( orderId, siteId )( dispatchSpy, createGetStateFn() );
 
 			it( 'toggle destination', () => {
@@ -262,8 +257,6 @@ describe( 'Shipping label Actions', () => {
 					} )
 				).to.equal( true );
 			} );
-
-			errorStub.restore();
 		} );
 
 		nock.cleanAll();

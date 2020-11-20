@@ -16,7 +16,7 @@ import LabelSettings from '../../extensions/woocommerce/woocommerce-services/vie
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
-import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/settings';
+import UpsSettingsForm from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/ups-settings-form';
 import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
@@ -56,13 +56,6 @@ class LabelSettingsWrapper extends Component {
 		return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
 	};
 
-	onPaymentMethodMissing = () => {
-		const { translate } = this.props;
-		return this.props.errorNotice( translate( 'A payment method is required to print shipping labels.' ), {
-			duration: 4000,
-		} );
-	};
-
 	onSaveChanges = () => {
 		this.props.createWcsShippingSaveActionList( this.onSaveSuccess, this.onSaveFailure );
 	};
@@ -85,12 +78,11 @@ class LabelSettingsWrapper extends Component {
 			);
 		}
 
-		if ( carrier.toLowerCase() === 'ups' ) {
+		if ( carrier.toLowerCase() === 'upsaccount' ) {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
-					<CarrierAccountSettings carrier={ carrier } />
-					<ProtectFormGuard isChanged={ ! this.state.pristine } />
+					<UpsSettingsForm siteId={siteId} />
 				</div>
 			);
 		}
@@ -99,8 +91,7 @@ class LabelSettingsWrapper extends Component {
 		return (
 			<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
-				<DynamicCarrierAccountSettings carrier={ carrier } />
-				<ProtectFormGuard isChanged={ ! this.state.pristine } />
+				<DynamicCarrierAccountSettings carrier={ carrier } siteId={siteId} />
 			</div>
 		);
 	}
