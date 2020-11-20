@@ -173,24 +173,19 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 			...values,
 			[id]: value
 		}));
-	}, []);
+	}, [setFormValues]);
 
 	const handleSubmit = useCallback(() => {
 		const submit = async () => {
 			setIsSaving(true);
 			try {
-
 				const result = await api.post( siteId, api.url.shippingCarrier(), { ...formValues, type: 'UpsAccount' } );
 
-				console.log('###', result.success)
-				debugger;
 				if( ! result.success ) {
 					throw new Error();
 				}
 
 				successNotice( translate( 'Your carrier account was connected successfully.' ) )
-
-				return;
 
 				const url = new URL(window.location.href)
 				url.searchParams.delete('carrier')
@@ -208,7 +203,7 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 		};
 
 		submit();
-	}, [setIsSaving, errorNotice, successNotice, translate]);
+	}, [setIsSaving, errorNotice, successNotice, translate, formValues]);
 
 	const handleToggleInvoiceDetailsFieldsVisibility = useCallback(() => {
 		if(isInvoiceDetailsChecked) {

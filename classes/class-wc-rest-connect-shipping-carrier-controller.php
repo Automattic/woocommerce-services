@@ -26,7 +26,7 @@ class WC_REST_Connect_Shipping_Carrier_Controller extends WC_REST_Connect_Base_C
 			return $error;
 		}
 
-		return array( 'success' => true );
+		return $response;
 	}
 
 }

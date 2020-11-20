@@ -95,8 +95,6 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 
 				successNotice( translate( 'Your carrier account was connected successfully.' ) )
 
-				return;
-
 				const url = new URL(window.location.href)
 				url.searchParams.delete('carrier')
 				window.onbeforeunload = null
