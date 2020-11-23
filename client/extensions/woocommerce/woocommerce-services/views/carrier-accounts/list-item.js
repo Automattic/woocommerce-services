@@ -78,8 +78,8 @@ const CarrierAccountListItem = ( props ) => {
 	}, [handleDisconnectDialogCancel, handleDisconnectConfirmation, isSaving]);
 
 	const carrierTypeIconMap = {
-		DhlExpressAccount: 'dhl',
-		UpsAccount: 'dhl',
+		DhlExpressAccount: 'dhlexpress',
+		UpsAccount: 'ups',
 	}
 
 	return (
