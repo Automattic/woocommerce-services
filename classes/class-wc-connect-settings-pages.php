@@ -95,6 +95,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
 				$translated_carrier_name  = null;
+				// TODO: get the name from the `$carriers_response->carriers` array
 				switch ( strtolower( $extra_args['carrier'] ) ) {
 					case 'upsaccount':
 						$translated_carrier_name = __( 'UPS', 'woocommerce-services' );
