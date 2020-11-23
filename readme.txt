@@ -89,6 +89,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 * Fix   - UI fix for input validation for package dimensions and weights.
 * Fix   - Correct validation for UPS fields in Carrier Account connect form.
 * Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
+* Fix   - Disable USPS refunds for untracked labels only.
 
 = 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.
