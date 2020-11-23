@@ -26,7 +26,6 @@ import { getFinishedInitialSetup } from 'woocommerce/state/sites/setup-choices/s
 import { getLink } from 'woocommerce/lib/nav-utils';
 import { getPaymentMethodsEdits } from 'woocommerce/state/ui/payments/methods/selectors';
 import { getSelectedSiteWithFallback } from 'woocommerce/state/sites/selectors';
-import { openPaymentMethodForEdit } from 'woocommerce/state/ui/payments/methods/actions';
 import { ProtectFormGuard } from 'lib/protect-form';
 import Main from 'components/main';
 import PaymentMethodList from './payment-method-list';
@@ -158,7 +157,6 @@ function mapDispatchToProps( dispatch ) {
 	return bindActionCreators(
 		{
 			createPaymentSettingsActionList,
-			openPaymentMethodForEdit,
 		},
 		dispatch
 	);

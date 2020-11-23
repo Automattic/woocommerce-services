@@ -104,18 +104,6 @@ class PaymentMethodItem extends Component {
 		this.props.closeEditingPaymentMethod( site.ID, method.id );
 	};
 
-	onDoneAndEnable = () => {
-		const { method, site } = this.props;
-		this.props.closeEditingPaymentMethod( site.ID, method.id );
-		if ( ! method.enabled ) {
-			this.props.onChange();
-			this.props.changePaymentMethodEnabled( site.ID, method.id, true );
-			recordTrack( 'calypso_woocommerce_payment_method_enabled', {
-				payment_method: method.id,
-			} );
-		}
-	};
-
 	outputEditComponent = () => {
 		const { currentlyEditingMethod, method } = this.props;
 		if ( method.id === 'paypal' ) {
