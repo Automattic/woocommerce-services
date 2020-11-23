@@ -27,7 +27,7 @@ import {
 import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
-	renderRefund = ( labelId, expired, isLetter, carrierId ) => {
+	renderRefund = ( labelId, expired, carrierId, trackingId ) => {
 		const { orderId, siteId, translate } = this.props;
 		let toolTipMessage = '';
 		let disabled = false;
@@ -36,8 +36,8 @@ export class LabelItem extends Component {
 			toolTipMessage = translate( 'Labels older than 30 days cannot be refunded.' );
 			disabled       = true;
 		} 
-		else if ( isLetter && 'usps' === carrierId ) {
-			toolTipMessage = translate( 'USPS letters are not eligible for refund.' );
+		else if ( 'usps' === carrierId && ! trackingId ) {
+			toolTipMessage = translate( 'USPS labels without tracking are not eligible for refund.' );
 			disabled       = true
 		}
 
@@ -150,7 +150,6 @@ export class LabelItem extends Component {
 				labelIndex,
 				serviceName,
 				packageName,
-				isLetter,
 				productNames,
 				receiptId,
 				labelId,
@@ -206,7 +205,7 @@ export class LabelItem extends Component {
 								<EllipsisMenu position="bottom left">
 									{ this.renderLabelDetails( labelId ) }
 									{ this.renderPickup( carrierId ) }
-									{ this.renderRefund( labelId, refundExpired, isLetter, carrierId ) }
+									{ this.renderRefund( labelId, refundExpired, carrierId, tracking ) }
 									{ this.renderReprint( labelId, expired ) }
 									{ this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
 								</EllipsisMenu>
