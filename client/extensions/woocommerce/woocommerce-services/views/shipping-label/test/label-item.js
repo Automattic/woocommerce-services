@@ -79,10 +79,10 @@ describe( 'Label item', () => {
 		} );
 	} );
 
-	describe( 'with usps letter', () => {
+	describe( 'with usps untracked label', () => {
 		const props = {
 			label: {
-				isLetter: true,
+				tracking: '',
 				carrierId: 'usps',
 			}
 		}
@@ -100,14 +100,14 @@ describe( 'Label item', () => {
 		}  );
 
 		it( 'Tooltip message is displayed', function () {
-			expect( tooltip.props().text ).toEqual('USPS letters are not eligible for refund.');
+			expect( tooltip.props().text ).toEqual ('USPS labels without tracking are not eligible for refund.' );
 		} );
 	} );
 
 	describe( 'with usps package', () => {
 		const props = {
 			label: {
-				isLetter: false,
+				tracking: '9405500205309055665410',
 				carrierId: 'usps',
 			}
 		}
@@ -119,13 +119,22 @@ describe( 'Label item', () => {
 		it( 'Request refund is not disabled', function () {
 			expect( requestRefundLink.length ).toBe( 1 );
 		} );
+
+		const requestShipmentLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Schedule a pickup' === n.children().text();
+		})
+
+		it( 'Request shipment pickup is available', function () {
+			expect( requestShipmentLink.length ).toBe( 1 );
+		} );
+
 	} );
 
-	describe( 'with non usps carrier letter', () => {
+	describe( 'with non usps untracked label', () => {
 		const props = {
 			label: {
-				isLetter: true,
-				carrierId: 'canada_post',
+				tracking: '',
+				carrierId: 'dhlexpress',
 			}
 		}
 		const wrapper = createLabelItemWrapper( props );

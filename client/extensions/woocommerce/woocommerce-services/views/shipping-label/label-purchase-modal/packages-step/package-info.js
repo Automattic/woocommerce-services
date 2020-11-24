@@ -122,6 +122,8 @@ const PackageInfo = props => {
 		props.updatePackageWeight( orderId, siteId, packageId, event.target.value );
 	};
 
+	const packageWeight = isNaN( pckg.weight ) ? '' : pckg.weight;
+
 	return (
 		<div className="packages-step__package">
 			<div>
@@ -154,7 +156,7 @@ const PackageInfo = props => {
 				<FormTextInputWithAffixes
 					id={ `weight_${ packageId }` }
 					placeholder={ translate( '0' ) }
-					value={ pckg.weight || '' }
+					value={ packageWeight }
 					onChange={ onWeightChange }
 					isError={ Boolean( pckgErrors.weight ) }
 					type="number"

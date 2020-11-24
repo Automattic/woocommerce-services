@@ -134,7 +134,7 @@ class WC_Connect_TaxJar_Integration {
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
 			'desc_tip' => $this->get_tax_tooltip(),
-			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Tax.', 'woocommerce-services' ) . '</p>' : '',
+			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>' : '',
 			'default'  => 'no',
 			'type'     => 'select',
 			'class'    => 'wc-enhanced-select',

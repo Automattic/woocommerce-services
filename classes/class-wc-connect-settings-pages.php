@@ -98,6 +98,8 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					case 'ups':
 						$translated_carrier_name = __( 'UPS', 'woocommerce-services' );
 						break;
+					case 'dhl':
+						$translated_carrier_name = __( 'DHL Express', 'woocommerce-services' );
 					default:
 						break;
 				}
