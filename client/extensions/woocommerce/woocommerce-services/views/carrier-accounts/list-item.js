@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import { compose } from 'redux';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 
 /**
  * Internal dependencies
@@ -19,6 +19,7 @@ import CarrierIcon from '../../components/carrier-icon';
 import Dialog from 'components/dialog';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { errorNotice as errorNoticeAction, successNotice as successNoticeAction } from 'state/notices/actions'
+import { getSelectedSiteId } from 'state/ui/selectors';
 
 const CarrierAccountListItem = ( props ) => {
 	const { data, translate, errorNotice, successNotice, siteId } = props;
@@ -151,9 +152,13 @@ CarrierAccountListItem.propTypes = {
 	} ).isRequired,
 };
 
+const mapStateToProps = (state) => ({
+	siteId: getSelectedSiteId( state ),
+});
+
 const mapDispatchToProps = {
 	errorNotice:errorNoticeAction,
 	successNotice:successNoticeAction,
 }
 
-export default compose(connect(undefined, mapDispatchToProps),localize)( CarrierAccountListItem ) ;
+export default compose(connect(mapStateToProps, mapDispatchToProps),localize)( CarrierAccountListItem ) ;

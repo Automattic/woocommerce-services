@@ -4,85 +4,126 @@
  * External dependencies
  */
 import React from 'react';
-import { expect } from 'chai';
-import { configure, shallow } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
+import { mount } from 'enzyme';
+import configureMockStore from 'redux-mock-store'
+import { Provider } from 'react-redux'
+import { act } from 'react-dom/test-utils';
 
 /**
  * Internal dependencies
  */
-import CarrierAccounts from '../index.js';
-import CarrierAccountListItem from '../list-item';
-import Card from 'components/card';
-import ExtendedHeader from 'woocommerce/components/extended-header';
+import CarrierAccounts from '..';
 
-configure( { adapter: new Adapter() } );
-
-function createCarrierAccountsWrapper( { carriers = [] } ) {
-	return shallow( <CarrierAccounts siteId={10} carriers={carriers} /> );
-}
+const mockStore = configureMockStore([]);
+const Wrapper = ({children}) => (
+	<Provider store={mockStore({
+		ui: {
+			selectedSiteId: 1234
+		}
+	})}>
+		{children}
+	</Provider>
+);
 
 describe( 'Carrier Accounts', () => {
-	describe( 'with a disconnected carrier', () => {
-		const carrier = {
-			id: 'carrier',
-			carrier: 'carrier',
-		};
+	it('should render nothing when no accounts are provided', () => {
+		const wrapper = mount(
+			<Wrapper>
+				<CarrierAccounts />
+			</Wrapper>
+		);
 
-		const wrapper = createCarrierAccountsWrapper( { carriers: [ carrier ] } );
-		const renderedExtendedHeader = wrapper.find( ExtendedHeader );
-		const renderedCard = wrapper.find( Card );
-		const renderedCarrierListItem = wrapper.find( CarrierAccountListItem );
-		const renderedCarrierListHeader = wrapper.find( '.carrier-accounts__header' );
+		expect(wrapper.html()).toBeFalsy();
+	});
 
-		it( 'renders a title with a description', function () {
-			expect( renderedExtendedHeader ).to.have.lengthOf( 1 );
-			expect( renderedExtendedHeader.props().label ).to.equal( 'Carrier account' );
-			expect( renderedExtendedHeader.props().description ).to.equal(
-				'Set up your own carrier account by adding your credentials here'
-			);
-		} );
+	it('should render a list of provided accounts', () => {
+		const wrapper = mount(
+			<Wrapper>
+				<CarrierAccounts carriers={[
+					{
+						carrier: 'DHL Express',
+						type: 'DhlExpressAccount',
+						id: null,
+						account: null,
+					},
+					{
+						carrier: 'UPS',
+						type: 'UpsAccount',
+						id: null,
+						account: null,
+					},
+				]} />
+			</Wrapper>
+		);
 
-		it( 'renders a card', function () {
-			expect( renderedCard ).to.have.lengthOf( 1 );
-		} );
+		// when no accounts are connected, do not show the "credentials" heading
+		expect(wrapper.find('.carrier-accounts__header-credentials')).toHaveLength(0);
 
-		it( 'the card renders a list of carriers', function () {
-			expect( renderedCarrierListItem ).to.have.lengthOf( 1 );
-		} );
+		const dhlExpressRow = wrapper.find('.carrier-accounts__list-item').at(0)
+		const upsRow = wrapper.find('.carrier-accounts__list-item').at(1)
 
-		it( "doesn't render the credentials column in the carriers list header", function () {
-			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-credentials' ) ).to.have.lengthOf( 0 );
-		} );
+		expect(dhlExpressRow.find('span[children="DHL Express"]')).toHaveLength(1);
+		expect(upsRow.find('span[children="UPS"]')).toHaveLength(1);
 
-		it( 'renders a name column in the carrier accounts list header', function () {
-			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-name' ) ).to.have.lengthOf( 1 );
-		} );
-	} );
-	describe( 'with a connected carrier', () => {
-		const carrier = {
-			id: 'carrier',
-			carrier: 'carrier',
-			account: 'carrier-credentials',
-		};
+		const dhlConnectButton = dhlExpressRow.find('a[href*="carrier=DhlExpressAccount"]');
+		expect(dhlConnectButton.text()).toBe('Connect');
+	});
 
-		const wrapper = createCarrierAccountsWrapper( { carriers: [ carrier ] } );
-		const renderedCarrierListHeader = wrapper.find( '.carrier-accounts__header' );
+	it('should render connected accounts', () => {
+		const wrapper = mount(
+			<Wrapper>
+				<CarrierAccounts carriers={[
+					{
+						carrier: 'UPS',
+						type: 'UpsAccount',
+						id: null,
+						account: null,
+					},
+					{
+						carrier: 'DHL Express',
+						type: 'DhlExpressAccount',
+						id: 'a_1234',
+						account: 'a12xxx',
+					},
+				]} />
+			</Wrapper>
+		);
 
-		it( 'renders the credentials column in the carriers list header', function () {
-			expect( renderedCarrierListHeader.find( '.carrier-accounts__header-credentials' ) ).to.have.lengthOf( 1 );
-		} );
-	} );
-	describe( 'with no carriers', () => {
-		const wrapper = createCarrierAccountsWrapper( { carriers: [] } );
-		const renderedCarrierListHeader = wrapper.find( '.carrier-accounts__header' );
-		const renderedCard = wrapper.find( Card );
+		// when at least one account is connected, show the "credentials" heading
+		expect(wrapper.find('.carrier-accounts__header-credentials')).toHaveLength(1);
 
-		it( 'does not render the carriers header', function () {
-			expect( renderedCarrierListHeader ).to.have.lengthOf( 0 );
-		} );
-		it( 'does not render the carriers list', function () {
-			expect( renderedCard ).to.have.lengthOf( 0 );
-		} );
-	} );
+		const dhlExpressRow = wrapper.find('.carrier-accounts__list-item').at(1);
+
+		// displays the account number
+		expect(dhlExpressRow.find('span[children="a12xxx"]')).toHaveLength(1);
+
+		// displays the disconnect button
+		expect(dhlExpressRow.find('button').text()).toBe('Disconnect');
+	});
+
+	it('should display a dialog to disconnect an account', async() => {
+		const wrapper = mount(
+			<Wrapper>
+				<CarrierAccounts carriers={[
+					{
+						carrier: 'UPS',
+						type: 'UpsAccount',
+						id: 'a_1234',
+						account: 'a12xxx',
+					},
+				]} />
+			</Wrapper>
+		);
+
+		const upsRow = wrapper.find('.carrier-accounts__list-item').at(0);
+
+		// displays the disconnect button
+		const disconnectButton = upsRow.find('button')
+		expect(disconnectButton.text()).toBe('Disconnect');
+
+		// when migrating to React Testing Library,
+		// you'll be able to just `expect` that the text of the dialog is displayed or not (rather than inspecting the props)
+		// and also to trigger the "change" (unfortunately Jest doesn't have good support to hooks)
+		expect(wrapper.find('Dialog[isVisible=false]')).toHaveLength(1);
+	});
 } );

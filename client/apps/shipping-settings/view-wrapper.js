@@ -69,7 +69,7 @@ class LabelSettingsWrapper extends Component {
 					<GlobalNotices id="notices" notices={ notices.list } />
 					<LabelSettings onChange={ this.onChange } />
 					<Packages onChange={ this.onChange } />
-					<CarrierAccounts siteId={ siteId } carriers={ carriers } onChange={ this.onChange } />
+					<CarrierAccounts carriers={ carriers } />
 					<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
 						{ translate( 'Save changes' ) }
 					</Button>
