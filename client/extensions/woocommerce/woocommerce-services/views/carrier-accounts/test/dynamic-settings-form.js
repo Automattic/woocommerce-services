@@ -4,118 +4,155 @@
  * External dependencies
  */
 import React from 'react';
-import { configure, mount } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
-import CompactCard from 'components/card/compact';
-import TextField from 'woocommerce/woocommerce-services/components/text-field';
-import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
+import { mount } from 'enzyme';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { act } from 'react-dom/test-utils';
-import { translate } from 'i18n-calypso';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
 
 /**
  * Internal dependencies
  */
-import { DynamicCarrierAccountSettingsForm } from '../dynamic-settings-form.js';
-
-configure( { adapter: new Adapter() } );
+import DynamicCarrierAccountSettingsForm from '../dynamic-settings-form.js';
 
 jest.mock('components/forms/form-text-input', () => {
 	return function DummyFormTextField(props) {
 		return (
 		<div>
-			<input className="test__dummy-form-text-field" onChange={props.onChange}/>
+			<input className="test__dummy-form-text-field" id={props.id} defaultValue={props.defaultValue} value={props.value} onChange={props.onChange}/>
 		</div>
 		);
 	}
 });
 
-function createDynamicCarrierAccountSettingsFormWrapper() {
-	const props = {
-		siteId: 1234,
-		translate: translate,
-		carrierType: 'DhlExpressAccount',
-		carrierName: 'DHL Express',
-		registrationFields: {
-			"account_number": {
-				"visibility": "visible",
-				"label": "DHL Account Number"
-			},
-			"country": {
-				"visibility": "visible",
-				"label": "Account Country Code (2 Letter)"
-			},
-			"is_reseller": {
-				"visibility": "checkbox",
-				"label": "Reseller Account? (check if yes)"
-			}
-		}
-	};
+const apiSpy = jest.spyOn(api, 'post').mockImplementation(() =>
+	Promise.resolve({})
+);
 
-	return mount( <DynamicCarrierAccountSettingsForm { ...props } /> );
-}
+const mockStore = configureMockStore([]);
+const Wrapper = ({children}) => (
+	<Provider store={mockStore({
+		ui: {
+			selectedSiteId: 1234
+		}
+	})}>
+		{children}
+	</Provider>
+);
 
 describe( 'Carrier Account Dynamic Registration Form', () => {
-	afterEach(() => {
+	afterEach( () => {
 		jest.clearAllMocks();
-	  });
-
-	describe( 'with the correct sub-components', () => {
-		const wrapper = createDynamicCarrierAccountSettingsFormWrapper();
-		it( 'renders 3 fields from the provided props', function () {
-			expect(wrapper.find( CompactCard )).toHaveLength(3);
-		} );
-
-		it( 'renders 2 visible fields as TextField', function () {
-			expect(wrapper.find( TextField )).toHaveLength(2);
-		} );
-
-		it( 'renders 1 checkbox fields as Checkbox', function () {
-			expect(wrapper.find( Checkbox )).toHaveLength(1);
-		} );
 	} );
 
-	describe( 'when clicked registration button', () => {
-		it ('should submit the form when data are input into the fields', async () => {
-			let wrapper;
+	it('renders does not break if no fields are passed', () => {
+		const wrapper = mount(
+			<Wrapper><DynamicCarrierAccountSettingsForm carrierType="CarrierAccount" carrierName="DHL Express" /></Wrapper>
+		);
 
-			const apiSpy = jest.spyOn(api, "post").mockImplementation(() =>
-				Promise.resolve({})
-			);
+		expect(wrapper.find('h4').at(0).text()).toBe('Connect your DHL Express account');
+		expect(wrapper.find('.card').at(1).text()).toBeFalsy()
+	});
 
-			await act(async () => {
-				wrapper = createDynamicCarrierAccountSettingsFormWrapper();
-			});
+	it('renders the carrier text fields', async () => {
+		const wrapper = mount(
+			<Wrapper>
+				<DynamicCarrierAccountSettingsForm
+					carrierType="CarrierAccount"
+					carrierName="DHL Express"
+					registrationFields={{
+						account_number: {
+							visibility: 'visible',
+							label: 'Account Number'
+						},
+						country_code: {
+							visibility: 'visible',
+							label: 'Country Code'
+						},
+					}}
+				/>
+			</Wrapper>
+		);
 
-			await act(async () => {
-				 wrapper.find( 'input.test__dummy-form-text-field' ).first().simulate('change', {target: {
-					value: 'A123456'
-				}});
-			});
-			await act(async () => {
-				wrapper.find( 'input.test__dummy-form-text-field' ).at(1).simulate('change', {target: {
-					value: 'US'
-				}});
-			});
-			await act(async () => {
-				wrapper.find( 'input#is_reseller' ).simulate('change', {target: {
-					checked: true
-				}});
-			});
-			await act(async () => {
-				// Click the register button
-				wrapper.find( 'button.is-primary' ).simulate('click');
-				expect(apiSpy).toHaveBeenCalledTimes(1);
-				expect(apiSpy).toHaveBeenCalledWith(1234, 'connect/shipping/carrier', {
-						type: 'DhlExpressAccount',
-						settings: {
-							account_number: 'A123456',
-							country: 'US',
-							is_reseller: true
-						}
-					}
-				);
-			});
+		const accountNumberField = wrapper.find('input[id="account_number"]')
+		const countryField = wrapper.find('input[id="country_code"]')
+
+		expect(accountNumberField).toHaveLength(1);
+		expect(countryField).toHaveLength(1);
+
+		await act(async () => {
+			accountNumberField.simulate('change', {target: {
+				value: 'A123456'
+			}});
+			countryField.simulate('change', {target: {
+				value: 'US'
+			}});
 		});
-	} );
+
+		await act(async () => {
+			// Click the register button
+			wrapper.find( 'button.is-primary' ).simulate('click');
+		});
+
+		expect(apiSpy).toHaveBeenCalledTimes(1);
+		expect(apiSpy).toHaveBeenCalledWith(1234, 'connect/shipping/carrier', {
+				type: 'CarrierAccount',
+				account_number: 'A123456',
+				country_code: 'US',
+			}
+		);
+	});
+
+	it('renders the carrier checkbox and text fields', async () => {
+		const apiSpy = jest.spyOn(api, "post").mockImplementation(() =>
+			Promise.resolve({})
+		);
+
+		const wrapper = mount(
+			<Wrapper>
+				<DynamicCarrierAccountSettingsForm
+					carrierType="CarrierAccount"
+					carrierName="DHL Express"
+					registrationFields={{
+						is_reseller: {
+							visibility: 'checkbox',
+							label: 'Is reseller?'
+						},
+						country_code: {
+							visibility: 'visible',
+							label: 'Country Code'
+						},
+					}}
+				/>
+			</Wrapper>
+		);
+
+		const isResellerField = wrapper.find('input[id="is_reseller"]')
+		const countryField = wrapper.find('input[id="country_code"]')
+
+		expect(isResellerField).toHaveLength(1);
+		expect(countryField).toHaveLength(1);
+
+		await act(async () => {
+			isResellerField.simulate('change', {target: {
+				checked: true
+			}});
+			countryField.simulate('change', {target: {
+				value: 'US'
+			}});
+		});
+
+		await act(async () => {
+			// Click the register button
+			wrapper.find( 'button.is-primary' ).simulate('click');
+		});
+
+		expect(apiSpy).toHaveBeenCalledTimes(1);
+		expect(apiSpy).toHaveBeenCalledWith(1234, 'connect/shipping/carrier', {
+				type: 'CarrierAccount',
+				is_reseller: true,
+				country_code: 'US',
+			}
+		);
+	});
 } );

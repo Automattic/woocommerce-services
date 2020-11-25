@@ -5,6 +5,7 @@ import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import { compose } from 'redux';
 
 /**
  * Internal dependencies
@@ -53,22 +54,20 @@ const FormFieldFactory = ( { visibility, label, id, value, onChange } ) => {
 					id={ id }
 					title={ label }
 					updateValue={ handleTextChange }
-					value={ value || '' }
 				/>
 			);
 	}
 }
 
-export const DynamicCarrierAccountSettingsForm = ( props ) => {
-	const {
-		translate,
-		siteId,
-		carrierType,
-		errorNotice,
-		successNotice,
-		carrierName,
-	} = props;
-
+const DynamicCarrierAccountSettingsForm = ( {
+	translate,
+	siteId,
+	carrierType,
+	errorNotice,
+	successNotice,
+	carrierName,
+	registrationFields,
+} ) => {
 	const [formValues, setFormValues] = useState({});
 	const [isSaving, setIsSaving] = useState(false);
 
@@ -130,23 +129,16 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 						} ) }
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
-					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et dolor quam.
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et dolor quam.
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
 					<CompactCard>
-					<h4 className="carrier-accounts__settings-subheader">{ translate ( 'General Information' ) }</h4>
-						<p className="carrier-accounts__settings-subheader-description">
-						{ translate( 'This is the account number and address from your %(carrierName)s profile', {
-							args: {
-								carrierName,
-							}
-						} ) }
-						</p>
+						<h4 className="carrier-accounts__settings-subheader">{ translate ( 'General Information' ) }</h4>
 					</CompactCard>
 
 					<CompactCard>
-						{props.registrationFields && Object.entries(props.registrationFields).map( ( [key, field] ) => (
+						{registrationFields && Object.entries(registrationFields).map( ( [key, field] ) => (
 							<FormFieldFactory key={key} id={key} visibility={field.visibility} label={field.label} value={formValues[key]} onChange={handleFormFieldChange} />
 						))}
 					</CompactCard>
@@ -194,4 +186,7 @@ DynamicCarrierAccountSettingsForm.propTypes = {
 	translate: PropTypes.func,
 };
 
-export default connect( mapStateToProps, mapDispatchToProps )( localize( DynamicCarrierAccountSettingsForm ) );
+export default compose(
+	connect( mapStateToProps, mapDispatchToProps ),
+	localize
+)( DynamicCarrierAccountSettingsForm );

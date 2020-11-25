@@ -38,7 +38,7 @@ const TextField = ( {
 				value={ value }
 				onChange={ handleChangeEvent }
 				isError={ Boolean( error ) }
-				defaultValue={defaultValue}
+				defaultValue={ defaultValue }
 			/>
 			{ error && typeof error === 'string' && <FieldError text={ error } /> }
 			{ ! error && description && <FormSettingExplanation>{ description }</FormSettingExplanation> }

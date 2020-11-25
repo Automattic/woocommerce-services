@@ -4,21 +4,36 @@
  */
 const nock = require( 'nock' );
 
-// Disables all network requests for all tests.
-nock.disableNetConnect();
-
 beforeAll( () => {
-	// reactivate nock on test start
-	if ( ! nock.isActive() ) {
-		nock.activate();
-	}
+	// Disables all network requests for all tests.
+	nock.disableNetConnect();
+} );
+
+beforeEach( () => {
+	if (!nock.isActive()) nock.activate();
 } );
 
 afterAll( () => {
-	// helps clean up nock after each test run and avoid memory leaks
-	nock.restore();
-	nock.cleanAll();
+	nock.enableNetConnect();
 } );
+
+function cleanupAfterEach() {
+	jest.clearAllTimers();
+	nock.cleanAll();
+	nock.restore();
+}
+
+afterEach(() => {
+	if ( nock.isDone() ) {
+		cleanupAfterEach();
+		return;
+	}
+
+	const pendingNockRequests = [...nock.pendingMocks()]
+	cleanupAfterEach()
+
+	throw new Error(`WOAH! Your test case has some pending nock request:\n\n ${pendingNockRequests.join(' | ')}`);
+});
 
 // It "mocks" enzyme, so that we can delay loading of
 // the utility functions until enzyme is imported in tests.
@@ -38,7 +53,7 @@ jest.mock( 'enzyme', () => {
 
 		// configure enzyme 3 for React, from docs: http://airbnb.io/enzyme/docs/installation/index.html
 		const Adapter = require.requireActual( 'enzyme-adapter-react-16' );
-		actualEnzyme.configure( { adapter: new Adapter() } );
+		actualEnzyme.configure( { adapter: new Adapter(), disableLifecycleMethods: false } );
 
 		// configure snapshot serializer for enzyme
 		const { createSerializer } = require.requireActual( 'enzyme-to-json' );

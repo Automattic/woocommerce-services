@@ -97,6 +97,7 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 		if ( ! RouteClass ) {
 			return;
 		}
+
 		const Route = RouteClass( args );
 
 		if( typeof createdStores[ routeClassName ] === 'undefined' || routeClassName !== 'wc-connect-create-shipping-label' ) {

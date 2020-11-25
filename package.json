@@ -58,6 +58,7 @@
     "po2json": "^0.4.5",
     "postcss-safe-parser": "^4.0.2",
     "puppeteer": "^1.20.0",
+    "redux-mock-store": "^1.5.4",
     "request": "^2.88.2",
     "shelljs": "^0.7.6",
     "sinon": "7.3.1",
