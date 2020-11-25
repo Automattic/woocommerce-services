@@ -3,8 +3,8 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
-Tested up to: 5.5
-Stable tag: 1.25.2
+Tested up to: 5.6
+Stable tag: 1.25.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,16 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 7. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.3 - 2020-11-24 =
+* Add   - Initial code for WooCommerce.com subscriptions API.
+* Add   - Dynamic carrier registration form.
+* Fix   - When adding "signature required" to some packages, prices were not updating.
+* Add   - DHL Schedule Pickup link within order notes.
+* Fix   - UI fix for input validation for package dimensions and weights.
+* Fix   - Correct validation for UPS fields in Carrier Account connect form.
+* Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
+* Fix   - Disable USPS refunds for untracked labels only.
 
 = 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.

@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.3 - 2020-**-** =
+= 1.25.3 - 2020-11-24 =
 * Add   - Initial code for WooCommerce.com subscriptions API.
 * Add   - Dynamic carrier registration form.
 * Fix   - When adding "signature required" to some packages, prices were not updating.
