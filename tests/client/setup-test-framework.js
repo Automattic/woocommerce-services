@@ -35,6 +35,8 @@ afterEach(() => {
 	throw new Error(`WOAH! Your test case has some pending nock request:\n\n ${pendingNockRequests.join(' | ')}`);
 });
 
+jest.setTimeout(10000);
+
 // It "mocks" enzyme, so that we can delay loading of
 // the utility functions until enzyme is imported in tests.
 // Props to @gdborton for sharing this technique in his article:
