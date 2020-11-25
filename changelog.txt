@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.4 - 2020-xx-xx =
+* Fix   - Redux DevTools usage update.
+
 = 1.25.3 - 2020-11-24 =
 * Add   - Initial code for WooCommerce.com subscriptions API.
 * Add   - Dynamic carrier registration form.
