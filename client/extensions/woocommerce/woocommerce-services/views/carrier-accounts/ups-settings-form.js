@@ -273,7 +273,6 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 							id="account_number"
 							title={translate('Account number')}
 							updateValue={handleFormFieldUpdate}
-							required
 							error={typeof formValues.account_number === 'string' ? fieldsErrors.account_number : undefined}
 						/>
 					</CompactCard>
@@ -282,14 +281,12 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 							id="name"
 							title={translate('Name')}
 							updateValue={handleFormFieldUpdate}
-							required
 							error={typeof formValues.name === 'string' ? fieldsErrors.name : undefined}
 						/>
 						<TextField
 							id="street1"
 							title={translate('Address')}
 							updateValue={handleFormFieldUpdate}
-							required
 							error={typeof formValues.street1 === 'string' ? fieldsErrors.street1 : undefined}
 						/>
 						<div className="carrier-accounts__settings-two-columns">
@@ -303,7 +300,6 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								id="city"
 								title={translate('City')}
 								updateValue={handleFormFieldUpdate}
-								required
 								error={typeof formValues.city === 'string' ? fieldsErrors.city : undefined}
 							/>
 						</div>
@@ -312,7 +308,6 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								countryValue={formValues.country}
 								value={getValue('state')}
 								onUpdate={handleFormFieldUpdate}
-								required
 								error={typeof formValues.state === 'string' ? fieldsErrors.state : undefined}
 							/>
 
@@ -330,14 +325,12 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								id="postal_code"
 								title={translate('ZIP/Postal code')}
 								updateValue={handleFormFieldUpdate}
-								required
 								error={typeof formValues.postal_code === 'string' ? fieldsErrors.postal_code : undefined}
 							/>
 							<TextField
 								id="phone"
 								title={translate('Phone')}
 								updateValue={handleFormFieldUpdate}
-								required
 								error={typeof formValues.phone === 'string' ? fieldsErrors.phone : undefined}
 							/>
 						</div>
@@ -345,7 +338,6 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 							id="email"
 							title={translate('Email')}
 							updateValue={handleFormFieldUpdate}
-							required
 							error={typeof formValues.email === 'string' ? fieldsErrors.email : undefined}
 						/>
 					</CompactCard>
@@ -369,14 +361,12 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								id="title"
 								title={translate('Job title')}
 								updateValue={handleFormFieldUpdate}
-								required
 								error={typeof formValues.title === 'string' ? fieldsErrors.title : undefined}
 							/>
 							<TextField
 								id="website"
 								title={translate('Company website')}
 								updateValue={handleFormFieldUpdate}
-								required
 								error={typeof formValues.website === 'string' ? fieldsErrors.website : undefined}
 							/>
 						</div>
@@ -402,14 +392,12 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 										id="invoice_number"
 										title={translate('UPS invoice number')}
 										updateValue={handleFormFieldUpdate}
-										required
 										error={typeof formValues.invoice_number === 'string' ? fieldsErrors.invoice_number : undefined}
 									/>
 									<TextField
 										id="invoice_date"
 										title={translate('UPS invoice date')}
 										updateValue={handleFormFieldUpdate}
-										required
 										error={typeof formValues.invoice_date === 'string' ? fieldsErrors.invoice_date : undefined}
 										placeholder={'YYYY-MM-DD'}
 									/>
