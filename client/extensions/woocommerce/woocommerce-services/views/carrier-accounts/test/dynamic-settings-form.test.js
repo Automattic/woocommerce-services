@@ -13,7 +13,7 @@ import configureMockStore from 'redux-mock-store';
 /**
  * Internal dependencies
  */
-import DynamicCarrierAccountSettingsForm from '../dynamic-settings-form.js';
+import DynamicCarrierAccountSettingsForm from '../dynamic-settings-form';
 
 jest.mock('components/forms/form-text-input', () => {
 	return function DummyFormTextField(props) {
@@ -45,6 +45,10 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 		jest.clearAllMocks();
 	} );
 
+	afterAll( () => {
+		jest.restoreAllMocks();
+	} );
+
 	it('renders does not break if no fields are passed', () => {
 		const wrapper = mount(
 			<Wrapper><DynamicCarrierAccountSettingsForm carrierType="CarrierAccount" carrierName="DHL Express" /></Wrapper>
@@ -74,8 +78,8 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 			</Wrapper>
 		);
 
-		const accountNumberField = wrapper.find('input[id="account_number"]')
-		const countryField = wrapper.find('input[id="country_code"]')
+		const accountNumberField = wrapper.find('input[id="account_number"]');
+		const countryField = wrapper.find('input[id="country_code"]');
 
 		expect(accountNumberField).toHaveLength(1);
 		expect(countryField).toHaveLength(1);
@@ -104,10 +108,6 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 	});
 
 	it('renders the carrier checkbox and text fields', async () => {
-		const apiSpy = jest.spyOn(api, "post").mockImplementation(() =>
-			Promise.resolve({})
-		);
-
 		const wrapper = mount(
 			<Wrapper>
 				<DynamicCarrierAccountSettingsForm

@@ -15,9 +15,12 @@ beforeAll( () => {
 } );
 
 afterAll( () => {
-	// helps clean up nock after each test run and avoid memory leaks
 	nock.restore();
 	nock.cleanAll();
+} );
+
+afterEach( () => {
+	jest.clearAllTimers();
 } );
 
 // It "mocks" enzyme, so that we can delay loading of

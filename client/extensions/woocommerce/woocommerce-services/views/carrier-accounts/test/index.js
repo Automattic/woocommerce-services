@@ -7,7 +7,6 @@ import React from 'react';
 import { mount } from 'enzyme';
 import configureMockStore from 'redux-mock-store'
 import { Provider } from 'react-redux'
-import { act } from 'react-dom/test-utils';
 
 /**
  * Internal dependencies

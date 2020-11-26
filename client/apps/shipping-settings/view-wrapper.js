@@ -21,7 +21,6 @@ import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocomme
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import { createWcsShippingSaveActionList } from '../../extensions/woocommerce/woocommerce-services/state/actions';
-import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	getLabelSettingsFormMeta,
 	getSelectedPaymentMethodId,
@@ -61,7 +60,7 @@ class LabelSettingsWrapper extends Component {
 	};
 
 	render() {
-		const { carrier, carriers, isSaving, siteId, translate } = this.props;
+		const { carrier, carriers, isSaving, translate } = this.props;
 
 		if ( ! carrier ) {
 			return (
@@ -82,7 +81,7 @@ class LabelSettingsWrapper extends Component {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
-					<UpsSettingsForm siteId={siteId} />
+					<UpsSettingsForm />
 				</div>
 			);
 		}
@@ -91,7 +90,7 @@ class LabelSettingsWrapper extends Component {
 		return (
 			<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
-				<DynamicCarrierAccountSettings carrier={ carrier } siteId={siteId} />
+				<DynamicCarrierAccountSettings carrier={ carrier } />
 			</div>
 		);
 	}
@@ -103,7 +102,6 @@ export default connect(
 		const packagesForm = getPackagesForm( state );
 
 		return {
-			siteId: getSelectedSiteId( state ),
 			isSaving: labelsFormMeta.isSaving || packagesForm.isSaving,
 			paymentMethodSelected: Boolean( getSelectedPaymentMethodId( state ) ),
 		};
