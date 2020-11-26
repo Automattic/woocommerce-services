@@ -24,14 +24,13 @@ const TextField = ( {
 	updateValue,
 	error,
 	className,
-	required,
 	defaultValue
 } ) => {
 	const handleChangeEvent = useCallback(event => updateValue( event.target.value, event ), [updateValue]);
 
 	return (
 		<FormFieldset className={ className }>
-			<FormLabel htmlFor={ id } required={ required }>{ title }</FormLabel>
+			<FormLabel htmlFor={ id }>{ title }</FormLabel>
 			<FormTextInput
 				id={ id }
 				name={ id }
@@ -55,7 +54,6 @@ TextField.propTypes = {
 	updateValue: PropTypes.func,
 	error: PropTypes.oneOfType( [ PropTypes.string, PropTypes.bool ] ),
 	className: PropTypes.string,
-	required: PropTypes.bool,
 };
 
 export default TextField;
