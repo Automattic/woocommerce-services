@@ -438,25 +438,9 @@ UpsSettingsForm.propTypes = {
 	successNotice: PropTypes.func,
 }
 
-const mapStateToProps = (state) => {
-	const values = {
-		country: 'US',
-	};
-
-	let countryNames = getDestinationCountryNames( state );
-
-	if ( ! countryNames[ values.country ] ) {
-		// If the selected country is not supported but the user managed to select it, add it to the list
-		countryNames = {
-			[ values.country ]: getCountryName( state, values.country ),
-			...countryNames,
-		};
-	}
-
-	return {
-		countryNames,
-	}
-}
+const mapStateToProps = (state) => ( {
+	countryNames: getDestinationCountryNames(state),
+});
 
 const mapDispatchToProps = {
 	errorNotice: errorNoticeAction,
