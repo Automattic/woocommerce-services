@@ -21,7 +21,6 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_ADDRESS_SUGGESTION,
 } from '../../action-types';
-import * as selectors from '../selectors';
 
 const orderId = 1;
 const siteId = 123456;
