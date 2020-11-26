@@ -71,7 +71,7 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 						'or {{ticketA}}open a support ticket{{/ticketA}}.', {
 							components: {
 								docsA: <a
-									href="https://docs.woocommerce.com/document/woocommerce-services/"
+									href="https://docs.woocommerce.com/document/woocommerce-shipping-and-tax/"
 									target="_blank"
 									rel="noopener noreferrer" />,
 								ticketA: <a

@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.4 - 2020-xx-xx =
+= 1.25.4 - 2020-XX-XX =
+* Tweak - Remove Stripe connect functionality.
 * Fix   - Redux DevTools usage update.
 
 = 1.25.3 - 2020-11-24 =
@@ -12,6 +13,7 @@
 * Fix   - Correct validation for UPS fields in Carrier Account connect form.
 * Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
 * Fix   - Disable USPS refunds for untracked labels only.
+* Fix   - Adjust documentation links.
 
 = 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.

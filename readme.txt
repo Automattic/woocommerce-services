@@ -1,6 +1,6 @@
 === WooCommerce Shipping & Tax ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
-Tags: shipping, stamps, usps, woocommerce, taxes, payment, stripe, dhl, labels
+Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
@@ -25,9 +25,6 @@ Ship domestically and internationally right from your WooCommerce dashboard. Pri
 = Collect accurate taxes at checkout =
 We've got taxes for you - no need to enter tax rates manually.
 
-= Be ready to accept payments instantly =
-Have a Stripe account created on your behalf or accept PayPal Checkout payments without having to setup an account.
-
 == Installation ==
 
 This section describes how to install the plugin and get it working.
@@ -45,7 +42,6 @@ This section describes how to install the plugin and get it working.
 
 * USPS and DHL label purchase/printing
 * Automated tax calculation
-* Stripe account provisioning (through WooCommerce setup wizard)
 * PayPal Checkout payment authorization
 
 = Can I buy and print shipping labels for US domestic and international packages? =
@@ -75,9 +71,8 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 2. Setting up custom packages
 3. Selecting your preferred payment method
 4. Enabling automated taxes
-5. Creating a Stripe account from the setup wizard
-6. Checking on the health of WooCommerce Shipping & Tax
-7. Checking and exporting the label purchase reports
+5. Checking on the health of WooCommerce Shipping & Tax
+6. Checking and exporting the label purchase reports
 
 == Changelog ==
 

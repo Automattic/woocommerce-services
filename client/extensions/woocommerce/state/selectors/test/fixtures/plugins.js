@@ -19,12 +19,6 @@ const woocommerceServices = {
 	active: true,
 };
 
-const woocommerceStripe = {
-	id: 'woocommerce-gateway-stripe/woocommerce-gateway-stripe',
-	slug: 'woocommerce-gateway-stripe',
-	active: true,
-};
-
 export default {
 	installed: {
 		isRequesting: {
@@ -34,9 +28,9 @@ export default {
 			4: true,
 		},
 		plugins: {
-			1: [ woocommerce, woocommerceServices, woocommerceStripe ],
-			2: [ woocommerce, woocommerceStripe, { ...woocommerceServices, active: false } ],
-			3: [ woocommerce, woocommerceStripe ],
+			1: [ woocommerce, woocommerceServices ],
+			2: [ woocommerce, { ...woocommerceServices, active: false } ],
+			3: [ woocommerce ],
 		},
 	},
 };
