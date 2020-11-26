@@ -51,6 +51,7 @@ TextField.propTypes = {
 	title: PropTypes.node,
 	description: PropTypes.string,
 	value: PropTypes.string,
+	defaultValue: PropTypes.string,
 	updateValue: PropTypes.func,
 	error: PropTypes.oneOfType( [ PropTypes.string, PropTypes.bool ] ),
 	className: PropTypes.string,
