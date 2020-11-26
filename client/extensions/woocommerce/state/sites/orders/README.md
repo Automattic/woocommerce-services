@@ -45,7 +45,7 @@ This is saved on a per-site basis. All orders are collected in `items`, and ther
 				"status": "processing",
 				"currency": "USD",
 				"billing": {},
-				"payment_method": "stripe",
+				"payment_method": "paypal",
 				…
 			},
 			2: { … } 
