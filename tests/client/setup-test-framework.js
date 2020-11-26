@@ -15,6 +15,7 @@ beforeAll( () => {
 } );
 
 afterAll( () => {
+	// helps clean up nock after each test run and avoid memory leaks
 	nock.restore();
 	nock.cleanAll();
 } );
