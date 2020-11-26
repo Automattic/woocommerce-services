@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React, {useCallback} from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 
 /**

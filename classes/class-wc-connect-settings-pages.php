@@ -94,22 +94,18 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			if ( !empty( $_GET['carrier'] ) ) {
 				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
-				$translated_carrier_name  = null;
-				// TODO: get the name from the `$carriers_response->carriers` array
-				switch ( strtolower( $extra_args['carrier'] ) ) {
-					case 'upsaccount':
-						$translated_carrier_name = __( 'UPS', 'woocommerce-services' );
-						break;
-					case 'dhlexpressaccount':
-						$translated_carrier_name = __( 'DHL Express', 'woocommerce-services' );
-					default:
-						break;
+
+				$carrier_information = [];
+				if( $extra_args[ 'carriers' ] ) {
+					$carrier_information = array_values( array_filter( $extra_args[ 'carriers' ], function( $carrier ) {
+						return $carrier->type === $_GET['carrier'];
+					} ) );
 				}
-				if ( $translated_carrier_name ) {
+				if ( !empty( $carrier_information ) ) {
 				?>
 					<h2>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Shipping & Tax', 'woocommerce-services' ); ?></a> &gt;
-						<span><?php echo esc_html( $translated_carrier_name ); ?></span>
+						<span><?php echo esc_html( $carrier_information[0]->carrier ); ?></span>
 					</h2>
 				<?php
 				}
