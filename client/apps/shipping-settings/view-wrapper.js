@@ -77,7 +77,7 @@ class LabelSettingsWrapper extends Component {
 			);
 		}
 
-		if ( carrier.toLowerCase() === 'upsaccount' ) {
+		if ( carrier === 'UpsAccount' ) {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
