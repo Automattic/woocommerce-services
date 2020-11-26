@@ -187,11 +187,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $taxjar;
 
 		/**
-		 * @var WC_Connect_Stripe
-		 */
-		protected $stripe;
-
-		/**
 		 * @var WC_Connect_PayPal_EC
 		 */
 		protected $paypal_ec;
@@ -468,10 +463,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->taxjar = $taxjar;
 		}
 
-		public function set_stripe( WC_Connect_Stripe $stripe ) {
-			$this->stripe = $stripe;
-		}
-
 		public function set_paypal_ec( WC_Connect_PayPal_EC $paypal_ec ) {
 			$this->paypal_ec = $paypal_ec;
 		}
@@ -650,7 +641,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-stripe.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-paypal-ec.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-label-reports.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-privacy.php' ) );
@@ -680,7 +670,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
 			$options               = new WC_Connect_Options();
-			$stripe                = new WC_Connect_Stripe( $api_client, $options, $logger, $nux );
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
@@ -697,7 +686,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_shipping_label( $shipping_label );
 			$this->set_nux( $nux );
 			$this->set_taxjar( $taxjar );
-			$this->set_stripe( $stripe );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
 		}
@@ -770,8 +758,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
-			add_action( 'admin_enqueue_scripts', array( $this->stripe, 'maybe_show_notice' ) );
-			add_filter( 'wc_stripe_settings', array( $this->stripe, 'show_connected_account' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -901,20 +887,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_carrier_types_controller( $rest_carrier_types_controller );
 			$rest_carrier_types_controller->register_routes();
-
-			if ( $this->stripe->is_stripe_plugin_enabled() ) {
-				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-init-controller.php' ) );
-				$rest_stripe_settings_controller = new WC_REST_Connect_Stripe_Oauth_Init_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-				$rest_stripe_settings_controller->register_routes();
-
-				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-oauth-connect-controller.php' ) );
-				$rest_stripe_oauth_controller = new WC_REST_Connect_Stripe_Oauth_Connect_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-				$rest_stripe_oauth_controller->register_routes();
-
-				require_once( plugin_basename( 'classes/class-wc-rest-connect-stripe-deauthorize-controller.php' ) );
-				$rest_stripe_account_controller = new WC_REST_Connect_Stripe_Deauthorize_Controller( $this->stripe, $this->api_client, $settings_store, $logger );
-				$rest_stripe_account_controller->register_routes();
-			}
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}

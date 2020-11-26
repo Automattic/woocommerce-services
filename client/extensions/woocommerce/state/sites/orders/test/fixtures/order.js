@@ -13,8 +13,8 @@ export default {
 	prices_include_tax: false,
 	billing: {},
 	shipping: {},
-	payment_method: 'stripe',
-	payment_method_title: 'Credit Card (Stripe)',
+	payment_method: 'paypal',
+	payment_method_title: 'PayPal',
 	meta_data: [],
 	line_items: [
 		{
