@@ -20,10 +20,6 @@ afterAll( () => {
 	nock.cleanAll();
 } );
 
-afterEach( () => {
-	jest.clearAllTimers();
-} );
-
 // It "mocks" enzyme, so that we can delay loading of
 // the utility functions until enzyme is imported in tests.
 // Props to @gdborton for sharing this technique in his article:
