@@ -92,7 +92,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 		} );
 		describe( 'carrier description - returned by server', () => {
 			const carrierSettings = {
-				carrierDesc: 'Carrier description sent by server',
+				carrierDescription: 'Carrier description sent by server',
 			} 
 
 			const wrapper = createDynamicCarrierAccountSettingsFormWrapper( carrierSettings );

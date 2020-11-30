@@ -67,11 +67,11 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 		carrierType,
 		noticeActions,
 		carrierName,
-		carrierDesc,
+		carrierDescription,
 	} = props;
 
-	const carrierText = carrierDesc ?
-		carrierDesc
+	const carrierText = carrierDescription ?
+		carrierDescription
 		:
 		translate(
 			'Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping. Learn more about adding {{a}}carrier accounts{{/a}}.',
