@@ -179,7 +179,7 @@ const mapDispatchToProps = ( dispatch ) => ({
 DynamicCarrierAccountSettingsForm.propTypes = {
 	carrierType: PropTypes.string,
 	carrierName: PropTypes.string,
-	carrierDesc: PropTypes.string,
+	carrierDescription: PropTypes.string,
 	registrationFields: PropTypes.object,
 	siteId: PropTypes.number,
 	translate: PropTypes.func,
