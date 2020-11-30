@@ -205,15 +205,15 @@ describe( 'reducer', () => {
 	describe( 'paymentMethodUpdatedAction', () => {
 		test( 'should clear edits update state on successful update', () => {
 			const state = {
-				updates: [ { id: 'stripe', name: 'Previous Value' } ],
+				updates: [ { id: 'paypal', name: 'Previous Value' } ],
 			};
 
 			const action = {
 				type: 'WOOCOMMERCE_PAYMENT_METHOD_UPDATE_SUCCESS',
 				siteId,
 				data: {
-					id: 'stripe',
-					method_title: 'Stripe',
+					id: 'paypal',
+					method_title: 'PayPal',
 				},
 			};
 
@@ -223,15 +223,15 @@ describe( 'reducer', () => {
 
 		test( 'should remove edits update state for a single payment method on successful update', () => {
 			const state = {
-				updates: [ { id: 'stripe', title: 'Testing Stripe' }, { id: 'paypal', title: 'PayPal' } ],
+				updates: [ { id: 'cheque', title: 'Testing cheque' }, { id: 'paypal', title: 'PayPal' } ],
 			};
 
 			const action = {
 				type: 'WOOCOMMERCE_PAYMENT_METHOD_UPDATE_SUCCESS',
 				siteId,
 				data: {
-					id: 'stripe',
-					title: 'Stripe',
+					id: 'cheque',
+					title: 'Cheque',
 				},
 			};
 

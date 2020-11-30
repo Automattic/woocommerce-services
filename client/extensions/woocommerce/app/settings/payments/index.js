@@ -26,11 +26,6 @@ import { getFinishedInitialSetup } from 'woocommerce/state/sites/setup-choices/s
 import { getLink } from 'woocommerce/lib/nav-utils';
 import { getPaymentMethodsEdits } from 'woocommerce/state/ui/payments/methods/selectors';
 import { getSelectedSiteWithFallback } from 'woocommerce/state/sites/selectors';
-import {
-	hasOAuthParamsInLocation,
-	hasOAuthCompleteInLocation,
-} from './stripe/payment-method-stripe-utils';
-import { openPaymentMethodForEdit } from 'woocommerce/state/ui/payments/methods/actions';
 import { ProtectFormGuard } from 'lib/protect-form';
 import Main from 'components/main';
 import PaymentMethodList from './payment-method-list';
@@ -49,17 +44,6 @@ class SettingsPayments extends Component {
 			ID: PropTypes.number,
 		} ),
 		className: PropTypes.string,
-	};
-
-	componentDidMount = () => {
-		const { site } = this.props;
-
-		// If we are in the middle of the Stripe Connect OAuth flow
-		// go ahead and option the Stripe dialog right away so
-		// we can complete the flow
-		if ( hasOAuthParamsInLocation() || hasOAuthCompleteInLocation() ) {
-			this.props.openPaymentMethodForEdit( site.ID, 'stripe' );
-		}
 	};
 
 	onSave = () => {
@@ -173,7 +157,6 @@ function mapDispatchToProps( dispatch ) {
 	return bindActionCreators(
 		{
 			createPaymentSettingsActionList,
-			openPaymentMethodForEdit,
 		},
 		dispatch
 	);
