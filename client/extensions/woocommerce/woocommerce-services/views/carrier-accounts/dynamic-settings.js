@@ -53,6 +53,7 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 			<DynamicCarrierAccountSettingsForm
 				carrierType={currentCarrierRegistrationField.type}
 				carrierName={currentCarrierRegistrationField.name}
+				carrierDescription={currentCarrierRegistrationField.description}
 				registrationFields={currentCarrierRegistrationField.fields}
 			/>
 		</div>
