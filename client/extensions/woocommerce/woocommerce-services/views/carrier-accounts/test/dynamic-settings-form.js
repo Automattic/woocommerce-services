@@ -12,6 +12,7 @@ import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { act } from 'react-dom/test-utils';
 import { translate } from 'i18n-calypso';
+import { merge } from 'lodash';
 
 /**
  * Internal dependencies
@@ -30,8 +31,8 @@ jest.mock('components/forms/form-text-input', () => {
 	}
 });
 
-function createDynamicCarrierAccountSettingsFormWrapper() {
-	const props = {
+function createDynamicCarrierAccountSettingsFormWrapper( props = {} ) {
+	const defaults = {
 		siteId: 1234,
 		translate: translate,
 		carrierType: 'DhlExpressAccount',
@@ -51,6 +52,8 @@ function createDynamicCarrierAccountSettingsFormWrapper() {
 			}
 		}
 	};
+	
+	props = merge( defaults, props );
 
 	return mount( <DynamicCarrierAccountSettingsForm { ...props } /> );
 }
@@ -72,6 +75,32 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 
 		it( 'renders 1 checkbox fields as Checkbox', function () {
 			expect(wrapper.find( Checkbox )).toHaveLength(1);
+		} );
+	} );
+
+	describe( 'carrier description', () => {
+		describe( 'carrier description - not returned by server', () => {
+			const wrapper = createDynamicCarrierAccountSettingsFormWrapper();
+
+			it( 'renders default carrier description', function () {
+				const carrierAccountDesc = wrapper.find( 'div.carrier-accounts__settings-info > p.carrier-accounts__settings-subheader-description' );
+				expect( carrierAccountDesc.text() ).toEqual(
+					'Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping.' +
+					' Learn more about adding carrier accounts.'
+				);
+			} );
+		} );
+		describe( 'carrier description - returned by server', () => {
+			const carrierSettings = {
+				carrierDescription: 'Carrier description sent by server',
+			} 
+
+			const wrapper = createDynamicCarrierAccountSettingsFormWrapper( carrierSettings );
+
+			it( 'renders carrier description sent by server', function () {
+				const carrierAccountDesc = wrapper.find( 'div.carrier-accounts__settings-info > p.carrier-accounts__settings-subheader-description' );
+				expect( carrierAccountDesc.text() ).toEqual( 'Carrier description sent by server' );
+			} );
 		} );
 	} );
 
