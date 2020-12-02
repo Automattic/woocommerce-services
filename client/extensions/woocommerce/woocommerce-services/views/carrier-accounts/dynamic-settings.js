@@ -26,9 +26,9 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 			setCarrierRegistrationFields(registrationFields.carriers);
 		}
 		fetchRegistrationFields();
-	}, [props.siteId]);
+	}, [ props.siteId, setCarrierRegistrationFields ]);
 
-	if ( ! carrierRegistrationFields || carrierRegistrationFields.length < 1) {
+	if ( ! carrierRegistrationFields || carrierRegistrationFields.length === 0) {
 		return (
 			<div>{ translate( 'Loading' ) }...</div>
 		);
@@ -53,6 +53,7 @@ export const DynamicCarrierAccountSettings = ( props ) => {
 			<DynamicCarrierAccountSettingsForm
 				carrierType={currentCarrierRegistrationField.type}
 				carrierName={currentCarrierRegistrationField.name}
+				carrierDescription={currentCarrierRegistrationField.description}
 				registrationFields={currentCarrierRegistrationField.fields}
 			/>
 		</div>

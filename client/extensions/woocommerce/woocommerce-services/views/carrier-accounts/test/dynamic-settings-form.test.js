@@ -49,7 +49,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 		jest.restoreAllMocks();
 	} );
 
-	it('renders does not break if no fields are passed', () => {
+	it('does not break if no fields are passed', () => {
 		const wrapper = mount(
 			<Wrapper><DynamicCarrierAccountSettingsForm carrierType="CarrierAccount" carrierName="DHL Express" /></Wrapper>
 		);
@@ -154,5 +154,54 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 				country_code: 'US',
 			}
 		);
+	});
+
+	it('renders the default carrier description', () => {
+		const wrapper = mount(
+			<Wrapper>
+				<DynamicCarrierAccountSettingsForm
+					carrierType="CarrierAccount"
+					carrierName="DHL Express"
+					registrationFields={{
+						is_reseller: {
+							visibility: 'checkbox',
+							label: 'Is reseller?'
+						},
+						country_code: {
+							visibility: 'visible',
+							label: 'Country Code'
+						},
+					}}
+				/>
+			</Wrapper>
+		);
+
+		const description = wrapper.find('.carrier-accounts__settings-subheader-description');
+		expect(description.text()).toBe('Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping. Learn more about adding carrier accounts.');
+	});
+
+	it('renders the provided carrier description', () => {
+		const wrapper = mount(
+			<Wrapper>
+				<DynamicCarrierAccountSettingsForm
+					carrierType="CarrierAccount"
+					carrierName="DHL Express"
+					carrierDescription="Carrier description sent by server."
+					registrationFields={{
+						is_reseller: {
+							visibility: 'checkbox',
+							label: 'Is reseller?'
+						},
+						country_code: {
+							visibility: 'visible',
+							label: 'Country Code'
+						},
+					}}
+				/>
+			</Wrapper>
+		);
+
+		const description = wrapper.find('.carrier-accounts__settings-subheader-description');
+		expect(description.text()).toBe('Carrier description sent by server.');
 	});
 } );
