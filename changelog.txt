@@ -5,6 +5,7 @@
 * Fix   - Redux DevTools usage update.
 * Fix	  - Breaking behavior on account registration page.
 * Add	  - Allows registration of additional accounts.
+* Tweak - Remove unused method in shipping settings view.
 * Tweak - Carrier description on dynamic carrier registration form.
 
 = 1.25.3 - 2020-11-24 =
