@@ -3,8 +3,8 @@
 = 1.25.4 - 2020-XX-XX =
 * Tweak - Remove Stripe connect functionality.
 * Fix   - Redux DevTools usage update.
-* Fix	  - Breaking behavior on account registration page.
-* Add	  - Allows registration of additional accounts.
+* Fix	- Breaking behavior on account registration page.
+* Add	- Allows registration of additional accounts.
 * Tweak - Remove unused method in shipping settings view.
 * Tweak - Carrier description on dynamic carrier registration form.
 
