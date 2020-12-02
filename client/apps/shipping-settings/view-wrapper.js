@@ -55,13 +55,6 @@ class LabelSettingsWrapper extends Component {
 		return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
 	};
 
-	onPaymentMethodMissing = () => {
-		const { translate } = this.props;
-		return this.props.errorNotice( translate( 'A payment method is required to print shipping labels.' ), {
-			duration: 4000,
-		} );
-	};
-
 	onSaveChanges = () => {
 		this.props.createWcsShippingSaveActionList( this.onSaveSuccess, this.onSaveFailure );
 	};
