@@ -4,8 +4,8 @@
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { compose } from 'redux';
 
 /**
  * Internal dependencies
@@ -16,7 +16,7 @@ import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import * as api from 'woocommerce/woocommerce-services/api';
-import { errorNotice, successNotice } from 'state/notices/actions';
+import { errorNotice as errorNoticeAction, successNotice as successNoticeAction } from 'state/notices/actions';
 
 const FormFieldFactory = ( { visibility, label, id, value, onChange } ) => {
 	const handleToggle = useCallback(() => {
@@ -54,30 +54,21 @@ const FormFieldFactory = ( { visibility, label, id, value, onChange } ) => {
 					id={ id }
 					title={ label }
 					updateValue={ handleTextChange }
-					value={ value || '' }
 				/>
 			);
 	}
 }
 
-export const DynamicCarrierAccountSettingsForm = ( props ) => {
-	const {
-		translate,
-		siteId,
-		carrierType,
-		noticeActions,
-		carrierName,
-		carrierDescription,
-	} = props;
-
-	const carrierText = carrierDescription ?
-		carrierDescription
-		:
-		translate(
-			'Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping. Learn more about adding {{a}}carrier accounts{{/a}}.',
-			{ components: { a: <a href="https://docs.woocommerce.com/document/using-your-own-carrier-account-in-woocommerce-shipping" /> } }
-	);
-
+const DynamicCarrierAccountSettingsForm = ( {
+	translate,
+	siteId,
+	carrierType,
+	errorNotice,
+	successNotice,
+	carrierName,
+	carrierDescription,
+	registrationFields,
+} ) => {
 	const [formValues, setFormValues] = useState({});
 	const [isSaving, setIsSaving] = useState(false);
 
@@ -93,19 +84,35 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 			setIsSaving(true);
 
 			try {
-				await api.post( siteId, api.url.shippingCarrier(), {
+				const result = await api.post( siteId, api.url.shippingCarrier(), {
+					...formValues,
 					type: carrierType,
-					settings: formValues
 				} );
+
+				if( ! result.success ) {
+					throw new Error();
+				}
+
+				successNotice( translate( 'Your carrier account was connected successfully.' ) )
+
+				const url = new URL(window.location.href)
+				url.searchParams.delete('carrier')
+				window.onbeforeunload = null
+				window.location.href = url.href
 			} catch (error) {
-				noticeActions.errorNotice(`Failed to register the carrier. ${ error }`);
+				errorNotice(translate(
+					'There was an error connecting to your %(carrierName)s account. Please check that all of the information entered matches your %(carrierName)s account and try to connect again.',
+					{
+						args: { carrierName },
+					}
+				));
 			}
 
 			setIsSaving(false);
 		}
 
 		submit();
-	}, [isSaving, setIsSaving, siteId, carrierType, formValues, noticeActions] );
+	}, [isSaving, setIsSaving, siteId, carrierType, carrierName, formValues, errorNotice, translate] );
 
 	const handleCancel = useCallback(() => {
 		history.back();
@@ -123,23 +130,21 @@ export const DynamicCarrierAccountSettingsForm = ( props ) => {
 						} ) }
 					</h4>
 					<p className="carrier-accounts__settings-subheader-description">
-						{ carrierText }
+						{ carrierDescription ? (
+							carrierDescription
+						) : translate(
+							'Set up your own carrier account to compare rates and print labels from multiple carriers in WooCommerce Shipping. Learn more about adding {{a}}carrier accounts{{/a}}.',
+							{ components: { a: <a href="https://docs.woocommerce.com/document/using-your-own-carrier-account-in-woocommerce-shipping" /> } }
+						) }
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
 					<CompactCard>
-					<h4 className="carrier-accounts__settings-subheader">{ translate ( 'General Information' ) }</h4>
-						<p className="carrier-accounts__settings-subheader-description">
-						{ translate( 'This is the account number and address from your %(carrierName)s profile', {
-							args: {
-								carrierName,
-							}
-						} ) }
-						</p>
+						<h4 className="carrier-accounts__settings-subheader">{ translate ( 'General Information' ) }</h4>
 					</CompactCard>
 
 					<CompactCard>
-						{props.registrationFields && Object.entries(props.registrationFields).map( ( [key, field] ) => (
+						{registrationFields && Object.entries(registrationFields).map( ( [key, field] ) => (
 							<FormFieldFactory key={key} id={key} visibility={field.visibility} label={field.label} value={formValues[key]} onChange={handleFormFieldChange} />
 						))}
 					</CompactCard>
@@ -172,11 +177,14 @@ const mapStateToProps = ( state ) => {
 	};
 };
 
-const mapDispatchToProps = ( dispatch ) => ({
-	noticeActions: bindActionCreators( { successNotice, errorNotice }, dispatch ),
-});
+const mapDispatchToProps = {
+	errorNotice: errorNoticeAction,
+	successNotice: successNoticeAction,
+};
 
 DynamicCarrierAccountSettingsForm.propTypes = {
+	errorNotice: PropTypes.func,
+	successNotice: PropTypes.func,
 	carrierType: PropTypes.string,
 	carrierName: PropTypes.string,
 	carrierDescription: PropTypes.string,
@@ -185,4 +193,7 @@ DynamicCarrierAccountSettingsForm.propTypes = {
 	translate: PropTypes.func,
 };
 
-export default connect( mapStateToProps, mapDispatchToProps )( localize( DynamicCarrierAccountSettingsForm ) );
+export default compose(
+	connect( mapStateToProps, mapDispatchToProps ),
+	localize
+)( DynamicCarrierAccountSettingsForm );

@@ -59,8 +59,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return bool|WP_Error
 		 */
 		public function validate_service_settings( $service_slug, $service_settings ) {
-			// Make sure the service slug only contains underscores or letters
-			if ( 1 === preg_match( '/[^a-z_]/i', $service_slug ) ) {
+			// Make sure the service slug only contains dashes, underscores or letters
+			if ( 1 === preg_match( '/[^a-z_\-]/i', $service_slug ) ) {
 				return new WP_Error( 'invalid_service_slug', __( 'Invalid WooCommerce Shipping & Tax service slug provided', 'woocommerce-services' ) );
 			}
 
@@ -319,7 +319,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function get_wccom_subscriptions( $body ) {
 			return $this->request( 'POST', '/subscriptions', $body );
 		}
-		
+
 		/**
 		 * Get all carriers we support for registration. This end point
 		 * returns a list of "fields" that we use to register the carrier
