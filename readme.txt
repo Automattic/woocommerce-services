@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.3
+Stable tag: 1.25.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.4 - 2020-XX-XX =
+= 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
 * Tweak - Remove unused method in shipping settings view.
 * Fix	- Breaking behavior on account registration page.
