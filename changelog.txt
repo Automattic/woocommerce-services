@@ -6,6 +6,7 @@
 * Fix	- Breaking behavior on account registration page.
 * Add	- Allows registration of additional accounts.
 * Tweak - Carrier description on dynamic carrier registration form.
+* Fix   - Adjust documentation links.
 
 = 1.25.3 - 2020-11-24 =
 * Add   - Initial code for WooCommerce.com subscriptions API.
@@ -16,7 +17,6 @@
 * Fix   - Correct validation for UPS fields in Carrier Account connect form.
 * Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
 * Fix   - Disable USPS refunds for untracked labels only.
-* Fix   - Adjust documentation links.
 
 = 1.25.2 - 2020-11-10 =
 * Tweak - Add ZIP code validation to UPS(beta) signup form.

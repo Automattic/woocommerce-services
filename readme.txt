@@ -82,6 +82,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 * Fix	- Breaking behavior on account registration page.
 * Add	- Allows registration of additional accounts.
 * Tweak - Carrier description on dynamic carrier registration form.
+* Fix   - Adjust documentation links.
 
 = 1.25.3 - 2020-11-24 =
 * Add   - Initial code for WooCommerce.com subscriptions API.
