@@ -59,8 +59,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return bool|WP_Error
 		 */
 		public function validate_service_settings( $service_slug, $service_settings ) {
-			// Make sure the service slug only contains underscores or letters
-			if ( 1 === preg_match( '/[^a-z_]/i', $service_slug ) ) {
+			// Make sure the service slug only contains dashes, underscores or letters
+			if ( 1 === preg_match( '/[^a-z_\-]/i', $service_slug ) ) {
 				return new WP_Error( 'invalid_service_slug', __( 'Invalid WooCommerce Shipping & Tax service slug provided', 'woocommerce-services' ) );
 			}
 
@@ -319,7 +319,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function get_wccom_subscriptions( $body ) {
 			return $this->request( 'POST', '/subscriptions', $body );
 		}
-		
+
 		/**
 		 * Get all carriers we support for registration. This end point
 		 * returns a list of "fields" that we use to register the carrier
@@ -364,44 +364,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
 			}
 			return $new_is_alive;
-		}
-
-		public function get_stripe_account_details() {
-			return $this->request( 'GET', '/stripe/account' );
-		}
-
-		public function get_stripe_oauth_init( $return_url ) {
-			$address = $this->wc_connect_loader->get_service_settings_store()->get_origin_address();
-			$current_user = wp_get_current_user();
-
-			$request = array(
-				'returnUrl' => $return_url,
-				'businessData' => array(
-					'url' => get_site_url(),
-					'country' => $address['country'],
-					'phone' => $address['phone'],
-					'business_name' => $address['company'],
-					'first_name' => $current_user->user_firstname,
-					'last_name' => $current_user->user_lastname,
-					'street_address' => $address['address'],
-					'city' => $address['city'],
-					'state' => $address['state'],
-					'zip' => $address['postcode'],
-					'currency' => get_woocommerce_currency(),
-				),
-			);
-			return $this->request( 'POST', '/stripe/oauth-init', $request );
-		}
-
-		public function get_stripe_oauth_keys( $code ) {
-			$request = array(
-				'code' => $code,
-			);
-			return $this->request( 'POST', '/stripe/oauth-keys', $request );
-		}
-
-		public function deauthorize_stripe_account() {
-			return $this->request( 'POST', '/stripe/account/deauthorize' );
 		}
 
 		/**
