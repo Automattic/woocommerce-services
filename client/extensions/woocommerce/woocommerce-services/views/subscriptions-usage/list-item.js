@@ -14,19 +14,20 @@ import CarrierIcon from '../../components/carrier-icon';
 const SubscriptionsUsageListItem = ( props ) => {
 	const { translate, data } = props;
 	 
-	 const getIcon = ( productName ) => {
-		const subscriptionToIconRules = [
-			[/^DHL/g, 'dhlexpress'],
-			[/^UPS/g, 'ups'],
-			[/^USPS/g, 'usps'],
-		];
+	const getIcon = ( productName ) => {
+	const subscriptionToIconRules = [
+		[/^DHL/g, 'dhlexpress'],
+		[/^UPS/g, 'ups'],
+		[/^USPS/g, 'usps'],
+	];
 
-		const i = subscriptionToIconRules.findIndex( ( [rule] ) => rule.test( productName ));
-		if (i > -1) return subscriptionToIconRules[i][1];
-		
-		return '';
-	 };
+	const i = subscriptionToIconRules.findIndex( ( [rule] ) => rule.test( productName ));
+	if (i > -1) return subscriptionToIconRules[i][1];
+	
+	return '';
+	};
 
+	const usage = `${ data.usage_count }/${ data.usage_limit }`;
 	return (
 		<div className= "subscriptions-usage__list-item" >
 			<div className="subscriptions-usage__list-item-carrier-icon">
@@ -36,7 +37,7 @@ const SubscriptionsUsageListItem = ( props ) => {
 				<span>{ data.product_name }</span>
 			</div>
 			<div className="subscriptions-usage__list-item-usage">
-				<span>{ data.usage_count }/{ data.usage_limit }</span>
+				<span>{ usage }</span>
 			</div>
 			<div className="subscriptions-usage__list-item-actions">
 				<a
