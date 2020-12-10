@@ -1,11 +1,13 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.5 - 202x-xx-xx =
+* Fix	- Redux DevTools usage update.
+
 = 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
-* Fix   - Redux DevTools usage update.
+* Tweak - Remove unused method in shipping settings view.
 * Fix	- Breaking behavior on account registration page.
 * Add	- Allows registration of additional accounts.
-* Tweak - Remove unused method in shipping settings view.
 * Tweak - Carrier description on dynamic carrier registration form.
 * Fix   - Adjust documentation links.
 
