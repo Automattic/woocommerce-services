@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.3
+Stable tag: 1.25.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,14 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.4 - 2020-12-08 =
+* Tweak - Remove Stripe connect functionality.
+* Tweak - Remove unused method in shipping settings view.
+* Fix	- Breaking behavior on account registration page.
+* Add	- Allows registration of additional accounts.
+* Tweak - Carrier description on dynamic carrier registration form.
+* Fix   - Adjust documentation links.
 
 = 1.25.3 - 2020-11-24 =
 * Add   - Initial code for WooCommerce.com subscriptions API.
@@ -148,18 +156,3 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 * Fix   - Fix localization issues
 * Tweak - Improve service listing readability
 * Add   - Support UPS as a carrier (beta)
-
-= 1.23.2 - 2020-06-12 =
-* Fix   - Refund not possible on order page.
-
-= 1.23.1 - 2020-06-10 =
-* Tweak - Update WooCommerce compatibility to 4.2
-* Fix	- Taxjar broken in admin's new order page
-* Fix   - Tax recalculation on admin order screen missing street address.
-
-= 1.23.0 - 2020-04-08 =
-* Fix   - Hide paper selection until valid payment method is selected.
-* Tweak - Shipping banner wording improvements.
-* Add   - Link to carrier's schedule pickup page.
-* Add   - Improved shipping service feature descriptions.
-* Add   - Option to mark order complete when label is printed.
