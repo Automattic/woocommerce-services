@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.5 - 2020-**-** =
+* Add	- Display subscriptions usage.
+
 = 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
 * Tweak - Remove unused method in shipping settings view.

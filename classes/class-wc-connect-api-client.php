@@ -316,8 +316,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $body
 		 * @param object|WP_Error
 		 */
-		public function get_wccom_subscriptions( $body ) {
-			return $this->request( 'POST', '/subscriptions', $body );
+		public function get_wccom_subscriptions() {
+			return $this->request( 'POST', '/subscriptions', array() );
 		}
 
 		/**
