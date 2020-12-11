@@ -11,7 +11,7 @@ if ( class_exists( 'WC_REST_Connect_Subscriptions_Controller' ) ) {
 class WC_REST_Connect_Subscriptions_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/subscriptions';
 
-	public function get() {
+	public function post() {
 		$response = $this->api_client->get_wccom_subscriptions();
 		if ( is_wp_error( $response ) ) {
 			$this->logger->log( $response, __CLASS__ );

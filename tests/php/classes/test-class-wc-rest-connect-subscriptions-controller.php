@@ -115,7 +115,7 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 			->willReturn( $api_client_response );
 
 		$wc_connect_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client_mock, $this->setting_store_mock, $this->connect_logger_mock );
-		$actual                              = $wc_connect_subscriptions_controller->get();
+		$actual                              = $wc_connect_subscriptions_controller->post();
 		$expected                            =  $api_client_response->subscriptions ;
 
 		$expected                                     = [
@@ -143,7 +143,7 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 			->with( $api_response, WC_REST_Connect_Subscriptions_Controller::class );
 
 		$wc_connect_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client_mock, $this->setting_store_mock, $this->connect_logger_mock );
-		$actual                              = $wc_connect_subscriptions_controller->get();
+		$actual                              = $wc_connect_subscriptions_controller->post();
 
 		$this->assertInstanceOf( WP_Error::class, $actual );
 		$this->assertEquals( $api_response, $actual );
