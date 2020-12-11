@@ -114,7 +114,9 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 			const enhancers = [
 				applyMiddleware( ...middlewares ),
-				window.devToolsExtension && window.devToolsExtension(),
+				window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__({
+					name: `wc/wcs/${routeClassName}`
+				}),
 			].filter( Boolean );
 
 			const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
