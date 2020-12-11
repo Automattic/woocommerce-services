@@ -81,6 +81,8 @@ const CarrierAccountListItem = ( props ) => {
 	const carrierTypeIconMap = {
 		DhlExpressAccount: 'dhlexpress',
 		DhlEcommerceAccount: 'dhlecommerce',
+		DhlEcommerceAsiaAccount: 'dhlecommerceasia',
+		DHLGMIAccount: 'dhlecommerceinternational',
 		UpsAccount: 'ups',
 	}
 

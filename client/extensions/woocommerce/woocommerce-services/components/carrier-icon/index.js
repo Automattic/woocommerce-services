@@ -18,6 +18,8 @@ const carrierLogos = {
 	"usps": uspsLogo,
 	"dhlexpress": dhlLogo,
 	"dhlecommerce": dhlLogo,
+	"dhlecommerceasia": dhlLogo,
+	"dhlecommerceinternational": dhlLogo,
 };
 
 const sizeToPixels = ( size ) => {
