@@ -16,6 +16,7 @@ import LabelSettings from '../../extensions/woocommerce/woocommerce-services/vie
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
+import SubscriptionsUsage from '../../extensions/woocommerce/woocommerce-services/views/subscriptions-usage';
 import UpsSettingsForm from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/ups-settings-form';
 import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
 import { ProtectFormGuard } from 'lib/protect-form';
@@ -60,7 +61,7 @@ class LabelSettingsWrapper extends Component {
 	};
 
 	render() {
-		const { carrier, carriers, isSaving, translate } = this.props;
+		const { carrier, carriers, subscriptions, isSaving, translate } = this.props;
 
 		if ( ! carrier ) {
 			return (
@@ -69,6 +70,7 @@ class LabelSettingsWrapper extends Component {
 					<LabelSettings onChange={ this.onChange } />
 					<Packages onChange={ this.onChange } />
 					<CarrierAccounts carriers={ carriers } />
+					<SubscriptionsUsage subscriptions={ subscriptions } />
 					<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
 						{ translate( 'Save changes' ) }
 					</Button>
