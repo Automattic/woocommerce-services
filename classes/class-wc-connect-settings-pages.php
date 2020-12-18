@@ -30,22 +30,6 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		}
 
 		/**
-		 * Add activation status to subscriptions array.
-		 *
-		 * @param array $subscriptions subscriptions.
-		 * @param bool  $status         true if active.
-		 * @since 1.25.5
-		 * @return array
-		 */
-		protected function add_activation_status( $subscriptions, $status ) {
-			foreach ( $subscriptions as $key => $subscription ) {
-
-				$subscriptions[ $key ]->isActive = $status;
-			}
-			return $subscriptions;
-		}
-
-		/**
 		 * Get sections.
 		 *
 		 * @return array
@@ -105,9 +89,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$subscriptions_usage_response = $this->api_client->get_wccom_subscriptions();
 
 			if ( ! is_wp_error( $subscriptions_usage_response ) && $subscriptions_usage_response ) {
-				$active_subscriptions          = $this->add_activation_status( $subscriptions_usage_response->subscriptions, true );
-				$inactive_subscriptions        = $this->add_activation_status( $subscriptions_usage_response->inactiveSubscriptions, false );
-				$extra_args[ 'subscriptions' ] = array_merge( $active_subscriptions, $inactive_subscriptions );
+				$extra_args[ 'subscriptions' ] = $subscriptions_usage_response->subscriptions;
 			}
 
 			if ( isset( $_GET['from_order'] ) ) {

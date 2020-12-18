@@ -55,7 +55,7 @@ const subscriptions = [
 		product_status:"publish",
 		usage_limit:1000,
 		usage_count:250,
-		isActive: true,
+		is_active: true,
 	},
 	{
 		product_key:"W00-bfd64110-4ff9-b179-dca3903f62b1",
@@ -81,7 +81,7 @@ const subscriptions = [
 		product_status:"publish",
 		usage_limit:50,
 		usage_count:8,
-		isActive:false,
+		is_active:false,
 	},
 
 ];

@@ -19,7 +19,7 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 
 const SubscriptionsUsageListItem = ( props ) => {
 	const { translate, data, errorNotice, successNotice, siteId } = props;
-	const [isActive, setisActive] = React.useState( data.isActive );
+	const [isActive, setisActive] = React.useState( data.is_active );
 	const [isSaving, setIsSaving] = React.useState(false);
 	 
 	const getIcon = ( productName ) => {
@@ -52,7 +52,7 @@ const SubscriptionsUsageListItem = ( props ) => {
 		submitActivation();
 	}
 
-	const usage_count = data.usage_count ? data.usage_count : '0' ;
+	const usage_count = data.usage_count ? data.usage_count : 0 ;
 	const usage = data.usage_limit ? `${ usage_count }/${ data.usage_limit }` : '';
 	return (
 		<div className= "subscriptions-usage__list-item" >
@@ -97,6 +97,7 @@ SubscriptionsUsageListItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	data: PropTypes.shape( {
 		product_name: PropTypes.string.isRequired,
+		is_active: PropTypes.bool.isRequired,
 		usage_limit: PropTypes.number,
 		usage_count: PropTypes.number,
 	} ).isRequired,
