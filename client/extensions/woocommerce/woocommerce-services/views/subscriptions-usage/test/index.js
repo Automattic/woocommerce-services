@@ -24,7 +24,7 @@ const Wrapper = ({children}) => (
 	</Provider>
 );
 
-describe( 'Carrier Accounts', () => {
+describe( 'Subscriptions Usage', () => {
 	it('should render nothing when no subscriptions are provided', () => {
 		const wrapper = mount(
 			<Wrapper>
@@ -61,7 +61,8 @@ describe( 'Carrier Accounts', () => {
 				maxed:false,
 				product_status:"publish",
 				usage_limit:1000,
-				usage_count:250
+				usage_count:250,
+				isActive: true,
 			},
 			{
 				product_key:"W00-bfd64110-4ff9-b179-dca3903f62b1",
@@ -82,11 +83,12 @@ describe( 'Carrier Accounts', () => {
 				expired:false,
 				expiring:false,
 				sites_max:1,
-				sites_active:1,
+				sites_active:0,
 				maxed:false,
 				product_status:"publish",
 				usage_limit:50,
-				usage_count:8
+				usage_count:8,
+				isActive:false,
 			},
 
 		];
@@ -112,8 +114,7 @@ describe( 'Carrier Accounts', () => {
 		// Expect button manage.
 		const dhlExpressmanageButton = dhlExpressRatesListItem.find('a[href="https://woocommerce.com/my-account/my-subscriptions/"]');
 		expect(dhlExpressmanageButton.text()).toBe('Manage');
-		const upsLabelsmanageButton = upsLabelsListItem.find('a[href="https://woocommerce.com/my-account/my-subscriptions/"]');
-		expect(upsLabelsmanageButton.text()).toBe('Manage');
+		expect(upsLabelsListItem.find('button').text()).toBe('Activate');
 	
 	});
 

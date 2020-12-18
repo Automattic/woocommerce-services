@@ -19,7 +19,7 @@ import { getSelectedSiteId } from 'state/ui/selectors';
 
 const SubscriptionsUsageListItem = ( props ) => {
 	const { translate, data, errorNotice, successNotice, siteId } = props;
-	const [canBeActivated, setCanBeActivated] = React.useState( data.sites_active < data.sites_max );
+	const [isActive, setisActive] = React.useState( data.isActive );
 	const [isSaving, setIsSaving] = React.useState(false);
 	 
 	const getIcon = ( productName ) => {
@@ -41,7 +41,7 @@ const SubscriptionsUsageListItem = ( props ) => {
 		
 			try {
 				await api.post( siteId, api.url.subscriptionActivate( data.product_key ) );
-				setCanBeActivated( false );
+				setisActive( true );
 				successNotice( translate( 'Your subscription was succesfully activated.' ) );
 			} catch (err) {
 				errorNotice( translate( 'There was an error trying to activate your subscription.' ) );
@@ -52,7 +52,8 @@ const SubscriptionsUsageListItem = ( props ) => {
 		submitActivation();
 	}
 
-	const usage = `${ data.usage_count }/${ data.usage_limit }`;
+	const usage_count = data.usage_count ? data.usage_count : '0' ;
+	const usage = data.usage_limit ? `${ usage_count }/${ data.usage_limit }` : '';
 	return (
 		<div className= "subscriptions-usage__list-item" >
 			<div className="subscriptions-usage__list-item-carrier-icon">
@@ -65,7 +66,17 @@ const SubscriptionsUsageListItem = ( props ) => {
 				<span>{ usage }</span>
 			</div>
 			<div className="subscriptions-usage__list-item-actions">
-				{ canBeActivated ? (
+				{ isActive ? (
+					<a
+						href={
+						`https://woocommerce.com/my-account/my-subscriptions/`
+						}
+						// eslint-disable-next-line wpcalypso/jsx-classname-namespace
+						className="button is-compact"
+					>
+						{ translate( 'Manage' ) }
+					</a>
+				) : (
 					<Button 
 						onClick={ handleActivate } 
 						disabled={ isSaving }
@@ -74,16 +85,6 @@ const SubscriptionsUsageListItem = ( props ) => {
 					>
 						{ translate( 'Activate' ) }
 				   </Button>
-				) : (
-					<a
-					href={
-						`https://woocommerce.com/my-account/my-subscriptions/`
-					}
-					// eslint-disable-next-line wpcalypso/jsx-classname-namespace
-					className="button is-compact"
-					>
-						{ translate( 'Manage' ) }
-					</a>
 				) }
 			</div>
 		</div>
@@ -96,7 +97,7 @@ SubscriptionsUsageListItem.propTypes = {
 	siteId: PropTypes.number.isRequired,
 	data: PropTypes.shape( {
 		product_name: PropTypes.string.isRequired,
-		usage_limit: PropTypes.number.isRequired,
+		usage_limit: PropTypes.number,
 		usage_count: PropTypes.number,
 	} ).isRequired,
 };
