@@ -7,11 +7,17 @@ import React from 'react';
 import { mount } from 'enzyme';
 import configureMockStore from 'redux-mock-store'
 import { Provider } from 'react-redux'
+import { act } from 'react-dom/test-utils';
 
 /**
  * Internal dependencies
  */
 import SubscriptionsUsage from '..';
+import * as api from 'woocommerce/woocommerce-services/api';
+
+const apiPostSpy = jest.spyOn(api, 'post').mockImplementation(() =>
+	Promise.resolve({})
+);
 
 const mockStore = configureMockStore([]);
 const Wrapper = ({children}) => (
@@ -23,6 +29,62 @@ const Wrapper = ({children}) => (
 		{children}
 	</Provider>
 );
+
+const subscriptions = [
+	{
+		product_key:"W00-bfd64110-4ff9-b179-dca3903f62b0",
+		product_keys_all:
+			["W00-bfd64110-4ff9-b179-dca3903f62b0"],
+		product_id:1770503,
+		product_name:"DHL Express rates",
+		product_url:"https:\/\/woocommerce.com\/products\/DHL-subscriptions\/",
+		key_type:"single",
+		key_type_label:"Single site",
+		key_parent_order_item_id:null,
+		autorenew:true,
+		connections:[751464],
+		legacy_connections:[],
+		shares:[],
+		lifetime:false,
+		expires:1639008000,
+		expired:false,
+		expiring:false,
+		sites_max:1,
+		sites_active:1,
+		maxed:false,
+		product_status:"publish",
+		usage_limit:1000,
+		usage_count:250,
+		isActive: true,
+	},
+	{
+		product_key:"W00-bfd64110-4ff9-b179-dca3903f62b1",
+		product_keys_all:
+			["W00-bfd64110-4ff9-b179-dca3903f62b1"],
+		product_id:1770504,
+		product_name:"UPS rates",
+		product_url:"https:\/\/woocommerce.com\/products\/UPS-subscriptions\/",
+		key_type:"single",
+		key_type_label:"Single site",
+		key_parent_order_item_id:null,
+		autorenew:true,
+		connections:[751464],
+		legacy_connections:[],
+		shares:[],
+		lifetime:false,
+		expires:1639008000,
+		expired:false,
+		expiring:false,
+		sites_max:1,
+		sites_active:0,
+		maxed:false,
+		product_status:"publish",
+		usage_limit:50,
+		usage_count:8,
+		isActive:false,
+	},
+
+];
 
 describe( 'Subscriptions Usage', () => {
 	it('should render nothing when no subscriptions are provided', () => {
@@ -36,62 +98,6 @@ describe( 'Subscriptions Usage', () => {
 	});
 
 	it('should render a list of subscriptions usage info', () => {
-
-		const subscriptions = [
-			{
-				product_key:"W00-bfd64110-4ff9-b179-dca3903f62b0",
-				product_keys_all:
-					["W00-bfd64110-4ff9-b179-dca3903f62b0"],
-				product_id:1770503,
-				product_name:"DHL Express rates",
-				product_url:"https:\/\/woocommerce.com\/products\/DHL-subscriptions\/",
-				key_type:"single",
-				key_type_label:"Single site",
-				key_parent_order_item_id:null,
-				autorenew:true,
-				connections:[751464],
-				legacy_connections:[],
-				shares:[],
-				lifetime:false,
-				expires:1639008000,
-				expired:false,
-				expiring:false,
-				sites_max:1,
-				sites_active:1,
-				maxed:false,
-				product_status:"publish",
-				usage_limit:1000,
-				usage_count:250,
-				isActive: true,
-			},
-			{
-				product_key:"W00-bfd64110-4ff9-b179-dca3903f62b1",
-				product_keys_all:
-					["W00-bfd64110-4ff9-b179-dca3903f62b1"],
-				product_id:1770504,
-				product_name:"UPS rates",
-				product_url:"https:\/\/woocommerce.com\/products\/UPS-subscriptions\/",
-				key_type:"single",
-				key_type_label:"Single site",
-				key_parent_order_item_id:null,
-				autorenew:true,
-				connections:[751464],
-				legacy_connections:[],
-				shares:[],
-				lifetime:false,
-				expires:1639008000,
-				expired:false,
-				expiring:false,
-				sites_max:1,
-				sites_active:0,
-				maxed:false,
-				product_status:"publish",
-				usage_limit:50,
-				usage_count:8,
-				isActive:false,
-			},
-
-		];
 		const wrapper = mount(
 			
 			<Wrapper>
@@ -114,8 +120,24 @@ describe( 'Subscriptions Usage', () => {
 		// Expect button manage.
 		const dhlExpressmanageButton = dhlExpressRatesListItem.find('a[href="https://woocommerce.com/my-account/my-subscriptions/"]');
 		expect(dhlExpressmanageButton.text()).toBe('Manage');
+		// Expect button activate.
 		expect(upsLabelsListItem.find('button').text()).toBe('Activate');
 	
+	});
+
+	it('should call the API to activate the subscription when clicking on the button', async () => {
+		const wrapper = mount(
+			
+			<Wrapper>
+				<SubscriptionsUsage subscriptions={ subscriptions } />
+			</Wrapper>
+		);
+		const upsLabelsListItem = wrapper.find('.subscriptions-usage__list-item').at(1);
+		await act(async () => {
+			// Click the Activate button
+			upsLabelsListItem.find('button').simulate('click');
+		} );
+		expect(apiPostSpy).toHaveBeenCalledWith(1234, 'connect/subscription/W00-bfd64110-4ff9-b179-dca3903f62b1/activate');
 	});
 
 } );
