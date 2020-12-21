@@ -444,17 +444,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				)
 			);
 
-			// Add WC Helper auth info if connected to WC.com.
-			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
-
-			if ( ! is_wp_error( $helper_auth_data ) ) {
-				$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
-					'access_token' => $helper_auth_data['access_token'],
-					'site_id'      => $helper_auth_data['site_id'],
-					)
-				);
-			}
-
 			return $body;
 		}
 
