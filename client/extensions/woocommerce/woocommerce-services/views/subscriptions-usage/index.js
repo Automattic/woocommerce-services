@@ -40,7 +40,7 @@ SubscriptionsUsage.propTypes = {
 	subscriptions: PropTypes.arrayOf(
 		PropTypes.shape( {
 			product_name: PropTypes.string.isRequired,
-			usage_limit: PropTypes.number.isRequired,
+			usage_limit: PropTypes.number,
 			usage_count: PropTypes.number,
 		} )
 	),
