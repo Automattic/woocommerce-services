@@ -87,6 +87,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			$subscriptions_usage_response = $this->api_client->get_wccom_subscriptions();
+
 			if ( ! is_wp_error( $subscriptions_usage_response ) && $subscriptions_usage_response ) {
 				$extra_args[ 'subscriptions' ] = $subscriptions_usage_response->subscriptions;
 			}

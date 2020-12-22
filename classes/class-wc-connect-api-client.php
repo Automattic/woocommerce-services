@@ -367,6 +367,28 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Activate a subscrption with WCCOM API.
+		 *
+		 * @param  string $subscription_key Product Key on WCCOM.
+		 * @return WP_Error|Array  API Response.
+		 */
+		public function activate_subscription( $subscription_key ) {
+			$activation_response = WC_Helper_API::post(
+				'activate',
+				array(
+					'authenticated' => true,
+					'body'          => wp_json_encode(
+						array(
+							'product_key' => $subscription_key,
+						)
+					),
+				)
+			);
+
+			return $activation_response;
+		}
+
+		/**
 		 * Sends a request to the WooCommerce Shipping & Tax Server
 		 *
 		 * @param $method
