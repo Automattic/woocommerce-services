@@ -3,6 +3,7 @@
 = 1.25.5 - 202x-xx-xx =
 * Fix	- Redux DevTools usage update.
 * Add	- Display subscriptions usage.
+* Tweak - Adds WCCom access token and site ID to connect server request headers.
 
 = 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
@@ -11,7 +12,6 @@
 * Add	- Allows registration of additional accounts.
 * Tweak - Carrier description on dynamic carrier registration form.
 * Fix   - Adjust documentation links.
-* Tweak - Adds WCCom access token and site ID to connect server request headers.
 
 = 1.25.3 - 2020-11-24 =
 * Add   - Initial code for WooCommerce.com subscriptions API.
