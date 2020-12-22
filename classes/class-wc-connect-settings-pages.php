@@ -86,6 +86,12 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args[ 'carriers' ] = $carriers_response->carriers;
 			}
 
+			$subscriptions_usage_response = $this->api_client->get_wccom_subscriptions();
+
+			if ( ! is_wp_error( $subscriptions_usage_response ) && $subscriptions_usage_response ) {
+				$extra_args[ 'subscriptions' ] = $subscriptions_usage_response->subscriptions;
+			}
+
 			if ( isset( $_GET['from_order'] ) ) {
 				$extra_args['order_id'] = $_GET['from_order'];
 				$extra_args['order_href'] = get_edit_post_link( $_GET['from_order'] );

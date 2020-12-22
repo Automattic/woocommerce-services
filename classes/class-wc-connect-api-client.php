@@ -316,8 +316,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $body
 		 * @param object|WP_Error
 		 */
-		public function get_wccom_subscriptions( $body ) {
-			return $this->request( 'POST', '/subscriptions', $body );
+		public function get_wccom_subscriptions() {
+			return $this->request( 'POST', '/subscriptions' );
 		}
 
 		/**
@@ -364,6 +364,28 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
 			}
 			return $new_is_alive;
+		}
+
+		/**
+		 * Activate a subscrption with WCCOM API.
+		 *
+		 * @param  string $subscription_key Product Key on WCCOM.
+		 * @return WP_Error|Array  API Response.
+		 */
+		public function activate_subscription( $subscription_key ) {
+			$activation_response = WC_Helper_API::post(
+				'activate',
+				array(
+					'authenticated' => true,
+					'body'          => wp_json_encode(
+						array(
+							'product_key' => $subscription_key,
+						)
+					),
+				)
+			);
+
+			return $activation_response;
 		}
 
 		/**
