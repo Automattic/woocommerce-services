@@ -466,17 +466,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				)
 			);
 
-			// Add WC Helper auth info if connected to WC.com.
-			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
-
-			if ( ! is_wp_error( $helper_auth_data ) ) {
-				$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
-					'access_token' => $helper_auth_data['access_token'],
-					'site_id'      => $helper_auth_data['site_id'],
-					)
-				);
-			}
-
 			return $body;
 		}
 
@@ -502,7 +491,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
 			if ( ! is_wp_error( $wc_helper_auth_info ) ) {
-				$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
+				$headers[ 'X-Woo-Signature' ]    = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
+				$headers[ 'X-Woo-Access-Token' ] = $wc_helper_auth_info['access_token'];
+				$headers[ 'X-Woo-Site-Id' ]      = $wc_helper_auth_info['site_id'];
 			}
 			return $headers;
 		}
