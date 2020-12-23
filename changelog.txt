@@ -5,6 +5,7 @@
 * Add	- Display subscriptions usage.
 * Add	- Subscription activation.
 * Add 	- Uses same DHL logo for all registered DHL accounts.
+* Tweak - Adds WCCom access token and site ID to connect server request headers.
 
 = 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
