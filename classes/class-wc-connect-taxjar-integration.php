@@ -352,7 +352,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Maybe check if we need to skip calculations.
 	 *
-	 * @return void
+	 * @return bool
 	 */
 	public function maybe_skip_calculate_totals() {
 		$skip = false;
