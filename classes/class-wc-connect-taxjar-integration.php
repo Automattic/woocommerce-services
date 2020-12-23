@@ -348,6 +348,23 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->calculate_totals( $wc_cart_object );
 	}
+
+	/**
+	 * Maybe check if we need to skip calculations.
+	 *
+	 * @return void
+	 */
+	public function maybe_skip_calculate_totals() {
+		$skip = false;
+
+		// If outside of cart and checkout page or within mini-cart, skip calculations
+		if ( ( ! is_cart() && ! is_checkout() ) || ( is_cart() && is_ajax() ) ) {
+			$skip = true;
+		}
+
+		return apply_filters( 'woocommerce_skip_calculate_totals', $skip );
+	}
+
 	/**
 	 * Calculate tax / totals using TaxJar at checkout
 	 *
@@ -357,8 +374,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @return void
 	 */
 	public function calculate_totals( $wc_cart_object ) {
-		// If outside of cart and checkout page or within mini-cart, skip calculations
-		if ( ( ! is_cart() && ! is_checkout() ) || ( is_cart() && is_ajax() ) ) {
+		// Do we skip calculations?
+		if ( $this->maybe_skip_calculate_totals() ) {
 			return;
 		}
 
