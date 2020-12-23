@@ -13,6 +13,8 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				( is_admin() && did_action( 'woocommerce_cart_loaded_from_session' ) ) ||
 				// Skip during Jetpack API requests
 				( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) ||
+				// Skip if `woocommerce_send_cart_api_request` filter has been used for additional REST API condition.
+				( false !== strpos( $_SERVER['REQUEST_URI'], apply_filters( 'woocommerce_send_cart_api_request', false ) ) ) ||
 				// Skip during REST API or XMLRPC requests
 				( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) ||
 				// Skip during Jetpack REST API proxy requests
