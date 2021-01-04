@@ -391,10 +391,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
+			$notification_settings = $this->settings_store->get_post_print_notification_settings();
+
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$payload = array(
 				'orderId'            => $order_id,
 				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
+				'fulfillOrder'       => $notification_settings['mark_order_complete_and_notify_customer'],
+				'emailDetails'       => $notification_settings['notify_customer_with_shipment_details'],
 				'formData'           => $this->get_form_data( $order ),
 				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
 				'storeOptions'       => $this->settings_store->get_store_options(),
