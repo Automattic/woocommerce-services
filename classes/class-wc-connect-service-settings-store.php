@@ -161,6 +161,67 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
+		 * Gets post-label-printing notification settings.
+		 *
+		 * @return array Array of boolean values, indexed by setting names.
+		 */
+		public function get_post_print_notification_settings() {
+			$defaults = array(
+				'mark_order_complete_and_notify_customer' => false,
+				'notify_customer_with_shipment_details'   => false,
+			);
+
+			$settings = WC_Connect_Options::get_option( 'post_print_notification_settings', $defaults );
+
+			return array_merge( $defaults, $settings );
+		}
+
+		/**
+		 * Updates post-label-printing notification settings.
+		 *
+		 * @param string $name    Name of the setting to enable/disable.
+		 * @param bool   $enabled Whether the setting should be enabled.
+		 *
+		 * @return true|WP_Error WP_Error if an error occurred, `true` otherwise.
+		 */
+		public function set_post_print_notification_setting( $name, $enabled ) {
+			$allowed_names = array(
+				'mark_order_complete_and_notify_customer',
+				'notify_customer_with_shipment_details',
+			);
+
+			if ( ! in_array( $name, $allowed_names, true ) ) {
+				return new WP_Error(
+					'invalid_notification_setting_name',
+					__( 'Invalid notification setting name supplied.', 'woocommerce-services' )
+				);
+			}
+
+			$old_settings      = WC_Connect_Options::get_option( 'post_print_notification_settings' );
+			$settings          = $old_settings;
+			$settings[ $name ] = (bool) $enabled;
+
+			/*
+			 * WC_Connect_Options::update_option() returns `false` if the new value is the same as the old one.
+			 * As this is not an issue in this case, we return `true` here and leave the option unchanged.
+			 */
+			if ( $settings === $old_settings ) {
+				return true;
+			}
+
+			$result = WC_Connect_Options::update_option( 'post_print_notification_settings', $settings );
+
+			if ( ! $result ) {
+				return new WP_Error(
+					'save_failed',
+					__( 'Updating the option failed.', 'woocommerce-services' )
+				);
+			}
+
+			return $result;
+		}
+
+		/**
 		 * Attempts to recover faulty json string fields that might contain strings with unescaped quotes
 		 *
 		 * @param string $field_name
