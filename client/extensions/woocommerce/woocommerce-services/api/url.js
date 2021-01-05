@@ -1,5 +1,6 @@
 /** @format */
 export const accountSettings = 'connect/account/settings';
+export const postPrintNotificationSettings = 'connect/post-print-notification-settings';
 export const packages = 'connect/packages';
 export const orderLabels = ( orderId ) => `connect/label/${ orderId }`;
 export const getLabelRates = ( orderId ) => `connect/label/${ orderId }/rates`;

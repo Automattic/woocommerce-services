@@ -55,6 +55,8 @@ import {
 	hasStates,
 } from 'woocommerce/state/sites/data/locations/selectors';
 import { isWcsInternationalLabelsEnabled } from 'woocommerce/state/selectors/plugins';
+import { getOrder } from 'woocommerce/state/sites/orders/selectors';
+import { isOrderFinished } from '../../../lib/order-status';
 
 export const getShippingLabel = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
 	return get(
@@ -92,12 +94,14 @@ export const getLabelById = ( state, orderId, siteId, labelId ) => {
 
 export const shouldFulfillOrder = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
-	return shippingLabel && shippingLabel.fulfillOrder;
+	const order         = getOrder( state, orderId );
+	return shippingLabel && shippingLabel.fulfillOrder && order && ! isOrderFinished( order.status );
 };
 
 export const shouldEmailDetails = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
-	return shippingLabel && shippingLabel.emailDetails;
+	const order         = getOrder( state, orderId );
+	return shippingLabel && shippingLabel.emailDetails && order && isOrderFinished( order.status );
 };
 
 export const getSelectedPaymentMethod = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
