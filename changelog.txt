@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.5 - 2021-XX-XX =
+= 1.25.5 - 2021-01-11 =
 * Fix	- Redux DevTools usage update.
 * Add	- Display subscriptions usage.
 * Add	- Subscription activation.
