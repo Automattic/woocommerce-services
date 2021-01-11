@@ -19,7 +19,6 @@ const carrierLogos = {
 	"dhlexpress": dhlLogo,
 	"dhlecommerce": dhlLogo,
 	"dhlecommerceasia": dhlLogo,
-	"dhlecommerceinternational": dhlLogo,
 };
 
 const sizeToPixels = ( size ) => {
