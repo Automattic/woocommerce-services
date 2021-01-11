@@ -1,12 +1,14 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.5 - 202x-xx-xx =
+= 1.25.6 - 202x-xx-xx =
+* Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
+
+= 1.25.5 - 2021-01-11 =
 * Fix	- Redux DevTools usage update.
 * Add	- Display subscriptions usage.
 * Add	- Subscription activation.
 * Add 	- Uses same DHL logo for all registered DHL accounts.
 * Tweak - Adds WCCom access token and site ID to connect server request headers.
-* Add 	- Refreshes shipping methods after registering new carrier account.
 
 = 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
