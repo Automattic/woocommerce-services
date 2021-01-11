@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.4
+Stable tag: 1.25.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,13 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.5 - 2021-01-11 =
+* Fix	- Redux DevTools usage update.
+* Add	- Display subscriptions usage.
+* Add	- Subscription activation.
+* Add 	- Uses same DHL logo for all registered DHL accounts.
+* Tweak - Adds WCCom access token and site ID to connect server request headers.
 
 = 1.25.4 - 2020-12-08 =
 * Tweak - Remove Stripe connect functionality.
