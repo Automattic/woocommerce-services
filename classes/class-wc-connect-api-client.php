@@ -316,8 +316,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $body
 		 * @param object|WP_Error
 		 */
-		public function get_wccom_subscriptions( $body ) {
-			return $this->request( 'POST', '/subscriptions', $body );
+		public function get_wccom_subscriptions() {
+			return $this->request( 'POST', '/subscriptions' );
 		}
 
 		/**
@@ -364,6 +364,28 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
 			}
 			return $new_is_alive;
+		}
+
+		/**
+		 * Activate a subscrption with WCCOM API.
+		 *
+		 * @param  string $subscription_key Product Key on WCCOM.
+		 * @return WP_Error|Array  API Response.
+		 */
+		public function activate_subscription( $subscription_key ) {
+			$activation_response = WC_Helper_API::post(
+				'activate',
+				array(
+					'authenticated' => true,
+					'body'          => wp_json_encode(
+						array(
+							'product_key' => $subscription_key,
+						)
+					),
+				)
+			);
+
+			return $activation_response;
 		}
 
 		/**
@@ -444,17 +466,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				)
 			);
 
-			// Add WC Helper auth info if connected to WC.com.
-			$helper_auth_data = WC_Connect_Functions::get_wc_helper_auth_info();
-
-			if ( ! is_wp_error( $helper_auth_data ) ) {
-				$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
-					'access_token' => $helper_auth_data['access_token'],
-					'site_id'      => $helper_auth_data['site_id'],
-					)
-				);
-			}
-
 			return $body;
 		}
 
@@ -480,7 +491,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
 			if ( ! is_wp_error( $wc_helper_auth_info ) ) {
-				$headers[ 'X-Woo-Signature' ] = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
+				$headers[ 'X-Woo-Signature' ]    = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
+				$headers[ 'X-Woo-Access-Token' ] = $wc_helper_auth_info['access_token'];
+				$headers[ 'X-Woo-Site-Id' ]      = $wc_helper_auth_info['site_id'];
 			}
 			return $headers;
 		}
