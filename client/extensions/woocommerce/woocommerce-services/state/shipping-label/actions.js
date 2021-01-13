@@ -739,12 +739,12 @@ export const updatePostPrintNotificationSettings = ( state, orderId, siteId ) =>
 	if ( isOrderFinished( order.status ) ) {
 		data = {
 			name: 'notify_customer_with_shipment_details',
-			value: emailDetails,
+			enabled: emailDetails,
 		};
 	} else {
 		data = {
 			name: 'mark_order_complete_and_notify_customer',
-			value: fulfillOrder,
+			enabled: fulfillOrder,
 		};
 	}
 

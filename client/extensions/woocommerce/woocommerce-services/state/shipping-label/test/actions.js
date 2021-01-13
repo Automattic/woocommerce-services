@@ -322,22 +322,22 @@ describe( 'Shipping label Actions', () => {
 		{
 			orderStatus: 'completed',
 			state: { name: 'emailDetails', value: true },
-			expectedBody: { name: 'notify_customer_with_shipment_details', value: true },
+			expectedBody: { name: 'notify_customer_with_shipment_details', enabled: true },
 		},
 		{
 			orderStatus: 'completed',
 			state: { name: 'emailDetails', value: false },
-			expectedBody: { name: 'notify_customer_with_shipment_details', value: false },
+			expectedBody: { name: 'notify_customer_with_shipment_details', enabled: false },
 		},
 		{
 			orderStatus: 'pending',
 			state: { name: 'fulfillOrder', value: true },
-			expectedBody: { name: 'mark_order_complete_and_notify_customer', value: true },
+			expectedBody: { name: 'mark_order_complete_and_notify_customer', enabled: true },
 		},
 		{
 			orderStatus: 'pending',
 			state: { name: 'fulfillOrder', value: false },
-			expectedBody: { name: 'mark_order_complete_and_notify_customer', value: false },
+			expectedBody: { name: 'mark_order_complete_and_notify_customer', enabled: false },
 		},
 	];
 
