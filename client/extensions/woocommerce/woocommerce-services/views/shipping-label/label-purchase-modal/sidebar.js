@@ -27,8 +27,6 @@ import {
 	getShippingLabel,
 	isLoaded,
 	getFormErrors,
-	shouldFulfillOrder,
-	shouldEmailDetails,
 	hasSelectedRates,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { getOrderWithEdits, isCurrentlyEditingOrder } from 'woocommerce/state/ui/orders/selectors';
@@ -51,10 +49,13 @@ export const Sidebar = props => {
 	} = props;
 
 	const onFulfillAndEmailOrderChange = ( value ) => {
-		// Don't change order status if already finished.
-		props.setFulfillOrderOption( orderId, siteId, value && ! isOrderFinished( order.status ) );
-		// Email only if order is already complete.
-		props.setEmailDetailsOption( orderId, siteId, value && isOrderFinished( order.status ) );
+		if ( isOrderFinished( order.status ) ) {
+			// Email only if order is already complete.
+			props.setEmailDetailsOption( orderId, siteId, value );
+		} else {
+			// Don't change order status if already finished.
+			props.setFulfillOrderOption( orderId, siteId, value );
+		}
 	};
 	const onPaperSizeChange = value => props.updatePaperSize( orderId, siteId, value );
 
@@ -86,7 +87,10 @@ export const Sidebar = props => {
 					translate( 'Notify the customer with shipment details' ) :
 					translate( 'Mark this order as complete and notify the customer' )
 				}
-				checked={ fulfillOrder || emailDetails }
+				checked={ isOrderFinished( order.status ) ?
+					emailDetails :
+					fulfillOrder
+				}
 				onChange={ onFulfillAndEmailOrderChange }
 			/>
 		</div>
@@ -118,8 +122,8 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 		form: shippingLabel.form,
 		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 		errors: loaded && getFormErrors( state, orderId, siteId ).sidebar,
-		fulfillOrder: loaded && shouldFulfillOrder( state, orderId, siteId ),
-		emailDetails: loaded && shouldEmailDetails( state, orderId, siteId ),
+		fulfillOrder: shippingLabel.fulfillOrder,
+		emailDetails: shippingLabel.emailDetails,
 	};
 };
 

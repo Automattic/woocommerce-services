@@ -43,6 +43,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'payment_methods',
 				'account_settings',
 				'paper_size',
+				'post_print_notification_settings',
 				'packages',
 				'predefined_packages',
 				'shipping_methods_migrated',

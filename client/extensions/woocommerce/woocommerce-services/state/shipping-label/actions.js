@@ -44,6 +44,8 @@ import {
 } from './selectors';
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
+import { getOrder } from 'woocommerce/state/sites/orders/selectors';
+import { isOrderFinished } from 'woocommerce/lib/order-status';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import { getEmailReceipts } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
@@ -729,6 +731,26 @@ export const setFulfillOrderOption = ( orderId, siteId, value ) => {
 	};
 };
 
+export const updatePostPrintNotificationSettings = ( state, orderId, siteId ) => {
+	const { fulfillOrder, emailDetails } = getShippingLabel( state, orderId, siteId );
+	const order                          = getOrder( state, orderId );
+	let data                             = {};
+
+	if ( isOrderFinished( order.status ) ) {
+		data = {
+			name: 'notify_customer_with_shipment_details',
+			enabled: emailDetails,
+		};
+	} else {
+		data = {
+			name: 'mark_order_complete_and_notify_customer',
+			enabled: fulfillOrder,
+		};
+	}
+
+	api.post( siteId, api.url.postPrintNotificationSettings, data );
+};
+
 const purchaseLabelResponse = ( orderId, siteId, response, error ) => {
 	return {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_PURCHASE_RESPONSE,
@@ -777,7 +799,7 @@ const labelStatusTask = ( orderId, siteId, labelId, retryCount ) => {
 		} );
 };
 
-const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, labels ) => {
+export const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, labels ) => {
 	dispatch( exitPrintingFlow( orderId, siteId, true ) );
 	dispatch( clearAvailableRates( orderId, siteId ) );
 
@@ -824,6 +846,8 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 			} )
 		);
 	}
+
+	updatePostPrintNotificationSettings( getState(), orderId, siteId );
 };
 
 /**

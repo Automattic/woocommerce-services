@@ -12,6 +12,7 @@ import nock from 'nock';
  */
 import {
 	openPrintingFlow,
+	handlePrintFinished,
 	convertToApiPackage,
 	submitAddressForNormalization,
 	confirmAddressSuggestion,
@@ -267,6 +268,85 @@ describe( 'Shipping label Actions', () => {
 		} );
 
 		nock.cleanAll();
+	} );
+
+	const createGetStateFnForPostPrintNotificationSettings = ( orderStatus, notificationSettings ) => () => ( {
+		ui: {
+			selectedSiteId: siteId,
+		},
+		extensions: {
+			woocommerce: {
+				sites: {
+					[ siteId ]: {
+						orders: {
+							items: {
+								[ orderId ]: {
+									status: orderStatus,
+								},
+							}
+						}
+					},
+				},
+				woocommerceServices: {
+					[ siteId ]: {
+						shippingLabel: {
+							[ orderId ]: notificationSettings,
+						},
+					},
+				},
+			},
+		},
+	} );
+
+	const mockPostPrintNotificationSettingsUpdateRequest = expectedBody => {
+		return nock( 'https://public-api.wordpress.com:443' )
+			.post(
+				`/rest/v1.1/jetpack-blogs/${ siteId }/rest-api/`,
+				body => {
+					const expectedPath = '/wc/v1/connect/post-print-notification-settings&_via_calypso&_method=post';
+
+					return expectedPath === body.path && JSON.stringify( expectedBody ) === body.body;
+				}
+			)
+			.reply( 200, { success: true } );
+	};
+
+	const testPostPrintNotificationSettingsUpdate = ( orderStatus, state, expectedBody ) => {
+		const getState = createGetStateFnForPostPrintNotificationSettings( orderStatus, state );
+		const request  = mockPostPrintNotificationSettingsUpdateRequest( expectedBody );
+		handlePrintFinished( orderId, siteId, sinon.spy(), getState, false, [] );
+		request.done();
+	};
+
+	const testCases = [
+		{
+			orderStatus: 'completed',
+			state: { name: 'emailDetails', value: true },
+			expectedBody: { name: 'notify_customer_with_shipment_details', enabled: true },
+		},
+		{
+			orderStatus: 'completed',
+			state: { name: 'emailDetails', value: false },
+			expectedBody: { name: 'notify_customer_with_shipment_details', enabled: false },
+		},
+		{
+			orderStatus: 'pending',
+			state: { name: 'fulfillOrder', value: true },
+			expectedBody: { name: 'mark_order_complete_and_notify_customer', enabled: true },
+		},
+		{
+			orderStatus: 'pending',
+			state: { name: 'fulfillOrder', value: false },
+			expectedBody: { name: 'mark_order_complete_and_notify_customer', enabled: false },
+		},
+	];
+
+	describe.each( testCases )( '#handlePrintFinished', testCase => {
+		const { expectedBody, orderStatus, state } = testCase;
+
+		it( `sets "${expectedBody.name}" to ${expectedBody.value}`, () => {
+			testPostPrintNotificationSettingsUpdate( orderStatus, { [ state.name ]: state.value }, expectedBody );
+		} );
 	} );
 
 	describe( '#convertToApiPackage', () => {

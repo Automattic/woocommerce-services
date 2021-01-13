@@ -99,6 +99,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_account_settings_controller;
 
 		/**
+		 * @var WC_REST_Connect_Post_Print_Notification_Settings_Controller
+		 */
+		protected $rest_post_print_notification_settings_controller;
+
+		/**
 		 * @var WC_REST_Connect_Packages_Controller
 		 */
 		protected $rest_packages_controller;
@@ -327,6 +332,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $this->rest_account_settings_controller;
 		}
 
+		public function get_rest_post_print_notification_settings_controller() {
+			return $this->rest_post_print_notification_settings_controller;
+		}
+
 		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
 			$this->rest_tos_controller = $rest_tos_controller;
 		}
@@ -361,6 +370,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
 			$this->rest_account_settings_controller = $rest_account_settings_controller;
+		}
+
+		public function set_rest_post_print_notification_settings_controller( WC_REST_Connect_Post_Print_Notification_Settings_Controller $rest_post_print_notification_settings_controller ) {
+			$this->rest_post_print_notification_settings_controller = $rest_post_print_notification_settings_controller;
 		}
 
 		public function get_rest_services_controller() {
@@ -825,6 +838,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger, $this->payment_methods_store );
 			$this->set_rest_account_settings_controller( $rest_account_settings_controller );
 			$rest_account_settings_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-post-print-notification-settings-controller.php' ) );
+			$rest_post_print_notification_settings_controller = new WC_REST_Connect_Post_Print_Notification_Settings_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_post_print_notification_settings_controller( $rest_post_print_notification_settings_controller );
+			$rest_post_print_notification_settings_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-services-controller.php' ) );
 			$rest_services_controller = new WC_REST_Connect_Services_Controller( $this->api_client, $settings_store, $logger, $schemas_store );

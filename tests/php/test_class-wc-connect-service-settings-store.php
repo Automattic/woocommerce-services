@@ -180,4 +180,97 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 
 		$this->assertEquals( $actual, $expected );
 	}
+
+	public function test_get_notification_settings() {
+		$expected = array(
+			'mark_order_complete_and_notify_customer' => true,
+			'notify_customer_with_shipment_details'   => false,
+		);
+
+		WC_Connect_Options::update_option( 'post_print_notification_settings', $expected );
+
+		$settings_store = $this->get_settings_store();
+		$actual         = $settings_store->get_post_print_notification_settings();
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	public function test_get_notification_settings_returns_defaults_if_settings_are_empty() {
+		WC_Connect_Options::delete_option( 'post_print_notification_settings' );
+
+		$expected = array(
+			'mark_order_complete_and_notify_customer' => false,
+			'notify_customer_with_shipment_details'   => false,
+		);
+
+		$settings_store = $this->get_settings_store();
+		$actual         = $settings_store->get_post_print_notification_settings();
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	public function test_get_notification_settings_fills_missing_options_with_defaults() {
+		$partial_settings = array(
+			'mark_order_complete_and_notify_customer' => true,
+		);
+
+		WC_Connect_Options::update_option( 'post_print_notification_settings', $partial_settings );
+
+		$expected = array(
+			'mark_order_complete_and_notify_customer' => true,
+			'notify_customer_with_shipment_details'   => false,
+		);
+
+		$settings_store = $this->get_settings_store();
+		$actual         = $settings_store->get_post_print_notification_settings();
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	public function test_set_notification_setting_updates_settings() {
+		WC_Connect_Options::delete_option( 'post_print_notification_settings' );
+
+		$settings_store = $this->get_settings_store();
+		$settings_store->set_post_print_notification_setting( 'mark_order_complete_and_notify_customer', true );
+		$settings_store->set_post_print_notification_setting( 'notify_customer_with_shipment_details', true );
+
+		$settings = $settings_store->get_post_print_notification_settings();
+
+		$this->assertTrue( $settings['mark_order_complete_and_notify_customer'] );
+		$this->assertTrue( $settings['notify_customer_with_shipment_details'] );
+	}
+
+	public function test_set_notification_setting_returns_error_for_invalid_setting_names() {
+		$settings_store = $this->get_settings_store();
+		$result         = $settings_store->set_post_print_notification_setting( 'not a valid setting name', true );
+
+		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertEquals( 'invalid_notification_setting_name', $result->get_error_code() );
+	}
+
+	public function test_set_notification_setting_casts_values_to_bool() {
+		WC_Connect_Options::delete_option( 'post_print_notification_settings' );
+
+		$settings_store = $this->get_settings_store();
+		$settings_store->set_post_print_notification_setting( 'mark_order_complete_and_notify_customer', 'foo' );
+		$settings_store->set_post_print_notification_setting( 'notify_customer_with_shipment_details', '' );
+
+		$settings = $settings_store->get_post_print_notification_settings();
+
+		$this->assertSame( true, $settings['mark_order_complete_and_notify_customer'] );
+		$this->assertSame( false, $settings['notify_customer_with_shipment_details'] );
+	}
+
+	public function test_set_notfication_setting_returns_true_when_setting_same_value_as_before() {
+		$settings = array(
+			'mark_order_complete_and_notify_customer' => true,
+			'notify_customer_with_shipment_details'   => true,
+		);
+		WC_Connect_Options::update_option( 'post_print_notification_settings', $settings );
+
+		$settings_store = $this->get_settings_store();
+		$result         = $settings_store->set_post_print_notification_setting( 'mark_order_complete_and_notify_customer', true );
+
+		$this->assertTrue( $result );
+	}
 }

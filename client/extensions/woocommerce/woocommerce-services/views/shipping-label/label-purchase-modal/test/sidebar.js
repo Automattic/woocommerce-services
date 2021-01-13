@@ -27,7 +27,7 @@ function createSidebarWrapper( initProps = {} ) {
 		},
 		paperSize: 'letter',
 		errors: {},
-		form: { 
+		form: {
 			origin: { values: { country: 'US' } },
 			rates: {},
 		},
@@ -65,8 +65,7 @@ describe( 'Sidebar', () => {
 			renderedCheckboxControl.props().onChange( false )
 			expect( props.setFulfillOrderOption.mock.calls ).to.have.lengthOf( 1 );
 			expect( props.setFulfillOrderOption.mock.calls[0][2] ).to.equal( false );
-			expect( props.setEmailDetailsOption.mock.calls ).to.have.lengthOf( 1 );
-			expect( props.setEmailDetailsOption.mock.calls[0][2] ).to.equal( false );
+			expect( props.setEmailDetailsOption.mock.calls ).to.have.lengthOf( 0 );
 		} );
 
 		it( 'it is checked', function() {
@@ -83,7 +82,7 @@ describe( 'Sidebar', () => {
 
 	} );
 	describe( 'for completed orders', () => {
-		const { wrapper } = createSidebarWrapper( { order: { status: 'completed' }, fulfillOrder: false, emailDetails: false } );
+		const { wrapper, props } = createSidebarWrapper( { order: { status: 'completed' }, fulfillOrder: false, emailDetails: false } );
 		const renderedCheckboxControl = wrapper.find( CheckboxControl );
 
 		it( 'Has a the Correct Label', function () {
@@ -92,6 +91,13 @@ describe( 'Sidebar', () => {
 
 		it( 'it is not checked', function() {
 			expect( renderedCheckboxControl.props().checked ).to.equal( false );
+		} );
+
+		it( 'Unchecked checkbox disables sending email', function() {
+			renderedCheckboxControl.props().onChange( false );
+			expect( props.setFulfillOrderOption.mock.calls ).to.have.lengthOf( 0 );
+			expect( props.setEmailDetailsOption.mock.calls ).to.have.lengthOf( 1 );
+			expect( props.setEmailDetailsOption.mock.calls[0][2] ).to.equal( false );
 		} );
 	} );
 	describe( 'for no payment method and no selected rates', () => {
@@ -113,7 +119,7 @@ describe( 'Sidebar', () => {
 				origin: { values: { country: 'US' } },
 				rates: upsFormRates,
 			},
-			hasLabelsPaymentMethod: false 
+			hasLabelsPaymentMethod: false
 		} );
 
 		it( 'has paper size dropdown', function () {
@@ -132,7 +138,7 @@ describe( 'Sidebar', () => {
 				origin: { values: { country: 'US' } },
 				rates: uspsFormRates,
 			},
-			hasLabelsPaymentMethod: false 
+			hasLabelsPaymentMethod: false
 		} );
 
 		it( 'does not have paper size dropdown', function () {
