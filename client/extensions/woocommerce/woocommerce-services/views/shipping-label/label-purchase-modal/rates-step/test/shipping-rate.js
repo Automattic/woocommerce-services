@@ -8,6 +8,7 @@ import { expect } from 'chai';
 import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16'
 import { CheckboxControl, RadioControl } from '@wordpress/components';
+import { moment } from 'i18n-calypso';
 
 /**
  * Internal dependencies
@@ -94,7 +95,9 @@ describe( 'ShippingRate', () => {
 		} );
 
 		it( 'renders the delivery date', () => {
-			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">January 1</div> ); // eslint-disable-line
+			const expectedDate = moment( shippingRateWrapper.props().rateObject.delivery_date ).format( 'LL' ).split( ',' )[0];
+
+			expect( shippingRateWrapper ).to.contain( <div className="rates-step__shipping-rate-delivery-date">{ expectedDate }</div> ); // eslint-disable-line
 		} );
 
 	} );
