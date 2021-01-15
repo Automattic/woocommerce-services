@@ -345,7 +345,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			);
 			$is_debug_mode = 'yes' === get_option( 'woocommerce_shipping_debug_mode', 'no' );
 			$response_body = get_transient( $cache_key );
-			$this->debug( false === $response_body ? 'Cache contains rates response' : 'Cache does not contain rates response' );
+			$this->debug( false === $response_body ? 'Cache does not contain rates response' : 'Cache contains rates response' );
 			if ( ! $is_debug_mode && false !== $response_body ) {
 				$this->debug( 'Rates response retrieved from cache' );
 			} else {
