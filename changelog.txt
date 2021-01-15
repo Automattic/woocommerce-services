@@ -2,6 +2,7 @@
 
 = 1.25.6 - 202x-xx-xx =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
+* Tweak	- Changed rates response caching method from cache to transient.
 
 = 1.25.5 - 2021-01-11 =
 * Fix	- Redux DevTools usage update.
