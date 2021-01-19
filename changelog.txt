@@ -2,6 +2,8 @@
 
 = 1.25.6 - 202x-xx-xx =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
+* Fix	- Position dot in the center of radio buttons in "Create shipping label".
+* Fix	- Adjust radio button dot style in "Create shipping label" in high contrast mode on Windows.
 
 = 1.25.5 - 2021-01-11 =
 * Fix	- Redux DevTools usage update.
