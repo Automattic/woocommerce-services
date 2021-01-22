@@ -76,6 +76,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.6 - 2021-xx-xx =
+* Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
+* Tweak	- Changed rates response caching method from cache to transient.
+
 = 1.25.5 - 2021-01-11 =
 * Fix	- Redux DevTools usage update.
 * Add	- Display subscriptions usage.
@@ -125,41 +129,3 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 * Tweak - Update carrier logo
 * Tweak - Plugin rename
 * Add   - Link to print the customs form for all shipments that need it
-
-= 1.24.3 - 2020-09-16 =
-* Fix   - Asset paths incompatible with some hosts
-* Fix   - Select all posts checkbox not working
-* Fix   - Use of deprecated jQuery.load
-* Tweak - Updating carrier logo and tracking links
-
-= 1.24.2 - 2020-09-03 =
-* Fix   - Optional preloading for wc-admin install compatibility
-* Fix   - Remove duplicate rate errors
-* Fix   - Compatibility with WooCommerce order page install prompt
-* Add   - Introduce 'wc_connect_meta_box_payload' filter for modifying order data
-* Tweak - Update UPS failed connection error message
-
-= 1.24.1 - 2020-08-19 =
-* Tweak - Zip/Postcode/Postal code messaging consistency
-* Fix   - Services management CSS table layout
-* Fix   - Carrier "disconnect modal" layout
-* Fix   - Primary button busy state updated to match color
-* Fix   - Remove padding from notice bar
-* Fix   - Add missing box in rate step for how much customer paid for shipping
-* Tweak - Bump WP tested version to 5.5
-* Fix   - Issue with dismiss modal popup blocking access to edit order
-
-= 1.24.0 - 2020-07-30 =
-* Fix   - PHP 7.4 notice for taxes at checkout.
-* Add   - Carrier logos next to rates.
-* Tweak - Remove spinner from create shipping label button
-* Add   - Upgrade React to 16.13
-* Add   - Optimize bundle
-* Fix   - Fix svg images not showing on dev
-* Fix   - Fix 404 taxjar.js on new order page
-* Add   - Add e2e tests for toggling shipping label
-* Add   - Add e2e tests for label refund
-* Fix   - Show which nexus automatted taxes will work with and link to doc
-* Fix   - Fix localization issues
-* Tweak - Improve service listing readability
-* Add   - Support UPS as a carrier (beta)
