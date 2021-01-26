@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.5
+Stable tag: 1.25.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.6 - 2021-xx-xx =
+= 1.25.6 - 2021-01-26 =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
 * Tweak	- Changed rates response caching method from cache to transient.
 
