@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.6 - 202x-xx-xx =
+= 1.25.6 - 2021-01-26 =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
 * Tweak	- Changed rates response caching method from cache to transient.
 * Tweak	- Update "WC Tested up to" version.
