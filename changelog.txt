@@ -2,6 +2,7 @@
 
 = 1.25.6 - 202x-xx-xx =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
+* Tweak	- Changed rates response caching method from cache to transient.
 * Fix	- Position dot in the center of radio buttons in "Create shipping label".
 * Fix	- Adjust radio button dot style in "Create shipping label" in high contrast mode on Windows.
 

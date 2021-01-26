@@ -343,16 +343,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				'wcs_rates_%s',
 				md5( serialize( array( $services, $package, $custom_boxes, $predefined_boxes ) ) )
 			);
-			$debug_mode = 'yes' === get_option( 'woocommerce_shipping_debug_mode', 'no' );
-			$response_body = wp_cache_get( $cache_key );
-			if ( ! $debug_mode && false !== $response_body ) {
+			$is_debug_mode = 'yes' === get_option( 'woocommerce_shipping_debug_mode', 'no' );
+			$response_body = get_transient( $cache_key );
+			$this->debug( false === $response_body ? 'Cache does not contain rates response' : 'Cache contains rates response' );
+			if ( ! $is_debug_mode && false !== $response_body ) {
 				$this->debug( 'Rates response retrieved from cache' );
 			} else {
 				$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
 				if ( $this->check_and_handle_response_error( $response_body, $service_settings ) ) {
 					return;
 				}
-				wp_cache_set( $cache_key, $response_body, '', 3600 );
+				set_transient( $cache_key, $response_body, HOUR_IN_SECONDS );
 			}
 
 			$instances = $response_body->rates;
