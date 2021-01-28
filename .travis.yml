@@ -6,6 +6,8 @@ os: linux
 dist: xenial
 services:
     - mysql
+env:
+    - DONT_SKIP_E2E_TESTS=1
 
 # Define our matrix of build configurations to test against.
 jobs:
