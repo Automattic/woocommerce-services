@@ -20,7 +20,29 @@
 		}
 
 		.subscriptions-usage__list-item-usage {
+			display: flex;
 			width: 30%;
+
+			& > .subscriptions-usage__list-item-usage-icon {
+				display: none;
+			}
+
+			&.is-over-limit {
+				& > .subscriptions-usage__list-item-usage-numbers {
+					color: var( --color-red-light );
+					font-weight: 600;
+				}
+
+				& > .subscriptions-usage__list-item-usage-icon {
+					display: block;
+					margin-left: 5px;
+				}
+
+				.components-popover__content {
+					white-space: normal;
+					width: 200px;
+				}
+			}
 		}
 
 		.subscriptions-usage__list-item-actions {
