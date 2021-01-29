@@ -21,7 +21,16 @@
 
 		.subscriptions-usage__list-item-usage {
 			display: flex;
+			flex-flow: column;
+			justify-content: center;
+			text-align: center;
 			width: 30%;
+
+			@include breakpoint( '>480px' ) {
+				flex-flow: row;
+				justify-content: flex-start;
+				text-align: left;
+			}
 
 			& > .subscriptions-usage__list-item-usage-icon {
 				display: none;
@@ -35,7 +44,12 @@
 
 				& > .subscriptions-usage__list-item-usage-icon {
 					display: block;
-					margin-left: 5px;
+					margin-top: 5px;
+
+					@include breakpoint( '>480px' ) {
+						margin-left: 5px;
+						margin-top: 0;
+					}
 				}
 
 				.components-popover__content {
