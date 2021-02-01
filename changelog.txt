@@ -1,7 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.7 - 2021-x-x =
+= 1.25.7 - 2021-xx-xx =
 * Fix   - Connect carrier account link broken on subdirectory installs
+* Fix	  - Prevent error notices on checkout page load
 
 = 1.25.6 - 2021-01-26 =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
