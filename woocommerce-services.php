@@ -196,6 +196,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $rest_tos_controller;
 
+		/**
+		 * The injected cart validator.
+		 *
+		 * @var WC_Connect_Cart_Validation
+		 */
+		protected $cart_validator;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -273,6 +280,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_logger( WC_Connect_Logger $logger ) {
 			$this->logger = $logger;
+		}
+
+		/**
+		 * Get Cart Validator.
+		 *
+		 * @return WC_Connect_Cart_Validation
+		 */
+		public function get_cart_validator() {
+			return $this->cart_validator;
+		}
+
+		/**
+		 * Called in load_dependencies.
+		 *
+		 * @param WC_Connect_Cart_Validation $cart_validator Validator object.
+		 */
+		public function set_cart_validator( WC_Connect_Cart_Validation $cart_validator ) {
+			$this->cart_validator = $cart_validator;
 		}
 
 		public function get_shipping_logger() {
@@ -656,6 +681,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-package-settings.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-continents.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-order-presenter.php' ) );
+			require_once __DIR__ . '/classes/class-wc-connect-cart-exception.php';
+			require_once __DIR__ . '/classes/class-wc-connect-cart-validation.php';
 
 			$core_logger           = new WC_Logger();
 			$logger                = new WC_Connect_Logger( $core_logger );
@@ -696,6 +723,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
+
+			$cart_validation = new WC_Connect_Cart_Validation();
+			$cart_validation->register_filters();
+			$this->set_cart_validator( $cart_validation );
 		}
 
 		/**
@@ -1154,6 +1185,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$method->set_api_client( $this->get_api_client() );
 			$method->set_logger( $this->get_shipping_logger() );
 			$method->set_service_settings_store( $this->get_service_settings_store() );
+			$method->set_cart_validator( $this->get_cart_validator() );
 
 			$service_schema = $this->get_service_schemas_store()->get_service_schema_by_id_or_instance_id( $id_or_instance_id );
 

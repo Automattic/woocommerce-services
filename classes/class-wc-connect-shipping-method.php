@@ -24,6 +24,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected $api_client;
 
+		/**
+		 * Injected by WC_Connect_Loader
+		 *
+		 * @var WC_Connect_Cart_Validation
+		 */
+		protected $cart_validator;
+
 		public function __construct( $id_or_instance_id = null ) {
 			parent::__construct( $id_or_instance_id );
 
@@ -116,6 +123,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		}
 
+		/**
+		 * Injected by WC_Connect_Loader
+		 *
+		 * @param WC_Connect_Cart_Validation $cart_validator Cart validator.
+		 */
+		public function set_cart_validator( WC_Connect_Cart_Validation $cart_validator ) {
+			$this->cart_validator = $cart_validator;
+		}
+
 		public function get_api_client() {
 
 			return $this->api_client;
@@ -198,37 +214,16 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		/**
 		 * Determine if a package's destination is valid enough for a rate quote.
 		 *
-		 * @param array $package
+		 * @param array $package Current Package.
 		 * @return bool
 		 */
 		public function is_valid_package_destination( $package ) {
-
-			$country  = isset( $package['destination']['country'] ) ? $package['destination']['country'] : '';
-			$postcode = isset( $package['destination']['postcode'] ) ? $package['destination']['postcode'] : '';
-			$state    = isset( $package['destination']['state'] ) ? $package['destination']['state'] : '';
-
-			// Ensure that Country is specified
-			if ( empty( $country ) ) {
-				$this->debug( 'Skipping rate calculation - missing country', 'error' );
+			try {
+				return $this->cart_validator->validate_package_destination( $package );
+			} catch ( WC_Connect_Cart_Exception $e ) {
+				$this->debug( $e->getMessage(), 'error' );
 				return false;
 			}
-
-			// Validate Postcode
-			if ( ! WC_Validation::is_postcode( $postcode, $country ) ) {
-				$this->debug( 'Skipping rate calculation - invalid postcode', 'error' );
-				return false;
-			}
-
-			// Validate State
-			$valid_states = WC()->countries->get_states( $country );
-
-			if ( $valid_states && ! array_key_exists( $state, $valid_states ) ) {
-				$this->debug( 'Skipping rate calculation - invalid/unsupported state', 'error' );
-				return false;
-			}
-
-			return true;
-
 		}
 
 		private function lookup_product( $package, $product_id ) {
