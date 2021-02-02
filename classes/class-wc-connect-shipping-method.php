@@ -132,6 +132,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$this->cart_validator = $cart_validator;
 		}
 
+		/**
+		 * Get injected cart validator object.
+		 *
+		 * @return WC_Connect_Cart_Validation
+		 */
+		public function get_cart_validator() {
+			if ( empty( $this->cart_validator ) ) {
+				$this->cart_validator = new WC_Connect_Cart_Validation();
+			}
+			return $this->cart_validator;
+		}
+
 		public function get_api_client() {
 
 			return $this->api_client;
@@ -219,7 +231,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		public function is_valid_package_destination( $package ) {
 			try {
-				return $this->cart_validator->validate_package_destination( $package );
+				return $this->get_cart_validator()->validate_package_destination( $package );
 			} catch ( WC_Connect_Cart_Exception $e ) {
 				$this->debug( $e->getMessage(), 'error' );
 				return false;

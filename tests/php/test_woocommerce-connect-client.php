@@ -22,7 +22,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'get_service_schemas_store', 'get_api_client', 'get_logger', 'get_shipping_logger', 'get_tracks' ) )
+			->setMethods( array( 'get_service_schemas_store', 'get_api_client', 'get_logger', 'get_shipping_logger', 'get_tracks', 'get_cart_validator' ) )
 			->getMock();
 
 		$loader->expects( $this->any() )
@@ -62,6 +62,14 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->expects( $this->any() )
 			->method( 'get_tracks' )
 			->will( $this->returnValue( $tracks ) );
+
+		$cart_validator = $this->getMockBuilder( 'WC_Connect_Cart_Validation' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$loader->expects( $this->any() )
+			->method( 'get_cart_validator' )
+			->will( $this->returnValue( $cart_validator ) );
 
 		return $loader;
 	}

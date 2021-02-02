@@ -3,7 +3,9 @@
 class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
 	static function setUpBeforeClass()	{
-		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-method.php' );
+		require_once __DIR__ . '/../../classes/class-wc-connect-shipping-method.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-cart-validation.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-cart-exception.php';
 	}
 
 	public function is_valid_package_destination_provider() {
