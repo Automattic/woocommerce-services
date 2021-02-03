@@ -339,6 +339,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$predefined_boxes = $this->service_settings_store->get_predefined_packages_for_service( $this->service_schema->id );
 			$predefined_boxes = array_values( array_filter( $predefined_boxes, array( $this, 'filter_preset_boxes' ) ) );
 
+			foreach( $package[ 'contents' ] as $item_key => $item_details ) {
+				ksort( $package[ 'contents' ][ $item_key ] );
+			}
 			$cache_key = sprintf(
 				'wcs_rates_%s',
 				md5( serialize( array( $services, $package, $custom_boxes, $predefined_boxes ) ) )
@@ -494,6 +497,33 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			WC_Connect_Options::update_shipping_method_option( 'failure_timestamp', $timestamp, $this->id, $this->instance_id );
+		}
+
+		/**
+		 * @param array $package Shipping package object
+		 *
+		 * @return array|bool Cached shipping rates response body or false, if not found
+		 */
+		public function get_cached_shipping_rates_response( $package ) {
+			$services = array(
+				array(
+					'id'               => $this->service_schema->id,
+					'instance'         => $this->instance_id,
+					'service_settings' => $this->get_service_settings(),
+				),
+			);
+			$custom_boxes = $this->service_settings_store->get_packages();
+			$predefined_boxes = $this->service_settings_store->get_predefined_packages_for_service( $this->service_schema->id );
+			$predefined_boxes = array_values( array_filter( $predefined_boxes, array( $this, 'filter_preset_boxes' ) ) );
+
+			foreach( $package[ 'contents' ] as $item_key => $item_details ) {
+				ksort( $package[ 'contents' ][ $item_key ] );
+			}
+			$cache_key = sprintf(
+				'wcs_rates_%s',
+				md5( serialize( array( $services, $package, $custom_boxes, $predefined_boxes ) ) )
+			);
+			return get_transient( $cache_key );
 		}
 
 		public function admin_options() {

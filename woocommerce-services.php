@@ -766,6 +766,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
+			add_action( 'woocommerce_order_details_after_order_table', array( $this, 'track_completed_order' ), 10, 1 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1019,6 +1020,93 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			return $reports;
+		}
+
+		/**
+		 * Send completed order details to Connect Server to check live rates usage.
+		 * Attached to the woocommerce_order_details_after_order_table hook
+		 *
+		 * @param $order WC_Order object containing completed order details.
+		 */
+		public function track_completed_order( $order ) {
+			// We need to recreate a temporary cart from the order
+			// so that we can create the same shipping packages from the cart
+			// to use to generate the correct cache key to return the cached
+			// shipping rates response.
+			$temp_cart   = new WC_Cart();
+			$order_items = $order->get_items();
+
+			foreach ( $order_items as $item ) {
+				$product = wc_get_product( $item->get_product() );
+
+				$product_id           = $product->get_id();
+				$quantity             = $item->get_quantity();
+				$variation_id         = 0;
+				$variation_attributes = array();
+
+				if ( 'variation' === $product->get_type() ) {
+					$variation_id         = $product_id;
+					$product_id           = $product->get_parent_id();
+					$variation_attributes = $product->get_variation_attributes();
+				}
+
+				$temp_cart->add_to_cart( $product_id, $quantity, $variation_id, $variation_attributes );
+			}
+
+			$packages = $temp_cart->get_shipping_packages();
+			$temp_cart->empty_cart();
+			$package = $packages[0];
+			foreach ( $package['contents'] as $item_key => $item_details ) {
+				ksort( $package['contents'][ $item_key ] );
+			}
+			$package['rates'] = array();
+
+			$shipping_zone    = WC_Shipping_Zones::get_zone_matching_package( $package );
+			$shipping_methods = $shipping_zone->get_shipping_methods( true );
+
+			// We will fill these with the required parameters
+			// should we need to repeat the shipping request for
+			// each service as a fallback.
+			$services         = array();
+			$custom_boxes     = array();
+			$predefined_boxes = array();
+			$requested_rates  = array();
+
+			foreach ( $shipping_methods as $method ) {
+				$handler = new WC_Connect_Shipping_Method( $method->get_instance_id() );
+
+				$service_settings       = $handler->get_service_settings();
+				$service_schema         = $handler->get_service_schema();
+				$service_settings_store = $handler->get_service_settings_store();
+				$cached_response_body   = $handler->get_cached_shipping_rates_response( $package );
+
+				$services[] = array(
+					array(
+						'id'               => $service_schema->id,
+						'instance'         => $method->get_instance_id(),
+						'service_settings' => $service_settings,
+					),
+				);
+				$custom_boxes[]     = $service_schemas_store->get_packages();
+				$predefined_boxes[] = $service_schemas_store->get_predefined_packages_for_service( $service_schema->id );
+				$requested_rates[]  = ( false !== $cached_response_body ) ? $cached_response_body['rates'] : array();
+			}
+
+			$api_client = $this->get_api_client();
+			$response   = $api_client->track_subscription_event( $services, $package, $custom_boxes, $predefined_boxes, $requested_rates );
+			if ( is_wp_error( $response ) ) {
+				$logger = $this->get_logger();
+
+				if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
+					$logger->error(
+						sprintf(
+							'Unable to send subscription event: %s',
+							$response->get_error_message(),
+						),
+						__FUNCTION__
+					);
+				}
+			}
 		}
 
 		/**
