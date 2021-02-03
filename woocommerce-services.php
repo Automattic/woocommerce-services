@@ -1080,7 +1080,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$service_settings_store = $handler->get_service_settings_store();
 				$cached_response_body   = $handler->get_cached_shipping_rates_response( $package );
 
-				$services[] = array(
+				$services[]         = array(
 					array(
 						'id'               => $service_schema->id,
 						'instance'         => $method->get_instance_id(),
@@ -1101,7 +1101,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					$logger->error(
 						sprintf(
 							'Unable to send subscription event: %s',
-							$response->get_error_message(),
+							$response->get_error_message()
 						),
 						__FUNCTION__
 					);
