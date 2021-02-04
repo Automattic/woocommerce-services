@@ -164,7 +164,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// Then, make the request
 			$body = array(
 				'contents'         => $contents,
-				'destination'      => $package[ 'destination' ],
+				'destination'      => $package['destination'],
 				'services'         => $services,
 				'boxes'            => $custom_boxes,
 				'predefined_boxes' => $predefined_boxes,
@@ -198,16 +198,24 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			$body = array(
-				'contents'         => $contents,
-				'destination'      => $package[ 'destination' ],
-				'services'         => $services,
-				'boxes'            => $custom_boxes,
-				'predefined_boxes' => $predefined_boxes,
-				'rates'			   => $rates,
-			);
+			$shipping_methods = array();
+			foreach ( $services as $i => $service ) {
+				$body = array(
+					'contents'         => $contents,
+					'destination'      => $package['destination'],
+					'services'         => $service,
+					'boxes'            => $custom_boxes[ $i ],
+					'predefined_boxes' => $predefined_boxes[ $i ],
+				);
 
-			return $this->request( 'POST', '/subscriptions/usage' );
+				$rate = $rates[ $i ];
+				if ( false !== $rate ) {
+					$body['rates'] = $rate['rates'];
+				}
+				$shipping_methods[] = $body;
+			}
+
+			return $this->request( 'POST', '/subscriptions/usage', array( 'shipping_methods' => $shipping_methods ) );
 		}
 
 		public function send_shipping_label_request( $body ) {

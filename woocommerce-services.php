@@ -1089,7 +1089,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				);
 				$custom_boxes[]     = $service_schemas_store->get_packages();
 				$predefined_boxes[] = $service_schemas_store->get_predefined_packages_for_service( $service_schema->id );
-				$requested_rates[]  = ( false !== $cached_response_body ) ? $cached_response_body['rates'] : array();
+				$requested_rates[]  = $cached_response_body;
 			}
 
 			$api_client = $this->get_api_client();
