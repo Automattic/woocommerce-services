@@ -53,7 +53,6 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 
 	public function create_packages( $request ) {
 		$packages = $request->get_json_params();
-		fwrite(STDERR, print_r($packages));
 
 		$custom_packages = isset($packages['custom']) ? $packages['custom'] : null;
 		$predefined_packages = isset($packages['predefined']) ? $packages['predefined'] : null;
