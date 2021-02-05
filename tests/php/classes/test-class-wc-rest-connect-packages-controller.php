@@ -78,14 +78,14 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$predefined_packages_before_creation = $this->settings_store->get_predefined_packages();
 
 		// When
-		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages/create' );
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages' );
 		$request->set_header( 'content-type', 'application/json' );
 		$request->set_body(json_encode(array(
 			'custom' => $new_packages
 		)));
 		fwrite(STDERR, print_r($request->get_json_params()));
 		fwrite(STDERR, print_r($request->get_body_params()));
-		$response = $controller->create_packages($request);
+		$response = $controller->post($request);
 
 		// Then
 		$this->assertEquals( 200, $response->status );
@@ -124,14 +124,14 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$custom_packages_before_creation = $this->settings_store->get_packages();
 
 		// When
-		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages/create' );
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages' );
 		$request->set_header( 'content-type', 'application/json' );
 		$request->set_body(json_encode(array(
 			'predefined' => $new_predefined_packages
 		)));
 		fwrite(STDERR, print_r($request->get_json_params()));
 		fwrite(STDERR, print_r($request->get_body_params()));
-		$response = $controller->create_packages($request);
+		$response = $controller->post($request);
 
 		// Then
 		$this->assertEquals( 200, $response->status );
@@ -193,7 +193,7 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->settings_store->update_predefined_packages($existing_predefined_packages);
 
 		// When
-		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages/create' );
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages' );
 		$request->set_header( 'content-type', 'application/json' );
 		$request->set_body(json_encode(array(
 			'predefined' => $new_predefined_packages,
@@ -201,7 +201,7 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		)));
 		fwrite(STDERR, print_r($request->get_json_params()));
 		fwrite(STDERR, print_r($request->get_body_params()));
-		$response = $controller->create_packages($request);
+		$response = $controller->post($request);
 
 		// Then
 		$this->assertEquals( 200, $response->status );
