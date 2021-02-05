@@ -180,4 +180,70 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 
 		$this->assertEquals( $actual, $expected );
 	}
+
+	public function test_create_packages_extends_existing_packages() {
+		// Given
+		$settings_store = $this->get_settings_store();
+		$package_1 = array(
+			'is_user_defined' => true,
+			'name' => 'Fun box',
+			'inner_dimensions' => '10 x 20 x 5',
+			'box_weight' => 0.23,
+			'max_weight' => 0
+		);
+		$package_2 = array(
+			'is_user_defined' => true,
+			'name' => 'Fun envelope',
+			'inner_dimensions' => '12 x 16 x 11',
+			'box_weight' => 0.5,
+			'max_weight' => 0
+		);
+		$existing_packages = array($package_1);
+		$new_packages = array($package_2);
+		$settings_store->update_packages($existing_packages);
+
+		// When
+		$settings_store->create_packages($new_packages);
+
+		// Then
+		$actual = $settings_store->get_packages();
+		$expected = array($package_1, $package_2);
+
+		$this->assertEquals($expected, $actual);
+	}
+
+	public function test_create_predefined_packages_extends_existing_packages() {
+		// Given
+		$settings_store = $this->get_settings_store();
+		$existing_predefined_packages = array(
+			'usps' => array(
+				'flat_envelope', 'padded_flat_envelope'
+			),
+		);
+		$new_predefined_packages = array(
+			'dhlexpress' => array(
+				'SmallPaddedPouch', 'Box2Cube'
+			),
+			'usps' => array(
+				'legal_flat_envelope'
+			),
+		);
+		$settings_store->update_predefined_packages($existing_predefined_packages);
+
+		// When
+		$settings_store->create_predefined_packages($new_predefined_packages);
+
+		// Then
+		$actual = $settings_store->get_predefined_packages();
+		$expected = array(
+			'usps' => array(
+				'flat_envelope', 'padded_flat_envelope', 'legal_flat_envelope'
+			),
+			'dhlexpress' => array(
+				'SmallPaddedPouch', 'Box2Cube'
+			),
+		);
+
+		$this->assertEquals($expected, $actual);
+	}
 }
