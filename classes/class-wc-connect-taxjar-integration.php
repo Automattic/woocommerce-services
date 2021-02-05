@@ -326,7 +326,8 @@ class WC_Connect_TaxJar_Integration {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
-			if ( ! wc_has_notice( $message, 'error' ) ) {
+			// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
+			if ( ( is_cart() || ( is_checkout() && is_ajax() ) ) && ! wc_has_notice( $message, 'error' ) ) {
 				wc_add_notice( $message, 'error' );
 			}
 
