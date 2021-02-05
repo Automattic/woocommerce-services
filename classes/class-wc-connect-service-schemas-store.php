@@ -36,7 +36,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			$old_schemas = $this->get_service_schemas();
 			if ( $old_schemas == $response_body ) {
-				//schemas weren't changed, but were fetched without problems
+				// schemas weren't changed, but were fetched without problems
 				return true;
 			}
 
@@ -62,7 +62,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 		protected function maybe_update_heartbeat() {
 			$last_heartbeat = WC_Connect_Options::get_option( 'last_heartbeat' );
-			$now = time();
+			$now            = time();
 
 			if ( ! $last_heartbeat ) {
 				$should_update = true;
@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 					// last heartbeat in the future? wacky
 					$should_update = true;
 				} else {
-					$elapsed = $now - $last_heartbeat;
+					$elapsed       = $now - $last_heartbeat;
 					$should_update = $elapsed > DAY_IN_SECONDS;
 				}
 			}
@@ -115,7 +115,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 */
 		public function get_all_shipping_method_ids() {
 			$shipping_method_ids = array();
-			$service_schemas = $this->get_service_schemas();
+			$service_schemas     = $this->get_service_schemas();
 			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'shipping' ) || ! is_array( $service_schemas->shipping ) ) {
 				return $shipping_method_ids;
 			}
@@ -236,7 +236,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			$predefined_packages = array();
-			foreach( $service_schemas->shipping as $service_schema ) {
+			foreach ( $service_schemas->shipping as $service_schema ) {
 				if ( ! isset( $service_schema->packages ) ) {
 					continue;
 				}

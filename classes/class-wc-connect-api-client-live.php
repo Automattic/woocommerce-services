@@ -10,7 +10,7 @@ if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_URL' ) ) {
 }
 
 if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
-	require_once( plugin_basename( 'class-wc-connect-api-client.php' ) );
+	require_once plugin_basename( 'class-wc-connect-api-client.php' );
 
 	class WC_Connect_API_Client_Live extends WC_Connect_API_Client {
 
@@ -65,16 +65,16 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 				wc_set_time_limit( $http_timeout + 10 );
 			}
 			$args = array(
-				'headers' => $headers,
-				'method' => $method,
-				'body' => $body,
+				'headers'     => $headers,
+				'method'      => $method,
+				'body'        => $body,
 				'redirection' => 0,
-				'compress' => true,
-				'timeout' => $http_timeout,
+				'compress'    => true,
+				'timeout'     => $http_timeout,
 			);
 			$args = apply_filters( 'wc_connect_request_args', $args );
 
-			$response = wp_remote_request( $url, $args );
+			$response      = wp_remote_request( $url, $args );
 			$response_code = wp_remote_retrieve_response_code( $response );
 
 			// If the received response is not JSON, return the raw response

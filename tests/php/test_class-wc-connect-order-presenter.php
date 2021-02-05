@@ -2,8 +2,8 @@
 
 class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 	public static function setupBeforeClass() {
-		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php' );
-		require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-order-presenter.php' );
+		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php';
+		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-order-presenter.php';
 
 		WC_Connect_Compatibility::set_version( '3.0.0' );
 	}
@@ -14,14 +14,14 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 		$order->save();
 
 		$connect_order_presenter = new WC_Connect_Order_Presenter();
-		$actual = $connect_order_presenter->get_order_for_api($order);
+		$actual                  = $connect_order_presenter->get_order_for_api( $order );
 
 		// Refer to WC_Helper_Order::create_order()
-		$this->assertEquals( 'pending', $actual['status']);
-		$this->assertEquals( 1, $actual['customer_id']);
-		$this->assertEquals( '50.00', $actual['total']);
-		$this->assertEquals( '40.00', $actual['subtotal']);
-		$this->assertEquals( '10.00', $actual['total_shipping']);
+		$this->assertEquals( 'pending', $actual['status'] );
+		$this->assertEquals( 1, $actual['customer_id'] );
+		$this->assertEquals( '50.00', $actual['total'] );
+		$this->assertEquals( '40.00', $actual['subtotal'] );
+		$this->assertEquals( '10.00', $actual['total_shipping'] );
 	}
 
 	public function test_get_order_for_api_shipping_lines() {
@@ -30,7 +30,7 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 		$order->save();
 
 		$connect_order_presenter = new WC_Connect_Order_Presenter();
-		$actual = $connect_order_presenter->get_order_for_api($order);
+		$actual                  = $connect_order_presenter->get_order_for_api( $order );
 
 		$this->assertEquals( 'flat_rate_shipping', $actual['shipping_lines'][0]['method_id'] );
 		$this->assertEquals( 'Flat rate shipping', $actual['shipping_lines'][0]['method_title'] );
@@ -43,7 +43,7 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 		$order->save();
 
 		$connect_order_presenter = new WC_Connect_Order_Presenter();
-		$actual = $connect_order_presenter->get_order_for_api($order);
+		$actual                  = $connect_order_presenter->get_order_for_api( $order );
 
 		$this->assertEquals( '40.00', $actual['line_items'][0]['subtotal'] );
 		$this->assertEquals( '40.00', $actual['line_items'][0]['total'] );
@@ -59,11 +59,11 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 
 		// Setup order
 		$order = WC_Helper_Order::create_order();
-		$order->add_item($feeItem);
+		$order->add_item( $feeItem );
 		$order->save();
 
 		$connect_order_presenter = new WC_Connect_Order_Presenter();
-		$actual = $connect_order_presenter->get_order_for_api($order);
+		$actual                  = $connect_order_presenter->get_order_for_api( $order );
 
 		$this->assertEquals( '15.01', $actual['fee_lines'][0]['total'] );
 		$this->assertEquals( '5.01', $actual['fee_lines'][0]['total_tax'] );
@@ -74,11 +74,11 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 
 		// Setup order
 		$order = WC_Helper_Order::create_order();
-		$order->apply_coupon($coupon);
+		$order->apply_coupon( $coupon );
 		$order->save();
 
 		$connect_order_presenter = new WC_Connect_Order_Presenter();
-		$actual = $connect_order_presenter->get_order_for_api($order);
+		$actual                  = $connect_order_presenter->get_order_for_api( $order );
 
 		// Refer to WC_Helper_Coupon::create_coupon()
 		$this->assertEquals( 'coupon_1', $actual['coupon_lines'][0]['code'] );
