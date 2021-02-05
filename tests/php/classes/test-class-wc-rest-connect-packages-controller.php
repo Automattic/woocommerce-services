@@ -83,8 +83,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$request->set_body(json_encode(array(
 			'custom' => $new_packages
 		)));
-		fwrite(STDERR, print_r($request->get_json_params()));
-		fwrite(STDERR, print_r($request->get_body_params()));
 		$response = $controller->create_packages($request);
 
 		// Then
@@ -129,8 +127,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$request->set_body(json_encode(array(
 			'predefined' => $new_predefined_packages
 		)));
-		fwrite(STDERR, print_r($request->get_json_params()));
-		fwrite(STDERR, print_r($request->get_body_params()));
 		$response = $controller->create_packages($request);
 
 		// Then
@@ -199,8 +195,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 			'predefined' => $new_predefined_packages,
 			'custom' => array($package_2)
 		)));
-		fwrite(STDERR, print_r($request->get_json_params()));
-		fwrite(STDERR, print_r($request->get_body_params()));
 		$response = $controller->create_packages($request);
 
 		// Then
