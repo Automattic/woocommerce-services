@@ -32,10 +32,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		protected $cart_validator;
 
 		/**
+		 * Store validation errors in property for later retrieval.
+		 *
 		 * @var WP_Error
 		 */
 		protected $package_validation_errors;
 
+		/**
+		 * Cache of destinations which have already been validated.
+		 *
+		 * @var array
+		 */
 		protected $validated_package_destinations = array();
 
 		public function __construct( $id_or_instance_id = null ) {
