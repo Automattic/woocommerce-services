@@ -23,6 +23,18 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 		);
 	}
 
+	public function register_routes() {
+		parent::register_routes();
+
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/create', array(
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'create_packages' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+			),
+		) );
+	}
+
 	public function get() {
 		return new WP_REST_Response( array_merge(
 			array( 'success' => true ),
@@ -39,4 +51,19 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
 
+	public function create_packages( $request ) {
+		$packages = $request->get_json_params();
+		fwrite(STDERR, print_r($packages));
+
+		$custom_packages = isset($packages['custom']) ? $packages['custom'] : null;
+		$predefined_packages = isset($packages['predefined']) ? $packages['predefined'] : null;
+		if (!is_null($custom_packages)) {
+			$this->settings_store->create_packages( $custom_packages );
+		}
+		if (!is_null($predefined_packages)) {
+			$this->settings_store->create_predefined_packages( $predefined_packages );
+		}
+
+		return new WP_REST_Response( array( 'success' => true ), 200 );
+	}
 }
