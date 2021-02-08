@@ -25,13 +25,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		protected $api_client;
 
 		/**
-		 * Injected by WC_Connect_Loader
-		 *
-		 * @var WC_Connect_Cart_Validation
-		 */
-		protected $cart_validator;
-
-		/**
 		 * Store validation errors in property for later retrieval.
 		 *
 		 * @var WP_Error
@@ -136,27 +129,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			$this->logger = $logger;
 
-		}
-
-		/**
-		 * Injected by WC_Connect_Loader
-		 *
-		 * @param WC_Connect_Cart_Validation $cart_validator Cart validator.
-		 */
-		public function set_cart_validator( WC_Connect_Cart_Validation $cart_validator ) {
-			$this->cart_validator = $cart_validator;
-		}
-
-		/**
-		 * Get injected cart validator object.
-		 *
-		 * @return WC_Connect_Cart_Validation
-		 */
-		public function get_cart_validator() {
-			if ( empty( $this->cart_validator ) ) {
-				$this->cart_validator = new WC_Connect_Cart_Validation();
-			}
-			return $this->cart_validator;
 		}
 
 		public function get_api_client() {

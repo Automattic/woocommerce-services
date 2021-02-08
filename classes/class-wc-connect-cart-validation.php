@@ -1,11 +1,5 @@
 <?php
 /**
- * Validation logic.
- *
- * @package WooCommerce\Shipping
- */
-
-/**
  * Validates the shipping info in the cart.
  */
 class WC_Connect_Cart_Validation {
