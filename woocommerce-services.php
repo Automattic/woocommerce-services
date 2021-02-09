@@ -656,6 +656,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-package-settings.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-continents.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-order-presenter.php' ) );
+			require_once __DIR__ . '/classes/class-wc-connect-cart-validation.php';
 
 			$core_logger           = new WC_Logger();
 			$logger                = new WC_Connect_Logger( $core_logger );
@@ -696,6 +697,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
+
+			$cart_validation = new WC_Connect_Cart_Validation();
+			$cart_validation->register_filters();
 		}
 
 		/**
