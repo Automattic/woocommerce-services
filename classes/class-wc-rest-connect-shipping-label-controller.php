@@ -154,6 +154,8 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	   - `can_manage_payment: Boolean`: optional with default value `true`. If `false`, a pre-selected payment method is
 	     required for label creation. Otherwise, stores with a pre-selected payment method or users who can manage
 	     payment methods can create a label.
+	   - `can_create_package: Boolean`: optional with default value `true`. If `false`, at least one pre-existing
+	     package (custom or predefined) is required for label creation.
 	   - `customs_form_supported: Boolean`: optional with default value `true`. If `false`, the order is eligible for
 	     label creation if a customs form is not required for the origin and destination address.
 	*/
@@ -197,6 +199,10 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		}
 
 		// The destination address of the order is in the US / does not require a customs form
+		// TODO-jc
+
+		// If the client cannot create a package (`can_create_package` param is set to `false`), a pre-existing package
+		// is required
 		// TODO-jc
 
 		// There is at least one non-refunded and shippable product
