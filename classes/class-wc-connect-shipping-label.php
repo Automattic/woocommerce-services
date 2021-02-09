@@ -312,11 +312,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		private function is_supported_country( $country_code ) {
+		public function is_supported_country( $country_code ) {
 			return in_array( $country_code, $this->supported_countries );
 		}
 
-		private function is_supported_currency( $currency_code ) {
+		public function is_supported_currency( $currency_code ) {
 			return in_array( $currency_code, $this->supported_currencies );
 		}
 

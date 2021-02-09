@@ -21,6 +21,18 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		$this->shipping_label = $shipping_label;
 	}
 
+	public function register_routes() {
+		parent::register_routes();
+
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/creation_eligibility', array(
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_creation_eligibility' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+			),
+		) );
+	}
+
 	public function get( $request ) {
 		$order_id = $request['order_id'];
 		$payload = $this->shipping_label->get_label_payload( $order_id );
@@ -136,4 +148,101 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		);
 	}
 
+	/* Available params for $request:
+	   - `us_stores_only: Boolean`: optional with default value `false`. If `true`, only stores and origin addresses
+	     with `US` country code are eligible for label creation.
+	   - `can_manage_payment: Boolean`: optional with default value `true`. If `false`, a pre-selected payment method is
+	     required for label creation. Otherwise, stores with a pre-selected payment method or users who can manage
+	     payment methods can create a label.
+	   - `customs_form_supported: Boolean`: optional with default value `true`. If `false`, the order is eligible for
+	     label creation if a customs form is not required for the origin and destination address.
+	*/
+	public function get_creation_eligibility( $request ) {
+		$order_id = $request['order_id'];
+
+		$order = wc_get_order($order_id);
+
+		if (!$order) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'order_not_found'
+			), 200);
+		}
+
+		// The store has to be in the US if `us_stores_only` param is set to `true`
+		$us_stores_only = isset($request['us_stores_only']) ? $request['us_stores_only']: false;
+		$store_country = wc_get_base_location()['country'];
+		if ($us_stores_only && $store_country !== 'US') {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'store_country_not_supported_with_us_stores_only'
+			), 200);
+		}
+
+		// The store country is supported
+		if (!$this->shipping_label->is_supported_country($store_country)) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'store_country_not_supported'
+			), 200);
+		}
+
+		// The store currency is supported
+		$store_currency = get_woocommerce_currency();
+		if (!$this->shipping_label->is_supported_currency($store_currency)) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'store_currency_not_supported'
+			), 200);
+		}
+
+		// The destination address of the order is in the US / does not require a customs form
+		// TODO-jc
+
+		// There is at least one non-refunded and shippable product
+		$shippable_product_ids = array();
+		foreach ($order->get_items() as $item) {
+			$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+			if ( $product && $product->needs_shipping() ) {
+				array_push($shippable_product_ids, $product->id);
+			}
+		}
+		$existing_labels = $this->settings_store->get_label_order_meta_data($order_id);
+		$packaged_product_ids = array();
+		foreach ($existing_labels as $existing_label) {
+			if ($existing_label['refund']) {
+				continue;
+			}
+			$product_ids = $existing_label['product_ids'];
+			array_merge($packaged_product_ids, $product_ids);
+		}
+
+		if (count(array_unique($shippable_product_ids)) <= count(array_unique($packaged_product_ids))) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'no_products_for_shipping_label_creation'
+			), 200);
+		}
+
+		// If the client cannot manage payment (`can_manage_payment` param is set to `false`), a pre-selected payment method is required
+		$client_can_manage_payment = isset($request['can_manage_payment']) ? $request['can_manage_payment']: true;
+		if (!$client_can_manage_payment && !$this->settings_store->get_selected_payment_method_id()) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'no_selected_payment_method_when_client_cannot_manage_payment'
+			), 200);
+		}
+
+		// There is a pre-selected payment method or the user can manage the store
+		if (!($this->settings_store->get_selected_payment_method_id() || $this->settings_store->can_user_manage_payment_methods())) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'no_selected_payment_method_and_user_cannot_manage_payment_methods'
+			), 200);
+		}
+
+		return new WP_REST_Response(array(
+			'is_eligible' => true
+		), 200);
+	}
 }
