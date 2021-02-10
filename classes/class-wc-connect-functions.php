@@ -52,7 +52,6 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				return false;
 			}
 
-			// Fire off the request.
 			return false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], 'wc/store/cart' );
 		}
 
