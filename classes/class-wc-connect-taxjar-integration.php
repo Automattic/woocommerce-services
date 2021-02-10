@@ -358,8 +358,19 @@ class WC_Connect_TaxJar_Integration {
 	 * @return void
 	 */
 	public function calculate_totals( $wc_cart_object ) {
-		// If outside of cart and checkout page or within mini-cart, skip calculations
-		if ( ( ! is_cart() && ! is_checkout() ) || ( is_cart() && is_ajax() ) ) {
+		/*
+		 * Don't calculate if we are outside cart and checkout page, or pages with WooCommerce Cart and Checkout blocks.
+		 * Don't calculate if we are inside mini-cart.
+		 * If this is an API call don't calculate unless this is store/cart request.
+		 */
+		if (
+			! WC_Connect_Functions::has_cart_or_checkout_block() &&
+			! WC_Connect_Functions::is_store_api_call() &&
+			(
+				( ! is_cart() && ! is_checkout() ) ||
+				( is_cart() && is_ajax() )
+			)
+		) {
 			return;
 		}
 
