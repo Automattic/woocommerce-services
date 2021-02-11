@@ -104,7 +104,7 @@ const CarrierAccountListItem = ( props ) => {
 				) : (
 					<a
 						href={
-							`/wp-admin/admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=${data.type}`
+							`admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=${data.type}`
 						}
 						// eslint-disable-next-line wpcalypso/jsx-classname-namespace
 						className="button is-compact"
