@@ -770,7 +770,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
-			add_action( 'woocommerce_order_details_after_order_table', array( $this, 'track_completed_order' ), 10, 1 );
+			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1007,8 +1007,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Filter function for adding the report tabs
 		 *
-		 * @param array $reports - report tabs meta
-		 * @return array report tabs with WCS tabs added
+		 * @param array $reports - report tabs meta.
+		 * @return array report tabs with WCS tabs added.
 		 */
 		public function reports_tabs( $reports ) {
 			$reports[ 'wcs_labels' ] = array(
@@ -1030,9 +1030,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Send completed order details to Connect Server to check live rates usage.
 		 * Attached to the woocommerce_order_details_after_order_table hook
 		 *
-		 * @param $order WC_Order object containing completed order details.
+		 * @param int   $order_id int for completed order ID.
+		 * @param array $posted_data Post data for order.
+		 * @param array $order WC_Order object containing completed order details.
 		 */
-		public function track_completed_order( $order ) {
+		public function track_completed_order( $order_id, $posted_data, $order ) {
 			// We need to recreate a temporary cart from the order
 			// so that we can create the same shipping packages from the cart
 			// to use to generate the correct cache key to return the cached
