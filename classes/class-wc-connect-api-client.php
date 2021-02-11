@@ -210,7 +210,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 				$rate = $rates[ $i ];
 				if ( false !== $rate ) {
-					$body['rates'] = $rate['rates'];
+					$body['rates'] = $rate->rates;
 				}
 				$shipping_methods[] = $body;
 			}

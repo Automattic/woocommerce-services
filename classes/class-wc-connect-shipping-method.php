@@ -339,8 +339,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$predefined_boxes = $this->service_settings_store->get_predefined_packages_for_service( $this->service_schema->id );
 			$predefined_boxes = array_values( array_filter( $predefined_boxes, array( $this, 'filter_preset_boxes' ) ) );
 
-			foreach( $package[ 'contents' ] as $item_key => $item_details ) {
-				ksort( $package[ 'contents' ][ $item_key ] );
+			foreach ( $package['contents'] as $item_key => $item_details ) {
+				ksort( $package['contents'][ $item_key ] );
 			}
 			$cache_key = sprintf(
 				'wcs_rates_%s',

@@ -1033,6 +1033,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// so that we can create the same shipping packages from the cart
 			// to use to generate the correct cache key to return the cached
 			// shipping rates response.
+			$logger = $this->get_logger();
+
 			$temp_cart   = new WC_Cart();
 			$order_items = $order->get_items();
 
@@ -1073,30 +1075,39 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$requested_rates  = array();
 
 			foreach ( $shipping_methods as $method ) {
-				$handler = new WC_Connect_Shipping_Method( $method->get_instance_id() );
+				try {
+					$handler = new WC_Connect_Shipping_Method( $method->get_instance_id() );
 
-				$service_settings       = $handler->get_service_settings();
-				$service_schema         = $handler->get_service_schema();
-				$service_settings_store = $handler->get_service_settings_store();
-				$cached_response_body   = $handler->get_cached_shipping_rates_response( $package );
+					$service_settings       = $handler->get_service_settings();
+					$service_schema         = $handler->get_service_schema();
+					$service_settings_store = $handler->get_service_settings_store();
+					$cached_response_body   = $handler->get_cached_shipping_rates_response( $package );
 
-				$services[]         = array(
-					array(
-						'id'               => $service_schema->id,
-						'instance'         => $method->get_instance_id(),
-						'service_settings' => $service_settings,
-					),
-				);
-				$custom_boxes[]     = $service_schemas_store->get_packages();
-				$predefined_boxes[] = $service_schemas_store->get_predefined_packages_for_service( $service_schema->id );
-				$requested_rates[]  = $cached_response_body;
+					$services[]         = array(
+						array(
+							'id'               => $service_schema->id,
+							'instance'         => $method->get_instance_id(),
+							'service_settings' => $service_settings,
+						),
+					);
+					$custom_boxes[]     = $service_settings_store->get_packages();
+					$predefined_boxes[] = $service_settings_store->get_predefined_packages_for_service( $service_schema->id );
+					$requested_rates[]  = $cached_response_body;
+				} catch ( Exception $e ) {
+					$logger->error(
+						sprintf(
+							'Unable to send subscription event for method: %s',
+							$e->getMessage()
+						),
+						__FUNCTION__
+					);
+					continue;
+				}
 			}
 
 			$api_client = $this->get_api_client();
 			$response   = $api_client->track_subscription_event( $services, $package, $custom_boxes, $predefined_boxes, $requested_rates );
 			if ( is_wp_error( $response ) ) {
-				$logger = $this->get_logger();
-
 				if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
 					$logger->error(
 						sprintf(
