@@ -215,7 +215,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				$shipping_methods[] = $body;
 			}
 
-			return $this->request( 'POST', '/subscriptions/usage', array( 'shipping_methods' => $shipping_methods ) );
+			return $this->request( 'POST', '/subscriptions/checkout', array( 'shipping_methods' => $shipping_methods ) );
 		}
 
 		public function send_shipping_label_request( $body ) {
