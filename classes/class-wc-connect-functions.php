@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 * @return bool
 		 */
 		public static function is_store_api_call() {
-			if ( ! defined( 'REST_REQUEST' ) && empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+			if ( ! WC()->is_rest_api_request() && empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 				return false;
 			}
 
