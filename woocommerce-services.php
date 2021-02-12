@@ -1047,7 +1047,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_zone    = WC_Shipping_Zones::get_zone_matching_package( $package );
 			$shipping_methods = $shipping_zone->get_shipping_methods( true );
 
-q			$tracking_request_body = array();
+			$tracking_request_body = array();
 			foreach ( $shipping_methods as $method ) {
 				try {
 					$handler = new WC_Connect_Shipping_Method( $method->get_instance_id() );
