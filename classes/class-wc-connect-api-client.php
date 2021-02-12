@@ -176,43 +176,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Send rates request information to track subscription events
 		 *
-		 * @param $services Array of service settings for requested shipping methods
-		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
-		 * @param $custom_boxes Array of custom boxes definition (array of objects) for requested shipping methods
-		 * @param $predefined_boxes Array of enabled predefined box IDs (array of strings) for requested shipping methods
-		 * @param $rates Array of rates from cached rates request response
+		 * @param $shipping_methods Array of service settings and rates for shipping methods
 		 *
 		 * @return object|WP_Error
 		 */
-		public function track_subscription_event( $services, $package, $custom_boxes, $predefined_boxes, $rates ) {
-			$contents = $this->build_shipment_contents( $package );
-
-			if ( is_wp_error( $contents ) ) {
-				return $contents;
-			}
-
-			if ( empty( $contents ) ) {
+		public function track_subscription_event( $shipping_methods ) {
+			if ( empty( $shipping_methods ) ) {
 				return new WP_Error(
 					'nothing_to_ship',
 					__( 'No shipping rate could be calculated. No items in the package are shippable.', 'woocommerce-services' )
 				);
-			}
-
-			$shipping_methods = array();
-			foreach ( $services as $i => $service ) {
-				$body = array(
-					'contents'         => $contents,
-					'destination'      => $package['destination'],
-					'services'         => $service,
-					'boxes'            => $custom_boxes[ $i ],
-					'predefined_boxes' => $predefined_boxes[ $i ],
-				);
-
-				$rate = $rates[ $i ];
-				if ( false !== $rate ) {
-					$body['rates'] = $rate->rates;
-				}
-				$shipping_methods[] = $body;
 			}
 
 			return $this->request( 'POST', '/subscriptions/checkout', array( 'shipping_methods' => $shipping_methods ) );

@@ -1034,36 +1034,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param array $posted_data Post data for order.
 		 * @param array $order WC_Order object containing completed order details.
 		 */
-		public function track_completed_order( $order_id, $posted_data, $order ) {
-			// We need to recreate a temporary cart from the order
-			// so that we can create the same shipping packages from the cart
-			// to use to generate the correct cache key to return the cached
-			// shipping rates response.
+		public function track_completed_order( $order_id, $data, $order ) {
 			$logger = $this->get_logger();
 
-			$temp_cart   = new WC_Cart();
-			$order_items = $order->get_items();
-
-			foreach ( $order_items as $item ) {
-				$product = wc_get_product( $item->get_product() );
-
-				$product_id           = $product->get_id();
-				$quantity             = $item->get_quantity();
-				$variation_id         = 0;
-				$variation_attributes = array();
-
-				if ( 'variation' === $product->get_type() ) {
-					$variation_id         = $product_id;
-					$product_id           = $product->get_parent_id();
-					$variation_attributes = $product->get_variation_attributes();
-				}
-
-				$temp_cart->add_to_cart( $product_id, $quantity, $variation_id, $variation_attributes );
-			}
-
-			$packages = $temp_cart->get_shipping_packages();
-			$temp_cart->empty_cart();
-			$package = $packages[0];
+			$packages = WC()->cart->get_shipping_packages();
+			$package  = $packages[0];
 			foreach ( $package['contents'] as $item_key => $item_details ) {
 				ksort( $package['contents'][ $item_key ] );
 			}
@@ -1072,33 +1047,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_zone    = WC_Shipping_Zones::get_zone_matching_package( $package );
 			$shipping_methods = $shipping_zone->get_shipping_methods( true );
 
-			// We will fill these with the required parameters
-			// should we need to repeat the shipping request for
-			// each service as a fallback.
-			$services         = array();
-			$custom_boxes     = array();
-			$predefined_boxes = array();
-			$requested_rates  = array();
-
+q			$tracking_request_body = array();
 			foreach ( $shipping_methods as $method ) {
 				try {
 					$handler = new WC_Connect_Shipping_Method( $method->get_instance_id() );
 
-					$service_settings       = $handler->get_service_settings();
-					$service_schema         = $handler->get_service_schema();
-					$service_settings_store = $handler->get_service_settings_store();
-					$cached_response_body   = $handler->get_cached_shipping_rates_response( $package );
-
-					$services[]         = array(
+					$service_settings     = $handler->get_service_settings();
+					$service_schema       = $handler->get_service_schema();
+					$cached_response_body = $handler->get_cached_shipping_rates_response( $package );
+					$services 			  = array(
 						array(
 							'id'               => $service_schema->id,
 							'instance'         => $method->get_instance_id(),
 							'service_settings' => $service_settings,
 						),
 					);
-					$custom_boxes[]     = $service_settings_store->get_packages();
-					$predefined_boxes[] = $service_settings_store->get_predefined_packages_for_service( $service_schema->id );
-					$requested_rates[]  = $cached_response_body;
+
+					if ( ! isset( $cached_response_body->rates ) ) {
+						continue;
+					}
+					$tracking_request_body[] = array(
+						'rates'    => $cached_response_body->rates,
+						'services' => $services,
+					);
 				} catch ( Exception $e ) {
 					$logger->error(
 						sprintf(
@@ -1112,7 +1083,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			$api_client = $this->get_api_client();
-			$response   = $api_client->track_subscription_event( $services, $package, $custom_boxes, $predefined_boxes, $requested_rates );
+			$response   = $api_client->track_subscription_event( $tracking_request_body );
 			if ( is_wp_error( $response ) ) {
 				if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
 					$logger->error(
