@@ -151,7 +151,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	/* Available params for $request:
 	   - `us_stores_only: Boolean`: optional with default value `false`. If `true`, only stores and origin addresses
 	     with `US` country code are eligible for label creation.
-	   - `can_manage_payment: Boolean`: optional with default value `true`. If `false`, a pre-selected payment method is
+	   - `can_create_payment_method`: Boolean`: optional with default value `true`. If `false`, a pre-selected payment method is
 	     required for label creation. Otherwise, stores with a pre-selected payment method or users who can manage
 	     payment methods can create a label.
 	   - `can_create_package: Boolean`: optional with default value `true`. If `false`, at least one pre-existing
@@ -238,9 +238,9 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			), 200);
 		}
 
-		// If the client cannot manage payment (`can_manage_payment` param is set to `false`), a pre-selected payment method is required
-		$client_can_manage_payment = isset($request['can_manage_payment']) ? $request['can_manage_payment']: true;
-		if (!$client_can_manage_payment && !$this->settings_store->get_selected_payment_method_id()) {
+		// If the client cannot manage payment (`can_create_payment_method` param is set to `false`), a pre-selected payment method is required
+		$client_can_create_payment_method = isset($request['can_create_payment_method']) ? $request['can_create_payment_method']: true;
+		if (!$client_can_create_payment_method && !$this->settings_store->get_selected_payment_method_id()) {
 			return new WP_REST_Response(array(
 				'is_eligible' => false,
 				'reason' => 'no_selected_payment_method_when_client_cannot_manage_payment'
