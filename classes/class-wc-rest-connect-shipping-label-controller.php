@@ -171,6 +171,14 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			), 200);
 		}
 
+		// Shipping labels should be enabled in account settings.
+		if ($this->settings_store->get_account_settings()['enabled'] !== true) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'account_settings_disabled'
+			), 200);
+		}
+
 		// The store has to be in the US if `us_stores_only` param is set to `true`
 		$us_stores_only = isset($request['us_stores_only']) ? $request['us_stores_only']: false;
 		$store_country = wc_get_base_location()['country'];
