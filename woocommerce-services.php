@@ -1035,50 +1035,51 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param array $order WC_Order object containing completed order details.
 		 */
 		public function track_completed_order( $order_id, $data, $order ) {
-			$logger = $this->get_logger();
-
-			$packages = WC()->cart->get_shipping_packages();
-			$package  = $packages[0];
-			foreach ( $package['contents'] as $item_key => $item_details ) {
-				ksort( $package['contents'][ $item_key ] );
-			}
-			$package['rates'] = array();
-
-			$shipping_zone    = WC_Shipping_Zones::get_zone_matching_package( $package );
-			$shipping_methods = $shipping_zone->get_shipping_methods( true );
-
+			$logger                = $this->get_logger();
 			$tracking_request_body = array();
-			foreach ( $shipping_methods as $method ) {
-				try {
-					$handler = new WC_Connect_Shipping_Method( $method->get_instance_id() );
+			$packages              = WC()->cart->get_shipping_packages();
 
-					$service_settings     = $handler->get_service_settings();
-					$service_schema       = $handler->get_service_schema();
-					$cached_response_body = $handler->get_cached_shipping_rates_response( $package );
-					$services 			  = array(
-						array(
-							'id'               => $service_schema->id,
-							'instance'         => $method->get_instance_id(),
-							'service_settings' => $service_settings,
-						),
-					);
+			foreach ( $packages as $package ) {
+				foreach ( $package['contents'] as $item_key => $item_details ) {
+					ksort( $package['contents'][ $item_key ] );
+				}
+				if ( ! isset( $package['rates'] ) ) {
+					$package['rates'] = array();
+				}
 
-					if ( ! isset( $cached_response_body->rates ) ) {
+				$shipping_methods = WC()->shipping()->load_shipping_methods( $package );
+				foreach ( $shipping_methods as $method ) {
+					try {
+						if ( $method instanceof WC_Connect_Shipping_Method ) {
+							$service_settings     = $method->get_service_settings();
+							$service_schema       = $method->get_service_schema();
+							$cached_response_body = $method->get_cached_shipping_rates_response( $package );
+							$services             = array(
+								array(
+									'id'               => $service_schema->id,
+									'instance'         => $method->get_instance_id(),
+									'service_settings' => $service_settings,
+								),
+							);
+
+							if ( ! isset( $cached_response_body->rates ) ) {
+								continue;
+							}
+							$tracking_request_body[] = array(
+								'rates'    => $cached_response_body->rates,
+								'services' => $services,
+							);
+						}
+					} catch ( Exception $e ) {
+						$logger->error(
+							sprintf(
+								'Unable to send subscription event for method: %s',
+								$e->getMessage()
+							),
+							__FUNCTION__
+						);
 						continue;
 					}
-					$tracking_request_body[] = array(
-						'rates'    => $cached_response_body->rates,
-						'services' => $services,
-					);
-				} catch ( Exception $e ) {
-					$logger->error(
-						sprintf(
-							'Unable to send subscription event for method: %s',
-							$e->getMessage()
-						),
-						__FUNCTION__
-					);
-					continue;
 				}
 			}
 
