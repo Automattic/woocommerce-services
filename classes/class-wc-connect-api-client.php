@@ -176,19 +176,19 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Send rates request information to track subscription events
 		 *
-		 * @param $shipping_methods Array of service settings and rates for shipping methods
+		 * @param array $services Array of service settings for shipping methods.
 		 *
 		 * @return object|WP_Error
 		 */
-		public function track_subscription_event( $shipping_methods ) {
-			if ( empty( $shipping_methods ) ) {
+		public function track_subscription_event( $services ) {
+			if ( empty( $services ) ) {
 				return new WP_Error(
 					'nothing_to_ship',
 					__( 'No shipping rate could be calculated. No items in the package are shippable.', 'woocommerce-services' )
 				);
 			}
 
-			return $this->request( 'POST', '/subscriptions/checkout', array( 'shipping_methods' => $shipping_methods ) );
+			return $this->request( 'POST', '/subscriptions/checkout', array( 'services' => $services ) );
 		}
 
 		public function send_shipping_label_request( $body ) {
