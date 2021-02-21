@@ -39,6 +39,12 @@
 			max-width: 100%;
 		}
 	}
+
+	.components-modal__header {
+		border-bottom: none;
+		background: none;
+	}
+
 }
 
 &.tracking-modal {
@@ -225,21 +231,6 @@
 		display: inline-block;
 		vertical-align: top;
 		margin-left: 2px;
-	}
-}
-
-.label-purchase-modal__header, .tracking-modal__header {
-	display: flex;
-	flex-direction: row;
-	.form-section-heading {
-		flex: 1;
-        margin: 0 0 45px;
-	}
-	.label-purchase-modal__close-button, .tracking-modal__close-button {
-		border: none;
-		padding: 0;
-		align-self: flex-start;
-		margin-top: -7px;
 	}
 }
 
