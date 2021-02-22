@@ -40,19 +40,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		private $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
 
 		/**
-		 * @var array US domestic territories for customs form requirement.
-		 * Packages shipping to or from the US, Puerto Rico and Virgin Islands don't need a customs form.
-		 */
-		private $domestic_us_territories = array( 'US', 'PR', 'VI' );
-
-		/**
-		 * @var array US military states for customs form requirement.
-		 * These US states are a special case because they represent military bases. They're considered "domestic",
-		 * but they require a Customs form to ship from/to them.
-		 */
-		private $us_military_states = array( 'AA', 'AE', 'AP' );
-
-		/**
 		 * @var array Supported currencies
 		 */
 		private $supported_currencies = array( 'USD' );
