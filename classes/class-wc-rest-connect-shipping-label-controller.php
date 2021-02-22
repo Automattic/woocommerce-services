@@ -210,14 +210,6 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 					'reason' => 'origin_or_destination_country_not_supported_when_customs_form_is_not_supported_by_client'
 				), 200);
 			}
-
-			// The origin and destination addresses do not require a customs form
-			if ($this->shipping_label->is_customs_form_required($order)) {
-				return new WP_REST_Response(array(
-					'is_eligible' => false,
-					'reason' => 'customs_form_required_when_it_is_not_supported_by_client'
-				), 200);
-			}
 		}
 
 		// If the client cannot create a package (`can_create_package` param is set to `false`), a pre-existing package

@@ -385,26 +385,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return false;
 		}
 
-		public function is_customs_form_required( WC_Order $order ) {
-			$origin_address = $this->get_origin_address();
-			$destination_address = $this->get_destination_address( $order );
-
-			// Special case: any shipment from/to military addresses must have a customs form
-			if ( 'US' === $origin_address['country'] && in_array($origin_address['state'], $this->us_military_states) ) {
-				return true;
-			}
-			if ( 'US' === $destination_address['country'] && in_array($destination_address['state'], $this->us_military_states) ) {
-				return true;
-			}
-			// No need to have a customs form if shipping inside the same territory (for example, from Guam to Guam)
-			if ( $origin_address['country'] === $destination_address['country'] ) {
-				return false;
-			}
-			// Shipments between US, Puerto Rico and Virgin Islands don't need a customs form, everything else does
-			return ! (in_array($origin_address['country'], $this->domestic_us_territories)
-				&& in_array($destination_address['country'], $this->domestic_us_territories));
-		}
-
 		public function is_store_eligible_for_shipping_label_creation() {
 			$base_currency = get_woocommerce_currency();
 			if ( ! $this->is_supported_currency( $base_currency ) ) {
