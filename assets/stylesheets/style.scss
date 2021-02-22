@@ -250,6 +250,7 @@
 
 // Just the tooltip WordPress Component styles is all we use for now.
 @import "~@wordpress/base-styles/colors";
+@import "~@wordpress/base-styles/variables";
 @import "~@wordpress/base-styles/z-index";
 @import '~@wordpress/components/src/tooltip/style.scss';
 

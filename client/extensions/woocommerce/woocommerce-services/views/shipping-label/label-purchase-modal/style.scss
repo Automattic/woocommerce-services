@@ -9,7 +9,6 @@
 	width: calc(100% - 10vmin);
     max-height: 1080px;
     max-width: 1920px;
-	background: $studio-gray-0;
   	box-shadow: rgba(151,150,150,.5) 2px 2px 7px;
 
     // Make sidebar have white background which extends to top of modal.
@@ -40,9 +39,10 @@
 		}
 	}
 
-	.components-modal__header {
-		border-bottom: none;
-		background: none;
+	.components-modal__content {
+		background: $studio-gray-0;
+		//border-bottom: none;
+		//background: none;
 	}
 
 }
@@ -78,8 +78,6 @@
 
 	@include breakpoint( '>660px' ) {
 		flex-basis: 40%;
-		padding: 0 24px 24px;
-		margin-top: -20px;
 		margin-left: 24px;
 		background: var( --color-white );
 	}

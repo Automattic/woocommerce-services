@@ -30,9 +30,6 @@ const ShippingSummary = props => {
 
 	return (
 		<div className="label-purchase-modal__shipping-summary-section">
-			<div className="label-purchase-modal__shipping-summary-header">
-				{ translate( 'Shipping summary' ) }
-			</div>
 			<div className="label-purchase-modal__shipping-summary-info">
 				{ normalizationStatus.isSuccess ? (
 					<div className="label-purchase-modal__shipping-summary-street">
