@@ -2,6 +2,7 @@
 
 = 1.25.8 - 2021-xx-xx =
 * Tweak - Display better errors on checkout page when address fields are missing / invalid.
+* Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
 
 = 1.25.7 - 2021-02-09 =
 * Fix   - Prevent error notices on checkout page load.
