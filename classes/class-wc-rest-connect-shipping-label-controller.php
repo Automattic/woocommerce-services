@@ -149,19 +149,16 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	}
 
 	/* Available params for $request:
-	   - `us_stores_only: Boolean`: optional with default value `false`. If `true`, only stores and origin addresses
-	     with `US` country code are eligible for label creation.
-	   - `can_create_payment_method`: Boolean`: optional with default value `true`. If `false`, a pre-selected payment method is
+	   - `can_create_payment_method: Boolean`: optional with default value `true`. If `false`, a pre-selected payment method is
 	     required for label creation. Otherwise, stores with a pre-selected payment method or users who can manage
 	     payment methods can create a label.
 	   - `can_create_package: Boolean`: optional with default value `true`. If `false`, at least one pre-existing
 	     package (custom or predefined) is required for label creation.
-	   - `customs_form_supported: Boolean`: optional with default value `true`. If `false`, the order is eligible for
-	     label creation if a customs form is not required for the origin and destination address.
+	   - `can_create_customs_form: Boolean`: optional with default value `true`. If `false`, the order is eligible for
+	     label creation if a customs form is not required for the origin and destination address in the US.
 	*/
 	public function get_creation_eligibility( $request ) {
 		$order_id = $request['order_id'];
-
 		$order = wc_get_order($order_id);
 
 		if (!$order) {
@@ -179,66 +176,71 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			), 200);
 		}
 
-		// The store has to be in the US if `us_stores_only` param is set to `true`
-		$us_stores_only = isset($request['us_stores_only']) ? $request['us_stores_only']: false;
+		// If the client can create customs form
+		$client_can_create_customs_form = isset($request['can_create_customs_form']) ? $request['can_create_customs_form']: true;
 		$store_country = wc_get_base_location()['country'];
-		if ($us_stores_only && $store_country !== 'US') {
-			return new WP_REST_Response(array(
-				'is_eligible' => false,
-				'reason' => 'store_country_not_supported_with_us_stores_only'
-			), 200);
-		}
+		if ($client_can_create_customs_form) {
+			// Check if the store is eligible for shipping label creation
+			if (!$this->shipping_label->is_store_eligible_for_shipping_label_creation()) {
+				return new WP_REST_Response(array(
+					'is_eligible' => false,
+					'reason' => 'store_not_eligible'
+				), 200);
+			}
+		} else {
+			// In case the client cannot create customs form:
+			// - The store address has to be in the US
+			// - The origin and destination addresses have to be in the US
+			// - The origin and destination addresses do not require a customs form
 
-		// The store country is supported
-		if (!$this->shipping_label->is_supported_country($store_country)) {
-			return new WP_REST_Response(array(
-				'is_eligible' => false,
-				'reason' => 'store_country_not_supported'
-			), 200);
-		}
+			// The store address has to be in the US
+			if ($store_country !== 'US') {
+				return new WP_REST_Response(array(
+					'is_eligible' => false,
+					'reason' => 'store_country_not_supported_when_customs_form_is_not_supported_by_client'
+				), 200);
+			}
 
-		// The store currency is supported
-		$store_currency = get_woocommerce_currency();
-		if (!$this->shipping_label->is_supported_currency($store_currency)) {
-			return new WP_REST_Response(array(
-				'is_eligible' => false,
-				'reason' => 'store_currency_not_supported'
-			), 200);
-		}
+			// The origin and destination addresses have to be in the US
+			$origin_address = $this->settings_store->get_origin_address();
+			$destination_address = $order->get_address( 'shipping' );
+			if ($origin_address['country'] !== 'US' || $destination_address['country'] !== 'US') {
+				return new WP_REST_Response(array(
+					'is_eligible' => false,
+					'reason' => 'origin_or_destination_country_not_supported_when_customs_form_is_not_supported_by_client'
+				), 200);
+			}
 
-		// The destination address of the order is in the US / does not require a customs form
-		// TODO-jc
+			// The origin and destination addresses do not require a customs form
+			if ($this->shipping_label->is_customs_form_required($order)) {
+				return new WP_REST_Response(array(
+					'is_eligible' => false,
+					'reason' => 'customs_form_required_when_it_is_not_supported_by_client'
+				), 200);
+			}
+		}
 
 		// If the client cannot create a package (`can_create_package` param is set to `false`), a pre-existing package
 		// is required
-		// TODO-jc
+		$client_can_create_package = isset($request['can_create_package']) ? $request['can_create_package']: true;
+		if (!$client_can_create_package) {
+			if (empty($this->settings_store->get_packages()) && empty($this->settings_store->get_predefined_packages())) {
+				return new WP_REST_Response(array(
+					'is_eligible' => false,
+					'reason' => 'no_packages_when_client_cannot_create_package'
+				), 200);
+			}
+		}
 
 		// There is at least one non-refunded and shippable product
-		$shippable_product_ids = array();
-		foreach ($order->get_items() as $item) {
-			$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
-			if ( $product && $product->needs_shipping() ) {
-				array_push($shippable_product_ids, $product->id);
-			}
-		}
-		$existing_labels = $this->settings_store->get_label_order_meta_data($order_id);
-		$packaged_product_ids = array();
-		foreach ($existing_labels as $existing_label) {
-			if ($existing_label['refund']) {
-				continue;
-			}
-			$product_ids = $existing_label['product_ids'];
-			array_merge($packaged_product_ids, $product_ids);
-		}
-
-		if (count(array_unique($shippable_product_ids)) <= count(array_unique($packaged_product_ids))) {
+		if (!$this->shipping_label->is_order_eligible_for_shipping_label_creation($order)) {
 			return new WP_REST_Response(array(
 				'is_eligible' => false,
-				'reason' => 'no_products_for_shipping_label_creation'
+				'reason' => 'order_not_eligible'
 			), 200);
 		}
 
-		// If the client cannot manage payment (`can_create_payment_method` param is set to `false`), a pre-selected payment method is required
+		// If the client cannot create a payment method (`can_create_payment_method` param is set to `false`), a pre-selected payment method is required
 		$client_can_create_payment_method = isset($request['can_create_payment_method']) ? $request['can_create_payment_method']: true;
 		if (!$client_can_create_payment_method && !$this->settings_store->get_selected_payment_method_id()) {
 			return new WP_REST_Response(array(
@@ -247,7 +249,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			), 200);
 		}
 
-		// There is a pre-selected payment method or the user can manage the store
+		// There is a pre-selected payment method or the user can manage payment methods
 		if (!($this->settings_store->get_selected_payment_method_id() || $this->settings_store->can_user_manage_payment_methods())) {
 			return new WP_REST_Response(array(
 				'is_eligible' => false,

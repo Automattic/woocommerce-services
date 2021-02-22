@@ -40,6 +40,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		private $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
 
 		/**
+		 * @var array US domestic territories for customs form requirement.
+		 * Packages shipping to or from the US, Puerto Rico and Virgin Islands don't need a customs form.
+		 */
+		private $domestic_us_territories = array( 'US', 'PR', 'VI' );
+
+		/**
+		 * @var array US military states for customs form requirement.
+		 * These US states are a special case because they represent military bases. They're considered "domestic",
+		 * but they require a Customs form to ship from/to them.
+		 */
+		private $us_military_states = array( 'AA', 'AE', 'AP' );
+
+		/**
 		 * @var array Supported currencies
 		 */
 		private $supported_currencies = array( 'USD' );
@@ -312,11 +325,105 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		public function is_supported_country( $country_code ) {
+		// Check whether the given order is eligible for shipping label creation - the order has at least one product that is:
+		// - Shippable
+		// - Non-refunded
+		// - Not already included in an existing non-refunded shipping label
+		public function is_order_eligible_for_shipping_label_creation( WC_Order $order ) {
+			// Set up a dictionary from product ID to quantity in the order, which will be updated by refunds and existing labels later
+			$quantities_by_product_id = array();
+			foreach ($order->get_items() as $item) {
+				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+				if ( $product && $product->needs_shipping() ) {
+					$product_id = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					$current_quantity = array_key_exists( $product_id, $quantities_by_product_id ) ? $quantities_by_product_id[$product_id] : 0;
+					$quantities_by_product_id[$product_id] = $current_quantity + $item->get_quantity();
+				}
+			}
+
+			// A shipping label cannot be created without a shippable product
+			if (empty($quantities_by_product_id)) {
+				return false;
+			}
+
+			// Update the quantity for each refunded product ID in the order
+			foreach ($order->get_refunds() as $refund) {
+				foreach ($refund->get_items() as $refunded_item) {
+					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
+					$product_id = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					if (array_key_exists($product_id, $quantities_by_product_id)) {
+						$current_count = $quantities_by_product_id[$product_id];
+						$quantities_by_product_id[$product_id] = $current_count - abs($refunded_item->get_quantity());
+					}
+				}
+			}
+
+			// Update the quantity for each product ID that is in a non-refunded shipping label package
+			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$existing_labels = $this->settings_store->get_label_order_meta_data($order_id);
+			foreach ($existing_labels as $existing_label) {
+				// Skip if the label has been refunded
+				if (isset($existing_label['refund'])) {
+					continue;
+				}
+				$product_ids = $existing_label['product_ids'];
+				foreach ($product_ids as $product_id) {
+					if (array_key_exists($product_id, $quantities_by_product_id)) {
+						$current_quantity = $quantities_by_product_id[$product_id];
+						$quantities_by_product_id[$product_id] = $current_quantity - 1;
+					}
+				}
+			}
+
+			// The order is eligible for shipping label creation when there is at least one product with positive quantity
+			foreach ($quantities_by_product_id as $product_id => $quantity) {
+				if ($quantity > 0) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public function is_customs_form_required( WC_Order $order ) {
+			$origin_address = $this->get_origin_address();
+			$destination_address = $this->get_destination_address( $order );
+
+			// Special case: any shipment from/to military addresses must have a customs form
+			if ( 'US' === $origin_address['country'] && in_array($origin_address['state'], $this->us_military_states) ) {
+				return true;
+			}
+			if ( 'US' === $destination_address['country'] && in_array($destination_address['state'], $this->us_military_states) ) {
+				return true;
+			}
+			// No need to have a customs form if shipping inside the same territory (for example, from Guam to Guam)
+			if ( $origin_address['country'] === $destination_address['country'] ) {
+				return false;
+			}
+			// Shipments between US, Puerto Rico and Virgin Islands don't need a customs form, everything else does
+			return ! (in_array($origin_address['country'], $this->domestic_us_territories)
+				&& in_array($destination_address['country'], $this->domestic_us_territories));
+		}
+
+		public function is_store_eligible_for_shipping_label_creation() {
+			$base_currency = get_woocommerce_currency();
+			if ( ! $this->is_supported_currency( $base_currency ) ) {
+				return false;
+			}
+
+			$base_location = wc_get_base_location();
+			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		private function is_supported_country( $country_code ) {
 			return in_array( $country_code, $this->supported_countries );
 		}
 
-		public function is_supported_currency( $currency_code ) {
+		private function is_supported_currency( $currency_code ) {
 			return in_array( $currency_code, $this->supported_currencies );
 		}
 
@@ -358,14 +465,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return true;
 			}
 
-			// Restrict showing the metabox to supported store currencies.
-			$base_currency = get_woocommerce_currency();
-			if ( ! $this->is_supported_currency( $base_currency ) ) {
-				return false;
-			}
-
-			$base_location = wc_get_base_location();
-			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
+			// Restrict showing the metabox to supported store countries and currencies.
+			if ( ! $this->is_store_eligible_for_shipping_label_creation() ) {
 				return false;
 			}
 

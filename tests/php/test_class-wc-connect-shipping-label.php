@@ -534,4 +534,129 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		$actual = $shipping_label->get_selected_packages( $mock_order );
 		$this->assertEquals( $actual, $this->expected_selected_packages_multiple );
 	}
+
+	public function test_order_with_a_virtual_product_is_not_eligible_for_shipping_label_creation() {
+		// Given
+		$product = $this->create_simple_product(true);
+		$order = WC_Helper_Order::create_order(1, $product);
+
+		// When
+		$shipping_label = $this->get_shipping_label();
+		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+
+		// Then
+		$this->assertFalse( $is_eligible );
+	}
+
+	public function test_order_with_a_shippable_product_is_eligible_for_shipping_label_creation() {
+		// Given
+		$product = $this->create_simple_product(false);
+		$order = WC_Helper_Order::create_order(1, $product);
+
+		// When
+		$shipping_label = $this->get_shipping_label();
+		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+
+		// Then
+		$this->assertTrue( $is_eligible );
+	}
+
+	public function test_order_with_a_fully_refunded_shippable_product_is_not_eligible_for_shipping_label_creation() {
+		// Given
+		$product = $this->create_simple_product(false);
+		$order = WC_Helper_Order::create_order(1, $product);
+
+		$order_items = $order->get_items();
+		$refund_line_items = array();
+		foreach ($order_items as $order_item) {
+			$refund_line_items[$order_item->get_id()] = array(
+				'qty'          => $order_item->get_quantity(),
+				'refund_total' => 20,
+			);
+		}
+		$refund_args = array(
+			'order_id'   => $order->get_id(),
+			'line_items' => $refund_line_items,
+		);
+		wc_create_refund( $refund_args );
+
+		// When
+		$shipping_label = $this->get_shipping_label();
+		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+
+		// Then
+		$this->assertFalse( $is_eligible );
+	}
+
+	public function test_order_with_a_partially_refunded_shippable_product_is_eligible_for_shipping_label_creation() {
+		// Given
+		$product = $this->create_simple_product(false);
+		$order = WC_Helper_Order::create_order(1, $product);
+
+		$order_items = $order->get_items();
+		$refund_line_items = array();
+		foreach ($order_items as $order_item) {
+			$refund_line_items[$order_item->get_id()] = array(
+				'qty'          => $order_item->get_quantity() - 1,
+				'refund_total' => 20,
+			);
+		}
+		$refund_args = array(
+			'order_id'   => $order->get_id(),
+			'line_items' => $refund_line_items,
+		);
+		wc_create_refund( $refund_args );
+
+		// When
+		$shipping_label = $this->get_shipping_label();
+		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+
+		// Then
+		$this->assertTrue( $is_eligible );
+	}
+
+	public function test_order_with_a_shippable_product_already_in_a_label_is_not_eligible_for_shipping_label_creation() {
+		// Given
+		$product = $this->create_simple_product(false);
+		$order = WC_Helper_Order::create_order(1, $product);
+
+		// Add a shipping label with all the products in the order
+		$order_items = $order->get_items();
+		$product_ids = array();
+		foreach ($order_items as $order_item) {
+			foreach(range(1, $order_item->get_quantity()) as $index) {
+				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $order_item );
+				array_push($product_ids, $product->get_id());
+			}
+		}
+		$settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
+			->disableOriginalConstructor()
+			->setMethods( null )
+			->getMock();
+		$this->add_shipping_label_to_order($settings_store, $order, $product_ids);
+
+		// When
+		$shipping_label = $this->get_shipping_label(false, $settings_store);
+		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+
+		// Then
+		$this->assertFalse( $is_eligible );
+	}
+
+	private function create_simple_product($virtual = false) {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_virtual($virtual);
+		$product->save();
+		return $product;
+	}
+
+	private function add_shipping_label_to_order($settings_store, $order, $product_ids = array()) {
+		$labels_meta = array(
+			array(
+				'label_id' => 17,
+				'product_ids' => $product_ids,
+			)
+		);
+		$settings_store->add_labels_to_order( $order->get_id(), $labels_meta );
+	}
 }
