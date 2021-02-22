@@ -372,6 +372,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return false;
 		}
 
+		// Check whether the store is eligible for shipping label creation:
+		// - Store currency is supported
+		// - Store country is supported
 		public function is_store_eligible_for_shipping_label_creation() {
 			$base_currency = get_woocommerce_currency();
 			if ( ! $this->is_supported_currency( $base_currency ) ) {

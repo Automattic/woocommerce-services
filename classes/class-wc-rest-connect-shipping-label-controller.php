@@ -176,23 +176,20 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			), 200);
 		}
 
-		// If the client can create customs form
+		// Check if the store is eligible for shipping label creation
+		if (!$this->shipping_label->is_store_eligible_for_shipping_label_creation()) {
+			return new WP_REST_Response(array(
+				'is_eligible' => false,
+				'reason' => 'store_not_eligible'
+			), 200);
+		}
+
+		// If the client cannot create a customs form:
+		// - The store address has to be in the US
+		// - The origin and destination addresses have to be in the US
 		$client_can_create_customs_form = isset($request['can_create_customs_form']) ? $request['can_create_customs_form']: true;
 		$store_country = wc_get_base_location()['country'];
-		if ($client_can_create_customs_form) {
-			// Check if the store is eligible for shipping label creation
-			if (!$this->shipping_label->is_store_eligible_for_shipping_label_creation()) {
-				return new WP_REST_Response(array(
-					'is_eligible' => false,
-					'reason' => 'store_not_eligible'
-				), 200);
-			}
-		} else {
-			// In case the client cannot create customs form:
-			// - The store address has to be in the US
-			// - The origin and destination addresses have to be in the US
-			// - The origin and destination addresses do not require a customs form
-
+		if (!$client_can_create_customs_form) {
 			// The store address has to be in the US
 			if ($store_country !== 'US') {
 				return new WP_REST_Response(array(
