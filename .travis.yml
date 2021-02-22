@@ -38,6 +38,7 @@ jobs:
      before_script: skip
      script: npm run eslint
    - name: "E2E tests"
+     if: env(DONT_SKIP_E2E_TESTS) IS present
      dist: trusty
      php: 7.2
      env: WP_VERSION=latest WP_MULTISITE=0 WC_VERSION=4.0.1 RUN_E2E=1

@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.6
+Stable tag: 1.25.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,13 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.7 - 2021-02-09 =
+* Fix   - Prevent error notices on checkout page load.
+* Tweak - Highlight rate call usage over limit on WooCommerce Shipping settings page.
+* Fix   - Connect carrier account link broken on subdirectory installs.
+* Fix   - Position dot in the center of radio buttons in "Create shipping label".
+* Fix   - Adjust radio button dot style in "Create shipping label" in high contrast mode on Windows.
 
 = 1.25.6 - 2021-01-26 =
 * Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
