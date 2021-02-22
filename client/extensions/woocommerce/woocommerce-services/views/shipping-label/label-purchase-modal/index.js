@@ -44,28 +44,26 @@ const LabelPurchaseModal = props => {
 				title={ translate( 'Create shipping label', 'Create shipping labels', { count: Object.keys( props.form.packages.selected ).length } ) }
 			>
 				<div className="label-purchase-modal__content">
-					<div className="label-purchase-modal__body">
-						<div className="label-purchase-modal__main-section">
-							<AddressStep
-								type="origin"
-								title={ translate( 'Origin address' ) }
-								siteId={ props.siteId }
-								orderId={ props.orderId }
-							/>
-							<AddressStep
-								type="destination"
-								title={ translate( 'Destination address' ) }
-								siteId={ props.siteId }
-								orderId={ props.orderId }
-							/>
-							<PackagesStep siteId={ props.siteId } orderId={ props.orderId } />
-							{ props.isCustomsFormRequired && (
-								<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
-							) }
-							<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
-						</div>
-						<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
+					<div className="label-purchase-modal__main-section">
+						<AddressStep
+							type="origin"
+							title={ translate( 'Origin address' ) }
+							siteId={ props.siteId }
+							orderId={ props.orderId }
+						/>
+						<AddressStep
+							type="destination"
+							title={ translate( 'Destination address' ) }
+							siteId={ props.siteId }
+							orderId={ props.orderId }
+						/>
+						<PackagesStep siteId={ props.siteId } orderId={ props.orderId } />
+						{ props.isCustomsFormRequired && (
+							<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
+						) }
+						<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
 					</div>
+					<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
 				</div>
 			</Modal>
 		) : null
