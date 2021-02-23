@@ -13,11 +13,10 @@ import { includes, size, some } from 'lodash';
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
+import ButtonModal from 'components/button-modal';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormLabel from 'components/forms/form-label';
 import getPackageDescriptions from './get-package-descriptions';
-import FormSectionHeading from 'components/forms/form-section-heading';
 import {
 	closeAddItem,
 	setAddedItem,
@@ -95,15 +94,14 @@ const AddItemDialog = props => {
 	];
 
 	return (
-		<Dialog
+		<ButtonModal
 			isVisible={ showAddItemDialog }
-			isFullScreen={ false }
 			onClickOutside={ onClose }
 			onClose={ onClose }
 			buttons={ buttons }
 			additionalClassNames="wcc-root woocommerce packages-step__dialog"
+			title={ translate( 'Add item' ) }
 		>
-			<FormSectionHeading>{ translate( 'Add item' ) }</FormSectionHeading>
 			<div className="packages-step__dialog-body">
 				<p>
 					{ translate( 'Which items would you like to add to {{pckg/}}?', {
@@ -114,7 +112,7 @@ const AddItemDialog = props => {
 				</p>
 				{ itemOptions }
 			</div>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 

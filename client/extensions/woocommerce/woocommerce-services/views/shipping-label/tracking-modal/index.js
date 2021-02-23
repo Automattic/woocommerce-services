@@ -13,8 +13,7 @@ import Gridicon from 'gridicons';
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import ButtonModal from 'components/button-modal';
 import { exitTrackingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import Button from 'components/button';
 import {
@@ -34,16 +33,15 @@ const TrackingModal = props => {
 	const onClose = () => props.exitTrackingFlow( props.orderId, props.siteId, false );
 
 	return (
-		<Dialog
+		<ButtonModal
 			additionalClassNames="woocommerce tracking-modal wcc-root"
 			isVisible={ props.showTrackingDialog }
 			onClose={ onClose }
+			isDismissible={ true }
+			title={ translate( 'Which package would you like to track?' ) }
 		>
 			<div className="tracking-modal__content">
 				<div className="tracking-modal__header">
-					<FormSectionHeading>
-						{ translate( 'Which package would you like to track?' ) }
-					</FormSectionHeading>
 					<Button className="tracking-modal__close-button" onClick={ onClose }>
 						<Gridicon icon="cross" />
 					</Button>
@@ -57,7 +55,7 @@ const TrackingModal = props => {
 					</div>
 				</div>
 			</div>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 

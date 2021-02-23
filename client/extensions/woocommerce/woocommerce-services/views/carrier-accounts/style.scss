@@ -130,8 +130,7 @@ $carrier-account-settings-max-width: 800px;
 
 .carrier-accounts__settings-cancel-dialog {
 	border: 1px red solid;
-	.dialog__content {
-		padding: 0;
+	.components-modal__content {
 
 		.carrier-accounts__settings-cancel-dialog-title {
 		}

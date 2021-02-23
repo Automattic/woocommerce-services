@@ -16,7 +16,7 @@ import { connect } from 'react-redux';
  */
 import Button from 'components/button';
 import CarrierIcon from '../../components/carrier-icon';
-import Dialog from 'components/dialog';
+import ButtonModal from 'components/button-modal';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { errorNotice as errorNoticeAction, successNotice as successNoticeAction } from 'state/notices/actions'
 import { getSelectedSiteId } from 'state/ui/selectors';
@@ -113,18 +113,16 @@ const CarrierAccountListItem = ( props ) => {
 					</a>
 				) }
 			</div>
-			<Dialog
+			<ButtonModal
 				isVisible={ isDisconnectDialogVisible }
 				additionalClassNames="carrier-accounts__settings-cancel-dialog"
 				onClose={ handleDisconnectDialogCancel }
 				buttons={ disconnectDialogButtons }
+				title={ translate( 'Disconnect your %(carrier_name)s account', {
+							args: { carrier_name: data.carrier },
+				} ) }
 			>
 				<div className="carrier-accounts__settings-cancel-dialog-header">
-					<h2 className="carrier-accounts__settings-cancel-dialog-title">
-						{ translate( 'Disconnect your %(carrier_name)s account', {
-							args: { carrier_name: data.carrier },
-						} ) }
-					</h2>
 					<button
 						className="carrier-accounts__settings-cancel-dialog-close-button"
 						onClick={ handleDisconnectDialogCancel }
@@ -137,7 +135,7 @@ const CarrierAccountListItem = ( props ) => {
 						args: { carrier_name: data.carrier },
 					} ) }
 				</p>
-			</Dialog>
+			</ButtonModal>
 		</div>
 	);
 };
