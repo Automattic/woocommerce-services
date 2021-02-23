@@ -9,16 +9,23 @@ import PropTypes from 'prop-types';
  */
 import { Modal, Button } from '@wordpress/components';
 
-const buildButton = ( b ) => {
+const buildButton = ( button, index ) => {
+	const key = 'dialog-button-' + index;
+	if ( React.isValidElement( button ) ) {
+		return React.cloneElement( button, { key } );
+	}
+
 	const {
 		label,
 		additionalClassNames,
+		action,
 		...moreProps
-	} = b;
+	} = button;
 
 	return ( 
 		<Button
-			onClick={ b.onClick }
+			key={ action }
+			onClick={ button.onClick }
 			className={ 'button form-button ' + additionalClassNames }
 			{ ...moreProps }
 		>
@@ -28,7 +35,6 @@ const buildButton = ( b ) => {
 }
 
 const ButtonModal = ( props ) => {
-
 	const {
 		buttons,
 		isVisible,

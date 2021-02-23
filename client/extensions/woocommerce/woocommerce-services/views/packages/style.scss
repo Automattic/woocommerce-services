@@ -37,13 +37,11 @@
 	}
 
 	@include breakpoint( '>660px' ) {
-		width: 610px;
+		width: 660px;
 		height: auto;
 		padding: 0;
 
-		.dialog__content {
-			padding: 0;
-
+		.components-modal__content {
 			.packages__add-edit-title {
 				padding: 22px;
 				margin: 0;

@@ -16,8 +16,7 @@ import Gridicon from 'gridicons';
  */
 import EditPackage from './edit-package';
 import checkInputs from './modal-errors';
-import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import ButtonModal from 'components/button-modal';
 import FormButton from 'components/forms/form-button';
 import inputFilters from './input-filters';
 import PredefinedPackages from './predefined-packages';
@@ -164,13 +163,13 @@ const PackageDialog = props => {
 	}
 
 	return (
-		<Dialog
+		<ButtonModal
 			isVisible={ showModal }
 			additionalClassNames="packages__add-edit-dialog woocommerce wcc-root"
 			onClose={ onClose }
 			buttons={ buttons }
+			title={ heading }
 		>
-			<FormSectionHeading className="packages__add-edit-title" >{ heading }</FormSectionHeading>
 			{ showSegmentedControl && (
 				<SimplifiedSegmentedControl
 					primary
@@ -185,7 +184,7 @@ const PackageDialog = props => {
 			) }
 			{ showEdit && <EditPackage { ...props } /> }
 			{ showPredefined && <PredefinedPackages { ...props } /> }
-		</Dialog>
+		</ButtonModal>
 	);
 };
 
