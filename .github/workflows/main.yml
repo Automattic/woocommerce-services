@@ -21,5 +21,5 @@ jobs:
         with:
           node-version: '10'
       - run: npm ci
-      - run: eslint
+      - run: npm run eslint
       - run: npm run test
