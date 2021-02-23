@@ -10,14 +10,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  js_build_and_test:
+    name: JS Build and Test
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -25,4 +21,5 @@ jobs:
         with:
           node-version: '10'
       - run: npm ci
+      - run: eslint
       - run: npm run test
