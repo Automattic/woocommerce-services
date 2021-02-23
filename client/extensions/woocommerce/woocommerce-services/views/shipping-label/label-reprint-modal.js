@@ -12,10 +12,9 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
+import ButtonModal from 'components/button-modal';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
-import FormSectionHeading from 'components/forms/form-section-heading';
 import {
 	closeReprintDialog,
 	confirmReprint,
@@ -46,13 +45,13 @@ const ReprintDialog = props => {
 	];
 
 	return (
-		<Dialog
+		<ButtonModal
 			isVisible={ Boolean( reprintDialog && reprintDialog.labelId === labelId ) }
 			onClose={ onClose }
 			buttons={ buttons }
 			additionalClassNames="label-reprint-modal woocommerce wcc-root"
+			title={ translate( 'Reprint shipping label' ) }
 		>
-			<FormSectionHeading>{ translate( 'Reprint shipping label' ) }</FormSectionHeading>
 			<p>
 				{ translate(
 					'If there was a printing error when you purchased the label, you can print it again.'
@@ -71,7 +70,7 @@ const ReprintDialog = props => {
 				value={ paperSize }
 				updateValue={ onPaperSizeChange }
 			/>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 
