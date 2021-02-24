@@ -38,7 +38,8 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout latest WCS
+        uses: actions/checkout@v2
         with:
           submodules: recursive
       - name: Verify MySQL connection
@@ -52,7 +53,7 @@ jobs:
           php -r "if (hash_file('sha384', 'composer-setup.php') === '756890a4488ce9024fc62c56153228907f1545c228516cbf63f885e036d37e9a59d27d63f46af1d4d07ee0f76181c7d3') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
           php composer-setup.php
           php -r "unlink('composer-setup.php');"
-          mv composer.phar /usr/local/bin/composer
+          sudo mv composer.phar /usr/local/bin/composer
           composer install
       - name: Setup WP and WC
         run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 5.6.2 5.0.0
