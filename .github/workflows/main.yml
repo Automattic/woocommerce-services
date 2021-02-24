@@ -26,6 +26,17 @@ jobs:
   php_build_and_test:
     name: PHP Build and Test
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306
+        env:
+          MYSQL_USER: wp_test
+          MYSQL_PASSWORD: wp_test
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_ROOT_PASSWORD:
+
     steps:
       - uses: actions/checkout@v2
         with:
