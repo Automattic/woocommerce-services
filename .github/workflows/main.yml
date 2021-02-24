@@ -35,7 +35,7 @@ jobs:
           MYSQL_USER: wp_test
           MYSQL_PASSWORD: wp_test
           MYSQL_DATABASE: wordpress_test
-          MYSQL_ROOT_PASSWORD:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v2
