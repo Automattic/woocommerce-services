@@ -3,6 +3,7 @@
 = 1.25.8 - 2021-xx-xx =
 * Tweak - Display better errors on checkout page when address fields are missing / invalid.
 * Tweak - Refresh on status page does not reload page.
+* Fix   - UPS invoice number allows numbers and letters.
 
 = 1.25.7 - 2021-02-09 =
 * Fix   - Prevent error notices on checkout page load.
