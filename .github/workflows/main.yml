@@ -44,8 +44,7 @@ jobs:
           submodules: recursive
       - name: Switch to PHP 7.4
         run: |
-          sudo a2dismod php8.0
-          sudo a2enmod php7.4
+          sudo apt-get purge php8.*
       - name: Verify PHP version
         run: |
           lsb_release -a
