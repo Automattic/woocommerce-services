@@ -45,7 +45,10 @@ import {
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
-import { getEmailReceipts } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
+import { 
+	getEmailReceipts,
+	getLabelSettingsUserMeta,
+ } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
 
 import {
@@ -271,6 +274,43 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 		} );
 };
 
+export const setPackageType = ( orderId, siteId, packageId, boxTypeId ) => (
+	dispatch,
+	getState
+) => {
+	const allBoxes = getAllPackageDefinitions( getState(), siteId );
+	const box = allBoxes[ boxTypeId ];
+
+	dispatch( {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE,
+		siteId,
+		orderId,
+		packageId,
+		boxTypeId,
+		box,
+	} );
+};
+
+/**
+ * If no box has been selected for this package, then select the last used box.
+ * @param {Number} orderId order ID
+ * @param {Number} siteId site ID
+ * @param {Function} dispatch dispatch function
+ * @param {Function} getState getState function
+ */
+const setDefaultBoxSelection = ( orderId, siteId, dispatch, getState ) => {
+	const state = getState();
+	const userMeta = getLabelSettingsUserMeta( state, siteId );
+	const labelState = getShippingLabel( state, orderId, siteId );
+	const selected = labelState.form.packages.selected;
+	const packageId = labelState.openedPackageId;
+	const pckg = selected[ packageId ];
+
+	if ( pckg && 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
+		dispatch( setPackageType( orderId, siteId, packageId, userMeta.last_box_id ) );
+	}
+}
+
 export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) => {
 	const state = getShippingLabel( getState(), orderId, siteId );
 	const form = state.form;
@@ -308,6 +348,8 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
+	).then( () =>
+		setDefaultBoxSelection( orderId, siteId, dispatch, getState )
 	);
 
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
@@ -554,23 +596,6 @@ export const removePackage = ( orderId, siteId, packageId ) => {
 		orderId,
 		packageId,
 	};
-};
-
-export const setPackageType = ( orderId, siteId, packageId, boxTypeId ) => (
-	dispatch,
-	getState
-) => {
-	const allBoxes = getAllPackageDefinitions( getState(), siteId );
-	const box = allBoxes[ boxTypeId ];
-
-	dispatch( {
-		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE,
-		siteId,
-		orderId,
-		packageId,
-		boxTypeId,
-		box,
-	} );
 };
 
 export const savePackages = ( orderId, siteId ) => {
