@@ -20,7 +20,6 @@ release/
 !/logs/.htaccess
 
 /vendor/
-composer.lock
 
 tests/e2e/config/local-*
 .eslintcache
