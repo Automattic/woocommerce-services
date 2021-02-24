@@ -47,6 +47,6 @@ jobs:
           sudo apt-get install -y mysql-client
           mysql --host 127.0.0.1 --port ${{ job.services.mariadb.ports['3306'] }} -uroot -proot -e "SHOW DATABASES"
       - name: Setup WP and WC
-        run: tests/bin/install-wc-tests.sh wordpress_test root root localhost 5.6.2 5.0.0
+        run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 5.6.2 5.0.0
       - name: Run PHPUnit tests
         run: curl -sSfL -o ~/.phpenv/versions/7.2/bin/phpunit https://phar.phpunit.de/phpunit-6.4.phar && phpunit
