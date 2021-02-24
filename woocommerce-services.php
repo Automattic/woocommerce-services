@@ -43,8 +43,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '3.9' );
-	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD', DAY_IN_SECONDS );
-	define( 'WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD', 3 * DAY_IN_SECONDS );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION ' ) ) {
@@ -112,6 +110,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @var WC_REST_Connect_Self_Help_Controller
 		 */
 		protected $rest_self_help_controller;
+
+		/**
+		 * @var WC_REST_Connect_Service_Data_Refresh_Controller
+		 */
+		protected $rest_service_data_refresh_controller;
 
 		/**
 		 * @var WC_REST_Connect_Shipping_Label_Controller
@@ -377,6 +380,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
 			$this->rest_self_help_controller = $rest_self_help_controller;
+		}
+
+		public function set_rest_service_data_refresh_controller( WC_REST_Connect_Service_Data_Refresh_Controller $rest_service_data_refresh_controller ) {
+			$this->rest_service_data_refresh_controller = $rest_service_data_refresh_controller;
 		}
 
 		public function get_rest_shipping_label_controller() {
@@ -839,6 +846,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_self_help_controller = new WC_REST_Connect_Self_Help_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
 			$rest_self_help_controller->register_routes();
+
+			require_once( plugin_basename( 'classes/class-wc-rest-connect-service-data-refresh-controller.php' ) );
+			$rest_service_data_refresh_controller = new WC_REST_Connect_Service_Data_Refresh_Controller( $this->api_client, $settings_store, $logger );
+			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
+			$this->set_rest_service_data_refresh_controller( $rest_service_data_refresh_controller );
+			$rest_service_data_refresh_controller->register_routes();
 
 			require_once( plugin_basename( 'classes/class-wc-rest-connect-shipping-label-controller.php' ) );
 			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger, $this->shipping_label );

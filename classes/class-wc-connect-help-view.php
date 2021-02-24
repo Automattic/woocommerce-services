@@ -118,44 +118,12 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Check that we are able to talk to the WooCommerce Shipping & Tax server
 			$schemas = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
-			if ( isset( $_GET['refresh'] ) && 'failed' === $_GET['refresh'] ) {
-				$health_item = array(
-					'state' => 'error',
-					'message' => __( 'An error occurred while refreshing service data.', 'woocommerce-services' ),
-					'timestamp' => $last_fetch_timestamp,
-				);
-			} else if ( is_null( $schemas ) ) {
-				$health_item = array(
-					'state' => 'error',
-					'message' => __( 'No service data available', 'woocommerce-services' ),
-				);
-			} else if ( is_null( $last_fetch_timestamp ) ) {
-				$health_item = array(
-					'state' => 'warning',
-					'message' => __( 'Service data was found, but may be out of date', 'woocommerce-services' ),
-					'timestamp' => $last_fetch_timestamp
-				);
-			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_ERROR_THRESHOLD ) {
-				$health_item = array(
-					'state' => 'error',
-					'message' => __( 'Service data was found, but is more than three days old', 'woocommerce-services' ),
-					'timestamp' => $last_fetch_timestamp
-				);
-			} else if ( $last_fetch_timestamp < time() - WOOCOMMERCE_CONNECT_SCHEMA_AGE_WARNING_THRESHOLD ) {
-				$health_item = array(
-					'state' => 'warning',
-					'message' => __( 'Service data was found, but is more than one day old', 'woocommerce-services' ),
-					'timestamp' => $last_fetch_timestamp
-				);
-			} else {
-				$health_item = array(
-					'state' => 'success',
-					'message' => __( 'Service data is up-to-date', 'woocommerce-services' ),
-					'timestamp' => $last_fetch_timestamp
-				);
-			}
-
-			$health_items['woocommerce_services'] = $health_item;
+			$health_items['woocommerce_services'] = array(
+				'timestamp'           => $last_fetch_timestamp,
+				'has_service_schemas' => ! is_null( $schemas ),
+				'error_threshold'     => 3 * DAY_IN_SECONDS,
+				'warning_threshold'   => DAY_IN_SECONDS,
+			);
 
 			return $health_items;
 		}
@@ -299,7 +267,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 * @return array
 		 */
 		protected function get_form_data() {
-			$form_data = array(
+			return array(
 				'health_items'    => $this->get_health_items(),
 				'services'        => $this->get_services_items(),
 				'logging_enabled' => $this->logger->is_logging_enabled(),
@@ -310,20 +278,12 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'other'       => $this->get_debug_log_data(),
 				)
 			);
-
-			return $form_data;
 		}
 
 		/**
 		 * Localizes the bootstrap, enqueues the script and styles for the help page
 		 */
 		public function page() {
-			if ( isset( $_GET['refresh'] ) && 'true' === $_GET['refresh'] ) {
-				$fetched = $this->service_schemas_store->fetch_service_schemas_from_connect_server();
-				$url = add_query_arg( 'refresh', $fetched ? false : 'failed' );
-				wp_safe_redirect( $url );
-			}
-
 			?>
 				<h2>
 					<?php _e( 'WooCommerce Shipping & Tax Status', 'woocommerce-services' ); ?>
