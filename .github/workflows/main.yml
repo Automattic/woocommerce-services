@@ -45,7 +45,7 @@ jobs:
         run: |
           mysql --version
           sudo apt-get install -y mysql-client
-          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -e "SHOW DATABASES"
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -proot -e "SHOW DATABASES"
       - name: Setup WP and WC
         run: tests/bin/install-wc-tests.sh wordpress_test root root localhost 5.6.2 5.0.0
       - name: Run PHPUnit tests
