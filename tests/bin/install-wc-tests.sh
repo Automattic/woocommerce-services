@@ -10,10 +10,12 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
-WC_VERSION=${6-"2.6.14"}
+WC_VERSION=${6-"5.0.0"}
 
 install_wc() {
-	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
+	# TODO: fetch the latest tag
+	curl -o /tmp/woocommerce.zip https://github.com/woocommerce/woocommerce/releases/download/5.0.0/woocommerce.zip
+	unzip /tmp/woocommerce.zip -d /tmp/woocommerce
 }
 
 install_wp() {
