@@ -17,7 +17,7 @@ const buildButton = ( button, index ) => {
 
 	const {
 		label,
-		additionalClassNames,
+		additionalClassNames='',
 		action,
 		...moreProps
 	} = button;
@@ -38,7 +38,7 @@ const ButtonModal = ( props ) => {
 	const {
 		buttons,
 		isVisible,
-		additionalClassNames,
+		additionalClassNames='',
 		onClose,
 		children,
 		...moreProps
@@ -67,6 +67,5 @@ ButtonModal.propTypes = {
 	additionalClassNames: PropTypes.string,
 	onClose: PropTypes.func,
 };
-
 
 export default ButtonModal;
