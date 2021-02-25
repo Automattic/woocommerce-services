@@ -54,7 +54,7 @@ const ButtonModal = ( props ) => {
 				{ ...moreProps } 
 			>
 				{ children }
-				{ buttons.map( ( b, index ) => buildButton( b, index ) ) }
+				{ buttons && buttons.map( ( b, index ) => buildButton( b, index ) ) }
 			</Modal>
 		) : null
 	);
