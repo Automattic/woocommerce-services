@@ -7,11 +7,12 @@ import React  from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { some } from 'lodash';
+import { Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import CarrierAccountListItem from './list-item';
 
@@ -26,7 +27,7 @@ const CarrierAccounts = ({ translate, carriers = [] }) => {
 				label={translate('Carrier account')}
 				description={translate('Set up your own carrier account by adding your credentials here')}
 			/>
-			<Card className="carrier-accounts__list">
+			<Card size="small" className={ classNames( "card", "carrier-accounts__list") }>
 				<div className="carrier-accounts__header">
 					<div className="carrier-accounts__header-icon" />
 					<div className="carrier-accounts__header-name">{ translate( 'Name' ) }</div>

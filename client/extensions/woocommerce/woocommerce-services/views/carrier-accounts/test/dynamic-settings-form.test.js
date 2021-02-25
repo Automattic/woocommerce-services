@@ -55,7 +55,8 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 		);
 
 		expect(wrapper.find('h4').at(0).text()).toBe('Connect your DHL Express account');
-		expect(wrapper.find('.card').at(1).text()).toBeFalsy()
+		// Expect the second children on the form, the form fields, to be empty. First child is title, third is the buttons.
+		expect(wrapper.find('.carrier-accounts__settings-form').children().at(1).text()).toBeFalsy();
 	});
 
 	it('renders the carrier text fields', async () => {

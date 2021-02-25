@@ -4,11 +4,12 @@
 import React  from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
+import { Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import SubscriptionsUsageListItem from './list-item';
 
@@ -23,7 +24,7 @@ const SubscriptionsUsage = ({ translate, subscriptions = [] }) => {
 				label={translate('Shipping method')}
 				description={translate('View and manage your subscription usage')}
 			/>
-			<Card className="subscriptions-usage__list">
+			<Card size="small" className={ classNames( "card", "subscriptions-usage__list" ) }>
 				<div className="subscriptions-usage__header">
 					<div className="subscriptions-usage__header-icon" />
 					<div className="subscriptions-usage__header-name">{ translate( 'Name' ) }</div>

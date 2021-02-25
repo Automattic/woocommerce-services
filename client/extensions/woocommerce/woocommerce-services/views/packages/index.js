@@ -9,12 +9,13 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import { Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import Button from 'components/button';
-import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import PackageDialog from './package-dialog';
 import PackagesListItem from './packages-list-item';
@@ -111,7 +112,7 @@ class Packages extends Component {
 						{ translate( 'Add package' ) }
 					</Button>
 				</ExtendedHeader>
-				<Card className="packages__packages">
+				<Card size="small" className={ classNames( "card", "packages__packages" ) }>
 					{ this.renderListHeader( packages ) }
 					{ packages.map( this.renderListItem ) }
 					{ ! isFetching && <PackageDialog { ...this.props } /> }
