@@ -51,6 +51,7 @@ const ButtonModal = ( props ) => {
 				isDismissible={ false }
 				shouldCloseOnClickOutside={ false }
 				onRequestClose={ onClose }
+				overlayClassName='button-modal__overlay'
 				{ ...moreProps } 
 			>
 				{ children }
