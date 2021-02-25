@@ -55,10 +55,6 @@ const PackageInfo = props => {
 
 	const pckg = selected[ packageId ];
 
-	if ( 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
-		props.setPackageType( orderId, siteId, packageId, userMeta.last_box_id );
-	}
-
 	const isIndividualPackage = 'individual' === pckg.box_id;
 
 	const renderItemInfo = ( item, itemIndex ) => {

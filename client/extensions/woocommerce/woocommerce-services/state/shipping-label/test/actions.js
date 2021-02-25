@@ -15,6 +15,7 @@ import {
 	convertToApiPackage,
 	submitAddressForNormalization,
 	confirmAddressSuggestion,
+	getDefaultBoxSelection,
 } from '../actions';
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
@@ -33,7 +34,7 @@ const defaultAddress = {
 	phone: '123',
 };
 
-function createGetStateFn( newProps = { origin: {}, destination: {} } ) {
+function createGetStateFn( newProps = { origin: {}, destination: {}, packages: {} } ) {
 	const defaultProps = {
 		ignoreValidation: false,
 		selectNormalized: false,
@@ -42,9 +43,17 @@ function createGetStateFn( newProps = { origin: {}, destination: {} } ) {
 		expanded: true, // hack to prevent getLabelRates() in openPrintingFlow
 		values: defaultAddress,
 	};
+	const defaultPackages = {
+		selected: {
+			'default_box': {
+				box_id: 'not_selected',
+			}
+		},
+	};
 
 	const origin = Object.assign( {}, defaultProps, newProps.origin );
 	const destination = Object.assign( {}, defaultProps, newProps.destination );
+	const packages = Object.assign( {}, defaultPackages, newProps.packages );
 
 	return function() {
 		return {
@@ -57,12 +66,18 @@ function createGetStateFn( newProps = { origin: {}, destination: {} } ) {
 									form: {
 										origin,
 										destination,
-										packages: {
-											selected: {},
-										},
+										packages,
 										rates: {
 											values: {},
 										},
+									},
+									openedPackageId: 'default_box',
+								},
+							},
+							labelSettings: {
+								meta: {
+									user: {
+										last_box_id: 'test_last_box',
 									},
 								},
 							},
@@ -185,10 +200,10 @@ describe( 'Shipping label Actions', () => {
 			const dispatchSpy = sinon.spy();
 
 			openPrintingFlow( orderId, siteId )(
-				dispatchSpy,
-				createGetStateFn( {
-					destination: { ignoreValidation: true },
-				} )
+					dispatchSpy,
+					createGetStateFn( {
+						destination: { ignoreValidation: true },
+					} )
 			);
 
 			it( 'toggle destination', () => {
@@ -262,7 +277,6 @@ describe( 'Shipping label Actions', () => {
 					} )
 				).to.equal( true );
 			} );
-
 			errorStub.restore();
 		} );
 
@@ -391,6 +405,38 @@ describe( 'Shipping label Actions', () => {
 					group,
 				} )
 			).to.equal( true );
+		} );
+	} );
+
+	describe( 'getDefaultBoxSelection', () => {
+		it( 'defaults to last used by user', () => {
+			const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, createGetStateFn() );
+
+			expect(
+				packageId
+			).to.equal( 'default_box' );
+			expect(
+				boxId
+			).to.equal( 'test_last_box' );
+		} );
+
+		it( 'no default if package has been selected', () => {
+			const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, createGetStateFn( {
+				packages: {
+					selected: {
+						'default_box': {
+							box_id: 'something_selected',
+						},
+					},
+				},
+			} ) ) || {};
+
+			expect(
+				packageId
+			).to.equal( undefined );
+			expect(
+				boxId
+			).to.equal( undefined );
 		} );
 	} );
 } );

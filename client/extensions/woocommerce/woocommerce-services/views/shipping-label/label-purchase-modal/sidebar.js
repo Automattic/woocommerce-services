@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { CheckboxControl } from '@wordpress/components';
+import { CheckboxControl, Card } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -65,31 +65,37 @@ export const Sidebar = props => {
 	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
 
 	return (
-		<div className="label-purchase-modal__sidebar">
-			<ShippingSummary siteId={ siteId } orderId={ orderId } />
-			<PriceSummary siteId={ siteId } orderId={ orderId } />
-			<hr />
-			<div className="label-purchase-modal__purchase-container">
-				{ canPurchaseLabel ? <Dropdown
-					id={ 'paper_size' }
-					valuesMap={ getPaperSizes( form.origin.values.country ) }
-					title={ translate( 'Paper size' ) }
-					value={ paperSize }
-					updateValue={ onPaperSizeChange }
-					error={ errors.paperSize }
-				/> : null }
-				<PurchaseSection siteId={ siteId } orderId={ orderId } />
-			</div>
-			<CheckboxControl
-				className="label-purchase-modal__option-mark-order-fulfilled"
-				label={ isOrderFinished( order.status ) ?
-					translate( 'Notify the customer with shipment details' ) :
-					translate( 'Mark this order as complete and notify the customer' )
-				}
-				checked={ fulfillOrder || emailDetails }
-				onChange={ onFulfillAndEmailOrderChange }
-			/>
-		</div>
+		<Card 
+			className="label-purchase-modal__sidebar"
+			title = { translate( 'Shipping summary' ) }
+		>
+				<div className="label-purchase-modal__shipping-summary-header">
+					{ translate( 'Shipping summary' ) }
+				</div>
+				<ShippingSummary siteId={ siteId } orderId={ orderId } />
+				<PriceSummary siteId={ siteId } orderId={ orderId } />
+				<hr />
+				<div className="label-purchase-modal__purchase-container">
+					{ canPurchaseLabel ? <Dropdown
+						id={ 'paper_size' }
+						valuesMap={ getPaperSizes( form.origin.values.country ) }
+						title={ translate( 'Paper size' ) }
+						value={ paperSize }
+						updateValue={ onPaperSizeChange }
+						error={ errors.paperSize }
+					/> : null }
+					<PurchaseSection siteId={ siteId } orderId={ orderId } />
+				</div>
+				<CheckboxControl
+					className="label-purchase-modal__option-mark-order-fulfilled"
+					label={ isOrderFinished( order.status ) ?
+						translate( 'Notify the customer with shipment details' ) :
+						translate( 'Mark this order as complete and notify the customer' )
+					}
+					checked={ fulfillOrder || emailDetails }
+					onChange={ onFulfillAndEmailOrderChange }
+				/>
+		</Card>
 	);
 };
 
