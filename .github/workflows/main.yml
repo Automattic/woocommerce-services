@@ -44,11 +44,15 @@ jobs:
           submodules: recursive
       - name: Switch to PHP 7.4
         run: |
-          sudo apt-get purge php8.*
+          sudo update-alternatives --set php /usr/bin/php7.4
+          sudo update-alternatives --set phar /usr/bin/phar7.4
+          sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
       - name: Verify PHP version
         run: |
           lsb_release -a
           sudo update-alternatives --config php
+          sudo update-alternatives --config phar
+          sudo update-alternatives --config phar.phar
           php -v
       - name: Verify MySQL connection
         run: |
