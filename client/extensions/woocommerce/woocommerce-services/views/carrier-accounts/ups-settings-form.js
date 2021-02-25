@@ -5,13 +5,14 @@ import React, { useState, useCallback, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { compose } from 'redux'
+import { Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import { localize } from 'i18n-calypso'
 import Button from 'components/button'
-import CompactCard from 'components/card/compact'
 import ButtonModal from 'components/button-modal';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown'
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox'
@@ -250,21 +251,21 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
-					<CompactCard>
+					<Card className={ classNames( "card", "is-compact" ) } >
 						<h4 className="carrier-accounts__settings-subheader">{translate('General information')}</h4>
 						<p className="carrier-accounts__settings-subheader-description">
 							{translate('This is the account number and address from your UPS profile')}
 						</p>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-account-number">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-account-number", "card", "is-compact" ) } >
 						<TextField
 							id="account_number"
 							title={translate('Account number')}
 							updateValue={handleFormFieldUpdate}
 							error={typeof formValues.account_number === 'string' ? fieldsErrors.account_number : undefined}
 						/>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-address">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-address", "card", "is-compact" ) } >
 						<TextField
 							id="name"
 							title={translate('Name')}
@@ -328,8 +329,8 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 							updateValue={handleFormFieldUpdate}
 							error={typeof formValues.email === 'string' ? fieldsErrors.email : undefined}
 						/>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-company-info">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-company-info", "card", "is-compact" ) } >
 						<div className="carrier-accounts__settings-header">
 							<h4 className="carrier-accounts__settings-subheader">
 								{translate('Company information')}
@@ -358,8 +359,8 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								error={typeof formValues.website === 'string' ? fieldsErrors.website : undefined}
 							/>
 						</div>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-ups-info">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-ups-info", "card", "is-compact" ) } >
 						<div className="carrier-accounts__settings-header">
 							<h4 className="carrier-accounts__settings-subheader">
 								{translate('UPS account information')}
@@ -412,8 +413,8 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								/>
 							</div>
 						)}
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-actions">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-actions", "card", "is-compact" ) } >
 						<Button
 							compact
 							primary
@@ -426,7 +427,7 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 						<Button compact onClick={handleCancelClick}>
 							{translate('Cancel')}
 						</Button>
-					</CompactCard>
+					</Card>
 				</div>
 				<CancelDialog isVisible={isCancelDialogVisible} onConfirm={handleCancelDialogConfirm} onCancel={handleCancelDialogCancel}/>
 			</div>
