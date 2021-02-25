@@ -16,10 +16,13 @@ install_wc() {
 	# TODO: fetch the latest tag
 	curl -Lo /tmp/woocommerce.zip https://github.com/woocommerce/woocommerce/releases/download/5.0.0/woocommerce.zip
 	unzip /tmp/woocommerce.zip
+	echo "Done unzipping WooCommerce\n"
 }
 
 install_wp() {
+	echo "Installing WordPress via WooCommerce install script\n"
 	bash /tmp/woocommerce/tests/bin/install.sh $DB_NAME $DB_USER "$DB_PASS" $DB_HOST $WP_VERSION
+	echo "Done unzipping WordPress\n"
 }
 
 install_wc
