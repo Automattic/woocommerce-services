@@ -2,8 +2,9 @@
 
 class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
-	static function setUpBeforeClass() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-method.php';
+	static function setUpBeforeClass()	{
+		require_once __DIR__ . '/../../classes/class-wc-connect-shipping-method.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-cart-validation.php';
 	}
 
 	public function is_valid_package_destination_provider() {
@@ -118,10 +119,7 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	 */
 	public function test_is_valid_package_destination( $package, $expected ) {
 
-		$shipping_method = $this->getMockBuilder( 'WC_Connect_Shipping_Method' )
-			->disableOriginalConstructor()
-			->setMethods( null )
-			->getMock();
+		$shipping_method = new WC_Connect_Shipping_Method();
 
 		$this->assertEquals( $expected, $shipping_method->is_valid_package_destination( $package ) );
 

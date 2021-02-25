@@ -24,6 +24,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected $api_client;
 
+		/**
+		 * Store validation errors in property for later retrieval.
+		 *
+		 * @var WP_Error
+		 */
+		protected $package_validation_errors;
+
+		/**
+		 * Cache of destinations which have already been validated.
+		 *
+		 * @var array
+		 */
+		protected $validated_package_destinations = array();
+
 		public function __construct( $id_or_instance_id = null ) {
 			parent::__construct( $id_or_instance_id );
 
@@ -78,6 +92,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				// admin_enqueue_scripts has already fired.  This is why WC_Connect_Loader
 				// does it instead.
 			}
+			$this->package_validation_errors = new WP_Error();
 		}
 
 		public function get_service_schema() {
@@ -197,37 +212,113 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		/**
 		 * Determine if a package's destination is valid enough for a rate quote.
 		 *
-		 * @param array $package
+		 * @param array $package Current Package.
 		 * @return bool
 		 */
 		public function is_valid_package_destination( $package ) {
+			$country   = isset( $package['destination']['country'] ) ? $package['destination']['country'] : '';
+			$postcode  = isset( $package['destination']['postcode'] ) ? $package['destination']['postcode'] : '';
+			$state     = isset( $package['destination']['state'] ) ? $package['destination']['state'] : '';
+			$countries = WC()->countries->get_countries();
 
-			$country  = isset( $package['destination']['country'] ) ? $package['destination']['country'] : '';
-			$postcode = isset( $package['destination']['postcode'] ) ? $package['destination']['postcode'] : '';
-			$state    = isset( $package['destination']['state'] ) ? $package['destination']['state'] : '';
+			$destination_key = md5( wp_json_encode( $package['destination'] ) );
+
+			if ( isset( $this->validated_package_destinations[ $destination_key ] ) ) {
+				// We are using a cache because this method could be called multiple times and we don't want to show double errors.
+				return $this->validated_package_destinations[ $destination_key ];
+			}
 
 			// Ensure that Country is specified.
 			if ( empty( $country ) ) {
-				$this->debug( 'Skipping rate calculation - missing country', 'error' );
-				return false;
+				$this->package_validation_errors->add(
+					'country_required',
+					esc_html__( 'A country is required', 'woocommerce-services' ),
+					[ 'id' => 'country' ]
+				);
 			}
 
 			// Validate Postcode.
 			if ( ! WC_Validation::is_postcode( $postcode, $country ) ) {
-				$this->debug( 'Skipping rate calculation - invalid postcode', 'error' );
-				return false;
+				$fields = WC()->countries->get_address_fields( $country, '' );
+				if ( empty( $postcode ) ) {
+					$this->package_validation_errors->add(
+						'postcode_required',
+						sprintf(
+							/* Translators: %1$s: Localized label for Zip/postal code, %2$s: Country name */
+							esc_html__(
+								'A %1$s is required for %2$s.',
+								'woocommerce-services'
+							),
+							'<strong>' . esc_html( $fields['postcode']['label'] ) . '</strong>',
+							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
+						),
+						[ 'id' => 'postcode' ]
+					);
+				} else {
+					$this->package_validation_errors->add(
+						'postcode_validation',
+						sprintf(
+						/* Translators: %1$s: Localized label for Zip/postal code, %2$s: submitted zip/postal code, %3$s: Country name */
+							esc_html__(
+								'%1$s %2$s is invalid for %3$s.',
+								'woocommerce-services'
+							),
+							esc_html( $fields['postcode']['label'] ),
+							'<strong>' . esc_html( $postcode ) . '</strong>',
+							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
+						),
+						[ 'id' => 'postcode' ]
+					);
+				}
 			}
 
 			// Validate State.
 			$valid_states = WC()->countries->get_states( $country );
 
-			if ( $valid_states && ! array_key_exists( $state, $valid_states ) ) {
-				$this->debug( 'Skipping rate calculation - invalid/unsupported state', 'error' );
-				return false;
+			if ( $valid_states && ! isset( $valid_states[ $state ] ) ) {
+				if ( empty( $state ) ) {
+					$fields = WC()->countries->get_address_fields( $country, '' );
+					$this->package_validation_errors->add(
+						'state_required',
+						sprintf(
+						/* Translators: %1$s: Localized label for province/region/state, %2$s: Country name */
+							esc_html__(
+								'A %1$s is required for %2$s.',
+								'woocommerce-services'
+							),
+							'<strong>' . esc_html( $fields['state']['label'] ) . '</strong>',
+							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
+						),
+						[ 'id' => 'state' ]
+					);
+				} else {
+					$this->package_validation_errors->add(
+						'state_validation',
+						sprintf(
+						/* Translators: %1$s: State name, %2$s: Country name */
+							esc_html__(
+								'State %1$s is invalid for %2$s.',
+								'woocommerce-services'
+							),
+							'<strong>' . esc_html( $state ) . '</strong>',
+							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
+						),
+						[ 'id' => 'state' ]
+					);
+				}
 			}
+			$is_valid = ! $this->package_validation_errors->has_errors();
+			$this->validated_package_destinations[ $destination_key ] = $is_valid;
+			return $is_valid;
+		}
 
-			return true;
-
+		/**
+		 * Return WP_Error object which may have validation errors.
+		 *
+		 * @return WP_Error
+		 */
+		public function get_package_validation_errors() {
+			return $this->package_validation_errors;
 		}
 
 		private function lookup_product( $package, $product_id ) {
@@ -308,6 +399,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			);
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
+				foreach ( $this->package_validation_errors->errors as $code => $messages ) {
+					$data = $this->package_validation_errors->get_error_data( $code );
+					foreach ( $messages as $message ) {
+						wc_add_notice( $message, 'error', $data );
+					}
+				}
 				return;
 			}
 
