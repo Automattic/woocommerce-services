@@ -14,7 +14,7 @@ WC_VERSION=${6-"5.0.0"}
 
 install_wc() {
 	# TODO: fetch the latest tag
-	curl -o /tmp/woocommerce.zip https://github.com/woocommerce/woocommerce/releases/download/5.0.0/woocommerce.zip
+	curl -Lo /tmp/woocommerce.zip https://github.com/woocommerce/woocommerce/releases/download/5.0.0/woocommerce.zip
 	unzip /tmp/woocommerce.zip -d /tmp/woocommerce
 }
 

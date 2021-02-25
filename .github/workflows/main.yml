@@ -48,6 +48,7 @@ jobs:
       - name: Verify PHP version
         run: |
           lsb_release -a
+          sudo update-alternatives --config php
           php -v
       - name: Verify MySQL connection
         run: |
