@@ -8,20 +8,17 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import Gridicon from 'gridicons';
+import { Modal } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
 import AddressStep from './address-step';
 import PackagesStep from './packages-step';
 import CustomsStep from './customs-step';
 import RatesStep from './rates-step';
 import Sidebar from './sidebar';
-import FormSectionHeading from 'components/forms/form-section-heading';
 import { exitPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
-import Button from 'components/button';
 import {
 	getShippingLabel,
 	isLoaded,
@@ -29,7 +26,7 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 const LabelPurchaseModal = props => {
-	const { loaded, translate } = props;
+	const { loaded, translate, showPurchaseDialog } = props;
 
 	if ( ! loaded ) {
 		return null;
@@ -39,21 +36,14 @@ const LabelPurchaseModal = props => {
 	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
 
 	return (
-		<Dialog
-			additionalClassNames="woocommerce label-purchase-modal wcc-root"
-			isVisible={ props.showPurchaseDialog }
-			onClose={ onClose }
-		>
-			<div className="label-purchase-modal__content">
-				<div className="label-purchase-modal__header">
-					<FormSectionHeading>
-						{ translate( 'Create shipping label', 'Create shipping labels', { count: Object.keys( props.form.packages.selected ).length } ) }
-					</FormSectionHeading>
-					<Button className="label-purchase-modal__close-button" onClick={ onClose }>
-						<Gridicon icon="cross" />
-					</Button>
-				</div>
-				<div className="label-purchase-modal__body">
+		showPurchaseDialog ? (
+			<Modal
+				className="woocommerce label-purchase-modal wcc-root"
+				shouldCloseOnClickOutside={ false }
+				onRequestClose={ onClose }
+				title={ translate( 'Create shipping label', 'Create shipping labels', { count: Object.keys( props.form.packages.selected ).length } ) }
+			>
+				<div className="label-purchase-modal__content">
 					<div className="label-purchase-modal__main-section">
 						<AddressStep
 							type="origin"
@@ -75,8 +65,8 @@ const LabelPurchaseModal = props => {
 					</div>
 					<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
 				</div>
-			</div>
-		</Dialog>
+			</Modal>
+		) : null
 	);
 };
 
