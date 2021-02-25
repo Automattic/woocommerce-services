@@ -62,9 +62,11 @@
 	display: flex;
 	min-height: calc(100% - 10vmin);
 	flex-flow: column;
+	margin: 0 -24px -24px;
 
 	@include breakpoint( '>660px' ) {
 		flex-flow: row;
+		margin: 0;
 	}
 
 	.gridicon.is-success {
