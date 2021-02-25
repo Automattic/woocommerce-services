@@ -4,19 +4,3 @@ input[type='checkbox'] {
 		content: url( '../../wp-calypso/public/images/checkbox-icons/checkmark-primary.svg' );
 	}
 }
-
-.payment-logo {
-	$payment-cc-brands: 'amex', 'diners', 'discover', 'jcb', 'mastercard', 'unionpay', 'visa';
-	$payment-types: 'alipay', 'bancontact', 'giropay', 'eps', 'ideal', 'paypal', 'p24', 'brazil-tef',
-	'wechat', 'sofort';
-	@each $brand in $payment-cc-brands {
-		&.is-#{$brand} {
-			background-image: url('../../wp-calypso/public/images/upgrades/cc-#{$brand}.svg');
-		}
-	}
-	@each $type in $payment-types {
-		&.is-#{$type} {
-			background-image: url('../../wp-calypso/public/images/upgrades/#{$type}.svg');
-		}
-	}
-}
