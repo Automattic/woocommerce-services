@@ -292,13 +292,13 @@ export const setPackageType = ( orderId, siteId, packageId, boxTypeId ) => (
 };
 
 /**
- * If no box has been selected for this package, then select the last used box.
+ * If no box has been selected for this package, then get the last used box.
  * @param {Number} orderId order ID
  * @param {Number} siteId site ID
- * @param {Function} dispatch dispatch function
  * @param {Function} getState getState function
+ * @return {Object|undefined} packageId and boxId if default is needed.
  */
-const setDefaultBoxSelection = ( orderId, siteId, dispatch, getState ) => {
+export const getDefaultBoxSelection = ( orderId, siteId, getState ) => {
 	const state = getState();
 	const userMeta = getLabelSettingsUserMeta( state, siteId );
 	const labelState = getShippingLabel( state, orderId, siteId );
@@ -307,7 +307,7 @@ const setDefaultBoxSelection = ( orderId, siteId, dispatch, getState ) => {
 	const pckg = selected[ packageId ];
 
 	if ( pckg && 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
-		dispatch( setPackageType( orderId, siteId, packageId, userMeta.last_box_id ) );
+		return { packageId, boxId: userMeta.last_box_id };
 	}
 }
 
@@ -348,9 +348,12 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
-	).then( () =>
-		setDefaultBoxSelection( orderId, siteId, dispatch, getState )
-	);
+	).then( () => {
+		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
+		if ( packageId !== undefined && boxId !== undefined ) {
+			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );
+		}
+	} );
 
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
 };
