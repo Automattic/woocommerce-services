@@ -17,7 +17,7 @@ import { isBoolean } from 'lodash';
  */
 import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
-import FormToggle from 'components/forms/form-toggle';
+import { FormToggle } from '@wordpress/components';
 import LabelSettings from './label-settings';
 import QueryLabelSettings from 'woocommerce/woocommerce-services/components/query-label-settings';
 import { setFormDataValue, restorePristineSettings } from '../../state/label-settings/actions';
