@@ -17,25 +17,25 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		return (object) array(
 			'shipping' => array(
 				(object) array(
-					'id' => 'usps',
+					'id'                 => 'usps',
 					'method_description' => 'Obtains rates dynamically from the USPS API during cart/checkout.',
-					'method_title' => 'USPS (WooCommerce Shipping)',
-					'form_layout' => array(),
-					'service_settings' => (object) array(
-						'type' => 'object',
-						'required' => array(),
+					'method_title'       => 'USPS (WooCommerce Shipping)',
+					'form_layout'        => array(),
+					'service_settings'   => (object) array(
+						'type'       => 'object',
+						'required'   => array(),
 						'properties' => (object) array(
 							'title' => (object) array(
-								'type' => 'string',
-								'title' => 'Method Title',
+								'type'        => 'string',
+								'title'       => 'Method Title',
 								'description' => 'This controls the title which the user sees during checkout.',
-								'default' => 'USPS'
-							)
-						)
-					)
-				)
+								'default'     => 'USPS',
+							),
+						),
+					),
+				),
 			),
-			'boxes' => new stdClass()
+			'boxes'    => new stdClass(),
 		);
 
 	}
@@ -64,11 +64,11 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 	public function validate_services_errors_provider() {
 
 		// service should reference an object
-		$service_not_ref_object = self::get_golden_services();
+		$service_not_ref_object              = self::get_golden_services();
 		$service_not_ref_object->shipping[0] = array();
 
 		// service type should reference an array
-		$service_type_array = self::get_golden_services();
+		$service_type_array           = self::get_golden_services();
 		$service_type_array->shipping = new stdClass();
 
 		// service should have an id
@@ -76,7 +76,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		unset( $service_id_required->shipping[0]->id );
 
 		// service id should be a string
-		$service_id_string = self::get_golden_services();
+		$service_id_string                  = self::get_golden_services();
 		$service_id_string->shipping[0]->id = 99;
 
 		// service should have method description
@@ -84,7 +84,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		unset( $service_method_description->shipping[0]->method_description );
 
 		// service method description should be a string
-		$service_method_string = self::get_golden_services();
+		$service_method_string                                  = self::get_golden_services();
 		$service_method_string->shipping[0]->method_description = 99;
 
 		// service should have method title
@@ -92,7 +92,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		unset( $service_title_required->shipping[0]->method_title );
 
 		// service method title should be a string
-		$service_title_string = self::get_golden_services();
+		$service_title_string                            = self::get_golden_services();
 		$service_title_string->shipping[0]->method_title = 99;
 
 		// service should have service settings
@@ -108,7 +108,7 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		unset( $service_settings_type_required->shipping[0]->service_settings->type );
 
 		// service settings type should be a string
-		$service_settings_type_string = self::get_golden_services();
+		$service_settings_type_string                                      = self::get_golden_services();
 		$service_settings_type_string->shipping[0]->service_settings->type = 99;
 
 		// service settings should have required
@@ -136,25 +136,25 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		unset( $service_settings_boxes_required->boxes );
 
 		return array(
-			'services should be an object' => array( array(), 'outermost_container_not_object' ),
-			'service type should reference an array' => array( $service_type_array, 'service_type_not_ref_array' ),
-			'service should reference an object' => array( $service_not_ref_object, 'service_not_ref_object' ),
-			'service should have an id' => array( $service_id_required, 'required_service_property_missing' ),
-			'service id should be a string' => array( $service_id_string, 'required_service_property_wrong_type' ),
-			'service should have method description' => array( $service_method_description, 'required_service_property_missing' ),
+			'services should be an object'                 => array( array(), 'outermost_container_not_object' ),
+			'service type should reference an array'       => array( $service_type_array, 'service_type_not_ref_array' ),
+			'service should reference an object'           => array( $service_not_ref_object, 'service_not_ref_object' ),
+			'service should have an id'                    => array( $service_id_required, 'required_service_property_missing' ),
+			'service id should be a string'                => array( $service_id_string, 'required_service_property_wrong_type' ),
+			'service should have method description'       => array( $service_method_description, 'required_service_property_missing' ),
 			'service method description should be a string' => array( $service_method_string, 'required_service_property_wrong_type' ),
-			'service should have method title' => array( $service_title_required, 'required_service_property_missing' ),
-			'service method title should be a string' => array( $service_title_string, 'required_service_property_wrong_type' ),
-			'service should have service settings' => array( $service_settings_required, 'required_service_property_missing' ),
-			'service should have form layout' => array( $form_layout_required, 'required_service_property_missing' ),
-			'service settings should have type' => array( $service_settings_type_required, 'service_settings_missing_required_property' ),
-			'service settings type should be a string' => array( $service_settings_type_string, 'service_settings_property_wrong_type' ),
-			'service settings should have required' => array( $service_settings_required_required, 'service_settings_missing_required_property' ),
+			'service should have method title'             => array( $service_title_required, 'required_service_property_missing' ),
+			'service method title should be a string'      => array( $service_title_string, 'required_service_property_wrong_type' ),
+			'service should have service settings'         => array( $service_settings_required, 'required_service_property_missing' ),
+			'service should have form layout'              => array( $form_layout_required, 'required_service_property_missing' ),
+			'service settings should have type'            => array( $service_settings_type_required, 'service_settings_missing_required_property' ),
+			'service settings type should be a string'     => array( $service_settings_type_string, 'service_settings_property_wrong_type' ),
+			'service settings should have required'        => array( $service_settings_required_required, 'service_settings_missing_required_property' ),
 			'service settings required should be an array' => array( $service_settings_required_array, 'service_settings_property_wrong_type' ),
-			'service settings should have properties' => array( $service_settings_properties_required, 'service_settings_missing_required_property' ),
+			'service settings should have properties'      => array( $service_settings_properties_required, 'service_settings_missing_required_property' ),
 			'service settings properties should be an object' => array( $service_settings_properties_object, 'service_settings_property_wrong_type' ),
 			'service settings properties should have title' => array( $service_settings_title_required, 'service_properties_missing_required_property' ),
-			'boxes should be an object' => array( $service_settings_boxes_required, 'boxes_not_object' ),
+			'boxes should be an object'                    => array( $service_settings_boxes_required, 'boxes_not_object' ),
 		);
 
 	}

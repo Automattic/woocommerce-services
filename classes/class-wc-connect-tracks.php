@@ -16,7 +16,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		protected $logger;
 
 		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
-			$this->logger = $logger;
+			$this->logger      = $logger;
 			$this->plugin_file = $plugin_file;
 		}
 
@@ -70,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 				$this->debug( 'Error. jetpack_tracks_record_event is not defined.' );
 				return;
 			}
-			$user = wp_get_current_user();
+			$user     = wp_get_current_user();
 			$site_url = get_option( 'siteurl' );
 
 			$wcs_version = WC_Connect_Loader::get_wcs_version();
@@ -97,16 +97,16 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 				$data = array();
 			}
 
-			$data['_via_ua'] = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
-			$data['_via_ip'] = isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
-			$data['_lg'] = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
-			$data['blog_url'] = $site_url;
-			$data['blog_id'] = $jetpack_blog_id;
-			$data['wcs_version'] = $wcs_version;
+			$data['_via_ua']         = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+			$data['_via_ip']         = isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
+			$data['_lg']             = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
+			$data['blog_url']        = $site_url;
+			$data['blog_id']         = $jetpack_blog_id;
+			$data['wcs_version']     = $wcs_version;
 			$data['jetpack_version'] = $jp_version;
-			$data['is_atomic'] = $is_atomic;
-			$data['wc_version'] = $wc_version;
-			$data['wp_version'] = get_bloginfo( 'version' );
+			$data['is_atomic']       = $is_atomic;
+			$data['wc_version']      = $wc_version;
+			$data['wp_version']      = get_bloginfo( 'version' );
 
 			$event_type = self::$product_name . '_' . $event_type;
 

@@ -48,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		/**
 		 * Retrieve the corresponding Product for the given Order Item.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order                                  $order
 		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
 		 *
 		 * @return WC_Product
@@ -61,7 +61,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		 * Get formatted list of Product Variations, if applicable.
 		 *
 		 * @param WC_Product_Variation $product
-		 * @param bool $flat
+		 * @param bool                 $flat
 		 *
 		 * @return string
 		 */
@@ -100,15 +100,15 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
 		 *
-		 * @param int $product_id Product ID or variation ID
+		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
 		 * @return string The product (or variation) name, ready to print
 		 */
 		public function get_product_name_from_order( $product_id, $order ) {
 			foreach ( $order->get_items() as $line_item ) {
-				if ( (int) $line_item[ 'product_id' ] === $product_id || (int) $line_item[ 'variation_id' ] === $product_id ) {
+				if ( (int) $line_item['product_id'] === $product_id || (int) $line_item['variation_id'] === $product_id ) {
 					/* translators: %1$d: Product ID, %2$s: Product Name */
-					return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item[ 'name' ] );
+					return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item['name'] );
 				}
 			}
 
@@ -119,14 +119,14 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC26' ) ) {
 		/**
 		 * For a given product ID, it tries to find its price inside an order's line items.
 		 *
-		 * @param int $product_id Product ID or variation ID
+		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */
 		public function get_product_price_from_order( $product_id, $order ) {
 			foreach ( $order->get_items() as $line_item ) {
-				if ( (int) $line_item[ 'product_id' ] === $product_id || (int) $line_item[ 'variation_id' ] === $product_id ) {
-					return round( floatval( $line_item[ 'total' ] ) / $line_item[ 'qty' ], 2 );
+				if ( (int) $line_item['product_id'] === $product_id || (int) $line_item['variation_id'] === $product_id ) {
+					return round( floatval( $line_item['total'] ) / $line_item['qty'], 2 );
 				}
 			}
 			return null;

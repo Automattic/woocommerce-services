@@ -61,9 +61,9 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		 * Validates a particular service schema, especially the parts of the service that WC relies
 		 * on like id, method_title, method_description, etc
 		 *
-		 * @param string $service_type
+		 * @param string  $service_type
 		 * @param integer $service_counter
-		 * @param object $service
+		 * @param object  $service
 		 *
 		 * @return WP_Error|true
 		 */
@@ -73,7 +73,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 				'method_description' => 'string',
 				'method_title'       => 'string',
 				'service_settings'   => 'object',
-				'form_layout'        => 'array'
+				'form_layout'        => 'array',
 			);
 
 			foreach ( $required_properties as $required_property => $required_property_type ) {
@@ -121,7 +121,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 			$required_properties = array(
 				'type'       => 'string',
 				'required'   => 'array',
-				'properties' => 'object'
+				'properties' => 'object',
 			);
 
 			foreach ( $required_properties as $required_property => $required_property_type ) {
@@ -171,7 +171,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		 */
 		protected function validate_service_settings_required_properties( $service_id, $service_settings_properties ) {
 			$required_properties = array(
-				'title'
+				'title',
 			);
 
 			foreach ( $required_properties as $required_property ) {
