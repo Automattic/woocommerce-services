@@ -15,7 +15,7 @@ WC_VERSION=${6-"5.0.0"}
 install_wc() {
 	# TODO: fetch the latest tag
 	curl -Lo /tmp/woocommerce.zip https://github.com/woocommerce/woocommerce/releases/download/5.0.0/woocommerce.zip
-	unzip /tmp/woocommerce.zip
+	unzip /tmp/woocommerce.zip -d /tmp
 
 	# Get development version so that WCS can use its tests/legacy folder
 	git clone --depth=1 --branch=master https://github.com/woocommerce/woocommerce.git /tmp/woocommerce-dev
