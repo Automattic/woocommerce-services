@@ -10,9 +10,9 @@ if ( ! class_exists( 'WC_Connect_Extension_Compatibility' ) ) {
 		 * @param $tracking_number - tracking number string
 		 */
 		public static function on_new_tracking_number( $order_id, $carrier_id, $tracking_number ) {
-			//call WooCommerce Shipment Tracking if it's installed
+			// call WooCommerce Shipment Tracking if it's installed
 			if ( function_exists( 'wc_st_add_tracking_number' ) ) {
-				//note: the only carrier ID we use at the moment is 'usps', which is the same in WC_ST, but this might require a mapping
+				// note: the only carrier ID we use at the moment is 'usps', which is the same in WC_ST, but this might require a mapping
 				wc_st_add_tracking_number( $order_id, $tracking_number, $carrier_id );
 			}
 		}
