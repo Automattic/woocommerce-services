@@ -55,7 +55,7 @@ const Wrapper = ({ children, healthStoreOverrides }) => (
 describe('Health View', () => {
 	let clock
 	beforeAll(() => {
-		clock = sinon.useFakeTimers(new Date('2021-02-24T11:00:00'))
+		clock = sinon.useFakeTimers(new Date('2021-02-24T17:00:00'))
 	})
 
 	afterEach(() => {
