@@ -774,6 +774,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
+			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1020,8 +1021,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Filter function for adding the report tabs
 		 *
-		 * @param array $reports - report tabs meta
-		 * @return array report tabs with WCS tabs added
+		 * @param array $reports - report tabs meta.
+		 * @return array report tabs with WCS tabs added.
 		 */
 		public function reports_tabs( $reports ) {
 			$reports['wcs_labels'] = array(
@@ -1037,6 +1038,66 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			return $reports;
+		}
+
+		/**
+		 * Send completed order details to Connect Server to check live rates usage.
+		 * Attached to the woocommerce_order_details_after_order_table hook
+		 *
+		 * @param int   $order_id int for completed order ID.
+		 * @param array $data Post data for order.
+		 * @param array $order WC_Order object containing completed order details.
+		 */
+		public function track_completed_order( $order_id, $data, $order ) {
+			$logger   = $this->get_logger();
+			$services = array();
+			$packages = WC()->cart->get_shipping_packages();
+
+			foreach ( $packages as $package ) {
+				$shipping_methods  = WC()->shipping()->load_shipping_methods( $package );
+				$shipping_packages = WC()->shipping()->calculate_shipping_for_package( $package );
+				$shipping_rates    = $shipping_packages['rates'];
+
+				$shipping_method_ids = array();
+				foreach ( $shipping_rates as $rate ) {
+					if ( ! in_array( $rate->method_id, $shipping_method_ids, true ) ) {
+						$shipping_method_ids[] = $rate->method_id;
+					}
+				}
+
+				foreach ( $shipping_methods as $method ) {
+					if ( $method instanceof WC_Connect_Shipping_Method ) {
+						$service_settings = $method->get_service_settings();
+						$service_schema   = $method->get_service_schema();
+						$instance_id      = $method->get_instance_id();
+						$service_id       = $service_schema->id;
+
+						if ( is_null( $instance_id ) || ! in_array( "wc_services_$service_id", $shipping_method_ids, true ) ) {
+							continue;
+						}
+
+						$services[] = array(
+							'id'               => $service_id,
+							'instance'         => $instance_id,
+							'service_settings' => $service_settings,
+						);
+					}
+				}
+			}
+
+			$api_client = $this->get_api_client();
+			$response   = $api_client->track_subscription_event( $services );
+			if ( is_wp_error( $response ) ) {
+				if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
+					$logger->error(
+						sprintf(
+							'Unable to send subscription event: %s',
+							$response->get_error_message()
+						),
+						__FUNCTION__
+					);
+				}
+			}
 		}
 
 		/**
