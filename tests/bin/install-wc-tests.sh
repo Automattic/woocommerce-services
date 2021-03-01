@@ -20,6 +20,8 @@ install_wc() {
 	# Get development version so that WCS can use its tests/legacy folder
 	git clone --depth=1 --branch=master https://github.com/woocommerce/woocommerce.git /tmp/woocommerce-dev
 
+	cp -R /tmp/woocommerce-dev/tests /tmp/woocommerce/tests
+
 	echo "Done unzipping WooCommerce\n"
 }
 
