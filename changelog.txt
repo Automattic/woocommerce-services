@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 1.25.8 - 2021-xx-xx =
+* Tweak - Cleanup stripe functionality.
 * Tweak - Display better errors on checkout page when address fields are missing / invalid.
 * Tweak - Refresh on status page does not reload page.
 * Fix   - UPS invoice number allows numbers and letters.
