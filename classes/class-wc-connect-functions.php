@@ -5,6 +5,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		/**
 		 * Checks if the potentially expensive Shipping/Tax API requests should be sent
 		 * based on the context in which they are initialized
+		 *
 		 * @return bool true if the request can be sent, false otherwise
 		 */
 		public static function should_send_cart_api_request() {

@@ -3,6 +3,8 @@
 = 1.25.8 - 2021-xx-xx =
 * Tweak - Cleanup stripe functionality.
 * Tweak - Display better errors on checkout page when address fields are missing / invalid.
+* Fix   - UPS invoice number allows numbers and letters.
+* Add 	- Tracks shipping services used at checkout.
 
 = 1.25.7 - 2021-02-09 =
 * Fix   - Prevent error notices on checkout page load.
