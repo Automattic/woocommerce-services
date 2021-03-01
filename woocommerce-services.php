@@ -112,11 +112,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_self_help_controller;
 
 		/**
-		 * @var WC_REST_Connect_Service_Data_Refresh_Controller
-		 */
-		protected $rest_service_data_refresh_controller;
-
-		/**
 		 * @var WC_REST_Connect_Shipping_Label_Controller
 		 */
 		protected $rest_shipping_label_controller;
@@ -380,10 +375,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
 			$this->rest_self_help_controller = $rest_self_help_controller;
-		}
-
-		public function set_rest_service_data_refresh_controller( WC_REST_Connect_Service_Data_Refresh_Controller $rest_service_data_refresh_controller ) {
-			$this->rest_service_data_refresh_controller = $rest_service_data_refresh_controller;
 		}
 
 		public function get_rest_shipping_label_controller() {
@@ -855,7 +846,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . 'classes/class-wc-rest-connect-service-data-refresh-controller.php' ) );
 			$rest_service_data_refresh_controller = new WC_REST_Connect_Service_Data_Refresh_Controller( $this->api_client, $settings_store, $logger );
 			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
-			$this->set_rest_service_data_refresh_controller( $rest_service_data_refresh_controller );
 			$rest_service_data_refresh_controller->register_routes();
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-controller.php';
