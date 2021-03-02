@@ -648,7 +648,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once( plugin_basename( 'classes/class-wc-connect-tracks.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-help-view.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-shipping-label.php' ) );
-			require_once( plugin_basename( 'classes/class-wc-connect-jetpack-adapter.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-nux.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-paypal-ec.php' ) );
 			require_once( plugin_basename( 'classes/class-wc-connect-label-reports.php' ) );

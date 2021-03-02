@@ -228,7 +228,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return true;
 			}
 
-			$user_token = WC_Connect_Jetpack_Adapter::get_master_user_access_token( JETPACK_MASTER_USER );
+			$user_token = WC_Connect_Jetpack::get_master_user_access_token( JETPACK_MASTER_USER );
 			$can_accept = (
 				isset( $user_token->external_user_id ) &&
 				get_current_user_id() === $user_token->external_user_id
@@ -302,7 +302,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// installed, activated, dev mode off
 			// check if connected
-			$user_token = WC_Connect_Jetpack_Adapter::get_master_user_access_token( JETPACK_MASTER_USER );
+			$user_token = WC_Connect_Jetpack::get_master_user_access_token( JETPACK_MASTER_USER );
 			if ( ! isset( $user_token->external_user_id ) ) { // always an int
 				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 			}
