@@ -11,13 +11,12 @@ import { bindActionCreators } from 'redux';
 import classNames from 'classnames';
 import { localize } from 'i18n-calypso';
 import { isBoolean } from 'lodash';
-import { Card } from '@wordpress/components';
+import { Card, FormToggle } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import ExtendedHeader from 'woocommerce/components/extended-header';
-import { FormToggle } from '@wordpress/components';
 import LabelSettings from './label-settings';
 import QueryLabelSettings from 'woocommerce/woocommerce-services/components/query-label-settings';
 import { setFormDataValue, restorePristineSettings } from '../../state/label-settings/actions';
