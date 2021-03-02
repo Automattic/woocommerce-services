@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\Jetpack\Connection\Tokens;
+
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 	class WC_Connect_Nux {
@@ -237,7 +239,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return true;
 			}
 
-			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			$user_token = ( new Tokens() )->get_access_token( JETPACK_MASTER_USER );
 			$can_accept = (
 				isset( $user_token->external_user_id ) &&
 				get_current_user_id() === $user_token->external_user_id
@@ -301,7 +303,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			// check if Jetpack is activated
-			if ( ! class_exists( 'Jetpack_Data' ) ) {
+			if ( ! class_exists( 'Jetpack' ) ) {
 				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
 			}
 
@@ -312,7 +314,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// installed, activated, dev mode off
 			// check if connected
-			$user_token = Jetpack_Data::get_access_token( JETPACK_MASTER_USER );
+			$user_token = ( new Tokens() )->get_access_token( JETPACK_MASTER_USER );
 			if ( ! isset( $user_token->external_user_id ) ) { // always an int
 				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 			}
