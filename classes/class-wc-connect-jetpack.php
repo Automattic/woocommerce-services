@@ -1,7 +1,32 @@
 <?php
 
+use Automattic\Jetpack\Connection\Tokens;
+use Automattic\Jetpack\Connection\Manager;
+
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
+		/**
+		 * @param $user_id
+		 *
+		 * @return stdClass|WP_Error
+		 */
+		public static function get_master_user_access_token( $user_id ) {
+			if ( class_exists( '\Automattic\Jetpack\Connection\Tokens' ) && method_exists( '\Automattic\Jetpack\Connection\Tokens', 'get_access_token' ) ) {
+				$connection = new Tokens();
+
+				return $connection->get_access_token( $user_id );
+			}
+
+			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_access_token' ) ) {
+				$connection = new Manager();
+
+				return $connection->get_access_token( $user_id );
+			}
+
+			// fallback
+			return new stdClass();
+		}
+
 		/**
 		 * Helper method to get if Jetpack is in development mode
 		 * @return bool
@@ -62,6 +87,12 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		public static function get_connected_user_data( $user_id ) {
+			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_connected_user_data' ) ) {
+				$connection = new Manager();
+
+				return $connection->get_connected_user_data( $user_id );
+			}
+
 			if ( method_exists( 'Jetpack', 'get_connected_user_data' ) ) {
 				return Jetpack::get_connected_user_data( $user_id );
 			}
