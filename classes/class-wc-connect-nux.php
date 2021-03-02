@@ -1,7 +1,5 @@
 <?php
 
-use Automattic\Jetpack\Connection\Tokens;
-
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 	class WC_Connect_Nux {
