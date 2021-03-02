@@ -22,10 +22,8 @@ class Toggle extends Component {
 		description: PropTypes.string,
 		trueText: PropTypes.string.isRequired,
 		falseText: PropTypes.string.isRequired,
-		saveOnToggle: PropTypes.bool,
 		checked: PropTypes.bool,
-		saveForm: PropTypes.func,
-		updateValue: PropTypes.func,
+		onUpdate: PropTypes.func,
 		className: PropTypes.string,
 	};
 
@@ -39,17 +37,11 @@ class Toggle extends Component {
 
 	handleChangeEvent = () => {
 		const {
-			updateValue,
+			onUpdate,
 			checked,
-			saveForm,
-			saveOnToggle,
 		} = this.props;
 
-		updateValue( ! checked );
-
-		if ( saveOnToggle && saveForm ) {
-			saveForm();
-		}
+		onUpdate( ! checked );
 	};
 
 	render() {

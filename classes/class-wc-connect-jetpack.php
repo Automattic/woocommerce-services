@@ -29,6 +29,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Helper method to get if Jetpack is in development mode
+		 *
 		 * @return bool
 		 */
 		public static function is_development_mode() {
@@ -42,10 +43,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Helper method to get if Jetpack is connected (aka active)
+		 *
 		 * @return bool
 		 */
 		public static function is_active() {
-			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE') && WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE ) {
+			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) && WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE ) {
 				return true;
 			}
 			if ( method_exists( 'Jetpack', 'is_active' ) ) {
@@ -57,6 +59,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Helper method to get if the current Jetpack website is marked as staging
+		 *
 		 * @return bool
 		 */
 		public static function is_staging_site() {
@@ -74,6 +77,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Helper method to get whether the current site is an Atomic site
+		 *
 		 * @return bool
 		 */
 		public static function is_atomic_site() {
@@ -102,10 +106,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Helper method to get the Jetpack master user, IF we are connected
+		 *
 		 * @return WP_User | false
 		 */
 		public static function get_master_user() {
-			include_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
+			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 			if ( self::is_active() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$master_user_id = Jetpack_Options::get_option( 'master_user' );
 				return get_userdata( $master_user_id );
@@ -117,6 +122,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Builds a connect url
+		 *
 		 * @param $redirect_url
 		 * @return string
 		 */
@@ -130,6 +136,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		/**
 		 * Records a Tracks event
+		 *
 		 * @param $user
 		 * @param $event_type
 		 * @param
