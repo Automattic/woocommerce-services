@@ -77,7 +77,6 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 1.25.7 - 2021-02-09 =
-* Tweak - Display better errors on checkout page when address fields are missing / invalid.
 * Fix   - Prevent error notices on checkout page load.
 * Tweak - Highlight rate call usage over limit on WooCommerce Shipping settings page.
 * Fix   - Connect carrier account link broken on subdirectory installs.
