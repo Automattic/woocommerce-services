@@ -3,7 +3,8 @@
  */
 import 'react-hot-loader/patch';
 import { AppContainer } from 'react-hot-loader';
-import '@babel/polyfill';
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactModal from 'react-modal';

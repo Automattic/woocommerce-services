@@ -203,9 +203,7 @@ module.exports = {
 					{
 						loader: 'babel-loader',
 						options: {
-							configFile: path.resolve( __dirname, 'wp-calypso', 'babel.config.js' ),
 							cacheDirectory: true,
-							cacheIdentifier: require( './wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
 							plugins: ["react-hot-loader/babel"]
 						},
 					}
