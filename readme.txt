@@ -78,6 +78,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = 1.25.8 - 2021-xx-xx =
 * Tweak - Add support for new Jetpack 9.5 data connection.
+* Tweak - Change minimum Jetpack version support to Jetpack 7.5.
 
 = 1.25.7 - 2021-02-09 =
 * Fix   - Prevent error notices on checkout page load.
