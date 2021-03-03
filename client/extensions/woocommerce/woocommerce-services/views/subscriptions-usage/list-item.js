@@ -55,9 +55,13 @@ const SubscriptionsUsageListItem = ( props ) => {
 		submitActivation();
 	}
 
-	const usage_count = data.usage_count ? data.usage_count : 0 ;
-	const usage = data.usage_limit ? `${ usage_count }/${ data.usage_limit }` : '';
-	const isUsageOverLimit = data.usage_count && data.usage_limit && data.usage_count > data.usage_limit;
+	const usage = [];
+	let isUsageOverLimit = false;
+
+	data.usage_data.forEach( ( usageEvent, index ) => {
+		usage.push( <div key={ index }>{ usageEvent.label }: { usageEvent.count }/{ usageEvent.limit }</div> );
+		isUsageOverLimit = isUsageOverLimit || usageEvent.count > usageEvent.limit;
+	} );
 
 	return (
 		<div className= "subscriptions-usage__list-item" >
@@ -113,8 +117,11 @@ SubscriptionsUsageListItem.propTypes = {
 	data: PropTypes.shape( {
 		product_name: PropTypes.string.isRequired,
 		is_active: PropTypes.bool.isRequired,
-		usage_limit: PropTypes.number,
-		usage_count: PropTypes.number,
+		usage_data: PropTypes.arrayOf( PropTypes.shape( {
+			limit: PropTypes.number,
+			count: PropTypes.number,
+			label: PropTypes.string,
+		} ) )
 	} ).isRequired,
 };
 

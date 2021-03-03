@@ -20,7 +20,7 @@ class WC_REST_Connect_Subscriptions_Controller extends WC_REST_Connect_Base_Cont
 
 		return new WP_REST_Response(
 			array(
-				'success'  => true,
+				'success'       => true,
 				'subscriptions' => $response->subscriptions,
 			)
 		);

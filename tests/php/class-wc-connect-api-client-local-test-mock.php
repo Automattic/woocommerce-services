@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'WC_Connect_API_Client_Local_Test_Mock' ) ) {
-	require_once( dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php' );
+	require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
 
 	class WC_Connect_API_Client_Local_Test_Mock extends WC_Connect_API_Client {
 
@@ -52,11 +52,11 @@ if ( ! class_exists( 'WC_Connect_API_Client_Local_Test_Mock' ) ) {
 			}
 
 			$mock_data_associative = $this->get_mock_endpoints_associative();
-			if ( isset( $mock_data_associative[ 'mock_endpoints' ][ $path ] ) ) {
-				return $mock_data_associative[ 'mock_endpoints' ][ $path ];
+			if ( isset( $mock_data_associative['mock_endpoints'][ $path ] ) ) {
+				return $mock_data_associative['mock_endpoints'][ $path ];
 			}
 			// Just return empty data for requests not matching mock endpoint data.
-			return new stdClass;
+			return new stdClass();
 		}
 	}
 }
