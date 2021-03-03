@@ -116,8 +116,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Lastly, do the WooCommerce Shipping & Tax health check
 			// Check that we have schema
 			// Check that we are able to talk to the WooCommerce Shipping & Tax server
-			$schemas              = $this->service_schemas_store->get_service_schemas();
-			$last_fetch_timestamp = $this->service_schemas_store->get_last_fetch_timestamp();
+			$schemas                              = $this->service_schemas_store->get_service_schemas();
+			$last_fetch_timestamp                 = $this->service_schemas_store->get_last_fetch_timestamp();
 			$health_items['woocommerce_services'] = array(
 				'timestamp'           => $last_fetch_timestamp,
 				'has_service_schemas' => ! is_null( $schemas ),
