@@ -79,8 +79,8 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 			</Wrapper>
 		);
 
-		const accountNumberField = wrapper.find('input[id="account_number"]');
-		const countryField = wrapper.find('input[id="country_code"]');
+		const accountNumberField = wrapper.find('input[name="account_number"]');
+		const countryField = wrapper.find('input[name="country_code"]');
 
 		expect(accountNumberField).toHaveLength(1);
 		expect(countryField).toHaveLength(1);
@@ -129,7 +129,7 @@ describe( 'Carrier Account Dynamic Registration Form', () => {
 		);
 
 		const isResellerField = wrapper.find('input[id="is_reseller"]')
-		const countryField = wrapper.find('input[id="country_code"]')
+		const countryField = wrapper.find('input[name="country_code"]')
 
 		expect(isResellerField).toHaveLength(1);
 		expect(countryField).toHaveLength(1);
