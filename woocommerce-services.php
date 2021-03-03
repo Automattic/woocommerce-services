@@ -843,7 +843,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_self_help_controller( $rest_self_help_controller );
 			$rest_self_help_controller->register_routes();
 
-			require_once __DIR__ . 'classes/class-wc-rest-connect-service-data-refresh-controller.php' ) );
+			require_once __DIR__ . 'classes/class-wc-rest-connect-service-data-refresh-controller.php';
 			$rest_service_data_refresh_controller = new WC_REST_Connect_Service_Data_Refresh_Controller( $this->api_client, $settings_store, $logger );
 			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
 			$rest_service_data_refresh_controller->register_routes();
