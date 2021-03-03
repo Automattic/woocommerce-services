@@ -68,7 +68,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	public function mockLoaderAndActiveShippingMethods() {
 		$service_data = array(
-			'test_method_that_is_from_wc_connect'
+			'test_method_that_is_from_wc_connect',
 		);
 
 		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
@@ -79,7 +79,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$store->expects( $this->any() )
 			->method( 'get_all_shipping_method_ids' )
 			->will( $this->returnValue( $service_data ) );
-
 
 		return $this->mockLoader( $store );
 	}
@@ -203,7 +202,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 			->getMock();
 
 		$service_data = array(
-			'method_id' => 'test_method'
+			'method_id' => 'test_method',
 		);
 
 		$store->expects( $this->any() )

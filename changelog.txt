@@ -1,6 +1,17 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.7 - 2021-xx-xx =
+= 1.25.9 - 2021-xx-xx =
+* Tweak - Cleanup stripe functionality.
+* Tweak - Display better errors on checkout page when address fields are missing / invalid.
+* Tweak - Refresh on status page does not reload page.
+* Fix   - UPS invoice number allows numbers and letters.
+* Add 	- Tracks shipping services used at checkout.
+
+= 1.25.8 - 2021-03-02 =
+* Tweak - Add support for new Jetpack 9.5 data connection.
+* Tweak - Change minimum Jetpack version support to Jetpack 7.5.
+
+= 1.25.7 - 2021-02-09 =
 * Fix   - Prevent error notices on checkout page load.
 * Tweak - Highlight rate call usage over limit on WooCommerce Shipping settings page.
 * Fix   - Connect carrier account link broken on subdirectory installs.

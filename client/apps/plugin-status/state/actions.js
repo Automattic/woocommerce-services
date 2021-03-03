@@ -10,21 +10,9 @@ import { translate } from 'i18n-calypso';
 import * as api from 'api';
 // from Calypso
 import { successNotice, errorNotice } from 'state/notices/actions';
+import { PLUGIN_STATUS_DEBUG_TOGGLE, PLUGIN_STATUS_LOGGING_TOGGLE, SERVICE_DATA_REFRESH } from './action-types';
 
-export const PLUGIN_STATUS_DEBUG_TOGGLE = 'PLUGIN_STATUS_DEBUG_TOGGLE';
-export const PLUGIN_STATUS_LOGGING_TOGGLE = 'PLUGIN_STATUS_LOGGING_TOGGLE';
-
-export const toggleLogging = ( value ) => ( {
-	type: PLUGIN_STATUS_LOGGING_TOGGLE,
-	value,
-} );
-
-export const toggleDebug = ( value ) => ( {
-	type: PLUGIN_STATUS_DEBUG_TOGGLE,
-	value,
-} );
-
-export const save = () => ( dispatch, getState ) => {
+const saveSettings = () => ( dispatch, getState ) => {
 	const state = getState().status;
 
 	const data = {
@@ -45,4 +33,38 @@ export const save = () => ( dispatch, getState ) => {
 				dispatch( errorNotice( translate( 'There was a problem when saving your preferences. Please try again.' ) ) );
 			}
 		} );
+};
+
+export const refreshServiceData = () => (dispatch) => {
+	api.post(api.url.refreshServiceData())
+		.then(response => {
+			const {success, ...data} = response;
+			dispatch({
+				type: SERVICE_DATA_REFRESH,
+				value: data,
+			})
+
+			dispatch(successNotice(translate('Service data refreshed.')));
+		})
+		.catch(() => {
+			dispatch(errorNotice(translate('An error occurred while refreshing service data.')))
+		})
+}
+
+export const toggleLogging = ( value ) => (dispatch) => {
+	dispatch({
+		type: PLUGIN_STATUS_LOGGING_TOGGLE,
+		value,
+	});
+
+	dispatch(saveSettings());
+};
+
+export const toggleDebugging = ( value ) => (dispatch) => {
+	dispatch({
+		type: PLUGIN_STATUS_DEBUG_TOGGLE,
+		value,
+	});
+
+	dispatch(saveSettings());
 };
