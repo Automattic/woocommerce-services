@@ -5,13 +5,11 @@ on:
     branches: [ develop ]
   pull_request:
     branches: [ develop ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   js_build_and_test:
-    name: JS Build and Test
+    name: JS Estlin and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -39,7 +37,7 @@ jobs:
       - name: Lint
         run: find . -type f -name "*.php" -exec php -l {} \;
   php_build_and_test:
-    name: PHP Build and Test
+    name: PHP Unit Test (WP, WC)
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -66,18 +64,6 @@ jobs:
           sudo update-alternatives --set php /usr/bin/php7.4
           sudo update-alternatives --set phar /usr/bin/phar7.4
           sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
-      - name: Verify PHP version
-        run: |
-          lsb_release -a
-          sudo update-alternatives --config php
-          sudo update-alternatives --config phar
-          sudo update-alternatives --config phar.phar
-          php -v
-      - name: Verify MySQL connection
-        run: |
-          mysql --version
-          sudo apt-get install -y mysql-client
-          mysql --host 127.0.0.1 --port ${{ job.services.mariadb.ports['3306'] }} -uroot -proot -e "SHOW DATABASES"
       - name: Install composer
         run: |
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
