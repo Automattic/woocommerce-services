@@ -23,18 +23,24 @@ class WC_REST_Connect_Service_Data_Refresh_Controller extends WC_REST_Connect_Ba
 	public function post() {
 		$result = $this->services_schemas_store->fetch_service_schemas_from_connect_server();
 		if ( $result === false ) {
-			return new WP_REST_Response( [
-				'success' => false,
-			], 500 );
+			return new WP_REST_Response(
+				[
+					'success' => false,
+				],
+				500
+			);
 		}
 
 		$schemas = $this->services_schemas_store->get_service_schemas();
 
-		return new WP_REST_Response( [
-			'success'             => true,
-			'timestamp'           => $this->services_schemas_store->get_last_fetch_timestamp(),
-			'has_service_schemas' => ! is_null( $schemas ),
-		], 200 );
+		return new WP_REST_Response(
+			[
+				'success'             => true,
+				'timestamp'           => $this->services_schemas_store->get_last_fetch_timestamp(),
+				'has_service_schemas' => ! is_null( $schemas ),
+			],
+			200
+		);
 	}
 
 }
