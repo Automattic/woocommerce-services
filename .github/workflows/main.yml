@@ -37,6 +37,10 @@ jobs:
           MYSQL_DATABASE: wordpress_default
           MYSQL_ROOT_PASSWORD: root
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    strategy:
+      matrix:
+        wp-version: [5.6.2]
+        wc-version: [5.0.0]
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
@@ -68,6 +72,6 @@ jobs:
           sudo mv composer.phar /usr/local/bin/composer
           composer install
       - name: Setup WP and WC
-        run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 5.6.2 5.0.0
+        run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }} ${{ matrix.wc-version }}
       - name: Run PHPUnit tests
         run: ./vendor/bin/phpunit -c phpunit.xml.dist
