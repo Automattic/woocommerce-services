@@ -23,6 +23,21 @@ jobs:
       - run: npm ci
       - run: npm run eslint
       - run: npm run test
+  php_lint:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest WCS
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Switch to PHP 7.4
+        run: |
+          sudo update-alternatives --set php /usr/bin/php7.4
+          sudo update-alternatives --set phar /usr/bin/phar7.4
+          sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
+      - name: Lint
+        run: find . -type f -name "*.php" -exec php -l {} \;
   php_build_and_test:
     name: PHP Build and Test
     runs-on: ubuntu-latest
