@@ -44,14 +44,18 @@ class WC_REST_Dev_Data_Controller extends WC_REST_Controller {
 	 * @since 3.1.0
 	 */
 	public function register_routes() {
-		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base,
 			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_items' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-			),
-			'schema' => array( $this, 'get_public_item_schema' ),
-		) );
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_items' ),
+					'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -90,7 +94,7 @@ class WC_REST_Dev_Data_Controller extends WC_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$data = array();
+		$data      = array();
 		$resources = array(
 			array(
 				'slug'        => 'continents',
@@ -117,7 +121,7 @@ class WC_REST_Dev_Data_Controller extends WC_REST_Controller {
 	/**
 	 * Prepare a data resource object for serialization.
 	 *
-	 * @param stdClass $report Report data.
+	 * @param stdClass        $report Report data.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response $response Response data.
 	 */
@@ -145,7 +149,7 @@ class WC_REST_Dev_Data_Controller extends WC_REST_Controller {
 	 */
 	protected function prepare_links( $item ) {
 		$links = array(
-			'self' => array(
+			'self'       => array(
 				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->rest_base, $item->slug ) ),
 			),
 			'collection' => array(
@@ -168,7 +172,7 @@ class WC_REST_Dev_Data_Controller extends WC_REST_Controller {
 			'title'      => 'data_index',
 			'type'       => 'object',
 			'properties' => array(
-				'slug' => array(
+				'slug'        => array(
 					'description' => __( 'Data resource ID.', 'woocommerce' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),

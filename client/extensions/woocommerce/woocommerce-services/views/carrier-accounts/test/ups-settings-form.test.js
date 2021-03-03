@@ -63,13 +63,13 @@ describe( 'UPS Account Registration Form', () => {
 		);
 
 		await act(async () => {
-			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+			wrapper.find('input[name="account_number"]').simulate('change', { target: {
 				value: 'A12345'
 			} } );
-			wrapper.find('input[id="name"]').simulate('change', { target: {
+			wrapper.find('input[name="name"]').simulate('change', { target: {
 				value: 'FirstName LastName'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'email@something.com'
 			} } );
 		} );
@@ -90,37 +90,37 @@ describe( 'UPS Account Registration Form', () => {
 		);
 
 		await act(async () => {
-			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+			wrapper.find('input[name="account_number"]').simulate('change', { target: {
 				value: 'A12345'
 			} } );
-			wrapper.find('input[id="name"]').simulate('change', { target: {
+			wrapper.find('input[name="name"]').simulate('change', { target: {
 				value: 'FirstName LastName'
 			} } );
-			wrapper.find('input[id="street1"]').simulate('change', { target: {
+			wrapper.find('input[name="street1"]').simulate('change', { target: {
 				value: 'Street 1'
 			} } );
-			wrapper.find('input[id="city"]').simulate('change', { target: {
+			wrapper.find('input[name="city"]').simulate('change', { target: {
 				value: 'City'
 			} } );
-			wrapper.find('input[id="state"]').simulate('change', { target: {
+			wrapper.find('input[name="state"]').simulate('change', { target: {
 				value: 'MN'
 			} } );
-			wrapper.find('input[id="postal_code"]').simulate('change', { target: {
+			wrapper.find('input[name="postal_code"]').simulate('change', { target: {
 				value: '55555'
 			} } );
-			wrapper.find('input[id="phone"]').simulate('change', { target: {
+			wrapper.find('input[name="phone"]').simulate('change', { target: {
 				value: '2065555555'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'email'
 			} } );
-			wrapper.find('input[id="title"]').simulate('change', { target: {
+			wrapper.find('input[name="title"]').simulate('change', { target: {
 				value: 'title'
 			} } );
-			wrapper.find('input[id="website"]').simulate('change', { target: {
+			wrapper.find('input[name="website"]').simulate('change', { target: {
 				value: 'http://website.com'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'invalid-email'
 			} } );
 		} );
@@ -135,6 +135,76 @@ describe( 'UPS Account Registration Form', () => {
 		expect(apiPostSpy).not.toHaveBeenCalled();
 	} );
 
+	it('should prevent the submission of the form if the invoice number is not valid', async () => {
+		const wrapper = mount(
+			<Wrapper>
+				<UpsSettingsForm />
+			</Wrapper>
+		);
+
+		await act(async () => {
+			wrapper.find('input[name="account_number"]').simulate('change', { target: {
+				value: 'A12345'
+			} } );
+			wrapper.find('input[name="name"]').simulate('change', { target: {
+				value: 'FirstName LastName'
+			} } );
+			wrapper.find('input[name="street1"]').simulate('change', { target: {
+				value: 'Street 1'
+			} } );
+			wrapper.find('input[name="city"]').simulate('change', { target: {
+				value: 'City'
+			} } );
+			wrapper.find('input[name="state"]').simulate('change', { target: {
+				value: 'MN'
+			} } );
+			wrapper.find('input[name="postal_code"]').simulate('change', { target: {
+				value: '55555'
+			} } );
+			wrapper.find('input[name="phone"]').simulate('change', { target: {
+				value: '2065555555'
+			} } );
+			wrapper.find('input[name="email"]').simulate('change', { target: {
+				value: 'email'
+			} } );
+			wrapper.find('input[name="title"]').simulate('change', { target: {
+				value: 'title'
+			} } );
+			wrapper.find('input[name="website"]').simulate('change', { target: {
+				value: 'http://website.com'
+			} } );
+			wrapper.find('input[name="email"]').simulate('change', { target: {
+				value: 'valid-email@email.com'
+			} } );
+		} );
+
+
+		await act(async () => {
+			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: { 
+				checked: true 
+			} } );
+		} );
+
+		await act(async () => {
+			wrapper.update(); // Without this line the new fields are not added after checking the checkbox.
+			wrapper.find( 'input[name="invoice_number"]' ).simulate('change', { target: {
+				value: 'invalid-invoice-number'
+			} } );
+		} );
+
+		wrapper.update(); // Update to get the error message.
+		expect(wrapper.find('.field-error__input-validation')).toHaveLength(1);
+		expect(wrapper.find( '.field-error__input-validation' ).text()).toBe(' The invoice number needs to be 9 or 13 letters and digits in length');
+
+		// Check we can not submit the form.
+		await act(async () => {
+			// Click the register button
+			wrapper.find( 'button.is-primary' ).simulate('click');
+		} );
+
+		expect(apiPostSpy).not.toHaveBeenCalled();
+	} );
+
 	it('should submit the form if all the fields are entered', async () => {
 		const wrapper = mount(
 			<Wrapper>
@@ -143,37 +213,37 @@ describe( 'UPS Account Registration Form', () => {
 		);
 
 		await act(async () => {
-			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+			wrapper.find('input[name="account_number"]').simulate('change', { target: {
 				value: 'A12345'
 			} } );
-			wrapper.find('input[id="name"]').simulate('change', { target: {
+			wrapper.find('input[name="name"]').simulate('change', { target: {
 				value: 'FirstName LastName'
 			} } );
-			wrapper.find('input[id="street1"]').simulate('change', { target: {
+			wrapper.find('input[name="street1"]').simulate('change', { target: {
 				value: 'Street 1'
 			} } );
-			wrapper.find('input[id="city"]').simulate('change', { target: {
+			wrapper.find('input[name="city"]').simulate('change', { target: {
 				value: 'City'
 			} } );
-			wrapper.find('input[id="state"]').simulate('change', { target: {
+			wrapper.find('input[name="state"]').simulate('change', { target: {
 				value: 'MN'
 			} } );
-			wrapper.find('input[id="postal_code"]').simulate('change', { target: {
+			wrapper.find('input[name="postal_code"]').simulate('change', { target: {
 				value: '55555'
 			} } );
-			wrapper.find('input[id="phone"]').simulate('change', { target: {
+			wrapper.find('input[name="phone"]').simulate('change', { target: {
 				value: '2065555555'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'email'
 			} } );
-			wrapper.find('input[id="title"]').simulate('change', { target: {
+			wrapper.find('input[name="title"]').simulate('change', { target: {
 				value: 'title'
 			} } );
-			wrapper.find('input[id="website"]').simulate('change', { target: {
+			wrapper.find('input[name="website"]').simulate('change', { target: {
 				value: 'http://website.com'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'valid-email@email.com'
 			} } );
 		} );

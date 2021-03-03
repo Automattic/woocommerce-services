@@ -4,7 +4,8 @@
 import {
 	PLUGIN_STATUS_DEBUG_TOGGLE,
 	PLUGIN_STATUS_LOGGING_TOGGLE,
-} from './actions';
+	SERVICE_DATA_REFRESH,
+} from './action-types';
 
 const reducer = {
 	[ PLUGIN_STATUS_DEBUG_TOGGLE ]: ( state, { value } ) => {
@@ -18,6 +19,19 @@ const reducer = {
 		return {
 			...state,
 			logging_enabled: value,
+		};
+	},
+
+	[ SERVICE_DATA_REFRESH ]: ( state, { value } ) => {
+		return {
+			...state,
+			health_items: {
+				...state.health_items,
+				woocommerce_services: {
+					...state.health_items.woocommerce_services,
+					...value,
+				}
+			}
 		};
 	},
 };

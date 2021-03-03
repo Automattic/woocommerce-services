@@ -41,12 +41,12 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 
 		public static function set_version( $value ) {
 			self::$singleton = null;
-			self::$version = $value;
+			self::$version   = $value;
 		}
 
 		public static function reset_version() {
 			self::$singleton = null;
-			self::$version = WC_VERSION;
+			self::$version   = WC_VERSION;
 		}
 
 		/**
@@ -79,7 +79,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Retrieve the corresponding Product for the given Order Item.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order                                  $order
 		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
 		 *
 		 * @return WC_Product
@@ -90,7 +90,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * Get formatted list of Product Variations, if applicable.
 		 *
 		 * @param WC_Product_Variation $product
-		 * @param bool $flat
+		 * @param bool                 $flat
 		 *
 		 * @return string
 		 */
@@ -123,7 +123,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
 		 *
-		 * @param int $product_id Product ID or variation ID
+		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
 		 * @return string The product (or variation) name, ready to print
 		 */
@@ -132,7 +132,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * For a given product ID, it tries to find its price inside an order's line items.
 		 *
-		 * @param int $product_id Product ID or variation ID
+		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */

@@ -13,7 +13,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 		 */
 		public function get_order_for_api( WC_Order $order ) {
 			$decimal_point = 2;
-			$order_data = array(
+			$order_data    = array(
 				'id'                        => $order->get_id(),
 				'order_number'              => $order->get_order_number(),
 				'order_key'                 => $order->get_order_key(),
@@ -31,12 +31,12 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 				'shipping_tax'              => wc_format_decimal( $order->get_shipping_tax(), $decimal_point ),
 				'total_discount'            => wc_format_decimal( $order->get_total_discount(), $decimal_point ),
 				'shipping_methods'          => $order->get_shipping_method(),
-				'payment_details' => array(
+				'payment_details'           => array(
 					'method_id'    => $order->get_payment_method(),
 					'method_title' => $order->get_payment_method_title(),
 					'paid'         => ! is_null( $order->get_date_paid() ),
 				),
-				'billing_address' => array(
+				'billing_address'           => array(
 					'first_name' => $order->get_billing_first_name(),
 					'last_name'  => $order->get_billing_last_name(),
 					'company'    => $order->get_billing_company(),
@@ -49,7 +49,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 					'email'      => $order->get_billing_email(),
 					'phone'      => $order->get_billing_phone(),
 				),
-				'shipping_address' => array(
+				'shipping_address'          => array(
 					'first_name' => $order->get_shipping_first_name(),
 					'last_name'  => $order->get_shipping_last_name(),
 					'company'    => $order->get_shipping_company(),
@@ -74,8 +74,8 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 
 			// Add line items.
 			foreach ( $order->get_items() as $item_id => $item ) {
-				$product    = $item->get_product();
-				$item_meta  = $item->get_formatted_meta_data();
+				$product   = $item->get_product();
+				$item_meta = $item->get_formatted_meta_data();
 
 				foreach ( $item_meta as $key => $values ) {
 					$item_meta[ $key ]->label = $values->display_key;

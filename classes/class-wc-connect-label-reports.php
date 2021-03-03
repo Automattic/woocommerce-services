@@ -1,7 +1,7 @@
 <?php
 
 if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
-	include_once( WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php' );
+	include_once WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php';
 
 	class WC_Connect_Label_Reports extends WC_Admin_Report {
 		const LABELS_TRANSIENT_KEY = 'wcs_label_reports';
@@ -35,9 +35,9 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 
 		private function get_all_labels() {
 			global $wpdb;
-			$query = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels'";
+			$query      = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels'";
 			$db_results = $wpdb->get_results( $query );
-			$results = array();
+			$results    = array();
 
 			foreach ( $db_results as $meta ) {
 				$labels = maybe_unserialize( $meta->meta_value );
@@ -60,16 +60,16 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 		}
 
 		private function query_labels() {
-			$all_labels =  get_transient( self::LABELS_TRANSIENT_KEY );
+			$all_labels = get_transient( self::LABELS_TRANSIENT_KEY );
 			if ( false === $all_labels ) {
 				$all_labels = $this->get_all_labels();
-				//set transient with ttl of 30 minutes
+				// set transient with ttl of 30 minutes
 				set_transient( self::LABELS_TRANSIENT_KEY, $all_labels, 1800 );
 			}
 
 			// translate timestamps to JS timestapms
 			$start_date = $this->start_date * 1000;
-			$end_date = $this->end_date * 1000;
+			$end_date   = $this->end_date * 1000;
 
 			$results = array();
 			foreach ( $all_labels as $label ) {
@@ -78,19 +78,19 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 					continue;
 				}
 
-				//labels are sorted in descending order, so if we reached the end, break the loop
+				// labels are sorted in descending order, so if we reached the end, break the loop
 				if ( $created < $start_date ) {
 					break;
 				}
 
-				if ( isset( $label['error'] ) || //ignore the error labels
-					! isset( $label['rate'] ) ) { //labels where purchase hasn't completed for any reason
+				if ( isset( $label['error'] ) || // ignore the error labels
+					! isset( $label['rate'] ) ) { // labels where purchase hasn't completed for any reason
 					continue;
 				}
 
-				//ignore labels with complete refunds
+				// ignore labels with complete refunds
 				if ( isset( $label['refund'] ) ) {
-					$refund = ( array ) $label['refund'];
+					$refund = (array) $label['refund'];
 					if ( isset( $refund['status'] ) && 'completed' === $refund['status'] ) {
 						continue;
 					}
@@ -121,7 +121,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 
 			$hide_sidebar = true;
 
-			include( WC()->plugin_path() . '/includes/admin/views/html-report-by-date.php' );
+			include WC()->plugin_path() . '/includes/admin/views/html-report-by-date.php';
 		}
 
 		private function get_order_url( $post_id ) {
@@ -134,7 +134,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				return '';
 			}
 
-			$refund = ( array ) $label['refund'];
+			$refund = (array) $label['refund'];
 
 			if ( isset( $refund['status'] ) &&
 				( 'rejected' === $refund['status'] || 'complete' === $refund['status'] ) ) {

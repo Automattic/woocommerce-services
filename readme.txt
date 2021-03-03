@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.7
+Stable tag: 1.25.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.8 - 2021-03-02 =
+* Tweak - Add support for new Jetpack 9.5 data connection.
+* Tweak - Change minimum Jetpack version support to Jetpack 7.5.
 
 = 1.25.7 - 2021-02-09 =
 * Fix   - Prevent error notices on checkout page load.
