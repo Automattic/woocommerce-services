@@ -70,7 +70,7 @@ describe( 'UPS Account Registration Form', () => {
 				value: 'FirstName LastName'
 			} } );
 			wrapper.find('input[name="email"]').simulate('change', { target: {
-				value: 'email'
+				value: 'email@something.com'
 			} } );
 		} );
 
