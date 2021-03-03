@@ -1,0 +1,15 @@
+.form-text-input {
+	&.is-error {
+		input { 
+			color: var( --color-error );
+			border-color: var( --color-error );
+		}
+	}
+
+	.components-base-control__label {
+		display: block;
+		font-size: 14px;
+		font-weight: 600;
+		margin-bottom: 5px;	
+	}
+}
