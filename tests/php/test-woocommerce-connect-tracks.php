@@ -26,7 +26,7 @@ class WP_Test_WC_Connect_Tracks_No_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->logger->expects( $this->once() )
 			->method( 'log' )
 			->with(
-				$this->stringContains( 'woocommerceconnect_opted_out' )
+				$this->stringContains( 'Error. jetpack_tracks_record_event is not defined.' )
 			);
 		$record = $this->tracks->opted_out();
 		$this->assertNull( $record );
