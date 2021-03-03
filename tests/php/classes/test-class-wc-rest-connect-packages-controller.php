@@ -215,4 +215,97 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		);
 		$this->assertEquals( $expected_predefined_packages_after_creation, $actual_predefined_packages_after_creation );
 	}
+
+	/**
+	 * Test that creating custom packages where one package has a duplicate name returns an error.
+	 */
+	public function test_creating_duplicate_custom_packages_returns_an_error() {
+		// Given
+		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
+
+		// Set up custom packages
+		$existing_packages = array(
+			array(
+				'is_user_defined' => true,
+				'name' => 'Fun box',
+				'inner_dimensions' => '10 x 20 x 5',
+				'box_weight' => 0.23,
+				'max_weight' => 0
+			)
+		);
+		$new_packages = array_merge(
+			array(
+				array(
+					'is_user_defined' => true,
+					'name' => 'Cool box',
+					'inner_dimensions' => '10 x 20 x 5',
+					'box_weight' => 0.23,
+					'max_weight' => 0
+				)
+			),
+			$existing_packages
+		);
+		$this->settings_store->update_packages($existing_packages);
+
+		// When
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body(json_encode(array(
+			'custom' => $new_packages
+		)));
+		$response = $controller->post($request);
+
+		// Then
+		$this->assertEquals( 400, $response->get_error_code() );
+		$this->assertEquals( 'invalid_custom_packages', $response->get_error_message() );
+		$this->assertEquals( array('duplicate_custom_package_names' => ['Fun box']), $response->get_error_data() );
+
+		// Assert that custom packages remain the same after the invalid request.
+		$actual_packages_after_creation = $this->settings_store->get_packages();
+		$expected_packages_after_creation = $existing_packages;
+		$this->assertEquals( $expected_packages_after_creation, $actual_packages_after_creation );
+	}
+
+	/**
+	 * Test that creating predefined packages where one package for the same carrier has a duplicate name returns an error.
+	 */
+	public function test_creating_duplicate_predefined_packages_returns_an_error() {
+		// Given
+		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
+
+		// Set up predefined packages
+		$existing_predefined_packages = array(
+			'usps' => array(
+				'flat_envelope', 'padded_flat_envelope'
+			),
+		);
+		$new_predefined_packages = array(
+			'dhlexpress' => array(
+				'SmallPaddedPouch', 'Box2Cube'
+			),
+			'usps' => array(
+				'legal_flat_envelope', 'flat_envelope' // 'flat_envelope' is a duplicate
+			),
+		);
+		$this->settings_store->update_predefined_packages($existing_predefined_packages);
+
+		// When
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/packages' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body(json_encode(array(
+			'predefined' => $new_predefined_packages
+		)));
+		$response = $controller->post($request);
+
+		// Then
+		$this->assertEquals( 400, $response->get_error_code() );
+		$this->assertEquals( 'invalid_predefined_packages', $response->get_error_message() );
+		$expected_error_data = array('duplicate_predefined_package_names_by_carrier' => array('usps' => ['flat_envelope']));
+		$this->assertEquals( $expected_error_data, $response->get_error_data() );
+
+		// Assert that custom packages remain the same after the invalid request.
+		$actual_packages_after_creation = $this->settings_store->get_predefined_packages();
+		$expected_packages_after_creation = $existing_predefined_packages;
+		$this->assertEquals( $expected_packages_after_creation, $actual_packages_after_creation );
+	}
 }

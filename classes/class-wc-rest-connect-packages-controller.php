@@ -46,12 +46,58 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 	public function post( $request ) {
 		$packages = $request->get_json_params();
 
-		$custom_packages = isset($packages['custom']) ? $packages['custom'] : null;
-		$predefined_packages = isset($packages['predefined']) ? $packages['predefined'] : null;
-		if (!is_null($custom_packages)) {
+		$custom_packages = isset($packages['custom']) ? $packages['custom'] : array();
+		$predefined_packages = isset($packages['predefined']) ? $packages['predefined'] : array();
+
+		// Handle new custom packages. The custom packages are structured as an array of packages as dictionaries.
+		if (!empty($custom_packages)) {
+			// Validate that no custom package has duplicate name.
+			$existing_custom_packages = $this->settings_store->get_packages();
+			$map_package_name = function($package) {
+				return $package['name'];
+			};
+			$existing_custom_package_names = array_map($map_package_name, $existing_custom_packages);
+			$custom_package_names = array_map($map_package_name, $custom_packages);
+			$duplicate_package_names = array_intersect($existing_custom_package_names, $custom_package_names);
+
+			if (!empty($duplicate_package_names)) {
+				return new WP_Error(
+					400,
+					'invalid_custom_packages',
+					array('duplicate_custom_package_names' => array_values($duplicate_package_names))
+				);
+			}
+
+			// If no duplicate custom packages, create the given packages.
 			$this->settings_store->create_packages( $custom_packages );
 		}
-		if (!is_null($predefined_packages)) {
+
+		// Handle new predefined packages. The predefined packages are structured as a dictionary from carrier name to
+		// an array of package names.
+		if (!empty($predefined_packages)) {
+			// Validate that no predefined package has duplicate name for the carrier.
+			$existing_predefined_packages = $this->settings_store->get_predefined_packages();
+			$duplicate_package_names_by_carrier = array();
+
+			if (!empty($existing_predefined_packages)) {
+				foreach ($existing_predefined_packages as $carrier => $existing_package_names) {
+					$new_package_names = isset($predefined_packages[$carrier]) ? $predefined_packages[$carrier]: array();
+					$duplicate_package_names = array_intersect($existing_package_names, $new_package_names);
+					if (!empty($duplicate_package_names)) {
+						$duplicate_package_names_by_carrier[$carrier] = array_values($duplicate_package_names);
+					}
+				}
+			}
+
+			if (!empty($duplicate_package_names_by_carrier)) {
+				return new WP_Error(
+					400,
+					'invalid_predefined_packages',
+					array('duplicate_predefined_package_names_by_carrier' => $duplicate_package_names_by_carrier)
+				);
+			}
+
+			// If no duplicate predefined packages, create the given packages.
 			$this->settings_store->create_predefined_packages( $predefined_packages );
 		}
 
