@@ -116,10 +116,10 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 
 		$wc_connect_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client_mock, $this->setting_store_mock, $this->connect_logger_mock );
 		$actual                              = $wc_connect_subscriptions_controller->post();
-		$expected                            =  $api_client_response->subscriptions ;
+		$expected                            = $api_client_response->subscriptions;
 
-		$expected                                     = [
-			'success'  => true,
+		$expected = [
+			'success'       => true,
 			'subscriptions' => $api_client_response->subscriptions,
 		];
 
