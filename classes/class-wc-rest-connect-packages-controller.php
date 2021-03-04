@@ -46,37 +46,37 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 	public function post( $request ) {
 		$packages = $request->get_json_params();
 
-		$custom_packages = isset($packages['custom']) ? $packages['custom'] : array();
-		$predefined_packages = isset($packages['predefined']) ? $packages['predefined'] : array();
+		$custom_packages     = isset( $packages['custom'] ) ? $packages['custom'] : array();
+		$predefined_packages = isset( $packages['predefined'] ) ? $packages['predefined'] : array();
 
 		// Handle new custom packages. The custom packages are structured as an array of packages as dictionaries.
-		if (!empty($custom_packages)) {
+		if ( ! empty( $custom_packages ) ) {
 			// Validate that the new custom packages have unique names.
-			$map_package_name = function($package) {
+			$map_package_name            = function( $package ) {
 				return $package['name'];
 			};
-			$custom_package_names = array_map($map_package_name, $custom_packages);
-			$unique_custom_package_names = array_unique($custom_package_names);
+			$custom_package_names        = array_map( $map_package_name, $custom_packages );
+			$unique_custom_package_names = array_unique( $custom_package_names );
 
-			if (count($unique_custom_package_names) < count($custom_package_names)) {
-				$duplicate_package_names = array_diff_assoc($custom_package_names, $unique_custom_package_names);
+			if ( count( $unique_custom_package_names ) < count( $custom_package_names ) ) {
+				$duplicate_package_names = array_diff_assoc( $custom_package_names, $unique_custom_package_names );
 				return new WP_Error(
 					400,
 					'duplicate_custom_package_names',
-					array('package_names' => array_values($duplicate_package_names))
+					array( 'package_names' => array_values( $duplicate_package_names ) )
 				);
 			}
 
 			// Validate that the new custom packages do not have the same names as existing custom packages.
-			$existing_custom_packages = $this->settings_store->get_packages();
-			$existing_custom_package_names = array_map($map_package_name, $existing_custom_packages);
-			$duplicate_package_names = array_intersect($existing_custom_package_names, $custom_package_names);
+			$existing_custom_packages      = $this->settings_store->get_packages();
+			$existing_custom_package_names = array_map( $map_package_name, $existing_custom_packages );
+			$duplicate_package_names       = array_intersect( $existing_custom_package_names, $custom_package_names );
 
-			if (!empty($duplicate_package_names)) {
+			if ( ! empty( $duplicate_package_names ) ) {
 				return new WP_Error(
 					400,
 					'duplicate_custom_package_names_of_existing_packages',
-					array('package_names' => array_values($duplicate_package_names))
+					array( 'package_names' => array_values( $duplicate_package_names ) )
 				);
 			}
 
@@ -86,43 +86,43 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 
 		// Handle new predefined packages. The predefined packages are structured as a dictionary from carrier name to
 		// an array of package names.
-		if (!empty($predefined_packages)) {
+		if ( ! empty( $predefined_packages ) ) {
 			$duplicate_package_names_by_carrier = array();
 
 			// Validate that the new predefined packages have unique names for each carrier.
-			foreach ($predefined_packages as $carrier => $package_names) {
-				$unique_package_names = array_unique($package_names);
-				if (count($unique_package_names) < count($package_names)) {
-					$duplicate_package_names = array_diff_assoc($package_names, $unique_package_names);
-					$duplicate_package_names_by_carrier[$carrier] = array_values($duplicate_package_names);
+			foreach ( $predefined_packages as $carrier => $package_names ) {
+				$unique_package_names = array_unique( $package_names );
+				if ( count( $unique_package_names ) < count( $package_names ) ) {
+					$duplicate_package_names                        = array_diff_assoc( $package_names, $unique_package_names );
+					$duplicate_package_names_by_carrier[ $carrier ] = array_values( $duplicate_package_names );
 				}
 			}
 
-			if (!empty($duplicate_package_names_by_carrier)) {
+			if ( ! empty( $duplicate_package_names_by_carrier ) ) {
 				return new WP_Error(
 					400,
 					'duplicate_predefined_package_names',
-					array('package_names_by_carrier' => $duplicate_package_names_by_carrier)
+					array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier )
 				);
 			}
 
 			// Validate that the new predefined packages for each carrier do not have the same names as existing predefined packages.
 			$existing_predefined_packages = $this->settings_store->get_predefined_packages();
-			if (!empty($existing_predefined_packages)) {
-				foreach ($existing_predefined_packages as $carrier => $existing_package_names) {
-					$new_package_names = isset($predefined_packages[$carrier]) ? $predefined_packages[$carrier]: array();
-					$duplicate_package_names = array_intersect($existing_package_names, $new_package_names);
-					if (!empty($duplicate_package_names)) {
-						$duplicate_package_names_by_carrier[$carrier] = array_values($duplicate_package_names);
+			if ( ! empty( $existing_predefined_packages ) ) {
+				foreach ( $existing_predefined_packages as $carrier => $existing_package_names ) {
+					$new_package_names       = isset( $predefined_packages[ $carrier ] ) ? $predefined_packages[ $carrier ] : array();
+					$duplicate_package_names = array_intersect( $existing_package_names, $new_package_names );
+					if ( ! empty( $duplicate_package_names ) ) {
+						$duplicate_package_names_by_carrier[ $carrier ] = array_values( $duplicate_package_names );
 					}
 				}
 			}
 
-			if (!empty($duplicate_package_names_by_carrier)) {
+			if ( ! empty( $duplicate_package_names_by_carrier ) ) {
 				return new WP_Error(
 					400,
 					'duplicate_predefined_package_names_of_existing_packages',
-					array('package_names_by_carrier' => $duplicate_package_names_by_carrier)
+					array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier )
 				);
 			}
 
