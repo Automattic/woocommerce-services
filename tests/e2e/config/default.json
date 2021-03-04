@@ -1,0 +1,16 @@
+{
+	"url": "http://localhost:8084/",
+	"appName": "woocommerce-services",
+	"users": {
+		"admin": {
+			"username": "admin",
+			"password": "password",
+			"email": "admin@e2ewootestsite.com"
+		},
+		"customer": {
+			"username": "customer",
+			"password": "customer_password",
+			"email": "customer@e2ewootestsite.com"
+		}
+	}
+}
