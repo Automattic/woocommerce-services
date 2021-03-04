@@ -11,7 +11,7 @@ if ( class_exists( 'WC_REST_Connect_Packages_Controller' ) ) {
 class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/packages';
 
-	/*
+	/**
 	 * @var WC_Connect_Package_Settings
 	 */
 	protected $package_settings;
@@ -34,6 +34,12 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 		);
 	}
 
+	/**
+	 * Update the existing custom and predefined packages.
+	 *
+	 * @param  WP_REST_Request $request The request body contains the custom/predefined packages to replace.
+	 * @return WP_REST_Response
+	 */
 	public function put( $request ) {
 		$packages = $request->get_json_params();
 
@@ -43,6 +49,12 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
 
+	/**
+	 * Create custom and/or predefined packages.
+	 *
+	 * @param  WP_REST_Request $request The request body contains the custom/predefined packages to create.
+	 * @return WP_Error|WP_REST_Response
+	 */
 	public function post( $request ) {
 		$packages = $request->get_json_params();
 
