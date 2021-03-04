@@ -3,12 +3,11 @@
  * @format
  */
 const path = require( 'path' );
-const { jestConfig: baseE2Econfig } = require( '@woocommerce/e2e-environment' );
+const { useE2EJestConfig } = require( '@woocommerce/e2e-environment' );
 
 // https://jestjs.io/docs/en/configuration.html
 
-module.exports = {
-	...baseE2Econfig,
+module.exports = useE2EJestConfig( {
 	// Automatically clear mock calls and instances between every test
 	clearMocks: true,
 
@@ -33,4 +32,4 @@ module.exports = {
 
 	// The glob patterns Jest uses to detect test files
 	testMatch: [ '**/*.(test|spec).js' ],
-};
+} );
