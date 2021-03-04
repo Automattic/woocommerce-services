@@ -5,13 +5,13 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { TextControlWithAffixes } from '@woocommerce/components';
 
 /**
  * Internal dependencies
  */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormTextInputWithAffixes from 'components/forms/form-text-input-with-affixes';
 import FieldError from '../field-error';
 
 const WeightField = ( {
@@ -24,20 +24,18 @@ const WeightField = ( {
 	className,
 	weightUnit,
 } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
 
 	return (
 		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id }>{ title }</FormLabel>
-			<FormTextInputWithAffixes
-				noWrap
+			<TextControlWithAffixes
 				suffix={ weightUnit }
 				id={ id }
 				name={ id }
 				type="number"
 				placeholder={ placeholder || '0.0' }
 				value={ value }
-				onChange={ handleChangeEvent }
+				onChange={ updateValue }
 				isError={ Boolean( error ) }
 			/>
 			{ error && typeof error === 'string' && <FieldError text={ error } /> }
