@@ -72,11 +72,12 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 
 			if ( count( $unique_custom_package_names ) < count( $custom_package_names ) ) {
 				$duplicate_package_names = array_diff_assoc( $custom_package_names, $unique_custom_package_names );
-				return new WP_Error(
-					400,
-					'duplicate_custom_package_names',
-					array( 'package_names' => array_values( $duplicate_package_names ) )
+				$error                   = array(
+					'code'    => 'duplicate_custom_package_names',
+					'message' => __( 'The new custom package names are not unique.' ),
+					'data'    => array( 'package_names' => array_values( $duplicate_package_names ) ),
 				);
+				return new WP_REST_Response( $error, 400 );
 			}
 
 			// Validate that the new custom packages do not have the same names as existing custom packages.
@@ -85,11 +86,12 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 			$duplicate_package_names       = array_intersect( $existing_custom_package_names, $custom_package_names );
 
 			if ( ! empty( $duplicate_package_names ) ) {
-				return new WP_Error(
-					400,
-					'duplicate_custom_package_names_of_existing_packages',
-					array( 'package_names' => array_values( $duplicate_package_names ) )
+				$error = array(
+					'code'    => 'duplicate_custom_package_names_of_existing_packages',
+					'message' => __( 'At least one of the new custom packages has the same name as existing packages.' ),
+					'data'    => array( 'package_names' => array_values( $duplicate_package_names ) ),
 				);
+				return new WP_REST_Response( $error, 400 );
 			}
 
 			// If no duplicate custom packages, create the given packages.
@@ -111,11 +113,12 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 			}
 
 			if ( ! empty( $duplicate_package_names_by_carrier ) ) {
-				return new WP_Error(
-					400,
-					'duplicate_predefined_package_names',
-					array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier )
+				$error = array(
+					'code'    => 'duplicate_predefined_package_names',
+					'message' => __( 'The new predefined package names are not unique.' ),
+					'data'    => array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier ),
 				);
+				return new WP_REST_Response( $error, 400 );
 			}
 
 			// Validate that the new predefined packages for each carrier do not have the same names as existing predefined packages.
@@ -131,11 +134,12 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 			}
 
 			if ( ! empty( $duplicate_package_names_by_carrier ) ) {
-				return new WP_Error(
-					400,
-					'duplicate_predefined_package_names_of_existing_packages',
-					array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier )
+				$error = array(
+					'code'    => 'duplicate_predefined_package_names_of_existing_packages',
+					'message' => __( 'At least one of the new predefined packages has the same name as existing packages.' ),
+					'data'    => array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier ),
 				);
+				return new WP_REST_Response( $error, 400 );
 			}
 
 			// If no duplicate predefined packages, create the given packages.

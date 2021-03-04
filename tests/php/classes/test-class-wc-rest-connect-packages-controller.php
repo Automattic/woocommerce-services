@@ -280,11 +280,12 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 			)
 		);
 		$response = $controller->post( $request );
+		$error    = $response->as_error();
 
 		// Then.
-		$this->assertEquals( 400, $response->get_error_code() );
-		$this->assertEquals( 'duplicate_custom_package_names_of_existing_packages', $response->get_error_message() );
-		$this->assertEquals( array( 'package_names' => array( 'Fun box' ) ), $response->get_error_data() );
+		$this->assertEquals( 400, $response->get_status() );
+		$this->assertEquals( 'duplicate_custom_package_names_of_existing_packages', $error->get_error_code() );
+		$this->assertEquals( array( 'package_names' => array( 'Fun box' ) ), $error->get_error_data() );
 
 		// Assert that custom packages remain the same after the invalid request.
 		$actual_packages_after_creation   = $this->settings_store->get_packages();
@@ -330,11 +331,12 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 			)
 		);
 		$response = $controller->post( $request );
+		$error    = $response->as_error();
 
 		// Then.
-		$this->assertEquals( 400, $response->get_error_code() );
-		$this->assertEquals( 'duplicate_custom_package_names', $response->get_error_message() );
-		$this->assertEquals( array( 'package_names' => array( 'Cool box' ) ), $response->get_error_data() );
+		$this->assertEquals( 400, $response->get_status() );
+		$this->assertEquals( 'duplicate_custom_package_names', $error->get_error_code() );
+		$this->assertEquals( array( 'package_names' => array( 'Cool box' ) ), $error->get_error_data() );
 
 		// Assert that custom packages remain the same after the invalid request.
 		$actual_packages_after_creation = $this->settings_store->get_packages();
@@ -378,12 +380,13 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 			)
 		);
 		$response = $controller->post( $request );
+		$error    = $response->as_error();
 
 		// Then.
-		$this->assertEquals( 400, $response->get_error_code() );
-		$this->assertEquals( 'duplicate_predefined_package_names_of_existing_packages', $response->get_error_message() );
+		$this->assertEquals( 400, $response->get_status() );
+		$this->assertEquals( 'duplicate_predefined_package_names_of_existing_packages', $error->get_error_code() );
 		$expected_error_data = array( 'package_names_by_carrier' => array( 'usps' => array( 'flat_envelope' ) ) );
-		$this->assertEquals( $expected_error_data, $response->get_error_data() );
+		$this->assertEquals( $expected_error_data, $error->get_error_data() );
 
 		// Assert that custom packages remain the same after the invalid request.
 		$actual_packages_after_creation   = $this->settings_store->get_predefined_packages();
@@ -425,17 +428,18 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 			)
 		);
 		$response = $controller->post( $request );
+		$error    = $response->as_error();
 
 		// Then.
-		$this->assertEquals( 400, $response->get_error_code() );
-		$this->assertEquals( 'duplicate_predefined_package_names', $response->get_error_message() );
+		$this->assertEquals( 400, $response->get_status() );
+		$this->assertEquals( 'duplicate_predefined_package_names', $error->get_error_code() );
 		$expected_error_data = array(
 			'package_names_by_carrier' => array(
 				'dhlexpress' => array( 'Box2Cube' ),
 				'usps'       => array( 'flat_envelope' ),
 			),
 		);
-		$this->assertEquals( $expected_error_data, $response->get_error_data() );
+		$this->assertEquals( $expected_error_data, $error->get_error_data() );
 
 		// Assert that custom packages remain the same after the invalid request.
 		$actual_packages_after_creation = $this->settings_store->get_predefined_packages();
