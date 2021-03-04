@@ -6,6 +6,7 @@
 * Tweak - Refresh on status page does not reload page.
 * Fix   - UPS invoice number allows numbers and letters.
 * Add 	- Tracks shipping services used at checkout.
+* Add   - Run phpcbf as a pre-commit rule.
 
 = 1.25.8 - 2021-03-02 =
 * Tweak - Add support for new Jetpack 9.5 data connection.
