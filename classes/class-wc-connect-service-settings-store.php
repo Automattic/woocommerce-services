@@ -501,11 +501,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array new_packages - packages to extend
 		 */
 		public function create_packages( $new_packages ) {
-			if (is_null($new_packages)) {
+			if ( is_null( $new_packages ) ) {
 				return;
 			}
 			$packages = $this->get_packages();
-			$packages = array_merge($packages, $new_packages);
+			$packages = array_merge( $packages, $new_packages );
 			WC_Connect_Options::update_option( 'packages', $packages );
 		}
 
@@ -548,11 +548,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array new_packages - packages to extend
 		 */
 		public function create_predefined_packages( $new_packages ) {
-			if (is_null($new_packages)) {
+			if ( is_null( $new_packages ) ) {
 				return;
 			}
 			$packages = $this->get_predefined_packages();
-			$packages = array_merge_recursive($packages, $new_packages);
+			$packages = array_merge_recursive( $packages, $new_packages );
 			WC_Connect_Options::update_option( 'predefined_packages', $packages );
 		}
 
