@@ -84,6 +84,12 @@ export const getLabels = ( state, orderId, siteId = getSelectedSiteId( state ) )
 	return shippingLabel && shippingLabel.loaded ? shippingLabel.labels : [];
 };
 
+export const getLabelById = ( state, orderId, siteId, labelId ) => {
+	const labels = getLabels( state, orderId, siteId );
+
+	return labels.find( ( { label_id } ) => label_id === labelId );
+};
+
 export const shouldFulfillOrder = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	return shippingLabel && shippingLabel.fulfillOrder;

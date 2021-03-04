@@ -3,7 +3,6 @@
  */
 import React from 'react';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 
 /**
@@ -20,11 +19,10 @@ import SettingsGroupCard from 'woocommerce/woocommerce-services/components/setti
 import Toggle from 'components/toggle';
 import {
 	toggleLogging,
-	toggleDebug,
-	save,
+	toggleDebugging,
 } from './state/actions';
 
-const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
+const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, translate } ) => {
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
@@ -33,25 +31,21 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 			<SettingsGroupCard heading={ translate( 'Debug' ) }>
 			<Toggle
 					id="wcs-toggle-debug"
-					checked={ debugEnabled }
+					checked={ isDebuggingEnabled }
 					title={ translate( 'Debug' ) }
 					description={ translate( 'Display troubleshooting information on the Cart and Checkout pages.' ) }
 					trueText={ translate( 'Enabled' ) }
 					falseText={ translate( 'Disabled' ) }
-					saveOnToggle={ true }
-					saveForm={ actions.save }
-					updateValue={ actions.toggleDebug }
+					onUpdate={ onDebuggingToggle }
 				/>
 				<Toggle
 					id="wcs-toggle-logging"
-					checked={ loggingEnabled }
+					checked={ isLoggingEnabled }
 					title={ translate( 'Logging' ) }
 					description={ translate( 'Write diagnostic messages to log files. Helpful when contacting support.' ) }
 					trueText={ translate( 'Enabled' ) }
 					falseText={ translate( 'Disabled' ) }
-					saveOnToggle={ true }
-					saveForm={ actions.save }
-					updateValue={ actions.toggleLogging }
+					onUpdate={ onLoggingToggle }
 				/>
 				<LogView
 					logKey="shipping"
@@ -71,7 +65,7 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 						'or {{ticketA}}open a support ticket{{/ticketA}}.', {
 							components: {
 								docsA: <a
-									href="https://docs.woocommerce.com/document/woocommerce-services/"
+									href="https://docs.woocommerce.com/document/woocommerce-shipping-and-tax/"
 									target="_blank"
 									rel="noopener noreferrer" />,
 								ticketA: <a
@@ -87,16 +81,17 @@ const StatusView = ( { actions, loggingEnabled, debugEnabled, translate } ) => {
 	);
 };
 
+const mapStateToProps = ( state ) => ( {
+	isLoggingEnabled: Boolean( state.status.logging_enabled ),
+	isDebuggingEnabled: Boolean( state.status.debug_enabled ),
+} );
+
+const mapDispatchToProps = {
+	onLoggingToggle: toggleLogging,
+	onDebuggingToggle: toggleDebugging,
+};
+
 export default connect(
-	( state ) => ( {
-		loggingEnabled: Boolean( state.status.logging_enabled ),
-		debugEnabled: Boolean( state.status.debug_enabled ),
-	} ),
-	( dispatch ) => ( {
-		actions: bindActionCreators( {
-			toggleLogging,
-			toggleDebug,
-			save,
-		}, dispatch ),
-	} )
+	mapStateToProps,
+	mapDispatchToProps
 )( localize( StatusView ) );

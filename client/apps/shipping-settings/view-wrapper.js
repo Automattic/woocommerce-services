@@ -16,11 +16,12 @@ import LabelSettings from '../../extensions/woocommerce/woocommerce-services/vie
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
-import CarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/settings';
+import SubscriptionsUsage from '../../extensions/woocommerce/woocommerce-services/views/subscriptions-usage';
+import UpsSettingsForm from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/ups-settings-form';
+import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { successNotice, errorNotice } from 'state/notices/actions';
 import { createWcsShippingSaveActionList } from '../../extensions/woocommerce/woocommerce-services/state/actions';
-import { getSelectedSiteId } from 'state/ui/selectors';
 import {
 	getLabelSettingsFormMeta,
 	getSelectedPaymentMethodId,
@@ -55,39 +56,43 @@ class LabelSettingsWrapper extends Component {
 		return this.props.errorNotice( translate( 'Unable to save your shipping settings. Please try again.' ) );
 	};
 
-	onPaymentMethodMissing = () => {
-		const { translate } = this.props;
-		return this.props.errorNotice( translate( 'A payment method is required to print shipping labels.' ), {
-			duration: 4000,
-		} );
-	};
-
 	onSaveChanges = () => {
 		this.props.createWcsShippingSaveActionList( this.onSaveSuccess, this.onSaveFailure );
 	};
 
 	render() {
-		const { carrier, carriers, isSaving, siteId, translate } = this.props;
+		const { carrier, carriers, subscriptions, isSaving, translate } = this.props;
 
-		if ( carrier ) {
+		if ( ! carrier ) {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
-					<CarrierAccountSettings carrier={ carrier } />
+					<LabelSettings onChange={ this.onChange } />
+					<Packages onChange={ this.onChange } />
+					<CarrierAccounts carriers={ carriers } />
+					<SubscriptionsUsage subscriptions={ subscriptions } />
+					<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
+						{ translate( 'Save changes' ) }
+					</Button>
 					<ProtectFormGuard isChanged={ ! this.state.pristine } />
 				</div>
 			);
 		}
+
+		if ( carrier === 'UpsAccount' ) {
+			return (
+				<div>
+					<GlobalNotices id="notices" notices={ notices.list } />
+					<UpsSettingsForm />
+				</div>
+			);
+		}
+
+		// Dynamically create registration form
 		return (
 			<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
-				<LabelSettings onChange={ this.onChange } />
-				<Packages onChange={ this.onChange } />
-				<CarrierAccounts siteId={ siteId } carriers={ carriers } onChange={ this.onChange } />
-				<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
-					{ translate( 'Save changes' ) }
-				</Button>
-				<ProtectFormGuard isChanged={ ! this.state.pristine } />
+				<DynamicCarrierAccountSettings carrier={ carrier } />
 			</div>
 		);
 	}
@@ -99,7 +104,6 @@ export default connect(
 		const packagesForm = getPackagesForm( state );
 
 		return {
-			siteId: getSelectedSiteId( state ),
 			isSaving: labelsFormMeta.isSaving || packagesForm.isSaving,
 			paymentMethodSelected: Boolean( getSelectedPaymentMethodId( state ) ),
 		};

@@ -14,11 +14,5 @@
 		"informationUrl": "https://docs.woocommerce.com/document/paypal-standard/",
 		"isSuggested": true,
 		"methodType": "off-site"
-	},
-	"stripe": {
-		"fees": "Fee varies based on country",
-		"informationUrl": "https://stripe.com/pricing",
-		"isSuggested": true,
-		"methodType": "on-site"
 	}
 }

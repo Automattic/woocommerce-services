@@ -11,4 +11,7 @@ export const addressNormalization = () => 'connect/normalize-address';
 export const serviceSettings = ( methodId, instanceId = 0 ) => `connect/services/${ methodId }/${ instanceId }`;
 export const shippingCarrier = () => 'connect/shipping/carrier';
 export const shippingCarriers = () => 'connect/shipping/carriers';
+export const subscriptions = () => 'connect/subscriptions';
+export const subscriptionActivate = ( subscriptionKey ) => `connect/subscription/${ subscriptionKey }/activate`;
 export const shippingCarrierDelete = ( carrier ) => `connect/shipping/carrier/${ carrier }`;
+export const shippingCarrierTypes = () => 'connect/shipping/carrier-types';

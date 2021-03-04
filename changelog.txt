@@ -1,8 +1,67 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.1 - 2020-XX-XX =
-* Fix   - Update carrier name in tracking notification email
+= 1.25.9 - 2021-xx-xx =
+* Tweak - Cleanup stripe functionality.
+* Tweak - Display better errors on checkout page when address fields are missing / invalid.
+* Tweak - Refresh on status page does not reload page.
+* Fix   - UPS invoice number allows numbers and letters.
+* Add 	- Tracks shipping services used at checkout.
+
+= 1.25.8 - 2021-03-02 =
+* Tweak - Add support for new Jetpack 9.5 data connection.
+* Tweak - Change minimum Jetpack version support to Jetpack 7.5.
+
+= 1.25.7 - 2021-02-09 =
+* Fix   - Prevent error notices on checkout page load.
+* Tweak - Highlight rate call usage over limit on WooCommerce Shipping settings page.
+* Fix   - Connect carrier account link broken on subdirectory installs.
+* Fix   - Position dot in the center of radio buttons in "Create shipping label".
+* Fix   - Adjust radio button dot style in "Create shipping label" in high contrast mode on Windows.
+
+= 1.25.6 - 2021-01-26 =
+* Fix 	- Refreshes shipping methods after registering or removing carrier accounts.
+* Tweak	- Changed rates response caching method from cache to transient.
+* Tweak	- Update "WC Tested up to" version.
+
+= 1.25.5 - 2021-01-11 =
+* Fix	- Redux DevTools usage update.
+* Add	- Display subscriptions usage.
+* Add	- Subscription activation.
+* Add 	- Uses same DHL logo for all registered DHL accounts.
+* Tweak - Adds WCCom access token and site ID to connect server request headers.
+
+= 1.25.4 - 2020-12-08 =
+* Tweak - Remove Stripe connect functionality.
+* Tweak - Remove unused method in shipping settings view.
+* Fix	- Breaking behavior on account registration page.
+* Add	- Allows registration of additional accounts.
+* Tweak - Carrier description on dynamic carrier registration form.
+* Fix   - Adjust documentation links.
+
+= 1.25.3 - 2020-11-24 =
+* Add   - Initial code for WooCommerce.com subscriptions API.
+* Add   - Dynamic carrier registration form.
+* Fix   - When adding "signature required" to some packages, prices were not updating.
+* Add   - DHL Schedule Pickup link within order notes.
+* Fix   - UI fix for input validation for package dimensions and weights.
+* Fix   - Correct validation for UPS fields in Carrier Account connect form.
+* Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
+* Fix   - Disable USPS refunds for untracked labels only.
+
+= 1.25.2 - 2020-11-10 =
+* Tweak - Add ZIP code validation to UPS(beta) signup form.
+* Fix   - Issue with printing labels in some iOS devices through Safari.
+* Fix   - Prevents warning when using PHP 5.5 or lesser
+* Add   - Add new API end point to retrieve carrier registration requirements.
+* Add   - Add composer command to run PHPUnit.
+* Tweak - Update readme with DHL information.
+
+= 1.25.1 - 2020-10-28 =
+* Tweak - DHL refund days copy adjustment
+* Tweak - Stop using deprecated Jetpack method is_development_mode().
+* Fix   - Update carrier name in tracking notification email.
 * Add   - Add pre-commit and pre-push git hooks for linting and unit tests.
+* Add   - Disable refunds for USPS letters.
 
 = 1.25.0 - 2020-10-13 =
 * Fix   - UPS connect redirect prompt

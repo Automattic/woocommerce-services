@@ -10,8 +10,6 @@ import ViewWrapper from './view-wrapper';
 // from calypso
 import labelSettingsReducer from '../../extensions/woocommerce/woocommerce-services/state/label-settings/reducer';
 import packagesReducer from '../../extensions/woocommerce/woocommerce-services/state/packages/reducer';
-import carrierAccountsReducer from '../../extensions/woocommerce/woocommerce-services/state/carrier-accounts/reducer';
-import initializeCarrierAccountsState from '../../extensions/woocommerce/woocommerce-services/lib/initialize-carrier-accounts-state';
 import notices from 'state/notices/reducer';
 import actionList from '../../extensions/woocommerce/state/data-layer/action-list';
 import wcsUiDataLayer from '../../extensions/woocommerce/state/data-layer/ui/woocommerce-services';
@@ -20,7 +18,7 @@ import { mergeHandlers } from 'state/action-watchers/utils';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import { combineReducers } from 'state/utils';
 
-export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, continents, carriers } ) => ( {
+export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, continents, carriers, subscriptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			extensions: combineReducers( {
@@ -29,7 +27,6 @@ export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, c
 						1: combineReducers( {
 							packages: packagesReducer,
 							labelSettings: labelSettingsReducer,
-							carrierAccounts: carrierAccountsReducer,
 						} ),
 					} ),
 					sites: combineReducers( {
@@ -59,11 +56,6 @@ export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, c
 							},
 						},
 					},
-					woocommerceServices: {
-						1: {
-							carrierAccounts: initializeCarrierAccountsState(),
-						},
-					},
 				},
 			},
 		};
@@ -82,5 +74,5 @@ export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, c
 		return [ rawWpcomApiMiddleware( mergeHandlers( wcsUiDataLayer, actionList ) ) ];
 	},
 
-	View: () => <ViewWrapper orderId={ orderId } orderHref={ orderHref } carrier={ carrier } carriers={ carriers } />,
+	View: () => <ViewWrapper orderId={ orderId } orderHref={ orderHref } carrier={ carrier } carriers={ carriers } subscriptions = { subscriptions } />,
 } );

@@ -27,12 +27,23 @@ import {
 import Gridicon from "gridicons";
 
 export class LabelItem extends Component {
-	renderRefund = ( labelId, expired ) => {
+	renderRefund = ( labelId, expired, carrierId, trackingId ) => {
 		const { orderId, siteId, translate } = this.props;
+		let toolTipMessage = '';
+		let disabled = false;
 
 		if ( expired ) {
+			toolTipMessage = translate( 'Labels older than 30 days cannot be refunded.' );
+			disabled       = true;
+		} 
+		else if ( 'usps' === carrierId && ! trackingId ) {
+			toolTipMessage = translate( 'USPS labels without tracking are not eligible for refund.' );
+			disabled       = true
+		}
+
+		if ( disabled ) {
 			return (
-				<Tooltip position="top left" text={ translate('Labels older than 30 days cannot be refunded.') }>
+				<Tooltip position="top left" text={ toolTipMessage }>
 					<button className="popover__menu-item shipping-label__item-menu-reprint-expired" role="menuitem" tabIndex="-1">
 						<Gridicon icon="refund" size={ 18 }/>
 						<span> { translate( 'Request refund' ) } </span>
@@ -97,6 +108,7 @@ export class LabelItem extends Component {
 			'usps': 'https://tools.usps.com/schedule-pickup-steps.htm',
 			'fedex': 'https://www.fedex.com/en-us/shipping/schedule-manage-pickups.html',
 			'ups': 'https://wwwapps.ups.com/pickup/request',
+			'dhlexpress': 'https://mydhl.express.dhl/us/en/home.html#/schedulePickupTab',
 		};
 
 		if ( ! ( pickup_urls.hasOwnProperty( carrierId ) ) ) {
@@ -193,7 +205,7 @@ export class LabelItem extends Component {
 								<EllipsisMenu position="bottom left">
 									{ this.renderLabelDetails( labelId ) }
 									{ this.renderPickup( carrierId ) }
-									{ this.renderRefund( labelId, refundExpired ) }
+									{ this.renderRefund( labelId, refundExpired, carrierId, tracking ) }
 									{ this.renderReprint( labelId, expired ) }
 									{ this.renderCommercialInvoiceLink( commercialInvoiceUrl ) }
 								</EllipsisMenu>
@@ -250,7 +262,7 @@ LabelItem.propTypes = {
 		anonymized: PropTypes.bool.isRequired,
 		usedDate: PropTypes.string.isRequired,
 		tracking: PropTypes.string.isRequired,
-		carrierId: PropTypes.number.isRequired,
+		carrierId: PropTypes.string.isRequired,
 		commercialInvoiceUrl: PropTypes.string,
 	}).isRequired,
 	isModal: PropTypes.bool.isRequired,

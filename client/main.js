@@ -49,7 +49,6 @@ const classNamesToRoutes = {
 	'wc-connect-admin-status': './apps/plugin-status',
 	'wc-connect-shipping-settings': './apps/shipping-settings',
 	'wc-connect-admin-test-print': './apps/print-test-label',
-	'wc-connect-stripe-connect-account': './apps/stripe-connect-account',
 };
 
 const getRouteClass = async ( className ) => {
@@ -69,9 +68,6 @@ const getRouteClass = async ( className ) => {
 			break;
 		case 'wc-connect-admin-test-print':
 			module = await import('./apps/print-test-label');
-			break;
-		case 'wc-connect-stripe-connect-account':
-			module = await import('./apps/stripe-connect-account');
 			break;
 		default:
 			return null;
@@ -118,7 +114,9 @@ Array.from( document.getElementsByClassName( 'wcc-root' ) ).forEach( ( container
 
 			const enhancers = [
 				applyMiddleware( ...middlewares ),
-				window.devToolsExtension && window.devToolsExtension(),
+				window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__({
+					name: `wc/wcs/${routeClassName}`
+				}),
 			].filter( Boolean );
 
 			const store = compose( ...enhancers )( createStore )( Route.getReducer(), initialState );
@@ -179,9 +177,6 @@ if ( module.hot ) {
 					    break;
 				    case 'wc-connect-admin-test-print':
 					    module = require( './apps/print-test-label' );
-					    break;
-				    case 'wc-connect-stripe-connect-account':
-					    module = require( './apps/stripe-connect-account' );
 					    break;
 				    default:
 				    	return;

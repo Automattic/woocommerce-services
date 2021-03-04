@@ -25,6 +25,7 @@ class WC_REST_Connect_Shipping_Carrier_Delete_Controller extends WC_REST_Connect
 			return $error;
 		}
 
+		do_action( 'wc_connect_fetch_service_schemas' );
 		return array( 'success' => true );
 	}
 }

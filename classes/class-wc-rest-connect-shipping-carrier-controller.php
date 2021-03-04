@@ -22,10 +22,12 @@ class WC_REST_Connect_Shipping_Carrier_Controller extends WC_REST_Connect_Base_C
 				array( 'message' => $response->get_error_message() )
 			);
 			$this->logger->log( $error, __CLASS__ );
+
 			return $error;
 		}
 
-		return array( 'success' => true );
+		do_action( 'wc_connect_fetch_service_schemas' );
+		return $response;
 	}
 
 }

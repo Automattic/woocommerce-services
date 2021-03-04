@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -26,7 +26,7 @@ const Dropdown = ( {
 	disabled,
 	className,
 } ) => {
-	const onChange = event => updateValue( event.target.value );
+	const onChange = useCallback(event => updateValue( event.target.value, event ), [ updateValue ]);
 
 	return (
 		<FormFieldset className={ className }>

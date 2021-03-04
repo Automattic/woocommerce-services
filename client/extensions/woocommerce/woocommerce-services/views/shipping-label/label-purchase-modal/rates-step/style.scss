@@ -61,6 +61,11 @@
 	input[type='radio']:checked::before {
 		margin: 2px;
 		background-color: #d52c82;
+
+		// For radio buttons to be visible in high contrast mode on Windows, a border or outline is required
+		// See: https://github.com/WordPress/gutenberg/pull/23706
+		border: 4px solid #d52c82;
+		box-sizing: border-box;
 	}
 }
 

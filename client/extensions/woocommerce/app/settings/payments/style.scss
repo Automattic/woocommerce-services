@@ -105,19 +105,13 @@
 		font-size: 14px;
 	}
 
-	.payments__method-name-paypal,
-	.payments__method-name-stripe {
+	.payments__method-name-paypal {
 		text-indent: -999em;
 		height: 24px;
 		width: 90px;
 		background: url( '/calypso/images/extensions/woocommerce/paypal.svg' );
 		background-repeat: no-repeat;
 		background-size: contain;
-	}
-
-	.payments__method-name-stripe {
-		background-image: url( '/calypso/images/extensions/woocommerce/stripe.svg' );
-		width: 58px;
 	}
 
 	.list-header + .list-item {
@@ -283,9 +277,4 @@
 	align-self: flex-end;
 	height: 26px;
 	width: 54px;
-}
-
-.payments__method-stripe-force-flow {
-	float: left;
-	margin-left: 0;
 }

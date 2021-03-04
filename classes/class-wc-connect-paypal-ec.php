@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Nux $nux ) {
 			$this->api_client = $api_client;
-			$this->nux = $nux;
+			$this->nux        = $nux;
 		}
 
 		public function init() {
@@ -60,8 +60,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				empty( $settings->sandbox_api_username ) &&
 				empty( $settings->api_username )
 			) {
-				$email = isset( $settings->email ) ? $settings->email : $settings->api_subject;
-				$settings->api_subject = $email;
+				$email                         = isset( $settings->email ) ? $settings->email : $settings->api_subject;
+				$settings->api_subject         = $email;
 				$settings->sandbox_api_subject = $email;
 				$settings->save();
 			}
@@ -126,25 +126,29 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		public function register_refund_pointer( $pointers ) {
 			$pointers[] = array(
-				'id' => 'wc_services_refund_via_ppec',
-				'target' => '.refund-actions > button:first-child',
-				'options' => array(
-					'content' => sprintf( '<h3>%s</h3><p>%s</p>',
-						__( 'Link a PayPal account' ,'woocommerce-services' ),
+				'id'              => 'wc_services_refund_via_ppec',
+				'target'          => '.refund-actions > button:first-child',
+				'options'         => array(
+					'content'  => sprintf(
+						'<h3>%s</h3><p>%s</p>',
+						__( 'Link a PayPal account', 'woocommerce-services' ),
 						sprintf(
 							wp_kses(
 								__( 'To issue refunds via PayPal Checkout, you will need to <a href="%s">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
-								array(  'a' => array( 'href' => array() ) )
+								array( 'a' => array( 'href' => array() ) )
 							),
 							wc_gateway_ppec()->ips->get_signup_url( wc_gateway_ppec()->settings->environment )
 						)
 					),
-					'position' => array( 'edge' => 'bottom', 'align' => 'top' ),
+					'position' => array(
+						'edge'  => 'bottom',
+						'align' => 'top',
+					),
 				),
 				'delayed_opening' => array(
-					'show_button' => '.refund-items',
-					'hide_button' => '.cancel-action',
-					'animating_container' => '.wc-order-refund-items',
+					'show_button'          => '.refund-items',
+					'hide_button'          => '.cancel-action',
+					'animating_container'  => '.wc-order-refund-items',
 					'delegation_container' => '#woocommerce-order-items',
 				),
 			);
@@ -202,15 +206,17 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 * Show a NUX banner prompting the merchant to link a PayPal account
 		 */
 		public function banner() {
-			$this->nux->show_nux_banner( array(
-				'title'          => __( 'Link your PayPal account', 'woocommerce-services' ),
-				'description'    => esc_html( __( 'Link a new or existing PayPal account to make sure future orders are marked “Processing” instead of “On hold”, and so refunds can be issued without leaving WooCommerce.', 'woocommerce-services' ) ),
-				'button_text'    => __( 'Link account', 'woocommerce-services' ),
-				'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
-				'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
-				'should_show_jp' => false,
-				'dismissible_id' => 'ppec',
-			) );
+			$this->nux->show_nux_banner(
+				array(
+					'title'          => __( 'Link your PayPal account', 'woocommerce-services' ),
+					'description'    => esc_html( __( 'Link a new or existing PayPal account to make sure future orders are marked “Processing” instead of “On hold”, and so refunds can be issued without leaving WooCommerce.', 'woocommerce-services' ) ),
+					'button_text'    => __( 'Link account', 'woocommerce-services' ),
+					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
+					'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
+					'should_show_jp' => false,
+					'dismissible_id' => 'ppec',
+				)
+			);
 		}
 
 		/**
@@ -225,7 +231,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				return;
 			} elseif ( ! isset( $settings['button_size'] ) ) { // Check if settings are initialized, represented by button_size as its absence would be first to affect the customer
 				$payment_gateways = WC()->payment_gateways->payment_gateways();
-				$gateway = $payment_gateways['ppec_paypal'];
+				$gateway          = $payment_gateways['ppec_paypal'];
 
 				foreach ( $gateway->form_fields as $key => $form_field ) {
 					if ( ! isset( $settings[ $key ] ) && isset( $form_field['default'] ) ) {
@@ -257,35 +263,40 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				$form_fields = $this->adjust_api_subject_form_field( $form_fields );
 
 				// Prevent user from changing Payment Action away from "Sale", the only option for which payments will work
-				$form_fields['paymentaction']['disabled'] = true;
+				$form_fields['paymentaction']['disabled']    = true;
 				$form_fields['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking a PayPal account.)', 'woocommerce-services' ), $form_fields['paymentaction']['description'] );
 
 				// Communicate WCS proxying and provide option to disable
-				$reset_link = add_query_arg(
-					array( 'reroute_requests' => 'no', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
+				$reset_link         = add_query_arg(
+					array(
+						'reroute_requests' => 'no',
+						'nonce'            => wp_create_nonce( 'reroute_requests' ),
+					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
 				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Shipping & Tax and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
+					$api_creds_text                                = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
 					$form_fields['api_credentials']['description'] = $api_creds_text;
 					unset( $form_fields['api_username'], $form_fields['api_password'], $form_fields['api_signature'], $form_fields['api_certificate'] );
 				}
 				if ( empty( $settings->sandbox_api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
+					$api_creds_text                                        = sprintf( $api_creds_template, add_query_arg( 'environment', 'sandbox', $reset_link ) );
 					$form_fields['sandbox_api_credentials']['description'] = $api_creds_text;
 					unset( $form_fields['sandbox_api_username'], $form_fields['sandbox_api_password'], $form_fields['sandbox_api_signature'], $form_fields['sandbox_api_certificate'] );
 				}
-
 			} else {
 				// Provide option to enable request proxying
-				$reset_link = add_query_arg(
-					array( 'reroute_requests' => 'yes', 'nonce' => wp_create_nonce( 'reroute_requests' ) ),
+				$reset_link         = add_query_arg(
+					array(
+						'reroute_requests' => 'yes',
+						'nonce'            => wp_create_nonce( 'reroute_requests' ),
+					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
 				$api_creds_template = __( 'To authenticate payments with WooCommerce Shipping & Tax, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
-					$api_creds_text = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
+					$api_creds_text                                 = sprintf( $api_creds_template, add_query_arg( 'environment', 'live', $reset_link ) );
 					$form_fields['api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
 				}
 				if ( empty( $settings->sandbox_api_username ) ) {
@@ -301,16 +312,16 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 * Present the "API Subject" setting in a way that's simpler, more comprehensible, and more appropriate to the way it's being used
 		 */
 		public function adjust_api_subject_form_field( $form_fields ) {
-			$api_subject_title = __( 'Payment Email', 'woocommerce-services' );
-			$form_fields['api_subject']['title'] = $api_subject_title;
+			$api_subject_title                           = __( 'Payment Email', 'woocommerce-services' );
+			$form_fields['api_subject']['title']         = $api_subject_title;
 			$form_fields['sandbox_api_subject']['title'] = $api_subject_title;
 
-			$api_subject_description = __( 'Enter your email address at which to accept payments. You\'ll need to link your own account in order to perform anything other than "sale" transactions.', 'woocommerce-services' );
-			$form_fields['api_subject']['description'] = $api_subject_description;
+			$api_subject_description                           = __( 'Enter your email address at which to accept payments. You\'ll need to link your own account in order to perform anything other than "sale" transactions.', 'woocommerce-services' );
+			$form_fields['api_subject']['description']         = $api_subject_description;
 			$form_fields['sandbox_api_subject']['description'] = $api_subject_description;
 
-			$api_subject_placeholder = __( 'Required', 'woocommerce-services' );
-			$form_fields['api_subject']['placeholder'] = $api_subject_placeholder;
+			$api_subject_placeholder                           = __( 'Required', 'woocommerce-services' );
+			$form_fields['api_subject']['placeholder']         = $api_subject_placeholder;
 			$form_fields['sandbox_api_subject']['placeholder'] = $api_subject_placeholder;
 
 			return $form_fields;
@@ -328,7 +339,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				return;
 			}
 
-			$settings = wc_gateway_ppec()->settings;
+			$settings                   = wc_gateway_ppec()->settings;
 			$settings->reroute_requests = 'yes' === $_GET['reroute_requests'] ? 'yes' : 'no';
 			if ( isset( $_GET['environment'] ) ) {
 				$settings->environment = 'sandbox' === $_GET['environment'] ? 'sandbox' : 'live';

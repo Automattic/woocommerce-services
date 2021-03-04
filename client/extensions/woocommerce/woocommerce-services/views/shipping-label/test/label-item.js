@@ -13,6 +13,7 @@ import { translate } from 'i18n-calypso';
  */
 import { LabelItem } from '../label-item.js';
 import PopoverMenuItem from 'components/popover/menu-item';
+import { Tooltip } from '@wordpress/components';
 
 function createLabelItemWrapper( props = {} ) {
 	const defaults = {
@@ -33,7 +34,7 @@ function createLabelItemWrapper( props = {} ) {
 			anonymized: false,
 			usedDate: "",
 			tracking: "tracking code 01",
-			carrierId: 1,
+			carrierId: "",
 		},
 		isModal: false,
 		openRefundDialog: () => {},
@@ -73,9 +74,76 @@ describe( 'Label item', () => {
 			return n.is( PopoverMenuItem ) && 'Print customs form' === n.children().text();
 		}  );
 
-		it( 'doest not render a link to print it', function () {
+		it( 'does not render a link to print it', function () {
 			expect( renderedPrintCustomsFormLink.length ).toBe( 0 );
 		} );
+	} );
 
+	describe( 'with usps untracked label', () => {
+		const props = {
+			label: {
+				tracking: '',
+				carrierId: 'usps',
+			}
+		}
+		const wrapper = createLabelItemWrapper( props );
+		const requestRefundLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Request refund' === n.children().text();
+		}  );
+
+		it( 'Request refund is disabled', function () {
+			expect( requestRefundLink.length ).toBe( 0 );
+		} );
+
+		const tooltip = wrapper.findWhere( ( n ) => {
+			return n.is( Tooltip );
+		}  );
+
+		it( 'Tooltip message is displayed', function () {
+			expect( tooltip.props().text ).toEqual ('USPS labels without tracking are not eligible for refund.' );
+		} );
+	} );
+
+	describe( 'with usps package', () => {
+		const props = {
+			label: {
+				tracking: '9405500205309055665410',
+				carrierId: 'usps',
+			}
+		}
+		const wrapper = createLabelItemWrapper( props );
+		const requestRefundLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Request refund' === n.children().text();
+		}  );
+
+		it( 'Request refund is not disabled', function () {
+			expect( requestRefundLink.length ).toBe( 1 );
+		} );
+
+		const requestShipmentLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Schedule a pickup' === n.children().text();
+		})
+
+		it( 'Request shipment pickup is available', function () {
+			expect( requestShipmentLink.length ).toBe( 1 );
+		} );
+
+	} );
+
+	describe( 'with non usps untracked label', () => {
+		const props = {
+			label: {
+				tracking: '',
+				carrierId: 'dhlexpress',
+			}
+		}
+		const wrapper = createLabelItemWrapper( props );
+		const requestRefundLink = wrapper.findWhere( ( n ) => {
+			return n.is( PopoverMenuItem ) && 'Request refund' === n.children().text();
+		}  );
+
+		it( 'Request refund is not disabled', function () {
+			expect( requestRefundLink.length ).toBe( 1 );
+		} );
 	} );
 } );

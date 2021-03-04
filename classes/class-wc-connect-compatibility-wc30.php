@@ -48,14 +48,14 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		/**
 		 * Retrieve the corresponding Product for the given Order Item.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order                                  $order
 		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
 		 *
 		 * @return WC_Product
 		 */
 		public function get_item_product( WC_Order $order, $item ) {
 			if ( is_array( $item ) ) {
-				return wc_get_product( $item[ 'product_id' ] );
+				return wc_get_product( $item['product_id'] );
 			}
 			return $item->get_product();
 		}
@@ -64,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 * Get formatted list of Product Variations, if applicable.
 		 *
 		 * @param WC_Product_Variation $product
-		 * @param bool $flat
+		 * @param bool                 $flat
 		 *
 		 * @return string
 		 */
@@ -103,13 +103,13 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
 		 *
-		 * @param int $product_id Product ID or variation ID
+		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
 		 * @return string The product (or variation) name, ready to print
 		 */
 		public function get_product_name_from_order( $product_id, $order ) {
 			foreach ( $order->get_items() as $line_item ) {
-				$line_product_id = $line_item->get_product_id();
+				$line_product_id   = $line_item->get_product_id();
 				$line_variation_id = $line_item->get_variation_id();
 
 				if ( ! $line_product_id ) {
@@ -133,13 +133,13 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		/**
 		 * For a given product ID, it tries to find its price inside an order's line items.
 		 *
-		 * @param int $product_id Product ID or variation ID
+		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */
 		public function get_product_price_from_order( $product_id, $order ) {
 			foreach ( $order->get_items() as $line_item ) {
-				$line_product_id = $line_item->get_product_id();
+				$line_product_id   = $line_item->get_product_id();
 				$line_variation_id = $line_item->get_variation_id();
 
 				if ( ! $line_product_id ) {

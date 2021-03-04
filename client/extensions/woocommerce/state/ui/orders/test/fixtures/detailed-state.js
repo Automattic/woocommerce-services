@@ -30,8 +30,8 @@ export const order = {
 		postcode: '10032',
 		country: 'US',
 	},
-	payment_method: 'stripe',
-	payment_method_title: 'Credit Card (Stripe)',
+	payment_method: 'paypal',
+	payment_method_title: 'Paypal',
 	meta_data: [],
 	line_items: [
 		{

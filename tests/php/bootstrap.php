@@ -7,13 +7,15 @@
  * @package wordpress-plugin-tests
  */
 
-// Support for:
-// 1. `WC_DEVELOP_DIR` environment variable
-// 2. Tests checked out to /tmp
-if( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
+/**
+ * Support for:
+ * 1. `WC_DEVELOP_DIR` environment variable.
+ * 2. Tests checked out to /tmp.
+ */
+if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	$wc_root = getenv( 'WC_DEVELOP_DIR' );
-} else if ( file_exists( '/tmp/woocommerce/tests/bootstrap.php' ) ) {
-	$wc_root = '/tmp/woocommerce/tests';
+} elseif ( file_exists( '/tmp/woocommerce/tests/legacy/bootstrap.php' ) ) {
+	$wc_root = '/tmp/woocommerce';
 } else {
 	exit( 'Could not determine test root directory. Aborting.' );
 }
@@ -25,14 +27,18 @@ if ( ! $wp_tests_dir ) {
 }
 
 if ( ! file_exists( $wp_tests_dir . '/includes/functions.php' ) ) {
-	echo "Could not find $wp_tests_dir/includes/functions.php, have you run bin/install-wp-tests.sh ?" . PHP_EOL; // WPCS: XSS ok.
+	echo "Could not find $wp_tests_dir/includes/functions.php, have you run bin/install-wp-tests.sh ?" . PHP_EOL; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	exit( 1 );
 }
 
-// load test function so tests_add_filter() is available
-require_once( $wp_tests_dir . '/includes/functions.php' );
+// load test function so tests_add_filter() is available.
+require_once $wp_tests_dir . '/includes/functions.php';
 
-// Activates this plugin in WordPress so it can be tested.
+/**
+ * Activates this plugin in WordPress so it can be tested.
+ *
+ * @return void
+ */
 function _manually_load_plugin() {
 	require dirname( __FILE__ ) . '/../../woocommerce-services.php';
 }
@@ -42,4 +48,4 @@ if ( ! defined( 'WC_UNIT_TESTING' ) ) {
 	define( 'WC_UNIT_TESTING', true );
 }
 
-require $wc_root . '/bootstrap.php';
+require $wc_root . '/tests/legacy/bootstrap.php';

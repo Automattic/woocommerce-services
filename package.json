@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "1.25.0",
+  "version": "1.25.8",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd ..",
@@ -8,8 +8,8 @@
     "analyze": "cross-env ANALYZE=true NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "eslint": "eslint tasks/ client/",
     "eslint:fix": "eslint --fix tasks/ client/",
-    "test": "npm run test-client && npm run eslint",
-    "test-client": "jest -c=tests/client/jest.config.js",
+    "test": "npm run test-client",
+    "test-client": "TZ='UTC' jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
     "prerelease": "npm run i18n && node tasks/i18n-download && npm run i18njson",
     "release": "node tasks/release.js",
@@ -59,6 +59,7 @@
     "po2json": "^0.4.5",
     "postcss-safe-parser": "^4.0.2",
     "puppeteer": "^1.20.0",
+    "redux-mock-store": "^1.5.4",
     "request": "^2.88.2",
     "shelljs": "^0.7.6",
     "sinon": "7.3.1",

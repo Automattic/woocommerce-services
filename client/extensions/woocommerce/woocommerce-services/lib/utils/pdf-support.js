@@ -35,6 +35,13 @@ export default memoize( () => {
 		return 'native';
 	}
 
+	if ( includes( navigator.userAgent, 'Safari' ) ) {
+		// In some version of iPads, the navigator.userAgent stopped including the device name.
+		// If this Safari does not support native, then given that iOS doesn't support a print
+		// dialog, this serves as a catch-all to load the pdf in a new tab.
+		return 'addon';
+	}
+
 	const getActiveXObject = name => {
 		try {
 			return new ActiveXObject( name ); /*eslint no-undef: 0 */
