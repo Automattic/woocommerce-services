@@ -167,6 +167,7 @@ const PackageDialog = props => {
 			isVisible={ showModal }
 			additionalClassNames="packages__add-edit-dialog woocommerce wcc-root"
 			onClose={ onClose }
+			shouldCloseOnClickOutside={ true }
 			buttons={ buttons }
 			title={ heading }
 		>
