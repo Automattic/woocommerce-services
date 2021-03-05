@@ -6,6 +6,7 @@
 * Tweak - Refresh on status page does not reload page.
 * Fix   - UPS invoice number allows numbers and letters.
 * Add 	- Tracks shipping services used at checkout.
+* Add   - Update the existing endpoint `POST /connect/packages` to create shipping label packages, and add an endpoint `PUT /connect/packages` to update shipping label packages.
 * Add   - Run phpcbf as a pre-commit rule.
 
 = 1.25.8 - 2021-03-02 =
