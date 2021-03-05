@@ -108,6 +108,8 @@ const CancelDialog = localize(({ isVisible, onCancel, onConfirm, translate }) =>
 			isVisible={ isVisible }
 			additionalClassNames="carrier-accounts__settings-cancel-dialog"
 			onClose={ onCancel }
+			isDismissible={ true }
+			shouldCloseOnClickOutside={ true }
 			buttons={ buttons }
 			title={ translate('Cancel connection') }
 		>

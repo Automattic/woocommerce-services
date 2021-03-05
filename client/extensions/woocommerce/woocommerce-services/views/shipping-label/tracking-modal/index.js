@@ -36,6 +36,7 @@ const TrackingModal = props => {
 			isVisible={ props.showTrackingDialog }
 			onClose={ onClose }
 			isDismissible={ true }
+			shouldCloseOnClickOutside={ true }
 			title={ translate( 'Which package would you like to track?' ) }
 		>
 			<div className="tracking-modal__content">

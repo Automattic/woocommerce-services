@@ -25,7 +25,6 @@ const buildButton = ( button, index ) => {
 	return ( 
 		<Button
 			key={ action }
-			onClick={ button.onClick }
 			className={ 'button form-button ' + additionalClassNames }
 			{ ...moreProps }
 		>
@@ -55,7 +54,7 @@ const ButtonModal = ( props ) => {
 				{ ...moreProps } 
 			>
 				{ children }
-				{ buttons && buttons.map( ( b, index ) => buildButton( b, index ) ) }
+				{ buttons && buttons.map( buildButton ) }
 			</Modal>
 		) : null
 	);

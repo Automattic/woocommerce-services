@@ -62,6 +62,7 @@ const RefundDialog = props => {
 			additionalClassNames="label-refund-modal woocommerce wcc-root"
 			isVisible={ Boolean( refundDialog && refundDialog.labelId === labelId ) }
 			onClose={ onClose }
+			shouldCloseOnClickOutside={ true }
 			buttons={ buttons }
 			title={ translate( 'Request a refund' ) }
 		>
