@@ -117,6 +117,8 @@ const CarrierAccountListItem = ( props ) => {
 				isVisible={ isDisconnectDialogVisible }
 				additionalClassNames="carrier-accounts__settings-cancel-dialog"
 				onClose={ handleDisconnectDialogCancel }
+				isDismissible={ true }
+				shouldCloseOnClickOutside={ true }
 				buttons={ disconnectDialogButtons }
 				title={ translate( 'Disconnect your %(carrier_name)s account', {
 							args: { carrier_name: data.carrier },
