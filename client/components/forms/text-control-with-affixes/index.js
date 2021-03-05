@@ -67,7 +67,7 @@ class TextControlWithAffixes extends Component {
 			active: isFocused && ! disabled,
 		} );
 
-		const affixesClasses = classnames( 'text-control-with-affixes', 'BBTEST', {
+		const affixesClasses = classnames( 'text-control-with-affixes', {
 			'text-control-with-prefix': prefix,
 			'text-control-with-suffix': suffix,
 			disabled,
@@ -126,7 +126,7 @@ TextControlWithAffixes.propTypes = {
 	label: PropTypes.string,
 	help: PropTypes.string,
 	type: PropTypes.string,
-	value: PropTypes.string.isRequired,
+	value: PropTypes.oneOfType( [ PropTypes.string, PropTypes.number ] ).isRequired,
 	className: PropTypes.string,
 	onChange: PropTypes.func.isRequired,
 	prefix: PropTypes.node,

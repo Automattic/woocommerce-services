@@ -105,7 +105,7 @@ const EditPackage = props => {
 					placeholder={ translate( 'Unique package name' ) }
 					value={ name || '' }
 					onChange={ value => updateTextField( value, 'name' ) }
-					isError={ modalErrors.name }
+					className={ modalErrors.name ? 'is-error' : '' }
 				/>
 				{ fieldInfo( 'name', translate( 'This field must be unique' ) ) }
 			</FormFieldset>
@@ -130,7 +130,7 @@ const EditPackage = props => {
 						placeholder={ translate( '0.0' ) }
 						value={ box_weight || '' }
 						onChange={ value => updateTextField( value, 'box_weight' ) }
-						isError={ modalErrors.box_weight }
+						className={ modalErrors.box_weight ? 'is-error' : '' }
 						type="number"
 						suffix={ weightUnit }
 					/>

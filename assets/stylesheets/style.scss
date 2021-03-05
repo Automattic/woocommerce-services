@@ -242,6 +242,12 @@
 		display: none;
 	}
 
+	.components-base-control.is-error {
+		.components-text-control__input {
+			color: var( --color-error );
+			border-color: var( --color-error );
+		}
+	}
 }
 
 @import 'components/dialog/style';

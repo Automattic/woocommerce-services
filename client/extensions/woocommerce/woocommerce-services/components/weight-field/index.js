@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
@@ -24,6 +25,9 @@ const WeightField = ( {
 	className,
 	weightUnit,
 } ) => {
+	const classes = classNames( {
+		'is-error': Boolean( error ),
+	} );
 
 	return (
 		<FormFieldset className={ className }>
@@ -36,7 +40,7 @@ const WeightField = ( {
 				placeholder={ placeholder || '0.0' }
 				value={ value }
 				onChange={ updateValue }
-				isError={ Boolean( error ) }
+				className={ classes }
 			/>
 			{ error && typeof error === 'string' && <FieldError text={ error } /> }
 		</FormFieldset>

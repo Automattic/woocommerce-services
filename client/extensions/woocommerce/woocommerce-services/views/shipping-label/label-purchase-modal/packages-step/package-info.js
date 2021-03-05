@@ -154,7 +154,7 @@ const PackageInfo = props => {
 					placeholder={ translate( '0' ) }
 					value={ packageWeight }
 					onChange={ onWeightChange }
-					isError={ Boolean( pckgErrors.weight ) }
+					className={ Boolean( pckgErrors.weight ) ? 'is-error' : '' }
 					type="number"
 					suffix={ weightUnit }
 				/>
