@@ -5,7 +5,6 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TextControlWithAffixes } from '@woocommerce/components';
 
 /**
  * Internal dependencies
@@ -13,6 +12,7 @@ import { TextControlWithAffixes } from '@woocommerce/components';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FieldError from '../field-error';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 
 const WeightField = ( {
 	id,

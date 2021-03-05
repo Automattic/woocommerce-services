@@ -12,7 +12,6 @@ import classNames from 'classnames';
 import { localize } from 'i18n-calypso';
 import { noop } from 'lodash';
 import { TextControl } from '@wordpress/components';
-import { TextControlWithAffixes } from '@woocommerce/components';
 
 /**
  * Internal dependencies
@@ -20,6 +19,7 @@ import { TextControlWithAffixes } from '@woocommerce/components';
 import { getSelectedSiteWithFallback } from 'woocommerce/state/sites/selectors';
 import { getDimensionsUnitSetting } from 'woocommerce/state/sites/settings/products/selectors';
 import { fetchSettingsProducts } from 'woocommerce/state/sites/settings/products/actions';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 
 class FormDimensionsInput extends Component {
 	static propTypes = {

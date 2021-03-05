@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { omit, trim } from 'lodash';
 import { TextControl } from '@wordpress/components';
-import { TextControlWithAffixes } from '@woocommerce/components';
 
 /**
  * Internal dependencies
@@ -20,6 +19,7 @@ import FormLabel from 'components/forms/form-label';
 import FormSelect from 'components/forms/form-select';
 import FieldError from '../../components/field-error';
 import inputFilters from './input-filters';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 
 const renderDimensionsInput = ( dimensionsName, dimensionsStr, dimensionsUnit, updateField ) => {
 	const { length, width, height } = inputFilters.parseDimensions( dimensionsStr );
