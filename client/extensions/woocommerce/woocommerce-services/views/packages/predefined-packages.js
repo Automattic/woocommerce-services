@@ -113,7 +113,7 @@ const PredefinedPackages = ( {
 		return elements;
 	};
 
-	return <div className='packages__package-list'>{ renderContent() }</div>;
+	return <div className="packages__package-list">{ renderContent() }</div>;
 };
 
 PredefinedPackages.propTypes = {
