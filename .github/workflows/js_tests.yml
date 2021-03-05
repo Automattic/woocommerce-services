@@ -1,6 +1,6 @@
 name: JS Tests
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   js_build_and_test:
