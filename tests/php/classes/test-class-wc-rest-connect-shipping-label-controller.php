@@ -43,6 +43,8 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 * @see WC_Unit_Test_Case::setUp()
 	 */
 	public function setUp() {
+		parent::setUp();
+
 		// Creating a mock class and overide protected request method so that we can mock the API response.
 		$this->api_client_mock = $this->getMockBuilder( WC_Connect_API_Client_Live::class )
 			->disableOriginalConstructor()
