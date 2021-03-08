@@ -539,41 +539,50 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		$this->assertEquals( $actual, $this->expected_selected_packages_multiple );
 	}
 
+	/**
+	 * Test that an order with one virtual product is not eligible for shipping label creation (shipping is not required).
+	 */
 	public function test_order_with_a_virtual_product_is_not_eligible_for_shipping_label_creation() {
-		// Given
-		$product = $this->create_simple_product(true);
-		$order = WC_Helper_Order::create_order(1, $product);
+		// Given.
+		$product = $this->create_simple_product( true );
+		$order   = WC_Helper_Order::create_order( 1, $product );
 
-		// When
+		// When.
 		$shipping_label = $this->get_shipping_label();
-		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+		$is_eligible    = $shipping_label->is_order_eligible_for_shipping_label_creation( $order );
 
-		// Then
+		// Then.
 		$this->assertFalse( $is_eligible );
 	}
 
+	/**
+	 * Test that an order with one shippable product is eligible for shipping label creation.
+	 */
 	public function test_order_with_a_shippable_product_is_eligible_for_shipping_label_creation() {
-		// Given
-		$product = $this->create_simple_product(false);
-		$order = WC_Helper_Order::create_order(1, $product);
+		// Given.
+		$product = $this->create_simple_product( false );
+		$order   = WC_Helper_Order::create_order( 1, $product );
 
-		// When
+		// When.
 		$shipping_label = $this->get_shipping_label();
-		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+		$is_eligible    = $shipping_label->is_order_eligible_for_shipping_label_creation( $order );
 
-		// Then
+		// Then.
 		$this->assertTrue( $is_eligible );
 	}
 
+	/**
+	 * Test that an order with one fully refunded shippable product is not eligible for shipping label creation (no product to ship).
+	 */
 	public function test_order_with_a_fully_refunded_shippable_product_is_not_eligible_for_shipping_label_creation() {
-		// Given
-		$product = $this->create_simple_product(false);
-		$order = WC_Helper_Order::create_order(1, $product);
+		// Given.
+		$product = $this->create_simple_product( false );
+		$order   = WC_Helper_Order::create_order( 1, $product );
 
-		$order_items = $order->get_items();
+		$order_items       = $order->get_items();
 		$refund_line_items = array();
-		foreach ($order_items as $order_item) {
-			$refund_line_items[$order_item->get_id()] = array(
+		foreach ( $order_items as $order_item ) {
+			$refund_line_items[ $order_item->get_id() ] = array(
 				'qty'          => $order_item->get_quantity(),
 				'refund_total' => 20,
 			);
@@ -584,23 +593,26 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		);
 		wc_create_refund( $refund_args );
 
-		// When
+		// When.
 		$shipping_label = $this->get_shipping_label();
-		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+		$is_eligible    = $shipping_label->is_order_eligible_for_shipping_label_creation( $order );
 
-		// Then
+		// Then.
 		$this->assertFalse( $is_eligible );
 	}
 
+	/**
+	 * Test that an order with one partially refunded shippable product is eligible for shipping label creation (still product to ship).
+	 */
 	public function test_order_with_a_partially_refunded_shippable_product_is_eligible_for_shipping_label_creation() {
-		// Given
-		$product = $this->create_simple_product(false);
-		$order = WC_Helper_Order::create_order(1, $product);
+		// Given.
+		$product = $this->create_simple_product( false );
+		$order   = WC_Helper_Order::create_order( 1, $product );
 
-		$order_items = $order->get_items();
+		$order_items       = $order->get_items();
 		$refund_line_items = array();
-		foreach ($order_items as $order_item) {
-			$refund_line_items[$order_item->get_id()] = array(
+		foreach ( $order_items as $order_item ) {
+			$refund_line_items[ $order_item->get_id() ] = array(
 				'qty'          => $order_item->get_quantity() - 1,
 				'refund_total' => 20,
 			);
@@ -611,55 +623,72 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		);
 		wc_create_refund( $refund_args );
 
-		// When
+		// When.
 		$shipping_label = $this->get_shipping_label();
-		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+		$is_eligible    = $shipping_label->is_order_eligible_for_shipping_label_creation( $order );
 
-		// Then
+		// Then.
 		$this->assertTrue( $is_eligible );
 	}
 
+	/**
+	 * Test that an order with one shippable product but already included in a pre-existing label is not eligible for shipping label creation
+	 * (no need to ship again).
+	 */
 	public function test_order_with_a_shippable_product_already_in_a_label_is_not_eligible_for_shipping_label_creation() {
-		// Given
-		$product = $this->create_simple_product(false);
-		$order = WC_Helper_Order::create_order(1, $product);
+		// Given.
+		$product = $this->create_simple_product( false );
+		$order   = WC_Helper_Order::create_order( 1, $product );
 
-		// Add a shipping label with all the products in the order
+		// Add a shipping label with all the products in the order.
 		$order_items = $order->get_items();
 		$product_ids = array();
-		foreach ($order_items as $order_item) {
-			foreach(range(1, $order_item->get_quantity()) as $index) {
+		foreach ( $order_items as $order_item ) {
+			foreach ( range( 1, $order_item->get_quantity() ) as $index ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $order_item );
-				array_push($product_ids, $product->get_id());
+				array_push( $product_ids, $product->get_id() );
 			}
 		}
 		$settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
 			->disableOriginalConstructor()
 			->setMethods( null )
 			->getMock();
-		$this->add_shipping_label_to_order($settings_store, $order, $product_ids);
+		$this->add_shipping_label_to_order( $settings_store, $order, $product_ids );
 
-		// When
-		$shipping_label = $this->get_shipping_label(false, $settings_store);
-		$is_eligible = $shipping_label->is_order_eligible_for_shipping_label_creation($order);
+		// When.
+		$shipping_label = $this->get_shipping_label( false, $settings_store );
+		$is_eligible    = $shipping_label->is_order_eligible_for_shipping_label_creation( $order );
 
-		// Then
+		// Then.
 		$this->assertFalse( $is_eligible );
 	}
 
-	private function create_simple_product($virtual = false) {
+	/**
+	 * A helper to create a simple product.
+	 *
+	 * @param bool $virtual Whether the simple product is virtual or not.
+	 * @return WC_Product_Simple
+	 */
+	private function create_simple_product( $virtual = false ): WC_Product_Simple {
 		$product = WC_Helper_Product::create_simple_product();
-		$product->set_virtual($virtual);
+		$product->set_virtual( $virtual );
 		$product->save();
 		return $product;
 	}
 
-	private function add_shipping_label_to_order($settings_store, $order, $product_ids = array()) {
+	/**
+	 * A helper to add a shipping label to an order.
+	 *
+	 * @param WC_Connect_Service_Settings_Store $settings_store Settings store that coordinates the shipping labels.
+	 * @param WC_Order                          $order The order for the shipping label to be added to.
+	 * @param array                             $product_ids A list of product IDs that the shipping label contains.
+	 */
+	private function add_shipping_label_to_order( $settings_store, $order, $product_ids = array() ) {
 		$labels_meta = array(
 			array(
-				'label_id' => 17,
+				'label_id'    => 17,
 				'product_ids' => $product_ids,
-			)
+			),
 		);
 		$settings_store->add_labels_to_order( $order->get_id(), $labels_meta );
 	}
