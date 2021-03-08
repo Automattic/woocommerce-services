@@ -117,7 +117,7 @@ export class ShippingLabelViewWrapper extends Component {
 							{ translate( 'Create shipping label' ) }
 						</Button>
 						<Button
-							isDefault
+							isSecondary
 							className={ className }
 							onClick={ this.handleTrackPackagesButtonClick }
 						>
@@ -143,7 +143,7 @@ export class ShippingLabelViewWrapper extends Component {
 						</Button>
 					</span>
 					<Button
-						isDefault
+						isSecondary
 						className = { classNames( 'button') }
 						onClick={ this.handleTrackPackagesButtonClick }
 					>

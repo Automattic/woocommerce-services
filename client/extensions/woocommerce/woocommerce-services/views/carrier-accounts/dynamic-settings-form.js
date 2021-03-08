@@ -161,7 +161,7 @@ const DynamicCarrierAccountSettingsForm = ( {
 							{ translate( 'Connect' ) }
 						</Button>
 						<Button
-							isDefault
+							isSecondary
 							className={ buttonClasses }
 							onClick={ handleCancel }
 						>
