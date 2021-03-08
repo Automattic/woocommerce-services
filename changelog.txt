@@ -1,4 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
+= 1.25.10 - 2021-xx-xx =
+* Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
 
 = 1.25.9 - 2021-xx-xx =
 * Tweak - Cleanup stripe functionality.
