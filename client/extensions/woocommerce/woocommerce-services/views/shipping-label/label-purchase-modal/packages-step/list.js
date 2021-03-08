@@ -10,11 +10,11 @@ import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
+import { Button } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import getPackageDescriptions from './get-package-descriptions';
 import { openPackage } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
@@ -46,8 +46,7 @@ const PackageList = props => {
 		return (
 			<div className="packages-step__list-item" key={ pckgId }>
 				<Button
-					borderless
-					className={ classNames( 'packages-step__list-package', {
+					className={ classNames( 'packages-step__list-package', 'is-borderless', {
 						'is-selected': packageId === pckgId,
 					} ) }
 					onClick={ onOpenClick }

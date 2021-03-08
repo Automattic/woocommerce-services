@@ -5,7 +5,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { compose } from 'redux'
-import { Card } from '@wordpress/components';
+import { Button, Card } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
@@ -13,7 +13,6 @@ import classNames from 'classnames';
  */
 import { localize } from 'i18n-calypso'
 import Gridicon from 'gridicons'
-import Button from 'components/button'
 import Dialog from 'components/dialog'
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown'
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox'
@@ -93,12 +92,20 @@ const getFieldsErrors = (values, isInvoiceDetailsChecked, translate) => {
 }
 
 const CancelDialog = localize(({ isVisible, onCancel, onConfirm, translate }) => {
+	const buttonClasses = classNames( 'button', 'is-compact');
 	const buttons = useMemo(() => (
 		[
-			<Button compact onClick={onCancel} key="cancel">
+			<Button  
+				className = { buttonClasses }
+				onClick={onCancel} 
+				key="cancel">
 				{translate('Cancel')}
 			</Button>,
-			<Button compact primary scary onClick={onConfirm} key="ok">
+			<Button  
+				isPrimary 
+				className = { classNames( buttonClasses, 'is-scary' ) }
+				onClick={onConfirm} 
+				key="ok">
 				{translate('Ok')}
 			</Button>,
 		]
@@ -246,6 +253,7 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 		window.location.href = url.href
 	}, []);
 	const handleCancelClick = useCallback(() => {setIsCancelDialogVisible(true)}, [setIsCancelDialogVisible])
+	const buttonClasses = classNames( 'button','is-compact');
 
 	return (
 		<div className="carrier-accounts__settings-container">
@@ -438,15 +446,17 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 					</Card>
 					<Card className={ classNames( "carrier-accounts__settings-actions", "card", "is-compact" ) } >
 						<Button
-							compact
-							primary
+							isPrimary
+							className = { buttonClasses }
 							onClick={handleSubmit}
 							disabled={Object.keys(fieldsErrors).length > 0 || isSaving}
-							busy={isSaving}
+							isBusy={isSaving}
 						>
 							{translate('Connect')}
 						</Button>
-						<Button compact onClick={handleCancelClick}>
+						<Button 
+							className = { buttonClasses }
+							onClick={handleCancelClick}>
 							{translate('Cancel')}
 						</Button>
 					</Card>

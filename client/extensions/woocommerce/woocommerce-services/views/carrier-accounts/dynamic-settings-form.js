@@ -6,13 +6,12 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { compose } from 'redux';
-import { Card } from '@wordpress/components';
+import { Button, Card } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import { getSelectedSiteId } from 'state/ui/selectors';
@@ -119,6 +118,8 @@ const DynamicCarrierAccountSettingsForm = ( {
 		history.back();
 	}, []);
 
+	const buttonClasses = classNames( 'button', "is-compact" );
+
 	return (
 		<div className="carrier-accounts__settings-container">
 			<div className="carrier-accounts__settings">
@@ -152,15 +153,16 @@ const DynamicCarrierAccountSettingsForm = ( {
 
 					<Card className={ classNames( "carrier-accounts__settings-actions", "card", "is-compact" ) } >
 						<Button
-							compact
-							primary
+							isPrimary
+							className={ buttonClasses }
 							onClick={ handleSubmit }
 							disabled={ isSaving }
 						>
 							{ translate( 'Connect' ) }
 						</Button>
 						<Button
-							compact
+							isDefault
+							className={ buttonClasses }
 							onClick={ handleCancel }
 						>
 							{ translate( 'Cancel' ) }
