@@ -58,9 +58,6 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 			->setMethods( null )
 			->getMock();
 		$this->shipping_label  = new WC_Connect_Shipping_Label( $this->api_client_mock, $this->settings_store, $this->service_schemas_store_mock, $payment_methods_store );
-
-		$this->unset_selected_payment_method( $this->settings_store );
-		$this->disable_shipping_labels_account_settings( $this->settings_store );
 	}
 
 	/**
@@ -69,8 +66,8 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_with_account_settings_disabled_is_not_eligible_for_shipping_label_creation() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
+		$this->update_shipping_labels_account_settings( false, $this->settings_store );
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -94,9 +91,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_in_supported_countries_is_eligible_for_shipping_label_creation() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -119,11 +114,10 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_non_US_store_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_customs_form() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$product    = $this->create_simple_product();
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		update_option( 'woocommerce_default_country', 'PR' );
-		$order = WC_Helper_Order::create_order( 1, $product );
+		$product = $this->create_simple_product();
+		$order   = WC_Helper_Order::create_order( 1, $product );
 
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
@@ -146,11 +140,9 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_US_store_with_non_US_destination_address_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_customs_form() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$product    = $this->create_simple_product();
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
-		$order = WC_Helper_Order::create_order( 1, $product );
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
+		$product = $this->create_simple_product();
+		$order   = WC_Helper_Order::create_order( 1, $product );
 		$this->set_origin_address( array( 'country' => 'US' ) );
 		$this->set_destination_address( $order, array( 'country' => 'PR' ) );
 
@@ -177,9 +169,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_US_store_with_US_addresses_is_eligible_for_shipping_label_creation_when_client_cannot_create_customs_form() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 		$this->set_origin_address( array( 'country' => 'US' ) );
@@ -205,9 +195,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_without_existing_packages_is_eligible_for_shipping_label_creation_when_client_can_create_package() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -230,9 +218,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_without_existing_packages_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_package() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -257,9 +243,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_with_one_existing_custom_package_is_eligible_for_shipping_label_creation_when_client_cannot_create_package() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 		$this->settings_store->update_packages( array( array( 'name' => 'Fun box' ) ) );
@@ -284,9 +268,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_order_with_virtual_product_is_not_eligible_for_shipping_label_creation() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_selected_payment_method( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product( false );
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -310,8 +292,8 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_without_selected_payment_method_is_not_eligible_for_shipping_label_creation_when_user_cannot_manage_payment() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
+		$this->unset_selected_payment_method( $this->settings_store );
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -335,8 +317,8 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	public function test_store_without_selected_payment_method_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_payment_method() {
 		// Given.
 		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label );
-		$this->enable_shipping_labels_account_settings( $this->settings_store );
-		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
+		$this->unset_selected_payment_method( $this->settings_store );
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
@@ -369,6 +351,15 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	}
 
 	/**
+	 * Set up all requirements for a store and order to be eligible for shipping label creation.
+	 */
+	private function set_store_and_settings_to_be_eligible_for_shipping_label_creation() {
+		$this->set_store_to_be_eligible_for_shipping_label_creation();
+		$this->set_selected_payment_method( $this->settings_store );
+		$this->update_shipping_labels_account_settings( true, $this->settings_store );
+	}
+
+	/**
 	 * Set up a store to be eligible for shipping label creation.
 	 */
 	private function set_store_to_be_eligible_for_shipping_label_creation() {
@@ -377,25 +368,15 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	}
 
 	/**
-	 * Enable shipping labels account settings in a settings store.
-	 *
-	 * @param WC_Connect_Service_Settings_Store $settings_store Settings store where shipping labels settings are stored.
-	 */
-	private function enable_shipping_labels_account_settings( WC_Connect_Service_Settings_Store $settings_store ) {
-		$account_settings            = $this->settings_store->get_account_settings();
-		$account_settings['enabled'] = true;
-		$this->settings_store->update_account_settings( $account_settings );
-	}
-
-	/**
 	 * Disable shipping labels account settings in a settings store.
 	 *
+	 * @param bool                              $is_account_settings_enabled Whether shipping labels account settings is enabled.
 	 * @param WC_Connect_Service_Settings_Store $settings_store Settings store where shipping labels settings are stored.
 	 */
-	private function disable_shipping_labels_account_settings( WC_Connect_Service_Settings_Store $settings_store ) {
-		$account_settings            = $this->settings_store->get_account_settings();
-		$account_settings['enabled'] = false;
-		$this->settings_store->update_account_settings( $account_settings );
+	private function update_shipping_labels_account_settings( bool $is_account_settings_enabled, WC_Connect_Service_Settings_Store $settings_store ) {
+		$account_settings            = $settings_store->get_account_settings();
+		$account_settings['enabled'] = $is_account_settings_enabled;
+		$settings_store->update_account_settings( $account_settings );
 	}
 
 	/**
