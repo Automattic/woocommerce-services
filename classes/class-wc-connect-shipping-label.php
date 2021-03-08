@@ -52,18 +52,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			WC_Connect_Service_Schemas_Store $service_schemas_store,
 			WC_Connect_Payment_Methods_Store $payment_methods_store
 		) {
-			$this->api_client = $api_client;
-			$this->settings_store = $settings_store;
+			$this->api_client            = $api_client;
+			$this->settings_store        = $settings_store;
 			$this->service_schemas_store = $service_schemas_store;
-			$this->account_settings = new WC_Connect_Account_Settings(
-					$settings_store,
-					$payment_methods_store
+			$this->account_settings      = new WC_Connect_Account_Settings(
+				$settings_store,
+				$payment_methods_store
 			);
-			$this->package_settings = new WC_Connect_Package_Settings(
-					$settings_store,
-					$service_schemas_store
+			$this->package_settings      = new WC_Connect_Package_Settings(
+				$settings_store,
+				$service_schemas_store
 			);
-			$this->continents = new WC_Connect_Continents();
+			$this->continents            = new WC_Connect_Continents();
 		}
 
 		public function get_item_data( WC_Order $order, $item ) {
@@ -74,7 +74,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$height = 0;
 			$length = 0;
 			$weight = $product->get_weight();
-			$width = 0;
+			$width  = 0;
 
 			if ( $product->has_dimensions() ) {
 				$height = $product->get_height();
@@ -110,25 +110,25 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return array();
 			}
 
-			// WC3 retrieves metadata as non-scalar values
+			// WC3 retrieves metadata as non-scalar values.
 			if ( is_array( $packages_data ) ) {
 				return $packages_data;
 			}
 
-			// WC2.6 stores non-scalar values as string, but doesn't deserialize it on retrieval
+			// WC2.6 stores non-scalar values as string, but doesn't deserialize it on retrieval.
 			$packages = maybe_unserialize( $packages_data );
 			if ( is_array( $packages ) ) {
 				return $packages;
 			}
 
-			// legacy WCS stored the labels as JSON
+			// legacy WCS stored the labels as JSON.
 			$packages = json_decode( $packages_data, true );
 			if ( $packages ) {
 				return $packages;
 			}
 
 			$packages_data = $this->settings_store->try_recover_invalid_json_string( 'box_id', $packages_data );
-			$packages = json_decode( $packages_data, true );
+			$packages      = json_decode( $packages_data, true );
 			if ( $packages ) {
 				return $packages;
 			}
@@ -161,7 +161,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
-				$items = $this->get_all_items( $order );
+				$items  = $this->get_all_items( $order );
 				$weight = array_sum( wp_list_pluck( $items, 'weight' ) );
 
 				$packages = array(
@@ -180,19 +180,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$formatted_packages = array();
 
 			foreach ( $packages as $package_obj ) {
-				$package = ( array ) $package_obj;
-				$package_id = $package['id'];
+				$package                           = (array) $package_obj;
+				$package_id                        = $package['id'];
 				$formatted_packages[ $package_id ] = $package;
 
 				foreach ( $package['items'] as $item_index => $item ) {
-					$product_data = ( array ) $item;
-					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $product_data );
+					$product_data = (array) $item;
+					$product      = WC_Connect_Compatibility::instance()->get_item_product( $order, $product_data );
 
 					if ( $product ) {
 						$product_data['name'] = $this->get_name( $product );
-						$product_data['url'] = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
+						$product_data['url']  = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
 						if ( $product->is_type( 'variation' ) ) {
-							$formatted = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
+							$formatted                  = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
 							$product_data['attributes'] = $formatted;
 						}
 						$customs_info = get_post_meta( $product_data['product_id'], 'wc_connect_customs_info', true );
@@ -236,12 +236,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		public function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
-			$shipping_method = reset( $shipping_methods );
-			$packages = $this->get_packaging_from_shipping_method( $shipping_method );
-			$rates = array();
+			$shipping_method  = reset( $shipping_methods );
+			$packages         = $this->get_packaging_from_shipping_method( $shipping_method );
+			$rates            = array();
 
 			foreach ( $packages as $idx => $package_obj ) {
-				$package = ( array ) $package_obj;
+				$package = (array) $package_obj;
 				// Abort if the package data is malformed
 				if ( ! isset( $package['id'] ) || ! isset( $package['service_id'] ) ) {
 					return array();
@@ -254,7 +254,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function format_address_for_api( $address ) {
-			// Combine first and last name
+			// Combine first and last name.
 			if ( ! isset( $address['name'] ) ) {
 				$first_name = isset( $address['first_name'] ) ? trim( $address['first_name'] ) : '';
 				$last_name  = isset( $address['last_name'] ) ? trim( $address['last_name'] ) : '';
@@ -262,12 +262,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$address['name'] = $first_name . ' ' . $last_name;
 			}
 
-			// Rename address_1 to address
+			// Rename address_1 to address.
 			if ( ! isset( $address['address'] ) && isset( $address['address_1'] ) ) {
 				$address['address'] = $address['address_1'];
 			}
 
-			// Remove now defunct keys
+			// Remove now defunct keys.
 			unset( $address['first_name'], $address['last_name'], $address['address_1'] );
 
 			return $address;
@@ -287,24 +287,24 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_data( WC_Order $order ) {
-			$order_id               = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$selected_packages      = $this->get_selected_packages( $order );
-			$is_packed              = ( false !== $this->get_packaging_metadata( $order ) );
-			$origin                 = $this->get_origin_address();
-			$selected_rates         = $this->get_selected_rates( $order );
-			$destination            = $this->get_destination_address( $order );
+			$order_id          = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$selected_packages = $this->get_selected_packages( $order );
+			$is_packed         = ( false !== $this->get_packaging_metadata( $order ) );
+			$origin            = $this->get_origin_address();
+			$selected_rates    = $this->get_selected_rates( $order );
+			$destination       = $this->get_destination_address( $order );
 
 			if ( ! $destination['country'] ) {
 				$destination['country'] = $origin['country'];
 			}
 
-			$origin_normalized = ( bool ) WC_Connect_Options::get_option( 'origin_address', false );
-			$destination_normalized = ( bool ) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
+			$origin_normalized      = (bool) WC_Connect_Options::get_option( 'origin_address', false );
+			$destination_normalized = (bool) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
 
 			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'origin_normalized', 'destination_normalized' );
 
 			$form_data['rates'] = array(
-				'selected'  => (object) $selected_rates,
+				'selected' => (object) $selected_rates,
 			);
 
 			$form_data['order_id'] = $order_id;
@@ -400,17 +400,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function is_dhl_express_available() {
 			$dhl_express = $this->service_schemas_store->get_service_schema_by_id( 'dhlexpress' );
 
-			return !! $dhl_express;
+			return ! ! $dhl_express;
 		}
 
 		public function is_order_dhl_express_eligible() {
-			if( ! $this-> is_dhl_express_available() ) return false;
+			if ( ! $this->is_dhl_express_available() ) {
+				return false;
+			}
 
 			$order = wc_get_order();
-			if ( ! $order ) return false;
+			if ( ! $order ) {
+				return false;
+			}
 
-			$origin         = $this->get_origin_address();
-			$destination    = $this->get_destination_address( $order );
+			$origin      = $this->get_origin_address();
+			$destination = $this->get_destination_address( $order );
 
 			return $origin['country'] !== $destination['country'];
 		}
@@ -440,12 +444,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			// If the order was created using WCS checkout rates, show the meta-box regardless of the products' state
+			// If the order was created using WCS checkout rates, show the meta-box regardless of the products' state.
 			if ( $this->get_packaging_metadata( $order ) ) {
 				return true;
 			}
 
-			// At this point (no packaging data), only show if there's at least one existing and shippable product
+			// At this point (no packaging data), only show if there's at least one existing and shippable product.
 			foreach ( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
@@ -463,13 +467,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$payload = array(
+			$payload  = array(
 				'orderId'            => $order_id,
 				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
 				'formData'           => $this->get_form_data( $order ),
 				'labelsData'         => $this->settings_store->get_label_order_meta_data( $order_id ),
 				'storeOptions'       => $this->settings_store->get_store_options(),
-				//for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions
+				// for backwards compatibility, still disable the country dropdown for calypso users with older plugin versions.
 				'canChangeCountries' => true,
 			);
 
@@ -506,7 +510,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$order_id                = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items                   = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
-			$payload                 = apply_filters( 'wc_connect_meta_box_payload',
+			$payload                 = apply_filters(
+				'wc_connect_meta_box_payload',
 				array(
 					'order'             => $connect_order_presenter->get_order_for_api( $order ),
 					'accountSettings'   => $this->account_settings->get(),
@@ -514,7 +519,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'shippingLabelData' => $this->get_label_payload( $order_id ),
 					'continents'        => $this->continents->get(),
 					'context'           => $args['args']['context'],
-					'items'             => $items_count
+					'items'             => $items_count,
 				),
 				$args,
 				$order,

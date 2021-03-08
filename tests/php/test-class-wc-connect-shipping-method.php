@@ -2,7 +2,7 @@
 
 class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
-	static function setUpBeforeClass()	{
+	static function setUpBeforeClass() {
 		require_once __DIR__ . '/../../classes/class-wc-connect-shipping-method.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-cart-validation.php';
 	}
@@ -10,78 +10,105 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 	public function is_valid_package_destination_provider() {
 
 		return array(
-			'empty city' => array( array(
-				'destination' => array(
-					'city'     => '',
-					'country'  => 'US',
-					'state'    => 'UT',
-					'postcode' => '84068',
-				)
-			), true ),
-			'empty country' => array( array(
-				'destination' => array(
-					'city'     => 'Park City',
-					'country'  => '',
-					'state'    => 'UT',
-					'postcode' => '84068',
-				)
-			), false ),
-			'empty state' => array( array(
-				'destination' => array(
-					'city'     => 'Park City',
-					'country'  => 'US',
-					'state'    => '',
-					'postcode' => '84068',
-				)
-			), false ),
-			'invalid empty postcode' => array( array(
-				'destination' => array(
-					'city'     => 'Park City',
-					'country'  => 'US',
-					'state'    => 'UT',
-					'postcode' => '',
-				)
-			), false ),
-			'invalid postcode' => array( array(
-				'destination' => array(
-					'city'     => 'Park City',
-					'country'  => 'US',
-					'state'    => 'UT',
-					'postcode' => 'EC4V 6JA',
-				)
-			), false ),
-			'invalid state' => array( array(
-				'destination' => array(
-					'city'     => 'Park City',
-					'country'  => 'US',
-					'state'    => 'XX',
-					'postcode' => '84068',
-				)
-			), false ),
-			'valid destination with postcode' => array( array(
-				'destination' => array(
-					'city'     => 'Park City',
-					'country'  => 'US',
-					'state'    => 'UT',
-					'postcode' => '84068',
-				)
-			), true ),
-			'valid destination without postcode' => array( array(
-				'destination' => array(
-					'city'     => 'Kowloon City',
-					'country'  => 'HK',
-					'state'    => 'KOWLOON',
-					'postcode' => '',
-				)
-			), true ),
-			'valid destination without state or postcode' => array( array(
-				'destination' => array(
-					'city'     => 'Oranjestad',
-					'country'  => 'AW',
-					'state'    => '',
-					'postcode' => '',
-				)
-			), true ),
+			'empty city'                                  => array(
+				array(
+					'destination' => array(
+						'city'     => '',
+						'country'  => 'US',
+						'state'    => 'UT',
+						'postcode' => '84068',
+					),
+				),
+				true,
+			),
+			'empty country'                               => array(
+				array(
+					'destination' => array(
+						'city'     => 'Park City',
+						'country'  => '',
+						'state'    => 'UT',
+						'postcode' => '84068',
+					),
+				),
+				false,
+			),
+			'empty state'                                 => array(
+				array(
+					'destination' => array(
+						'city'     => 'Park City',
+						'country'  => 'US',
+						'state'    => '',
+						'postcode' => '84068',
+					),
+				),
+				false,
+			),
+			'invalid empty postcode'                      => array(
+				array(
+					'destination' => array(
+						'city'     => 'Park City',
+						'country'  => 'US',
+						'state'    => 'UT',
+						'postcode' => '',
+					),
+				),
+				false,
+			),
+			'invalid postcode'                            => array(
+				array(
+					'destination' => array(
+						'city'     => 'Park City',
+						'country'  => 'US',
+						'state'    => 'UT',
+						'postcode' => 'EC4V 6JA',
+					),
+				),
+				false,
+			),
+			'invalid state'                               => array(
+				array(
+					'destination' => array(
+						'city'     => 'Park City',
+						'country'  => 'US',
+						'state'    => 'XX',
+						'postcode' => '84068',
+					),
+				),
+				false,
+			),
+			'valid destination with postcode'             => array(
+				array(
+					'destination' => array(
+						'city'     => 'Park City',
+						'country'  => 'US',
+						'state'    => 'UT',
+						'postcode' => '84068',
+					),
+				),
+				true,
+			),
+			'valid destination without postcode'          => array(
+				array(
+					'destination' => array(
+						'city'     => 'Kowloon City',
+						'country'  => 'HK',
+						'state'    => 'KOWLOON',
+						'postcode' => '',
+					),
+				),
+				true,
+			),
+			'valid destination without state or postcode' => array(
+				array(
+					'destination' => array(
+						'city'     => 'Oranjestad',
+						'country'  => 'AW',
+						'state'    => '',
+						'postcode' => '',
+					),
+				),
+				true,
+			),
 		);
 
 	}

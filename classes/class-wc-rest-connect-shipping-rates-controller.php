@@ -20,7 +20,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * Array of extra options to collect rates for.
 	 */
 	protected $extra_rates = array(
-		'signature_required' => array(
+		'signature_required'       => array(
 			'signature' => 'yes',
 		),
 		'adult_signature_required' => array(
@@ -38,29 +38,33 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * @return array|WP_Error
 	 */
 	public function post( $request ) {
-		$payload = $request->get_json_params();
-		$payload[ 'payment_method_id' ] = $this->settings_store->get_selected_payment_method_id();
-		$order_id = $request[ 'order_id' ];
+		$payload                      = $request->get_json_params();
+		$payload['payment_method_id'] = $this->settings_store->get_selected_payment_method_id();
+		$order_id                     = $request['order_id'];
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
-		$this->settings_store->update_origin_address( $payload[ 'origin' ] );
-		$this->settings_store->update_destination_address( $order_id, $payload[ 'destination' ] );
+		$this->settings_store->update_origin_address( $payload['origin'] );
+		$this->settings_store->update_destination_address( $order_id, $payload['destination'] );
 
 		// Update the customs information on all this order's products
 		$updated_product_ids = array();
-		foreach ( $payload[ 'packages' ] as $package_id => $package ) {
+		foreach ( $payload['packages'] as $package_id => $package ) {
 			if ( ! $this->has_customs_data( $package ) ) {
 				break;
 			}
-			foreach ( $package[ 'items' ] as $index => $item ) {
-				if ( ! isset( $updated_product_ids[ $item[ 'product_id' ] ] ) ) {
-					$updated_product_ids[ $item[ 'product_id' ] ] = true;
-					update_post_meta( $item[ 'product_id' ], 'wc_connect_customs_info', array(
-						'description' => $item[ 'description' ],
-						'hs_tariff_number' => $item[ 'hs_tariff_number' ],
-						'origin_country' => $item[ 'origin_country' ],
-					) );
+			foreach ( $package['items'] as $index => $item ) {
+				if ( ! isset( $updated_product_ids[ $item['product_id'] ] ) ) {
+					$updated_product_ids[ $item['product_id'] ] = true;
+					update_post_meta(
+						$item['product_id'],
+						'wc_connect_customs_info',
+						array(
+							'description'      => $item['description'],
+							'hs_tariff_number' => $item['hs_tariff_number'],
+							'origin_country'   => $item['origin_country'],
+						)
+					);
 				}
 			}
 		}
@@ -88,14 +92,14 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		$original_package_names = [];
 
 		// Add extra package requests with special options set.
-		foreach( $this->extra_rates as $rate_name => $rate_option ) {
-			foreach( $rate_option as $option_name => $option_value ) {
+		foreach ( $this->extra_rates as $rate_name => $rate_option ) {
+			foreach ( $rate_option as $option_name => $option_value ) {
 				foreach ( $payload['packages'] as $package_id => $package ) {
 					$original_package_names[]    = $package['id'];
 					$new_package                 = $package;
 					$new_package[ $option_name ] = $option_value;
 
-					$new_package['id'] .= $this->SPECIAL_RATE_PREFIX . $rate_name;
+					$new_package['id']   .= $this->SPECIAL_RATE_PREFIX . $rate_name;
 					$signature_packages[] = $new_package;
 				}
 			}
@@ -128,19 +132,18 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	public function merge_all_rates( $rates, $original_package_names ) {
 		$parsed_rates = [];
 
-		foreach( $original_package_names as $name ) {
+		foreach ( $original_package_names as $name ) {
 			// Add a 'default' entry for the rate with no special options.
 			$parsed_rates[ $name ] = array(
 				'default' => $rates->{ $name },
 			);
 
 			// Get package for each extra rate to group them under the original package name.
-			foreach( $this->extra_rates as $extra_rate_name => $option ) {
+			foreach ( $this->extra_rates as $extra_rate_name => $option ) {
 				$extra_rate_package_name = $name . $this->SPECIAL_RATE_PREFIX . $extra_rate_name;
 				if ( isset( $rates->{ $extra_rate_package_name } ) ) {
 					$parsed_rates[ $name ][ $extra_rate_name ] = $rates->{ $extra_rate_package_name };
 				}
-
 			}
 		}
 		return $parsed_rates;
