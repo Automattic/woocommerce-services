@@ -312,59 +312,64 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		// Check whether the given order is eligible for shipping label creation - the order has at least one product that is:
-		// - Shippable
-		// - Non-refunded
-		// - Not already included in an existing non-refunded shipping label
-		public function is_order_eligible_for_shipping_label_creation( WC_Order $order ) {
-			// Set up a dictionary from product ID to quantity in the order, which will be updated by refunds and existing labels later
+		/**
+		 * Check whether the given order is eligible for shipping label creation - the order has at least one product that is:
+		 * - Shippable.
+		 * - Non-refunded.
+		 * - Not already included in an existing non-refunded shipping label.
+		 *
+		 * @param WC_Order $order The order to check for shipping label creation eligibility.
+		 * @return bool Whether the given order is eligible for shipping label creation.
+		 */
+		public function is_order_eligible_for_shipping_label_creation( WC_Order $order ): bool {
+			// Set up a dictionary from product ID to quantity in the order, which will be updated by refunds and existing labels later.
 			$quantities_by_product_id = array();
-			foreach ($order->get_items() as $item) {
+			foreach ( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
-					$product_id = WC_Connect_Compatibility::instance()->get_product_id( $product );
-					$current_quantity = array_key_exists( $product_id, $quantities_by_product_id ) ? $quantities_by_product_id[$product_id] : 0;
-					$quantities_by_product_id[$product_id] = $current_quantity + $item->get_quantity();
+					$product_id                              = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					$current_quantity                        = array_key_exists( $product_id, $quantities_by_product_id ) ? $quantities_by_product_id[ $product_id ] : 0;
+					$quantities_by_product_id[ $product_id ] = $current_quantity + $item->get_quantity();
 				}
 			}
 
-			// A shipping label cannot be created without a shippable product
-			if (empty($quantities_by_product_id)) {
+			// A shipping label cannot be created without a shippable product.
+			if ( empty( $quantities_by_product_id ) ) {
 				return false;
 			}
 
-			// Update the quantity for each refunded product ID in the order
-			foreach ($order->get_refunds() as $refund) {
-				foreach ($refund->get_items() as $refunded_item) {
-					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
+			// Update the quantity for each refunded product ID in the order.
+			foreach ( $order->get_refunds() as $refund ) {
+				foreach ( $refund->get_items() as $refunded_item ) {
+					$product    = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
 					$product_id = WC_Connect_Compatibility::instance()->get_product_id( $product );
-					if (array_key_exists($product_id, $quantities_by_product_id)) {
-						$current_count = $quantities_by_product_id[$product_id];
-						$quantities_by_product_id[$product_id] = $current_count - abs($refunded_item->get_quantity());
+					if ( array_key_exists( $product_id, $quantities_by_product_id ) ) {
+						$current_count                           = $quantities_by_product_id[ $product_id ];
+						$quantities_by_product_id[ $product_id ] = $current_count - abs( $refunded_item->get_quantity() );
 					}
 				}
 			}
 
-			// Update the quantity for each product ID that is in a non-refunded shipping label package
-			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$existing_labels = $this->settings_store->get_label_order_meta_data($order_id);
-			foreach ($existing_labels as $existing_label) {
-				// Skip if the label has been refunded
-				if (isset($existing_label['refund'])) {
+			// Update the quantity for each product ID that is in a non-refunded shipping label package.
+			$order_id        = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$existing_labels = $this->settings_store->get_label_order_meta_data( $order_id );
+			foreach ( $existing_labels as $existing_label ) {
+				// Skip if the label has been refunded.
+				if ( isset( $existing_label['refund'] ) ) {
 					continue;
 				}
 				$product_ids = $existing_label['product_ids'];
-				foreach ($product_ids as $product_id) {
-					if (array_key_exists($product_id, $quantities_by_product_id)) {
-						$current_quantity = $quantities_by_product_id[$product_id];
-						$quantities_by_product_id[$product_id] = $current_quantity - 1;
+				foreach ( $product_ids as $product_id ) {
+					if ( array_key_exists( $product_id, $quantities_by_product_id ) ) {
+						$current_quantity                        = $quantities_by_product_id[ $product_id ];
+						$quantities_by_product_id[ $product_id ] = $current_quantity - 1;
 					}
 				}
 			}
 
-			// The order is eligible for shipping label creation when there is at least one product with positive quantity
-			foreach ($quantities_by_product_id as $product_id => $quantity) {
-				if ($quantity > 0) {
+			// The order is eligible for shipping label creation when there is at least one product with positive quantity.
+			foreach ( $quantities_by_product_id as $product_id => $quantity ) {
+				if ( $quantity > 0 ) {
 					return true;
 				}
 			}
@@ -372,10 +377,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return false;
 		}
 
-		// Check whether the store is eligible for shipping label creation:
-		// - Store currency is supported
-		// - Store country is supported
-		public function is_store_eligible_for_shipping_label_creation() {
+		/**
+		 * Check whether the store is eligible for shipping label creation:
+		 * - Store currency is supported.
+		 * - Store country is supported.
+		 *
+		 * @return bool Whether the WC store is eligible for shipping label creation.
+		 */
+		public function is_store_eligible_for_shipping_label_creation(): bool {
 			$base_currency = get_woocommerce_currency();
 			if ( ! $this->is_supported_currency( $base_currency ) ) {
 				return false;
@@ -389,12 +398,24 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return true;
 		}
 
-		private function is_supported_country( $country_code ) {
-			return in_array( $country_code, $this->supported_countries );
+		/**
+		 * Check whether the given country code is supported for shipping labels.
+		 *
+		 * @param string $country_code Country code of the WC store.
+		 * @return bool Whether the given country code is supported for shipping labels.
+		 */
+		private function is_supported_country( string $country_code ): bool {
+			return in_array( $country_code, $this->supported_countries, true );
 		}
 
-		private function is_supported_currency( $currency_code ) {
-			return in_array( $currency_code, $this->supported_currencies );
+		/**
+		 * Check whether the given currency code is supported for shipping labels.
+		 *
+		 * @param string $currency_code Currency code of the WC store.
+		 * @return bool Whether the given country code is supported for shipping labels.
+		 */
+		private function is_supported_currency( string $currency_code ): bool {
+			return in_array( $currency_code, $this->supported_currencies, true );
 		}
 
 		public function is_dhl_express_available() {
