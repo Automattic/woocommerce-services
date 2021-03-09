@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { map, uniq } from 'lodash';
+import { ExternalLink } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -29,7 +30,6 @@ import {
 	isLoaded,
 	getFormErrors,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import ExternalLink from 'components/external-link';
 
 const PackageRow = props => {
 	const {
@@ -118,7 +118,7 @@ const PackageRow = props => {
 				title={
 					<span>
 						{ translate( 'ITN' ) } (
-						<ExternalLink icon href="https://pe.usps.com/text/imm/immc5_010.htm" target="_blank">
+						<ExternalLink href="https://pe.usps.com/text/imm/immc5_010.htm" target="_blank">
 							{ translate( 'more info' ) }
 						</ExternalLink>
 						)
