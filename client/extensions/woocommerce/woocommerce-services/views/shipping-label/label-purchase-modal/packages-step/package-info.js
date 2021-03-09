@@ -17,7 +17,7 @@ import Button from 'components/button';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
-import FormTextInputWithAffixes from 'components/forms/form-text-input-with-affixes';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 import ItemInfo from './item-info';
 import PackageSelect from './package-select';
 import {
@@ -114,8 +114,8 @@ const PackageInfo = props => {
 		return elements;
 	};
 
-	const onWeightChange = event => {
-		props.updatePackageWeight( orderId, siteId, packageId, event.target.value );
+	const onWeightChange = value => {
+		props.updatePackageWeight( orderId, siteId, packageId, value );
 	};
 
 	const packageWeight = isNaN( pckg.weight ) ? '' : pckg.weight;
@@ -149,14 +149,13 @@ const PackageInfo = props => {
 
 			<div className="packages-step__package-weight">
 				<FormLabel htmlFor={ `weight_${ packageId }` }>{ translate( 'Total Weight (with package)' ) }</FormLabel>
-				<FormTextInputWithAffixes
+				<TextControlWithAffixes
 					id={ `weight_${ packageId }` }
 					placeholder={ translate( '0' ) }
 					value={ packageWeight }
 					onChange={ onWeightChange }
-					isError={ Boolean( pckgErrors.weight ) }
+					className={ Boolean( pckgErrors.weight ) ? 'is-error' : '' }
 					type="number"
-					noWrap
 					suffix={ weightUnit }
 				/>
 				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }

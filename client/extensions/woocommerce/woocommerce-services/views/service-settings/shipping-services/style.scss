@@ -82,8 +82,16 @@
 		font-size: 13px;
 	}
 
-	.form-text-input {
+	.components-base-control {
 		flex-basis: 10%;
+	}
+
+	.components-base-control__field {
+		margin-bottom: 0;
+	}
+
+	.components-text-control__input {
+		width: 85%;
 		margin: 8px;
 		padding: 6px 12px;
 		font-size: 13px;

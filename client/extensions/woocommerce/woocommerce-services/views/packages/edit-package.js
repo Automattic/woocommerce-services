@@ -8,6 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { omit, trim } from 'lodash';
+import { TextControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -16,16 +17,13 @@ import FormDimensionsInput from 'woocommerce/components/form-dimensions-input';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormSelect from 'components/forms/form-select';
-import FormTextInput from 'components/forms/form-text-input';
-import FormTextInputWithAffixes from 'components/forms/form-text-input-with-affixes';
 import FieldError from '../../components/field-error';
 import inputFilters from './input-filters';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 
 const renderDimensionsInput = ( dimensionsName, dimensionsStr, dimensionsUnit, updateField ) => {
 	const { length, width, height } = inputFilters.parseDimensions( dimensionsStr );
-	const onChange = event => {
-		const name = event.target.name;
-		const value = event.target.value;
+	const onChange = (value, name) => {
 		const allDimensions = [
 			'length' === name ? value : length,
 			'width' === name ? value : width,
@@ -66,9 +64,7 @@ const EditPackage = props => {
 		updatePackagesField( siteId, { [ key ]: value } );
 	};
 
-	const updateTextField = event => {
-		const key = event.target.name;
-		const value = event.target.value;
+	const updateTextField = ( value, key ) => {
 		updateField( key, value );
 	};
 
@@ -103,13 +99,13 @@ const EditPackage = props => {
 			{ 'add-custom' === mode ? renderTypeSelection() : null }
 			<FormFieldset>
 				<FormLabel htmlFor="name">{ translate( 'Package name' ) }</FormLabel>
-				<FormTextInput
+				<TextControl
 					id="name"
 					name="name"
 					placeholder={ translate( 'Unique package name' ) }
 					value={ name || '' }
-					onChange={ updateTextField }
-					isError={ modalErrors.name }
+					onChange={ value => updateTextField( value, 'name' ) }
+					className={ modalErrors.name ? 'is-error' : '' }
 				/>
 				{ fieldInfo( 'name', translate( 'This field must be unique' ) ) }
 			</FormFieldset>
@@ -128,15 +124,14 @@ const EditPackage = props => {
 				</div>
 				<div className="packages__add-package-weight">
 					<FormLabel htmlFor="box_weight">{ translate( 'Weight of empty package' ) }</FormLabel>
-					<FormTextInputWithAffixes
+					<TextControlWithAffixes
 						id="box_weight"
 						name="box_weight"
 						placeholder={ translate( '0.0' ) }
 						value={ box_weight || '' }
-						onChange={ updateTextField }
-						isError={ modalErrors.box_weight }
+						onChange={ value => updateTextField( value, 'box_weight' ) }
+						className={ modalErrors.box_weight ? 'is-error' : '' }
 						type="number"
-						noWrap
 						suffix={ weightUnit }
 					/>
 					{ fieldInfo( 'box_weight' ) }
