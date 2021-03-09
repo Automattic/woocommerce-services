@@ -1,10 +1,10 @@
 name: JS Tests
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   js_build_and_test:
-    name: JS Estlin and Test
+    name: JS Eslint and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -12,7 +12,7 @@ jobs:
           submodules: recursive
       - uses: actions/setup-node@v2
         with:
-          node-version: '10'
+          node-version: '10.16.0'
       - run: npm ci
       - run: npm run eslint
       - run: npm run test

@@ -9,6 +9,7 @@
 * Add   - Update the existing endpoint `POST /connect/packages` to create shipping label packages, and add an endpoint `PUT /connect/packages` to update shipping label packages.
 * Add   - Run phpcbf as a pre-commit rule.
 * Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
+* Tweak - Updated .nvmrc to use 10.16.0
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
 
 = 1.25.8 - 2021-03-02 =
