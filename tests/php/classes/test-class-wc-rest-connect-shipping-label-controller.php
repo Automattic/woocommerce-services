@@ -124,7 +124,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
 		$request->set_param( 'order_id', $order->get_id() );
-		$request->set_param( 'can_create_customs_form', false );
+		$request->set_param( 'can_create_customs_form', 'false' );
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.
@@ -151,7 +151,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
 		$request->set_param( 'order_id', $order->get_id() );
-		$request->set_param( 'can_create_customs_form', false );
+		$request->set_param( 'can_create_customs_form', 'false' );
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.
@@ -180,7 +180,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
 		$request->set_param( 'order_id', $order->get_id() );
-		$request->set_param( 'can_create_customs_form', false );
+		$request->set_param( 'can_create_customs_form', 'false' );
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.
@@ -229,7 +229,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
 		$request->set_param( 'order_id', $order->get_id() );
-		$request->set_param( 'can_create_package', false );
+		$request->set_param( 'can_create_package', 'false' );
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.
@@ -255,7 +255,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
 		$request->set_param( 'order_id', $order->get_id() );
-		$request->set_param( 'can_create_package', false );
+		$request->set_param( 'can_create_package', 'false' );
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.
@@ -329,7 +329,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
 		$request->set_param( 'order_id', $order->get_id() );
-		$request->set_param( 'can_create_payment_method', false );
+		$request->set_param( 'can_create_payment_method', 'false' );
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.

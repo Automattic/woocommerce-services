@@ -204,7 +204,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		// If the client cannot create a customs form:
 		// - The store address has to be in the US.
 		// - The origin and destination addresses have to be in the US.
-		$client_can_create_customs_form = isset( $request['can_create_customs_form'] ) ? $request['can_create_customs_form'] : true;
+		$client_can_create_customs_form = isset( $request['can_create_customs_form'] ) ? filter_var( $request['can_create_customs_form'], FILTER_VALIDATE_BOOLEAN ) : true;
 		$store_country                  = wc_get_base_location()['country'];
 		if ( ! $client_can_create_customs_form ) {
 			// The store address has to be in the US.
@@ -234,7 +234,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 		// If the client cannot create a package (`can_create_package` param is set to `false`), a pre-existing package
 		// is required.
-		$client_can_create_package = isset( $request['can_create_package'] ) ? $request['can_create_package'] : true;
+		$client_can_create_package = isset( $request['can_create_package'] ) ? filter_var( $request['can_create_package'], FILTER_VALIDATE_BOOLEAN ) : true;
 		if ( ! $client_can_create_package ) {
 			if ( empty( $this->settings_store->get_packages() ) && empty( $this->settings_store->get_predefined_packages() ) ) {
 				return new WP_REST_Response(
@@ -259,7 +259,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		}
 
 		// If the client cannot create a payment method (`can_create_payment_method` param is set to `false`), a pre-selected payment method is required.
-		$client_can_create_payment_method = isset( $request['can_create_payment_method'] ) ? $request['can_create_payment_method'] : true;
+		$client_can_create_payment_method = isset( $request['can_create_payment_method'] ) ? filter_var( $request['can_create_payment_method'], FILTER_VALIDATE_BOOLEAN ) : true;
 		if ( ! $client_can_create_payment_method && ! $this->settings_store->get_selected_payment_method_id() ) {
 			return new WP_REST_Response(
 				array(
