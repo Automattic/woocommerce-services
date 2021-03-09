@@ -200,6 +200,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
+		$this->update_packages( array(), $this->settings_store );
 
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
@@ -223,6 +224,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
+		$this->update_packages( array(), $this->settings_store );
 
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
@@ -248,7 +250,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
-		$this->settings_store->update_packages( array( array( 'name' => 'Fun box' ) ) );
+		$this->update_packages( array( array( 'name' => 'Fun box' ) ), $this->settings_store );
 
 		// When.
 		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/creation_eligibility' );
@@ -379,6 +381,16 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		$account_settings            = $settings_store->get_account_settings();
 		$account_settings['enabled'] = $is_account_settings_enabled;
 		$settings_store->update_account_settings( $account_settings );
+	}
+
+	/**
+	 * Update packages in a settings store.
+	 *
+	 * @param array                             $packages Packages to be updated for the store.
+	 * @param WC_Connect_Service_Settings_Store $settings_store Settings store where packages are stored.
+	 */
+	private function update_packages( array $packages, WC_Connect_Service_Settings_Store $settings_store ) {
+		$settings_store->update_packages( $packages );
 	}
 
 	/**
