@@ -18,7 +18,6 @@ export const TariffCodeTitle = localize( ( { translate } ) => (
 		{ translate( 'HS Tariff number' ) } (
 		<ExternalLink
 			href="https://docs.woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#section-29"
-			target="_blank"
 		>
 			{ translate( 'more info' ) }
 		</ExternalLink>

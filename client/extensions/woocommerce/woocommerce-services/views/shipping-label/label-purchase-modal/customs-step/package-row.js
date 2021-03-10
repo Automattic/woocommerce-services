@@ -118,7 +118,7 @@ const PackageRow = props => {
 				title={
 					<span>
 						{ translate( 'ITN' ) } (
-						<ExternalLink href="https://pe.usps.com/text/imm/immc5_010.htm" target="_blank">
+						<ExternalLink href="https://pe.usps.com/text/imm/immc5_010.htm">
 							{ translate( 'more info' ) }
 						</ExternalLink>
 						)
