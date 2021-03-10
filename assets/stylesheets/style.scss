@@ -259,6 +259,8 @@
 @import "~@wordpress/base-styles/variables";
 @import "~@wordpress/base-styles/z-index";
 @import '~@wordpress/components/src/tooltip/style.scss';
+@import '~@wordpress/components/src/external-link/style.scss';
+@import '~@wordpress/components/src/visually-hidden/style.scss';
 
 #woocommerce-order-label .inside {
 	margin: 0;
