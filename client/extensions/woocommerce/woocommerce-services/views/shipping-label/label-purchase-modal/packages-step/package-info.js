@@ -83,7 +83,7 @@ const PackageInfo = props => {
 
 		return (
 			<Button
-				className={ classNames( 'button', 'packages-step__add-item-btn' ) }
+				className={ classNames( 'button', 'is-compact', 'packages-step__add-item-btn' ) }
 				onClick={ onAddItem }
 			>
 				{ translate( 'Add items' ) }
