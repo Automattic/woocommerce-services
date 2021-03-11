@@ -31,7 +31,8 @@ const settingsPageSaveChanges = async () => {
 const setCheckbox = async( selector ) => {
 	await page.focus( selector );
 	const checkbox = await page.$( selector );
-	const checkboxStatus = ( await ( await checkbox.getProperty( 'checked' ) ).jsonValue() );
+	const checkboxElement = await checkbox.getProperty( 'checked' );
+	const checkboxStatus = await checkboxElement.jsonValue();
 	if ( checkboxStatus !== true ) {
 		await page.click( selector );
 	}
@@ -52,14 +53,15 @@ const uiUnblocked = async () => {
 const verifyCheckboxIsSet = async( selector ) => {
 	await page.focus( selector );
 	const checkbox = await page.$( selector );
-	const checkboxStatus = ( await ( await checkbox.getProperty( 'checked' ) ).jsonValue() );
+	const checkboxElement = await checkbox.getProperty( 'checked' );
+	const checkboxStatus = await checkboxElement.jsonValue();
 	await expect( checkboxStatus ).toBe( true );
 };
 
 const clickReactButton = async( selector ) => {
     await page.waitForSelector( selector );
     //await page.click( selector );
-    page.$eval( selector, elem => {
+    await page.$eval( selector, elem => {
     	if ( !elem ) {
     		console.log( `.clickReactButton => Element not found: ${ selector }` );
     	}
