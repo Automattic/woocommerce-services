@@ -52,7 +52,10 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				return false;
 			}
 			$rest_route = $GLOBALS['wp']->query_vars['rest_route'];
-			return ( false !== strpos( $rest_route, 'wc/store/cart' ) ) || ( false !== strpos( $rest_route, 'wc/store/checkout' ) );
+			return (
+				false !== strpos( $rest_route, 'wc/store/cart' ) ||
+				false !== strpos( $rest_route, 'wc/store/checkout' )
+			);
 		}
 
 		/**
