@@ -9,11 +9,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { some } from 'lodash';
+import { Button } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
@@ -81,7 +82,10 @@ const PackageInfo = props => {
 		}
 
 		return (
-			<Button className="packages-step__add-item-btn" compact onClick={ onAddItem }>
+			<Button
+				className={ classNames( 'button', 'is-compact', 'packages-step__add-item-btn' ) }
+				onClick={ onAddItem }
+			>
 				{ translate( 'Add items' ) }
 			</Button>
 		);

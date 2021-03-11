@@ -5,7 +5,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { isEmpty, isString, omit } from 'lodash';
-import { Card } from '@wordpress/components';
+import { Button, Card } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
@@ -18,7 +18,6 @@ import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import SettingsForm from 'woocommerce/woocommerce-services/views/service-settings/settings-form';
 import { areShippingMethodsLoaded } from 'woocommerce/state/sites/shipping-methods/selectors';
-import Button from 'components/button';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { errorNotice, successNotice } from 'state/notices/actions';
 import {
@@ -88,9 +87,10 @@ class ViewWrapper extends Component {
 				{ method ? <SettingsForm method={ method } siteId={ siteId } /> : this.renderPlaceholder() }
 				<Card className={ classNames( "settings__button-row", "card", "is-compact" ) } >
 					<Button
-						primary
+						isPrimary
+						className={ classNames( 'button' ) }
 						onClick={ this.onSave }
-						busy={ this.state.isSaving }
+						isBusy={ this.state.isSaving }
 						disabled={ this.state.isSaving || ! isLoaded || anyErrors }
 					>
 						{ translate( 'Save changes' ) }

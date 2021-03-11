@@ -9,13 +9,12 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { Card } from '@wordpress/components';
+import { Button, Card } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import ExtendedHeader from 'woocommerce/components/extended-header';
 import PackageDialog from './package-dialog';
 import PackagesListItem from './packages-list-item';
@@ -50,6 +49,7 @@ class Packages extends Component {
 		const { siteId, isFetching, form, translate } = this.props;
 		const { dimensionUnit } = form;
 
+		const buttonClasses = classNames( 'button','is-compact');
 		let button = null;
 		if ( pckg.is_user_defined ) {
 			const onEdit = () => {
@@ -57,7 +57,7 @@ class Packages extends Component {
 				this.props.editPackage( siteId, pckg );
 			};
 			button = (
-				<Button compact onClick={ onEdit }>
+				<Button className={ buttonClasses } onClick={ onEdit }>
 					{ translate( 'Edit' ) }
 				</Button>
 			);
@@ -67,7 +67,7 @@ class Packages extends Component {
 				this.props.removePredefinedPackage( siteId, pckg.serviceId, pckg.id );
 			};
 			button = (
-				<Button compact onClick={ onRemove }>
+				<Button className={ buttonClasses } onClick={ onRemove }>
 					{ translate( 'Remove' ) }
 				</Button>
 			);
@@ -108,7 +108,11 @@ class Packages extends Component {
 						'Add boxes, envelopes, and other packages you use most frequently'
 					) }
 				>
-					<Button onClick={ addPackage } disabled={ isFetching }>
+					<Button
+						className = { classNames( 'button' ) }
+						onClick = { addPackage } 
+						disabled = { isFetching }
+					>
 						{ translate( 'Add package' ) }
 					</Button>
 				</ExtendedHeader>
