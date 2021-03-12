@@ -3,6 +3,7 @@
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
 
 = 1.25.9 - 2021-xx-xx =
+* Add	- Live rates section in settings page.
 * Tweak - Cleanup stripe functionality.
 * Tweak - Display better errors on checkout page when address fields are missing / invalid.
 * Tweak - Refresh on status page does not reload page.
