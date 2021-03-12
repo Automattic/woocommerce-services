@@ -203,7 +203,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
-			self::delete_notices();
 		}
 
 		public static function plugin_uninstall() {

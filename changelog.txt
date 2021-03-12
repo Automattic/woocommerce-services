@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 = 1.25.10 - 2021-xx-xx =
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
+* Add   - WC Admin notice about DHL live rates.
 
 = 1.25.9 - 2021-xx-xx =
 * Tweak - Cleanup stripe functionality.
