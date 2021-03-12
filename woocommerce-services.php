@@ -40,7 +40,6 @@ require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
-
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '7.5' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
@@ -208,6 +207,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public static function plugin_uninstall() {
 			WC_Connect_Options::delete_all_options();
+			self::delete_notices();
+		}
+
+		/**
+		 * Deletes WC Admin notices.
+		 */
+		public static function delete_notices() {
+			if ( self::can_add_wc_admin_notice() ) {
+				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+				WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+			}
+		}
+		/**
+		 * Checks if WC Admin is active and includes needed classes.
+		 *
+		 * @return bool true|false.
+		 */
+		public static function can_add_wc_admin_notice() {
+			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' );
 		}
 
 		/**
@@ -721,6 +739,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
+
+			// Add WC Admin Notices.
+			if ( self::can_add_wc_admin_notice() ) {
+				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+				WC_Connect_Note_Dhl_Live_Rates_Available::init( $schema );
+			}
 		}
 
 		/**
@@ -1166,7 +1190,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					case 'dhlexpress':
 						$tracking_url = 'https://www.dhl.com/en/express/tracking.html?AWB=' . $tracking . '&brand=DHL';
 						break;
-
 				}
 
 				$markup .= '<td class="td" scope="col">';
@@ -1209,7 +1232,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Hook fetching the available services from the connect server
 		 */
 		public function schedule_service_schemas_fetch() {
-
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas       = $schemas_store->get_service_schemas();
 
@@ -1220,7 +1242,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			} elseif ( ! wp_next_scheduled( 'wc_connect_fetch_service_schemas' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_service_schemas' );
 			}
-
 		}
 
 		/**
@@ -1242,7 +1263,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( $service_schema ) {
 				$method->set_service_schema( $service_schema );
 			}
-
 		}
 
 		/**

@@ -105,7 +105,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
 
-				$carrier_information = [];
+				$carrier_information = array();
 				if ( $extra_args['carriers'] ) {
 					$carrier_information = array_values(
 						array_filter(
