@@ -16,9 +16,15 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	 */
 	protected $shipping_label;
 
-	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger, WC_Connect_Shipping_Label $shipping_label ) {
+	/*
+	 * @var WC_Connect_Payment_Methods_Store
+	 */
+	protected $payment_methods_store;
+
+	public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Settings_Store $settings_store, WC_Connect_Logger $logger, WC_Connect_Shipping_Label $shipping_label, WC_Connect_Payment_Methods_Store $payment_methods_store ) {
 		parent::__construct( $api_client, $settings_store, $logger );
 		$this->shipping_label = $shipping_label;
+		$this->payment_methods_store = $payment_methods_store;
 	}
 
 	public function register_routes() {
@@ -260,11 +266,11 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 		// If the client cannot create a payment method (`can_create_payment_method` param is set to `false`), a pre-selected payment method is required.
 		$client_can_create_payment_method = isset( $request['can_create_payment_method'] ) ? filter_var( $request['can_create_payment_method'], FILTER_VALIDATE_BOOLEAN ) : true;
-		if ( ! $client_can_create_payment_method && ! $this->settings_store->get_selected_payment_method_id() ) {
+		if ( ! $client_can_create_payment_method && empty($this->payment_methods_store->get_payment_methods()) ) {
 			return new WP_REST_Response(
 				array(
 					'is_eligible' => false,
-					'reason'      => 'no_selected_payment_method_when_client_cannot_manage_payment',
+					'reason'      => 'no_payment_methods_and_client_cannot_create_one',
 				),
 				200
 			);
