@@ -5,11 +5,6 @@
  * Only for legacy customers that had the feature available.
  */
 
-defined( 'ABSPATH' ) || exit;
-
-/**
- * Note to inform WooCommerce Shipping users with legacy live rates about DHL live rates.
- */
 class WC_Connect_Note_DHL_Live_Rates_Available {
 
 	use Automattic\WooCommerce\Admin\Notes\NoteTraits;
@@ -36,7 +31,7 @@ class WC_Connect_Note_DHL_Live_Rates_Available {
 	/**
 	 * Get the note.
 	 *
-	 * @return Note|null
+	 * @return Automattic\WooCommerce\Admin\Notes\Note
 	 */
 	public static function get_note() {
 		$note = new Automattic\WooCommerce\Admin\Notes\Note();
