@@ -18,7 +18,7 @@ import { mergeHandlers } from 'state/action-watchers/utils';
 import { middleware as rawWpcomApiMiddleware } from 'state/data-layer/wpcom-api-middleware';
 import { combineReducers } from 'state/utils';
 
-export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, continents, carriers, subscriptions } ) => ( {
+export default ( { order_id: orderId, order_href: orderHref, carrier, continents, carrier_accounts: carrierAccounts, live_rates_types: liveRatesTypes, subscriptions } ) => ( {
 	getReducer() {
 		return combineReducers( {
 			extensions: combineReducers( {
@@ -74,5 +74,5 @@ export default ( { order_id: orderId, order_href: orderHref, carrier: carrier, c
 		return [ rawWpcomApiMiddleware( mergeHandlers( wcsUiDataLayer, actionList ) ) ];
 	},
 
-	View: () => <ViewWrapper orderId={ orderId } orderHref={ orderHref } carrier={ carrier } carriers={ carriers } subscriptions = { subscriptions } />,
+	View: () => <ViewWrapper orderId={ orderId } orderHref={ orderHref } carrier={ carrier } carrierAccounts={ carrierAccounts } liveRatesTypes={ liveRatesTypes } subscriptions={ subscriptions } />,
 } );

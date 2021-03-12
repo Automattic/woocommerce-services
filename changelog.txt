@@ -4,6 +4,7 @@
 
 = 1.25.9 - 2021-xx-xx =
 * Add   - WC Admin notice about DHL live rates.
+* Add	- Live rates section in settings page.
 * Tweak - Cleanup stripe functionality.
 * Tweak - Display better errors on checkout page when address fields are missing / invalid.
 * Tweak - Refresh on status page does not reload page.
