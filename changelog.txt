@@ -1,4 +1,20 @@
 *** WooCommerce Shipping & Tax Changelog ***
+= 1.25.10 - 2021-xx-xx =
+* Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
+
+= 1.25.9 - 2021-xx-xx =
+* Add   - WC Admin notice about DHL live rates.
+* Add	- Live rates section in settings page.
+* Tweak - Cleanup stripe functionality.
+* Tweak - Display better errors on checkout page when address fields are missing / invalid.
+* Tweak - Refresh on status page does not reload page.
+* Fix   - UPS invoice number allows numbers and letters.
+* Add 	- Tracks shipping services used at checkout.
+* Add   - Update the existing endpoint `POST /connect/packages` to create shipping label packages, and add an endpoint `PUT /connect/packages` to update shipping label packages.
+* Add   - Run phpcbf as a pre-commit rule.
+* Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
+* Tweak - Updated .nvmrc to use 10.16.0
+* Fix   - Only display shipping validation errors on the cart or checkout pages.
 
 = 1.25.8 - 2021-03-02 =
 * Tweak - Add support for new Jetpack 9.5 data connection.

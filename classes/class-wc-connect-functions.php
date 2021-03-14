@@ -4,18 +4,20 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 	class WC_Connect_Functions {
 		/**
 		 * Checks if the potentially expensive Shipping/Tax API requests should be sent
-		 * based on the context in which they are initialized
+		 * based on the context in which they are initialized.
+		 *
 		 * @return bool true if the request can be sent, false otherwise
 		 */
 		public static function should_send_cart_api_request() {
-			return ! (
-				// Skip for carts loaded from session in the dashboard
+			// Allow if this is an API call to store/cart endpoint. Provides compatibility with WooCommerce Blocks.
+			return self::is_store_api_call() || ! (
+				// Skip for carts loaded from session in the dashboard.
 				( is_admin() && did_action( 'woocommerce_cart_loaded_from_session' ) ) ||
-				// Skip during Jetpack API requests
+				// Skip during Jetpack API requests.
 				( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) ||
-				// Skip during REST API or XMLRPC requests
+				// Skip during REST API or XMLRPC requests.
 				( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) ||
-				// Skip during Jetpack REST API proxy requests
+				// Skip during Jetpack REST API proxy requests.
 				( isset( $_GET['rest_route'] ) && isset( $_GET['_for'] ) && ( 'jetpack' === $_GET['_for'] ) )
 			);
 		}
@@ -38,6 +40,48 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				);
 			}
 			return $helper_auth_data;
+		}
+
+		/**
+		 * Check if we are currently in Rest API request for the wc/store/cart or wc/store/checkout API call.
+		 *
+		 * @return bool
+		 */
+		public static function is_store_api_call() {
+			if ( ! WC()->is_rest_api_request() && empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+				return false;
+			}
+			$rest_route = $GLOBALS['wp']->query_vars['rest_route'];
+			return (
+				false !== strpos( $rest_route, 'wc/store/cart' ) ||
+				false !== strpos( $rest_route, 'wc/store/checkout' )
+			);
+		}
+
+		/**
+		 * Check if current page has woocommerce cart or checkout block.
+		 *
+		 * @return bool
+		 */
+		public static function has_cart_or_checkout_block() {
+			$page = get_post();
+			if ( ! $page ) {
+				return false;
+			}
+
+			$blocks = parse_blocks( $page->post_content );
+			if ( ! $blocks ) {
+				return false;
+			}
+
+			foreach ( $blocks as $block ) {
+				$block_name = $block['blockName'];
+				if ( 'woocommerce/cart' === $block_name || 'woocommerce/checkout' === $block_name ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }

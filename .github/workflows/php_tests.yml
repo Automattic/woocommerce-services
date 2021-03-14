@@ -1,0 +1,57 @@
+name: PHP Tests
+
+on: [push, workflow_dispatch]
+
+jobs:
+  php_lint:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest WCS
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Switch to PHP 7.4
+        run: |
+          sudo update-alternatives --set php /usr/bin/php7.4
+          sudo update-alternatives --set phar /usr/bin/phar7.4
+          sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
+      - name: Lint
+        run: find . -type f -name "*.php" -exec php -l {} \;
+  php_build_and_test:
+    name: PHP Unit Test (WP, WC)
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_USER: wp_test
+          MYSQL_PASSWORD: wp_test
+          MYSQL_DATABASE: wordpress_default
+          MYSQL_ROOT_PASSWORD: root
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    strategy:
+      matrix:
+        wp-version: [5.4.4, 5.5.3, latest]
+        wc-version: [4.9.2, 5.0.0, 5.1.0]
+    steps:
+      - name: Checkout latest WCS
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Switch to PHP 7.4
+        run: |
+          sudo update-alternatives --set php /usr/bin/php7.4
+          sudo update-alternatives --set phar /usr/bin/phar7.4
+          sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
+      - name: Install composer
+        run: |
+          ./bin/composer-installer.sh
+          sudo mv composer.phar /usr/local/bin/composer
+          composer install
+      - name: Setup WP and WC
+        run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }} ${{ matrix.wc-version }}
+      - name: Run PHPUnit tests
+        run: ./vendor/bin/phpunit -c phpunit.xml.dist

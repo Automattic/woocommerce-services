@@ -72,6 +72,7 @@ const createGetUrlWithNonce = ( url, queryString ) => {
 
 export default () => ( {
 	post: ( url, data, namespace ) => _request( url, data, 'POST', namespace ),
+	put: ( url, data, namespace ) => _request( url, data, 'PUT', namespace ),
 	get: ( url, namespace ) => _request( url, null, 'GET', namespace ),
 	del: ( url, namespace ) => _request( url, null, 'DELETE', namespace ),
 	createGetUrlWithNonce,
