@@ -51,7 +51,8 @@ function get_last_three_minor($versions) {
 
 
 // Output 3 latest minor versions in comma separated values, wrapped in [] for github action matrix
+echo "Processing...\n";
 $versions = filter_valid_versions();
 usort($versions, 'version_compare_reverse');
 $results = get_last_three_minor($versions);
-echo '::set-output name=wc-versions::[' . implode(",",$results) . ']';
+echo '::set-output name=wc-versions::[' . implode(",",$results) . ']' . "\n";

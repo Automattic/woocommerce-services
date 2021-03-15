@@ -21,8 +21,6 @@ jobs:
   find_wc_latest_versions:
     name: Find supported woocommerce versions
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
