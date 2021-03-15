@@ -632,38 +632,6 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Test that an order with one shippable product but already included in a pre-existing label is not eligible for shipping label creation
-	 * (no need to ship again).
-	 */
-	public function test_order_with_a_shippable_product_already_in_a_label_is_not_eligible_for_shipping_label_creation() {
-		// Given.
-		$product = $this->create_simple_product( false );
-		$order   = WC_Helper_Order::create_order( 1, $product );
-
-		// Add a shipping label with all the products in the order.
-		$order_items = $order->get_items();
-		$product_ids = array();
-		foreach ( $order_items as $order_item ) {
-			foreach ( range( 1, $order_item->get_quantity() ) as $index ) {
-				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $order_item );
-				array_push( $product_ids, $product->get_id() );
-			}
-		}
-		$settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
-			->disableOriginalConstructor()
-			->setMethods( null )
-			->getMock();
-		$this->add_shipping_label_to_order( $settings_store, $order, $product_ids );
-
-		// When.
-		$shipping_label = $this->get_shipping_label( false, $settings_store );
-		$is_eligible    = $shipping_label->is_order_eligible_for_shipping_label_creation( $order );
-
-		// Then.
-		$this->assertFalse( $is_eligible );
-	}
-
-	/**
 	 * A helper to create a simple product.
 	 *
 	 * @param bool $virtual Whether the simple product is virtual or not.
