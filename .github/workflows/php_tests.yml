@@ -24,6 +24,8 @@ jobs:
     outputs:
       matrix: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
     steps:
+      - name: Checkout latest WCS
+        uses: actions/checkout@v2
       - name: Get the 3 latest WC minor versions
         id: get_wc_versions_for_matrix
         run: |
