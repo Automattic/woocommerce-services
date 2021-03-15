@@ -18,8 +18,20 @@ jobs:
           sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
       - name: Lint
         run: find . -type f -name "*.php" -exec php -l {} \;
+  find_wc_latest_versions:
+    name: Find supported woocommerce versions
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
+    steps:
+      - name: Get the 3 latest WC minor versions
+        id: get_wc_versions_for_matrix
+        run: |
+          git ls-remote --tags --refs git@github.com:woocommerce/woocommerce.git | sed 's/.*refs\/tags\///'
+          php ./bin/wc-latest-version.php
   php_build_and_test:
     name: PHP Unit Test (WP, WC)
+    needs: find_wc_latest_versions
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -35,13 +47,8 @@ jobs:
     strategy:
       matrix:
         wp-version: [5.4.4, 5.5.3, latest]
-        wc-version: ${{ steps.get-wc-versions-for-matrix.outputs.wc-versions }}
+        wc-version: ${{ find_wc_latest_versions.output.matrix }}
     steps:
-      - name: Get the 3 latest WC minor versions
-        id: get-wc-versions-for-matrix
-        run: |
-          git ls-remote --tags --refs git@github.com:woocommerce/woocommerce.git | sed 's/.*refs\/tags\///'
-          php ./bin/wc-latest-version.php
       - name: Checkout latest WCS
         uses: actions/checkout@v2
         with:
