@@ -316,7 +316,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * Check whether the given order is eligible for shipping label creation - the order has at least one product that is:
 		 * - Shippable.
 		 * - Non-refunded.
-		 * - Not already included in an existing non-refunded shipping label.
 		 *
 		 * @param WC_Order $order The order to check for shipping label creation eligibility.
 		 * @return bool Whether the given order is eligible for shipping label creation.
@@ -346,23 +345,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					if ( array_key_exists( $product_id, $quantities_by_product_id ) ) {
 						$current_count                           = $quantities_by_product_id[ $product_id ];
 						$quantities_by_product_id[ $product_id ] = $current_count - abs( $refunded_item->get_quantity() );
-					}
-				}
-			}
-
-			// Update the quantity for each product ID that is in a non-refunded shipping label package.
-			$order_id        = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			$existing_labels = $this->settings_store->get_label_order_meta_data( $order_id );
-			foreach ( $existing_labels as $existing_label ) {
-				// Skip if the label has been refunded.
-				if ( isset( $existing_label['refund'] ) ) {
-					continue;
-				}
-				$product_ids = $existing_label['product_ids'];
-				foreach ( $product_ids as $product_id ) {
-					if ( array_key_exists( $product_id, $quantities_by_product_id ) ) {
-						$current_quantity                        = $quantities_by_product_id[ $product_id ];
-						$quantities_by_product_id[ $product_id ] = $current_quantity - 1;
 					}
 				}
 			}
