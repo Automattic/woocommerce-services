@@ -35,8 +35,13 @@ jobs:
     strategy:
       matrix:
         wp-version: [5.4.4, 5.5.3, latest]
-        wc-version: [4.9.2, 5.0.0, 5.1.0]
+        wc-version: ${{ steps.get-wc-versions-for-matrix.outputs.wc-versions }}
     steps:
+      - name: Get the 3 latest WC minor versions
+        id: get-wc-versions-for-matrix
+        run: |
+          git ls-remote --tags --refs git@github.com:woocommerce/woocommerce.git | sed 's/.*refs\/tags\///'
+          php ./bin/wc-latest-version.php
       - name: Checkout latest WCS
         uses: actions/checkout@v2
         with:
