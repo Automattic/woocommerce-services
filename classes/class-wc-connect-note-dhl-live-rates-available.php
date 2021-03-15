@@ -21,7 +21,7 @@ class WC_Connect_Note_DHL_Live_Rates_Available {
 	 */
 	public static function init( WC_Connect_Service_Schemas_Store $schemas ) {
 		// If store has DHL Express live rates.
-		$has_dlh_express = $schemas->get_service_schema_by_id( 'dhlexpress' );
+		$has_dlh_express = in_array( 'wc_services_dhlexpress', $schemas->get_all_shipping_method_ids(), true );
 
 		if ( ! ! $has_dlh_express ) {
 			self::possibly_add_note();
