@@ -29,7 +29,7 @@ jobs:
       - name: Get the 3 latest WC minor versions
         id: get_wc_versions_for_matrix
         run: |
-          git ls-remote --tags --refs git@github.com:woocommerce/woocommerce.git | sed 's/.*refs\/tags\///'
+          git ls-remote --tags --refs https://github.com/woocommerce/woocommerce.git | sed 's/.*refs\/tags\///'
           php ./bin/wc-latest-version.php
   php_build_and_test:
     name: PHP Unit Test (WP, WC)
