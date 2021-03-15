@@ -38,7 +38,7 @@ describe( 'Carrier Accounts', () => {
 	it('should render a list of provided accounts', () => {
 		const wrapper = mount(
 			<Wrapper>
-				<CarrierAccounts carriers={[
+				<CarrierAccounts accounts={[
 					{
 						carrier: 'DHL Express',
 						type: 'DhlExpressAccount',
@@ -71,7 +71,7 @@ describe( 'Carrier Accounts', () => {
 	it('should render connected accounts', () => {
 		const wrapper = mount(
 			<Wrapper>
-				<CarrierAccounts carriers={[
+				<CarrierAccounts accounts={[
 					{
 						carrier: 'UPS',
 						type: 'UpsAccount',
@@ -103,7 +103,7 @@ describe( 'Carrier Accounts', () => {
 	it('should display a dialog to disconnect an account', async() => {
 		const wrapper = mount(
 			<Wrapper>
-				<CarrierAccounts carriers={[
+				<CarrierAccounts accounts={[
 					{
 						carrier: 'UPS',
 						type: 'UpsAccount',
