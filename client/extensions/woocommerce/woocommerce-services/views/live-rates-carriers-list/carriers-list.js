@@ -32,14 +32,9 @@ const Actions = localize( ( { translate } ) => {
 const CarrierDiscount = localize( ( {
 	translate,
 	name,
-	amount
-} ) => translate( 'Up to {{strong}}%(discountAmount)s{{/strong}} off on %(carrierName)s shipping labels', {
+} ) => translate( 'Discounted %(carrierName)s shipping labels', {
 	args: {
 		carrierName: name,
-		discountAmount: amount,
-	},
-	components: {
-		strong: <strong/>
 	},
 }))
 
@@ -54,7 +49,7 @@ const carrierItemMap = {
 				<ul>
 					<li>{ translate( 'Ship with the largest delivery network in the United States' ) }</li>
 					<li>
-						<CarrierDiscount name={ translate( 'USPS' ) } amount="90%" />
+						<CarrierDiscount name={ translate( 'USPS' ) } />
 					</li>
 					<li>
 						{ translate( 'Live rates for %(carrierName)s at checkout', {
@@ -78,7 +73,7 @@ const carrierItemMap = {
 			<div className="live-rates-carriers-list__features">
 				<ul>
 					<li>{ translate( 'Express delivery from the experts in international shipping' ) }</li>
-					<li><CarrierDiscount name={ translate( 'DHL Express' ) } amount="74%" /></li>
+					<li><CarrierDiscount name={ translate( 'DHL Express' ) } /></li>
 					<li>
 						{ translate( 'Live rates for %(carrierName)s at checkout', {
 							args: {
