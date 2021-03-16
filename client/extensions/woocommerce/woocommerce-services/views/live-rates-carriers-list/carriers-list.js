@@ -54,7 +54,7 @@ const carrierItemMap = {
 				<ul>
 					<li>{ translate( 'Ship with the largest delivery network in the United States' ) }</li>
 					<li>
-						<CarrierDiscount name={ translate( 'USPS' ) } amount="81%" />
+						<CarrierDiscount name={ translate( 'USPS' ) } amount="90%" />
 					</li>
 					<li>
 						{ translate( 'Live rates for %(carrierName)s at checkout', {
