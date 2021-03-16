@@ -15,6 +15,7 @@
 * Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
 * Tweak - Updated .nvmrc to use 10.16.0
 * Fix   - Only display shipping validation errors on the cart or checkout pages.
+* Fix   - Revert radio button dot offset in the "Create shipping label" modal.
 
 = 1.25.8 - 2021-03-02 =
 * Tweak - Add support for new Jetpack 9.5 data connection.
