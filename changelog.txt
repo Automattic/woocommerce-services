@@ -10,6 +10,7 @@
 * Add   - Update the existing endpoint `POST /connect/packages` to create shipping label packages, and add an endpoint `PUT /connect/packages` to update shipping label packages.
 * Fix   - Only display shipping validation errors on the cart or checkout pages.
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
+* Fix   - Revert radio button dot offset in the "Create shipping label" modal.
 
 = 1.25.8 - 2021-03-02 =
 * Tweak - Add support for new Jetpack 9.5 data connection.
