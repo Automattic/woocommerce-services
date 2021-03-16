@@ -42,13 +42,12 @@ function get_last_three_minor($versions) {
 		}
 
 		$last_minor_version = $current_minor_version;
-		$results[] = $version_number;
+		$results[] = "'$version_number'";
 		$count++;
 	}
 
 	return array_reverse($results);
 }
-
 
 // Output 3 latest minor versions in comma separated values, wrapped in [] for github action matrix
 $versions = filter_valid_versions();

@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         wp-version: [5.4.4, 5.5.3, latest]
-        wc-version: ${{ format({0}, needs.find_wc_latest_versions.outputs.matrix) }}
+        wc-version: ${{ fromJSON(needs.find_wc_latest_versions.outputs.matrix) }}
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
