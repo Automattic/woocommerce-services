@@ -33,8 +33,17 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 
 	public function post( $request ) {
 		$settings             = $request->get_json_params();
+		$fetch_labels         = isset( $settings['fetch_labels'] ) ? $settings['fetch_labels'] : false;
 		$order_id             = $request['order_id'];
 		$settings['order_id'] = $order_id;
+
+		if ( $settings['async'] && $fetch_labels ) {
+			return new WP_Error(
+				'cant_fetch_labels_when_async',
+				__( 'Can\'t Fetch labels when using async purchasing', 'woocommerce-services' )
+			);
+		}
+		unset( $settings['fetch_labels'] );
 
 		if ( empty( $settings['payment_method_id'] ) || ! $this->settings_store->can_user_manage_payment_methods() ) {
 			$settings['payment_method_id'] = $this->settings_store->get_selected_payment_method_id();
@@ -96,6 +105,17 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				'commercial_invoice_url' => $label_data->label->commercial_invoice_url,
 			);
 
+			if ( $fetch_labels ) {
+				$label_data_response = $this->fetch_label( $label_data->label->label_id );
+				if ( is_wp_error( $label_data_response ) ) {
+					return new WP_Error(
+						$label_data_response->get_error_code(),
+						'Labels purchased, but couldn\'t fetch label ' . $label_data->label->label_id
+					);
+				}
+				$label_meta = array_merge( $label_meta, $label_data_response );
+			}
+
 			$package = $settings['packages'][ $index ];
 			$box_id  = $package['box_id'];
 			if ( 'individual' === $box_id ) {
@@ -136,4 +156,18 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 		);
 	}
 
+	private function fetch_label( $label_id ) {
+		$response = $this->api_client->get_label_status( $label_id );
+
+		if ( is_wp_error( $response ) ) {
+			$error = new WP_Error(
+				$response->get_error_code(),
+				$response->get_error_message()
+			);
+			$this->logger->log( $error, __CLASS__ );
+			return $error;
+		}
+
+		return (array) $response->label;
+	}
 }
