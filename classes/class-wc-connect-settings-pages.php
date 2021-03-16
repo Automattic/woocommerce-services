@@ -106,10 +106,10 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['continents'] = $this->continents->get();
 
 				$carrier_information = array();
-				if ( $extra_args['carriers'] ) {
-					$carrier_information = array_values(
+				if ( ! empty( $extra_args['carrier_accounts'] ) ) {
+					$carrier_information = current(
 						array_filter(
-							$extra_args['carriers'],
+							$extra_args['carrier_accounts'],
 							function( $carrier ) {
 								return $carrier->type === $_GET['carrier'];
 							}
@@ -120,7 +120,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					?>
 					<h2>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Shipping & Tax', 'woocommerce-services' ); ?></a> &gt;
-						<span><?php echo esc_html( $carrier_information[0]->carrier ); ?></span>
+						<span><?php echo esc_html( $carrier_information->carrier ); ?></span>
 					</h2>
 					<?php
 				}
