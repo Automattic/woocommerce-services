@@ -242,6 +242,7 @@ module.exports = {
 		symlinks: false,
 		alias: {
 			'react-dom': '@hot-loader/react-dom',
+			'wcs-client': path.resolve( __dirname, 'client' ),
 		},
 	},
 	node: {

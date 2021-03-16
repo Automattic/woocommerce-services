@@ -16,7 +16,7 @@ import { TextControl } from '@wordpress/components';
 import FormDimensionsInput from 'woocommerce/components/form-dimensions-input';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormSelect from 'components/forms/form-select';
+import FormSelect from 'wcs-client/components/forms/form-select';
 import FieldError from '../../components/field-error';
 import inputFilters from './input-filters';
 import TextControlWithAffixes from 'components/forms/text-control-with-affixes';

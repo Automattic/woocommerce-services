@@ -3,6 +3,7 @@
 module.exports = {
 	moduleNameMapper: {
 		'^config$': '<rootDir>/wp-calypso/server/config/index.js',
+		"^wcs-client/(.*)$": "<rootDir>/client/$1"
 	},
 	transform: {
 		'^.+\\.jsx?$': '<rootDir>/tests/test/helpers/assets/babel-transform.js',

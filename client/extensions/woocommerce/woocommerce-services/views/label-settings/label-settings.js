@@ -21,7 +21,7 @@ import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-ut
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormSelect from 'components/forms/form-select';
+import FormSelect from 'wcs-client/components/forms/form-select';
 import Notice from 'components/notice';
 import NoticeAction from 'components/notice/notice-action';
 import PaymentMethod, { getPaymentMethodTitle } from './label-payment-method';
