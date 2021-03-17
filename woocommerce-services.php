@@ -225,7 +225,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool true|false.
 		 */
 		public static function can_add_wc_admin_notice() {
-			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' );
+			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' ) && class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
 		}
 
 		/**
