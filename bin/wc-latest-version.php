@@ -27,11 +27,10 @@ function filter_valid_versions() {
  * @return 3 minor versions, in the order of oldest to newest.
  */
 function get_last_three_minor($versions) {
-	$count = 0;
 	$last_minor_version = '';
 	$results = [];
 	foreach ($versions as $index => $version_number) {
-		$current_minor_version = substr($version_number, 0, strrpos($version_number, '.') + 1);
+		$current_minor_version = substr($version_number, 0, strrpos($version_number, '.'));
 
 		if (count($results) >= 3) {
 			break;
