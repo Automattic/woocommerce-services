@@ -12,8 +12,9 @@ jobs:
       run: env
     - name: List services
       run: systemctl -l --no-pager
-    - name: List ports
-    - run: |
+	- name: Remove mono service
+      run: |
            sudo systemctl stop mono-xsp4.service || true
            sudo systemctl disable mono-xsp4.service || true
+    - name: List ports
       run: sudo lsof -iTCP -n -P | sort -k1
