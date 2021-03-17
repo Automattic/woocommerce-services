@@ -1,6 +1,7 @@
 /**
  * @format
  */
+/* eslint no-console: [ "error", { "allow": [ "log" ] } ] */
 
 /**
  * Internal dependencies
@@ -21,7 +22,6 @@ describe( 'Create shipping label', () => {
     } );
 
 	afterAll( async () => {
-		// console.log( '# Cleaning up packages...' );
 		await deleteAllPackages();
 		await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
 		await saveAndWait();
@@ -30,13 +30,10 @@ describe( 'Create shipping label', () => {
     it( 'should create a new shipping label', async () => {
         await withOrder( async ( order ) => {
 
-			// console.log( '# Login in as Admin' );
             await StoreOwnerFlow.login();
-			// console.log( `# Opening order page for order #${order.id}` );
             await StoreOwnerFlow.openExistingOrderPage( order.id );
 
             // Click on Create shipping label button
-			// console.log( '# Creating new shipping label' );
 			const newLabelButton = await page.$( '.shipping-label__new-label-button' );
 			if( ! newLabelButton ) {
 				throw new Error( 'No button to create new shipping label for order' );
@@ -44,7 +41,6 @@ describe( 'Create shipping label', () => {
             await clickReactButton( '.shipping-label__new-label-button', { text: 'Create shipping label' } );
             await page.waitForSelector( '.dialog__content' );
 
-			// console.log( '# Shipping label creation window open' );
 			await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );
 			await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
 
@@ -59,7 +55,6 @@ describe( 'Create shipping label', () => {
 
 			await expect( page ).toClick( '.button.is-primary', { text: 'Use selected address' } );
 
-			// console.log( '# Shipping label selecting packaging' );
             const selectAPackageType = await page.$( '.packages-step__no-packages a', {
                 text: 'Select a package type'
             } );
@@ -67,9 +62,7 @@ describe( 'Create shipping label', () => {
 				text: 'Add package'
 			} );
 			const packageName = 'My Package';
-			// console.log( '# Shipping label selecting package type' );
             if ( selectAPackageType ) {
-				// console.log( '# No packages present, adding new package' );
                 await selectAPackageType.click();
                 await expect( page ).toFill( '#weight_default_box', '1' );
 
@@ -84,9 +77,7 @@ describe( 'Create shipping label', () => {
                 await expect( page ).toClick( '.button.is-primary', { text: 'Add package' } );
 				await page.waitForSelector( '.notice.is-success .notice__text', { text: 'Your shipping packages have been saved.' } );
 
-				// console.log( '# Shipping label package added' );
             } else if( addPackage ) {
-				// console.log( '# Packages present, adding new package' );
 				await addPackage.click();
                 await expect( page ).toFill( '#weight_default_box', '1' );
 
@@ -100,8 +91,6 @@ describe( 'Create shipping label', () => {
 
                 await expect( page ).toClick( '.button.is-primary', { text: 'Add package' } );
 				await page.waitForSelector( '.notice.is-success .notice__text', { text: 'Your shipping packages have been saved.' } );
-
-				// console.log( '# Shipping label package added' );
 			}
 
 			await clickReactButton( '.button.is-primary', { text: 'Use these packages' } );
@@ -110,17 +99,14 @@ describe( 'Create shipping label', () => {
                 text: '1 item in 1 package: 2 kg total'
             } );
 
-			// console.log( '# Shipping label selecting rate' );
             await page.waitForSelector( '#inspector-radio-control-0-0' );
             await expect( page ).toClick( '#inspector-radio-control-0-0' );
 
-			// console.log( '# Shipping label purchasing...' );
             await expect( page ).toClick( '.button.is-primary', {
                 text: 'Buy shipping label',
 				timeout: 120000
             } );
 
-			// console.log( '# Shipping label purchased!' );
             await page.waitForSelector( '.notice.is-success .notice__text', {
                 text: 'Your shipping label was purchased successfully'
             } );

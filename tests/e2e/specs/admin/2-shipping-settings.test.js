@@ -10,7 +10,6 @@ import { AccountWithNoCreditCard, AccountWithOneCreditCard, AccountWithTwoCredit
 describe( 'Saving shipping label settings', () => {
 
 	it( 'Can toggle shipping labels' , async () => {
-		// console.log('# can toggle shipping labels')
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await page.waitForSelector('.form-toggle__switch');
@@ -19,18 +18,15 @@ describe( 'Saving shipping label settings', () => {
             visible: false
         });
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
-        // Clicking save should persist the visible state of the section.
         await page.waitForSelector('.card.label-settings__labels-container', {
             visible: false
         });
 
-        // Toggle it back to enable so the following tests can run.
         await expect(page).toClick('.form-toggle__switch');
         await saveAndWait();
     });
 
     it ('Should be able to select a different paper size', async () => {
-		// console.log( '# should be able to use paper size');
         // Save it as legal
         await page.select('select.form-select', 'legal');
         await saveAndWait();
@@ -82,12 +78,10 @@ describe( 'Shipping label payment method', () => {
      * Not really a test case. But needed to run this once, prior to all test case in this describe.
      */
     it('should turn on request interception after all credit card test ran', async () => {
-		// console.log( '# page interception');
         await page.setRequestInterception(true);
     });
 
     it('should show "Add a credit card" button if Wordpress has no credit card', async () => {
-		// console.log( '# add credit card button');
         // Intercept API before making any HTTP request
         await mockAccountSettingAPI(AccountWithNoCreditCard);
 
@@ -100,7 +94,6 @@ describe( 'Shipping label payment method', () => {
     });
 
     it('should show "Choose a different card" button if Wordpress.com has a credit card', async () => {
-		// console.log('# choose different credit card button')
         // Intercept API before making any HTTP request
         await mockAccountSettingAPI(AccountWithOneCreditCard);
 
@@ -119,7 +112,6 @@ describe( 'Shipping label payment method', () => {
     });
 
     it('should show 2 credit cards with the right information if Wordpress.com has 2 credit cards', async () => {
-		// console.log('# should show 2 credit cards');
         // Intercept API before making any HTTP request
         await mockAccountSettingAPI(AccountWithTwoCreditCard);
 
@@ -173,7 +165,6 @@ describe( 'Shipping label payment method', () => {
     });
 
     it('should have no default card checked if there are multiple cards in Wordpress.com', async () => {
-		// console.log( '# should have no default card checked');
         await mockAccountSettingAPI(AccountWithTwoCreditCardAndNoDefault);
 
         // No need to login again, refresh page
@@ -223,7 +214,6 @@ describe( 'Shipping label payment method', () => {
     });
 
     it ('Should show the correct email receipts message', async () => {
-		// console.log( '# should show the correct email');
         // This test continue to use the mocked account/settings from the above test, which relies on AccountWithTwoCreditCardAndNoDefault.
         await expect(page).toMatchElement('.label-settings__credit-card-description', { text: "Email the label purchase receipts to johndoe (johndoe) at john.doe@automattic.com" });
     });
@@ -232,7 +222,6 @@ describe( 'Shipping label payment method', () => {
      * Not really a test case. But needed to run this once, after all test case ran in this describe.
      */
     it('should turn off request interception after all credit card test ran', async () => {
-		// console.log( '# should turn off request interception');
         await page.setRequestInterception(false);
     });
 });
@@ -240,7 +229,6 @@ describe( 'Shipping label payment method', () => {
 describe( 'Packaging', () => {
 
 	afterAll( async() => {
-		// console.log( '# Cleaning up packages...' );
 		await deleteAllPackages();
 		await saveAndWait();
 	} );
@@ -248,7 +236,6 @@ describe( 'Packaging', () => {
     let metricSystemValue = ''; // either "in" or "cm".
 
     it( 'Can add package' , async () => {
-		// console.log( '# can add package');
         const packageName = 'Package Box 5x5x5';
 
 		await StoreOwnerFlow.login();
@@ -259,7 +246,6 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button', { text: 'Add package' } );
 
         // Create a new package
-		// console.log( '# adding package');
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Add a package' );
 
         // Set this once globally, all following test will use this metric
@@ -274,18 +260,15 @@ describe( 'Packaging', () => {
         await expect( page ).toFill( '.form-text-input-with-affixes #box_weight', '0.5' );
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } );
 
-		// console.log('# package added, checking list');
         // Verify package shows up in list
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName } );
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
 
         // Save package
-		// console.log( '# saving page');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
         // Refresh page and make sure it is saved.
-		// console.log( '# checking packages')
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
@@ -303,7 +286,6 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.is-compact', { text: 'Edit' } );
 
         // Edit package
-		// console.log( '# Editing package');
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Edit package' );
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '10' );
@@ -313,17 +295,14 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Done' } )
 
         // Verify package shows up in list
-		// console.log( '# Checking list');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
 
         // Save package
-		// console.log( '# Saving package');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
         // Refresh page and make sure it is updated.
-		// console.log( '# Checking packages');
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
@@ -341,22 +320,18 @@ describe( 'Packaging', () => {
         await expect( page ).toClick( '.button.is-compact', { text: 'Edit' } );
 
         // Delete package
-		// console.log( '# Editing package');
         await page.waitForSelector( '.packages__add-edit-title.form-section-heading', { text: 'Edit package' } );
         await expect( page ).toClick( '.button.packages__delete.is-scary.is-borderless', { text: 'Delete this package' } )
 
         // Verify package is no longer in the list.
-		// console.log( '# Deleting package')
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
 
         // Save package
-		// console.log( '# Saving packages');
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
         await saveAndWait();
 
         // Refresh page and make sure it is deleted.
-		// console.log( '# Checking packages');
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).not.toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "10 x 10 x 10 " + metricSystemValue });
@@ -369,19 +344,16 @@ describe( 'Packaging', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, then click "Add package"
-		// console.log( '# Adding package');
         await waitForSelectorAndText('.button:not([disabled])', 'Add package');
         await expect( page ).toClick( '.button', { text: 'Add package' } );
 
         // Click the "Service package" tab, pick and add a service package.
-		// console.log( '# Selecting package');
         await expect( page ).toClick( '.segmented-control__link.item-index-1' );
         await expect( page ).toClick( '.foldable-card__action.foldable-card__expand');
         await expect( page ).toClick( '.foldable-card__content :first-child .packages__packages-row-actions input');
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } )
 
         // Verify the package was added to the list
-		// console.log( '# Checking packages');
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "12.5 x 9.5 x 0.5 " + metricSystemValue });
     });
