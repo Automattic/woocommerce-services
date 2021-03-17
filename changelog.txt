@@ -1,5 +1,5 @@
 *** WooCommerce Shipping & Tax Changelog ***
-= 1.25.9 - 2021-xx-xx =
+= 1.25.9 - 2021-03-17 =
 * Add   - WC Admin notice about DHL live rates.
 * Add	- Live rates section in settings page.
 * Tweak - Cleanup stripe functionality.
