@@ -4,9 +4,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 	class WC_Connect_Settings_Pages {
 		/**
-		 * @array
+		 * @var WC_Connect_Service_Schemas_Store
 		 */
-		protected $fieldsets;
+		protected $service_schemas_store;
 
 		/**
 		 * @var WC_Connect_Continents
@@ -19,11 +19,12 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		protected $api_client;
 
-		public function __construct( WC_Connect_API_Client $api_client ) {
-			$this->id         = 'connect';
-			$this->label      = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
-			$this->continents = new WC_Connect_Continents();
-			$this->api_client = $api_client;
+		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Schemas_Store $service_schemas_store ) {
+			$this->id                    = 'connect';
+			$this->label                 = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
+			$this->continents            = new WC_Connect_Continents();
+			$this->api_client            = $api_client;
+			$this->service_schemas_store = $service_schemas_store;
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
 			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ), 5 );
@@ -80,11 +81,13 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
-			$extra_args        = array();
-			$carriers_response = $this->api_client->get_carrier_accounts();
+			$extra_args = array(
+				'live_rates_types' => $this->service_schemas_store->get_all_shipping_method_ids(),
+			);
 
+			$carriers_response = $this->api_client->get_carrier_accounts();
 			if ( ! is_wp_error( $carriers_response ) && (array) $carriers_response ) {
-				$extra_args['carriers'] = $carriers_response->carriers;
+				$extra_args['carrier_accounts'] = $carriers_response->carriers;
 			}
 
 			$subscriptions_usage_response = $this->api_client->get_wccom_subscriptions();
@@ -102,7 +105,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
 
-				$carrier_information = [];
+				$carrier_information = array();
 				if ( $extra_args['carriers'] ) {
 					$carrier_information = array_values(
 						array_filter(

@@ -26,8 +26,7 @@ class WP_Test_WC_Connect_Tracks_No_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->logger->expects( $this->once() )
 			->method( 'log' )
 			->with(
-				$this->stringContains( 'Error' ),
-				$this->anything()
+				$this->stringContains( 'Error. jetpack_tracks_record_event is not defined.' )
 			);
 		$record = $this->tracks->opted_out();
 		$this->assertNull( $record );
@@ -49,8 +48,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->logger->expects( $this->once() )
 			->method( 'log' )
 			->with(
-				$this->stringContains( 'woocommerceconnect_test' ),
-				$this->anything()
+				$this->stringContains( 'woocommerceconnect_test' )
 			);
 
 		$this->tracks->record_user_event( 'test' );
@@ -76,8 +74,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->logger->expects( $this->once() )
 			->method( 'log' )
 			->with(
-				$this->stringContains( 'woocommerceconnect_opted_in' ),
-				$this->anything()
+				$this->stringContains( 'woocommerceconnect_opted_in' )
 			);
 
 		$this->tracks->opted_in();
@@ -103,8 +100,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$this->logger->expects( $this->once() )
 			->method( 'log' )
 			->with(
-				$this->stringContains( 'woocommerceconnect_opted_out' ),
-				$this->anything()
+				$this->stringContains( 'woocommerceconnect_opted_out' )
 			);
 
 		// $record will contain the args received by jetpack_tracks_record_event
@@ -135,26 +131,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->withConsecutive(
 					array(
 						$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
-						$this->anything(),
 					),
 					array(
 						$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
-						$this->anything(),
 					)
 				);
 		} else {
 			$this->logger->expects( $this->at( 0 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_saved_service_settings' )
 				);
 
 			$this->logger->expects( $this->at( 1 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_saved_usps_settings' )
 				);
 		}
 
@@ -173,26 +165,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->withConsecutive(
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_method_added' ),
-						$this->anything(),
 					),
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_added' ),
-						$this->anything(),
 					)
 				);
 		} else {
 			$this->logger->expects( $this->at( 0 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_added' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_added' )
 				);
 
 			$this->logger->expects( $this->at( 1 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_added' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_added' )
 				);
 		}
 
@@ -211,26 +199,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->withConsecutive(
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' ),
-						$this->anything(),
 					),
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' ),
-						$this->anything(),
 					)
 				);
 		} else {
 			$this->logger->expects( $this->at( 0 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' )
 				);
 
 			$this->logger->expects( $this->at( 1 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' )
 				);
 		}
 
@@ -249,26 +233,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->withConsecutive(
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' ),
-						$this->anything(),
 					),
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' ),
-						$this->anything(),
 					)
 				);
 		} else {
 			$this->logger->expects( $this->at( 0 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' )
 				);
 
 			$this->logger->expects( $this->at( 1 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' )
 				);
 		}
 
@@ -287,26 +267,22 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->withConsecutive(
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' ),
-						$this->anything(),
 					),
 					array(
 						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' ),
-						$this->anything(),
 					)
 				);
 		} else {
 			$this->logger->expects( $this->at( 0 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' )
 				);
 
 			$this->logger->expects( $this->at( 1 ) )
 				->method( 'log' )
 				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' ),
-					$this->anything()
+					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' )
 				);
 		}
 

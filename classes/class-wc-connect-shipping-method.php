@@ -399,10 +399,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			);
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
-				foreach ( $this->package_validation_errors->errors as $code => $messages ) {
-					$data = $this->package_validation_errors->get_error_data( $code );
-					foreach ( $messages as $message ) {
-						wc_add_notice( $message, 'error', $data );
+				if ( is_cart() || is_checkout() ) {
+					foreach ( $this->package_validation_errors->errors as $code => $messages ) {
+						$data = $this->package_validation_errors->get_error_data( $code );
+						foreach ( $messages as $message ) {
+							wc_add_notice( $message, 'error', $data );
+						}
 					}
 				}
 				return;

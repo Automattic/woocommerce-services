@@ -43,7 +43,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		}
 
 		/**
-		 * Check if we are currently in Rest API request for the wc/store/cart API call.
+		 * Check if we are currently in Rest API request for the wc/store/cart or wc/store/checkout API call.
 		 *
 		 * @return bool
 		 */
@@ -51,8 +51,11 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			if ( ! WC()->is_rest_api_request() && empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 				return false;
 			}
-
-			return false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], 'wc/store/cart' );
+			$rest_route = $GLOBALS['wp']->query_vars['rest_route'];
+			return (
+				false !== strpos( $rest_route, 'wc/store/cart' ) ||
+				false !== strpos( $rest_route, 'wc/store/checkout' )
+			);
 		}
 
 		/**
