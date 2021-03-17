@@ -12,7 +12,7 @@ jobs:
       run: env
     - name: List services
       run: systemctl -l --no-pager
-	- name: Remove mono service
+    - name: Remove mono service
       run: |
            sudo systemctl stop mono-xsp4.service || true
            sudo systemctl disable mono-xsp4.service || true
