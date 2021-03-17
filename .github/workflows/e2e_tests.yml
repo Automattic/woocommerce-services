@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-      wp-version: [5.6, latest]
-      env:
-        WP_VERSION: ${{ matrix.wp-version }}
-        TRAVIS_MARIADB_VERSION: 10.5.5
+        wp-version: [5.6, latest]
+    env:
+      WP_VERSION: ${{ matrix.wp-version }}
+      TRAVIS_MARIADB_VERSION: 10.5.5
     steps:
       - uses: actions/checkout@v2
         with:
