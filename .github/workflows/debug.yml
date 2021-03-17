@@ -1,0 +1,16 @@
+name: Debug
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Event
+      shell: bash
+      run: cat $GITHUB_EVENT_PATH
+    - name: Show environment
+      shell: bash
+      run: env
+    - name: List services
+      run: systemctl -l --no-pager
+    - name: List ports
+      run: sudo lsof -iTCP -n -P | sort -k1
