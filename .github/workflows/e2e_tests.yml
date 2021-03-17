@@ -25,6 +25,6 @@ jobs:
              sudo systemctl stop mono-xsp4.service || true
              sudo systemctl disable mono-xsp4.service || true
       - run: npm run docker:up
-	  - run: npm run docker:ping
+      - run: npm run docker:ping
       - run: npm run test:e2e
       - run: npm run docker:down
