@@ -19,6 +19,7 @@
     "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "docker:up": "npm run dist && npx wc-e2e docker:up",
     "docker:down": "npx wc-e2e docker:down",
+	"docker:ping": "bash ./tests/bin/wait-for-e2e-build.sh",
     "test:e2e": "npx wc-e2e test:e2e",
     "test:e2e-dev": "npx wc-e2e test:e2e-dev"
   },
