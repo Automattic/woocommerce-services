@@ -53,8 +53,13 @@ const subscriptions = [
 		sites_active:1,
 		maxed:false,
 		product_status:"publish",
-		usage_limit:1000,
-		usage_count:250,
+		usage_data: [
+			{
+				limit: 1000,
+				count: 250,
+				label: 'Rate Request',
+			}
+		],
 		is_active: true,
 	},
 	{
@@ -79,8 +84,18 @@ const subscriptions = [
 		sites_active:0,
 		maxed:false,
 		product_status:"publish",
-		usage_limit:50,
-		usage_count:8,
+		usage_data: [
+			{
+				limit: 500,
+				count: 888,
+				label: 'Rate Request',
+			},
+			{
+				limit: 50,
+				count: 8,
+				label: 'Label Purchase',
+			}
+		],
 		is_active:false,
 	},
 
@@ -99,7 +114,6 @@ describe( 'Subscriptions Usage', () => {
 
 	it('should render a list of subscriptions usage info', () => {
 		const wrapper = mount(
-			
 			<Wrapper>
 				<SubscriptionsUsage subscriptions={ subscriptions } />
 			</Wrapper>
@@ -114,20 +128,20 @@ describe( 'Subscriptions Usage', () => {
 		expect(upsLabelsListItem.find('span[children="UPS rates"]')).toHaveLength(1);
 
 		// Expect subscription usage.
-		expect(dhlExpressRatesListItem.find('span[children="250/1000"]')).toHaveLength(1);
-		expect(upsLabelsListItem.find('span[children="8/50"]')).toHaveLength(1);
-		
+		expect(dhlExpressRatesListItem.find('.subscriptions-usage__list-item-usage-numbers div')).toHaveLength(1);
+		expect(upsLabelsListItem.find('.subscriptions-usage__list-item-usage-numbers div')).toHaveLength(2);
+
+		expect(dhlExpressRatesListItem.find('.is-over-limit')).toHaveLength(0);
+		expect(upsLabelsListItem.find('.is-over-limit')).toHaveLength(1);
 		// Expect button manage.
 		const dhlExpressmanageButton = dhlExpressRatesListItem.find('a[href="https://woocommerce.com/my-account/my-subscriptions/"]');
 		expect(dhlExpressmanageButton.text()).toBe('Manage');
 		// Expect button activate.
 		expect(upsLabelsListItem.find('button').text()).toBe('Activate');
-	
 	});
 
 	it('should call the API to activate the subscription when clicking on the button', async () => {
 		const wrapper = mount(
-			
 			<Wrapper>
 				<SubscriptionsUsage subscriptions={ subscriptions } />
 			</Wrapper>

@@ -50,11 +50,11 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		public function enable_logging() {
 			WC_Connect_Options::update_option( 'debug_logging_enabled', true );
 			$this->is_logging_enabled = true;
-			$this->log( "Logging enabled" );
+			$this->log( 'Logging enabled' );
 		}
 
 		public function disable_logging() {
-			$this->log( "Logging disabled" );
+			$this->log( 'Logging disabled' );
 			WC_Connect_Options::update_option( 'debug_logging_enabled', false );
 			$this->is_logging_enabled = false;
 		}
@@ -86,7 +86,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( $this->is_debug_enabled()  ) {
+			if ( $this->is_debug_enabled() ) {
 				wc_add_notice( $message, $type );
 			}
 		}
@@ -126,7 +126,6 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 			}
 
 			$this->logger->add( $log_file, $log_message );
-
 
 		}
 

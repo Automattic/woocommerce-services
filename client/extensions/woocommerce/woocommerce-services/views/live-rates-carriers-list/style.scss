@@ -1,0 +1,75 @@
+.live-rates-carriers-list {
+	.components-popover__content {
+		width: 150px;
+	}
+
+	&__wrapper {
+		padding: 0;
+	}
+
+	&__heading,
+	&__element {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 12px 24px;
+		font-size: 14px;
+		border-bottom: 1px solid #ccced0;
+		flex-wrap: nowrap;
+
+		> * {
+			margin-right: 12px;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	&__heading {
+		font-weight: 600;
+		background: #f6f6f6;
+	}
+
+	&__element {
+		padding: 24px 24px;
+	}
+
+	&__icon {
+		width: 36px;
+	}
+
+	&__carrier {
+		width: 35%;
+	}
+
+	&__features {
+		width: 30%;
+		flex-grow: 1;
+
+		ul {
+			margin-bottom: 0;
+			margin-left: 1.5em;
+		}
+	}
+
+	&__actions {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
+		flex-wrap: nowrap;
+
+		> * {
+			margin-right: 12px;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
+}

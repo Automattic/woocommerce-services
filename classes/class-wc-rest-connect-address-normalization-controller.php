@@ -13,14 +13,14 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 
 	public function post( $request ) {
 		$data    = $request->get_json_params();
-		$address = $data[ 'address' ];
-		$name    = $address[ 'name' ];
-		$company = $address[ 'company' ];
-		$phone   = $address[ 'phone' ];
+		$address = $data['address'];
+		$name    = $address['name'];
+		$company = $address['company'];
+		$phone   = $address['phone'];
 
-		unset( $address[ 'name' ], $address[ 'company' ], $address[ 'phone' ] );
+		unset( $address['name'], $address['company'], $address['phone'] );
 
-		$body = array(
+		$body     = array(
 			'destination' => $address,
 		);
 		$response = $this->api_client->send_address_normalization_request( $body );
@@ -38,19 +38,19 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		if ( isset( $response->field_errors ) ) {
 			$this->logger->log( 'Address validation errors: ' . implode( '; ', array_values( (array) $response->field_errors ) ), __CLASS__ );
 			return array(
-				'success' => true,
+				'success'      => true,
 				'field_errors' => $response->field_errors,
 			);
 		}
 
-		$response->normalized->name = $name;
+		$response->normalized->name    = $name;
 		$response->normalized->company = $company;
-		$response->normalized->phone = $phone;
-		$is_trivial_normalization = isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false;
+		$response->normalized->phone   = $phone;
+		$is_trivial_normalization      = isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false;
 
 		return array(
-			'success' => true,
-			'normalized' => $response->normalized,
+			'success'                  => true,
+			'normalized'               => $response->normalized,
 			'is_trivial_normalization' => $is_trivial_normalization,
 		);
 	}

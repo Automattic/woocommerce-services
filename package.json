@@ -9,7 +9,7 @@
     "eslint": "eslint tasks/ client/",
     "eslint:fix": "eslint --fix tasks/ client/",
     "test": "npm run test-client",
-    "test-client": "jest -c=tests/client/jest.config.js",
+    "test-client": "TZ='UTC' jest -c=tests/client/jest.config.js",
     "test-client:watch": "npm run -s test-client -- --watch",
     "prerelease": "npm run i18n && node tasks/i18n-download && npm run i18njson",
     "release": "node tasks/release.js",

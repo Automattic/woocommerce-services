@@ -8,53 +8,27 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
 import Indicator from './indicator';
+import WooCommerceServicesIndicator from './woocommerce-services-indicator';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 
-const HealthView = ( { translate, moment, healthItems } ) => {
-	const heading = translate( 'Health', {
-		context: 'This section displays the overall health of WooCommerce Shipping & Tax and the things it depends on',
-	} );
-
-	const renderTimestamp = ( { timestamp } ) => {
-		const refreshUrl = 'admin.php?page=wc-status&tab=connect&refresh=true';
-
-		if ( ! timestamp ) {
-			return (
-				<FormSettingExplanation>
-					<a href={ refreshUrl }>{ translate( 'Refresh' ) }</a>
-				</FormSettingExplanation>
-			);
-		}
-
-		return (
-			<FormSettingExplanation>
-				{ translate( 'Last updated %s. {{a}}Refresh{{/a}}', {
-					args: moment( timestamp * 1000 ).fromNow(),
-					components: { a: <a href={ refreshUrl } /> },
-				} ) }
-			</FormSettingExplanation>
-		);
-	};
-
-	const renderIndicator = ( title, healthItem, showTimestamp ) => {
-		return (
-			<Indicator
-				title={ title }
-				state={ healthItem.state }
-				message={ healthItem.message }>
-				{ showTimestamp ? renderTimestamp( healthItem ) : null }
-			</Indicator>
-		);
-	};
-
+const HealthView = ( { translate, healthItems } ) => {
 	return (
-		<SettingsGroupCard heading={ heading }>
-			{ renderIndicator( translate( 'WooCommerce' ), healthItems.woocommerce, false ) }
-			{ renderIndicator( translate( 'Jetpack' ), healthItems.jetpack, false ) }
-			{ renderIndicator( translate( 'WooCommerce Shipping & Tax Data' ), healthItems.woocommerce_services, true ) }
+		<SettingsGroupCard heading={translate('Health', {
+			context: 'This section displays the overall health of WooCommerce Shipping & Tax and the things it depends on',
+		})}>
+			<Indicator
+				title={translate('WooCommerce')}
+				message={healthItems.woocommerce.message}
+				state={healthItems.woocommerce.state}
+			/>
+			<Indicator
+				title={translate('Jetpack')}
+				state={healthItems.jetpack.state}
+				message={healthItems.jetpack.message}/>
+			<WooCommerceServicesIndicator />
 		</SettingsGroupCard>
+
 	);
 };
 

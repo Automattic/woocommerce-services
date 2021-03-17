@@ -153,7 +153,7 @@ export const submit = ( siteId, onSaveSuccess, onSaveFailure ) => ( dispatch, ge
 	const form = getPackagesForm( getState(), siteId );
 	dispatch( setIsSaving( siteId, true ) );
 	api
-		.post( siteId, api.url.packages, form.packages )
+		.put( siteId, api.url.packages, form.packages )
 		.then( onSaveSuccess )
 		.catch( onSaveFailure )
 		.then( () => dispatch( setIsSaving( siteId, false ) ) );
