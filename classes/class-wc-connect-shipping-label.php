@@ -312,12 +312,92 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $form_data;
 		}
 
-		private function is_supported_country( $country_code ) {
-			return in_array( $country_code, $this->supported_countries );
+		/**
+		 * Check whether the given order is eligible for shipping label creation - the order has at least one product that is:
+		 * - Shippable.
+		 * - Non-refunded.
+		 *
+		 * @param WC_Order $order The order to check for shipping label creation eligibility.
+		 * @return bool Whether the given order is eligible for shipping label creation.
+		 */
+		public function is_order_eligible_for_shipping_label_creation( WC_Order $order ): bool {
+			// Set up a dictionary from product ID to quantity in the order, which will be updated by refunds and existing labels later.
+			$quantities_by_product_id = array();
+			foreach ( $order->get_items() as $item ) {
+				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+				if ( $product && $product->needs_shipping() ) {
+					$product_id                              = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					$current_quantity                        = array_key_exists( $product_id, $quantities_by_product_id ) ? $quantities_by_product_id[ $product_id ] : 0;
+					$quantities_by_product_id[ $product_id ] = $current_quantity + $item->get_quantity();
+				}
+			}
+
+			// A shipping label cannot be created without a shippable product.
+			if ( empty( $quantities_by_product_id ) ) {
+				return false;
+			}
+
+			// Update the quantity for each refunded product ID in the order.
+			foreach ( $order->get_refunds() as $refund ) {
+				foreach ( $refund->get_items() as $refunded_item ) {
+					$product    = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
+					$product_id = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					if ( array_key_exists( $product_id, $quantities_by_product_id ) ) {
+						$current_count                           = $quantities_by_product_id[ $product_id ];
+						$quantities_by_product_id[ $product_id ] = $current_count - abs( $refunded_item->get_quantity() );
+					}
+				}
+			}
+
+			// The order is eligible for shipping label creation when there is at least one product with positive quantity.
+			foreach ( $quantities_by_product_id as $product_id => $quantity ) {
+				if ( $quantity > 0 ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
-		private function is_supported_currency( $currency_code ) {
-			return in_array( $currency_code, $this->supported_currencies );
+		/**
+		 * Check whether the store is eligible for shipping label creation:
+		 * - Store currency is supported.
+		 * - Store country is supported.
+		 *
+		 * @return bool Whether the WC store is eligible for shipping label creation.
+		 */
+		public function is_store_eligible_for_shipping_label_creation(): bool {
+			$base_currency = get_woocommerce_currency();
+			if ( ! $this->is_supported_currency( $base_currency ) ) {
+				return false;
+			}
+
+			$base_location = wc_get_base_location();
+			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
+		 * Check whether the given country code is supported for shipping labels.
+		 *
+		 * @param string $country_code Country code of the WC store.
+		 * @return bool Whether the given country code is supported for shipping labels.
+		 */
+		private function is_supported_country( string $country_code ): bool {
+			return in_array( $country_code, $this->supported_countries, true );
+		}
+
+		/**
+		 * Check whether the given currency code is supported for shipping labels.
+		 *
+		 * @param string $currency_code Currency code of the WC store.
+		 * @return bool Whether the given country code is supported for shipping labels.
+		 */
+		private function is_supported_currency( string $currency_code ): bool {
+			return in_array( $currency_code, $this->supported_currencies, true );
 		}
 
 		public function is_dhl_express_available() {
@@ -362,14 +442,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return true;
 			}
 
-			// Restrict showing the metabox to supported store currencies.
-			$base_currency = get_woocommerce_currency();
-			if ( ! $this->is_supported_currency( $base_currency ) ) {
-				return false;
-			}
-
-			$base_location = wc_get_base_location();
-			if ( ! $this->is_supported_country( $base_location['country'] ) ) {
+			// Restrict showing the metabox to supported store countries and currencies.
+			if ( ! $this->is_store_eligible_for_shipping_label_creation() ) {
 				return false;
 			}
 
