@@ -2,7 +2,8 @@
 
 = 1.25.10 - 2021-xx-xx =
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
-* Fix	  - Ensure status page is displayed on new WC navigation menu.
+* Fix	- Ensure status page is displayed on new WC navigation menu.
+* Tweak	- Display spinner icon during service data refresh.
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
 * Add   - Run phpcbf as a pre-commit rule.
 * Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React, {useCallback} from 'react'
+import React, { useCallback, useState } from 'react'
 import { connect } from 'react-redux'
 import { localize } from 'i18n-calypso'
 
@@ -13,10 +13,13 @@ import FormSettingExplanation from 'components/forms/form-setting-explanation'
 import { refreshServiceData } from './state/actions';
 
 const WooCommerceServicesIndicator = ({ translate, moment, status, onRefreshClick }) => {
+	const [isFetchingData, setIsFetchingData] = useState(false);
 	const handleRefreshClick = useCallback((event) => {
 		event.preventDefault();
-		onRefreshClick();
-	}, [onRefreshClick]);
+
+		setIsFetchingData(true);
+		onRefreshClick().finally(() => setIsFetchingData(false))
+	}, [onRefreshClick, setIsFetchingData]);
 
 	const currentTimestamp = Date.now() / 1000
 	let indicatorState, indicatorMessage
@@ -35,6 +38,10 @@ const WooCommerceServicesIndicator = ({ translate, moment, status, onRefreshClic
 	} else {
 		indicatorState = 'success'
 		indicatorMessage = translate('Service data is up-to-date')
+	}
+
+	if( isFetchingData ) {
+		indicatorState = 'fetching';
 	}
 
 	return (
