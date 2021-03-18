@@ -2,6 +2,7 @@
 = 1.25.10 - 2021-xx-xx =
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
+* Fix   - Shipping validation notice shown when no address entered.
 
 = 1.25.9 - 2021-xx-xx =
 * Add   - WC Admin notice about DHL live rates.
