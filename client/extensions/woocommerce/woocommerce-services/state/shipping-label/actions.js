@@ -756,21 +756,21 @@ const getPDFFileName = ( orderId, isReprint = false ) => {
 };
 
 // retireves the single label status, and retries up to 3 times on timeout
-const labelStatusTask = ( orderId, siteId, labelId, retryCount ) => {
+const labelsStatusTask = ( orderId, siteId, labelIds, retryCount ) => {
 	let timeout = 1000;
 	if ( retryCount === 0) {
 		timeout = 2000;
 	}
 	return api
-		.get( siteId, api.url.labelStatus( orderId, labelId ) )
-		.then( statusResponse => statusResponse.label )
+		.get( siteId, api.url.labelsStatus( orderId, labelIds ) )
+		.then( statusResponse => statusResponse.labels )
 		.catch( pollError => {
 			if ( ! includes( pollError, 'cURL error 28' ) || retryCount >= 3 ) {
 				throw pollError;
 			}
 			return new Promise( resolve => {
 				setTimeout(
-					() => resolve( labelStatusTask( orderId, siteId, labelId, retryCount + 1 ) ),
+					() => resolve( labelsStatusTask( orderId, siteId, labelIds, retryCount + 1 ) ),
 					timeout
 				);
 			} );
@@ -972,15 +972,16 @@ const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) =>
 
 	if ( ! every( labels, { status: 'PURCHASED' } ) ) {
 		setTimeout( () => {
-			const statusTasks = labels.map( label => {
-				return label.status === 'PURCHASED'
-					? label
-					: labelStatusTask( orderId, siteId, label.label_id, 0 );
-			} );
+			const purchasedLabels = labels
+				.filter( label => label.status === 'PURCHASED' )
+			const inProgressLabels = labels
+				.filter( label => label.status !== 'PURCHASED' )
+				.map( label => label.label_id )
+			const statusTask = labelsStatusTask( orderId, siteId, inProgressLabels, 0 )
 
-			Promise.all( statusTasks )
+			statusTask
 				.then( pollResponse =>
-					pollForLabelsPurchase( orderId, siteId, dispatch, getState, pollResponse )
+					pollForLabelsPurchase( orderId, siteId, dispatch, getState, pollResponse.concat(purchasedLabels) )
 				)
 				.catch( pollError =>
 					handleLabelPurchaseError( orderId, siteId, dispatch, getState, pollError )
