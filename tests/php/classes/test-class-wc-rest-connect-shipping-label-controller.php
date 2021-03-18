@@ -63,7 +63,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 			->disableOriginalConstructor()
 			->setMethods( array( 'get_payment_methods' ) )
 			->getMock();
-		$this->shipping_label  = new WC_Connect_Shipping_Label( $this->api_client_mock, $this->settings_store, $this->service_schemas_store_mock, $this->payment_methods_store );
+		$this->shipping_label        = new WC_Connect_Shipping_Label( $this->api_client_mock, $this->settings_store, $this->service_schemas_store_mock, $this->payment_methods_store );
 	}
 
 	/**
