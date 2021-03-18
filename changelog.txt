@@ -1,7 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 = 1.25.10 - 2021-xx-xx =
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
-* Add	- Adds Dockerized E2E tests with GitHub Action integration.
+* Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
+* Add	  - Adds Dockerized E2E tests with GitHub Action integration.
 
 = 1.25.9 - 2021-xx-xx =
 * Add   - WC Admin notice about DHL live rates.
