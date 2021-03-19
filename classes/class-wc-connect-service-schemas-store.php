@@ -26,9 +26,14 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			$response_body = $this->api_client->get_service_schemas();
 
 			if ( is_wp_error( $response_body ) ) {
+				$error_data = $response_body->get_error_data();
+				if ( isset( $error_data['response_status_code'] ) ) {
+					$this->update_last_fetch_result_code( $error_data['response_status_code'] );
+				}
 				$this->logger->log( $response_body, __FUNCTION__ );
 				return false;
 			}
+			$this->update_last_fetch_result_code( '200' );
 
 			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
 			$this->update_last_fetch_timestamp();
@@ -58,6 +63,17 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 		protected function update_last_fetch_timestamp() {
 			WC_Connect_Options::update_option( 'services_last_update', time() );
+		}
+
+		public function get_last_fetch_result_code() {
+			return WC_Connect_Options::get_option( 'services_last_result_code' );
+		}
+
+		/**
+		 * @param int $result_status_code
+		 */
+		protected function update_last_fetch_result_code( $result_status_code ) {
+			WC_Connect_Options::update_option( 'services_last_result_code', $result_status_code );
 		}
 
 		protected function maybe_update_heartbeat() {

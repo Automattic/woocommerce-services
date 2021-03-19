@@ -28,6 +28,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 						'last_heartbeat',
 						'origin_address',
 						'last_rate_request',
+						'services_last_result_code',
 					);
 				case 'shipping_method':
 					return array(
