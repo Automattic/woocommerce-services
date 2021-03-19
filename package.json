@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "1.25.8",
+  "version": "1.25.9",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd ..",
@@ -19,7 +19,7 @@
     "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "docker:up": "npm run dist && npx wc-e2e docker:up",
     "docker:down": "npx wc-e2e docker:down",
-	"docker:ping": "bash ./tests/bin/wait-for-e2e-build.sh",
+    "docker:ping": "bash ./tests/bin/wait-for-e2e-build.sh",
     "test:e2e": "npx wc-e2e test:e2e",
     "test:e2e-dev": "npx wc-e2e test:e2e-dev"
   },
