@@ -25,7 +25,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			WC_Connect_Loader $wc_connect_loader
 		) {
 
-			$this->validator = $validator;
+			$this->validator         = $validator;
 			$this->wc_connect_loader = $wc_connect_loader;
 
 		}
@@ -73,20 +73,20 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
 		 *
 		 * @return array|WP_Error {
-		 * 		@type float $height Product height.
-		 * 		@type float $width Product width.
-		 * 		@type float $length Product length.
-		 * 		@type int $product_id Product ID (or Variation ID).
-		 * 		@type int $quantity Quantity of product in shipment.
-		 * 		@type float $weight Product weight.
+		 *      @type float $height Product height.
+		 *      @type float $width Product width.
+		 *      @type float $length Product length.
+		 *      @type int $product_id Product ID (or Variation ID).
+		 *      @type int $quantity Quantity of product in shipment.
+		 *      @type float $weight Product weight.
 		 * }
 		 */
 		public function build_shipment_contents( $package ) {
 			$contents = array();
 
-			foreach ( $package[ 'contents' ] as $package_item ) {
-				$product  = $package_item[ 'data' ];
-				$quantity = $package_item[ 'quantity' ];
+			foreach ( $package['contents'] as $package_item ) {
+				$product  = $package_item['data'];
+				$quantity = $package_item['quantity'];
 
 				if ( ( $quantity > 0 ) && $product->needs_shipping() ) {
 
@@ -122,12 +122,12 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					$width  = $product->get_width();
 
 					$contents[] = array(
-						'height'     => ( float ) $height,
+						'height'     => (float) $height,
 						'product_id' => $product->get_id(),
-						'length'     => ( float ) $length,
-						'quantity'   => $package_item[ 'quantity' ],
-						'weight'     => ( float ) $weight,
-						'width'      => ( float ) $width,
+						'length'     => (float) $length,
+						'quantity'   => $package_item['quantity'],
+						'weight'     => (float) $weight,
+						'width'      => (float) $width,
 					);
 				}
 			}
@@ -164,13 +164,31 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// Then, make the request
 			$body = array(
 				'contents'         => $contents,
-				'destination'      => $package[ 'destination' ],
+				'destination'      => $package['destination'],
 				'services'         => $services,
 				'boxes'            => $custom_boxes,
 				'predefined_boxes' => $predefined_boxes,
 			);
 
 			return $this->request( 'POST', '/shipping/rates', $body );
+		}
+
+		/**
+		 * Send rates request information to track subscription events
+		 *
+		 * @param array $services Array of service settings for shipping methods.
+		 *
+		 * @return object|WP_Error
+		 */
+		public function track_subscription_event( $services ) {
+			if ( empty( $services ) ) {
+				return new WP_Error(
+					'nothing_to_ship',
+					__( 'No shipping rate could be calculated. No items in the package are shippable.', 'woocommerce-services' )
+				);
+			}
+
+			return $this->request( 'POST', '/subscriptions/checkout', array( 'services' => $services ) );
 		}
 
 		public function send_shipping_label_request( $body ) {
@@ -194,38 +212,38 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * Gets shipping rates (for labels) from the WooCommerce Shipping & Tax Server
 		 *
 		 * @param array $request - array(
-		 *	'packages' => array(
-		 *		array(
-		 * 			'id' => 'box_1',
-		 *			'height' => 10,
-		 *			'length' => 10,
-		 *			'width' => 10,
-		 *			'weight' => 10,
-		 *		),
-		 *		array(
-		 *			'id' => 'box_2',
-		 *			'box_id' => 'medium_flat_box_top',
-		 *			'weight' => 5,
-		 *		),
-		 *		...
-		 * 	),
-		 *	'carrier' => 'usps',
-		 *	'origin' => array(
-		 *		'address' => '132 Hawthorne St',
-		 *		'address_2' => '',
-		 *		'city' => 'San Francisco',
-		 *		'state' => 'CA',
-		 *		'postcode' => '94107',
-		 *		'country' => 'US',
-		 *	),
-		 *	'destination' => array(
-		 *		'address' => '1550 Snow Creek Dr',
-		 *		'address_2' => '',
-		 *		'city' => 'Park City',
-		 *		'state' => 'UT',
-		 *		'postcode' => '84060',
-		 *		'country' => 'US',
-		 *	),
+		 *  'packages' => array(
+		 *      array(
+		 *          'id' => 'box_1',
+		 *          'height' => 10,
+		 *          'length' => 10,
+		 *          'width' => 10,
+		 *          'weight' => 10,
+		 *      ),
+		 *      array(
+		 *          'id' => 'box_2',
+		 *          'box_id' => 'medium_flat_box_top',
+		 *          'weight' => 5,
+		 *      ),
+		 *      ...
+		 *  ),
+		 *  'carrier' => 'usps',
+		 *  'origin' => array(
+		 *      'address' => '132 Hawthorne St',
+		 *      'address_2' => '',
+		 *      'city' => 'San Francisco',
+		 *      'state' => 'CA',
+		 *      'postcode' => '94107',
+		 *      'country' => 'US',
+		 *  ),
+		 *  'destination' => array(
+		 *      'address' => '1550 Snow Creek Dr',
+		 *      'address_2' => '',
+		 *      'city' => 'Park City',
+		 *      'state' => 'UT',
+		 *      'postcode' => '84060',
+		 *      'country' => 'US',
+		 *  ),
 		 * )
 		 * @return object|WP_Error
 		 */
@@ -313,6 +331,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 		/**
 		 * Get a list of the subscriptions for WooCommerce.com linked account.
+		 *
 		 * @param $body
 		 * @param object|WP_Error
 		 */
@@ -327,7 +346,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *
 		 * @return object|WP_Error
 		 */
-		public function get_carrier_types( ) {
+		public function get_carrier_types() {
 			return $this->request( 'GET', '/shipping/carrier-types' );
 		}
 
@@ -359,7 +378,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$is_alive_request = $this->is_alive();
-			$new_is_alive = ! is_wp_error( $is_alive_request );
+			$new_is_alive     = ! is_wp_error( $is_alive_request );
 			if ( $new_is_alive ) {
 				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
 			}
@@ -407,7 +426,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return array|WP_Error
 		 */
 		public function proxy_request( $path, $args ) {
-			$proxy_url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
+			$proxy_url  = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
 			$proxy_url .= ltrim( $path, '/' );
 
 			$authorization = $this->authorization_header();
@@ -415,7 +434,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return $authorization;
 			}
 			$args['headers']['Authorization'] = $authorization;
-
 
 			$http_timeout = 60; // 1 minute
 
@@ -443,26 +461,28 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$body         = array_merge( $default_body, $initial_body );
 
 			// Add interesting fields to the body of each request
-			$body[ 'settings' ] = wp_parse_args( $body[ 'settings' ], array(
-				'store_guid'           => $this->get_guid(),
-				'base_city'            => WC()->countries->get_base_city(),
-				'base_country'         => WC()->countries->get_base_country(),
-				'base_state'           => WC()->countries->get_base_state(),
-				'base_postcode'        => WC()->countries->get_base_postcode(),
-				'currency'             => get_woocommerce_currency(),
-				'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
-				'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
-				'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
-				'jetpack_version'      => JETPACK__VERSION,
-				'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
-				'wc_version'           => WC()->version,
-				'wp_version'           => get_bloginfo( 'version' ),
-				'last_services_update' => WC_Connect_Options::get_option( 'services_last_update', 0 ),
-				'last_heartbeat'       => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
-				'last_rate_request'    => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
-				'active_services'      => $this->wc_connect_loader->get_active_services(),
-				'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
-				'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
+			$body['settings'] = wp_parse_args(
+				$body['settings'],
+				array(
+					'store_guid'           => $this->get_guid(),
+					'base_city'            => WC()->countries->get_base_city(),
+					'base_country'         => WC()->countries->get_base_country(),
+					'base_state'           => WC()->countries->get_base_state(),
+					'base_postcode'        => WC()->countries->get_base_postcode(),
+					'currency'             => get_woocommerce_currency(),
+					'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+					'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
+					'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
+					'jetpack_version'      => JETPACK__VERSION,
+					'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
+					'wc_version'           => WC()->version,
+					'wp_version'           => get_bloginfo( 'version' ),
+					'last_services_update' => WC_Connect_Options::get_option( 'services_last_update', 0 ),
+					'last_heartbeat'       => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
+					'last_rate_request'    => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
+					'active_services'      => $this->wc_connect_loader->get_active_services(),
+					'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
+					'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
 				)
 			);
 
@@ -480,26 +500,26 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return $authorization;
 			}
 
-			$headers = array();
-			$locale = strtolower( str_replace( '_', '-', get_locale() ) );
-			$locale_elements = explode( '-', $locale );
-			$lang = $locale_elements[ 0 ];
-			$headers[ 'Accept-Language' ] = $locale . ',' . $lang;
-			$headers[ 'Content-Type' ] = 'application/json; charset=utf-8';
-			$headers[ 'Accept' ] = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
-			$headers[ 'Authorization' ] = $authorization;
+			$headers                    = array();
+			$locale                     = strtolower( str_replace( '_', '-', get_locale() ) );
+			$locale_elements            = explode( '-', $locale );
+			$lang                       = $locale_elements[0];
+			$headers['Accept-Language'] = $locale . ',' . $lang;
+			$headers['Content-Type']    = 'application/json; charset=utf-8';
+			$headers['Accept']          = 'application/vnd.woocommerce-connect.v' . static::API_VERSION;
+			$headers['Authorization']   = $authorization;
 
 			$wc_helper_auth_info = WC_Connect_Functions::get_wc_helper_auth_info();
 			if ( ! is_wp_error( $wc_helper_auth_info ) ) {
-				$headers[ 'X-Woo-Signature' ]    = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
-				$headers[ 'X-Woo-Access-Token' ] = $wc_helper_auth_info['access_token'];
-				$headers[ 'X-Woo-Site-Id' ]      = $wc_helper_auth_info['site_id'];
+				$headers['X-Woo-Signature']    = $this->request_signature_wccom( $wc_helper_auth_info['access_token_secret'], 'subscriptions', 'GET', array() );
+				$headers['X-Woo-Access-Token'] = $wc_helper_auth_info['access_token'];
+				$headers['X-Woo-Site-Id']      = $wc_helper_auth_info['site_id'];
 			}
 			return $headers;
 		}
 
 		protected function authorization_header() {
-			$token = Jetpack_Data::get_access_token( 0 );
+			$token = WC_Connect_Jetpack::get_master_user_access_token( 0 );
 			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error(
@@ -516,10 +536,10 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			list( $token_key, $token_secret ) = explode( '.', $token->secret );
-			$token_key = sprintf( '%s:%d:%d', $token_key, JETPACK__API_VERSION, $token->external_user_id );
-			$time_diff = (int)Jetpack_Options::get_option( 'time_diff' );
-			$timestamp = time() + $time_diff;
-			$nonce = wp_generate_password( 10, false );
+			$token_key                        = sprintf( '%s:%d:%d', $token_key, JETPACK__API_VERSION, $token->external_user_id );
+			$time_diff                        = (int) Jetpack_Options::get_option( 'time_diff' );
+			$timestamp                        = time() + $time_diff;
+			$nonce                            = wp_generate_password( 10, false );
 
 			$signature = $this->request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff );
 			if ( is_wp_error( $signature ) ) {
@@ -527,9 +547,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			$auth = array(
-				'token' => $token_key,
+				'token'     => $token_key,
 				'timestamp' => $timestamp,
-				'nonce' => $nonce,
+				'nonce'     => $nonce,
 				'signature' => $signature,
 			);
 
@@ -548,7 +568,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @param string $token_secret
 		 * @param string $endpoint
 		 * @param string $method
-		 * @param array $body
+		 * @param array  $body
 		 * @return string
 		 */
 		protected function request_signature_wccom( $token_secret, $endpoint, $method, $body = array() ) {
@@ -576,11 +596,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			$normalized_request_string = join( "\n", array(
+			$normalized_request_string = join(
+				"\n",
+				array(
 					$token_key,
 					$timestamp,
-					$nonce
-				) ) . "\n";
+					$nonce,
+				)
+			) . "\n";
 
 			return base64_encode( hash_hmac( 'sha1', $normalized_request_string, $token_secret, true ) );
 		}
@@ -603,16 +626,19 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return string
 		 */
 		private function generate_guid() {
-			return strtolower( sprintf( '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
-				mt_rand( 0, 65535 ),
-				mt_rand( 0, 65535 ),
-				mt_rand( 0, 65535 ),
-				mt_rand( 16384, 20479 ),
-				mt_rand( 32768, 49151 ),
-				mt_rand( 0, 65535 ),
-				mt_rand( 0, 65535 ),
-				mt_rand( 0, 65535 )
-			) );
+			return strtolower(
+				sprintf(
+					'%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
+					mt_rand( 0, 65535 ),
+					mt_rand( 0, 65535 ),
+					mt_rand( 0, 65535 ),
+					mt_rand( 16384, 20479 ),
+					mt_rand( 32768, 49151 ),
+					mt_rand( 0, 65535 ),
+					mt_rand( 0, 65535 ),
+					mt_rand( 0, 65535 )
+				)
+			);
 		}
 	}
 

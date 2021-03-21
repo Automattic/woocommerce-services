@@ -10,7 +10,7 @@
 	>
 	<testsuites>
 		<testsuite name="WooCommerce Services Test Suite">
-			<directory suffix=".php">./tests/</directory>
+			<directory prefix="test-" suffix=".php">./tests/php</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

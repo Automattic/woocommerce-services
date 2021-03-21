@@ -22,11 +22,11 @@ import { errorNotice as errorNoticeAction, successNotice as successNoticeAction 
 import { getSelectedSiteId } from 'state/ui/selectors';
 
 const CarrierAccountListItem = ( props ) => {
-	const { data, translate, errorNotice, successNotice, siteId } = props;
+	const { accountData, translate, errorNotice, successNotice, siteId } = props;
 
 	const [isDisconnectDialogVisible, setIsDisconnectDialogVisible] = React.useState(false);
 	const [isSaving, setIsSaving] = React.useState(false);
-	const [carrierId, setCarrierId] = React.useState(data.id);
+	const [carrierId, setCarrierId] = React.useState(accountData.id);
 
 	const handleShowDisconnectDialogConfirmation = React.useCallback(() => {
 		setIsDisconnectDialogVisible(true);
@@ -80,22 +80,21 @@ const CarrierAccountListItem = ( props ) => {
 
 	const carrierTypeIconMap = {
 		DhlExpressAccount: 'dhlexpress',
-		DhlEcommerceAccount: 'dhlecommerce',
+		DhlEcsAccount: 'dhlecommerce',
 		DhlEcommerceAsiaAccount: 'dhlecommerceasia',
-		DHLGMIAccount: 'dhlecommerceinternational',
 		UpsAccount: 'ups',
 	}
 
 	return (
 		<div className="carrier-accounts__list-item">
 			<div className="carrier-accounts__list-item-carrier-icon">
-				<CarrierIcon carrier={ carrierTypeIconMap[data.type] } size={ 18 } />
+				<CarrierIcon carrier={ carrierTypeIconMap[accountData.type] } size={ 18 } />
 			</div>
 			<div className="carrier-accounts__list-item-name">
-				<span>{ data.carrier }</span>
+				<span>{ accountData.carrier }</span>
 			</div>
 			<div className="carrier-accounts__list-item-credentials">
-				<span>{ carrierId ? data.account : null }</span>
+				<span>{ carrierId ? accountData.account : null }</span>
 			</div>
 			<div className="carrier-accounts__list-item-actions">
 				{ carrierId ? (
@@ -105,7 +104,7 @@ const CarrierAccountListItem = ( props ) => {
 				) : (
 					<a
 						href={
-							`/wp-admin/admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=${data.type}`
+							`admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=${accountData.type}`
 						}
 						// eslint-disable-next-line wpcalypso/jsx-classname-namespace
 						className="button is-compact"
@@ -123,7 +122,7 @@ const CarrierAccountListItem = ( props ) => {
 				<div className="carrier-accounts__settings-cancel-dialog-header">
 					<h2 className="carrier-accounts__settings-cancel-dialog-title">
 						{ translate( 'Disconnect your %(carrier_name)s account', {
-							args: { carrier_name: data.carrier },
+							args: { carrier_name: accountData.carrier },
 						} ) }
 					</h2>
 					<button
@@ -135,7 +134,7 @@ const CarrierAccountListItem = ( props ) => {
 				</div>
 				<p className="carrier-accounts__settings-cancel-dialog-description">
 					{ translate( 'This will remove the connection with %(carrier_name)s. All of your %(carrier_name)s account information will be deleted and you won’t see %(carrier_name)s rates.', {
-						args: { carrier_name: data.carrier },
+						args: { carrier_name: accountData.carrier },
 					} ) }
 				</p>
 			</Dialog>
@@ -147,7 +146,7 @@ CarrierAccountListItem.propTypes = {
 	errorNotice: PropTypes.func.isRequired,
 	successNotice: PropTypes.func.isRequired,
 	siteId: PropTypes.number.isRequired,
-	data: PropTypes.shape( {
+	accountData: PropTypes.shape( {
 		id: PropTypes.string,
 		carrier: PropTypes.string.isRequired,
 		account: PropTypes.string,

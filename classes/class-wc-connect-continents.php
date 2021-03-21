@@ -14,7 +14,7 @@ class WC_Connect_Continents {
 	 * Return the list of countries and states for a given continent.
 	 *
 	 * @since  3.1.0
-	 * @param  string          $continent_code
+	 * @param  string $continent_code
 	 * @return array|mixed Response data, ready for insertion into collection data.
 	 */
 	public function get_continent( $continent_code = false ) {
@@ -46,15 +46,18 @@ class WC_Connect_Continents {
 				// If we have detailed locale information include that in the response
 				if ( array_key_exists( $country_code, $locale_info ) ) {
 					// Defensive programming against unexpected changes in locale-info.php
-					$country_data = wp_parse_args( $locale_info[ $country_code ], array(
-						'currency_code'  => 'USD',
-						'currency_pos'   => 'left',
-						'decimal_sep'    => '.',
-						'dimension_unit' => 'in',
-						'num_decimals'   => 2,
-						'thousand_sep'   => ',',
-						'weight_unit'    => 'lbs',
-					) );
+					$country_data = wp_parse_args(
+						$locale_info[ $country_code ],
+						array(
+							'currency_code'  => 'USD',
+							'currency_pos'   => 'left',
+							'decimal_sep'    => '.',
+							'dimension_unit' => 'in',
+							'num_decimals'   => 2,
+							'thousand_sep'   => ',',
+							'weight_unit'    => 'lbs',
+						)
+					);
 
 					$country = array_merge( $country, $country_data );
 				}

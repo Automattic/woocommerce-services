@@ -61,12 +61,12 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			$message = false;
 
 			if (
-				'product_missing_weight'    === $error->get_error_code() ||
+				'product_missing_weight' === $error->get_error_code() ||
 				'product_missing_dimension' === $error->get_error_code()
 			) {
 				$error_data = $error->get_error_data();
-				$id = $error_data['product_id'];
-				$product = wc_get_product( $id );
+				$id         = $error_data['product_id'];
+				$product    = wc_get_product( $id );
 
 				if (
 					! $product ||
@@ -82,10 +82,11 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				}
 
 				$product_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
-				$product_id = is_a( $product, 'WC_Product_Variation' ) ? $product->get_parent_id() : $id;
-				$message = sprintf(
+				$product_id   = is_a( $product, 'WC_Product_Variation' ) ? $product->get_parent_id() : $id;
+				$message      = sprintf(
 					__( '<strong>"%2$s" is missing weight, length, width, or height.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Enter dimensions and weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
-					get_edit_post_link( $product_id ), $product_name
+					get_edit_post_link( $product_id ),
+					$product_name
 				);
 			}
 
@@ -98,13 +99,13 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				'strong' => array(),
 				'br'     => array(),
 			);
-?>
+			?>
 			<div class='notice notice-error' style="position: relative;">
 				<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
 				<p><?php echo wp_kses( $message, $allowed_html ); ?></p>
 			</div>
-<?php
-			echo "";
+			<?php
+			echo '';
 		}
 	}
 
