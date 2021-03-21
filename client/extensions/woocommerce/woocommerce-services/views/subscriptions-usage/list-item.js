@@ -7,6 +7,9 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
+import { Tooltip } from '@wordpress/components';
+import Gridicon from 'gridicons';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
@@ -21,7 +24,7 @@ const SubscriptionsUsageListItem = ( props ) => {
 	const { translate, data, errorNotice, successNotice, siteId } = props;
 	const [isActive, setisActive] = React.useState( data.is_active );
 	const [isSaving, setIsSaving] = React.useState(false);
-	 
+
 	const getIcon = ( productName ) => {
 		const subscriptionToIconRules = [
 			[/^DHL/g, 'dhlexpress'],
@@ -31,14 +34,14 @@ const SubscriptionsUsageListItem = ( props ) => {
 
 		const i = subscriptionToIconRules.findIndex( ( [rule] ) => rule.test( productName ) );
 		if ( i > -1 ) return subscriptionToIconRules[i][1];
-		
+
 		return '';
 	};
 
 	const handleActivate = () =>{
 		const submitActivation = async () => {
 			setIsSaving(true);
-		
+
 			try {
 				await api.post( siteId, api.url.subscriptionActivate( data.product_key ) );
 				setisActive( true );
@@ -52,8 +55,14 @@ const SubscriptionsUsageListItem = ( props ) => {
 		submitActivation();
 	}
 
-	const usage_count = data.usage_count ? data.usage_count : 0 ;
-	const usage = data.usage_limit ? `${ usage_count }/${ data.usage_limit }` : '';
+	const usage = [];
+	let isUsageOverLimit = false;
+
+	data.usage_data.forEach( ( usageEvent, index ) => {
+		usage.push( <div key={ index }>{ usageEvent.label }: { usageEvent.count }/{ usageEvent.limit }</div> );
+		isUsageOverLimit = isUsageOverLimit || usageEvent.count > usageEvent.limit;
+	} );
+
 	return (
 		<div className= "subscriptions-usage__list-item" >
 			<div className="subscriptions-usage__list-item-carrier-icon">
@@ -62,8 +71,18 @@ const SubscriptionsUsageListItem = ( props ) => {
 			<div className="subscriptions-usage__list-item-name">
 				<span>{ data.product_name }</span>
 			</div>
-			<div className="subscriptions-usage__list-item-usage">
-				<span>{ usage }</span>
+			<div className={ classNames( 'subscriptions-usage__list-item-usage', { 'is-over-limit': isUsageOverLimit } ) }>
+				<span className="subscriptions-usage__list-item-usage-numbers">{ usage }</span>
+				<Tooltip
+					text={ translate(
+						'Your store is over the limit for rate calls this month and your account will be charged for overages. ' +
+						'To prevent future overage charges you can upgrade your plan.'
+					) }
+				>
+					<span className="subscriptions-usage__list-item-usage-icon">
+						<Gridicon icon="info-outline" size={ 18 } />
+					</span>
+				</Tooltip>
 			</div>
 			<div className="subscriptions-usage__list-item-actions">
 				{ isActive ? (
@@ -77,8 +96,8 @@ const SubscriptionsUsageListItem = ( props ) => {
 						{ translate( 'Manage' ) }
 					</a>
 				) : (
-					<Button 
-						onClick={ handleActivate } 
+					<Button
+						onClick={ handleActivate }
 						disabled={ isSaving }
 						busy={ isSaving }
 						compact
@@ -98,8 +117,11 @@ SubscriptionsUsageListItem.propTypes = {
 	data: PropTypes.shape( {
 		product_name: PropTypes.string.isRequired,
 		is_active: PropTypes.bool.isRequired,
-		usage_limit: PropTypes.number,
-		usage_count: PropTypes.number,
+		usage_data: PropTypes.arrayOf( PropTypes.shape( {
+			limit: PropTypes.number,
+			count: PropTypes.number,
+			label: PropTypes.string,
+		} ) )
 	} ).isRequired,
 };
 

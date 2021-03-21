@@ -12,7 +12,7 @@ class WC_REST_Connect_Shipping_Label_Status_Controller extends WC_REST_Connect_B
 	protected $rest_base = 'connect/label/(?P<order_id>\d+)/(?P<label_id>\d+)';
 
 	public function get( $request ) {
-		$response = $this->api_client->get_label_status( $request[ 'label_id' ] );
+		$response = $this->api_client->get_label_status( $request['label_id'] );
 
 		if ( is_wp_error( $response ) ) {
 			$error = new WP_Error(
@@ -24,11 +24,11 @@ class WC_REST_Connect_Shipping_Label_Status_Controller extends WC_REST_Connect_B
 			return $error;
 		}
 
-		$label = $this->settings_store->update_label_order_meta_data( $request[ 'order_id' ], $response->label );
+		$label = $this->settings_store->update_label_order_meta_data( $request['order_id'], $response->label );
 
 		return array(
 			'success' => true,
-			'label' => $label,
+			'label'   => $label,
 		);
 	}
 
