@@ -7,6 +7,7 @@
 * Add   - Run phpcbf as a pre-commit rule.
 * Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
 * Tweak - Updated .nvmrc to use 10.16.0
+* Add   - Update the shipping label status endpoint to accept multiple ids.
 
 = 1.25.9 - 2021-03-17 =
 * Add   - WC Admin notice about DHL live rates.
