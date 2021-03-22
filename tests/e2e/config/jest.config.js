@@ -17,18 +17,7 @@ module.exports = useE2EJestConfig( {
 	preset: 'jest-puppeteer',
 
 	// Where to look for test files
-	// roots: [ '<rootDir>/specs' ],
 	roots: [ path.resolve( __dirname, '../specs' ) ],
-
-	//setupFiles: [ '<rootDir>/.node_modules/regenerator-runtime/runtime' ],
-
-	// A list of paths to modules that run some code to configure or set up the testing framework
-	// before each test
-	// setupFilesAfterEnv: [
-	// 	'<rootDir>jest.setup.js',
-	// 	'<rootDir>jest.test.failure.js',
-	// 	'expect-puppeteer',
-	// ],
 
 	// The glob patterns Jest uses to detect test files
 	testMatch: [ '**/*.(test|spec).js' ],
