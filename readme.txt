@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.9
+Stable tag: 1.25.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,19 +75,6 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
-
-= 1.25.9 - 2021-03-17 =
-* Add   - WC Admin notice about DHL live rates.
-* Add	- Live rates section in settings page.
-* Tweak - Cleanup stripe functionality.
-* Tweak - Display better errors on checkout page when address fields are missing / invalid.
-* Tweak - Refresh on status page does not reload page.
-* Fix   - UPS invoice number allows numbers and letters.
-* Add 	- Tracks shipping services used at checkout.
-* Add   - Update the existing endpoint `POST /connect/packages` to create shipping label packages, and add an endpoint `PUT /connect/packages` to update shipping label packages.
-* Fix   - Only display shipping validation errors on the cart or checkout pages.
-* Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
-* Fix   - Revert radio button dot offset in the "Create shipping label" modal.
 
 = 1.25.8 - 2021-03-02 =
 * Tweak - Add support for new Jetpack 9.5 data connection.

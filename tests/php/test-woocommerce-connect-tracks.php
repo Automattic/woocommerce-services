@@ -130,10 +130,10 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->method( 'log' )
 				->withConsecutive(
 					array(
-						$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
+						$this->stringContains( 'woocommerceconnect_saved_service_settings' )
 					),
 					array(
-						$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
+						$this->stringContains( 'woocommerceconnect_saved_usps_settings' )
 					)
 				);
 		} else {
@@ -164,10 +164,10 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->method( 'log' )
 				->withConsecutive(
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_added' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_method_added' )
 					),
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_added' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_added' )
 					)
 				);
 		} else {
@@ -198,10 +198,10 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->method( 'log' )
 				->withConsecutive(
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' )
 					),
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' )
 					)
 				);
 		} else {
@@ -232,10 +232,10 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->method( 'log' )
 				->withConsecutive(
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' )
 					),
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' )
 					)
 				);
 		} else {
@@ -266,10 +266,10 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 				->method( 'log' )
 				->withConsecutive(
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' )
 					),
 					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' ),
+						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' )
 					)
 				);
 		} else {
