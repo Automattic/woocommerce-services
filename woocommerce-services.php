@@ -1233,10 +1233,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Hook fetching the available services from the connect server
 		 */
 		public function schedule_service_schemas_fetch() {
-			$schemas_store = $this->get_service_schemas_store();
-			$schemas       = $schemas_store->get_service_schemas();
+			$schemas_store     = $this->get_service_schemas_store();
+			$schemas           = $schemas_store->get_service_schemas();
+			$last_fetch_result = $schemas_store->get_last_fetch_result_code();
 
-			if ( ! $schemas ) {
+			if ( ! $schemas && '401' !== $last_fetch_result ) { // Don't retry auth failures wait for next scheduled time.
 				$schemas_store->fetch_service_schemas_from_connect_server();
 			} elseif ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
 				$schemas_store->fetch_service_schemas_from_connect_server();

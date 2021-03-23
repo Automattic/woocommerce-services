@@ -3,6 +3,7 @@
 * Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
 * Fix   - Shipping validation notice shown when no address entered.
+* Tweak - Stop retrying to fetch /services when authentication fails on connect server.
 
 = 1.25.9 - 2021-xx-xx =
 * Add   - WC Admin notice about DHL live rates.
