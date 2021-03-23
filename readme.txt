@@ -76,6 +76,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.10 - 2021-xx-xx =
+* Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
+* Fix   - Shipping validation notice shown when no address entered.
+* Tweak - Stop retrying to fetch /services when authentication fails on connect server.
+
 = 1.25.9 - 2021-03-17 =
 * Add   - WC Admin notice about DHL live rates.
 * Add	- Live rates section in settings page.
