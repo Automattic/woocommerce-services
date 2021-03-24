@@ -1,5 +1,5 @@
 *** WooCommerce Shipping & Tax Changelog ***
-= 1.25.10 - 2021-xx-xx =
+= 1.25.10 - 2021-03-24 =
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
 * Fix   - Shipping validation notice shown when no address entered.
 * Tweak - Stop retrying to fetch /services when authentication fails on connect server.
