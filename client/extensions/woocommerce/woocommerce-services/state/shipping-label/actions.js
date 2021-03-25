@@ -1118,7 +1118,8 @@ export const fetchLabelsStatus = ( orderId, siteId ) => ( dispatch, getState ) =
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
 		orderId
 	});
-	const labelRequests = api
+
+	api
 		.get( siteId, api.url.labelsStatus( orderId, shippingLabel.labels.map( label => label.label_id ) ) )
 		.then( response => {
 			const labelsData = response.labels;
@@ -1138,15 +1139,11 @@ export const fetchLabelsStatus = ( orderId, siteId ) => ( dispatch, getState ) =
 				labelsData: null,
 				error,
 			} );
-			throw error;
-		} );
 
-	// Handle error with a single notice
-	labelRequests.catch( error => {
-		dispatch(
-			NoticeActions.errorNotice( `Failed to retrieve shipping label refund status: ${ error }` )
-		);
-	} );
+			dispatch(
+				NoticeActions.errorNotice( `Failed to retrieve shipping label refund status: ${ error }` )
+			);
+		} );
 };
 
 export const closeRefundDialog = ( orderId, siteId ) => {
