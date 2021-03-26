@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.9
+Stable tag: 1.25.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.10 - 2021-03-24 =
+* Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
+* Fix   - Shipping validation notice shown when no address entered.
+* Tweak - Stop retrying to fetch /services when authentication fails on connect server.
 
 = 1.25.9 - 2021-03-17 =
 * Add   - WC Admin notice about DHL live rates.
