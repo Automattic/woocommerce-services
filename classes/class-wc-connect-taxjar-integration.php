@@ -354,6 +354,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Unchanged from the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L471
 	 *
+	 * @param WC_Cart $wc_cart_object
 	 * @return void
 	 */
 	public function calculate_totals( $wc_cart_object ) {
@@ -396,7 +397,8 @@ class WC_Connect_TaxJar_Integration {
 				'to_state'        => $address['to_state'],
 				'to_city'         => $address['to_city'],
 				'to_street'       => $address['to_street'],
-				'shipping_amount' => WC()->shipping->shipping_total,
+				'shipping_amount' => method_exists( $wc_cart_object, 'get_shipping_total' ) ?
+					$wc_cart_object->get_shipping_total() : WC()->shipping->shipping_total,
 				'line_items'      => $line_items,
 			)
 		);
@@ -845,7 +847,7 @@ class WC_Connect_TaxJar_Integration {
 					'to_zip'          => null,
 					'to_city'         => null,
 					'to_street'       => null,
-					'shipping_amount' => null, // WC()->shipping->shipping_total
+					'shipping_amount' => null,
 					'line_items'      => null,
 				),
 				$options
