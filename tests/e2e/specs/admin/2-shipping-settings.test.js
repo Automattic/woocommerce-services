@@ -3,15 +3,12 @@
  */
 import { StoreOwnerFlow } from "../../utils/flows";
 import { waitForSelectorAndText } from "../../utils/index";
+import { deleteAllPackages, saveAndWait } from '../../utils/components';
 import { AccountWithNoCreditCard, AccountWithOneCreditCard, AccountWithTwoCreditCard, AccountWithTwoCreditCardAndNoDefault } from "../../fixtures/account_settings";
 
-// Click save and wait until it's saved.
-const saveAndWait = async () => {
-    await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
-    await page.waitForSelector('[class="button is-primary"]');
-};
 
 describe( 'Saving shipping label settings', () => {
+
 	it( 'Can toggle shipping labels' , async () => {
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -21,12 +18,10 @@ describe( 'Saving shipping label settings', () => {
             visible: false
         });
         await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
-        // Clicking save should persist the visible state of the section.
         await page.waitForSelector('.card.label-settings__labels-container', {
             visible: false
         });
 
-        // Toggle it back to enable so the following tests can run.
         await expect(page).toClick('.form-toggle__switch');
         await saveAndWait();
     });
@@ -38,8 +33,9 @@ describe( 'Saving shipping label settings', () => {
         await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
         let paperSize = await page.$('select.form-select');
-        let selectedOption = await (await paperSize.getProperty('value')).jsonValue();
-        expect(selectedOption).toBe('legal');
+		let paperSizeElement = await paperSize.getProperty('value');
+        let selectedOption = await paperSizeElement.jsonValue();
+        await expect(selectedOption).toBe('legal');
 
         // Save it back to label
         await page.select('select.form-select', 'label');
@@ -47,8 +43,9 @@ describe( 'Saving shipping label settings', () => {
         await expect(page).toMatchElement('.notice.is-success .notice__text', { text: 'Your shipping settings have been saved.' });
 
         paperSize = await page.$('select.form-select');
-        selectedOption = await (await paperSize.getProperty('value')).jsonValue();
-        expect(selectedOption).toBe('label');
+		paperSizeElement = await paperSize.getProperty('value');
+        selectedOption = await paperSizeElement.jsonValue();
+        await expect(selectedOption).toBe('label');
     });
 } );
 
@@ -134,35 +131,44 @@ describe( 'Shipping label payment method', () => {
         const MASTERCARD_INDEX = 1;
 
         const cardNumbers = await page.$$('.label-settings__card-number');
-        const firstCardNumber = await (await cardNumbers[VISA_CARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(firstCardNumber).toEqual('VISA ****5959');
-        const secondCardNumber = await (await cardNumbers[MASTERCARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(secondCardNumber).toEqual('MasterCard ****2862');
+		const firstCardNumberElement = await cardNumbers[VISA_CARD_INDEX].getProperty('innerText');
+        const firstCardNumber = await firstCardNumberElement.jsonValue();
+        await expect(firstCardNumber).toEqual('VISA ****5959');
+		const secondCardNumberElement = await cardNumbers[MASTERCARD_INDEX].getProperty('innerText');
+        const secondCardNumber = await secondCardNumberElement.jsonValue();
+        await expect(secondCardNumber).toEqual('MasterCard ****2862');
 
         const cardNames = await page.$$('.label-settings__card-name');
-        const firstCardName = await (await cardNames[VISA_CARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(firstCardName).toEqual('John Doe');
-        const secondCardName = await (await cardNames[MASTERCARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(secondCardName).toEqual('Jane Smith');
+		const firstCardNameElement = await cardNames[VISA_CARD_INDEX].getProperty('innerText');
+        const firstCardName = await firstCardNameElement.jsonValue();
+        await expect(firstCardName).toEqual('John Doe');
+		const secondCardNameElement = await cardNames[MASTERCARD_INDEX].getProperty('innerText');
+        const secondCardName = await secondCardNameElement.jsonValue();
+        await expect(secondCardName).toEqual('Jane Smith');
 
         const cardExpiryDates = await page.$$('.label-settings__card-date');
-        const firstCardExpiryDate = await (await cardExpiryDates[VISA_CARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(firstCardExpiryDate).toEqual('Expires 2030-06-10');
-        const secondCardExpiryDate = await (await cardExpiryDates[MASTERCARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
+		const firstCardExpiryDateElement = await cardExpiryDates[VISA_CARD_INDEX].getProperty('innerText');
+        const firstCardExpiryDate = await firstCardExpiryDateElement.jsonValue();
+        await expect(firstCardExpiryDate).toEqual('Expires 2030-06-10');
+		const secondCardExpiryDateElement = await cardExpiryDates[MASTERCARD_INDEX].getProperty('innerText');
+        const secondCardExpiryDate = await secondCardExpiryDateElement.jsonValue();
+        await expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
 
         // Verify the default box is checked.
         const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox.form-checkbox');
-        const firstCardDefaultCheckbox = await (await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked')).jsonValue();
-        expect(firstCardDefaultCheckbox).toBeFalsy();
-        const secondCardDefaultCheckbox = await (await cardDefaultCheckbox[MASTERCARD_INDEX].getProperty('checked')).jsonValue();
-        expect(secondCardDefaultCheckbox).toBeTruthy();
+		const firstCardDefaultCheckboxElement = await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked');
+        const firstCardDefaultCheckbox = await firstCardDefaultCheckboxElement.jsonValue();
+        await expect(firstCardDefaultCheckbox).toBeFalsy();
+		const secondCardDefaultCheckboxElement = await cardDefaultCheckbox[MASTERCARD_INDEX].getProperty('checked');
+        const secondCardDefaultCheckbox = await secondCardDefaultCheckboxElement.jsonValue();
+        await expect(secondCardDefaultCheckbox).toBeTruthy();
     });
 
     it('should have no default card checked if there are multiple cards in Wordpress.com', async () => {
         await mockAccountSettingAPI(AccountWithTwoCreditCardAndNoDefault);
 
         // No need to login again, refresh page
+		await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Verify "Add another credit card" is present after clicking 'Choose a different card'
@@ -174,29 +180,37 @@ describe( 'Shipping label payment method', () => {
         const MASTERCARD_INDEX = 1;
 
         const cardNumbers = await page.$$('.label-settings__card-number');
-        const firstCardNumber = await (await cardNumbers[VISA_CARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(firstCardNumber).toEqual('VISA ****5959');
-        const secondCardNumber = await (await cardNumbers[MASTERCARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(secondCardNumber).toEqual('MasterCard ****2862');
+		const firstCardNumberElement = await cardNumbers[VISA_CARD_INDEX].getProperty('innerText');
+        const firstCardNumber = await firstCardNumberElement.jsonValue();
+        await expect(firstCardNumber).toEqual('VISA ****5959');
+		const secondCardNumberElement = await cardNumbers[MASTERCARD_INDEX].getProperty('innerText');
+        const secondCardNumber = await secondCardNumberElement.jsonValue();
+        await expect(secondCardNumber).toEqual('MasterCard ****2862');
 
         const cardNames = await page.$$('.label-settings__card-name');
-        const firstCardName = await (await cardNames[VISA_CARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(firstCardName).toEqual('John Doe');
-        const secondCardName = await (await cardNames[MASTERCARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(secondCardName).toEqual('Jane Smith');
+		const firstCardNameElement = await cardNames[VISA_CARD_INDEX].getProperty('innerText');
+        const firstCardName = await firstCardNameElement.jsonValue();
+        await expect(firstCardName).toEqual('John Doe');
+		const secondCardNameElement = await cardNames[MASTERCARD_INDEX].getProperty('innerText');
+        const secondCardName = await secondCardNameElement.jsonValue();
+        await expect(secondCardName).toEqual('Jane Smith');
 
         const cardExpiryDates = await page.$$('.label-settings__card-date');
-        const firstCardExpiryDate = await (await cardExpiryDates[VISA_CARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(firstCardExpiryDate).toEqual('Expires 2030-06-10');
-        const secondCardExpiryDate = await (await cardExpiryDates[MASTERCARD_INDEX].getProperty('innerText')).jsonValue();
-        expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
+		const firstCardExpiryDateElement = await cardExpiryDates[VISA_CARD_INDEX].getProperty('innerText');
+        const firstCardExpiryDate = await firstCardExpiryDateElement.jsonValue();
+        await expect(firstCardExpiryDate).toEqual('Expires 2030-06-10');
+		const secondCardExpiryDateElement = await cardExpiryDates[MASTERCARD_INDEX].getProperty('innerText');
+        const secondCardExpiryDate = await secondCardExpiryDateElement.jsonValue();
+        await expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
 
         // Verify that no default box is checked.
         const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox.form-checkbox');
-        const firstCardDefaultCheckbox = await (await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked')).jsonValue();
-        expect(firstCardDefaultCheckbox).toBeFalsy();
-        const secondCardDefaultCheckbox = await (await cardDefaultCheckbox[MASTERCARD_INDEX].getProperty('checked')).jsonValue();
-        expect(secondCardDefaultCheckbox).toBeFalsy();
+		const firstCardDefaultCheckboxElement = await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked');
+        const firstCardDefaultCheckbox = await firstCardDefaultCheckboxElement.jsonValue();
+        await expect(firstCardDefaultCheckbox).toBeFalsy();
+		const secondCardDefaultCheckboxElement = await cardDefaultCheckbox[MASTERCARD_INDEX].getProperty('checked');
+        const secondCardDefaultCheckbox = await secondCardDefaultCheckboxElement.jsonValue();
+        await expect(secondCardDefaultCheckbox).toBeFalsy();
     });
 
     it ('Should show the correct email receipts message', async () => {
@@ -213,6 +227,12 @@ describe( 'Shipping label payment method', () => {
 });
 
 describe( 'Packaging', () => {
+
+	afterAll( async() => {
+		await deleteAllPackages();
+		await saveAndWait();
+	} );
+
     let metricSystemValue = ''; // either "in" or "cm".
 
     it( 'Can add package' , async () => {
@@ -227,19 +247,21 @@ describe( 'Packaging', () => {
 
         // Create a new package
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Add a package' );
+
+        // Set this once globally, all following test will use this metric
+        const metricSystem = await page.$$('.form-text-input-with-affixes .form-text-input-with-affixes__suffix');
+		const metricSystemElement = await metricSystem[0].getProperty('innerText');
+        metricSystemValue = await metricSystemElement.jsonValue();
+
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '5' );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__width', '5' );
         await expect( page ).toFill( '.form-text-input.form-dimensions-input__height', '5' );
         await expect( page ).toFill( '.form-text-input-with-affixes #box_weight', '0.5' );
-        await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } )
-
-        // Set this once globally, all following test will use this metric
-        const metricSystem = await page.$$('.form-text-input-with-affixes .form-text-input-with-affixes__suffix');
-        metricSystemValue = await (await metricSystem[0].getProperty('innerText')).jsonValue();
+        await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } );
 
         // Verify package shows up in list
-        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName });
+        await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-details-name', { text: packageName } );
         await expect(page).toMatchElement('.packages__packages-row .packages__packages-row-dimensions', { text: "5 x 5 x 5 " + metricSystemValue });
 
         // Save package
@@ -256,6 +278,7 @@ describe( 'Packaging', () => {
     it( 'Can edit package' , async () => {
         const packageName = 'Package Box 10x10x10';
 
+		await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click "edit" once this session is loaded
@@ -289,6 +312,7 @@ describe( 'Packaging', () => {
     it( 'Can delete package' , async () => {
         const packageName = 'Package Box 10x10x10';
 
+		await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, click "edit" once this session is loaded
@@ -316,6 +340,7 @@ describe( 'Packaging', () => {
     it ( 'Can select and add service package', async () => {
         const packageName = 'Flat Rate Envelope'; // This is provided in services_data_mock_with_card.json
 
+		await StoreOwnerFlow.login();
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Wait for "Add package" to finish loading, then click "Add package"
