@@ -9,27 +9,30 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Status_Controller' ) ) {
 }
 
 class WC_REST_Connect_Shipping_Label_Status_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/label/(?P<order_id>\d+)/(?P<label_id>\d+)';
+	protected $rest_base = 'connect/label/(?P<order_id>\d+)/(?P<label_ids>(\d+)(,\d+)*)';
 
 	public function get( $request ) {
-		$response = $this->api_client->get_label_status( $request['label_id'] );
+		$label_ids = explode( ',', $request['label_ids'] );
+		$labels    = array();
+		foreach ( $label_ids as $label_id ) {
+			$response = $this->api_client->get_label_status( $label_id );
+			if ( is_wp_error( $response ) ) {
+				$error = new WP_Error(
+					$response->get_error_code(),
+					$response->get_error_message(),
+					array( 'message' => $response->get_error_message() )
+				);
+				$this->logger->log( $error, __CLASS__ );
+				return $error;
+			}
 
-		if ( is_wp_error( $response ) ) {
-			$error = new WP_Error(
-				$response->get_error_code(),
-				$response->get_error_message(),
-				array( 'message' => $response->get_error_message() )
-			);
-			$this->logger->log( $error, __CLASS__ );
-			return $error;
+			$label    = $this->settings_store->update_label_order_meta_data( $request['order_id'], $response->label );
+			$labels[] = $label;
 		}
-
-		$label = $this->settings_store->update_label_order_meta_data( $request['order_id'], $response->label );
 
 		return array(
 			'success' => true,
-			'label'   => $label,
+			'labels'  => $labels,
 		);
 	}
-
 }
