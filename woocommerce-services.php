@@ -216,7 +216,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public static function delete_notices() {
 			if ( self::can_add_wc_admin_notice() ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-				WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+				WC_Connect_Note_DHL_Live_Rates_Available::delete_note();
 			}
 		}
 		/**
@@ -743,7 +743,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Add WC Admin Notices.
 			if ( self::can_add_wc_admin_notice() ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-				WC_Connect_Note_Dhl_Live_Rates_Available::init( $schema );
+				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
 		}
 

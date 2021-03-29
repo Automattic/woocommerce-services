@@ -23,8 +23,25 @@ class WC_Connect_Note_DHL_Live_Rates_Available {
 		// If store has DHL Express live rates.
 		$has_wc_services_dhl_express = in_array( 'wc_services_dhlexpress', $schemas->get_all_shipping_method_ids(), true );
 
-		if ( $has_wc_services_dhl_express ) {
+		if ( ! $has_wc_services_dhl_express ) {
+			return;
+		}
+
+		try {
 			self::possibly_add_note();
+		} catch ( Exception $e ) {
+			// WC Admin is probably disabled and WC_Data_Store::load() threw an exception.
+		}
+	}
+
+	/**
+	 * Delete note if it exists.
+	 */
+	public static function delete_note() {
+		try {
+			self::possibly_delete_note();
+		} catch ( Exception $e ) {
+			// WC Admin is probably disabled and WC_Data_Store::load() threw an exception.
 		}
 	}
 
