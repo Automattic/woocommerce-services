@@ -1,7 +1,8 @@
 <?php
 $permissions     = 'read_write';
-$consumer_key    = 'ck_' . 'wc_rest_api_consumer_key';
-$consumer_secret = 'cs_' . 'wc_rest_api_consumer_secret';
+$defaultConfig   = json_decode( file_get_contents( __DIR__ . '/../e2e/config/default.json' ), true );
+$consumer_key    = $defaultConfig[ 'consumerKey' ];
+$consumer_secret = $defaultConfig[ 'consumerSecret' ];
 
 $data = array(
 	'user_id'         => 1,

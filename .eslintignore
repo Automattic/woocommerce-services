@@ -1,0 +1,3 @@
+# woocommerce app is an artifact of move over from Calypso repo.
+# Let's ignore it for now, and delete it later.
+client/extensions/woocommerce/*

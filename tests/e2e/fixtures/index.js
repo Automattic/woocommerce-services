@@ -7,48 +7,45 @@
  * External dependencies
  */
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
-/* eslint import/no-nodejs-modules: [ "error", { "allow": [ "fs" ] } ] */
 import fs from 'fs';
 import moment from 'moment';
 
+/* eslint import/no-nodejs-modules: [ "error", { "allow": [ "fs" ] } ] */
 
 /**
  * Internal dependencies
  */
 import { withMockedShippingLabel } from '../mocks/index';
+const defaultConfig = require( '../config/default.json' );
 
-const WooCommerce = new WooCommerceRestApi( {
-	url: process.env.WP_BASE_URL,
-	consumerKey: process.env.WC_E2E_REST_API_CONSUMER_KEY,
-	consumerSecret: process.env.WC_E2E_REST_API_CONSUMER_SECRET,
-	wpAPI: true,
-	version: 'wc/v3'
+const baseURL = process.env.WP_BASE_URL || defaultConfig.url;
+const consumerKey = process.env.WC_E2E_REST_API_CONSUMER_KEY || defaultConfig.consumerKey;
+const consumerSecret = process.env.WC_E2E_REST_API_CONSUMER_SECRET || defaultConfig.consumerSecret;
+
+const apiV1 = new WooCommerceRestApi({
+	url: baseURL,
+	consumerKey: consumerKey,
+	consumerSecret: consumerSecret,
+	version: 'wc/v1',
 } );
-
-const WooCommerceServices = new WooCommerceRestApi( {
-	url: process.env.WP_BASE_URL,
-	consumerKey: process.env.WC_E2E_REST_API_CONSUMER_KEY,
-	consumerSecret: process.env.WC_E2E_REST_API_CONSUMER_SECRET,
-	wpAPI: true,
-	version: 'wc/v1'
+const apiV3 = new WooCommerceRestApi({
+	url: baseURL,
+	consumerKey: consumerKey,
+	consumerSecret: consumerSecret,
+	version: 'wc/v3',
 } );
 
 const loadJSON = ( jsonFileName ) => {
 	return JSON.parse(
-		fs.readFileSync( `./tests/e2e-tests/fixtures/${ jsonFileName }` ) );
+		fs.readFileSync( `${__dirname}/${ jsonFileName }` )
+	);
 }
 
 const createProduct = async () => {
 	const ProductsJson = loadJSON( 'products.json' );
 
-	return await new Promise( ( resolve, reject ) => {
-		WooCommerce.post( "products", ProductsJson ).then( ( response ) => {
-			resolve( response.data );
-		} ).catch( ( error ) => {
-			console.log( error.response.data );
-			reject( error );
-		} );
-	} );
+	const response = await apiV3.post( 'products', ProductsJson );
+	return response.data;
 }
 
 const createOrder = async ( product ) => {
@@ -59,61 +56,44 @@ const createOrder = async ( product ) => {
 		"quantity": 1
 	} );
 
-	return await new Promise( ( resolve, reject ) => {
-		WooCommerce.post( "orders", OrdersJson ).then( ( response ) => {
-			resolve( response.data );
-		} ).catch( ( error ) => {
-			console.log( error.response.data );
-			reject( error );
-		} );
-	} );
+	const response = await apiV3.post( 'orders', OrdersJson );
+	return response.data;
 }
 
-const createShippingLabel = async( order	) => {
+const createShippingLabel = async ( order ) => {
 	const createShippingLabelJson = loadJSON( 'create-shipping-label.json' );
 
 	createShippingLabelJson.shipment_id = `shp_${ order.id }`;
 	createShippingLabelJson.rate_id = `rate_${ order.id }`;
 	createShippingLabelJson.packages[0].products = [ order.line_items[0].product_id ];
 
-	return await new Promise( ( resolve, reject ) => {
-		WooCommerceServices.post( `connect/label/${ order.id }`, createShippingLabelJson ).then( ( response ) => {
-			resolve( response.data );
-		} ).catch( ( error ) => {
-			console.log( error.response.data );
-			reject( error );
-		} );
-	} );
+	const response = await apiV1.post( `connect/label/${ order.id }`, createShippingLabelJson );
+	return response.data;
 }
 
 const destroyProduct = async ( product ) => {
-	WooCommerce.delete( `products/${ product.id }`, {
-		force: true
-	} );
+	await apiV3.delete( `products/${ product.id }` );
 }
 
 const destroyOrder = async ( order ) => {
-	WooCommerce.delete( `orders/${ order.id }`, {
-		force: true
-	} );
+	await apiV3.delete( `orders/${ order.id }` );
 }
 
 const withOrder = async ( callback ) => {
 
-	const product	= await createProduct();
+	const product = await createProduct();
 
 	const order = await createOrder( product );
 
 	await callback( order );
 
 	await destroyOrder( order );
-
 	await destroyProduct( product );
 };
 
-const withShippingLabelAndOrder = async( callback ) => {
+const withShippingLabelAndOrder = async ( callback ) => {
 	await withOrder( async ( order ) => {
-		const { labels: [ shippingLabel ] } = await createShippingLabel( order );
+		const shippingLabel = await createShippingLabel( order );
 		shippingLabel.created = shippingLabel.created_date = Date.now();
 		shippingLabel.expiry_date = moment().add( 30, 'days' ).milliseconds();
 
@@ -126,7 +106,7 @@ const withShippingLabelAndOrder = async( callback ) => {
 
 const withExpiredShippingLabelAndOrder = async( callback ) => {
 	await withOrder( async ( order ) => {
-		const { labels: [ shippingLabel ] } = await createShippingLabel( order );
+		const shippingLabel = await createShippingLabel( order );
 		shippingLabel.created = shippingLabel.created_date = moment().subtract( 30, 'days' ).milliseconds();
 		shippingLabel.expiry_date = Date.now();
 
