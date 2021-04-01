@@ -76,6 +76,16 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.11 - 2021-xx-xx =
+* Fix	- Ensure status page is displayed on new WC navigation menu.
+* Add   - Run phpcbf as a pre-commit rule.
+* Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
+* Tweak - Updated .nvmrc to use 10.16.0
+* Tweak - Update the shipping label status endpoint to accept and return multiple ids.
+* Tweak	- Display spinner icon during service data refresh.
+* Add	- Adds Dockerized E2E tests with GitHub Action integration.
+* Fix   - Handle DHL live rates notice creation and deletion errors.
+
 = 1.25.10 - 2021-03-24 =
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
 * Fix   - Shipping validation notice shown when no address entered.
