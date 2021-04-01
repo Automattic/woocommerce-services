@@ -191,12 +191,12 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 					type: 'UpsAccount',
 				};
 
-				if( isInvoiceDetailsChecked ) {
-					delete formValues.invoice_number;
-					delete formValues.invoice_date;
-					delete formValues.invoice_amount;
-					delete formValues.invoice_currency;
-					delete formValues.invoice_control_id;
+				if( ! isInvoiceDetailsChecked ) {
+					delete requestBody.invoice_number;
+					delete requestBody.invoice_date;
+					delete requestBody.invoice_amount;
+					delete requestBody.invoice_currency;
+					delete requestBody.invoice_control_id;
 				}
 
 				const result = await api.post( siteId, api.url.shippingCarrier(), requestBody );
