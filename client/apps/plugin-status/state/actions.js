@@ -36,7 +36,7 @@ const saveSettings = () => ( dispatch, getState ) => {
 };
 
 export const refreshServiceData = () => (dispatch) => {
-	api.post(api.url.refreshServiceData())
+	return api.post(api.url.refreshServiceData())
 		.then(response => {
 			const {success, ...data} = response;
 			dispatch({

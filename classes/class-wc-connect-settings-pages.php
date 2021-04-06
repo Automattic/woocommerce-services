@@ -86,13 +86,14 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			);
 
 			$carriers_response = $this->api_client->get_carrier_accounts();
-			if ( ! is_wp_error( $carriers_response ) && $carriers_response ) {
+
+			if ( ! is_wp_error( $carriers_response ) && ! empty( $carriers_response->carriers ) ) {
 				$extra_args['carrier_accounts'] = $carriers_response->carriers;
 			}
 
 			$subscriptions_usage_response = $this->api_client->get_wccom_subscriptions();
 
-			if ( ! is_wp_error( $subscriptions_usage_response ) && $subscriptions_usage_response ) {
+			if ( ! is_wp_error( $subscriptions_usage_response ) && ! empty( $subscriptions_usage_response->subscriptions ) ) {
 				$extra_args['subscriptions'] = $subscriptions_usage_response->subscriptions;
 			}
 

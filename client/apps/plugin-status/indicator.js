@@ -15,6 +15,10 @@ import FormLegend from 'components/forms/form-legend';
 const Indicator = ( { title, subtitle, state, message, children } ) => {
 	let icon, className;
 	switch ( state ) {
+		case 'fetching':
+			className = 'is-fetching';
+			icon = 'sync';
+			break;
 		case 'success':
 			className = 'is-success';
 			icon = 'checkmark-circle';

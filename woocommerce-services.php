@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.25.10
+ * Version: 1.25.11
  * WC requires at least: 3.0.0
  * WC tested up to: 5.0
  *
@@ -225,6 +225,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool true|false.
 		 */
 		public static function can_add_wc_admin_notice() {
+			try {
+				WC_Data_Store::load( 'admin-note' );
+			} catch ( Exception $e ) {
+				return false;
+			}
+
 			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' ) && class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
 		}
 
@@ -743,7 +749,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Add WC Admin Notices.
 			if ( self::can_add_wc_admin_notice() ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-				WC_Connect_Note_Dhl_Live_Rates_Available::init( $schema );
+				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
 		}
 
@@ -792,7 +798,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
-			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
@@ -803,6 +808,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$this->taxjar->init();
 			$this->paypal_ec->init();
+
+			if ( is_admin() ) {
+				$this->load_admin_dependencies();
+			}
 		}
 
 		/**

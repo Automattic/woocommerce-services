@@ -1195,44 +1195,27 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_REFUND_DIALOG ] = state => {
 	};
 };
 
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS ] = ( state, { labelId } ) => {
-	const labelIndex = findIndex( state.labels, { label_id: labelId } );
-	const labelData = {
-		...state.labels[ labelIndex ],
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS ] = state => {
+	return {
+		...state,
 		statusRetrivalInProgress: true,
 	};
-
-	const newState = {
-		...state,
-		labels: [ ...state.labels ],
-	};
-	newState.labels[ labelIndex ] = labelData;
-	return newState;
 };
 
 reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE ] = (
 	state,
-	{ labelId, response, error }
+	{ labelsData, error }
 ) => {
 	if ( error ) {
-		response = {};
+		labelsData = {};
 	}
 
-	const labelIndex = findIndex( state.labels, { label_id: labelId } );
-	const labelData = {
-		...state.labels[ labelIndex ],
-		...response,
-		statusUpdated: true,
+	return {
+		...state,
+		labels: labelsData,
+		refreshedLabelStatus: true,
 		statusRetrivalInProgress: false,
 	};
-
-	const newState = {
-		...state,
-		labels: [ ...state.labels ],
-		refreshedLabelStatus: true,
-	};
-	newState.labels[ labelIndex ] = labelData;
-	return newState;
 };
 
 reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REFUND_REQUEST ] = state => {
