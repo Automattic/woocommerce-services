@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.10
+Stable tag: 1.25.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,16 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.11 - 2021-04-06 =
+* Fix	- Ensure status page is displayed on new WC navigation menu.
+* Add   - Run phpcbf as a pre-commit rule.
+* Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
+* Tweak - Updated .nvmrc to use 10.16.0
+* Tweak - Update the shipping label status endpoint to accept and return multiple ids.
+* Tweak	- Display spinner icon during service data refresh.
+* Add	- Adds Dockerized E2E tests with GitHub Action integration.
+* Fix   - Handle DHL live rates notice creation and deletion errors.
 
 = 1.25.10 - 2021-03-24 =
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
