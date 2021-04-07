@@ -225,6 +225,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool true|false.
 		 */
 		public static function can_add_wc_admin_notice() {
+			try {
+				WC_Data_Store::load( 'admin-note' );
+			} catch ( Exception $e ) {
+				return false;
+			}
+
 			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' ) && class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
 		}
 
@@ -743,7 +749,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Add WC Admin Notices.
 			if ( self::can_add_wc_admin_notice() ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-				WC_Connect_Note_Dhl_Live_Rates_Available::init( $schema );
+				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
 		}
 
