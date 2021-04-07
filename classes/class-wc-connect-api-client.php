@@ -182,10 +182,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		public function track_subscription_event( $services ) {
 			if ( empty( $services ) ) {
-				return new WP_Error(
-					'nothing_to_ship',
-					__( 'No shipping rate could be calculated. No items in the package are shippable.', 'woocommerce-services' )
-				);
+				// Checkout not involved with WCS rates
+				return $services;
 			}
 
 			return $this->request( 'POST', '/subscriptions/checkout', array( 'services' => $services ) );
