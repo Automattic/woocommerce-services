@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.12 - 2021-xx-xx =
+* Fix   - Fix PHP 5.6 compatibility issue.
+
 = 1.25.11 - 2021-04-06 =
 * Fix	- Ensure status page is displayed on new WC navigation menu.
 * Add   - Run phpcbf as a pre-commit rule.
@@ -8,7 +11,6 @@
 * Tweak - Update the shipping label status endpoint to accept and return multiple ids.
 * Tweak	- Display spinner icon during service data refresh.
 * Add	- Adds Dockerized E2E tests with GitHub Action integration.
-* Fix   - Fix PHP 5.6 compatibility issue.
 * Fix   - Handle DHL live rates notice creation and deletion errors.
 
 = 1.25.10 - 2021-03-24 =
