@@ -320,7 +320,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @param WC_Order $order The order to check for shipping label creation eligibility.
 		 * @return bool Whether the given order is eligible for shipping label creation.
 		 */
-		public function is_order_eligible_for_shipping_label_creation( WC_Order $order ): bool {
+		public function is_order_eligible_for_shipping_label_creation( WC_Order $order ) {
 			// Set up a dictionary from product ID to quantity in the order, which will be updated by refunds and existing labels later.
 			$quantities_by_product_id = array();
 			foreach ( $order->get_items() as $item ) {
@@ -366,7 +366,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 *
 		 * @return bool Whether the WC store is eligible for shipping label creation.
 		 */
-		public function is_store_eligible_for_shipping_label_creation(): bool {
+		public function is_store_eligible_for_shipping_label_creation() {
 			$base_currency = get_woocommerce_currency();
 			if ( ! $this->is_supported_currency( $base_currency ) ) {
 				return false;
@@ -386,7 +386,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @param string $country_code Country code of the WC store.
 		 * @return bool Whether the given country code is supported for shipping labels.
 		 */
-		private function is_supported_country( string $country_code ): bool {
+		private function is_supported_country( $country_code ) {
 			return in_array( $country_code, $this->supported_countries, true );
 		}
 
@@ -396,7 +396,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @param string $currency_code Currency code of the WC store.
 		 * @return bool Whether the given country code is supported for shipping labels.
 		 */
-		private function is_supported_currency( string $currency_code ): bool {
+		private function is_supported_currency( $currency_code ) {
 			return in_array( $currency_code, $this->supported_currencies, true );
 		}
 
