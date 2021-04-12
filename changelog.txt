@@ -2,6 +2,7 @@
 
 = 1.25.12 - 2021-xx-xx =
 * Fix   - Fix PHP 5.6 compatibility issue.
+* Tweak - Update plugin author name.
 
 = 1.25.11 - 2021-04-06 =
 * Fix	- Ensure status page is displayed on new WC navigation menu.
@@ -12,7 +13,6 @@
 * Tweak	- Display spinner icon during service data refresh.
 * Add	- Adds Dockerized E2E tests with GitHub Action integration.
 * Fix   - Handle DHL live rates notice creation and deletion errors.
-* Tweak - Update plugin author name.
 
 = 1.25.10 - 2021-03-24 =
 * Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
