@@ -181,11 +181,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return object|WP_Error
 		 */
 		public function track_subscription_event( $services ) {
-			if ( empty( $services ) ) {
-				// Checkout not involved with WCS rates.
-				return $services;
-			}
-
 			return $this->request( 'POST', '/subscriptions/checkout', array( 'services' => $services ) );
 		}
 
