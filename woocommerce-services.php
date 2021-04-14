@@ -1122,6 +1122,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 
+			if ( empty( $services ) ) {
+				return;
+			}
+
 			$api_client = $this->get_api_client();
 			$response   = $api_client->track_subscription_event( $services );
 			if ( is_wp_error( $response ) ) {
