@@ -191,12 +191,12 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 					type: 'UpsAccount',
 				};
 
-				if( isInvoiceDetailsChecked ) {
-					delete formValues.invoice_number;
-					delete formValues.invoice_date;
-					delete formValues.invoice_amount;
-					delete formValues.invoice_currency;
-					delete formValues.invoice_control_id;
+				if( ! isInvoiceDetailsChecked ) {
+					delete requestBody.invoice_number;
+					delete requestBody.invoice_date;
+					delete requestBody.invoice_amount;
+					delete requestBody.invoice_currency;
+					delete requestBody.invoice_control_id;
 				}
 
 				const result = await api.post( siteId, api.url.shippingCarrier(), requestBody );
@@ -389,12 +389,14 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								<div className="carrier-accounts__settings-two-columns">
 									<TextField
 										id="invoice_number"
+										defaultValue={formValues.invoice_number}
 										title={translate('UPS invoice number')}
 										updateValue={handleFormFieldUpdate}
 										error={typeof formValues.invoice_number === 'string' ? fieldsErrors.invoice_number : undefined}
 									/>
 									<TextField
 										id="invoice_date"
+										defaultValue={formValues.invoice_date}
 										title={translate('UPS invoice date')}
 										updateValue={handleFormFieldUpdate}
 										error={typeof formValues.invoice_date === 'string' ? fieldsErrors.invoice_date : undefined}
@@ -404,12 +406,14 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								<div className="carrier-accounts__settings-two-columns">
 									<TextField
 										id="invoice_amount"
+										defaultValue={formValues.invoice_amount}
 										title={translate('UPS invoice amount')}
 										updateValue={handleFormFieldUpdate}
 										error={typeof formValues.invoice_amount === 'string' ? fieldsErrors.invoice_amount : undefined}
 									/>
 									<TextField
 										id="invoice_currency"
+										defaultValue={formValues.invoice_currency}
 										title={translate('UPS invoice currency')}
 										updateValue={handleFormFieldUpdate}
 										error={typeof formValues.invoice_currency === 'string' ? fieldsErrors.invoice_currency : undefined}
@@ -417,6 +421,7 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 								</div>
 								<TextField
 									id="invoice_control_id"
+									defaultValue={formValues.invoice_control_id}
 									title={translate('UPS invoice control id')}
 									updateValue={handleFormFieldUpdate}
 									error={typeof formValues.invoice_control_id === 'string' ? fieldsErrors.invoice_control_id : undefined}
