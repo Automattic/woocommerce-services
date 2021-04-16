@@ -933,10 +933,7 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		// Remove taxes if they are set somehow and customer is exempt
-		if ( WC()->customer->is_vat_exempt() ) {
-			$wc_cart_object->remove_taxes();
-		} elseif ( $taxes['has_nexus'] ) {
+		if ( $taxes['has_nexus'] ) {
 			// Use Woo core to find matching rates for taxable address
 			$location = array(
 				'to_country' => $to_country,
