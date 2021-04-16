@@ -831,7 +831,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Direct from the TaxJar plugin, without Nexus check.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L247
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function calculate_tax( $options = array() ) {
 		$this->_log( ':::: TaxJar Plugin requested ::::' );
@@ -909,27 +909,32 @@ class WC_Connect_TaxJar_Integration {
 
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
-		if ( isset( $response ) ) {
-			// Log the response
-			$this->_log( 'Received: ' . $response['body'] );
+		// if no response, no need to keep going - bail early
+		if ( ! isset( $response ) ) {
+			$this->_log( 'Received: none.' );
 
-			// Decode Response
-			$taxjar_response = json_decode( $response['body'] );
-			$taxjar_response = $taxjar_response->tax;
+			return $taxes;
+		}
 
-			// Update Properties based on Response
-			$taxes['freight_taxable'] = (int) $taxjar_response->freight_taxable;
-			$taxes['has_nexus']       = (int) $taxjar_response->has_nexus;
-			$taxes['tax_rate']        = $taxjar_response->rate;
+		// Log the response
+		$this->_log( 'Received: ' . $response['body'] );
 
-			if ( ! empty( $taxjar_response->breakdown ) ) {
-				if ( ! empty( $taxjar_response->breakdown->line_items ) ) {
-					$line_items = array();
-					foreach ( $taxjar_response->breakdown->line_items as $line_item ) {
-						$line_items[ $line_item->id ] = $line_item;
-					}
-					$taxes['line_items'] = $line_items;
+		// Decode Response
+		$taxjar_response = json_decode( $response['body'] );
+		$taxjar_response = $taxjar_response->tax;
+
+		// Update Properties based on Response
+		$taxes['freight_taxable'] = (int) $taxjar_response->freight_taxable;
+		$taxes['has_nexus']       = (int) $taxjar_response->has_nexus;
+		$taxes['tax_rate']        = $taxjar_response->rate;
+
+		if ( ! empty( $taxjar_response->breakdown ) ) {
+			if ( ! empty( $taxjar_response->breakdown->line_items ) ) {
+				$line_items = array();
+				foreach ( $taxjar_response->breakdown->line_items as $line_item ) {
+					$line_items[ $line_item->id ] = $line_item;
 				}
+				$taxes['line_items'] = $line_items;
 			}
 		}
 
@@ -944,10 +949,6 @@ class WC_Connect_TaxJar_Integration {
 				'to_zip'     => $to_zip,
 				'to_city'    => $to_city,
 			);
-
-			if ( 'GB' === $to_country ) {
-				$location['to_state'] = '';
-			}
 
 			// Add line item tax rates
 			foreach ( $taxes['line_items'] as $line_item_key => $line_item ) {
@@ -965,6 +966,7 @@ class WC_Connect_TaxJar_Integration {
 
 				if ( $line_item->combined_tax_rate ) {
 					$taxes['rate_ids'][ $line_item_key ] = $this->create_or_update_tax_rate(
+						$taxjar_response,
 						$location,
 						$line_item->combined_tax_rate * 100,
 						$tax_class,
@@ -976,6 +978,7 @@ class WC_Connect_TaxJar_Integration {
 			// Add shipping tax rate
 			if ( $taxes['tax_rate'] ) {
 				$taxes['rate_ids']['shipping'] = $this->create_or_update_tax_rate(
+					$taxjar_response,
 					$location,
 					$taxes['tax_rate'] * 100,
 					'',
@@ -993,13 +996,55 @@ class WC_Connect_TaxJar_Integration {
 	 * Unchanged from the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/9d8e725/includes/class-wc-taxjar-integration.php#L396
 	 *
-	 * @return void
+	 * @return int
 	 */
-	public function create_or_update_tax_rate( $location, $rate, $tax_class = '', $freight_taxable = 1 ) {
+	public function create_or_update_tax_rate( $taxjar_response, $location, $rate, $tax_class = '', $freight_taxable = 1 ) {
+		// all the states in GB have the same tax rate
+		// prevents from saving a "state" column value for GB
+		$to_state = 'GB' === $location['to_country'] ? '' : $location['to_state'];
+
+		$tax_rate_name = $to_state;
+		// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
+		// I would love to do this for other locations, but it looks like that would create issues.
+		// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
+		if ( 'US' === $location['to_country'] ) {
+			// for a list of possible attributes in the `jurisdictions` attribute, see:
+			// https://developers.taxjar.com/api/reference/#post-calculate-sales-tax-for-an-order
+			$jurisdiction_pieces = array_merge(
+				[
+					'city'    => '',
+					'county'  => '',
+					'state'   => $to_state,
+					'country' => $location['to_country'],
+				],
+				(array) $taxjar_response->jurisdictions
+			);
+
+			// sometimes TaxJar returns a string with the value 'FALSE' for `state`.
+			if ( rest_is_boolean( $to_state ) ) {
+				$jurisdiction_pieces['state'] = '';
+			}
+
+			$tax_rate_name = join(
+				'-',
+				array_filter(
+					[
+						// the `$jurisdiction_pieces` is not really sorted
+						// so let's sort it with COUNTRY-STATE-COUNTY-CITY
+						// `array_filter` will take care of filtering out the "falsy" entries
+						$jurisdiction_pieces['country'],
+						$jurisdiction_pieces['state'],
+						$jurisdiction_pieces['county'],
+						$jurisdiction_pieces['city'],
+					]
+				)
+			);
+		}
+
 		$tax_rate = array(
 			'tax_rate_country'  => $location['to_country'],
-			'tax_rate_state'    => $location['to_state'],
-			'tax_rate_name'     => sprintf( '%s Tax', $location['to_state'] ),
+			'tax_rate_state'    => $to_state,
+			'tax_rate_name'     => sprintf( '%s Tax', $tax_rate_name ),
 			'tax_rate_priority' => 1,
 			'tax_rate_compound' => false,
 			'tax_rate_shipping' => $freight_taxable,
@@ -1010,7 +1055,7 @@ class WC_Connect_TaxJar_Integration {
 		$wc_rate = WC_Tax::find_rates(
 			array(
 				'country'   => $location['to_country'],
-				'state'     => $location['to_state'],
+				'state'     => $to_state,
 				'postcode'  => $location['to_zip'],
 				'city'      => $location['to_city'],
 				'tax_class' => $tax_class,
