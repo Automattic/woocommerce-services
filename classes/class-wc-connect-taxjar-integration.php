@@ -1048,15 +1048,13 @@ class WC_Connect_TaxJar_Integration {
 		// prevents from saving a "state" column value for GB
 		$to_state = 'GB' === $location['to_country'] ? '' : $location['to_state'];
 
-		// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
-		// I would love to do this for other locations, but it looks like that would create issues.
-		// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
-		$tax_rate_name = self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state );
-
 		$tax_rate = array(
 			'tax_rate_country'  => $location['to_country'],
 			'tax_rate_state'    => $to_state,
-			'tax_rate_name'     => sprintf( '%s Tax', $tax_rate_name ),
+			// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
+			// I would love to do this for other locations, but it looks like that would create issues.
+			// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
+			'tax_rate_name'     => sprintf( '%s Tax', self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state ) ),
 			'tax_rate_priority' => 1,
 			'tax_rate_compound' => false,
 			'tax_rate_shipping' => $freight_taxable,
