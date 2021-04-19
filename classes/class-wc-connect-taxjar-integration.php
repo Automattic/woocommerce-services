@@ -57,7 +57,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return string
 	 */
-	private static function generate_tax_rate_name( $taxjar_response, $to_country, $to_state ): mixed {
+	private static function generate_tax_rate_name( $taxjar_response, $to_country, $to_state ) {
 		if ( 'US' !== $to_country ) {
 			return $to_state;
 		}
