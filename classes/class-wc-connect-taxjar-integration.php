@@ -50,6 +50,51 @@ class WC_Connect_TaxJar_Integration {
 		$this->cache_time = HOUR_IN_SECONDS;
 	}
 
+	/**
+	 * @param $taxjar_response
+	 * @param string          $to_country
+	 * @param string          $to_state
+	 *
+	 * @return string
+	 */
+	private static function generate_tax_rate_name( $taxjar_response, $to_country, $to_state ): mixed {
+		if ( 'US' !== $to_country ) {
+			return $to_state;
+		}
+
+		// for a list of possible attributes in the `jurisdictions` attribute, see:
+		// https://developers.taxjar.com/api/reference/#post-calculate-sales-tax-for-an-order
+		$jurisdiction_pieces = array_merge(
+			[
+				'city'    => '',
+				'county'  => '',
+				'state'   => $to_state,
+				'country' => $to_country,
+			],
+			(array) $taxjar_response->jurisdictions
+		);
+
+		// sometimes TaxJar returns a string with the value 'FALSE' for `state`.
+		if ( rest_is_boolean( $to_state ) ) {
+			$jurisdiction_pieces['state'] = '';
+		}
+
+		return join(
+			'-',
+			array_filter(
+				[
+					// the `$jurisdiction_pieces` is not really sorted
+					// so let's sort it with COUNTRY-STATE-COUNTY-CITY
+					// `array_filter` will take care of filtering out the "falsy" entries
+					$jurisdiction_pieces['country'],
+					$jurisdiction_pieces['state'],
+					$jurisdiction_pieces['county'],
+					$jurisdiction_pieces['city'],
+				]
+			)
+		);
+	}
+
 	public function init() {
 		// Only enable WCS TaxJar integration if the official TaxJar plugin isn't active.
 		if ( class_exists( 'WC_Taxjar' ) ) {
@@ -1003,43 +1048,10 @@ class WC_Connect_TaxJar_Integration {
 		// prevents from saving a "state" column value for GB
 		$to_state = 'GB' === $location['to_country'] ? '' : $location['to_state'];
 
-		$tax_rate_name = $to_state;
 		// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
 		// I would love to do this for other locations, but it looks like that would create issues.
 		// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
-		if ( 'US' === $location['to_country'] ) {
-			// for a list of possible attributes in the `jurisdictions` attribute, see:
-			// https://developers.taxjar.com/api/reference/#post-calculate-sales-tax-for-an-order
-			$jurisdiction_pieces = array_merge(
-				[
-					'city'    => '',
-					'county'  => '',
-					'state'   => $to_state,
-					'country' => $location['to_country'],
-				],
-				(array) $taxjar_response->jurisdictions
-			);
-
-			// sometimes TaxJar returns a string with the value 'FALSE' for `state`.
-			if ( rest_is_boolean( $to_state ) ) {
-				$jurisdiction_pieces['state'] = '';
-			}
-
-			$tax_rate_name = join(
-				'-',
-				array_filter(
-					[
-						// the `$jurisdiction_pieces` is not really sorted
-						// so let's sort it with COUNTRY-STATE-COUNTY-CITY
-						// `array_filter` will take care of filtering out the "falsy" entries
-						$jurisdiction_pieces['country'],
-						$jurisdiction_pieces['state'],
-						$jurisdiction_pieces['county'],
-						$jurisdiction_pieces['city'],
-					]
-				)
-			);
-		}
+		$tax_rate_name = self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state );
 
 		$tax_rate = array(
 			'tax_rate_country'  => $location['to_country'],
