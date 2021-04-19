@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 1.25.12 - 2021-xx-xx =
+* Tweak - Rename automatic tax names for US.
 * Fix   - UPS account connection form retry on invalid submission.
 * Fix   - Fix PHP 5.6 compatibility issue.
 * Tweak - Update plugin author name.
