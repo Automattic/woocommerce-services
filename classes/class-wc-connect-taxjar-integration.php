@@ -876,7 +876,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Direct from the TaxJar plugin, without Nexus check.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L247
 	 *
-	 * @return array
+	 * @return array|boolean
 	 */
 	public function calculate_tax( $options = array() ) {
 		$this->_log( ':::: TaxJar Plugin requested ::::' );
