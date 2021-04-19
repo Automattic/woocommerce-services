@@ -51,9 +51,9 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * @param $taxjar_response
-	 * @param string          $to_country
-	 * @param string          $to_state
+	 * @param mixed  $taxjar_response
+	 * @param string $to_country
+	 * @param string $to_state
 	 *
 	 * @return string
 	 */
