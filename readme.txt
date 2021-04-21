@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.6
-Stable tag: 1.25.11
+Stable tag: 1.25.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.12 - 2021-04-21 =
+* Fix   - UPS account connection form retry on invalid submission.
+* Fix   - Fix PHP 5.6 compatibility issue.
+* Tweak - Update plugin author name.
+* Fix   - Removes unnecessary subscription debug error logs.
 
 = 1.25.11 - 2021-04-06 =
 * Fix	- Ensure status page is displayed on new WC navigation menu.
