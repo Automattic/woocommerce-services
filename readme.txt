@@ -76,6 +76,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.12 - 2021-xx-xx =
+* Fix   - UPS account connection form retry on invalid submission.
+* Fix   - Fix PHP 5.6 compatibility issue.
+* Tweak - Update plugin author name.
+* Fix   - Removes unnecessary subscription debug error logs.
+
 = 1.25.11 - 2021-04-06 =
 * Fix	- Ensure status page is displayed on new WC navigation menu.
 * Add   - Run phpcbf as a pre-commit rule.
