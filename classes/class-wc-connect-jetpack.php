@@ -165,7 +165,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 				return $connection->is_user_connected();
 			}
 
-			if ( defined( JETPACK_MASTER_USER ) ) {
+			if ( defined( 'JETPACK_MASTER_USER' ) ) {
 				$user_token = self::get_master_user_access_token( JETPACK_MASTER_USER );
 
 				return ( isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id );
@@ -186,7 +186,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 				return $connection->is_connected();
 			}
 
-			if ( defined( JETPACK_MASTER_USER ) ) {
+			if ( defined( 'JETPACK_MASTER_USER' ) ) {
 				$user_token = self::get_master_user_access_token( JETPACK_MASTER_USER );
 
 				return isset( $user_token->external_user_id );
