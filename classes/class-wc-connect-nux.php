@@ -297,7 +297,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			// check if Jetpack is activated
-			if ( ! class_exists( '\Automattic\Jetpack\Connection\Manager' ) && ! class_exists( '\Automattic\Jetpack\Connection\Tokens' ) ) {
+			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
 				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
 			}
 
