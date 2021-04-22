@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.13 - 2021-xx-xx =
+* Fix - Check JetPack constant defined by name.
+
 = 1.25.12 - 2021-04-21 =
 * Fix   - UPS account connection form retry on invalid submission.
 * Fix   - Fix PHP 5.6 compatibility issue.
