@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 1.25.13 - 2021-xx-xx =
+* Tweak - Rename automatic tax names for US.
 * Fix - Check JetPack constant defined by name.
 
 = 1.25.12 - 2021-04-21 =
