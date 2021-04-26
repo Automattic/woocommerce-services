@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 1.25.13 - 2021-xx-xx =
+* Fix - Plugin deletion when WooCommerce core is not present.
 * Tweak - Rename automatic tax names for US.
 * Fix - Check JetPack constant defined by name.
 

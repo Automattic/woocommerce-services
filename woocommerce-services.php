@@ -228,6 +228,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( ! class_exists( 'WC_Data_Store' ) ) {
 				return false;
 			}
+
 			try {
 				WC_Data_Store::load( 'admin-note' );
 			} catch ( Exception $e ) {
