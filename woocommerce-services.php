@@ -225,6 +225,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool true|false.
 		 */
 		public static function can_add_wc_admin_notice() {
+			if ( ! class_exists( 'WC_Data_Store' ) ) {
+				return false;
+			}
+
 			try {
 				WC_Data_Store::load( 'admin-note' );
 			} catch ( Exception $e ) {
