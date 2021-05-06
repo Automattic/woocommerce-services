@@ -2,6 +2,7 @@
 
 = 1.25.13 - 2021-xx-xx =
 * Fix - Data encoding when entities are part of order meta.
+* Fix - Plugin deletion when WooCommerce core is not present.
 * Tweak - Rename automatic tax names for US.
 * Fix - Check JetPack constant defined by name.
 
