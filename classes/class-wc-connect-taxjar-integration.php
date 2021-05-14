@@ -1018,15 +1018,13 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			// Add shipping tax rate
-			if ( $taxes['tax_rate'] ) {
-				$taxes['rate_ids']['shipping'] = $this->create_or_update_tax_rate(
-					$taxjar_response,
-					$location,
-					$taxes['tax_rate'] * 100,
-					'',
-					$taxes['freight_taxable']
-				);
-			}
+			$taxes['rate_ids']['shipping'] = $this->create_or_update_tax_rate(
+				$taxjar_response,
+				$location,
+				$taxes['tax_rate'] * 100,
+				'',
+				$taxes['freight_taxable']
+			);
 		} // End if().
 
 		return $taxes;
