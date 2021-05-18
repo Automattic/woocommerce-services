@@ -7,6 +7,7 @@
 * Tweak - Rename automatic tax names for US.
 * Fix - Check JetPack constant defined by name.
 * Fix - Fix shipping taxes being charged when they should not.
+* Fix - Sometimes taxes charged on shipping when they should not.
 
 = 1.25.12 - 2021-04-21 =
 * Fix   - UPS account connection form retry on invalid submission.
