@@ -6,7 +6,7 @@
 * Tweak - Update WC version support in headers.
 * Fix - Plugin deletion when WooCommerce core is not present.
 * Tweak - Rename automatic tax names for US.
-* Fix - Check JetPack constant defined by name.
+* Fix - Check Jetpack constant defined by name.
 * Fix - Sometimes taxes charged on shipping when they should not.
 
 = 1.25.12 - 2021-04-21 =
