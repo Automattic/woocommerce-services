@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.13 - 2021-xx-xx =
+= 1.25.13 - 2021-05-20 =
 * Fix   - Prevent new sites from retrying failed connections.
 * Fix   - Data encoding when entities are part of order meta.
 * Tweak - Update WC version support in headers.
