@@ -1,13 +1,13 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 1.25.13 - 2021-xx-xx =
-* Fix - Prevent new sites from retrying failed connections.
-* Fix - Data encoding when entities are part of order meta.
+* Fix   - Prevent new sites from retrying failed connections.
+* Fix   - Data encoding when entities are part of order meta.
 * Tweak - Update WC version support in headers.
-* Fix - Plugin deletion when WooCommerce core is not present.
+* Fix   - Plugin deletion when WooCommerce core is not present.
 * Tweak - Rename automatic tax names for US.
-* Fix - Check Jetpack constant defined by name.
-* Fix - Sometimes taxes charged on shipping when they should not.
+* Fix   - Check Jetpack constant defined by name.
+* Fix   - Sometimes taxes charged on shipping when they should not.
 
 = 1.25.12 - 2021-04-21 =
 * Fix   - UPS account connection form retry on invalid submission.
