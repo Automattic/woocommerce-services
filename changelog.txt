@@ -2,6 +2,7 @@
 
 = 1.25.14 - 2020-XX-XX =
 * Fix   - Issue with printing blank label in Safari.
+* Fix   - DHL Express labels - require customs form when shipping to Puerto Rico.
 
 = 1.25.13 - 2021-05-20 =
 * Fix   - Prevent new sites from retrying failed connections.
