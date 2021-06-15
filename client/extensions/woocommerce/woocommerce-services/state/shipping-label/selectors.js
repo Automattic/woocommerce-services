@@ -194,25 +194,20 @@ export const isCustomsFormRequired = createSelector(
 		if ( isEmpty( form ) ) {
 			return false;
 		}
-		const origin = getAddressValues( form.origin );
-		const destination = getAddressValues( form.destination );
 
+		const origin = getAddressValues( form.origin );
 		// Special case: Any shipment from/to military addresses must have Customs
 		if ( 'US' === origin.country && includes( US_MILITARY_STATES, origin.state ) ) {
 			return true;
 		}
+
+		const destination = getAddressValues( form.destination );
 		if ( 'US' === destination.country && includes( US_MILITARY_STATES, destination.state ) ) {
 			return true;
 		}
+
 		// No need to have Customs if shipping inside the same territory (for example, from Guam to Guam)
-		if ( origin.country === destination.country ) {
-			return false;
-		}
-		// Shipments between US, Puerto Rico and Virgin Islands don't need Customs, everything else does
-		return (
-			! includes( DOMESTIC_US_TERRITORIES, origin.country ) ||
-			! includes( DOMESTIC_US_TERRITORIES, destination.country )
-		);
+		return origin.country !== destination.country;
 	},
 	( state, orderId, siteId = getSelectedSiteId( state ) ) => [ getForm( state, orderId, siteId ) ]
 );
