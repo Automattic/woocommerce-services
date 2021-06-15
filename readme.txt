@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.7
-Stable tag: 1.25.13
+Stable tag: 1.25.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.14 - 2020-XX-XX =
+= 1.25.14 - 2021-06-15 =
 * Fix   - Issue with printing blank label in Safari.
 * Fix   - DHL Express labels - require customs form when shipping to Puerto Rico.
 * Fix   - Update DHL Express pickup link.

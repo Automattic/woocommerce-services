@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.14 - 2020-XX-XX =
+= 1.25.14 - 2021-06-15 =
 * Fix   - Issue with printing blank label in Safari.
 * Fix   - DHL Express labels - require customs form when shipping to Puerto Rico.
 * Fix   - Update DHL Express pickup link.
