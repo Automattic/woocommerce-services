@@ -62,7 +62,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		$data = $request->get_json_params();
 
 		if ( 'origin' === $data['type'] ) {
-			return current_user_can( 'manage_woocommerce' ); // Only an admin can normalize the origin address
+			return WC_Connect_Functions::user_can_manage_labels(); // Only an admin can normalize the origin address
 		}
 
 		return true; // non-authenticated service for the 'destination' address

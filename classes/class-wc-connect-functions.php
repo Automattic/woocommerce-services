@@ -83,5 +83,17 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			return false;
 		}
+
+		/**
+		 * Checks whether the current user has permissions to manage shipping labels.
+		 *
+		 * @return boolean
+		 */
+		public static function user_can_manage_labels() {
+			/**
+			 * @since 1.25.14
+			 */
+			return apply_filters( 'wcship_user_can_manage_labels', current_user_can( 'manage_woocommerce' ) || current_user_can( 'wcship_manage_labels' ) );
+		}
 	}
 }

@@ -431,6 +431,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		private function calculate_should_show_meta_box() {
+			// not all users have the permission to manage shipping labels.
+			// if a request is made to the JS backend and the user doesn't have permission, an error would be displayed.
+			if ( ! WC_Connect_Functions::user_can_manage_labels() ) {
+				return false;
+			}
+
 			$order = wc_get_order();
 
 			if ( ! $order ) {
