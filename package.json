@@ -33,7 +33,7 @@
     "@slack/web-api": "^5.15.0",
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "@wordpress/dependency-extraction-webpack-plugin": "^2.9.0",
-    "@wordpress/base-styles": "^1.5.0",
+    "@wordpress/base-styles": "^3.3.0",
     "@wordpress/e2e-test-utils": "^2.4.3",
     "archiver": "^1.3.0",
     "babel-jest": "24.7.1",
