@@ -180,8 +180,8 @@ describe( 'UPS Account Registration Form', () => {
 
 
 		await act(async () => {
-			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: { 
-				checked: true 
+			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
+				checked: true
 			} } );
 		} );
 
@@ -266,6 +266,190 @@ describe( 'UPS Account Registration Form', () => {
 			title: 'title',
 			type: 'UpsAccount',
 			website: 'http://website.com'
+		} );
+	} );
+
+	it('should submit the form if all the invoice details are entered', async () => {
+		const wrapper = mount(
+			<Wrapper>
+				<UpsSettingsForm />
+			</Wrapper>
+		);
+
+		await act(async () => {
+			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+				value: 'A12345'
+			} } );
+			wrapper.find('input[id="name"]').simulate('change', { target: {
+				value: 'FirstName LastName'
+			} } );
+			wrapper.find('input[id="street1"]').simulate('change', { target: {
+				value: 'Street 1'
+			} } );
+			wrapper.find('input[id="city"]').simulate('change', { target: {
+				value: 'City'
+			} } );
+			wrapper.find('input[id="state"]').simulate('change', { target: {
+				value: 'MN'
+			} } );
+			wrapper.find('input[id="postal_code"]').simulate('change', { target: {
+				value: '55555'
+			} } );
+			wrapper.find('input[id="phone"]').simulate('change', { target: {
+				value: '2065555555'
+			} } );
+			wrapper.find('input[id="email"]').simulate('change', { target: {
+				value: 'email'
+			} } );
+			wrapper.find('input[id="title"]').simulate('change', { target: {
+				value: 'title'
+			} } );
+			wrapper.find('input[id="website"]').simulate('change', { target: {
+				value: 'http://website.com'
+			} } );
+			wrapper.find('input[id="email"]').simulate('change', { target: {
+				value: 'valid-email@email.com'
+			} } );
+			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
+				checked: true
+			} } );
+		} );
+
+		// waiting to udpate due to the change on the checkbox data
+		wrapper.update();
+
+		await act(async () => {
+			wrapper.find('input[id="invoice_number"]').simulate('change', { target: {
+					value: '111111111'
+				} } );
+			wrapper.find('input[id="invoice_date"]').simulate('change', { target: {
+					value: '2021-02-29'
+				} } );
+			wrapper.find('input[id="invoice_amount"]').simulate('change', { target: {
+					value: '5.55'
+				} } );
+			wrapper.find('input[id="invoice_currency"]').simulate('change', { target: {
+					value: 'USD'
+				} } );
+			wrapper.find('input[id="invoice_control_id"]').simulate('change', { target: {
+					value: '123456789'
+				} } );
+		} );
+
+		await act(async () => {
+			// Click the register button
+			wrapper.find( 'button.is-primary' ).simulate('click');
+		} );
+
+		expect(apiPostSpy).toHaveBeenCalledWith(1234, 'connect/shipping/carrier', {
+			account_number: 'A12345',
+			city: 'City',
+			country: 'US',
+			email: 'valid-email@email.com',
+			name: 'FirstName LastName',
+			phone: '2065555555',
+			postal_code: '55555',
+			state: 'MN',
+			street1: 'Street 1',
+			title: 'title',
+			type: 'UpsAccount',
+			website: 'http://website.com',
+			invoice_amount: '5.55',
+			invoice_control_id: '123456789',
+			invoice_currency: 'USD',
+			invoice_date: '2021-02-29',
+			invoice_number: '111111111',
+		} );
+	} );
+
+	it('should not submit the invoice details fields when the checkbox is de-checked', async () => {
+		const wrapper = mount(
+			<Wrapper>
+				<UpsSettingsForm />
+			</Wrapper>
+		);
+
+		await act(async () => {
+			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+				value: 'A12345'
+			} } );
+			wrapper.find('input[id="name"]').simulate('change', { target: {
+				value: 'FirstName LastName'
+			} } );
+			wrapper.find('input[id="street1"]').simulate('change', { target: {
+				value: 'Street 1'
+			} } );
+			wrapper.find('input[id="city"]').simulate('change', { target: {
+				value: 'City'
+			} } );
+			wrapper.find('input[id="state"]').simulate('change', { target: {
+				value: 'MN'
+			} } );
+			wrapper.find('input[id="postal_code"]').simulate('change', { target: {
+				value: '55555'
+			} } );
+			wrapper.find('input[id="phone"]').simulate('change', { target: {
+				value: '2065555555'
+			} } );
+			wrapper.find('input[id="email"]').simulate('change', { target: {
+				value: 'email'
+			} } );
+			wrapper.find('input[id="title"]').simulate('change', { target: {
+				value: 'title'
+			} } );
+			wrapper.find('input[id="website"]').simulate('change', { target: {
+				value: 'http://website.com'
+			} } );
+			wrapper.find('input[id="email"]').simulate('change', { target: {
+				value: 'valid-email@email.com'
+			} } );
+			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
+				checked: true,
+			} } );
+		} );
+
+		// waiting to udpate due to the change on the checkbox data
+		wrapper.update();
+
+		await act(async () => {
+			wrapper.find('input[id="invoice_number"]').simulate('change', { target: {
+					value: '111111111'
+				} } );
+			wrapper.find('input[id="invoice_date"]').simulate('change', { target: {
+					value: '2021-02-29'
+				} } );
+			wrapper.find('input[id="invoice_amount"]').simulate('change', { target: {
+					value: '5.55'
+				} } );
+			wrapper.find('input[id="invoice_currency"]').simulate('change', { target: {
+					value: 'USD'
+				} } );
+			wrapper.find('input[id="invoice_control_id"]').simulate('change', { target: {
+					value: '123456789'
+				} } );
+			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
+					checked: false,
+				} } );
+		} );
+
+		await act(async () => {
+			// Click the register button
+			wrapper.find( 'button.is-primary' ).simulate('click');
+		} );
+
+		expect(apiPostSpy).toHaveBeenCalledWith(1234, 'connect/shipping/carrier', {
+			account_number: 'A12345',
+			city: 'City',
+			country: 'US',
+			email: 'valid-email@email.com',
+			name: 'FirstName LastName',
+			phone: '2065555555',
+			postal_code: '55555',
+			state: 'MN',
+			street1: 'Street 1',
+			title: 'title',
+			type: 'UpsAccount',
+			website: 'http://website.com',
 		} );
 	} );
 } );

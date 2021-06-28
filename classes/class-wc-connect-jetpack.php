@@ -152,5 +152,47 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			}
 			return false;
 		}
+
+		/**
+		 * Determines if the current user is connected to Jetpack
+		 *
+		 * @return bool Whether or nor the current user is connected to Jetpack
+		 */
+		public static function is_current_user_connected() {
+			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'is_user_connected' ) ) {
+				$connection = new Manager();
+
+				return $connection->is_user_connected();
+			}
+
+			if ( defined( 'JETPACK_MASTER_USER' ) ) {
+				$user_token = self::get_master_user_access_token( JETPACK_MASTER_USER );
+
+				return ( isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id );
+			}
+
+			return false;
+		}
+
+		/**
+		 * Determines if Jetpack is connected
+		 *
+		 * @return bool Whether or nor Jetpack is connected
+		 */
+		public static function is_connected() {
+			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'is_connected' ) ) {
+				$connection = new Manager();
+
+				return $connection->is_connected();
+			}
+
+			if ( defined( 'JETPACK_MASTER_USER' ) ) {
+				$user_token = self::get_master_user_access_token( JETPACK_MASTER_USER );
+
+				return isset( $user_token->external_user_id );
+			}
+
+			return false;
+		}
 	}
 }

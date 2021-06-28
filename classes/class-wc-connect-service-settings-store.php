@@ -393,8 +393,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Checks if the shipping method ids have been migrated to the "wc_services_*" format and migrates them
 		 */
 		public function migrate_legacy_services() {
-			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) // check if the method have already been migrated.
-				|| ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) { // ensure the latest schemas are fetched.
+			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) ) { // check if the method have already been migrated.
+				return;
+			}
+
+			if ( ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) { // ensure the latest schemas are fetched.
+				// No schemes exist this is a site that has nothing to migrate.
+				WC_Connect_Options::update_option( 'shipping_methods_migrated', true );
 				return;
 			}
 
@@ -496,6 +501,20 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		/**
+		 * Extends the global list of packages with a list of new packages
+		 *
+		 * @param array new_packages - packages to extend
+		 */
+		public function create_packages( $new_packages ) {
+			if ( is_null( $new_packages ) ) {
+				return;
+			}
+			$packages = $this->get_packages();
+			$packages = array_merge( $packages, $new_packages );
+			WC_Connect_Options::update_option( 'packages', $packages );
+		}
+
+		/**
 		 * Updates the global list of packages
 		 *
 		 * @param array packages
@@ -526,6 +545,20 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return $packages[ $service_id ];
+		}
+
+		/**
+		 * Extends the global list of enabled predefined packages with a list of new packages
+		 *
+		 * @param array new_packages - packages to extend
+		 */
+		public function create_predefined_packages( $new_packages ) {
+			if ( is_null( $new_packages ) ) {
+				return;
+			}
+			$packages = $this->get_predefined_packages();
+			$packages = array_merge_recursive( $packages, $new_packages );
+			WC_Connect_Options::update_option( 'predefined_packages', $packages );
 		}
 
 		/**

@@ -1,7 +1,8 @@
-module.exports = require( './wp-calypso/.eslintrc' );
+const calypsoLintConfig = require( './wp-calypso/.eslintrc' );
+const { useE2EEsLintConfig } = require( '@woocommerce/e2e-environment' );
 
-module.exports.env.jest = true;
-Object.assign( module.exports.globals, {
+calypsoLintConfig.env.jest = true;
+Object.assign( calypsoLintConfig.globals, {
     page: true,
     browser: true,
     context: true,
@@ -21,3 +22,5 @@ Object.assign( module.exports.globals, {
     Response: true,
     global: true,
 });
+
+module.exports = useE2EEsLintConfig( calypsoLintConfig );

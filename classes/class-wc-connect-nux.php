@@ -237,11 +237,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return true;
 			}
 
-			$user_token = WC_Connect_Jetpack::get_master_user_access_token( JETPACK_MASTER_USER );
-			$can_accept = (
-				isset( $user_token->external_user_id ) &&
-				get_current_user_id() === $user_token->external_user_id
-			);
+			$can_accept = WC_Connect_Jetpack::is_current_user_connected();
 
 			return $can_accept;
 		}
@@ -301,7 +297,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			// check if Jetpack is activated
-			if ( ! class_exists( '\Automattic\Jetpack\Connection\Manager' ) && ! class_exists( '\Automattic\Jetpack\Connection\Tokens' ) ) {
+			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
 				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
 			}
 
@@ -312,8 +308,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// installed, activated, dev mode off
 			// check if connected
-			$user_token = WC_Connect_Jetpack::get_master_user_access_token( JETPACK_MASTER_USER );
-			if ( ! isset( $user_token->external_user_id ) ) { // always an int
+			if ( ! WC_Connect_Jetpack::is_connected() ) {
 				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
 			}
 

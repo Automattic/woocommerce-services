@@ -3,8 +3,8 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
-Tested up to: 5.6
-Stable tag: 1.25.8
+Tested up to: 5.7
+Stable tag: 1.25.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,54 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.14 - 2021-06-15 =
+* Fix   - Issue with printing blank label in Safari.
+* Fix   - DHL Express labels - require customs form when shipping to Puerto Rico.
+* Fix   - Update DHL Express pickup link.
+
+= 1.25.13 - 2021-05-20 =
+* Fix   - Prevent new sites from retrying failed connections.
+* Fix   - Data encoding when entities are part of order meta.
+* Tweak - Update WC version support in headers.
+* Fix   - Plugin deletion when WooCommerce core is not present.
+* Tweak - Rename automatic tax names for US.
+* Fix   - Check Jetpack constant defined by name.
+* Fix   - Sometimes taxes charged on shipping when they should not.
+
+= 1.25.12 - 2021-04-21 =
+* Fix   - UPS account connection form retry on invalid submission.
+* Fix   - Fix PHP 5.6 compatibility issue.
+* Tweak - Update plugin author name.
+* Fix   - Removes unnecessary subscription debug error logs.
+
+= 1.25.11 - 2021-04-06 =
+* Fix	- Ensure status page is displayed on new WC navigation menu.
+* Add   - Run phpcbf as a pre-commit rule.
+* Fix   - Fix PHPUnit tests. Rename `test_` to `test-` to match our phpcs rules. Remove travis and move to github action.
+* Tweak - Updated .nvmrc to use 10.16.0
+* Tweak - Update the shipping label status endpoint to accept and return multiple ids.
+* Tweak	- Display spinner icon during service data refresh.
+* Add	- Adds Dockerized E2E tests with GitHub Action integration.
+* Fix   - Handle DHL live rates notice creation and deletion errors.
+
+= 1.25.10 - 2021-03-24 =
+* Add   - Add an endpoint for shipping label creation eligibility and share code for store eligibility.
+* Fix   - Shipping validation notice shown when no address entered.
+* Tweak - Stop retrying to fetch /services when authentication fails on connect server.
+
+= 1.25.9 - 2021-03-17 =
+* Add   - WC Admin notice about DHL live rates.
+* Add	- Live rates section in settings page.
+* Tweak - Cleanup stripe functionality.
+* Tweak - Display better errors on checkout page when address fields are missing / invalid.
+* Tweak - Refresh on status page does not reload page.
+* Fix   - UPS invoice number allows numbers and letters.
+* Add 	- Tracks shipping services used at checkout.
+* Add   - Update the existing endpoint `POST /connect/packages` to create shipping label packages, and add an endpoint `PUT /connect/packages` to update shipping label packages.
+* Fix   - Only display shipping validation errors on the cart or checkout pages.
+* Tweak - Removes deprecated Jetpack constant JETPACK_MASTER_USER
+* Fix   - Revert radio button dot offset in the "Create shipping label" modal.
 
 = 1.25.8 - 2021-03-02 =
 * Tweak - Add support for new Jetpack 9.5 data connection.

@@ -17,6 +17,7 @@ import LabelSettings from '../../extensions/woocommerce/woocommerce-services/vie
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
+import LiveRatesCarriersList from '../../extensions/woocommerce/woocommerce-services/views/live-rates-carriers-list';
 import SubscriptionsUsage from '../../extensions/woocommerce/woocommerce-services/views/subscriptions-usage';
 import UpsSettingsForm from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/ups-settings-form';
 import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
@@ -62,7 +63,7 @@ class LabelSettingsWrapper extends Component {
 	};
 
 	render() {
-		const { carrier, carriers, subscriptions, isSaving, translate } = this.props;
+		const { carrier, carrierAccounts, liveRatesTypes, subscriptions, isSaving, translate } = this.props;
 
 		if ( ! carrier ) {
 			return (
@@ -70,7 +71,8 @@ class LabelSettingsWrapper extends Component {
 					<GlobalNotices id="notices" notices={ notices.list } />
 					<LabelSettings onChange={ this.onChange } />
 					<Packages onChange={ this.onChange } />
-					<CarrierAccounts carriers={ carriers } />
+					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
+					<CarrierAccounts accounts={ carrierAccounts } />
 					<SubscriptionsUsage subscriptions={ subscriptions } />
 					<Button
 						isPrimary

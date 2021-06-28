@@ -3,15 +3,15 @@
  * Plugin Name: WooCommerce Shipping & Tax
  * Plugin URI: https://woocommerce.com/
  * Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.
- * Author: Automattic
+ * Author: WooCommerce
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.25.8
- * WC requires at least: 3.0.0
- * WC tested up to: 5.0
+ * Version: 1.25.14
+ * WC requires at least: 3.5.5
+ * WC tested up to: 5.4
  *
- * Copyright (c) 2017-2020 Automattic
+ * Copyright (c) 2017-2021 Automattic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,6 @@ require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
-
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '7.5' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
@@ -208,6 +207,35 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public static function plugin_uninstall() {
 			WC_Connect_Options::delete_all_options();
+			self::delete_notices();
+		}
+
+		/**
+		 * Deletes WC Admin notices.
+		 */
+		public static function delete_notices() {
+			if ( self::can_add_wc_admin_notice() ) {
+				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+				WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+			}
+		}
+		/**
+		 * Checks if WC Admin is active and includes needed classes.
+		 *
+		 * @return bool true|false.
+		 */
+		public static function can_add_wc_admin_notice() {
+			if ( ! class_exists( 'WC_Data_Store' ) ) {
+				return false;
+			}
+
+			try {
+				WC_Data_Store::load( 'admin-note' );
+			} catch ( Exception $e ) {
+				return false;
+			}
+
+			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' ) && class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
 		}
 
 		/**
@@ -712,7 +740,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			new WC_Connect_Debug_Tools( $this->api_client );
 
 			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
-			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client );
+			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
 			$this->set_settings_pages( $settings_pages );
 
 			$schema   = $this->get_service_schemas_store();
@@ -721,6 +749,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
+
+			// Add WC Admin Notices.
+			if ( self::can_add_wc_admin_notice() ) {
+				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
+			}
 		}
 
 		/**
@@ -768,7 +802,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
-			add_action( 'admin_init', array( $this, 'load_admin_dependencies' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
@@ -779,6 +812,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$this->taxjar->init();
 			$this->paypal_ec->init();
+
+			if ( is_admin() ) {
+				$this->load_admin_dependencies();
+			}
 		}
 
 		/**
@@ -812,9 +849,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * rest_api_init firing, WP_REST_Controller is not yet defined
 		 */
 		public function rest_api_init() {
-			$schemas_store  = $this->get_service_schemas_store();
-			$settings_store = $this->get_service_settings_store();
-			$logger         = $this->get_logger();
+			$schemas_store         = $this->get_service_schemas_store();
+			$settings_store        = $this->get_service_settings_store();
+			$payment_methods_store = $this->get_payment_methods_store();
+			$logger                = $this->get_logger();
 
 			if ( ! class_exists( 'WP_REST_Controller' ) ) {
 				$this->logger->debug( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
@@ -849,7 +887,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_service_data_refresh_controller->register_routes();
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-controller.php';
-			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger, $this->shipping_label );
+			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger, $this->shipping_label, $this->payment_methods_store );
 			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
 			$rest_shipping_label_controller->register_routes();
 
@@ -1088,6 +1126,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 
+			if ( empty( $services ) ) {
+				return;
+			}
+
 			$api_client = $this->get_api_client();
 			$response   = $api_client->track_subscription_event( $services );
 			if ( is_wp_error( $response ) ) {
@@ -1166,7 +1208,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					case 'dhlexpress':
 						$tracking_url = 'https://www.dhl.com/en/express/tracking.html?AWB=' . $tracking . '&brand=DHL';
 						break;
-
 				}
 
 				$markup .= '<td class="td" scope="col">';
@@ -1209,18 +1250,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Hook fetching the available services from the connect server
 		 */
 		public function schedule_service_schemas_fetch() {
+			$schemas_store     = $this->get_service_schemas_store();
+			$schemas           = $schemas_store->get_service_schemas();
+			$last_fetch_result = $schemas_store->get_last_fetch_result_code();
 
-			$schemas_store = $this->get_service_schemas_store();
-			$schemas       = $schemas_store->get_service_schemas();
-
-			if ( ! $schemas ) {
+			if ( ! $schemas && '401' !== $last_fetch_result ) { // Don't retry auth failures wait for next scheduled time.
 				$schemas_store->fetch_service_schemas_from_connect_server();
 			} elseif ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
 				$schemas_store->fetch_service_schemas_from_connect_server();
 			} elseif ( ! wp_next_scheduled( 'wc_connect_fetch_service_schemas' ) ) {
 				wp_schedule_event( time(), 'daily', 'wc_connect_fetch_service_schemas' );
 			}
-
 		}
 
 		/**
@@ -1242,7 +1282,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( $service_schema ) {
 				$method->set_service_schema( $service_schema );
 			}
-
 		}
 
 		/**
@@ -1561,8 +1600,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				)
 			);
 
+			$encoded_arguments = wp_json_encode( $extra_args );
+			$escaped_arguments = function_exists( 'wc_esc_json' ) ? wc_esc_json( $encoded_arguments ) : esc_attr( $encoded_arguments );
+
 			?>
-				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo esc_attr( wp_json_encode( $extra_args ) ); ?>">
+				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo $escaped_arguments; ?>">
 					<span class="form-troubles" style="opacity: 0">
 						<?php printf( __( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
 					</span>

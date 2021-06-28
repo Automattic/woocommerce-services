@@ -4,9 +4,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 	class WC_Connect_Settings_Pages {
 		/**
-		 * @array
+		 * @var WC_Connect_Service_Schemas_Store
 		 */
-		protected $fieldsets;
+		protected $service_schemas_store;
 
 		/**
 		 * @var WC_Connect_Continents
@@ -19,11 +19,12 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		protected $api_client;
 
-		public function __construct( WC_Connect_API_Client $api_client ) {
-			$this->id         = 'connect';
-			$this->label      = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
-			$this->continents = new WC_Connect_Continents();
-			$this->api_client = $api_client;
+		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Schemas_Store $service_schemas_store ) {
+			$this->id                    = 'connect';
+			$this->label                 = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
+			$this->continents            = new WC_Connect_Continents();
+			$this->api_client            = $api_client;
+			$this->service_schemas_store = $service_schemas_store;
 
 			add_filter( 'woocommerce_get_sections_shipping', array( $this, 'get_sections' ), 30 );
 			add_action( 'woocommerce_settings_shipping', array( $this, 'output_settings_screen' ), 5 );
@@ -80,15 +81,19 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				<?php
 			}
 
-			$extra_args        = array();
+			$extra_args = array(
+				'live_rates_types' => $this->service_schemas_store->get_all_shipping_method_ids(),
+			);
+
 			$carriers_response = $this->api_client->get_carrier_accounts();
-			if ( ! is_wp_error( $carriers_response ) && $carriers_response ) {
-				$extra_args['carriers'] = $carriers_response->carriers;
+
+			if ( ! is_wp_error( $carriers_response ) && ! empty( $carriers_response->carriers ) ) {
+				$extra_args['carrier_accounts'] = $carriers_response->carriers;
 			}
 
 			$subscriptions_usage_response = $this->api_client->get_wccom_subscriptions();
 
-			if ( ! is_wp_error( $subscriptions_usage_response ) && $subscriptions_usage_response ) {
+			if ( ! is_wp_error( $subscriptions_usage_response ) && ! empty( $subscriptions_usage_response->subscriptions ) ) {
 				$extra_args['subscriptions'] = $subscriptions_usage_response->subscriptions;
 			}
 
@@ -101,11 +106,11 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				$extra_args['carrier']    = $_GET['carrier'];
 				$extra_args['continents'] = $this->continents->get();
 
-				$carrier_information = [];
-				if ( $extra_args['carriers'] ) {
-					$carrier_information = array_values(
+				$carrier_information = array();
+				if ( ! empty( $extra_args['carrier_accounts'] ) ) {
+					$carrier_information = current(
 						array_filter(
-							$extra_args['carriers'],
+							$extra_args['carrier_accounts'],
 							function( $carrier ) {
 								return $carrier->type === $_GET['carrier'];
 							}
@@ -116,7 +121,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					?>
 					<h2>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Shipping & Tax', 'woocommerce-services' ); ?></a> &gt;
-						<span><?php echo esc_html( $carrier_information[0]->carrier ); ?></span>
+						<span><?php echo esc_html( $carrier_information->carrier ); ?></span>
 					</h2>
 					<?php
 				}

@@ -1,6 +1,8 @@
-const baseUrl = process.env.WP_BASE_URL;
-const adminUserName = process.env.WP_ADMIN_USER_NAME;
-const adminUserPassword = process.env.WP_ADMIN_USER_PW;
+const defaultConfig = require( '../config/default.json' );
+
+const baseUrl = process.env.WP_BASE_URL || defaultConfig.url;
+const adminUserName = process.env.WORDPRESS_DB_USER || defaultConfig.users.admin.username;
+const adminUserPassword = process.env.WORDPRESS_DB_PASSWORD || defaultConfig.users.admin.password;
 
 const WP_ADMIN_LOGIN = baseUrl + '/wp-login.php';
 const WP_ADMIN_PLUGINS_PAGE = baseUrl + '/wp-admin/plugins.php';
@@ -21,7 +23,7 @@ const CustomerFlow = {
 			'//a[contains(@class, "add_to_cart_button") and contains(@class, "ajax_add_to_cart")';
 
 		const [ addToCartButton ] = await page.$x( addToCartXPath + ']' );
-		addToCartButton.click();
+		await addToCartButton.click();
 
 		await page.waitFor( addToCartXPath + ' and contains(@class, "added")]' );
 	},
@@ -54,6 +56,7 @@ const StoreOwnerFlow = {
 
 		await expect( page.title() ).resolves.toMatch( 'Log In' );
 
+		await page.click("#user_login", {clickCount: 3})
 		await page.type( '#user_login', adminUserName );
 		await page.type( '#user_pass', adminUserPassword );
 
