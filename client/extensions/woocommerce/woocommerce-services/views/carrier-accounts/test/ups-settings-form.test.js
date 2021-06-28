@@ -277,37 +277,37 @@ describe( 'UPS Account Registration Form', () => {
 		);
 
 		await act(async () => {
-			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+			wrapper.find('input[name="account_number"]').simulate('change', { target: {
 				value: 'A12345'
 			} } );
-			wrapper.find('input[id="name"]').simulate('change', { target: {
+			wrapper.find('input[name="name"]').simulate('change', { target: {
 				value: 'FirstName LastName'
 			} } );
-			wrapper.find('input[id="street1"]').simulate('change', { target: {
+			wrapper.find('input[name="street1"]').simulate('change', { target: {
 				value: 'Street 1'
 			} } );
-			wrapper.find('input[id="city"]').simulate('change', { target: {
+			wrapper.find('input[name="city"]').simulate('change', { target: {
 				value: 'City'
 			} } );
-			wrapper.find('input[id="state"]').simulate('change', { target: {
+			wrapper.find('input[name="state"]').simulate('change', { target: {
 				value: 'MN'
 			} } );
-			wrapper.find('input[id="postal_code"]').simulate('change', { target: {
+			wrapper.find('input[name="postal_code"]').simulate('change', { target: {
 				value: '55555'
 			} } );
-			wrapper.find('input[id="phone"]').simulate('change', { target: {
+			wrapper.find('input[name="phone"]').simulate('change', { target: {
 				value: '2065555555'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'email'
 			} } );
-			wrapper.find('input[id="title"]').simulate('change', { target: {
+			wrapper.find('input[name="title"]').simulate('change', { target: {
 				value: 'title'
 			} } );
-			wrapper.find('input[id="website"]').simulate('change', { target: {
+			wrapper.find('input[name="website"]').simulate('change', { target: {
 				value: 'http://website.com'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'valid-email@email.com'
 			} } );
 			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
@@ -319,19 +319,19 @@ describe( 'UPS Account Registration Form', () => {
 		wrapper.update();
 
 		await act(async () => {
-			wrapper.find('input[id="invoice_number"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_number"]').simulate('change', { target: {
 					value: '111111111'
 				} } );
-			wrapper.find('input[id="invoice_date"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_date"]').simulate('change', { target: {
 					value: '2021-02-29'
 				} } );
-			wrapper.find('input[id="invoice_amount"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_amount"]').simulate('change', { target: {
 					value: '5.55'
 				} } );
-			wrapper.find('input[id="invoice_currency"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_currency"]').simulate('change', { target: {
 					value: 'USD'
 				} } );
-			wrapper.find('input[id="invoice_control_id"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_control_id"]').simulate('change', { target: {
 					value: '123456789'
 				} } );
 		} );
@@ -370,37 +370,37 @@ describe( 'UPS Account Registration Form', () => {
 		);
 
 		await act(async () => {
-			wrapper.find('input[id="account_number"]').simulate('change', { target: {
+			wrapper.find('input[name="account_number"]').simulate('change', { target: {
 				value: 'A12345'
 			} } );
-			wrapper.find('input[id="name"]').simulate('change', { target: {
+			wrapper.find('input[name="name"]').simulate('change', { target: {
 				value: 'FirstName LastName'
 			} } );
-			wrapper.find('input[id="street1"]').simulate('change', { target: {
+			wrapper.find('input[name="street1"]').simulate('change', { target: {
 				value: 'Street 1'
 			} } );
-			wrapper.find('input[id="city"]').simulate('change', { target: {
+			wrapper.find('input[name="city"]').simulate('change', { target: {
 				value: 'City'
 			} } );
-			wrapper.find('input[id="state"]').simulate('change', { target: {
+			wrapper.find('input[name="state"]').simulate('change', { target: {
 				value: 'MN'
 			} } );
-			wrapper.find('input[id="postal_code"]').simulate('change', { target: {
+			wrapper.find('input[name="postal_code"]').simulate('change', { target: {
 				value: '55555'
 			} } );
-			wrapper.find('input[id="phone"]').simulate('change', { target: {
+			wrapper.find('input[name="phone"]').simulate('change', { target: {
 				value: '2065555555'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'email'
 			} } );
-			wrapper.find('input[id="title"]').simulate('change', { target: {
+			wrapper.find('input[name="title"]').simulate('change', { target: {
 				value: 'title'
 			} } );
-			wrapper.find('input[id="website"]').simulate('change', { target: {
+			wrapper.find('input[name="website"]').simulate('change', { target: {
 				value: 'http://website.com'
 			} } );
-			wrapper.find('input[id="email"]').simulate('change', { target: {
+			wrapper.find('input[name="email"]').simulate('change', { target: {
 				value: 'valid-email@email.com'
 			} } );
 			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
@@ -412,19 +412,19 @@ describe( 'UPS Account Registration Form', () => {
 		wrapper.update();
 
 		await act(async () => {
-			wrapper.find('input[id="invoice_number"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_number"]').simulate('change', { target: {
 					value: '111111111'
 				} } );
-			wrapper.find('input[id="invoice_date"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_date"]').simulate('change', { target: {
 					value: '2021-02-29'
 				} } );
-			wrapper.find('input[id="invoice_amount"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_amount"]').simulate('change', { target: {
 					value: '5.55'
 				} } );
-			wrapper.find('input[id="invoice_currency"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_currency"]').simulate('change', { target: {
 					value: 'USD'
 				} } );
-			wrapper.find('input[id="invoice_control_id"]').simulate('change', { target: {
+			wrapper.find('input[name="invoice_control_id"]').simulate('change', { target: {
 					value: '123456789'
 				} } );
 			wrapper.find('input[id="enable_ups_invoice_fields"]').simulate('change', { target: {
