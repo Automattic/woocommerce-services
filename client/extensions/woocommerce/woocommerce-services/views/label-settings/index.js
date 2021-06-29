@@ -11,13 +11,12 @@ import { bindActionCreators } from 'redux';
 import classNames from 'classnames';
 import { localize } from 'i18n-calypso';
 import { isBoolean } from 'lodash';
+import { Card, FormToggle } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import Card from 'components/card';
 import ExtendedHeader from 'woocommerce/components/extended-header';
-import FormToggle from 'components/forms/form-toggle';
 import LabelSettings from './label-settings';
 import QueryLabelSettings from 'woocommerce/woocommerce-services/components/query-label-settings';
 import { setFormDataValue, restorePristineSettings } from '../../state/label-settings/actions';
@@ -92,7 +91,7 @@ class AccountSettingsRootView extends Component {
 						/>
 					) }
 				</ExtendedHeader>
-				<Card className={ classNames( 'label-settings__labels-container', { hidden } ) }>
+				<Card size='small' className={ classNames( 'card', 'label-settings__labels-container', { hidden } ) }>
 					{ this.renderContent() }
 				</Card>
 			</div>

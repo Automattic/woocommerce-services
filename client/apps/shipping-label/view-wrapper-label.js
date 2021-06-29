@@ -9,12 +9,12 @@ import { localize } from 'i18n-calypso';
 import classNames from 'classnames';
 import Gridicon from 'gridicons';
 import { sumBy, differenceBy, filter, maxBy } from 'lodash';
+import { Button } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 // from calypso
-import Button from 'components/button';
 const LabelPurchaseModal = React.lazy(() => import('../../extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal'));
 const TrackingModal = React.lazy(() => import('../../extensions/woocommerce/woocommerce-services/views/shipping-label/tracking-modal'));
 
@@ -63,7 +63,7 @@ export class ShippingLabelViewWrapper extends Component {
 			siteId,
 		} = this.props;
 
-		const className = classNames( 'shipping-label__new-label-button', {
+		const className = classNames( 'button', 'shipping-label__new-label-button', {
 			'is-placeholder': ! loaded,
 		} );
 
@@ -71,8 +71,8 @@ export class ShippingLabelViewWrapper extends Component {
 			return (
 				<Button
 					className={ 'shipping-label__button-loading' }
-					primary
-					busy={ true }
+					isPrimary
+					isBusy={ true }
 					disabled={ true }
 				>
 
@@ -89,8 +89,8 @@ export class ShippingLabelViewWrapper extends Component {
 					<div>
 						<Button
 							className={ className }
-							primary
-							busy= { ! loaded }
+							isPrimary
+							isBusy= { ! loaded }
 							disabled= { ! loaded }
 							onClick={ this.handleCreateLabelButtonClick }
 						>
@@ -109,14 +109,16 @@ export class ShippingLabelViewWrapper extends Component {
 					<div className="shipping-label__multiple-buttons-container">
 						<Button
 							className={ className }
-							primary
-							busy= { ! loaded }
+							isPrimary
+							isBusy= { ! loaded }
 							disabled= { ! loaded }
 							onClick={ this.handleCreateLabelButtonClick }
 						>
 							{ translate( 'Create shipping label' ) }
 						</Button>
 						<Button
+							isSecondary
+							className={ className }
 							onClick={ this.handleTrackPackagesButtonClick }
 						>
 							{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }
@@ -134,13 +136,15 @@ export class ShippingLabelViewWrapper extends Component {
 				<div>
 					<span className="shipping-label__redo-shipping-button">
 						<Button
-							borderless
+							className = { classNames( 'button', 'is-borderless' ) }
 							onClick={ this.handleCreateLabelButtonClick }
 						>
 							{ translate( 'Create new label' ) }
 						</Button>
 					</span>
 					<Button
+						isSecondary
+						className = { classNames( 'button') }
 						onClick={ this.handleTrackPackagesButtonClick }
 					>
 						{ translate( 'Track Package', 'Track Packages', { count: activeLabels.length } ) }

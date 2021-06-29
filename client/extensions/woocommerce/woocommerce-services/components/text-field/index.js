@@ -5,13 +5,13 @@
  */
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import { TextControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import FormFieldset from 'components/forms/form-fieldset';
-import FormLabel from 'components/forms/form-label';
-import FormTextInput from 'components/forms/form-text-input';
 import FieldError from '../field-error';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 
@@ -26,18 +26,21 @@ const TextField = ( {
 	className,
 	defaultValue
 } ) => {
-	const handleChangeEvent = useCallback(event => updateValue( event.target.value, event ), [updateValue]);
+	const handleChangeEvent = useCallback( newValue => updateValue( newValue, id ), [updateValue]);
+
+	const classes = classNames( 'form-text-input', {
+		'is-error': Boolean( error ),
+	} );
 
 	return (
 		<FormFieldset className={ className }>
-			<FormLabel htmlFor={ id }>{ title }</FormLabel>
-			<FormTextInput
-				id={ id }
+			<TextControl
+				label={ title }
 				name={ id }
 				placeholder={ placeholder }
 				value={ value }
 				onChange={ handleChangeEvent }
-				isError={ Boolean( error ) }
+				className={ classes }
 				defaultValue={ defaultValue }
 			/>
 			{ error && typeof error === 'string' && <FieldError text={ error } /> }

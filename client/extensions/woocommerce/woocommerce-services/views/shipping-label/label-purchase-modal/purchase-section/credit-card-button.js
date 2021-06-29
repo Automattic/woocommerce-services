@@ -6,11 +6,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
+import { Button } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import { fetchSettings } from 'woocommerce/woocommerce-services/state/label-settings/actions';
 
 class CreditCardButton extends Component {
@@ -45,7 +46,8 @@ class CreditCardButton extends Component {
 				<Button
 					onClick={ this.onChooseCard }
 					disabled={ disabled }
-					primary
+					isPrimary
+					className = { classNames( 'button' ) }
 				>
 					{ buttonLabel } <Gridicon icon="external" />
 				</Button>

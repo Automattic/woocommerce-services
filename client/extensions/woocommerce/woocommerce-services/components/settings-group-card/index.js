@@ -6,16 +6,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { Card } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import CompactCard from 'components/card/compact';
 import FormSectionHeading from 'components/forms/form-section-heading';
 
 const SettingsGroupCard = ( { heading, children } ) => {
 	return (
-		<CompactCard className="settings-group-card">
+		<Card className={ classnames( 'settings-group-card', 'card', 'is-compact' ) } >
 			{ heading && (
 				<FormSectionHeading className="settings-group-card__heading">
 					{ heading }
@@ -26,7 +26,7 @@ const SettingsGroupCard = ( { heading, children } ) => {
 			>
 				{ children }
 			</div>
-		</CompactCard>
+		</Card>
 	);
 };
 
@@ -35,3 +35,4 @@ SettingsGroupCard.propTypes = {
 };
 
 export default SettingsGroupCard;
+

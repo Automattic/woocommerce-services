@@ -6,12 +6,12 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { compose } from 'redux';
+import { Button, Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
-import CompactCard from 'components/card/compact';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import { getSelectedSiteId } from 'state/ui/selectors';
@@ -118,6 +118,8 @@ const DynamicCarrierAccountSettingsForm = ( {
 		history.back();
 	}, []);
 
+	const buttonClasses = classNames( 'button', "is-compact" );
+
 	return (
 		<div className="carrier-accounts__settings-container">
 			<div className="carrier-accounts__settings">
@@ -139,32 +141,33 @@ const DynamicCarrierAccountSettingsForm = ( {
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
-					<CompactCard>
+					<Card className={ classNames( "card", "is-compact" ) } >
 						<h4 className="carrier-accounts__settings-subheader">{ translate ( 'General Information' ) }</h4>
-					</CompactCard>
+					</Card>
 
-					<CompactCard>
+					<Card className={ classNames( "card", "is-compact" ) } >
 						{registrationFields && Object.entries(registrationFields).map( ( [key, field] ) => (
 							<FormFieldFactory key={key} id={key} visibility={field.visibility} label={field.label} value={formValues[key]} onChange={handleFormFieldChange} />
 						))}
-					</CompactCard>
+					</Card>
 
-					<CompactCard className="carrier-accounts__settings-actions">
+					<Card className={ classNames( "carrier-accounts__settings-actions", "card", "is-compact" ) } >
 						<Button
-							compact
-							primary
+							isPrimary
+							className={ buttonClasses }
 							onClick={ handleSubmit }
 							disabled={ isSaving }
 						>
 							{ translate( 'Connect' ) }
 						</Button>
 						<Button
-							compact
+							isSecondary
+							className={ buttonClasses }
 							onClick={ handleCancel }
 						>
 							{ translate( 'Cancel' ) }
 						</Button>
-					</CompactCard>
+					</Card>
 				</div>
 			</div>
 		</div>

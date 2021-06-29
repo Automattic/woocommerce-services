@@ -5,14 +5,14 @@ import React, { useState, useCallback, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { compose } from 'redux'
+import { Button, Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import { localize } from 'i18n-calypso'
 import Gridicon from 'gridicons'
-import Button from 'components/button'
-import CompactCard from 'components/card/compact'
 import Dialog from 'components/dialog'
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown'
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox'
@@ -92,12 +92,20 @@ const getFieldsErrors = (values, isInvoiceDetailsChecked, translate) => {
 }
 
 const CancelDialog = localize(({ isVisible, onCancel, onConfirm, translate }) => {
+	const buttonClasses = classNames( 'button', 'is-compact');
 	const buttons = useMemo(() => (
 		[
-			<Button compact onClick={onCancel} key="cancel">
+			<Button  
+				className = { buttonClasses }
+				onClick={onCancel} 
+				key="cancel">
 				{translate('Cancel')}
 			</Button>,
-			<Button compact primary scary onClick={onConfirm} key="ok">
+			<Button  
+				isPrimary 
+				className = { classNames( buttonClasses, 'is-scary' ) }
+				onClick={onConfirm} 
+				key="ok">
 				{translate('Ok')}
 			</Button>,
 		]
@@ -132,7 +140,7 @@ const StateInput = compose(connect((state, ownProps) => {
 	return {
 		stateNames: getStateNames( state, ownProps.countryValue ),
 	}
-}), localize)(({onUpdate, error, stateNames, translate, value}) => {
+}), localize)(({onDropdownUpdate, onTextFieldUpdate, error, stateNames, translate, value}) => {
 	const statesValuesMap = useMemo(() => {
 		if(!stateNames) return stateNames;
 
@@ -143,10 +151,11 @@ const StateInput = compose(connect((state, ownProps) => {
 		return (
 			<Dropdown
 				id="state"
+				name="state"
 				title={translate('State')}
 				value={value}
 				valuesMap={statesValuesMap}
-				updateValue={onUpdate}
+				updateValue={onDropdownUpdate}
 				error={error}
 			/>
 		);
@@ -155,8 +164,9 @@ const StateInput = compose(connect((state, ownProps) => {
 	return (
 		<TextField
 			id="state"
+			name="state"
 			title={translate('State')}
-			updateValue={onUpdate}
+			updateValue={onTextFieldUpdate}
 			error={error}
 		/>
 	);
@@ -176,6 +186,14 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 		// using a separate `const` for `id` ensures that on async update of `setFormValues` the synthetic event is not accessed
 		const { id } = event.currentTarget;
 
+		setFormValues(values => ({
+			...values,
+			[id]: value
+		}));
+	}, [setFormValues]);
+
+	const handleFormTextFieldUpdate = useCallback((value, id) => {
+		// using a separate `const` for `id` ensures that on async update of `setFormValues` the synthetic event is not accessed
 		setFormValues(values => ({
 			...values,
 			[id]: value
@@ -235,6 +253,7 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 		window.location.href = url.href
 	}, []);
 	const handleCancelClick = useCallback(() => {setIsCancelDialogVisible(true)}, [setIsCancelDialogVisible])
+	const buttonClasses = classNames( 'button','is-compact');
 
 	return (
 		<div className="carrier-accounts__settings-container">
@@ -261,44 +280,44 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 					</p>
 				</div>
 				<div className="carrier-accounts__settings-form">
-					<CompactCard>
+					<Card className={ classNames( "card", "is-compact" ) } >
 						<h4 className="carrier-accounts__settings-subheader">{translate('General information')}</h4>
 						<p className="carrier-accounts__settings-subheader-description">
 							{translate('This is the account number and address from your UPS profile')}
 						</p>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-account-number">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-account-number", "card", "is-compact" ) } >
 						<TextField
 							id="account_number"
 							title={translate('Account number')}
-							updateValue={handleFormFieldUpdate}
+							updateValue={handleFormTextFieldUpdate}
 							error={typeof formValues.account_number === 'string' ? fieldsErrors.account_number : undefined}
 						/>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-address">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-address", "card", "is-compact" ) } >
 						<TextField
 							id="name"
 							title={translate('Name')}
-							updateValue={handleFormFieldUpdate}
+							updateValue={handleFormTextFieldUpdate}
 							error={typeof formValues.name === 'string' ? fieldsErrors.name : undefined}
 						/>
 						<TextField
 							id="street1"
 							title={translate('Address')}
-							updateValue={handleFormFieldUpdate}
+							updateValue={handleFormTextFieldUpdate}
 							error={typeof formValues.street1 === 'string' ? fieldsErrors.street1 : undefined}
 						/>
 						<div className="carrier-accounts__settings-two-columns">
 							<TextField
 								id="street2"
 								title={translate('Address 2 (optional)')}
-								updateValue={handleFormFieldUpdate}
+								updateValue={handleFormTextFieldUpdate}
 								error={typeof formValues.street2 === 'string' ? fieldsErrors.street2 : undefined}
 							/>
 							<TextField
 								id="city"
 								title={translate('City')}
-								updateValue={handleFormFieldUpdate}
+								updateValue={handleFormTextFieldUpdate}
 								error={typeof formValues.city === 'string' ? fieldsErrors.city : undefined}
 							/>
 						</div>
@@ -306,7 +325,8 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 							<StateInput
 								countryValue={formValues.country}
 								value={getValue('state')}
-								onUpdate={handleFormFieldUpdate}
+								onDropdownUpdate={handleFormFieldUpdate}
+								onTextFieldUpdate={handleFormTextFieldUpdate}
 								error={typeof formValues.state === 'string' ? fieldsErrors.state : undefined}
 							/>
 
@@ -323,24 +343,24 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 							<TextField
 								id="postal_code"
 								title={translate('ZIP/Postal code')}
-								updateValue={handleFormFieldUpdate}
+								updateValue={handleFormTextFieldUpdate}
 								error={typeof formValues.postal_code === 'string' ? fieldsErrors.postal_code : undefined}
 							/>
 							<TextField
 								id="phone"
 								title={translate('Phone')}
-								updateValue={handleFormFieldUpdate}
+								updateValue={handleFormTextFieldUpdate}
 								error={typeof formValues.phone === 'string' ? fieldsErrors.phone : undefined}
 							/>
 						</div>
 						<TextField
 							id="email"
 							title={translate('Email')}
-							updateValue={handleFormFieldUpdate}
+							updateValue={handleFormTextFieldUpdate}
 							error={typeof formValues.email === 'string' ? fieldsErrors.email : undefined}
 						/>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-company-info">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-company-info", "card", "is-compact" ) } >
 						<div className="carrier-accounts__settings-header">
 							<h4 className="carrier-accounts__settings-subheader">
 								{translate('Company information')}
@@ -352,25 +372,25 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 						<TextField
 							id="company"
 							title={translate('Company name')}
-							updateValue={handleFormFieldUpdate}
+							updateValue={handleFormTextFieldUpdate}
 							error={typeof formValues.company === 'string' ? fieldsErrors.company : undefined}
 						/>
 						<div className="carrier-accounts__settings-two-columns">
 							<TextField
 								id="title"
 								title={translate('Job title')}
-								updateValue={handleFormFieldUpdate}
+								updateValue={handleFormTextFieldUpdate}
 								error={typeof formValues.title === 'string' ? fieldsErrors.title : undefined}
 							/>
 							<TextField
 								id="website"
 								title={translate('Company website')}
-								updateValue={handleFormFieldUpdate}
+								updateValue={handleFormTextFieldUpdate}
 								error={typeof formValues.website === 'string' ? fieldsErrors.website : undefined}
 							/>
 						</div>
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-ups-info">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-ups-info", "card", "is-compact" ) } >
 						<div className="carrier-accounts__settings-header">
 							<h4 className="carrier-accounts__settings-subheader">
 								{translate('UPS account information')}
@@ -391,14 +411,14 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 										id="invoice_number"
 										defaultValue={formValues.invoice_number}
 										title={translate('UPS invoice number')}
-										updateValue={handleFormFieldUpdate}
+										updateValue={handleFormTextFieldUpdate}
 										error={typeof formValues.invoice_number === 'string' ? fieldsErrors.invoice_number : undefined}
 									/>
 									<TextField
 										id="invoice_date"
 										defaultValue={formValues.invoice_date}
 										title={translate('UPS invoice date')}
-										updateValue={handleFormFieldUpdate}
+										updateValue={handleFormTextFieldUpdate}
 										error={typeof formValues.invoice_date === 'string' ? fieldsErrors.invoice_date : undefined}
 										placeholder={'YYYY-MM-DD'}
 									/>
@@ -408,14 +428,14 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 										id="invoice_amount"
 										defaultValue={formValues.invoice_amount}
 										title={translate('UPS invoice amount')}
-										updateValue={handleFormFieldUpdate}
+										updateValue={handleFormTextFieldUpdate}
 										error={typeof formValues.invoice_amount === 'string' ? fieldsErrors.invoice_amount : undefined}
 									/>
 									<TextField
 										id="invoice_currency"
 										defaultValue={formValues.invoice_currency}
 										title={translate('UPS invoice currency')}
-										updateValue={handleFormFieldUpdate}
+										updateValue={handleFormTextFieldUpdate}
 										error={typeof formValues.invoice_currency === 'string' ? fieldsErrors.invoice_currency : undefined}
 									/>
 								</div>
@@ -423,26 +443,28 @@ const UpsSettingsForm = ({ translate, errorNotice, successNotice, countryNames, 
 									id="invoice_control_id"
 									defaultValue={formValues.invoice_control_id}
 									title={translate('UPS invoice control id')}
-									updateValue={handleFormFieldUpdate}
+									updateValue={handleFormTextFieldUpdate}
 									error={typeof formValues.invoice_control_id === 'string' ? fieldsErrors.invoice_control_id : undefined}
 								/>
 							</div>
 						)}
-					</CompactCard>
-					<CompactCard className="carrier-accounts__settings-actions">
+					</Card>
+					<Card className={ classNames( "carrier-accounts__settings-actions", "card", "is-compact" ) } >
 						<Button
-							compact
-							primary
+							isPrimary
+							className = { buttonClasses }
 							onClick={handleSubmit}
 							disabled={Object.keys(fieldsErrors).length > 0 || isSaving}
-							busy={isSaving}
+							isBusy={isSaving}
 						>
 							{translate('Connect')}
 						</Button>
-						<Button compact onClick={handleCancelClick}>
+						<Button 
+							className = { buttonClasses }
+							onClick={handleCancelClick}>
 							{translate('Cancel')}
 						</Button>
-					</CompactCard>
+					</Card>
 				</div>
 				<CancelDialog isVisible={isCancelDialogVisible} onConfirm={handleCancelDialogConfirm} onCancel={handleCancelDialogCancel}/>
 			</div>

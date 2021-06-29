@@ -1,0 +1,15 @@
+.tracking-modal__header {
+    display: flex;
+    flex-direction: row;
+}
+
+.tracking-modal__close-button {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    margin-top: -7px;
+}
+
+.form-section-heading {
+    flex: 1;
+}

@@ -7,11 +7,12 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import classNames from 'classnames';
+import { Button } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import {
 	confirmPrintLabel,
 	purchaseLabel,
@@ -42,8 +43,9 @@ const PurchaseButton = props => {
 			<Button
 				disabled={ disabled }
 				onClick={ form.needsPrintConfirmation ? props.confirmPrintLabel : props.purchaseLabel }
-				primary
-				busy={ busy }
+				isPrimary
+				isBusy={ busy }
+				className = { classNames( 'button' ) }
 			>
 				{ getPurchaseButtonLabel( props ) }
 			</Button>

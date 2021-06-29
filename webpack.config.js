@@ -244,6 +244,7 @@ module.exports = {
 		alias: {
 			...coreE2EAlias,
 			'react-dom': '@hot-loader/react-dom',
+			'wcs-client': path.resolve( __dirname, 'client' ),
 		},
 	},
 	node: {

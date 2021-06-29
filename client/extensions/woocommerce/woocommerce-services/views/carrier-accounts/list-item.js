@@ -10,11 +10,12 @@ import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
+import classNames from 'classnames';
+import { Button } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import CarrierIcon from '../../components/carrier-icon';
 import Dialog from 'components/dialog';
 import * as api from 'woocommerce/woocommerce-services/api';
@@ -55,22 +56,22 @@ const CarrierAccountListItem = ( props ) => {
 		submitDeletion();
 	}, [setIsDisconnectDialogVisible, errorNotice, successNotice, setIsSaving, siteId, setCarrierId, carrierId]);
 
+	const buttonClasses = classNames( 'button','is-compact');
+
 	const disconnectDialogButtons = React.useMemo(() => {
 		return [
 			<Button
-				compact
-				primary
-				disabled={ isSaving }
+				disabled = { isSaving }
+				className = { buttonClasses }
 				onClick={ handleDisconnectDialogCancel }
 			>
 				{ translate( 'Cancel' ) }
 			</Button>,
 			<Button
-				compact
-				primary
-				scary
-				disabled={ isSaving }
-				busy={ isSaving }
+				isPrimary
+				disabled = { isSaving }
+				isBusy = { isSaving }
+				className = { classNames( buttonClasses, 'is-scary') }
 				onClick={ handleDisconnectConfirmation }
 			>
 				{ translate( 'Disconnect' ) }
@@ -98,7 +99,9 @@ const CarrierAccountListItem = ( props ) => {
 			</div>
 			<div className="carrier-accounts__list-item-actions">
 				{ carrierId ? (
-					<Button onClick={ handleShowDisconnectDialogConfirmation } compact scary borderless>
+					<Button 
+						onClick={ handleShowDisconnectDialogConfirmation } 
+						className = { classNames( buttonClasses, 'is-scary', 'is-borderless') }>
 						{ translate( 'Disconnect' ) }
 					</Button>
 				) : (
@@ -107,7 +110,7 @@ const CarrierAccountListItem = ( props ) => {
 							`admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings&carrier=${accountData.type}`
 						}
 						// eslint-disable-next-line wpcalypso/jsx-classname-namespace
-						className="button is-compact"
+						className= { buttonClasses }
 					>
 						{ translate( 'Connect' ) }
 					</a>

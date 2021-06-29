@@ -5,6 +5,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { isEmpty, isString, omit } from 'lodash';
+import { Button, Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
@@ -16,7 +18,6 @@ import notices from 'notices';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import SettingsForm from 'woocommerce/woocommerce-services/views/service-settings/settings-form';
 import { areShippingMethodsLoaded } from 'woocommerce/state/sites/shipping-methods/selectors';
-import Button from 'components/button';
 import { ProtectFormGuard } from 'lib/protect-form';
 import { errorNotice, successNotice } from 'state/notices/actions';
 import {
@@ -27,7 +28,6 @@ import { getCurrentlyEditingShippingZone } from 'woocommerce/state/ui/shipping/z
 import { updateWcsShippingZoneMethod } from 'woocommerce/woocommerce-services/state/service-settings/actions';
 import getFormErrors from 'woocommerce/woocommerce-services/state/service-settings/selectors/errors';
 import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tree';
-import CompactCard from 'components/card/compact';
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 import { areShippingClassesLoaded } from 'woocommerce/state/sites/shipping-classes/selectors';
@@ -85,16 +85,17 @@ class ViewWrapper extends Component {
 			<div>
 				<GlobalNotices id="notices" notices={ notices.list } />
 				{ method ? <SettingsForm method={ method } siteId={ siteId } /> : this.renderPlaceholder() }
-				<CompactCard className="settings__button-row">
+				<Card className={ classNames( "settings__button-row", "card", "is-compact" ) } >
 					<Button
-						primary
+						isPrimary
+						className={ classNames( 'button' ) }
 						onClick={ this.onSave }
-						busy={ this.state.isSaving }
+						isBusy={ this.state.isSaving }
 						disabled={ this.state.isSaving || ! isLoaded || anyErrors }
 					>
 						{ translate( 'Save changes' ) }
 					</Button>
-				</CompactCard>
+				</Card>
 				<ProtectFormGuard isChanged={ hasEdits } />
 			</div>
 		);

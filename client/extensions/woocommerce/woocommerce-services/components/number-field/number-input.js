@@ -5,11 +5,9 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-
-/**
- * Internal dependencies
- */
-import FormTextInput from 'components/forms/form-text-input';
+import { TextControl } from '@wordpress/components';
+import classNames from 'classnames';
+import { omit } from 'lodash';
 
 export default class NumberInput extends Component {
 	static propTypes = {
@@ -31,17 +29,17 @@ export default class NumberInput extends Component {
 		}
 	}
 
-	handleChange = event => {
-		this.setState( { text: event.target.value } );
-		this.props.onChange( event );
+	handleChange = newValue => {
+		this.setState( { text: newValue } );
+		this.props.onChange( newValue );
 	};
 
-	handleBlur = event => {
+	handleBlur = () => {
 		this.setState( {
 			focused: false,
 			text: this.props.value,
 		} );
-		this.props.onChange( event );
+		this.props.onChange( this.props.value );
 	};
 
 	handleFocus = () => {
@@ -49,9 +47,17 @@ export default class NumberInput extends Component {
 	};
 
 	render() {
+		const props = omit( this.props, 'isError', 'isValid' );
+
+		const classes = classNames( this.props.className, {
+			'is-error': this.props.isError,
+			'is-valid': this.props.isValid,
+		} );
+
 		return (
-			<FormTextInput
-				{ ...this.props }
+			<TextControl
+				{ ...props }
+				className={ classes }
 				value={ this.state.text }
 				onChange={ this.handleChange }
 				onBlur={ this.handleBlur }

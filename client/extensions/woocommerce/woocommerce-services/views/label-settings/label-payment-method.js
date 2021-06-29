@@ -7,12 +7,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
+import { Card } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import FormCheckbox from 'components/forms/form-checkbox';
-import CompactCard from 'components/card/compact';
 import PaymentLogo from 'components/payment-logo';
 
 export const getPaymentMethodTitle = ( translate, paymentType, digits ) => {
@@ -51,7 +52,7 @@ const PaymentMethod = ( {
 	onSelect,
 } ) => {
 	const renderPlaceholder = () => (
-		<CompactCard className="label-settings__card">
+		<Card className={ classNames( 'label-settings__card', 'card', 'is-compact' ) } >
 			<FormCheckbox className="label-settings__card-checkbox" />
 			<PaymentLogo className="label-settings__card-logo" type="placeholder" altText={ '' } />
 			<div className="label-settings__card-details">
@@ -61,7 +62,7 @@ const PaymentMethod = ( {
 			<div className="label-settings__card-date">
 				<p />
 			</div>
-		</CompactCard>
+		</Card>
 	);
 
 	if ( isLoading ) {
@@ -73,7 +74,7 @@ const PaymentMethod = ( {
 	const typeName = typeTitle || type;
 
 	return (
-		<CompactCard className="label-settings__card" onClick={ onSelect }>
+		<Card className={ classNames( "label-settings__card" , 'card', 'is-compact' ) } onClick={ onSelect }>
 			<FormCheckbox
 				className="label-settings__card-checkbox"
 				checked={ selected }
@@ -90,7 +91,7 @@ const PaymentMethod = ( {
 					context: 'date is of the form MM/YY',
 				} ) }
 			</div>
-		</CompactCard>
+		</Card>
 	);
 };
 
@@ -105,3 +106,5 @@ PaymentMethod.propTypes = {
 };
 
 export default localize( PaymentMethod );
+
+
