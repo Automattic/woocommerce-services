@@ -76,6 +76,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.15 - 2021-xx-xx =
+* Fix   - Ensure shipping label metabox is displayed to users with the correct capabilities.
+* Add   - Added `wcship_user_can_manage_labels` filter to check permissions to print shipping labels.
+* Add   - Added `wcship_manage_labels` capability to check permissions to print shipping labels.
+
 = 1.25.14 - 2021-06-15 =
 * Fix   - Issue with printing blank label in Safari.
 * Fix   - DHL Express labels - require customs form when shipping to Puerto Rico.
