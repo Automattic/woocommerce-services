@@ -13,5 +13,10 @@
 		"phpcbf": [
 			"phpcbf -p"
 		]
-	}
+	},
+    "require": {
+        "automattic/jetpack-connection": "^1.28",
+        "automattic/jetpack-config": "^1.4",
+        "automattic/jetpack-autoloader": "^2.10"
+    }
 }

@@ -82,7 +82,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			}
 
 			// Check for Jetpack
-			$jp_version = 'unavailable';
+			$jp_version = 'embed';
 			if ( defined( 'JETPACK__VERSION' ) ) {
 				$jp_version = JETPACK__VERSION;
 			}

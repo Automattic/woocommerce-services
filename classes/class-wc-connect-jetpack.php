@@ -5,26 +5,19 @@ use Automattic\Jetpack\Connection\Manager;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
+		const PLUGIN_SLUG = 'woocommerce-shipping-tax';
+
+		public static function get_connection_manager() {
+			return new Manager( self::PLUGIN_SLUG );
+		}
+
 		/**
 		 * @param $user_id
 		 *
 		 * @return stdClass|WP_Error
 		 */
 		public static function get_master_user_access_token( $user_id ) {
-			if ( class_exists( '\Automattic\Jetpack\Connection\Tokens' ) && method_exists( '\Automattic\Jetpack\Connection\Tokens', 'get_access_token' ) ) {
-				$connection = new Tokens();
-
-				return $connection->get_access_token( $user_id );
-			}
-
-			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_access_token' ) ) {
-				$connection = new Manager();
-
-				return $connection->get_access_token( $user_id );
-			}
-
-			// fallback
-			return new stdClass();
+			return self::get_connection_manager()->get_tokens()->get_access_token( $user_id );
 		}
 
 		/**
@@ -33,8 +26,12 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_development_mode() {
+			// TOCO: check
+			return false;
+
 			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_offline_mode' ) ) {
 				$status = new \Automattic\Jetpack\Status();
+
 				return $status->is_offline_mode();
 			}
 
@@ -47,14 +44,8 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_active() {
-			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) && WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE ) {
-				return true;
-			}
-			if ( method_exists( 'Jetpack', 'is_active' ) ) {
-				return Jetpack::is_active();
-			}
-
-			return false;
+			// TODO: check
+			return self::get_connection_manager()->is_connected();
 		}
 
 		/**
@@ -63,16 +54,9 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_staging_site() {
-			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_staging_site' ) ) {
-				$status = new \Automattic\Jetpack\Status();
-				return $status->is_staging_site();
-			}
+			$jetpack_status = new \Automattic\Jetpack\Status();
 
-			if ( method_exists( 'Jetpack', 'is_staging_site' ) ) {
-				return Jetpack::is_staging_site();
-			}
-
-			return false;
+			return $jetpack_status->is_staging_site();
 		}
 
 		/**
@@ -81,6 +65,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_atomic_site() {
+			// TODO: WTH?
 			if ( function_exists( 'jetpack_is_atomic_site' ) ) {
 				return jetpack_is_atomic_site();
 			} elseif ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
@@ -91,17 +76,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		public static function get_connected_user_data( $user_id ) {
-			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_connected_user_data' ) ) {
-				$connection = new Manager();
-
-				return $connection->get_connected_user_data( $user_id );
-			}
-
-			if ( method_exists( 'Jetpack', 'get_connected_user_data' ) ) {
-				return Jetpack::get_connected_user_data( $user_id );
-			}
-
-			return false;
+			return self::get_connection_manager()->get_connected_user_data( $user_id );
 		}
 
 		/**
@@ -113,6 +88,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 			if ( self::is_active() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$master_user_id = Jetpack_Options::get_option( 'master_user' );
+
 				return get_userdata( $master_user_id );
 			}
 
@@ -124,6 +100,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * Builds a connect url
 		 *
 		 * @param $redirect_url
+		 *
 		 * @return string
 		 */
 		public static function build_connect_url( $redirect_url ) {
@@ -142,14 +119,12 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @param
 		 */
 		public static function tracks_record_event( $user, $event_type, $data ) {
-			if ( version_compare( JETPACK__VERSION, '7.5', '<' ) ) {
-				if ( function_exists( 'jetpack_tracks_record_event' ) ) {
-					return jetpack_tracks_record_event( $user, $event_type, $data );
-				}
-			} elseif ( class_exists( 'Automattic\\Jetpack\\Tracking' ) ) {
+			if ( class_exists( 'Automattic\\Jetpack\\Tracking' ) ) {
 				$tracking = new Automattic\Jetpack\Tracking();
+
 				return $tracking->tracks_record_event( $user, $event_type, $data );
 			}
+
 			return false;
 		}
 
@@ -193,6 +168,20 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Check if WCS&T is installed alongside an old version of Jetpack (8.1 or earlier). Due to the autoloader code in those old
+		 * versions, the Jetpack Config initialization code would just crash the site.
+		 *
+		 * @return bool True if the plugin can keep initializing itself, false otherwise.
+		 */
+		public static function is_jetpack_version_supported() {
+			if ( defined( 'JETPACK__VERSION' ) && version_compare( JETPACK__VERSION, '8.2', '<' ) && JETPACK__VERSION !== 'wpcom' ) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 }

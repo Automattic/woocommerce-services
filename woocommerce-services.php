@@ -34,6 +34,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/vendor/autoload_packages.php';
+
 require_once __DIR__ . '/classes/class-wc-connect-extension-compatibility.php';
 require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
@@ -41,21 +43,10 @@ require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
-	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '7.5' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION ' ) ) {
 		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
-	}
-
-	// Check for CI environment variable to trigger test mode.
-	if ( false !== getenv( 'WOOCOMMERCE_SERVICES_CI_TEST_MODE' ) ) {
-		if ( ! defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
-			define( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE', true );
-		}
-		if ( ! defined( 'JETPACK_DEV_DEBUG' ) ) {
-			define( 'JETPACK_DEV_DEBUG', true );
-		}
 	}
 
 	class WC_Connect_Loader {
@@ -197,6 +188,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $service_object_cache = array();
 
+		/**
+		 * @var string
+		 */
 		protected $wc_connect_base_url;
 
 		protected static $wcs_version;
@@ -280,12 +274,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			} else {
 				return '';
 			}
-		}
-
-		function wpcom_static_url( $file ) {
-			$i   = hexdec( substr( md5( $file ), -1 ) ) % 2;
-			$url = 'http://s' . $i . '.wp.com' . $file;
-			return set_url_scheme( $url );
 		}
 
 		public function __construct() {
@@ -527,6 +515,32 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				);
 				return;
 			}
+
+			if ( false === WC_Connect_Jetpack::is_jetpack_version_supported() ) {
+				add_action(
+					'admin_notices',
+					function() {
+						?>
+						<div class="notice wcpay-notice notice-error">
+							<p><b><?php echo esc_html( __( 'WooCommerce Shipping & Tax', 'woocommerce-payments' ) ); ?></b></p>
+							<p><?php echo esc_html( __( 'The version of Jetpack installed is too old to be used with WooCommerce Shipping & Tax. WooCommerce Shipping & Tax has been disabled. Please deactivate or update Jetpack.', 'woocommerce-payments' ) ); ?></p>
+						</div>
+						<?php
+					}
+				);
+				// Prevent the rest of the plugin continuing to initialize.
+				return;
+			}
+
+			$jetpack_config = new Automattic\Jetpack\Config();
+			$jetpack_config->ensure(
+				'connection',
+				array(
+					'slug' => WC_Connect_Jetpack::PLUGIN_SLUG,
+					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-payments' ),
+				)
+			);
+
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
 		}
 
@@ -708,7 +722,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
-			$options               = new WC_Connect_Options();
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
@@ -1650,11 +1663,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 	}
-
-	if ( ! defined( 'WC_UNIT_TESTING' ) ) {
-		new WC_Connect_Loader();
-	}
 }
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
+
+
+// TODO: check this
+// The JetPack autoloader might not catch up yet when activating the plugin. If so, we'll stop here to avoid JetPack connection failures.
+$is_autoloading_ready = class_exists( Automattic\Jetpack\Connection\Rest_Authentication::class );
+if ( ! $is_autoloading_ready ) {
+	return;
+}
+
+// Jetpack's Rest_Authentication needs to be initialized even before plugins_loaded.
+Automattic\Jetpack\Connection\Rest_Authentication::init();
+
+
+if ( ! defined( 'WC_UNIT_TESTING' ) ) {
+	new WC_Connect_Loader();
+}
