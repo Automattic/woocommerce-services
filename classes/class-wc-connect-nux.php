@@ -259,8 +259,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				This is an existing user. Do nothing.
 			*/
 			switch ( $status['jetpack_connection_status'] ) {
-				case self::JETPACK_NOT_INSTALLED:
-				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
 				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
@@ -420,10 +418,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Admins might not be able to install or activate plugins, but Jetpack might already have been installed by a superadmin.
 			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
 			$jetpack_install_status = $this->get_jetpack_install_status();
-			if ( ( self::JETPACK_NOT_INSTALLED === $jetpack_install_status && ! current_user_can( 'install_plugins' ) )
-				|| ( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_install_status && ! current_user_can( 'activate_plugins' ) ) ) {
-				return;
-			}
 
 			$banner_to_display = self::get_banner_type_to_display(
 				array(
@@ -449,10 +443,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					);
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_nux_notice', $ajax_data );
-					add_action(
-						'wp_ajax_woocommerce_services_activate_jetpack',
-						array( $this, 'ajax_activate_jetpack' )
-					);
 					add_action(
 						'wp_ajax_woocommerce_services_get_jetpack_connect_url',
 						array( $this, 'ajax_get_jetpack_connect_url' )
@@ -511,14 +501,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect Jetpack you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
 				'title'             => $banner_title,
 				'description'       => sprintf( $description_base, $feature_list ),
 				'button_text'       => $button_text,
 				'image_url'         => $image_url,
-				'should_show_jp'    => true,
 				'should_show_terms' => true,
 			);
 
@@ -566,7 +555,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						'images/wcs-notice.png',
 						dirname( __FILE__ )
 					),
-					'should_show_jp'    => false,
 					'should_show_terms' => false,
 				)
 			);
@@ -609,7 +597,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						'images/wcs-notice.png',
 						dirname( __FILE__ )
 					),
-					'should_show_jp'    => false,
 					'should_show_terms' => true,
 				)
 			);
@@ -623,12 +610,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			?>
 			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
 				<div class="wcs-nux__notice-logo <?php echo isset( $content['compact_logo'] ) && $content['compact_logo'] ? 'is-compact' : ''; ?>">
-					<?php if ( $content['should_show_jp'] ) : ?>
-						<img
-							class="wcs-nux__notice-logo-jetpack"
-							src="<?php echo esc_url( plugins_url( 'images/jetpack-logo.png', dirname( __FILE__ ) ) ); ?>"
-						>
-					<?php endif; ?>
 					<img class="wcs-nux__notice-logo-graphic" src="<?php echo esc_url( $content['image_url'] ); ?>">
 				</div>
 				<div class="wcs-nux__notice-content">
@@ -692,28 +673,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				</script>
 				<?php
 			endif;
-		}
-
-		/**
-		 * Activates Jetpack after an ajax request
-		 */
-		public function ajax_activate_jetpack() {
-			check_ajax_referer( 'wcs_nux_notice' );
-
-			$result = activate_plugin( 'jetpack/jetpack.php' );
-
-			if ( is_null( $result ) ) {
-				// The function activate_plugin() returns NULL on success.
-				echo 'success';
-			} else {
-				if ( is_wp_error( $result ) ) {
-					echo esc_html( $result->get_error_message() );
-				} else {
-					echo 'error';
-				}
-			}
-
-			wp_die();
 		}
 
 		/**
