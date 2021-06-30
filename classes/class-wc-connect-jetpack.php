@@ -42,7 +42,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 */
 		public static function is_active() {
 			// TODO: check
-			return self::get_connection_manager()->is_connected();
+			return self::get_connection_manager()->is_active();
 		}
 
 		/**
@@ -143,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		public static function is_connected() {
 			$manager = self::get_connection_manager();
 
-			return $manager->is_plugin_enabled() && $manager->has_connected_owner();
+			return $manager->is_plugin_enabled() && $manager->is_active();
 		}
 
 		/**
