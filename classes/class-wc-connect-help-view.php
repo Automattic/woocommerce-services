@@ -85,14 +85,6 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'state'   => 'warning',
 					'message' => __( 'This is a Jetpack staging site', 'woocommerce-services' ),
 				);
-			} elseif ( defined( 'JETPACK__VERSION' ) ) {
-				$health_item = array(
-					'state'   => 'success',
-					'message' => sprintf(
-						__( 'Jetpack %s is connected and working correctly', 'woocommerce-services' ),
-						JETPACK__VERSION
-					),
-				);
 			} else {
 				$health_item = array(
 					'state'   => 'success',
