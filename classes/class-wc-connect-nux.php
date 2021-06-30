@@ -6,9 +6,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		/**
 		 * Jetpack status constants.
 		 */
-		const JETPACK_NOT_INSTALLED           = 'uninstalled';
-		const JETPACK_INSTALLED_NOT_ACTIVATED = 'installed';
-		const JETPACK_ACTIVATED_NOT_CONNECTED = 'activated';
+		const JETPACK_NOT_CONNECTED = 'not-connected';
 		const JETPACK_DEV                     = 'dev';
 		const JETPACK_CONNECTED               = 'connected';
 
@@ -225,13 +223,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function can_accept_tos() {
 			$jetpack_status = $this->get_jetpack_install_status();
 
-			if (
-				( self::JETPACK_NOT_INSTALLED === $jetpack_status ) ||
-				( self::JETPACK_INSTALLED_NOT_ACTIVATED === $jetpack_status )
-			) {
-				return false;
-			}
-
 			// Developer case
 			if ( self::JETPACK_DEV === $jetpack_status ) {
 				return true;
@@ -259,7 +250,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				This is an existing user. Do nothing.
 			*/
 			switch ( $status['jetpack_connection_status'] ) {
-				case self::JETPACK_ACTIVATED_NOT_CONNECTED:
+				case self::JETPACK_NOT_CONNECTED:
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
 				case self::JETPACK_DEV:
@@ -286,31 +277,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function get_jetpack_install_status() {
-			// TODO: check
-			return self::JETPACK_CONNECTED;
-
-			// we need to use validate_plugin to check that Jetpack is installed
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
-
-			// check if jetpack is installed
-			if ( 0 !== validate_plugin( 'jetpack/jetpack.php' ) ) {
-				return self::JETPACK_NOT_INSTALLED;
-			}
-
-			// check if Jetpack is activated
-			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
-				return self::JETPACK_INSTALLED_NOT_ACTIVATED;
-			}
-
 			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
-				// installed, activated, and dev mode on
+				// activated, and dev mode on
 				return self::JETPACK_DEV;
 			}
 
-			// installed, activated, dev mode off
-			// check if connected
+			// dev mode off, check if connected
 			if ( ! WC_Connect_Jetpack::is_connected() ) {
-				return self::JETPACK_ACTIVATED_NOT_CONNECTED;
+				return self::JETPACK_NOT_CONNECTED;
 			}
 
 			return self::JETPACK_CONNECTED;
@@ -485,29 +459,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// so that we don't accept the TOS pre-maturely
 			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 
-			$jetpack_status = $this->get_jetpack_install_status();
-			$button_text    = __( 'Connect', 'woocommerce-services' );
-			$banner_title   = __( 'Connect Jetpack to activate WooCommerce Shipping & Tax', 'woocommerce-services' );
-			$image_url      = plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) );
-
-			switch ( $jetpack_status ) {
-				case self::JETPACK_NOT_INSTALLED:
-					$button_text = __( 'Install Jetpack and connect', 'woocommerce-services' );
-					break;
-				case self::JETPACK_INSTALLED_NOT_ACTIVATED:
-					$button_text = __( 'Activate Jetpack and connect', 'woocommerce-services' );
-					break;
-			}
-
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
 			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
-				'title'             => $banner_title,
+				'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
 				'description'       => sprintf( $description_base, $feature_list ),
-				'button_text'       => $button_text,
-				'image_url'         => $image_url,
+				'button_text'       => __( 'Connect', 'woocommerce-services' ),
+				'image_url'         => plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) ),
 				'should_show_terms' => true,
 			);
 
