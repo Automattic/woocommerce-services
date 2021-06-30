@@ -13,7 +13,7 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	public function setUp() {
 		parent::setUp();
 
-		$this->jetpack_tracker = $this->createMock( Automattic\Jetpack\Tracking::class )->disableOriginalConstructor();
+		$this->jetpack_tracker = $this->createMock( Automattic\Jetpack\Tracking::class );
 
 		$this->logger = $this->getMockBuilder( 'WC_Connect_Logger' )
 		                     ->disableOriginalConstructor()
