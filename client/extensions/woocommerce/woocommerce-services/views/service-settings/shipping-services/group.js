@@ -13,7 +13,7 @@ import { Tooltip } from '@wordpress/components';
  * Internal dependencies
  */
 import ShippingServiceEntry from './entry';
-import FoldableCard from 'components/foldable-card';
+import FoldableCard from 'wcs-client/components/foldable-card';
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox';
 import Gridicon from "gridicons";
 
