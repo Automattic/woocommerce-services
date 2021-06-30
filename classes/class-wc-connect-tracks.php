@@ -66,6 +66,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		}
 
 		public function record_user_event( $event_type, $data = array() ) {
+			// TODO: figure this out
 			if ( ! function_exists( 'jetpack_tracks_record_event' ) && ! class_exists( 'Automattic\\Jetpack\\Tracking' ) ) {
 				$this->debug( 'Error. jetpack_tracks_record_event is not defined.' );
 				return;
