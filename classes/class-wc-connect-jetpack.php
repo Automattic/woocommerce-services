@@ -26,9 +26,6 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_development_mode() {
-			// TOCO: check
-			return false;
-
 			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_offline_mode' ) ) {
 				$status = new \Automattic\Jetpack\Status();
 
