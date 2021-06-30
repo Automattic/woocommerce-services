@@ -4,6 +4,7 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { FormToggle } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -11,7 +12,6 @@ import PropTypes from 'prop-types';
 import './style.scss';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormToggle from 'components/forms/form-toggle/compact';
 import FieldDescription from '../../extensions/woocommerce/woocommerce-services/components/field-description';
 import sanitizeHTML from 'lib/utils/sanitize-html';
 
@@ -22,10 +22,8 @@ class Toggle extends Component {
 		description: PropTypes.string,
 		trueText: PropTypes.string.isRequired,
 		falseText: PropTypes.string.isRequired,
-		saveOnToggle: PropTypes.bool,
 		checked: PropTypes.bool,
-		saveForm: PropTypes.func,
-		updateValue: PropTypes.func,
+		onUpdate: PropTypes.func,
 		className: PropTypes.string,
 	};
 
@@ -39,17 +37,11 @@ class Toggle extends Component {
 
 	handleChangeEvent = () => {
 		const {
-			updateValue,
+			onUpdate,
 			checked,
-			saveForm,
-			saveOnToggle,
 		} = this.props;
 
-		updateValue( ! checked );
-
-		if ( saveOnToggle && saveForm ) {
-			saveForm();
-		}
+		onUpdate( ! checked );
 	};
 
 	render() {

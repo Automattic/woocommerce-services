@@ -11,16 +11,17 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { find, isBoolean } from 'lodash';
 import Gridicon from 'gridicons';
+import { Button } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
-import Button from 'components/button';
 import FormCheckbox from 'components/forms/form-checkbox';
 import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormSelect from 'components/forms/form-select';
+import FormSelect from 'wcs-client/components/forms/form-select';
 import Notice from 'components/notice';
 import NoticeAction from 'components/notice/notice-action';
 import PaymentMethod, { getPaymentMethodTitle } from './label-payment-method';
@@ -77,7 +78,7 @@ class ShippingLabels extends Component {
 					<p className="label-settings__credit-card-description" />
 					<PaymentMethod selected={ false } isLoading={ true } />
 					<PaymentMethod selected={ false } isLoading={ true } />
-					<Button compact />
+					<Button />
 				</FormFieldSet>
 			</div>
 		);
@@ -225,7 +226,7 @@ class ShippingLabels extends Component {
 					<p className="label-settings__credit-card-description">{ summary }</p>
 					{ canEditPayments && (
 						<p className="label-settings__credit-card-description">
-							<Button onClick={ expand } borderless>
+							<Button onClick={ expand } className = { classNames( 'button', 'is-borderless' ) }>
 								{ translate( 'Choose a different card' ) }
 							</Button>
 						</p>
@@ -271,6 +272,7 @@ class ShippingLabels extends Component {
 			this.addCreditCardWindow = window.open( getOrigin() + '/me/purchases/add-credit-card' );
 			document.addEventListener( 'visibilitychange', this.onVisibilityChange );
 		};
+		const buttonClasses = classNames( 'button','is-compact');
 
 		return (
 			<div>
@@ -280,7 +282,7 @@ class ShippingLabels extends Component {
 
 				<QueryStoredCards />
 				{ isReloading ? (
-					<div className="label-settings__placeholder">
+					<div className= { classNames( buttonClasses, "label-settings__placeholder" ) }>
 						<PaymentMethod selected={ false } isLoading={ true } />
 						<PaymentMethod selected={ false } isLoading={ true } />
 					</div>
@@ -291,12 +293,12 @@ class ShippingLabels extends Component {
 				<AddCardDialog siteId={ siteId } />
 
 				{ /* Render two buttons with internal/external classNames to conditionally show them in Calypso or wp-admin using CSS */ }
-				<Button className="label-settings__internal" onClick={ openDialog } compact>
+				<Button className={ classNames( buttonClasses, "label-settings__internal" ) } onClick={ openDialog } >
 					{ buttonLabel }
 				</Button>
 				<div className="label-settings__credit-card-description label-settings__external">
 					{ this.renderAddCardExternalInfo() }
-					<Button onClick={ onAddCardExternal } compact>
+					<Button className= { buttonClasses } onClick={ onAddCardExternal } >
 						{ buttonLabel } <Gridicon icon="external" />
 					</Button>
 				</div>

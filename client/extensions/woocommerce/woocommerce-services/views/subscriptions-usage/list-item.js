@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
-import { Tooltip } from '@wordpress/components';
+import { Button, Tooltip } from '@wordpress/components';
 import Gridicon from 'gridicons';
 import classNames from 'classnames';
 
@@ -15,7 +15,6 @@ import classNames from 'classnames';
  * Internal dependencies
  */
 import CarrierIcon from '../../components/carrier-icon';
-import Button from 'components/button';
 import * as api from 'woocommerce/woocommerce-services/api';
 import { errorNotice as errorNoticeAction, successNotice as successNoticeAction } from 'state/notices/actions';
 import { getSelectedSiteId } from 'state/ui/selectors';
@@ -55,9 +54,15 @@ const SubscriptionsUsageListItem = ( props ) => {
 		submitActivation();
 	}
 
-	const usage_count = data.usage_count ? data.usage_count : 0 ;
-	const usage = data.usage_limit ? `${ usage_count }/${ data.usage_limit }` : '';
-	const isUsageOverLimit = data.usage_count && data.usage_limit && data.usage_count > data.usage_limit;
+	const usage = [];
+	let isUsageOverLimit = false;
+
+	data.usage_data.forEach( ( usageEvent, index ) => {
+		usage.push( <div key={ index }>{ usageEvent.label }: { usageEvent.count }/{ usageEvent.limit }</div> );
+		isUsageOverLimit = isUsageOverLimit || usageEvent.count > usageEvent.limit;
+	} );
+
+	const buttonClasses = classNames( 'button','is-compact');
 
 	return (
 		<div className= "subscriptions-usage__list-item" >
@@ -86,8 +91,7 @@ const SubscriptionsUsageListItem = ( props ) => {
 						href={
 						`https://woocommerce.com/my-account/my-subscriptions/`
 						}
-						// eslint-disable-next-line wpcalypso/jsx-classname-namespace
-						className="button is-compact"
+						className= { buttonClasses }
 					>
 						{ translate( 'Manage' ) }
 					</a>
@@ -95,8 +99,8 @@ const SubscriptionsUsageListItem = ( props ) => {
 					<Button
 						onClick={ handleActivate }
 						disabled={ isSaving }
-						busy={ isSaving }
-						compact
+						isBusy={ isSaving }
+						className= { buttonClasses }
 					>
 						{ translate( 'Activate' ) }
 				   </Button>
@@ -113,8 +117,11 @@ SubscriptionsUsageListItem.propTypes = {
 	data: PropTypes.shape( {
 		product_name: PropTypes.string.isRequired,
 		is_active: PropTypes.bool.isRequired,
-		usage_limit: PropTypes.number,
-		usage_count: PropTypes.number,
+		usage_data: PropTypes.arrayOf( PropTypes.shape( {
+			limit: PropTypes.number,
+			count: PropTypes.number,
+			label: PropTypes.string,
+		} ) )
 	} ).isRequired,
 };
 

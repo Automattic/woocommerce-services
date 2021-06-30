@@ -35,7 +35,7 @@ export class LabelItem extends Component {
 		if ( expired ) {
 			toolTipMessage = translate( 'Labels older than 30 days cannot be refunded.' );
 			disabled       = true;
-		} 
+		}
 		else if ( 'usps' === carrierId && ! trackingId ) {
 			toolTipMessage = translate( 'USPS labels without tracking are not eligible for refund.' );
 			disabled       = true
@@ -108,7 +108,7 @@ export class LabelItem extends Component {
 			'usps': 'https://tools.usps.com/schedule-pickup-steps.htm',
 			'fedex': 'https://www.fedex.com/en-us/shipping/schedule-manage-pickups.html',
 			'ups': 'https://wwwapps.ups.com/pickup/request',
-			'dhlexpress': 'https://mydhl.express.dhl/us/en/home.html#/schedulePickupTab',
+			'dhlexpress': 'https://mydhl.express.dhl/us/en/schedule-pickup.html#/schedule-pickup#label-reference',
 		};
 
 		if ( ! ( pickup_urls.hasOwnProperty( carrierId ) ) ) {

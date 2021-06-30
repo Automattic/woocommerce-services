@@ -108,3 +108,24 @@
 &.dialog.card.add-credit-card-modal .components-modal__content {
 	max-width: 720px;
 }
+
+.components-form-toggle {
+	display: inline-flex;
+	vertical-align: middle;
+
+	.components-form-toggle__track {
+		margin-left: 0;
+	}
+
+	input.components-form-toggle__input[type=checkbox] {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		margin: 0;
+		z-index: 1;
+		border: none;
+	}
+}

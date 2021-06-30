@@ -26,9 +26,14 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			$response_body = $this->api_client->get_service_schemas();
 
 			if ( is_wp_error( $response_body ) ) {
+				$error_data = $response_body->get_error_data();
+				if ( isset( $error_data['response_status_code'] ) ) {
+					$this->update_last_fetch_result_code( $error_data['response_status_code'] );
+				}
 				$this->logger->log( $response_body, __FUNCTION__ );
 				return false;
 			}
+			$this->update_last_fetch_result_code( '200' );
 
 			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
 			$this->update_last_fetch_timestamp();
@@ -36,7 +41,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			$old_schemas = $this->get_service_schemas();
 			if ( $old_schemas == $response_body ) {
-				//schemas weren't changed, but were fetched without problems
+				// schemas weren't changed, but were fetched without problems
 				return true;
 			}
 
@@ -60,9 +65,20 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			WC_Connect_Options::update_option( 'services_last_update', time() );
 		}
 
+		public function get_last_fetch_result_code() {
+			return WC_Connect_Options::get_option( 'services_last_result_code' );
+		}
+
+		/**
+		 * @param int $result_status_code
+		 */
+		protected function update_last_fetch_result_code( $result_status_code ) {
+			WC_Connect_Options::update_option( 'services_last_result_code', $result_status_code );
+		}
+
 		protected function maybe_update_heartbeat() {
 			$last_heartbeat = WC_Connect_Options::get_option( 'last_heartbeat' );
-			$now = time();
+			$now            = time();
 
 			if ( ! $last_heartbeat ) {
 				$should_update = true;
@@ -72,7 +88,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 					// last heartbeat in the future? wacky
 					$should_update = true;
 				} else {
-					$elapsed = $now - $last_heartbeat;
+					$elapsed       = $now - $last_heartbeat;
 					$should_update = $elapsed > DAY_IN_SECONDS;
 				}
 			}
@@ -115,7 +131,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 */
 		public function get_all_shipping_method_ids() {
 			$shipping_method_ids = array();
-			$service_schemas = $this->get_service_schemas();
+			$service_schemas     = $this->get_service_schemas();
 			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'shipping' ) || ! is_array( $service_schemas->shipping ) ) {
 				return $shipping_method_ids;
 			}
@@ -236,7 +252,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			$predefined_packages = array();
-			foreach( $service_schemas->shipping as $service_schema ) {
+			foreach ( $service_schemas->shipping as $service_schema ) {
 				if ( ! isset( $service_schema->packages ) ) {
 					continue;
 				}

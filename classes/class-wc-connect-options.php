@@ -4,6 +4,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 	class WC_Connect_Options {
 		/**
 		 * An array that maps a grouped option type to an option name.
+		 *
 		 * @var array
 		 */
 		private static $grouped_options = array(
@@ -27,6 +28,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 						'last_heartbeat',
 						'origin_address',
 						'last_rate_request',
+						'services_last_result_code',
 					);
 				case 'shipping_method':
 					return array(
@@ -60,8 +62,8 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				return;
 			}
 
-			foreach( self::$grouped_options as $group_key => $group ) {
-				//delete legacy options
+			foreach ( self::$grouped_options as $group_key => $group ) {
+				// delete legacy options
 				foreach ( self::get_option_names( $group_key ) as $group_option ) {
 					delete_option( "wc_connect_$group_option" );
 				}
@@ -81,7 +83,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		 * Returns the requested option.  Looks in wc_connect_options or wc_connect_$name as appropriate.
 		 *
 		 * @param string $name Option name
-		 * @param mixed $default (optional)
+		 * @param mixed  $default (optional)
 		 *
 		 * @return mixed
 		 */
@@ -104,11 +106,11 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		 * Updates the single given option.  Updates wc_connect_options or wc_connect_$name as appropriate.
 		 *
 		 * @param string $name Option name
-		 * @param mixed $value Option value
+		 * @param mixed  $value Option value
 		 *
 		 * @return bool Was the option successfully updated?
 		 */
-		public static function update_option( $name, $value) {
+		public static function update_option( $name, $value ) {
 			if ( self::is_valid( $name, 'non_compact' ) ) {
 				return update_option( "wc_connect_$name", $value );
 			}
@@ -231,8 +233,8 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				return $options[ $name ];
 			}
 
-			//make the grouped options backwards-compatible and migrate the old options
-			$legacy_name = "wc_connect_$name";
+			// make the grouped options backwards-compatible and migrate the old options
+			$legacy_name   = "wc_connect_$name";
 			$legacy_option = get_option( $legacy_name, false );
 			if ( ! $legacy_option ) {
 				return $default;
@@ -254,7 +256,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		}
 
 		private static function delete_grouped_option( $group, $names ) {
-			$options = get_option( self::$grouped_options[ $group ], array() );
+			$options   = get_option( self::$grouped_options[ $group ], array() );
 			$to_delete = array_intersect( $names, self::get_option_names( $group ), array_keys( $options ) );
 			if ( $to_delete ) {
 				foreach ( $to_delete as $name ) {
@@ -289,8 +291,8 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Is the option name valid?
 		 *
-		 * @param string      $name  The name of the option
-		 * @param string      $group The name of the group that the option is in. Defaults to compact.
+		 * @param string $name  The name of the option
+		 * @param string $group The name of the group that the option is in. Defaults to compact.
 		 *
 		 * @return bool Is the option name valid?
 		 */

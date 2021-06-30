@@ -10,6 +10,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const safePostCssParser = require('postcss-safe-parser');
+const { webpackAlias: coreE2EAlias } = require( '@woocommerce/e2e-environment' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -241,7 +242,9 @@ module.exports = {
 		],
 		symlinks: false,
 		alias: {
+			...coreE2EAlias,
 			'react-dom': '@hot-loader/react-dom',
+			'wcs-client': path.resolve( __dirname, 'client' ),
 		},
 	},
 	node: {

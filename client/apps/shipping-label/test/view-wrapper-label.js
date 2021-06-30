@@ -105,7 +105,7 @@ describe( 'ShippingLabelViewWrapper', () => {
 		} );
 
 		it( 'renders track label button', function() {
-			expect( viewWrapperLabel.find( 'Button' ).last().dive() ).to.contain.text( 'Track Packages' );
+			expect( viewWrapperLabel.find( 'ForwardRef(Button)' ).last().dive() ).to.contain.text( 'Track Packages' );
 		} );
 	} );
 
@@ -121,7 +121,7 @@ describe( 'ShippingLabelViewWrapper', () => {
 		} );
 
 		it( 'renders track label button', function() {
-			expect( viewWrapperLabel.find( 'Button' ).last().dive() ).to.contain.text( 'Track Packages' );
+			expect( viewWrapperLabel.find( 'ForwardRef(Button)' ).last().dive() ).to.contain.text( 'Track Packages' );
 		} );
 	} );
 
@@ -137,7 +137,7 @@ describe( 'ShippingLabelViewWrapper', () => {
 		} );
 
 		it( 'renders track label button', function() {
-			expect( viewWrapperLabel.find( 'Button' ).last().dive() ).to.contain.text( 'Track Packages' );
+			expect( viewWrapperLabel.find( 'ForwardRef(Button)' ).last().dive() ).to.contain.text( 'Track Packages' );
 		} );
 	} );
 } );

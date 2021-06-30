@@ -12,7 +12,6 @@ import {
 	filter,
 	find,
 	flatten,
-	get,
 	includes,
 	isBoolean,
 	isEqual,
@@ -784,21 +783,21 @@ const getPDFFileName = ( orderId, isReprint = false ) => {
 };
 
 // retireves the single label status, and retries up to 3 times on timeout
-const labelStatusTask = ( orderId, siteId, labelId, retryCount ) => {
+const labelsStatusTask = ( orderId, siteId, labelIds, retryCount ) => {
 	let timeout = 1000;
 	if ( retryCount === 0) {
 		timeout = 2000;
 	}
 	return api
-		.get( siteId, api.url.labelStatus( orderId, labelId ) )
-		.then( statusResponse => statusResponse.label )
+		.get( siteId, api.url.labelsStatus( orderId, labelIds ) )
+		.then( statusResponse => statusResponse.labels )
 		.catch( pollError => {
 			if ( ! includes( pollError, 'cURL error 28' ) || retryCount >= 3 ) {
 				throw pollError;
 			}
 			return new Promise( resolve => {
 				setTimeout(
-					() => resolve( labelStatusTask( orderId, siteId, labelId, retryCount + 1 ) ),
+					() => resolve( labelsStatusTask( orderId, siteId, labelIds, retryCount + 1 ) ),
 					timeout
 				);
 			} );
@@ -1000,15 +999,16 @@ const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) =>
 
 	if ( ! every( labels, { status: 'PURCHASED' } ) ) {
 		setTimeout( () => {
-			const statusTasks = labels.map( label => {
-				return label.status === 'PURCHASED'
-					? label
-					: labelStatusTask( orderId, siteId, label.label_id, 0 );
-			} );
+			const purchasedLabels = labels
+				.filter( label => label.status === 'PURCHASED' )
+			const inProgressLabels = labels
+				.filter( label => label.status !== 'PURCHASED' )
+				.map( label => label.label_id )
+			const statusTask = labelsStatusTask( orderId, siteId, inProgressLabels, 0 )
 
-			Promise.all( statusTasks )
+			statusTask
 				.then( pollResponse =>
-					pollForLabelsPurchase( orderId, siteId, dispatch, getState, pollResponse )
+					pollForLabelsPurchase( orderId, siteId, dispatch, getState, pollResponse.concat(purchasedLabels) )
 				)
 				.catch( pollError =>
 					handleLabelPurchaseError( orderId, siteId, dispatch, getState, pollError )
@@ -1136,53 +1136,42 @@ export const openRefundDialog = ( orderId, siteId, labelId ) => {
 	};
 };
 
-const isRefreshingLabelStatus = ( label ) => {
-	return get( label, "statusRetrivalInProgress", false ) ;
-};
-
 export const fetchLabelsStatus = ( orderId, siteId ) => ( dispatch, getState ) => {
 	const shippingLabel = getShippingLabel( getState(), orderId, siteId );
-	const labelRequests = shippingLabel.labels.map( label => {
-		if ( label.statusUpdated || isRefreshingLabelStatus( label ) ) {
-			return;
-		}
-		const labelId = label.label_id;
-		let error = null;
-		let response = null;
-		const setError = err => ( error = err );
-		const setSuccess = json => {
-			response = json.label;
-		};
-		dispatch( {
-			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
-			orderId,
-			labelId,
-		} );
-		return api
-			.get( siteId, api.url.labelStatus( orderId, labelId ) )
-			.then( setSuccess )
-			.catch( setError )
-			.then( () => {
-				dispatch( {
-					type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE,
-					orderId,
-					siteId,
-					labelId,
-					response,
-					error,
-				} );
-				if ( error ) {
-					throw error;
-				}
-			} );
-	} );
+	if ( every( shippingLabel.labels, { statusUpdated: true } ) || shippingLabel.statusRetrivalInProgress ) {
+		return;
+	}
 
-	// Handle error with a single notice
-	Promise.all( labelRequests ).catch( error => {
-		dispatch(
-			NoticeActions.errorNotice( `Failed to retrieve shipping label refund status: ${ error }` )
-		);
-	} );
+	dispatch({
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RETRIEVAL_IN_PROGRESS,
+		orderId
+	});
+
+	api
+		.get( siteId, api.url.labelsStatus( orderId, shippingLabel.labels.map( label => label.label_id ) ) )
+		.then( response => {
+			const labelsData = response.labels;
+			dispatch( {
+				type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE,
+				orderId,
+				siteId,
+				labelsData,
+				error: null
+			} );
+		} )
+		.catch( error => {
+			dispatch( {
+				type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_STATUS_RESPONSE,
+				orderId,
+				siteId,
+				labelsData: null,
+				error,
+			} );
+
+			dispatch(
+				NoticeActions.errorNotice( `Failed to retrieve shipping label refund status: ${ error }` )
+			);
+		} );
 };
 
 export const closeRefundDialog = ( orderId, siteId ) => {

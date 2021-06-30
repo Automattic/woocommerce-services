@@ -11,15 +11,15 @@ import { connect } from 'react-redux';
 import classNames from 'classnames';
 import { localize } from 'i18n-calypso';
 import { noop } from 'lodash';
+import { TextControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import FormTextInput from 'components/forms/form-text-input';
-import FormTextInputWithAffixes from 'components/forms/form-text-input-with-affixes';
 import { getSelectedSiteWithFallback } from 'woocommerce/state/sites/selectors';
 import { getDimensionsUnitSetting } from 'woocommerce/state/sites/settings/products/selectors';
 import { fetchSettingsProducts } from 'woocommerce/state/sites/settings/products/actions';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 
 class FormDimensionsInput extends Component {
 	static propTypes = {
@@ -61,30 +61,29 @@ class FormDimensionsInput extends Component {
 
 		return (
 			<div className={ classes }>
-				<FormTextInput
+				<TextControl
 					name="length"
 					placeholder={ translate( 'L', { comment: 'Length placeholder for dimensions input' } ) }
 					type="number"
 					value={ ( dimensions && dimensions.length ) || '' }
-					onChange={ onChange }
+					onChange={ value => onChange( value, 'length' ) }
 					className="form-dimensions-input__length"
 				/>
-				<FormTextInput
+				<TextControl
 					name="width"
 					placeholder={ translate( 'W', { comment: 'Width placeholder for dimensions input' } ) }
 					type="number"
 					value={ ( dimensions && dimensions.width ) || '' }
-					onChange={ onChange }
+					onChange={ value => onChange( value, 'width' ) }
 					className="form-dimensions-input__width"
 				/>
-				<FormTextInputWithAffixes
+				<TextControlWithAffixes
 					name="height"
 					placeholder={ translate( 'H', { comment: 'Height placeholder for dimensions input' } ) }
 					suffix={ dimensionsUnit }
 					type="number"
-					noWrap={ noWrap }
 					value={ ( dimensions && dimensions.height ) || '' }
-					onChange={ onChange }
+					onChange={ value => onChange( value, 'height' ) }
 					className="form-dimensions-input__height"
 				/>
 			</div>

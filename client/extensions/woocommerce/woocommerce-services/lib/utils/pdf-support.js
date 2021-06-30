@@ -31,15 +31,16 @@ export default memoize( () => {
 		return 'addon';
 	}
 
-	if ( navigator.mimeTypes[ 'application/pdf' ] ) {
-		return 'native';
-	}
-
-	if ( includes( navigator.userAgent, 'Safari' ) ) {
+	if ( includes( navigator.userAgent, 'Safari' ) && !includes( navigator.userAgent, 'Chrome' )) {
 		// In some version of iPads, the navigator.userAgent stopped including the device name.
 		// If this Safari does not support native, then given that iOS doesn't support a print
 		// dialog, this serves as a catch-all to load the pdf in a new tab.
+		// Chrome userAgent has both Safari and Chrome; Safari userAgent has only Safari.
 		return 'addon';
+	}
+
+	if ( navigator.mimeTypes[ 'application/pdf' ] ) {
+		return 'native';
 	}
 
 	const getActiveXObject = name => {

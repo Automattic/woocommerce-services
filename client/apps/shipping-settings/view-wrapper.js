@@ -5,17 +5,19 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { Button } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 // from calypso
-import Button from 'components/button';
 import GlobalNotices from 'components/global-notices';
 import LabelSettings from '../../extensions/woocommerce/woocommerce-services/views/label-settings';
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
+import LiveRatesCarriersList from '../../extensions/woocommerce/woocommerce-services/views/live-rates-carriers-list';
 import SubscriptionsUsage from '../../extensions/woocommerce/woocommerce-services/views/subscriptions-usage';
 import UpsSettingsForm from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/ups-settings-form';
 import DynamicCarrierAccountSettings from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts/dynamic-settings';
@@ -61,7 +63,7 @@ class LabelSettingsWrapper extends Component {
 	};
 
 	render() {
-		const { carrier, carriers, subscriptions, isSaving, translate } = this.props;
+		const { carrier, carrierAccounts, liveRatesTypes, subscriptions, isSaving, translate } = this.props;
 
 		if ( ! carrier ) {
 			return (
@@ -69,9 +71,15 @@ class LabelSettingsWrapper extends Component {
 					<GlobalNotices id="notices" notices={ notices.list } />
 					<LabelSettings onChange={ this.onChange } />
 					<Packages onChange={ this.onChange } />
-					<CarrierAccounts carriers={ carriers } />
+					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
+					<CarrierAccounts accounts={ carrierAccounts } />
 					<SubscriptionsUsage subscriptions={ subscriptions } />
-					<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
+					<Button
+						isPrimary
+						className = { classNames( 'button' ) }
+						onClick={ this.onSaveChanges }
+						isBusy={ isSaving }
+						disabled={ isSaving }>
 						{ translate( 'Save changes' ) }
 					</Button>
 					<ProtectFormGuard isChanged={ ! this.state.pristine } />

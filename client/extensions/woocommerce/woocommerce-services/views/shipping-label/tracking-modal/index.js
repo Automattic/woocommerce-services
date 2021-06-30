@@ -21,6 +21,11 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import ActivityLog from '../../../../app/order/order-activity-log/events';
 
+/**
+ * Style dependencies
+ */
+ import './style.scss';
+
 const TrackingModal = props => {
 	const { loaded, translate } = props;
 

@@ -41,8 +41,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function __construct( $id_or_instance_id = null ) {
 			parent::__construct( $id_or_instance_id );
 
-			// If $arg looks like a number, treat it as an instance_id
-			// Otherwise, treat it as a (method) id (e.g. wc_connect_usps)
+			// If $arg looks like a number, treat it as an instance_id,
+			// otherwise, treat it as a (method) id (e.g. wc_connect_usps).
 			if ( is_numeric( $id_or_instance_id ) ) {
 				$this->instance_id = absint( $id_or_instance_id );
 			} else {
@@ -67,30 +67,30 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					'Error. A WC_Connect_Shipping_Method was constructed without an id or instance_id',
 					__FUNCTION__
 				);
-				$this->id = 'wc_connect_uninitialized_shipping_method';
-				$this->method_title = '';
+				$this->id                 = 'wc_connect_uninitialized_shipping_method';
+				$this->method_title       = '';
 				$this->method_description = '';
-				$this->supports = array();
-				$this->title = '';
+				$this->supports           = array();
+				$this->title              = '';
 			} else {
-				$this->id = $this->service_schema->method_id;
-				$this->method_title = $this->service_schema->method_title;
+				$this->id                 = $this->service_schema->method_id;
+				$this->method_title       = $this->service_schema->method_title;
 				$this->method_description = $this->service_schema->method_description;
-				$this->supports = array(
+				$this->supports           = array(
 					'shipping-zones',
-					'instance-settings'
+					'instance-settings',
 				);
 
-				// Set title to default value
+				// Set title to default value.
 				$this->title = $this->service_schema->method_title;
 
-				// Load form values from options, updating title if present
+				// Load form values from options, updating title if present.
 				$this->init_form_settings();
 
 				// Note - we cannot hook admin_enqueue_scripts here because we need an instance id
 				// and this constructor is not called with an instance id until after
 				// admin_enqueue_scripts has already fired.  This is why WC_Connect_Loader
-				// does it instead
+				// does it instead.
 			}
 			$this->package_validation_errors = new WP_Error();
 		}
@@ -151,7 +151,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 *
 		 * @see WC_Connect_Logger::debug()
 		 * @param string|WP_Error $message
-		 * @param string $context
+		 * @param string          $context
 		 */
 		protected function log( $message, $context = '' ) {
 
@@ -175,14 +175,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		/**
 		 * Restores any values persisted to the DB for this service instance
 		 * and sets up title for WC core to work properly
-		 *
 		 */
 		protected function init_form_settings() {
 
 			$form_settings = $this->get_service_settings();
 
 			// We need to initialize the instance title ($this->title)
-			// from the settings blob
+			// from the settings blob.
 			if ( property_exists( $form_settings, 'title' ) ) {
 				$this->title = $form_settings->title;
 			}
@@ -323,9 +322,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		private function lookup_product( $package, $product_id ) {
-			foreach ( $package[ 'contents' ] as $item ) {
-				if ( $item[ 'product_id' ] === $product_id || $item[ 'variation_id' ] === $product_id ) {
-					return $item[ 'data' ];
+			foreach ( $package['contents'] as $item ) {
+				if ( $item['product_id'] === $product_id || $item['variation_id'] === $product_id ) {
+					return $item['data'];
 				}
 			}
 
@@ -379,9 +378,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$this->debug( 'No rates found, adding fallback.', 'error' );
 
 			$rate_to_add = array(
-				'id'        => self::format_rate_id( 'fallback', $this->id, 0 ),
-				'label'     => self::format_rate_title( $this->service_schema->carrier_name ),
-				'cost'      => $service_settings->fallback_rate,
+				'id'    => self::format_rate_id( 'fallback', $this->id, 0 ),
+				'label' => self::format_rate_title( $this->service_schema->carrier_name ),
+				'cost'  => $service_settings->fallback_rate,
 			);
 
 			$this->add_rate( $rate_to_add );
@@ -392,16 +391,20 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			$this->debug( sprintf(
-				'WooCommerce Shipping & Tax debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
-				admin_url( 'admin.php?page=wc-status&tab=connect' )
-			) );
+			$this->debug(
+				sprintf(
+					'WooCommerce Shipping & Tax debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
+					admin_url( 'admin.php?page=wc-status&tab=connect' )
+				)
+			);
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
-				foreach ( $this->package_validation_errors->errors as $code => $messages ) {
-					$data = $this->package_validation_errors->get_error_data( $code );
-					foreach ( $messages as $message ) {
-						wc_add_notice( $message, 'error', $data );
+				if ( is_cart() || is_checkout() ) {
+					foreach ( $this->package_validation_errors->errors as $code => $messages ) {
+						foreach ( $messages as $message ) {
+							// Using debug instead of regular notice because the error always shows before customer enters any shipping information.
+							$this->debug( $message, 'error' );
+						}
 					}
 				}
 				return;
@@ -423,7 +426,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			// TODO: Request rates for all WooCommerce Shipping & Tax powered methods in
-			// the current shipping zone to avoid each method making an independent request
+			// the current shipping zone to avoid each method making an independent request.
 			$services = array(
 				array(
 					'id'               => $this->service_schema->id,
@@ -432,13 +435,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				),
 			);
 
-			$custom_boxes = $this->service_settings_store->get_packages();
+			$custom_boxes     = $this->service_settings_store->get_packages();
 			$predefined_boxes = $this->service_settings_store->get_predefined_packages_for_service( $this->service_schema->id );
 			$predefined_boxes = array_values( array_filter( $predefined_boxes, array( $this, 'filter_preset_boxes' ) ) );
 
-			$cache_key = sprintf(
+			$cache_key     = sprintf(
 				'wcs_rates_%s',
-				md5( serialize( array( $services, $package, $custom_boxes, $predefined_boxes ) ) )
+				md5( serialize( array( $services, $package, $custom_boxes, $predefined_boxes ) ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
 			);
 			$is_debug_mode = 'yes' === get_option( 'woocommerce_shipping_debug_mode', 'no' );
 			$response_body = get_transient( $cache_key );
@@ -476,24 +479,24 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					$measurements_format = '(%s x %s x %s ' . $dimension_unit . ', %s ' . $weight_unit . ')';
 
 					foreach ( $rate->packages as $rate_package ) {
-						$service_ids[]  = $rate_package->service_id;
+						$service_ids[] = $rate_package->service_id;
 
 						$item_product_ids = array();
 						$item_by_product  = array();
 						foreach ( $rate_package->items as $package_item ) {
-							$item_product_ids[] = $package_item->product_id;
+							$item_product_ids[]                           = $package_item->product_id;
 							$item_by_product[ $package_item->product_id ] = $package_item;
 						}
 
 						$product_summaries = array();
-						$product_counts = array_count_values( $item_product_ids );
+						$product_counts    = array_count_values( $item_product_ids );
 						foreach ( $product_counts as $product_id => $count ) {
 							/** @var WC_Product $product */
 							$product = $this->lookup_product( $package, $product_id );
 							if ( $product ) {
-								$item_name = WC_Connect_Compatibility::instance()->get_product_name( $product );
-								$item = $item_by_product[ $product_id ];
-								$item_measurements = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
+								$item_name           = WC_Connect_Compatibility::instance()->get_product_name( $product );
+								$item                = $item_by_product[ $product_id ];
+								$item_measurements   = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
 								$product_summaries[] =
 									( $count > 1 ? sprintf( '<em>%d x</em> ', $count ) : '' ) .
 									sprintf( '(ID: %d) <strong>%s</strong> %s', $product_id, esc_html( $item_name ), esc_html( $item_measurements ) );
@@ -504,13 +507,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 						if ( ! property_exists( $rate_package, 'box_id' ) ) {
 							$package_name = __( 'Unknown package', 'woocommerce-services' );
-						} else if ( 'individual' === $rate_package->box_id ) {
+						} elseif ( 'individual' === $rate_package->box_id ) {
 							$package_name = __( 'Individual packaging', 'woocommerce-services' );
-						} else if (
+						} elseif (
 							isset( $packaging_lookup[ $rate_package->box_id ] ) &&
 							isset( $packaging_lookup[ $rate_package->box_id ]['name'] )
 						) {
-							$package_name = $packaging_lookup[ $rate_package->box_id ]['name'];
+							$package_name         = $packaging_lookup[ $rate_package->box_id ]['name'];
 							$package_measurements = sprintf(
 								$measurements_format,
 								$rate_package->length,
@@ -535,7 +538,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						'label'     => self::format_rate_title( $rate->title ),
 						'cost'      => $rate->rate,
 						'meta_data' => array(
-							'wc_connect_packages' => $rate->packages,
+							'wc_connect_packages'    => $rate->packages,
 							__( 'Packaging', 'woocommerce-services' ) => $packaging_info,
 							'wc_connect_packing_log' => $box_packing_log,
 						),
@@ -594,7 +597,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function admin_options() {
-			// hide WP native save button on settings page
+			// hide WP native save button on settings page.
 			global $hide_save_button;
 			$hide_save_button = true;
 
@@ -603,7 +606,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		/**
 		 * @param string $method_id
-		 * @param int $instance_id
+		 * @param int    $instance_id
 		 * @param string $service_ids
 		 *
 		 * @return string
@@ -616,11 +619,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$formatted_title = wp_kses(
 				html_entity_decode( $rate_title ),
 				array(
-					'sup' => array(),
-					'del' => array(),
-					'small' => array(),
-					'em' => array(),
-					'i' => array(),
+					'sup'    => array(),
+					'del'    => array(),
+					'small'  => array(),
+					'em'     => array(),
+					'i'      => array(),
 					'strong' => array(),
 				)
 			);
@@ -635,7 +638,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) ) {
+			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::has_cart_or_checkout_block() ) {
 				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
 
 				$this->logger->debug( $debug_message, $type );
@@ -679,7 +682,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return true;
 			}
 
-			// Go through the cart contents and check if all products are supported
+			// Go through the cart contents and check if all products are supported.
 			foreach ( $package['contents'] as $item ) {
 				$shipping_class_id = $item['data']->get_shipping_class_id();
 
@@ -702,11 +705,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					}
 				}
 
-				$method_classes = get_terms( array(
-					'taxonomy'   => 'product_shipping_class',
-					'hide_empty' => false,
-					'include'    => $method_classes,
-				) );
+				$method_classes = get_terms(
+					array(
+						'taxonomy'   => 'product_shipping_class',
+						'hide_empty' => false,
+						'include'    => $method_classes,
+					)
+				);
 
 				if ( ! is_wp_error( $method_classes ) && ! empty( $method_classes ) ) {
 					$class_names = implode( ', ', wp_list_pluck( $method_classes, 'name' ) );
