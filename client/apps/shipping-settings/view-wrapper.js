@@ -5,12 +5,13 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { Button } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 // from calypso
-import Button from 'components/button';
 import GlobalNotices from 'components/global-notices';
 import LabelSettings from '../../extensions/woocommerce/woocommerce-services/views/label-settings';
 import notices from 'notices';
@@ -73,7 +74,12 @@ class LabelSettingsWrapper extends Component {
 					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
 					<CarrierAccounts accounts={ carrierAccounts } />
 					<SubscriptionsUsage subscriptions={ subscriptions } />
-					<Button primary onClick={ this.onSaveChanges } busy={ isSaving } disabled={ isSaving }>
+					<Button
+						isPrimary
+						className = { classNames( 'button' ) }
+						onClick={ this.onSaveChanges }
+						isBusy={ isSaving }
+						disabled={ isSaving }>
 						{ translate( 'Save changes' ) }
 					</Button>
 					<ProtectFormGuard isChanged={ ! this.state.pristine } />

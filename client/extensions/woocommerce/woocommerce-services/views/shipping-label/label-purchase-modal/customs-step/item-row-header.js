@@ -5,12 +5,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { Tooltip } from '@wordpress/components';
+import { ExternalLink, Tooltip } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import ExternalLink from 'components/external-link';
 import { getShippingLabel } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import Gridicon from "gridicons";
 
@@ -18,9 +17,7 @@ export const TariffCodeTitle = localize( ( { translate } ) => (
 	<span>
 		{ translate( 'HS Tariff number' ) } (
 		<ExternalLink
-			icon
 			href="https://docs.woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#section-29"
-			target="_blank"
 		>
 			{ translate( 'more info' ) }
 		</ExternalLink>

@@ -9,15 +9,16 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { some } from 'lodash';
+import { Button } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
-import FormTextInputWithAffixes from 'components/forms/form-text-input-with-affixes';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 import ItemInfo from './item-info';
 import PackageSelect from './package-select';
 import {
@@ -55,10 +56,6 @@ const PackageInfo = props => {
 
 	const pckg = selected[ packageId ];
 
-	if ( 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
-		props.setPackageType( orderId, siteId, packageId, userMeta.last_box_id );
-	}
-
 	const isIndividualPackage = 'individual' === pckg.box_id;
 
 	const renderItemInfo = ( item, itemIndex ) => {
@@ -85,7 +82,10 @@ const PackageInfo = props => {
 		}
 
 		return (
-			<Button className="packages-step__add-item-btn" compact onClick={ onAddItem }>
+			<Button
+				className={ classNames( 'button', 'is-compact', 'packages-step__add-item-btn' ) }
+				onClick={ onAddItem }
+			>
 				{ translate( 'Add items' ) }
 			</Button>
 		);
@@ -118,8 +118,8 @@ const PackageInfo = props => {
 		return elements;
 	};
 
-	const onWeightChange = event => {
-		props.updatePackageWeight( orderId, siteId, packageId, event.target.value );
+	const onWeightChange = value => {
+		props.updatePackageWeight( orderId, siteId, packageId, value );
 	};
 
 	const packageWeight = isNaN( pckg.weight ) ? '' : pckg.weight;
@@ -153,14 +153,13 @@ const PackageInfo = props => {
 
 			<div className="packages-step__package-weight">
 				<FormLabel htmlFor={ `weight_${ packageId }` }>{ translate( 'Total Weight (with package)' ) }</FormLabel>
-				<FormTextInputWithAffixes
+				<TextControlWithAffixes
 					id={ `weight_${ packageId }` }
 					placeholder={ translate( '0' ) }
 					value={ packageWeight }
 					onChange={ onWeightChange }
-					isError={ Boolean( pckgErrors.weight ) }
+					className={ Boolean( pckgErrors.weight ) ? 'is-error' : '' }
 					type="number"
-					noWrap
 					suffix={ weightUnit }
 				/>
 				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }

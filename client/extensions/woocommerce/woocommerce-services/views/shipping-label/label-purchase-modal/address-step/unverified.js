@@ -8,11 +8,11 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import url from 'url';
 import { invokeMap } from 'lodash';
+import { ExternalLink } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import ExternalLink from 'components/external-link';
 import FormButton from 'components/forms/form-button';
 import Notice from 'components/notice';
 import AddressSummary from './summary';
@@ -112,11 +112,11 @@ const UnverifiedAddress = ( {
 						) }
 					</p>
 					{ uspsUrl && (
-						<ExternalLink icon={ true } href={ uspsUrl } target="_blank">
+						<ExternalLink href={ uspsUrl }>
 							{ translate( 'Verify with USPS' ) }
 						</ExternalLink>
 					) }
-					<ExternalLink icon={ true } href={ googleMapsUrl } target="_blank">
+					<ExternalLink href={ googleMapsUrl }>
 						{ translate( 'View on Google Maps' ) }
 					</ExternalLink>
 				</div>

@@ -6,8 +6,8 @@
 	&.no-wrap {
 		flex-wrap: nowrap;
 
-		.form-dimensions-input__length,
-		.form-dimensions-input__width {
+		.form-dimensions-input__length input,
+		.form-dimensions-input__width input {
 			border-bottom-width: 1px;
 		}
 	}
@@ -15,30 +15,30 @@
 	@include breakpoint( '>480px' ) {
 		flex-wrap: nowrap;
 
-		.form-text-input-with-affixes {
+		.text-control-with-affixes {
 			flex-grow: 2;
 			flex-direction: row;
 		}
 	}
 
-	.form-dimensions-input__length,
-	.form-dimensions-input__width {
+	.form-dimensions-input__length input,
+	.form-dimensions-input__width input {
 		border-bottom-width: 0;
 		@include breakpoint( '>480px' ) {
 			border-bottom-width: 1px;
 		}
 	}
 
-	.form-dimensions-input__width,
-	.form-dimensions-input__height {
+	.form-dimensions-input__width input,
+	.form-dimensions-input__height input {
 		@include breakpoint( '>480px' ) {
 			margin-left: -1px;
 		}
 	}
 
-	.form-dimensions-input__length,
-	.form-dimensions-input__width,
-	.form-dimensions-input__height {
+	.form-dimensions-input__length input,
+	.form-dimensions-input__width input,
+	.form-dimensions-input__height input {
 		@include breakpoint( '>480px' ) {
 			width: 75px;
 			flex-grow: 0;
@@ -49,13 +49,13 @@
 			transform: scale( 1 );
 		}
 
-		&:focus + .form-dimensions-input__width:hover,
-		&:focus + .form-text-input-with-affixes .form-dimensions-input__height:hover {
+		&:focus + .form-dimensions-input__width input:hover,
+		&:focus + .form-dimensions-input__height .text-control-with-affixes input:hover {
 			transform: none;
 		}
 	}
 
-	.form-text-input-with-affixes__suffix {
+	.text-control-with-affixes__suffix {
 		flex-grow: 0;
 		background: inherit;
 	}

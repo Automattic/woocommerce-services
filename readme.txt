@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.7
-Stable tag: 1.25.14
+Stable tag: 1.25.15
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.15 - 2021-06-30 =
+* Fix   - Ensure shipping label metabox is displayed to users with the correct capabilities.
+* Add   - Added `wcship_user_can_manage_labels` filter to check permissions to print shipping labels.
+* Add   - Added `wcship_manage_labels` capability to check permissions to print shipping labels.
 
 = 1.25.14 - 2021-06-15 =
 * Fix   - Issue with printing blank label in Safari.

@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.15 - 2021-xx-xx =
+= 1.25.15 - 2021-06-30 =
 * Fix   - Ensure shipping label metabox is displayed to users with the correct capabilities.
 * Add   - Added `wcship_user_can_manage_labels` filter to check permissions to print shipping labels.
 * Add   - Added `wcship_manage_labels` capability to check permissions to print shipping labels.
