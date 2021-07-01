@@ -142,7 +142,7 @@
      }
 
      render() {
-         const itemSiteClasses = classNames( 'foldable-card', this.props.className, {
+         const itemSiteClasses = classNames( 'foldable-card', 'card', this.props.className, {
              'is-disabled': !! this.props.disabled,
              'is-expanded': !! this.state.expanded,
              'has-expanded-summary': !! this.props.expandedSummary,

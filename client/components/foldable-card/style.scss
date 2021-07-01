@@ -4,6 +4,7 @@
 	position: relative;
 	transition: margin 0.15s linear;
 	padding: 0;
+	border-radius: 0;
 
 	&.is-expanded {
 		margin: 8px 0;
