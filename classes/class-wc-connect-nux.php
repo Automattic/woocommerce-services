@@ -7,8 +7,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Jetpack status constants.
 		 */
 		const JETPACK_NOT_CONNECTED = 'not-connected';
-		const JETPACK_DEV                     = 'dev';
-		const JETPACK_CONNECTED               = 'connected';
+		const JETPACK_DEV           = 'dev';
+		const JETPACK_CONNECTED     = 'connected';
 
 		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
@@ -109,6 +109,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( is_string( $data ) && 0 < strlen( $data ) ) {
 				return explode( ',', $data );
 			}
+
 			return array();
 		}
 
@@ -216,9 +217,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Check that the current user is the owner of the Jetpack connection
 		 * - Only that person can accept the TOS
 		 *
-		 * @uses self::get_jetpack_install_status()
-		 *
 		 * @return bool
+		 * @uses self::get_jetpack_install_status()
 		 */
 		public function can_accept_tos() {
 			$jetpack_status = $this->get_jetpack_install_status();
@@ -299,26 +299,27 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				|| ( // Orders list.
 					'shop_order' === $screen->post_type
 					&& 'edit' === $screen->base
-					)
+				)
 				|| ( // Edit order page.
 					'shop_order' === $screen->post_type
 					&& 'post' === $screen->base
-					)
+				)
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
-					)
+				)
 				|| ( // WooCommerce featured extension page
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
-					)
+				)
 				|| ( // WooCommerce shipping extension page
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'shipping_methods' === $_GET['section']
-					)
+				)
 				|| 'plugins' === $screen->base
 			) {
 				return true;
 			}
+
 			return false;
 		}
 
@@ -380,6 +381,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Remove [...]/wp-admin so we can use admin_url().
 			$new_index = strpos( $full_path, '/wp-admin' ) + strlen( '/wp-admin' );
 			$path      = substr( $full_path, $new_index );
+
 			return admin_url( $path );
 		}
 
@@ -409,7 +411,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						'initial_install_status' => $jetpack_install_status,
 						'redirect_url'           => $this->get_jetpack_redirect_url(),
 						'translations'           => array(
-							'activating'   => __( 'Activating...', 'woocommerce-services' ),
 							'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
 							'installError' => __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ),
 							'defaultError' => __( 'Something went wrong. Please try connecting to Jetpack manually, or contact support on the WordPress.org forums.', 'woocommerce-services' ),
@@ -418,8 +419,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_script( 'wc_connect_banner' );
 					wp_localize_script( 'wc_connect_banner', 'wcs_nux_notice', $ajax_data );
 					add_action(
-						'wp_ajax_woocommerce_services_get_jetpack_connect_url',
-						array( $this, 'ajax_get_jetpack_connect_url' )
+						'admin_post_register_woocommerce_services_jetpack',
+						array( $this, 'register_woocommerce_services_jetpack' )
 					);
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
@@ -568,8 +569,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			?>
-			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
-				<div class="wcs-nux__notice-logo <?php echo isset( $content['compact_logo'] ) && $content['compact_logo'] ? 'is-compact' : ''; ?>">
+			<div
+				class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
+				<div
+					class="wcs-nux__notice-logo <?php echo isset( $content['compact_logo'] ) && $content['compact_logo'] ? 'is-compact' : ''; ?>">
 					<img class="wcs-nux__notice-logo-graphic" src="<?php echo esc_url( $content['image_url'] ); ?>">
 				</div>
 				<div class="wcs-nux__notice-content">
@@ -581,22 +584,22 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					</p>
 					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p class="wcs-nux__notice-content-tos">
-						<?php
-						/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
-						printf(
-							wp_kses(
-								__( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and to <a href="%3$s">share certain data and settings</a> with WordPress.com and/or third parties.', 'woocommerce-services' ),
-								array(
-									'a' => array(
-										'href' => array(),
-									),
-								)
-							),
-							esc_html( $content['button_text'] ),
-							'https://wordpress.com/tos/',
-							'https://jetpack.com/support/what-data-does-jetpack-sync/'
-						);
-						?>
+							<?php
+							/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
+							printf(
+								wp_kses(
+									__( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and to <a href="%3$s">share certain data and settings</a> with WordPress.com and/or third parties.', 'woocommerce-services' ),
+									array(
+										'a' => array(
+											'href' => array(),
+										),
+									)
+								),
+								esc_html( $content['button_text'] ),
+								'https://wordpress.com/tos/',
+								'https://jetpack.com/support/what-data-does-jetpack-sync/'
+							);
+							?>
 						</p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
@@ -607,11 +610,18 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</a>
 					<?php else : ?>
-						<button
-							class="woocommerce-services__connect-jetpack wcs-nux__notice-content-button button button-primary"
-						>
-							<?php echo esc_html( $content['button_text'] ); ?>
-						</button>
+						<form action="/wp-admin/admin-post.php" method="post">
+							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>
+							<input type="hidden" name="redirect_url"
+								   value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>
+							<?php wp_nonce_field( 'wcs_nux_notice' ); ?>
+							<button
+								type="submit"
+								class="woocommerce-services__connect-jetpack wcs-nux__notice-content-button button button-primary"
+							>
+								<?php echo esc_html( $content['button_text'] ); ?>
+							</button>
+						</form>
 					<?php endif; ?>
 				</div>
 			</div>
@@ -621,39 +631,69 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				wp_enqueue_script( 'wp-util' );
 				?>
 				<script>
-				( function( $ ) {
-					$( '.wcs-nux__notice' ).on( 'click', '.notice-dismiss', function() {
-						wp.ajax.post( {
-							action: "wc_connect_dismiss_notice",
-							dismissible_id: "<?php echo esc_js( $content['dismissible_id'] ); ?>",
-							nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_notice' ) ); ?>"
-						} );
-					} );
-				} )( jQuery );
+					(
+						function ($) {
+							$('.wcs-nux__notice').on('click', '.notice-dismiss', function () {
+								wp.ajax.post({
+									action: 'wc_connect_dismiss_notice',
+									dismissible_id: "<?php echo esc_js( $content['dismissible_id'] ); ?>",
+									nonce: "<?php echo esc_js( wp_create_nonce( 'wc_connect_dismiss_notice' ) ); ?>"
+								})
+							})
+						}
+					)(jQuery)
 				</script>
 				<?php
 			endif;
 		}
 
 		/**
-		 * Get Jetpack connection URL.
+		 * Connects the site to Jetpack.
 		 */
-		public function ajax_get_jetpack_connect_url() {
-			check_ajax_referer( 'wcs_nux_notice' );
+		public function register_woocommerce_services_jetpack() {
+			check_admin_referer( 'wcs_nux_notice' );
 
 			$redirect_url = '';
 			if ( isset( $_POST['redirect_url'] ) ) {
 				$redirect_url = esc_url_raw( wp_unslash( $_POST['redirect_url'] ) );
 			}
 
-			$connect_url = WC_Connect_Jetpack::build_connect_url( $redirect_url );
+			// Mark the plugin as enabled in case it had been soft-disconnected.
+			$jetpack_connection_manager = WC_Connect_Jetpack::get_connection_manager();
+			$jetpack_connection_manager->enable_plugin();
+
+			// Register the site to wp.com.
+			// standalone JP 9.2+ uses `is_connected`
+			$is_registered = false;
+			if ( method_exists( $jetpack_connection_manager, 'is_connected' ) ) {
+				$is_registered = $jetpack_connection_manager->is_connected();
+			} else {
+				$is_registered = $jetpack_connection_manager->is_registered();
+			}
+
+			if ( ! $is_registered ) {
+				$result = $jetpack_connection_manager->register();
+				if ( is_wp_error( $result ) ) {
+					wp_die( $result->get_error_message(), 'wc_services_jetpack_register_site_failed', 500 );
+				}
+			}
+
+			// Redirect the user to the Jetpack user connection flow.
+			add_filter( 'jetpack_use_iframe_authorization_flow', '__return_false' );
 
 			// Make sure we always display the after-connection banner
 			// after the before_connection button is clicked
 			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
 
-			echo esc_url_raw( $connect_url );
-			wp_die();
+			// $jetpack_connection_manager->connect_user( null, $redirect_url );
+			wp_redirect(
+				add_query_arg(
+				// [ 'from' => WC_Connect_Jetpack::PLUGIN_SLUG ],
+					[ 'from' => 'woocommerce-services' ],
+					$jetpack_connection_manager->get_authorization_url( null, $redirect_url )
+				)
+			);
+			exit;
 		}
 	}
 }

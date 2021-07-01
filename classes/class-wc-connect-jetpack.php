@@ -1,6 +1,5 @@
 <?php
 
-use Automattic\Jetpack\Connection\Tokens;
 use Automattic\Jetpack\Connection\Manager;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
@@ -12,12 +11,17 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * @param $user_id
+		 * @param boolean $user_id false: Returns the Blog Token. true: Return the master user's User Token.
 		 *
 		 * @return stdClass|WP_Error
 		 */
-		public static function get_master_user_access_token( $user_id ) {
-			return self::get_connection_manager()->get_tokens()->get_access_token( $user_id );
+		public static function get_access_token( $user_id = false ) {
+			// Standalone Jetpack 9.5+ installation
+			if ( class_exists( '\Automattic\Jetpack\Connection\Tokens' ) ) {
+				return self::get_connection_manager()->get_tokens()->get_access_token( $user_id );
+			}
+
+			return self::get_connection_manager()->get_access_token( $user_id );
 		}
 
 		/**
@@ -42,7 +46,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 */
 		public static function is_active() {
 			// TODO: check
-			return self::get_connection_manager()->is_active();
+			// return self::get_connection_manager()->has_connected_owner();
+			return (bool) self::get_access_token( true );
+			// older JP versions
+			// return self::get_connection_manager()->is_active();
+			// return self::get_connection_manager()->is_active();
 		}
 
 		/**
@@ -82,7 +90,6 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return WP_User | false
 		 */
 		public static function get_master_user() {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 			if ( self::is_active() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
 				$master_user_id = Jetpack_Options::get_option( 'master_user' );
 
@@ -91,22 +98,6 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 			return false;
 
-		}
-
-		/**
-		 * Builds a connect url
-		 *
-		 * @param $redirect_url
-		 *
-		 * @return string
-		 */
-		public static function build_connect_url( $redirect_url ) {
-			// TODO: gotta figure this out
-			return Jetpack::init()->build_connect_url(
-				true,
-				$redirect_url,
-				'woocommerce-services-auto-authorize'
-			);
 		}
 
 		/**
@@ -136,19 +127,20 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Determines if Jetpack is connected
+		 * Determines if Jetpack is connected for the plugin
 		 *
 		 * @return bool Whether or nor Jetpack is connected
 		 */
 		public static function is_connected() {
 			$manager = self::get_connection_manager();
 
-			return $manager->is_plugin_enabled() && $manager->is_active();
+			return $manager->is_plugin_enabled() && self::is_active() && ! $manager->is_missing_connection_owner();
 		}
 
 		/**
-		 * Check if WCS&T is installed alongside an old version of Jetpack (8.1 or earlier). Due to the autoloader code in those old
-		 * versions, the Jetpack Config initialization code would just crash the site.
+		 * Check if WCS&T is installed alongside an old version of Jetpack (8.2 or earlier).
+		 * Due to the autoloader code in those old versions,
+		 * the Jetpack Config initialization code would just crash the site.
 		 *
 		 * @return bool True if the plugin can keep initializing itself, false otherwise.
 		 */

@@ -512,7 +512,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		protected function authorization_header() {
-			$token = WC_Connect_Jetpack::get_master_user_access_token( 0 );
+			$token = WC_Connect_Jetpack::get_access_token();
 			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error(

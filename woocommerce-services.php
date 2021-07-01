@@ -278,6 +278,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function __construct() {
 			$this->wc_connect_base_url = self::get_wc_connect_base_url();
+			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 		}
 
@@ -502,20 +503,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
 		}
 
-		public function on_plugins_loaded() {
-			$this->load_textdomain();
-
-			if ( ! class_exists( 'WooCommerce' ) ) {
-				add_action(
-					'admin_notices',
-					function() {
-						/* translators: %s WC download URL link. */
-						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
-					}
-				);
-				return;
-			}
-
+		public function jetpack_on_plugins_loaded() {
 			if ( false === WC_Connect_Jetpack::is_jetpack_version_supported() ) {
 				add_action(
 					'admin_notices',
@@ -540,6 +528,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-payments' ),
 				)
 			);
+		}
+
+		public function on_plugins_loaded() {
+			$this->load_textdomain();
+
+			if ( ! class_exists( 'WooCommerce' ) ) {
+				add_action(
+					'admin_notices',
+					function() {
+						/* translators: %s WC download URL link. */
+						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
+					}
+				);
+				return;
+			}
 
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
 		}
@@ -1668,7 +1671,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
 
-
 // TODO: check this
 // The JetPack autoloader might not catch up yet when activating the plugin. If so, we'll stop here to avoid JetPack connection failures.
 $is_autoloading_ready = class_exists( Automattic\Jetpack\Connection\Rest_Authentication::class );
@@ -1678,7 +1680,6 @@ if ( ! $is_autoloading_ready ) {
 
 // Jetpack's Rest_Authentication needs to be initialized even before plugins_loaded.
 Automattic\Jetpack\Connection\Rest_Authentication::init();
-
 
 if ( ! defined( 'WC_UNIT_TESTING' ) ) {
 	new WC_Connect_Loader();
