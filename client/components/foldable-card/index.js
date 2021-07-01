@@ -13,9 +13,8 @@
  /**
   * Internal Dependencies
   */
- import { Card } from '@wordpress/components';
+ import { Card, VisuallyHidden } from '@wordpress/components';
  import Gridicon from 'gridicons';
- import ScreenReaderText from 'wcs-client/components/screen-reader-text';
 
  import './style.scss';
 
@@ -106,7 +105,7 @@
                      className="foldable-card__action foldable-card__expand"
                      onClick={ clickAction }
                  >
-                     <ScreenReaderText>{ screenReaderText }</ScreenReaderText>
+                     <VisuallyHidden>{ screenReaderText }</VisuallyHidden>
                      <Gridicon icon={ this.props.icon } size={ iconSize } />
                  </button>
              );
