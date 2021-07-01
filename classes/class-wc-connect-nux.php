@@ -7,8 +7,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Jetpack status constants.
 		 */
 		const JETPACK_NOT_CONNECTED = 'not-connected';
-		const JETPACK_DEV           = 'dev';
-		const JETPACK_CONNECTED     = 'connected';
+		const JETPACK_DEV = 'dev';
+		const JETPACK_CONNECTED = 'connected';
 
 		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
@@ -643,7 +643,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						}
 					)(jQuery)
 				</script>
-				<?php
+			<?php
 			endif;
 		}
 
@@ -658,42 +658,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				$redirect_url = esc_url_raw( wp_unslash( $_POST['redirect_url'] ) );
 			}
 
-			// Mark the plugin as enabled in case it had been soft-disconnected.
-			$jetpack_connection_manager = WC_Connect_Jetpack::get_connection_manager();
-			$jetpack_connection_manager->enable_plugin();
-
-			// Register the site to wp.com.
-			// standalone JP 9.2+ uses `is_connected`
-			$is_registered = false;
-			if ( method_exists( $jetpack_connection_manager, 'is_connected' ) ) {
-				$is_registered = $jetpack_connection_manager->is_connected();
-			} else {
-				$is_registered = $jetpack_connection_manager->is_registered();
-			}
-
-			if ( ! $is_registered ) {
-				$result = $jetpack_connection_manager->register();
-				if ( is_wp_error( $result ) ) {
-					wp_die( $result->get_error_message(), 'wc_services_jetpack_register_site_failed', 500 );
-				}
-			}
-
-			// Redirect the user to the Jetpack user connection flow.
-			add_filter( 'jetpack_use_iframe_authorization_flow', '__return_false' );
-
 			// Make sure we always display the after-connection banner
 			// after the before_connection button is clicked
 			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
 
-			// $jetpack_connection_manager->connect_user( null, $redirect_url );
-			wp_redirect(
-				add_query_arg(
-				// [ 'from' => WC_Connect_Jetpack::PLUGIN_SLUG ],
-					[ 'from' => 'woocommerce-services' ],
-					$jetpack_connection_manager->get_authorization_url( null, $redirect_url )
-				)
-			);
-			exit;
+			WC_Connect_Jetpack::connect_site( $redirect_url );
 		}
 	}
 }

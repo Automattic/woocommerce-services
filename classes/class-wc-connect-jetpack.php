@@ -4,10 +4,10 @@ use Automattic\Jetpack\Connection\Manager;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
-		const PLUGIN_SLUG = 'woocommerce-shipping-tax';
+		const JETPACK_PLUGIN_SLUG = 'woocommerce-services';
 
 		public static function get_connection_manager() {
-			return new Manager( self::PLUGIN_SLUG );
+			return new Manager( self::JETPACK_PLUGIN_SLUG );
 		}
 
 		/**
@@ -135,6 +135,45 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			$manager = self::get_connection_manager();
 
 			return $manager->is_plugin_enabled() && self::is_active() && ! $manager->is_missing_connection_owner();
+		}
+
+		/**
+		 * Connects the site to Jetpack.
+		 * This code performs a redirection, so anything executed after it will be ignored.
+		 *
+		 * @param $redirect_url
+		 */
+		public static function connect_site( $redirect_url ) {
+			// Mark the plugin as enabled in case it had been soft-disconnected.
+			$jetpack_connection_manager = self::get_connection_manager();
+			$jetpack_connection_manager->enable_plugin();
+
+			// Register the site to wp.com.
+			// standalone JP 9.2+ uses `is_connected`
+			$is_registered = false;
+			if ( method_exists( $jetpack_connection_manager, 'is_connected' ) ) {
+				$is_registered = $jetpack_connection_manager->is_connected();
+			} else {
+				$is_registered = $jetpack_connection_manager->is_registered();
+			}
+
+			if ( ! $is_registered ) {
+				$result = $jetpack_connection_manager->register();
+				if ( is_wp_error( $result ) ) {
+					wp_die( $result->get_error_message(), 'wc_services_jetpack_register_site_failed', 500 );
+				}
+			}
+
+			// Redirect the user to the Jetpack user connection flow.
+			add_filter( 'jetpack_use_iframe_authorization_flow', '__return_false' );
+
+			wp_redirect(
+				add_query_arg(
+					[ 'from' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG ],
+					$jetpack_connection_manager->get_authorization_url( null, $redirect_url )
+				)
+			);
+			exit;
 		}
 
 		/**
