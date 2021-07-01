@@ -188,9 +188,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected $service_object_cache = array();
 
-		/**
-		 * @var string
-		 */
 		protected $wc_connect_base_url;
 
 		protected static $wcs_version;
@@ -1670,13 +1667,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
-
-// TODO: check this
-// The JetPack autoloader might not catch up yet when activating the plugin. If so, we'll stop here to avoid JetPack connection failures.
-$is_autoloading_ready = class_exists( Automattic\Jetpack\Connection\Rest_Authentication::class );
-if ( ! $is_autoloading_ready ) {
-	return;
-}
 
 // Jetpack's Rest_Authentication needs to be initialized even before plugins_loaded.
 Automattic\Jetpack\Connection\Rest_Authentication::init();
