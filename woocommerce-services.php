@@ -541,6 +541,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			if ( false === WC_Connect_Jetpack::is_jetpack_version_supported() ) {
+				return;
+			}
+
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
 		}
 
