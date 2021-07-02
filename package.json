@@ -3,7 +3,7 @@
   "version": "1.25.15",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
-    "prepare": "cd wp-calypso && npm ci && cd ..",
+    "prepare": "cd wp-calypso && npm ci && cd .. && husky install",
     "dist": "cross-env NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "analyze": "cross-env ANALYZE=true NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
     "eslint": "eslint tasks/ client/",
@@ -49,7 +49,7 @@
     "file-loader": "^4.3.0",
     "glob": "^7.1.6",
     "globby": "^6.1.0",
-    "husky": "^4.3.8",
+    "husky": "^7.0.0",
     "i18n-calypso-cli": "^1.0.0",
     "jest": "^24.9.0",
     "jest-puppeteer": "^4.4.0",
@@ -155,11 +155,5 @@
   },
   "config": {
     "wp_org_slug": "woocommerce-services"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run test"
-    }
   }
 }
