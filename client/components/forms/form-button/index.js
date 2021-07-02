@@ -12,7 +12,7 @@ import React, { Children } from 'react';
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
+import { Button } from '@wordpress/components';
 
 class FormButton extends React.Component {
 	static defaultProps = {
@@ -29,12 +29,14 @@ class FormButton extends React.Component {
 
 	render() {
 		const { children, className, isPrimary, ...props } = this.props,
-			buttonClasses = classNames( className, 'form-button' );
+			buttonClasses = classNames( className, 'form-button', 'button', {
+				'is-borderless': !! this.props.borderless
+			 } );
 
 		return (
 			<Button
 				{ ...omit( props, [ 'isSubmitting', 'moment', 'numberFormat', 'translate' ] ) }
-				primary={ isPrimary }
+				isPrimary={ isPrimary }
 				className={ buttonClasses }
 			>
 				{ Children.count( children ) ? children : this.getDefaultButtonAction() }
