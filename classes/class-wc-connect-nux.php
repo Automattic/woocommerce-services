@@ -299,22 +299,22 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				|| ( // Orders list.
 					'shop_order' === $screen->post_type
 					&& 'edit' === $screen->base
-				)
+					)
 				|| ( // Edit order page.
 					'shop_order' === $screen->post_type
 					&& 'post' === $screen->base
-				)
+					)
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
-				)
+					)
 				|| ( // WooCommerce featured extension page
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
-				)
+					)
 				|| ( // WooCommerce shipping extension page
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'shipping_methods' === $_GET['section']
-				)
+					)
 				|| 'plugins' === $screen->base
 			) {
 				return true;
@@ -406,18 +406,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			switch ( $banner_to_display ) {
 				case 'before_jetpack_connection':
-					$ajax_data = array(
-						'nonce'                  => wp_create_nonce( 'wcs_nux_notice' ),
-						'initial_install_status' => $jetpack_install_status,
-						'redirect_url'           => $this->get_jetpack_redirect_url(),
-						'translations'           => array(
-							'connecting'   => __( 'Connecting...', 'woocommerce-services' ),
-							'installError' => __( 'There was an error installing Jetpack. Please try installing it manually.', 'woocommerce-services' ),
-							'defaultError' => __( 'Something went wrong. Please try connecting to Jetpack manually, or contact support on the WordPress.org forums.', 'woocommerce-services' ),
-						),
-					);
 					wp_enqueue_script( 'wc_connect_banner' );
-					wp_localize_script( 'wc_connect_banner', 'wcs_nux_notice', $ajax_data );
 					add_action(
 						'admin_post_register_woocommerce_services_jetpack',
 						array( $this, 'register_woocommerce_services_jetpack' )
@@ -569,10 +558,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			?>
-			<div
-				class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
-				<div
-					class="wcs-nux__notice-logo <?php echo isset( $content['compact_logo'] ) && $content['compact_logo'] ? 'is-compact' : ''; ?>">
+			<div class="notice wcs-nux__notice <?php echo isset( $content['dismissible_id'] ) ? 'is-dismissible' : ''; ?>">
+				<div class="wcs-nux__notice-logo <?php echo isset( $content['compact_logo'] ) && $content['compact_logo'] ? 'is-compact' : ''; ?>">
 					<img class="wcs-nux__notice-logo-graphic" src="<?php echo esc_url( $content['image_url'] ); ?>">
 				</div>
 				<div class="wcs-nux__notice-content">
@@ -610,7 +597,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</a>
 					<?php else : ?>
-						<form action="/wp-admin/admin-post.php" method="post">
+						<form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post">
 							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>
 							<input type="hidden" name="redirect_url"
 								   value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>

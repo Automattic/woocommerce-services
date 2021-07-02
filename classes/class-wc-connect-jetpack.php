@@ -45,12 +45,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_active() {
-			// TODO: check
-			// return self::get_connection_manager()->has_connected_owner();
-			return (bool) self::get_access_token( true );
-			// older JP versions
-			// return self::get_connection_manager()->is_active();
-			// return self::get_connection_manager()->is_active();
+			return ! empty ( self::get_access_token( true ) );
 		}
 
 		/**
@@ -70,10 +65,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_atomic_site() {
-			// TODO: WTH?
 			if ( function_exists( 'jetpack_is_atomic_site' ) ) {
 				return jetpack_is_atomic_site();
-			} elseif ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
+			}
+
+			if ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
 				return jetpack_is_automated_transfer_site();
 			}
 

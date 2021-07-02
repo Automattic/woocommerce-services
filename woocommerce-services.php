@@ -726,6 +726,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
+			$options               = new WC_Connect_Options();
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
