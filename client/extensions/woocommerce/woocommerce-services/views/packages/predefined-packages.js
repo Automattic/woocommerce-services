@@ -9,13 +9,15 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { forEach } from 'lodash';
+import { CheckboxControl } from '@wordpress/components';
+import classNames from 'classnames';
+
 
 /**
  * Internal dependencies
  */
 import BulkSelect from 'woocommerce/components/bulk-select';
 import FoldableCard from 'components/foldable-card';
-import FormCheckbox from 'components/forms/form-checkbox';
 import PackagesListItem from './packages-list-item';
 import { getCurrentlyEditingPredefinedPackages } from '../../state/packages/selectors';
 
@@ -72,6 +74,7 @@ const PredefinedPackages = ( {
 	const renderServicePackages = group => {
 		return group.packages.map( ( pckg, index ) => {
 			const onToggle = () => togglePackage( siteId, pckg.serviceId, pckg.id );
+			const checkboxClasses = classNames( 'form-checkbox' ,'packages__packages-row-actions' );
 
 			return (
 				<PackagesListItem
@@ -81,7 +84,7 @@ const PredefinedPackages = ( {
 					dimensionUnit={ dimensionUnit }
 					prefixActions
 				>
-					<FormCheckbox checked={ pckg.selected } onChange={ onToggle } />
+					<CheckboxControl className= { checkboxClasses } checked={ pckg.selected } onChange={ onToggle } />
 				</PackagesListItem>
 			);
 		} );

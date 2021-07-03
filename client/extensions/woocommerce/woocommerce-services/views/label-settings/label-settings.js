@@ -11,14 +11,13 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { find, isBoolean } from 'lodash';
 import Gridicon from 'gridicons';
-import { Button } from '@wordpress/components';
+import { Button, CheckboxControl } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
-import FormCheckbox from 'components/forms/form-checkbox';
 import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormSelect from 'wcs-client/components/forms/form-select';
@@ -320,22 +319,16 @@ class ShippingLabels extends Component {
 		if ( ! isBoolean( emailReceipts ) ) {
 			return null;
 		}
-
+		const checkboxClasses = classNames( 'form-label', 'label-settings__credit-card-description' );
 		const onChange = () => this.props.setValue( 'email_receipts', ! emailReceipts );
-
 		return (
 			<FormFieldSet>
 				<FormLabel className="label-settings__cards-label">
 					{ translate( 'Email Receipts' ) }
 				</FormLabel>
-				<FormLabel>
-					<FormCheckbox
-						checked={ emailReceipts }
-						onChange={ onChange }
-						disabled={ ! canEditPayments && ! canEditSettings }
-					/>
-					<span className="label-settings__credit-card-description">
-						{ translate(
+					<CheckboxControl
+						className= { checkboxClasses }
+						label = { translate(
 							'Email the label purchase receipts to %(ownerName)s (%(ownerLogin)s) at %(ownerEmail)s',
 							{
 								args: {
@@ -345,8 +338,10 @@ class ShippingLabels extends Component {
 								},
 							}
 						) }
-					</span>
-				</FormLabel>
+						checked={ emailReceipts }
+						onChange={ onChange }
+						disabled={ ! canEditPayments && ! canEditSettings }
+					/>
 			</FormFieldSet>
 		);
 	};
