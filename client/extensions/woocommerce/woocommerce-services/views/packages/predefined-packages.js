@@ -17,7 +17,7 @@ import classNames from 'classnames';
  * Internal dependencies
  */
 import BulkSelect from 'woocommerce/components/bulk-select';
-import FoldableCard from 'components/foldable-card';
+import FoldableCard from 'wcs-client/components/foldable-card';
 import PackagesListItem from './packages-list-item';
 import { getCurrentlyEditingPredefinedPackages } from '../../state/packages/selectors';
 
