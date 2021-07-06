@@ -501,22 +501,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function jetpack_on_plugins_loaded() {
-			if ( false === WC_Connect_Jetpack::is_jetpack_version_supported() ) {
-				add_action(
-					'admin_notices',
-					function() {
-						?>
-						<div class="notice wcpay-notice notice-error">
-							<p><b><?php echo esc_html( __( 'WooCommerce Shipping & Tax', 'woocommerce-payments' ) ); ?></b></p>
-							<p><?php echo esc_html( __( 'The version of Jetpack installed is too old to be used with WooCommerce Shipping & Tax. WooCommerce Shipping & Tax has been disabled. Please deactivate or update Jetpack.', 'woocommerce-payments' ) ); ?></p>
-						</div>
-						<?php
-					}
-				);
-				// Prevent the rest of the plugin continuing to initialize.
-				return;
-			}
-
 			$jetpack_config = new Automattic\Jetpack\Config();
 			$jetpack_config->ensure(
 				'connection',
@@ -538,10 +522,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
 				);
-				return;
-			}
-
-			if ( false === WC_Connect_Jetpack::is_jetpack_version_supported() ) {
 				return;
 			}
 

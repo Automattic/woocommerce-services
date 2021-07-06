@@ -104,13 +104,9 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @param
 		 */
 		public static function tracks_record_event( $user, $event_type, $data ) {
-			if ( class_exists( 'Automattic\\Jetpack\\Tracking' ) ) {
-				$tracking = new Automattic\Jetpack\Tracking();
+			$tracking = new Automattic\Jetpack\Tracking();
 
-				return $tracking->tracks_record_event( $user, $event_type, $data );
-			}
-
-			return false;
+			return $tracking->tracks_record_event( $user, $event_type, $data );
 		}
 
 		/**
@@ -170,21 +166,6 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 				)
 			);
 			exit;
-		}
-
-		/**
-		 * Check if WCS&T is installed alongside an old version of Jetpack (8.2 or earlier).
-		 * Due to the autoloader code in those old versions,
-		 * the Jetpack Config initialization code would just crash the site.
-		 *
-		 * @return bool True if the plugin can keep initializing itself, false otherwise.
-		 */
-		public static function is_jetpack_version_supported() {
-			if ( defined( 'JETPACK__VERSION' ) && version_compare( JETPACK__VERSION, '8.2', '<' ) && JETPACK__VERSION !== 'wpcom' ) {
-				return false;
-			}
-
-			return true;
 		}
 	}
 }
