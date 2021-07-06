@@ -13,7 +13,7 @@ import classNames from 'classnames';
  * Internal dependencies
  */
 import Spinner from 'components/spinner';
-import FoldableCard from 'components/foldable-card';
+import FoldableCard from 'wcs-client/components/foldable-card';
 
 const StepContainer = ( {
 	isSuccess,
