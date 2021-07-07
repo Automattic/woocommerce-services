@@ -2,6 +2,7 @@
 
 = 1.25.16- 2021-xx-xx =
 * Tweak - Removed Jetpack plugin dependency. You asked, we listened! You can now keep the Jetpack plugin or remove it (without disconnecting the site).
+* Tweak - Replace components with @wordpress/components.
 
 = 1.25.15 - 2021-06-30 =
 * Fix   - Ensure shipping label metabox is displayed to users with the correct capabilities.

@@ -76,6 +76,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.16 - 2021-xx-xx =
+* Tweak - Replace components with @wordpress/components.
+
 = 1.25.15 - 2021-06-30 =
 * Fix   - Ensure shipping label metabox is displayed to users with the correct capabilities.
 * Add   - Added `wcship_user_can_manage_labels` filter to check permissions to print shipping labels.
