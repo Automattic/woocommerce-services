@@ -117,6 +117,8 @@ cli wp option set woocommerce_store_postcode "94110"
 cli wp option set woocommerce_currency "USD"
 cli wp option set woocommerce_product_type "both"
 cli wp option set woocommerce_allow_tracking "no"
+cli wp option set woocommerce_weight_unit "lbs"
+cli wp option set woocommerce_dimension_unit "in"
 
 echo "Importing WooCommerce shop pages..."
 cli wp wc --user=admin tool run install_pages
