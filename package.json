@@ -18,7 +18,7 @@
     "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
     "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
 	"up": "docker-compose up --build --force-recreate -d && ./bin/docker-setup.sh",
-	"docker:down": "docker-compose down",
+	"down": "docker-compose down",
 	"test:e2e-docker-up": "npx wc-e2e docker:up",
     "test:e2e-docker-down": "npx wc-e2e docker:down",
 	"test:e2e-docker-ping": "bash ./tests/bin/wait-for-e2e-build.sh",
