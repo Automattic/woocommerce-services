@@ -23,6 +23,7 @@ services:
             - .:/var/www/html/wp-content/plugins/woocommerce-services
             - ./docker/php.ini:/usr/local/etc/php/conf.d/wc-services-php.ini
             - dockerdirectory:/var/www/html/wp-content/plugins/woocommerce-services/docker
+            - ./docker/bin:/var/scripts
     db:
         container_name: woocommerce_services_sql
         image: mariadb:10.5.8

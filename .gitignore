@@ -32,3 +32,4 @@ tests/e2e-tests/screenshots
 docker/data
 docker/wordpress
 docker/logs
+docker/bin/jt
