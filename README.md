@@ -20,16 +20,16 @@ You need:
 
 If you'd just like to check out the latest release and not contribute code back, then [download the latest release](https://wordpress.org/plugins/woocommerce-services/) and install as a plugin on your WordPress site.
 
-### Working with `master`
+### Working with `trunk`
 
 If you'd just like to check out the latest code and/or wish to contribute code, then perform the following:
 
-* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `10.11.0` and `npm` version 6+
+* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `10.16.0` and `npm` version 6+
 * Clone this repository into the `plugins` folder of the WordPress installation.
 * This project uses [Git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules). You'll need to run `git submodule update --init`, or enable `submodule.recurse` ([#](https://git-scm.com/docs/git-config#Documentation/git-config.txt-submodulerecurse)) like this: `git config --global submodule.recurse true`
-* Run `npm install` to set up all the dependencies
+* Run `npm install && composer install` to set up all the dependencies
 * You now have two choices:
-    * For Development: Add the following to your `wp-config.php` file: `define( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL', 'http://localhost:8085/' );` and then Run `npm start` which will start a webpack dev server at `localhost:8085`, complete with hot reloading whenever you make changes. You will need to keep the `npm start` task running while developing. You can press `ctrl+c` to exit this process.
+    * For Development: run `npm run up`, let the process finish, connect your site to Jetpack using Jurassic Tube or ngrok.
     * For testing or pre-production use: Run `npm run dist` which will build the files into the `dist` folder, and will be loaded by the plugin without any additional configuration
 
 ## Security

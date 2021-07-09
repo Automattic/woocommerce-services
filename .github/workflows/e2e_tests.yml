@@ -25,7 +25,8 @@ jobs:
       - run: composer self-update 2.0.6 && composer install --no-progress
       - run: npm ci
       - run: npm install jest --global
-      - run: npm run docker:up
-      - run: npm run docker:ping
+      - run: npm run dist
+      - run: npm run test:e2e-docker-up
+      - run: npm run test:e2e-docker-ping
       - run: npm run test:e2e
-      - run: npm run docker:down
+      - run: npm run test:e2e-docker-down

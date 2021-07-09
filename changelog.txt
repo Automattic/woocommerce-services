@@ -1,7 +1,9 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.16- 2021-xx-xx =
+= 1.25.17- 2021-xx-xx =
 * Tweak - Removed Jetpack plugin dependency. You asked, we listened! You can now keep the Jetpack plugin or remove it (without disconnecting the site).
+
+= 1.25.16 - 2021-07-09 =
 * Tweak - Replace components with @wordpress/components.
 
 = 1.25.15 - 2021-06-30 =

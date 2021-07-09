@@ -27,3 +27,9 @@ woocommerce-services.zip
 dist/
 .cache/
 tests/e2e-tests/screenshots
+
+# docker data for local development
+docker/data
+docker/wordpress
+docker/logs
+docker/bin/jt
