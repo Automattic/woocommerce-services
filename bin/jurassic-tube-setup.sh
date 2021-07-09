@@ -44,5 +44,5 @@ ${PWD}/docker/bin/jt/config.sh username ${username}
 ${PWD}/docker/bin/jt/config.sh subdomain ${subdomain}
 
 echo "Setup complete!"
-echo "Use the command: npm run tube:start from the root directory of your WCShip project to start running Jurassic Tube."
+echo "Use the command: npm run tube:start from the root directory of your WC Shipping & Tax project to start running Jurassic Tube."
 echo
