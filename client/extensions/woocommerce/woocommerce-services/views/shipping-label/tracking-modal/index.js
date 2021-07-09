@@ -8,15 +8,12 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import ButtonModal from 'components/button-modal';
 import { exitTrackingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
-import Button from 'components/button';
 import {
 	getShippingLabel,
 	isLoaded,
@@ -39,20 +36,15 @@ const TrackingModal = props => {
 	const onClose = () => props.exitTrackingFlow( props.orderId, props.siteId, false );
 
 	return (
-		<Dialog
+		<ButtonModal
 			additionalClassNames="woocommerce tracking-modal wcc-root"
 			isVisible={ props.showTrackingDialog }
 			onClose={ onClose }
+			isDismissible={ true }
+			shouldCloseOnClickOutside={ true }
+			title={ translate( 'Which package would you like to track?' ) }
 		>
 			<div className="tracking-modal__content">
-				<div className="tracking-modal__header">
-					<FormSectionHeading>
-						{ translate( 'Which package would you like to track?' ) }
-					</FormSectionHeading>
-					<Button className="tracking-modal__close-button" onClick={ onClose }>
-						<Gridicon icon="cross" />
-					</Button>
-				</div>
 				<div className="tracking-modal__body">
 					<div className="tracking-modal__main-section">
                         { /* eslint-disable-next-line wpcalypso/jsx-classname-namespace */ }
@@ -62,7 +54,7 @@ const TrackingModal = props => {
 					</div>
 				</div>
 			</div>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 

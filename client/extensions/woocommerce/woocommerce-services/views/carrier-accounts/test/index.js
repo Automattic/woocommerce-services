@@ -123,6 +123,6 @@ describe( 'Carrier Accounts', () => {
 		// when migrating to React Testing Library,
 		// you'll be able to just `expect` that the text of the dialog is displayed or not (rather than inspecting the props)
 		// and also to trigger the "change" (unfortunately Jest doesn't have good support to hooks)
-		expect(wrapper.find('Dialog[isVisible=false]')).toHaveLength(1);
+		expect(wrapper.find('ButtonModal[isVisible=false]')).toHaveLength(1);
 	});
 } );

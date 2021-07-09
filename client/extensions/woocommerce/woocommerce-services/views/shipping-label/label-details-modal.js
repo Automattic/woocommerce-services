@@ -12,8 +12,7 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import ButtonModal from 'components/button-modal';
 import { getOrigin } from 'woocommerce/lib/nav-utils';
 import { userCanManagePayments } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import { closeDetailsDialog } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
@@ -49,21 +48,16 @@ const DetailsDialog = props => {
 				{ translate( 'Receipt' ) }
 			</a>
 		);
-	};
-
+	}
 	return (
-		<Dialog
+		<ButtonModal
 			additionalClassNames="label-details-modal woocommerce wcc-root"
 			isVisible={ isVisible }
 			onClose={ onClose }
 			buttons={ buttons }
+			title={ translate( 'Label #%(labelIndex)s details', { args: { labelIndex: labelIndex + 1 } } ) }
 		>
-			<FormSectionHeading className="shipping-label__label-details-modal-heading">
-				<span className="shipping-label__label-details-modal-heading-title">
-					{ translate( 'Label #%(labelIndex)s details', { args: { labelIndex: labelIndex + 1 } } ) }
-				</span>
-				{ renderReceiptLink() }
-			</FormSectionHeading>
+			{ renderReceiptLink() }
 			<dl>
 				<dt>{ translate( 'Service' ) }</dt>
 				<dd>{ serviceName }</dd>
@@ -80,7 +74,7 @@ const DetailsDialog = props => {
 					</ul>
 				</dd>
 			</dl>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 

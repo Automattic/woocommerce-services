@@ -12,8 +12,7 @@ import classNames from 'classnames';
  * Internal dependencies
  */
 import { localize } from 'i18n-calypso'
-import Gridicon from 'gridicons'
-import Dialog from 'components/dialog'
+import ButtonModal from 'components/button-modal';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown'
 import Checkbox from 'woocommerce/woocommerce-services/components/checkbox'
 import TextField from 'woocommerce/woocommerce-services/components/text-field'
@@ -112,27 +111,19 @@ const CancelDialog = localize(({ isVisible, onCancel, onConfirm, translate }) =>
 	), [onCancel, onConfirm, translate]);
 
 	return (
-		<Dialog
-			isVisible={isVisible}
+		<ButtonModal
+			isVisible={ isVisible }
 			additionalClassNames="carrier-accounts__settings-cancel-dialog"
-			onClose={onCancel}
-			buttons={buttons}
+			onClose={ onCancel }
+			isDismissible={ true }
+			shouldCloseOnClickOutside={ true }
+			buttons={ buttons }
+			title={ translate('Cancel connection') }
 		>
-			<div className="carrier-accounts__settings-cancel-dialog-header">
-				<h2 className="carrier-accounts__settings-cancel-dialog-title">
-					{translate('Cancel connection')}
-				</h2>
-				<button
-					className="carrier-accounts__settings-cancel-dialog-close-button"
-					onClick={onCancel}
-				>
-					<Gridicon icon="cross"/>
-				</button>
-			</div>
 			<p className="carrier-accounts__settings-cancel-dialog-description">
 				{translate('This action will delete any information entered on the form.')}
 			</p>
-		</Dialog>
+		</ButtonModal>
 	)
 });
 

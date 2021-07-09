@@ -332,5 +332,9 @@
 	}
 }
 
+.button-modal__overlay {
+	display: flex;
+}
+
 // Adding here so it will not have the .wp-core-ui.wp-admin .wcc-root prefix
 @import 'woocommerce/woocommerce-services/views/carrier-accounts/dialog-styles';

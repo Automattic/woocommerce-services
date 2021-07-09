@@ -13,8 +13,7 @@ import formatCurrency from '@automattic/format-currency';
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import ButtonModal from 'components/button-modal'
 import {
 	closeRefundDialog,
 	confirmRefund,
@@ -59,13 +58,14 @@ const RefundDialog = props => {
 	];
 
 	return (
-		<Dialog
+		<ButtonModal
 			additionalClassNames="label-refund-modal woocommerce wcc-root"
 			isVisible={ Boolean( refundDialog && refundDialog.labelId === labelId ) }
 			onClose={ onClose }
+			shouldCloseOnClickOutside={ true }
 			buttons={ buttons }
+			title={ translate( 'Request a refund' ) }
 		>
-			<FormSectionHeading>{ translate( 'Request a refund' ) }</FormSectionHeading>
 			<p>
 				{ translate(
 					'You can request a refund for a shipping label that has not been used to ship a package. It will take at least %(days)s days to process.',
@@ -79,7 +79,7 @@ const RefundDialog = props => {
 				<dt>{ translate( 'Amount eligible for refund' ) }</dt>
 				<dd>{ getRefundableAmount() }</dd>
 			</dl>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 

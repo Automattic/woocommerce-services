@@ -12,11 +12,10 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import Dialog from 'components/dialog';
+import ButtonModal from 'components/button-modal';;
 import FormRadio from 'components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
 import getPackageDescriptions from './get-package-descriptions';
-import FormSectionHeading from 'components/forms/form-section-heading';
 import getProductLink from 'woocommerce/woocommerce-services/lib/utils/get-product-link';
 import { getSite } from 'state/sites/selectors';
 import {
@@ -130,15 +129,15 @@ const MoveItemDialog = props => {
 	];
 
 	return (
-		<Dialog
+		<ButtonModal
 			isVisible={ showItemMoveDialog }
 			isFullScreen={ false }
-			onClickOutside={ onClose }
+			shouldCloseOnClickOutside={ true }
 			onClose={ onClose }
 			buttons={ buttons }
 			additionalClassNames="wcc-root woocommerce packages-step__dialog"
+			title={ translate( 'Move item' ) }
 		>
-			<FormSectionHeading>{ translate( 'Move item' ) }</FormSectionHeading>
 			<div className="packages-step__dialog-body">
 				<p>{ desc }</p>
 				<p>{ translate( 'Where would you like to move it?' ) }</p>
@@ -146,7 +145,7 @@ const MoveItemDialog = props => {
 				{ renderNewPackageOption() }
 				{ renderIndividualOption() }
 			</div>
-		</Dialog>
+		</ButtonModal>
 	);
 };
 
