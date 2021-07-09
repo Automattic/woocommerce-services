@@ -1,0 +1,60 @@
+version: '3'
+
+volumes:
+    ## Kludge for not having the ./docker directory bound recursively
+    dockerdirectory:
+
+services:
+    wordpress:
+        build: ./docker/wordpress_xdebug
+        container_name: woocommerce_services_wordpress
+        image: woocommerce_services_wordpress
+        depends_on:
+            - db
+        links:
+            - db:mysql
+        ports:
+            - "8050:80"
+        env_file:
+            - default.env
+        volumes:
+            - ./docker/wordpress:/var/www/html/
+            - ./docker/logs/apache2/:/var/log/apache2
+            - .:/var/www/html/wp-content/plugins/woocommerce-services
+            - ./docker/php.ini:/usr/local/etc/php/conf.d/wc-services-php.ini
+            - dockerdirectory:/var/www/html/wp-content/plugins/woocommerce-services/docker
+            - ./docker/bin:/var/scripts
+    db:
+        container_name: woocommerce_services_sql
+        image: mariadb:10.5.8
+        env_file:
+            - default.env
+    adminer:
+        image: adminer
+        ports:
+            - "8051:8080"
+    node:
+        image: "node:10.16.0"
+        user: "node"
+        working_dir: /home/node/app
+        deploy:
+            resources:
+                limits:
+                    memory: 4G
+        volumes:
+            - './:/home/node/app'
+        ports:
+            # used by webpack dev server
+            - "8085:8085"
+            # used by the webpack bundle analyzer server
+            - "8888:8888"
+        command: >
+            sh -c '
+            if test -d /home/node/app/node_modules/node-sass/vendor/linux-x64-48;
+            then
+              echo node-sass exists;
+            else
+              npm rebuild node-sass;
+            fi &&
+            npm run start -- --host 0.0.0.0
+            '
