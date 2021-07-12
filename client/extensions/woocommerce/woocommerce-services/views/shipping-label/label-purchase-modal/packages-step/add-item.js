@@ -10,7 +10,6 @@ import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { includes, size, some } from 'lodash';
 import { CheckboxControl } from '@wordpress/components';
-import classNames from 'classnames';
 
 /**
  * Internal dependencies
@@ -59,13 +58,12 @@ const AddItemDialog = props => {
 		const onChange = ( state ) => {
 			props.setAddedItem( orderId, siteId, pckgId, itemIdx, state );
 		}
-		const checkboxClasses = classNames( 'form-label', 'packages-step__dialog-package-option' );
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="packages-step__dialog-package-option"
 			>
-				<CheckboxControl label={ itemLabel } className={ checkboxClasses } checked={ includes( addedItems[ pckgId ], itemIdx ) } onChange={ onChange } />
+				<CheckboxControl label={ itemLabel } className="form-label packages-step__dialog-package-option" checked={ includes( addedItems[ pckgId ], itemIdx ) } onChange={ onChange } />
 			</FormLabel>
 		);
 	};

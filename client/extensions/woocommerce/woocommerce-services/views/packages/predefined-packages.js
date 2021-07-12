@@ -10,8 +10,6 @@ import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { forEach } from 'lodash';
 import { CheckboxControl } from '@wordpress/components';
-import classNames from 'classnames';
-
 
 /**
  * Internal dependencies
@@ -74,7 +72,6 @@ const PredefinedPackages = ( {
 	const renderServicePackages = group => {
 		return group.packages.map( ( pckg, index ) => {
 			const onToggle = () => togglePackage( siteId, pckg.serviceId, pckg.id );
-			const checkboxClasses = classNames( 'form-checkbox' ,'packages__packages-row-actions' );
 
 			return (
 				<PackagesListItem
@@ -84,7 +81,7 @@ const PredefinedPackages = ( {
 					dimensionUnit={ dimensionUnit }
 					prefixActions
 				>
-					<CheckboxControl className= { checkboxClasses } checked={ pckg.selected } onChange={ onToggle } />
+					<CheckboxControl className="form-checkbox packages__packages-row-actions" checked={ pckg.selected } onChange={ onToggle } />
 				</PackagesListItem>
 			);
 		} );

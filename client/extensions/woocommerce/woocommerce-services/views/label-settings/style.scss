@@ -78,7 +78,7 @@
 	}
 
 	.gridicon,
-	span,
+	span:not(.components-checkbox-control__input-container),
 	p,
 	a,
 	button {
@@ -89,7 +89,7 @@
 	}
 
 	p,
-	span {
+	span:not(.components-checkbox-control__input-container) {
 		display: block;
 		width: 100px;
 		height: 14px;

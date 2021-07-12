@@ -319,29 +319,28 @@ class ShippingLabels extends Component {
 		if ( ! isBoolean( emailReceipts ) ) {
 			return null;
 		}
-		const checkboxClasses = classNames( 'form-label', 'label-settings__credit-card-description' );
 		const onChange = () => this.props.setValue( 'email_receipts', ! emailReceipts );
 		return (
 			<FormFieldSet>
 				<FormLabel className="label-settings__cards-label">
 					{ translate( 'Email Receipts' ) }
 				</FormLabel>
-					<CheckboxControl
-						className= { checkboxClasses }
-						label = { translate(
-							'Email the label purchase receipts to %(ownerName)s (%(ownerLogin)s) at %(ownerEmail)s',
-							{
-								args: {
-									ownerName: masterUserName,
-									ownerLogin: masterUserLogin,
-									ownerEmail: masterUserEmail,
-								},
-							}
-						) }
-						checked={ emailReceipts }
-						onChange={ onChange }
-						disabled={ ! canEditPayments && ! canEditSettings }
-					/>
+				<CheckboxControl
+					className="form-label label-settings__credit-card-description"
+					label = { translate(
+						'Email the label purchase receipts to %(ownerName)s (%(ownerLogin)s) at %(ownerEmail)s',
+						{
+							args: {
+								ownerName: masterUserName,
+								ownerLogin: masterUserLogin,
+								ownerEmail: masterUserEmail,
+							},
+						}
+					) }
+					checked={ emailReceipts }
+					onChange={ onChange }
+					disabled={ ! canEditPayments && ! canEditSettings }
+				/>
 			</FormFieldSet>
 		);
 	};
