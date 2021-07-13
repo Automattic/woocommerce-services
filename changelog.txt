@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.17 - xxxx-xx-xx =
+= 1.25.17 - 2021-07-13 =
 * Tweak - Replace Calypso FormCheckbox with CheckboxControl.
 
 = 1.25.16 - 2021-07-09 =
