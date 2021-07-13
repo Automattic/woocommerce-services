@@ -76,6 +76,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.17 - xxxx-xx-xx =
+* Tweak - Replace Calypso FormCheckbox with CheckboxControl.
+
 = 1.25.16 - 2021-07-09 =
 * Tweak - Replace components with @wordpress/components.
 
