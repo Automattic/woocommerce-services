@@ -8,10 +8,6 @@
 
 	input {
 		margin: 0;
-
-		&::before {
-			display: none !important; // Prevent Calypso's Noticons font
-		}
 	}
 
 	.gridicon {

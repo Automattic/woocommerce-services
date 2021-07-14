@@ -7,13 +7,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
-import { Card } from '@wordpress/components';
+import { Card, CheckboxControl } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import FormCheckbox from 'components/forms/form-checkbox';
 import PaymentLogo from 'components/payment-logo';
 
 export const getPaymentMethodTitle = ( translate, paymentType, digits ) => {
@@ -53,7 +52,7 @@ const PaymentMethod = ( {
 } ) => {
 	const renderPlaceholder = () => (
 		<Card className={ classNames( 'label-settings__card', 'card', 'is-compact' ) } >
-			<FormCheckbox className="label-settings__card-checkbox" />
+			<CheckboxControl className="label-settings__card-checkbox" />
 			<PaymentLogo className="label-settings__card-logo" type="placeholder" altText={ '' } />
 			<div className="label-settings__card-details">
 				<p className="label-settings__card-number" />
@@ -75,7 +74,7 @@ const PaymentMethod = ( {
 
 	return (
 		<Card className={ classNames( "label-settings__card" , 'card', 'is-compact' ) } onClick={ onSelect }>
-			<FormCheckbox
+			<CheckboxControl
 				className="label-settings__card-checkbox"
 				checked={ selected }
 				onChange={ onSelect }
