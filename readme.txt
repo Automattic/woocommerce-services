@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.7
-Stable tag: 1.25.16
+Stable tag: 1.25.17
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.25.17 - 2021-07-13 =
+* Tweak - Replace Calypso FormCheckbox with CheckboxControl.
 
 = 1.25.16 - 2021-07-09 =
 * Tweak - Replace components with @wordpress/components.
