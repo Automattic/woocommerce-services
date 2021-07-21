@@ -9,12 +9,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
 import { includes, size, some } from 'lodash';
+import { CheckboxControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import FormCheckbox from 'components/forms/form-checkbox';
 import FormLabel from 'components/forms/form-label';
 import getPackageDescriptions from './get-package-descriptions';
 import FormSectionHeading from 'components/forms/form-section-heading';
@@ -55,15 +55,15 @@ const AddItemDialog = props => {
 			  } )
 			: item;
 
-		const onChange = event =>
-			props.setAddedItem( orderId, siteId, pckgId, itemIdx, event.target.checked );
+		const onChange = ( state ) => {
+			props.setAddedItem( orderId, siteId, pckgId, itemIdx, state );
+		}
 		return (
 			<FormLabel
 				key={ `${ pckgId }-${ itemIdx }` }
 				className="packages-step__dialog-package-option"
 			>
-				<FormCheckbox checked={ includes( addedItems[ pckgId ], itemIdx ) } onChange={ onChange } />
-				<span>{ itemLabel }</span>
+				<CheckboxControl label={ itemLabel } className="form-label packages-step__dialog-package-option" checked={ includes( addedItems[ pckgId ], itemIdx ) } onChange={ onChange } />
 			</FormLabel>
 		);
 	};
