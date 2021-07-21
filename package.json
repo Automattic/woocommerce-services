@@ -15,7 +15,7 @@
     "release": "node tasks/release.js",
     "i18n": "cross-env NODE_ENV=i18n DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack && node tasks/i18n",
     "i18njson": "node tasks/i18njson",
-    "update-deps": "rm npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
+    "update-deps": "rm -f npm-shrinkwrap.json && rm -rf node_modules && npm install && npm shrinkwrap",
     "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "up": "docker-compose up --build --force-recreate -d && ./bin/docker-setup.sh",
     "down": "docker-compose down",
