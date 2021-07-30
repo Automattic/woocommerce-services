@@ -1,5 +1,9 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.18 - 2021-xx-xx =
+* Tweak - Bump WP tested version to 5.8.
+* Tweak	- Bump WC Tested version to 5.5.
+
 = 1.25.17 - 2021-07-13 =
 * Tweak - Replace Calypso FormCheckbox with CheckboxControl.
 
