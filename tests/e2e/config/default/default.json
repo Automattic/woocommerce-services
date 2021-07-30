@@ -1,6 +1,7 @@
 {
 	"url": "http://localhost:8084/",
 	"appName": "woocommerce-services",
+	"port": 8084,
 	"users": {
 		"admin": {
 			"username": "admin",
@@ -9,7 +10,7 @@
 		},
 		"customer": {
 			"username": "customer",
-			"password": "customer_password",
+			"password": "password",
 			"email": "customer@e2ewootestsite.com"
 		}
 	},
