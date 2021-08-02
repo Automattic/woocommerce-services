@@ -31,8 +31,6 @@ wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
 # mock for Jetpack
 cp "$WCS_DIR/tests/e2e/config/travis/wc-services-testing-helper.php" "$WP_CORE_DIR/wp-content/plugins/"
 
-exit 1
-
 # finally activate WCS
 wp plugin activate woocommerce-services
 wp plugin activate wc-services-testing-helper
