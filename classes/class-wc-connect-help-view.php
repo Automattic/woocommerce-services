@@ -339,7 +339,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				return [
 					'state'              => 'warning',
 					'show_settings_link' => false,
-					'message'            => __( 'Your store\'s country (%s) is not supported. Automatic taxes functionality is disabled', 'woocommerce-services' ),
+					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automatic taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
 				];
 			}
 
@@ -356,7 +356,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				return [
 					'state'              => 'warning',
 					'show_settings_link' => true,
-					'message'            => __( 'The automatic taxes functionality is disabled. Enable it in the WooCommerce settings page', 'woocommerce-services' ),
+					'message'            => __( 'The automatic taxes functionality is disabled. Enable the "Automatic taxes" setting in the WooCommerce settings page', 'woocommerce-services' ),
 				];
 			}
 
