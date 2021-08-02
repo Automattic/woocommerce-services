@@ -22,4 +22,3 @@ jobs:
       - run: npm run test:e2e-docker-up
       - run: npm run test:e2e-docker-ping
       - run: npm run test:e2e
-      - run: npm run test:e2e-docker-down
