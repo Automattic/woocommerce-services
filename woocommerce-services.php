@@ -746,7 +746,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schema   = $this->get_service_schemas_store();
 			$settings = $this->get_service_settings_store();
 			$logger   = $this->get_logger();
-			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
+			$this->set_help_view( new WC_Connect_Help_View( $schema, $this->taxjar, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 

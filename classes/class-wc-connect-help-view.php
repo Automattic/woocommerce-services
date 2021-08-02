@@ -20,17 +20,26 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		protected $logger;
 
 		/**
+		 * @var WC_Connect_TaxJar_Integration
+		 */
+		protected $taxjar_integration;
+
+		/**
 		 * @array
 		 */
 		protected $fieldsets;
 
-		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store,
+		public function __construct(
+			WC_Connect_Service_Schemas_Store $service_schemas_store,
+			WC_Connect_TaxJar_Integration $taxjar_integration,
 			WC_Connect_Service_Settings_Store $service_settings_store,
-			WC_Connect_Logger $logger ) {
+			WC_Connect_Logger $logger
+		) {
 
 			$this->service_schemas_store  = $service_schemas_store;
 			$this->service_settings_store = $service_settings_store;
 			$this->logger                 = $logger;
+			$this->taxjar_integration     = $taxjar_integration;
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
 			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
@@ -112,6 +121,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				);
 			}
 			$health_items['jetpack'] = $health_item;
+
+			// Automatic taxes status
+			$health_items['automatic_taxes'] = $this->get_tax_health_item();
 
 			// Lastly, do the WooCommerce Shipping & Tax health check
 			// Check that we have schema
@@ -310,6 +322,50 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			);
 		}
 
+		/**
+		 * @return array
+		 */
+		protected function get_tax_health_item() {
+			if ( class_exists( 'WC_Taxjar' ) ) {
+				return [
+					'state'              => 'warning',
+					'show_settings_link' => false,
+					'message'            => __( 'TaxJar extension detected. Automatic taxes functionality is disabled', 'woocommerce-services' ),
+				];
+			}
+
+			$store_country = WC()->countries->get_base_country();
+			if ( ! $this->taxjar_integration->is_supported_country( $store_country ) ) {
+				return [
+					'state'              => 'warning',
+					'show_settings_link' => false,
+					'message'            => __( 'Your store\'s country (%s) is not supported. Automatic taxes functionality is disabled', 'woocommerce-services' ),
+				];
+			}
+
+			if ( ! wc_tax_enabled() ) {
+				return [
+					'state'              => 'warning',
+					// if the "taxes" functionality is disabled, the "Tax" settings link will redirect to the "general" tab in WC settings.
+					'show_settings_link' => true,
+					'message'            => __( 'The core WooCommerce taxes functionality is disabled. Enable the "Enable tax rates and calculations" setting in the WooCommerce settings page', 'woocommerce-services' ),
+				];
+			}
+
+			if ( ! $this->taxjar_integration->is_enabled() ) {
+				return [
+					'state'              => 'warning',
+					'show_settings_link' => true,
+					'message'            => __( 'The automatic taxes functionality is disabled. Enable it in the WooCommerce settings page', 'woocommerce-services' ),
+				];
+			}
+
+			return [
+				'state'              => 'success',
+				'show_settings_link' => true,
+				'message'            => __( 'Automatic taxes functionality is enabled on your store', 'woocommerce-services' ),
+			];
+		}
 	}
 
 }

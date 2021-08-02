@@ -4,6 +4,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
+import { ExternalLink } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -11,6 +12,7 @@ import { localize } from 'i18n-calypso';
 import Indicator from './indicator';
 import WooCommerceServicesIndicator from './woocommerce-services-indicator';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
+import FormSettingExplanation from 'components/forms/form-setting-explanation';
 
 const HealthView = ( { translate, healthItems } ) => {
 	return (
@@ -25,8 +27,32 @@ const HealthView = ( { translate, healthItems } ) => {
 			<Indicator
 				title={translate('Jetpack')}
 				state={healthItems.jetpack.state}
-				message={healthItems.jetpack.message}/>
-			<WooCommerceServicesIndicator />
+				message={healthItems.jetpack.message}
+			/>
+			<Indicator
+				title={translate('Automatic Taxes')}
+				state={healthItems.automatic_taxes.state}
+				message={healthItems.automatic_taxes.message}
+			>
+				<FormSettingExplanation>
+					{healthItems.automatic_taxes.show_settings_link && (
+						<>
+							<ExternalLink
+								href="admin.php?page=wc-settings&tab=tax"
+							>
+								{translate('Go to the Tax settings')}
+							</ExternalLink>
+							<br/>
+						</>
+					)}
+					<ExternalLink
+						href="https://docs.woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/"
+					>
+						{translate('Automatic taxes documentation')}
+					</ExternalLink>
+				</FormSettingExplanation>
+			</Indicator>
+			<WooCommerceServicesIndicator/>
 		</SettingsGroupCard>
 
 	);

@@ -35,6 +35,11 @@ const defaultHealthStoreValues = {
 		has_service_schemas: true,
 		error_threshold: 259200,
 		warning_threshold: 86400,
+	},
+	automatic_taxes: {
+		state: 'success',
+		message: 'Automatic taxes functionality is enabled on your store',
+		show_settings_link: true,
 	}
 }
 
@@ -76,16 +81,38 @@ describe('Health View', () => {
 
 		const sections = wrapper.find('fieldset.form-fieldset')
 
-		expect(sections).toHaveLength(3)
+		expect(sections).toHaveLength(4)
 
 		const wooCommerceSection = sections.at(0)
 		const jetpackSection = sections.at(1)
-		const wcsSection = sections.at(2)
+		const taxesSection = sections.at(2)
+		const wcsSection = sections.at(3)
 
 		expect(wooCommerceSection.text()).toContain('WooCommerce 5.0.0 is configured correctly')
 		expect(jetpackSection.text()).toContain('Jetpack 9.4 is connected and working correctly')
+		expect(taxesSection.text()).toContain('Automatic taxes functionality is enabled on your store')
+		expect(taxesSection.text()).toContain('Go to the Tax settings')
 		expect(wcsSection.text()).toContain('Service data is up-to-date')
 		expect(wcsSection.text()).toContain('Last updated 3 minutes ago')
+	})
+
+	it('should display not display the settings link when not needed', () => {
+		const wrapper = mount(
+			<Wrapper healthStoreOverrides={{
+				automatic_taxes: {
+					state: 'warning',
+					message: 'TaxJar extension detected. Automatic taxes functionality is disabled',
+					show_settings_link: false,
+				}
+			}}>
+				<HealthView/>
+			</Wrapper>
+		)
+
+		const wcsSection = wrapper.find('fieldset.form-fieldset').at(2)
+
+		expect(wcsSection.text()).toContain('TaxJar extension detected')
+		expect(wcsSection.text()).not.toContain('Go to the Tax settings')
 	})
 
 	it('should display an error when there are no service schema', () => {
@@ -100,7 +127,7 @@ describe('Health View', () => {
 			</Wrapper>
 		)
 
-		const wcsSection = wrapper.find('fieldset.form-fieldset').at(2)
+		const wcsSection = wrapper.find('fieldset.form-fieldset').at(3)
 
 		expect(wcsSection.text()).toContain('No service data available')
 		expect(wcsSection.text()).not.toContain('Last updated')
@@ -118,7 +145,7 @@ describe('Health View', () => {
 			</Wrapper>
 		)
 
-		const wcsSection = wrapper.find('fieldset.form-fieldset').at(2)
+		const wcsSection = wrapper.find('fieldset.form-fieldset').at(3)
 
 		expect(wcsSection.text()).toContain('Service data found, but may be out of date')
 		expect(wcsSection.text()).not.toContain('Last updated')
@@ -136,7 +163,7 @@ describe('Health View', () => {
 			</Wrapper>
 		)
 
-		const wcsSection = wrapper.find('fieldset.form-fieldset').at(2)
+		const wcsSection = wrapper.find('fieldset.form-fieldset').at(3)
 
 		expect(wcsSection.text()).toContain('Service data was found, but is more than three days old')
 		expect(wcsSection.text()).toContain('Last updated 46 years ago.')
@@ -154,7 +181,7 @@ describe('Health View', () => {
 			</Wrapper>
 		)
 
-		const wcsSection = wrapper.find('fieldset.form-fieldset').at(2)
+		const wcsSection = wrapper.find('fieldset.form-fieldset').at(3)
 
 		expect(wcsSection.text()).toContain('Service data was found, but is more than one day old')
 		expect(wcsSection.text()).toContain('Last updated 2 days ago.')
@@ -170,7 +197,7 @@ describe('Health View', () => {
 		expect(apiPostSpy).not.toHaveBeenCalled()
 
 		await act(async () => {
-			wrapper.find( 'a' ).simulate('click');
+			wrapper.find( 'a' ).at(2).simulate('click');
 		} );
 
 		expect(apiPostSpy).toHaveBeenCalled()
