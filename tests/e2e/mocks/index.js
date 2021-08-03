@@ -3,7 +3,6 @@
  */
 
 const withMockedShippingLabel = async( shippingLabel, callback ) => {
-
 	const mockedShippingLabel = {
 		"success": true,
 		"label": {
@@ -23,7 +22,6 @@ const withMockedShippingLabel = async( shippingLabel, callback ) => {
 			"currency": "USD",
 			"expiry_date": shippingLabel.expiry_date
 		},
-
 	}
 
 	const mockedRefund = {
