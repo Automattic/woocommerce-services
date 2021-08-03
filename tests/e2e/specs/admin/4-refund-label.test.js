@@ -37,7 +37,7 @@ describe( 'Refund shipping label', () => {
 			} )
 
 			// opening purchase modal again after refund
-			const newLabelButton = await page.$( '.shipping-label__new-label-button' );
+			const newLabelButton = await page.waitForSelector( '.shipping-label__new-label-button' );
 			if( ! newLabelButton ) {
 				throw new Error( 'No button to create new shipping label for order' );
 			}

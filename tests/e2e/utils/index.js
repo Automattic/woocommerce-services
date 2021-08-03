@@ -65,6 +65,7 @@ const verifyCheckboxIsSet = async( selector ) => {
  * @param {object} options Other options to pass to Puppeteer.
  */
 const clickReactButton = async( selector, options ) => {
+	await page.waitForSelector( selector );
 	await expect( page ).toClick( selector, options );
 };
 
