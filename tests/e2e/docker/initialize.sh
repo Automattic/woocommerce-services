@@ -10,17 +10,17 @@ wp theme install twentynineteen --activate
 wp plugin install woocommerce --activate
 
 ## adding basic settings and configuration
-#wp option set woocommerce_store_address "60 29th Street"
-#wp option set woocommerce_store_address_2 "#343"
-#wp option set woocommerce_store_city "San Francisco"
-#wp option set woocommerce_default_country "US:CA"
-#wp option set woocommerce_store_postcode "94110"
-#wp option set woocommerce_currency "USD"
-#wp option set woocommerce_product_type "both"
-#wp option set woocommerce_allow_tracking "no"
+wp option set woocommerce_store_address "60 29th Street"
+wp option set woocommerce_store_address_2 "#343"
+wp option set woocommerce_store_city "San Francisco"
+wp option set woocommerce_default_country "US:CA"
+wp option set woocommerce_store_postcode "94110"
+wp option set woocommerce_currency "USD"
+wp option set woocommerce_product_type "both"
+wp option set woocommerce_allow_tracking "no"
 
 wp plugin install jetpack --activate
-#wp config set JETPACK_DEV_DEBUG true --raw
+wp config set JETPACK_DEV_DEBUG true --raw
 
 # create credentials for REST API
 wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
@@ -29,9 +29,9 @@ wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
 cp "$WCS_DIR/tests/e2e/config/travis/wc-services-testing-helper.php" "$WP_CORE_DIR/wp-content/plugins/"
 
 # finally activate WCS
-#wp config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
-#wp config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
-#wp config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
+wp config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
+wp config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
+wp config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
 wp plugin activate woocommerce-services
 wp plugin activate wc-services-testing-helper
 wp option update jetpack_tos_agreed 1
