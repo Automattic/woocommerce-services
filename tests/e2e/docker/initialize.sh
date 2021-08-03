@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 echo "Initializing WooCommerce Services E2E"
 
 WP_CORE_DIR="/var/www/html"
