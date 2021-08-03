@@ -9,8 +9,6 @@ jobs:
     env:
       WP_VERSION: 5.8.0
       TRAVIS_MARIADB_VERSION: 10.5.5
-      RUN_E2E: 1
-      WP_MULTISITE: 0
     steps:
       - uses: actions/checkout@v2
         with:
