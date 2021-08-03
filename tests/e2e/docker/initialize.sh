@@ -10,20 +10,20 @@ wp theme install storefront --activate
 wp plugin install woocommerce --activate
 
 ## adding basic settings and configuration
-cli wp option set woocommerce_store_address "60 29th Street"
-cli wp option set woocommerce_store_address_2 "#343"
-cli wp option set woocommerce_store_city "San Francisco"
-cli wp option set woocommerce_default_country "US:CA"
-cli wp option set woocommerce_store_postcode "94110"
-cli wp option set woocommerce_currency "USD"
-cli wp option set woocommerce_product_type "both"
-cli wp option set woocommerce_allow_tracking "no"
-cli config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
-cli config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
-cli config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
+#cli wp option set woocommerce_store_address "60 29th Street"
+#cli wp option set woocommerce_store_address_2 "#343"
+#cli wp option set woocommerce_store_city "San Francisco"
+#cli wp option set woocommerce_default_country "US:CA"
+#cli wp option set woocommerce_store_postcode "94110"
+#cli wp option set woocommerce_currency "USD"
+#cli wp option set woocommerce_product_type "both"
+#cli wp option set woocommerce_allow_tracking "no"
+#cli config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
+#cli config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
+#cli config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
 
 wp plugin install jetpack --activate
-cli config set JETPACK_DEV_DEBUG true --raw
+#cli config set JETPACK_DEV_DEBUG true --raw
 
 # create credentials for REST API
 wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
