@@ -32,19 +32,14 @@ describe( 'Create shipping label', () => {
             await StoreOwnerFlow.openExistingOrderPage( order.id );
 
             // Click on Create shipping label button
-			const newLabelButton = await page.$( '.shipping-label__new-label-button' );
-			if( ! newLabelButton ) {
-				throw new Error( 'No button to create new shipping label for order' );
-			}
-
             await expect( page ).toClick( '.shipping-label__new-label-button', { text: 'Create shipping label' } );
             await page.waitForSelector( '.label-purchase-modal__content' );
 
 			await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
 
-			const enterOriginPhone = await page.$( '.address-step__phone #origin_phone' );
+			const enterOriginPhone = await page.$( '.address-step__phone input' );
 			if ( enterOriginPhone ) {
-				await expect( page ).toFill( '.address-step__phone #origin_phone', '11111111111' );
+				await expect( page ).toFill( '.address-step__phone input', '11111111111' );
 
 				await expect( page ).toClick( '.address-step__actions .form-button', { text: 'Use address as entered' } )
 
