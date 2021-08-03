@@ -1,6 +1,5 @@
 {
 	"url": "http://localhost:8084/",
-	"port": "8084",
 	"appName": "woocommerce-services",
 	"users": {
 		"admin": {

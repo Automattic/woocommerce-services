@@ -10,7 +10,7 @@ import { clickReactButton } from '../../utils/index';
 import { StoreOwnerFlow } from '../../utils/flows';
 import { withExpiredShippingLabelAndOrder, withShippingLabelAndOrder } from '../../fixtures/index';
 
-describe.skip( 'Refund shipping label', () => {
+describe( 'Refund shipping label', () => {
 	beforeAll( async () => {
 		page.setDefaultTimeout( 0 );
 		page.setDefaultNavigationTimeout( 0 );

@@ -26,7 +26,7 @@ const settingsPageSaveChanges = async () => {
 /**
  * Set checkbox.
  *
- * @param {string} selector
+ * @param {string} selector Selector of the element
  */
 const setCheckbox = async( selector ) => {
 	await page.focus( selector );
@@ -58,15 +58,14 @@ const verifyCheckboxIsSet = async( selector ) => {
 	await expect( checkboxStatus ).toBe( true );
 };
 
-const clickReactButton = async( selector ) => {
-    await page.waitForSelector( selector );
-    //await page.click( selector );
-    await page.$eval( selector, elem => {
-    	if ( !elem ) {
-    		console.log( `.clickReactButton => Element not found: ${ selector }` );
-    	}
-    	return elem.click();
-    } );
+/**
+ * Clicks on an element, ensuring it is present in the DOM.
+ *
+ * @param {string} selector Selector of the element.
+ * @param {object} options Other options to pass to Puppeteer.
+ */
+const clickReactButton = async( selector, options ) => {
+	await expect( page ).toClick( selector, options );
 };
 
 /**

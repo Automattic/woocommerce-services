@@ -6,7 +6,6 @@
 /**
  * Internal dependencies
  */
-import { clickReactButton } from '../../utils/index';
 import { StoreOwnerFlow } from '../../utils/flows';
 import { withOrder } from '../../fixtures/index';
 import { deleteAllPackages, saveAndWait } from '../../utils/components';
@@ -23,7 +22,6 @@ describe( 'Create shipping label', () => {
 
 	afterAll( async () => {
 		await deleteAllPackages();
-		await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
 		await saveAndWait();
 	} );
 
@@ -39,18 +37,17 @@ describe( 'Create shipping label', () => {
 				throw new Error( 'No button to create new shipping label for order' );
 			}
 
-            await clickReactButton( '.shipping-label__new-label-button', { text: 'Create shipping label' } );
+            await expect( page ).toClick( '.shipping-label__new-label-button', { text: 'Create shipping label' } );
             await page.waitForSelector( '.label-purchase-modal__content' );
 
-			await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );
 			await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
 
 			const enterOriginPhone = await page.$( '.address-step__phone #origin_phone' );
 			if ( enterOriginPhone ) {
 				await expect( page ).toFill( '.address-step__phone #origin_phone', '11111111111' );
+
 				await expect( page ).toClick( '.address-step__actions .form-button', { text: 'Use address as entered' } )
 
-				await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );
 				await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
 			}
 
@@ -94,13 +91,12 @@ describe( 'Create shipping label', () => {
 				await page.waitForSelector( '.notice.is-success .notice__text', { text: 'Your shipping packages have been saved.' } );
 			}
 
-			await clickReactButton( '.button.is-primary', { text: 'Use these packages' } );
+			await expect( page ).toClick( '.button.is-primary', { text: 'Use these packages' } );
 
             await page.waitForSelector( '.is-success', {
                 text: '1 item in 1 package: 2 kg total'
             } );
 
-            await page.waitForSelector( '#inspector-radio-control-0-0' );
             await expect( page ).toClick( '#inspector-radio-control-0-0' );
 
             await expect( page ).toClick( '.button.is-primary', {

@@ -8,7 +8,6 @@ import { AccountWithNoCreditCard, AccountWithOneCreditCard, AccountWithTwoCredit
 
 
 describe( 'Saving shipping label settings', () => {
-
 	it( 'Can toggle shipping labels' , async () => {
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
@@ -229,7 +228,6 @@ describe( 'Shipping label payment method', () => {
 });
 
 describe( 'Packaging', () => {
-
 	afterAll( async() => {
 		await deleteAllPackages();
 		await saveAndWait();
@@ -259,7 +257,7 @@ describe( 'Packaging', () => {
         await expect( page ).toFill( '.form-dimensions-input__length input', '5' );
         await expect( page ).toFill( '.form-dimensions-input__width input', '5' );
         await expect( page ).toFill( '.form-dimensions-input__height input', '5' );
-        await expect( page ).toFill( '.packages__add-package-weight input', '0.5' );
+        await expect( page ).toFill( '.form-dimensions-input__box_weight input', '0.5' );
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } );
 
         // Verify package shows up in list
@@ -293,7 +291,7 @@ describe( 'Packaging', () => {
         await expect( page ).toFill( '.form-dimensions-input__length input', '10' );
         await expect( page ).toFill( '.form-dimensions-input__width input', '10' );
         await expect( page ).toFill( '.form-dimensions-input__height input', '10' );
-        await expect( page ).toFill( '.packages__add-package-weight input', '0.8' );
+        await expect( page ).toFill( '.form-dimensions-input__box_weight input', '0.8' );
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Done' } )
 
         // Verify package shows up in list
