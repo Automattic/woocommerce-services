@@ -28,6 +28,5 @@ export const deleteAllPackages = async () => {
 // Click save and wait until it's saved.
 export const saveAndWait = async () => {
     await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
-    // await page.waitForSelector( '.button.is-primary.is-busy', { hidden: true } );
-	// await page.waitForResponse(response => response.status() === 200);
+    await page.waitForSelector( '.button.is-primary.is-busy', { hidden: true } );
 };
