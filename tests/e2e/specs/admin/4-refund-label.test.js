@@ -34,25 +34,6 @@ describe( 'Refund shipping label', () => {
 
 			await page.waitForSelector( '.notice.is-success .notice__text', {
 				text: 'The refund request has been sent successfully.'
-			} )
-
-			// opening purchase modal again after refund
-			const newLabelButton = await page.waitForSelector( '.shipping-label__new-label-button' );
-			if( ! newLabelButton ) {
-				throw new Error( 'No button to create new shipping label for order' );
-			}
-
-			await clickReactButton( '.shipping-label__new-label-button' );
-
-			await clickReactButton( '#inspector-radio-control-0-0' );
-
-			await expect( page ).toClick( '.button.is-primary', {
-				text: 'Buy shipping label',
-				timeout: 120000
-			} );
-
-			await page.waitForSelector( '.notice.is-success .notice__text', {
-				text: 'Your shipping label was purchased successfully'
 			} );
 		});
 
