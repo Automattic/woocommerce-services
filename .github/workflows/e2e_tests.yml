@@ -7,7 +7,7 @@ jobs:
     name: Build Container and Run E2E Tests
     runs-on: ubuntu-18.04
     env:
-      WP_VERSION: 5.6.2
+      WP_VERSION: 5.8.0
       TRAVIS_MARIADB_VERSION: 10.5.5
       RUN_E2E: 1
       WP_MULTISITE: 0
