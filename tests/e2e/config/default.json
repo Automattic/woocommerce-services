@@ -10,7 +10,7 @@
 		},
 		"customer": {
 			"username": "customer",
-			"password": "password",
+			"password": "customer_password",
 			"email": "customer@e2ewootestsite.com"
 		}
 	},

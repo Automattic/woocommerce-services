@@ -5,7 +5,7 @@ WP_CORE_DIR="/var/www/html"
 WCS_DIR="$WP_CORE_DIR/wp-content/plugins/woocommerce-services"
 
 # install default theme
-wp theme install twentynineteen --activate
+wp theme install storefront --activate
 
 wp plugin install woocommerce --activate
 
@@ -18,6 +18,7 @@ wp option set woocommerce_store_postcode "94110"
 wp option set woocommerce_currency "USD"
 wp option set woocommerce_product_type "both"
 wp option set woocommerce_allow_tracking "no"
+wp option update woocommerce_onboarding_profile '{"skipped": true }' --format=json
 
 wp plugin install jetpack --activate
 wp config set JETPACK_DEV_DEBUG true --raw
