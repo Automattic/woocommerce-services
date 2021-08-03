@@ -16,6 +16,8 @@ wp option set woocommerce_store_city "San Francisco"
 wp option set woocommerce_default_country "US:CA"
 wp option set woocommerce_store_postcode "94110"
 wp option set woocommerce_currency "USD"
+wp option set woocommerce_weight_unit "oz"
+wp option set woocommerce_dimension_unit "in"
 wp option set woocommerce_product_type "both"
 wp option set woocommerce_allow_tracking "no"
 wp option update woocommerce_onboarding_profile '{"skipped": true }' --format=json
