@@ -12,17 +12,19 @@ describe( 'Saving shipping label settings', () => {
 	it( 'Can toggle shipping labels' , async () => {
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
-        await page.waitForSelector('.form-toggle__switch');
-        await expect(page).toClick('.form-toggle__switch');
-        await page.waitForSelector('.card.label-settings__labels-container', {
-            visible: false
-        });
-        await expect( page ).toClick( '.button.is-primary', { text: 'Save changes' } );
+        await page.waitForSelector('.components-form-toggle__input');
+        await expect(page).toClick('.components-form-toggle__input');
         await page.waitForSelector('.card.label-settings__labels-container', {
             visible: false
         });
 
-        await expect(page).toClick('.form-toggle__switch');
+        await saveAndWait();
+
+		await page.waitForSelector('.card.label-settings__labels-container', {
+            visible: false
+        });
+
+        await expect(page).toClick('.components-form-toggle__input');
         await saveAndWait();
     });
 
@@ -155,7 +157,7 @@ describe( 'Shipping label payment method', () => {
         await expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
 
         // Verify the default box is checked.
-        const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox.form-checkbox');
+        const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox input');
 		const firstCardDefaultCheckboxElement = await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked');
         const firstCardDefaultCheckbox = await firstCardDefaultCheckboxElement.jsonValue();
         await expect(firstCardDefaultCheckbox).toBeFalsy();
@@ -204,7 +206,7 @@ describe( 'Shipping label payment method', () => {
         await expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
 
         // Verify that no default box is checked.
-        const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox.form-checkbox');
+        const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox checkbox');
 		const firstCardDefaultCheckboxElement = await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked');
         const firstCardDefaultCheckbox = await firstCardDefaultCheckboxElement.jsonValue();
         await expect(firstCardDefaultCheckbox).toBeFalsy();
@@ -249,15 +251,15 @@ describe( 'Packaging', () => {
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Add a package' );
 
         // Set this once globally, all following test will use this metric
-        const metricSystem = await page.$$('.form-text-input-with-affixes .form-text-input-with-affixes__suffix');
+        const metricSystem = await page.$$('.text-control-with-affixes .text-control-with-affixes__suffix');
 		const metricSystemElement = await metricSystem[0].getProperty('innerText');
         metricSystemValue = await metricSystemElement.jsonValue();
 
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
-        await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '5' );
-        await expect( page ).toFill( '.form-text-input.form-dimensions-input__width', '5' );
-        await expect( page ).toFill( '.form-text-input.form-dimensions-input__height', '5' );
-        await expect( page ).toFill( '.form-text-input-with-affixes #box_weight', '0.5' );
+        await expect( page ).toFill( '.form-dimensions-input__length input', '5' );
+        await expect( page ).toFill( '.form-dimensions-input__width input', '5' );
+        await expect( page ).toFill( '.form-dimensions-input__height input', '5' );
+        await expect( page ).toFill( '.packages__add-package-weight input', '0.5' );
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Add package' } );
 
         // Verify package shows up in list
@@ -288,10 +290,10 @@ describe( 'Packaging', () => {
         // Edit package
         await waitForSelectorAndText( '.packages__add-edit-title.form-section-heading', 'Edit package' );
         await expect( page ).toFill( '.packages__properties-group #name', packageName );
-        await expect( page ).toFill( '.form-text-input.form-dimensions-input__length', '10' );
-        await expect( page ).toFill( '.form-text-input.form-dimensions-input__width', '10' );
-        await expect( page ).toFill( '.form-text-input.form-dimensions-input__height', '10' );
-        await expect( page ).toFill( '.form-text-input-with-affixes #box_weight', '0.8' );
+        await expect( page ).toFill( '.form-dimensions-input__length input', '10' );
+        await expect( page ).toFill( '.form-dimensions-input__width input', '10' );
+        await expect( page ).toFill( '.form-dimensions-input__height input', '10' );
+        await expect( page ).toFill( '.packages__add-package-weight input', '0.8' );
         await expect( page ).toClick( '.button.form-button.is-primary', { text: 'Done' } )
 
         // Verify package shows up in list
