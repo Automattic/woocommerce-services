@@ -16,6 +16,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '10.16.0'
+      - name: disable and stop mono-xsp4.service
+        run: |
+          sudo systemctl stop mono-xsp4.service || true
+          sudo systemctl disable mono-xsp4.service || true
       - run: npm ci
       - run: npm install jest --global
       - run: npm run dist
