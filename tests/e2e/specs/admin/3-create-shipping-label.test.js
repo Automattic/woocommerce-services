@@ -38,8 +38,9 @@ describe( 'Create shipping label', () => {
 			if( ! newLabelButton ) {
 				throw new Error( 'No button to create new shipping label for order' );
 			}
+
             await clickReactButton( '.shipping-label__new-label-button', { text: 'Create shipping label' } );
-            await page.waitForSelector( '.dialog__content' );
+            await page.waitForSelector( '.label-purchase-modal__content' );
 
 			await page.waitForSelector(  '.address-step__suggestion-title', { text: 'Address entered' } );
 			await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
@@ -55,6 +56,8 @@ describe( 'Create shipping label', () => {
 
 			await expect( page ).toClick( '.button.is-primary', { text: 'Use selected address' } );
 
+			await expect( page ).toFill( '#weight_default_box', '1' );
+
             const selectAPackageType = await page.$( '.packages-step__no-packages a', {
                 text: 'Select a package type'
             } );
@@ -64,7 +67,6 @@ describe( 'Create shipping label', () => {
 			const packageName = 'My Package';
             if ( selectAPackageType ) {
                 await selectAPackageType.click();
-                await expect( page ).toFill( '#weight_default_box', '1' );
 
                 await page.waitForSelector( '.packages__add-edit-dialog' );
 
@@ -79,7 +81,6 @@ describe( 'Create shipping label', () => {
 
             } else if( addPackage ) {
 				await addPackage.click();
-                await expect( page ).toFill( '#weight_default_box', '1' );
 
                 await page.waitForSelector( '.packages__add-edit-dialog' );
 
