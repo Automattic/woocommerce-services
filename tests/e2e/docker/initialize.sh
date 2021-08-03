@@ -23,7 +23,7 @@ wp plugin install jetpack --activate
 #wp config set JETPACK_DEV_DEBUG true --raw
 
 # create credentials for REST API
-wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
+#wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
 
 # mock for Jetpack
 cp "$WCS_DIR/tests/e2e/config/travis/wc-services-testing-helper.php" "$WP_CORE_DIR/wp-content/plugins/"
