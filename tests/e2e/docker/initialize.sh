@@ -5,7 +5,7 @@ WP_CORE_DIR="/var/www/html"
 WCS_DIR="$WP_CORE_DIR/wp-content/plugins/woocommerce-services"
 
 # install default theme
-wp theme install storefront --activate
+wp theme install twentynineteen --activate
 
 wp plugin install woocommerce --activate
 
@@ -18,9 +18,6 @@ wp option set woocommerce_store_postcode "94110"
 wp option set woocommerce_currency "USD"
 wp option set woocommerce_product_type "both"
 wp option set woocommerce_allow_tracking "no"
-wp config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
-wp config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
-wp config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
 
 wp plugin install jetpack --activate
 wp config set JETPACK_DEV_DEBUG true --raw
@@ -32,6 +29,9 @@ wp eval-file "$WCS_DIR/tests/bin/wc_rest_api_credentials.php"
 cp "$WCS_DIR/tests/e2e/config/travis/wc-services-testing-helper.php" "$WP_CORE_DIR/wp-content/plugins/"
 
 # finally activate WCS
+wp config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
+wp config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
+wp config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
 wp plugin activate woocommerce-services
 wp plugin activate wc-services-testing-helper
 wp option update jetpack_tos_agreed 1
