@@ -1,7 +1,9 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.18- 2021-xx-xx =
+= 1.25.18 - 2021-xx-xx =
 * Tweak - Removed Jetpack plugin dependency. You asked, we listened! You can now keep the Jetpack plugin or remove it (without disconnecting the site).
+* Tweak - Bump WP tested version to 5.8.
+* Tweak	- Bump WC Tested version to 5.5.
 
 = 1.25.17 - 2021-07-13 =
 * Tweak - Replace Calypso FormCheckbox with CheckboxControl.
