@@ -205,7 +205,7 @@ describe( 'Shipping label payment method', () => {
         await expect(secondCardExpiryDate).toEqual('Expires 2025-12-31');
 
         // Verify that no default box is checked.
-        const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox checkbox');
+        const cardDefaultCheckbox = await page.$$('.label-settings__card-checkbox input');
 		const firstCardDefaultCheckboxElement = await cardDefaultCheckbox[VISA_CARD_INDEX].getProperty('checked');
         const firstCardDefaultCheckbox = await firstCardDefaultCheckboxElement.jsonValue();
         await expect(firstCardDefaultCheckbox).toBeFalsy();
