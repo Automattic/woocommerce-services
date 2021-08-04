@@ -8,6 +8,25 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 		WC_Connect_Compatibility::set_version( '3.0.0' );
 	}
 
+	public function test_get_order_for_api_null_values() {
+		// Setup order
+		$order = WC_Helper_Order::create_order();
+		$order->save();
+		// Noting that calling $order->save() will automatically set the date_created. :suboptimal:
+
+		// Null some values
+		$order->set_date_created();
+		$order->set_date_modified();
+		$order->set_date_completed();
+
+		$connect_order_presenter = new WC_Connect_Order_Presenter();
+		$actual                  = $connect_order_presenter->get_order_for_api( $order );
+
+		$this->assertEquals( 0, $actual['created_at'] );
+		$this->assertEquals( '', $actual['updated_at'] );
+		$this->assertEquals( '', $actual['completed_at'] );
+	}
+
 	public function test_get_order_for_api_order_data() {
 		// Setup order
 		$order = WC_Helper_Order::create_order();
