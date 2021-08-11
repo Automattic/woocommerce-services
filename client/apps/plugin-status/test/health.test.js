@@ -109,10 +109,10 @@ describe('Health View', () => {
 			</Wrapper>
 		)
 
-		const wcsSection = wrapper.find('fieldset.form-fieldset').at(2)
+		const taxesSection = wrapper.find('fieldset.form-fieldset').at(2)
 
-		expect(wcsSection.text()).toContain('TaxJar extension detected')
-		expect(wcsSection.text()).not.toContain('Go to the Tax settings')
+		expect(taxesSection.text()).toContain('TaxJar extension detected')
+		expect(taxesSection.text()).not.toContain('Go to the Tax settings')
 	})
 
 	it('should display an error when there are no service schema', () => {
