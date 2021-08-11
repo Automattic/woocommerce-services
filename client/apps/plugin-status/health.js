@@ -35,12 +35,22 @@ const HealthView = ( { translate, healthItems } ) => {
 				message={healthItems.automated_taxes.message}
 			>
 				<FormSettingExplanation>
-					{healthItems.automated_taxes.show_settings_link && (
+					{'tax' === healthItems.automated_taxes.settings_link_type && (
 						<>
 							<ExternalLink
 								href="admin.php?page=wc-settings&tab=tax"
 							>
 								{translate('Go to the Tax settings')}
+							</ExternalLink>
+							<br/>
+						</>
+					)}
+					{'general' === healthItems.automated_taxes.settings_link_type && (
+						<>
+							<ExternalLink
+								href="admin.php?page=wc-settings"
+							>
+								{translate('Go to General settings')}
 							</ExternalLink>
 							<br/>
 						</>

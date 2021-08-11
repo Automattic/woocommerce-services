@@ -39,7 +39,7 @@ const defaultHealthStoreValues = {
 	automated_taxes: {
 		state: 'success',
 		message: 'Automated taxes are enabled',
-		show_settings_link: true,
+		settings_link_type: 'tax',
 	}
 }
 
@@ -96,13 +96,32 @@ describe('Health View', () => {
 		expect(wcsSection.text()).toContain('Last updated 3 minutes ago')
 	})
 
-	it('should display not display the settings link when not needed', () => {
+	it('should display the general settings link', () => {
+		const wrapper = mount(
+			<Wrapper healthStoreOverrides={{
+				automated_taxes: {
+					state: 'error',
+					message: 'The core WooCommerce taxes functionality is disabled.',
+					settings_link_type: 'general',
+				}
+			}}>
+				<HealthView/>
+			</Wrapper>
+		)
+
+		const taxesSection = wrapper.find('fieldset.form-fieldset').at(2)
+
+		expect(taxesSection.text()).toContain('The core WooCommerce taxes functionality is disabled')
+		expect(taxesSection.text()).toContain('Go to General settings')
+	})
+
+	it('should not display the settings link when not needed', () => {
 		const wrapper = mount(
 			<Wrapper healthStoreOverrides={{
 				automated_taxes: {
 					state: 'error',
 					message: 'TaxJar extension detected. Automated taxes functionality is disabled',
-					show_settings_link: false,
+					settings_link_type: '',
 				}
 			}}>
 				<HealthView/>
@@ -113,6 +132,7 @@ describe('Health View', () => {
 
 		expect(taxesSection.text()).toContain('TaxJar extension detected')
 		expect(taxesSection.text()).not.toContain('Go to the Tax settings')
+		expect(taxesSection.text()).not.toContain('Go to General settings')
 	})
 
 	it('should display an error when there are no service schema', () => {

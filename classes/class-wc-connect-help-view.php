@@ -330,7 +330,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! $this->taxjar_integration->is_supported_country( $store_country ) ) {
 				return [
 					'state'              => 'error',
-					'show_settings_link' => false,
+					'settings_link_type' => '',
 					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automated taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
 				];
 			}
@@ -338,7 +338,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( class_exists( 'WC_Taxjar' ) ) {
 				return [
 					'state'              => 'error',
-					'show_settings_link' => false,
+					'settings_link_type' => '',
 					'message'            => __( 'TaxJar extension detected. Automated taxes functionality is disabled', 'woocommerce-services' ),
 				];
 			}
@@ -346,8 +346,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! wc_tax_enabled() ) {
 				return [
 					'state'              => 'error',
-					// if the "taxes" functionality is disabled, the "Tax" settings link will redirect to the "general" tab in WC settings.
-					'show_settings_link' => true,
+					'settings_link_type' => 'general',
 					'message'            => __( 'The core WooCommerce taxes functionality is disabled. Please ensure the "Enable tax rates and calculations" setting is turned "on" in the WooCommerce settings page', 'woocommerce-services' ),
 				];
 			}
@@ -355,14 +354,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! $this->taxjar_integration->is_enabled() ) {
 				return [
 					'state'              => 'error',
-					'show_settings_link' => true,
+					'settings_link_type' => 'tax',
 					'message'            => __( 'The automated taxes functionality is disabled. Enable the "Automated taxes" setting in the WooCommerce settings page', 'woocommerce-services' ),
 				];
 			}
 
 			return [
 				'state'              => 'success',
-				'show_settings_link' => true,
+				'settings_link_type' => 'tax',
 				'message'            => __( 'Automated taxes are enabled', 'woocommerce-services' ),
 			];
 		}
