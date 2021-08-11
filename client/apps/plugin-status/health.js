@@ -30,12 +30,12 @@ const HealthView = ( { translate, healthItems } ) => {
 				message={healthItems.jetpack.message}
 			/>
 			<Indicator
-				title={translate('Automatic Taxes')}
-				state={healthItems.automatic_taxes.state}
-				message={healthItems.automatic_taxes.message}
+				title={translate('Automated Taxes')}
+				state={healthItems.automated_taxes.state}
+				message={healthItems.automated_taxes.message}
 			>
 				<FormSettingExplanation>
-					{healthItems.automatic_taxes.show_settings_link && (
+					{healthItems.automated_taxes.show_settings_link && (
 						<>
 							<ExternalLink
 								href="admin.php?page=wc-settings&tab=tax"
@@ -48,7 +48,7 @@ const HealthView = ( { translate, healthItems } ) => {
 					<ExternalLink
 						href="https://docs.woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/"
 					>
-						{translate('Automatic taxes documentation')}
+						{translate('Automated taxes documentation')}
 					</ExternalLink>
 				</FormSettingExplanation>
 			</Indicator>
