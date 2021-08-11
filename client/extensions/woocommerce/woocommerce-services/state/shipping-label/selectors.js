@@ -218,10 +218,10 @@ export const isCustomsFormRequired = createSelector(
  * @param {Object}  appState            Local Redux state.
  * @param {Object}  addressData         Address to check, including normalization state and values.
  * @param {number}  siteId              The ID of the current site ID.
- * @param {boolean} shouldValidatePhone An indiator whether phone validation is required.
+ * @param {Object}  fieldsToValidate    Specify which form fields to validate.
  * @return {Object}                     A hash of errors with field names as keys.
  */
-const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone ) => {
+ export const getRawAddressErrors = ( appState, addressData, siteId, fieldsToValidate ) => {
 	const { values } = addressData;
 	const { phone, postcode, state, country } = getAddressValues( addressData );
 	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
@@ -243,13 +243,14 @@ const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone
 		errors.state = translate( 'This field is required' );
 	}
 
-	if ( shouldValidatePhone ) {
+	const { originPhone, destinationPhone } = fieldsToValidate;
+
+	if ( true === originPhone ) {
 		// EasyPost requires an origin phone number for international shipments.
 		// This validation ensures that EasyPost will accept it, even though the phone may be invalid.
-		if ( ! phone ) {
+		if ( !phone ) {
 			errors.phone = translate(
-				'Please enter a phone number for your origin address. ' +
-					"It's required because this shipment requires a customs form."
+				'An origin address phone number is required for this shipment.'
 			);
 		} else if (
 			10 !==
@@ -263,6 +264,11 @@ const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone
 					'Please edit your phone number so it has at most 10 digits.'
 			);
 		}
+	}
+	if ( true === destinationPhone && !phone ) {
+		errors.phone = translate(
+			'A destination address phone number is required for this shipment.'
+		);
 	}
 
 	return errors;
