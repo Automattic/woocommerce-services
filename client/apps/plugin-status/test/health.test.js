@@ -38,7 +38,7 @@ const defaultHealthStoreValues = {
 	},
 	automated_taxes: {
 		state: 'success',
-		message: 'Automated taxes functionality is enabled on your store',
+		message: 'Automated taxes are enabled',
 		show_settings_link: true,
 	}
 }
@@ -90,7 +90,7 @@ describe('Health View', () => {
 
 		expect(wooCommerceSection.text()).toContain('WooCommerce 5.0.0 is configured correctly')
 		expect(jetpackSection.text()).toContain('Jetpack 9.4 is connected and working correctly')
-		expect(taxesSection.text()).toContain('Automated taxes functionality is enabled on your store')
+		expect(taxesSection.text()).toContain('Automated taxes are enabled')
 		expect(taxesSection.text()).toContain('Go to the Tax settings')
 		expect(wcsSection.text()).toContain('Service data is up-to-date')
 		expect(wcsSection.text()).toContain('Last updated 3 minutes ago')
@@ -100,7 +100,7 @@ describe('Health View', () => {
 		const wrapper = mount(
 			<Wrapper healthStoreOverrides={{
 				automated_taxes: {
-					state: 'warning',
+					state: 'error',
 					message: 'TaxJar extension detected. Automated taxes functionality is disabled',
 					show_settings_link: false,
 				}

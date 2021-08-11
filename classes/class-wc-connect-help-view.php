@@ -326,26 +326,26 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 * @return array
 		 */
 		protected function get_tax_health_item() {
-			if ( class_exists( 'WC_Taxjar' ) ) {
-				return [
-					'state'              => 'warning',
-					'show_settings_link' => false,
-					'message'            => __( 'TaxJar extension detected. Automated taxes functionality is disabled', 'woocommerce-services' ),
-				];
-			}
-
 			$store_country = WC()->countries->get_base_country();
 			if ( ! $this->taxjar_integration->is_supported_country( $store_country ) ) {
 				return [
-					'state'              => 'warning',
+					'state'              => 'error',
 					'show_settings_link' => false,
 					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automated taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
 				];
 			}
 
+			if ( class_exists( 'WC_Taxjar' ) ) {
+				return [
+					'state'              => 'error',
+					'show_settings_link' => false,
+					'message'            => __( 'TaxJar extension detected. Automated taxes functionality is disabled', 'woocommerce-services' ),
+				];
+			}
+
 			if ( ! wc_tax_enabled() ) {
 				return [
-					'state'              => 'warning',
+					'state'              => 'error',
 					// if the "taxes" functionality is disabled, the "Tax" settings link will redirect to the "general" tab in WC settings.
 					'show_settings_link' => true,
 					'message'            => __( 'The core WooCommerce taxes functionality is disabled. Please ensure the "Enable tax rates and calculations" setting is turned "on" in the WooCommerce settings page', 'woocommerce-services' ),
@@ -354,7 +354,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			if ( ! $this->taxjar_integration->is_enabled() ) {
 				return [
-					'state'              => 'warning',
+					'state'              => 'error',
 					'show_settings_link' => true,
 					'message'            => __( 'The automated taxes functionality is disabled. Enable the "Automated taxes" setting in the WooCommerce settings page', 'woocommerce-services' ),
 				];
@@ -363,7 +363,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			return [
 				'state'              => 'success',
 				'show_settings_link' => true,
-				'message'            => __( 'Automated taxes functionality is enabled on your store', 'woocommerce-services' ),
+				'message'            => __( 'Automated taxes are enabled', 'woocommerce-services' ),
 			];
 		}
 	}
