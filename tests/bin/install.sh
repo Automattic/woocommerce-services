@@ -211,6 +211,16 @@ PHP
 		php wp-cli.phar plugin activate wc-services-testing-helper
 
 		php wp-cli.phar option update jetpack_tos_agreed 1
+		php wp-cli.phar option set woocommerce_store_address "60 29th Street"
+        php wp-cli.phar option set woocommerce_store_address_2 "#343"
+        php wp-cli.phar option set woocommerce_store_city "San Francisco"
+        php wp-cli.phar option set woocommerce_default_country "US:CA"
+        php wp-cli.phar option set woocommerce_store_postcode "94110"
+        php wp-cli.phar option set woocommerce_currency "USD"
+        php wp-cli.phar config set JETPACK_DEV_DEBUG true --raw
+        php wp-cli.phar config set WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE true --raw
+        php wp-cli.phar config set WOOCOMMERCE_CONNECT_FREQUENT_FETCH true --raw
+        php wp-cli.phar config set WOOCOMMERCE_CONNECT_SERVER_URL http://host.docker.internal:5000/
 
 		php wp-cli.phar option update wc_connect_options '{"tos_accepted": true }' --format=json
 
