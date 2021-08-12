@@ -18,8 +18,8 @@ jobs:
           node-version: '10.16.0'
       - run: npm ci
       - run: npm install jest --global
-      - run: npm run dist
       - run: npm run test:e2e-docker-up
+      - run: npm run dist
       - run: npm run test:e2e-docker-ping
       - run: npm run test:e2e
       - run: npm run test:e2e-docker-down
