@@ -8,7 +8,7 @@ import { expect } from 'chai';
 /**
  * Internal dependencies
  */
-import { getRatesErrors, getTotalPriceBreakdown, isAddressUsable } from '../selectors';
+import { getRatesErrors, getRawAddressErrors, getTotalPriceBreakdown, isAddressUsable } from '../selectors';
 
 describe( '#getRatesErrors', () => {
 	// when there are selected rates

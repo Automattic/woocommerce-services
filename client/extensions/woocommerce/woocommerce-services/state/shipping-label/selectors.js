@@ -274,7 +274,7 @@ export const isCustomsFormRequired = createSelector(
 	return errors;
 };
 
-const getAddressErrors = ( addressData, appState, siteId, shouldValidatePhone = false ) => {
+const getAddressErrors = ( addressData, appState, siteId, fieldsToValidate = {} ) => {
 	const {
 		isNormalized,
 		isUnverifiable,
@@ -292,7 +292,7 @@ const getAddressErrors = ( addressData, appState, siteId, shouldValidatePhone = 
 		};
 	}
 
-	const errors = getRawAddressErrors( appState, addressData, siteId, shouldValidatePhone );
+	const errors = getRawAddressErrors( appState, addressData, siteId, fieldsToValidate );
 
 	if ( ignoreValidation ) {
 		Object.keys( errors ).forEach( field => {
@@ -486,9 +486,11 @@ export const getFormErrors = createSelector(
 		const destinationCountryCode = form.destination.values.country;
 		const destinationCountryName = getCountryName( state, destinationCountryCode, siteId );
 		const shouldValidateOriginPhone = isCustomsFormRequired( state, orderId, siteId );
+		// If it's an international order, validate the destination phone as well.
+		const shouldValidateDestinationPhone = shouldValidateOriginPhone;
 		return {
-			origin: getAddressErrors( form.origin, state, siteId, shouldValidateOriginPhone ),
-			destination: getAddressErrors( form.destination, state, siteId ),
+			origin: getAddressErrors( form.origin, state, siteId, { originPhone: shouldValidateOriginPhone } ),
+			destination: getAddressErrors( form.destination, state, siteId, { destinationPhone: shouldValidateDestinationPhone } ),
 			packages: getPackagesErrors( form.packages.selected ),
 			customs: getCustomsErrors(
 				form.packages.selected,
@@ -519,7 +521,8 @@ export const isAddressUsable = createSelector(
 		const { form } = getShippingLabel( appState, orderId, siteId );
 
 		const validatePhone = 'origin' === group && isCustomsFormRequired( appState, orderId, siteId );
-		const errors = getRawAddressErrors( appState, form[ group ], siteId, validatePhone );
+		const fieldsToValidate = validatePhone ? { originPhone: validatePhone } : {};
+		const errors = getRawAddressErrors( appState, form[ group ], siteId, fieldsToValidate );
 
 		return 0 === Object.keys( errors ).length;
 	},
