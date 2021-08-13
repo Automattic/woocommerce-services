@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { omit, trim } from 'lodash';
 import { TextControl } from '@wordpress/components';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
@@ -130,7 +131,7 @@ const EditPackage = props => {
 						placeholder={ translate( '0.0' ) }
 						value={ box_weight || '' }
 						onChange={ value => updateTextField( value, 'box_weight' ) }
-						className={ modalErrors.box_weight ? 'is-error' : '' }
+						className={ classNames( 'form-dimensions-input__box_weight', { 'is-error':modalErrors.box_weight } ) }
 						type="number"
 						suffix={ weightUnit }
 					/>
