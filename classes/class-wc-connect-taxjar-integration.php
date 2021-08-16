@@ -311,7 +311,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Check if a given country is supported by TaxJar.
 	 *
-	 * @param $country Two character country code.
+	 * @param string $country Two character country code.
 	 *
 	 * @return bool Whether or not the country is supported by TaxJar.
 	 */
