@@ -68,6 +68,7 @@ const createShippingLabel = async ( order ) => {
 	createShippingLabelJson.packages[0].products = [ order.line_items[0].product_id ];
 
 	const response = await apiV1.post( `connect/label/${ order.id }`, createShippingLabelJson );
+
 	return response.data;
 }
 
@@ -80,7 +81,6 @@ const destroyOrder = async ( order ) => {
 }
 
 const withOrder = async ( callback ) => {
-
 	const product = await createProduct();
 
 	const order = await createOrder( product );
