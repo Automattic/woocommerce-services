@@ -77,11 +77,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 1.25.18 - 2021-xx-xx =
+* Add   - Added "Automated Taxes" health item on status page.
 * Fix   - Show error when missing required destination phone for international shipments.
-* Tweak - Bump WP tested version to 5.8.
-* Tweak	- Bump WC Tested version to 5.5.
 * Fix   - Prevent PHP notice when a label's `commercial_invoice_url` value is `null`.
 * Fix   - Prevent fatal error when viewing draft order.
+* Tweak - Bump WP tested version to 5.8.
+* Tweak	- Bump WC Tested version to 5.5.
 
 = 1.25.17 - 2021-07-13 =
 * Tweak - Replace Calypso FormCheckbox with CheckboxControl.
