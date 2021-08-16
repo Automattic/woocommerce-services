@@ -355,7 +355,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				return [
 					'state'              => 'error',
 					'settings_link_type' => 'tax',
-					'message'            => __( 'The automated taxes functionality is disabled. Enable the "Automated taxes" setting in the WooCommerce settings page', 'woocommerce-services' ),
+					'message'            => __( 'The automated taxes functionality is disabled. Enable the "Automated taxes" setting on the WooCommerce settings page', 'woocommerce-services' ),
 				];
 			}
 
