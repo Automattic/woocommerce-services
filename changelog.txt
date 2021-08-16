@@ -4,7 +4,8 @@
 * Fix   - Show error when missing required destination phone for international shipments.
 * Tweak - Bump WP tested version to 5.8.
 * Tweak	- Bump WC Tested version to 5.5.
-* Fix - Prevent fatal error when viewing draft order.
+* Fix   - Prevent PHP notice when a label's `commercial_invoice_url` value is `null`.
+* Fix   - Prevent fatal error when viewing draft order.
 
 = 1.25.17 - 2021-07-13 =
 * Tweak - Replace Calypso FormCheckbox with CheckboxControl.
