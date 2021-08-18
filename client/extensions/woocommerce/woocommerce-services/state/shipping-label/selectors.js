@@ -218,10 +218,10 @@ export const isCustomsFormRequired = createSelector(
  * @param {Object}  appState            Local Redux state.
  * @param {Object}  addressData         Address to check, including normalization state and values.
  * @param {number}  siteId              The ID of the current site ID.
- * @param {boolean} shouldValidatePhone An indiator whether phone validation is required.
+ * @param {Object}  fieldsToValidate    Specify which form fields to validate.
  * @return {Object}                     A hash of errors with field names as keys.
  */
-const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone ) => {
+ export const getRawAddressErrors = ( appState, addressData, siteId, fieldsToValidate ) => {
 	const { values } = addressData;
 	const { phone, postcode, state, country } = getAddressValues( addressData );
 	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
@@ -243,13 +243,14 @@ const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone
 		errors.state = translate( 'This field is required' );
 	}
 
-	if ( shouldValidatePhone ) {
+	const { originPhone, destinationPhone } = fieldsToValidate;
+
+	if ( true === originPhone ) {
 		// EasyPost requires an origin phone number for international shipments.
 		// This validation ensures that EasyPost will accept it, even though the phone may be invalid.
-		if ( ! phone ) {
+		if ( !phone ) {
 			errors.phone = translate(
-				'Please enter a phone number for your origin address. ' +
-					"It's required because this shipment requires a customs form."
+				'An origin address phone number is required for this shipment.'
 			);
 		} else if (
 			10 !==
@@ -264,11 +265,16 @@ const getRawAddressErrors = ( appState, addressData, siteId, shouldValidatePhone
 			);
 		}
 	}
+	if ( true === destinationPhone && !phone ) {
+		errors.phone = translate(
+			'A destination address phone number is required for this shipment.'
+		);
+	}
 
 	return errors;
 };
 
-const getAddressErrors = ( addressData, appState, siteId, shouldValidatePhone = false ) => {
+const getAddressErrors = ( addressData, appState, siteId, fieldsToValidate = {} ) => {
 	const {
 		isNormalized,
 		isUnverifiable,
@@ -286,7 +292,7 @@ const getAddressErrors = ( addressData, appState, siteId, shouldValidatePhone = 
 		};
 	}
 
-	const errors = getRawAddressErrors( appState, addressData, siteId, shouldValidatePhone );
+	const errors = getRawAddressErrors( appState, addressData, siteId, fieldsToValidate );
 
 	if ( ignoreValidation ) {
 		Object.keys( errors ).forEach( field => {
@@ -480,9 +486,11 @@ export const getFormErrors = createSelector(
 		const destinationCountryCode = form.destination.values.country;
 		const destinationCountryName = getCountryName( state, destinationCountryCode, siteId );
 		const shouldValidateOriginPhone = isCustomsFormRequired( state, orderId, siteId );
+		// If it's an international order, validate the destination phone as well.
+		const shouldValidateDestinationPhone = shouldValidateOriginPhone;
 		return {
-			origin: getAddressErrors( form.origin, state, siteId, shouldValidateOriginPhone ),
-			destination: getAddressErrors( form.destination, state, siteId ),
+			origin: getAddressErrors( form.origin, state, siteId, { originPhone: shouldValidateOriginPhone } ),
+			destination: getAddressErrors( form.destination, state, siteId, { destinationPhone: shouldValidateDestinationPhone } ),
 			packages: getPackagesErrors( form.packages.selected ),
 			customs: getCustomsErrors(
 				form.packages.selected,
@@ -513,7 +521,8 @@ export const isAddressUsable = createSelector(
 		const { form } = getShippingLabel( appState, orderId, siteId );
 
 		const validatePhone = 'origin' === group && isCustomsFormRequired( appState, orderId, siteId );
-		const errors = getRawAddressErrors( appState, form[ group ], siteId, validatePhone );
+		const fieldsToValidate = validatePhone ? { originPhone: validatePhone } : {};
+		const errors = getRawAddressErrors( appState, form[ group ], siteId, fieldsToValidate );
 
 		return 0 === Object.keys( errors ).length;
 	},
