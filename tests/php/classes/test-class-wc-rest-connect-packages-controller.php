@@ -5,16 +5,24 @@
  */
 class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case {
 
-	/** @var WC_Connect_API_Client_Live $api_client_mock */
+	/**
+	 * @var WC_Connect_API_Client_Live $api_client_mock
+	 */
 	protected $api_client_mock;
 
-	/** @var WC_Connect_Logger $connect_logger_mock */
+	/**
+	 * @var WC_Connect_Logger $connect_logger_mock
+	 */
 	protected $connect_logger_mock;
 
-	/** @var WC_Connect_Service_Schemas_Store $service_schemas_store_mock */
+	/**
+	 * @var WC_Connect_Service_Schemas_Store $service_schemas_store_mock
+	 */
 	protected $service_schemas_store_mock;
 
-	/** @var WC_Connect_Service_Settings_Store $settings_store */
+	/**
+	 * @var WC_Connect_Service_Settings_Store $settings_store
+	 */
 	protected $settings_store;
 
 	/**
@@ -30,9 +38,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-packages-controller.php';
 	}
 
-	/**
-	 * Setup the test case.
-	 */
 	public function setUp() {
 		parent::setUp();
 
@@ -47,9 +52,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->settings_store             = new WC_Connect_Service_Settings_Store( $this->service_schemas_store_mock, $this->api_client_mock, $this->connect_logger_mock );
 	}
 
-	/**
-	 * Test that creating custom packages updates the custom packages in settings store while predefined packages remain the same.
-	 */
 	public function test_creating_packages_with_only_custom_packages_updates_packages_in_settings_store() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
@@ -99,9 +101,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->assertEquals( $predefined_packages_before_creation, $predefined_packages_after_creation );
 	}
 
-	/**
-	 * Test that creating predefined packages updates the predefined packages in settings store while custom packages remain the same.
-	 */
 	public function test_creating_packages_with_only_predefined_packages_updates_predefined_packages_in_settings_store() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
@@ -159,9 +158,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->assertEquals( $custom_packages_before_creation, $custom_packages_after_creation );
 	}
 
-	/**
-	 * Test that creating both custom and predefined packages updates the both package types in settings store.
-	 */
 	public function test_creating_packages_with_both_custom_and_predefined_packages_updates_both_types_of_packages_in_settings_store() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
@@ -236,9 +232,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->assertEquals( $expected_predefined_packages_after_creation, $actual_predefined_packages_after_creation );
 	}
 
-	/**
-	 * Test that creating custom packages where one package has a duplicate name returns an error.
-	 */
 	public function test_creating_duplicate_custom_packages_returns_an_error() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
@@ -291,9 +284,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->assertEquals( $expected_packages_after_creation, $actual_packages_after_creation );
 	}
 
-	/**
-	 * Test that creating two of the same custom packages returns an error.
-	 */
 	public function test_creating_two_of_the_same_custom_packages_returns_an_error() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
@@ -341,9 +331,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->assertEquals( array(), $actual_packages_after_creation );
 	}
 
-	/**
-	 * Test that creating predefined packages where one package for the same carrier has a duplicate name returns an error.
-	 */
 	public function test_creating_duplicate_predefined_packages_returns_an_error() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
@@ -392,9 +379,6 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 		$this->assertEquals( $expected_packages_after_creation, $actual_packages_after_creation );
 	}
 
-	/**
-	 * Test that creating two of the same predefined packages returns an error.
-	 */
 	public function test_creating_two_of_the_same_predefined_packages_returns_an_error() {
 		// Given.
 		$controller = new WC_REST_Connect_Packages_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->service_schemas_store_mock );
