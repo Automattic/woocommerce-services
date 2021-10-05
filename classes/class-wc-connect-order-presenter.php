@@ -17,7 +17,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 				'id'                        => $order->get_id(),
 				'order_number'              => $order->get_order_number(),
 				'order_key'                 => $order->get_order_key(),
-				'created_at'                => $order->get_date_created()->getTimestamp(),
+				'created_at'                => $order->get_date_created() ? $order->get_date_created()->getTimestamp() : 0,
 				'updated_at'                => wc_format_datetime( $order->get_date_modified() ? $order->get_date_modified()->getTimestamp() : 0 ),
 				'completed_at'              => wc_format_datetime( $order->get_date_completed() ? $order->get_date_completed()->getTimestamp() : 0 ),
 				'status'                    => $order->get_status(),

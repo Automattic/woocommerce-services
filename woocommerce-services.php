@@ -7,9 +7,9 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.25.17
+ * Version: 1.25.18
  * WC requires at least: 3.5.5
- * WC tested up to: 5.4
+ * WC tested up to: 5.5
  *
  * Copyright (c) 2017-2021 Automattic
  *
@@ -746,7 +746,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schema   = $this->get_service_schemas_store();
 			$settings = $this->get_service_settings_store();
 			$logger   = $this->get_logger();
-			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
+			$this->set_help_view( new WC_Connect_Help_View( $schema, $this->taxjar, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
