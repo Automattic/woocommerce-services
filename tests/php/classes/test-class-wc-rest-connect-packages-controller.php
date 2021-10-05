@@ -17,6 +17,9 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 	/** @var WC_Connect_Service_Settings_Store $settings_store */
 	protected $settings_store;
 
+	/**
+	 * @beforeClass
+	 */
 	public static function setupBeforeClass() {
 		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-api-client-live.php';
 		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-settings-store.php';
