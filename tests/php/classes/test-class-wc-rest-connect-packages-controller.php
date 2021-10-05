@@ -1,28 +1,13 @@
 <?php
 
-/**
- * Unit test for WC_REST_Connect_Packages_Controller
- */
 class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case {
 
-	/**
-	 * @var WC_Connect_API_Client_Live $api_client_mock
-	 */
 	protected $api_client_mock;
 
-	/**
-	 * @var WC_Connect_Logger $connect_logger_mock
-	 */
 	protected $connect_logger_mock;
 
-	/**
-	 * @var WC_Connect_Service_Schemas_Store $service_schemas_store_mock
-	 */
 	protected $service_schemas_store_mock;
 
-	/**
-	 * @var WC_Connect_Service_Settings_Store $settings_store
-	 */
 	protected $settings_store;
 
 	/**
