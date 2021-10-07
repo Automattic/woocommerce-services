@@ -76,6 +76,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.19 - 2021-xx-xx =
+* Fix   - Country drop down list no longer showing currency name.
+
 = 1.25.18 - 2021-08-16 =
 * Add   - Added "Automated Taxes" health item on status page.
 * Fix   - Show error when missing required destination phone for international shipments.
