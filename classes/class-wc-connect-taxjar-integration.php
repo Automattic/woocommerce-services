@@ -174,11 +174,21 @@ class WC_Connect_TaxJar_Integration {
 	public function add_tax_settings( $tax_settings ) {
 		$enabled = $this->is_enabled();
 
-		$automated_taxes = array(
+		$powered_by_wct_notice       = '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>';
+		$desctructive_action_notice  = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
+		$tax_nexus_notice            = '<p>' . $this->get_tax_tooltip() . '</p>';
+		$automated_taxes_description = join(
+			'',
+			$enabled ? [
+				$powered_by_wct_notice,
+				$tax_nexus_notice,
+			] : [ $desctructive_action_notice, $tax_nexus_notice ]
+		);
+		$automated_taxes             = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
 			'id'       => self::OPTION_NAME, // TODO: save in `wc_connect_options`?
 			'desc_tip' => $this->get_tax_tooltip(),
-			'desc'     => $enabled ? '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>' : '',
+			'desc'     => $automated_taxes_description,
 			'default'  => 'no',
 			'type'     => 'select',
 			'class'    => 'wc-enhanced-select',
