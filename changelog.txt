@@ -3,6 +3,7 @@
 = 1.25.19 - 2021-xx-xx =
 * Add - Notice about tax nexus in settings.
 * Fix - Country drop down list no longer showing currency name.
+* Fix - Update shipping label to only show non-refunded order line items.
 
 = 1.25.18 - 2021-08-16 =
 * Add   - Added "Automated Taxes" health item on status page.
