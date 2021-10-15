@@ -226,7 +226,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					continue;
 				}
 
-				for ( $i = 0; $i < $item['qty']; $i++ ) {
+				$refunded_qty = $order->get_qty_refunded_for_item( $item->get_id() );
+
+				for ( $i = 0; $i < ( $item['qty'] - absint( $refunded_qty ) ); $i ++ ) {
 					$items[] = $item_data;
 				}
 			}
@@ -518,7 +520,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$order                   = wc_get_order( $post );
 			$order_id                = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items                   = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
-			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
+			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 ) - absint( $order->get_item_count_refunded() );
 			$payload                 = apply_filters(
 				'wc_connect_meta_box_payload',
 				array(
