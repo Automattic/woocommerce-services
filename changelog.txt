@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.19 - 2021-xx-xx =
+= 1.25.19 - 2021-10-14 =
 * Add - Notice about tax nexus in settings.
 * Fix - Country drop down list no longer showing currency name.
 * Fix - Update shipping label to only show non-refunded order line items.
