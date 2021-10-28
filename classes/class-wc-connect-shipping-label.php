@@ -443,6 +443,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
+			$account_settings = $this->account_settings->get();
+
+			// If the shipping label is disabled, will remove the meta box.
+			if ( ! $this->is_shipping_label_enabled() ) {
+				return false;
+			}
+
 			// If the order already has purchased labels, show the meta-box no matter what
 			if ( get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true ) ) {
 				return true;
@@ -467,6 +474,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Check whether shipping label feature is enabled from WC Services setting.
+		 *
+		 * @return bool True if shipping label is enabled from the settings.
+		 */
+		public function is_shipping_label_enabled() {
+			$account_settings = $this->account_settings->get();
+
+			if ( isset( $account_settings['formData']['enabled'] ) && is_bool( $account_settings['formData']['enabled'] ) ) {
+				return $account_settings['formData']['enabled'];
+			}
+
+			return true;
 		}
 
 		public function get_label_payload( $post_order_or_id ) {
