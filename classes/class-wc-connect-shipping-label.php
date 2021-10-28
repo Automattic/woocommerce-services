@@ -443,8 +443,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			$account_settings = $this->account_settings->get();
-
 			// If the shipping label is disabled, will remove the meta box.
 			if ( ! $this->is_shipping_label_enabled() ) {
 				return false;
