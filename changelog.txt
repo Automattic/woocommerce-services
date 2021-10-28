@@ -3,6 +3,7 @@
 = 1.25.19 - 2021-xx-xx =
 * Add - Notice about tax nexus in settings.
 * Fix - Country drop down list no longer showing currency name.
+* Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled. 
 
 = 1.25.18 - 2021-08-16 =
 * Add   - Added "Automated Taxes" health item on status page.
