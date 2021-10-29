@@ -46,7 +46,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
-        wp-version: [5.4.4, 5.5.3, latest]
+        wp-version: [5.6.5, 5.7.3, latest]
         wc-version: ${{ fromJSON(needs.find_wc_latest_versions.outputs.matrix) }}
     steps:
       - name: Checkout latest WCS
