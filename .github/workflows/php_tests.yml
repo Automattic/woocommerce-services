@@ -18,20 +18,24 @@ jobs:
           sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
       - name: Lint
         run: find . -type f -name "*.php" -exec php -l {} \;
-  find_wc_latest_versions:
-    name: Find supported woocommerce versions
+  find_latest_versions:
+    name: Find supported wordpress and woocommerce versions
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
+      wc-versions: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
+      wp-versions: ${{ steps.get_wp_versions_for_matrix.outputs.wp-versions }}
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
+      - name: Get the 3 latest WP minor versions
+        id: get_wp_versions_for_matrix
+        run: echo "::set-output name=wp-versions::$(git ls-remote --tags --refs https://github.com/WordPress/WordPress.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php)"
       - name: Get the 3 latest WC minor versions
         id: get_wc_versions_for_matrix
-        run: echo "::set-output name=wc-versions::$(git ls-remote --tags --refs https://github.com/woocommerce/woocommerce.git | sed 's/.*refs\/tags\///' | php ./bin/wc-latest-version.php)"
+        run: echo "::set-output name=wc-versions::$(git ls-remote --tags --refs https://github.com/woocommerce/woocommerce.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php)"
   php_build_and_test:
     name: PHP Unit Test (WP, WC)
-    needs: find_wc_latest_versions
+    needs: find_latest_versions
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -46,8 +50,8 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
-        wp-version: [5.6.5, 5.7.3, latest]
-        wc-version: ${{ fromJSON(needs.find_wc_latest_versions.outputs.matrix) }}
+        wp-version: ${{ fromJSON(needs.find_latest_versions.outputs.wp-versions) }}
+        wc-version: ${{ fromJSON(needs.find_latest_versions.outputs.wc-versions) }}
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
