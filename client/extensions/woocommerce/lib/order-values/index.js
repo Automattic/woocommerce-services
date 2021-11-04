@@ -97,3 +97,13 @@ export function getOrderTotalTax( order ) {
 	const fees = getOrderFeeTotalTax( order );
 	return subtotal + shipping + fees;
 }
+
+/**
+ * Get the currency value in order
+ *
+ * @param {Object} order An order as returned from API
+ * @return {String} Currency value
+ */
+ export function getOrderCurrency( order ) {
+	return get( order, 'currency', false );
+}
