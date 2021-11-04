@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.8
-Stable tag: 1.25.18
+Stable tag: 1.25.19
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,8 +76,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.19 - 2021-xx-xx =
-* Fix   - Country drop down list no longer showing currency name.
+= 1.25.19 - 2021-10-14 =
+* Add - Notice about tax nexus in settings.
+* Fix - Country drop down list no longer showing currency name.
 
 = 1.25.18 - 2021-08-16 =
 * Add   - Added "Automated Taxes" health item on status page.
