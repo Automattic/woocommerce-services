@@ -89,6 +89,7 @@ class ShippingRate extends Component {
 			},
 			isSelected,
 			updateValue,
+			currency,
 			signatureRates,
 		} = this.props;
 		const { selectedSignature } = this.state;
@@ -119,6 +120,9 @@ class ShippingRate extends Component {
 		}
 
 		const ratePlusSignatureCost = selectedSignature ? rate + selectedSignature.netCost : rate;
+
+		// Add suffix for non USD.
+		const formattedRatePlusSignatureCost = ( typeof currency != 'undefined' && 'USD' !== currency ) ? formatCurrency( ratePlusSignatureCost, 'USD' ) + ' USD' : formatCurrency( ratePlusSignatureCost, 'USD' );
 
 		return(
 			<div className="rates-step__shipping-rate-container">
@@ -157,7 +161,7 @@ class ShippingRate extends Component {
 									</Tooltip>
 									: null
 							}
-							{ formatCurrency( ratePlusSignatureCost, 'USD' ) }
+							{ formattedRatePlusSignatureCost }
 						</div>
 						<div className="rates-step__shipping-rate-delivery-date">{ deliveryDateMessage }</div>
 					</div>

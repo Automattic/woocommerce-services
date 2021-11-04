@@ -104,6 +104,6 @@ export function getOrderTotalTax( order ) {
  * @param {Object} order An order as returned from API
  * @return {String} Currency value
  */
- export function getOrderCurrency( order ) {
+export function getOrderCurrency( order ) {
 	return get( order, 'currency', false );
 }
