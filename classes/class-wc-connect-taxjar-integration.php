@@ -714,6 +714,9 @@ class WC_Connect_TaxJar_Integration {
 						WC_Subscriptions_Synchroniser::maybe_set_free_trial();
 					}
 					$unit_price = WC_Subscriptions_Cart::set_subscription_prices_for_calculation( $unit_price, $product );
+					if ( class_exists( 'WC_Subscriptions_Synchroniser' ) ) {
+						WC_Subscriptions_Synchroniser::maybe_unset_free_trial();
+					}
 				}
 			}
 
