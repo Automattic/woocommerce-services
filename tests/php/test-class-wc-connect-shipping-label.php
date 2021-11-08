@@ -632,6 +632,41 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Test that get_all_items() returns only order items that have not been refunded.
+	 */
+	public function test_get_all_items_method_only_retrieves_non_refunded_order_items() {
+		// Given.
+		$product = $this->create_simple_product( false );
+
+		$order = WC_Helper_Order::create_order(); // Note: this helper method already adds one product with a qty of 4.
+		$order->set_status( 'on-hold' );
+		$order->add_product( $product, 6 );
+		$order->save();
+
+		$order_items       = $order->get_items();
+		$refund_line_items = array();
+		foreach ( $order_items as $order_item ) {
+			$refund_line_items[ $order_item->get_id() ] = array(
+				'qty'          => $order_item->get_quantity() - 3,
+				'refund_total' => 20,
+			);
+		}
+		$refund_args = array(
+			'order_id'   => $order->get_id(),
+			'line_items' => $refund_line_items,
+		);
+		wc_create_refund( $refund_args );
+
+		// When.
+		$shipping_label  = $this->get_shipping_label();
+		$all_items       = $shipping_label->get_all_items( $order );
+		$all_items_count = count( $all_items );
+
+		// Then.
+		$this->assertEquals( 6, $all_items_count );
+	}
+
+	/**
 	 * A helper to create a simple product.
 	 *
 	 * @param bool $virtual Whether the simple product is virtual or not.
