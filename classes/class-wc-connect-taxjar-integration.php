@@ -1094,7 +1094,7 @@ class WC_Connect_TaxJar_Integration {
 			$this->_log( ':: Adding New Tax Rate ::' );
 			$this->_log( $tax_rate );
 			$rate_id = WC_Tax::_insert_tax_rate( $tax_rate );
-			WC_Tax::_update_tax_rate_postcodes( $rate_id, wc_clean( $location['to_zip'] ) );
+			WC_Tax::_update_tax_rate_postcodes( $rate_id, wc_normalize_postcode( wc_clean( $location['to_zip'] ) ) );
 			WC_Tax::_update_tax_rate_cities( $rate_id, wc_clean( $location['to_city'] ) );
 		}
 
