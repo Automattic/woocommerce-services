@@ -4,6 +4,7 @@
 * Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
 * Fix - Wrap TaxJar API zipcodes with wc_normalize_postcode() before inserting into the database.
 * Fix - Update shipping label to only show non-refunded order line items.
+* Fix - Added 3 digits currency code on shipping label price for non USD.
 
 = 1.25.19 - 2021-10-14 =
 * Add - Notice about tax nexus in settings.
