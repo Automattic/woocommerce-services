@@ -30,7 +30,10 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import { getOrderShippingTotal } from 'woocommerce/lib/order-values/totals';
-import { getOrderShippingMethod } from 'woocommerce/lib/order-values';
+import { 
+	getOrderShippingMethod,
+	getOrderCurrency
+} from 'woocommerce/lib/order-values';
 import { getOrder } from 'woocommerce/state/sites/orders/selectors';
 
 
@@ -97,12 +100,15 @@ const getRatesStatus = ( { retrievalInProgress, errors, available, form } ) => {
 };
 
 const showCheckoutShippingInfo = props => {
-	const { shippingMethod, shippingCost, translate } = props;
+	const { shippingMethod, shippingCost, translate, currency } = props;
 
 	// Use a temporary HTML element in order to let the DOM API convert HTML entities into text
 	const shippingMethodDiv = document.createElement( 'div' );
 	shippingMethodDiv.innerHTML = shippingMethod;
 	const decodedShippingMethod = shippingMethodDiv.textContent;
+
+	// Add suffix for non USD.
+	const shippingCostSuffix = ( typeof currency != 'undefined' && 'USD' !== currency ) ? currency : '';
 
 	if ( shippingMethod ) {
 		let shippingInfo;
@@ -117,7 +123,7 @@ const showCheckoutShippingInfo = props => {
 						),
 						shippingCost: (
 							<span className="rates-step__shipping-info-cost">
-								{ formatCurrency( shippingCost, 'USD' ) }
+								{ formatCurrency( shippingCost, currency ) } { shippingCostSuffix }
 							</span>
 						),
 					},
@@ -153,6 +159,7 @@ const RatesStep = props => {
 		errors,
 		ratesTotal,
 		translate,
+		currency,
 	} = props;
 	const summary = ratesSummary( values, available, ratesTotal, form.packages.saved, translate );
 	const toggleStepHandler = () => props.toggleStep( orderId, siteId, 'rates' );
@@ -186,6 +193,7 @@ const RatesStep = props => {
 				id="rates"
 				orderId={ orderId }
 				siteId={ siteId }
+				currency={ currency }
 				showRateNotice={ false }
 				selectedPackages={ form.packages.selected }
 				allPackages={ allPackages }
@@ -223,6 +231,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 		allPackages: getAllPackageDefinitions( state, siteId ),
 		shippingCost: getOrderShippingTotal( order ),
 		shippingMethod: getOrderShippingMethod( order ),
+		currency: getOrderCurrency( order ),
 	};
 };
 
