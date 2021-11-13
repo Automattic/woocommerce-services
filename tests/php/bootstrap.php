@@ -19,7 +19,6 @@ if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
  * 1. `WC_DEVELOP_DIR` environment variable.
  * 2. Tests checked out to /tmp.
  */
-
 if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	$wc_root = getenv( 'WC_DEVELOP_DIR' );
 } elseif ( file_exists( '/tmp/woocommerce/tests/legacy/bootstrap.php' ) ) {
