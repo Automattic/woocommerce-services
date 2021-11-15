@@ -76,6 +76,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.20 - 2021-xx-xx =
+* Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
+* Fix - Wrap TaxJar API zipcodes with wc_normalize_postcode() before inserting into the database.
+* Fix - Update shipping label to only show non-refunded order line items.
+* Fix - Added 3 digits currency code on shipping label price for non USD.
+
 = 1.25.19 - 2021-10-14 =
 * Add - Notice about tax nexus in settings.
 * Fix - Country drop down list no longer showing currency name.
@@ -186,28 +192,3 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 * Fix   - Correct validation for UPS fields in Carrier Account connect form.
 * Tweak - Add message to explain automated tax requires tax-exclusive product pricing.
 * Fix   - Disable USPS refunds for untracked labels only.
-
-= 1.25.2 - 2020-11-10 =
-* Tweak - Add ZIP code validation to UPS(beta) signup form.
-* Fix   - Issue with printing labels in some iOS devices through Safari.
-* Fix   - Prevents warning when using PHP 5.5 or lesser
-* Add   - Add new API end point to retrieve carrier registration requirements.
-* Add   - Add composer command to run PHPUnit.
-* Tweak - Update readme with DHL information.
-
-= 1.25.1 - 2020-10-28 =
-* Tweak - DHL refund days copy adjustment
-* Tweak - Stop using deprecated Jetpack method is_development_mode().
-* Fix   - Update carrier name in tracking notification email
-* Add   - Add pre-commit and pre-push git hooks for linting and unit tests.
-* Add   - Disable refunds for USPS letters.
-
-= 1.25.0 - 2020-10-13 =
-* Fix   - UPS connect redirect prompt
-* Fix   - Allow UPS label purchase without payment method
-* Fix   - PHP implode arguments order
-* Fix   - Validate insurance value as both string and number
-* Tweak - Adjusted messaging on label pointers
-* Tweak - Update carrier logo
-* Tweak - Plugin rename
-* Add   - Link to print the customs form for all shipments that need it
