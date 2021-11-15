@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.8
-Stable tag: 1.25.19
+Stable tag: 1.25.20
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.20 - 2021-xx-xx =
+= 1.25.20 - 2021-11-15 =
 * Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
 * Fix - Wrap TaxJar API zipcodes with wc_normalize_postcode() before inserting into the database.
 * Fix - Update shipping label to only show non-refunded order line items.
