@@ -2,12 +2,15 @@
 
 = 1.25.21 - 2021-xx-xx =
 * Fix - Only call WC Subscriptions API when "access_token_secret" value is saved in database.
+* Fix - Add name field to fields sent for EasyPost API address verification.
 
 = 1.25.20 - 2021-11-15 =
 * Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
+* Fix - Synchronized subscription item pricing label bug.
 * Fix - Wrap TaxJar API zipcodes with wc_normalize_postcode() before inserting into the database.
 * Fix - Update shipping label to only show non-refunded order line items.
 * Fix - Added 3 digits currency code on shipping label price for non USD.
+* Fix - Defined WP_TESTS_PHPUNIT_POLYFILLS_PATH in PHPUnit bootstrap.php.
 
 = 1.25.19 - 2021-10-14 =
 * Add - Notice about tax nexus in settings.
