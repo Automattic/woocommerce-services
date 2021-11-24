@@ -14,10 +14,11 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 	public function post( $request ) {
 		$data    = $request->get_json_params();
 		$address = $data['address'];
+		$name    = $address['name'];
 		$company = $address['company'];
 		$phone   = $address['phone'];
 
-		unset( $address['company'], $address['phone'] );
+		unset( $address['name'], $address['company'], $address['phone'] );
 
 		$body     = array(
 			'destination' => $address,
@@ -42,6 +43,7 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			);
 		}
 
+		$response->normalized->name    = $name;
 		$response->normalized->company = $company;
 		$response->normalized->phone   = $phone;
 		$is_trivial_normalization      = isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false;
