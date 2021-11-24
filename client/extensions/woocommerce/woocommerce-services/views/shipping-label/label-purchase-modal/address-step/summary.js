@@ -45,6 +45,7 @@ const AddressSummary = ( {
 		);
 	};
 
+	const displayCompany = ( '' !== getValue( 'company' ) ) ? ( <p>{ getValue( 'company' ) }</p> ) : '';
 	const displayState = getValue( 'state' );
 	const cityStateAndPostcode = filter( [
 		getValue( 'city' ),
@@ -59,6 +60,7 @@ const AddressSummary = ( {
 	return (
 		<div className="address-step__summary">
 			<p>{ getValue( 'name' ) }</p>
+			{ displayCompany }
 			<p>
 				{ getValue( 'address' ) } { getValue( 'address_2' ) }
 			</p>
