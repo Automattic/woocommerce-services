@@ -5,6 +5,7 @@
 
 = 1.25.20 - 2021-11-15 =
 * Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
+* Fix - Synchronized subscription item pricing label bug.
 * Fix - Wrap TaxJar API zipcodes with wc_normalize_postcode() before inserting into the database.
 * Fix - Update shipping label to only show non-refunded order line items.
 * Fix - Added 3 digits currency code on shipping label price for non USD.
