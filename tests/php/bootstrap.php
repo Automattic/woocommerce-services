@@ -8,6 +8,13 @@
  */
 
 /**
+ * Support for the PHPUnit Polyfills library
+ */
+if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+	define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname( __FILE__ ) . '/../../vendor/yoast/phpunit-polyfills/' );
+}
+
+/**
  * Support for:
  * 1. `WC_DEVELOP_DIR` environment variable.
  * 2. Tests checked out to /tmp.
