@@ -223,14 +223,19 @@ export const isCustomsFormRequired = createSelector(
  */
  export const getRawAddressErrors = ( appState, addressData, siteId, fieldsToValidate ) => {
 	const { values } = addressData;
-	const { phone, postcode, state, country } = getAddressValues( addressData );
-	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
+	const { name, company, phone, postcode, state, country } = getAddressValues( addressData );
+	const requiredFields = [ 'address', 'city', 'postcode', 'country' ];
 	const errors = {};
 	requiredFields.forEach( field => {
 		if ( ! values[ field ] ) {
 			errors[ field ] = translate( 'This field is required' );
 		}
 	} );
+
+	if ( ! name && ! company ) {
+		errors.name = translate( 'This field is required if Company field empty' );
+		errors.company = translate( 'This field is required if Name field empty' );
+	}
 
 	if (
 		includes( ACCEPTED_USPS_ORIGIN_COUNTRIES, country ) &&
