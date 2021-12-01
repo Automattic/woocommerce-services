@@ -233,8 +233,8 @@ export const isCustomsFormRequired = createSelector(
 	} );
 
 	if ( ! name && ! company ) {
-		errors.name = translate( 'This field is required if Company field empty' );
-		errors.company = translate( 'This field is required if Name field empty' );
+		errors.name = translate( 'Either Name or Company field is required' );
+		errors.company = translate( 'Either Name or Company field is required' );
 	}
 
 	if (
