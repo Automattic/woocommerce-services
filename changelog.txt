@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 1.25.21 - 2021-xx-xx =
+* Fix - Use 'native' pdf support feature for Firefox version 94 or later.
 * Fix - Only call WC Subscriptions API when "access_token_secret" value is saved in database.
 * Fix - Add name field to fields sent for EasyPost API address verification.
 * Fix - Display company name under origin and destination address when create shipping label.

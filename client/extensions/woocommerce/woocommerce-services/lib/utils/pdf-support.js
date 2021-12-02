@@ -26,9 +26,14 @@ export default memoize( () => {
 	}
 
 	if ( includes( navigator.userAgent, 'Firefox' ) ) {
-		// Firefox has a long-lived bug (https://bugzilla.mozilla.org/show_bug.cgi?id=911444),
-		// it's not reliable to consider its PDF reader "native"
-		return 'addon';
+		// Use native for Firefox with version > 94
+		if ( parseFloat( navigator.userAgent.split('Firefox/')[1] ) >= 94 ) {
+			return 'native';
+		
+		// Use 'addon' for Firefox with version < 94 as it is still not fully tested and might have a long-lived bug (https://bugzilla.mozilla.org/show_bug.cgi?id=911444),
+		} else {
+			return 'addon';
+		}
 	}
 
 	if ( includes( navigator.userAgent, 'Safari' ) && !includes( navigator.userAgent, 'Chrome' )) {
