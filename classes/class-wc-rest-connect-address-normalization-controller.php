@@ -14,8 +14,6 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 	public function post( $request ) {
 		$data    = $request->get_json_params();
 		$address = $data['address'];
-		$name    = $address['name'];
-		$company = $address['company'];
 		$phone   = $address['phone'];
 
 		unset( $address['phone'] );
