@@ -19,6 +19,16 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 
 		unset( $address['company'], $address['phone'] );
 
+		/**
+		 * We only want to validate the name field if the API
+		 * version is greater than 5. If it's 5 or less
+		 * don't validate the name field.
+		 */
+		if ( WOOCOMMERCE_CONNECT_SERVER_API_VERSION <= 5 ) {
+			$name = $address['name'];
+			unset( $address['name'] );
+		}
+
 		$body     = array(
 			'destination' => $address,
 		);
@@ -40,6 +50,15 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 				'success'      => true,
 				'field_errors' => $response->field_errors,
 			);
+		}
+
+		/**
+		 * We only want to validate the name field if the API
+		 * version is greater than 5. If it's 5 or less
+		 * don't validate the name field.
+		 */
+		if ( WOOCOMMERCE_CONNECT_SERVER_API_VERSION <= 5 ) {
+			$response->normalized->name = $name;
 		}
 
 		$response->normalized->company = $company;
