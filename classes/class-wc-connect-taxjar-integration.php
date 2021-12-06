@@ -15,8 +15,6 @@ class WC_Connect_TaxJar_Integration {
 	public $wc_connect_base_url;
 
 	private $expected_options = array(
-		// If automated taxes are enabled and user disables taxes we re-enable them
-		'woocommerce_calc_taxes'            => 'yes',
 		// Users can set either billing or shipping address for tax rates but not shop
 		'woocommerce_tax_based_on'          => 'shipping',
 		// Rate calculations assume tax not included
