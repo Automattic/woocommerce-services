@@ -45,7 +45,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION ' ) ) {
-		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '6' );
+		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
 	}
 
 	// Check for CI environment variable to trigger test mode.
@@ -192,6 +192,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;
+
+		/**
+		 * @var WC_REST_Connect_Scale_Controller
+		 */
+		protected $rest_scale_controller;
 
 		protected $services = array();
 
@@ -355,6 +360,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
 			$this->rest_tos_controller = $rest_tos_controller;
+		}
+
+		public function set_rest_scale_controller( WC_REST_Connect_scale_Controller $rest_scale_controller ) {
+			$this->rest_scale_controller = $rest_scale_controller;
 		}
 
 		public function set_rest_assets_controller( WC_REST_Connect_Assets_Controller $rest_assets_controller ) {
@@ -950,6 +959,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_carrier_delete_controller = new WC_REST_Connect_Shipping_Carrier_Delete_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_carrier_delete_controller( $rest_carrier_delete_controller );
 			$rest_carrier_delete_controller->register_routes();
+
+			require_once __DIR__ . '/classes/class-wc-rest-connect-scale-controller.php';
+			$rest_scale_controller = new WC_REST_Connect_Scale_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_scale_controller( $rest_scale_controller );
+			$rest_scale_controller->register_routes();
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-types-controller.php';
 			$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
