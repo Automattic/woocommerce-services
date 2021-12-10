@@ -10,13 +10,14 @@ if ( class_exists( 'WC_REST_Connect_Scale_Controller' ) ) {
 
 class WC_REST_Connect_Scale_Controller extends WC_REST_Connect_Base_Controller {
 
-	protected $rest_base = 'connect/scale/1/weight';
+	protected $rest_base = 'connect/scale';
 
 	public function get() {
 		return new WP_REST_Response(
 			array(
 				'success'  => true,
 				'weight' => WC_Connect_Options::get_option( 'scale_1_weight', 0 ),
+				'datetime' => WC_Connect_Options::get_option( 'scale_1_weight_datetime', 0 ),
 			),
 			200
 		);
@@ -30,11 +31,13 @@ class WC_REST_Connect_Scale_Controller extends WC_REST_Connect_Base_Controller {
 		}
 
 		WC_Connect_Options::update_option( 'scale_1_weight', $settings['weight'] );
+		WC_Connect_Options::update_option( 'scale_1_weight_datetime', current_time( 'timestamp', true ) );
 
 		return new WP_REST_Response(
 			array(
 				'success'  => true,
 				'weight' => WC_Connect_Options::get_option( 'scale_1_weight', 0 ),
+				'datetime' => WC_Connect_Options::get_option( 'scale_1_weight_datetime', 0 ),
 			),
 			200
 		);
