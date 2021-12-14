@@ -6,6 +6,7 @@
 * Fix - Add name field to fields sent for EasyPost API address verification.
 * Fix - Display company name under origin and destination address when create shipping label.
 * Fix - Don't override general "Enable Tax" setting with WC Services Automated Taxes setting.
+* Fix - Change WOOCOMMERCE_CONNECT_SERVER_API_VERSION back to 5.
 
 = 1.25.20 - 2021-11-15 =
 * Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
