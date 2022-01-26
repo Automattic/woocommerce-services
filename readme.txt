@@ -76,6 +76,13 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.21 - 2021-xx-xx =
+* Fix - Use 'native' pdf support feature for Firefox version 94 or later.
+* Fix - Only call WC Subscriptions API when "access_token_secret" value is saved in database.
+* Fix - Add name field to fields sent for EasyPost API address verification.
+* Fix - Display company name under origin and destination address when create shipping label.
+* Fix - Don't override general "Enable Tax" setting with WC Services Automated Taxes setting.
+
 = 1.25.20 - 2021-11-15 =
 * Fix - Hide "Shipping Label" and "Shipment Tracking" metabox when the label setting is disabled.
 * Fix - Wrap TaxJar API zipcodes with wc_normalize_postcode() before inserting into the database.
