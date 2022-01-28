@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.25.20
+ * Version: 1.25.21
  * WC requires at least: 3.5.5
  * WC tested up to: 5.9
  *
@@ -44,8 +44,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '7.5' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
-	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION ' ) ) {
-		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '6' );
+	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
+		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
 	}
 
 	// Check for CI environment variable to trigger test mode.
