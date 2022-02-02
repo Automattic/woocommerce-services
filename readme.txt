@@ -77,7 +77,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 1.25.22 - 2022-xx-xx =
-* Fix - TaxJar does not get the tax if the cart has non-taxable item.
+* Fix   - TaxJar does not get the tax if the cart has non-taxable item.
 * Tweak - Bump WP tested version to 5.9 and WC tested version to 6.1.
 
 = 1.25.21 - 2022-01-26 =
