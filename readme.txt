@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.9
-Stable tag: 1.25.21
+Stable tag: 1.25.22
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.22 - 2022-xx-xx =
+= 1.25.22 - 2022-02-02 =
 * Fix   - TaxJar does not get the tax if the cart has non-taxable item.
 * Tweak - Bump WP tested version to 5.9 and WC tested version to 6.1.
 
