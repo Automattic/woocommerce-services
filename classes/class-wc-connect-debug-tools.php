@@ -22,6 +22,19 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 				'desc'     => __( 'This will test your WooCommerce Shipping & Tax connection to ensure everything is working correctly', 'woocommerce-services' ),
 				'callback' => array( $this, 'test_connection' ),
 			);
+
+			/**
+			 * Only show this tool for stores not based in California
+			 */
+			if ( 'CA' !== WC()->countries->get_base_state() ) {
+				$tools['delete_ca_taxes'] = array(
+					'name'     => __( 'Delete California tax rates', 'woocommerce-services' ),
+					'button'   => __( 'Delete CA tax rates', 'woocommerce-services' ),
+					'desc'     => sprintf( '<strong class="red">%1$s</strong> %2$s <a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#jan-2022-ca-notice" target="_blank">%3$s</a>', __( 'Note:', 'woocommerce-services' ), __( 'This option will delete ALL of your "CA" tax rates, use with caution. This action cannot be reversed.', 'woocommerce-services' ), __( 'Additional information.', 'woocommerce-services' ) ),
+					'callback' => array( $this, 'delete_california_tax_rates' ),
+				);
+			}
+
 			return $tools;
 		}
 
@@ -32,6 +45,55 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			} else {
 				echo '<div class="error inline"><p>' . __( 'ERROR: Your site has a problem connecting to the WooCommerce Shipping & Tax API. Please make sure your Jetpack connection is working.', 'woocommerce-services' ) . '</p></div>';
 			}
+		}
+
+		/**
+		 * Loop through the tax rates in the database and delete
+		 * rates where:
+		 * tax_rate_country = 'US' and
+		 * tax_rate_state = 'CA' and
+		 * tax_rate_name LIKE '% Tax'
+		 *
+		 * @return void
+		 */
+		function delete_california_tax_rates() {
+			global $wpdb;
+
+			$found_ca_rates = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
+			WHERE tax_rate_country = %s AND tax_rate_state = %s AND tax_rate_name LIKE '% Tax'
+			",
+					'US',
+					'CA'
+				),
+				ARRAY_A
+			);
+
+			/**
+			 * If no rates were found, output a message and return
+			 */
+			if ( empty( $found_ca_rates ) ) {
+				echo '<div class="updated inline"><p>';
+				echo __( 'No "CA" tax rates were found.', 'woocommerce-services' );
+				echo '</p></div>';
+
+				return;
+			}
+
+			$deleted_count = 0;
+			foreach ( $found_ca_rates as $rate ) {
+				if ( empty( $rate['tax_rate_id'] ) ) {
+					continue;
+				}
+
+				WC_Tax::_delete_tax_rate( $rate['tax_rate_id'] );
+				$deleted_count ++;
+			}
+
+			echo '<div class="updated inline"><p>';
+			echo sprintf( __( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count );
+			echo '</p></div>';
 		}
 
 	}
