@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 				$tools['delete_ca_taxes'] = array(
 					'name'     => __( 'Delete California tax rates', 'woocommerce-services' ),
 					'button'   => __( 'Delete CA tax rates', 'woocommerce-services' ),
-					'desc'     => sprintf( '<strong class="red">%1$s</strong> %2$s <a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#jan-2022-ca-notice" target="_blank">%3$s</a>', __( 'Note:', 'woocommerce-services' ), __( 'This option will delete ALL of your "CA" tax rates, use with caution. This action cannot be reversed.', 'woocommerce-services' ), __( 'Additional information.', 'woocommerce-services' ) ),
+					'desc'     => sprintf( '<strong class="red">%1$s</strong> %2$s <a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#jan-2022-ca-notice" target="_blank">%3$s</a>', __( 'Note:', 'woocommerce-services' ), __( 'This option will delete ALL of your "CA" tax rates where the tax name ends with " Tax", use with caution. This action cannot be reversed.', 'woocommerce-services' ), __( 'Additional information.', 'woocommerce-services' ) ),
 					'callback' => array( $this, 'delete_california_tax_rates' ),
 				);
 			}
