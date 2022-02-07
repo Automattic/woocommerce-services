@@ -956,11 +956,23 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
-		// Either `amount` or `line_items` parameters are required to perform tax calculations.
+		// Filter the line items to find the taxable items and use empty array if line items is NULL.
 		if ( empty( $line_items ) ) {
+			$taxable_line_items = array();
+		} else {
+			$taxable_line_items = array_filter(
+				$line_items,
+				function( $line_item ) {
+					return ( isset( $line_item['product_tax_code'] ) && '99999' !== $line_item['product_tax_code'] ) ? true : false;
+				}
+			);
+		}
+
+		// Either `amount` or `line_items` parameters are required to perform tax calculations.
+		if ( empty( $taxable_line_items ) ) {
 			$body['amount'] = 0.0;
 		} else {
-			$body['line_items'] = $line_items;
+			$body['line_items'] = $taxable_line_items;
 		}
 
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
