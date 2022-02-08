@@ -101,6 +101,8 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 *
 		 * Ported from TaxJar's plugin.
 		 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/42cd4cd0/taxjar-woocommerce.php#L75
+		 *
+		 * @return boolean
 		 */
 		public static function backup_existing_tax_rates() {
 			global $wpdb;
@@ -214,7 +216,9 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			$csv = ob_get_contents();
 			ob_end_clean();
 			$upload_dir = wp_upload_dir();
-			file_put_contents( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-' . date( 'm-d-Y' ) . '-' . time() . '.csv', $csv );
+			$backed_up  = file_put_contents( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-' . date( 'm-d-Y' ) . '-' . time() . '.csv', $csv );
+
+			return (bool) $backed_up;
 		}
 	}
 }
