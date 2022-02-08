@@ -111,8 +111,8 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			$rates = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
-			ORDER BY tax_rate_order
-			LIMIT %d, %d
+			        ORDER BY tax_rate_order
+			        LIMIT %d, %d
 			",
 					0,
 					10000
