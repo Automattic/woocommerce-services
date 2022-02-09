@@ -22,6 +22,19 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 				'desc'     => __( 'This will test your WooCommerce Shipping & Tax connection to ensure everything is working correctly', 'woocommerce-services' ),
 				'callback' => array( $this, 'test_connection' ),
 			);
+
+			/**
+			 * Only show this tool for stores not based in California
+			 */
+			if ( 'CA' !== WC()->countries->get_base_state() ) {
+				$tools['delete_ca_taxes'] = array(
+					'name'     => __( 'Delete California tax rates', 'woocommerce-services' ),
+					'button'   => __( 'Delete CA tax rates', 'woocommerce-services' ),
+					'desc'     => sprintf( '<strong class="red">%1$s</strong> %2$s %3$s %4$s <a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#jan-2022-ca-notice" target="_blank">%5$s</a>', __( 'Note:', 'woocommerce-services' ), __( 'This option will delete ALL of your "CA" tax rates where the tax name ends with " Tax" (case insensitive).', 'woocommerce-services' ), '<br>', __( 'A backup CSV of all existing tax rates will be made before the deletion process runs.', 'woocommerce-services' ), __( 'Additional information.', 'woocommerce-services' ) ),
+					'callback' => array( $this, 'delete_california_tax_rates' ),
+				);
+			}
+
 			return $tools;
 		}
 
@@ -34,5 +47,64 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			}
 		}
 
+		/**
+		 * Back up all existing tax rates from the database in a CSV file.         *
+		 * Then, if successfully backed up, loop through the tax rates
+		 * in the database and delete rates where:
+		 * tax_rate_country = 'US' and
+		 * tax_rate_state = 'CA' and
+		 * tax_rate_name LIKE '% Tax'
+		 *
+		 * @return void
+		 */
+		function delete_california_tax_rates() {
+			$backed_up = WC_Connect_Functions::backup_existing_tax_rates();
+
+			if ( ! $backed_up ) {
+				echo '<div class="error inline"><p>';
+				echo __( 'ERROR: The "CA" tax rate deletion process was cancelled because the existing tax rates could not be backed up.', 'woocommerce-services' );
+				echo '</p></div>';
+
+				return;
+			}
+
+			global $wpdb;
+
+			$found_ca_rates = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
+			        WHERE tax_rate_country = %s AND tax_rate_state = %s AND tax_rate_name LIKE '% Tax'
+			        ",
+					'US',
+					'CA'
+				),
+				ARRAY_A
+			);
+
+			/**
+			 * If no rates were found, output a message and return
+			 */
+			if ( empty( $found_ca_rates ) ) {
+				echo '<div class="updated inline"><p>';
+				echo __( 'No "CA" tax rates were found.', 'woocommerce-services' );
+				echo '</p></div>';
+
+				return;
+			}
+
+			$deleted_count = 0;
+			foreach ( $found_ca_rates as $rate ) {
+				if ( empty( $rate['tax_rate_id'] ) ) {
+					continue;
+				}
+
+				WC_Tax::_delete_tax_rate( $rate['tax_rate_id'] );
+				$deleted_count ++;
+			}
+
+			echo '<div class="updated inline"><p>';
+			echo sprintf( __( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count );
+			echo '</p></div>';
+		}
 	}
 }
