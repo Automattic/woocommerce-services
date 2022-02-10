@@ -76,6 +76,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.23 - 2022-xx-xx =
+* Tweak - Make "Name" field optional if "Company" field is not empty.
+* Fix   - Added "Delete California tax rates" tool.
+* Fix   - Extract WC_Connect_TaxJar_Integration::backup_existing_tax_rates() for re-usability.
+
 = 1.25.22 - 2022-02-02 =
 * Fix   - TaxJar does not get the tax if the cart has non-taxable item.
 * Tweak - Bump WP tested version to 5.9 and WC tested version to 6.1.
