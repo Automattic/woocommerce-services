@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.9
-Stable tag: 1.25.22
+Stable tag: 1.25.23
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.23 - 2022-xx-xx =
+= 1.25.23 - 2022-02-10 =
 * Tweak - Make "Name" field optional if "Company" field is not empty.
 * Fix   - Added "Delete California tax rates" tool.
 * Fix   - Extract WC_Connect_TaxJar_Integration::backup_existing_tax_rates() for re-usability.

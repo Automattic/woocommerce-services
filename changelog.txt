@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.23 - 2022-xx-xx =
+= 1.25.23 - 2022-02-10 =
 * Tweak - Make "Name" field optional if "Company" field is not empty.
 * Fix   - Added "Delete California tax rates" tool.
 * Fix   - Extract WC_Connect_TaxJar_Integration::backup_existing_tax_rates() for re-usability.
