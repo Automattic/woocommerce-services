@@ -557,7 +557,7 @@ describe( 'Shipping label selectors', () => {
 		[ 'country', '', true ],
 		[ 'country', 'Wonderland', false ],
 		[ 'phone', '', false ],
-		[ 'name', '', true ],
+		[ 'name', '', false ],
 		[ 'state', '', true ],
 
 		// States are selected in a dropdown and individual values are not validated
@@ -597,6 +597,24 @@ describe( 'Shipping label form validation', () => {
 		}
 	};
 	const appState = {};
+
+	it ( 'with no name entered and no company entered, return error', () => {
+		const fieldsToValidate = { destinationPhone: false };
+		const addressDataWithEmptyNameAndCompany = Object.assign( {}, addressData);
+		addressDataWithEmptyNameAndCompany.values.name = '';
+		addressDataWithEmptyNameAndCompany.values.company = '';
+		const errors = getRawAddressErrors( appState, addressDataWithEmptyNameAndCompany, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.have.property( 'name' );
+	} );
+
+	it ( 'with no company entered and no name entered, return error', () => {
+		const fieldsToValidate = { destinationPhone: false };
+		const addressDataWithEmptyNameAndCompany = Object.assign( {}, addressData);
+		addressDataWithEmptyNameAndCompany.values.name = '';
+		addressDataWithEmptyNameAndCompany.values.company = '';
+		const errors = getRawAddressErrors( appState, addressDataWithEmptyNameAndCompany, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.have.property( 'company' );
+	} );
 
 	it ( 'with no destination phone entered and destination phone required, return error', () => {
 		const fieldsToValidate = { destinationPhone: true };
