@@ -28,7 +28,7 @@ export default memoize( () => {
 	if ( includes( navigator.userAgent, 'Firefox' ) ) {
 		// Use native for Firefox with version > 94
 		if ( parseFloat( navigator.userAgent.split('Firefox/')[1] ) >= 94 ) {
-			return 'native';
+			return 'native_ff';
 		
 		// Use 'addon' for Firefox with version < 94 as it is still not fully tested and might have a long-lived bug (https://bugzilla.mozilla.org/show_bug.cgi?id=911444),
 		} else {

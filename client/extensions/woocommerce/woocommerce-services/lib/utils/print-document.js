@@ -68,6 +68,23 @@ export default ( { b64Content, mimeType }, fileName ) => {
 				iframe.contentWindow.print();
 				URL.revokeObjectURL( blobUrl );
 			} );
+		
+		case 'native_ff':
+			// Native for firefox
+			return loadDocumentInFrame( blobUrl ).then( () => {
+				// Fixing the Firefox issue when the browser is set to open PDF file using another program instead of using native PDF opener.
+				// When PDF file is opened in another program, the iframe content will be empty.
+				// This code is trying to identify how the firefox open the PDF by checking if the iframe content empty or not.
+				// Empty iframe content   = firefox use another program to open PDF.
+				// Unempty iframe content = firefox use native PDF opener from browser.
+				// The empty iframe content will not catch any error. Thus we dont call the print() and let the browser open the PDF using another program.
+				try {
+					let doc = iframe.contentDocument.body.innerText;
+				} catch(e) {
+					iframe.contentWindow.print();
+				}
+				URL.revokeObjectURL( blobUrl );
+			} );
 
 		case 'addon':
 			// window.open will be blocked by the browser if this code isn't being executed from a direct user interaction
