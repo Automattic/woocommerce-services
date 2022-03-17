@@ -76,6 +76,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.24 - 2022-xx-xx =
+* Fix - Empty document is opened when Firefox is set to open PDF file using another program.
+* Fix - Label purchase modal sections getting cut off.
+
 = 1.25.23 - 2022-02-10 =
 * Tweak - Make "Name" field optional if "Company" field is not empty.
 * Fix   - Added "Delete California tax rates" tool.
