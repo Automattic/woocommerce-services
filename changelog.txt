@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.24 - 2022-xx-xx =
+= 1.25.24 - 2022-03-17 =
 * Fix - Empty document is opened when Firefox is set to open PDF file using another program.
 * Fix - Label purchase modal sections getting cut off.
 
