@@ -957,15 +957,14 @@ class WC_Connect_TaxJar_Integration {
 		);
 
 		// Filter the line items to find the taxable items and use empty array if line items is NULL.
-		if ( empty( $line_items ) ) {
-			$taxable_line_items = array();
-		} else {
-			$taxable_line_items = array_filter(
-				$line_items,
-				function( $line_item ) {
-					return ( isset( $line_item['product_tax_code'] ) && '99999' !== $line_item['product_tax_code'] ) ? true : false;
+		$taxable_line_items = array();
+
+		if ( ! empty( $line_items ) ) {
+			foreach ( $line_items as $line_item ) {
+				if ( isset( $line_item['product_tax_code'] ) && '99999' !== $line_item['product_tax_code'] ) {
+					$taxable_line_items[] = $line_item;
 				}
-			);
+			}
 		}
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
