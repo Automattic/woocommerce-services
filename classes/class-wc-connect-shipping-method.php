@@ -399,7 +399,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			);
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
-				if ( is_cart() || is_checkout() ) {
+				if ( WC_Connect_Functions::is_cart() || WC_Connect_Functions::is_checkout() ) {
 					foreach ( $this->package_validation_errors->errors as $code => $messages ) {
 						foreach ( $messages as $message ) {
 							// Using debug instead of regular notice because the error always shows before customer enters any shipping information.
@@ -638,7 +638,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::has_cart_or_checkout_block() ) {
+			if ( WC_Connect_Functions::is_cart() || WC_Connect_Functions::is_checkout() || isset( $_POST['update_cart'] ) ) {
 				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
 
 				$this->logger->debug( $debug_message, $type );

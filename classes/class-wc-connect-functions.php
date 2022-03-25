@@ -61,11 +61,37 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		}
 
 		/**
-		 * Check if current page has woocommerce cart or checkout block.
+		 * Check if current page is a cart page or has woocommerce cart block.
 		 *
 		 * @return bool
 		 */
-		public static function has_cart_or_checkout_block() {
+		public static function is_cart() {
+			if ( is_cart() || self::has_cart_block() ) {
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if current page is a checkout page or has woocommerce checkout block.
+		 *
+		 * @return bool
+		 */
+		public static function is_checkout() {
+			if ( is_checkout() || self::has_checkout_block() ) {
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if current page has woocommerce cart block.
+		 *
+		 * @return bool
+		 */
+		public static function has_cart_block() {
 			$page = get_post();
 			if ( ! $page ) {
 				return false;
@@ -78,9 +104,48 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			foreach ( $blocks as $block ) {
 				$block_name = $block['blockName'];
-				if ( 'woocommerce/cart' === $block_name || 'woocommerce/checkout' === $block_name ) {
+				if ( 'woocommerce/cart' === $block_name ) {
 					return true;
 				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if current page has woocommerce checkout block.
+		 *
+		 * @return bool
+		 */
+		public static function has_checkout_block() {
+			$page = get_post();
+			if ( ! $page ) {
+				return false;
+			}
+
+			$blocks = parse_blocks( $page->post_content );
+			if ( ! $blocks ) {
+				return false;
+			}
+
+			foreach ( $blocks as $block ) {
+				$block_name = $block['blockName'];
+				if ( 'woocommerce/checkout' === $block_name ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if current page has woocommerce cart or checkout block.
+		 *
+		 * @return bool
+		 */
+		public static function has_cart_or_checkout_block() {
+			if ( self::has_checkout_block() || self::has_cart_block() ) {
+				return true;
 			}
 
 			return false;
