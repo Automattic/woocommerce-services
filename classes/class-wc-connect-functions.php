@@ -52,10 +52,12 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				return false;
 			}
 			$rest_route = $GLOBALS['wp']->query_vars['rest_route'];
-			return (
-				false !== strpos( $rest_route, 'wc/store/cart' ) ||
-				false !== strpos( $rest_route, 'wc/store/checkout' )
-			);
+
+			// Use regex to check any route that has "wc/store" with any of these text : "cart", "checkout", or "batch"
+			// Example : wc/store/v3/batch
+			preg_match( '/wc\/store\/v[0-9]{1,}\/(batch|cart|checkout)/', $rest_route, $route_matches, PREG_OFFSET_CAPTURE );
+
+			return ( ! empty( $route_matches ) );
 		}
 
 		/**
