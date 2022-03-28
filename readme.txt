@@ -76,6 +76,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.25 - 2022-xx-xx =
+* Fix   - TaxJar does not get the tax if the cart has non-taxable on the first item.
+* Tweak - Use regex to check on WC Rest API route for WooCommerce Blocks compatibility.
+
 = 1.25.24 - 2022-03-17 =
 * Fix - Empty document is opened when Firefox is set to open PDF file using another program.
 * Fix - Label purchase modal sections getting cut off.
