@@ -92,6 +92,11 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 * @return bool
 		 */
 		public static function has_cart_block() {
+			// To support WP < 5.0.0, we need to check if `has_block` exists first as has_block only being introduced on WP 5.0.0.
+			if ( function_exists( 'has_block' ) ) {
+				return has_block( 'woocommerce/cart' );
+			}
+
 			$page = get_post();
 			if ( ! $page ) {
 				return false;
@@ -118,6 +123,11 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 * @return bool
 		 */
 		public static function has_checkout_block() {
+			// To support WP < 5.0.0, we need to check if `has_block` exists first as has_block only being introduced on WP 5.0.0.
+			if ( function_exists( 'has_block' ) ) {
+				return has_block( 'woocommerce/checkout' );
+			}
+
 			$page = get_post();
 			if ( ! $page ) {
 				return false;
