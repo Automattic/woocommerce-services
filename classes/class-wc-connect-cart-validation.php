@@ -61,23 +61,23 @@ class WC_Connect_Cart_Validation {
 	}
 
 	public function add_api_cart_errors( $cart_errors, $cart ) {
-		$packages = $cart->get_shipping_packages();
+		$all_notices = wc_get_notices();
 
-		foreach ( $packages as $package ) {
-			foreach ( WC()->shipping()->load_shipping_methods( $package ) as $shipping_method ) {
-				if ( $shipping_method instanceof WC_Connect_Shipping_Method ) {
-					// We have to always force validation to run because WC_Shipping could cache package rates.
-					// $shipping_method->calculate_shipping( $package );
-					$shipping_method->is_valid_package_destination( $package );
-					$errors = $shipping_method->get_package_validation_errors();
+		$notices = array();
+		foreach ( $all_notices as $type => $type_notices ) {
+			if ( 'error' === $type ) {
+				$notices = array_merge( $notices, $type_notices );
+			}
+		}
 
-					if ( $errors->has_errors() ) {
-						foreach ( $errors->errors as $code => $messages ) {
-							foreach ( $messages as $message ) {
-								$cart_errors->add( $code, $message );
-							}
-						}
-					}
+		$added_notices = array();
+		if ( ! empty( $notices ) ) {
+			$i = 1;
+			foreach ( $notices as $notice ) {
+				if ( ! in_array( $notice['notice'], $added_notices ) ) {
+					$added_notices[] = $notice['notice'];
+					$cart_errors->add( 'notice_' . $i, $notice['notice'] );
+					$i++;
 				}
 			}
 		}
