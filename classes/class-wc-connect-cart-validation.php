@@ -12,6 +12,13 @@ class WC_Connect_Cart_Validation {
 	private $current_package;
 
 	/**
+	 * Register actions when required instead of using constructor.
+	 */
+	public function register_actions() {
+		add_action( 'woocommerce_store_api_cart_errors', [ $this, 'test_store_api_error' ], 10, 2 );
+	}
+
+	/**
 	 * Register filters when required instead of using constructor.
 	 */
 	public function register_filters() {
@@ -51,5 +58,59 @@ class WC_Connect_Cart_Validation {
 			}
 		}
 		return $error_html;
+	}
+
+	public function test_store_api_error( $cart_errors, $cart ) {
+		$packages = $cart->get_shipping_packages();
+		/*
+		$all_notices = wc_get_notices();
+
+		$notices = array();
+		foreach( $all_notices as $type => $type_notices ) {
+			$notices = array_merge( $notices, $type_notices );
+		}
+
+		$added_notices = array();
+		if ( ! empty( $notices ) ) {
+			$i = 1;
+			foreach( $notices as $notice ) {
+				if ( ! in_array( $notice['notice'], $added_notices ) ) {
+					$added_notices[] = $notice['notice'];
+					$cart_errors->add( 'notice_' . $i, $notice['notice'] );
+					$i++;
+				}
+			}
+		}
+		*/
+
+		foreach ( $packages as $package ) {
+			foreach ( WC()->shipping()->load_shipping_methods( $package ) as $shipping_method ) {
+				if ( $shipping_method instanceof WC_Connect_Shipping_Method ) {
+					// We have to always force validation to run because WC_Shipping could cache package rates.
+					// $shipping_method->calculate_shipping( $package );
+					$shipping_method->is_valid_package_destination( $package );
+					$errors = $shipping_method->get_package_validation_errors();
+
+					if ( $errors->has_errors() ) {
+						foreach ( $errors->errors as $code => $messages ) {
+							foreach ( $messages as $message ) {
+								$cart_errors->add( $code, $message );
+							}
+						}
+					}
+
+					/*
+					$debug_messages = $shipping_method->get_debug_messages();
+
+					if ( ! empty( $debug_messages ) && is_array( $debug_messages ) ) {
+						$i = 1;
+						foreach( $debug_messages as $index => $debug_message ) {
+							$cart_errors->add( 'notice_' . $i, $debug_message['message'] );
+							$i++;
+						}
+					}*/
+				}
+			}
+		}
 	}
 }
