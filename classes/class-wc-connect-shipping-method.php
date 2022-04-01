@@ -32,13 +32,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		protected $package_validation_errors;
 
 		/**
-		 * Store debug messages in property for later retrieval.
-		 *
-		 * @var Array
-		 */
-		protected $debug_messages;
-
-		/**
 		 * Cache of destinations which have already been validated.
 		 *
 		 * @var array
@@ -100,7 +93,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				// does it instead.
 			}
 			$this->package_validation_errors = new WP_Error();
-			$this->debug_messages            = array();
 		}
 
 		public function get_service_schema() {
@@ -651,22 +643,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			if ( WC_Connect_Functions::is_cart() || WC_Connect_Functions::is_checkout() || isset( $_POST['update_cart'] ) ) {
 				$this->logger->debug( $debug_message, $type );
 			}
-
-			if ( 'error' === $type && $this->logger->is_debug_enabled() ) {
-				$this->debug_messages[] = array(
-					'message' => $debug_message,
-					'type'    => $type,
-				);
-			}
-		}
-
-		/**
-		 * Return all debug messages
-		 *
-		 * @return array
-		 */
-		public function get_debug_messages() {
-			return $this->debug_messages;
 		}
 
 		/**

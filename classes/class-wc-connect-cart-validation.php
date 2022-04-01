@@ -15,7 +15,7 @@ class WC_Connect_Cart_Validation {
 	 * Register actions when required instead of using constructor.
 	 */
 	public function register_actions() {
-		add_action( 'woocommerce_store_api_cart_errors', [ $this, 'test_store_api_error' ], 10, 2 );
+		add_action( 'woocommerce_store_api_cart_errors', [ $this, 'add_api_cart_errors' ], 10, 2 );
 	}
 
 	/**
@@ -60,28 +60,8 @@ class WC_Connect_Cart_Validation {
 		return $error_html;
 	}
 
-	public function test_store_api_error( $cart_errors, $cart ) {
+	public function add_api_cart_errors( $cart_errors, $cart ) {
 		$packages = $cart->get_shipping_packages();
-		/*
-		$all_notices = wc_get_notices();
-
-		$notices = array();
-		foreach( $all_notices as $type => $type_notices ) {
-			$notices = array_merge( $notices, $type_notices );
-		}
-
-		$added_notices = array();
-		if ( ! empty( $notices ) ) {
-			$i = 1;
-			foreach( $notices as $notice ) {
-				if ( ! in_array( $notice['notice'], $added_notices ) ) {
-					$added_notices[] = $notice['notice'];
-					$cart_errors->add( 'notice_' . $i, $notice['notice'] );
-					$i++;
-				}
-			}
-		}
-		*/
 
 		foreach ( $packages as $package ) {
 			foreach ( WC()->shipping()->load_shipping_methods( $package ) as $shipping_method ) {
@@ -98,17 +78,6 @@ class WC_Connect_Cart_Validation {
 							}
 						}
 					}
-
-					/*
-					$debug_messages = $shipping_method->get_debug_messages();
-
-					if ( ! empty( $debug_messages ) && is_array( $debug_messages ) ) {
-						$i = 1;
-						foreach( $debug_messages as $index => $debug_message ) {
-							$cart_errors->add( 'notice_' . $i, $debug_message['message'] );
-							$i++;
-						}
-					}*/
 				}
 			}
 		}
