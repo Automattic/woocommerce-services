@@ -640,7 +640,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function debug( $message, $type = 'notice' ) {
 			$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
 
-			if ( WC_Connect_Functions::is_cart() || WC_Connect_Functions::is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::is_store_api_call() ) {
+			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_Functions::is_store_api_call() ) {
 				$this->logger->debug( $debug_message, $type );
 			}
 		}
