@@ -97,23 +97,6 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				return has_block( 'woocommerce/cart' );
 			}
 
-			$page = get_post();
-			if ( ! $page ) {
-				return false;
-			}
-
-			$blocks = parse_blocks( $page->post_content );
-			if ( ! $blocks ) {
-				return false;
-			}
-
-			foreach ( $blocks as $block ) {
-				$block_name = $block['blockName'];
-				if ( 'woocommerce/cart' === $block_name ) {
-					return true;
-				}
-			}
-
 			return false;
 		}
 
@@ -126,23 +109,6 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			// To support WP < 5.0.0, we need to check if `has_block` exists first as has_block only being introduced on WP 5.0.0.
 			if ( function_exists( 'has_block' ) ) {
 				return has_block( 'woocommerce/checkout' );
-			}
-
-			$page = get_post();
-			if ( ! $page ) {
-				return false;
-			}
-
-			$blocks = parse_blocks( $page->post_content );
-			if ( ! $blocks ) {
-				return false;
-			}
-
-			foreach ( $blocks as $block ) {
-				$block_name = $block['blockName'];
-				if ( 'woocommerce/checkout' === $block_name ) {
-					return true;
-				}
 			}
 
 			return false;
