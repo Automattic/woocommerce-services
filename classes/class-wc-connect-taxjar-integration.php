@@ -961,6 +961,45 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
+		/**
+		 * Change the API request body so that provincial sales tax (PST) is added
+		 * in cases where TaxJar does not combine it with general sales tax (GST)
+		 * based on from/to address alone. This is a limitation of their API.
+		 * They said they would be working on adding specific cases like
+		 * this in the future.
+		 *
+		 * As a temporary workaround, TaxJar suggested we remove the from address
+		 * parameters and use the nexus_addresses[] parameter instead in cases that
+		 * require it. This ensures that the PST is added in cases where it needs to be.
+		 *
+		 * In this case, when shipping from an address Canada to Quebec,
+		 * PST should be charged in addition to GST. The combined tax is
+		 * referred to as Québec sales tax (QST).
+		 */
+		if ( true === apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) && 'CA' === $body['to_country'] && 'QC' === $body['to_state'] && 'CA' === $body['from_country'] ) {
+			$params_to_unset = array(
+				'from_country',
+				'from_state',
+				'from_zip',
+				'from_city',
+				'from_street',
+			);
+
+			foreach ( $params_to_unset as $param ) {
+				unset( $body[ $param ] );
+			}
+
+			$body['nexus_addresses'] = array(
+				array(
+					'street'  => $body['to_street'],
+					'city'    => $body['to_city'],
+					'state'   => $body['to_state'],
+					'country' => $body['to_country'],
+					'zip'     => $body['to_zip'],
+				),
+			);
+		}
+
 		// Filter the line items to find the taxable items and use empty array if line items is NULL.
 		$taxable_line_items = array();
 
