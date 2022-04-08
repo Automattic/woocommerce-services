@@ -379,7 +379,12 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
-			if ( ( is_cart() || ( is_checkout() && is_ajax() ) ) && ! wc_has_notice( $message, 'error' ) ) {
+			if ( (
+					( is_cart() || ( is_checkout() && is_ajax() ) ) ||
+					( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
+				)
+				&& ! wc_has_notice( $message, 'error' )
+			) {
 				wc_add_notice( $message, 'error' );
 			}
 
