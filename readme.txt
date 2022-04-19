@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.9
-Stable tag: 1.25.25
+Stable tag: 1.25.26
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.25.26 - 2022-xx-xx =
+= 1.25.26 - 2022-04-19 =
 * Fix   - Display error on cart block and checkout block from WC Blocks plugin.
 * Fix   - TaxJar does not calculate Quebec Sales Tax when shipping from Canadian address.
 
