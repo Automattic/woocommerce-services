@@ -76,6 +76,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.26 - 2022-xx-xx =
+* Fix   - Display error on cart block and checkout block from WC Blocks plugin.
+* Fix   - TaxJar does not calculate Quebec Sales Tax when shipping from Canadian address.
+
 = 1.25.25 - 2022-03-29 =
 * Fix   - TaxJar does not get the tax if the cart has non-taxable on the first item.
 * Tweak - Use regex to check on WC Rest API route for WooCommerce Blocks compatibility.
