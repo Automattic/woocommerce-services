@@ -46,6 +46,9 @@ class WC_Connect_TaxJar_Integration {
 
 		// Cache rates for 1 hour.
 		$this->cache_time = HOUR_IN_SECONDS;
+
+		// Cache error response for 5 minutes.
+		$this->error_cache_time = MINUTE_IN_SECONDS * 5;
 	}
 
 	/**
@@ -1169,15 +1172,27 @@ class WC_Connect_TaxJar_Integration {
 	 * @return mixed|WP_Error
 	 */
 	public function smartcalcs_cache_request( $json ) {
-		$cache_key = 'tj_tax_' . hash( 'md5', $json );
-		$response  = get_transient( $cache_key );
+		$cache_key        = 'tj_tax_' . hash( 'md5', $json );
+		$response         = get_transient( $cache_key );
+		$response_code    = wp_remote_retrieve_response_code( $response );
+		$save_error_codes = array( 404, 400 );
 
 		if ( false === $response ) {
-			$response = $this->smartcalcs_request( $json );
+			$response      = $this->smartcalcs_request( $json );
+			$response_code = wp_remote_retrieve_response_code( $response );
 
-			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
+			if ( 200 == $response_code ) {
 				set_transient( $cache_key, $response, $this->cache_time );
+			} elseif ( in_array( $response_code, $save_error_codes ) ) {
+				set_transient( $cache_key, $response, $this->error_cache_time );
 			}
+		}
+
+		if ( in_array( $response_code, $save_error_codes ) ) {
+			$this->_log( 'Retrieved the error from the cache.' );
+			$this->_log( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+
+			return false;
 		}
 
 		return $response;
@@ -1212,6 +1227,10 @@ class WC_Connect_TaxJar_Integration {
 		if ( is_wp_error( $response ) ) {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
 		} elseif ( 200 == $response['response']['code'] ) {
+			return $response;
+		} elseif ( 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
+			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+
 			return $response;
 		} else {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
