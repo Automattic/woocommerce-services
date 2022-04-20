@@ -1162,6 +1162,53 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Validate TaxJar API request json value and add the error to log.
+	 *
+	 * @param $json
+	 *
+	 * @return bool
+	 */
+	public function validate_taxjar_request( $json ) {
+		$this->_log( ':::: TaxJar API request validation ::::' );
+
+		$json = json_decode( $json, true );
+
+		if ( empty( $json['to_country'] ) ) {
+			$this->_error( 'API request is stopped. Empty country destination.' );
+
+			return false;
+		}
+
+		if ( ( 'US' === $json['to_country'] || 'CA' === $json['to_country'] ) && empty( $json['to_state'] ) ) {
+			$this->_error( 'API request is stopped. Country destination is set to US or CA but the state is empty.' );
+
+			return false;
+		}
+
+		if ( 'US' === $json['to_country'] && empty( $json['to_zip'] ) ) {
+			$this->_error( 'API request is stopped. Country destination is set to US but the zip code is empty.' );
+
+			return false;
+		}
+
+		if ( 'US' === $json['to_country'] && ! WC_Validation::is_postcode( $json['to_zip'], $json['to_country'] ) ) {
+			$this->_error( 'API request is stopped. Country destination is set to US but the zip code has incorrect format.' );
+
+			return false;
+		}
+
+		if ( 'US' === $json['from_country'] && ! WC_Validation::is_postcode( $json['from_zip'], $json['from_country'] ) ) {
+			$this->_error( 'API request is stopped. Country store is set to US but the zip code has incorrect format.' );
+
+			return false;
+		}
+
+		$this->_log( 'API request is in good format.' );
+
+		return true;
+	}
+
+	/**
 	 * Wrap SmartCalcs API requests in a transient-based caching layer.
 	 *
 	 * Unchanged from the TaxJar plugin.
@@ -1210,6 +1257,11 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function smartcalcs_request( $json ) {
 		$path = trailingslashit( self::PROXY_PATH ) . 'taxes';
+
+		// Validate the request before sending a request.
+		if ( ! $this->validate_taxjar_request( $json ) ) {
+			return false;
+		}
 
 		$this->_log( 'Requesting: ' . $path . ' - ' . $json );
 
