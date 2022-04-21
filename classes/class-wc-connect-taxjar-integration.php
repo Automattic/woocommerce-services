@@ -1237,8 +1237,7 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( in_array( $response_code, $save_error_codes ) ) {
 			$this->_log( 'Retrieved the error from the cache.' );
-			$this->_log( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
-
+			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 			return false;
 		}
 
