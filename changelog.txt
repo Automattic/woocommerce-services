@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.25.27 - 2022-xx-xx =
+* Fix   - Cart with non-taxable product still calculate the tax.
+
 = 1.25.26 - 2022-04-19 =
 * Fix   - Display error on cart block and checkout block from WC Blocks plugin.
 * Fix   - TaxJar does not calculate Quebec Sales Tax when shipping from Canadian address.
