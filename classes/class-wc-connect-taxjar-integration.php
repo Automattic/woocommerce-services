@@ -706,7 +706,7 @@ class WC_Connect_TaxJar_Integration {
 				$tax_code = end( $tax_class );
 			}
 
-			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
+			if ( 'shipping' !== $product->get_tax_status() && ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) ) {
 				$tax_code = '99999';
 			}
 
@@ -723,18 +723,16 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			if ( $unit_price && $line_subtotal ) {
-				array_push(
-					$line_items,
-					array(
-						'id'               => $id . '-' . $cart_item_key,
-						'quantity'         => $quantity,
-						'product_tax_code' => $tax_code,
-						'unit_price'       => $unit_price,
-						'discount'         => $discount,
-					)
-				);
-			}
+			array_push(
+				$line_items,
+				array(
+					'id'               => $id . '-' . $cart_item_key,
+					'quantity'         => $quantity,
+					'product_tax_code' => $tax_code,
+					'unit_price'       => $unit_price,
+					'discount'         => $discount,
+				)
+			);
 		}
 
 		return $line_items;
