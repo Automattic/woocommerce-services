@@ -76,6 +76,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.27 - 2022-xx-xx =
+* Fix   - Cart with non-taxable product still calculate the tax.
+* Tweak - Validate the TaxJar request before calling the api and cache 404 and 400 TaxJar response error for 5 minutes.
+
 = 1.25.26 - 2022-04-19 =
 * Fix   - Display error on cart block and checkout block from WC Blocks plugin.
 * Fix   - TaxJar does not calculate Quebec Sales Tax when shipping from Canadian address.
