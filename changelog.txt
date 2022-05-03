@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.25.27 - 2022-xx-xx =
+= 1.25.27 - 2022-05-03 =
 * Fix   - Cart with non-taxable product still calculate the tax.
 * Tweak - Validate the TaxJar request before calling the api and cache 404 and 400 TaxJar response error for 5 minutes.
 
