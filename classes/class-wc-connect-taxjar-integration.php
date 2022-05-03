@@ -709,7 +709,7 @@ class WC_Connect_TaxJar_Integration {
 				$tax_code = end( $tax_class );
 			}
 
-			if ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) {
+			if ( 'shipping' !== $product->get_tax_status() && ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) ) {
 				$tax_code = '99999';
 			}
 
@@ -726,18 +726,16 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			if ( $unit_price && $line_subtotal ) {
-				array_push(
-					$line_items,
-					array(
-						'id'               => $id . '-' . $cart_item_key,
-						'quantity'         => $quantity,
-						'product_tax_code' => $tax_code,
-						'unit_price'       => $unit_price,
-						'discount'         => $discount,
-					)
-				);
-			}
+			array_push(
+				$line_items,
+				array(
+					'id'               => $id . '-' . $cart_item_key,
+					'quantity'         => $quantity,
+					'product_tax_code' => $tax_code,
+					'unit_price'       => $unit_price,
+					'discount'         => $discount,
+				)
+			);
 		}
 
 		return $line_items;
@@ -1003,22 +1001,11 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
-		// Filter the line items to find the taxable items and use empty array if line items is NULL.
-		$taxable_line_items = array();
-
-		if ( ! empty( $line_items ) ) {
-			foreach ( $line_items as $line_item ) {
-				if ( isset( $line_item['product_tax_code'] ) && '99999' !== $line_item['product_tax_code'] ) {
-					$taxable_line_items[] = $line_item;
-				}
-			}
-		}
-
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
-		if ( empty( $taxable_line_items ) ) {
+		if ( empty( $line_items ) ) {
 			$body['amount'] = 0.0;
 		} else {
-			$body['line_items'] = $taxable_line_items;
+			$body['line_items'] = $line_items;
 		}
 
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
