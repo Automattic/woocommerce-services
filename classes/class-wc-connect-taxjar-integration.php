@@ -1184,7 +1184,7 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		if ( 'US' === $json['from_country'] && ! WC_Validation::is_postcode( $json['from_zip'], $json['from_country'] ) ) {
+		if ( ! empty( $json['from_country'] ) && ! empty( $json['from_zip'] ) && 'US' === $json['from_country'] && ! WC_Validation::is_postcode( $json['from_zip'], $json['from_country'] ) ) {
 			$this->_error( 'API request is stopped. Country store is set to US but the zip code has incorrect format.' );
 
 			return false;
