@@ -76,6 +76,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.25.28 - 2022-xx-xx =
+* Fix   - Notice: Undefined index: 'from_country' when validating TaxJar request.
+
 = 1.25.27 - 2022-05-03 =
 * Fix   - Cart with non-taxable product still calculate the tax.
 * Tweak - Validate the TaxJar request before calling the api and cache 404 and 400 TaxJar response error for 5 minutes.
