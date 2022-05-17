@@ -45,6 +45,12 @@ const renderSummary = (
 	if ( ! isNormalized ) {
 		return translate( "You've edited the address, please revalidate it for accurate rates" );
 	}
+
+	const addressValues = getAddressValues( addressData );
+
+	if ( ! checkAddressCharacters( addressValues ) ) {
+		return translate( "One of the address data has character(s) that might not be printed as is!" );
+	}
 	const { city, postcode, state, country } = getAddressValues( addressData );
 	// Summary format: "city, state  postcode [, country]"
 	let str = city + ', ';
@@ -72,11 +78,26 @@ const getNormalizationStatus = ( {
 	if ( hasNonEmptyLeaves( errors ) || ( isNormalized && ! normalized ) || ! isNormalized ) {
 		return { isError: true };
 	}
+	if ( ! checkAddressCharacters( values ) ) {
+		return { isWarning: true };
+	}
 	if ( isNormalized ) {
 		return isEqual( values, normalized ) ? { isSuccess: true } : { isWarning: true };
 	}
 	return {};
 };
+
+const hasNonAsciiCharacters = str => /[^\u0000-\u007f]/.test(str);
+
+const checkAddressCharacters = function ( addressValues ) {
+	for ( const value in addressValues ) {
+		if ( hasNonAsciiCharacters( addressValues[ value ] ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 const AddressStep = props => {
 	const toggleStepHandler = () => props.toggleStep( props.orderId, props.siteId, props.type );

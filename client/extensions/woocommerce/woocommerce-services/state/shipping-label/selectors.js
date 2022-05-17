@@ -230,23 +230,11 @@ export const isCustomsFormRequired = createSelector(
 		if ( ! values[ field ] ) {
 			errors[ field ] = translate( 'This field is required' );
 		}
-
-		if ( hasNonAsciiCharacters( values[ field ] ) ) {
-			errors[ field ] = translate( 'This field has non-ASCII character' );
-		}
 	} );
 
 	if ( ! name && ! company ) {
 		errors.name = translate( 'Either Name or Company field is required' );
 		errors.company = translate( 'Either Name or Company field is required' );
-	}
-
-	if ( hasNonAsciiCharacters( name ) ) {
-		errors.name = translate( 'Name field has non-ASCII character' );
-	}
-
-	if ( hasNonAsciiCharacters( company ) ) {
-		errors.company = translate( 'Company field has non-ASCII character' );
 	}
 
 	if (
@@ -290,8 +278,6 @@ export const isCustomsFormRequired = createSelector(
 
 	return errors;
 };
-
-const hasNonAsciiCharacters = str => /[^\u0000-\u007f]/.test(str);
 
 const getAddressErrors = ( addressData, appState, siteId, fieldsToValidate = {} ) => {
 	const {
