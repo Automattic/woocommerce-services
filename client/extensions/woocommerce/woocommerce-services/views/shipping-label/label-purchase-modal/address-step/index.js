@@ -49,7 +49,7 @@ const renderSummary = (
 	const addressValues = getAddressValues( addressData );
 
 	if ( ! checkAddressCharacters( addressValues ) ) {
-		return translate( "One of the address data has character(s) that might not be printed as is!" );
+		return translate( "One of the address data has non-roman character(s) that might not be printed properly!" );
 	}
 	const { city, postcode, state, country } = getAddressValues( addressData );
 	// Summary format: "city, state  postcode [, country]"
