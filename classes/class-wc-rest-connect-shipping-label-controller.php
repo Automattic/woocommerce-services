@@ -116,6 +116,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				'service_name'           => $service_names[ $index ],
 				'status'                 => $label_data->label->status,
 				'commercial_invoice_url' => isset( $label_data->label->commercial_invoice_url ) ? $label_data->label->commercial_invoice_url : '',
+				'commercial_invoice_submitted_electronically' => isset( $label_data->label->commercial_invoice_submitted_electronically ) ? $label_data->label->commercial_invoice_submitted_electronically : '',
 			);
 
 			$package = $settings['packages'][ $index ];
