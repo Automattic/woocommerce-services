@@ -35,6 +35,18 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 				);
 			}
 
+			/**
+			 * Only show when object cache is disabled - the tool doesn't work when object cache is enabled.
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
+				$tools['delete_cached_tax_server_responses'] = array(
+					'name'     => __( 'Delete WooCommerce Tax cached tax rate responses', 'woocommerce-services' ),
+					'button'   => __( 'Delete cached Tax transients', 'woocommerce-services' ),
+					'desc'     => __( 'Deletes the all the transients in your database that represent cached Tax Rates responses', 'woocommerce-services' ),
+					'callback' => array( $this, 'delete_cached_tax_server_responses' ),
+				);
+			}
+
 			return $tools;
 		}
 
@@ -104,6 +116,25 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 
 			echo '<div class="updated inline"><p>';
 			echo sprintf( __( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count );
+			echo '</p></div>';
+		}
+
+		/**
+		 * Deletes the all the transients in the database that represent cached Tax Rates responses.
+		 *
+		 * @return void
+		 */
+		function delete_cached_tax_server_responses() {
+			global $wpdb;
+
+			$deleted_count = absint(
+				$wpdb->query(
+					"DELETE FROM {$wpdb->options} WHERE option_name LIKE '%tj\_tax\_%';"
+				)
+			);
+
+			echo '<div class="updated inline"><p>';
+			echo sprintf( __( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), $deleted_count );
 			echo '</p></div>';
 		}
 	}
