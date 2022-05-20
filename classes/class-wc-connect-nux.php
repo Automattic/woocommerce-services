@@ -515,7 +515,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'description'       => sprintf( $description_base, $feature_list ),
 				'button_text'       => $button_text,
 				'image_url'         => $image_url,
-				'should_show_jp'    => true,
+				'should_show_jp'    => false,
 				'should_show_terms' => true,
 			);
 
