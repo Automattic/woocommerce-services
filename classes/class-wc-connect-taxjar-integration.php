@@ -1042,10 +1042,12 @@ class WC_Connect_TaxJar_Integration {
 		if ( $taxes['has_nexus'] ) {
 			// Use Woo core to find matching rates for taxable address
 			$location = array(
-				'to_country' => $to_country,
-				'to_state'   => $to_state,
-				'to_zip'     => $to_zip,
-				'to_city'    => $to_city,
+				'from_country' => $from_country,
+				'from_state'   => $from_state,
+				'to_country'   => $to_country,
+				'to_state'     => $to_state,
+				'to_zip'       => $to_zip,
+				'to_city'      => $to_city,
 			);
 
 			// Add line item tax rates
