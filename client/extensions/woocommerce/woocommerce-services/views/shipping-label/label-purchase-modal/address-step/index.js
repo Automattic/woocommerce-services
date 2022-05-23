@@ -89,7 +89,7 @@ const getNormalizationStatus = ( {
 
 const hasNonAsciiCharacters = str => /[^\u0000-\u007f]/.test(str);
 
-const checkAddressCharacters = function ( addressValues ) {
+const checkAddressCharacters = addressValues => {
 	for ( const value in addressValues ) {
 		if ( hasNonAsciiCharacters( addressValues[ value ] ) ) {
 			return false;
