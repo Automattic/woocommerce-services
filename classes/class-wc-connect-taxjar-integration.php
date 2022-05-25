@@ -1042,10 +1042,12 @@ class WC_Connect_TaxJar_Integration {
 		if ( $taxes['has_nexus'] ) {
 			// Use Woo core to find matching rates for taxable address
 			$location = array(
-				'to_country' => $to_country,
-				'to_state'   => $to_state,
-				'to_zip'     => $to_zip,
-				'to_city'    => $to_city,
+				'from_country' => $from_country,
+				'from_state'   => $from_state,
+				'to_country'   => $to_country,
+				'to_state'     => $to_state,
+				'to_zip'       => $to_zip,
+				'to_city'      => $to_city,
 			);
 
 			// Add line item tax rates
@@ -1098,6 +1100,28 @@ class WC_Connect_TaxJar_Integration {
 		// all the states in GB have the same tax rate
 		// prevents from saving a "state" column value for GB
 		$to_state = 'GB' === $location['to_country'] ? '' : $location['to_state'];
+
+		/**
+		 * @see https://github.com/Automattic/woocommerce-services/issues/2531
+		 * @see https://floridarevenue.com/faq/Pages/FAQDetails.aspx?FAQID=1277&IsDlg=1
+		 *
+		 * According to the Florida Department of Revenue, sales tax must be charged on
+		 * shipping costs if the customer does not have an option to avoid paying the
+		 * merchant for shipping costs by either picking up the merchandise themselves
+		 * or arranging for a third party to pick up the merchandise and deliver it to
+		 * them.
+		 *
+		 * Normally TaxJar enables taxes on shipping by default for Florida to
+		 * Florida shipping, but because WooCommerce uses a single account, a nexus
+		 * cannot be added for Florida (or any state) which means the shipping tax
+		 * is not enabled. So, we will enable it here by default and give merchants
+		 * the option to disable it if needed via filter.
+		 *
+		 * @since 1.26.0
+		 */
+		if ( true === apply_filters( 'woocommerce_taxjar_enable_florida_shipping_tax', true ) && 'US' === $location['to_country'] && 'FL' === $location['from_state'] && 'FL' === $location['to_state'] ) {
+			$freight_taxable = 1;
+		}
 
 		$tax_rate = array(
 			'tax_rate_country'  => $location['to_country'],
