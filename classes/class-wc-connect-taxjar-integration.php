@@ -756,14 +756,14 @@ class WC_Connect_TaxJar_Integration {
 			if ( is_object( $item ) ) { // Woo 3.0+
 				$id             = $item->get_product_id();
 				$quantity       = $item->get_quantity();
-				$unit_price     = wc_format_decimal( $item->get_subtotal() / $quantity );
+				$unit_price     = empty( $quantity ) ? $item->get_subtotal() : wc_format_decimal( $item->get_subtotal() / $quantity );
 				$discount       = wc_format_decimal( $item->get_subtotal() - $item->get_total() );
 				$tax_class_name = $item->get_tax_class();
 				$tax_status     = $item->get_tax_status();
 			} else { // Woo 2.6
 				$id             = $item['product_id'];
 				$quantity       = $item['qty'];
-				$unit_price     = wc_format_decimal( $item['line_subtotal'] / $quantity );
+				$unit_price     = empty( $quantity ) ? $item['line_subtotal'] : wc_format_decimal( $item['line_subtotal'] / $quantity );
 				$discount       = wc_format_decimal( $item['line_subtotal'] - $item['line_total'] );
 				$tax_class_name = $item['tax_class'];
 				$product        = $order->get_product_from_item( $item );
