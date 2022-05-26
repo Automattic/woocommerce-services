@@ -3,6 +3,7 @@
 = 1.26.0 - 2022-xx-xx =
 * Add   - Tool to clear cached Tax server responses from the transients.
 * Tweak - Enable shipping tax by default if is Florida interstate shipping.
+* Fix   - "Division by Zero" fatal error on PHP 8.
 
 = 1.25.28 - 2022-05-12 =
 * Fix   - Notice: Undefined index: 'from_country' when validating TaxJar request.
