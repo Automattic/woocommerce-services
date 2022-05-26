@@ -76,6 +76,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.26.0 - 2022-xx-xx =
+* Add   - Tool to clear cached Tax server responses from the transients.
+* Tweak - Enable shipping tax by default if is Florida interstate shipping.
+
 = 1.25.28 - 2022-05-12 =
 * Fix   - Notice: Undefined index: 'from_country' when validating TaxJar request.
 
