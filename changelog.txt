@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.26.0 - 2022-xx-xx =
+= 1.26.0 - 2022-05-26 =
 * Add   - Tool to clear cached Tax server responses from the transients.
 * Tweak - Enable shipping tax by default if is Florida interstate shipping.
 
