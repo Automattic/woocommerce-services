@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.9
-Stable tag: 1.25.28
+Stable tag: 1.26.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.26.0 - 2022-05-27 =
+* Add   - Tool to clear cached Tax server responses from the transients.
+* Tweak - Enable shipping tax by default if is Florida interstate shipping.
 
 = 1.25.28 - 2022-05-12 =
 * Fix   - Notice: Undefined index: 'from_country' when validating TaxJar request.
