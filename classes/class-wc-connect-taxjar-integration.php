@@ -1014,7 +1014,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! isset( $response ) ) {
 			$this->_log( 'Received: none.' );
 
-			return $taxes;
+			return apply_filters( 'taxjar_calculate_tax_result', $taxes, null, $body );
 		}
 
 		// Log the response
@@ -1085,7 +1085,7 @@ class WC_Connect_TaxJar_Integration {
 			);
 		} // End if().
 
-		return $taxes;
+		return apply_filters( 'taxjar_calculate_tax_result', $taxes, $response, $body );
 	} // End calculate_tax().
 
 	/**
@@ -1123,18 +1123,23 @@ class WC_Connect_TaxJar_Integration {
 			$freight_taxable = 1;
 		}
 
-		$tax_rate = array(
-			'tax_rate_country'  => $location['to_country'],
-			'tax_rate_state'    => $to_state,
-			// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
-			// I would love to do this for other locations, but it looks like that would create issues.
-			// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
-			'tax_rate_name'     => sprintf( '%s Tax', self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state ) ),
-			'tax_rate_priority' => 1,
-			'tax_rate_compound' => false,
-			'tax_rate_shipping' => $freight_taxable,
-			'tax_rate'          => $rate,
-			'tax_rate_class'    => $tax_class,
+		$tax_rate = apply_filters(
+			'taxjar_tax_rate',
+			array(
+				'tax_rate_country'  => $location['to_country'],
+				'tax_rate_state'    => $to_state,
+				// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
+				// I would love to do this for other locations, but it looks like that would create issues.
+				// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
+				'tax_rate_name'     => sprintf( '%s Tax', self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state ) ),
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => false,
+				'tax_rate_shipping' => $freight_taxable,
+				'tax_rate'          => $rate,
+				'tax_rate_class'    => $tax_class,
+			),
+			$taxjar_response,
+			$location
 		);
 
 		$wc_rate = WC_Tax::find_rates(
@@ -1235,7 +1240,7 @@ class WC_Connect_TaxJar_Integration {
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
 
-		if ( false === $response ) {
+		if ( true || false === $response ) {
 			$response      = $this->smartcalcs_request( $json );
 			$response_code = wp_remote_retrieve_response_code( $response );
 
@@ -1252,7 +1257,7 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		return $response;
+		return apply_filters( 'taxjar_smartcalcs_cache_response', $response, $json, $cache_key, $response_code );
 	}
 
 	/**
@@ -1285,15 +1290,16 @@ class WC_Connect_TaxJar_Integration {
 				'body'    => $json,
 			)
 		);
-
+		error_log( 'yes test this ok' );
+		error_log( print_r( $response, true ) );
 		if ( is_wp_error( $response ) ) {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
-		} elseif ( 200 == $response['response']['code'] ) {
-			return $response;
-		} elseif ( 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
-			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+		} elseif ( 200 == $response['response']['code'] || 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
+			if ( 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
+				$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+			}
 
-			return $response;
+			return apply_filters( 'taxjar_smartcalcs_response', $response, $json, $path );
 		} else {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
