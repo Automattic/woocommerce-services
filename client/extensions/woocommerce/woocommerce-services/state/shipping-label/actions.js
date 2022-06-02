@@ -44,7 +44,7 @@ import {
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
-import { 
+import {
 	getEmailReceipts,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
@@ -1002,7 +1002,7 @@ const getCustomsFormsFromLabels = ( labels ) => {
 		.map( ( label ) => {
 			return {
 				url: label.commercial_invoice_url,
-				submitted_electronically: label.commercial_invoice_submitted_electronically,
+				submitted_electronically: label.is_commercial_invoice_submitted_electronically,
 			};
 		} );
 
