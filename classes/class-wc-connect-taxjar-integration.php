@@ -1290,8 +1290,7 @@ class WC_Connect_TaxJar_Integration {
 				'body'    => $json,
 			)
 		);
-		error_log( 'yes test this ok' );
-		error_log( print_r( $response, true ) );
+
 		if ( is_wp_error( $response ) ) {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
 		} elseif ( 200 == $response['response']['code'] || 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
