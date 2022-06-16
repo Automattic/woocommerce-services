@@ -1008,13 +1008,20 @@ class WC_Connect_TaxJar_Integration {
 			$body['line_items'] = $line_items;
 		}
 
+		$skip_taxjar_request_taxes = apply_filters( 'woocommerce_services_skip_taxjar_request', false, $taxes, $body );
+
+		if ( false !== $skip_taxjar_request_taxes ) {
+			// 4th parameter set to true indicate the this filter is skipped the TaxJar request.
+			return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $skip_taxjar_request_taxes, null, $body, true );
+		}
+
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
 		// if no response, no need to keep going - bail early
 		if ( ! isset( $response ) ) {
 			$this->_log( 'Received: none.' );
 
-			return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $taxes, null, $body );
+			return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $taxes, null, $body, $skip_taxjar_request_taxes );
 		}
 
 		// Log the response
@@ -1085,7 +1092,7 @@ class WC_Connect_TaxJar_Integration {
 			);
 		} // End if().
 
-		return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $taxes, $response, $body );
+		return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $taxes, $response, $body, $skip_taxjar_request_taxes );
 	} // End calculate_tax().
 
 	/**
