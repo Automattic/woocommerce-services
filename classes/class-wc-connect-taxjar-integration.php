@@ -1014,7 +1014,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! isset( $response ) ) {
 			$this->_log( 'Received: none.' );
 
-			return apply_filters( 'taxjar_calculate_tax_result', $taxes, null, $body );
+			return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $taxes, null, $body );
 		}
 
 		// Log the response
@@ -1085,7 +1085,7 @@ class WC_Connect_TaxJar_Integration {
 			);
 		} // End if().
 
-		return apply_filters( 'taxjar_calculate_tax_result', $taxes, $response, $body );
+		return apply_filters( 'woocommerce_services_taxjar_calculate_tax_result', $taxes, $response, $body );
 	} // End calculate_tax().
 
 	/**
@@ -1124,7 +1124,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$tax_rate = apply_filters(
-			'taxjar_tax_rate',
+			'woocommerce_services_pre_taxjar_rate_save',
 			array(
 				'tax_rate_country'  => $location['to_country'],
 				'tax_rate_state'    => $to_state,
@@ -1257,7 +1257,7 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		return apply_filters( 'taxjar_smartcalcs_cache_response', $response, $json, $cache_key, $response_code );
+		return apply_filters( 'woocommerce_services_taxjar_smartcalcs_cache_response', $response, $json, $cache_key, $response_code );
 	}
 
 	/**
@@ -1298,7 +1298,7 @@ class WC_Connect_TaxJar_Integration {
 				$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 			}
 
-			return apply_filters( 'taxjar_smartcalcs_response', $response, $json, $path );
+			return apply_filters( 'woocommerce_services_taxjar_smartcalcs_response', $response, $json, $path );
 		} else {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
