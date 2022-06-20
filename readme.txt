@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.9
-Stable tag: 1.26.1
+Stable tag: 1.26.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,7 +76,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 1.26.1 - 2022-06-20 =
+= 1.26.1 - 2022-xx-xx =
 * Add   - Display warning if non-roman character is entered in address fields.
 * Fix   - "Division by Zero" fatal error on PHP 8.
 
