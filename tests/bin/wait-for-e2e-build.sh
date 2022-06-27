@@ -12,7 +12,6 @@ WP_BASE_URL=$(node ./tests/bin/get-base-url.js)
 printf "Testing URL: $WP_BASE_URL\n\n"
 
 while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' ${WP_BASE_URL}/?pagename=ready)" != "200" ]]
-
 do
   echo "$(date) - Docker container is still being built"
   sleep ${DELAY_SEC}
@@ -25,6 +24,6 @@ do
   fi
 done
 
-if [[ $count -gt 0 ]]; then
+if [[ $count -ge 0 ]]; then
   echo "$(date) - Docker container had been built successfully"
 fi
