@@ -1,5 +1,9 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 1.26.3 - 2022-xx-xx =
+* Fix - E2E Tests: npm ci, update puppeteer to v2
+* Fix - JS Tests: npm ci
+
 = 1.26.2 - 2022-xx-xx =
 * Tweak - Replace colors npm package with chalk
 
