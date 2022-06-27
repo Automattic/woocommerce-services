@@ -19,7 +19,6 @@ jobs:
       - run: git config --global url.https://github.com/.insteadOf git://github.com/
       - run: npm ci
       - run: npm run dist
-      - run: npm run test:e2e-docker-down
       - run: npm run test:e2e-docker-up
       - run: npm run test:e2e-docker-ping
       - run: npm run test:e2e
