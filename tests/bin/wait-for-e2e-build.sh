@@ -10,14 +10,15 @@ DELAY_SEC=10
 count=0
 WP_BASE_URL=$(node ./tests/bin/get-base-url.js)
 printf "Testing URL: $WP_BASE_URL\n\n"
+ready_page=$(curl -s ${WP_BASE_URL}/?pagename=ready)
 
-while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' ${WP_BASE_URL}/?pagename=ready)" != "200" ]]
-
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' ${WP_BASE_URL}/?pagename=ready)" != "200" || $ready_page != *"E2E-tests"* ]]
 do
   echo "$(date) - Docker container is still being built"
   sleep ${DELAY_SEC}
 
   ((count++))
+  ready_page=$(curl -s ${WP_BASE_URL}/?pagename=ready)
 
   if [[ $count -gt ${MAX_ATTEMPTS} ]]; then
   	echo "$(date) - Docker container couldn't be built"
@@ -25,6 +26,6 @@ do
   fi
 done
 
-if [[ $count -gt 0 ]]; then
+if [[ $count -ge 0 ]]; then
   echo "$(date) - Docker container had been built successfully"
 fi
