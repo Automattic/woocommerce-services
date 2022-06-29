@@ -2,6 +2,9 @@
 
 = 1.26.2 - 2022-xx-xx =
 * Fix   - Change the wp-calypso commit to fix NPM Error when run `npm run prepare`. 
+* Fix   - E2E Tests: npm ci, update puppeteer to v2
+* Fix   - JS Tests: npm ci
+* Tweak - Replace colors npm package with chalk
 
 = 1.26.1 - 2022-06-21 =
 * Add   - Display warning if non-roman character is entered in address fields.
