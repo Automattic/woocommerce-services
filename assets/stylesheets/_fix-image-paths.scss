@@ -1,6 +1,6 @@
 // Fix paths in calypso css. Calypso updates have been known to rename files so we'll serve them locally instead of from wp.com
 input[type='checkbox'] {
 	&:checked::before {
-		content: url( '../../wp-calypso/public/images/checkbox-icons/checkmark-primary.svg' );
+		content: url( '../../wp-calypso/static/images/checkbox-icons/checkmark-primary.svg' );
 	}
 }
