@@ -1008,14 +1008,9 @@ class WC_Connect_TaxJar_Integration {
 			$body['line_items'] = $line_items;
 		}
 
-		$skip_taxjar_request_taxes = apply_filters( 'woocommerce_services_skip_taxjar_request', false, $taxes, $body );
-
-		if ( false !== $skip_taxjar_request_taxes ) {
-			// 4th parameter set to true indicate the this filter is skipped the TaxJar request.
-			return apply_filters( 'woocommerce_services_custom_tax_result', $taxes, $body );
-		}
-
-		$response = apply_filters( 'woocommerce_services_taxjar_response', $this->smartcalcs_cache_request( wp_json_encode( $body ) ), $taxes, $body );
+		// Use this filter to custom the response.
+		$custom_response = apply_filters( 'woocommerce_services_custom_response', array(), $taxes, $body );
+		$response        = ( empty( $custom_response ) ) ? $this->smartcalcs_cache_request( wp_json_encode( $body ) ) : $custom_response;
 
 		// if no response, no need to keep going - bail early
 		if ( ! isset( $response ) ) {
@@ -1028,7 +1023,7 @@ class WC_Connect_TaxJar_Integration {
 		$this->_log( 'Received: ' . $response['body'] );
 
 		// Decode Response
-		$taxjar_response = json_decode( $response['body'] );
+		$taxjar_response = apply_filters( 'woocommerce_services_taxjar_response', json_decode( $response['body'] ), $taxes, $body );
 		$taxjar_response = $taxjar_response->tax;
 
 		// Update Properties based on Response
