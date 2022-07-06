@@ -1163,23 +1163,18 @@ class WC_Connect_TaxJar_Integration {
 			$freight_taxable = 1;
 		}
 
-		$tax_rate = apply_filters(
-			'woocommerce_services_pre_taxjar_rate_save',
-			array(
-				'tax_rate_country'  => $location['to_country'],
-				'tax_rate_state'    => $to_state,
-				// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
-				// I would love to do this for other locations, but it looks like that would create issues.
-				// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
-				'tax_rate_name'     => sprintf( '%s Tax', self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state ) ),
-				'tax_rate_priority' => 1,
-				'tax_rate_compound' => false,
-				'tax_rate_shipping' => $freight_taxable,
-				'tax_rate'          => $rate,
-				'tax_rate_class'    => $tax_class,
-			),
-			$taxjar_response,
-			$location
+		$tax_rate = array(
+			'tax_rate_country'  => $location['to_country'],
+			'tax_rate_state'    => $to_state,
+			// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
+			// I would love to do this for other locations, but it looks like that would create issues.
+			// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
+			'tax_rate_name'     => sprintf( '%s Tax', self::generate_tax_rate_name( $taxjar_response, $location['to_country'], $to_state ) ),
+			'tax_rate_priority' => 1,
+			'tax_rate_compound' => false,
+			'tax_rate_shipping' => $freight_taxable,
+			'tax_rate'          => $rate,
+			'tax_rate_class'    => $tax_class,
 		);
 
 		$wc_rate = WC_Tax::find_rates(
