@@ -1337,6 +1337,8 @@ class WC_Connect_TaxJar_Integration {
 			return $response;
 		} elseif ( 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
+
+			return $response;
 		} else {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
