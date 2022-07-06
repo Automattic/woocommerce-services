@@ -888,6 +888,44 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * This method is used to override the TaxJar result.
+	 *
+	 * @param object $taxjar_resp_tax TaxJar response object.
+	 * @param array  $taxes           Default value of taxes variable.
+	 * @param array  $body            Body of TaxJar request.
+	 *
+	 * @return object
+	 */
+	public function override_taxjar_tax( $taxjar_resp_tax, $taxes, $body ) {
+		$new_tax_rate = apply_filters( 'woocommerce_services_override_tax', 0, $taxes, $body );
+
+		if ( $new_tax_rate > 0 ) {
+			if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
+				$taxjar_resp_tax->breakdown->line_items = array_map(
+					function( $line_item ) use ( $new_tax_rate ) {
+						$line_item->combined_tax_rate       = $new_tax_rate;
+						$line_item->country_tax_rate        = $new_tax_rate;
+						$line_item->country_tax_collectable = $line_item->country_taxable_amount * $new_tax_rate;
+						$line_item->tax_collectable         = $line_item->taxable_amount * $new_tax_rate;
+
+						return $line_item;
+					},
+					$taxjar_resp_tax->breakdown->line_items
+				);
+			}
+
+			$taxjar_resp_tax->breakdown->combined_tax_rate           = $new_tax_rate;
+			$taxjar_resp_tax->breakdown->country_tax_rate            = $new_tax_rate;
+			$taxjar_resp_tax->breakdown->shipping->combined_tax_rate = $new_tax_rate;
+			$taxjar_resp_tax->breakdown->shipping->country_tax_rate  = $new_tax_rate;
+
+			$taxjar_resp_tax->rate = $new_tax_rate;
+		}
+
+		return $taxjar_resp_tax;
+	}
+
+	/**
 	 * Calculate sales tax using SmartCalcs
 	 *
 	 * Direct from the TaxJar plugin, without Nexus check.
@@ -1016,15 +1054,15 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! isset( $response ) ) {
 			$this->_log( 'Received: none.' );
 
-			return apply_filters( 'woocommerce_services_taxjar_no_response', $taxes, $body );
+			return $taxes;
 		}
 
 		// Log the response
 		$this->_log( 'Received: ' . $response['body'] );
 
 		// Decode Response
-		$taxjar_response = apply_filters( 'woocommerce_services_taxjar_response', json_decode( $response['body'] ), $taxes, $body );
-		$taxjar_response = $taxjar_response->tax;
+		$taxjar_response = json_decode( $response['body'] );
+		$taxjar_response = $this->override_taxjar_tax( $taxjar_response->tax, $taxes, $body );
 
 		// Update Properties based on Response
 		$taxes['freight_taxable'] = (int) $taxjar_response->freight_taxable;
@@ -1087,7 +1125,7 @@ class WC_Connect_TaxJar_Integration {
 			);
 		} // End if().
 
-		return apply_filters( 'woocommerce_services_taxjar_taxes', $taxes, $response, $body );
+		return $taxes;
 	} // End calculate_tax().
 
 	/**
@@ -1295,12 +1333,10 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( is_wp_error( $response ) ) {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
-		} elseif ( 200 == $response['response']['code'] || 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
-			if ( 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
-				$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
-			}
-
-			return apply_filters( 'woocommerce_services_taxjar_smartcalcs_response', $response, $json, $path );
+		} elseif ( 200 == $response['response']['code'] ) {
+			return $response;
+		} elseif ( 404 == $response['response']['code'] || 400 == $response['response']['code'] ) {
+			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		} else {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
