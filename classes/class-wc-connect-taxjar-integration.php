@@ -1087,7 +1087,7 @@ class WC_Connect_TaxJar_Integration {
 			);
 		} // End if().
 
-		return apply_filters( 'woocommerce_services_taxjar_taxes', $taxes, $response, $body, $skip_taxjar_request_taxes );
+		return apply_filters( 'woocommerce_services_taxjar_taxes', $taxes, $response, $body );
 	} // End calculate_tax().
 
 	/**
