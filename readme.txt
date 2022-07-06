@@ -4,7 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 5.9
-Stable tag: 1.26.1
+Stable tag: 1.26.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 1.26.2 - 2022-07-04 =
+* Fix   - Change the wp-calypso commit to fix NPM Error when run `npm run prepare`. 
+* Fix   - E2E Tests: npm ci, update puppeteer to v2
+* Fix   - JS Tests: npm ci
+* Tweak - Replace colors npm package with chalk
 
 = 1.26.1 - 2022-06-21 =
 * Add   - Display warning if non-roman character is entered in address fields.
