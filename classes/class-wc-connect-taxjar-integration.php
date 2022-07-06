@@ -891,15 +891,14 @@ class WC_Connect_TaxJar_Integration {
 	 * This method is used to override the TaxJar result.
 	 *
 	 * @param object $taxjar_resp_tax TaxJar response object.
-	 * @param array  $taxes           Default value of taxes variable.
 	 * @param array  $body            Body of TaxJar request.
 	 *
 	 * @return object
 	 */
-	public function override_taxjar_tax( $taxjar_resp_tax, $taxes, $body ) {
-		$new_tax_rate = apply_filters( 'woocommerce_services_override_tax', 0, $taxes, $body );
+	public function override_taxjar_tax( $taxjar_resp_tax, $body ) {
+		$new_tax_rate = apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body );
 
-		if ( $new_tax_rate > 0 ) {
+		if ( $new_tax_rate !== $taxjar_resp_tax->rate ) {
 			if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
 				$taxjar_resp_tax->breakdown->line_items = array_map(
 					function( $line_item ) use ( $new_tax_rate ) {
@@ -1062,7 +1061,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response
 		$taxjar_response = json_decode( $response['body'] );
-		$taxjar_response = $this->override_taxjar_tax( $taxjar_response->tax, $taxes, $body );
+		$taxjar_response = $this->override_taxjar_tax( $taxjar_response->tax, $body );
 
 		// Update Properties based on Response
 		$taxes['freight_taxable'] = (int) $taxjar_response->freight_taxable;
