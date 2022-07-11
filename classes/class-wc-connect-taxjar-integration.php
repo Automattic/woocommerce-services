@@ -895,31 +895,33 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return object
 	 */
-	public function override_taxjar_tax( $taxjar_resp_tax, $body ) {
-		$new_tax_rate = apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body );
+	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
+		$new_tax_rate = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body ) );
 
-		if ( $new_tax_rate !== $taxjar_resp_tax->rate ) {
-			if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
-				$taxjar_resp_tax->breakdown->line_items = array_map(
-					function( $line_item ) use ( $new_tax_rate ) {
-						$line_item->combined_tax_rate       = $new_tax_rate;
-						$line_item->country_tax_rate        = $new_tax_rate;
-						$line_item->country_tax_collectable = $line_item->country_taxable_amount * $new_tax_rate;
-						$line_item->tax_collectable         = $line_item->taxable_amount * $new_tax_rate;
-
-						return $line_item;
-					},
-					$taxjar_resp_tax->breakdown->line_items
-				);
-			}
-
-			$taxjar_resp_tax->breakdown->combined_tax_rate           = $new_tax_rate;
-			$taxjar_resp_tax->breakdown->country_tax_rate            = $new_tax_rate;
-			$taxjar_resp_tax->breakdown->shipping->combined_tax_rate = $new_tax_rate;
-			$taxjar_resp_tax->breakdown->shipping->country_tax_rate  = $new_tax_rate;
-
-			$taxjar_resp_tax->rate = $new_tax_rate;
+		if ( $new_tax_rate === floatval( $taxjar_resp_tax->rate ) ) {
+			return $taxjar_resp_tax;
 		}
+
+		if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
+			$taxjar_resp_tax->breakdown->line_items = array_map(
+				function( $line_item ) use ( $new_tax_rate ) {
+					$line_item->combined_tax_rate       = $new_tax_rate;
+					$line_item->country_tax_rate        = $new_tax_rate;
+					$line_item->country_tax_collectable = $line_item->country_taxable_amount * $new_tax_rate;
+					$line_item->tax_collectable         = $line_item->taxable_amount * $new_tax_rate;
+
+					return $line_item;
+				},
+				$taxjar_resp_tax->breakdown->line_items
+			);
+		}
+
+		$taxjar_resp_tax->breakdown->combined_tax_rate           = $new_tax_rate;
+		$taxjar_resp_tax->breakdown->country_tax_rate            = $new_tax_rate;
+		$taxjar_resp_tax->breakdown->shipping->combined_tax_rate = $new_tax_rate;
+		$taxjar_resp_tax->breakdown->shipping->country_tax_rate  = $new_tax_rate;
+
+		$taxjar_resp_tax->rate = $new_tax_rate;
 
 		return $taxjar_resp_tax;
 	}
@@ -1046,8 +1048,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// Use this filter to custom the response.
-		$custom_response = apply_filters( 'woocommerce_services_custom_response', array(), $taxes, $body );
-		$response        = ( empty( $custom_response ) ) ? $this->smartcalcs_cache_request( wp_json_encode( $body ) ) : $custom_response;
+		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
 		// if no response, no need to keep going - bail early
 		if ( ! isset( $response ) ) {
@@ -1061,7 +1062,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response
 		$taxjar_response = json_decode( $response['body'] );
-		$taxjar_response = $this->override_taxjar_tax( $taxjar_response->tax, $body );
+		$taxjar_response = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
 
 		// Update Properties based on Response
 		$taxes['freight_taxable'] = (int) $taxjar_response->freight_taxable;
