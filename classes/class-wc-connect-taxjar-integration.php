@@ -1047,7 +1047,6 @@ class WC_Connect_TaxJar_Integration {
 			$body['line_items'] = $line_items;
 		}
 
-		// Use this filter to custom the response.
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
 		// if no response, no need to keep going - bail early
