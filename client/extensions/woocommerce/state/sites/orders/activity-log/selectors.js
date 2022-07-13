@@ -222,6 +222,7 @@ export const getActivityLogEvents = ( state, orderId, siteId = getSelectedSiteId
 				showDetails:
 					! label.refund || 'rejected' === label.refund.status || 'unknown' === label.refund.status,
 				commercialInvoiceUrl: label.commercial_invoice_url,
+				isCommercialInvoiceSubmittedElectronically: label.is_commercial_invoice_submitted_electronically,
 			} );
 		} );
 	}
