@@ -888,6 +888,45 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * This method is used to override the TaxJar result.
+	 *
+	 * @param object $taxjar_resp_tax TaxJar response object.
+	 * @param array  $body            Body of TaxJar request.
+	 *
+	 * @return object
+	 */
+	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
+		$new_tax_rate = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body ) );
+
+		if ( $new_tax_rate === floatval( $taxjar_resp_tax->rate ) ) {
+			return $taxjar_resp_tax;
+		}
+
+		if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
+			$taxjar_resp_tax->breakdown->line_items = array_map(
+				function( $line_item ) use ( $new_tax_rate ) {
+					$line_item->combined_tax_rate       = $new_tax_rate;
+					$line_item->country_tax_rate        = $new_tax_rate;
+					$line_item->country_tax_collectable = $line_item->country_taxable_amount * $new_tax_rate;
+					$line_item->tax_collectable         = $line_item->taxable_amount * $new_tax_rate;
+
+					return $line_item;
+				},
+				$taxjar_resp_tax->breakdown->line_items
+			);
+		}
+
+		$taxjar_resp_tax->breakdown->combined_tax_rate           = $new_tax_rate;
+		$taxjar_resp_tax->breakdown->country_tax_rate            = $new_tax_rate;
+		$taxjar_resp_tax->breakdown->shipping->combined_tax_rate = $new_tax_rate;
+		$taxjar_resp_tax->breakdown->shipping->country_tax_rate  = $new_tax_rate;
+
+		$taxjar_resp_tax->rate = $new_tax_rate;
+
+		return $taxjar_resp_tax;
+	}
+
+	/**
 	 * Calculate sales tax using SmartCalcs
 	 *
 	 * Direct from the TaxJar plugin, without Nexus check.
@@ -1022,7 +1061,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response
 		$taxjar_response = json_decode( $response['body'] );
-		$taxjar_response = $taxjar_response->tax;
+		$taxjar_response = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
 
 		// Update Properties based on Response
 		$taxes['freight_taxable'] = (int) $taxjar_response->freight_taxable;

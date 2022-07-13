@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
++ 1.26.3 - 2022-xx-xx =
+* Add   - Add filter to override TaxJar result.
+
 = 1.26.2 - 2022-07-04 =
 * Fix   - Change the wp-calypso commit to fix NPM Error when run `npm run prepare`. 
 * Fix   - E2E Tests: npm ci, update puppeteer to v2
