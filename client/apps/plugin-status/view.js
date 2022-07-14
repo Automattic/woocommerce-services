@@ -22,7 +22,7 @@ import {
 	toggleDebugging,
 } from './state/actions';
 
-const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, translate } ) => {
+const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, taxRateBackups, translate } ) => {
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
@@ -57,6 +57,33 @@ const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isD
 					logKey="other"
 					title={ translate( 'Other Log' ) } />
 			</SettingsGroupCard>
+
+			{ taxRateBackups ? <SettingsGroupCard heading={ translate( 'Tax Rates' ) }>
+				<FormFieldset>
+					<FormLegend id="tax-rate-backups">{ translate( 'Download Backed-up Tax Rates' ) }</FormLegend>
+					<p className="plugin-status__help-description">
+						{ translate( 'Simply click a file below to download it, then import it into the {{taxRatesA}}tax rates table{{/taxRatesA}}.', {
+							components: {
+								taxRatesA:
+									<a href="/wp-admin/admin.php?page=wc-settings&tab=tax&section=standard" />,
+							},
+						} ) }
+
+						<br />
+
+						<br />
+
+						<ul>
+							{ Object.keys( taxRateBackups ).map( ( filename, i ) => {
+								return ( <li key={ i }>
+									<a href={ taxRateBackups[ filename ] }>{ filename }</a>
+								</li> );
+							} ) }
+						</ul>
+					</p>
+				</FormFieldset>
+			</SettingsGroupCard> : '' }
+
 			<SettingsGroupCard heading={ translate( 'Support' ) }>
 				<FormFieldset>
 					<FormLegend>{ translate( 'Need help?' ) }</FormLegend>
@@ -84,6 +111,7 @@ const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isD
 const mapStateToProps = ( state ) => ( {
 	isLoggingEnabled: Boolean( state.status.logging_enabled ),
 	isDebuggingEnabled: Boolean( state.status.debug_enabled ),
+	taxRateBackups: state.status.tax_rate_backups,
 } );
 
 const mapDispatchToProps = {
