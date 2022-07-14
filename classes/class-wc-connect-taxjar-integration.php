@@ -173,11 +173,20 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function add_tax_settings( $tax_settings ) {
-		$enabled = $this->is_enabled();
+		$enabled                = $this->is_enabled();
+		$backedup_tax_rates_url = admin_url( '/admin.php?page=wc-status&tab=connect#tax-rate-backups' );
 
-		$powered_by_wct_notice       = '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>';
+		$powered_by_wct_notice = '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>';
+
+		if ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) {
+			$powered_by_wct_notice .= '<p>' . sprintf( __( 'You\'re previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . $backedup_tax_rates_url . '">', '</a>' ) . '</p>';
+		}
+
 		$desctructive_action_notice  = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
-		$tax_nexus_notice            = '<p>' . $this->get_tax_tooltip() . '</p>';
+		$desctructive_action_notice .= '<p>' . sprintf( __( 'You\'re existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . $backedup_tax_rates_url . '">', '</a>' ) . '</p>';
+
+		$tax_nexus_notice = '<p>' . $this->get_tax_tooltip() . '</p>';
+
 		$automated_taxes_description = join(
 			'',
 			$enabled ? [
