@@ -262,5 +262,29 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			return (bool) $backed_up;
 		}
+
+		/**
+		 * Search the uploads directory and return all backed up
+		 * tax rate files.
+		 *
+		 * @return array|false
+		 */
+		public static function get_backed_up_tax_rate_files() {
+			$upload_dir  = wp_upload_dir();
+			$pattern     = $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv';
+			$found_files = glob( $pattern );
+
+			if ( empty( $found_files ) ) {
+				return false;
+			}
+
+			$files = [];
+			foreach ( $found_files as $file ) {
+				$filename           = basename( $file );
+				$files[ $filename ] = $upload_dir['baseurl'] . '/' . $filename;
+			}
+
+			return $files;
+		}
 	}
 }
