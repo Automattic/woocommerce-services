@@ -62,7 +62,7 @@ const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isD
 				<FormFieldset>
 					<FormLegend id="tax-rate-backups">{ translate( 'Download Backed-up Tax Rates' ) }</FormLegend>
 					<p className="plugin-status__help-description">
-						{ translate( 'Simply click a file below to download it, then import it into the {{taxRatesA}}tax rates table{{/taxRatesA}}.', {
+						{ translate( 'Click a file below to download it, then import it into the {{taxRatesA}}tax rates table{{/taxRatesA}}.', {
 							components: {
 								taxRatesA:
 									<a href="/wp-admin/admin.php?page=wc-settings&tab=tax&section=standard" />,
