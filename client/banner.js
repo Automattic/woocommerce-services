@@ -22,12 +22,13 @@ jQuery( document ).ready( ( $ ) => {
 			.then( connectStep )
 			.fail( function( error ) {
 				let errorMessage = error;
-				if ( ! error ) {
-					errorMessage = wcs_nux_notice.translations.defaultError;
-				}
+				// plugin install error.
 				if ( error && error.install && 'plugin' === error.install ) {
-					// plugin install error
 					errorMessage = wcs_nux_notice.translations.installError;
+				
+				// catch error object for the non 'plugin' error.install.
+				} else if ( ! error || ( error && typeof error === 'object' ) ) {
+					errorMessage = wcs_nux_notice.translations.defaultError;
 				}
 				$( '<p/>', {
 					// eslint-disable-next-line quote-props
