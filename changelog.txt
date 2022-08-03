@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.26.3 - 2022-xx-xx =
+= 1.26.3 - 2022-08-03 =
 * Tweak - Always let the user to pick the package box.
 * Add   - Add filter to override TaxJar result.
 * Fix   - Uncatch error when installing/connecting the Jetpack. 
