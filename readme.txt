@@ -76,6 +76,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 1.26.3 - 2022-xx-xx =
+* Tweak - Always let the user to pick the package box.
+* Add   - Add filter to override TaxJar result.
+* Fix   - Uncatch error when installing/connecting the Jetpack. 
+
 = 1.26.2 - 2022-07-04 =
 * Fix   - Change the wp-calypso commit to fix NPM Error when run `npm run prepare`. 
 * Fix   - E2E Tests: npm ci, update puppeteer to v2
