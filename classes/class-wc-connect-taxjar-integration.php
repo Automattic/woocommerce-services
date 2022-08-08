@@ -339,13 +339,23 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function get_store_settings() {
-		$store_settings = array(
-			'street'   => WC()->countries->get_base_address(),
-			'city'     => WC()->countries->get_base_city(),
-			'state'    => WC()->countries->get_base_state(),
-			'country'  => WC()->countries->get_base_country(),
-			'postcode' => WC()->countries->get_base_postcode(),
-		);
+		if ( version_compare( WC()->version, '3.1.1', '<' ) ) {
+			$store_settings = array(
+				'street'   => get_option( 'woocommerce_store_address' ),
+				'city'     => get_option( 'woocommerce_store_city' ),
+				'state'    => WC()->countries->get_base_state(),
+				'country'  => WC()->countries->get_base_country(),
+				'postcode' => get_option( 'woocommerce_store_postcode' ),
+			);
+		} else {
+			$store_settings = array(
+				'street'   => WC()->countries->get_base_address(),
+				'city'     => WC()->countries->get_base_city(),
+				'state'    => WC()->countries->get_base_state(),
+				'country'  => WC()->countries->get_base_country(),
+				'postcode' => WC()->countries->get_base_postcode(),
+			);
+		}
 
 		return apply_filters( 'taxjar_store_settings', $store_settings, array() );
 	}
