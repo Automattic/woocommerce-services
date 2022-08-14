@@ -301,7 +301,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			$origin_normalized      = (bool) WC_Connect_Options::get_option( 'origin_address', false );
-			$destination_normalized = (bool) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
+			$destination_normalized = (bool) $order->get_meta( '_wc_connect_destination_normalized', true );
 
 			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'origin_normalized', 'destination_normalized' );
 
