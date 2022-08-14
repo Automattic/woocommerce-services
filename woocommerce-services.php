@@ -1555,15 +1555,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		function get_shipping_phone_from_order( $fields, $address_type, WC_Order $order ) {
-			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
-			if ( 'shipping' === $address_type ) {
-				$shipping_phone = get_post_meta( $order_id, '_shipping_phone', true );
-				if ( ! $shipping_phone ) {
-					$billing_address = $order->get_address( 'billing' );
-					$shipping_phone  = $billing_address['phone'];
-				}
-				$fields['phone'] = $shipping_phone;
+			if ( 'shipping' !== $address_type ) {
+				return $fields;
 			}
+
+			$fields['phone'] = $order->get_shipping_phone() ? $order->get_shipping_phone() : $order->get_billing_phone();
+
 			return $fields;
 		}
 
