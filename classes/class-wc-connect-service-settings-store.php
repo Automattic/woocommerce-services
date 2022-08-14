@@ -257,6 +257,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
 			$result      = $new_label_data;
+			$order       = wc_get_order( $order_id );
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			foreach ( $labels_data as $index => $label_data ) {
 				if ( $label_data['label_id'] === $new_label_data->label_id ) {
@@ -269,7 +270,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					}
 				}
 			}
-			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
+			$order->update_meta_data( 'wc_connect_labels', $labels_data );
+			$order->save_meta_data();
 			return $result;
 		}
 
