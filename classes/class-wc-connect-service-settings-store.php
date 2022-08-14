@@ -232,7 +232,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_label_order_meta_data( $order_id ) {
-			$label_data = get_post_meta( (int) $order_id, 'wc_connect_labels', true );
+			$order      = wc_get_order( $order_id );
+			$label_data = $order->get_meta( 'wc_connect_labels', true );
 			// return an empty array if the data doesn't exist.
 			if ( ! $label_data ) {
 				return array();
