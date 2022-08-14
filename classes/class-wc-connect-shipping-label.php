@@ -450,8 +450,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			// If the order already has purchased labels, show the meta-box no matter what
-			if ( get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true ) ) {
+			// If the order already has purchased labels, show the meta-box no matter what.
+			if ( $order->get_meta( 'wc_connect_labels', true ) ) {
 				return true;
 			}
 
