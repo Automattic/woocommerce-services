@@ -15,7 +15,6 @@ WC_VERSION=${6-"5.0.0"}
 install_wc() {
 	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
 	composer install -d /tmp/woocommerce
-
 	echo "Done unzipping WooCommerce\n"
 }
 
