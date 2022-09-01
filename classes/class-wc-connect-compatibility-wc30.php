@@ -113,11 +113,11 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 				$line_variation_id = $line_item->get_variation_id();
 
 				if ( ! $line_product_id ) {
-					$line_product_id = (int) get_metadata( 'order_item', $line_item->get_id(), '_product_id', true );
+					$line_product_id = (int) $line_item->get_meta( '_product_id', true );
 				}
 
 				if ( ! $line_variation_id ) {
-					$line_variation_id = (int) get_metadata( 'order_item', $line_item->get_id(), '_variation_id', true );
+					$line_variation_id = (int) $line_item->get_meta( '_variation_id', true );
 				}
 
 				if ( $line_product_id === $product_id || $line_variation_id === $product_id ) {
@@ -143,11 +143,11 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 				$line_variation_id = $line_item->get_variation_id();
 
 				if ( ! $line_product_id ) {
-					$line_product_id = (int) get_metadata( 'order_item', $line_item->get_id(), '_product_id', true );
+					$line_product_id = (int) $line_item->get_meta( '_product_id', true );
 				}
 
 				if ( ! $line_variation_id ) {
-					$line_variation_id = (int) get_metadata( 'order_item', $line_item->get_id(), '_variation_id', true );
+					$line_variation_id = (int) $line_item->get_meta( '_variation_id', true );
 				}
 
 				if ( $line_product_id === $product_id || $line_variation_id === $product_id ) {
