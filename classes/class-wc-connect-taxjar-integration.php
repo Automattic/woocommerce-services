@@ -179,7 +179,7 @@ class WC_Connect_TaxJar_Integration {
 		$powered_by_wct_notice = '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>';
 
 		if ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) {
-			$powered_by_wct_notice .= '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . $backedup_tax_rates_url . '">', '</a>' ) . '</p>';
+			$powered_by_wct_notice .= '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
 		}
 
 		$desctructive_action_notice  = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
