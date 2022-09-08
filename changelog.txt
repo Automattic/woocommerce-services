@@ -1,8 +1,12 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-+ 1.26.3 - 2022-xx-xx =
+= 1.27.0 - 2022-xx-xx =
+* Add - Add list of tax rate backup files for merchants to click and download.
+
+= 1.26.3 - 2022-08-03 =
 * Add   - Add filter to override TaxJar result.
-* Add   - Add list of tax rate backup files for merchants to click and download.
+* Fix   - Uncatch error when installing/connecting the Jetpack. 
+* Tweak - Always let the user to pick the package box.
 
 = 1.26.2 - 2022-07-04 =
 * Fix   - Change the wp-calypso commit to fix NPM Error when run `npm run prepare`.

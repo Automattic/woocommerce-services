@@ -347,12 +347,7 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
-	).then( () => {
-		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
-		if ( packageId !== undefined && boxId !== undefined ) {
-			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );
-		}
-	} );
+	);
 
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
 };
