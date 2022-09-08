@@ -183,7 +183,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$desctructive_action_notice  = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
-		$desctructive_action_notice .= '<p>' . sprintf( __( 'Your existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . $backedup_tax_rates_url . '">', '</a>' ) . '</p>';
+		$desctructive_action_notice .= '<p>' . sprintf( __( 'Your existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
 
 		$tax_nexus_notice = '<p>' . $this->get_tax_tooltip() . '</p>';
 
