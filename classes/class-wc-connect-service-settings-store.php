@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			$stored_address_fields    = WC_Connect_Options::get_option( 'origin_address', array() );
-			$merged_fields            = array_merge( $wc_address_fields, $stored_address_fields );
+			$merged_fields            = is_array( $stored_address_fields ) ? array_merge( $wc_address_fields, $stored_address_fields ) : $wc_address_fields;
 			$merged_fields['company'] = html_entity_decode( $merged_fields['company'], ENT_QUOTES ); // Decode again for any existing stores that had some html entities saved in the option.
 			return $merged_fields;
 		}
