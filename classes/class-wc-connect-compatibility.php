@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 
 	abstract class WC_Connect_Compatibility {
+
 		private static $singleton;
 		private static $version = WC_VERSION;
 
@@ -30,12 +31,14 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * @return WC_Connect_Compatibility subclass for active version of WooCommerce
 		 */
 		private static function select_compatibility() {
-			if ( version_compare( self::$version, '3.0.0', '<' ) ) {
-				require_once 'class-wc-connect-compatibility-wc26.php';
-				return new WC_Connect_Compatibility_WC26();
-			} else {
+			if ( version_compare( self::$version, '6.9.0', '<' ) ) {
 				require_once 'class-wc-connect-compatibility-wc30.php';
+
 				return new WC_Connect_Compatibility_WC30();
+			} else {
+				require_once 'class-wc-connect-compatibility-wc69.php';
+
+				return new WC_Connect_Compatibility_WC69();
 			}
 		}
 
@@ -125,6 +128,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 *
 		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
+		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
 		abstract public function get_product_name_from_order( $product_id, $order );
@@ -134,18 +138,43 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 *
 		 * @param int      $product_id Product ID or variation ID
 		 * @param WC_Order $order
+		 *
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */
 		abstract public function get_product_price_from_order( $product_id, $order );
 
 		/**
-		 * For a given product, return it's name. In supported versions, variable
+		 * For a given product, return its name. In supported versions, variable
 		 * products will include their attributes.
 		 *
 		 * @param WC_Product $product Product (variable, simple, etc)
+		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
 		abstract public function get_product_name( WC_Product $product );
-	}
 
+		/**
+		 * Return the order admin screen
+		 *
+		 * @return string The order admin screen
+		 */
+		abstract public function get_order_admin_screen();
+
+		/**
+		 * Helper function to initialize the global $theorder object, mostly used during order meta boxes rendering.
+		 *
+		 * @param WC_Order|WP_Post $post_or_order_object Post or order object.
+		 *
+		 * @return WC_Order WC_Order object.
+		 */
+		abstract public function init_theorder_object( $post_or_order_object );
+
+		/**
+		 * Get the order in the current context, if it exists
+		 *
+		 * @return WC_Order|bool WC_Order object or false.
+		 */
+		abstract public function get_the_order();
+
+	}
 }

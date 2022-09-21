@@ -537,8 +537,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		public function meta_box( $post, $args ) {
 
 			$connect_order_presenter = new WC_Connect_Order_Presenter();
-			$order                   = wc_get_order( $post );
-			$order_id                = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$order                   = WC_Connect_Compatibility::instance()->init_theorder_object( $post );
 			$items                   = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 ) - absint( $order->get_item_count_refunded() );
 			$payload                 = apply_filters(
@@ -547,7 +546,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'order'             => $connect_order_presenter->get_order_for_api( $order ),
 					'accountSettings'   => $this->account_settings->get(),
 					'packagesSettings'  => $this->package_settings->get(),
-					'shippingLabelData' => $this->get_label_payload( $order_id ),
+					'shippingLabelData' => $this->get_label_payload( $order->get_id() ),
 					'continents'        => $this->continents->get(),
 					'context'           => $args['args']['context'],
 					'items'             => $items_count,

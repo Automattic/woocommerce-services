@@ -1463,7 +1463,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			if ( $this->should_show_shipping_debug_meta_box( $post ) ) {
-				$screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled() ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
+				$screen = WC_Connect_Compatibility::instance()->get_order_admin_screen();
 				add_meta_box( 'woocommerce-services-shipping-debug', __( 'Shipping Debug', 'woocommerce-services' ), array( $this, 'shipping_rate_packaging_debug_log_meta_box' ), $screen, 'normal', 'default' );
 			}
 		}

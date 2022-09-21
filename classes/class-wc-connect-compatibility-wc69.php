@@ -1,17 +1,19 @@
 <?php
 /**
  * A class for working around the quirks and different versions of WordPress/WooCommerce
- * This is for versions higher than 2.6 (3.0 and higher)
+ * This is for versions 6.9 and higher
  */
+
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 // No direct access please
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
+if ( ! class_exists( 'WC_Connect_Compatibility_WC69' ) ) {
 
-	class WC_Connect_Compatibility_WC30 extends WC_Connect_Compatibility {
+	class WC_Connect_Compatibility_WC69 extends WC_Connect_Compatibility {
 
 		/**
 		 * Get the ID for a given Order.
@@ -20,7 +22,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return int
 		 */
-		public function get_order_id( WC_Order $order ) {
+		public function get_order_id( WC_Order $order ): int {
 			return $order->get_id();
 		}
 
@@ -31,7 +33,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return string
 		 */
-		public function get_edit_order_url( WC_Order $order ) {
+		public function get_edit_order_url( WC_Order $order ): string {
 			return $order->get_edit_order_url();
 		}
 
@@ -42,7 +44,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return string
 		 */
-		public function get_payment_method( WC_Order $order ) {
+		public function get_payment_method( WC_Order $order ): string {
 			return $order->get_payment_method();
 		}
 
@@ -54,7 +56,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return WC_Product
 		 */
-		public function get_item_product( WC_Order $order, $item ) {
+		public function get_item_product( WC_Order $order, $item ): WC_Product {
 			if ( is_array( $item ) ) {
 				return wc_get_product( $item['product_id'] );
 			}
@@ -70,7 +72,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return string
 		 */
-		public function get_formatted_variation( WC_Product_Variation $product, $flat = false ) {
+		public function get_formatted_variation( WC_Product_Variation $product, $flat = false ): string {
 			return wc_get_formatted_variation( $product, $flat );
 		}
 
@@ -83,7 +85,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return int
 		 */
-		public function get_product_id( WC_Product $product ) {
+		public function get_product_id( WC_Product $product ): int {
 			return $product->get_id();
 		}
 
@@ -96,7 +98,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return int
 		 */
-		public function get_parent_product_id( WC_Product $product ) {
+		public function get_parent_product_id( WC_Product $product ): int {
 			return ( $product->is_type( 'variation' ) ) ? $product->get_parent_id() : $product->get_id();
 		}
 
@@ -110,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
-		public function get_product_name_from_order( $product_id, $order ) {
+		public function get_product_name_from_order( $product_id, $order ): string {
 			foreach ( $order->get_items() as $line_item ) {
 				$line_product_id   = $line_item->get_product_id();
 				$line_variation_id = $line_item->get_variation_id();
@@ -134,7 +136,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */
-		public function get_product_price_from_order( $product_id, $order ) {
+		public function get_product_price_from_order( $product_id, $order ): ?float {
 			foreach ( $order->get_items() as $line_item ) {
 				$line_product_id   = $line_item->get_product_id();
 				$line_variation_id = $line_item->get_variation_id();
@@ -148,14 +150,14 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		}
 
 		/**
-		 * For a given product, return it's name. In supported versions, variable
+		 * For a given product, return its name. In supported versions, variable
 		 * products will include their attributes.
 		 *
 		 * @param WC_Product $product Product (variable, simple, etc)
 		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
-		public function get_product_name( WC_Product $product ) {
+		public function get_product_name( WC_Product $product ): string {
 			return $product->get_name();
 		}
 
@@ -164,8 +166,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return string The order admin screen
 		 */
-		public function get_order_admin_screen() {
-			return 'shop_order';
+		public function get_order_admin_screen(): string {
+			return OrderUtil::get_order_admin_screen();
 		}
 
 		/**
@@ -175,12 +177,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @return WC_Order WC_Order object.
 		 */
-		public function init_theorder_object( $post_or_order_object ) {
-			if ( $post_or_order_object instanceof WC_Order ) {
-				return $post_or_order_object;
-			}
-
-			return wc_get_order( $post_or_order_object->ID );
+		public function init_theorder_object( $post_or_order_object ): WC_Order {
+			return OrderUtil::init_theorder_object( $post_or_order_object );
 		}
 
 		/**
@@ -189,7 +187,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 * @return WC_Order|bool WC_Order object or false.
 		 */
 		public function get_the_order() {
-			return wc_get_order();
+			// TODO: Implement get_the_order() method.
 		}
 
 	}
