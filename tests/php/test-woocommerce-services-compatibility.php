@@ -9,18 +9,14 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 		WC_Connect_Compatibility::set_version( '3.0.1' );
 		$this->assertEquals( 'WC_Connect_Compatibility_WC30', get_class( WC_Connect_Compatibility::instance() ) );
 
-		WC_Connect_Compatibility::set_version( '2.3.3' );
-		$this->assertEquals( 'WC_Connect_Compatibility_WC26', get_class( WC_Connect_Compatibility::instance() ) );
+		WC_Connect_Compatibility::set_version( '6.9.1' );
+		$this->assertEquals( 'WC_Connect_Compatibility_WC69', get_class( WC_Connect_Compatibility::instance() ) );
 
 		WC_Connect_Compatibility::reset_version();
 	}
 
 	private static function get_id( $object ) {
-		if ( version_compare( WC_VERSION, '3.0.0', '<' ) ) {
-			return $object->id;
-		} else {
-			return $object->get_id();
-		}
+		return $object->get_id();
 	}
 
 	public function test_get_order_id() {
