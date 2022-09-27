@@ -427,15 +427,27 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $origin['country'] !== $destination['country'];
 		}
 
-		public function should_show_meta_box() {
+		/**
+		 * Check if meta boxes should be displayed.
+		 *
+		 * @param WP_Post $post Post object.
+		 * @return boolean
+		 */
+		public function should_show_meta_box( $post ) {
 			if ( null === $this->show_metabox ) {
-				$this->show_metabox = $this->calculate_should_show_meta_box();
+				$this->show_metabox = $this->calculate_should_show_meta_box( $post );
 			}
 
 			return $this->show_metabox;
 		}
 
-		private function calculate_should_show_meta_box() {
+		/**
+		 * Check if meta boxes should be displayed.
+		 *
+		 * @param WP_Post $post Post object.
+		 * @return bool
+		 */
+		private function calculate_should_show_meta_box( $post ) {
 			// not all users have the permission to manage shipping labels.
 			// if a request is made to the JS backend and the user doesn't have permission, an error would be displayed.
 			if ( ! WC_Connect_Functions::user_can_manage_labels() ) {
