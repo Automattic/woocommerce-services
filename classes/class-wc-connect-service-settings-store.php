@@ -303,9 +303,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			// remove api-specific fields.
 			unset( $new_address['address'], $new_address['name'] );
 
-			$order->set_address( $new_address, 'shipping' );
+			foreach ( $new_address as $key => $value ) {
+				if ( method_exists( $order, 'set_shipping_' . $key ) ) {
+					call_user_func( array( $order, 'set_shipping_' . $key ), $value );
+				}
+			}
+
 			$order->update_meta_data( '_wc_connect_destination_normalized', true );
-			$order->save_meta_data();
+			$order->save();
 		}
 
 		protected function sort_services( $a, $b ) {

@@ -161,7 +161,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		public function maybe_trigger_banner( $order_id ) {
 			$order          = wc_get_order( $order_id );
-			$payment_method = WC_Connect_Compatibility::instance()->get_payment_method( $order );
+			$payment_method = $order->get_payment_method();
 
 			if ( 'ppec_paypal' === $payment_method ) {
 				WC_Connect_Options::update_option( 'banner_ppec', 'yes' );

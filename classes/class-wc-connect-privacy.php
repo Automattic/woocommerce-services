@@ -104,7 +104,7 @@ class WC_Connect_Privacy {
 	/**
 	 * Hooks into woocommerce_privacy_before_remove_order_personal_data to remove WCS personal data from orders
 	 *
-	 * @param WC_Order $order
+	 * @param WC_Order $order WC Order.
 	 */
 	public function label_data_eraser( $order ) {
 		$order_id = $order->get_id();
@@ -121,5 +121,6 @@ class WC_Connect_Privacy {
 		$this->api_client->anonymize_order( $order_id );
 		$order->update_meta_data( 'wc_connect_labels', $labels );
 		$order->save_meta_data();
+		$order->save();
 	}
 }

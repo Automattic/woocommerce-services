@@ -94,7 +94,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			);
 
 			if ( $product->is_type( 'variation' ) ) {
-				$product_data['attributes'] = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
+				$product_data['attributes'] = wc_get_formatted_variation( $product, true );
 			}
 
 			return $product_data;
@@ -152,7 +152,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			if ( $product->get_sku() ) {
 				$identifier = $product->get_sku();
 			} else {
-				$identifier = '#' . WC_Connect_Compatibility::instance()->get_product_id( $product );
+				$identifier = '#' . $product->get_id();
 
 			}
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
@@ -192,11 +192,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						$product_data['name'] = $this->get_name( $product );
 						$product_data['url']  = get_edit_post_link( WC_Connect_Compatibility::instance()->get_parent_product_id( $product ), null );
 						if ( $product->is_type( 'variation' ) ) {
-							$formatted                  = WC_Connect_Compatibility::instance()->get_formatted_variation( $product, true );
-							$product_data['attributes'] = $formatted;
+							$product_data['attributes'] = wc_get_formatted_variation( $product, true );
 						}
 						$customs_info = $product->get_meta( 'wc_connect_customs_info', true );
-						if ( $customs_info ) {
+						if ( is_array( $customs_info ) ) {
 							$product_data = array_merge( $product_data, $customs_info );
 						}
 					} else {
@@ -289,7 +288,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		protected function get_form_data( WC_Order $order ) {
-			$order_id          = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$order_id          = $order->get_id();
 			$selected_packages = $this->get_selected_packages( $order );
 			$is_packed         = ( false !== $this->get_packaging_metadata( $order ) );
 			$origin            = $this->get_origin_address();
@@ -328,7 +327,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			foreach ( $order->get_items() as $item ) {
 				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
-					$product_id                              = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					$product_id                              = $product->get_id();
 					$current_quantity                        = array_key_exists( $product_id, $quantities_by_product_id ) ? $quantities_by_product_id[ $product_id ] : 0;
 					$quantities_by_product_id[ $product_id ] = $current_quantity + $item->get_quantity();
 				}
@@ -342,8 +341,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			// Update the quantity for each refunded product ID in the order.
 			foreach ( $order->get_refunds() as $refund ) {
 				foreach ( $refund->get_items() as $refunded_item ) {
-					$product    = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
-					$product_id = WC_Connect_Compatibility::instance()->get_product_id( $product );
+					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
+					if ( ! is_a( $product, 'WC_Product' ) ) {
+						continue;
+					}
+
+					$product_id = $product->get_id();
 					if ( array_key_exists( $product_id, $quantities_by_product_id ) ) {
 						$current_count                           = $quantities_by_product_id[ $product_id ];
 						$quantities_by_product_id[ $product_id ] = $current_count - abs( $refunded_item->get_quantity() );
@@ -493,11 +496,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 		public function get_label_payload( $post_order_or_id ) {
 			$order = wc_get_order( $post_order_or_id );
-			if ( ! $order ) {
+			if ( ! is_a( $order, 'WC_Order' ) ) {
 				return false;
 			}
 
-			$order_id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$order_id = $order->get_id();
 			$payload  = array(
 				'orderId'            => $order_id,
 				'paperSize'          => $this->settings_store->get_preferred_paper_size(),
