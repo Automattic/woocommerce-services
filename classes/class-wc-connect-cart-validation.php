@@ -65,7 +65,7 @@ class WC_Connect_Cart_Validation {
 
 		$notices = array();
 		foreach ( $all_notices as $type => $type_notices ) {
-			if ( 'error' === $type ) {
+			if ( is_array( $type_notices ) && 'error' === $type ) {
 				$notices = array_merge( $notices, $type_notices );
 			}
 		}
