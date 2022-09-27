@@ -4,19 +4,21 @@
  * This is for versions higher than 2.6 (3.0 and higher)
  */
 
-// No direct access please
+// No direct access please.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
-
+	/**
+	 * WC_Connect_Compatibility class.
+	 */
 	class WC_Connect_Compatibility_WC30 extends WC_Connect_Compatibility {
 
 		/**
 		 * Get the ID for a given Order.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return int
 		 */
@@ -27,7 +29,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		/**
 		 * Get admin url for a given order
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return string
 		 */
@@ -38,7 +40,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		/**
 		 * Get the payment method for a given Order.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return string
 		 */
@@ -49,24 +51,32 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		/**
 		 * Retrieve the corresponding Product for the given Order Item.
 		 *
-		 * @param WC_Order                                  $order
-		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
+		 * @param WC_Order                                  $order WC Order.
+		 * @param WC_Order_Item|WC_Order_Item_Product|array $item  Order Item.
 		 *
-		 * @return WC_Product
+		 * @return WC_Product|bool
 		 */
 		public function get_item_product( WC_Order $order, $item ) {
 			if ( is_array( $item ) ) {
 				return wc_get_product( $item['product_id'] );
 			}
+			if ( is_a( $item, 'WC_Order_Item_Product' ) ) {
+				/**
+				 * Order Item Product
+				 *
+				 * @var WC_Order_Item_Product $item
+				*/
+				return $item->get_product();
+			}
 
-			return $item->get_product();
+			return false;
 		}
 
 		/**
 		 * Get formatted list of Product Variations, if applicable.
 		 *
-		 * @param WC_Product_Variation $product
-		 * @param bool                 $flat
+		 * @param WC_Product_Variation $product WC Product.
+		 * @param bool                 $flat    Should this be a flat list or HTML list? (default: false).
 		 *
 		 * @return string
 		 */
@@ -79,7 +89,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * Note: Returns the Variation ID for Variable Products.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product $product WC Product.
 		 *
 		 * @return int
 		 */
@@ -92,7 +102,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * Note: Returns the Parent ID for Variable Products.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product $product WC Product.
 		 *
 		 * @return int
 		 */
@@ -105,53 +115,46 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
 		 *
-		 * @param int      $product_id Product ID or variation ID
-		 * @param WC_Order $order
+		 * @param int      $product_id Product ID or variation ID.
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
 		public function get_product_name_from_order( $product_id, $order ) {
-			foreach ( $order->get_items() as $line_item ) {
-				$line_product_id   = $line_item->get_product_id();
-				$line_variation_id = $line_item->get_variation_id();
+			$line_item = $this->get_line_item_from_order( $product_id, $order );
 
-				if ( $line_product_id === $product_id || $line_variation_id === $product_id ) {
-					/* translators: %1$d: Product ID, %2$s: Product Name */
-					return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item->get_name() );
-				}
+			if ( ! $line_item ) {
+				/* translators: %d: Deleted Product ID */
+				return sprintf( __( '#%d - [Deleted product]', 'woocommerce-services' ), $product_id );
 			}
 
-			/* translators: %d: Deleted Product ID */
-
-			return sprintf( __( '#%d - [Deleted product]', 'woocommerce-services' ), $product_id );
+			/* translators: %1$d: Product ID, %2$s: Product Name */
+			return sprintf( __( '#%1$d - %2$s', 'woocommerce-services' ), $product_id, $line_item->get_name() );
 		}
 
 		/**
 		 * For a given product ID, it tries to find its price inside an order's line items.
 		 *
-		 * @param int      $product_id Product ID or variation ID
-		 * @param WC_Order $order
+		 * @param int      $product_id Product ID or variation ID.
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */
 		public function get_product_price_from_order( $product_id, $order ) {
-			foreach ( $order->get_items() as $line_item ) {
-				$line_product_id   = $line_item->get_product_id();
-				$line_variation_id = $line_item->get_variation_id();
+			$line_item = $this->get_line_item_from_order( $product_id, $order );
 
-				if ( $line_product_id === $product_id || $line_variation_id === $product_id ) {
-					return round( floatval( $line_item->get_total() ) / $line_item->get_quantity(), 2 );
-				}
+			if ( ! $line_item ) {
+				return null;
 			}
 
-			return null;
+			return round( floatval( $line_item->get_total() ) / $line_item->get_quantity(), 2 );
 		}
 
 		/**
 		 * For a given product, return it's name. In supported versions, variable
 		 * products will include their attributes.
 		 *
-		 * @param WC_Product $product Product (variable, simple, etc)
+		 * @param WC_Product $product WC Product.
 		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
@@ -173,7 +176,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		 *
 		 * @param WC_Order|WP_Post $post_or_order_object Post or order object.
 		 *
-		 * @return WC_Order WC_Order object.
+		 * @return bool|WC_Order|WC_Order_Refund
 		 */
 		public function init_theorder_object( $post_or_order_object ) {
 			if ( $post_or_order_object instanceof WC_Order ) {
@@ -192,5 +195,30 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 			return wc_get_order();
 		}
 
+		/**
+		 * Check if order contains given product.
+		 *
+		 * @param int      $product_id WC Product ID.
+		 * @param WC_Order $order      WC Order.
+		 *
+		 * @return WC_Order_Item_Product|false
+		 */
+		public function get_line_item_from_order( $product_id, $order ) {
+			/**
+			 * Order Item Product
+			 *
+			 * @var WC_Order_Item_Product $line_item
+			*/
+			foreach ( $order->get_items() as $line_item ) {
+				$line_product_id   = $line_item->get_product_id();
+				$line_variation_id = $line_item->get_variation_id();
+
+				if ( $line_product_id === $product_id || $line_variation_id === $product_id ) {
+					return $line_item;
+				}
+			}
+
+			return false;
+		}
 	}
 }

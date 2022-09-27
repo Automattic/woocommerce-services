@@ -4,19 +4,34 @@
  * This is the base class. Its static members auto-select the correct version to use.
  */
 
-// No direct access please
+// No direct access please.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
-
+	/**
+	 * WC_Connect_Compatibility class.
+	 */
 	abstract class WC_Connect_Compatibility {
 
+		/**
+		 * WC_Connect_Compatibility.
+		 *
+		 * @var WC_Connect_Compatibility
+		 */
 		private static $singleton;
+
+		/**
+		 * Woocommerce version.
+		 *
+		 * @var string
+		 */
 		private static $version = WC_VERSION;
 
 		/**
+		 * WC_Connect_Compatibility singleton instance.
+		 *
 		 * @return WC_Connect_Compatibility
 		 */
 		public static function instance() {
@@ -28,6 +43,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		}
 
 		/**
+		 * Return subclass for active version of WooCommerce.
+		 *
 		 * @return WC_Connect_Compatibility subclass for active version of WooCommerce
 		 */
 		private static function select_compatibility() {
@@ -42,11 +59,22 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 			}
 		}
 
+		/**
+		 * Overwrite default WooCommerce Version.
+		 *
+		 * @param string $value WooCommerce Version.
+		 * @return void
+		 */
 		public static function set_version( $value ) {
 			self::$singleton = null;
 			self::$version   = $value;
 		}
 
+		/**
+		 * Revert to current WooCommerce Version.
+		 *
+		 * @return void
+		 */
 		public static function reset_version() {
 			self::$singleton = null;
 			self::$version   = WC_VERSION;
@@ -55,7 +83,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Get the ID for a given Order.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return int
 		 */
@@ -64,7 +92,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Get admin url for a given order
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return string
 		 */
@@ -73,7 +101,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Get the payment method for a given Order.
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order WC Order.
 		 *
 		 * @return string
 		 */
@@ -82,8 +110,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Retrieve the corresponding Product for the given Order Item.
 		 *
-		 * @param WC_Order                                  $order
-		 * @param WC_Order_Item|WC_Order_Item_Product|array $item
+		 * @param WC_Order                                  $order WC Order.
+		 * @param WC_Order_Item|WC_Order_Item_Product|array $item  WC Order Item.
 		 *
 		 * @return WC_Product
 		 */
@@ -92,8 +120,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * Get formatted list of Product Variations, if applicable.
 		 *
-		 * @param WC_Product_Variation $product
-		 * @param bool                 $flat
+		 * @param WC_Product_Variation $product WC Product Variation.
+		 * @param bool                 $flat     Should this be a flat list or HTML list? (default: false).
 		 *
 		 * @return string
 		 */
@@ -104,7 +132,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 *
 		 * Note: Returns the Variation ID for Variable Products.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product $product WC Product.
 		 *
 		 * @return int
 		 */
@@ -115,7 +143,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 *
 		 * Note: Returns the Parent ID for Variable Products.
 		 *
-		 * @param WC_Product $product
+		 * @param WC_Product $product WC Product.
 		 *
 		 * @return int
 		 */
@@ -126,8 +154,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
 		 *
-		 * @param int      $product_id Product ID or variation ID
-		 * @param WC_Order $order
+		 * @param int      $product_id Product ID or variation ID.
+		 * @param WC_Order $order      WC Order.
 		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
@@ -136,8 +164,8 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		/**
 		 * For a given product ID, it tries to find its price inside an order's line items.
 		 *
-		 * @param int      $product_id Product ID or variation ID
-		 * @param WC_Order $order
+		 * @param int      $product_id Product ID or variation ID.
+		 * @param WC_Order $order      WC Order.
 		 *
 		 * @return float The product (or variation) price, or NULL if it wasn't found
 		 */
@@ -147,7 +175,7 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * For a given product, return its name. In supported versions, variable
 		 * products will include their attributes.
 		 *
-		 * @param WC_Product $product Product (variable, simple, etc)
+		 * @param WC_Product $product WC Product.
 		 *
 		 * @return string The product (or variation) name, ready to print
 		 */
@@ -165,16 +193,26 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 *
 		 * @param WC_Order|WP_Post $post_or_order_object Post or order object.
 		 *
-		 * @return WC_Order WC_Order object.
+		 * @return bool|WC_Order|WC_Order_Refund.
 		 */
 		abstract public function init_theorder_object( $post_or_order_object );
 
 		/**
 		 * Get the order in the current context, if it exists
 		 *
-		 * @return WC_Order|bool WC_Order object or false.
+		 * @return WC_Order|bool
 		 */
 		abstract public function get_the_order();
+
+		/**
+		 * Check if order contains given product.
+		 *
+		 * @param int      $product_id WC Product ID.
+		 * @param WC_Order $order      WC Order.
+		 *
+		 * @return WC_Order_Item_Product|false
+		 */
+		abstract public function get_line_item_from_order( $product_id, $order );
 
 	}
 }
