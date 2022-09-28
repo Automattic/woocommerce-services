@@ -1438,7 +1438,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function should_show_shipping_debug_meta_box( $post ) {
-			$order = wc_get_order( $post );
+			$order = WC_Connect_Compatibility::instance()->init_theorder_object( $post );
 
 			if ( false === $order ) {
 				return false;
