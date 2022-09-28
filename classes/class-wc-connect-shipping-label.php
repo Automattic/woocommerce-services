@@ -456,7 +456,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
-			$order = wc_get_order();
+			$order = WC_Connect_Compatibility::instance()->init_theorder_object( $post );
 
 			if ( ! $order ) {
 				return false;
