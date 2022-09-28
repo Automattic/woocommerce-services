@@ -1455,7 +1455,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return false;
 		}
 
-		public function add_meta_boxes( $post_type, $post ) {
+		public function add_meta_boxes( $screen_id, $post ) {
+
 			if ( $this->shipping_label->should_show_meta_box( $post ) ) {
 				add_meta_box( 'woocommerce-order-shipment-tracking', __( 'Shipment Tracking', 'woocommerce-services' ), array( $this->shipping_label, 'meta_box' ), null, 'side', 'default', array( 'context' => 'shipment_tracking' ) );
 
