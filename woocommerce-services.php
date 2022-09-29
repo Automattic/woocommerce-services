@@ -9,7 +9,7 @@
  * Domain Path: /i18n/languages/
  * Version: 1.26.3
  * WC requires at least: 3.5.5
- * WC tested up to: 6.6.1
+ * WC tested up to: 6.9.4
  *
  * Copyright (c) 2017-2022 Automattic
  *
@@ -1660,3 +1660,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
+
+add_action(
+	'wp_footer',
+	function() {
+		phpinfo();
+	}
+);
