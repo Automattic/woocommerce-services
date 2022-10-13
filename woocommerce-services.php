@@ -1661,9 +1661,3 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );
 
-add_action(
-	'wp_footer',
-	function() {
-		phpinfo();
-	}
-);
