@@ -120,7 +120,6 @@ class WC_Connect_Privacy {
 
 		$this->api_client->anonymize_order( $order_id );
 		$order->update_meta_data( 'wc_connect_labels', $labels );
-		$order->save_meta_data();
 		$order->save();
 	}
 }

@@ -271,7 +271,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				}
 			}
 			$order->update_meta_data( 'wc_connect_labels', $labels_data );
-			$order->save_meta_data();
+			$order->save();
 			return $result;
 		}
 
@@ -286,7 +286,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$labels_data = array_merge( $new_labels, $labels_data );
 			$order       = wc_get_order( $order_id );
 			$order->update_meta_data( 'wc_connect_labels', $labels_data );
-			$order->save_meta_data();
+			$order->save();
 		}
 
 		public function update_origin_address( $address ) {
