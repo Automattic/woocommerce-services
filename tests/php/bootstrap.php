@@ -21,8 +21,8 @@ if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
  */
 if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	$wc_root = getenv( 'WC_DEVELOP_DIR' );
-} elseif ( file_exists( '/tmp/woocommerce/plugins/woocommerce/tests/legacy/bootstrap.php' ) ) {
-	$wc_root = '/tmp/woocommerce/plugins/woocommerce';
+} elseif ( file_exists( '/tmp/woocommerce/tests/legacy/bootstrap.php' ) ) {
+	$wc_root = '/tmp/woocommerce';
 } else {
 	exit( 'Could not determine test root directory. Aborting.' );
 }
