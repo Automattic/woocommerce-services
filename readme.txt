@@ -4,6 +4,7 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires at least: 4.6
 Requires PHP: 5.3
 Tested up to: 6.0.2
+WC tested up to: 7.0.0
 Stable tag: 1.26.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
