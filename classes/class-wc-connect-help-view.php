@@ -282,15 +282,16 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 */
 		protected function get_form_data() {
 			return array(
-				'health_items'    => $this->get_health_items(),
-				'services'        => $this->get_services_items(),
-				'logging_enabled' => $this->logger->is_logging_enabled(),
-				'debug_enabled'   => $this->logger->is_debug_enabled(),
-				'logs'            => array(
+				'health_items'     => $this->get_health_items(),
+				'services'         => $this->get_services_items(),
+				'logging_enabled'  => $this->logger->is_logging_enabled(),
+				'debug_enabled'    => $this->logger->is_debug_enabled(),
+				'logs'             => array(
 					'shipping' => $this->get_debug_log_data( 'shipping' ),
 					'taxes'    => $this->get_debug_log_data( 'taxes' ),
 					'other'    => $this->get_debug_log_data(),
 				),
+				'tax_rate_backups' => WC_Connect_Functions::get_backed_up_tax_rate_files(),
 			);
 		}
 
