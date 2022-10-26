@@ -1,0 +1,133 @@
+.label-settings__credit-card-description {
+	margin-bottom: 4px;
+	color: var( --color-text-subtle );
+	padding-bottom: 8px;
+	font-weight: normal;
+
+	button {
+		color: var( --color-primary );
+	}
+}
+
+.card.label-settings__card {
+	margin-bottom: 14px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	cursor: pointer;
+}
+
+.label-settings__card .payment-logo {
+	margin-top: 0;
+}
+
+.form-checkbox.label-settings__card-checkbox {
+	margin-right: 20px;
+	float: left;
+}
+
+.payment-logo {
+	float: left;
+	margin-top: 10px;
+	margin-right: 14px;
+}
+
+.label-settings__card-details {
+	float: left;
+	flex-grow: 1;
+}
+
+.label-settings__card-number {
+	margin-bottom: 0;
+	font-weight: bold;
+}
+
+.label-settings__card-name {
+	margin-bottom: 0;
+}
+
+.label-settings__card-date {
+	float: right;
+	font-style: italic;
+}
+
+.label-settings__labels-container {
+	&.hidden {
+		visibility: hidden;
+		height: 0;
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.form-fieldset:last-child {
+		margin-bottom: 0;
+	}
+
+	.label-settings__external {
+		display: none;
+	}
+}
+
+.label-settings__placeholder {
+	@include placeholder();
+	pointer-events: none;
+	background: var( --color-white );
+
+	&::after {
+		content: none;
+	}
+
+	.gridicon,
+	span:not(.components-checkbox-control__input-container),
+	p,
+	a,
+	button {
+		animation: loading-fade 1.6s ease-in-out infinite;
+		background-color: var( --color-neutral-50 );
+		color: transparent;
+		cursor: default;
+	}
+
+	p,
+	span:not(.components-checkbox-control__input-container) {
+		display: block;
+		width: 100px;
+		height: 14px;
+	}
+
+	button {
+		width: 200px;
+		height: 14px;
+	}
+
+	.gridicon {
+		fill: transparent;
+		stroke: transparent;
+	}
+}
+
+&.dialog.card.add-credit-card-modal .dialog__content {
+	max-width: 720px;
+	padding: 0;
+}
+
+.components-form-toggle {
+	display: inline-flex;
+	vertical-align: middle;
+
+	.components-form-toggle__track {
+		margin-left: 0;
+	}
+
+	input.components-form-toggle__input[type=checkbox] {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		margin: 0;
+		z-index: 1;
+		border: none;
+	}
+}

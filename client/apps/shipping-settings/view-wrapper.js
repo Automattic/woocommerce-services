@@ -16,6 +16,7 @@ import GlobalNotices from 'components/global-notices';
 import LabelSettings from '../../extensions/woocommerce/woocommerce-services/views/label-settings';
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
+import EndShipperAddress from '../../extensions/woocommerce/woocommerce-services/views/endshipper-address';
 import CarrierAccounts from '../../extensions/woocommerce/woocommerce-services/views/carrier-accounts';
 import LiveRatesCarriersList from '../../extensions/woocommerce/woocommerce-services/views/live-rates-carriers-list';
 import SubscriptionsUsage from '../../extensions/woocommerce/woocommerce-services/views/subscriptions-usage';
@@ -70,6 +71,7 @@ class LabelSettingsWrapper extends Component {
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
 					<LabelSettings onChange={ this.onChange } />
+					<EndShipperAddress onChange={ this.onChange } />
 					<Packages onChange={ this.onChange } />
 					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
 					<CarrierAccounts accounts={ carrierAccounts } />

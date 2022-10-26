@@ -10,6 +10,7 @@ import ViewWrapper from './view-wrapper';
 // from calypso
 import labelSettingsReducer from '../../extensions/woocommerce/woocommerce-services/state/label-settings/reducer';
 import packagesReducer from '../../extensions/woocommerce/woocommerce-services/state/packages/reducer';
+import endShipperReducer from '../../extensions/woocommerce/woocommerce-services/state/endshipper-address/reducer';
 import notices from 'state/notices/reducer';
 import actionList from '../../extensions/woocommerce/state/data-layer/action-list';
 import wcsUiDataLayer from '../../extensions/woocommerce/state/data-layer/ui/woocommerce-services';
@@ -27,6 +28,7 @@ export default ( { order_id: orderId, order_href: orderHref, carrier, continents
 						1: combineReducers( {
 							packages: packagesReducer,
 							labelSettings: labelSettingsReducer,
+							endShipperAddress: endShipperReducer,
 						} ),
 					} ),
 					sites: combineReducers( {
