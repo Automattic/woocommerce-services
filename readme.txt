@@ -3,9 +3,9 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 5.6
 Requires at least: 4.6
-Tested up to: 6.0.2
+Tested up to: 6.0.3
 WC requires at least: 3.6
-WC tested up to: 7.1.0
+WC tested up to: 7.0.0
 Stable tag: 1.26.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
