@@ -153,7 +153,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$identifier = $product->get_sku();
 			} else {
 				$identifier = '#' . $product->get_id();
-
 			}
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}

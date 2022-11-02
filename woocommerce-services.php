@@ -284,7 +284,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
-		function wpcom_static_url( $file ) {
+		public function wpcom_static_url( $file ) {
 			$i   = hexdec( substr( md5( $file ), -1 ) ) % 2;
 			$url = 'http://s' . $i . '.wp.com' . $file;
 			return set_url_scheme( $url );
@@ -1346,7 +1346,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $payment_gateways;
 		}
 
-		function get_i18n_json() {
+		private function get_i18n_json() {
 			$i18n_json = plugin_dir_path( __FILE__ ) . 'i18n/languages/woocommerce-services-' . get_locale() . '.json';
 			if ( is_file( $i18n_json ) && is_readable( $i18n_json ) ) {
 				$locale_data = @file_get_contents( $i18n_json );
@@ -1524,7 +1524,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $hidden_keys;
 		}
 
-		function hide_wc_connect_order_meta_data( $protected, $meta_key, $meta_type ) {
+		public function hide_wc_connect_order_meta_data( $protected, $meta_key, $meta_type ) {
 			if ( in_array( $meta_key, array( 'wc_connect_labels', 'wc_connect_destination_normalized' ), true ) ) {
 				$protected = true;
 			}
@@ -1532,7 +1532,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $protected;
 		}
 
-		function add_shipping_phone_to_checkout( $fields ) {
+		public function add_shipping_phone_to_checkout( $fields ) {
 			$defaults = array(
 				'label'        => __( 'Phone', 'woocommerce-services' ),
 				'type'         => 'tel',
@@ -1560,14 +1560,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
-		function add_shipping_phone_to_order_fields( $fields ) {
+		public function add_shipping_phone_to_order_fields( $fields ) {
 			$fields['phone'] = array(
 				'label' => __( 'Phone', 'woocommerce-services' ),
 			);
 			return $fields;
 		}
 
-		function get_shipping_or_billing_phone_from_order( $fields, $address_type, WC_Order $order ) {
+		public function get_shipping_or_billing_phone_from_order( $fields, $address_type, WC_Order $order ) {
 			if ( 'shipping' !== $address_type ) {
 				return $fields;
 			}
@@ -1577,7 +1577,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
-		function add_plugin_action_links( $links ) {
+		public function add_plugin_action_links( $links ) {
 			$links[] = sprintf(
 				wp_kses(
 					/* translators: %s Support url */
@@ -1589,7 +1589,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $links;
 		}
 
-		function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
+		public function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
 			$is_alive = $this->api_client->is_alive_cached();
 
 			$payload = array(
@@ -1623,7 +1623,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			<?php
 		}
 
-		function render_schema_notices() {
+		public function render_schema_notices() {
 			$schemas = $this->get_service_schemas_store()->get_service_schemas();
 			if ( empty( $schemas ) || ! property_exists( $schemas, 'notices' ) || empty( $schemas->notices ) ) {
 				return;
