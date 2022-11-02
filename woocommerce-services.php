@@ -677,6 +677,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
+			require_once __DIR__ . '/classes/class-wc-connect-utils.php';
 			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
 			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-validator.php';
 			require_once __DIR__ . '/classes/class-wc-connect-taxjar-integration.php';

@@ -82,7 +82,7 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 				}
 
 				$product_name = $product->get_name();
-				$product_id   = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id()
+				$product_id   = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
 				$message      = sprintf(
 					__( '<strong>"%2$s" is missing weight, length, width, or height.</strong><br />Shipping rates cannot be calculated. <a href="%1$s">Enter dimensions and weight for %2$s</a> so your customers can purchase this item.', 'woocommerce-services' ),
 					get_edit_post_link( $product_id ),

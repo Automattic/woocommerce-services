@@ -67,7 +67,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		}
 
 		public function get_item_data( WC_Order $order, $item ) {
-			$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+			$product = WC_Connect_Utils::get_item_product( $order, $item );
 			if ( ! $product || ! $product->needs_shipping() ) {
 				return null;
 			}
@@ -186,7 +186,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 				foreach ( $package['items'] as $item_index => $item ) {
 					$product_data = (array) $item;
-					$product      = WC_Connect_Compatibility::instance()->get_item_product( $order, $product_data );
+					$product      = WC_Connect_Utils::get_item_product( $order, $product_data );
 
 					if ( $product ) {
 						$parent_product_id    = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
@@ -200,9 +200,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 							$product_data = array_merge( $product_data, $customs_info );
 						}
 					} else {
-						$product_data['name'] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_data['product_id'], $order );
+						$product_data['name'] = WC_Connect_Utils::get_product_name_from_order( $product_data['product_id'], $order );
 					}
-					$product_data['value'] = WC_Connect_Compatibility::instance()->get_product_price_from_order( $product_data['product_id'], $order );
+					$product_data['value'] = WC_Connect_Utils::get_product_price_from_order( $product_data['product_id'], $order );
 					if ( ! isset( $product_data['value'] ) ) {
 						$product_data['value'] = 0;
 					}
@@ -326,7 +326,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			// Set up a dictionary from product ID to quantity in the order, which will be updated by refunds and existing labels later.
 			$quantities_by_product_id = array();
 			foreach ( $order->get_items() as $item ) {
-				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+				$product = WC_Connect_Utils::get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
 					$product_id                              = $product->get_id();
 					$current_quantity                        = array_key_exists( $product_id, $quantities_by_product_id ) ? $quantities_by_product_id[ $product_id ] : 0;
@@ -342,7 +342,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			// Update the quantity for each refunded product ID in the order.
 			foreach ( $order->get_refunds() as $refund ) {
 				foreach ( $refund->get_items() as $refunded_item ) {
-					$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $refunded_item );
+					$product = WC_Connect_Utils::get_item_product( $order, $refunded_item );
 					if ( ! is_a( $product, 'WC_Product' ) ) {
 						continue;
 					}
@@ -485,7 +485,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			// At this point (no packaging data), only show if there's at least one existing and shippable product.
 			foreach ( $order->get_items() as $item ) {
-				$product = WC_Connect_Compatibility::instance()->get_item_product( $order, $item );
+				$product = WC_Connect_Utils::get_item_product( $order, $item );
 				if ( $product && $product->needs_shipping() ) {
 					return true;
 				}

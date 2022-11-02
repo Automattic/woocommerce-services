@@ -81,107 +81,6 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		}
 
 		/**
-		 * Get the ID for a given Order.
-		 *
-		 * @param WC_Order $order WC Order.
-		 *
-		 * @return int
-		 */
-		abstract public function get_order_id( WC_Order $order );
-
-		/**
-		 * Get admin url for a given order
-		 *
-		 * @param WC_Order $order WC Order.
-		 *
-		 * @return string
-		 */
-		abstract public function get_edit_order_url( WC_Order $order );
-
-		/**
-		 * Get the payment method for a given Order.
-		 *
-		 * @param WC_Order $order WC Order.
-		 *
-		 * @return string
-		 */
-		abstract public function get_payment_method( WC_Order $order );
-
-		/**
-		 * Retrieve the corresponding Product for the given Order Item.
-		 *
-		 * @param WC_Order                                  $order WC Order.
-		 * @param WC_Order_Item|WC_Order_Item_Product|array $item  WC Order Item.
-		 *
-		 * @return WC_Product
-		 */
-		abstract public function get_item_product( WC_Order $order, $item );
-
-		/**
-		 * Get formatted list of Product Variations, if applicable.
-		 *
-		 * @param WC_Product_Variation $product WC Product Variation.
-		 * @param bool                 $flat     Should this be a flat list or HTML list? (default: false).
-		 *
-		 * @return string
-		 */
-		abstract public function get_formatted_variation( WC_Product_Variation $product, $flat = false );
-
-		/**
-		 * Get the most specific ID for a given Product.
-		 *
-		 * Note: Returns the Variation ID for Variable Products.
-		 *
-		 * @param WC_Product $product WC Product.
-		 *
-		 * @return int
-		 */
-		abstract public function get_product_id( WC_Product $product );
-
-		/**
-		 * Get the top-level ID for a given Product.
-		 *
-		 * Note: Returns the Parent ID for Variable Products.
-		 *
-		 * @param WC_Product $product WC Product.
-		 *
-		 * @return int
-		 */
-		abstract public function get_parent_product_id( WC_Product $product );
-
-		/**
-		 * For a given product ID, it tries to find its name inside an order's line items.
-		 * This is useful when an order has a product which was later deleted from the
-		 * store.
-		 *
-		 * @param int      $product_id Product ID or variation ID.
-		 * @param WC_Order $order      WC Order.
-		 *
-		 * @return string The product (or variation) name, ready to print
-		 */
-		abstract public function get_product_name_from_order( $product_id, $order );
-
-		/**
-		 * For a given product ID, it tries to find its price inside an order's line items.
-		 *
-		 * @param int      $product_id Product ID or variation ID.
-		 * @param WC_Order $order      WC Order.
-		 *
-		 * @return float The product (or variation) price, or NULL if it wasn't found
-		 */
-		abstract public function get_product_price_from_order( $product_id, $order );
-
-		/**
-		 * For a given product, return its name. In supported versions, variable
-		 * products will include their attributes.
-		 *
-		 * @param WC_Product $product WC Product.
-		 *
-		 * @return string The product (or variation) name, ready to print
-		 */
-		abstract public function get_product_name( WC_Product $product );
-
-		/**
 		 * Return the order admin screen
 		 *
 		 * @return string The order admin screen
@@ -196,23 +95,6 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * @return bool|WC_Order|WC_Order_Refund.
 		 */
 		abstract public function init_theorder_object( $post_or_order_object );
-
-		/**
-		 * Get the order in the current context, if it exists
-		 *
-		 * @return WC_Order|bool
-		 */
-		abstract public function get_the_order();
-
-		/**
-		 * Check if order contains given product.
-		 *
-		 * @param int      $product_id WC Product ID.
-		 * @param WC_Order $order      WC Order.
-		 *
-		 * @return WC_Order_Item_Product|false
-		 */
-		abstract public function get_line_item_from_order( $product_id, $order );
 
 	}
 }
