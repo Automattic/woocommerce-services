@@ -810,7 +810,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5, 2 );
 			add_filter( 'woocommerce_shipping_fields', array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
-			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_phone_from_order' ), 10, 3 );
+			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_or_billing_phone_from_order' ), 10, 3 );
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
@@ -1532,7 +1532,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $protected;
 		}
 
-		function add_shipping_phone_to_checkout( $fields ) {
+		function add_shipping_or_billing_phone_to_checkout( $fields ) {
 			$defaults = array(
 				'label'        => __( 'Phone', 'woocommerce-services' ),
 				'type'         => 'tel',
@@ -1567,7 +1567,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
-		function get_shipping_phone_from_order( $fields, $address_type, WC_Order $order ) {
+		function get_shipping_or_billing_phone_from_order( $fields, $address_type, WC_Order $order ) {
 			if ( 'shipping' !== $address_type ) {
 				return $fields;
 			}
