@@ -33,6 +33,7 @@ const renderRateNotice = translate => {
 
 export const ShippingRates = ( {
 	id,
+	currency,
 	selectedRates, // Store owner selected rates, not customer
 	availableRates,
 	selectedPackages,
@@ -69,6 +70,7 @@ export const ShippingRates = ( {
 						return <ShippingRate
 							id={ id + '_' + pckgId }
 							key={ id + '_' + pckgId + '_' + service_id }
+							currency={ currency }
 							rateObject={ serviceRateObject }
 							signatureRates={ getSignatureServiceRates( pckgId, service_id, availableRates ) }
 							updateValue={ onRateUpdate }

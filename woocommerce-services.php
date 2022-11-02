@@ -7,11 +7,11 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 1.25.15
+ * Version: 1.26.3
  * WC requires at least: 3.5.5
- * WC tested up to: 5.4
+ * WC tested up to: 7.0
  *
- * Copyright (c) 2017-2021 Automattic
+ * Copyright (c) 2017-2022 Automattic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION', '7.5' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
-	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION ' ) ) {
+	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
 		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
 	}
 
@@ -730,6 +730,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$cart_validation = new WC_Connect_Cart_Validation();
 			$cart_validation->register_filters();
+			$cart_validation->register_actions();
 		}
 
 		/**
@@ -746,7 +747,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schema   = $this->get_service_schemas_store();
 			$settings = $this->get_service_settings_store();
 			$logger   = $this->get_logger();
-			$this->set_help_view( new WC_Connect_Help_View( $schema, $settings, $logger ) );
+			$this->set_help_view( new WC_Connect_Help_View( $schema, $this->taxjar, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 

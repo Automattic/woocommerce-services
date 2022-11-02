@@ -226,7 +226,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					continue;
 				}
 
-				for ( $i = 0; $i < $item['qty']; $i++ ) {
+				$refunded_qty = $order->get_qty_refunded_for_item( $item->get_id() );
+
+				for ( $i = 0; $i < ( $item['qty'] - absint( $refunded_qty ) ); $i ++ ) {
 					$items[] = $item_data;
 				}
 			}
@@ -443,6 +445,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				return false;
 			}
 
+			// If the shipping label is disabled, will remove the meta box.
+			if ( ! $this->is_shipping_label_enabled() ) {
+				return false;
+			}
+
 			// If the order already has purchased labels, show the meta-box no matter what
 			if ( get_post_meta( WC_Connect_Compatibility::instance()->get_order_id( $order ), 'wc_connect_labels', true ) ) {
 				return true;
@@ -467,6 +474,21 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Check whether shipping label feature is enabled from WC Services setting.
+		 *
+		 * @return bool True if shipping label is enabled from the settings.
+		 */
+		public function is_shipping_label_enabled() {
+			$account_settings = $this->account_settings->get();
+
+			if ( isset( $account_settings['formData']['enabled'] ) && is_bool( $account_settings['formData']['enabled'] ) ) {
+				return $account_settings['formData']['enabled'];
+			}
+
+			return true;
 		}
 
 		public function get_label_payload( $post_order_or_id ) {
@@ -518,7 +540,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$order                   = wc_get_order( $post );
 			$order_id                = WC_Connect_Compatibility::instance()->get_order_id( $order );
 			$items                   = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
-			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 );
+			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 ) - absint( $order->get_item_count_refunded() );
 			$payload                 = apply_filters(
 				'wc_connect_meta_box_payload',
 				array(

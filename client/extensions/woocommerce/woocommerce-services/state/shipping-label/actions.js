@@ -44,7 +44,7 @@ import {
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
-import { 
+import {
 	getEmailReceipts,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
@@ -347,12 +347,7 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
-	).then( () => {
-		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
-		if ( packageId !== undefined && boxId !== undefined ) {
-			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );
-		}
-	} );
+	);
 
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
 };
@@ -947,14 +942,21 @@ function downloadAndPrint( orderId, siteId, dispatch, getState, labels ) {
 
 	let hasError = false;
 
-	const customsForms = labels.map( ( label ) => label.commercial_invoice_url ).filter( ( url ) => url );
-	if ( customsForms && 0 < customsForms.length) {
-		dispatch(
-			NoticeActions.infoNotice( translate( "Note: A customs form will open in a new tab and must be printed and included on this international shipment." ), {
-			} )
-		);
-		for (const customsFormsUrl of customsForms) {
-			window.open( customsFormsUrl );
+	const customsForms = getCustomsFormsFromLabels( labels );
+	if ( customsForms && 0 < customsForms.length ) {
+
+		const everyCustomsFormSubmittedElectronically = customsForms.every( form => form.submitted_electronically );
+
+		if ( everyCustomsFormSubmittedElectronically ) {
+			dispatch( NoticeActions.infoNotice( translate( 'Note: The customs form has been submitted electronically, but you can view/download the form any time from the shipping label\'s menu.' ), {} ) );
+		} else {
+			dispatch( NoticeActions.infoNotice( translate( 'Note: A customs form will open in a new tab and must be printed and included on this international shipment.' ), {} ) );
+		}
+
+		for ( const customsForm of customsForms ) {
+			if ( !customsForm.submitted_electronically ) {
+				window.open( customsForm.url );
+			}
 		}
 	}
 
@@ -989,6 +991,18 @@ function downloadAndPrint( orderId, siteId, dispatch, getState, labels ) {
 		} )
 		.catch( showErrorNotice );
 }
+
+const getCustomsFormsFromLabels = ( labels ) => {
+	const customsForms = labels.filter( label => label.commercial_invoice_url )
+		.map( ( label ) => {
+			return {
+				url: label.commercial_invoice_url,
+				submitted_electronically: label.is_commercial_invoice_submitted_electronically,
+			};
+		} );
+
+	return !_.isEmpty( customsForms ) ? customsForms : false;
+};
 
 const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) => {
 	const errorLabel = find( labels, { status: 'PURCHASE_ERROR' } );

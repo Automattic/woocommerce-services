@@ -8,7 +8,7 @@ import { expect } from 'chai';
 /**
  * Internal dependencies
  */
-import { getRatesErrors, getTotalPriceBreakdown, isAddressUsable } from '../selectors';
+import { getRatesErrors, getRawAddressErrors, getTotalPriceBreakdown, isAddressUsable } from '../selectors';
 
 describe( '#getRatesErrors', () => {
 	// when there are selected rates
@@ -557,7 +557,7 @@ describe( 'Shipping label selectors', () => {
 		[ 'country', '', true ],
 		[ 'country', 'Wonderland', false ],
 		[ 'phone', '', false ],
-		[ 'name', '', true ],
+		[ 'name', '', false ],
 		[ 'state', '', true ],
 
 		// States are selected in a dropdown and individual values are not validated
@@ -579,4 +579,81 @@ describe( 'Shipping label selectors', () => {
 			expect( result ).to.equal( ! shouldFail );
 		} );
 	} );
+} );
+
+describe( 'Shipping label form validation', () => {
+	const siteId = 1;
+	const addressData = {
+		values: {
+			company: 'Automaggic',
+			address_2: '',
+			city: 'Cupertino',
+			state: 'CA',
+			postcode: '95014-0642',
+			country: 'US',
+			phone: '',
+			name: 'Peter Anderson',
+			address: 'Apple Park Way1',
+		}
+	};
+	const appState = {};
+
+	it ( 'with no name entered and no company entered, return error', () => {
+		const fieldsToValidate = { destinationPhone: false };
+		const addressDataWithEmptyNameAndCompany = Object.assign( {}, addressData);
+		addressDataWithEmptyNameAndCompany.values.name = '';
+		addressDataWithEmptyNameAndCompany.values.company = '';
+		const errors = getRawAddressErrors( appState, addressDataWithEmptyNameAndCompany, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.have.property( 'name' );
+	} );
+
+	it ( 'with no company entered and no name entered, return error', () => {
+		const fieldsToValidate = { destinationPhone: false };
+		const addressDataWithEmptyNameAndCompany = Object.assign( {}, addressData);
+		addressDataWithEmptyNameAndCompany.values.name = '';
+		addressDataWithEmptyNameAndCompany.values.company = '';
+		const errors = getRawAddressErrors( appState, addressDataWithEmptyNameAndCompany, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.have.property( 'company' );
+	} );
+
+	it ( 'with no destination phone entered and destination phone required, return error', () => {
+		const fieldsToValidate = { destinationPhone: true };
+		const errors = getRawAddressErrors( appState, addressData, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.have.property( 'phone' );
+	} );
+
+	it ( 'with no destination phone entered and destination phone not required, do not return error', () => {
+		const fieldsToValidate = {};
+		const errors = getRawAddressErrors( appState, addressData, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.not.have.property( 'phone' );
+	} );
+
+	it ( 'with no origin phone entered and origin phone required, return error', () => {
+		const fieldsToValidate = { originPhone: true };
+		const errors = getRawAddressErrors( appState, addressData, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.have.property( 'phone' );
+	} );
+
+	it ( 'with no origin phone entered and origin phone not required, do not return error', () => {
+		const fieldsToValidate = { };
+		const errors = getRawAddressErrors( appState, addressData, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.not.have.property( 'phone' );
+	} );
+
+	it ( 'with origin phone entered and origin phone required, do not return error', () => {
+		const fieldsToValidate = { originPhone: true };
+		const addressDataWithPhone = Object.assign( {}, addressData);
+		addressDataWithPhone.values.phone = '5551235667';
+		const errors = getRawAddressErrors( appState, addressDataWithPhone, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.not.have.property( 'phone' );
+	} );
+
+	it ( 'with destination phone entered and destination phone required, do not return error', () => {
+		const fieldsToValidate = { destinationPhone: true };
+		const addressDataWithPhone = Object.assign( {}, addressData );
+		addressDataWithPhone.values.phone = '5551235667';
+		const errors = getRawAddressErrors( appState, addressDataWithPhone, siteId, fieldsToValidate );
+		expect( errors ).to.be.an( 'Object' ).and.to.not.have.property( 'phone' );
+	} );
+
 } );

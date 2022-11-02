@@ -86,7 +86,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( $this->is_debug_enabled() ) {
+			if ( $this->is_debug_enabled() && ! wc_has_notice( $message, $type ) ) {
 				wc_add_notice( $message, $type );
 			}
 		}
