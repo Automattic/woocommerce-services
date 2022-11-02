@@ -100,19 +100,6 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC69' ) ) {
 		}
 
 		/**
-		 * Get the top-level ID for a given Product.
-		 *
-		 * Note: Returns the Parent ID for Variable Products.
-		 *
-		 * @param WC_Product $product WC Product.
-		 *
-		 * @return int
-		 */
-		public function get_parent_product_id( WC_Product $product ): int {
-			return ( $product->is_type( 'variation' ) ) ? $product->get_parent_id() : $product->get_id();
-		}
-
-		/**
 		 * For a given product ID, it tries to find its name inside an order's line items.
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
@@ -182,15 +169,6 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC69' ) ) {
 		 */
 		public function init_theorder_object( $post_or_order_object ) {
 			return OrderUtil::init_theorder_object( $post_or_order_object );
-		}
-
-		/**
-		 * Get the order in the current context, if it exists
-		 *
-		 * @return bool|WC_Order|WC_Order_Refund WC_Order object or false.
-		 */
-		public function get_the_order() {
-			// TODO: Implement get_the_order() method.
 		}
 
 		/**

@@ -98,19 +98,6 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		}
 
 		/**
-		 * Get the top-level ID for a given Product.
-		 *
-		 * Note: Returns the Parent ID for Variable Products.
-		 *
-		 * @param WC_Product $product WC Product.
-		 *
-		 * @return int
-		 */
-		public function get_parent_product_id( WC_Product $product ) {
-			return ( $product->is_type( 'variation' ) ) ? $product->get_parent_id() : $product->get_id();
-		}
-
-		/**
 		 * For a given product ID, it tries to find its name inside an order's line items.
 		 * This is useful when an order has a product which was later deleted from the
 		 * store.
