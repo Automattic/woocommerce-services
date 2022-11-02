@@ -187,15 +187,6 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 		}
 
 		/**
-		 * Get the order in the current context, if it exists
-		 *
-		 * @return WC_Order|bool WC_Order object or false.
-		 */
-		public function get_the_order() {
-			return wc_get_order();
-		}
-
-		/**
 		 * Check if order contains given product.
 		 *
 		 * @param int      $product_id WC Product ID.
