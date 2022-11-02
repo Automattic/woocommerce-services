@@ -1532,7 +1532,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $protected;
 		}
 
-		function add_shipping_or_billing_phone_to_checkout( $fields ) {
+		function add_shipping_phone_to_checkout( $fields ) {
 			$defaults = array(
 				'label'        => __( 'Phone', 'woocommerce-services' ),
 				'type'         => 'tel',
