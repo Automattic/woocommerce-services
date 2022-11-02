@@ -36,8 +36,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
-
 require_once __DIR__ . '/classes/class-wc-connect-extension-compatibility.php';
 require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
