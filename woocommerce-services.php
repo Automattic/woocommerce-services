@@ -1160,20 +1160,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Add tracking info (if available) to completed emails using the woocommerce_email_after_order_table hook
 		 *
-		 * @param bool|\WC_Order|\WC_Order_Refund $order
+		 * @param $order
 		 * @param $sent_to_admin
 		 * @param $plain_text
 		 */
 		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text ) {
+			$id = $order->get_id();
 
-			// Abort if no $order was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
-			if ( ! $order
+			// Abort if no id was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
+			if ( ! $id
 				|| ! $order->has_status( 'completed' )
-				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
+				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $id ) ) {
 				return;
 			}
 
-			$labels = $this->service_settings_store->get_label_order_meta_data( $order->get_id() );
+			$labels = $this->service_settings_store->get_label_order_meta_data( $id );
 
 			// Abort if there are no labels.
 			if ( empty( $labels ) ) {
