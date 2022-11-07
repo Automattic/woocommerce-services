@@ -102,8 +102,8 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await waitForSelectorAndText('.button.is-borderless', 'Choose a different card');
-        await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
+        await waitForSelectorAndText('.components-button.form-button', 'Choose a different card');
+        await expect( page ).toClick( '.components-button.form-button', { text: 'Choose a different card' } );
         await expect(page).toMatchElement('.label-settings__card-number', {
             text: 'VISA ****5959'
         });
@@ -120,8 +120,8 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await waitForSelectorAndText('.button.is-borderless', 'Choose a different card' );
-        await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
+        await waitForSelectorAndText('.components-button.form-button', 'Choose a different card' );
+        await expect( page ).toClick( '.components-button.form-button', { text: 'Choose a different card' } );
 
         // Verify "Add another credit card" is present after clicking 'Choose a different card'
         await waitForSelectorAndText('.components-button.form-button.button', 'Add another credit card' );
