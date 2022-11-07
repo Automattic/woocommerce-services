@@ -1,11 +1,13 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 1.27.0 - 2022-xx-xx =
-* Add - Add list of tax rate backup files for merchants to click and download.
+= 2.0.0 - 2022-xx-xx =
+* Add   - High-Performance Order Storage compatibility.
+* Add   - Add list of tax rate backup files for merchants to click and download.
+* Tweak - Transition version numbering from SemVer to WordPress versioning.
 
 = 1.26.3 - 2022-08-03 =
 * Add   - Add filter to override TaxJar result.
-* Fix   - Uncatch error when installing/connecting the Jetpack. 
+* Fix   - Uncatch error when installing/connecting the Jetpack.
 * Tweak - Always let the user to pick the package box.
 
 = 1.26.2 - 2022-07-04 =

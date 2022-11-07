@@ -124,9 +124,12 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			include WC()->plugin_path() . '/includes/admin/views/html-report-by-date.php';
 		}
 
-		private function get_order_url( $post_id ) {
+		private function get_edit_order_link( $post_id ) {
 			$order = wc_get_order( $post_id );
-			return '<a href="' . WC_Connect_Compatibility::instance()->get_edit_order_url( $order ) . '">' . $order->get_order_number( $order ) . '</a>';
+			if ( ! is_a( $order, 'WC_Order' ) ) {
+				return null;
+			}
+			return '<a href="' . $order->get_edit_order_url() . '">' . $order->get_order_number() . '</a>';
 		}
 
 		private function get_label_refund_status( $label ) {
@@ -179,7 +182,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 									<?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $label['created'] / 1000 ) ); ?>
 								</th>
 								<td>
-									<?php echo $this->get_order_url( $label['order_id'] ); ?>
+									<?php echo $this->get_edit_order_link( $label['order_id'] ); ?>
 								</td>
 								<td>
 									<?php echo wc_price( $label['rate'] ); ?>

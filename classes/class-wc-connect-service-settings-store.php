@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			$stored_address_fields    = WC_Connect_Options::get_option( 'origin_address', array() );
-			$merged_fields            = array_merge( $wc_address_fields, $stored_address_fields );
+			$merged_fields            = is_array( $stored_address_fields ) ? array_merge( $wc_address_fields, $stored_address_fields ) : $wc_address_fields;
 			$merged_fields['company'] = html_entity_decode( $merged_fields['company'], ENT_QUOTES ); // Decode again for any existing stores that had some html entities saved in the option.
 			return $merged_fields;
 		}
@@ -232,7 +232,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_label_order_meta_data( $order_id ) {
-			$label_data = get_post_meta( (int) $order_id, 'wc_connect_labels', true );
+			$order      = wc_get_order( $order_id );
+			$label_data = $order->get_meta( 'wc_connect_labels', true );
 			// return an empty array if the data doesn't exist.
 			if ( ! $label_data ) {
 				return array();
@@ -256,6 +257,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 */
 		public function update_label_order_meta_data( $order_id, $new_label_data ) {
 			$result      = $new_label_data;
+			$order       = wc_get_order( $order_id );
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			foreach ( $labels_data as $index => $label_data ) {
 				if ( $label_data['label_id'] === $new_label_data->label_id ) {
@@ -268,7 +270,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 					}
 				}
 			}
-			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
+			$order->update_meta_data( 'wc_connect_labels', $labels_data );
+			$order->save();
 			return $result;
 		}
 
@@ -281,7 +284,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function add_labels_to_order( $order_id, $new_labels ) {
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			$labels_data = array_merge( $new_labels, $labels_data );
-			update_post_meta( $order_id, 'wc_connect_labels', $labels_data );
+			$order       = wc_get_order( $order_id );
+			$order->update_meta_data( 'wc_connect_labels', $labels_data );
+			$order->save();
 		}
 
 		public function update_origin_address( $address ) {
@@ -298,8 +303,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			// remove api-specific fields.
 			unset( $new_address['address'], $new_address['name'] );
 
-			$order->set_address( $new_address, 'shipping' );
-			update_post_meta( $order_id, '_wc_connect_destination_normalized', true );
+			foreach ( $new_address as $key => $value ) {
+				if ( method_exists( $order, 'set_shipping_' . $key ) ) {
+					call_user_func( array( $order, 'set_shipping_' . $key ), $value );
+				}
+			}
+
+			$order->update_meta_data( '_wc_connect_destination_normalized', true );
+			$order->save();
 		}
 
 		protected function sort_services( $a, $b ) {
