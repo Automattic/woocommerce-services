@@ -447,9 +447,14 @@ class WC_Connect_TaxJar_Integration {
 		$cart_taxes     = array();
 		$cart_tax_total = 0;
 
+		/**
+		 * WC Coupon object.
+		 *
+		 * @var WC_Coupon $coupon
+		*/
 		foreach ( $wc_cart_object->coupons as $coupon ) {
-			if ( method_exists( $coupon, 'get_id' ) ) { // Woo 3.0+
-				$limit_usage_qty = get_post_meta( $coupon->get_id(), 'limit_usage_to_x_items', true );
+			if ( method_exists( $coupon, 'get_limit_usage_to_x_items' ) ) { // Woo 3.0+.
+				$limit_usage_qty = $coupon->get_limit_usage_to_x_items();
 
 				if ( $limit_usage_qty ) {
 					$coupon->set_limit_usage_to_x_items( $limit_usage_qty );
