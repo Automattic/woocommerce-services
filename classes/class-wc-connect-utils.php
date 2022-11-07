@@ -64,7 +64,7 @@ if ( ! class_exists( 'WC_Connect_Utils' ) ) {
 		 * @return WC_Product|null|false
 		 */
 		public static function get_item_product( WC_Order $order, $item ) {
-			if ( is_array( $item ) ) {
+			if ( is_array( $item ) && isset( $item['product_id'] ) ) {
 				return wc_get_product( $item['product_id'] );
 			}
 			if ( is_a( $item, 'WC_Order_Item_Product' ) ) {
