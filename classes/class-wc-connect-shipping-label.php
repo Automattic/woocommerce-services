@@ -275,6 +275,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $address;
 		}
 
+		protected function get_endshipper_address() {
+			$endshipper = $this->format_address_for_api( $this->settings_store->get_endshipper_address() );
+
+			return $endshipper;
+		}
+
 		protected function get_origin_address() {
 			$origin = $this->format_address_for_api( $this->settings_store->get_origin_address() );
 
@@ -295,6 +301,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$origin            = $this->get_origin_address();
 			$selected_rates    = $this->get_selected_rates( $order );
 			$destination       = $this->get_destination_address( $order );
+			$endshipper        = $this->get_endshipper_address();
 
 			if ( ! $destination['country'] ) {
 				$destination['country'] = $origin['country'];
@@ -303,7 +310,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$origin_normalized      = (bool) WC_Connect_Options::get_option( 'origin_address', false );
 			$destination_normalized = (bool) get_post_meta( $order_id, '_wc_connect_destination_normalized', true );
 
-			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'origin_normalized', 'destination_normalized' );
+			$form_data = compact( 'is_packed', 'selected_packages', 'origin', 'destination', 'origin_normalized', 'destination_normalized', 'endshipper' );
 
 			$form_data['rates'] = array(
 				'selected' => (object) $selected_rates,

@@ -106,6 +106,9 @@ export default data => {
 				normalizationInProgress: false,
 				allowChangeCountry: Boolean( canChangeCountries ),
 			},
+			endShipper: {
+				values: formData.endshipper,
+			},
 			packages: {
 				all: formData.all_packages,
 				flatRateGroups: formData.flat_rate_groups,

@@ -1036,6 +1036,15 @@ const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) =>
 	downloadAndPrint( orderId, siteId, dispatch, getState, labels );
 };
 
+const completingEndShipperAddress = ( form ) => {
+	const originAddress = getAddressValues( form.origin );
+
+	form.endShipper.values.name = originAddress.name;
+	form.endShipper.values.phone = originAddress.phone;
+
+	return form;
+};
+
 export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 	let error = null;
 	let labels = null;
@@ -1077,11 +1086,14 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				return;
 			}
 			form = getShippingLabel( getState(), orderId, siteId ).form;
+			form = completingEndShipperAddress( form );
+
 			const customsItems = isCustomsFormRequired( getState(), orderId, siteId )
 				? form.customs.items
 				: null;
 			const formData = {
 				async: true,
+				endshipper: getAddressValues( form.endShipper ),
 				origin: getAddressValues( form.origin ),
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {

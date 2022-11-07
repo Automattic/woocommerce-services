@@ -110,6 +110,31 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID );
 		}
 
+		/**
+		 * Gets the store's location settings.
+		 *
+		 * @return array
+		 */
+		public function get_endshipper_address() {
+			$master_user    = WC_Connect_Jetpack::get_master_user();
+			$connected_data = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+
+			$store_settings = array(
+				'company'   => html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES ), // HTML entities may be saved in the option.
+				'address_1' => WC()->countries->get_base_address(),
+				'address_2' => WC()->countries->get_base_address_2(),
+				'city'      => WC()->countries->get_base_city(),
+				'state'     => WC()->countries->get_base_state(),
+				'country'   => WC()->countries->get_base_country(),
+				'postcode'  => WC()->countries->get_base_postcode(),
+				'email'     => $connected_data['email'],
+				'phone'     => '',
+				'name'      => '',
+			);
+
+			return apply_filters( 'endshipper_store_settings', $store_settings, array() );
+		}
+
 		public function get_origin_address() {
 			$wc_address_fields            = array();
 			$wc_address_fields['company'] = html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES ); // HTML entities may be saved in the option.
