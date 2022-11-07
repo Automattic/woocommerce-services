@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import { localize } from 'i18n-calypso';
 import { omit } from 'lodash';
 import React, { Children } from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * Internal dependencies
@@ -19,6 +20,7 @@ class FormButton extends React.Component {
 		isSubmitting: false,
 		isPrimary: true,
 		type: 'submit',
+		borderless: false,
 	};
 
 	getDefaultButtonAction = () => {
@@ -30,12 +32,12 @@ class FormButton extends React.Component {
 	render() {
 		const { children, className, isPrimary, ...props } = this.props,
 			buttonClasses = classNames( className, 'form-button', 'button', {
-				'is-borderless': !! this.props.borderless
+				'is-borderless': this.props.borderless
 			 } );
 
 		return (
 			<Button
-				{ ...omit( props, [ 'isSubmitting', 'moment', 'numberFormat', 'translate' ] ) }
+				{ ...omit( props, [ 'isSubmitting', 'moment', 'numberFormat', 'translate', 'borderless' ] ) }
 				isPrimary={ isPrimary }
 				className={ buttonClasses }
 			>
@@ -44,5 +46,12 @@ class FormButton extends React.Component {
 		);
 	}
 }
+
+FormButton.propTypes = {
+	isSubmitting: PropTypes.bool,
+	isPrimary: PropTypes.bool,
+	type: PropTypes.string,
+	borderless: PropTypes.bool,
+};
 
 export default localize( FormButton );
