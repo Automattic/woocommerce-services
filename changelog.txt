@@ -2,6 +2,7 @@
 
 = 1.27.0 - 2022-xx-xx =
 * Add - Add list of tax rate backup files for merchants to click and download.
+* Add - USPS EndShipper feature.
 
 = 1.26.3 - 2022-08-03 =
 * Add   - Add filter to override TaxJar result.
