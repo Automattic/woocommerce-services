@@ -66,12 +66,11 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_parent_product_id() {
-		$compat       = WC_Connect_Compatibility::instance();
 		$product      = WC_Helper_Product::create_variation_product();
 		$variations   = $product->get_available_variations();
 		$variation    = new WC_Product_Variation( $variations[0]['variation_id'] );
-		$parent_id    = $compat->get_parent_product_id( $product );
-		$variation_id = $compat->get_parent_product_id( $variation );
+		$parent_id    = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+		$variation_id = $variation->is_type( 'variation' ) ? $variation->get_parent_id() : $variation->get_id();
 		$this->assertEquals( self::get_id( $product ), $parent_id );
 		$this->assertEquals( self::get_id( $product ), $variation_id );
 	}
