@@ -152,7 +152,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return $pointers;
 			}
 
-			if ( ! $this->shipping_label->should_show_meta_box() ) {
+			global $post;
+
+			if ( ! $this->shipping_label->should_show_meta_box( $post ) ) {
 				return $pointers;
 			}
 

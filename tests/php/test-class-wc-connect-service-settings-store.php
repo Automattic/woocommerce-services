@@ -74,14 +74,18 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function tearDown() {
-		delete_post_meta( $this->order_id, 'wc_connect_labels' );
+		$order = wc_get_order( $this->order_id );
+		$order->delete_meta_data( 'wc_connect_labels' );
+		$order->save();
 	}
 
 	public function test_get_label_order_meta_data_regular_json() {
 		$labels_data                     = $this->labels_data;
 		$labels_data[0]['package_name']  = 'box';
 		$labels_data[0]['product_names'] = array( 'product' );
-		update_post_meta( $this->order_id, 'wc_connect_labels', json_encode( $labels_data ) );
+		$order                           = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', json_encode( $labels_data ) );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -90,7 +94,9 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_label_order_meta_data_escaped_json() {
-		update_post_meta( $this->order_id, 'wc_connect_labels', json_encode( $this->labels_data ) );
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', json_encode( $this->labels_data ) );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -102,7 +108,10 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 		// create a json and ensure that quotes are unescaped
 		$json = json_encode( $this->labels_data );
 		$json = str_replace( '\"', '"', $json );
-		update_post_meta( $this->order_id, 'wc_connect_labels', $json );
+
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', $json );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -111,7 +120,9 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_label_order_meta_data_array() {
-		update_post_meta( $this->order_id, 'wc_connect_labels', $this->labels_data );
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', $this->labels_data );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -132,7 +143,9 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 		$labels_data                     = $this->multiple_labels_data;
 		$labels_data[0]['package_name']  = 'box';
 		$labels_data[0]['product_names'] = array( 'product' );
-		update_post_meta( $this->order_id, 'wc_connect_labels', json_encode( $labels_data ) );
+		$order                           = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', json_encode( $labels_data ) );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -141,8 +154,10 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_label_order_meta_data_multiple_labels_escaped_json() {
-		$json = json_encode( $this->multiple_labels_data );
-		update_post_meta( $this->order_id, 'wc_connect_labels', $json );
+		$json  = json_encode( $this->multiple_labels_data );
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', $json );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -152,9 +167,11 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 
 	public function test_get_label_order_meta_data_multiple_labels_unescaped_json() {
 		// create a json and ensure that quotes are unescaped
-		$json = json_encode( $this->multiple_labels_data );
-		$json = str_replace( '\"', '"', $json );
-		update_post_meta( $this->order_id, 'wc_connect_labels', $json );
+		$json  = json_encode( $this->multiple_labels_data );
+		$json  = str_replace( '\"', '"', $json );
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', $json );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -163,7 +180,9 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_label_order_meta_data_multiple_labels_array() {
-		update_post_meta( $this->order_id, 'wc_connect_labels', $this->multiple_labels_data );
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', $this->multiple_labels_data );
+		$order->save();
 
 		$settings_store = $this->get_settings_store();
 		$actual         = $settings_store->get_label_order_meta_data( $this->order_id );
@@ -172,7 +191,10 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function test_get_label_order_meta_data_invalid_string() {
-		update_post_meta( $this->order_id, 'wc_connect_labels', 'this"is"not}a{json}' );
+		$order = wc_get_order( $this->order_id );
+		$order->update_meta_data( 'wc_connect_labels', 'this"is"not}a{json}' );
+		$order->save();
+
 		$expected = array();
 
 		$settings_store = $this->get_settings_store();
