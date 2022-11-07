@@ -1165,7 +1165,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param $plain_text
 		 */
 		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text ) {
-			$id = WC_Connect_Compatibility::instance()->get_order_id( $order );
+			$id = $order->get_id();
 
 			// Abort if no id was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
 			if ( ! $id
