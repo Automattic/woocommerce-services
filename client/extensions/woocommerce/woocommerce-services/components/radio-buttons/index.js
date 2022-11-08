@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormLegend from 'components/forms/form-legend';
-import FormRadio from 'components/forms/form-radio';
+import FormRadio from 'wcs-client/components/forms/form-radio';
 import sanitizeHTML from 'woocommerce/woocommerce-services/lib/utils/sanitize-html';
 import FieldDescription from 'woocommerce/woocommerce-services/components/field-description';
 
