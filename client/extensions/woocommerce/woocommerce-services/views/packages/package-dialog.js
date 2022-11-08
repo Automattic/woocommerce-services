@@ -17,7 +17,7 @@ import Gridicon from 'gridicons';
 import EditPackage from './edit-package';
 import checkInputs from './modal-errors';
 import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import FormSectionHeading from 'wcs-client/components/forms/form-section-heading';
 import FormButton from 'components/forms/form-button';
 import inputFilters from './input-filters';
 import PredefinedPackages from './predefined-packages';
