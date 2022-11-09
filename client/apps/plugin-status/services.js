@@ -8,7 +8,7 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 import Indicator from './indicator';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 
