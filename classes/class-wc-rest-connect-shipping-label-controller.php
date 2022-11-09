@@ -141,7 +141,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 					$product_names[] = $product->get_title();
 				} else {
 					$order           = wc_get_order( $order_id );
-					$product_names[] = WC_Connect_Compatibility::instance()->get_product_name_from_order( $product_id, $order );
+					$product_names[] = WC_Connect_Utils::get_product_name_from_order( $product_id, $order );
 				}
 			}
 

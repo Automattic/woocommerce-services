@@ -161,7 +161,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		 */
 		public function maybe_trigger_banner( $order_id ) {
 			$order          = wc_get_order( $order_id );
-			$payment_method = WC_Connect_Compatibility::instance()->get_payment_method( $order );
+			$payment_method = $order ? $order->get_payment_method() : false;
 
 			if ( 'ppec_paypal' === $payment_method ) {
 				WC_Connect_Options::update_option( 'banner_ppec', 'yes' );
@@ -178,6 +178,9 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 
 			$screen = get_current_screen();
 
+			$order          = wc_get_order();
+			$payment_method = $order ? $order->get_payment_method() : false;
+
 			if ( // Display if on any of these admin pages.
 				( // Orders list.
 					'shop_order' === $screen->post_type
@@ -186,7 +189,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				|| ( // Edit order page.
 					'shop_order' === $screen->post_type
 					&& 'post' === $screen->base
-					&& 'ppec_paypal' === WC_Connect_Compatibility::instance()->get_payment_method( wc_get_order() )
+					&& 'ppec_paypal' === $payment_method
 					)
 				|| ( // WooCommerce » Settings » Payments.
 					'woocommerce_page_wc-settings' === $screen->base
