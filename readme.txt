@@ -78,6 +78,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.0.0 - 2022-xx-xx =
+* Add   - High-Performance Order Storage compatibility.
+* Add   - Add list of tax rate backup files for merchants to click and download.
+* Tweak - Transition version numbering from SemVer to WordPress versioning.
+
 = 1.26.3 - 2022-08-03 =
 * Tweak - Always let the user to pick the package box.
 * Add   - Add filter to override TaxJar result.
