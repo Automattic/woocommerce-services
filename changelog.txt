@@ -1,10 +1,12 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 2.1.0 - 2022-xx-xx =
+* Add - USPS EndShipper feature.
+
 = 2.0.0 - 2022-11-16 =
 * Add   - High-Performance Order Storage compatibility.
 * Add   - Add list of tax rate backup files for merchants to click and download.
 * Tweak - Transition version numbering from SemVer to WordPress versioning.
-* Add   - USPS EndShipper feature.
 
 = 1.26.3 - 2022-08-03 =
 * Add   - Add filter to override TaxJar result.
