@@ -77,6 +77,11 @@
 	.gridicon.is-warning {
 		color: var( --color-warning );
 	}
+	.gridicon.label-purchase-modal__step-spinner {
+		fill: var( --color-neutral-dark );
+		animation: 3s linear infinite;
+		animation-name: rotate-spinner;
+	}
 
 	.is-error:not( .notice ) {
 		color: var( --color-error );
@@ -223,3 +228,4 @@
 .label-purchase-modal__shipping-summary-section {
 	padding-bottom: 15px;
 }
+

@@ -12,7 +12,6 @@ import classNames from 'classnames';
 /**
  * Internal dependencies
  */
-import Spinner from 'components/spinner';
 import FoldableCard from 'wcs-client/components/foldable-card';
 
 const StepContainer = ( {
@@ -37,23 +36,23 @@ const StepContainer = ( {
 		if ( isError ) {
 			return 'notice-outline';
 		}
+		if ( isProgress ) {
+			return 'sync';
+		}
 		return '';
 	};
 	const className = classNames( {
 		'is-success': isSuccess,
 		'is-warning': isWarning,
 		'is-error': isError,
+		'label-purchase-modal__step-spinner': isProgress
 	} );
 
 	summary = (
 		<span className={ className }>
 			<span>{ summary }</span>
 			<div className="label-purchase-modal__step-status">
-				{ isProgress ? (
-					<Spinner size={ 18 } />
-				) : (
-					<Gridicon icon={ getIcon() } className={ className } size={ 18 } />
-				) }
+			<Gridicon icon={ getIcon() } className={ className } size={ 18 } />
 			</div>
 		</span>
 	);
