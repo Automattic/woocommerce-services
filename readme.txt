@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.0.3
 WC requires at least: 3.6
 WC tested up to: 7.0.0
-Stable tag: 1.26.3
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -77,6 +77,11 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.0.0 - 2022-11-16 =
+* Add   - High-Performance Order Storage compatibility.
+* Add   - Add list of tax rate backup files for merchants to click and download.
+* Tweak - Transition version numbering from SemVer to WordPress versioning.
 
 = 1.26.3 - 2022-08-03 =
 * Tweak - Always let the user to pick the package box.
