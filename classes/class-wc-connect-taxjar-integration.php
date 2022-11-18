@@ -1078,6 +1078,10 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response
 		$taxjar_response = json_decode( $response['body'] );
+		if ( empty( $taxjar_response->tax ) ) {
+			return false;
+		}
+
 		$taxjar_response = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
 
 		// Update Properties based on Response
