@@ -9,7 +9,7 @@ import { localize } from 'i18n-calypso';
  * Internal dependencies
  */
 import FormFieldset from 'components/forms/form-fieldset';
-import FormLegend from 'components/forms/form-legend';
+import FormLegend from 'wcs-client/components/forms/form-legend';
 import GlobalNotices from 'components/global-notices';
 import HealthView from './health';
 import LogView from './log';
