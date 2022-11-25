@@ -506,7 +506,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'connection',
 				array(
 					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-payments' ),
+					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-services' ),
 				)
 			);
 		}
