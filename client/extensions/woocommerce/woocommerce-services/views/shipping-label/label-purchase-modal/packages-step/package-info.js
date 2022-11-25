@@ -17,7 +17,7 @@ import classNames from 'classnames';
  */
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import FormLabel from 'components/forms/form-label';
-import FormLegend from 'components/forms/form-legend';
+import FormLegend from 'wcs-client/components/forms/form-legend';
 import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 import ItemInfo from './item-info';
 import PackageSelect from './package-select';
