@@ -43,7 +43,6 @@ import {
 	userCanEditSettings,
 	userCanManagePayments,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
-import QueryStoredCards from 'components/data/query-stored-cards';
 import AddCardDialog from 'woocommerce/woocommerce-services/views/label-settings/add-credit-card-modal';
 
 class ShippingLabels extends Component {
@@ -279,7 +278,6 @@ class ShippingLabels extends Component {
 				<p className="label-settings__credit-card-description">{ description }</p>
 				{ ! isReloading && this.renderPaymentWarningNotice() }
 
-				<QueryStoredCards />
 				{ isReloading ? (
 					<div className= { classNames( buttonClasses, "label-settings__placeholder" ) }>
 						<PaymentMethod selected={ false } isLoading={ true } />
