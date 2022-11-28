@@ -40,10 +40,10 @@ describe( 'Create shipping label', () => {
 			const enterOriginPhone = await page.$( '.address-step__phone input' );
 			if ( enterOriginPhone ) {
 				await expect( page ).toFill( '.address-step__phone input', '11111111111' );
-console.log( 'yes test' );
+
 				await expect( page ).toClick( '.address-step__actions .form-button', { text: 'Use address as entered' } )
 
-				await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
+				//await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
 			}
 
 			await expect( page ).toClick( '.button.is-primary', { text: 'Use selected address' } );
