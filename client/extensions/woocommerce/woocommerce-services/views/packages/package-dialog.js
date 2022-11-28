@@ -21,7 +21,7 @@ import FormSectionHeading from 'components/forms/form-section-heading';
 import FormButton from 'components/forms/form-button';
 import inputFilters from './input-filters';
 import PredefinedPackages from './predefined-packages';
-import SimplifiedSegmentedControl from 'components/segmented-control/simplified';
+import SimplifiedSegmentedControl from 'wcs-client/components/segmented-control/simplified';
 import { getPredefinedPackagesChangesSummary } from '../../state/packages/selectors';
 import { createWcsShippingSaveActionList } from 'extensions/woocommerce/woocommerce-services/state/actions';
 import { bindActionCreators } from 'redux';
