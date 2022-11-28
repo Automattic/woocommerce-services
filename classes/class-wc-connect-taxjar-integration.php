@@ -377,7 +377,8 @@ class WC_Connect_TaxJar_Integration {
 		// ignore error messages caused by customer input
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode   = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
-		if ( ! is_admin() && ( $state_zip_mismatch || $invalid_postcode ) ) {
+		$malformed_postcode = false !== strpos( $formatted_message, 'zip code has incorrect format' );
+		if ( ! is_admin() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
 			$fields              = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
@@ -386,6 +387,8 @@ class WC_Connect_TaxJar_Integration {
 
 			if ( $state_zip_mismatch ) {
 				$message = sprintf( _x( '%s does not match the selected state.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
+			} elseif ( $malformed_postcode ) {
+				$message = sprintf( _x( '%s is not formatted correctly.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			} else {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
@@ -1075,6 +1078,10 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response
 		$taxjar_response = json_decode( $response['body'] );
+		if ( empty( $taxjar_response->tax ) ) {
+			return false;
+		}
+
 		$taxjar_response = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
 
 		// Update Properties based on Response
