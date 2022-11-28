@@ -119,7 +119,7 @@ export class Notice extends Component {
 				</span>
 				{ text ? children : null }
 				{ showDismiss && (
-					<span tabIndex="0" className="notice__dismiss" onClick={ onDismissClick }>
+					<span tabIndex="0" className="notice__dismiss" onClick={ onDismissClick } onKeyDown={onDismissClick} role="button" aria-label={ translate( 'Dismiss' ) }>
 						<Gridicon icon="cross" size={ 24 } />
 						<ScreenReaderText>{ translate( 'Dismiss' ) }</ScreenReaderText>
 					</span>
