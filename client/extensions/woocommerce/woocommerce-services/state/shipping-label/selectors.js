@@ -496,7 +496,7 @@ export const getFormErrors = createSelector(
 		const shouldValidateOriginPhone = true;
 
 		// If it's an international order, validate the destination phone as well.
-		const shouldValidateDestinationPhone = shouldValidateOriginPhone;
+		const shouldValidateDestinationPhone = isCustomsFormRequired( state, orderId, siteId );
 		return {
 			origin: getAddressErrors( form.origin, state, siteId, { originPhone: shouldValidateOriginPhone } ),
 			destination: getAddressErrors( form.destination, state, siteId, { destinationPhone: shouldValidateDestinationPhone } ),
