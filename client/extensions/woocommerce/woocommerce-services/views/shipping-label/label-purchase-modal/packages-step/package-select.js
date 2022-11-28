@@ -18,7 +18,7 @@ import Gridicon from 'gridicons';
 import FormSelect from 'wcs-client/components/forms/form-select';
 import getBoxDimensions from 'woocommerce/woocommerce-services/lib/utils/get-box-dimensions';
 import PackageDialog from '../../../packages/package-dialog.js';
-import FormLegend from 'components/forms/form-legend';
+import FormLegend from 'wcs-client/components/forms/form-legend';
 import FieldError from 'woocommerce/woocommerce-services/components/field-error';
 import {
 	getPackageGroupsForLabelPurchase,
