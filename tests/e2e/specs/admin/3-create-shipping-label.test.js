@@ -43,7 +43,7 @@ describe( 'Create shipping label', () => {
 
 				await expect( page ).toClick( '.address-step__actions .form-button', { text: 'Use address as entered' } )
 
-				//await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
+				await expect( page ).toClick( '.address-step__suggestion-title', { text: 'Address entered' } );
 			}
 
 			await expect( page ).toClick( '.button.is-primary', { text: 'Use selected address' } );
