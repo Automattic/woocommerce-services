@@ -12,7 +12,7 @@ import classNames from 'classnames';
 /**
  * Internal dependencies
  */
-import Spinner from 'components/spinner';
+import Spinner from 'wcs-client/components/spinner';
 import FoldableCard from 'wcs-client/components/foldable-card';
 
 const StepContainer = ( {
