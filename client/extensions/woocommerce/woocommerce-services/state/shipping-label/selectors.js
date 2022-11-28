@@ -258,6 +258,7 @@ export const isCustomsFormRequired = createSelector(
 				'An origin address phone number is required for this shipment.'
 			);
 		} else if (
+			'US' === country &&
 			10 !==
 			phone
 				.split( /\D+/g )
@@ -265,7 +266,7 @@ export const isCustomsFormRequired = createSelector(
 				.replace( /^1/, '' ).length
 		) {
 			errors.phone = translate(
-				'Customs forms require a 10-digit phone number. ' +
+				'Origin address require a 10-digit phone number. ' +
 					'Please edit your phone number so it has at most 10 digits.'
 			);
 		}
@@ -490,7 +491,10 @@ export const getFormErrors = createSelector(
 		}
 		const destinationCountryCode = form.destination.values.country;
 		const destinationCountryName = getCountryName( state, destinationCountryCode, siteId );
-		const shouldValidateOriginPhone = isCustomsFormRequired( state, orderId, siteId );
+		
+		// Set to always true as origin phone now is mandatory for easypost endshipper data.
+		const shouldValidateOriginPhone = true;
+
 		// If it's an international order, validate the destination phone as well.
 		const shouldValidateDestinationPhone = shouldValidateOriginPhone;
 		return {
