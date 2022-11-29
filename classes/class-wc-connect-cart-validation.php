@@ -5,7 +5,7 @@
 class WC_Connect_Cart_Validation {
 
 	/**
-	 * Needed to keep track of the current package being proccessed.
+	 * Needed to keep track of the current package being processed.
 	 *
 	 * @var array
 	 */
