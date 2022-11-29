@@ -266,7 +266,7 @@ export const isCustomsFormRequired = createSelector(
 				.replace( /^1/, '' ).length
 		) {
 			errors.phone = translate(
-				'Origin address require a 10-digit phone number. ' +
+				'Origin phone number has to be 10-digit. ' +
 					'Please edit your phone number so it has at most 10 digits.'
 			);
 		}
