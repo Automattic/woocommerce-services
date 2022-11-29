@@ -115,7 +115,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 *
 		 * @return array
 		 */
-		public function get_endshipper_address() {
+		public function get_end_shipper_address() {
 			$email       = '';
 			$master_user = WC_Connect_Jetpack::get_master_user();
 

@@ -274,12 +274,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $address;
 		}
 
-		protected function get_endshipper_address() {
-			$endshipper = $this->format_address_for_api( $this->settings_store->get_endshipper_address() );
-
-			return $endshipper;
-		}
-
 		protected function get_origin_address() {
 			$origin = $this->format_address_for_api( $this->settings_store->get_origin_address() );
 
@@ -300,7 +294,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$origin            = $this->get_origin_address();
 			$selected_rates    = $this->get_selected_rates( $order );
 			$destination       = $this->get_destination_address( $order );
-			$endshipper        = $this->get_endshipper_address();
+			$endshipper        = $this->format_address_for_api( $this->settings_store->get_end_shipper_address() );
 
 			if ( ! $destination['country'] ) {
 				$destination['country'] = $origin['country'];
