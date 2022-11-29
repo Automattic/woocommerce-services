@@ -110,24 +110,27 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID );
 		}
 
+		public function get_end_shipper_email() {
+			$master_user = WC_Connect_Jetpack::get_master_user();
+
+			if ( $master_user instanceof WP_User ) {
+
+				$connected_data = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+
+				if ( is_array( $connected_data ) && ! empty( $connected_data['email'] ) ) {
+					return $connected_data['email'];
+				}
+			}
+
+			return '';
+		}
+
 		/**
 		 * Gets the store's location settings.
 		 *
 		 * @return array
 		 */
 		public function get_end_shipper_address() {
-			$email       = '';
-			$master_user = WC_Connect_Jetpack::get_master_user();
-
-			if ( is_a( $master_user, 'WP_User' ) ) {
-
-				$connected_data = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
-
-				if ( is_array( $connected_data ) && ! empty( $connected_data['email'] ) ) {
-					$email = $connected_data['email'];
-				}
-			}
-
 			$store_settings = array(
 				'company'   => html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES ), // HTML entities may be saved in the option.
 				'address_1' => WC()->countries->get_base_address(),
@@ -136,12 +139,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				'state'     => WC()->countries->get_base_state(),
 				'country'   => WC()->countries->get_base_country(),
 				'postcode'  => WC()->countries->get_base_postcode(),
-				'email'     => $email,
+				'email'     => $this->get_end_shipper_email(),
+
+				// Phone and name data will be added later from origin address.
 				'phone'     => '',
 				'name'      => '',
 			);
 
-			return apply_filters( 'endshipper_store_settings', $store_settings, array() );
+			return apply_filters( 'end_shipper_store_settings', $store_settings );
 		}
 
 		public function get_origin_address() {
