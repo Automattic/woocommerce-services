@@ -1036,7 +1036,7 @@ const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) =>
 	downloadAndPrint( orderId, siteId, dispatch, getState, labels );
 };
 
-const completingEndShipperAddress = ( form ) => {
+const appendEndShipperAddress = ( form ) => {
 	const originAddress = getAddressValues( form.origin );
 
 	form.endShipper.values.name = originAddress.name;
@@ -1086,7 +1086,7 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				return;
 			}
 			form = getShippingLabel( getState(), orderId, siteId ).form;
-			form = completingEndShipperAddress( form );
+			form = appendEndShipperAddress( form );
 
 			const customsItems = isCustomsFormRequired( getState(), orderId, siteId )
 				? form.customs.items
