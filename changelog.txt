@@ -1,7 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 2.1.0 - 2022-xx-xx =
-* Add - USPS EndShipper feature.
+* Add - Compatibility with USPS's end shipper requirements.
 
 = 2.0.0 - 2022-11-16 =
 * Add   - High-Performance Order Storage compatibility.
