@@ -107,7 +107,7 @@ export default data => {
 				allowChangeCountry: Boolean( canChangeCountries ),
 			},
 			endShipper: {
-				values: formData.endshipper,
+				values: formData.end_shipper,
 			},
 			packages: {
 				all: formData.all_packages,

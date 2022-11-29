@@ -1093,7 +1093,7 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				: null;
 			const formData = {
 				async: true,
-				endshipper: getAddressValues( form.endShipper ),
+				end_shipper: getAddressValues( form.endShipper ),
 				origin: getAddressValues( form.origin ),
 				destination: getAddressValues( form.destination ),
 				packages: map( form.packages.selected, ( pckg, pckgId ) => {

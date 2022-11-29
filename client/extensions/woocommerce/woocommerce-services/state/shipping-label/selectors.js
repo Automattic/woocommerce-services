@@ -492,7 +492,7 @@ export const getFormErrors = createSelector(
 		const destinationCountryCode = form.destination.values.country;
 		const destinationCountryName = getCountryName( state, destinationCountryCode, siteId );
 		
-		// Set to always true as origin phone now is mandatory for easypost endshipper data.
+		// Set to always true as origin phone now is mandatory for easypost end shipper data.
 		const shouldValidateOriginPhone = isCustomsFormRequired( state, orderId, siteId );
 
 		// If it's an international order, validate the destination phone as well.
