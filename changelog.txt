@@ -1,7 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 2.1.0 - 2022-xx-xx =
-* Add - Compatibility with USPS's end shipper requirements.
+* Add   - Compatibility with USPS's end shipper requirements.
+* Tweak - Catch malformed zipcode and display WC notice.
 
 = 2.0.0 - 2022-11-16 =
 * Add   - High-Performance Order Storage compatibility.
