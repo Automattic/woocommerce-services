@@ -913,7 +913,9 @@ class WC_Connect_TaxJar_Integration {
 	 * @return object
 	 */
 	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
-		if( ! isset($taxjar_resp_tax) ) return;
+		if ( ! isset( $taxjar_resp_tax ) ) {
+			return;
+		}
 		
 		$new_tax_rate = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body ) );
 
