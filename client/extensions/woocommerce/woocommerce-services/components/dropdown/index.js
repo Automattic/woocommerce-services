@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
  */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormSelect from 'wcs-client/components/forms/form-select';
-import FormLegend from 'components/forms/form-legend';
+import FormLegend from 'wcs-client/components/forms/form-legend';
 import FieldError from '../field-error';
 import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 

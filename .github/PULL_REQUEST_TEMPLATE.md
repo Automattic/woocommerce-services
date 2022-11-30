@@ -28,4 +28,5 @@
 
 <!-- An entry in the changelog file is always required -->
 - [ ] `changelog.txt` entry added
+- [ ] `readme.txt` entry added
 
