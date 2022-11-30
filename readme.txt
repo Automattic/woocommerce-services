@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.1.0 - 2022-xx-xx =
+* Tweak - Catch malformed zipcode and display WC notice.
+
 = 2.0.0 - 2022-11-16 =
 * Add   - High-Performance Order Storage compatibility.
 * Add   - Add list of tax rate backup files for merchants to click and download.
