@@ -146,7 +146,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				'name'      => '',
 			);
 
-			return apply_filters( 'end_shipper_store_settings', $store_settings );
+			return apply_filters( 'wcship_end_shipper_store_settings', $store_settings );
 		}
 
 		public function get_origin_address() {
