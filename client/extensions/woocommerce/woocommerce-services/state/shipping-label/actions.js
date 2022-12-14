@@ -347,12 +347,7 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
-	).then( () => {
-		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
-		if ( packageId !== undefined && boxId !== undefined ) {
-			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );
-		}
-	} );
+	);
 
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
 };
@@ -432,14 +427,6 @@ export const removeIgnoreValidation = ( orderId, siteId, group ) => {
 	};
 };
 
-const checkPackagesStep = ( orderId, siteId, dispatch, getState ) => {
-	const { expanded } = getShippingLabel( getState(), orderId, siteId ).form[ 'packages' ];
-	if ( true !== expanded ) {
-		dispatch( toggleStep( orderId, siteId, 'packages' ) );
-		return;
-	}
-};
-
 export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch, getState ) => {
 	dispatch( {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_ADDRESS_SUGGESTION,
@@ -448,12 +435,7 @@ export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch
 		group,
 	} );
 
-	if ( 'destination' === group ) {
-		checkPackagesStep( orderId, siteId, dispatch, getState );
-		return;
-	}
-	
-	tryGetLabelRates( orderId, siteId, dispatch, getState );	
+	tryGetLabelRates( orderId, siteId, dispatch, getState );
 };
 
 export const submitAddressForNormalization = ( orderId, siteId, group ) => (
@@ -470,12 +452,7 @@ export const submitAddressForNormalization = ( orderId, siteId, group ) => (
 				dispatch( toggleStep( orderId, siteId, group ) );
 			}
 
-			if ( 'destination' === group ) {
-				checkPackagesStep( orderId, siteId, dispatch, getState );
-				return;
-			}
-			
-			tryGetLabelRates( orderId, siteId, dispatch, getState );	
+			tryGetLabelRates( orderId, siteId, dispatch, getState );
 		}
 	};
 
