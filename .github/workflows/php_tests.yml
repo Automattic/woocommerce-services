@@ -5,22 +5,22 @@ on: [pull_request, workflow_dispatch]
 jobs:
   php_lint:
     name: PHP Syntax Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Switch to PHP 8.1
+      - name: Switch to PHP 7.4
         run: |
-          sudo update-alternatives --set php /usr/bin/php8.1
-          sudo update-alternatives --set phar /usr/bin/phar8.1
-          sudo update-alternatives --set phar.phar /usr/bin/phar.phar8.1
+          sudo update-alternatives --set php /usr/bin/php7.4
+          sudo update-alternatives --set phar /usr/bin/phar7.4
+          sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
       - name: Lint
         run: find . -type f -name "*.php" -exec php -l {} \;
   find_latest_versions:
     name: Find supported wordpress and woocommerce versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       wc-versions: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
       wp-versions: ${{ steps.get_wp_versions_for_matrix.outputs.wp-versions }}
@@ -36,7 +36,7 @@ jobs:
   php_build_and_test:
     name: PHP Unit Test (WP, WC)
     needs: find_latest_versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     services:
       mariadb:
         image: mariadb:latest
@@ -57,11 +57,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Switch to PHP 8.1
+      - name: Switch to PHP 7.4
         run: |
-          sudo update-alternatives --set php /usr/bin/php8.1
-          sudo update-alternatives --set phar /usr/bin/phar8.1
-          sudo update-alternatives --set phar.phar /usr/bin/phar.phar8.1
+          sudo update-alternatives --set php /usr/bin/php7.4
+          sudo update-alternatives --set phar /usr/bin/phar7.4
+          sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.4
       - name: Install composer
         run: |
           ./bin/composer-installer.sh
