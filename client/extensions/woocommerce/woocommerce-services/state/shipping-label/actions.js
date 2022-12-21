@@ -434,9 +434,8 @@ export const removeIgnoreValidation = ( orderId, siteId, group ) => {
 
 const checkPackagesStep = ( orderId, siteId, dispatch, getState ) => {
 	const { expanded } = getShippingLabel( getState(), orderId, siteId ).form[ 'packages' ];
-	if ( true !== expanded ) {
+	if ( !expanded ) {
 		dispatch( toggleStep( orderId, siteId, 'packages' ) );
-		return;
 	}
 };
 
