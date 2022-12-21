@@ -5,7 +5,7 @@ on: [pull_request, workflow_dispatch]
 jobs:
   php_lint:
     name: PHP Syntax Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
         run: find . -type f -name "*.php" -exec php -l {} \;
   find_latest_versions:
     name: Find supported wordpress and woocommerce versions
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       wc-versions: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
       wp-versions: ${{ steps.get_wp_versions_for_matrix.outputs.wp-versions }}
@@ -36,7 +36,7 @@ jobs:
   php_build_and_test:
     name: PHP Unit Test (WP, WC)
     needs: find_latest_versions
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     services:
       mariadb:
         image: mariadb:latest
