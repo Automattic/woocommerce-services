@@ -74,6 +74,11 @@ export const getEmailReceipts = ( state, siteId = getSelectedSiteId( state ) ) =
 	return data && data.email_receipts;
 };
 
+export const getSaveLastPackage = ( state, siteId = getSelectedSiteId( state ) ) => {
+	const data = getLabelSettingsFormData( state, siteId );
+	return data && data.save_last_package;
+};
+
 export const userCanManagePayments = ( state, siteId = getSelectedSiteId( state ) ) => {
 	const meta = getLabelSettingsFormMeta( state, siteId );
 	return meta && meta.can_manage_payments;

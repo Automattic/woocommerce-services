@@ -63,6 +63,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$result['email_receipts'] = true;
 			}
 
+			if ( ! isset( $result['save_last_package'] ) ) {
+				$result['save_last_package'] = true;
+			}
+
 			return $result;
 		}
 
