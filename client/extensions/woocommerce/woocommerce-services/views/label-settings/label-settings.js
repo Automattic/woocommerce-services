@@ -33,7 +33,7 @@ import {
 	areSettingsFetching,
 	areSettingsLoaded,
 	getEmailReceipts,
-	getSaveLastPackage,
+	getUseLastPackage,
 	getLabelSettingsStoreOptions,
 	getMasterUserInfo,
 	getPaperSize,
@@ -346,16 +346,16 @@ class ShippingLabels extends Component {
 
 	renderSavePackageSection = () => {
 		const {
-			saveLastPackage,
+			useLastPackage,
 			translate,
 			canEditSettings,
 			canEditPayments,
 		} = this.props;
 
-		if ( ! isBoolean( saveLastPackage ) ) {
+		if ( ! isBoolean( useLastPackage ) ) {
 			return null;
 		}
-		const onChange = () => this.props.setValue( 'save_last_package', ! saveLastPackage );
+		const onChange = () => this.props.setValue( 'use_last_package', ! useLastPackage );
 		return (
 			<FormFieldSet>
 				<FormLabel className="label-settings__cards-label">
@@ -364,7 +364,7 @@ class ShippingLabels extends Component {
 				<CheckboxControl
 					className="form-label label-settings__credit-card-description"
 					label = { translate( 'Save the package selection from previous transaction.' ) }
-					checked={ saveLastPackage }
+					checked={ useLastPackage }
 					onChange={ onChange }
 					disabled={ ! canEditPayments && ! canEditSettings }
 				/>
@@ -436,7 +436,7 @@ export default connect(
 			canEditSettings:
 				userCanManagePayments( state, siteId ) || userCanEditSettings( state, siteId ),
 			emailReceipts: getEmailReceipts( state, siteId ),
-			saveLastPackage: getSaveLastPackage( state, siteId ),
+			useLastPackage: getUseLastPackage( state, siteId ),
 			...getMasterUserInfo( state, siteId ),
 		};
 	},
