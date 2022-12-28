@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.1.1 - 2022-xx-xx =
+* Fix   - Save the selected package box and do not skip the package step.
+
 = 2.1.0 - 2022-11-30 =
 * Tweak - Catch malformed zipcode and display WC notice.
 
