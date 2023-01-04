@@ -50,7 +50,7 @@ class WC_Connect_Account_Settings {
 			),
 			'userMeta'     => array(
 				'last_box_id'     => $last_box_id,
-				'last_rate_id'    => $last_service_id,
+				'last_service_id' => $last_service_id,
 				'last_carrier_id' => $last_carrier_id,
 			),
 		);
