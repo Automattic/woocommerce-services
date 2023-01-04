@@ -33,6 +33,7 @@ import {
 	areSettingsFetching,
 	areSettingsLoaded,
 	getEmailReceipts,
+	getUseLastService,
 	getLabelSettingsStoreOptions,
 	getMasterUserInfo,
 	getPaperSize,
@@ -343,6 +344,34 @@ class ShippingLabels extends Component {
 		);
 	};
 
+	renderSaveServiceSection = () => {
+		const {
+			useLastService,
+			translate,
+			canEditSettings,
+			canEditPayments,
+		} = this.props;
+
+		if ( ! isBoolean( useLastService ) ) {
+			return null;
+		}
+		const onChange = () => this.props.setValue( 'use_last_service', ! useLastService );
+		return (
+			<FormFieldSet>
+				<FormLabel className="label-settings__cards-label">
+					{ translate( 'Service Selection' ) }
+				</FormLabel>
+				<CheckboxControl
+					className="form-label label-settings__credit-card-description"
+					label = { translate( 'Save the service selection from previous transaction.' ) }
+					checked={ useLastService }
+					onChange={ onChange }
+					disabled={ ! canEditPayments && ! canEditSettings }
+				/>
+			</FormFieldSet>
+		);
+	};
+
 	renderContent = () => {
 		const { canEditSettings, isLoading, paperSize, storeOptions, translate } = this.props;
 
@@ -377,6 +406,7 @@ class ShippingLabels extends Component {
 					{ this.renderPaymentsSection() }
 				</FormFieldSet>
 				{ this.renderEmailReceiptsSection() }
+				{ this.renderSaveServiceSection() }
 			</div>
 		);
 	};
@@ -406,6 +436,7 @@ export default connect(
 			canEditSettings:
 				userCanManagePayments( state, siteId ) || userCanEditSettings( state, siteId ),
 			emailReceipts: getEmailReceipts( state, siteId ),
+			useLastService: getUseLastService( state, siteId ),
 			...getMasterUserInfo( state, siteId ),
 		};
 	},

@@ -46,6 +46,7 @@ import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import {
 	getEmailReceipts,
+	getUseLastService,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
@@ -261,7 +262,12 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 	const customsItems = isCustomsFormRequired( getState(), orderId, siteId ) ? customs.items : null;
 	const apiPackages = map( packages.selected, pckg => convertToApiPackage( pckg, customsItems ) );
 	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages )
-		.then( () => { 
+		.then( () => {
+			const useLastService = getUseLastService( getState(), siteId );
+			if ( false === useLastService ) {
+				return;
+			}
+
 			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, getState ) || {};
 
 			if ( packageId !== undefined && serviceId !== undefined && carrierId !== undefined ) {
