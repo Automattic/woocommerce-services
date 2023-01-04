@@ -80,6 +80,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = 2.1.1 - 2022-xx-xx =
 * Fix   - Save the selected package box and do not skip the package step.
+* Add   - Add option to let user pick whether to save the last service or not.
 
 = 2.1.0 - 2022-11-30 =
 * Tweak - Catch malformed zipcode and display WC notice.
