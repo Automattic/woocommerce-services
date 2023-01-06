@@ -13,7 +13,7 @@ import ClipboardButton from 'components/forms/clipboard-button';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormTextarea from 'components/forms/form-textarea';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 import notices from 'notices';
 
 class LogView extends Component {

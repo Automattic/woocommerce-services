@@ -12,7 +12,7 @@ import { FormTokenField } from '@wordpress/components';
  * Internal dependencies
  */
 import FormFieldset from 'components/forms/form-fieldset';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 
 /*
 * Style dependencies
