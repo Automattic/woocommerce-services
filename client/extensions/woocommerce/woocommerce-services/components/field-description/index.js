@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 /**
  * Internal dependencies
  */
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 import sanitizeHTML from 'woocommerce/woocommerce-services/lib/utils/sanitize-html';
 
 const FieldDescription = ( { text } ) => {

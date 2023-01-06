@@ -13,7 +13,7 @@ import { uniq, map, find, filter } from 'lodash';
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import TokenField from 'components/token-field';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 
 export default class ShippingClassesField extends React.Component {
 	static propTypes = {
