@@ -9,7 +9,7 @@ import { localize } from 'i18n-calypso'
  * Internal dependencies
  */
 import Indicator from './indicator'
-import FormSettingExplanation from 'components/forms/form-setting-explanation'
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation'
 import { refreshServiceData } from './state/actions';
 
 const WooCommerceServicesIndicator = ({ translate, moment, status, onRefreshClick }) => {
