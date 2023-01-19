@@ -47,6 +47,7 @@ import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state
 import {
 	getEmailReceipts,
 	getUseLastService,
+	getUseLastPackage,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
@@ -393,6 +394,11 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
 	).then( () => {
+		const useLastPackage = getUseLastPackage( getState(), siteId );
+		if ( false === useLastPackage ) {
+			return;
+		}
+
 		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
 		if ( packageId !== undefined && boxId !== undefined ) {
 			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );

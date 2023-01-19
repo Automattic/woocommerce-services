@@ -34,6 +34,7 @@ import {
 	areSettingsLoaded,
 	getEmailReceipts,
 	getUseLastService,
+	getUseLastPackage,
 	getLabelSettingsStoreOptions,
 	getMasterUserInfo,
 	getPaperSize,
@@ -355,7 +356,9 @@ class ShippingLabels extends Component {
 		if ( ! isBoolean( useLastService ) ) {
 			return null;
 		}
+
 		const onChange = () => this.props.setValue( 'use_last_service', ! useLastService );
+
 		return (
 			<FormFieldSet>
 				<FormLabel className="label-settings__cards-label">
@@ -365,6 +368,36 @@ class ShippingLabels extends Component {
 					className="form-label label-settings__credit-card-description"
 					label = { translate( 'Save the service selection from previous transaction.' ) }
 					checked={ useLastService }
+					onChange={ onChange }
+					disabled={ ! canEditPayments && ! canEditSettings }
+				/>
+			</FormFieldSet>
+		);
+	};
+
+	renderSavePackageSection = () => {
+		const {
+			useLastPackage,
+			translate,
+			canEditSettings,
+			canEditPayments,
+		} = this.props;
+
+		if ( ! isBoolean( useLastPackage ) ) {
+			return null;
+		}
+
+		const onChange = () => this.props.setValue( 'use_last_package', ! useLastPackage );
+
+		return (
+			<FormFieldSet>
+				<FormLabel className="label-settings__cards-label">
+					{ translate( 'Package Selection' ) }
+				</FormLabel>
+				<CheckboxControl
+					className="form-label label-settings__credit-card-description"
+					label={ translate( 'Save the package selection from previous transaction.' ) }
+					checked={ useLastPackage }
 					onChange={ onChange }
 					disabled={ ! canEditPayments && ! canEditSettings }
 				/>
@@ -407,6 +440,7 @@ class ShippingLabels extends Component {
 				</FormFieldSet>
 				{ this.renderEmailReceiptsSection() }
 				{ this.renderSaveServiceSection() }
+				{ this.renderSavePackageSection() }
 			</div>
 		);
 	};
@@ -437,6 +471,7 @@ export default connect(
 				userCanManagePayments( state, siteId ) || userCanEditSettings( state, siteId ),
 			emailReceipts: getEmailReceipts( state, siteId ),
 			useLastService: getUseLastService( state, siteId ),
+			useLastPackage: getUseLastPackage( state, siteId ),
 			...getMasterUserInfo( state, siteId ),
 		};
 	},

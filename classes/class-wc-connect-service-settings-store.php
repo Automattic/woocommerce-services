@@ -67,6 +67,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$result['use_last_service'] = false;
 			}
 
+			if ( ! isset( $result['use_last_package'] ) ) {
+				$result['use_last_package'] = true;
+			}
+
 			return $result;
 		}
 
