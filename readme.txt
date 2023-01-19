@@ -79,7 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.1.2 - 2023-xx-xx =
-* Fix   - Adjust checkout US zipcode validation to only run after 5 digits typed.
+* Fix   - Adjust checkout US zipcode validation to run only when exactly 5 or 10 digits are typed.
 
 = 2.1.1 - 2023-01-02 =
 * Fix   - Save the selected package box and do not skip the package step.

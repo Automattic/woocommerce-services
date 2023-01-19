@@ -1262,7 +1262,7 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		if ( 'US' === $json['to_country'] && ! empty( $json['to_zip'] ) && 5 <= strlen( $json['to_zip'] ) && ! WC_Validation::is_postcode( $json['to_zip'], $json['to_country'] ) ) {
+		if ( 'US' === $json['to_country'] && ! empty( $json['to_zip'] ) && in_array( strlen( $json['to_zip'] ), array( 5, 10 ) ) && ! WC_Validation::is_postcode( $json['to_zip'], $json['to_country'] ) ) {
 			$this->_error( 'API request is stopped. Country destination is set to US but the zip code has incorrect format.' );
 
 			return false;
