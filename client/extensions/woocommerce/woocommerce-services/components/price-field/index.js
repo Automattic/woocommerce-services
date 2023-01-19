@@ -5,29 +5,34 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 /**
  * Internal dependencies
  */
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
-import FormCurrencyInput from 'components/forms/form-currency-input';
+import TextControlWithAffixes from 'components/forms/text-control-with-affixes';
 import FieldError from '../field-error';
 
 const PriceField = ( { id, title, value, placeholder, updateValue, error, className } ) => {
-	const handleChangeEvent = event => updateValue( event.target.value );
+	const classes = classNames( {
+		'is-error': Boolean( error ),
+	} );
 
 	return (
 		<FormFieldset className={ className }>
 			<FormLabel htmlFor={ id }>{ title }</FormLabel>
-			<FormCurrencyInput
+			{ error && typeof error === 'string' && <FieldError text={ error } /> }
+			<TextControlWithAffixes
+				prefix={ '$' }
 				id={ id }
 				name={ id }
-				currencySymbolPrefix={ '$' }
+				type="number"
 				placeholder={ placeholder || '0.00' }
 				value={ value }
-				onChange={ handleChangeEvent }
-				isError={ Boolean( error ) }
+				onChange={ updateValue }
+				className={ classes }
 			/>
 			{ error && typeof error === 'string' && <FieldError text={ error } /> }
 		</FormFieldset>
