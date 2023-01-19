@@ -355,7 +355,9 @@ class ShippingLabels extends Component {
 		if ( ! isBoolean( useLastPackage ) ) {
 			return null;
 		}
+
 		const onChange = () => this.props.setValue( 'use_last_package', ! useLastPackage );
+
 		return (
 			<FormFieldSet>
 				<FormLabel className="label-settings__cards-label">
@@ -363,7 +365,7 @@ class ShippingLabels extends Component {
 				</FormLabel>
 				<CheckboxControl
 					className="form-label label-settings__credit-card-description"
-					label = { translate( 'Save the package selection from previous transaction.' ) }
+					label={ translate( 'Save the package selection from previous transaction.' ) }
 					checked={ useLastPackage }
 					onChange={ onChange }
 					disabled={ ! canEditPayments && ! canEditSettings }
