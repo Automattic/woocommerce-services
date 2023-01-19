@@ -271,7 +271,7 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 
 			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, getState ) || {};
 
-			if ( packageId !== undefined && serviceId !== undefined && carrierId !== undefined ) {
+			if ( undefined !== packageId && undefined !== serviceId && undefined !== carrierId ) {
 				dispatch( setDefaultRate ( orderId, siteId, packageId, serviceId, carrierId ) );
 			}
 		} )

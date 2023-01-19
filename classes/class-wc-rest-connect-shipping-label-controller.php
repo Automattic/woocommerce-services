@@ -86,15 +86,15 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			}
 		}
 
-		if ( ! empty( $last_box_id ) && $last_box_id !== 'individual' ) {
+		if ( ! empty( $last_box_id ) && 'individual' !== $last_box_id ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_last_box_id', $last_box_id );
 		}
 
-		if ( ! empty( $last_service_id ) && $last_service_id !== '' ) {
+		if ( ! empty( $last_service_id ) && '' !== $last_service_id ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_last_service_id', $last_service_id );
 		}
 
-		if ( ! empty( $last_carrier_id ) && $last_carrier_id !== '' ) {
+		if ( ! empty( $last_carrier_id ) && '' !== $last_carrier_id ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_last_carrier_id', $last_carrier_id );
 		}
 
