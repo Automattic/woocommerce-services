@@ -5,7 +5,7 @@ Requires PHP: 5.6
 Requires at least: 4.6
 Tested up to: 6.1.1
 WC requires at least: 3.6
-WC tested up to: 7.1.0
+WC tested up to: 7.3.0
 Stable tag: 2.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -77,6 +77,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.1.2 - 2023-xx-xx =
+* Fix   - Adjust checkout US zipcode validation to only run after 5 digits typed.
 
 = 2.1.1 - 2023-01-02 =
 * Fix   - Save the selected package box and do not skip the package step.
