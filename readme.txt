@@ -78,7 +78,8 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.1.2 - 2023-xx-xx =
+= 2.2.0 - 2023-xx-xx =
+* Add   - Add option to let user pick whether to save the last package & service or not.
 * Fix   - Adjust checkout US zipcode validation to run only when exactly 5 or 10 digits are typed.
 
 = 2.1.1 - 2023-01-02 =
