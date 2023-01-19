@@ -33,6 +33,7 @@ import {
 	areSettingsFetching,
 	areSettingsLoaded,
 	getEmailReceipts,
+	getUseLastPackage,
 	getLabelSettingsStoreOptions,
 	getMasterUserInfo,
 	getPaperSize,
@@ -343,6 +344,36 @@ class ShippingLabels extends Component {
 		);
 	};
 
+	renderSavePackageSection = () => {
+		const {
+			useLastPackage,
+			translate,
+			canEditSettings,
+			canEditPayments,
+		} = this.props;
+
+		if ( ! isBoolean( useLastPackage ) ) {
+			return null;
+		}
+
+		const onChange = () => this.props.setValue( 'use_last_package', ! useLastPackage );
+
+		return (
+			<FormFieldSet>
+				<FormLabel className="label-settings__cards-label">
+					{ translate( 'Package Selection' ) }
+				</FormLabel>
+				<CheckboxControl
+					className="form-label label-settings__credit-card-description"
+					label={ translate( 'Save the package selection from previous transaction.' ) }
+					checked={ useLastPackage }
+					onChange={ onChange }
+					disabled={ ! canEditPayments && ! canEditSettings }
+				/>
+			</FormFieldSet>
+		);
+	};
+
 	renderContent = () => {
 		const { canEditSettings, isLoading, paperSize, storeOptions, translate } = this.props;
 
@@ -377,6 +408,7 @@ class ShippingLabels extends Component {
 					{ this.renderPaymentsSection() }
 				</FormFieldSet>
 				{ this.renderEmailReceiptsSection() }
+				{ this.renderSavePackageSection() }
 			</div>
 		);
 	};
@@ -406,6 +438,7 @@ export default connect(
 			canEditSettings:
 				userCanManagePayments( state, siteId ) || userCanEditSettings( state, siteId ),
 			emailReceipts: getEmailReceipts( state, siteId ),
+			useLastPackage: getUseLastPackage( state, siteId ),
 			...getMasterUserInfo( state, siteId ),
 		};
 	},
