@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.1.1
 WC requires at least: 3.6
 WC tested up to: 7.1.0
-Stable tag: 2.1.1
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,7 +78,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.2.0 - 2023-xx-xx =
+= 2.2.0 - 2023-01-19 =
 * Add   - Add option to let user pick whether to save the last package & service or not.
 
 = 2.1.1 - 2023-01-02 =
