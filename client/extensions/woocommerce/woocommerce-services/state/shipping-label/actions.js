@@ -349,7 +349,6 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
 	).then( () => {
-		//compatibility - only add the email_receipt if the plugin and the server support it
 		const useLastPackage = getUseLastPackage( getState(), siteId );
 		if ( false === useLastPackage ) {
 			return;
