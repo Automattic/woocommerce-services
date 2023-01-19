@@ -49,6 +49,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SHOW_PRINT_CONFIRMATION,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_RATES_RETRIEVAL_IN_PROGRESS,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_RATES,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_RATES_RETRIEVAL_COMPLETED,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLEAR_AVAILABLE_RATES,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_REFUND_DIALOG,
@@ -1137,6 +1138,25 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_RATES ] = ( state, { rates, re
 					return '';
 				} ),
 				available: rates,
+			},
+		},
+	};
+};
+
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE ] = ( state, { serviceId, carrierId } ) => {
+	return {
+		...state,
+		form: {
+			...state.form,
+			rates: {
+				...state.form.rates,
+				values: mapValues( state.form.rates.values, val => {
+					if ( ! val ) {
+						return { serviceId, carrierId }
+					}
+
+					return val;
+				} ),
 			},
 		},
 	};

@@ -33,6 +33,7 @@ import {
 	areSettingsFetching,
 	areSettingsLoaded,
 	getEmailReceipts,
+	getUseLastService,
 	getUseLastPackage,
 	getLabelSettingsStoreOptions,
 	getMasterUserInfo,
@@ -318,7 +319,9 @@ class ShippingLabels extends Component {
 		if ( ! isBoolean( emailReceipts ) ) {
 			return null;
 		}
+
 		const onChange = () => this.props.setValue( 'email_receipts', ! emailReceipts );
+
 		return (
 			<FormFieldSet>
 				<FormLabel className="label-settings__cards-label">
@@ -326,7 +329,7 @@ class ShippingLabels extends Component {
 				</FormLabel>
 				<CheckboxControl
 					className="form-label label-settings__credit-card-description"
-					label = { translate(
+					label={ translate(
 						'Email the label purchase receipts to %(ownerName)s (%(ownerLogin)s) at %(ownerEmail)s',
 						{
 							args: {
@@ -337,6 +340,36 @@ class ShippingLabels extends Component {
 						}
 					) }
 					checked={ emailReceipts }
+					onChange={ onChange }
+					disabled={ ! canEditPayments && ! canEditSettings }
+				/>
+			</FormFieldSet>
+		);
+	};
+
+	renderSaveServiceSection = () => {
+		const {
+			useLastService,
+			translate,
+			canEditSettings,
+			canEditPayments,
+		} = this.props;
+
+		if ( ! isBoolean( useLastService ) ) {
+			return null;
+		}
+
+		const onChange = () => this.props.setValue( 'use_last_service', ! useLastService );
+
+		return (
+			<FormFieldSet>
+				<FormLabel className="label-settings__cards-label">
+					{ translate( 'Service Selection' ) }
+				</FormLabel>
+				<CheckboxControl
+					className="form-label label-settings__credit-card-description"
+					label = { translate( 'Save the service selection from previous transaction.' ) }
+					checked={ useLastService }
 					onChange={ onChange }
 					disabled={ ! canEditPayments && ! canEditSettings }
 				/>
@@ -408,6 +441,7 @@ class ShippingLabels extends Component {
 					{ this.renderPaymentsSection() }
 				</FormFieldSet>
 				{ this.renderEmailReceiptsSection() }
+				{ this.renderSaveServiceSection() }
 				{ this.renderSavePackageSection() }
 			</div>
 		);
@@ -438,6 +472,7 @@ export default connect(
 			canEditSettings:
 				userCanManagePayments( state, siteId ) || userCanEditSettings( state, siteId ),
 			emailReceipts: getEmailReceipts( state, siteId ),
+			useLastService: getUseLastService( state, siteId ),
 			useLastPackage: getUseLastPackage( state, siteId ),
 			...getMasterUserInfo( state, siteId ),
 		};

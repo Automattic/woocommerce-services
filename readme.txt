@@ -79,7 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.2.0 - 2023-xx-xx =
-* Add   - Add option to let user pick whether to save the last package or not.
+* Add   - Add option to let user pick whether to save the last package & service or not.
 
 = 2.1.1 - 2023-01-02 =
 * Fix   - Save the selected package box and do not skip the package step.

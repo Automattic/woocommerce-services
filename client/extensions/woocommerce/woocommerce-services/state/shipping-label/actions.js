@@ -46,6 +46,7 @@ import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import {
 	getEmailReceipts,
+	getUseLastService,
 	getUseLastPackage,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
@@ -95,6 +96,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_ADD_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REMOVE_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_PACKAGES,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_ADD_ITEM,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_ADD_ITEM,
@@ -261,6 +263,18 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 	const customsItems = isCustomsFormRequired( getState(), orderId, siteId ) ? customs.items : null;
 	const apiPackages = map( packages.selected, pckg => convertToApiPackage( pckg, customsItems ) );
 	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages )
+		.then( () => {
+			const useLastService = getUseLastService( getState(), siteId );
+			if ( false === useLastService ) {
+				return;
+			}
+
+			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, getState ) || {};
+
+			if ( undefined !== packageId && undefined !== serviceId && undefined !== carrierId ) {
+				dispatch( setDefaultRate ( orderId, siteId, packageId, serviceId, carrierId ) );
+			}
+		} )
 		.then( () => expandFirstErroneousStep( orderId, siteId, dispatch, getState ) )
 		.catch( error => {
 			console.error( error );
@@ -291,6 +305,17 @@ export const setPackageType = ( orderId, siteId, packageId, boxTypeId ) => (
 	} );
 };
 
+export const setDefaultRate = ( orderId, siteId, packageId, serviceId, carrierId ) => ( dispatch ) => {
+	dispatch( {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+		siteId,
+		orderId,
+		packageId,
+		serviceId,
+		carrierId,
+	} );
+};
+
 /**
  * If no box has been selected for this package, then get the last used box.
  * @param {Number} orderId order ID
@@ -308,6 +333,26 @@ export const getDefaultBoxSelection = ( orderId, siteId, getState ) => {
 
 	if ( pckg && 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
 		return { packageId, boxId: userMeta.last_box_id };
+	}
+}
+
+/**
+ * If no service has been selected for this package, then get the last used service.
+ * @param {Number} orderId order ID
+ * @param {Number} siteId site ID
+ * @param {Function} getState getState function
+ * @return {Object|undefined} packageId and boxId if default is needed.
+ */
+export const getDefaultServiceSelection = ( orderId, siteId, getState ) => {
+	const state = getState();
+	const userMeta = getLabelSettingsUserMeta( state, siteId );
+	const labelState = getShippingLabel( state, orderId, siteId );
+	const selected = labelState.form.packages.selected;
+	const packageId = labelState.openedPackageId;
+	const pckg = selected[ packageId ];
+
+	if ( pckg && userMeta.last_service_id && userMeta.last_carrier_id ) {
+		return { packageId, serviceId: userMeta.last_service_id, carrierId: userMeta.last_carrier_id };
 	}
 }
 

@@ -74,6 +74,11 @@ export const getEmailReceipts = ( state, siteId = getSelectedSiteId( state ) ) =
 	return data && data.email_receipts;
 };
 
+export const getUseLastService = ( state, siteId = getSelectedSiteId( state ) ) => {
+	const data = getLabelSettingsFormData( state, siteId );
+	return data && data.use_last_service;
+};
+
 export const getUseLastPackage = ( state, siteId = getSelectedSiteId( state ) ) => {
 	const data = getLabelSettingsFormData( state, siteId );
 	return data && data.use_last_package;
