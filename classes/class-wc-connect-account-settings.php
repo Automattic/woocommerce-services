@@ -28,10 +28,12 @@ class WC_Connect_Account_Settings {
 			$payment_methods_warning = __( 'There was a problem updating your saved credit cards.', 'woocommerce-services' );
 		}
 
-		$master_user    = WC_Connect_Jetpack::get_master_user();
-		$connected_data = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
-		$last_box_id    = get_user_meta( get_current_user_id(), 'wc_connect_last_box_id', true );
-		$last_box_id    = $last_box_id === 'individual' ? '' : $last_box_id;
+		$master_user     = WC_Connect_Jetpack::get_master_user();
+		$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+		$last_box_id     = get_user_meta( get_current_user_id(), 'wc_connect_last_box_id', true );
+		$last_box_id     = $last_box_id === 'individual' ? '' : $last_box_id;
+		$last_service_id = get_user_meta( get_current_user_id(), 'wc_connect_last_service_id', true );
+		$last_carrier_id = get_user_meta( get_current_user_id(), 'wc_connect_last_carrier_id', true );
 
 		return array(
 			'storeOptions' => $this->settings_store->get_store_options(),
@@ -47,7 +49,9 @@ class WC_Connect_Account_Settings {
 				'warnings'                => array( 'payment_methods' => $payment_methods_warning ),
 			),
 			'userMeta'     => array(
-				'last_box_id' => $last_box_id,
+				'last_box_id'     => $last_box_id,
+				'last_service_id' => $last_service_id,
+				'last_carrier_id' => $last_carrier_id,
 			),
 		);
 	}
