@@ -13,7 +13,7 @@ import { localize } from 'i18n-calypso';
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import FormRadio from 'components/forms/form-radio';
+import FormRadio from 'wcs-client/components/forms/form-radio';
 import FormLabel from 'components/forms/form-label';
 import getPackageDescriptions from './get-package-descriptions';
 import FormSectionHeading from 'wcs-client/components/forms/form-section-heading';

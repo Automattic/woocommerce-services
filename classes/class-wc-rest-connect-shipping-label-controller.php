@@ -64,8 +64,10 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			$this->settings_store->set_selected_payment_method_id( $settings['payment_method_id'] );
 		}
 
-		$last_box_id   = '';
-		$service_names = array();
+		$last_box_id     = '';
+		$last_service_id = '';
+		$last_carrier_id = '';
+		$service_names   = array();
 		foreach ( $settings['packages'] as $index => $package ) {
 			$service_names[] = $package['service_name'];
 			unset( $package['service_name'] );
@@ -74,10 +76,26 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			if ( empty( $last_box_id ) && ! empty( $package['box_id'] ) ) {
 				$last_box_id = $package['box_id'];
 			}
+
+			if ( empty( $last_service_id ) && ! empty( $package['service_id'] ) ) {
+				$last_service_id = $package['service_id'];
+			}
+
+			if ( empty( $last_carrier_id ) && ! empty( $package['carrier_id'] ) ) {
+				$last_carrier_id = $package['carrier_id'];
+			}
 		}
 
-		if ( ! empty( $last_box_id ) && $last_box_id !== 'individual' ) {
+		if ( ! empty( $last_box_id ) && 'individual' !== $last_box_id ) {
 			update_user_meta( get_current_user_id(), 'wc_connect_last_box_id', $last_box_id );
+		}
+
+		if ( ! empty( $last_service_id ) && '' !== $last_service_id ) {
+			update_user_meta( get_current_user_id(), 'wc_connect_last_service_id', $last_service_id );
+		}
+
+		if ( ! empty( $last_carrier_id ) && '' !== $last_carrier_id ) {
+			update_user_meta( get_current_user_id(), 'wc_connect_last_carrier_id', $last_carrier_id );
 		}
 
 		$response = $this->api_client->send_shipping_label_request( $settings );
