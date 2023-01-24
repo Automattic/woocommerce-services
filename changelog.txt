@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.2.1 - 2023-xx-xx =
+= 2.2.1 - 2023-01-24 =
 * Fix   - Fix warning on checkout page apper if zipcode doesn't match selected state.
 
 = 2.2.0 - 2023-01-19 =
