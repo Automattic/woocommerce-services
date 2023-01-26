@@ -913,6 +913,10 @@ class WC_Connect_TaxJar_Integration {
 	 * @return object
 	 */
 	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
+		if ( ! isset( $taxjar_resp_tax ) ) {
+			return;
+		}
+		
 		$new_tax_rate = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body ) );
 
 		if ( $new_tax_rate === floatval( $taxjar_resp_tax->rate ) ) {
@@ -1067,7 +1071,7 @@ class WC_Connect_TaxJar_Integration {
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
 		// if no response, no need to keep going - bail early
-		if ( ! isset( $response ) ) {
+		if ( ! isset( $response ) || ! $response ) {
 			$this->_log( 'Received: none.' );
 
 			return $taxes;
