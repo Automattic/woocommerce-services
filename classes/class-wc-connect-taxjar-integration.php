@@ -176,7 +176,7 @@ class WC_Connect_TaxJar_Integration {
 		$enabled                = $this->is_enabled();
 		$backedup_tax_rates_url = admin_url( '/admin.php?page=wc-status&tab=connect#tax-rate-backups' );
 
-		$powered_by_wct_notice = '<p>' . sprintf( __( 'Automated taxes take over from the WooCommerce core tax settings. This means that "Display prices" will be set to Excluding tax and tax will be Calculated using Customer shipping address. %1$sLearn more about Automated taxes here.%2$s', 'woocommerce-services' ), '<a href="https://href.li/?https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-tax-calculation">', '</a>' ) . '</p>';
+		$powered_by_wct_notice = '<p>' . sprintf( __( 'Automated taxes take over from the WooCommerce core tax settings. This means that "Display prices" will be set to Excluding tax and tax will be Calculated using Customer shipping address. %1$sLearn more about Automated taxes here.%2$s', 'woocommerce-services' ), '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-tax-calculation">', '</a>' ) . '</p>';
 
 		$backup_notice = ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) ? '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>' : '';
 
