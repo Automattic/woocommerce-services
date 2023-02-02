@@ -237,7 +237,7 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( ! $this->is_enabled() ) {
 			/* translators: 1: full state and country name */
-			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. %2$sLearn more about setting up tax rates for additional nexuses%3$s', 'woocommerce-services' ), $country_state, '<a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">', '</a>' );
+			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a tax rate for that state in addition to using automated taxes. %2$sLearn more about Tax Nexus here%3$s.', 'woocommerce-services' ), $country_state, '<a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">', '</a>' );
 		}
 
 		/* translators: 1: full state and country name, 2: anchor opening with link, 3: anchor closing */
