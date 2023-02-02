@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 2.2.2 - 2023-xx-xx =
+* Fix   - Link correction on Automated taxes description text.
+
 = 2.2.1 - 2023-01-24 =
 * Fix   - Fix warning on checkout page apper if zipcode doesn't match selected state.
 
