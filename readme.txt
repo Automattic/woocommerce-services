@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.2.3 - 2023-xx-xx =
+* Fix   - Link correction on Automated taxes description text.
+
 = 2.2.2 - 2023-02-02 =
 * Fix   - Adjust checkout US zipcode validation to run only when exactly 5 or 10 digits are typed.
 
