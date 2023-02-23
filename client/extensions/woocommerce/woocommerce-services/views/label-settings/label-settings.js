@@ -79,7 +79,6 @@ class ShippingLabels extends Component {
 					<p className="label-settings__credit-card-description" />
 					<PaymentMethod selected={ false } isLoading={ true } />
 					<PaymentMethod selected={ false } isLoading={ true } />
-					<FormButton />
 				</FormFieldSet>
 			</div>
 		);
