@@ -26,16 +26,29 @@ import StepConfirmationButton from '../step-confirmation-button';
 import getPackageDescriptions from '../packages-step/get-package-descriptions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 
+const customsSummary = ( errors, translate ) => {
+	if ( ! hasNonEmptyLeaves( errors ) ) {
+		return translate( 'Customs information valid' );
+	}
+
+	const areAllErrorsDescriptionSpecificityErrors = errors.items && Object.values( errors.items ).every( ( item ) => {
+		return 1 === Object.keys( item ).length && item.description;
+	} );
+
+	if ( areAllErrorsDescriptionSpecificityErrors ) {
+		return translate( 'Descriptions are incomplete' );
+	}
+
+	return translate( 'Customs information incomplete' );
+};
+
 const CustomsStep = props => {
 	const { siteId, orderId, errors, expanded, translate, isSubmitted, packageDescriptions } = props;
-	const summary = hasNonEmptyLeaves( errors )
-		? translate( 'Customs information incomplete' )
-		: translate( 'Customs information valid' );
 
 	return (
 		<StepContainer
 			title={ translate( 'Customs' ) }
-			summary={ isSubmitted ? summary : '' }
+			summary={ isSubmitted ? customsSummary( errors, translate ) : '' }
 			expanded={ expanded }
 			toggleStep={ props.toggleStep }
 			isSuccess={ isSubmitted && ! hasNonEmptyLeaves( errors ) }
