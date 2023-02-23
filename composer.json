@@ -1,7 +1,7 @@
 {
     "require-dev": {
         "woocommerce/woocommerce-sniffs": "^0.1.0",
-        "phpunit/phpunit": "6.5.14",
+        "phpunit/phpunit": "9.5.27",
         "yoast/phpunit-polyfills": "^1.0"
     },
     "scripts": {
@@ -14,5 +14,10 @@
 		"phpcbf": [
 			"phpcbf -p"
 		]
-	}
+	},
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
 }

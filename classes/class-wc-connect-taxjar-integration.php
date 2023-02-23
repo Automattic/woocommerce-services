@@ -176,14 +176,12 @@ class WC_Connect_TaxJar_Integration {
 		$enabled                = $this->is_enabled();
 		$backedup_tax_rates_url = admin_url( '/admin.php?page=wc-status&tab=connect#tax-rate-backups' );
 
-		$powered_by_wct_notice = '<p>' . __( 'Powered by WooCommerce Tax. If automated taxes are enabled, you\'ll need to enter prices exclusive of tax.', 'woocommerce-services' ) . '</p>';
+		$powered_by_wct_notice = '<p>' . sprintf( __( 'Automated taxes take over from the WooCommerce core tax settings. This means that "Display prices" will be set to Excluding tax and tax will be Calculated using Customer shipping address. %1$sLearn more about Automated taxes here.%2$s', 'woocommerce-services' ), '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-tax-calculation">', '</a>' ) . '</p>';
 
-		if ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) {
-			$powered_by_wct_notice .= '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
-		}
+		$backup_notice = ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) ? '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>' : '';
 
-		$desctructive_action_notice  = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
-		$desctructive_action_notice .= '<p>' . sprintf( __( 'Your existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
+		$desctructive_action_notice = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
+		$desctructive_backup_notice = '<p>' . sprintf( __( 'Your existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
 
 		$tax_nexus_notice = '<p>' . $this->get_tax_tooltip() . '</p>';
 
@@ -191,8 +189,9 @@ class WC_Connect_TaxJar_Integration {
 			'',
 			$enabled ? [
 				$powered_by_wct_notice,
+				$backup_notice,
 				$tax_nexus_notice,
-			] : [ $desctructive_action_notice, $tax_nexus_notice ]
+			] : [ $desctructive_action_notice, $desctructive_backup_notice, $tax_nexus_notice ]
 		);
 		$automated_taxes             = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
@@ -233,12 +232,16 @@ class WC_Connect_TaxJar_Integration {
 		$all_countries  = WC()->countries->get_countries();
 		$full_country   = $all_countries[ $store_settings['country'] ];
 		$full_state     = isset( $all_states[ $store_settings['state'] ] ) ? $all_states[ $store_settings['state'] ] : '';
-		if ( $full_state ) {
-			/* translators: 1: Full state name 2: full country name */
-			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s, %2$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_state, $full_country );
+
+		$country_state = ( $full_state ) ? $full_state . ', ' . $full_country : $full_country;
+
+		if ( ! $this->is_enabled() ) {
+			/* translators: 1: full state and country name */
+			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a %2$stax rate%3$s for that state in addition to using automated taxes. %4$sLearn more about Tax Nexus here%5$s.', 'woocommerce-services' ), $country_state, '<a href="https://woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">', '</a>', '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-taxes-do-not-appear-to-be-calculating">', '</a>' );
 		}
-		/* translators: 1: full country name */
-		return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. <a href="https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">Learn more about setting up tax rates for additional nexuses</a>', 'woocommerce-services' ), $full_country );
+
+		/* translators: 1: full state and country name, 2: anchor opening with link, 3: anchor closing */
+		return sprintf( __( 'Your tax rates are now automatically calculated for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a %2$stax rate%3$s for that state in addition to using automated taxes. %4$sLearn more about Tax Nexus here%5$s.', 'woocommerce-services' ), $country_state, '<a href="https://woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">', '</a>', '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-taxes-do-not-appear-to-be-calculating">', '</a>' );
 	}
 
 	/**
@@ -913,6 +916,10 @@ class WC_Connect_TaxJar_Integration {
 	 * @return object
 	 */
 	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
+		if ( ! isset( $taxjar_resp_tax ) ) {
+			return;
+		}
+
 		$new_tax_rate = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body ) );
 
 		if ( $new_tax_rate === floatval( $taxjar_resp_tax->rate ) ) {
@@ -1067,7 +1074,7 @@ class WC_Connect_TaxJar_Integration {
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
 		// if no response, no need to keep going - bail early
-		if ( ! isset( $response ) ) {
+		if ( ! isset( $response ) || ! $response ) {
 			$this->_log( 'Received: none.' );
 
 			return $taxes;
@@ -1262,7 +1269,8 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		if ( 'US' === $json['to_country'] && ! WC_Validation::is_postcode( $json['to_zip'], $json['to_country'] ) ) {
+		// Apply this validation only if the destination country is the US and the zip code is 5 or 10 digits long.
+		if ( 'US' === $json['to_country'] && ! empty( $json['to_zip'] ) && in_array( strlen( $json['to_zip'] ), array( 5, 10 ) ) && ! WC_Validation::is_postcode( $json['to_zip'], $json['to_country'] ) ) {
 			$this->_error( 'API request is stopped. Country destination is set to US but the zip code has incorrect format.' );
 
 			return false;

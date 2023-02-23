@@ -11,7 +11,7 @@ import { Card } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import FormSectionHeading from 'components/forms/form-section-heading';
+import FormSectionHeading from 'wcs-client/components/forms/form-section-heading';
 
 const SettingsGroupCard = ( { heading, children } ) => {
 	return (
