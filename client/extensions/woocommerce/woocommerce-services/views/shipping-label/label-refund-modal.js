@@ -14,7 +14,7 @@ import formatCurrency from '@automattic/format-currency';
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import FormSectionHeading from 'wcs-client/components/forms/form-section-heading';
 import {
 	closeRefundDialog,
 	confirmRefund,
