@@ -14,7 +14,7 @@ import Gridicon from 'gridicons';
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import FormSectionHeading from 'wcs-client/components/forms/form-section-heading';
 import { exitTrackingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import Button from 'components/button';
 import {
