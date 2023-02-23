@@ -57,7 +57,7 @@
 		}
 	}
 
-	.notice__wcs-dismiss {
+	.notice__dismiss {
 		overflow: hidden;
 	}
 
@@ -65,7 +65,7 @@
 	&.is-error,
 	&.is-warning,
 	&.is-info {
-		.notice__wcs-dismiss {
+		.notice__dismiss {
 			overflow: hidden;
 		}
 	}
@@ -141,11 +141,11 @@
 }
 
 // "X" for dismissing a notice
-.notice__wcs-dismiss {
+.notice__dismiss {
 	flex-shrink: 0;
 	padding: 12px;
 	cursor: pointer;
-	color: var( --color-white );
+	padding-bottom: 0;
 
 	.gridicon {
 		width: 18px;
@@ -154,6 +154,7 @@
 
 	@include breakpoint( '>480px' ) {
 		padding: 11px;
+		padding-bottom: 0;
 
 		.gridicon {
 			width: 24px;
@@ -248,7 +249,7 @@ a.notice__action {
 		}
 	}
 
-	.notice__wcs-dismiss {
+	.notice__dismiss {
 		position: relative;
 		align-self: center;
 		flex: none;

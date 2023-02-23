@@ -11,10 +11,10 @@ import { noop } from 'lodash';
 import { localize } from 'i18n-calypso';
 import Gridicon from 'gridicons';
 
- /**
-  * Internal Dependencies
-  */
-import './style.scss';
+/**
+ * Internal dependencies
+ */
+import ScreenReaderText from 'components/screen-reader-text';
 
 export class Notice extends Component {
 	static defaultProps = {
@@ -119,16 +119,11 @@ export class Notice extends Component {
 				</span>
 				{ text ? children : null }
 				{ showDismiss && (
-					<button
-						className="notice__wcs-dismiss"
-						onClick={ onDismissClick }
-						aria-label={ translate( 'Dismiss' ) }
-					>
+					<span tabIndex="0" className="notice__dismiss" onClick={ onDismissClick } onKeyDown={onDismissClick} role="button" aria-label={ translate( 'Dismiss' ) }>
 						<Gridicon icon="cross" size={ 24 } />
-					</button>
+						<ScreenReaderText>{ translate( 'Dismiss' ) }</ScreenReaderText>
+					</span>
 				) }
-
-
 			</div>
 		);
 	}
