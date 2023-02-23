@@ -13,7 +13,7 @@ import { localize } from 'i18n-calypso';
  * Internal dependencies
  */
 import Dialog from 'components/dialog';
-import FormSectionHeading from 'components/forms/form-section-heading';
+import FormSectionHeading from 'wcs-client/components/forms/form-section-heading';
 import { getOrigin } from 'woocommerce/lib/nav-utils';
 import { userCanManagePayments } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import { closeDetailsDialog } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
