@@ -92,6 +92,30 @@
 	@include breakpoint( '>960px' ) {
 		margin-left: 4px;
 	}
+
+	.components-button {
+		height: 17px;
+		margin-bottom: 8px;
+
+		span {
+			margin-bottom: 0;
+		}
+	}
+
+	.popover-container {
+		position: relative;
+		z-index: 100;
+	}
+
+	.components-popover {
+		position: absolute;
+		width: 280px;
+
+		.components-popover__content {
+			padding: 20px;
+			width: 100%;
+		}
+	}
 }
 
 .customs-step__item-weight-column,

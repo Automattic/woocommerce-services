@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import { find, isBoolean } from 'lodash';
 import Gridicon from 'gridicons';
-import { Button, CheckboxControl } from '@wordpress/components';
+import { CheckboxControl } from '@wordpress/components';
 import classNames from 'classnames';
 
 /**
@@ -19,10 +19,11 @@ import classNames from 'classnames';
  */
 import { getPaperSizes } from 'woocommerce/woocommerce-services/lib/pdf-label-utils';
 import FormFieldSet from 'components/forms/form-fieldset';
+import FormButton from 'wcs-client/components/forms/form-button';
 import FormLabel from 'components/forms/form-label';
 import FormSelect from 'wcs-client/components/forms/form-select';
-import Notice from 'components/notice';
-import NoticeAction from 'components/notice/notice-action';
+import Notice from 'wcs-client/components/notice';
+import NoticeAction from 'wcs-client/components/notice/notice-action';
 import PaymentMethod, { getPaymentMethodTitle } from './label-payment-method';
 import { getOrigin } from 'woocommerce/lib/nav-utils';
 import {
@@ -78,7 +79,6 @@ class ShippingLabels extends Component {
 					<p className="label-settings__credit-card-description" />
 					<PaymentMethod selected={ false } isLoading={ true } />
 					<PaymentMethod selected={ false } isLoading={ true } />
-					<Button />
 				</FormFieldSet>
 			</div>
 		);
@@ -226,9 +226,9 @@ class ShippingLabels extends Component {
 					<p className="label-settings__credit-card-description">{ summary }</p>
 					{ canEditPayments && (
 						<p className="label-settings__credit-card-description">
-							<Button onClick={ expand } className = { classNames( 'button', 'is-borderless' ) }>
+							<FormButton onClick={ expand } isPrimary={ false } >
 								{ translate( 'Choose a different card' ) }
-							</Button>
+							</FormButton>
 						</p>
 					) }
 				</div>
@@ -292,14 +292,14 @@ class ShippingLabels extends Component {
 				<AddCardDialog siteId={ siteId } />
 
 				{ /* Render two buttons with internal/external classNames to conditionally show them in Calypso or wp-admin using CSS */ }
-				<Button className={ classNames( buttonClasses, "label-settings__internal" ) } onClick={ openDialog } >
+				<FormButton type="button" isPrimary={ false } className={ classNames( "label-settings__internal" ) } onClick={ openDialog } >
 					{ buttonLabel }
-				</Button>
+				</FormButton>
 				<div className="label-settings__credit-card-description label-settings__external">
 					{ this.renderAddCardExternalInfo() }
-					<Button className= { buttonClasses } onClick={ onAddCardExternal } >
+					<FormButton type="button" isPrimary={ false }  onClick={ onAddCardExternal } >
 						{ buttonLabel } <Gridicon icon="external" />
-					</Button>
+					</FormButton>
 				</div>
 			</div>
 		);

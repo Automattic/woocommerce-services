@@ -91,7 +91,7 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await waitForSelectorAndText('.button.is-compact', 'Add a credit card');
+        await waitForSelectorAndText('.components-button.form-button', 'Add a credit card');
     });
 
     it('should show "Choose a different card" button if Wordpress.com has a credit card', async () => {
@@ -102,8 +102,8 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await waitForSelectorAndText('.button.is-borderless', 'Choose a different card');
-        await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
+        await waitForSelectorAndText('.components-button.form-button', 'Choose a different card');
+        await expect( page ).toClick( '.components-button.form-button', { text: 'Choose a different card' } );
         await expect(page).toMatchElement('.label-settings__card-number', {
             text: 'VISA ****5959'
         });
@@ -120,11 +120,11 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Test
-        await waitForSelectorAndText('.button.is-borderless', 'Choose a different card' );
-        await expect( page ).toClick( '.button.is-borderless', { text: 'Choose a different card' } );
+        await waitForSelectorAndText('.components-button.form-button', 'Choose a different card' );
+        await expect( page ).toClick( '.components-button.form-button', { text: 'Choose a different card' } );
 
         // Verify "Add another credit card" is present after clicking 'Choose a different card'
-        await waitForSelectorAndText('.button.is-compact', 'Add another credit card' );
+        await waitForSelectorAndText('.components-button.form-button.button', 'Add another credit card' );
 
         // The index is based on the order in the settings' API. Inside the payment_methods prop.
         // This API end point is mocked, check fixtures/account_settings.js for ordering.
@@ -173,7 +173,7 @@ describe( 'Shipping label payment method', () => {
         await StoreOwnerFlow.openSettings('shipping', 'woocommerce-services-settings');
 
         // Verify "Add another credit card" is present after clicking 'Choose a different card'
-        await waitForSelectorAndText('.button.is-compact', 'Add another credit card' );
+        await waitForSelectorAndText('.components-button.form-button.button', 'Add another credit card' );
 
         // The index is based on the order in the settings' API. Inside the payment_methods prop.
         // This API end point is mocked, check fixtures/account_settings.js for ordering.
