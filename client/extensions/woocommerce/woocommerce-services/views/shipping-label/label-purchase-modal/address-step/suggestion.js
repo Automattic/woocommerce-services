@@ -15,7 +15,7 @@ import classNames from 'classnames';
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'wcs-client/components/forms/form-radio';
 import FormButton from 'wcs-client/components/forms/form-button';
-import Notice from 'components/notice';
+import Notice from 'wcs-client/components/notice';
 import AddressSummary from './summary';
 
 const RadioButton = props => {

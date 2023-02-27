@@ -22,8 +22,8 @@ import FormFieldSet from 'components/forms/form-fieldset';
 import FormButton from 'wcs-client/components/forms/form-button';
 import FormLabel from 'components/forms/form-label';
 import FormSelect from 'wcs-client/components/forms/form-select';
-import Notice from 'components/notice';
-import NoticeAction from 'components/notice/notice-action';
+import Notice from 'wcs-client/components/notice';
+import NoticeAction from 'wcs-client/components/notice/notice-action';
 import PaymentMethod, { getPaymentMethodTitle } from './label-payment-method';
 import { getOrigin } from 'woocommerce/lib/nav-utils';
 import {
