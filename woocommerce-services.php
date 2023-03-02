@@ -211,7 +211,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * @var WC_Connect_Notice_Manager
 		 */
-		protected $notices;
+		protected $notice_manager;
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
@@ -369,12 +369,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->tracks = $tracks;
 		}
 
-		public function get_notices() {
-			return $this->notices;
+		public function get_notice_manager() {
+			return $this->notice_manager;
 		}
 
-		public function set_notices( WC_Connect_Notice_Manager $notices ) {
-			$this->notices = $notices;
+		public function set_notice_manager( WC_Connect_Notice_Manager $notice_manager ) {
+			$this->notice_manager = $notice_manager;
 		}
 
 		public function get_rest_account_settings_controller() {
@@ -766,7 +766,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
-			$this->set_notices( $notices );
+			$this->set_notice_manager( $notices );
 
 			$cart_validation = new WC_Connect_Cart_Validation();
 			$cart_validation->register_filters();
@@ -998,7 +998,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_carrier_types_controller->register_routes();
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-notices-controller.php';
-			$rest_notices_controller = new WC_REST_Connect_Notices_Controller( $this->api_client, $settings_store, $logger, $this->get_notices() );
+			$rest_notices_controller = new WC_REST_Connect_Notices_Controller( $this->api_client, $settings_store, $logger, $this->get_notice_manager() );
 			$this->set_notices_controller( $rest_notices_controller );
 			$rest_notices_controller->register_routes();
 
@@ -1426,7 +1426,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wcsPluginData',
 				array(
 					'assetPath' => self::get_wc_connect_base_url(),
-					'notices' => $this->get_notices()->get_undismissed_notices(),
+					'notices' => $this->get_notice_manager()->get_undismissed_notices(),
 				)
 			);
 		}
@@ -1658,9 +1658,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function render_schema_notices() {
-			$notices = $this->get_notices();
+			$notice_manager = $this->get_notice_manager();
 
-			foreach ( $notices->get_undismissed_notices() as $notice ) {
+			foreach ( $notice_manager->get_undismissed_notices() as $notice ) {
 				/*
 				 * This is a notice ID which we will surface in
 				 * /client/extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal/customs-step/index.js
@@ -1670,16 +1670,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					continue;
 				}
 
-				if ( $notices->is_dismissible( $notice->id ) ) {
+				if ( $notice_manager->is_dismissible( $notice->id ) ) {
 					// check if the notice is being dismissed right now.
 					if ( isset( $_GET['wc-connect-dismiss-server-notice'] ) && $_GET['wc-connect-dismiss-server-notice'] === $notice->id ) {
-						$notices->dismiss( $notice->id );
+						$notice_manager->dismiss( $notice->id );
 						continue;
 					}
 				}
 				?>
 				<div class='<?php echo esc_attr( 'notice notice-' . $notice->type ); ?>' style="position: relative;">
-					<?php if ( $notices->is_dismissible( $notice->id ) ) : ?>
+					<?php if ( $notice_manager->is_dismissible( $notice->id ) ) : ?>
 						<?php
 						$link_dismiss = add_query_arg( array( 'wc-connect-dismiss-server-notice' => $notice->id ) );
 						?>

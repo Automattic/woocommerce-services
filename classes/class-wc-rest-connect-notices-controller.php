@@ -14,16 +14,16 @@ class WC_REST_Connect_Notices_Controller extends WC_REST_Connect_Base_Controller
 	/**
 	 * @var WC_Connect_Notice_Manager
 	 */
-	protected $notices;
+	protected $notice_manager;
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Service_Settings_Store $settings_store,
 		WC_Connect_Logger $logger,
-		WC_Connect_Notice_Manager $notices
+		WC_Connect_Notice_Manager $notice_manager
 	) {
 		parent::__construct( $api_client, $settings_store, $logger );
-		$this->notices = $notices;
+		$this->notice_manager = $notice_manager;
 	}
 
 	public function register_routes() {
@@ -52,7 +52,7 @@ class WC_REST_Connect_Notices_Controller extends WC_REST_Connect_Base_Controller
 		$id = $request->get_param( 'id' );
 
 		try {
-			$this->notices->dismiss( $id );
+			$this->notice_manager->dismiss( $id );
 		} catch ( InvalidArgumentException $e ) {
 			$error = new WP_Error(
 				'notice_id_invalid',
