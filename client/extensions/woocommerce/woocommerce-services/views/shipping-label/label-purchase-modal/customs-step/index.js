@@ -9,6 +9,7 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
+import * as api from 'wcs-client/api';
 import PackageRow from './package-row';
 import StepContainer from '../step-container';
 import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tree';
@@ -25,6 +26,8 @@ import {
 import StepConfirmationButton from '../step-confirmation-button';
 import getPackageDescriptions from '../packages-step/get-package-descriptions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
+import { Button, Popover } from "@wordpress/components";
+import { useState } from "@wordpress/element";
 
 const customsSummary = ( errors, translate ) => {
 	if ( ! hasNonEmptyLeaves( errors ) ) {
@@ -45,6 +48,16 @@ const customsSummary = ( errors, translate ) => {
 const CustomsStep = props => {
 	const { siteId, orderId, errors, expanded, translate, isSubmitted, packageDescriptions } = props;
 
+	const [ isEuCustomsPopoverVisible, setIsEuCustomsPopoverVisible ] = useState(
+		Object.keys( window.wcsPluginData.notices ).includes( 'wcs-usps-eu-custom-description-mar-01-2023' )
+	);
+	const dismissNotice = () => {
+		api.put( api.url.noticesDismiss(), {
+			id: 'wcs-usps-eu-custom-description-mar-01-2023',
+		} );
+		setIsEuCustomsPopoverVisible( false );
+	};
+
 	return (
 		<StepContainer
 			title={ translate( 'Customs' ) }
@@ -54,6 +67,28 @@ const CustomsStep = props => {
 			isSuccess={ isSubmitted && ! hasNonEmptyLeaves( errors ) }
 			isError={ isSubmitted && hasNonEmptyLeaves( errors ) }
 		>
+			{ isEuCustomsPopoverVisible && ( <div className="eu-customs-item-description-specificity-popover-container">
+				<Popover>
+					<h2>{ translate( 'New requirement for EU customs' ) }</h2>
+
+					<p>
+						{ translate( 'From March 1 2023, if you are shipping to countries that follow European Union (EU) customs rules, you must provide a clear, specific description on every item.' ) }
+					</p>
+
+					<p>
+						{ translate( 'For example, if you are sending clothing, you must indicate what type of clothing (e.g. men\'s shirt, girl\'s vest, boy\'s jacket) for the description to be acceptable.' ) }
+					</p>
+
+					<p>
+						{ translate( 'Otherwise, shipments may be delayed or interrupted at customs.' ) }
+					</p>
+
+					<div className="eu-customs-item-description-specificity-popover-container__buttons">
+						<Button isSecondary className="button" href="https://www.usps.com/international/new-eu-customs-rules.htm" target="_blank">{ translate( 'Learn more' ) }</Button>
+						<Button isPrimary className="button" onClick={ dismissNotice }>{ translate( 'Got it' ) }</Button>
+					</div>
+				</Popover>
+			</div> ) }
 			{ Object.keys( packageDescriptions ).map( ( packageId, index ) => (
 				<div className="customs-step__package-container" key={ packageId }>
 					{ index ? <hr /> : null }

@@ -10,3 +10,5 @@ export const labelTestPrint = () => `${ namespace }label/preview`;
 export const selfHelp = () => `${ namespace }self-help`;
 
 export const refreshServiceData = () => `${ namespace }service-data-refresh`;
+
+export const noticesDismiss = () => `${ namespace }notices/dismiss`;

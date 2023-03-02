@@ -112,6 +112,9 @@
 		width: 280px;
 
 		.components-popover__content {
+			/* Temporary solution because in the current version of @wordpress/components@11.1.5, <Popover /> component goes 🥜 on small screens. */
+			max-height: none !important;
+			max-width: 100% !important;
 			padding: 20px;
 			width: 100%;
 		}
@@ -132,4 +135,40 @@
 
 .customs-step__abandon-on-non-delivery {
 	font-weight: 400;
+}
+
+.eu-customs-item-description-specificity-popover-container {
+	position: relative;
+	z-index: 100;
+
+	@include breakpoint( '>960px' ) {
+		width: 33%;
+	}
+
+	.components-popover {
+		margin-bottom: 20px;
+		position: static;
+
+		@include breakpoint( '>960px' ) {
+			margin-bottom: 0;
+			position: absolute;
+			width: 500px;
+		}
+
+		.components-popover__content {
+			/* Temporary solution because in the current version of @wordpress/components@11.1.5, <Popover /> component goes 🥜 on small screens. */
+			max-height: none !important;
+			max-width: 100% !important;
+			padding: 20px;
+			width: 100%;
+		}
+	}
+
+	.eu-customs-item-description-specificity-popover-container__buttons {
+		text-align: right;
+
+		.components-button.is-primary {
+			margin-left: 10px;
+		}
+	}
 }
