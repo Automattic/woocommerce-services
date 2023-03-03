@@ -67,6 +67,7 @@ jobs:
           ./bin/composer-installer.sh
           sudo mv composer.phar /usr/local/bin/composer
           composer install
+      - uses: actions/setup-node@v3
       - name: Setup WP and WC
         run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }} ${{ matrix.wc-version }}
       - name: Run PHPUnit tests
