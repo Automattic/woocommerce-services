@@ -27,7 +27,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	/**
 	 * @inherit
 	 */
-	public static function set_up_before_class() {
+	public static function setupBeforeClass() {
 		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-api-client-live.php';
 		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-settings-store.php';
 		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-logger.php';
@@ -46,8 +46,8 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 *
 	 * @see WC_Unit_Test_Case::setUp()
 	 */
-	public function set_up() {
-		parent::set_up();
+	public function setUp() {
+		parent::setUp();
 
 		// Creating a mock class and overide protected request method so that we can mock the API response.
 		$this->api_client_mock = $this->getMockBuilder( WC_Connect_API_Client_Live::class )

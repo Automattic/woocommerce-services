@@ -2,7 +2,7 @@
 
 class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 
-	public static function set_up_before_class() {
+	public static function setupBeforeClass() {
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-nux.php';
 	}
 
