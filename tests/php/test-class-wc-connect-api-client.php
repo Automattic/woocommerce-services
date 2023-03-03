@@ -13,7 +13,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 	/**
 	 * Undocumented function
 	 */
-	public static function set_up_before_class() {
+	public static function setupBeforeClass() {
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
 
@@ -24,7 +24,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 	 *
 	 * @see WC_Unit_Test_Case::setUp()
 	 */
-	public function set_up() {
+	public function setUp() {
 		$this->api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
 			->disableOriginalConstructor()
 			->setMethods( null )
@@ -36,7 +36,7 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 	 *
 	 * @see WC_Unit_Test_Case::tearDown()
 	 */
-	public function tear_down() {
+	public function tearDown() {
 		// empty the test cart.
 		WC()->cart->empty_cart();
 
