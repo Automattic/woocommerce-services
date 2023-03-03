@@ -69,12 +69,12 @@ jobs:
           composer install
       - name: Setup WooCommerce
         run: |
-          git clone --depth=1 --branch=${{ matrix.wp-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
+          git clone --depth=1 --branch=${{ matrix.wc-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
           cd /tmp/woocommerce
           pnpm install
           pnpm run build
       - name: Setup WordPress
         run: |
-          bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wc-version }}
+          bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Run PHPUnit tests
         run: ./vendor/bin/phpunit -c phpunit.xml.dist
