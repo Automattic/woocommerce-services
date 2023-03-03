@@ -75,7 +75,7 @@ jobs:
           version: '^7.22.0'
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '/tmp/woocommerce/.nvmrc'
+          node-version: 'v16'
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - name: Build WooCommerce
