@@ -57,6 +57,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+      - name: Checkout WooCommerce
+        run: git clone --depth=1 --branch=${{ matrix.wc-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
       - name: Switch to PHP 8.1
         run: |
           sudo update-alternatives --set php /usr/bin/php8.1
@@ -73,12 +75,11 @@ jobs:
           version: '^7.22.0'
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: '/tmp/woocommerce/.nvmrc'
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
-      - name: Setup WooCommerce
+      - name: Build WooCommerce
         run: |
-          git clone --depth=1 --branch=${{ matrix.wc-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
           cd /tmp/woocommerce
           pnpm install
           pnpm run build
