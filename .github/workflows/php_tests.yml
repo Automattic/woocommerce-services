@@ -76,8 +76,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 'v16'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
       - name: Build WooCommerce
         run: |
           cd /tmp/woocommerce
