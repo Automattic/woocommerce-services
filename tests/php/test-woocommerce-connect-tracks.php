@@ -5,11 +5,11 @@ abstract class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	protected $tracks;
 	protected $logger;
 
-	public static function setupBeforeClass() {
+	public static function set_up_before_class() {
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-tracks.php';
 	}
 
-	public function setUp() {
+	public function set_up() {
 		$this->logger = $this->getMockBuilder( 'WC_Connect_Logger' )
 			->disableOriginalConstructor()
 			->setMethods( array( 'log' ) )
@@ -36,8 +36,8 @@ class WP_Test_WC_Connect_Tracks_No_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
-	public static function setupBeforeClass() {
-		parent::setupBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 		require_once dirname( __FILE__ ) . '/mocks/jetpack.php';
 	}
 
