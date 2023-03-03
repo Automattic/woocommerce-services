@@ -67,8 +67,14 @@ jobs:
           ./bin/composer-installer.sh
           sudo mv composer.phar /usr/local/bin/composer
           composer install
-      - name: Setup WP and WC
-        shell: bash -l {0}
-        run: tests/bin/install-wc-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }} ${{ matrix.wc-version }}
+      - name: Setup WooCommerce
+        run: |
+          git clone --depth=1 --branch=${{ matrix.wp-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
+          cd /tmp/woocommerce
+          pnpm install
+          pnpm run build
+      - name: Setup WordPress
+        run: |
+          bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wc-version }}
       - name: Run PHPUnit tests
         run: ./vendor/bin/phpunit -c phpunit.xml.dist
