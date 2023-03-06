@@ -78,7 +78,7 @@ jobs:
         run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Use older PHPUnit for WC < 7.4.0
         if: ${{ matrix.wc-version == '7.3.0' }} || ${{ matrix.wc-version == '7.2.3' }}
-        run: composer require phpunit/phpunit:^7
+        run: composer require -W phpunit/phpunit:^7
       - name: Install Composer dependencies
         run: composer install
       - name: Run PHPUnit tests
