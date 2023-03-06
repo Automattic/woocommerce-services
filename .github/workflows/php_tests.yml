@@ -75,6 +75,8 @@ jobs:
           composer install
           pnpm run build:feature-config
       - name: Setup WordPress
-        run:  bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
+        run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
+      - name: Install Composer dependencies
+        run: composer install
       - name: Run PHPUnit tests
-        run: cd /home/runner/work/woocommerce-services/woocommerce-services && ./vendor/bin/phpunit -c phpunit.xml.dist
+        run: ./vendor/bin/phpunit -c phpunit.xml.dist
