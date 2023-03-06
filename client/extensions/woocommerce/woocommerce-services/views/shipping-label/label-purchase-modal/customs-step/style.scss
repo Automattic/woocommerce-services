@@ -112,7 +112,6 @@
 		width: 280px;
 
 		.components-popover__content {
-			/* Temporary solution because in the current version of @wordpress/components@11.1.5, <Popover /> component goes 🥜 on small screens. */
 			max-height: none !important;
 			max-width: 100% !important;
 			padding: 20px;
@@ -156,7 +155,6 @@
 		}
 
 		.components-popover__content {
-			/* Temporary solution because in the current version of @wordpress/components@11.1.5, <Popover /> component goes 🥜 on small screens. */
 			max-height: none !important;
 			max-width: 100% !important;
 			padding: 20px;

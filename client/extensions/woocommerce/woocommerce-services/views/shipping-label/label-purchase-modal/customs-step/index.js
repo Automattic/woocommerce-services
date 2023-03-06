@@ -56,6 +56,7 @@ const CustomsStep = props => {
 			id: 'wcs-usps-eu-custom-description-mar-01-2023',
 		} );
 		setIsEuCustomsPopoverVisible( false );
+		delete window.wcsPluginData.notices[ 'wcs-usps-eu-custom-description-mar-01-2023' ];
 	};
 
 	return (

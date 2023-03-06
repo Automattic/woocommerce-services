@@ -749,7 +749,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$options               = new WC_Connect_Options();
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
-			$notices               = new WC_Connect_Notice_Manager( $schemas_store );
+			$notice_manager        = new WC_Connect_Notice_Manager( $schemas_store );
 
 			new WC_Connect_Privacy( $settings_store, $api_client );
 
@@ -766,7 +766,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
-			$this->set_notice_manager( $notices );
+			$this->set_notice_manager( $notice_manager );
 
 			$cart_validation = new WC_Connect_Cart_Validation();
 			$cart_validation->register_filters();

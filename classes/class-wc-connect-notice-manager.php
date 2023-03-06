@@ -63,7 +63,7 @@ if ( ! class_exists( 'WC_Connect_Notice_Manager' ) ) {
 			$dismissible_notices = $this->get_dismissible_notice_ids();
 
 			if ( ! in_array( $id, $dismissible_notices, true ) ) {
-				throw new InvalidArgumentException( '', 'notice_id_invalid' );
+				throw new InvalidArgumentException();
 			}
 
 			update_option( 'wcc_notice_dismissed_' . $id, time() );
