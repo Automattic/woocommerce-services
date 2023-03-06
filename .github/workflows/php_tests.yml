@@ -18,13 +18,13 @@ jobs:
       - name: Lint
         run: find . -type f -name "*.php" -exec php -l {} \;
   find_latest_versions:
-    name: Find supported wordpress and woocommerce versions
+    name: Get supported WP & WC versions
     runs-on: ubuntu-latest
     outputs:
       wc-versions: ${{ steps.get_wc_versions_for_matrix.outputs.wc-versions }}
       wp-versions: ${{ steps.get_wp_versions_for_matrix.outputs.wp-versions }}
     steps:
-      - name: Checkout latest WCS
+      - name: Checkout WCS&T
         uses: actions/checkout@v2
       - name: Get the 3 latest WP minor versions
         id: get_wp_versions_for_matrix
@@ -52,7 +52,7 @@ jobs:
         wp-version: ${{ fromJSON(needs.find_latest_versions.outputs.wp-versions) }}
         wc-version: ${{ fromJSON(needs.find_latest_versions.outputs.wc-versions) }}
     steps:
-      - name: Checkout latest WCS
+      - name: Checkout WCS&T
         uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -77,4 +77,4 @@ jobs:
       - name: Setup WordPress
         run:  bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Run PHPUnit tests
-        run: ./vendor/bin/phpunit -c phpunit.xml.dist
+        run: cd /home/runner/work/woocommerce-services/woocommerce-services && ./vendor/bin/phpunit -c phpunit.xml.dist
