@@ -33,7 +33,7 @@ jobs:
         id: get_wc_versions_for_matrix
         run: echo "::set-output name=wc-versions::$(git ls-remote --tags --refs https://github.com/woocommerce/woocommerce.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php)"
   php_build_and_test:
-    name: PHP Unit Test (WP ${{ matrix.wp-version }}, WC ${{ matrix.wc-version }})
+    name: PHP Tests (WP ${{ matrix.wp-version }} WC ${{ matrix.wc-version }})
     needs: find_latest_versions
     runs-on: ubuntu-latest
     services:
@@ -62,11 +62,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
-      - name: Install Composer
-        run: |
-          ./bin/composer-installer.sh
-          sudo mv composer.phar /usr/local/bin/composer
-          composer install
       - name: Setup PNPM
         uses: pnpm/action-setup@c3b53f6a16e57305370b4ae5a540c2077a1d50dd
         with:
@@ -74,11 +69,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 'v16'
-      - name: Build WooCommerce
+      - name: Build WooCommerce essentials for running tests
         run: |
-          cd /tmp/woocommerce
-          pnpm install
-          pnpm run build
+          cd /tmp/woocommerce/plugins/woocommerce
+          composer install
+          pnpm run build:feature-config
       - name: Setup WordPress
         run:  bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Run PHPUnit tests
