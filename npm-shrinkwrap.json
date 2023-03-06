@@ -7567,7 +7567,7 @@
     "babel-plugin-syntax-jsx": {
       "version": "6.18.0",
       "resolved": "https://registry.npmjs.org/babel-plugin-syntax-jsx/-/babel-plugin-syntax-jsx-6.18.0.tgz",
-      "integrity": "sha1-CvMqmm4Tyno/1QaeYtew9Y0NiUY="
+      "integrity": "sha512-qrPaCSo9c8RHNRHIotaufGbuOBN8rtdC4QrrFFc43vyWCCz7Kl7GL1PGaXtMGQZUXrkCjNEgxDfmAuAabr/rlw=="
     },
     "babel-plugin-transform-class-properties": {
       "version": "6.24.1",
@@ -9093,7 +9093,7 @@
     "css-color-keywords": {
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/css-color-keywords/-/css-color-keywords-1.0.0.tgz",
-      "integrity": "sha1-/qJhbcZ2spYmhrOvjb2+GAskTgU="
+      "integrity": "sha512-FyyrDHZKEjXDpNJYvVsV960FiqQyXc/LlYmsxl2BcdMb2WPx0OGRVgTg55rPSyLSNMqP52R9r8geSp7apN3Ofg=="
     },
     "css-color-names": {
       "version": "0.0.4",
