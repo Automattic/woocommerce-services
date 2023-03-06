@@ -86,4 +86,4 @@ jobs:
       - name: Setup WordPress
         run:  bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Run PHPUnit tests
-        run: cd $HOME/woocommerce-services && ./vendor/bin/phpunit -c phpunit.xml.dist
+        run: cd /home/runner/work/woocommerce-services/woocommerce-services && ./vendor/bin/phpunit -c phpunit.xml.dist
