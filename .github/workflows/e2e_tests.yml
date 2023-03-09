@@ -5,18 +5,18 @@ on: [push, workflow_dispatch]
 jobs:
   e2e_build_and_test:
     name: Build Container and Run E2E Tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     env:
-      WP_VERSION: 6.1.0
+      E2E_WP_VERSION: 6.1.0
       TRAVIS_MARIADB_VERSION: 10.8.3
     steps:
-      - uses: actions/checkout@v2
+      - run: git config --global url.https://github.com/.insteadOf git://github.com/
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - uses: actions/setup-node@v2
         with:
-          node-version: '10.16.0'
-      - run: git config --global url.https://github.com/.insteadOf git://github.com/
+            node-version-file: '.nvmrc'
       # Kill process running on port 8084
       - name: Kill mono-xsp4.service
         shell: bash
@@ -24,7 +24,6 @@ jobs:
             echo "::group::Kill webserver running on port 8084"
             sudo fuser -k -n tcp 8084
             echo "::endgroup::"
-
       - run: npm ci
       - run: npm run dist
       - run: npm run test:e2e-docker-up
