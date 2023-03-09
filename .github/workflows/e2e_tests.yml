@@ -10,7 +10,8 @@ jobs:
       E2E_WP_VERSION: 6.1.0
       TRAVIS_MARIADB_VERSION: 10.8.3
     steps:
-      - run: git config --global url.https://github.com/.insteadOf git://github.com/
+      - name: Set Git to use HTTPS instead of SSH
+        run: git config --global url.https://github.com/.insteadOf git://github.com/
       - uses: actions/checkout@v3
         with:
           submodules: recursive
