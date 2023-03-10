@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This is different from the WP admin notices which are handled separately.
  */
 class Notification_Manager {
-	const DISMISSED_OPTION_PREFIX = 'wcc_notification_dismissed_';
+	const USER_META_DISMISSED_PREFIX = 'wcc_notification_dismissed_';
 
 	/**
 	 * Notifications whose display is handled by the front-end (as opposed to WP notices which are rendered by PHP).
@@ -43,7 +43,7 @@ class Notification_Manager {
 	 * @return bool Is the notification ID marked as dismissed in the past.
 	 */
 	public function is_dismissed( $id ) {
-		return false !== get_option( self::DISMISSED_OPTION_PREFIX . $id );
+		return false !== get_user_meta( get_current_user_id(), self::USER_META_DISMISSED_PREFIX . $id, true );
 	}
 
 	/**
@@ -70,6 +70,6 @@ class Notification_Manager {
 			throw new InvalidArgumentException();
 		}
 
-		update_option( self::DISMISSED_OPTION_PREFIX . $id, time() );
+		update_user_meta( get_current_user_id(), self::USER_META_DISMISSED_PREFIX . $id, time() );
 	}
 }

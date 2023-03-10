@@ -22,9 +22,9 @@ class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
 	}
 
 	public function tear_down() {
-		delete_option( 'wcc_notification_dismissed_foo' );
-		delete_option( 'wcc_notification_dismissed_bar' );
-		delete_option( 'wcc_notification_dismissed_baz' );
+		delete_user_meta( get_current_user_id(), 'wcc_notification_dismissed_foo' );
+		delete_user_meta( get_current_user_id(), 'wcc_notification_dismissed_bar' );
+		delete_user_meta( get_current_user_id(), 'wcc_notification_dismissed_baz' );
 	}
 
 	public function test_it_returns_only_dismissible_notifications() {
@@ -43,7 +43,7 @@ class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
 			new Notification( 'baz', true ),
 		) );
 
-		update_option( 'wcc_notification_dismissed_bar', 123 );
+		update_user_meta( get_current_user_id(), 'wcc_notification_dismissed_bar', 123 );
 
 		$this->assertEquals( array( 'foo', 'baz' ), $notification_manager->get_undismissed_notification_ids() );
 	}
@@ -53,7 +53,7 @@ class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
 			'foo' => new Notification( 'foo', true ),
 		) );
 
-		update_option( 'wcc_notification_dismissed_foo', 123 );
+		update_user_meta( get_current_user_id(), 'wcc_notification_dismissed_foo', 123 );
 
 		$this->assertTrue( $notification_manager->is_dismissed( 'foo' ) );
 	}
@@ -75,7 +75,7 @@ class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
 
 		$notification_manager->dismiss( 'foo' );
 
-		$this->assertIsInt( get_option( 'wcc_notification_dismissed_foo' ) );
+		$this->assertIsInt( get_user_meta( get_current_user_id(), 'wcc_notification_dismissed_foo', true ) );
 	}
 
 	public function test_it_throws_exception_if_notification_id_is_invalid() {
