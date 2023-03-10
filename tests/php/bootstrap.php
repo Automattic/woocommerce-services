@@ -17,7 +17,7 @@ if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 } elseif ( file_exists( '/tmp/woocommerce/plugins/woocommerce/tests/legacy/bootstrap.php' ) ) {
 	$wc_root = '/tmp/woocommerce/plugins/woocommerce';
 } else {
-	exit( 'Could not determine test root directory. Aborting.' );
+	exit( 'Could not determine test root directory. Aborting. Have you run bin/install-wc-tests.sh?' );
 }
 
 $wp_tests_dir = getenv( 'WP_TESTS_DIR' );
