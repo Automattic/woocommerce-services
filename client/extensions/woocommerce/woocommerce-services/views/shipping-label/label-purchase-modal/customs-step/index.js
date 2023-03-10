@@ -50,14 +50,14 @@ const CustomsStep = props => {
 	const euCustomsNotificationId = 'eu-customs-description-specificity-requirement-2023-03';
 
 	const [ isEuCustomsPopoverVisible, setIsEuCustomsPopoverVisible ] = useState(
-		Object.keys( window.wcsPluginData.undismissedNotifications ).includes( euCustomsNotificationId )
+		window.wcsPluginData.undismissedNotifications.includes( euCustomsNotificationId )
 	);
 	const dismissNotification = () => {
 		api.put( api.url.notificationsDismiss(), {
 			id: euCustomsNotificationId,
 		} );
 		setIsEuCustomsPopoverVisible( false );
-		delete window.wcsPluginData.undismissedNotifications[ euCustomsNotificationId ];
+		window.wcsPluginData.undismissedNotifications = window.wcsPluginData.undismissedNotifications.filter( ( id ) => euCustomsNotificationId !== id );
 	};
 
 	return (

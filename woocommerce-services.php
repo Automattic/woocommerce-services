@@ -1026,7 +1026,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_carrier_types_controller( $rest_carrier_types_controller );
 			$rest_carrier_types_controller->register_routes();
 
-			require_once __DIR__ . '/classes/notifications/class-notification-controller.php';
+			require_once __DIR__ . '/classes/notifications/class-notifications-controller.php';
 			$rest_notifications_controller = new Notifications_Controller( $this->api_client, $settings_store, $logger, $this->get_notification_manager() );
 			$this->set_rest_notifications_controller( $rest_notifications_controller );
 			$rest_notifications_controller->register_routes();
