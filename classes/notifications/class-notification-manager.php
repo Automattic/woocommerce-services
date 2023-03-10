@@ -43,7 +43,7 @@ class Notification_Manager {
 	 * @return bool Is the notification ID marked as dismissed in the past.
 	 */
 	public function is_dismissed( $id ) {
-		return false !== get_user_meta( get_current_user_id(), self::USER_META_DISMISSED_PREFIX . $id, true );
+		return ! empty( get_user_meta( get_current_user_id(), self::USER_META_DISMISSED_PREFIX . $id, true ) );
 	}
 
 	/**

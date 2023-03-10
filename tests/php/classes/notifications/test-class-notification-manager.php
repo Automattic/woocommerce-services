@@ -3,11 +3,9 @@
 namespace WCShip\Notifications;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\MockObject\MockObject;
-use WCShip\Notifications\Notification;
-use WCShip\Notifications\Notification_Manager;
+use WC_Unit_Test_Case;
 
-class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
+class WP_Test_Notification_Manager extends WC_Unit_Test_Case {
 
 	protected $order_id = 123;
 
@@ -15,10 +13,8 @@ class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
 		global $wcship_root;
 		require_once $wcship_root . '/classes/notifications/class-notification.php';
 		require_once $wcship_root . '/classes/notifications/class-notification-manager.php';
-	}
 
-	public function set_up() {
-		parent::set_up();
+		wp_set_current_user( self::factory()->user->create_and_get()->ID );
 	}
 
 	public function tear_down() {
@@ -75,7 +71,7 @@ class WP_Test_Notification_Manager extends \WC_Unit_Test_Case {
 
 		$notification_manager->dismiss( 'foo' );
 
-		$this->assertIsInt( get_user_meta( get_current_user_id(), 'wcc_notification_dismissed_foo', true ) );
+		$this->assertIsNumeric( get_user_meta( get_current_user_id(), 'wcc_notification_dismissed_foo', true ) );
 	}
 
 	public function test_it_throws_exception_if_notification_id_is_invalid() {
