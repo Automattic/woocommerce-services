@@ -47,16 +47,17 @@ const customsSummary = ( errors, translate ) => {
 
 const CustomsStep = props => {
 	const { siteId, orderId, errors, expanded, translate, isSubmitted, packageDescriptions } = props;
+	const euCustomsNotificationId = 'eu-customs-description-specificity-requirement-2023-03';
 
 	const [ isEuCustomsPopoverVisible, setIsEuCustomsPopoverVisible ] = useState(
-		Object.keys( window.wcsPluginData.notices ).includes( 'wcs-usps-eu-custom-description-mar-01-2023' )
+		Object.keys( window.wcsPluginData.undismissedNotifications ).includes( euCustomsNotificationId )
 	);
-	const dismissNotice = () => {
-		api.put( api.url.noticesDismiss(), {
-			id: 'wcs-usps-eu-custom-description-mar-01-2023',
+	const dismissNotification = () => {
+		api.put( api.url.notificationsDismiss(), {
+			id: euCustomsNotificationId,
 		} );
 		setIsEuCustomsPopoverVisible( false );
-		delete window.wcsPluginData.notices[ 'wcs-usps-eu-custom-description-mar-01-2023' ];
+		delete window.wcsPluginData.undismissedNotifications[ euCustomsNotificationId ];
 	};
 
 	return (
@@ -86,7 +87,7 @@ const CustomsStep = props => {
 
 					<div className="eu-customs-item-description-specificity-popover-container__buttons">
 						<Button isSecondary className="button" href="https://www.usps.com/international/new-eu-customs-rules.htm" target="_blank">{ translate( 'Learn more' ) }</Button>
-						<Button isPrimary className="button" onClick={ dismissNotice }>{ translate( 'Got it' ) }</Button>
+						<Button isPrimary className="button" onClick={ dismissNotification }>{ translate( 'Got it' ) }</Button>
 					</div>
 				</Popover>
 			</div> ) }

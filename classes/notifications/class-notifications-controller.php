@@ -1,29 +1,36 @@
 <?php
 
+namespace WCShip\Notifications;
+
+use InvalidArgumentException;
+use WC_Connect_API_Client;
+use WC_Connect_Logger;
+use WC_Connect_Service_Settings_Store;
+use WC_REST_Connect_Base_Controller;
+use WP_Error;
+use WP_REST_Request;
+use WP_REST_Response;
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit; // Exit if accessed directly.
 }
 
-if ( class_exists( 'WC_REST_Connect_Notices_Controller' ) ) {
-	return;
-}
-
-class WC_REST_Connect_Notices_Controller extends WC_REST_Connect_Base_Controller {
-	protected $rest_base = 'connect/notices';
+class Notifications_Controller extends WC_REST_Connect_Base_Controller {
+	protected $rest_base = 'connect/notifications';
 
 	/**
-	 * @var WC_Connect_Notice_Manager
+	 * @var Notification_Manager
 	 */
-	protected $notice_manager;
+	protected $notification_manager;
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Service_Settings_Store $settings_store,
 		WC_Connect_Logger $logger,
-		WC_Connect_Notice_Manager $notice_manager
+		Notification_Manager $notice_manager
 	) {
 		parent::__construct( $api_client, $settings_store, $logger );
-		$this->notice_manager = $notice_manager;
+		$this->notification_manager = $notice_manager;
 	}
 
 	public function register_routes() {
@@ -52,11 +59,11 @@ class WC_REST_Connect_Notices_Controller extends WC_REST_Connect_Base_Controller
 		$id = $request->get_param( 'id' );
 
 		try {
-			$this->notice_manager->dismiss( $id );
+			$this->notification_manager->dismiss( $id );
 		} catch ( InvalidArgumentException $e ) {
 			$error = new WP_Error(
-				'notice_id_invalid',
-				__( 'Unable to dismiss notice - notice ID is invalid or notice is not dismissible.', 'woocommerce-services' ),
+				'notification_id_invalid',
+				__( 'Unable to dismiss notification - notification ID is invalid or it has already been dismissed.', 'woocommerce-services' ),
 				array( 'status' => 400 )
 			);
 			$this->logger->log( $error->get_error_message(), __CLASS__ );

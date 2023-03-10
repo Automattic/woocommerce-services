@@ -36,6 +36,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use WCShip\Notifications\Notification;
+use WCShip\Notifications\Notification_Manager;
+use WCShip\Notifications\Notifications_Controller;
+
 require_once __DIR__ . '/classes/class-wc-connect-extension-compatibility.php';
 require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
@@ -156,11 +160,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_types_controller;
 
 		/**
-		 * @var WC_REST_Connect_Notices_Controller
-		 */
-		protected $rest_notices_controller;
-
-		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -209,9 +208,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected static $wcs_version;
 
 		/**
-		 * @var WC_Connect_Notice_Manager
+		 * @var Notification_Manager
 		 */
-		protected $notice_manager;
+		protected $notification_manager;
+
+		/**
+		 * @var Notifications_Controller
+		 */
+		protected $rest_notifications_controller;
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
@@ -369,14 +373,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->tracks = $tracks;
 		}
 
-		public function get_notice_manager() {
-			return $this->notice_manager;
-		}
-
-		public function set_notice_manager( WC_Connect_Notice_Manager $notice_manager ) {
-			$this->notice_manager = $notice_manager;
-		}
-
 		public function get_rest_account_settings_controller() {
 			return $this->rest_account_settings_controller;
 		}
@@ -489,14 +485,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $this->rest_carrier_types_controller;
 		}
 
-		public function set_notices_controller( WC_REST_Connect_Notices_Controller $controller ) {
-			$this->rest_notices_controller = $controller;
-		}
-
-		public function get_notices_controller() {
-			return $this->rest_notices_controller;
-		}
-
 		public function get_service_schemas_validator() {
 			return $this->service_schemas_validator;
 		}
@@ -539,6 +527,38 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_label_reports( WC_Connect_Label_Reports $label_reports ) {
 			$this->label_reports = $label_reports;
+		}
+
+		/**
+		 * @return Notification_Manager
+		 */
+		public function get_notification_manager() {
+			return $this->notification_manager;
+		}
+
+		/**
+		 * @param Notification_Manager $notification_manager
+		 *
+		 * @return void
+		 */
+		public function set_notification_manager( Notification_Manager $notification_manager ) {
+			$this->notification_manager = $notification_manager;
+		}
+
+		/**
+		 * @return Notifications_Controller
+		 */
+		public function get_rest_notifications_controller() {
+			return $this->rest_notifications_controller;
+		}
+
+		/**
+		 * @param Notifications_Controller $controller
+		 *
+		 * @return void
+		 */
+		public function set_rest_notifications_controller( Notifications_Controller $controller ) {
+			$this->rest_notifications_controller = $controller;
 		}
 
 		/**
@@ -723,7 +743,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-continents.php';
 			require_once __DIR__ . '/classes/class-wc-connect-order-presenter.php';
 			require_once __DIR__ . '/classes/class-wc-connect-cart-validation.php';
-			require_once __DIR__ . '/classes/class-wc-connect-notice-manager.php';
+			require_once __DIR__ . '/classes/notifications/class-notification.php';
+			require_once __DIR__ . '/classes/notifications/class-notification-manager.php';
 
 			$core_logger     = new WC_Logger();
 			$logger          = new WC_Connect_Logger( $core_logger );
@@ -749,7 +770,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$options               = new WC_Connect_Options();
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
-			$notice_manager        = new WC_Connect_Notice_Manager( $schemas_store );
 
 			new WC_Connect_Privacy( $settings_store, $api_client );
 
@@ -766,7 +786,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
-			$this->set_notice_manager( $notice_manager );
+			$this->set_notification_manager(
+				new Notification_Manager(
+					array(
+						new Notification(
+							'eu-customs-description-specificity-requirement-2023-03',
+							true
+						),
+					)
+				)
+			);
 
 			$cart_validation = new WC_Connect_Cart_Validation();
 			$cart_validation->register_filters();
@@ -997,10 +1026,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_carrier_types_controller( $rest_carrier_types_controller );
 			$rest_carrier_types_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-notices-controller.php';
-			$rest_notices_controller = new WC_REST_Connect_Notices_Controller( $this->api_client, $settings_store, $logger, $this->get_notice_manager() );
-			$this->set_notices_controller( $rest_notices_controller );
-			$rest_notices_controller->register_routes();
+			require_once __DIR__ . '/classes/notifications/class-notification-controller.php';
+			$rest_notifications_controller = new Notifications_Controller( $this->api_client, $settings_store, $logger, $this->get_notification_manager() );
+			$this->set_rest_notifications_controller( $rest_notifications_controller );
+			$rest_notifications_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
@@ -1425,8 +1454,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wc_connect_admin',
 				'wcsPluginData',
 				array(
-					'assetPath' => self::get_wc_connect_base_url(),
-					'notices' => $this->get_notice_manager()->get_undismissed_notices(),
+					'assetPath'                => self::get_wc_connect_base_url(),
+					'undismissedNotifications' => $this->get_notification_manager()->get_undismissed_notification_ids(),
 				)
 			);
 		}
@@ -1658,43 +1687,38 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function render_schema_notices() {
-			$notice_manager = $this->get_notice_manager();
-
-			foreach ( $notice_manager->get_undismissed_notices() as $notice ) {
-				/*
-				 * This is a notice ID which we will surface in
-				 * /client/extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal/customs-step/index.js
-				 * so let's exclude it from the list of classic WP notices.
-				 */
-				if ( 'wcs-usps-eu-custom-description-mar-01-2023' === $notice->id ) {
-					continue;
-				}
-
-				if ( $notice_manager->is_dismissible( $notice->id ) ) {
+			$schemas = $this->get_service_schemas_store()->get_service_schemas();
+			if ( empty( $schemas ) || ! property_exists( $schemas, 'notices' ) || empty( $schemas->notices ) ) {
+				return;
+			}
+			$allowed_html = array(
+				'a'      => array( 'href' => array() ),
+				'strong' => array(),
+				'br'     => array(),
+			);
+			foreach ( $schemas->notices as $notice ) {
+				$dismissible = false;
+				// check if the notice is dismissible.
+				if ( property_exists( $notice, 'id' ) && ! empty( $notice->id ) && property_exists( $notice, 'dismissible' ) && $notice->dismissible ) {
 					// check if the notice is being dismissed right now.
 					if ( isset( $_GET['wc-connect-dismiss-server-notice'] ) && $_GET['wc-connect-dismiss-server-notice'] === $notice->id ) {
-						$notice_manager->dismiss( $notice->id );
+						set_transient( 'wcc_notice_dismissed_' . $notice->id, true, MONTH_IN_SECONDS );
 						continue;
 					}
+					// check if the notice has already been dismissed.
+					if ( false !== get_transient( 'wcc_notice_dismissed_' . $notice->id ) ) {
+						continue;
+					}
+
+					$dismissible  = true;
+					$link_dismiss = add_query_arg( array( 'wc-connect-dismiss-server-notice' => $notice->id ) );
 				}
 				?>
 				<div class='<?php echo esc_attr( 'notice notice-' . $notice->type ); ?>' style="position: relative;">
-					<?php if ( $notice_manager->is_dismissible( $notice->id ) ) : ?>
-						<?php
-						$link_dismiss = add_query_arg( array( 'wc-connect-dismiss-server-notice' => $notice->id ) );
-						?>
-						<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
+					<?php if ( $dismissible ) : ?>
+					<a href="<?php echo esc_url( $link_dismiss ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
 					<?php endif; ?>
-					<p>
-						<?php echo wp_kses(
-							$notice->message,
-							array(
-								'a'      => array( 'href' => array() ),
-								'strong' => array(),
-								'br'     => array(),
-							)
-						); ?>
-					</p>
+					<p><?php echo wp_kses( $notice->message, $allowed_html ); ?></p>
 				</div>
 				<?php
 			}

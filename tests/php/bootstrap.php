@@ -49,3 +49,5 @@ if ( ! defined( 'WC_UNIT_TESTING' ) ) {
 }
 
 require $wc_root . '/tests/legacy/bootstrap.php';
+
+$wcship_root = __DIR__ . '/../..';
