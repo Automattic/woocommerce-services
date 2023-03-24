@@ -1,5 +1,19 @@
 .shipping-classes-field__form-token {
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    flex-flow: row wrap;
+    gap: calc(4px);
+    -webkit-box-pack: start;
+    justify-content: flex-start;
+    width: 100%;
+    padding: calc(4px);
+
     .components-form-token-field__suggestions-list {
         margin: 0 0;
+    }
+
+    .components-form-token-field__remove-token {
+        background-color: #dddddd;
     }
 }
