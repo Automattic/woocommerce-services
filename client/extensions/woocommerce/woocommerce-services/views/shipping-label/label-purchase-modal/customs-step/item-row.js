@@ -26,7 +26,7 @@ import { getAllCountryNames } from 'woocommerce/state/sites/data/locations/selec
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import WeightField from 'woocommerce/woocommerce-services/components/weight-field';
 import PriceField from 'woocommerce/woocommerce-services/components/price-field';
-import { TariffCodeTitle, OriginCountryTitle } from './item-row-header';
+import { TariffCodeTitle, OriginCountryTitle, DescriptionTitle } from './item-row-header';
 
 const ItemRow = props => {
 	const {
@@ -49,7 +49,7 @@ const ItemRow = props => {
 			<TextField
 				id={ packageId + '_' + productId + '_description' }
 				className="customs-step__item-description-column"
-				title={ translate( 'Description' ) }
+				title={ <DescriptionTitle /> }
 				value={ description }
 				placeholder={ defaultDescription }
 				updateValue={ props.setCustomsItemDescription }
