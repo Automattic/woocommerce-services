@@ -18,12 +18,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
             node-version-file: '.nvmrc'
-      - name: Kill process running on port 8084 to unblock it
-        shell: bash
+      - name: Disable and stop mono-xsp4.service to unblock port 8084
         run: |
-            echo "::group::Kill webserver running on port 8084"
-            sudo fuser -k -n tcp 8084
-            echo "::endgroup::"
+            sudo systemctl stop mono-xsp4.service || true
+            sudo systemctl disable mono-xsp4.service || true
       - name: Build WCS&T
         run: |
             npm ci
