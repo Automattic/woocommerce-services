@@ -4,6 +4,9 @@ echo "Initializing WooCommerce Services E2E"
 WP_CORE_DIR="/var/www/html"
 WCS_DIR="$WP_CORE_DIR/wp-content/plugins/woocommerce-services"
 
+# Update WP to the latest version
+wp core update --quiet
+
 # install default theme
 wp theme install storefront --activate
 
