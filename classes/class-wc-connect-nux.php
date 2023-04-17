@@ -407,7 +407,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Remove [...]/wp-admin so we can use admin_url().
 			$new_index = strpos( $full_path, '/wp-admin' ) + strlen( '/wp-admin' );
 			$path      = substr( $full_path, $new_index );
-			return admin_url( $path );
+			return esc_url( admin_url( $path ) );
 		}
 
 		public function set_up_nux_notices() {
