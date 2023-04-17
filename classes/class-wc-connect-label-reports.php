@@ -24,7 +24,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				class="export_csv"
 				data-export="table"
 			>
-				<?php _e( 'Export CSV', 'woocommerce-services' ); ?>
+				<?php esc_html_e( 'Export CSV', 'woocommerce-services' ); ?>
 			</a>
 			<?php
 		}
@@ -202,7 +202,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 						?>
 						<tr>
 							<th scope="row">
-								<?php _e( 'Total', 'woocommerce-services' ); ?>
+								<?php esc_html_e( 'Total', 'woocommerce-services' ); ?>
 							</th>
 							<th>
 								<?php echo count( $labels ); ?>
