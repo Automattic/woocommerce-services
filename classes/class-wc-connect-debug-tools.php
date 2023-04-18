@@ -117,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			}
 
 			echo '<div class="updated inline"><p>';
-			echo sprintf( esc_html(__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count );
+			echo sprintf( esc_html(__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count ));
 			echo '</p></div>';
 		}
 
