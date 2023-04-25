@@ -1250,7 +1250,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 							</tr>
 						</thead>
 						<tbody>
-							<?php echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
+							<?php echo wp_kses_post($markup); ?>
 						</tbody>
 					</table>
 				</div>
