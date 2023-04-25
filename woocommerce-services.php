@@ -1235,7 +1235,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( $plain_text ) {
 				echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 				echo esc_html(mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' )) . "\n\n";
-				echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+				echo wp_kses( $markup, [] );
 				return;
 			}
 
