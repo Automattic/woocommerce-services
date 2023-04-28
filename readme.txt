@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.2.5 - 2023-xx-xx =
+* Fix   - Fix notice error in WooCommerce tax settings page.
+
 = 2.2.4 - 2023-03-14 =
 * Fix   - Incompatibility with Kadence WooCommerce Email Designer.
 
