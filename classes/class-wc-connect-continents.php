@@ -59,7 +59,7 @@ class WC_Connect_Continents {
 						)
 					);
 
-					$country = array_merge( $country, $country_data );
+					$country = array_merge( $country_data, $country );
 				}
 
 				$local_states = array();

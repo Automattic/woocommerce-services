@@ -223,14 +223,19 @@ export const isCustomsFormRequired = createSelector(
  */
  export const getRawAddressErrors = ( appState, addressData, siteId, fieldsToValidate ) => {
 	const { values } = addressData;
-	const { phone, postcode, state, country } = getAddressValues( addressData );
-	const requiredFields = [ 'name', 'address', 'city', 'postcode', 'country' ];
+	const { name, company, phone, postcode, state, country } = getAddressValues( addressData );
+	const requiredFields = [ 'address', 'city', 'postcode', 'country' ];
 	const errors = {};
 	requiredFields.forEach( field => {
 		if ( ! values[ field ] ) {
 			errors[ field ] = translate( 'This field is required' );
 		}
 	} );
+
+	if ( ! name && ! company ) {
+		errors.name = translate( 'Either Name or Company field is required' );
+		errors.company = translate( 'Either Name or Company field is required' );
+	}
 
 	if (
 		includes( ACCEPTED_USPS_ORIGIN_COUNTRIES, country ) &&
@@ -413,8 +418,8 @@ export const getCustomsErrors = (
 
 		items: mapValues( pick( customs.items, usedProductIds ), ( itemData, productId ) => {
 			const itemErrors = {};
-			if ( ! itemData.description ) {
-				itemErrors.description = translate( 'This field is required' );
+			if ( ! itemData.description || itemData.description.length < 3 ) {
+				itemErrors.description = translate( 'You must provide a clear, specific description for every item.' );
 			}
 			if ( ! customs.ignoreWeightValidation[ productId ] ) {
 				if ( isNil( itemData.weight ) || '' === itemData.weight ) {

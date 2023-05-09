@@ -13,7 +13,7 @@ import { TextControl } from '@wordpress/components';
  */
 import FormFieldset from 'components/forms/form-fieldset';
 import FieldError from '../field-error';
-import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
 
 const TextField = ( {
 	id,

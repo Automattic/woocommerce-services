@@ -73,6 +73,11 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 			);
 
 			// Add line items.
+			/**
+			 * WC Order Item Product.
+			 *
+			 * @var WC_Order_Item_Product $item
+			 */
 			foreach ( $order->get_items() as $item_id => $item ) {
 				$product   = $item->get_product();
 				$item_meta = $item->get_formatted_meta_data();
@@ -137,6 +142,11 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 			}
 
 			// Add coupons.
+			/**
+			 * WC Order Item Coupon.
+			 *
+			 * @var WC_Order_Item_Coupon $coupon_item
+			 */
 			foreach ( $order->get_items( 'coupon' ) as $coupon_item_id => $coupon_item ) {
 				$coupon_line = array(
 					'id'     => $coupon_item_id,

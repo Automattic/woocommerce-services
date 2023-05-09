@@ -44,8 +44,10 @@ import {
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
-import { 
+import {
 	getEmailReceipts,
+	getUseLastService,
+	getUseLastPackage,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
@@ -94,6 +96,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_ADD_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REMOVE_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_PACKAGES,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_ADD_ITEM,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_ADD_ITEM,
@@ -260,6 +263,18 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 	const customsItems = isCustomsFormRequired( getState(), orderId, siteId ) ? customs.items : null;
 	const apiPackages = map( packages.selected, pckg => convertToApiPackage( pckg, customsItems ) );
 	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages )
+		.then( () => {
+			const useLastService = getUseLastService( getState(), siteId );
+			if ( false === useLastService ) {
+				return;
+			}
+
+			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, getState ) || {};
+
+			if ( undefined !== packageId && undefined !== serviceId && undefined !== carrierId ) {
+				dispatch( setDefaultRate ( orderId, siteId, packageId, serviceId, carrierId ) );
+			}
+		} )
 		.then( () => expandFirstErroneousStep( orderId, siteId, dispatch, getState ) )
 		.catch( error => {
 			console.error( error );
@@ -290,6 +305,17 @@ export const setPackageType = ( orderId, siteId, packageId, boxTypeId ) => (
 	} );
 };
 
+export const setDefaultRate = ( orderId, siteId, packageId, serviceId, carrierId ) => ( dispatch ) => {
+	dispatch( {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+		siteId,
+		orderId,
+		packageId,
+		serviceId,
+		carrierId,
+	} );
+};
+
 /**
  * If no box has been selected for this package, then get the last used box.
  * @param {Number} orderId order ID
@@ -307,6 +333,26 @@ export const getDefaultBoxSelection = ( orderId, siteId, getState ) => {
 
 	if ( pckg && 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
 		return { packageId, boxId: userMeta.last_box_id };
+	}
+}
+
+/**
+ * If no service has been selected for this package, then get the last used service.
+ * @param {Number} orderId order ID
+ * @param {Number} siteId site ID
+ * @param {Function} getState getState function
+ * @return {Object|undefined} packageId and boxId if default is needed.
+ */
+export const getDefaultServiceSelection = ( orderId, siteId, getState ) => {
+	const state = getState();
+	const userMeta = getLabelSettingsUserMeta( state, siteId );
+	const labelState = getShippingLabel( state, orderId, siteId );
+	const selected = labelState.form.packages.selected;
+	const packageId = labelState.openedPackageId;
+	const pckg = selected[ packageId ];
+
+	if ( pckg && userMeta.last_service_id && userMeta.last_carrier_id ) {
+		return { packageId, serviceId: userMeta.last_service_id, carrierId: userMeta.last_carrier_id };
 	}
 }
 
@@ -348,6 +394,11 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
 	).then( () => {
+		const useLastPackage = getUseLastPackage( getState(), siteId );
+		if ( false === useLastPackage ) {
+			return;
+		}
+
 		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
 		if ( packageId !== undefined && boxId !== undefined ) {
 			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );
@@ -432,6 +483,13 @@ export const removeIgnoreValidation = ( orderId, siteId, group ) => {
 	};
 };
 
+const checkPackagesStep = ( orderId, siteId, dispatch, getState ) => {
+	const { expanded } = getShippingLabel( getState(), orderId, siteId ).form[ 'packages' ];
+	if ( !expanded ) {
+		dispatch( toggleStep( orderId, siteId, 'packages' ) );
+	}
+};
+
 export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch, getState ) => {
 	dispatch( {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_ADDRESS_SUGGESTION,
@@ -440,7 +498,12 @@ export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch
 		group,
 	} );
 
-	tryGetLabelRates( orderId, siteId, dispatch, getState );
+	if ( 'destination' === group ) {
+		checkPackagesStep( orderId, siteId, dispatch, getState );
+		return;
+	}
+	
+	tryGetLabelRates( orderId, siteId, dispatch, getState );	
 };
 
 export const submitAddressForNormalization = ( orderId, siteId, group ) => (
@@ -457,7 +520,12 @@ export const submitAddressForNormalization = ( orderId, siteId, group ) => (
 				dispatch( toggleStep( orderId, siteId, group ) );
 			}
 
-			tryGetLabelRates( orderId, siteId, dispatch, getState );
+			if ( 'destination' === group ) {
+				checkPackagesStep( orderId, siteId, dispatch, getState );
+				return;
+			}
+			
+			tryGetLabelRates( orderId, siteId, dispatch, getState );	
 		}
 	};
 
@@ -947,14 +1015,21 @@ function downloadAndPrint( orderId, siteId, dispatch, getState, labels ) {
 
 	let hasError = false;
 
-	const customsForms = labels.map( ( label ) => label.commercial_invoice_url ).filter( ( url ) => url );
-	if ( customsForms && 0 < customsForms.length) {
-		dispatch(
-			NoticeActions.infoNotice( translate( "Note: A customs form will open in a new tab and must be printed and included on this international shipment." ), {
-			} )
-		);
-		for (const customsFormsUrl of customsForms) {
-			window.open( customsFormsUrl );
+	const customsForms = getCustomsFormsFromLabels( labels );
+	if ( customsForms && 0 < customsForms.length ) {
+
+		const everyCustomsFormSubmittedElectronically = customsForms.every( form => form.submitted_electronically );
+
+		if ( everyCustomsFormSubmittedElectronically ) {
+			dispatch( NoticeActions.infoNotice( translate( 'Note: The customs form has been submitted electronically, but you can view/download the form any time from the shipping label\'s menu.' ), {} ) );
+		} else {
+			dispatch( NoticeActions.infoNotice( translate( 'Note: A customs form will open in a new tab and must be printed and included on this international shipment.' ), {} ) );
+		}
+
+		for ( const customsForm of customsForms ) {
+			if ( !customsForm.submitted_electronically ) {
+				window.open( customsForm.url );
+			}
 		}
 	}
 
@@ -989,6 +1064,18 @@ function downloadAndPrint( orderId, siteId, dispatch, getState, labels ) {
 		} )
 		.catch( showErrorNotice );
 }
+
+const getCustomsFormsFromLabels = ( labels ) => {
+	const customsForms = labels.filter( label => label.commercial_invoice_url )
+		.map( ( label ) => {
+			return {
+				url: label.commercial_invoice_url,
+				submitted_electronically: label.is_commercial_invoice_submitted_electronically,
+			};
+		} );
+
+	return !_.isEmpty( customsForms ) ? customsForms : false;
+};
 
 const pollForLabelsPurchase = ( orderId, siteId, dispatch, getState, labels ) => {
 	const errorLabel = find( labels, { status: 'PURCHASE_ERROR' } );

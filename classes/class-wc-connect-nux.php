@@ -7,8 +7,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Jetpack status constants.
 		 */
 		const JETPACK_NOT_CONNECTED = 'not-connected';
-		const JETPACK_DEV = 'dev';
-		const JETPACK_CONNECTED = 'connected';
+		const JETPACK_DEV           = 'dev';
+		const JETPACK_CONNECTED     = 'connected';
 
 		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
 
@@ -151,7 +151,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return $pointers;
 			}
 
-			if ( ! $this->shipping_label->should_show_meta_box() ) {
+			global $post;
+
+			if ( ! $this->shipping_label->should_show_meta_box( $post ) ) {
 				return $pointers;
 			}
 
@@ -630,7 +632,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						}
 					)(jQuery)
 				</script>
-			<?php
+				<?php
 			endif;
 		}
 

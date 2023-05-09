@@ -399,7 +399,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			);
 
 			if ( ! $this->is_valid_package_destination( $package ) ) {
-				if ( is_cart() || is_checkout() ) {
+				if ( WC_Connect_functions::is_cart() || WC_Connect_functions::is_checkout() || WC_Connect_functions::is_store_api_call() ) {
 					foreach ( $this->package_validation_errors->errors as $code => $messages ) {
 						foreach ( $messages as $message ) {
 							// Using debug instead of regular notice because the error always shows before customer enters any shipping information.
@@ -491,10 +491,14 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						$product_summaries = array();
 						$product_counts    = array_count_values( $item_product_ids );
 						foreach ( $product_counts as $product_id => $count ) {
-							/** @var WC_Product $product */
+							/**
+							 * WC Product.
+							 *
+							 * @var WC_product $product
+							 */
 							$product = $this->lookup_product( $package, $product_id );
-							if ( $product ) {
-								$item_name           = WC_Connect_Compatibility::instance()->get_product_name( $product );
+							if ( is_a( $product, 'WC_Product' ) ) {
+								$item_name           = $product->get_name();
 								$item                = $item_by_product[ $product_id ];
 								$item_measurements   = sprintf( $measurements_format, $item->length, $item->width, $item->height, $item->weight );
 								$product_summaries[] =
@@ -638,9 +642,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * @param string $type    Notice type.
 		 */
 		public function debug( $message, $type = 'notice' ) {
-			if ( is_cart() || is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::has_cart_or_checkout_block() ) {
+			if ( WC_Connect_Functions::is_cart() || WC_Connect_Functions::is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::is_store_api_call() ) {
 				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
-
 				$this->logger->debug( $debug_message, $type );
 			}
 		}

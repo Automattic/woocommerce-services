@@ -1,7 +1,8 @@
 {
     "require-dev": {
         "woocommerce/woocommerce-sniffs": "^0.1.0",
-        "phpunit/phpunit": "^7"
+        "phpunit/phpunit": "9.5.27",
+        "yoast/phpunit-polyfills": "^1.0"
     },
     "scripts": {
 		"test": [
@@ -19,5 +20,11 @@
 		"automattic/jetpack-config": "1.4.3",
 		"automattic/jetpack-autoloader": "2.8.0",
 		"automattic/jetpack-tracking": "1.11.0"
-	}
+	},
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "automattic/jetpack-autoloader": true
+        }
+    }
 }

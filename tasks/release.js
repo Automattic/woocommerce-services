@@ -2,7 +2,7 @@
 /* eslint no-process-exit: 0, no-undef: 0, strict: 0 */
 'use strict';
 require( 'shelljs/global' );
-const colors = require( 'colors' );
+const chalk = require( 'chalk' );
 const confirm = require( 'confirm-simple' );
 const archiver = require( 'archiver' );
 const fs = require( 'fs' );
@@ -18,7 +18,7 @@ const dirsToCopy = [
 	'vendor',
 ];
 
-confirm( colors.cyan( 'Howdy! This script is going to create a release folder with a compiled ' +
+confirm( chalk.cyan( 'Howdy! This script is going to create a release folder with a compiled ' +
 	'zipped up plugin ready for release. This script assumes you\'ve already checked out the correct branch, ' +
 	'are running the latest code, and have run tests as needed. Sound good?' ), ( ok ) => {
 	if ( ! ok ) {
@@ -46,11 +46,11 @@ confirm( colors.cyan( 'Howdy! This script is going to create a release folder wi
 	const archive = archiver( 'zip' );
 
 	output.on( 'close', () => {
-		console.log( colors.green( 'All done: Release is built in the ' + releaseFolder + ' folder.' ) );
+		console.log( chalk.green( 'All done: Release is built in the ' + releaseFolder + ' folder.' ) );
 	} );
 
 	archive.on( 'error', ( err ) => {
-		console.error( colors.red( 'An error occured while creating the zip: ' + err +
+		console.error( chalk.red( 'An error occured while creating the zip: ' + err +
 			'\nYou can still probably create the zip manually from the ' + targetFolder + ' folder.' ) );
 	} );
 
