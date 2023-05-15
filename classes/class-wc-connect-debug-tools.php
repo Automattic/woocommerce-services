@@ -53,14 +53,16 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 		function test_connection() {
 			$test_request = $this->api_client->auth_test();
 			if ( $test_request && ! is_wp_error( $test_request ) && $test_request->authorized ) {
-				echo '<div class="updated inline"><p>' . __( 'Your site is successfully communicating to the WooCommerce Shipping & Tax API.', 'woocommerce-services' ) . '</p></div>';
+				echo '<div class="updated inline"><p>' . esc_html__( 'Your site is successfully communicating to the WooCommerce Shipping & Tax API.', 'woocommerce-services' ) . '</p></div>';
 			} else {
-				echo '<div class="error inline"><p>' . __( 'ERROR: Your site has a problem connecting to the WooCommerce Shipping & Tax API. Please make sure your Jetpack connection is working.', 'woocommerce-services' ) . '</p></div>';
+				echo '<div class="error inline"><p>' 
+				. esc_html__( 'ERROR: Your site has a problem connecting to the WooCommerce Shipping & Tax API. Please make sure your Jetpack connection is working.', 'woocommerce-services' ) 
+				. '</p></div>';
 			}
 		}
 
 		/**
-		 * Back up all existing tax rates from the database in a CSV file.         *
+		 * Back up all existing tax rates from the database in a CSV file.
 		 * Then, if successfully backed up, loop through the tax rates
 		 * in the database and delete rates where:
 		 * tax_rate_country = 'US' and
@@ -74,7 +76,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 
 			if ( ! $backed_up ) {
 				echo '<div class="error inline"><p>';
-				echo __( 'ERROR: The "CA" tax rate deletion process was cancelled because the existing tax rates could not be backed up.', 'woocommerce-services' );
+				echo esc_html__( 'ERROR: The "CA" tax rate deletion process was cancelled because the existing tax rates could not be backed up.', 'woocommerce-services' );
 				echo '</p></div>';
 
 				return;
@@ -98,7 +100,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			 */
 			if ( empty( $found_ca_rates ) ) {
 				echo '<div class="updated inline"><p>';
-				echo __( 'No "CA" tax rates were found.', 'woocommerce-services' );
+				echo esc_html__( 'No "CA" tax rates were found.', 'woocommerce-services' );
 				echo '</p></div>';
 
 				return;
@@ -115,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			}
 
 			echo '<div class="updated inline"><p>';
-			echo sprintf( __( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count );
+			echo sprintf( esc_html__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), $deleted_count );
 			echo '</p></div>';
 		}
 
@@ -134,7 +136,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			);
 
 			echo '<div class="updated inline"><p>';
-			echo sprintf( __( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), $deleted_count );
+			echo sprintf( esc_html__( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), $deleted_count );
 			echo '</p></div>';
 		}
 	}

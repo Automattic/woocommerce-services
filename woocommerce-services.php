@@ -1234,23 +1234,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( $plain_text ) {
 				echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
-				echo mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' ) . "\n\n";
-				echo $markup;
+				echo esc_html(mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' )) . "\n\n";
+				echo wp_kses( $markup, [] );
 				return;
 			}
 
 			?>
 				<div style="font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; margin-bottom: 40px;">
-					<h2><?php echo __( 'Tracking', 'woocommerce-services' ); ?></h2>
+					<h2><?php esc_html_e( 'Tracking', 'woocommerce-services' ); ?></h2>
 					<table class="td" cellspacing="0" cellpadding="6" style="margin-top: 10px; width: 100%;">
 						<thead>
 							<tr>
-								<th class="td" scope="col"><?php echo __( 'Provider', 'woocommerce-services' ); ?></th>
-								<th class="td" scope="col"><?php echo __( 'Tracking number', 'woocommerce-services' ); ?></th>
+								<th class="td" scope="col"><?php esc_html_e( 'Provider', 'woocommerce-services' ); ?></th>
+								<th class="td" scope="col"><?php esc_html_e( 'Tracking number', 'woocommerce-services' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php echo $markup; ?>
+							<?php echo wp_kses_post($markup); ?>
 						</tbody>
 					</table>
 				</div>
@@ -1611,12 +1611,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			$encoded_arguments = wp_json_encode( $extra_args );
-			$escaped_arguments = function_exists( 'wc_esc_json' ) ? wc_esc_json( $encoded_arguments ) : esc_attr( $encoded_arguments );
-
 			?>
-				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo $escaped_arguments; ?>">
+				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo wc_esc_json( $encoded_arguments ); ?>">
 					<span class="form-troubles" style="opacity: 0">
-						<?php printf( __( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
+						<?php printf( esc_html__( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), $debug_page_uri ); ?>
 					</span>
 				</div>
 			<?php

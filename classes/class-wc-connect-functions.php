@@ -14,7 +14,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				// Skip for carts loaded from session in the dashboard.
 				( is_admin() && did_action( 'woocommerce_cart_loaded_from_session' ) ) ||
 				// Skip during Jetpack API requests.
-				( false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) ||
+				( !empty($_SERVER['REQUEST_URI']) && false !== strpos( $_SERVER['REQUEST_URI'], 'jetpack/v4/' ) ) || // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 				// Skip during REST API or XMLRPC requests.
 				( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) ||
 				// Skip during Jetpack REST API proxy requests.
@@ -175,7 +175,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				__( 'Shipping', 'woocommerce' ) . ',' .
 				__( 'Tax Class', 'woocommerce' ) . "\n";
 
-			echo $header;
+			echo $header; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 			foreach ( $rates as $rate ) {
 				if ( $rate->tax_rate_country ) {
