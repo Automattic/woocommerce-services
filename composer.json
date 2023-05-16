@@ -16,10 +16,9 @@
 		]
 	},
     "require": {
-		"automattic/jetpack-connection": "^1.51.8",
-		"automattic/jetpack-config": "1.4.3",
-		"automattic/jetpack-autoloader": "^2.11.19",
-		"automattic/jetpack-tracking": "1.11.0"
+		"automattic/jetpack-connection": "^1.51.9",
+		"automattic/jetpack-config": "^1.15.2",
+		"automattic/jetpack-autoloader": "^2.11.20"
 	},
     "config": {
         "allow-plugins": {
