@@ -9,11 +9,11 @@
  * Domain Path: /i18n/languages/
  * Version: 2.2.4
  * Requires at least: 4.6
- * Tested up to: 6.1
+ * Tested up to: 6.2
  * WC requires at least: 3.6
- * WC tested up to: 7.3
+ * WC tested up to: 7.7
  *
- * Copyright (c) 2017-2022 Automattic
+ * Copyright (c) 2017-2023 Automattic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
