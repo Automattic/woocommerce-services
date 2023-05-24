@@ -61,7 +61,7 @@ class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Ba
 			);
 		} else {
 			header( 'content-type: ' . $raw_response['headers']['content-type'] );
-			echo $raw_response['body'];
+			echo $raw_response['body']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			die();
 		}
 	}

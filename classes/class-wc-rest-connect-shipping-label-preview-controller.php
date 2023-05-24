@@ -33,7 +33,7 @@ class WC_REST_Connect_Shipping_Label_Preview_Controller extends WC_REST_Connect_
 		}
 
 		header( 'content-type: ' . $raw_response['headers']['content-type'] );
-		echo $raw_response['body'];
+		echo $raw_response['body']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		die();
 	}
 
