@@ -56,7 +56,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
 		$this->assertEquals( 'woocommerceconnect_test', $record[1] );
-		$this->assertInternalType( 'array', $record[2] );
+		$this->assertIsArray( $record[2] );
 		$this->assertArrayHasKey( '_via_ua', $record[2] );
 		$this->assertArrayHasKey( '_via_ip', $record[2] );
 		$this->assertArrayHasKey( '_lg', $record[2] );
@@ -82,7 +82,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
 		$this->assertEquals( 'woocommerceconnect_opted_in', $record[1] );
-		$this->assertInternalType( 'array', $record[2] );
+		$this->assertIsArray( $record[2] );
 		$this->assertArrayHasKey( '_via_ua', $record[2] );
 		$this->assertArrayHasKey( '_via_ip', $record[2] );
 		$this->assertArrayHasKey( '_lg', $record[2] );
@@ -108,7 +108,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		$record = $mock_recorded_tracks_events[0];
 		$this->assertInstanceOf( 'WP_User', $record[0] );
 		$this->assertEquals( 'woocommerceconnect_opted_out', $record[1] );
-		$this->assertInternalType( 'array', $record[2] );
+		$this->assertIsArray( $record[2] );
 		$this->assertArrayHasKey( '_via_ua', $record[2] );
 		$this->assertArrayHasKey( '_via_ip', $record[2] );
 		$this->assertArrayHasKey( '_lg', $record[2] );
