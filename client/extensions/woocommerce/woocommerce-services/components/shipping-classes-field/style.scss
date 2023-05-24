@@ -16,4 +16,13 @@
     .components-form-token-field__remove-token {
         background-color: #dddddd;
     }
+
+    .components-form-token-field__input, .components-form-token-field__input:focus, .components-form-token-field__input:hover, .components-form-token-field__input:focus:hover {
+        border: unset;
+        box-shadow: unset;
+    }
+
+    &.components-form-token-field__input-container {
+        border-color: #ccced0;
+    }
 }
