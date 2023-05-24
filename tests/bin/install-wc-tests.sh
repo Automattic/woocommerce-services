@@ -13,13 +13,11 @@ WP_VERSION=${5-latest}
 WC_VERSION=${6-"7.4.1"}
 
 export NVM_DIR="$HOME/.nvm"
-NVM_PATH=/opt/homebrew/opt/nvm/nvm.sh
-
-# Load nvm.
-. $NVM_PATH
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 install_wc() {
-	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce && cd /tmp/woocommerce/plugins/woocommerce && nvm use && composer install && pnpm run build:feature-config && echo "Done unzipping WooCommerce"
+	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce && cd /tmp/woocommerce/plugins/woocommerce && nvm i && composer install && pnpm run build:feature-config && echo "Done unzipping WooCommerce"
 }
 
 install_wp() {
