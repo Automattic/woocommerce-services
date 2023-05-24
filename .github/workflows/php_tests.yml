@@ -76,9 +76,6 @@ jobs:
           pnpm run build:feature-config
       - name: Setup WordPress
         run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
-      - name: Use older PHPUnit for WC < 7.4.0
-        if: contains(fromJSON('["7.3.0", "7.2.3"]'), matrix.wc-version)
-        run: composer require -W phpunit/phpunit:^7
       - name: Install Composer dependencies
         run: composer install
       - name: Run PHPUnit tests
