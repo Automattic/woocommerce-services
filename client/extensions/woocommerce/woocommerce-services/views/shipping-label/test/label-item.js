@@ -12,7 +12,7 @@ import { translate } from 'i18n-calypso';
  * Internal dependencies
  */
 import { LabelItem } from '../label-item.js';
-import PopoverMenuItem from 'components/popover/menu-item';
+import PopoverMenuItem from 'wcs-client/components/popover/menu-item';
 import { Tooltip } from '@wordpress/components';
 
 function createLabelItemWrapper( props = {} ) {
