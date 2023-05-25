@@ -13,7 +13,7 @@ import { Tooltip } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import EllipsisMenu from 'components/ellipsis-menu';
+import EllipsisMenu from 'wcs-client/components/ellipsis-menu';
 import PopoverMenuItem from 'components/popover/menu-item';
 import RefundDialog from './label-refund-modal';
 import ReprintDialog from './label-reprint-modal';
