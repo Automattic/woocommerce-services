@@ -10,20 +10,26 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
-WC_VERSION=${6-"5.0.0"}
+WC_VERSION=${6-"7.4.1"}
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 install_wc() {
-	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
-	composer install -d /tmp/woocommerce
-
-	echo "Done unzipping WooCommerce\n"
+	git clone --depth=1 --branch=$WC_VERSION https://github.com/woocommerce/woocommerce.git /tmp/woocommerce && cd /tmp/woocommerce/plugins/woocommerce && nvm i && composer install && pnpm run build:feature-config && echo "Done unzipping WooCommerce"
 }
 
 install_wp() {
-	echo "Installing WordPress via WooCommerce install script\n"
-	bash /tmp/woocommerce/tests/bin/install.sh $DB_NAME $DB_USER "$DB_PASS" $DB_HOST $WP_VERSION
-	echo "Done unzipping WordPress\n"
+	echo "Installing WordPress via WooCommerce install script" && bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh $DB_NAME $DB_USER "$DB_PASS" $DB_HOST $WP_VERSION && echo "Done unzipping WordPress"
 }
 
-install_wc
-install_wp
+if [ -z "$TMPDIR" ]; then
+	echo "Variable \$TMPDIR is not set. Unable to remove current wordpress-tests-lib directory if needed - this might cause problems."
+else
+	echo "Removing directories wordpress and wordpress-tests-lib from \$TMPDIR ($TMPDIR)..."
+	rm -rf $TMPDIR/wordpress $TMPDIR/wordpress-tests-lib
+fi
+
+rm -rf /tmp/woocommerce && install_wc && install_wp
+

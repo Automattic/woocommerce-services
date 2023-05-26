@@ -2,7 +2,7 @@
 
 class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
-	static function setUpBeforeClass() {
+	static function set_up_before_class() {
 		require_once __DIR__ . '/../../classes/class-wc-connect-shipping-method.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-cart-validation.php';
 	}

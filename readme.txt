@@ -3,9 +3,9 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 5.6
 Requires at least: 4.6
-Tested up to: 6.1.1
+Tested up to: 6.2
 WC requires at least: 3.6
-WC tested up to: 7.3.0
+WC tested up to: 7.7
 Stable tag: 2.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -79,7 +79,8 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.2.5 - 2023-xx-xx =
-* Fix   - Fix notice error in WooCommerce tax settings page.
+* Update - Security update.
+* Fix    - Fix notice error in WooCommerce tax settings page.
 
 = 2.2.4 - 2023-03-14 =
 * Fix   - Incompatibility with Kadence WooCommerce Email Designer.
