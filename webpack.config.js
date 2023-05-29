@@ -37,8 +37,6 @@ const cssLoaders = [
 				path.resolve( __dirname, 'client' ),
 				path.resolve( __dirname, 'client', 'extensions' ),
 				path.resolve( __dirname, 'assets', 'stylesheets' ),
-				path.resolve( __dirname, 'wp-calypso', 'client' ),
-				path.resolve( __dirname, 'wp-calypso', 'assets', 'stylesheets' ),
 			],
 		},
 	},
@@ -169,7 +167,6 @@ module.exports = {
 				test: /\.scss$/,
 				include: [
 					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 				use: cssLoaders.concat( [
 					{
@@ -204,16 +201,13 @@ module.exports = {
 					{
 						loader: 'babel-loader',
 						options: {
-							configFile: path.resolve( __dirname, 'wp-calypso', 'babel.config.js' ),
-							cacheDirectory: true,
-							cacheIdentifier: require( './wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
+							configFile: path.resolve( __dirname, 'babel.config.js' ),
 							plugins: ["react-hot-loader/babel"]
 						},
 					}
 				],
 				include: [
 					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 			},
 			{
@@ -237,8 +231,6 @@ module.exports = {
 			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'client', 'extensions' ),
-			path.resolve( __dirname, 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'wp-calypso', 'node_modules' ),
 		],
 		symlinks: false,
 		alias: {
