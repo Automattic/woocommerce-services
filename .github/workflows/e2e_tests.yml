@@ -5,12 +5,14 @@ on: [push, workflow_dispatch]
 jobs:
   e2e_build_and_test:
     name: Build Container and Run E2E Tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     env:
       WP_VERSION: 6.1.0
       TRAVIS_MARIADB_VERSION: 10.8.3
     steps:
-      - uses: actions/checkout@v2
+      - name: Set Git to use HTTPS instead of SSH
+        run: git config --global url.https://github.com/.insteadOf git://github.com/
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - uses: shivammathur/setup-php@v2
@@ -21,12 +23,22 @@ jobs:
           coverage: none
       - uses: actions/setup-node@v2
         with:
-          node-version: '10.16.0'
-      - run: git config --global url.https://github.com/.insteadOf git://github.com/
-      - run: composer self-update 2.0.6 && composer install --no-progress
-      - run: npm ci
-      - run: npm run dist
-      - run: npm run test:e2e-docker-up
-      - run: npm run test:e2e-docker-ping
-      - run: npm run test:e2e
-      - run: npm run test:e2e-docker-down
+            node-version-file: '.nvmrc'
+      - name: Kill process running on port 8084 to unblock it
+        shell: bash
+        run: |
+            echo "::group::Kill webserver running on port 8084"
+            sudo fuser -k -n tcp 8084
+            echo "::endgroup::"
+      - name: Build WCS&T
+        run: |
+            npm ci
+            npm run dist
+      - name: Setup E2E container
+        run: |
+            npm run test:e2e-docker-up
+            npm run test:e2e-docker-ping
+      - name: Run E2E tests
+        run: npm run test:e2e
+      - name: Stop E2E container
+        run: npm run test:e2e-docker-down

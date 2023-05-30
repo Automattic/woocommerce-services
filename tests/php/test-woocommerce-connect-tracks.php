@@ -6,24 +6,20 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	protected $logger;
 	protected $jetpack_tracker;
 
-	public static function setupBeforeClass() {
+	public static function set_up_before_class() {
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-tracks.php';
 	}
 
-	public function setUp() {
-		parent::setUp();
-
+	public function set_up() {
 		$this->jetpack_tracker = $this->createMock( Automattic\Jetpack\Tracking::class );
-
-		$this->logger = $this->getMockBuilder( 'WC_Connect_Logger' )
-		                     ->disableOriginalConstructor()
-		                     ->setMethods( array( 'log' ) )
-		                     ->getMock();
+		$this->logger          = $this->getMockBuilder( 'WC_Connect_Logger' )
+		                              ->disableOriginalConstructor()
+		                              ->setMethods( array( 'log' ) )
+		                              ->getMock();
 
 		$this->tracks = new WC_Connect_Tracks( $this->logger, __FILE__ );
 		$this->tracks->init();
 	}
-
 
 	public function test_record_user_event() {
 		$this->logger->expects( $this->once() )

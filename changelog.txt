@@ -3,6 +3,9 @@
 = 2.3.0 - 2023-xx-xx =
 * Tweak - Removed Jetpack plugin dependency. You asked, we listened! You can now keep the Jetpack plugin or remove it (without disconnecting the site).
 
+= 2.2.5 - 2023-xx-xx =
+* Update - Security update.
+
 = 2.2.4 - 2023-03-14 =
 * Fix   - Incompatibility with Kadence WooCommerce Email Designer.
 
