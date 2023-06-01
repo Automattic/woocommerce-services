@@ -12,12 +12,12 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * @param boolean $user_id false: Returns the Blog Token. true: Return the master user's User Token.
+		 * Returns the Blog Token.
 		 *
 		 * @return stdClass|WP_Error
 		 */
-		public static function get_access_token( $user_id = false ) {
-			return self::get_connection_manager()->get_tokens()->get_access_token( $user_id );
+		public static function get_blog_access_token() {
+			return self::get_connection_manager()->get_tokens()->get_access_token();
 		}
 
 		/**
