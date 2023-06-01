@@ -17,12 +17,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return stdClass|WP_Error
 		 */
 		public static function get_access_token( $user_id = false ) {
-			// Standalone Jetpack 9.5+ installation
-			if ( class_exists( '\Automattic\Jetpack\Connection\Tokens' ) ) {
-				return self::get_connection_manager()->get_tokens()->get_access_token( $user_id );
-			}
-
-			return self::get_connection_manager()->get_access_token( $user_id );
+			return self::get_connection_manager()->get_tokens()->get_access_token( $user_id );
 		}
 
 		/**
