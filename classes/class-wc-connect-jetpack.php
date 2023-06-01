@@ -150,7 +150,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			}
 
 			if ( ! $is_registered ) {
-				$result = $jetpack_connection_manager->register();
+				$result = $jetpack_connection_manager->try_registration();
 				if ( is_wp_error( $result ) ) {
 					wp_die( $result->get_error_message(), 'wc_services_jetpack_register_site_failed', 500 );
 				}
