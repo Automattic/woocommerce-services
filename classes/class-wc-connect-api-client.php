@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\Jetpack\Constants;
+
 // No direct access please
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -466,7 +468,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 					'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
 					'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 					'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
-					'jetpack_version'      => defined( 'JETPACK__VERSION' ) ? JETPACK__VERSION : 'embed',
+					'jetpack_version'      => 'embed-' . WC_Connect_Jetpack::get_jetpack_connection_package_version(),
 					'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
 					'wc_version'           => WC()->version,
 					'wp_version'           => get_bloginfo( 'version' ),
@@ -529,7 +531,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			}
 
 			list( $token_key, $token_secret ) = explode( '.', $token->secret );
-			$token_key                        = sprintf( '%s:%d:%d', $token_key, defined( 'JETPACK__API_VERSION' ) ? JETPACK__API_VERSION : 'embed', $token->external_user_id );
+			$token_key                        = sprintf( '%s:%d:%d', $token_key, Constants::get_constant( 'JETPACK__API_VERSION' ), $token->external_user_id );
 			$time_diff                        = (int) Jetpack_Options::get_option( 'time_diff' );
 			$timestamp                        = time() + $time_diff;
 			$nonce                            = wp_generate_password( 10, false );

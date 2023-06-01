@@ -1,6 +1,7 @@
 <?php
 
 use Automattic\Jetpack\Connection\Manager;
+use Automattic\Jetpack\Connection\Package_Version;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
@@ -166,6 +167,10 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 				)
 			);
 			exit;
+		}
+
+		public static function get_jetpack_connection_package_version() {
+			return Package_Version::PACKAGE_VERSION;
 		}
 	}
 }
