@@ -41,7 +41,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_active() {
-			return ! empty ( self::get_access_token( true ) );
+			return self::get_connection_manager()->is_connected() && self::get_connection_manager()->has_connected_owner();
 		}
 
 		/**
