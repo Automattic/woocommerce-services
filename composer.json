@@ -17,7 +17,8 @@
     "require": {
 		"automattic/jetpack-connection": "^1.51.9",
 		"automattic/jetpack-config": "^1.15.2",
-		"automattic/jetpack-autoloader": "^2.11.20"
+		"automattic/jetpack-autoloader": "^2.11.20",
+        "automattic/jetpack-status": "^1.17.1"
 	},
     "config": {
         "allow-plugins": {

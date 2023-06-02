@@ -2,6 +2,7 @@
 
 use Automattic\Jetpack\Connection\Manager;
 use Automattic\Jetpack\Connection\Package_Version;
+use Automattic\Jetpack\Status;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
@@ -26,13 +27,9 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_development_mode() {
-			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_offline_mode' ) ) {
-				$status = new \Automattic\Jetpack\Status();
+			$status = new Status();
 
-				return $status->is_offline_mode();
-			}
-
-			return false;
+			return $status->is_offline_mode();
 		}
 
 		/**
@@ -50,7 +47,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_staging_site() {
-			$jetpack_status = new \Automattic\Jetpack\Status();
+			$jetpack_status = new Status();
 
 			return $jetpack_status->is_staging_site();
 		}
