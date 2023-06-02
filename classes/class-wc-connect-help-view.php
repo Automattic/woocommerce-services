@@ -82,7 +82,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Only one of the following should present
 			// Check that Jetpack is active
 			// Check that Jetpack is connected
-			$is_connected = WC_Connect_Jetpack::is_active() || WC_Connect_Jetpack::is_development_mode();
+			$is_connected = WC_Connect_Jetpack::is_connected() || WC_Connect_Jetpack::is_development_mode();
 			if ( ! $is_connected ) {
 				$health_item = array(
 					'state'   => 'error',

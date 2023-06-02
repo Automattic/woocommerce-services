@@ -33,12 +33,14 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Helper method to get if Jetpack is connected (aka active)
+		 * Helper method to get if Jetpack is connected (aka active).
+		 *
+		 * @deprecated 2.3.0 Use self::is_connected() instead.
 		 *
 		 * @return bool
 		 */
 		public static function is_active() {
-			return self::get_connection_manager()->is_connected() && self::get_connection_manager()->has_connected_owner();
+			return self::is_connected();
 		}
 
 		/**
@@ -79,7 +81,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return WP_User | false
 		 */
 		public static function get_connection_owner() {
-			if ( ! self::is_active() ) {
+			if ( ! self::is_connected() ) {
 				return false;
 			}
 
@@ -114,14 +116,13 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Determines if Jetpack is connected for the plugin
+		 * Determines if both the blog and user are connected to Jetpack.
 		 *
 		 * @return bool Whether or nor Jetpack is connected
 		 */
 		public static function is_connected() {
-			$manager = self::get_connection_manager();
-
-			return $manager->is_plugin_enabled() && self::is_active() && ! $manager->is_missing_connection_owner();
+			return self::get_connection_manager()->is_connected() &&
+			       self::get_connection_manager()->has_connected_owner();
 		}
 
 		/**

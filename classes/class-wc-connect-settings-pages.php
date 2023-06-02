@@ -67,7 +67,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			$hide_save_button = true;
 
 			if ( WC_Connect_Jetpack::is_development_mode() ) {
-				if ( WC_Connect_Jetpack::is_active() ) {
+				if ( WC_Connect_Jetpack::is_connected() ) {
 					$message = __( 'Note: Jetpack is connected, but development mode is also enabled on this site. Please disable development mode.', 'woocommerce-services' );
 				} else {
 					$message = __( 'Note: Jetpack development mode is enabled on this site. This site will not be able to obtain payment methods from WooCommerce Shipping & Tax production servers.', 'woocommerce-services' );
