@@ -28,7 +28,7 @@ class WC_Connect_Account_Settings {
 			$payment_methods_warning = __( 'There was a problem updating your saved credit cards.', 'woocommerce-services' );
 		}
 
-		$master_user     = WC_Connect_Jetpack::get_master_user();
+		$master_user     = WC_Connect_Jetpack::get_connection_owner();
 		$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
 		$last_box_id     = get_user_meta( get_current_user_id(), 'wc_connect_last_box_id', true );
 		$last_box_id     = $last_box_id === 'individual' ? '' : $last_box_id;

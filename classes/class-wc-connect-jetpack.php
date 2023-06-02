@@ -77,19 +77,21 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Helper method to get the Jetpack master user, IF we are connected
+		 * Helper method to get the Jetpack connection owner, IF we are connected
 		 *
 		 * @return WP_User | false
 		 */
-		public static function get_master_user() {
-			if ( self::is_active() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
-				$master_user_id = Jetpack_Options::get_option( 'master_user' );
-
-				return get_userdata( $master_user_id );
+		public static function get_connection_owner() {
+			if ( ! self::is_active() ) {
+				return false;
 			}
 
-			return false;
+			return self::get_connection_manager()->get_connection_owner();
 
+		}
+
+		public static function is_current_user_connection_owner() {
+			return self::get_connection_manager()->has_connected_owner() && self::get_connection_manager()->is_connection_owner();
 		}
 
 		/**
