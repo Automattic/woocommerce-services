@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.2
 WC requires at least: 3.6
 WC tested up to: 7.7
-Stable tag: 2.2.4
+Stable tag: 2.2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,7 +78,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.2.5 - 2023-xx-xx =
+= 2.2.5 - 2023-05-23 =
 * Update - Security update.
 
 = 2.2.4 - 2023-03-14 =
