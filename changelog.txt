@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.2.5 - 2023-xx-xx =
+= 2.2.5 - 2023-05-23 =
 * Update - Security update.
 * Fix    - Fix notice error in WooCommerce tax settings page.
 
