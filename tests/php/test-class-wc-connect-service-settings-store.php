@@ -74,7 +74,7 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	}
 
 	public function set_up() {
-		$order = wc_create_order();
+		$order          = wc_create_order();
 		$this->order_id = $order->get_id();
 	}
 

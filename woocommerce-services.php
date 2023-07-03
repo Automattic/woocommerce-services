@@ -1234,8 +1234,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( $plain_text ) {
 				echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
-				echo esc_html(mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' )) . "\n\n";
-				echo wp_kses( $markup, [] );
+				echo esc_html( mb_strtoupper( __( 'Tracking', 'woocommerce-services' ), 'UTF-8' ) ) . "\n\n";
+				echo wp_kses( $markup, array() );
 				return;
 			}
 
@@ -1250,7 +1250,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 							</tr>
 						</thead>
 						<tbody>
-							<?php echo wp_kses_post($markup); ?>
+							<?php echo wp_kses_post( $markup ); ?>
 						</tbody>
 					</table>
 				</div>

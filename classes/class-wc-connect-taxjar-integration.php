@@ -213,7 +213,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( $enabled ) {
 			// If the automated taxes are enabled, disable the settings that would be reverted in the original plugin
 			foreach ( $tax_settings as $index => $tax_setting ) {
-				if ( ! array_key_exists( $tax_setting['id'], $this->expected_options ) ) {
+				if ( empty( $tax_setting['id'] ) || ! array_key_exists( $tax_setting['id'], $this->expected_options ) ) {
 					continue;
 				}
 				$tax_settings[ $index ]['custom_attributes'] = array( 'disabled' => true );
