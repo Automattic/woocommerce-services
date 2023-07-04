@@ -62,13 +62,17 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+      - name: Get WC pinned pnpm version
+        id: get_wc_pnpm_version
+        run: echo "WC_PNPM=$(node -p "require('/tmp/woocommerce/plugins/woocommerce/package.json').engines.pnpm")"  >> $GITHUB_OUTPUT
       - name: Setup PNPM
         uses: pnpm/action-setup@v2
         with:
-          version: '^7.13.3'
+          version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
         with:
           node-version: 'v16'
+
       - name: Build WooCommerce essentials for running tests
         run: |
           cd /tmp/woocommerce/plugins/woocommerce
