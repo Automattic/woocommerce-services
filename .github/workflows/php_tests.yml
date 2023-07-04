@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mariadb:
-        image: mariadb:latest
+        image: mariadb:10.9
         ports:
           - 3306:3306
         env:
