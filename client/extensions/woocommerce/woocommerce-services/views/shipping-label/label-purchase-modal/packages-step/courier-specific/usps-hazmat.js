@@ -8,8 +8,9 @@ import {
 import { connect } from 'react-redux'
 import { localize } from 'i18n-calypso'
 import { ExternalLink, RadioControl } from '@wordpress/components'
-import FormSelect from 'wcs-client/components/forms/form-select'
-
+import FormSelect from 'wcs-client/components/forms/form-select';
+import UPSHazmatTypes from './hazmat-types';
+import {truncate} from 'lodash';
 export const UspsHazmat = ({ isHazmatShipping, setIsHazmatShipping, translate }) => {
   const [option, setOption] = useState(isHazmatShipping || 'no')
   const changeIsHazmat = (value) => {
@@ -20,7 +21,7 @@ export const UspsHazmat = ({ isHazmatShipping, setIsHazmatShipping, translate })
   const hazmatTypeChange = (e) => {
 
   }
-  console.log({ option })
+
   return (
     <>
       <hr/>
@@ -60,6 +61,9 @@ Learn how to securely package, label, and ship HAZMAT for domestic destinations 
               <option value={'not_selected'} key={'not_selected'}>
                 {translate('Select a hazardous or dangerous material category')}
               </option>
+              {Object.entries(UPSHazmatTypes).map(([ key, caption ]) =>
+                (<option style={{maxWidth: '300px', width: '300px'}} value={key} key={key}>{truncate(caption, {length: 120, omission: ' ...'})}</option>))
+              }
 
             </FormSelect>
           </>}
