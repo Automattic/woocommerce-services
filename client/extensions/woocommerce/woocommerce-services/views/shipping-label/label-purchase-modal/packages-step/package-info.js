@@ -36,6 +36,7 @@ import {
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 
 import * as PackagesActions from "../../../../state/packages/actions";
+import USPSHazmat from './courier-specific/usps-hazmat'
 
 const PackageInfo = props => {
 	const {
@@ -164,6 +165,7 @@ const PackageInfo = props => {
 				/>
 				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
 			</div>
+      <USPSHazmat/>
 		</div>
 	);
 };
