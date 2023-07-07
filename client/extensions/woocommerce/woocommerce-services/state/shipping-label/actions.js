@@ -39,8 +39,7 @@ import {
 	getFormErrors,
 	shouldFulfillOrder,
 	shouldEmailDetails,
-	isCustomsFormRequired,
-	getSelectedHazmatType,
+	isCustomsFormRequired
 } from './selectors';
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
