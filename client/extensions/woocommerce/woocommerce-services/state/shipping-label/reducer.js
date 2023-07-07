@@ -92,6 +92,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_VALUE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE,
 } from '../action-types';
 import { WOOCOMMERCE_ORDER_REQUEST_SUCCESS } from 'woocommerce/state/action-types';
 import getBoxDimensions from 'woocommerce/woocommerce-services/lib/utils/get-box-dimensions';
@@ -1358,6 +1359,14 @@ reducers[ WOOCOMMERCE_ORDER_REQUEST_SUCCESS ] = ( state, { order: { status } } )
 		emailDetails: isOrderFinished( status ),
 	}
 };
+
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE ] = ( state, { hazmatType } ) => {
+	return {
+		...state,
+		hazmatType,
+	};
+};
+
 
 export default keyedReducer( 'orderId', ( state = initializeLabelsState(), action ) => {
 	if ( reducers[ action.type ] ) {

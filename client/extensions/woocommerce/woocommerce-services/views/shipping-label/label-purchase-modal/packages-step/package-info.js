@@ -165,7 +165,7 @@ const PackageInfo = props => {
 				/>
 				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
 			</div>
-      <USPSHazmat/>
+			<USPSHazmat  siteId={ siteId } orderId={ orderId } />
 		</div>
 	);
 };

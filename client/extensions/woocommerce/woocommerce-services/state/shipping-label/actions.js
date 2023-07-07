@@ -116,7 +116,8 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_VALUE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
-} from '../action-types.js';
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE,
+} from '../action-types.js'
 
 const PRINTING_FAILED_NOTICE_ID = 'label-image-download-failed';
 const PRINTING_IN_PROGRESS_NOTICE_ID = 'label-image-download-printing';
@@ -502,8 +503,8 @@ export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch
 		checkPackagesStep( orderId, siteId, dispatch, getState );
 		return;
 	}
-	
-	tryGetLabelRates( orderId, siteId, dispatch, getState );	
+
+	tryGetLabelRates( orderId, siteId, dispatch, getState );
 };
 
 export const submitAddressForNormalization = ( orderId, siteId, group ) => (
@@ -524,8 +525,8 @@ export const submitAddressForNormalization = ( orderId, siteId, group ) => (
 				checkPackagesStep( orderId, siteId, dispatch, getState );
 				return;
 			}
-			
-			tryGetLabelRates( orderId, siteId, dispatch, getState );	
+
+			tryGetLabelRates( orderId, siteId, dispatch, getState );
 		}
 	};
 
@@ -1391,4 +1392,8 @@ export const openDetailsDialog = ( orderId, siteId, labelId ) => {
 
 export const closeDetailsDialog = ( orderId, siteId ) => {
 	return { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG, orderId, siteId };
+};
+
+export const setHazmatType = ( hazmatType, orderId ) => {
+	return { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE, hazmatType, orderId };
 };

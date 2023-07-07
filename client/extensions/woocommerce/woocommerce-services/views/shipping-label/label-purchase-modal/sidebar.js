@@ -65,7 +65,7 @@ export const Sidebar = props => {
 	const canPurchaseLabel = ( hasLabelsPaymentMethod && labelRequiresPaymentMethod ) || ! labelRequiresPaymentMethod;
 
 	return (
-		<Card 
+		<Card
 			className="label-purchase-modal__sidebar"
 			title = { translate( 'Shipping summary' ) }
 		>

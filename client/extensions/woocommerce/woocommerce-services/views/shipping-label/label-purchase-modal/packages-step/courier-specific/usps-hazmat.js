@@ -1,26 +1,27 @@
-import React from 'react'
+import React from 'react';
 
-import { bindActionCreators } from 'redux'
-import { useState } from '@wordpress/element'
-import {
-  setIsHazmatShipping
-} from 'woocommerce/woocommerce-services/state/shipping-label/actions'
-import { connect } from 'react-redux'
-import { localize } from 'i18n-calypso'
-import { ExternalLink, RadioControl } from '@wordpress/components'
+import { bindActionCreators } from 'redux';
+import { useState } from '@wordpress/element';
+import { connect } from 'react-redux';
+import { localize } from 'i18n-calypso';
+import { get, truncate } from 'lodash';
+import { ExternalLink, RadioControl } from '@wordpress/components';
 import FormSelect from 'wcs-client/components/forms/form-select';
+import { setHazmatType } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import UPSHazmatTypes from './hazmat-types';
-import {truncate} from 'lodash';
-export const UspsHazmat = ({ isHazmatShipping, setIsHazmatShipping, translate }) => {
-  const [option, setOption] = useState(isHazmatShipping || 'no')
-  const changeIsHazmat = (value) => {
-    setOption(value)
-    // setIsHazmatShipping(value)
-  }
+import {
+	getSelectedHazmatType
+} from 'wcs-client/extensions/woocommerce/woocommerce-services/state/shipping-label/selectors';
 
-  const hazmatTypeChange = (e) => {
+export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) => {
+	const [option, setOption] = useState('no');
+	const changeIsHazmat = (value) => {
+		setOption(value);
+	};
 
-  }
+	const hazmatTypeChange = (e) => {
+		setHazmatType( e.target.value, orderId );
+	};
 
   return (
     <>
@@ -43,20 +44,22 @@ export const UspsHazmat = ({ isHazmatShipping, setIsHazmatShipping, translate })
               {translate(
                 `Potentially hazardous material includes items such as batteries, dry ice, flammable liquids, aerosols, ammunition, fireworks, nail polish, perfume, paint, solvents, and more. Determine your product's mailability using the {{hazmatSearchTool/}}. Hazardous items must ship in separate packages.
 Learn how to securely package, label, and ship HAZMAT for domestic destinations through USPS{{registeredMark/}} at {{uspsHazmatTutorial/}}.`,
-                {
-                  components: {
-                    hazmatSearchTool: <ExternalLink href="https://pe.usps.com/HAZMAT/Index">{translate( 'USPS HAZMAT Search Tool' )}</ExternalLink>,
-                    registeredMark: <span className="registered-mark">&#174;</span>,
-                    uspsHazmatTutorial: <ExternalLink
-                      href="https://www.uspsdelivers.com/hazmat-shipping-safety">www.usps.com/hazmat</ExternalLink>,
-                  }
-                }
-              )}
+							{
+								components: {
+									hazmatSearchTool: <ExternalLink href="https://pe.usps.com/HAZMAT/Index">{translate( 'USPS HAZMAT Search Tool' )}</ExternalLink>,
+									registeredMark: <span className="registered-mark">&#174;</span>,
+									uspsHazmatTutorial: <ExternalLink
+										href="https://www.uspsdelivers.com/hazmat-shipping-safety">www.usps.com/hazmat</ExternalLink>,
+
+								}
+							}
+						)}
 
             </p>
             <legend className="form-legend">{translate('Select a category')}</legend>
             <FormSelect
               onChange={hazmatTypeChange}
+							value={hazmatType}
             >
               <option value={'not_selected'} key={'not_selected'}>
                 {translate('Select a hazardous or dangerous material category')}
@@ -72,16 +75,16 @@ Learn how to securely package, label, and ship HAZMAT for domestic destinations 
     </>)
 }
 
-const mapStateToProps = ({ isHazmat }) => {
-  return {
-    isHazmatShipping: isHazmat
-  }
-}
+const mapStateToProps = (state, { orderId, siteId }) => {
+	return {
+		hazmatType: getSelectedHazmatType(state, { orderId, siteId })
+	};
+};
 
 const mapDispatchToProps = dispatch => {
-  return bindActionCreators({
-    setIsHazmatShipping
-  }, dispatch)
-}
+	return bindActionCreators({
+		setHazmatType
+	}, dispatch);
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(localize(UspsHazmat))
+export default connect(mapStateToProps, mapDispatchToProps)(localize(UspsHazmat));
