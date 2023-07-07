@@ -40,6 +40,7 @@ import {
 	shouldFulfillOrder,
 	shouldEmailDetails,
 	isCustomsFormRequired,
+	getSelectedHazmatType,
 } from './selectors';
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
@@ -263,7 +264,8 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 
 	const customsItems = isCustomsFormRequired( getState(), orderId, siteId ) ? customs.items : null;
 	const apiPackages = map( packages.selected, pckg => convertToApiPackage( pckg, customsItems ) );
-	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages )
+	const hazmatType = getSelectedHazmatType( state, {siteId, orderId} );
+	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages, hazmatType )
 		.then( () => {
 			const useLastService = getUseLastService( getState(), siteId );
 			if ( false === useLastService ) {
