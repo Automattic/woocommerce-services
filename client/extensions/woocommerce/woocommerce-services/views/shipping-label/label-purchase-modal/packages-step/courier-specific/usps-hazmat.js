@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { bindActionCreators } from 'redux';
-import { useState } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
 import { get, truncate } from 'lodash';
@@ -14,7 +14,11 @@ import {
 } from 'wcs-client/extensions/woocommerce/woocommerce-services/state/shipping-label/selectors';
 
 export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) => {
-	const [option, setOption] = useState('no');
+	const [option, setOption] = useState( 'no' );
+
+	useEffect(() => {
+		setOption( hazmatType ? 'yes' : 'no' );
+	}, [hazmatType]);
 	const changeIsHazmat = (value) => {
 		setOption(value);
 	};

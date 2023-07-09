@@ -1363,7 +1363,19 @@ reducers[ WOOCOMMERCE_ORDER_REQUEST_SUCCESS ] = ( state, { order: { status } } )
 reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE ] = ( state, { hazmatType } ) => {
 	return {
 		...state,
-		hazmatType,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: {
+					...state.form.packages.selected,
+					[state.openedPackageId]: {
+						...omit( state.form.packages.selected[state.openedPackageId], 'hazmatType' ),
+						...( hazmatType ? { hazmatType } : {})
+					},
+				}
+			}
+		}
 	};
 };
 

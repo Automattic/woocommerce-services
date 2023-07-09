@@ -704,9 +704,10 @@ export const isLabelDataFetchError = ( state, orderId, siteId = getSelectedSiteI
 };
 
 export const getSelectedHazmatType = (state, { siteId, orderId }) => {
+	const label = getShippingLabel( state, orderId, siteId );
 	return get(
-		state,
-		['extensions', 'woocommerce', 'woocommerceServices', siteId, 'shippingLabel', orderId, 'hazmatType'],
+		label,
+		['form', 'packages', 'selected', label.openedPackageId, 'hazmatType'],
 		''
 	)
 }

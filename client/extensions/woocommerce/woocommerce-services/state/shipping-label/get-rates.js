@@ -10,8 +10,8 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_RATES_RETRIEVAL_COMPLETED,
 } from '../action-types';
 
-export default ( orderId, siteId, dispatch, origin, destination, packages, hazmat ) => {
-	const requestData = { origin, destination, packages, ...( hazmat ? { hazmat } : {} ) };
+export default ( orderId, siteId, dispatch, origin, destination, packages ) => {
+	const requestData = { origin, destination, packages };
 	dispatch( {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_RATES_RETRIEVAL_IN_PROGRESS,
 		requestData,

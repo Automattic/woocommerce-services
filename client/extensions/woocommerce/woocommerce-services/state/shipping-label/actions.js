@@ -118,6 +118,8 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE,
 } from '../action-types.js'
+import hazmatTypes
+	from 'wcs-client/extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal/packages-step/courier-specific/hazmat-types';
 
 const PRINTING_FAILED_NOTICE_ID = 'label-image-download-failed';
 const PRINTING_IN_PROGRESS_NOTICE_ID = 'label-image-download-printing';
@@ -207,7 +209,12 @@ export const convertToApiPackage = ( pckg, customsItems ) => {
 		'weight',
 		'signature',
 		'is_letter',
+		'hazmatType',
 	] );
+	if ( apiPckg.hazmatType ) {
+		apiPckg.hazmat = apiPckg.hazmatType;
+		delete apiPckg.hazmatType;
+	}
 	if ( customsItems ) {
 		apiPckg.contents_type = pckg.contentsType || 'merchandise';
 		if ( 'other' === pckg.contentsType ) {
@@ -263,8 +270,7 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 
 	const customsItems = isCustomsFormRequired( getState(), orderId, siteId ) ? customs.items : null;
 	const apiPackages = map( packages.selected, pckg => convertToApiPackage( pckg, customsItems ) );
-	const hazmatType = getSelectedHazmatType( state, {siteId, orderId} );
-	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages, hazmatType )
+	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages )
 		.then( () => {
 			const useLastService = getUseLastService( getState(), siteId );
 			if ( false === useLastService ) {
