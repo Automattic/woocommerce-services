@@ -21,6 +21,13 @@ export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) =>
 	}, [hazmatType]);
 	const changeIsHazmat = (value) => {
 		setOption(value);
+		if ( value === 'no' && hazmatType ) { // remove hazmatType if user changes option to no
+			setHazmatType({
+				hazmatType: null,
+				orderId,
+				siteId
+			});
+		}
 	};
 
 	const hazmatTypeChange = (e) => {
