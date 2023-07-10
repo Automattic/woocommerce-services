@@ -1,33 +1,20 @@
 import React from 'react';
 
 import { bindActionCreators } from 'redux';
-import { useState, useEffect } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { get, truncate } from 'lodash';
+import { truncate } from 'lodash';
 import { ExternalLink, RadioControl } from '@wordpress/components';
 import FormSelect from 'wcs-client/components/forms/form-select';
-import { setHazmatType } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import { setHazmatType, setIsSelectingHazmat } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import UPSHazmatTypes from './hazmat-types';
 import {
-	getSelectedHazmatType
+	getSelectedHazmatType, getStateForCurrentPackage
 } from 'wcs-client/extensions/woocommerce/woocommerce-services/state/shipping-label/selectors';
 
-export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) => {
-	const [option, setOption] = useState( 'no' );
-
-	useEffect(() => {
-		setOption( hazmatType ? 'yes' : 'no' );
-	}, [hazmatType]);
+export const UspsHazmat = ({ translate, orderId,  setHazmatType, hazmatType, setIsSelectingHazmat, isSelectingHazmat }) => {
 	const changeIsHazmat = (value) => {
-		setOption(value);
-		if ( value === 'no' && hazmatType ) { // remove hazmatType if user changes option to no
-			setHazmatType({
-				hazmatType: null,
-				orderId,
-				siteId
-			});
-		}
+		setIsSelectingHazmat( value === 'yes', orderId );
 	};
 
 	const hazmatTypeChange = (e) => {
@@ -42,7 +29,7 @@ export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) =>
           <RadioControl
             className="label-purchase-modal__option-mark-shipment-has-hazmat rates-step__shipping-rate-radio-control"
             label={translate('Are you shipping dangerous goods or hazardous materials?')}
-            selected={option}
+            selected={ isSelectingHazmat ? 'yes' : 'no' }
             options={[
               { label: 'No', value: 'no' },
               { label: 'Yes', value: 'yes' },
@@ -50,7 +37,7 @@ export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) =>
             onChange={changeIsHazmat}
           />
 
-          {option === 'yes' && <>
+          {isSelectingHazmat && <>
 						<p className="description">
 							{translate( 'Potentially hazardous material includes items such as batteries, dry ice, flammable liquids, aerosols, ammunition, fireworks, nail polish, perfume, paint, solvents, and more. Hazardous items must ship in separate packages.' )}
 						</p>
@@ -80,7 +67,7 @@ export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) =>
               onChange={hazmatTypeChange}
 							value={hazmatType}
             >
-              <option value={'not_selected'} key={'not_selected'}>
+              <option value='none' key={'not_selected'}>
                 {translate('Select a hazardous or dangerous material category')}
               </option>
               {Object.entries(UPSHazmatTypes).map(([ key, caption ]) =>
@@ -96,13 +83,15 @@ export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) =>
 
 const mapStateToProps = (state, { orderId, siteId }) => {
 	return {
-		hazmatType: getSelectedHazmatType(state, { orderId, siteId })
+		hazmatType: getSelectedHazmatType(state, { orderId, siteId }),
+		isSelectingHazmat: getStateForCurrentPackage( state, orderId ).isSelectingHazmat
 	};
 };
 
 const mapDispatchToProps = dispatch => {
 	return bindActionCreators({
-		setHazmatType
+		setHazmatType,
+		setIsSelectingHazmat
 	}, dispatch);
 };
 

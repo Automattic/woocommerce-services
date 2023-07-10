@@ -117,9 +117,9 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE,
-} from '../action-types.js'
-import hazmatTypes
-	from 'wcs-client/extensions/woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal/packages-step/courier-specific/hazmat-types';
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_SELECTING_HAZMAT,
+} from '../action-types.js';
+
 
 const PRINTING_FAILED_NOTICE_ID = 'label-image-download-failed';
 const PRINTING_IN_PROGRESS_NOTICE_ID = 'label-image-download-printing';
@@ -1403,4 +1403,12 @@ export const closeDetailsDialog = ( orderId, siteId ) => {
 
 export const setHazmatType = ( hazmatType, orderId ) => {
 	return { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE, hazmatType, orderId };
+};
+
+export const setIsSelectingHazmat = ( isSelectingHazmat, orderId ) => {
+	return {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_SELECTING_HAZMAT,
+		isSelectingHazmat,
+		orderId
+	};
 };
