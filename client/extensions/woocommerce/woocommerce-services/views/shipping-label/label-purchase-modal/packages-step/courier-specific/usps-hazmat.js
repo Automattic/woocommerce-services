@@ -51,10 +51,12 @@ export const UspsHazmat = ({ translate, orderId, setHazmatType, hazmatType }) =>
           />
 
           {option === 'yes' && <>
+						<p className="description">
+							{translate( 'Potentially hazardous material includes items such as batteries, dry ice, flammable liquids, aerosols, ammunition, fireworks, nail polish, perfume, paint, solvents, and more. Hazardous items must ship in separate packages.' )}
+						</p>
             <p className="description">
               {translate(
-                `Potentially hazardous material includes items such as batteries, dry ice, flammable liquids, aerosols, ammunition, fireworks, nail polish, perfume, paint, solvents, and more. Determine your product's mailability using the {{hazmatSearchTool/}}. Hazardous items must ship in separate packages.
-Learn how to securely package, label, and ship HAZMAT for domestic destinations through USPS{{registeredMark/}} at {{uspsHazmatTutorial/}}.`,
+								`Learn how to securely package, label, and ship HAZMAT through USPS{{registeredMark/}} at {{uspsHazmatTutorial/}}. Determine your product's mailability using the {{hazmatSearchTool/}}.`,
 							{
 								components: {
 									hazmatSearchTool: <ExternalLink href="https://pe.usps.com/HAZMAT/Index">{translate( 'USPS HAZMAT Search Tool' )}</ExternalLink>,
@@ -65,8 +67,14 @@ Learn how to securely package, label, and ship HAZMAT for domestic destinations 
 								}
 							}
 						)}
-
             </p>
+						<p className="description">
+							{translate( 'WooCommerce Shipping does not currently support HAZMAT shipments through {{dhlExpress/}}.', {
+								components: {
+									dhlExpress: <ExternalLink href="https://www.dhl.com/global-en/home/our-divisions/freight/customer-service/dangerous-goods-and-prohibited-items.html">{translate( 'DHL Express' )}</ExternalLink>
+								}
+							} )}
+						</p>
             <legend className="form-legend">{translate('Select a category')}</legend>
             <FormSelect
               onChange={hazmatTypeChange}
