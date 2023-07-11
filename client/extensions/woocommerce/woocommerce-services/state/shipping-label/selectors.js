@@ -702,3 +702,21 @@ export const isLabelDataFetchError = ( state, orderId, siteId = getSelectedSiteI
 		areLocationsErrored( state, siteId )
 	);
 };
+
+export const getSelectedHazmatType = (state, { siteId, orderId }) => {
+	const label = getShippingLabel( state, orderId, siteId );
+	return get(
+		label,
+		['form', 'packages', 'selected', label.openedPackageId, 'hazmatType'],
+		''
+	)
+}
+
+export const getStateForCurrentPackage = ( state, orderId ) => {
+	const label = getShippingLabel( state, orderId, getSelectedSiteId( state ) );
+	return get(
+		label,
+		['form', 'packages', 'selected', label.openedPackageId],
+		''
+	)
+}

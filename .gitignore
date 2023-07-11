@@ -33,3 +33,5 @@ docker/data
 docker/wordpress
 docker/logs
 docker/bin/jt
+.idea
+docker-compose.override.yml

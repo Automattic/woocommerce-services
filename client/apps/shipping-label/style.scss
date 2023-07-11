@@ -67,6 +67,13 @@
 	}
 }
 
+.label-purchase-modal__option-mark-shipment-has-hazmat > div {
+	> label {
+		font-size: 14px;
+		font-weight: bold;
+	}
+}
+
 .label-purchase-modal__purchase-container {
 	display: flex;
 	align-items: flex-end;
@@ -131,5 +138,12 @@
 @media (max-width: 1080px) {
 	.shipping-label__container {
 		display: block;
+	}
+}
+
+.label-purchase-modal__hazmat-section-content {
+	p {
+		font-size: 14px;
+		margin-bottom: 0.8em;
 	}
 }

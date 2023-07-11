@@ -24,12 +24,12 @@ import PackageSelect from './package-select';
 import {
 	updatePackageWeight,
 	openAddItem,
-	setPackageType,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel,
 	isLoaded,
 	getFormErrors,
+
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import {
 	getLabelSettingsUserMeta,
@@ -47,6 +47,7 @@ const PackageInfo = props => {
 		errors,
 		translate,
 		userMeta,
+		children,
 	} = props;
 
 	const pckgErrors = errors[ packageId ] || {};
@@ -164,6 +165,7 @@ const PackageInfo = props => {
 				/>
 				{ pckgErrors.weight && <FieldError text={ pckgErrors.weight } /> }
 			</div>
+			{children}
 		</div>
 	);
 };
@@ -204,7 +206,6 @@ const mapDispatchToProps = dispatch => {
 		{
 			updatePackageWeight,
 			openAddItem,
-			setPackageType,
 			... PackagesActions,
 		},
 		dispatch
