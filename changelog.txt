@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.3.0 - 2023-xx-xx =
+= 2.3.0 - 2023-07-11 =
 * Add   - Add USPS HAZMAT support.
 
 = 2.2.5 - 2023-05-23 =
