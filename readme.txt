@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.1 - 2023-xx-xx =
+* Fix    - Fix notice error on the WooCommerce tax settings page.
+
 = 2.3.0 - 2023-07-11 =
 * Add   - Add USPS HAZMAT support.
 

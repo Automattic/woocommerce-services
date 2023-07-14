@@ -20,7 +20,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			?>
 			<a
 				href="#"
-				download="report-shipping-labels-<?php echo esc_attr( $current_range ); ?>-<?php echo esc_html(date_i18n( 'Y-m-d', current_time( 'timestamp' ) )); ?>.csv"
+				download="report-shipping-labels-<?php echo esc_attr( $current_range ); ?>-<?php echo esc_html( date_i18n( 'Y-m-d', current_time( 'timestamp' ) ) ); ?>.csv"
 				class="export_csv"
 				data-export="table"
 			>
@@ -179,19 +179,19 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 						<?php foreach ( $labels as $label ) : ?>
 							<tr>
 								<th scope="row">
-									<?php echo esc_html(get_date_from_gmt( date( 'Y-m-d H:i:s', $label['created'] / 1000 ) )); ?>
+									<?php echo esc_html( get_date_from_gmt( date( 'Y-m-d H:i:s', $label['created'] / 1000 ) ) ); ?>
 								</th>
 								<td>
-									<?php echo esc_html($this->get_edit_order_link( $label['order_id'] )); ?>
+									<?php echo esc_html( $this->get_edit_order_link( $label['order_id'] ) ); ?>
 								</td>
 								<td>
-									<?php echo esc_html(wc_price( $label['rate'] )); ?>
+									<?php echo esc_html( wc_price( $label['rate'] ) ); ?>
 								</td>
 								<td>
-									<?php echo esc_html($label['service_name']); ?>
+									<?php echo esc_html( $label['service_name'] ); ?>
 								</td>
 								<td>
-									<?php echo esc_html($this->get_label_refund_status( $label )); ?>
+									<?php echo esc_html( $this->get_label_refund_status( $label ) ); ?>
 								</td>
 							</tr>
 						<?php endforeach; ?>
@@ -208,7 +208,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 								<?php echo count( $labels ); ?>
 							</th>
 							<th>
-								<?php echo esc_html(wc_price( $total )); ?>
+								<?php echo esc_html( wc_price( $total ) ); ?>
 							</th>
 							<th></th>
 							<th></th>
