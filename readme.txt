@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.2
 WC requires at least: 3.6
 WC tested up to: 7.8
-Stable tag: 2.3.0
+Stable tag: 2.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,7 +78,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.3.1 - 2023-xx-xx =
+= 2.3.1 - 2023-07-17 =
 * Fix    - Fix notice error on the WooCommerce tax settings page.
 
 = 2.3.0 - 2023-07-11 =
