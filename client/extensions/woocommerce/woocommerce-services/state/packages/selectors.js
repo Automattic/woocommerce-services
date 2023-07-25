@@ -174,11 +174,11 @@ export const getAllPackageDefinitions = createSelector(
 			result[ pckg.name ] = pckg;
 		} );
 
-		forEach( form.predefinedSchema, serviceGroups => {
+		forEach( form.predefinedSchema, ( serviceGroups, serviceId ) => {
 			forEach( serviceGroups, group => {
 				const definitions = group.definitions;
 				forEach( definitions, pckg => {
-					result[ pckg.id ] = pckg;
+					result[ pckg.id ] = {...pckg, serviceId};
 				} );
 			} );
 		} );

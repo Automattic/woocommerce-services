@@ -337,7 +337,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			if (
 				! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] ||
 				empty( $_GET['reroute_requests'] ) ||
-				empty( $_GET['nonce'] ) || 
+				empty( $_GET['nonce'] ) ||
 				! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			) {
 				return;

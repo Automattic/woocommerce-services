@@ -92,6 +92,8 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_VALUE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_SELECTING_HAZMAT,
 } from '../action-types';
 import { WOOCOMMERCE_ORDER_REQUEST_SUCCESS } from 'woocommerce/state/action-types';
 import getBoxDimensions from 'woocommerce/woocommerce-services/lib/utils/get-box-dimensions';
@@ -1357,6 +1359,47 @@ reducers[ WOOCOMMERCE_ORDER_REQUEST_SUCCESS ] = ( state, { order: { status } } )
 		fulfillOrder: ! isOrderFinished( status ),
 		emailDetails: isOrderFinished( status ),
 	}
+};
+
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE ] = ( state, { hazmatType } ) => {
+	return {
+		...state,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: {
+					...state.form.packages.selected,
+					[state.openedPackageId]: {
+						...omit( state.form.packages.selected[state.openedPackageId], 'hazmatType' ),
+						...( hazmatType ? { hazmatType } : {})
+					},
+				}
+			}
+		}
+	};
+};
+
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_SELECTING_HAZMAT ] = ( state, { isSelectingHazmat } ) => {
+	return {
+		...state,
+		form: {
+			...state.form,
+			packages: {
+				...state.form.packages,
+				selected: {
+					...state.form.packages.selected,
+					[state.openedPackageId]: {
+						...( !isSelectingHazmat
+							? omit( state.form.packages.selected[state.openedPackageId], 'hazmatType' )
+							:  state.form.packages.selected[state.openedPackageId]
+						),
+						isSelectingHazmat,
+					},
+				}
+			}
+		}
+	};
 };
 
 export default keyedReducer( 'orderId', ( state = initializeLabelsState(), action ) => {
