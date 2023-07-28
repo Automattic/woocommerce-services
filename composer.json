@@ -18,5 +18,8 @@
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
+    },
+    "require": {
+        "woocommerce/qit-cli": "^0.3.4"
     }
 }

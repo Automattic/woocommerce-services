@@ -4,8 +4,42 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "83a869d71a70da22705672e9fb120aef",
-    "packages": [],
+    "content-hash": "4632c7720146a3b70aff5c38c0ca1cc9",
+    "packages": [
+        {
+            "name": "woocommerce/qit-cli",
+            "version": "0.3.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/woocommerce/qit-cli.git",
+                "reference": "f5ca3706b844579f2864cac4bf6e1a0e0bea9fb9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/woocommerce/qit-cli/zipball/f5ca3706b844579f2864cac4bf6e1a0e0bea9fb9",
+                "reference": "f5ca3706b844579f2864cac4bf6e1a0e0bea9fb9",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": "^7.2.5 | ^8"
+            },
+            "bin": [
+                "qit"
+            ],
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "description": "A command line interface for WooCommerce Quality Insights Toolkit (QIT).",
+            "support": {
+                "issues": "https://github.com/woocommerce/qit-cli/issues",
+                "source": "https://github.com/woocommerce/qit-cli/tree/0.3.4"
+            },
+            "time": "2023-06-13T13:14:38+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "dealerdirect/phpcodesniffer-composer-installer",
