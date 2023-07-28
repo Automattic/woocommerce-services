@@ -1,0 +1,49 @@
+name: QIT Security Test
+on:
+  workflow_dispatch:
+  pull_request:
+permissions:
+  pull-requests: write
+jobs:
+  qit_security:
+    name: QIT Security Test
+    runs-on: ubuntu-20.04
+    env:
+      NO_COLOR: 1
+      QIT_DISABLE_ONBOARDING: yes
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version-file: '.nvmrc'
+      - name: Build plugin zip
+        run: |
+          npm ci
+          npm run build
+      - name: Install composer dependencies
+        run: composer install
+      - name: Add Partner
+        run: ./vendor/bin/qit partner:add --user='${{ secrets.PARTNER_USER }}' --application_password='${{ secrets.PARTNER_SECRET }}'
+      - name: Create results dir
+        run: mkdir ${{ github.workspace }}/qit-results
+      - name: Run activation test
+        if: always()
+        id: run-activation-test
+        run: ./vendor/bin/qit run:activation woocommerce-services --zip=woocommerce-services.zip --wait > ${{ github.workspace }}/qit-results/qit-activation-results.txt
+      - name: Echo activation results
+        if: always()
+        run: cat ${{ github.workspace }}/qit-results/qit-activation-results.txt
+      - name: Run security test
+        if: always()
+        id: run-security-test
+        run: ./vendor/bin/qit run:security woocommerce-services --zip=woocommerce-services.zip --wait > ${{ github.workspace }}/qit-results/qit-security-results.txt
+      - name: Echo security results
+        if: always()
+        run: cat ${{ github.workspace }}/qit-results/qit-security-results.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: qit-results
+          path: ${{ github.workspace }}/qit-results/
