@@ -12,15 +12,19 @@ jobs:
       NO_COLOR: 1
       QIT_DISABLE_ONBOARDING: yes
     steps:
+      - name: Set Git to use HTTPS instead of SSH
+        run: git config --global url.https://github.com/.insteadOf git://github.com/
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+            submodules: recursive
       - uses: actions/setup-node@v2
         with:
           node-version-file: '.nvmrc'
+      - name: Install NPM dependencies
+        run: npm ci
       - name: Build plugin zip
-        run: |
-          npm ci
-          npm run build
+        run: npm run build
       - name: Install composer dependencies
         run: composer install
       - name: Add Partner
