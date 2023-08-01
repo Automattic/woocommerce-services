@@ -1109,7 +1109,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			foreach ( $packages as $package ) {
 				$shipping_methods  = WC()->shipping()->load_shipping_methods( $package );
 				$shipping_packages = WC()->shipping()->calculate_shipping_for_package( $package );
-				$shipping_rates    = $shipping_packages['rates'];
+
+				// Only process the valid shipping package.
+				if ( empty( $shipping_packages['rates'] ) || ! is_array( $shipping_packages['rates'] ) ) {
+					continue;
+				}
+
+				$shipping_rates = $shipping_packages['rates'];
 
 				$shipping_method_ids = array();
 				foreach ( $shipping_rates as $rate ) {
