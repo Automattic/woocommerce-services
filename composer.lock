@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "72f3bd52d5d46ac3208b58066dbb1c85",
+    "content-hash": "9f7a4e458f4fcbda1d656b3c292d7179",
     "packages": [],
     "packages-dev": [
         {
@@ -873,16 +873,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.6.10",
+            "version": "9.6.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "a6d351645c3fe5a30f5e86be6577d946af65a328"
+                "reference": "17d621b3aff84d0c8b62539e269e87d8d5baa76e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a6d351645c3fe5a30f5e86be6577d946af65a328",
-                "reference": "a6d351645c3fe5a30f5e86be6577d946af65a328",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/17d621b3aff84d0c8b62539e269e87d8d5baa76e",
+                "reference": "17d621b3aff84d0c8b62539e269e87d8d5baa76e",
                 "shasum": ""
             },
             "require": {
@@ -956,7 +956,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.6.10"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.6.8"
             },
             "funding": [
                 {
@@ -972,7 +972,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-07-10T04:04:23+00:00"
+            "time": "2023-05-11T05:14:45+00:00"
         },
         {
             "name": "sebastian/cli-parser",
