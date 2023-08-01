@@ -33,19 +33,19 @@
     },
     "scripts": {
       "check-security": [
-        "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release --standard=./.phpcs.security.xml  --report-full --report-summary"
+        "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=./.phpcs.security.xml  --report-full --report-summary"
       ],
       "check-php": [
-        "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
+        "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
       ],
       "check-php:fix": [
-        "./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
+        "./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
       ],
       "check-all": [
-        "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
+        "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
       ],
       "check-all:fix": [
-        "./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
+        "./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
       ],
       "qit:security": [
         "npm run build && composer install && ./vendor/bin/qit run:security woocommerce-services --zip=woocommerce-services.zip"
