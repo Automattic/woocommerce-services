@@ -38,7 +38,9 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
-		require_once dirname( __FILE__ ) . '/mocks/jetpack.php';
+    if ( !method_exists( 'Jetpack_Options', 'isMock' ) ) {
+      require_once dirname( __FILE__ ) . '/mocks/jetpack.php';
+    }
 	}
 
 	public function test_record_user_event() {
