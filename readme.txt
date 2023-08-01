@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.2 - 2023-xx-xx =
+* Fix    - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
+
 = 2.3.1 - 2023-07-17 =
 * Fix    - Fix notice error on the WooCommerce tax settings page.
 
