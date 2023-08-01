@@ -11,7 +11,7 @@
  * Requires at least: 4.6
  * Tested up to: 6.2
  * WC requires at least: 3.6
- * WC tested up to: 7.8
+ * WC tested up to: 7.9
  *
  * Copyright (c) 2017-2023 Automattic
  *
