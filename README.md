@@ -10,6 +10,7 @@ To use the features if you've already installed WooCommerce, simply install this
 
 There are many ways to contribute – reporting bugs, feature suggestions and fixing bugs. For full details, please see [CONTRIBUTING.md](./CONTRIBUTING.md)
 
+
 ## Getting Started
 You need:
 * A WordPress site
