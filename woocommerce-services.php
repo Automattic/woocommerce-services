@@ -147,6 +147,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_types_controller;
 
 		/**
+		 * @var WC_REST_Connect_WPCOM_Cloud_Controller
+		 */
+		protected $rest_wpcom_cloud_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -455,6 +460,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function get_carrier_types_controller() {
 			return $this->rest_carrier_types_controller;
+		}
+
+		public function get_rest_wpcom_cloud_controller() {
+			return $this->rest_wpcom_cloud_controller;
+		}
+
+		public function set_rest_wpcom_cloud_controller( WC_REST_Connect_WPCOM_Cloud_Controller $rest_wpcom_cloud_controller ) {
+			$this->rest_wpcom_cloud_controller = $rest_wpcom_cloud_controller;
 		}
 
 		public function get_service_schemas_validator() {
@@ -965,6 +978,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_carrier_types_controller( $rest_carrier_types_controller );
 			$rest_carrier_types_controller->register_routes();
+
+			require_once __DIR__ . '/classes/class-wc-rest-connect-wpcom-cloud-controller.php';
+			$rest_wpcom_cloud_controller = new WC_REST_Connect_WPCOM_Cloud_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_wpcom_cloud_controller( $rest_wpcom_cloud_controller );
+			$rest_wpcom_cloud_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}

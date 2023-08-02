@@ -78,28 +78,16 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 			$health_items['woocommerce'] = $health_item;
 
-			// Jetpack
-			// Only one of the following should present
-			// Check that Jetpack is active
-			// Check that Jetpack is connected
+			// WPCOM Cloud
 			$is_connected = WC_Connect_Jetpack::is_connected() || WC_Connect_Jetpack::is_development_mode();
 			if ( ! $is_connected ) {
-				$health_item = array(
-					'state'   => 'error',
-					'message' => __( 'Jetpack is not connected to WordPress.com. Make sure the Jetpack plugin is installed, activated, and connected.', 'woocommerce-services' ),
-				);
+				$wpcom_cloud_status = 'disconnected';
 			} elseif ( WC_Connect_Jetpack::is_staging_site() ) {
-				$health_item = array(
-					'state'   => 'warning',
-					'message' => __( 'This is a Jetpack staging site', 'woocommerce-services' ),
-				);
+				$wpcom_cloud_status = 'staging';
 			} else {
-				$health_item = array(
-					'state'   => 'success',
-					'message' => __( 'Jetpack is connected and working correctly', 'woocommerce-services' ),
-				);
+				$wpcom_cloud_status = 'connected';
 			}
-			$health_items['jetpack'] = $health_item;
+			$health_items['wpcom_cloud'] = array( 'status' => $wpcom_cloud_status );
 
 			// Automated taxes status
 			$health_items['automated_taxes'] = $this->get_tax_health_item();

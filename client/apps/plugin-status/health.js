@@ -13,6 +13,7 @@ import Indicator from './indicator';
 import WooCommerceServicesIndicator from './woocommerce-services-indicator';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import WPCOMCloudIndicator from "wcs-client/apps/plugin-status/wpcom-cloud-indicator";
 
 const HealthView = ( { translate, healthItems } ) => {
 	return (
@@ -24,11 +25,7 @@ const HealthView = ( { translate, healthItems } ) => {
 				message={healthItems.woocommerce.message}
 				state={healthItems.woocommerce.state}
 			/>
-			<Indicator
-				title={translate('Jetpack')}
-				state={healthItems.jetpack.state}
-				message={healthItems.jetpack.message}
-			/>
+			<WPCOMCloudIndicator/>
 			<Indicator
 				title={translate('Automated Taxes')}
 				state={healthItems.automated_taxes.state}

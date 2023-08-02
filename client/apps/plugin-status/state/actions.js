@@ -10,7 +10,7 @@ import { translate } from 'i18n-calypso';
 import * as api from 'api';
 // from Calypso
 import { successNotice, errorNotice } from 'state/notices/actions';
-import { PLUGIN_STATUS_DEBUG_TOGGLE, PLUGIN_STATUS_LOGGING_TOGGLE, SERVICE_DATA_REFRESH } from './action-types';
+import { PLUGIN_STATUS_DEBUG_TOGGLE, PLUGIN_STATUS_LOGGING_TOGGLE, SERVICE_DATA_REFRESH, WPCOM_CLOUD_STATUS_REFRESH } from './action-types';
 
 const saveSettings = () => ( dispatch, getState ) => {
 	const state = getState().status;
@@ -68,3 +68,18 @@ export const toggleDebugging = ( value ) => (dispatch) => {
 
 	dispatch(saveSettings());
 };
+
+export const disconnectWPCOMCloud = () => (dispatch) => {
+	return api.post( api.url.disconnectWPCOMCloud() )
+		.then( () => {
+			dispatch( {
+				type: WPCOM_CLOUD_STATUS_REFRESH,
+				value: 'disconnected',
+			} );
+
+			dispatch( successNotice( translate( 'Disconnected from WordPress.com cloud.' ) ) );
+		} )
+		.catch( () => {
+			dispatch( errorNotice( translate( 'An error occurred while disconnecting from WordPress.com cloud. Please try again.' ) ) );
+		} );
+}

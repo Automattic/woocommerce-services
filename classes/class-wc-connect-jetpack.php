@@ -122,7 +122,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 */
 		public static function is_connected() {
 			return self::get_connection_manager()->is_connected() &&
-			       self::get_connection_manager()->has_connected_owner();
+				   self::get_connection_manager()->has_connected_owner();
 		}
 
 		/**
@@ -147,7 +147,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 			wp_redirect(
 				add_query_arg(
-					[ 'from' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG ],
+					[ 'from' => self::JETPACK_PLUGIN_SLUG ],
 					$connection_manager->get_authorization_url( null, $redirect_url )
 				)
 			);
@@ -156,6 +156,10 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 		public static function get_jetpack_connection_package_version() {
 			return Package_Version::PACKAGE_VERSION;
+		}
+
+		public static function disconnect() {
+			self::get_connection_manager()->remove_connection( true, true );
 		}
 	}
 }
