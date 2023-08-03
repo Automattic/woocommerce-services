@@ -281,6 +281,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string new option value, based on the automated taxes state or $value
 	 */
 	public function sanitize_tax_option( $value, $option ) {
+    // phpcs:disable WordPress.Security.NonceVerification.Missing --- Security is taken care of by WooCommerce
 		if (
 			// skip unrecognized option format
 			! is_array( $option )
@@ -301,6 +302,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! array_key_exists( $option['id'], $this->expected_options ) ) {
 			return $value;
 		}
+    // phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return $this->expected_options[ $option['id'] ];
 	}
@@ -689,11 +691,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	protected function get_backend_address() {
+    // phpcs:disable WordPress.Security.NonceVerification.Missing --- Security handled by WooCommerce
 		$to_country = isset( $_POST['country'] ) ? strtoupper( wc_clean( $_POST['country'] ) ) : false;
 		$to_state   = isset( $_POST['state'] ) ? strtoupper( wc_clean( $_POST['state'] ) ) : false;
 		$to_zip     = isset( $_POST['postcode'] ) ? strtoupper( wc_clean( $_POST['postcode'] ) ) : false;
 		$to_city    = isset( $_POST['city'] ) ? strtoupper( wc_clean( $_POST['city'] ) ) : false;
 		$to_street  = isset( $_POST['street'] ) ? strtoupper( wc_clean( $_POST['street'] ) ) : false;
+    // phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return array(
 			'to_country' => $to_country,

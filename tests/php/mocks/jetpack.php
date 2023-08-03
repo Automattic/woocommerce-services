@@ -21,4 +21,8 @@ class Jetpack_Options {
 				return false;
 		}
 	}
+
+  public function isMock() {
+    return true;
+  }
 }
