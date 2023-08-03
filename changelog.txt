@@ -1,6 +1,12 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.2.5 - 2023-xx-xx =
+= 2.3.1 - 2023-07-17 =
+* Fix    - Fix notice error on the WooCommerce tax settings page.
+
+= 2.3.0 - 2023-07-11 =
+* Add   - Add USPS HAZMAT support.
+
+= 2.2.5 - 2023-05-23 =
 * Update - Security update.
 
 = 2.2.4 - 2023-03-14 =

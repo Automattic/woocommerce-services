@@ -55,8 +55,8 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			if ( $test_request && ! is_wp_error( $test_request ) && $test_request->authorized ) {
 				echo '<div class="updated inline"><p>' . esc_html__( 'Your site is successfully communicating to the WooCommerce Shipping & Tax API.', 'woocommerce-services' ) . '</p></div>';
 			} else {
-				echo '<div class="error inline"><p>' 
-				. esc_html__( 'ERROR: Your site has a problem connecting to the WooCommerce Shipping & Tax API. Please make sure your Jetpack connection is working.', 'woocommerce-services' ) 
+				echo '<div class="error inline"><p>'
+				. esc_html__( 'ERROR: Your site has a problem connecting to the WooCommerce Shipping & Tax API. Please make sure your Jetpack connection is working.', 'woocommerce-services' )
 				. '</p></div>';
 			}
 		}

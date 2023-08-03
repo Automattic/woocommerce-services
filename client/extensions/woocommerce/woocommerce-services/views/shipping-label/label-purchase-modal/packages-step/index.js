@@ -29,6 +29,7 @@ import {
 	toggleStep,
 	confirmPackages,
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
+import USPSHazmat from './courier-specific/usps-hazmat'
 
 // Display precision for various unit settings.
 const PRECISION = {
@@ -102,6 +103,9 @@ const PackagesStep = props => {
 
 	const toggleStepHandler = () => props.toggleStep( orderId, siteId, 'packages' );
 	const confirmPackagesHandler = () => props.confirmPackages( orderId, siteId );
+	const isHazmatSelectionFaulty = Object.values(selected)
+		.some( pckg => pckg.isSelectingHazmat && (!pckg.hazmatType || 'none' === pckg.hazmatType ) );
+
 	return (
 		<StepContainer
 			title={ translate( 'Packaging' ) }
@@ -111,11 +115,13 @@ const PackagesStep = props => {
 		>
 			<div className="packages-step__contents">
 				<PackageList siteId={ props.siteId } orderId={ props.orderId } />
-				<PackageInfo siteId={ props.siteId } orderId={ props.orderId } />
+				<PackageInfo siteId={ props.siteId } orderId={ props.orderId }>
+					<USPSHazmat  siteId={ siteId } orderId={ orderId } />
+				</PackageInfo>
 			</div>
 
 			<StepConfirmationButton
-				disabled={ hasNonEmptyLeaves( errors ) || ! packageIds.length }
+				disabled={ hasNonEmptyLeaves( errors ) || ! packageIds.length || isHazmatSelectionFaulty }
 				onClick={ confirmPackagesHandler }
 			>
 				{ translate( 'Use these packages' ) }

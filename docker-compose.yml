@@ -6,7 +6,10 @@ volumes:
 
 services:
     wordpress:
-        build: ./docker/wordpress_xdebug
+        build:
+            context: ./docker/wordpress_xdebug
+            # Options: Dockerfile-php73, Dockerfile-php81
+            dockerfile: Dockerfile-php73
         container_name: woocommerce_services_wordpress
         image: woocommerce_services_wordpress
         depends_on:

@@ -635,7 +635,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<?php echo esc_html( $content['title'] ); ?>
 					</h1>
 					<p class="wcs-nux__notice-content-text">
-						<?php echo esc_html($content['description']); ?>
+						<?php echo esc_html( $content['description'] ); ?>
 					</p>
 					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p class="wcs-nux__notice-content-tos">
