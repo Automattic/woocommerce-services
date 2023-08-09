@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.2 - 2023-xx-xx =
+* Add   - Added QIT tools for development.
+
 = 2.3.1 - 2023-07-17 =
 * Fix    - Fix notice error on the WooCommerce tax settings page.
 
