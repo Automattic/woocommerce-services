@@ -301,7 +301,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		public function page() {
 			?>
 				<h2>
-					<?php _e( 'WooCommerce Shipping & Tax Status', 'woocommerce-services' ); ?>
+					<?php esc_html_e( 'WooCommerce Shipping & Tax Status', 'woocommerce-services' ); ?>
 				</h2>
 			<?php
 

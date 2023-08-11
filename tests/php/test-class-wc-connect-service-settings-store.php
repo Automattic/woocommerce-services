@@ -38,9 +38,9 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 		),
 	);
 
-	protected $order_id = 123;
+	protected $order_id;
 
-	public static function setupBeforeClass() {
+	public static function set_up_before_class() {
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php';
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
@@ -73,7 +73,12 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 		return new WC_Connect_Service_Settings_Store( $service_schemas_store, $api_client, $logger );
 	}
 
-	public function tearDown() {
+	public function set_up() {
+		$order          = wc_create_order();
+		$this->order_id = $order->get_id();
+	}
+
+	public function tear_down() {
 		$order = wc_get_order( $this->order_id );
 		$order->delete_meta_data( 'wc_connect_labels' );
 		$order->save();

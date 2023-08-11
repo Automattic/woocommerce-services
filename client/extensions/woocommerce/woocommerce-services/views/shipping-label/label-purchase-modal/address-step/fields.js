@@ -14,8 +14,8 @@ import { isEqual, isObject, size } from 'lodash';
  * Internal dependencies
  */
 import TextField from 'woocommerce/woocommerce-services/components/text-field';
-import Notice from 'components/notice';
-import FormButton from 'components/forms/form-button';
+import Notice from 'wcs-client/components/notice';
+import FormButton from 'wcs-client/components/forms/form-button';
 import Dropdown from 'woocommerce/woocommerce-services/components/dropdown';
 import { hasNonEmptyLeaves } from 'woocommerce/woocommerce-services/lib/utils/tree';
 import AddressSuggestion from './suggestion';

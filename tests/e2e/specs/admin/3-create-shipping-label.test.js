@@ -92,7 +92,7 @@ describe( 'Create shipping label', () => {
                 text: '1 item in 1 package: 2 kg total'
             } );
 
-            await expect( page ).toClick( '#inspector-radio-control-0-0' );
+            await expect( page ).toClick( '.rates-step__shipping-rate-container input[type="radio"]:first-child' );
 
             await expect( page ).toClick( '.button.is-primary', {
                 text: 'Buy shipping label',

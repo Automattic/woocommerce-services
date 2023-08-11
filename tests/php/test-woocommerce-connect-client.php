@@ -4,7 +4,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	const SERVICE_SCRIPT_HANDLE = 'wc_connect_admin';
 
-	public function tearDown() {
+	public function tear_down() {
 		wp_deregister_script( self::SERVICE_SCRIPT_HANDLE );
 		remove_all_actions( 'wc_connect_shipping_zone_method_added' );
 		remove_all_actions( 'wc_connect_shipping_zone_method_deleted' );

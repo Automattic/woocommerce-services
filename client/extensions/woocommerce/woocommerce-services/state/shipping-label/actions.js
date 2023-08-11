@@ -39,13 +39,15 @@ import {
 	getFormErrors,
 	shouldFulfillOrder,
 	shouldEmailDetails,
-	isCustomsFormRequired,
+	isCustomsFormRequired
 } from './selectors';
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
 import {
 	getEmailReceipts,
+	getUseLastService,
+	getUseLastPackage,
 	getLabelSettingsUserMeta,
  } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 import getAddressValues from 'woocommerce/woocommerce-services/lib/utils/get-address-values';
@@ -94,6 +96,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_ADD_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REMOVE_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_PACKAGES,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_ADD_ITEM,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_ADD_ITEM,
@@ -113,7 +116,10 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_VALUE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_CUSTOMS_ITEM_ORIGIN_COUNTRY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SAVE_CUSTOMS,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_SELECTING_HAZMAT,
 } from '../action-types.js';
+
 
 const PRINTING_FAILED_NOTICE_ID = 'label-image-download-failed';
 const PRINTING_IN_PROGRESS_NOTICE_ID = 'label-image-download-printing';
@@ -203,7 +209,12 @@ export const convertToApiPackage = ( pckg, customsItems ) => {
 		'weight',
 		'signature',
 		'is_letter',
+		'hazmatType',
 	] );
+	if ( apiPckg.hazmatType ) {
+		apiPckg.hazmat = apiPckg.hazmatType;
+		delete apiPckg.hazmatType;
+	}
 	if ( customsItems ) {
 		apiPckg.contents_type = pckg.contentsType || 'merchandise';
 		if ( 'other' === pckg.contentsType ) {
@@ -260,6 +271,18 @@ const tryGetLabelRates = ( orderId, siteId, dispatch, getState ) => {
 	const customsItems = isCustomsFormRequired( getState(), orderId, siteId ) ? customs.items : null;
 	const apiPackages = map( packages.selected, pckg => convertToApiPackage( pckg, customsItems ) );
 	getRates( orderId, siteId, dispatch, origin.values, destination.values, apiPackages )
+		.then( () => {
+			const useLastService = getUseLastService( getState(), siteId );
+			if ( false === useLastService ) {
+				return;
+			}
+
+			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, getState ) || {};
+
+			if ( undefined !== packageId && undefined !== serviceId && undefined !== carrierId ) {
+				dispatch( setDefaultRate ( orderId, siteId, packageId, serviceId, carrierId ) );
+			}
+		} )
 		.then( () => expandFirstErroneousStep( orderId, siteId, dispatch, getState ) )
 		.catch( error => {
 			console.error( error );
@@ -290,6 +313,17 @@ export const setPackageType = ( orderId, siteId, packageId, boxTypeId ) => (
 	} );
 };
 
+export const setDefaultRate = ( orderId, siteId, packageId, serviceId, carrierId ) => ( dispatch ) => {
+	dispatch( {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+		siteId,
+		orderId,
+		packageId,
+		serviceId,
+		carrierId,
+	} );
+};
+
 /**
  * If no box has been selected for this package, then get the last used box.
  * @param {Number} orderId order ID
@@ -307,6 +341,26 @@ export const getDefaultBoxSelection = ( orderId, siteId, getState ) => {
 
 	if ( pckg && 'not_selected' === pckg.box_id && userMeta.last_box_id ) {
 		return { packageId, boxId: userMeta.last_box_id };
+	}
+}
+
+/**
+ * If no service has been selected for this package, then get the last used service.
+ * @param {Number} orderId order ID
+ * @param {Number} siteId site ID
+ * @param {Function} getState getState function
+ * @return {Object|undefined} packageId and boxId if default is needed.
+ */
+export const getDefaultServiceSelection = ( orderId, siteId, getState ) => {
+	const state = getState();
+	const userMeta = getLabelSettingsUserMeta( state, siteId );
+	const labelState = getShippingLabel( state, orderId, siteId );
+	const selected = labelState.form.packages.selected;
+	const packageId = labelState.openedPackageId;
+	const pckg = selected[ packageId ];
+
+	if ( pckg && userMeta.last_service_id && userMeta.last_carrier_id ) {
+		return { packageId, serviceId: userMeta.last_service_id, carrierId: userMeta.last_carrier_id };
 	}
 }
 
@@ -347,7 +401,17 @@ export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) =>
 
 	waitForAllPromises( promisesQueue ).then( () =>
 		tryGetLabelRates( orderId, siteId, dispatch, getState )
-	);
+	).then( () => {
+		const useLastPackage = getUseLastPackage( getState(), siteId );
+		if ( false === useLastPackage ) {
+			return;
+		}
+
+		const { packageId, boxId } = getDefaultBoxSelection( orderId, siteId, getState ) || {};
+		if ( packageId !== undefined && boxId !== undefined ) {
+			dispatch( setPackageType (orderId, siteId, packageId, boxId ) );
+		}
+	} );
 
 	dispatch( { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PRINTING_FLOW, orderId, siteId } );
 };
@@ -427,6 +491,13 @@ export const removeIgnoreValidation = ( orderId, siteId, group ) => {
 	};
 };
 
+const checkPackagesStep = ( orderId, siteId, dispatch, getState ) => {
+	const { expanded } = getShippingLabel( getState(), orderId, siteId ).form[ 'packages' ];
+	if ( !expanded ) {
+		dispatch( toggleStep( orderId, siteId, 'packages' ) );
+	}
+};
+
 export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch, getState ) => {
 	dispatch( {
 		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_ADDRESS_SUGGESTION,
@@ -434,6 +505,11 @@ export const confirmAddressSuggestion = ( orderId, siteId, group ) => ( dispatch
 		orderId,
 		group,
 	} );
+
+	if ( 'destination' === group ) {
+		checkPackagesStep( orderId, siteId, dispatch, getState );
+		return;
+	}
 
 	tryGetLabelRates( orderId, siteId, dispatch, getState );
 };
@@ -450,6 +526,11 @@ export const submitAddressForNormalization = ( orderId, siteId, group ) => (
 		if ( isEqual( values, normalized ) ) {
 			if ( expanded ) {
 				dispatch( toggleStep( orderId, siteId, group ) );
+			}
+
+			if ( 'destination' === group ) {
+				checkPackagesStep( orderId, siteId, dispatch, getState );
+				return;
 			}
 
 			tryGetLabelRates( orderId, siteId, dispatch, getState );
@@ -1318,4 +1399,16 @@ export const openDetailsDialog = ( orderId, siteId, labelId ) => {
 
 export const closeDetailsDialog = ( orderId, siteId ) => {
 	return { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG, orderId, siteId };
+};
+
+export const setHazmatType = ( hazmatType, orderId ) => {
+	return { type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_HAZMAT_TYPE, hazmatType, orderId };
+};
+
+export const setIsSelectingHazmat = ( isSelectingHazmat, orderId ) => {
+	return {
+		type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_SELECTING_HAZMAT,
+		isSelectingHazmat,
+		orderId
+	};
 };

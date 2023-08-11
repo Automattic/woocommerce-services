@@ -418,8 +418,8 @@ export const getCustomsErrors = (
 
 		items: mapValues( pick( customs.items, usedProductIds ), ( itemData, productId ) => {
 			const itemErrors = {};
-			if ( ! itemData.description ) {
-				itemErrors.description = translate( 'This field is required' );
+			if ( ! itemData.description || itemData.description.length < 3 ) {
+				itemErrors.description = translate( 'You must provide a clear, specific description for every item.' );
 			}
 			if ( ! customs.ignoreWeightValidation[ productId ] ) {
 				if ( isNil( itemData.weight ) || '' === itemData.weight ) {
@@ -702,3 +702,21 @@ export const isLabelDataFetchError = ( state, orderId, siteId = getSelectedSiteI
 		areLocationsErrored( state, siteId )
 	);
 };
+
+export const getSelectedHazmatType = (state, { siteId, orderId }) => {
+	const label = getShippingLabel( state, orderId, siteId );
+	return get(
+		label,
+		['form', 'packages', 'selected', label.openedPackageId, 'hazmatType'],
+		''
+	)
+}
+
+export const getStateForCurrentPackage = ( state, orderId ) => {
+	const label = getShippingLabel( state, orderId, getSelectedSiteId( state ) );
+	return get(
+		label,
+		['form', 'packages', 'selected', label.openedPackageId],
+		''
+	)
+}

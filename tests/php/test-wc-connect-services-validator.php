@@ -40,9 +40,9 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 
 	}
 
-	public function setUp() {
+	public function set_up() {
 
-		parent::setUp();
+		parent::set_up();
 
 		if ( ! is_a( $this->loader, 'WC_Connect_Loader' ) ) {
 			$this->loader = new WC_Connect_Loader();

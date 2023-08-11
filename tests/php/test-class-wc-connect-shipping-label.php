@@ -152,7 +152,7 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		),
 	);
 
-	public static function setupBeforeClass() {
+	public static function set_up_before_class() {
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php';
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-label.php';
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php';

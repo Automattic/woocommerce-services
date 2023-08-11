@@ -3,10 +3,10 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 5.6
 Requires at least: 4.6
-Tested up to: 6.1.1
+Tested up to: 6.2
 WC requires at least: 3.6
-WC tested up to: 7.1.0
-Stable tag: 2.1.0
+WC tested up to: 7.8
+Stable tag: 2.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -77,6 +77,36 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.3.2 - 2023-08-09 =
+* Add   - Added QIT tools for development.
+
+= 2.3.1 - 2023-07-17 =
+* Fix    - Fix notice error on the WooCommerce tax settings page.
+
+= 2.3.0 - 2023-07-11 =
+* Add   - Add USPS HAZMAT support.
+
+= 2.2.5 - 2023-05-23 =
+* Update - Security update.
+
+= 2.2.4 - 2023-03-14 =
+* Fix   - Incompatibility with Kadence WooCommerce Email Designer.
+
+= 2.2.3 - 2023-02-14 =
+* Fix   - Link correction on Automated taxes description text.
+
+= 2.2.2 - 2023-02-02 =
+* Fix   - Adjust checkout US zipcode validation to run only when exactly 5 or 10 digits are typed.
+
+= 2.2.1 - 2023-01-24 =
+* Fix   - Fix warning on checkout page apper if zipcode doesn't match selected state.
+
+= 2.2.0 - 2023-01-19 =
+* Add   - Add option to let user pick whether to save the last package & service or not.
+
+= 2.1.1 - 2023-01-02 =
+* Fix   - Save the selected package box and do not skip the package step.
 
 = 2.1.0 - 2022-11-30 =
 * Tweak - Catch malformed zipcode and display WC notice.
