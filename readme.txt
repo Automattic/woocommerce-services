@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.3 - 2023-xx-xx =
+* Tweak - Update .org assets.
+
 = 2.3.2 - 2023-08-09 =
 * Add   - Added QIT tools for development.
 
