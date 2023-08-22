@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.3.3 - 2023-xx-xx =
+= 2.3.3 - 2023-08-22 =
 * Tweak - Update .org assets.
 
 = 2.3.2 - 2023-08-09 =
