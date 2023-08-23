@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "2.3.1",
+  "version": "2.3.3",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -409,6 +409,11 @@
           "version": "2.1.2",
           "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz",
           "integrity": "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w=="
+        },
+        "prettier": {
+          "version": "npm:wp-prettier@1.19.1",
+          "resolved": "https://registry.npmjs.org/wp-prettier/-/wp-prettier-1.19.1.tgz",
+          "integrity": "sha512-mqAC2r1NDmRjG+z3KCJ/i61tycKlmADIjxnDhQab+KBxSAGbF/W7/zwB2guy/ypIeKrrftNsIYkNZZQKf3vJcg=="
         },
         "puppeteer": {
           "version": "2.1.1",
@@ -19278,11 +19283,6 @@
       "version": "1.1.2",
       "resolved": "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.1.2.tgz",
       "integrity": "sha1-IZMqVJ9eUv/ZqCf1cOBL5iqX2lQ="
-    },
-    "prettier": {
-      "version": "npm:wp-prettier@1.19.1",
-      "resolved": "https://registry.npmjs.org/wp-prettier/-/wp-prettier-1.19.1.tgz",
-      "integrity": "sha512-mqAC2r1NDmRjG+z3KCJ/i61tycKlmADIjxnDhQab+KBxSAGbF/W7/zwB2guy/ypIeKrrftNsIYkNZZQKf3vJcg=="
     },
     "pretty-format": {
       "version": "24.9.0",
