@@ -112,7 +112,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function can_user_manage_payment_methods() {
-			return WC_Connect_Jetpack::is_development_mode() || WC_Connect_Jetpack::is_current_user_connection_owner();
+			return WC_Connect_Jetpack::is_offline_mode() || WC_Connect_Jetpack::is_current_user_connection_owner();
 		}
 
 		public function get_origin_address() {
