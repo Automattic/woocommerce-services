@@ -22,11 +22,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Helper method to get if Jetpack is in development mode
+		 * Helper method to get if Jetpack is in offline mode
 		 *
 		 * @return bool
 		 */
-		public static function is_development_mode() {
+		public static function is_offline_mode() {
 			$status = new Status();
 
 			return $status->is_offline_mode();
@@ -122,7 +122,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 */
 		public static function is_connected() {
 			return self::get_connection_manager()->is_connected() &&
-			       self::get_connection_manager()->has_connected_owner();
+				   self::get_connection_manager()->has_connected_owner();
 		}
 
 		/**
@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			if ( ! $connection_manager->is_connected() ) {
 				$result = $connection_manager->try_registration();
 				if ( is_wp_error( $result ) ) {
-					wp_die( $result->get_error_message(), 'wc_services_jetpack_register_site_failed', 500 );
+					wp_die( esc_html( $result->get_error_message() ), 'wc_services_jetpack_register_site_failed', 500 );
 				}
 			}
 
@@ -147,7 +147,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 
 			wp_redirect(
 				add_query_arg(
-					[ 'from' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG ],
+					[ 'from' => self::JETPACK_PLUGIN_SLUG ],
 					$connection_manager->get_authorization_url( null, $redirect_url )
 				)
 			);
