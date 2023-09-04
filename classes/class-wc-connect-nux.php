@@ -599,7 +599,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</a>
 					<?php else : ?>
-						<form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post">
+						<form action="<?php echo esc_attr( admin_url( 'admin-post.php' ) ); ?>" method="post">
 							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>
 							<input type="hidden" name="redirect_url"
 								   value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>
