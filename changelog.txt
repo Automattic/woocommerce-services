@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.3.4 - 2023-xx-xx =
+= 2.3.4 - 2023-09-05 =
 * Fix - Shipping label reports to display proper HTML.
 
 = 2.3.3 - 2023-08-22 =
