@@ -3,9 +3,9 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 5.6
 Requires at least: 4.6
-Tested up to: 6.2
+Tested up to: 6.3
 WC requires at least: 3.6
-WC tested up to: 7.8
+WC tested up to: 8.0
 Stable tag: 2.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -77,6 +77,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.3.4 - 2023-xx-xx =
+* Fix - Shipping label reports to display proper HTML.
 
 = 2.3.3 - 2023-08-22 =
 * Tweak - Update .org assets.
