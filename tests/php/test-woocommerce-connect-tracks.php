@@ -41,10 +41,6 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		parent::set_up_before_class();
 
 		require_once dirname( __FILE__ ) . '/mocks/jetpack.php';
-
-		if ( ! defined( 'JETPACK__VERSION' ) ) {
-			define( 'JETPACK__VERSION', '4.0' );
-		}
 	}
 
 	public function set_up() {
