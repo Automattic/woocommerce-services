@@ -43,11 +43,21 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		if ( version_compare( WC()->version, '7.9.0', '<' ) || ! class_exists( 'Jetpack_Options' ) ) {
 			require_once dirname( __FILE__ ) . '/mocks/jetpack.php';
 		}
+	}
 
+	public function set_up() {
 		$this->jetpack_options = $this->getMockBuilder( 'Jetpack_Options' )
 			->disableOriginalConstructor()
 			->setMethods( array( 'get_option' ) )
 			->getMock();
+
+		$this->logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'log' ) )
+			->getMock();
+
+		$this->tracks = new WC_Connect_Tracks( $this->logger, __FILE__ );
+		$this->tracks->init();
 	}
 
 	public function test_record_user_event() {
