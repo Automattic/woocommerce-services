@@ -162,34 +162,16 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_saved_service_settings() {
 
-		// `withConsecutive` was introduced in phpunit 4.1 which only supports
-		// php 5.3.3 and higher. So we have a slightly different set of expectations
-		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
-		// rather then the less precise for all versions
-		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly( 2 ) )
-				->method( 'log' )
-				->withConsecutive(
-					array(
-						$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
-					),
-					array(
-						$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
-					)
-				);
-		} else {
-			$this->logger->expects( $this->at( 0 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_saved_service_settings' )
-				);
-
-			$this->logger->expects( $this->at( 1 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_saved_usps_settings' )
-				);
-		}
+		$this->logger->expects( $this->exactly( 2 ) )
+			->method( 'log' )
+			->withConsecutive(
+				array(
+					$this->stringContains( 'woocommerceconnect_saved_service_settings' ),
+				),
+				array(
+					$this->stringContains( 'woocommerceconnect_saved_usps_settings' ),
+				)
+			);
 
 		$this->tracks->saved_service_settings( 'usps' );
 	}
