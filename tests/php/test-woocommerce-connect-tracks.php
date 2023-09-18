@@ -23,22 +23,18 @@ abstract class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 class WP_Test_WC_Connect_Tracks_No_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_no_jetpack() {
+		// Only test WC < 7.9.0.
+		// Because WC >= 7.9.0 has JetPack built-in on the plugin.
 		if ( version_compare( WC()->version, '7.9.0', '<' ) ) {
 			$this->logger->expects( $this->once() )
 				->method( 'log' )
 				->with(
 					$this->stringContains( 'Error. jetpack_tracks_record_event is not defined.' )
 				);
-		} else {
-			$this->logger->expects( $this->once() )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_opted_out' )
-				);
-		}
 
-		$record = $this->tracks->opted_out();
-		$this->assertNull( $record );
+			$record = $this->tracks->opted_out();
+			$this->assertNull( $record );
+		}
 	}
 
 }
