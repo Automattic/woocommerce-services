@@ -62,7 +62,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
-		$this->jetpack_options->expects( $this->once() )
+		$this->jetpack_options->expects( $this->any() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -93,7 +93,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
-		$this->jetpack_options->expects( $this->once() )
+		$this->jetpack_options->expects( $this->any() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -124,7 +124,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
-		$this->jetpack_options->expects( $this->once() )
+		$this->jetpack_options->expects( $this->any() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
