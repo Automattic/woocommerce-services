@@ -64,7 +64,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -95,7 +95,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -126,7 +126,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 		global $mock_recorded_tracks_events;
 		$mock_recorded_tracks_events = array();
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -155,7 +155,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_saved_service_settings() {
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -194,7 +194,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_shipping_zone_method_added() {
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -233,7 +233,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_shipping_zone_method_deleted() {
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -272,7 +272,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_shipping_zone_method_enabled() {
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
@@ -311,7 +311,7 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 
 	public function test_shipping_zone_method_disabled() {
 
-		$this->api_client_mock->expects( $this->once() )
+		$this->jetpack_options->expects( $this->once() )
 			->method( 'get_option' )
 			->with( 'id' )
 			->willReturn( '12345' );
