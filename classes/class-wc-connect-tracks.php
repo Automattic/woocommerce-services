@@ -110,7 +110,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
 			$event_type = self::$product_name . '_' . $event_type;
 
-			$this->debug( 'Tracked the following eventssssss: ' . $event_type );
+			$this->debug( 'Tracked the following event: ' . $event_type );
 			WC_Connect_Jetpack::tracks_record_event( $user, $event_type, $data );
 		}
 
