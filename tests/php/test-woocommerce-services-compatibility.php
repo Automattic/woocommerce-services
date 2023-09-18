@@ -53,7 +53,7 @@ class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {
 		$variations = $product->get_available_variations();
 		$variation  = new WC_Product_Variation( $variations[0]['variation_id'] );
 		$this->assertTrue( is_string( wc_get_formatted_variation( $variation ) ) );
-		$this->assertRegExp( '/^\<dl class="variation"/', wc_get_formatted_variation( $variation ) );
+		$this->assertMatchesRegularExpression( '/^\<dl class="variation"/', wc_get_formatted_variation( $variation ) );
 	}
 
 	public function test_get_product_id() {

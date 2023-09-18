@@ -229,103 +229,47 @@ class WP_Test_WC_Connect_Tracks_With_Jetpack extends WP_Test_WC_Connect_Tracks {
 	}
 
 	public function test_shipping_zone_method_deleted() {
-
-		// `withConsecutive` was introduced in phpunit 4.1 which only supports
-		// php 5.3.3 and higher. So we have a slightly different set of expectations
-		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
-		// rather then the less precise for all versions
-		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly( 2 ) )
-				->method( 'log' )
-				->withConsecutive(
-					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' ),
-					),
-					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' ),
-					)
-				);
-		} else {
-			$this->logger->expects( $this->at( 0 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' )
-				);
-
-			$this->logger->expects( $this->at( 1 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' )
-				);
-		}
+		$this->logger->expects( $this->exactly( 2 ) )
+			->method( 'log' )
+			->withConsecutive(
+				array(
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_deleted' ),
+				),
+				array(
+					$this->stringContains( 'woocommerceconnect_shipping_zone_canada_post_deleted' ),
+				)
+			);
 
 		do_action( 'wc_connect_shipping_zone_method_deleted', 2, 'canada_post', 3 );
 	}
 
 	public function test_shipping_zone_method_enabled() {
-
-		// `withConsecutive` was introduced in phpunit 4.1 which only supports
-		// php 5.3.3 and higher. So we have a slightly different set of expectations
-		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
-		// rather then the less precise for all versions
-		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly( 2 ) )
-				->method( 'log' )
-				->withConsecutive(
-					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' ),
-					),
-					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' ),
-					)
-				);
-		} else {
-			$this->logger->expects( $this->at( 0 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' )
-				);
-
-			$this->logger->expects( $this->at( 1 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' )
-				);
-		}
+		$this->logger->expects( $this->exactly( 2 ) )
+			->method( 'log' )
+			->withConsecutive(
+				array(
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_enabled' ),
+				),
+				array(
+					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_enabled' ),
+				)
+			);
 
 		do_action( 'wc_connect_shipping_zone_method_status_toggled', 2, 'usps', 3, true );
 	}
 
 	public function test_shipping_zone_method_disabled() {
 
-		// `withConsecutive` was introduced in phpunit 4.1 which only supports
-		// php 5.3.3 and higher. So we have a slightly different set of expectations
-		// for php 5.2. It's preferrable to have this more precise expectations for php 5.3+
-		// rather then the less precise for all versions
-		if ( class_exists( 'PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters' ) ) {
-			$this->logger->expects( $this->exactly( 2 ) )
-				->method( 'log' )
-				->withConsecutive(
-					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' ),
-					),
-					array(
-						$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' ),
-					)
-				);
-		} else {
-			$this->logger->expects( $this->at( 0 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' )
-				);
-
-			$this->logger->expects( $this->at( 1 ) )
-				->method( 'log' )
-				->with(
-					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' )
-				);
-		}
+		$this->logger->expects( $this->exactly( 2 ) )
+			->method( 'log' )
+			->withConsecutive(
+				array(
+					$this->stringContains( 'woocommerceconnect_shipping_zone_method_disabled' ),
+				),
+				array(
+					$this->stringContains( 'woocommerceconnect_shipping_zone_usps_disabled' ),
+				)
+			);
 
 		do_action( 'wc_connect_shipping_zone_method_status_toggled', 2, 'usps', 3, false );
 	}
