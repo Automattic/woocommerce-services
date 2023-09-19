@@ -741,7 +741,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$cart_validation = new WC_Connect_Cart_Validation();
 			$cart_validation->register_filters();
-			$cart_validation->register_actions();
 		}
 
 		/**
