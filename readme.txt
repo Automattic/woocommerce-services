@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.5 - 2023-xx-xx =
+* Fix - Occasionally block user to checkout when using WooCommerce Blocks.
+
 = 2.3.4 - 2023-09-05 =
 * Fix - Shipping label reports to display proper HTML.
 
