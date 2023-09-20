@@ -12,6 +12,13 @@ class WC_Connect_Cart_Validation {
 	private $current_package;
 
 	/**
+	 * Register actions when required instead of using constructor.
+	 */
+	public function register_actions() {
+		add_action( 'woocommerce_store_api_cart_errors', [ $this, 'add_api_cart_errors' ], 10, 2 );
+	}
+
+	/**
 	 * Register filters when required instead of using constructor.
 	 */
 	public function register_filters() {
@@ -51,5 +58,39 @@ class WC_Connect_Cart_Validation {
 			}
 		}
 		return $error_html;
+	}
+
+	/**
+	 * Check the error on the first load at Cart and Checkout page that has cart block or checkout block.
+	 *
+	 * @param \WP_Error $cart_errors List of errors in the cart.
+	 * @param \WC_Cart  $cart Cart object.
+	 */
+	public function add_api_cart_errors( $cart_errors, $cart ) {
+
+		if ( WC_Connect_Functions::is_store_api_call() ) {
+			return;
+		}
+
+		$all_notices = wc_get_notices();
+
+		$notices = array();
+		foreach ( $all_notices as $type => $type_notices ) {
+			if ( is_array( $type_notices ) && 'error' === $type ) {
+				$notices = array_merge( $notices, $type_notices );
+			}
+		}
+
+		$added_notices = array();
+		if ( ! empty( $notices ) ) {
+			$i = 1;
+			foreach ( $notices as $notice ) {
+				if ( ! in_array( $notice['notice'], $added_notices ) ) {
+					$added_notices[] = $notice['notice'];
+					$cart_errors->add( 'notice_' . $i, $notice['notice'] );
+					$i++;
+				}
+			}
+		}
 	}
 }
