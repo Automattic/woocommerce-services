@@ -79,6 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.3.5 - 2023-xx-xx =
+* Fix   - Deprecation notices for PHP 8.2.
 * Tweak - Move Jetpack Connection requirement to the top in FAQ.
 
 = 2.3.4 - 2023-09-05 =
