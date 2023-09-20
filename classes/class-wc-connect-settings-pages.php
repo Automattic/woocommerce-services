@@ -4,6 +4,16 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 	class WC_Connect_Settings_Pages {
 		/**
+		 * @var string
+		 */
+		public $id;
+
+		/**
+		 * @var string
+		 */
+		public $label;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Store
 		 */
 		protected $service_schemas_store;

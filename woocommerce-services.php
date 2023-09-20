@@ -203,6 +203,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected static $wcs_version;
 
+		/**
+		 * @var WC_Connect_Tracks
+		 */
+		protected $tracks;
+
+		/**
+		 * @var WC_Connect_Label_Reports
+		 */
+		protected $label_reports;
+
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 		}
