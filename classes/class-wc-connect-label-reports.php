@@ -182,10 +182,16 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 									<?php echo esc_html( get_date_from_gmt( date( 'Y-m-d H:i:s', $label['created'] / 1000 ) ) ); ?>
 								</th>
 								<td>
-									<?php echo esc_html( $this->get_edit_order_link( $label['order_id'] ) ); ?>
+									<?php echo wp_kses( $this->get_edit_order_link( $label['order_id'] ),
+										array(
+											'a' => array(
+												'href'   => array()
+											),
+										)
+									); ?>
 								</td>
 								<td>
-									<?php echo esc_html( wc_price( $label['rate'] ) ); ?>
+									<?php echo wp_kses_post( wc_price( $label['rate'] ) ); ?>
 								</td>
 								<td>
 									<?php echo esc_html( $label['service_name'] ); ?>
@@ -208,7 +214,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 								<?php echo count( $labels ); ?>
 							</th>
 							<th>
-								<?php echo esc_html( wc_price( $total ) ); ?>
+								<?php echo wp_kses_post( wc_price( $total ) ); ?>
 							</th>
 							<th></th>
 							<th></th>

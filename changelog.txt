@@ -3,6 +3,12 @@
 = 2.4.0 - 2023-xx-xx =
 * Add - Ability to connect to the server infrastructure without the Jetpack plugin.
 
+= 2.3.5 - 2023-09-20 =
+* Tweak - Move Jetpack Connection requirement to the top in FAQ.
+
+= 2.3.4 - 2023-09-05 =
+* Fix - Shipping label reports to display proper HTML.
+
 = 2.3.3 - 2023-08-22 =
 * Tweak - Update .org assets.
 
