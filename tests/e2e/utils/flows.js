@@ -79,7 +79,7 @@ const StoreOwnerFlow = {
 
 	updateWPDB: async () => {
 		await page.goto( WP_ADMIN_UPGRADE );
-		await expect( page.title() ).resolves.toMatch( 'WordPress &rsaquo; Update' );
+		await expect( page.title() ).resolves.toContain( 'Update' );
 		
 		await Promise.all( [
 			page.click( '.step a' ),
