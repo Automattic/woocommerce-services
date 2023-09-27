@@ -83,7 +83,7 @@ const StoreOwnerFlow = {
 		
 		await Promise.all( [
 			page.click( '.step a' ),
-			page.waitForSelector( 'body' ),
+			page.waitForNavigation(),
 		] );
 	},
 
