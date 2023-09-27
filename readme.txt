@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.3
 WC requires at least: 3.6
 WC tested up to: 8.0
-Stable tag: 2.3.4
+Stable tag: 2.3.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,10 @@ This section describes how to install the plugin and get it working.
 
 == Frequently Asked Questions ==
 
+= Why is a Jetpack Connection and WordPress.com account required? =
+
+We use the Jetpack connection to authenticate each request and, if you use the shipping label service, to charge your credit card on file.
+
 = What services are included? =
 
 * USPS and DHL label purchase/printing
@@ -53,10 +57,6 @@ Yes! You can buy and print USPS shipping labels for domestic destinations and US
 = This works with WooCommerce, right? =
 
 Yep! WooCommerce version 3.0 or newer, please.
-
-= Why is a Jetpack Connection and WordPress.com account required? =
-
-We use the Jetpack connection to authenticate each request and, if you use the shipping label service, to charge your credit card on file.
 
 = Are there Terms of Service and data usage policies? =
 
@@ -77,6 +77,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.3.5 - 2023-09-20 =
+* Tweak - Move Jetpack Connection requirement to the top in FAQ.
 
 = 2.3.4 - 2023-09-05 =
 * Fix - Shipping label reports to display proper HTML.
