@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.6 - 2023-xx-xx =
+* Fix - Occasionally block user to checkout when using WooCommerce Blocks.
+
 = 2.3.5 - 2023-09-20 =
 * Tweak - Move Jetpack Connection requirement to the top in FAQ.
 
