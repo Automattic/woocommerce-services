@@ -80,6 +80,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = 2.3.6 - 2023-xx-xx =
 * Fix - Occasionally block user to checkout when using WooCommerce Blocks.
+* Fix - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
 
 = 2.3.5 - 2023-09-20 =
 * Tweak - Move Jetpack Connection requirement to the top in FAQ.
