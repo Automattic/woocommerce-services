@@ -5,8 +5,8 @@ const adminUserName = process.env.WORDPRESS_DB_USER || defaultConfig.users.admin
 const adminUserPassword = process.env.WORDPRESS_DB_PASSWORD || defaultConfig.users.admin.password;
 
 const WP_ADMIN_LOGIN = baseUrl + '/wp-login.php';
+const WP_ADMIN_UPGRADE = baseUrl + '/wp-admin/upgrade.php';
 const WP_ADMIN_PLUGINS_PAGE = baseUrl + '/wp-admin/plugins.php';
-const WP_ADMIN_ORDERS_PAGE = baseUrl + '/wp-admin/edit.php?post_type=shop_order';
 const WP_ADMIN_EDIT_ORDER_PAGE = function( orderId ) {
 	return baseUrl + `/wp-admin/post.php?post=${ orderId }&action=edit`;
 };
@@ -74,6 +74,16 @@ const StoreOwnerFlow = {
 		await Promise.all( [
 			page.waitForNavigation( { waitUntil: 'networkidle0' } ),
 			page.click( 'a' ),
+		] );
+	},
+
+	updateWPDB: async () => {
+		await page.goto( WP_ADMIN_UPGRADE );
+		await expect( page.title() ).resolves.toContain( 'Update' );
+		
+		await Promise.all( [
+			page.click( '.step a' ),
+			page.waitForNavigation(),
 		] );
 	},
 

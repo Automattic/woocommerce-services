@@ -12,13 +12,19 @@ function jetpack_tracks_record_event() {
 	return func_get_args();
 }
 
-class Jetpack_Options {
-	static function get_option( $option ) {
-		switch ( $option ) {
-			case 'id':
-				return 12345;
-			default:
-				return false;
+if ( version_compare( WC()->version, '7.9.0', '<' ) || ! class_exists( 'Jetpack_Options' ) ) {
+	class Jetpack_Options {
+		static function get_option( $option ) {
+			switch ( $option ) {
+				case 'id':
+					return 12345;
+				default:
+					return false;
+			}
+		}
+
+		public function isMock() {
+			return true;
 		}
 	}
 }
