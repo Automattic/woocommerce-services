@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.3.6 - 2023-xx-xx =
+= 2.3.6 - 2023-10-10 =
 * Fix - Occasionally block user to checkout when using WooCommerce Blocks.
 * Fix - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
 
