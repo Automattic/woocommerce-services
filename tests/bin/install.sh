@@ -189,7 +189,6 @@ define( 'WP_DEBUG_LOG', true );
 PHP
 		php wp-cli.phar core install --url="$WP_SITE_URL" --title="E2E Woo Services Test Site" --admin_user=admin --admin_password=password --admin_email=admin@e2ewootestsite.com --path=$WP_CORE_DIR
 		php wp-cli.phar plugin install woocommerce --activate
-		php wp-cli.phar plugin install jetpack --activate
 		php wp-cli.phar user create customer customer@e2ewootestsite.com --user_pass=customer_password --role=customer --path=$WP_CORE_DIR
 
 		# Copying contents of services branch manually, since unable to download a private repo zip
