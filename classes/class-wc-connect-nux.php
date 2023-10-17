@@ -577,7 +577,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 							printf(
 								wp_kses(
-									__( 'By clicking "%1$s", you agree to the <a href="%2$s">Terms of Service</a> and to <a href="%3$s">share certain data and settings</a> with WordPress.com and/or third parties.', 'woocommerce-services' ),
+									__( 'By clicking "%1$s", you agree to our <a href="%2$s">Terms of Service</a> and have read our <a href="%3$s">Privacy Policy</a>.', 'woocommerce-services' ),
 									array(
 										'a' => array(
 											'href' => array(),
@@ -586,7 +586,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 								),
 								esc_html( $content['button_text'] ),
 								'https://wordpress.com/tos/',
-								'https://jetpack.com/support/what-data-does-jetpack-sync/'
+								'https://automattic.com/privacy/'
 							);
 							?>
 						</p>
