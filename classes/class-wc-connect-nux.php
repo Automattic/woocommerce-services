@@ -453,7 +453,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
 				'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
@@ -532,12 +532,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your store you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 
 			$this->show_nux_banner(
 				array(
-					'title'             => __( 'Connect your store to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
 					'description'       => esc_html( sprintf( $description_base, $feature_list ) ),
 					'button_text'       => __( 'Connect', 'woocommerce-services' ),
 					'button_link'       => add_query_arg(
