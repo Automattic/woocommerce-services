@@ -29,7 +29,7 @@ class WC_Connect_Account_Settings {
 		}
 
 		$master_user     = WC_Connect_Jetpack::get_connection_owner();
-		$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+		$connected_data  = WC_Connect_Jetpack::get_connected_user_data();
 		$last_box_id     = get_user_meta( get_current_user_id(), 'wc_connect_last_box_id', true );
 		$last_box_id     = $last_box_id === 'individual' ? '' : $last_box_id;
 		$last_service_id = get_user_meta( get_current_user_id(), 'wc_connect_last_service_id', true );

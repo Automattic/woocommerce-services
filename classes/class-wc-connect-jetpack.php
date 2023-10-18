@@ -71,8 +71,14 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			return false;
 		}
 
-		public static function get_connected_user_data( $user_id ) {
-			return self::get_connection_manager()->get_connected_user_data( $user_id );
+		public static function get_connected_user_data() {
+			$connection_owner_user_id = self::get_connection_manager()->get_connection_owner()->ID;
+
+			if ( ! $connection_owner_user_id ) {
+				return false;
+			}
+
+			return self::get_connection_manager()->get_connected_user_data( $connection_owner_user_id );
 		}
 
 		/**
