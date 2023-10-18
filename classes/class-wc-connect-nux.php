@@ -215,21 +215,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
-		/**
-		 * Check that the current user is the owner of the Jetpack connection
-		 * - Only that person can accept the TOS
-		 *
-		 * @return bool
-		 * @uses self::get_jetpack_install_status()
-		 */
-		public function can_accept_tos() {
-			if ( WC_Connect_Jetpack::is_offline_mode() ) {
-				return false;
-			}
-
-			return WC_Connect_Jetpack::is_current_user_connection_owner();
-		}
-
 		public static function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
 				return false;
@@ -395,7 +380,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				array(
 					'jetpack_connection_status'       => $jetpack_install_status,
 					'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
-					'can_accept_tos'                  => $this->can_accept_tos(),
+					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner(),
 					'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
 				)
 			);
