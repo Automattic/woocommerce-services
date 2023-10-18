@@ -86,7 +86,6 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			}
 
 			return self::get_connection_manager()->get_connection_owner();
-
 		}
 
 		public static function is_current_user_connection_owner() {

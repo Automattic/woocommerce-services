@@ -78,9 +78,12 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 			$health_items['woocommerce'] = $health_item;
 
-			// WordPress.com connection
-			$is_connected = WC_Connect_Jetpack::is_connected() || WC_Connect_Jetpack::is_offline_mode();
-			if ( ! $is_connected ) {
+			if ( WC_Connect_Jetpack::is_offline_mode() ) {
+				$health_item = array(
+					'state'   => 'warning',
+					'message' => __( 'This site is working in offline mode. This mode is activated when running the site on a local machine or if developer mode is enabled', 'woocommerce-services' ),
+				);
+			} elseif ( ! WC_Connect_Jetpack::is_connected() ) {
 				$health_item = array(
 					'state'   => 'error',
 					'message' => __( 'Not connected to WordPress.com', 'woocommerce-services' ),
