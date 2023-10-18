@@ -230,9 +230,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return true;
 			}
 
-			$can_accept = WC_Connect_Jetpack::is_current_user_connected();
-
-			return $can_accept;
+			return WC_Connect_Jetpack::is_current_user_connection_owner();
 		}
 
 		public static function get_banner_type_to_display( $status = array() ) {

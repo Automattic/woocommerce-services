@@ -94,10 +94,6 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			return self::get_connection_manager()->get_connection_owner();
 		}
 
-		public static function is_current_user_connection_owner() {
-			return self::get_connection_manager()->is_connection_owner();
-		}
-
 		/**
 		 * Records a Tracks event
 		 *
@@ -112,12 +108,12 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Determines if the current user is connected to Jetpack
+		 * Determines if the current user is the site's Jetpack connection owner.
 		 *
-		 * @return bool Whether or nor the current user is connected to Jetpack
+		 * @return bool Whether the current user is the Jetpack connection owner.
 		 */
-		public static function is_current_user_connected() {
-			return self::get_connection_manager()->is_user_connected();
+		public static function is_current_user_connection_owner() {
+			return self::get_connection_manager()->is_connection_owner();
 		}
 
 		/**
