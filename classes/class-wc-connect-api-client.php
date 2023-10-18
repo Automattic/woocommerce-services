@@ -519,14 +519,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error(
 					'missing_token',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. Jetpack Token is missing', 'woocommerce-services' )
+					__( 'Unable to send request to WooCommerce Shipping & Tax server. WordPress.com token is missing', 'woocommerce-services' )
 				);
 			}
 
 			if ( false === strpos( $token->secret, '.' ) ) {
 				return new WP_Error(
 					'invalid_token',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. Jetpack Token is malformed.', 'woocommerce-services' )
+					__( 'Unable to send request to WooCommerce Shipping & Tax server. WordPress.com token is malformed.', 'woocommerce-services' )
 				);
 			}
 
