@@ -7,11 +7,11 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 2.3.5
+ * Version: 2.3.6
  * Requires at least: 4.6
  * Tested up to: 6.3
  * WC requires at least: 3.6
- * WC tested up to: 8.0
+ * WC tested up to: 8.1
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -1103,7 +1103,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			foreach ( $packages as $package ) {
 				$shipping_methods  = WC()->shipping()->load_shipping_methods( $package );
 				$shipping_packages = WC()->shipping()->calculate_shipping_for_package( $package );
-				$shipping_rates    = $shipping_packages['rates'];
+
+				// Only process the valid shipping package.
+				if ( empty( $shipping_packages['rates'] ) || ! is_array( $shipping_packages['rates'] ) ) {
+					continue;
+				}
+
+				$shipping_rates = $shipping_packages['rates'];
 
 				$shipping_method_ids = array();
 				foreach ( $shipping_rates as $rate ) {

@@ -3,6 +3,10 @@
 = 2.4.0 - 2023-xx-xx =
 * Add - Ability to connect to the server infrastructure without the Jetpack plugin.
 
+= 2.3.6 - 2023-10-10 =
+* Fix - Occasionally block user to checkout when using WooCommerce Blocks.
+* Fix - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
+
 = 2.3.5 - 2023-09-20 =
 * Tweak - Move Jetpack Connection requirement to the top in FAQ.
 
