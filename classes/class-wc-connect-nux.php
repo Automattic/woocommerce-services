@@ -7,7 +7,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Jetpack status constants.
 		 */
 		const JETPACK_NOT_CONNECTED = 'not-connected';
-		const JETPACK_OFFLINE       = 'offline';
+		const JETPACK_OFFLINE_MODE  = 'offline-mode';
 		const JETPACK_CONNECTED     = 'connected';
 
 		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
@@ -275,7 +275,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		public function get_jetpack_install_status() {
 			if ( WC_Connect_Jetpack::is_offline_mode() ) {
 				// activated, and dev mode on
-				return self::JETPACK_OFFLINE;
+				return self::JETPACK_OFFLINE_MODE;
 			}
 
 			// dev mode off, check if connected
