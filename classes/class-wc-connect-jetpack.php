@@ -72,13 +72,13 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		public static function get_connection_owner_wpcom_data() {
-			$connection_owner_user_id = self::get_connection_manager()->get_connection_owner()->ID;
+			$connection_owner = self::get_connection_owner();
 
-			if ( ! $connection_owner_user_id ) {
+			if ( ! $connection_owner ) {
 				return false;
 			}
 
-			return self::get_connection_manager()->get_connected_user_data( $connection_owner_user_id );
+			return self::get_connection_manager()->get_connected_user_data( $connection_owner->ID );
 		}
 
 		/**
