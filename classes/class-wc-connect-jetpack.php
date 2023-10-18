@@ -158,5 +158,14 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		public static function get_jetpack_connection_package_version() {
 			return Package_Version::PACKAGE_VERSION;
 		}
+
+		/**
+		 * Get the WPCOM or self-hosted site ID.
+		 *
+		 * @return int|WP_Error
+		 */
+		public static function get_wpcom_site_id() {
+			return Manager::get_site_id();
+		}
 	}
 }
