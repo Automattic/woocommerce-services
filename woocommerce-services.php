@@ -562,17 +562,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
-			// Plugin should be enabled if dev mode or connected + TOS.
-			$jetpack_status       = $this->nux->get_jetpack_install_status();
-			$is_jetpack_connected = WC_Connect_Nux::JETPACK_CONNECTED === $jetpack_status;
-			$is_jetpack_dev_mode  = WC_Connect_Nux::JETPACK_DEV === $jetpack_status;
-
-			if ( ! $is_jetpack_connected && ! $is_jetpack_dev_mode ) {
+			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;
 			}
 
 			add_action( 'rest_api_init', array( $this, 'tos_rest_init' ) );
 
+			// The entire plugin should be enabled if dev mode or connected + TOS.
 			if ( ! $tos_accepted ) {
 				return;
 			}

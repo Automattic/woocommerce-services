@@ -7,7 +7,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Jetpack status constants.
 		 */
 		const JETPACK_NOT_CONNECTED = 'not-connected';
-		const JETPACK_DEV           = 'dev';
+		const JETPACK_OFFLINE       = 'offline';
 		const JETPACK_CONNECTED     = 'connected';
 
 		const IS_NEW_LABEL_USER = 'wcc_is_new_label_user';
@@ -223,11 +223,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * @uses self::get_jetpack_install_status()
 		 */
 		public function can_accept_tos() {
-			$jetpack_status = $this->get_jetpack_install_status();
-
-			// Developer case
-			if ( self::JETPACK_DEV === $jetpack_status ) {
-				return true;
+			if ( WC_Connect_Jetpack::is_offline_mode() ) {
+				return false;
 			}
 
 			return WC_Connect_Jetpack::is_current_user_connection_owner();
@@ -253,7 +250,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case self::JETPACK_NOT_CONNECTED:
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
-				case self::JETPACK_DEV:
 					// Has the user just gone through our NUX connection flow?
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
 						return 'after_jetpack_connection';
@@ -277,9 +273,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function get_jetpack_install_status() {
-			if ( defined( 'JETPACK_DEV_DEBUG' ) && true === JETPACK_DEV_DEBUG ) {
+			if ( WC_Connect_Jetpack::is_offline_mode() ) {
 				// activated, and dev mode on
-				return self::JETPACK_DEV;
+				return self::JETPACK_OFFLINE;
 			}
 
 			// dev mode off, check if connected

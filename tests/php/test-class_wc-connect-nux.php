@@ -10,7 +10,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE,
 					'tos_accepted'                    => false,
 					'can_accept_tos'                  => false,
 					'should_display_after_cxn_banner' => false,
@@ -22,7 +22,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE,
 					'tos_accepted'                    => true,
 					'can_accept_tos'                  => null, // irrelevant here, TOS is accepted (DEV)
 					'should_display_after_cxn_banner' => false,
@@ -34,7 +34,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE,
 					'tos_accepted'                    => false,
 					'can_accept_tos'                  => null, // irrelevant here, TOS will be accepted in "after" banner
 					'should_display_after_cxn_banner' => true,
@@ -46,7 +46,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE,
 					'tos_accepted'                    => true,
 					'can_accept_tos'                  => false,
 					'should_display_after_cxn_banner' => true,
@@ -58,7 +58,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_DEV,
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE,
 					'tos_accepted'                    => false,
 					'can_accept_tos'                  => true,
 					'should_display_after_cxn_banner' => false,
