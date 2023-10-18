@@ -155,6 +155,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			exit;
 		}
 
+		/**
+		 * Jetpack Connection package version.
+		 *
+		 * @return string
+		 */
 		public static function get_jetpack_connection_package_version() {
 			return Package_Version::PACKAGE_VERSION;
 		}
