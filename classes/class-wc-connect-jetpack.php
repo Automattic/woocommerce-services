@@ -117,7 +117,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
-		 * Determines if both the blog and user are connected to Jetpack.
+		 * Determines if both the blog and a blog owner account are connected to Jetpack.
 		 *
 		 * @return bool Whether or nor Jetpack is connected
 		 */
