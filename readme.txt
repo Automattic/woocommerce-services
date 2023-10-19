@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.3
 WC requires at least: 3.6
 WC tested up to: 8.0
-Stable tag: 2.3.5
+Stable tag: 2.3.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,8 +78,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.3.6 - 2023-xx-xx =
+= 2.3.7 - 2023-xx-xx =
 * Add - Load Sift when printing a label.
+
+= 2.3.6 - 2023-10-10 =
+* Fix - Occasionally block user to checkout when using WooCommerce Blocks.
+* Fix - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
 
 = 2.3.5 - 2023-09-20 =
 * Tweak - Move Jetpack Connection requirement to the top in FAQ.
