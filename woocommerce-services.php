@@ -1595,19 +1595,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return  void
 		 */
 		public function add_sift_js_tracker() {
+			$sift_configurations = $this->api_client->get_sift_configurations();
 			$master_user     = WC_Connect_Jetpack::get_master_user();
 			$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
 
-			// TODO: We need to get these from connect server
-			$fraud_config = [
-				'beacon_key' => 'asdasd',
-				'user_id' => $connected_data['ID']
-			];
-
-			if ( empty( $fraud_config ) ) {
-				// Abort if Sift is not enabled for this account.
+			if ( is_wp_error( $sift_configurations ) || empty( $sift_configurations->beacon_key ) || empty( $connected_data['ID'] ) ) {
+				// Don't add sift tracking if we can't have the parameters to initialize Sift
 				return;
 			}
+
+			$fraud_config = [
+				'beacon_key' => $sift_configurations->beacon_key,
+				'user_id' => $connected_data['ID']
+			];
 
 			?>
 			<script type="text/javascript">
