@@ -235,6 +235,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				case self::JETPACK_NOT_CONNECTED:
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
+				case self::JETPACK_OFFLINE_MODE:
 					// Has the user just gone through our NUX connection flow?
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
 						return 'after_jetpack_connection';
@@ -380,7 +381,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				array(
 					'jetpack_connection_status'       => $jetpack_install_status,
 					'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
-					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner(),
+					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode(),
 					'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
 				)
 			);
