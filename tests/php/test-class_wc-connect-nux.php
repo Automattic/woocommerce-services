@@ -40,7 +40,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 					'should_display_after_cxn_banner' => true,
 				)
 			),
-			false
+			'after_jetpack_connection'
 		);
 
 		$this->assertEquals(
@@ -52,7 +52,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 					'should_display_after_cxn_banner' => true,
 				)
 			),
-			false
+			'after_jetpack_connection'
 		);
 
 		$this->assertEquals(
@@ -64,7 +64,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 					'should_display_after_cxn_banner' => false,
 				)
 			),
-			false
+			'tos_only_banner'
 		);
 	}
 
