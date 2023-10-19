@@ -1,7 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
 = 2.4.0 - 2023-xx-xx =
-* Add - Ability to connect to the server infrastructure without the Jetpack plugin.
+* Add - Ability to connect to WordPress.com without the Jetpack plugin.
 
 = 2.3.6 - 2023-10-10 =
 * Fix - Occasionally block user to checkout when using WooCommerce Blocks.
