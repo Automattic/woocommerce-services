@@ -32,6 +32,7 @@ jobs:
             echo "::endgroup::"
       - name: Build WCS&T
         run: |
+            composer install
             npm ci
             npm run dist
       - name: Setup E2E container
