@@ -1614,10 +1614,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			$fraud_config = [
+			$fraud_config = array(
 				'beacon_key' => $sift_configurations->beacon_key,
-				'user_id' => $connected_data['ID']
-			];
+				'user_id'    => $connected_data['ID']
+			);
 
 			?>
 			<script type="text/javascript">
