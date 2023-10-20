@@ -1601,7 +1601,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return  void
 		 */
 		public function add_sift_js_tracker() {
-			$sift_configurations = $this->api_client->get_sift_configurations();
+			$sift_configurations = $this->api_client->get_sift_configuration();
 			$master_user     = WC_Connect_Jetpack::get_master_user();
 			$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
 

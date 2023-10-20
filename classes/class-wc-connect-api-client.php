@@ -206,7 +206,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *
 		 * @return object|WP_Error
 		 */
-		public function get_sift_configurations() {
+		public function get_sift_configuration() {
 			return $this->request( 'GET', '/payment/sift' );
 		}
 
