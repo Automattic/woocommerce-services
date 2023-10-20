@@ -818,7 +818,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
-			add_action( 'admin_print_footer_scripts', [ $this, 'add_sift_js_tracker' ] );
+			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
