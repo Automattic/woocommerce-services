@@ -98,6 +98,7 @@
     "@wordpress/base-styles": "^3.3.0",
     "@wordpress/components": "^11.1.5",
     "@wordpress/element": "^2.19.1",
+    "@wordpress/i18n": "^4.44.0",
     "autoprefixer": "^6.7.4",
     "babel-eslint": "10.0.1",
     "babel-loader": "8.0.4",
