@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.7 - 2023-xx-xx =
+* Add - Load Sift when printing a label.
+
 = 2.3.6 - 2023-10-10 =
 * Fix - Occasionally block user to checkout when using WooCommerce Blocks.
 * Fix - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
