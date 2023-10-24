@@ -3,7 +3,7 @@
  * External dependencies
  */
 import jQuery from 'jquery';
-import { __ } from '@wordpress/i18n';
+import { translate as __ } from 'i18n-calypso';
 import { Button, Modal } from '@wordpress/components';
 import ReactDOM from "react-dom";
 import React from "react";
@@ -57,22 +57,22 @@ const App = () => {
 	return (
 		isVisible && (
 			<Modal onRequestClose={ () => setIsVisible( false ) }
-				   title={ __( 'WooCommerce Shipping & Tax has been disconnected', 'woocommerce-services' ) }
+				   title={ __( 'WooCommerce Shipping & Tax is no longer working!' ) }
 				   style={ { maxWidth: '600px' } }
 			>
 				<p>
-					{ __( 'We have noticed you have just uninstalled Jetpack.', 'woocommerce-services' ) }
+					{ __( 'Jetpack has been uninstalled.' ) }
 				</p>
 
 				<p>
-					{ __( 'Although WooCommerce Shipping & Tax no longer requires Jetpack, uninstalling the Jetpack plugin removes the connection to WordPress.com that WooCommerce Shipping & Tax depends on to function.', 'woocommerce-services' ) }
+					{ __( 'Although WooCommerce Shipping & Tax no longer requires Jetpack, uninstalling the Jetpack plugin removes the connection to WordPress.com that WooCommerce Shipping & Tax depends on to function.' ) }
 				</p>
 
 				<p>
-					{ __( 'To continue using WooCommerce Shipping & Tax, please reconnect your site.', 'woocommerce-services' ) }
+					{ __( 'To continue using WooCommerce Shipping & Tax, please re-connect to WordPress.com without having the Jetpack plugin installed.' ) }
 				</p>
 
-				<Button isPrimary onClick={ handleClick }>{ __( 'Reconnect', 'woocommerce-services' ) }</Button>
+				<Button isPrimary onClick={ handleClick }>{ __( 'Reconnect' ) }</Button>
 			</Modal>
 		)
 	);
