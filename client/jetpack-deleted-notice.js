@@ -69,7 +69,7 @@ const App = () => {
 				</p>
 
 				<p>
-					{ __( 'To continue using WooCommerce Shipping & Tax, please re-connect to WordPress.com without having the Jetpack plugin installed.' ) }
+					{ __( 'To continue using WooCommerce Shipping & Tax, please re-connect to WordPress.com without re-installing Jetpack.' ) }
 				</p>
 
 				<Button isPrimary onClick={ handleClick }>{ __( 'Reconnect' ) }</Button>
