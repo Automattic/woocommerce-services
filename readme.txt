@@ -1,11 +1,11 @@
 === WooCommerce Shipping & Tax ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
-Requires PHP: 5.6
-Requires at least: 4.6
+Requires PHP: 7.3
+Requires at least: 6.2
 Tested up to: 6.3
-WC requires at least: 3.6
-WC tested up to: 8.0
+WC requires at least: 8.0
+WC tested up to: 8.2
 Stable tag: 2.3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
