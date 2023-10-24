@@ -8,10 +8,10 @@
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
  * Version: 2.3.7
- * Requires at least: 4.6
+ * Requires at least: 6.2
  * Tested up to: 6.3
- * WC requires at least: 3.6
- * WC tested up to: 8.1
+ * WC requires at least: 8.0
+ * WC tested up to: 8.2
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -1602,12 +1602,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function add_sift_js_tracker() {
 			$sift_configurations = $this->api_client->get_sift_configuration();
-			$master_user     = WC_Connect_Jetpack::get_master_user();
+			$master_user         = WC_Connect_Jetpack::get_master_user();
 			if ( ! $master_user ) {
 				return;
 			}
 
-			$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+			$connected_data = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
 
 			if ( is_wp_error( $sift_configurations ) || empty( $sift_configurations->beacon_key ) || empty( $connected_data['ID'] ) ) {
 				// Don't add sift tracking if we can't have the parameters to initialize Sift
@@ -1616,7 +1616,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$fraud_config = array(
 				'beacon_key' => $sift_configurations->beacon_key,
-				'user_id'    => $connected_data['ID']
+				'user_id'    => $connected_data['ID'],
 			);
 
 			?>
