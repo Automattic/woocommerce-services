@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 2.4.0 - 2023-xx-xx =
+* Update - Bump supported WC versions to L-2, and WP and PHP versions to WC L-2's requirements.
+
 = 2.3.7 - 2023-10-23 =
 * Add - Load Sift when printing a label.
 
