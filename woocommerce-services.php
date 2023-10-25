@@ -1596,12 +1596,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function add_sift_js_tracker() {
 			$sift_configurations = $this->api_client->get_sift_configuration();
-			$master_user     = WC_Connect_Jetpack::get_master_user();
-			if ( ! $master_user ) {
-				return;
-			}
 
-			$connected_data  = WC_Connect_Jetpack::get_connected_user_data( $master_user->ID );
+			$connected_data  = WC_Connect_Jetpack::get_connection_owner_wpcom_data();
 
 			if ( is_wp_error( $sift_configurations ) || empty( $sift_configurations->beacon_key ) || empty( $connected_data['ID'] ) ) {
 				// Don't add sift tracking if we can't have the parameters to initialize Sift
