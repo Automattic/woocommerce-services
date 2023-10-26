@@ -323,14 +323,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'product' === $screen->post_type
 					&& 'edit' === $screen->base
 				)
-				|| ( // Orders list.
+				|| ( // Orders list and edit order page when not using HPOS.
 					'shop_order' === $screen->post_type
-					&& 'edit' === $screen->base
+					&& in_array( $screen->base, array( 'edit', 'post' ), true )
 					)
-				|| ( // Edit order page.
-					'shop_order' === $screen->post_type
-					&& 'post' === $screen->base
-					)
+				|| ( // Orders list and edit order page when using HPOS.
+					wc_get_page_screen_id( 'shop_order' ) === $screen->id
+				)
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
 					)
