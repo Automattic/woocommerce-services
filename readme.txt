@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.3.8 - 2023-xx-xx =
+* Fix - NUX banner display on Edit Order pages.
+
 = 2.3.7 - 2023-10-23 =
 * Add - Load Sift when printing a label.
 
