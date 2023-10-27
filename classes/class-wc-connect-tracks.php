@@ -66,14 +66,7 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		}
 
 		public function record_user_event( $event_type, $data = array() ) {
-			if ( ! function_exists( 'jetpack_tracks_record_event' ) && ! class_exists( 'Automattic\\Jetpack\\Tracking' ) ) {
-				$this->debug( 'Error. jetpack_tracks_record_event is not defined.' );
-				return;
-			}
-			$user     = wp_get_current_user();
-			$site_url = get_option( 'siteurl' );
-
-			$wcs_version = WC_Connect_Loader::get_wcs_version();
+			$user = wp_get_current_user();
 
 			// Check for WooCommerce
 			$wc_version = 'unavailable';
@@ -81,16 +74,9 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 				$wc_version = WC()->version;
 			}
 
-			// Check for Jetpack
-			$jp_version = 'unavailable';
-			if ( defined( 'JETPACK__VERSION' ) ) {
-				$jp_version = JETPACK__VERSION;
-			}
-			$is_atomic = WC_Connect_Jetpack::is_atomic_site();
-
-			$jetpack_blog_id = -1;
-			if ( class_exists( 'Jetpack_Options' ) && method_exists( 'Jetpack_Options', 'get_option' ) ) {
-				$jetpack_blog_id = Jetpack_Options::get_option( 'id' );
+			$jetpack_blog_id = WC_Connect_Jetpack::get_wpcom_site_id();
+			if ( $jetpack_blog_id instanceof WP_Error ) {
+				$jetpack_blog_id = -1;
 			}
 
 			if ( ! is_array( $data ) ) {
@@ -100,11 +86,11 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			$data['_via_ua']         = isset( $_SERVER['HTTP_USER_AGENT'] ) ? wc_clean( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 			$data['_via_ip']         = isset( $_SERVER['REMOTE_ADDR'] ) ? wc_clean( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 			$data['_lg']             = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? wc_clean( wp_unslash( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) : '';
-			$data['blog_url']        = $site_url;
+			$data['blog_url']        = get_option( 'siteurl' );
 			$data['blog_id']         = $jetpack_blog_id;
-			$data['wcs_version']     = $wcs_version;
-			$data['jetpack_version'] = $jp_version;
-			$data['is_atomic']       = $is_atomic;
+			$data['wcs_version']     = WC_Connect_Loader::get_wcs_version();
+			$data['jetpack_version'] = 'embed-' . WC_Connect_Jetpack::get_jetpack_connection_package_version();
+			$data['is_atomic']       = WC_Connect_Jetpack::is_atomic_site();
 			$data['wc_version']      = $wc_version;
 			$data['wp_version']      = get_bloginfo( 'version' );
 

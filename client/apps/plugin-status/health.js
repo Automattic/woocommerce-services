@@ -25,9 +25,9 @@ const HealthView = ( { translate, healthItems } ) => {
 				state={healthItems.woocommerce.state}
 			/>
 			<Indicator
-				title={translate('Jetpack')}
-				state={healthItems.jetpack.state}
-				message={healthItems.jetpack.message}
+				title={translate('WordPress.com Connection')}
+				state={healthItems.wpcom_connection.state}
+				message={healthItems.wpcom_connection.message}
 			/>
 			<Indicator
 				title={translate('Automated Taxes')}

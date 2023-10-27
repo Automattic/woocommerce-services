@@ -17,20 +17,6 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 		protected function request( $method, $path, $body = array() ) {
 
 			// TODO - incorporate caching for repeated identical requests
-			if ( ! class_exists( '\Automattic\Jetpack\Connection\Manager' ) && ! class_exists( '\Automattic\Jetpack\Connection\Tokens' ) ) {
-				return new WP_Error(
-					'jetpack_data_class_not_found',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. Jetpack_Data was not found.', 'woocommerce-services' )
-				);
-			}
-
-			if ( ! method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_access_token' ) && ! method_exists( '\Automattic\Jetpack\Connection\Tokens', 'get_access_token' ) ) {
-				return new WP_Error(
-					'jetpack_data_get_access_token_not_found',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. Jetpack connection does not implement get_access_token.', 'woocommerce-services' )
-				);
-			}
-
 			if ( ! is_array( $body ) ) {
 				return new WP_Error(
 					'request_body_should_be_array',

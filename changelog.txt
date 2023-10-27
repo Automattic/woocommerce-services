@@ -1,6 +1,7 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.3.8 - 2023-xx-xx =
+= 2.4.0 - 2023-xx-xx =
+* Add - Ability to connect to WordPress.com without the Jetpack plugin.
 * Fix - NUX banner display on Edit Order pages.
 
 = 2.3.7 - 2023-10-23 =

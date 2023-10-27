@@ -112,10 +112,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function can_user_manage_payment_methods() {
-			global $current_user;
-			$master_user = WC_Connect_Jetpack::get_master_user();
-			return WC_Connect_Jetpack::is_development_mode() ||
-				( is_a( $master_user, 'WP_User' ) && $current_user->ID === $master_user->ID );
+			return WC_Connect_Jetpack::is_offline_mode() || WC_Connect_Jetpack::is_current_user_connection_owner();
 		}
 
 		public function get_origin_address() {

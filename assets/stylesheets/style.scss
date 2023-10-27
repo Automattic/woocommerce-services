@@ -43,7 +43,7 @@
 			text-shadow: none !important;
 		}
 		//wp-admin styles override the disabled button with !important, so need to do the same here
-		
+
 		&.is-busy {
 			background-size: 120px 100% !important;
 			background-image: linear-gradient(
@@ -268,8 +268,6 @@
 }
 
 .wc-connect-admin-dev-notice {
-	width: 700px;
-
 	p {
 		font-style: italic;
 		color: var( --color-neutral-light );

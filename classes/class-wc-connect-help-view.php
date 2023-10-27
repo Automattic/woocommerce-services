@@ -78,49 +78,28 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 			$health_items['woocommerce'] = $health_item;
 
-			// Jetpack
-			// Only one of the following should present
-			// Check that Jetpack is active
-			// Check that Jetpack is connected
-			include_once ABSPATH . 'wp-admin/includes/plugin.php'; // required for is_plugin_active
-			$is_connected = WC_Connect_Jetpack::is_active() || WC_Connect_Jetpack::is_development_mode();
-			if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
+			if ( WC_Connect_Jetpack::is_offline_mode() ) {
 				$health_item = array(
-					'state'   => 'error',
-					'message' => sprintf(
-						__( 'Please install and activate the Jetpack plugin, version %s or higher', 'woocommerce-services' ),
-						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION
-					),
+					'state'   => 'warning',
+					'message' => __( 'This site is working in offline mode. This mode is activated when running the site on a local machine or if developer mode is enabled', 'woocommerce-services' ),
 				);
-			} elseif ( version_compare( JETPACK__VERSION, WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION, '<' ) ) {
+			} elseif ( ! WC_Connect_Jetpack::is_connected() ) {
 				$health_item = array(
 					'state'   => 'error',
-					'message' => sprintf(
-						__( 'Jetpack %1$s or higher is required (You are running %2$s)', 'woocommerce-services' ),
-						WOOCOMMERCE_CONNECT_MINIMUM_JETPACK_VERSION,
-						JETPACK__VERSION
-					),
-				);
-			} elseif ( ! $is_connected ) {
-				$health_item = array(
-					'state'   => 'error',
-					'message' => __( 'Jetpack is not connected to WordPress.com. Make sure the Jetpack plugin is installed, activated, and connected.', 'woocommerce-services' ),
+					'message' => __( 'Not connected to WordPress.com', 'woocommerce-services' ),
 				);
 			} elseif ( WC_Connect_Jetpack::is_staging_site() ) {
 				$health_item = array(
 					'state'   => 'warning',
-					'message' => __( 'This is a Jetpack staging site', 'woocommerce-services' ),
+					'message' => __( 'This site was identified as a staging site', 'woocommerce-services' ),
 				);
 			} else {
 				$health_item = array(
 					'state'   => 'success',
-					'message' => sprintf(
-						__( 'Jetpack %s is connected and working correctly', 'woocommerce-services' ),
-						JETPACK__VERSION
-					),
+					'message' => __( 'Connected to WordPress.com', 'woocommerce-services' ),
 				);
 			}
-			$health_items['jetpack'] = $health_item;
+			$health_items['wpcom_connection'] = $health_item;
 
 			// Automated taxes status
 			$health_items['automated_taxes'] = $this->get_tax_health_item();
