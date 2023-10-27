@@ -6,7 +6,7 @@ Requires at least: 4.6
 Tested up to: 6.3
 WC requires at least: 3.6
 WC tested up to: 8.0
-Stable tag: 2.3.6
+Stable tag: 2.3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,15 +34,15 @@ This section describes how to install the plugin and get it working.
 1. Upload the plugin files to the `/wp-content/plugins/plugin-name` directory, or install the plugin through the WordPress plugins screen directly.
 1. Activate the plugin through the 'Plugins' screen in WordPress
 1. Install and activate WooCommerce if you haven't already done so
-1. Install, activate and connect Jetpack if you haven't already done so
+1. Install, activate and connect to your WordPress.com account if you haven't already done so
 1. Want to buy shipping labels? First, add your credit card to https://wordpress.com/me/purchases/billing and then print labels for orders right from the Edit Order page
 1. Enable automated taxes from WooCommerce > Settings > Tax (make sure "enable taxes" is checked in General settings first)
 
 == Frequently Asked Questions ==
 
-= Why is a Jetpack Connection and WordPress.com account required? =
+= Why is a WordPress.com account connection required? =
 
-We use the Jetpack connection to authenticate each request and, if you use the shipping label service, to charge your credit card on file.
+We connect to your WordPress.com account to authenticate your site and user account so we can securely charge the payment method on file for any labels purchased.
 
 = What services are included? =
 
@@ -77,6 +77,13 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.4.0 - 2023-xx-xx =
+* Add - Ability to connect to WordPress.com without the Jetpack plugin.
+* Fix - NUX banner display on Edit Order pages.
+
+= 2.3.7 - 2023-10-23 =
+* Add - Load Sift when printing a label.
 
 = 2.3.6 - 2023-10-10 =
 * Fix - Occasionally block user to checkout when using WooCommerce Blocks.

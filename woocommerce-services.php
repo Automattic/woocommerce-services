@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 2.3.6
+ * Version: 2.3.7
  * Requires at least: 4.6
  * Tested up to: 6.3
  * WC requires at least: 3.6
@@ -820,6 +820,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
+			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1594,6 +1595,45 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
 			);
 			return $links;
+		}
+
+		/**
+		 * Adds the Sift JS page tracker if needed. See the comments for the detailed logic.
+		 *
+		 * @return  void
+		 */
+		public function add_sift_js_tracker() {
+			$sift_configurations = $this->api_client->get_sift_configuration();
+
+			$connected_data  = WC_Connect_Jetpack::get_connection_owner_wpcom_data();
+
+			if ( is_wp_error( $sift_configurations ) || empty( $sift_configurations->beacon_key ) || empty( $connected_data['ID'] ) ) {
+				// Don't add sift tracking if we can't have the parameters to initialize Sift
+				return;
+			}
+
+			$fraud_config = array(
+				'beacon_key' => $sift_configurations->beacon_key,
+				'user_id'    => $connected_data['ID']
+			);
+
+			?>
+			<script type="text/javascript">
+				var src = 'https://cdn.sift.com/s.js';
+
+				var _sift = ( window._sift = window._sift || [] );
+				_sift.push( [ '_setAccount', '<?php echo esc_attr( $fraud_config['beacon_key'] ); ?>' ] );
+				_sift.push( [ '_setUserId', '<?php echo esc_attr( $fraud_config['user_id'] ); ?>' ] );
+				_sift.push( [ '_trackPageview' ] );
+
+				if ( ! document.querySelector( '[src="' + src + '"]' ) ) {
+					var script = document.createElement( 'script' );
+					script.src = src;
+					script.async = true;
+					document.body.appendChild( script );
+				}
+			</script>
+			<?php
 		}
 
 		public function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {

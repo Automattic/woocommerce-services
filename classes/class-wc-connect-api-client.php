@@ -204,6 +204,15 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * Retrieve Sift configurations.
+		 *
+		 * @return object|WP_Error
+		 */
+		public function get_sift_configuration() {
+			return $this->request( 'GET', '/payment/sift' );
+		}
+
+		/**
 		 * Gets shipping rates (for labels) from the WooCommerce Shipping & Tax Server
 		 *
 		 * @param array $request - array(
