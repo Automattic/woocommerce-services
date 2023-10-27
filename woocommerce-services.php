@@ -186,6 +186,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected $rest_tos_controller;
 
+		/**
+		 * @var WC_Connect_Jetpack_Deleted_Notice
+		 */
+		protected $jetpack_deleted_notice;
+
 		protected $services = array();
 
 		protected $service_object_cache = array();
@@ -567,6 +572,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'rest_api_init', array( $this, 'tos_rest_init' ) );
+			$this->jetpack_deleted_notice->register_hooks();
 
 			// The entire plugin should be enabled if dev mode or connected + TOS.
 			if ( ! $tos_accepted ) {
@@ -691,6 +697,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-continents.php';
 			require_once __DIR__ . '/classes/class-wc-connect-order-presenter.php';
 			require_once __DIR__ . '/classes/class-wc-connect-cart-validation.php';
+			require_once __DIR__ . '/classes/class-wc-connect-jetpack-deleted-notice.php';
 
 			$core_logger     = new WC_Logger();
 			$logger          = new WC_Connect_Logger( $core_logger );
@@ -732,6 +739,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_taxjar( $taxjar );
 			$this->set_paypal_ec( $paypal_ec );
 			$this->set_label_reports( $label_reports );
+			$this->jetpack_deleted_notice = new WC_Connect_Jetpack_Deleted_Notice( self::get_wc_connect_base_url() );
 
 			$cart_validation = new WC_Connect_Cart_Validation();
 			$cart_validation->register_filters();
