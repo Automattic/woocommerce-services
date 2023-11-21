@@ -1399,28 +1399,25 @@ class WC_Connect_TaxJar_Integration {
 	 * @return boolean
 	 */
 	public function on_order_page() {
-		return $this->on_new_order_page() || $this->on_edit_order_page();
-	}
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return false;
+		}
 
-	/**
-	 * Checks if currently on the WooCommerce new order page.
-	 *
-	 * @return boolean
-	 */
-	public function on_new_order_page() {
-		global $pagenow;
-		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' === $_GET['post_type'] );
-	}
+		$screen = get_current_screen();
+		if ( ! $screen || ! isset( $screen->id ) ) {
+			return false;
+		}
 
-	/**
-	 * Checks if currently on the WooCommerce edit order page.
-	 *
-	 * @return boolean
-	 */
-	public function on_edit_order_page() {
-		global $pagenow;
+		if ( ! function_exists( 'wc_get_page_screen_id' ) ) {
+			return false;
+		}
 
-		return ( in_array( $pagenow, array( 'post.php' ) ) && isset( $_GET['action'] ) && 'edit' === $_GET['action'] && 'shop_order' === get_post_type() );
+		$wc_order_screen_id = wc_get_page_screen_id( 'shop_order' );
+		if ( ! $wc_order_screen_id ) {
+			return false;
+		}
+
+		return $screen->id === $wc_order_screen_id;
 	}
 
 	/**
