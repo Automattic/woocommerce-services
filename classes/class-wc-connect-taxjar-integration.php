@@ -1394,13 +1394,33 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Checks if currently on the WooCommerce new order page
+	 * Checks if currently on the WooCommerce order page.
 	 *
 	 * @return boolean
 	 */
 	public function on_order_page() {
+		return $this->on_new_order_page() || $this->on_edit_order_page();
+	}
+
+	/**
+	 * Checks if currently on the WooCommerce new order page.
+	 *
+	 * @return boolean
+	 */
+	public function on_new_order_page() {
 		global $pagenow;
-		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] );
+		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' === $_GET['post_type'] );
+	}
+
+	/**
+	 * Checks if currently on the WooCommerce edit order page.
+	 *
+	 * @return boolean
+	 */
+	public function on_edit_order_page() {
+		global $pagenow;
+
+		return ( in_array( $pagenow, array( 'post.php' ) ) && isset( $_GET['action'] ) && 'edit' === $_GET['action'] && 'shop_order' === get_post_type() );
 	}
 
 	/**
