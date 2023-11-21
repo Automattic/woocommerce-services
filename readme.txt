@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.4.1 - 2023-xx-xx =
+* Fix - Street address is not included when recalculating the tax in edit order page.
+
 = 2.4.0 - 2023-10-31 =
 * Add - Ability to connect to WordPress.com without the Jetpack plugin.
 * Fix - NUX banner display on Edit Order pages.
