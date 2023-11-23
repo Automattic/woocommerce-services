@@ -1408,16 +1408,17 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		if ( ! function_exists( 'wc_get_page_screen_id' ) ) {
-			return false;
+		if (
+			// Add or Edit for legacy order page.
+			( 'shop_order' === $screen->post_type && 'post' === $screen->base )
+
+			// Orders list and edit order page when using HPOS.
+			|| ( function_exists( 'wc_get_page_screen_id' ) && wc_get_page_screen_id( 'shop_order' ) === $screen->id )
+		) {
+			return true;
 		}
 
-		$wc_order_screen_id = wc_get_page_screen_id( 'shop_order' );
-		if ( ! $wc_order_screen_id ) {
-			return false;
-		}
-
-		return $screen->id === $wc_order_screen_id;
+		return false;
 	}
 
 	/**
