@@ -9,11 +9,11 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.updateWPDB();
 		await StoreOwnerFlow.openPluginsPage();
-		const disableLink = await page.$( `tr[data-slug="${ slug }"] .deactivate a` );
+		const disableLink = await page.$( `a#deactivate-${ slug }` );
 		if ( disableLink ) {
 			return;
 		}
-		await page.click( `tr[data-slug="${ slug }"] .activate a` );
-		await page.waitForSelector( `tr[data-slug="${ slug }"] .deactivate a` );
+		await page.click( `a#activate-${ slug }` );
+		await page.waitForSelector( `a#deactivate-${ slug }` );
 	});
 } );
