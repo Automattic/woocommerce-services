@@ -1408,17 +1408,21 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		if (
-			// Add or Edit for legacy order page.
-			( 'shop_order' === $screen->post_type && 'post' === $screen->base )
-
-			// Orders list and edit order page when using HPOS.
-			|| ( function_exists( 'wc_get_page_screen_id' ) && wc_get_page_screen_id( 'shop_order' ) === $screen->id )
-		) {
-			return true;
+		if ( ! function_exists( 'wc_get_page_screen_id' ) ) {
+			return false;
 		}
 
-		return false;
+		$wc_order_screen_id = wc_get_page_screen_id( 'shop_order' );
+		if ( ! $wc_order_screen_id ) {
+			return false;
+		}
+
+		// If HPOS is enabled, and we're on the Orders list page, return false.
+		if ( 'woocommerce_page_wc-orders' === $wc_order_screen_id && ! isset( $_GET['action'] ) ) {
+			return false;
+		}
+
+		return $screen->id === $wc_order_screen_id;
 	}
 
 	/**
