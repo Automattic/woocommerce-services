@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudi
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 7.3
 Requires at least: 6.2
-Tested up to: 6.3
+Tested up to: 6.4
 WC requires at least: 8.0
 WC tested up to: 8.3
 Stable tag: 2.4.0
