@@ -9,7 +9,7 @@
  * Domain Path: /i18n/languages/
  * Version: 2.4.0
  * Requires at least: 6.2
- * Tested up to: 6.3
+ * Tested up to: 6.4
  * WC requires at least: 8.0
  * WC tested up to: 8.3
  *
