@@ -9,7 +9,7 @@ services:
         build:
             context: ./docker/wordpress_xdebug
             # Options: Dockerfile-php73, Dockerfile-php81
-            dockerfile: Dockerfile-php73
+            dockerfile: Dockerfile-php81
         container_name: woocommerce_services_wordpress
         image: woocommerce_services_wordpress
         depends_on:
@@ -27,6 +27,10 @@ services:
             - ./docker/php.ini:/usr/local/etc/php/conf.d/wc-services-php.ini
             - dockerdirectory:/var/www/html/wp-content/plugins/woocommerce-services/docker
             - ./docker/bin:/var/scripts
+            - ./../woocommerce-tax:/var/www/html/wp-content/plugins/woocommerce-tax
+            - ./../woocommerce-shipping:/var/www/html/wp-content/plugins/woocommerce-shipping
+        # extra_hosts:
+        #    - "host.docker.internal:host-gateway"
     db:
         container_name: woocommerce_services_sql
         image: mariadb:10.5.8
