@@ -6,7 +6,7 @@
       "squizlabs/php_codesniffer": "^3.7.2",
       "dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",
       "wp-coding-standards/wpcs": "^2.3",
-	  "yoast/phpunit-polyfills": "^1.0"
+	  "yoast/phpunit-polyfills": "1.0.4"
     },
 	"require": {
 		"automattic/jetpack-connection": "^1.58.1",
