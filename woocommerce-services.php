@@ -11,7 +11,7 @@
  * Requires at least: 6.2
  * Tested up to: 6.3
  * WC requires at least: 8.0
- * WC tested up to: 8.2
+ * WC tested up to: 8.3
  *
  * Copyright (c) 2017-2023 Automattic
  *
