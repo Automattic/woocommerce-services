@@ -32,7 +32,7 @@ function get_last_three_minor($versions) {
 	foreach ($versions as $index => $version_number) {
 		$current_minor_version = substr($version_number, 0, strrpos($version_number, '.'));
 
-		if (count($results) >= 3) {
+		if (count($results) >= 2) {
 			break;
 		}
 
