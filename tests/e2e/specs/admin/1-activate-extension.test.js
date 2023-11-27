@@ -13,7 +13,16 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 		if ( disableLink ) {
 			return;
 		}
-		await page.click( `tr[data-slug="${ slug }"] .activate a` );
-		await page.waitForSelector( `tr[data-slug="${ slug }"] .deactivate a` );
+
+		const activateButton = await page.click( `tr[data-slug="${ slug }"] .activate a` );
+		if ( activateButton ) {
+			await StoreOwnerFlow.openPluginsPage();
+			await page.click( `tr[data-slug="${ slug }"] .activate a` );
+		}
+		const deactivateButton = await page.waitForSelector( `tr[data-slug="${ slug }"] .deactivate a` );
+		if ( deactivateButton ) {
+			await StoreOwnerFlow.openPluginsPage();
+			await page.click( `tr[data-slug="${ slug }"] .deactivate a` );
+		}
 	});
 } );
