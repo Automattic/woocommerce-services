@@ -1394,13 +1394,35 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Checks if currently on the WooCommerce new order page
+	 * Checks if currently on the WooCommerce order page.
 	 *
 	 * @return boolean
 	 */
 	public function on_order_page() {
-		global $pagenow;
-		return ( in_array( $pagenow, array( 'post-new.php' ) ) && isset( $_GET['post_type'] ) && 'shop_order' == $_GET['post_type'] );
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+		if ( ! $screen || ! isset( $screen->id ) ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'wc_get_page_screen_id' ) ) {
+			return false;
+		}
+
+		$wc_order_screen_id = wc_get_page_screen_id( 'shop_order' );
+		if ( ! $wc_order_screen_id ) {
+			return false;
+		}
+
+		// If HPOS is enabled, and we're on the Orders list page, return false.
+		if ( 'woocommerce_page_wc-orders' === $wc_order_screen_id && ! isset( $_GET['action'] ) ) {
+			return false;
+		}
+
+		return $screen->id === $wc_order_screen_id;
 	}
 
 	/**
