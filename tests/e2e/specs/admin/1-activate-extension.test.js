@@ -14,15 +14,10 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 			return;
 		}
 
-		const activateButton = await page.click( `tr[data-slug="${ slug }"] .activate a` );
-		if ( activateButton ) {
-			await StoreOwnerFlow.openPluginsPage();
-			await page.click( `tr[data-slug="${ slug }"] .activate a` );
-		}
-		const deactivateButton = await page.waitForSelector( `tr[data-slug="${ slug }"] .deactivate a` );
-		if ( deactivateButton ) {
-			await StoreOwnerFlow.openPluginsPage();
-			await page.click( `tr[data-slug="${ slug }"] .deactivate a` );
-		}
+		await page.waitForSelector( `a#activate-${ slug }` );
+
+		await page.click( `a#activate-${ slug }` );
+
+		await page.waitForSelector( `a#deactivate-${ slug }` );
 	});
 } );
