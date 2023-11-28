@@ -6,7 +6,7 @@ Requires at least: 6.2
 Tested up to: 6.4
 WC requires at least: 8.0
 WC tested up to: 8.3
-Stable tag: 2.4.0
+Stable tag: 2.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,7 +78,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.4.1 - 2023-xx-xx =
+= 2.4.1 - 2023-11-28 =
 * Fix - Street address is not included when recalculating the tax in edit order page.
 
 = 2.4.0 - 2023-10-31 =
