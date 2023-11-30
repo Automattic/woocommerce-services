@@ -14,9 +14,9 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 			return;
 		}
 
-		await page.waitForSelector( `tr[data-slug="${ slug }"] .activate a` );
+		await page.waitForSelector( `a#activate-${ slug }` );
 
-		await page.click( `tr[data-slug="${ slug }"] .activate a` );
+		await page.click( `a#activate-${ slug }` );
 
 		await page.waitForSelector( `tr[data-slug="${ slug }"] .deactivate a` );
 	});
