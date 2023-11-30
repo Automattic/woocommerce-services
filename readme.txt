@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.4.2 - 2023-xx-xx =
+* Fix - When automated taxes are enabled, the order refund button will fail
+
 = 2.4.1 - 2023-11-28 =
 * Fix - Street address is not included when recalculating the tax in edit order page.
 
