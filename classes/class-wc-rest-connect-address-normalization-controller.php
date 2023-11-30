@@ -41,6 +41,10 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 			);
 		}
 
+		if ( ! isset( $response->normalized ) ) {
+			$response->normalized = new stdClass();
+		}
+
 		$response->normalized->phone = $phone;
 		$is_trivial_normalization    = isset( $response->is_trivial_normalization ) ? $response->is_trivial_normalization : false;
 
