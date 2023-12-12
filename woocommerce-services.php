@@ -182,6 +182,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $paypal_ec;
 
 		/**
+		 * @var WC_Connect_Tracks
+		 */
+		protected $tracks;
+
+		/**
+		 * @var WC_Connect_Label_Reports
+		 */
+		protected $label_reports;
+
+		/**
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;

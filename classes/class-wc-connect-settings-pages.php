@@ -13,6 +13,15 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 */
 		protected $continents;
 
+		/**
+		 * @var string;
+		 */
+		protected $id;
+
+		/**
+		 * @var string;
+		 */
+		protected $label;
 
 		/**
 		 * @var WC_Connect_API_Client

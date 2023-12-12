@@ -31,6 +31,16 @@ class WC_Connect_TaxJar_Integration {
 		'woocommerce_tax_total_display'     => 'single',
 	);
 
+	/**
+	 * @var int
+	 */
+	protected $cache_time;
+
+	/**
+	 * @var int
+	 */
+	protected $error_cache_time;
+
 	const PROXY_PATH               = 'taxjar/v2';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';

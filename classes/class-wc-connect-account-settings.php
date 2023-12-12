@@ -11,6 +11,11 @@ class WC_Connect_Account_Settings {
 	 */
 	protected $settings_store;
 
+	/**
+	 * @var WC_Connect_Payment_Methods_Store
+	 */
+	protected $payment_methods_store;
+
 	public function __construct(
 		WC_Connect_Service_Settings_Store $settings_store,
 		WC_Connect_Payment_Methods_Store $payment_methods_store
