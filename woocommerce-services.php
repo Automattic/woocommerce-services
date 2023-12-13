@@ -147,6 +147,48 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_types_controller;
 
 		/**
+		 * WC_REST_Connect_Assets_Controller
+		 *
+		 * @var WC_REST_Connect_Assets_Controller
+		 */
+		protected $rest_assets_controller;
+
+		/**
+		 * WC_REST_Connect_Shipping_Carrier_Controller
+		 *
+		 * @var WC_REST_Connect_Shipping_Carrier_Controller
+		 */
+		protected $rest_carrier_controller;
+
+		/**
+		 * WC_REST_Connect_Shipping_Carriers_Controller
+		 *
+		 * @var WC_REST_Connect_Shipping_Carriers_Controller
+		 */
+		protected $rest_carriers_controller;
+
+		/**
+		 * WC_REST_Connect_Subscriptions_Controller
+		 *
+		 * @var WC_REST_Connect_Subscriptions_Controller
+		 */
+		protected $rest_subscriptions_controller;
+
+		/**
+		 * WC_REST_Connect_Subscription_activate_Controller
+		 *
+		 * @var WC_REST_Connect_Subscription_activate_Controller
+		 */
+		protected $rest_subscription_activate_controller;
+
+		/**
+		 * WC_REST_Connect_Shipping_Carrier_Delete_Controller
+		 *
+		 * @var WC_REST_Connect_Shipping_Carrier_Delete_Controller
+		 */
+		protected $rest_carrier_delete_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
