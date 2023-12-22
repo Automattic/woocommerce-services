@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.5.0 - 2023-xx-xx =
+* Add - Ability to keep connected to WordPress.com after Jetpack is uninstalled.
+
 = 2.4.2 - 2023-11-30 =
 * Fix - When automated taxes are enabled, the order refund button will fail
 
