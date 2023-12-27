@@ -147,6 +147,36 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_types_controller;
 
 		/**
+		 * @var WC_REST_Connect_Assets_Controller
+		 */
+		protected $rest_assets_controller;
+
+		/**
+		 * @var WC_REST_Connect_Shipping_Carrier_Controller
+		 */
+		protected $rest_carrier_controller;
+
+		/**
+		 * @var WC_REST_Connect_Shipping_Carriers_Controller
+		 */
+		protected $rest_carriers_controller;
+
+		/**
+		 * @var WC_REST_Connect_Subscriptions_Controller
+		 */
+		protected $rest_subscriptions_controller;
+
+		/**
+		 * @var WC_REST_Connect_Subscription_Activate_Controller
+		 */
+		protected $rest_subscription_activate_controller;
+
+		/**
+		 * @var WC_REST_Connect_Shipping_Carrier_Delete_Controller
+		 */
+		protected $rest_carrier_delete_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -203,36 +233,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @var WC_Connect_Label_Reports
 		 */
 		protected $label_reports;
-
-		/**
-		 * @var WC_REST_Connect_Assets_Controller
-		 */
-		protected $rest_assets_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Carrier_Controller
-		 */
-		protected $rest_carrier_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Carriers_Controller
-		 */
-		protected $rest_carriers_controller;
-
-		/**
-		 * @var WC_REST_Connect_Subscriptions_Controller
-		 */
-		protected $rest_subscriptions_controller;
-
-		/**
-		 * @var WC_REST_Connect_Subscription_Activate_Controller
-		 */
-		protected $rest_subscription_activate_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Carrier_Delete_Controller
-		 */
-		protected $rest_carrier_delete_controller;
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );

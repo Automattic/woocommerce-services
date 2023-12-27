@@ -11,16 +11,16 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		static $product_name = 'woocommerceconnect';
 
 		/**
+		 * @var WC_Connect_Logger
+		 */
+		protected $logger;
+
+		/**
 		 * Plugin file path.
 		 *
 		 * @var string
 		 */
 		public $plugin_file;
-
-		/**
-		 * @var WC_Connect_Logger
-		 */
-		protected $logger;
 
 		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
 			$this->logger      = $logger;
