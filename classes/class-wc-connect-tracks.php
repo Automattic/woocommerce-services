@@ -22,11 +22,6 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		 */
 		protected $logger;
 
-		/**
-		 * @var string
-		 */
-		protected $plugin_file;
-
 		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
 			$this->logger      = $logger;
 			$this->plugin_file = $plugin_file;
