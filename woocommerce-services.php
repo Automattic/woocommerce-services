@@ -147,31 +147,43 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_types_controller;
 
 		/**
+		 * WC_REST_Connect_Assets_Controller
+		 *
 		 * @var WC_REST_Connect_Assets_Controller
 		 */
 		protected $rest_assets_controller;
 
 		/**
+		 * WC_REST_Connect_Shipping_Carrier_Controller
+		 *
 		 * @var WC_REST_Connect_Shipping_Carrier_Controller
 		 */
 		protected $rest_carrier_controller;
 
 		/**
+		 * WC_REST_Connect_Shipping_Carriers_Controller
+		 *
 		 * @var WC_REST_Connect_Shipping_Carriers_Controller
 		 */
 		protected $rest_carriers_controller;
 
 		/**
+		 * WC_REST_Connect_Subscriptions_Controller
+		 *
 		 * @var WC_REST_Connect_Subscriptions_Controller
 		 */
 		protected $rest_subscriptions_controller;
 
 		/**
+		 * WC_REST_Connect_Subscription_Activate_Controller
+		 *
 		 * @var WC_REST_Connect_Subscription_Activate_Controller
 		 */
 		protected $rest_subscription_activate_controller;
 
 		/**
+		 * WC_REST_Connect_Shipping_Carrier_Delete_Controller
+		 *
 		 * @var WC_REST_Connect_Shipping_Carrier_Delete_Controller
 		 */
 		protected $rest_carrier_delete_controller;
@@ -212,6 +224,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $paypal_ec;
 
 		/**
+		 * @var WC_Connect_Tracks
+		 */
+		protected $tracks;
+
+		/**
+		 * @var WC_Connect_Label_Reports
+		 */
+		protected $label_reports;
+
+		/**
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;
@@ -223,16 +245,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $wc_connect_base_url;
 
 		protected static $wcs_version;
-
-		/**
-		 * @var WC_Connect_Tracks
-		 */
-		protected $tracks;
-
-		/**
-		 * @var WC_Connect_Label_Reports
-		 */
-		protected $label_reports;
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
