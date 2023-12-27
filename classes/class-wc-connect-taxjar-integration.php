@@ -32,14 +32,28 @@ class WC_Connect_TaxJar_Integration {
 	);
 
 	/**
+	 * Cache time.
+	 *
 	 * @var int
 	 */
-	protected $cache_time;
+	private $cache_time;
 
 	/**
+	 * Error cache time.
+	 *
 	 * @var int
 	 */
-	protected $error_cache_time;
+	private $error_cache_time;
+
+	/**
+	 * @var array
+	 */
+	private $response_rate_ids;
+
+	/**
+	 * @var array
+	 */
+	private $response_line_items;
 
 	const PROXY_PATH               = 'taxjar/v2';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';

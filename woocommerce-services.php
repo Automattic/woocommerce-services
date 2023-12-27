@@ -175,9 +175,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_subscriptions_controller;
 
 		/**
-		 * WC_REST_Connect_Subscription_activate_Controller
+		 * WC_REST_Connect_Subscription_Activate_Controller
 		 *
-		 * @var WC_REST_Connect_Subscription_activate_Controller
+		 * @var WC_REST_Connect_Subscription_Activate_Controller
 		 */
 		protected $rest_subscription_activate_controller;
 

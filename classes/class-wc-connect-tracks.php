@@ -16,9 +16,11 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		protected $logger;
 
 		/**
+		 * Plugin file path.
+		 *
 		 * @var string
 		 */
-		protected $plugin_file;
+		public $plugin_file;
 
 		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
 			$this->logger      = $logger;
