@@ -25,7 +25,6 @@ wp option set woocommerce_product_type "both"
 wp option set woocommerce_allow_tracking "no"
 wp option update woocommerce_onboarding_profile '{"skipped": true }' --format=json
 
-wp plugin install jetpack --activate
 wp config set JETPACK_DEV_DEBUG true --raw
 
 # create credentials for REST API

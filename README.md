@@ -13,7 +13,7 @@ There are many ways to contribute – reporting bugs, feature suggestions and fi
 ## Getting Started
 You need:
 * A WordPress site
-* WooCommerce 2.6+
+* WooCommerce 8.0+
 * Installation of [Jetpack](https://wordpress.org/plugins/jetpack/), connected to your WordPress.com account
 
 ### Using the plugin

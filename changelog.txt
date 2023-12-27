@@ -1,7 +1,25 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.3.6 - 2023-xx-xx =
-* Fix   - Deprecation notices for PHP 8.2.
+= 2.5.0 - 2023-xx-xx =
+* Add - Ability to keep connected to WordPress.com after Jetpack is uninstalled.
+* Fix - Deprecation notices for PHP 8.2.
+
+= 2.4.2 - 2023-11-30 =
+* Fix - When automated taxes are enabled, the order refund button will fail.
+
+= 2.4.1 - 2023-11-28 =
+* Fix - Street address is not included when recalculating the tax in edit order page.
+
+= 2.4.0 - 2023-10-31 =
+* Add - Ability to connect to WordPress.com without the Jetpack plugin.
+* Fix - NUX banner display on Edit Order pages.
+
+= 2.3.7 - 2023-10-23 =
+* Add - Load Sift when printing a label.
+
+= 2.3.6 - 2023-10-10 =
+* Fix - Occasionally block user to checkout when using WooCommerce Blocks.
+* Fix - Fix notice error when shipping location(s) is disabled in WooCommerce settings.
 
 = 2.3.5 - 2023-09-20 =
 * Tweak - Move Jetpack Connection requirement to the top in FAQ.

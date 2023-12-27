@@ -26,9 +26,9 @@ const defaultHealthStoreValues = {
 		state: 'success',
 		message: 'WooCommerce 5.0.0 is configured correctly'
 	},
-	jetpack: {
+	wpcom_connection: {
 		state: 'success',
-		message: 'Jetpack 9.4 is connected and working correctly',
+		message: 'Connected to WordPress.com',
 	},
 	woocommerce_services: {
 		timestamp: 1614185820,
@@ -84,12 +84,12 @@ describe('Health View', () => {
 		expect(sections).toHaveLength(4)
 
 		const wooCommerceSection = sections.at(0)
-		const jetpackSection = sections.at(1)
+		const wpcomConnectionSection = sections.at(1)
 		const taxesSection = sections.at(2)
 		const wcsSection = sections.at(3)
 
 		expect(wooCommerceSection.text()).toContain('WooCommerce 5.0.0 is configured correctly')
-		expect(jetpackSection.text()).toContain('Jetpack 9.4 is connected and working correctly')
+		expect(wpcomConnectionSection.text()).toContain('Connected to WordPress.com')
 		expect(taxesSection.text()).toContain('Automated taxes are enabled')
 		expect(taxesSection.text()).toContain('Go to the Tax settings')
 		expect(wcsSection.text()).toContain('Service data is up-to-date')

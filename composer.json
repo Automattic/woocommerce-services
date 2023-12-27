@@ -7,9 +7,16 @@
       "dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",
       "wp-coding-standards/wpcs": "^2.3"
     },
+	"require": {
+		"automattic/jetpack-connection": "^2.1.0",
+		"automattic/jetpack-config": "^2.0.0",
+		"automattic/jetpack-autoloader": "^3.0.2",
+		"automattic/jetpack-status": "^2.0.2"
+	},
     "config": {
       "allow-plugins": {
-        "dealerdirect/phpcodesniffer-composer-installer": true
+        "dealerdirect/phpcodesniffer-composer-installer": true,
+        "automattic/jetpack-autoloader": true
       }
     },
     "scripts": {
@@ -41,5 +48,4 @@
         "npm run build && composer install && ./vendor/bin/qit run:security woocommerce-services --zip=woocommerce-services.zip"
       ]
     }
-
 }

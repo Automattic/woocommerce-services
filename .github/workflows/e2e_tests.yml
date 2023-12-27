@@ -6,15 +6,18 @@ jobs:
   e2e_build_and_test:
     name: Build Container and Run E2E Tests
     runs-on: ubuntu-latest
-    env:
-      WP_VERSION: 6.1.0
-      TRAVIS_MARIADB_VERSION: 10.8.3
     steps:
       - name: Set Git to use HTTPS instead of SSH
         run: git config --global url.https://github.com/.insteadOf git://github.com/
       - uses: actions/checkout@v3
         with:
           submodules: recursive
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          tools: composer
+          extensions: mysql
+          coverage: none
       - uses: actions/setup-node@v2
         with:
             node-version-file: '.nvmrc'
@@ -26,6 +29,7 @@ jobs:
             echo "::endgroup::"
       - name: Build WCS&T
         run: |
+            composer install
             npm ci
             npm run dist
       - name: Setup E2E container

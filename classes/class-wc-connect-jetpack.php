@@ -1,60 +1,46 @@
 <?php
 
-use Automattic\Jetpack\Connection\Tokens;
 use Automattic\Jetpack\Connection\Manager;
+use Automattic\Jetpack\Connection\Package_Version;
+use Automattic\Jetpack\Status;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
+		const JETPACK_PLUGIN_SLUG = 'woocommerce-services';
+
+		public static function get_connection_manager() {
+			return new Manager( self::JETPACK_PLUGIN_SLUG );
+		}
+
 		/**
-		 * @param $user_id
+		 * Returns the Blog Token.
 		 *
 		 * @return stdClass|WP_Error
 		 */
-		public static function get_master_user_access_token( $user_id ) {
-			if ( class_exists( '\Automattic\Jetpack\Connection\Tokens' ) && method_exists( '\Automattic\Jetpack\Connection\Tokens', 'get_access_token' ) ) {
-				$connection = new Tokens();
-
-				return $connection->get_access_token( $user_id );
-			}
-
-			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_access_token' ) ) {
-				$connection = new Manager();
-
-				return $connection->get_access_token( $user_id );
-			}
-
-			// fallback
-			return new stdClass();
+		public static function get_blog_access_token() {
+			return self::get_connection_manager()->get_tokens()->get_access_token();
 		}
 
 		/**
-		 * Helper method to get if Jetpack is in development mode
+		 * Helper method to get if Jetpack is in offline mode
 		 *
 		 * @return bool
 		 */
-		public static function is_development_mode() {
-			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_offline_mode' ) ) {
-				$status = new \Automattic\Jetpack\Status();
-				return $status->is_offline_mode();
-			}
+		public static function is_offline_mode() {
+			$status = new Status();
 
-			return false;
+			return $status->is_offline_mode();
 		}
 
 		/**
-		 * Helper method to get if Jetpack is connected (aka active)
+		 * Helper method to get if Jetpack is connected (aka active).
+		 *
+		 * @deprecated 2.3.0 Use self::is_connected() instead.
 		 *
 		 * @return bool
 		 */
 		public static function is_active() {
-			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) && WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE ) {
-				return true;
-			}
-			if ( method_exists( 'Jetpack', 'is_active' ) ) {
-				return Jetpack::is_active();
-			}
-
-			return false;
+			return self::is_connected();
 		}
 
 		/**
@@ -63,16 +49,9 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_staging_site() {
-			if ( method_exists( '\\Automattic\\Jetpack\\Status', 'is_staging_site' ) ) {
-				$status = new \Automattic\Jetpack\Status();
-				return $status->is_staging_site();
-			}
+			$jetpack_status = new Status();
 
-			if ( method_exists( 'Jetpack', 'is_staging_site' ) ) {
-				return Jetpack::is_staging_site();
-			}
-
-			return false;
+			return $jetpack_status->is_staging_site();
 		}
 
 		/**
@@ -83,55 +62,36 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		public static function is_atomic_site() {
 			if ( function_exists( 'jetpack_is_atomic_site' ) ) {
 				return jetpack_is_atomic_site();
-			} elseif ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
+			}
+
+			if ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
 				return jetpack_is_automated_transfer_site();
 			}
 
 			return false;
 		}
 
-		public static function get_connected_user_data( $user_id ) {
-			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'get_connected_user_data' ) ) {
-				$connection = new Manager();
+		public static function get_connection_owner_wpcom_data() {
+			$connection_owner = self::get_connection_owner();
 
-				return $connection->get_connected_user_data( $user_id );
+			if ( ! $connection_owner ) {
+				return false;
 			}
 
-			if ( method_exists( 'Jetpack', 'get_connected_user_data' ) ) {
-				return Jetpack::get_connected_user_data( $user_id );
-			}
-
-			return false;
+			return self::get_connection_manager()->get_connected_user_data( $connection_owner->ID );
 		}
 
 		/**
-		 * Helper method to get the Jetpack master user, IF we are connected
+		 * Helper method to get the Jetpack connection owner, IF we are connected
 		 *
 		 * @return WP_User | false
 		 */
-		public static function get_master_user() {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
-			if ( self::is_active() && method_exists( 'Jetpack_Options', 'get_option' ) ) {
-				$master_user_id = Jetpack_Options::get_option( 'master_user' );
-				return get_userdata( $master_user_id );
+		public static function get_connection_owner() {
+			if ( ! self::is_connected() ) {
+				return false;
 			}
 
-			return false;
-
-		}
-
-		/**
-		 * Builds a connect url
-		 *
-		 * @param $redirect_url
-		 * @return string
-		 */
-		public static function build_connect_url( $redirect_url ) {
-			return Jetpack::init()->build_connect_url(
-				true,
-				$redirect_url,
-				'woocommerce-services-auto-authorize'
-			);
+			return self::get_connection_manager()->get_connection_owner();
 		}
 
 		/**
@@ -142,57 +102,76 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @param
 		 */
 		public static function tracks_record_event( $user, $event_type, $data ) {
-			if ( version_compare( JETPACK__VERSION, '7.5', '<' ) ) {
-				if ( function_exists( 'jetpack_tracks_record_event' ) ) {
-					return jetpack_tracks_record_event( $user, $event_type, $data );
-				}
-			} elseif ( class_exists( 'Automattic\\Jetpack\\Tracking' ) ) {
-				$tracking = new Automattic\Jetpack\Tracking();
-				return $tracking->tracks_record_event( $user, $event_type, $data );
-			}
-			return false;
+			$tracking = new Automattic\Jetpack\Tracking();
+
+			return $tracking->tracks_record_event( $user, $event_type, $data );
 		}
 
 		/**
-		 * Determines if the current user is connected to Jetpack
+		 * Determines if the current user is the site's Jetpack connection owner.
 		 *
-		 * @return bool Whether or nor the current user is connected to Jetpack
+		 * @return bool Whether the current user is the Jetpack connection owner.
 		 */
-		public static function is_current_user_connected() {
-			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'is_user_connected' ) ) {
-				$connection = new Manager();
-
-				return $connection->is_user_connected();
-			}
-
-			if ( defined( 'JETPACK_MASTER_USER' ) ) {
-				$user_token = self::get_master_user_access_token( JETPACK_MASTER_USER );
-
-				return ( isset( $user_token->external_user_id ) && get_current_user_id() === $user_token->external_user_id );
-			}
-
-			return false;
+		public static function is_current_user_connection_owner() {
+			return self::get_connection_manager()->is_connection_owner();
 		}
 
 		/**
-		 * Determines if Jetpack is connected
+		 * Determines if both the blog and a blog owner account are connected to Jetpack.
 		 *
 		 * @return bool Whether or nor Jetpack is connected
 		 */
 		public static function is_connected() {
-			if ( class_exists( '\Automattic\Jetpack\Connection\Manager' ) && method_exists( '\Automattic\Jetpack\Connection\Manager', 'is_connected' ) ) {
-				$connection = new Manager();
+			return self::get_connection_manager()->is_connected() &&
+				   self::get_connection_manager()->has_connected_owner();
+		}
 
-				return $connection->is_connected();
+		/**
+		 * Connects the site to Jetpack.
+		 * This code performs a redirection, so anything executed after it will be ignored.
+		 *
+		 * @param $redirect_url
+		 */
+		public static function connect_site( $redirect_url ) {
+			$connection_manager = self::get_connection_manager();
+
+			// Register the site to wp.com.
+			if ( ! $connection_manager->is_connected() ) {
+				$result = $connection_manager->try_registration();
+				if ( is_wp_error( $result ) ) {
+					wp_die( esc_html( $result->get_error_message() ), 'wc_services_jetpack_register_site_failed', 500 );
+				}
 			}
 
-			if ( defined( 'JETPACK_MASTER_USER' ) ) {
-				$user_token = self::get_master_user_access_token( JETPACK_MASTER_USER );
+			// Redirect the user to the Jetpack user connection flow.
+			add_filter( 'jetpack_use_iframe_authorization_flow', '__return_false' );
 
-				return isset( $user_token->external_user_id );
-			}
+			// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- URL generated by the Jetpack Connection package.
+			wp_redirect(
+				add_query_arg(
+					[ 'from' => self::JETPACK_PLUGIN_SLUG ],
+					$connection_manager->get_authorization_url( null, $redirect_url )
+				)
+			);
+			exit;
+		}
 
-			return false;
+		/**
+		 * Jetpack Connection package version.
+		 *
+		 * @return string
+		 */
+		public static function get_jetpack_connection_package_version() {
+			return Package_Version::PACKAGE_VERSION;
+		}
+
+		/**
+		 * Get the WPCOM or self-hosted site ID.
+		 *
+		 * @return int|WP_Error
+		 */
+		public static function get_wpcom_site_id() {
+			return Manager::get_site_id();
 		}
 	}
 }

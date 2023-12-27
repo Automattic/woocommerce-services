@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "2.3.5",
+  "version": "2.4.2",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd .. && husky install",
@@ -19,10 +19,11 @@
     "build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
     "up": "docker-compose up --build --force-recreate -d && ./bin/docker-setup.sh",
     "down": "docker-compose down",
-    "test:e2e-docker-up": "npx wc-e2e docker:up",
+    "test:e2e-docker-up": "env WP_VERSION=6.4.1 TRAVIS_MARIADB_VERSION=10.8.3 npx wc-e2e docker:up",
     "test:e2e-docker-down": "npx wc-e2e docker:down",
     "test:e2e-docker-ping": "bash ./tests/bin/wait-for-e2e-build.sh",
     "test:e2e": "npx wc-e2e test:e2e",
+    "test:e2e:record": "WC_E2E_SCREENSHOTS=1 npx wc-e2e test:e2e",
     "test:e2e-dev": "npx wc-e2e test:e2e-dev",
     "tube:setup": "./bin/jurassic-tube-setup.sh",
     "tube:start": "./docker/bin/jt/tunnel.sh",

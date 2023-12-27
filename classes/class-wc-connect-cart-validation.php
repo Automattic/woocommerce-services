@@ -60,7 +60,18 @@ class WC_Connect_Cart_Validation {
 		return $error_html;
 	}
 
+	/**
+	 * Check the error on the first load at Cart and Checkout page that has cart block or checkout block.
+	 *
+	 * @param \WP_Error $cart_errors List of errors in the cart.
+	 * @param \WC_Cart  $cart Cart object.
+	 */
 	public function add_api_cart_errors( $cart_errors, $cart ) {
+
+		if ( WC_Connect_Functions::is_store_api_call() ) {
+			return;
+		}
+
 		$all_notices = wc_get_notices();
 
 		$notices = array();
