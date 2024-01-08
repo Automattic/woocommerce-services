@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.5.0 - 2023-xx-xx =
+= 2.5.0 - 2024-01-08 =
 * Add - Ability to keep connected to WordPress.com after Jetpack is uninstalled.
 * Fix - Deprecation notices for PHP 8.2.
 
