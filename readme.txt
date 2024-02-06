@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.5.1 - 2024-xx-xx =
+* Fix - Cannot call constructor in classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php.
+
 = 2.5.0 - 2024-01-08 =
 * Add - Ability to keep connected to WordPress.com after Jetpack is uninstalled.
 * Fix - Deprecation notices for PHP 8.2.
