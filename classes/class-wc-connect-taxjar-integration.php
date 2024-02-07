@@ -1063,12 +1063,8 @@ class WC_Connect_TaxJar_Integration {
 		 * As a temporary workaround, TaxJar suggested we remove the from address
 		 * parameters and use the nexus_addresses[] parameter instead in cases that
 		 * require it. This ensures that the PST is added in cases where it needs to be.
-		 *
-		 * In this case, when shipping from an address Canada to Quebec,
-		 * PST should be charged in addition to GST. The combined tax is
-		 * referred to as Québec sales tax (QST).
 		 */
-		if ( true === apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) && 'CA' === $body['to_country'] && 'QC' === $body['to_state'] && 'CA' === $body['from_country'] ) {
+		if ( true === apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
 			$params_to_unset = array(
 				'from_country',
 				'from_state',
