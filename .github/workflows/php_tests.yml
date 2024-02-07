@@ -77,7 +77,7 @@ jobs:
         run: |
           cd /tmp/woocommerce/plugins/woocommerce
           composer install
-          pnpm run build:feature-config
+          php bin/generate-feature-config.php
       - name: Setup WordPress
         run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Use PHPUnit v8 for WC < 7.7.0
