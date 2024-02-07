@@ -72,12 +72,30 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 'v16'
-
-      - name: Build WooCommerce essentials for running tests
+      - name: Install Semvar
+        run: npm install semver
+      - name: Check new build version
+        id: check_new_build_version
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const semver = require('semver');
+            const currentVersion = '${{ matrix.wc-version }}';
+            const minimumVersion = '8.5.0';
+            return semver.gte(currentVersion, minimumVersion);
+      - name: Build WooCommerce < 8.5.0 essentials for running tests
+        if: steps.check_new_build_version.outputs.result == 'false'
         run: |
           cd /tmp/woocommerce/plugins/woocommerce
           composer install
           pnpm run build:feature-config
+      - name: Build WooCommerce >= 8.5.0 essentials for running tests
+        if: steps.check_new_build_version.outputs.result == 'true'
+        run: |
+          cd /tmp/woocommerce/plugins/woocommerce
+          composer install
+          pnpm install
+          pnpm --filter='@woocommerce/plugin-woocommerce' build
       - name: Setup WordPress
         run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
       - name: Use PHPUnit v8 for WC < 7.7.0
