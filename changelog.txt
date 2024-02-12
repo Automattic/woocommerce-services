@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.5.1 - 2024-xx-xx =
+= 2.5.1 - 2024-02-12 =
 * Fix - Cannot call constructor in classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php.
 
 = 2.5.0 - 2024-01-08 =
