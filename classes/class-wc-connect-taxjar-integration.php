@@ -1065,6 +1065,16 @@ class WC_Connect_TaxJar_Integration {
 		 * require it. This ensures that the PST is added in cases where it needs to be.
 		 */
 		if ( true === apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
+			$body['nexus_addresses'] = array(
+				array(
+					'street'  => $body['from_street'],
+					'city'    => $body['from_city'],
+					'state'   => $body['from_state'],
+					'country' => $body['from_country'],
+					'zip'     => $body['from_zip'],
+				),
+			);
+
 			$params_to_unset = array(
 				'from_country',
 				'from_state',
@@ -1076,16 +1086,6 @@ class WC_Connect_TaxJar_Integration {
 			foreach ( $params_to_unset as $param ) {
 				unset( $body[ $param ] );
 			}
-
-			$body['nexus_addresses'] = array(
-				array(
-					'street'  => $body['to_street'],
-					'city'    => $body['to_city'],
-					'state'   => $body['to_state'],
-					'country' => $body['to_country'],
-					'zip'     => $body['to_zip'],
-				),
-			);
 		}
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
@@ -1327,7 +1327,7 @@ class WC_Connect_TaxJar_Integration {
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
 
-		if ( false === $response ) {
+		if ( false === $response || true ) {
 			$response      = $this->smartcalcs_request( $json );
 			$response_code = wp_remote_retrieve_response_code( $response );
 
