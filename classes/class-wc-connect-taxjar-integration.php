@@ -979,6 +979,59 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Implement nexus address for a certain state or country.
+	 *
+	 * @param array $body Request body.
+	 *
+	 * @return array
+	 */
+	public function use_nexus_address( $body ) {
+		if ( true !== apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
+			return $body;
+		}
+
+		if ( 'CA' === $body['to_country'] && 'QC' === $body['to_state'] && 'CA' === $body['from_country'] ) {
+			$body['nexus_addresses'] = array(
+				array(
+					'street'  => $body['to_street'],
+					'city'    => $body['to_city'],
+					'state'   => $body['to_state'],
+					'country' => $body['to_country'],
+					'zip'     => $body['to_zip'],
+				),
+			);
+		}
+
+		if ( 'US' === $body['to_country'] && 'CO' === $body['to_state'] && 'US' === $body['from_country'] ) {
+			$body['nexus_addresses'] = array(
+				array(
+					'street'  => $body['from_street'],
+					'city'    => $body['from_city'],
+					'state'   => $body['from_state'],
+					'country' => $body['from_country'],
+					'zip'     => $body['from_zip'],
+				),
+			);
+		}
+
+		if ( isset( $body['nexus_addresses'] ) ) {
+			$params_to_unset = array(
+				'from_country',
+				'from_state',
+				'from_zip',
+				'from_city',
+				'from_street',
+			);
+
+			foreach ( $params_to_unset as $param ) {
+				unset( $body[ $param ] );
+			}
+		}
+
+		return $body;
+	}
+
+	/**
 	 * Calculate sales tax using SmartCalcs
 	 *
 	 * Direct from the TaxJar plugin, without Nexus check.
@@ -1064,29 +1117,7 @@ class WC_Connect_TaxJar_Integration {
 		 * parameters and use the nexus_addresses[] parameter instead in cases that
 		 * require it. This ensures that the PST is added in cases where it needs to be.
 		 */
-		if ( true === apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
-			$body['nexus_addresses'] = array(
-				array(
-					'street'  => $body['from_street'],
-					'city'    => $body['from_city'],
-					'state'   => $body['from_state'],
-					'country' => $body['from_country'],
-					'zip'     => $body['from_zip'],
-				),
-			);
-
-			$params_to_unset = array(
-				'from_country',
-				'from_state',
-				'from_zip',
-				'from_city',
-				'from_street',
-			);
-
-			foreach ( $params_to_unset as $param ) {
-				unset( $body[ $param ] );
-			}
-		}
+		$body = $this->use_nexus_address( $body );
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
 		if ( empty( $line_items ) ) {
