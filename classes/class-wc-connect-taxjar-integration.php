@@ -990,28 +990,31 @@ class WC_Connect_TaxJar_Integration {
 			return $body;
 		}
 
-		if ( 'CA' === $body['to_country'] && 'QC' === $body['to_state'] && 'CA' === $body['from_country'] ) {
-			$body['nexus_addresses'] = array(
-				array(
-					'street'  => $body['to_street'],
-					'city'    => $body['to_city'],
-					'state'   => $body['to_state'],
-					'country' => $body['to_country'],
-					'zip'     => $body['to_zip'],
-				),
-			);
-		}
+		$states_has_nexus = array(
+			'CA-QC' => array(
+				'to_country'   => 'CA',
+				'to_state'     => 'QC',
+				'from_country' => 'CA',
+			),
+			'US-CO' => array(
+				'to_country'   => 'US',
+				'to_state'     => 'CO',
+				'from_country' => 'US',
+			),
+		);
 
-		if ( 'US' === $body['to_country'] && 'CO' === $body['to_state'] && 'US' === $body['from_country'] ) {
-			$body['nexus_addresses'] = array(
-				array(
-					'street'  => $body['from_street'],
-					'city'    => $body['from_city'],
-					'state'   => $body['from_state'],
-					'country' => $body['from_country'],
-					'zip'     => $body['from_zip'],
-				),
-			);
+		foreach ( $states_has_nexus as $nexus_info ) {
+			if ( $nexus_info['to_country'] === $body['to_country'] && $nexus_info['to_state'] === $body['to_state'] && $nexus_info['from_country'] === $body['from_country'] ) {
+				$body['nexus_addresses'] = array(
+					array(
+						'street'  => $body['to_street'],
+						'city'    => $body['to_city'],
+						'state'   => $body['to_state'],
+						'country' => $body['to_country'],
+						'zip'     => $body['to_zip'],
+					),
+				);
+			}
 		}
 
 		if ( isset( $body['nexus_addresses'] ) ) {
