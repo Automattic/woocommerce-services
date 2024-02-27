@@ -1109,18 +1109,7 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
-		/**
-		 * Change the API request body so that provincial sales tax (PST) is added
-		 * in cases where TaxJar does not combine it with general sales tax (GST)
-		 * based on from/to address alone. This is a limitation of their API.
-		 * They said they would be working on adding specific cases like
-		 * this in the future.
-		 *
-		 * As a temporary workaround, TaxJar suggested we remove the from address
-		 * parameters and use the nexus_addresses[] parameter instead in cases that
-		 * require it. This ensures that the PST is added in cases where it needs to be.
-		 */
-		$body = $this->use_nexus_address( $body );
+		$body = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
 		if ( empty( $line_items ) ) {
