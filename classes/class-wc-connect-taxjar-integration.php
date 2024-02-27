@@ -990,7 +990,7 @@ class WC_Connect_TaxJar_Integration {
 			return $body;
 		}
 
-		$states_has_nexus = array(
+		$cases = array(
 			'CA-QC' => array(
 				'to_country'   => 'CA',
 				'to_state'     => 'QC',
@@ -1003,21 +1003,23 @@ class WC_Connect_TaxJar_Integration {
 			),
 		);
 
-		foreach ( $states_has_nexus as $nexus_info ) {
-			if ( $nexus_info['to_country'] === $body['to_country'] && $nexus_info['to_state'] === $body['to_state'] && $nexus_info['from_country'] === $body['from_country'] ) {
-				$body['nexus_addresses'] = array(
-					array(
-						'street'  => $body['to_street'],
-						'city'    => $body['to_city'],
-						'state'   => $body['to_state'],
-						'country' => $body['to_country'],
-						'zip'     => $body['to_zip'],
-					),
-				);
+		foreach ( $cases as $case ) {
+			if ( $case['to_country'] !== $body['to_country'] ||
+				$case['to_state'] !== $body['to_state'] ||
+				$case['from_country'] !== $body['from_country'] ) {
+				continue;
 			}
-		}
 
-		if ( isset( $body['nexus_addresses'] ) ) {
+			$body['nexus_addresses'] = array(
+				array(
+					'street'  => $body['to_street'],
+					'city'    => $body['to_city'],
+					'state'   => $body['to_state'],
+					'country' => $body['to_country'],
+					'zip'     => $body['to_zip'],
+				),
+			);
+
 			$params_to_unset = array(
 				'from_country',
 				'from_state',
@@ -1029,6 +1031,8 @@ class WC_Connect_TaxJar_Integration {
 			foreach ( $params_to_unset as $param ) {
 				unset( $body[ $param ] );
 			}
+
+			break;
 		}
 
 		return $body;
