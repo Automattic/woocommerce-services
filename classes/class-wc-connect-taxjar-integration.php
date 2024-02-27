@@ -979,7 +979,17 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Implement nexus address for a certain state or country.
+	 * Maybe apply a temporary workaround for the TaxJar API to get the correct rates for
+	 * specific edge cases.
+	 *
+	 * For these specific edge cases a "nexus_addresses" element needs to be added to the
+	 * TaxJar request body and the "from" address needs to be removed from it in order to
+	 * get the correct rates. This is due to a limitation/miscalculation at the TaxJar API.
+	 *
+	 * This method adds the "nexus_addresses" element to the request body and unsets the "from"
+	 * address elements if the workaround is enabled and an address case is matched.
+	 *
+	 * New edge cases can be added to the $cases array as needed.
 	 *
 	 * @param array $body Request body.
 	 *
