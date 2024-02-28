@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.5.2 - 2024-xx-xx =
+* Fix - Miscalculation tax from TaxJar and decided to use nexus address.
+
 = 2.5.1 - 2024-02-12 =
 * Fix - Cannot call constructor in classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php.
 

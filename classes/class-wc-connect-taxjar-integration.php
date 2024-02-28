@@ -979,6 +979,76 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Maybe apply a temporary workaround for the TaxJar API to get the correct rates for
+	 * specific edge cases.
+	 *
+	 * For these specific edge cases a "nexus_addresses" element needs to be added to the
+	 * TaxJar request body and the "from" address needs to be removed from it in order to
+	 * get the correct rates. This is due to a limitation/miscalculation at the TaxJar API.
+	 *
+	 * This method adds the "nexus_addresses" element to the request body and unsets the "from"
+	 * address elements if the workaround is enabled and an address case is matched.
+	 *
+	 * New edge cases can be added to the $cases array as needed.
+	 *
+	 * @param array $body Request body.
+	 *
+	 * @return array
+	 */
+	public function maybe_apply_taxjar_nexus_addresses_workaround( $body ) {
+		if ( true !== apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
+			return $body;
+		}
+
+		$cases = array(
+			'CA-QC' => array(
+				'to_country'   => 'CA',
+				'to_state'     => 'QC',
+				'from_country' => 'CA',
+			),
+			'US-CO' => array(
+				'to_country'   => 'US',
+				'to_state'     => 'CO',
+				'from_country' => 'US',
+			),
+		);
+
+		foreach ( $cases as $case ) {
+			if ( $case['to_country'] !== $body['to_country'] ||
+				$case['to_state'] !== $body['to_state'] ||
+				$case['from_country'] !== $body['from_country'] ) {
+				continue;
+			}
+
+			$body['nexus_addresses'] = array(
+				array(
+					'street'  => $body['to_street'],
+					'city'    => $body['to_city'],
+					'state'   => $body['to_state'],
+					'country' => $body['to_country'],
+					'zip'     => $body['to_zip'],
+				),
+			);
+
+			$params_to_unset = array(
+				'from_country',
+				'from_state',
+				'from_zip',
+				'from_city',
+				'from_street',
+			);
+
+			foreach ( $params_to_unset as $param ) {
+				unset( $body[ $param ] );
+			}
+
+			break;
+		}
+
+		return $body;
+	}
+
+	/**
 	 * Calculate sales tax using SmartCalcs
 	 *
 	 * Direct from the TaxJar plugin, without Nexus check.
@@ -1053,44 +1123,7 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
-		/**
-		 * Change the API request body so that provincial sales tax (PST) is added
-		 * in cases where TaxJar does not combine it with general sales tax (GST)
-		 * based on from/to address alone. This is a limitation of their API.
-		 * They said they would be working on adding specific cases like
-		 * this in the future.
-		 *
-		 * As a temporary workaround, TaxJar suggested we remove the from address
-		 * parameters and use the nexus_addresses[] parameter instead in cases that
-		 * require it. This ensures that the PST is added in cases where it needs to be.
-		 *
-		 * In this case, when shipping from an address Canada to Quebec,
-		 * PST should be charged in addition to GST. The combined tax is
-		 * referred to as Québec sales tax (QST).
-		 */
-		if ( true === apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) && 'CA' === $body['to_country'] && 'QC' === $body['to_state'] && 'CA' === $body['from_country'] ) {
-			$params_to_unset = array(
-				'from_country',
-				'from_state',
-				'from_zip',
-				'from_city',
-				'from_street',
-			);
-
-			foreach ( $params_to_unset as $param ) {
-				unset( $body[ $param ] );
-			}
-
-			$body['nexus_addresses'] = array(
-				array(
-					'street'  => $body['to_street'],
-					'city'    => $body['to_city'],
-					'state'   => $body['to_state'],
-					'country' => $body['to_country'],
-					'zip'     => $body['to_zip'],
-				),
-			);
-		}
+		$body = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
 		if ( empty( $line_items ) ) {
