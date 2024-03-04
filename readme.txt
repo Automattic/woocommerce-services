@@ -6,7 +6,7 @@ Requires at least: 6.2
 Tested up to: 6.4
 WC requires at least: 8.0
 WC tested up to: 8.3
-Stable tag: 2.5.1
+Stable tag: 2.5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,7 +78,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.5.2 - 2024-xx-xx =
+= 2.5.2 - 2024-03-04 =
 * Fix - Miscalculation tax from TaxJar and decided to use nexus address.
 
 = 2.5.1 - 2024-02-12 =

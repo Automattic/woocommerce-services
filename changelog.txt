@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.5.2 - 2024-xx-xx =
+= 2.5.2 - 2024-03-04 =
 * Fix - Miscalculation tax from TaxJar and decided to use nexus address.
 
 = 2.5.1 - 2024-02-12 =
