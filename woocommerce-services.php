@@ -8,10 +8,10 @@
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
  * Version: 2.5.2
- * Requires at least: 6.2
+ * Requires at least: 6.3
  * Tested up to: 6.4
- * WC requires at least: 8.0
- * WC tested up to: 8.3
+ * WC requires at least: 8.4
+ * WC tested up to: 8.6
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -331,7 +331,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->wc_connect_base_url = self::get_wc_connect_base_url();
 			add_action(
 				'before_woocommerce_init',
-				function() {
+				function () {
 					if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-services/woocommerce-services.php' );
 					}
@@ -579,7 +579,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
 					'admin_notices',
-					function() {
+					function () {
 						/* translators: %s WC download URL link. */
 						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
@@ -1221,8 +1221,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Abort if no $order was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
 			if ( ! $order
-				 || ! $order->has_status( 'completed' )
-				 || ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
+				|| ! $order->has_status( 'completed' )
+				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
 				return;
 			}
 
