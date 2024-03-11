@@ -1010,14 +1010,21 @@ class WC_Connect_TaxJar_Integration {
 				'to_country'   => 'US',
 				'to_state'     => 'CO',
 				'from_country' => 'US',
+				'from_state'   => 'CO',
 			),
 		);
 
 		foreach ( $cases as $case ) {
-			if ( $case['to_country'] !== $body['to_country'] ||
-				$case['to_state'] !== $body['to_state'] ||
-				$case['from_country'] !== $body['from_country'] ) {
-				continue;
+
+			/**
+			 * Ensure the body has all the required address keys, and that the body address
+			 * values match the case address values before applying the workaround.
+			 */
+			$address_keys = array_keys( $case );
+			foreach ( $address_keys as $address_key ) {
+				if ( ! isset( $body[ $address_key ] ) || $body[ $address_key ] !== $case[ $address_key ] ) {
+					continue 2;
+				}
 			}
 
 			$body['nexus_addresses'] = array(
