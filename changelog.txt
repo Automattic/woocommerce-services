@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 2.5.3 - 2024-xx-xx =
+* Fix - Colorado tax nexus workaround should only apply to Colorado from addresses.
+
 = 2.5.2 - 2024-03-04 =
 * Fix - Miscalculation tax from TaxJar and decided to use nexus address.
 

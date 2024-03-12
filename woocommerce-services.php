@@ -8,10 +8,10 @@
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
  * Version: 2.5.2
- * Requires at least: 6.2
+ * Requires at least: 6.3
  * Tested up to: 6.4
- * WC requires at least: 8.0
- * WC tested up to: 8.3
+ * WC requires at least: 8.4
+ * WC tested up to: 8.6
  *
  * Copyright (c) 2017-2023 Automattic
  *
