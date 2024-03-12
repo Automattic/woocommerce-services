@@ -7,7 +7,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 2.5.2
+ * Version: 2.5.3
  * Requires at least: 6.3
  * Tested up to: 6.4
  * WC requires at least: 8.4
