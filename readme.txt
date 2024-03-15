@@ -79,6 +79,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.5.4 - 2024-xx-xx =
+* Tweak - WordPress 6.5 compatibility.
+
 = 2.5.3 - 2024-03-12 =
 * Fix - Colorado tax nexus workaround should only apply to Colorado from addresses.
 
