@@ -35,8 +35,8 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 
 		private function get_all_labels() {
 			global $wpdb;
-			$query      = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels'";
-			$db_results = $wpdb->get_results( $query );
+			$query      = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s";
+			$db_results = $wpdb->get_results( $wpdb->prepare( $query, 'wc_connect_labels' ) );
 			$results    = array();
 
 			foreach ( $db_results as $meta ) {

@@ -92,10 +92,11 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			$found_ca_rates = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
-			        WHERE tax_rate_country = %s AND tax_rate_state = %s AND tax_rate_name LIKE '% Tax'
+			        WHERE tax_rate_country = %s AND tax_rate_state = %s AND tax_rate_name LIKE %s
 			        ",
 					'US',
-					'CA'
+					'CA',
+					'% Tax'
 				),
 				ARRAY_A
 			);
