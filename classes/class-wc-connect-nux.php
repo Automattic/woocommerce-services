@@ -134,8 +134,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$is_new_user = get_transient( self::IS_NEW_LABEL_USER );
 			if ( false === $is_new_user ) {
 				global $wpdb;
-				$query       = "SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = 'wc_connect_labels' LIMIT 1";
-				$results     = $wpdb->get_results( $query );
+
+				$results     = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT meta_key FROM {$wpdb->postmeta} WHERE meta_key = %s LIMIT 1",
+						'wc_connect_labels'
+					)
+				);
 				$is_new_user = 0 === count( $results ) ? 'yes' : 'no';
 				set_transient( self::IS_NEW_LABEL_USER, $is_new_user );
 			}

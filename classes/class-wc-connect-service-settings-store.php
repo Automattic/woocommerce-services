@@ -378,6 +378,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			global $wpdb;
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared --- Need to use interpolated for the `IN()` condition
 			$methods = $wpdb->get_results(
 				"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
 				"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
@@ -385,6 +386,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				"WHERE method_id IN ({$escaped_list}) " .
 				'ORDER BY zone_order, instance_id;'
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			if ( empty( $methods ) ) {
 				return $enabled_services;
