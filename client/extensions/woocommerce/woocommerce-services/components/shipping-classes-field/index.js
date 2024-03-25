@@ -6,14 +6,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { uniq, map, find, filter } from 'lodash';
+import { FormTokenField } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import FormFieldset from 'components/forms/form-fieldset';
-import FormLabel from 'components/forms/form-label';
-import TokenField from 'components/token-field';
 import FormSettingExplanation from 'wcs-client/components/forms/form-setting-explanation';
+
+/*
+* Style dependencies
+*/
+import './style.scss';
 
 export default class ShippingClassesField extends React.Component {
 	static propTypes = {
@@ -26,7 +30,7 @@ export default class ShippingClassesField extends React.Component {
 	};
 
 	render() {
-		const { id, title, description, value, placeholder, options } = this.props;
+		const { title, description, value, placeholder, options } = this.props;
 
 		// If there are no shipping classes, no input for them is needed.
 		if ( false === options || 0 === options.length ) {
@@ -35,15 +39,14 @@ export default class ShippingClassesField extends React.Component {
 
 		return (
 			<FormFieldset>
-				<FormLabel htmlFor={ id }>{ title }</FormLabel>
-				<TokenField
-					id={ id }
-					name={ id }
+				<FormTokenField
+					label={ title }
 					placeholder={ placeholder }
 					value={ this.prepareValueForTokenField( value ) }
 					suggestions={ uniq( map( options, 'name' ) ) }
 					onChange={ this.onChange }
 					displayTransform={ this.transformForDisplay }
+					className="shipping-classes-field__form-token"
 				/>
 				{ description && <FormSettingExplanation>{ description }</FormSettingExplanation> }
 			</FormFieldset>
