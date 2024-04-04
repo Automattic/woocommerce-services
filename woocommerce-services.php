@@ -582,11 +582,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function on_plugins_loaded() {
 			$this->load_textdomain();
 
-			if ( in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) ) ) {
+			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
+
+			if ( $is_woo_shipping_active || $is_woo_tax_active ) {
 				add_action(
 					'admin_notices',
-					function () {
-						echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping plugin is already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-shipping' ) . '</strong></p></div>';
+					function () use ( $is_woo_shipping_active, $is_woo_tax_active ) {
+						if ( $is_woo_shipping_active && $is_woo_tax_active ) {
+							$active_plugins = esc_html__( 'Woo Shipping and Woo Tax plugins are already active.', 'woocommerce-services' );
+						} elseif ( $is_woo_shipping_active ) {
+							$active_plugins = esc_html__( 'Woo Shipping plugin is already active.', 'woocommerce-services' );
+						} else {
+							$active_plugins = esc_html__( 'Woo Tax plugin is already active.', 'woocommerce-services' );
+						}
+
+						echo '<div class="error"><p><strong>' . $active_plugins . ' ' . esc_html__( 'Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 					}
 				);
 				return;
