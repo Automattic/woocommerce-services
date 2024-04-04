@@ -342,7 +342,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * Used to let Woo Shipping know WCS&T will handle the plugins' coexistence
 			 * by displaying an appropriate notice and not registering its functionality.
 			 */
-			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping', '__return_true' );
+			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
 			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 		}
