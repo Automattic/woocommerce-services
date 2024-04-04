@@ -80,7 +80,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.5.5 - 2024-xx-xx =
-* Add - Don't register functionality if Woo Shipping is active.
+* Add - Don't register functionality if Woo Shipping or Woo Tax is active.
 
 = 2.5.4 - 2024-03-25 =
 * Tweak - WordPress 6.5 compatibility.
