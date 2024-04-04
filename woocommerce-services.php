@@ -590,14 +590,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'admin_notices',
 					function () use ( $is_woo_shipping_active, $is_woo_tax_active ) {
 						if ( $is_woo_shipping_active && $is_woo_tax_active ) {
-							$active_plugins = esc_html__( 'Woo Shipping and Woo Tax plugins are already active.', 'woocommerce-services' );
+							$active_plugins = __( 'Woo Shipping and Woo Tax plugins are already active.', 'woocommerce-services' );
 						} elseif ( $is_woo_shipping_active ) {
-							$active_plugins = esc_html__( 'Woo Shipping plugin is already active.', 'woocommerce-services' );
+							$active_plugins = __( 'Woo Shipping plugin is already active.', 'woocommerce-services' );
 						} else {
-							$active_plugins = esc_html__( 'Woo Tax plugin is already active.', 'woocommerce-services' );
+							$active_plugins = __( 'Woo Tax plugin is already active.', 'woocommerce-services' );
 						}
 
-						echo '<div class="error"><p><strong>' . sprintf( esc_html__( '%s Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ), $active_plugins ) . '</strong></p></div>';
+						echo '<div class="error"><p><strong>' . sprintf( esc_html__( '%s Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ), esc_html( $active_plugins ) ) . '</strong></p></div>';
 					}
 				);
 				return;
