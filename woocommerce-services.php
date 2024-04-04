@@ -338,6 +338,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					}
 				}
 			);
+			/*
+			 * Used to let Woo Shipping know WCS&T will handle the plugins' coexistence
+			 * by displaying an appropriate notice and not registering its functionality.
+			 */
+			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping', '__return_true' );
 			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 		}
@@ -576,6 +581,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function on_plugins_loaded() {
 			$this->load_textdomain();
+
+			if ( in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) ) ) {
+				add_action(
+					'admin_notices',
+					function () {
+						echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping plugin is already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-shipping' ) . '</strong></p></div>';
+					}
+				);
+				return;
+			}
 
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
