@@ -597,6 +597,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 							$active_plugins = __( 'Woo Tax plugin is already active.', 'woocommerce-services' );
 						}
 
+						/* translators: %s: the reason WCS&T has to be deactivated */
 						echo '<div class="error"><p><strong>' . sprintf( esc_html__( '%s Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ), esc_html( $active_plugins ) ) . '</strong></p></div>';
 					}
 				);
