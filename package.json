@@ -161,6 +161,7 @@
     "wrap-loader": "^0.2.0"
   },
   "config": {
-    "wp_org_slug": "woocommerce-services"
+    "wp_org_slug": "woocommerce-services",
+    "use_gh_release_notes": true
   }
 }
