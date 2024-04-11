@@ -338,13 +338,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					}
 				}
 			);
-			/*
-			 * Used to let Woo Shipping know WCS&T will handle the plugins' coexistence
-			 * by displaying an appropriate notice and not registering its functionality.
-			 */
-			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
 			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
+			add_action( 'plugins_loaded', array( $this, 'maybe_handle_coexistence_with_woo_shipping_and_woo_tax' ), 5 );
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
+		}
+
+		/**
+		 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence
+		 * by displaying an appropriate notice and not registering its functionality.
+		 */
+		public function maybe_handle_coexistence_with_woo_shipping_and_woo_tax() {
+			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
+
+			if ( $is_woo_shipping_active && $is_woo_tax_active ) {
+				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
+			}
 		}
 
 		public function get_logger() {
@@ -582,22 +591,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function on_plugins_loaded() {
 			$this->load_textdomain();
 
-			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
-			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
-
-			if ( $is_woo_shipping_active || $is_woo_tax_active ) {
+			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
 				add_action(
 					'admin_notices',
-					function () use ( $is_woo_shipping_active, $is_woo_tax_active ) {
-						if ( $is_woo_shipping_active && $is_woo_tax_active ) {
-							$active_plugins = __( 'Woo Shipping and Woo Tax plugins are already active.', 'woocommerce-services' );
-						} elseif ( $is_woo_shipping_active ) {
-							$active_plugins = __( 'Woo Shipping plugin is already active.', 'woocommerce-services' );
-						} else {
-							$active_plugins = __( 'Woo Tax plugin is already active.', 'woocommerce-services' );
-						}
-
-						echo '<div class="error"><p><strong>' . sprintf( esc_html__( '%s Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ), esc_html( $active_plugins ) ) . '</strong></p></div>';
+					function () {
+						echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 					}
 				);
 				return;
