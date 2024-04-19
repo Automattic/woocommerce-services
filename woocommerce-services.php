@@ -338,20 +338,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					}
 				}
 			);
-			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
-			add_action( 'plugins_loaded', array( $this, 'maybe_handle_coexistence_with_woo_shipping_and_woo_tax' ), 5 );
+
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
-		}
 
-		/**
-		 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence
-		 * by displaying an appropriate notice and not registering its functionality.
-		 */
-		public function maybe_handle_coexistence_with_woo_shipping_and_woo_tax() {
-			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
-			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
+			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
+				/**
+				 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence
+				 * by displaying an appropriate notice and not registering its functionality.
+				 */
+				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
+				return;
+			}
 
-			return $is_woo_shipping_active && $is_woo_tax_active;
+			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 		}
 
 		public function get_logger() {
@@ -1769,6 +1768,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				</div>
 				<?php
 			}
+		}
+
+		public function are_woo_shipping_and_woo_tax_active() {
+			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
+
+			return $is_woo_shipping_active && $is_woo_tax_active;
 		}
 	}
 }
