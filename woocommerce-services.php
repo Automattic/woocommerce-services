@@ -351,9 +351,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
 			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
 
-			if ( $is_woo_shipping_active && $is_woo_tax_active ) {
-				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
-			}
+			return $is_woo_shipping_active && $is_woo_tax_active;
 		}
 
 		public function get_logger() {
