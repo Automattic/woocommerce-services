@@ -589,12 +589,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->load_textdomain();
 
 			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
-				add_action(
-					'admin_notices',
-					function () {
-						echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
-					}
-				);
+				add_action( 'admin_notices', array( $this, 'display_woo_shipping_and_woo_tax_are_active_notice' ) );
 				return;
 			}
 
@@ -1775,6 +1770,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
 
 			return $is_woo_shipping_active && $is_woo_tax_active;
+		}
+
+		public function display_woo_shipping_and_woo_tax_are_active_notice() {
+			echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 	}
 }
