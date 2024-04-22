@@ -14,7 +14,7 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 			return;
 		}
 
-		await page.waitForSelector( `a#activate-${ slug }`, { timeout: 119000 } );
+		await page.waitForSelector( `a#activate-${ slug }` );
 
 		await page.click( `a#activate-${ slug }` );
 
