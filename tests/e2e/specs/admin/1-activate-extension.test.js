@@ -10,7 +10,8 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 		await StoreOwnerFlow.updateWPDB();
 		await StoreOwnerFlow.openPluginsPage();
 		const enableLink = await page.$( `tr[data-slug="${ slug }"] .activate a` );
-		if ( ! enableLink ) {
+		const disableLink = await page.$( `tr[data-slug="${ slug }"] .deactivate a` );
+		if ( ! enableLink && disableLink ) {
 			return;
 		}
 
