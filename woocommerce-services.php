@@ -596,7 +596,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * plugins are activated at the same time.
 			 *
 			 * @since {{next-release}}
-			 * 
+			 *
 			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
 			 */
 			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
@@ -1776,6 +1776,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Returns if both Woo Shipping and Woo Tax are active.
+		 *
+		 * @return bool
+		 */
 		public function are_woo_shipping_and_woo_tax_active() {
 			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
 			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
@@ -1783,6 +1788,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $is_woo_shipping_active && $is_woo_tax_active;
 		}
 
+		/**
+		 * Echoes an admin notice informing of Woo Shipping and Woo Tax being active.
+		 *
+		 * To be used in the `admin_notices` hook.
+		 *
+		 * @return void
+		 */
 		public function display_woo_shipping_and_woo_tax_are_active_notice() {
 			echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
