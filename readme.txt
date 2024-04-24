@@ -79,6 +79,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.5.5 - 2024-xx-xx =
+* Add - Prevent upcoming Woo Shipping and Woo Tax plugins from running in parallel with this plugin unless both are active, then they will take over for this plugin.
+
 = 2.5.4 - 2024-03-25 =
 * Tweak - WordPress 6.5 compatibility.
 
