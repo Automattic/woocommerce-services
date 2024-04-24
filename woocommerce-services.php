@@ -343,8 +343,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
 				/**
-				 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence
-				 * by displaying an appropriate notice and not registering its functionality.
+				 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence.
+				 *
+				 * WCS&T does it by not registering its functionality and displaying an appropriate notice
+				 * in WP admin.
 				 */
 				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
 				return;
