@@ -588,6 +588,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function on_plugins_loaded() {
 			$this->load_textdomain();
 
+			/**
+			 * Allow third party logic to determine if this plugin should initiate its logic.
+			 *
+			 * The primary purpose here is to allow a smooth transition between the new Woo Shipping / Woo Tax plugins
+			 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
+			 * plugins are activated at the same time.
+			 *
+			 * @since {{next-release}}
+			 * 
+			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
+			 */
 			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
 				add_action( 'admin_notices', array( $this, 'display_woo_shipping_and_woo_tax_are_active_notice' ) );
 				return;
