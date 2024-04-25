@@ -8,7 +8,6 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 		const slug = 'woocommerce-services'
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.updateWPDB();
-		await StoreOwnerFlow.updateWPDB();
 		await StoreOwnerFlow.openSettings();
 		await StoreOwnerFlow.openPluginsPage();
 
