@@ -1,12 +1,13 @@
 === WooCommerce Shipping & Tax ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
-Requires PHP: 7.3
+Requires PHP: 7.4
 Requires at least: 6.3
-Tested up to: 6.4
+Requires Plugins: woocommerce
+Tested up to: 6.5
 WC requires at least: 8.4
 WC tested up to: 8.6
-Stable tag: 2.5.3
+Stable tag: 2.5.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -77,6 +78,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.5.5 - 2024-xx-xx =
+* Add - Prevent upcoming Woo Shipping and Woo Tax plugins from running in parallel with this plugin unless both are active, then they will take over for this plugin.
+
+= 2.5.4 - 2024-03-25 =
+* Tweak - WordPress 6.5 compatibility.
 
 = 2.5.3 - 2024-03-12 =
 * Fix - Colorado tax nexus workaround should only apply to Colorado from addresses.

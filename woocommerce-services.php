@@ -1,15 +1,16 @@
 <?php
 /**
  * Plugin Name: WooCommerce Shipping & Tax
+ * Requires Plugins: woocommerce
  * Plugin URI: https://woocommerce.com/
  * Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 2.5.3
+ * Version: 2.5.4
  * Requires at least: 6.3
- * Tested up to: 6.4
+ * Tested up to: 6.5
  * WC requires at least: 8.4
  * WC tested up to: 8.6
  *
@@ -337,8 +338,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					}
 				}
 			);
-			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
+
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
+
+			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
+				/**
+				 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence.
+				 *
+				 * WCS&T does it by not registering its functionality and displaying an appropriate notice
+				 * in WP admin.
+				 */
+				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
+				return;
+			}
+
+			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 		}
 
 		public function get_logger() {
@@ -575,6 +589,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function on_plugins_loaded() {
 			$this->load_textdomain();
+
+			/**
+			 * Allow third party logic to determine if this plugin should initiate its logic.
+			 *
+			 * The primary purpose here is to allow a smooth transition between the new Woo Shipping / Woo Tax plugins
+			 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
+			 * plugins are activated at the same time.
+			 *
+			 * @since {{next-release}}
+			 *
+			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
+			 */
+			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
+				add_action( 'admin_notices', array( $this, 'display_woo_shipping_and_woo_tax_are_active_notice' ) );
+				return;
+			}
 
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
@@ -1746,6 +1776,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				</div>
 				<?php
 			}
+		}
+
+		/**
+		 * Returns if both Woo Shipping and Woo Tax are active.
+		 *
+		 * @return bool
+		 */
+		public function are_woo_shipping_and_woo_tax_active() {
+			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
+
+			return $is_woo_shipping_active && $is_woo_tax_active;
+		}
+
+		/**
+		 * Echoes an admin notice informing of Woo Shipping and Woo Tax being active.
+		 *
+		 * To be used in the `admin_notices` hook.
+		 *
+		 * @return void
+		 */
+		public function display_woo_shipping_and_woo_tax_are_active_notice() {
+			echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 	}
 }

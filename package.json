@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd .. && husky install",
@@ -161,6 +161,7 @@
     "wrap-loader": "^0.2.0"
   },
   "config": {
-    "wp_org_slug": "woocommerce-services"
+    "wp_org_slug": "woocommerce-services",
+    "use_gh_release_notes": true
   }
 }
