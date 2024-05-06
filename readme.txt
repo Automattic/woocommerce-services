@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.5
 WC requires at least: 8.6
 WC tested up to: 8.8
-Stable tag: 2.5.5
+Stable tag: 2.5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,7 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.5.6 - 2024-xx-xx =
+= 2.5.6 - 2024-05-06 =
 * Tweak - WooCommerce 8.8 compatibility.
 
 = 2.5.5 - 2024-04-29 =

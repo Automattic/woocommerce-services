@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-services",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "scripts": {
     "start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085",
     "prepare": "cd wp-calypso && npm ci && cd .. && husky install",
