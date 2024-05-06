@@ -7,6 +7,9 @@
 * Tweak - WordPress 6.5 compatibility.
 
 = 2.5.3 - 2024-03-12 =
+* Tweak - WooCommerce 8.8 compatibility.
+
+= 2.5.3 - 2024-03-12 =
 * Fix - Colorado tax nexus workaround should only apply to Colorado from addresses.
 
 = 2.5.2 - 2024-03-04 =

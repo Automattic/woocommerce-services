@@ -8,8 +8,12 @@ describe( 'Store admin can login and make sure WooCommerce Shipping & Tax extens
 		const slug = 'woocommerce-services'
 		await StoreOwnerFlow.login();
 		await StoreOwnerFlow.updateWPDB();
+		await StoreOwnerFlow.openSettings(); // Navigate to a WC settings page first for issue #2729 temporary solution.
 		await StoreOwnerFlow.openPluginsPage();
-		const disableLink = await page.$( `tr[data-slug="${ slug }"] .deactivate a` );
+
+		await expect( page.title() ).resolves.toContain( 'Plugins' );
+		const disableLink = await page.$( `a#deactivate-${ slug }` );
+
 		if ( disableLink ) {
 			return;
 		}
