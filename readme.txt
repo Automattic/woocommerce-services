@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.3
 Requires Plugins: woocommerce
 Tested up to: 6.5
-WC requires at least: 8.4
-WC tested up to: 8.6
+WC requires at least: 8.6
+WC tested up to: 8.8
 Stable tag: 2.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.5.6 - 2024-xx-xx =
+* Tweak - WooCommerce 8.8 compatibility.
 
 = 2.5.5 - 2024-04-29 =
 * Add - Prevent upcoming Woo Shipping and Woo Tax plugins from running in parallel with this plugin unless both are active, then they will take over for this plugin.
