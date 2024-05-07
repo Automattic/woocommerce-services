@@ -237,10 +237,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				 * exceeds `wc_connect_shipment_item_quantity_threshold`
 				 */
 				$max_shipments = apply_filters( 'wc_connect_max_shipments_if_quantity_exceeds_threshold', 5 );
-				/**
-				 * Default quantity per item if the `wc_connect_shipments_item_threshold_quantity` is not exceeded.
-				 */
-				$quantity_per_shipment = 1;
 
 				$weight_per_item = $item_data['weight'];
 				$should_cap_shipments = $remaining_quantity > $threshold;
