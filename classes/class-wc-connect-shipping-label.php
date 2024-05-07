@@ -175,7 +175,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					),
 				);
 			}
-
 			$formatted_packages = array();
 
 			foreach ( $packages as $package_obj ) {
@@ -226,10 +225,44 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				}
 
 				$refunded_qty = $order->get_qty_refunded_for_item( $item->get_id() );
+				$remaining_quantity = $item['qty'] - absint( $refunded_qty );
+				/**
+				 * The threshold at which we will start batching items together.
+				 * As an example, if a single order item has a quantity 60, which is more than the default threshold
+				 * value of 20 we will start batching together.
+				 */
+				$threshold = apply_filters( 'wc_connect_shipment_item_quantity_threshold', 20 );
+				/**
+				 * Max number of shipments allowed to be created for this item should quantity of this order items
+				 * exceeds `wc_connect_shipment_item_quantity_threshold`
+				 */
+				$max_shipments = apply_filters( 'wc_connect_max_shipments_if_quantity_exceeds_threshold', 5 );
 
-				for ( $i = 0; $i < ( $item['qty'] - absint( $refunded_qty ) ); $i ++ ) {
-					$items[] = $item_data;
+				$weight_per_item = $item_data['weight'];
+				$should_cap_shipments = $remaining_quantity > $threshold;
+
+				if ( $should_cap_shipments ) {
+					$quantity_per_shipment = floor( $remaining_quantity / $max_shipments );
+					for ( $i = 0; $i < $max_shipments; $i ++ ) {
+						$remaining_quantity -= $quantity_per_shipment;
+
+						if( $remaining_quantity >= $quantity_per_shipment ) {
+							$item_data['quantity'] = $quantity_per_shipment;
+						} else {
+							$item_data['quantity'] = $quantity_per_shipment + $remaining_quantity;
+						}
+
+						$item_data['weight'] = round( $item_data['quantity'] * $weight_per_item, 2 );
+						$items[] = $item_data;
+					}
+				} else {
+					for ( $i = 0; $i < $remaining_quantity; $i ++ ) {
+						$items[] = $item_data;
+					}
 				}
+
+
+
 			}
 
 			return $items;

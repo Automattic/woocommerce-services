@@ -79,6 +79,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.5.7 - 2024-xx-xx =
+* Add - wc_connect_shipment_item_quantity_threshold and wc_connect_max_shipments_if_quantity_exceeds_threshold filter hooks to be able to cap the number of shipment splits possible for an item with very large quantity.
+
 = 2.5.6 - 2024-05-06 =
 * Tweak - WooCommerce 8.8 compatibility.
 
