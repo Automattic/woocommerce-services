@@ -244,15 +244,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				if ( $should_cap_shipments ) {
 					$quantity_per_shipment = floor( $remaining_quantity / $max_shipments );
 					for ( $i = 0; $i < $max_shipments; $i ++ ) {
-						$item_data['weight'] = $quantity_per_shipment * $weight_per_item;
 						$remaining_quantity -= $quantity_per_shipment;
 
-						if( $remaining_quantity > $quantity_per_shipment ) {
+						if( $remaining_quantity >= $quantity_per_shipment ) {
 							$item_data['quantity'] = $quantity_per_shipment;
 						} else {
 							$item_data['quantity'] = $quantity_per_shipment + $remaining_quantity;
 						}
 
+						$item_data['weight'] = round( $item_data['quantity'] * $weight_per_item, 2 );
 						$items[] = $item_data;
 					}
 				} else {
