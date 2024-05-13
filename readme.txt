@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.5
 WC requires at least: 8.6
 WC tested up to: 8.8
-Stable tag: 2.5.6
+Stable tag: 2.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,7 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.5.7 - 2024-xx-xx =
+= 2.5.7 - 2024-05-13 =
 * Add - wc_connect_shipment_item_quantity_threshold and wc_connect_max_shipments_if_quantity_exceeds_threshold filter hooks to be able to cap the number of shipment splits possible for an item with very large quantity.
 
 = 2.5.6 - 2024-05-06 =
