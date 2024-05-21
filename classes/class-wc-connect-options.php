@@ -42,6 +42,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				'store_guid',
 				'debug_logging_enabled',
 				'debug_display_enabled',
+				'add_payment_method_url',
 				'payment_methods',
 				'account_settings',
 				'paper_size',

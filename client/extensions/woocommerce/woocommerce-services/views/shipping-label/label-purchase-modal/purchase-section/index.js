@@ -16,10 +16,10 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import PurchaseButton from './purchase-button';
 import CreditCardButton from './credit-card-button';
-import { getOrigin } from 'woocommerce/lib/nav-utils';
 import {
 	getSelectedPaymentMethodId,
 	getPaymentMethods,
+	getAddPaymentMethodURL,
 } from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 
 /**
@@ -33,6 +33,7 @@ export const PurchaseSection = props => {
 		siteId,
 		hasLabelsPaymentMethod,
 		paymentMethods,
+		addPaymentMethodURL,
 		form,
 		disablePurchase,
 		translate,
@@ -70,10 +71,9 @@ export const PurchaseSection = props => {
 			) : ( ! paymentMethods.length ) ? (
 				<CreditCardButton
 					disabled={ disablePurchase }
-					url={ getOrigin() + '/me/purchases/add-credit-card' }
+					url={ addPaymentMethodURL }
 					buttonLabel={ translate( 'Add credit card' ) }
 					buttonDescription={ addCardButtonDescription }
-
 				/>
 			) : (
 				<CreditCardButton
@@ -97,6 +97,7 @@ const mapStateToProps = ( state, { orderId, siteId } ) => {
 		form,
 		hasLabelsPaymentMethod: Boolean( getSelectedPaymentMethodId( state, siteId ) ),
 		paymentMethods: getPaymentMethods( state, siteId ),
+		addPaymentMethodURL: getAddPaymentMethodURL( state, siteId ),
 		disablePurchase: ! form.needsPrintConfirmation && ( ! purchaseReady || form.isSubmitting ),
 	};
 };

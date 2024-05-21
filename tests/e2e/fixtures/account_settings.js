@@ -20,6 +20,7 @@ const AccountWithNoCreditCard = {
 		"master_user_wpcom_login": "johndoe",
 		"master_user_email": "john.doe@automattic.com",
 		"payment_methods": [],
+		"add_payment_method_url": "https://wordpress.com/me/purchases/add-credit-card",
 		"warnings": {
 			"payment_methods": false
 		}

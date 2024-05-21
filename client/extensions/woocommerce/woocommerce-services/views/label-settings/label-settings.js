@@ -25,7 +25,6 @@ import FormSelect from 'wcs-client/components/forms/form-select';
 import Notice from 'wcs-client/components/notice';
 import NoticeAction from 'wcs-client/components/notice/notice-action';
 import PaymentMethod, { getPaymentMethodTitle } from './label-payment-method';
-import { getOrigin } from 'woocommerce/lib/nav-utils';
 import {
 	openAddCardDialog,
 	fetchSettings,
@@ -40,6 +39,7 @@ import {
 	getMasterUserInfo,
 	getPaperSize,
 	getPaymentMethods,
+	getAddPaymentMethodURL,
 	getPaymentMethodsWarning,
 	getSelectedPaymentMethodId,
 	isPristine,
@@ -189,6 +189,7 @@ class ShippingLabels extends Component {
 			siteId,
 			canEditPayments,
 			paymentMethods,
+			addPaymentMethodURL,
 			selectedPaymentMethod,
 			isReloading,
 			translate,
@@ -269,7 +270,7 @@ class ShippingLabels extends Component {
 		};
 
 		const onAddCardExternal = () => {
-			this.addCreditCardWindow = window.open( getOrigin() + '/me/purchases/add-credit-card' );
+			this.addCreditCardWindow = window.open( addPaymentMethodURL );
 			document.addEventListener( 'visibilitychange', this.onVisibilityChange );
 		};
 		const buttonClasses = classNames( 'button','is-compact');
@@ -464,6 +465,7 @@ export default connect(
 			isReloading: areSettingsFetching( state, siteId ) && areSettingsLoaded( state, siteId ),
 			pristine: isPristine( state, siteId ),
 			paymentMethods: getPaymentMethods( state, siteId ),
+			addPaymentMethodURL: getAddPaymentMethodURL( state, siteId ),
 			paymentMethodsWarning: getPaymentMethodsWarning( state, siteId ),
 			selectedPaymentMethod: getSelectedPaymentMethodId( state, siteId ),
 			paperSize: getPaperSize( state, siteId ),
