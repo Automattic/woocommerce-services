@@ -42,8 +42,9 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 				return false;
 			}
 
-			if ( is_wp_error( $this->validate_payment_methods_response( $response_body ) ) ) {
-				$this->logger->log( $response_body, __FUNCTION__ );
+			$validation = $this->validate_payment_methods_response( $response_body );
+			if ( is_wp_error( $validation ) ) {
+				$this->logger->log( sprintf( '[%s] %s', $validation->get_error_code(), $validation->get_error_message() ), __FUNCTION__ );
 				return false;
 			}
 
