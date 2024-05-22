@@ -27,6 +27,9 @@ import {
  */
 import './style.scss';
 
+/**
+ * Super important comment!
+ */
 export const PurchaseSection = props => {
 	const {
 		orderId,
