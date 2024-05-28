@@ -25,7 +25,18 @@ jobs:
         shell: bash
         run: |
             echo "::group::Kill webserver running on port 8084"
-            sudo fuser -k -n tcp 8084
+            set +e #
+            sudo fuser -k -n tcp 8084 > /dev/null 2>&1
+            EXIT_CODE=$?
+            set -e
+            if [ $EXIT_CODE -eq 1 ]; then
+              echo "No process found on port 8084, ignoring exit code 1."
+              exit 0
+            fi
+            if [ $EXIT_CODE -ne 0 ]; then
+              echo "fuser encountered an error with exit code $EXIT_CODE."
+              exit $EXIT_CODE
+            fi
             echo "::endgroup::"
       - name: Build WCS&T
         run: |
