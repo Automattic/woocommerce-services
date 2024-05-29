@@ -51,6 +51,7 @@ class WC_Connect_Account_Settings {
 				'master_user_wpcom_login' => $connection_owner_wpcom_data ? $connection_owner_wpcom_data['login'] : '',
 				'master_user_email'       => $connection_owner_wpcom_data ? $connection_owner_wpcom_data['email'] : '',
 				'payment_methods'         => $this->payment_methods_store->get_payment_methods(),
+				'add_payment_method_url'  => $this->payment_methods_store->get_add_payment_method_url(),
 				'warnings'                => array( 'payment_methods' => $payment_methods_warning ),
 			),
 			'userMeta'     => array(

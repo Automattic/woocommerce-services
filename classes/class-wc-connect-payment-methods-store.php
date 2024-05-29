@@ -42,13 +42,18 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 				return false;
 			}
 
-			$payment_methods = $this->get_payment_methods_from_response_body( $response_body );
-			if ( is_wp_error( $payment_methods ) ) {
-				$this->logger->log( $payment_methods, __FUNCTION__ );
+			$validation = $this->validate_payment_methods_response( $response_body );
+			if ( is_wp_error( $validation ) ) {
+				$this->logger->log( sprintf( '[%s] %s', $validation->get_error_code(), $validation->get_error_message() ), __FUNCTION__ );
 				return false;
 			}
 
-			// If we made it this far, it is safe to store the object.
+			// Get add payment method url from response body.
+			$add_payment_method_url = $this->get_add_payment_method_url_from_response_body( $response_body );
+			$payment_methods        = $this->get_payment_methods_from_response_body( $response_body );
+
+			// Store the payment methods and add payment method url.
+			$this->update_add_payment_method_url( $add_payment_method_url );
 			$this->update_payment_methods( $payment_methods );
 
 			$this->potentially_update_selected_payment_method_from_payment_methods( $payment_methods );
@@ -90,15 +95,29 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			WC_Connect_Options::update_option( 'payment_methods', $payment_methods );
 		}
 
-		protected function get_payment_methods_from_response_body( $response_body ) {
+		/**
+		 * Validate that the response body is valid and contains the correct properties.
+		 *
+		 * @param object $response_body The response body object.
+		 * @return true|WP_Error Whether the response body is valid.
+		 */
+		protected function validate_payment_methods_response( $response_body ) {
 			if ( ! is_object( $response_body ) ) {
-				return new WP_Error( 'payment_method_response_body_type', 'Expected but did not receive object for response body.' );
+				return new WP_Error( 'payment_method_response_body_type', __( 'Expected but did not receive object for response body.', 'woocommerce-services' ) );
 			}
 
 			if ( ! property_exists( $response_body, 'payment_methods' ) ) {
-				return new WP_Error( 'payment_method_response_body_missing_payment_methods', 'Expected but did not receive payment_methods in response body.' );
+				return new WP_Error( 'payment_method_response_body_missing_payment_methods', __( 'Expected but did not receive payment_methods in response body.', 'woocommerce-services' ) );
 			}
 
+			if ( ! property_exists( $response_body, 'add_payment_method_url' ) ) {
+				return new WP_Error( 'payment_method_response_body_missing_add_payment_method_url', __( 'Expected but did not receive add_payment_method_url in response body.', 'woocommerce-services' ) );
+			}
+
+			return true;
+		}
+
+		protected function get_payment_methods_from_response_body( $response_body ) {
 			$payment_methods = $response_body->payment_methods;
 			if ( ! is_array( $payment_methods ) ) {
 				return new WP_Error( 'payment_methods_type', 'Expected but did not receive array for payment_methods.' );
@@ -114,6 +133,35 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			}
 
 			return $payment_methods;
+		}
+
+		/**
+		 * Get the URL to add a payment method from the response body.
+		 *
+		 * @param object $response_body The response body object.
+		 * @return string The URL to add a payment method.
+		 */
+		protected function get_add_payment_method_url_from_response_body( $response_body ) {
+			return $response_body->add_payment_method_url;
+		}
+
+		/**
+		 * Get the URL to add a payment method.
+		 *
+		 * @return string The URL to add a payment method.
+		 */
+		public function get_add_payment_method_url() {
+			return WC_Connect_Options::get_option( 'add_payment_method_url', '' );
+		}
+
+		/**
+		 * Update the URL to add a payment method.
+		 *
+		 * @param string $add_payment_method_url The URL to add a payment method.
+		 * @return void
+		 */
+		protected function update_add_payment_method_url( $add_payment_method_url ) {
+			WC_Connect_Options::update_option( 'add_payment_method_url', esc_url_raw( $add_payment_method_url ) );
 		}
 	}
 }
