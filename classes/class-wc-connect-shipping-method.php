@@ -646,6 +646,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			if ( WC_Connect_Functions::is_cart() || WC_Connect_Functions::is_checkout() || isset( $_POST['update_cart'] ) || WC_Connect_Functions::is_store_api_call() ) {
 				$debug_message = sprintf( '%s (%s:%d)', $message, esc_html( $this->title ), $this->instance_id );
 				$this->logger->debug( $debug_message, $type );
+				$this->logger->log( $debug_message, __CLASS__ );
 			}
 		}
 
