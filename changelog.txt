@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 2.6.0 - 2024-xx-xx =
+* Add - Logger for "Live Rates" feature on the front-end.
+
 = 2.5.7 - 2024-05-13 =
 * Add - wc_connect_shipment_item_quantity_threshold and wc_connect_max_shipments_if_quantity_exceeds_threshold filter hooks to be able to cap the number of shipment splits possible for an item with very large quantity.
 

@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.3
 Requires Plugins: woocommerce
 Tested up to: 6.5
-WC requires at least: 8.6
-WC tested up to: 8.8
+WC requires at least: 8.7
+WC tested up to: 8.9
 Stable tag: 2.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -78,6 +78,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.6.0 - 2024-xx-xx =
+* Add - Logger for "Live Rates" feature on the front-end.
 
 = 2.5.7 - 2024-05-13 =
 * Add - wc_connect_shipment_item_quantity_threshold and wc_connect_max_shipments_if_quantity_exceeds_threshold filter hooks to be able to cap the number of shipment splits possible for an item with very large quantity.
