@@ -79,7 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.5.8 - 2024-xx-xx =
+= 2.6.0 - 2024-xx-xx =
 * Add - Logger for "Live Rates" feature on the front-end.
 
 = 2.5.7 - 2024-05-13 =
