@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.5
 WC requires at least: 8.7
 WC tested up to: 8.9
-Stable tag: 2.5.7
+Stable tag: 2.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,7 +79,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.6.0 - 2024-xx-xx =
+= 2.6.0 - 2024-06-04 =
 * Add - Logger for "Live Rates" feature on the front-end.
 
 = 2.5.7 - 2024-05-13 =
