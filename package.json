@@ -142,7 +142,7 @@
     "postcss-loader": "3.0.0",
     "postcss-url": "^8.0.0",
     "prop-types": "15.5.10",
-    "qs": "6.5.1",
+    "qs": "6.5.3",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-hot-loader": "^4.13.0",
