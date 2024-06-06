@@ -1,0 +1,119 @@
+.wp-admin.woocommerce-feature-enabled-product-block-editor .migration__announcement-modal.components-modal__frame,
+.migration__announcement-modal.components-modal__frame {
+  display: flex;
+  width: 860px;
+  align-items: flex-start;
+  background: var(--Woo-Purple-Woo-Purple-0, #F2EDFF);
+  border-radius: 2px;
+  height: 700px;
+  box-shadow: 0px 3px 30px 0px rgba(25, 30, 35, 0.20);
+
+  .components-modal__header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: calc(100% - 100px);
+    width: 100px;
+  }
+
+  .components-modal__content {
+    margin-top: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  h2 {
+    color: var(--Gutenberg-Gray-900, #1E1E1E);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 35px;
+    margin: 16px 0 16px 0;
+  }
+
+  h3 {
+    height: 24px;
+    color: var(--Gutenberg-Gray-900, #1E1E1E);
+
+    /* WordPress/Subtitle Small */
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 20px;
+    margin-bottom: 6px;
+    margin-top: 0;
+  }
+
+  .components-flex {
+    height: 100%;
+
+
+    &__item {
+      padding: var(--grid-unit-40, 32px);
+      height: 100%;
+      margin: 0;
+      flex: 1;
+
+      &:first-child {
+        background: #FFFFFF;
+        display: flex;
+        flex: 7;
+
+        .components-flex {
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: flex-start;
+
+          & > p {
+            margin-top: 0;
+            margin-right: 0;
+
+            &:last-of-type {
+              margin-bottom: 0;
+            }
+          }
+
+        }
+      }
+
+      &:last-child {
+        width: 392px;
+        min-width: 392px;
+        max-width: 392px;
+        flex: 5;
+        padding: 0;
+      }
+    }
+  }
+
+  ul {
+    margin-top: 40px;
+  }
+
+  li {
+    margin-top: 24px;
+    margin-bottom: 0;
+    display: flex;
+    gap: 16px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    svg {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+    }
+
+    p {
+      color: var(--Gutenberg-Gray-700, #757575);
+
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px;
+      margin: 0;
+    }
+  }
+}
