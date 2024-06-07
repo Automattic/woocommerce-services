@@ -10,6 +10,7 @@ import classNames from 'classnames';
 import Gridicon from 'gridicons';
 import { sumBy, differenceBy, filter, maxBy } from 'lodash';
 import { Button } from '@wordpress/components';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Internal dependencies
@@ -96,6 +97,15 @@ export class ShippingLabelViewWrapper extends Component {
 						>
 							{ translate( 'Create shipping label' ) }
 						</Button>
+						<Button
+							className={ className }
+							isPrimary
+							isBusy= { ! loaded }
+							disabled= { ! loaded }
+							onClick={ this.handleActivateLabelButtonClick }
+						>
+							{ translate( 'Activate plugin' ) }
+						</Button>
 						<Suspense fallback={<div />}>
 							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 						</Suspense>
@@ -162,6 +172,31 @@ export class ShippingLabelViewWrapper extends Component {
 				{ translate( 'Connection error: unable to create label at this time' ) }
 			</Button>
 		);
+	};
+
+	handleActivateLabelButtonClick = () => {
+		const plugins = ['woocommerce-shipping'];
+		const installPluginAPICall = async() => {
+			await apiFetch( {
+				path: '/wp-json/wc-admin/plugins/activate',
+				method: 'POST',
+				data: {
+					plugins
+				}
+			} );
+		};
+
+		const activatePluginAPICall = async() => {
+			await apiFetch( {
+				path: '/wp-json/wc-admin/plugins/activate',
+				method: 'POST',
+				data: {
+					plugins
+				}
+			} );
+		}
+		activatePluginAPICall();
+
 	};
 
 	handleCreateLabelButtonClick = () => {
