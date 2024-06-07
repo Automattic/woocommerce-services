@@ -2,7 +2,7 @@
  * External dependencies
  */
 import React from 'react';
-import { Flex, FlexItem, Modal, Icon } from '@wordpress/components';
+import { Flex, FlexItem, Modal, Icon, Button } from '@wordpress/components';
 import { useCallback, useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -19,8 +19,20 @@ import {
 
 const FeatureAnnouncement = ({ translate, isEligable }) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
+	const [isUpdating, setIsUpdating] = useState(false);
+
 	const closeModal = useCallback(() => {
 		setIsOpen(false);
+	});
+
+	const snooze = useCallback(() => {
+		// Todo: implement maybe later
+	});
+
+	const update = useCallback(() => {
+		// Todo: implement update
+		setIsUpdating(true);
+		setTimeout(() => setIsUpdating(false), 2000);
 	});
 
 	return <>{isOpen && (<Modal
@@ -89,10 +101,20 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 						</li>
 					</ul>
 				</Flex>
+				<Flex>
+					{!isUpdating && <Button isTertiary onClick={snooze}>
+						{translate('Maybe later')}
+					</Button>}
+					<Button isPrimary onClick={update} isBusy={isUpdating} disabled={isUpdating}>
+						{isUpdating ? translate('Updating') : translate('Update now')}
+					</Button>
+				</Flex>
 			</FlexItem>
 			<FlexItem
 				style={{ background: `url(${bg}) no-repeat center center`, backgroundSize: 'contain' }}
-			/>
+			>
+				&nbsp;
+			</FlexItem>
 		</Flex>
 	</Modal>)};
 	</>;
