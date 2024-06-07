@@ -44,6 +44,9 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 		<Flex gap={8}>
 			<FlexItem>
 				<Flex>
+					<span>
+						{translate('Update')}
+					</span>
 					<h2>
 						{translate('A new dedicated WooCommerce Shipping extension is now available')}
 					</h2>

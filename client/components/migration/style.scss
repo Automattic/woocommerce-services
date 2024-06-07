@@ -61,6 +61,18 @@
           flex-direction: column;
           gap: 32px;
 
+          span {
+            display: flex;
+            padding: 2px 12px;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            border-radius: 40px;
+            border: 1px solid var(--Gutenberg-Gray-700, #757575);
+            background: var(--Gutenberg-White, #FFF);
+            margin: 0 0 16px 0;
+          }
+
           .components-flex {
             flex-direction: column;
             justify-content: flex-start;
@@ -69,6 +81,12 @@
             & > p {
               margin-top: 0;
               margin-right: 0;
+              color: var(--Gutenberg-Gray-900, #1E1E1E);
+
+              font-size: 12px;
+              font-style: normal;
+              font-weight: 400;
+              line-height: 16px;
 
               &:last-of-type {
                 margin-bottom: 0;
@@ -101,6 +119,7 @@
                   justify-content: center;
                   align-items: center;
                   gap: 4px;
+
                   &.is-busy {
                     animation: components-button__busy-animation 2500ms infinite linear;
                     background-image: linear-gradient(-45deg, #294cf6 33%, #3858E9 33%, #3858E9 70%, #294cf6 70%)
@@ -126,18 +145,16 @@
 
 
   ul {
-    margin-top: 40px;
+    margin: 40px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px
   }
 
   li {
-    margin-top: 24px;
     margin-bottom: 0;
     display: flex;
-    gap: 16px;
-
-    &:first-child {
-      margin-top: 0;
-    }
+    gap: var(--grid-unit-20, 16px);
 
     svg {
       display: inline-block;
