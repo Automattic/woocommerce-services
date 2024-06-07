@@ -11,6 +11,7 @@ import Gridicon from 'gridicons';
 import { sumBy, differenceBy, filter, maxBy } from 'lodash';
 import { Button } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
+import {getNonce} from 'api/request'; // client/api/request.js
 
 /**
  * Internal dependencies
@@ -175,28 +176,44 @@ export class ShippingLabelViewWrapper extends Component {
 	};
 
 	handleActivateLabelButtonClick = () => {
-		const plugins = ['woocommerce-shipping'];
-		const installPluginAPICall = async() => {
-			await apiFetch( {
-				path: '/wp-json/wc-admin/plugins/activate',
+		const plugins = 'hello-dolly'; //this needs to be a CSV string.
+		const installPluginAPICall = () =>
+			apiFetch( {
+				path: '/wp-json/wc-admin/plugins/install',
 				method: 'POST',
+				headers: {
+					'X-WP-Nonce': getNonce()
+				},
 				data: {
 					plugins
 				}
 			} );
+
+		const activatePluginAPICall = () =>
+			apiFetch( {
+				path: '/wp-json/wc-admin/plugins/activate',
+				method: 'POST',
+				headers: {
+					'X-WP-Nonce': getNonce()
+				},
+				data: {
+					plugins
+				}
+			} );
+
+
+		const installAndActivatePlugins = async() => {
+			try {
+				//TODO: status update
+				await installPluginAPICall();
+				await activatePluginAPICall();
+			} catch (e) {
+				//TODO: error handling.
+				// console.log('Failed to install or activate.', e);
+			}
 		};
 
-		const activatePluginAPICall = async() => {
-			await apiFetch( {
-				path: '/wp-json/wc-admin/plugins/activate',
-				method: 'POST',
-				data: {
-					plugins
-				}
-			} );
-		}
-		activatePluginAPICall();
-
+		installAndActivatePlugins();
 	};
 
 	handleCreateLabelButtonClick = () => {
