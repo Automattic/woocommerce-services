@@ -4,12 +4,21 @@
 import React from 'react';
 import { Flex, FlexItem, Modal, Icon } from '@wordpress/components';
 import { useCallback, useState } from '@wordpress/element';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { localize } from 'i18n-calypso';
 
+/**
+ * Internal dependencies
+ */
 import bg from './images/wcshipping-migration.jpg';
 import { Dashboard, Preformatted, LessonPlan, Shipping } from './icons';
+import {
+	isEligableToMigrate,
+} from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
-const FeatureAnnouncement = ({ translate }) => {
-	const [isOpen, setIsOpen] = useState(true);
+const FeatureAnnouncement = ({ translate, isEligable }) => {
+	const [isOpen, setIsOpen] = useState(isEligable);
 	const closeModal = useCallback(() => {
 		setIsOpen(false);
 	});
@@ -90,4 +99,10 @@ const FeatureAnnouncement = ({ translate }) => {
 
 };
 
-export default FeatureAnnouncement;
+const mapStateToProps = (state, { orderId, siteId }) => ({
+	isEligable: isEligableToMigrate(state, orderId, siteId),
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
+
+export default connect(mapStateToProps, mapDispatchToProps)(localize(FeatureAnnouncement));

@@ -617,6 +617,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $lookup;
 		}
 
+		public function is_eligible_for_migration() {
+			return true;
+		}
+
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
