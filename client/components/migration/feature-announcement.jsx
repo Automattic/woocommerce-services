@@ -9,7 +9,7 @@ import bg from './images/wcshipping-migration.jpg';
 import { Dashboard, Preformatted, LessonPlan, Shipping } from './icons';
 
 const FeatureAnnouncement = () => {
-	const [isOpen, setIsOpen] = useState(true);
+	const [isOpen, setIsOpen] = useState( true );
 	const closeModal = useCallback(() => {
 		setIsOpen(false);
 	});
