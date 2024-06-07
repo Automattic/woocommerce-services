@@ -63,7 +63,7 @@ const LabelPurchaseModal = props => {
 			<Sidebar siteId={props.siteId} orderId={props.orderId}/>
 		</div>
 	</Modal>
-		<FeatureAnnouncement/>
+		<FeatureAnnouncement translate={translate}/>
 	</>) : null;
 };
 
