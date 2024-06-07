@@ -10,7 +10,6 @@ import classNames from 'classnames';
 import Gridicon from 'gridicons';
 import { sumBy, differenceBy, filter, maxBy } from 'lodash';
 import { Button } from '@wordpress/components';
-import apiFetch from '@wordpress/api-fetch';
 import {getNonce} from 'api/request'; // client/api/request.js
 
 /**
@@ -178,27 +177,27 @@ export class ShippingLabelViewWrapper extends Component {
 	handleActivateLabelButtonClick = () => {
 		const plugins = 'hello-dolly'; //this needs to be a CSV string.
 		const installPluginAPICall = () =>
-			apiFetch( {
-				path: '/wp-json/wc-admin/plugins/install',
+			fetch( '/wp-json/wc-admin/plugins/install', {
 				method: 'POST',
 				headers: {
-					'X-WP-Nonce': getNonce()
+					 "Content-Type": "application/json",
+					 'X-WP-Nonce': getNonce()
 				},
-				data: {
+				body: JSON.stringify({
 					plugins
-				}
+				})
 			} );
 
 		const activatePluginAPICall = () =>
-			apiFetch( {
-				path: '/wp-json/wc-admin/plugins/activate',
+			fetch( '/wp-json/wc-admin/plugins/activate', {
 				method: 'POST',
 				headers: {
-					'X-WP-Nonce': getNonce()
+					 "Content-Type": "application/json",
+					 'X-WP-Nonce': getNonce()
 				},
-				data: {
+				body: JSON.stringify({
 					plugins
-				}
+				})
 			} );
 
 
