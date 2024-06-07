@@ -617,6 +617,33 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $lookup;
 		}
 
+		/**
+		 * @return bool
+		 */
+		public function is_eligible_for_migration() {
+			$is_eligible = WC_Connect_Options::get_option( 'migration_feature_settings', null );
+			$base_location   = wc_get_base_location();
+
+			if( is_null( $is_eligible ) ) {
+				$features = $this->api_client->get_migration_feature_settings( array(
+					'currency' => sanitize_text_field( get_woocommerce_currency() ),
+					'weight_unit' => sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ) ),
+					'dimension_unit' => sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ) ),
+					'base_state' => $base_location['state']
+				));
+
+				if ( is_wp_error( $features ) ) {
+					return false; // returning early so the `false` derived from the wp_error is not persisted to DB;
+				} else {
+					$is_eligible = $features->wcshippingtax_upgrade_banner;
+				}
+
+				WC_Connect_Options::update_option( 'migration_feature_settings', $is_eligible );
+			}
+
+			return !empty( $is_eligible );
+		}
+
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':

@@ -453,6 +453,20 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
+		 * @param $store_settings
+		 *
+		 * @return stdClass|WP_Error
+		 */
+		public function get_migration_feature_settings( $store_settings ) {
+			$arguments = $store_settings + array( 'wcship_migration_enabled' => true );
+			$response = $this->request( 'POST', "/services", array( 'settings' => $arguments ) );
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+
+			return $response->features;
+		}
+		/**
 		 * Adds useful WP/WC/WCC information to request bodies
 		 *
 		 * @param array $initial_body
