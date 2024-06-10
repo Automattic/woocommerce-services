@@ -1,3 +1,5 @@
+$modal-height: 700px;
+
 .wp-admin.woocommerce-feature-enabled-product-block-editor .migration__announcement-modal.components-modal__frame,
 .migration__announcement-modal.components-modal__frame {
   display: flex;
@@ -5,7 +7,7 @@
   align-items: flex-start;
   background: var(--Woo-Purple-Woo-Purple-0, #F2EDFF);
   border-radius: 2px;
-  height: 700px;
+  height: $modal-height;
   box-shadow: 0px 3px 30px 0px rgba(25, 30, 35, 0.20);
 
   .components-modal__header {
@@ -46,11 +48,9 @@
     position: relative;
 
     > .components-flex {
-      height: 100%;
 
       .components-flex__item {
         padding: var(--grid-unit-40, 32px);
-        height: 100%;
         margin: 0;
         flex: 1;
 
@@ -137,7 +137,7 @@
           max-width: 392px;
           flex: 5;
           padding: 0;
-          height: 100%;
+          min-height: $modal-height;
         }
       }
     }
