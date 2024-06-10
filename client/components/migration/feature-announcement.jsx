@@ -124,8 +124,8 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 
 };
 
-const mapStateToProps = (state, { orderId, siteId }) => ({
-	isEligable: isEligableToMigrate(state, orderId, siteId),
+const mapStateToProps = (state, { siteId }) => ({
+	isEligable: isEligableToMigrate(state, siteId),
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);

@@ -721,7 +721,7 @@ export const getStateForCurrentPackage = ( state, orderId ) => {
 	)
 }
 
-export const isEligableToMigrate = ( state, orderId, siteId = getSelectedSiteId( state ) ) => {
+export const isEligableToMigrate = ( state, siteId = getSelectedSiteId( state ) ) => {
 	const settingsMeta = get(
 		state,
 		[ 'extensions', 'woocommerce', 'woocommerceServices', siteId, 'labelSettings', 'meta' ],
