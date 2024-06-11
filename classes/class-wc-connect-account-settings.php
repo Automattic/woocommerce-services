@@ -53,6 +53,7 @@ class WC_Connect_Account_Settings {
 				'payment_methods'         => $this->payment_methods_store->get_payment_methods(),
 				'add_payment_method_url'  => $this->payment_methods_store->get_add_payment_method_url(),
 				'warnings'                => array( 'payment_methods' => $payment_methods_warning ),
+				'is_eligible_to_migrate'  => $this->settings_store->is_eligible_for_migration()
 			),
 			'userMeta'     => array(
 				'last_box_id'     => $last_box_id,
