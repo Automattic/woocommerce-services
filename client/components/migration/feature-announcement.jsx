@@ -7,6 +7,7 @@ import { useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { getNonce } from 'api/request'; // client/api/request.js
 
 /**
  * Internal dependencies
@@ -30,9 +31,45 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 	};
 
 	const update = () => {
-		// Todo: implement update
-		setIsUpdating(true);
-		setTimeout(() => setIsUpdating(false), 2000);
+		const plugins = 'hello-dolly'; //this needs to be a CSV string.
+		const installPluginAPICall = () =>
+			fetch( '/wp-json/wc-admin/plugins/install', {
+				method: 'POST',
+				headers: {
+					 "Content-Type": "application/json",
+					 'X-WP-Nonce': getNonce()
+				},
+				body: JSON.stringify({
+					plugins
+				})
+			} );
+
+		const activatePluginAPICall = () =>
+			fetch( '/wp-json/wc-admin/plugins/activate', {
+				method: 'POST',
+				headers: {
+					 "Content-Type": "application/json",
+					 'X-WP-Nonce': getNonce()
+				},
+				body: JSON.stringify({
+					plugins
+				})
+			} );
+
+
+		const installAndActivatePlugins = async() => {
+			try {
+				setIsUpdating(true);
+				await installPluginAPICall();
+				await activatePluginAPICall();
+				setIsUpdating(false);
+			} catch (e) {
+				//TODO: error handling.
+				// console.log('Failed to install or activate.', e);
+			}
+		};
+
+		installAndActivatePlugins();
 	};
 
 	return <>{isOpen && (<Modal

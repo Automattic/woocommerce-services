@@ -10,7 +10,6 @@ import classNames from 'classnames';
 import Gridicon from 'gridicons';
 import { sumBy, differenceBy, filter, maxBy } from 'lodash';
 import { Button } from '@wordpress/components';
-import {getNonce} from 'api/request'; // client/api/request.js
 
 /**
  * Internal dependencies
@@ -97,15 +96,6 @@ export class ShippingLabelViewWrapper extends Component {
 						>
 							{ translate( 'Create shipping label' ) }
 						</Button>
-						<Button
-							className={ className }
-							isPrimary
-							isBusy= { ! loaded }
-							disabled= { ! loaded }
-							onClick={ this.handleActivateLabelButtonClick }
-						>
-							{ translate( 'Activate plugin' ) }
-						</Button>
 						<Suspense fallback={<div />}>
 							<LabelPurchaseModal orderId={ orderId } siteId={ siteId } />
 						</Suspense>
@@ -172,47 +162,6 @@ export class ShippingLabelViewWrapper extends Component {
 				{ translate( 'Connection error: unable to create label at this time' ) }
 			</Button>
 		);
-	};
-
-	handleActivateLabelButtonClick = () => {
-		const plugins = 'hello-dolly'; //this needs to be a CSV string.
-		const installPluginAPICall = () =>
-			fetch( '/wp-json/wc-admin/plugins/install', {
-				method: 'POST',
-				headers: {
-					 "Content-Type": "application/json",
-					 'X-WP-Nonce': getNonce()
-				},
-				body: JSON.stringify({
-					plugins
-				})
-			} );
-
-		const activatePluginAPICall = () =>
-			fetch( '/wp-json/wc-admin/plugins/activate', {
-				method: 'POST',
-				headers: {
-					 "Content-Type": "application/json",
-					 'X-WP-Nonce': getNonce()
-				},
-				body: JSON.stringify({
-					plugins
-				})
-			} );
-
-
-		const installAndActivatePlugins = async() => {
-			try {
-				//TODO: status update
-				await installPluginAPICall();
-				await activatePluginAPICall();
-			} catch (e) {
-				//TODO: error handling.
-				// console.log('Failed to install or activate.', e);
-			}
-		};
-
-		installAndActivatePlugins();
 	};
 
 	handleCreateLabelButtonClick = () => {
