@@ -27,7 +27,7 @@ import FeatureAnnouncement from 'components/migration/feature-announcement';
 const LabelPurchaseModal = props => {
 	const { loaded, translate, showPurchaseDialog } = props;
 
-	if (!loaded) {
+	if ( !loaded ) {
 		return null;
 	}
 
@@ -71,19 +71,21 @@ LabelPurchaseModal.propTypes = {
 	siteId: PropTypes.number.isRequired, orderId: PropTypes.number.isRequired,
 };
 
-const mapStateToProps = (state, { orderId, siteId }) => {
-	const loaded = isLoaded(state, orderId, siteId);
-	const shippingLabel = getShippingLabel(state, orderId, siteId);
+const mapStateToProps = ( state, { orderId, siteId } ) => {
+	const loaded = isLoaded( state, orderId, siteId );
+	const shippingLabel = getShippingLabel( state, orderId, siteId );
 	return {
 		loaded,
 		form: loaded && shippingLabel.form,
 		showPurchaseDialog: shippingLabel.showPurchaseDialog,
-		isCustomsFormRequired: isCustomsFormRequired(state, orderId, siteId),
+		isCustomsFormRequired: isCustomsFormRequired( state, orderId, siteId ),
 	};
 };
 
 const mapDispatchToProps = dispatch => {
-	return bindActionCreators({ exitPrintingFlow }, dispatch);
+	return bindActionCreators( { exitPrintingFlow }, dispatch );
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(localize(LabelPurchaseModal));
+export default connect(
+	mapStateToProps, mapDispatchToProps
+)( localize( LabelPurchaseModal ) );
