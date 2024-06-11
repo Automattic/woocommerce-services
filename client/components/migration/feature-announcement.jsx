@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Flex, FlexItem, Modal, Icon, Button } from '@wordpress/components';
-import { useCallback, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
@@ -21,19 +21,19 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
 
-	const closeModal = useCallback(() => {
+	const closeModal = () => {
 		setIsOpen(false);
-	});
+	};
 
-	const snooze = useCallback(() => {
+	const snooze = () => {
 		// Todo: implement maybe later
-	});
+	};
 
-	const update = useCallback(() => {
+	const update = () => {
 		// Todo: implement update
 		setIsUpdating(true);
 		setTimeout(() => setIsUpdating(false), 2000);
-	});
+	};
 
 	return <>{isOpen && (<Modal
 		className="migration__announcement-modal"
