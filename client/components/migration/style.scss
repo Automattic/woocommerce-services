@@ -1,4 +1,6 @@
 $modal-height: 700px;
+$view-port-width-small: 660px;
+$view-port-width-medium: 1080px;
 
 .wp-admin.woocommerce-feature-enabled-product-block-editor .migration__announcement-modal.components-modal__frame,
 .migration__announcement-modal.components-modal__frame {
@@ -9,6 +11,10 @@ $modal-height: 700px;
   border-radius: 2px;
   height: $modal-height;
   box-shadow: 0px 3px 30px 0px rgba(25, 30, 35, 0.20);
+
+  @media( max-width: $view-port-width-small ) {
+    height: unset;
+  }
 
   .components-modal__header {
     position: absolute;
@@ -49,6 +55,11 @@ $modal-height: 700px;
 
     > .components-flex {
 
+      @media( max-width: $view-port-width-small ) {
+        height: 100%;
+        flex-direction: column;
+      }
+
       .components-flex__item {
         padding: var(--grid-unit-40, 32px);
         margin: 0;
@@ -60,6 +71,7 @@ $modal-height: 700px;
           flex: 7;
           flex-direction: column;
           gap: 32px;
+          justify-content: space-between;
 
           span {
             display: flex;
@@ -105,6 +117,7 @@ $modal-height: 700px;
                 font-style: normal;
                 font-weight: 400;
                 line-height: 13px;
+                height: 40px;
 
                 &.is-tertiary {
                   color: var(--Upcoming-Blueberry, #3858E9);
@@ -138,6 +151,14 @@ $modal-height: 700px;
           flex: 5;
           padding: 0;
           min-height: $modal-height;
+
+          @media ( max-width: $view-port-width-medium ) {
+            min-width: 200px;
+          }
+
+          @media( max-width: $view-port-width-small ) {
+            display: none;
+          }
         }
       }
     }
