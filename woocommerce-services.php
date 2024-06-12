@@ -190,6 +190,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_delete_controller;
 
 		/**
+		 * WC_REST_Connect_Migration_Flag_Controller
+		 *
+		 * @var WC_REST_Connect_Migration_Flag_Controller
+		 */
+		protected $rest_migration_flag_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -517,6 +524,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public function set_carrier_types_controller( WC_REST_Connect_Shipping_Carrier_Types_Controller $rest_carrier_types_controller ) {
 			$this->rest_carrier_types_controller = $rest_carrier_types_controller;
+		}
+
+		public function set_rest_migration_flag_controller( WC_REST_Connect_Migration_Flag_Controller $rest_migration_flag_controller ) {
+			$this->rest_migration_flag_controller = $rest_migration_flag_controller;
 		}
 
 		public function get_carrier_types_controller() {
@@ -1044,6 +1055,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_carrier_types_controller( $rest_carrier_types_controller );
 			$rest_carrier_types_controller->register_routes();
+
+			require_once __DIR__ . '/classes/class-wc-rest-connect-migration-flag-controller.php';
+			$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_migration_flag_controller( $rest_migration_flag_controller );
+			$rest_migration_flag_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
