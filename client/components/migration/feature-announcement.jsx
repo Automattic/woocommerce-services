@@ -55,7 +55,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				})
 			} );
 
-		const deactivateWCSTPluginAPICall = () => {
+		const deactivateWCSTPluginAPICall = () =>
 			fetch( '/wp-json/wp/v2/plugins/woocommerce-services/woocommerce-services', {
 				method: 'POST',
 				headers,
@@ -63,7 +63,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 					status: 'inactive'
 				})
 			} );
-		}
+
 
 		const installAndActivatePlugins = async() => {
 			try {
