@@ -31,14 +31,16 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 	};
 
 	const update = () => {
-		const plugins = 'hello-dolly'; //this needs to be a CSV string.
+		const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
+		const headers = {
+			"Content-Type": "application/json",
+			'X-WP-Nonce': getNonce()
+	   };
+
 		const installPluginAPICall = () =>
 			fetch( '/wp-json/wc-admin/plugins/install', {
 				method: 'POST',
-				headers: {
-					 "Content-Type": "application/json",
-					 'X-WP-Nonce': getNonce()
-				},
+				headers,
 				body: JSON.stringify({
 					plugins
 				})
@@ -47,21 +49,28 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 		const activatePluginAPICall = () =>
 			fetch( '/wp-json/wc-admin/plugins/activate', {
 				method: 'POST',
-				headers: {
-					 "Content-Type": "application/json",
-					 'X-WP-Nonce': getNonce()
-				},
+				headers,
 				body: JSON.stringify({
 					plugins
 				})
 			} );
 
+		const deactivateWCSTPluginAPICall = () => {
+			fetch( '/wp-json/wp/v2/plugins/woocommerce-services/woocommerce-services', {
+				method: 'POST',
+				headers,
+				body: JSON.stringify({
+					status: 'inactive'
+				})
+			} );
+		}
 
 		const installAndActivatePlugins = async() => {
 			try {
 				setIsUpdating(true);
 				await installPluginAPICall();
 				await activatePluginAPICall();
+				await deactivateWCSTPluginAPICall();
 				setIsUpdating(false);
 			} catch (e) {
 				//TODO: error handling.
