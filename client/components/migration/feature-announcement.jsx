@@ -72,6 +72,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				await activatePluginAPICall();
 				await deactivateWCSTPluginAPICall();
 				setIsUpdating(false);
+				window.location = '/wp-admin/plugins.php';
 			} catch (e) {
 				//TODO: error handling.
 				// console.log('Failed to install or activate.', e);
