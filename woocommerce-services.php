@@ -1475,6 +1475,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wcsPluginData',
 				array(
 					'assetPath' => self::get_wc_connect_base_url(),
+					'adminPluginPath' => admin_url('plugins.php'),
 				)
 			);
 		}

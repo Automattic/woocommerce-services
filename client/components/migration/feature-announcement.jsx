@@ -7,6 +7,7 @@ import { useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
+import { getNonce, getBaseURL } from 'api/request'; // client/api/request.js
 
 /**
  * Internal dependencies
@@ -30,9 +31,64 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 	};
 
 	const update = () => {
-		// Todo: implement update
-		setIsUpdating(true);
-		setTimeout(() => setIsUpdating(false), 2000);
+		const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
+		const headers = {
+			"Content-Type": "application/json",
+			'X-WP-Nonce': getNonce()
+	   };
+
+		const installPluginAPICall = () =>
+			fetch( getBaseURL() + 'wc-admin/plugins/install', {
+				method: 'POST',
+				headers,
+				body: JSON.stringify({
+					plugins
+				})
+			} );
+
+		const activatePluginAPICall = () =>
+			fetch( getBaseURL() + 'wc-admin/plugins/activate', {
+				method: 'POST',
+				headers,
+				body: JSON.stringify({
+					plugins
+				})
+			} );
+
+		const deactivateWCSTPluginAPICall = () =>
+			fetch( getBaseURL() + 'wp/v2/plugins/woocommerce-services/woocommerce-services', {
+				method: 'POST',
+				headers,
+				body: JSON.stringify({
+					status: 'inactive'
+				})
+			} );
+
+
+		const installAndActivatePlugins = async() => {
+			const tasks = [installPluginAPICall, activatePluginAPICall, deactivateWCSTPluginAPICall];
+
+			try {
+				setIsUpdating(true);
+
+				for (const task of tasks) {
+					const apiResponse = await task();
+					const apiJSONResponse = await apiResponse.json();
+					if (task.status >= 400) {
+						throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
+					}
+				}
+
+				window.location = global.wcsPluginData.adminPluginPath;
+			} catch (e) {
+				//TODO: error handling.
+				// console.log('Failed to install or activate.', e);
+			} finally {
+				setIsUpdating(false);
+			}
+		};
+
+		installAndActivatePlugins();
 	};
 
 	return <>{isOpen && (<Modal
