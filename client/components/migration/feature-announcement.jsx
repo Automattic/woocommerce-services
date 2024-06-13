@@ -7,7 +7,7 @@ import { useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { getNonce } from 'api/request'; // client/api/request.js
+import { getNonce, getBaseURL } from 'api/request'; // client/api/request.js
 
 /**
  * Internal dependencies
@@ -36,9 +36,10 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			"Content-Type": "application/json",
 			'X-WP-Nonce': getNonce()
 	   };
+	   console.log('getBaseURL', getBaseURL());
 
 		const installPluginAPICall = () =>
-			fetch( '/wp-json/wc-admin/plugins/install', {
+			fetch( getBaseURL() + 'wc-admin/plugins/install', {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
@@ -47,7 +48,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			} );
 
 		const activatePluginAPICall = () =>
-			fetch( '/wp-json/wc-admin/plugins/activate', {
+			fetch( getBaseURL() + 'wc-admin/plugins/activate', {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
@@ -56,7 +57,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			} );
 
 		const deactivateWCSTPluginAPICall = () =>
-			fetch( '/wp-json/wp/v2/plugins/woocommerce-services/woocommerce-services', {
+			fetch( getBaseURL() + 'wp/v2/plugins/woocommerce-services/woocommerce-services', {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
@@ -72,7 +73,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				await activatePluginAPICall();
 				await deactivateWCSTPluginAPICall();
 				setIsUpdating(false);
-				window.location = '/wp-admin/plugins.php';
+				window.location = global.wcsPluginData.adminPluginPath;
 			} catch (e) {
 				//TODO: error handling.
 				// console.log('Failed to install or activate.', e);
