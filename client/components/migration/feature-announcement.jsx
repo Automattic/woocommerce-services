@@ -63,10 +63,21 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 					status: 'inactive'
 				})
 			} );
+		const markMigrationDoneAPICall = () =>
+			fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
+				method: 'POST',
+				headers
+			} );
 
 
 		const installAndActivatePlugins = async() => {
-			const tasks = [installPluginAPICall, activatePluginAPICall, deactivateWCSTPluginAPICall];
+			const tasks = [
+				installPluginAPICall,
+				activatePluginAPICall,
+				markMigrationDoneAPICall,
+				// Note: Anything that needs the plugin's code needs to happen before deactivating it.
+				deactivateWCSTPluginAPICall,
+			];
 
 			try {
 				setIsUpdating(true);
