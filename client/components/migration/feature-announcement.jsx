@@ -36,7 +36,6 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			"Content-Type": "application/json",
 			'X-WP-Nonce': getNonce()
 	   };
-	   console.log('getBaseURL', getBaseURL());
 
 		const installPluginAPICall = () =>
 			fetch( getBaseURL() + 'wc-admin/plugins/install', {
@@ -67,16 +66,25 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 
 
 		const installAndActivatePlugins = async() => {
+			const tasks = [installPluginAPICall, activatePluginAPICall, deactivateWCSTPluginAPICall];
+
 			try {
 				setIsUpdating(true);
-				await installPluginAPICall();
-				await activatePluginAPICall();
-				await deactivateWCSTPluginAPICall();
-				setIsUpdating(false);
+
+				for (const task of tasks) {
+					const apiResponse = await task();
+					const apiJSONResponse = await apiResponse.json();
+					if (task.status >= 400) {
+						throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
+					}
+				}
+
 				window.location = global.wcsPluginData.adminPluginPath;
 			} catch (e) {
 				//TODO: error handling.
 				// console.log('Failed to install or activate.', e);
+			} finally {
+				setIsUpdating(false);
 			}
 		};
 
