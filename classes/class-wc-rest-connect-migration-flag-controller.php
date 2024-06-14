@@ -9,19 +9,14 @@ if ( class_exists( 'WC_REST_Connect_Migration_Flag_Controller' ) ) {
 }
 
 class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Controller {
-	public const MIGRATION_STATE_NOT_STARTED = 1;
-	public const MIGRATION_STATE_STARTED = 2;
-	public const MIGRATION_STATE_COMPLETED = 3;
-	public const MIGRATION_STATE_FAILED = 4;
-
 	protected $rest_base = 'connect/migration-flag';
 
 	private function is_valid_state($state) {
 		$valid_states = [
-			self::MIGRATION_STATE_NOT_STARTED,
-			self::MIGRATION_STATE_STARTED,
-			self::MIGRATION_STATE_COMPLETED,
-			self::MIGRATION_STATE_FAILED
+			WC_Connect_API_Constants::MIGRATION_STATE_NOT_STARTED,
+			WC_Connect_API_Constants::MIGRATION_STATE_STARTED,
+			WC_Connect_API_Constants::MIGRATION_STATE_COMPLETED,
+			WC_Connect_API_Constants::MIGRATION_STATE_FAILED
 		];
 		if (in_array($state, $valid_states, true)) {
 			return true;
@@ -41,9 +36,9 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 			return $error;
 		}
 
-		WC_Connect_Options::update_option( 'wcshipping_migration_state', $migration_state );
+		$result = WC_Connect_Options::update_option( 'wcshipping_migration_state', $migration_state );
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response( array( 'result' => $result ), 200 );
 	}
 
 }
