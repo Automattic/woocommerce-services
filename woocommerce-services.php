@@ -256,6 +256,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+
+			/**
+			 * When we deactivate the plugin after wcshipping_migration_state has started,
+			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
+			 */
+			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
+			if ( ! class_exists(WC_Connect_API_Constants::class) ) {
+				require_once __DIR__ . '/classes/class-wc-connect-api-constants.php';
+			}
+			if ( $migration_state === WC_Connect_API_Constants::MIGRATION_STATE_STARTED ) {
+				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_API_Constants::MIGRATION_STATE_COMPLETED );
+			}
 		}
 
 		public static function plugin_uninstall() {
