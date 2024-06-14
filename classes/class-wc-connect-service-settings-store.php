@@ -618,9 +618,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function is_eligible_for_migration() {
-			$alreadyMigrated = WC_Connect_Options::get_option( 'wcshipping_migrated' );
-			//TODO: Return $alreadyMigrated && connect-server flag
-			return !$alreadyMigrated && false;
+			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
+			//TODO: Return $migration_state check && connect-server flag
+			return $migration_state !== WC_REST_Connect_Migration_Flag_Controller::MIGRATION_STATE_COMPLETED && true;
 		}
 
 		private function translate_unit( $value ) {
