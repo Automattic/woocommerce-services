@@ -338,7 +338,6 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			return ( $a->instance_id > $b->instance_id ) ? 1 : -1;
-
 		}
 
 		/**
@@ -620,7 +619,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function is_eligible_for_migration() {
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
 			//TODO: Return $migration_state check && connect-server flag
-			return $migration_state !== WC_Connect_API_Constants::MIGRATION_STATE_COMPLETED && false;
+			return $migration_state !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED && false;
 		}
 
 		private function translate_unit( $value ) {

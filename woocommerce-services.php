@@ -262,11 +262,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
 			 */
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
-			if ( ! class_exists(WC_Connect_API_Constants::class) ) {
-				require_once __DIR__ . '/classes/class-wc-connect-api-constants.php';
+			if ( ! class_exists( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::class ) ) {
+				require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 			}
-			if ( $migration_state === WC_Connect_API_Constants::MIGRATION_STATE_STARTED ) {
-				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_API_Constants::MIGRATION_STATE_COMPLETED );
+			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED ) {
+				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
 			}
 		}
 
@@ -351,7 +351,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->wc_connect_base_url = self::get_wc_connect_base_url();
 			add_action(
 				'before_woocommerce_init',
-				function() {
+				function () {
 					if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-services/woocommerce-services.php' );
 					}
@@ -632,7 +632,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
 					'admin_notices',
-					function() {
+					function () {
 						/* translators: %s WC download URL link. */
 						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
@@ -774,7 +774,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
-			require_once __DIR__ . '/classes/class-wc-connect-api-constants.php';
+			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 			require_once __DIR__ . '/classes/class-wc-connect-utils.php';
 			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
 			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-validator.php';
@@ -1280,8 +1280,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Abort if no $order was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
 			if ( ! $order
-				 || ! $order->has_status( 'completed' )
-				 || ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
+				|| ! $order->has_status( 'completed' )
+				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
 				return;
 			}
 
@@ -1503,8 +1503,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wc_connect_admin',
 				'wcsPluginData',
 				array(
-					'assetPath' => self::get_wc_connect_base_url(),
-					'adminPluginPath' => admin_url('plugins.php'),
+					'assetPath'       => self::get_wc_connect_base_url(),
+					'adminPluginPath' => admin_url( 'plugins.php' ),
 				)
 			);
 		}

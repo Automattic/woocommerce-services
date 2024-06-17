@@ -68,7 +68,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
-					migration_state: 2 // Check WC_Connect_API_Constants::MIGRATION_STATE_STARTED
+					migration_state: 2 // Check WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED
 				})
 			} );
 
