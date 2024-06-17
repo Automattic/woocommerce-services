@@ -25,6 +25,10 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 
 		$result = WC_Connect_Options::update_option( 'wcshipping_migration_state', $migration_state );
 
-		return new WP_REST_Response( array( 'result' => $result ), 200 );
+		if ( $result ) {
+			return new WP_REST_Response( array( 'result' => 'Migration flag updated successfully.' ), 200 );
+		}
+
+		return new WP_REST_Response( array( 'result' => 'Migration flag did not update.' ), 304 );
 	}
 }
