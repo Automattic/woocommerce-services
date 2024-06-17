@@ -24,10 +24,10 @@
         "phpunit"
       ],
       "phpcs": [
-        "phpcs -s -p"
+        "./vendor/bin/phpcs -s -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra"
       ],
       "phpcbf": [
-        "phpcbf -p"
+        "./vendor/bin/phpcbf -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra "
       ],
       "check-security": [
         "./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=./.phpcs.security.xml  --report-full --report-summary"
