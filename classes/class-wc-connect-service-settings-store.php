@@ -619,7 +619,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		public function is_eligible_for_migration() {
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
 			//TODO: Return $migration_state check && connect-server flag
-			return $migration_state !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED && false;
+			return WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED !== $migration_state && false;
 		}
 
 		private function translate_unit( $value ) {
