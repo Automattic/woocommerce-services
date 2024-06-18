@@ -257,7 +257,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 
-			/**
+			/*
 			 * When we deactivate the plugin after wcshipping_migration_state has started,
 			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
 			 */
