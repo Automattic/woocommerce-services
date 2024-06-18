@@ -644,6 +644,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
+
 			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;
 			}
@@ -895,6 +896,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
+			add_action('current_screen', array ($this, 'edit_orders_page_actions'));
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1437,7 +1439,26 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 			// Return empty if we have nothing to return so it doesn't fail when parsed in JS.
-			return '{}';
+		return '{}';
+		}
+
+		public function edit_orders_page_actions() {
+			if (is_admin()) {
+				$screen = get_current_screen();
+				if ( ! $screen || ! isset( $screen->id ) ) {
+					return false;
+				}
+
+				if ('edit-shop_order' !== $screen->id) {
+					return false;
+				}
+
+				// Add the WCS&T to WCShipping migratio notice, creating a button to update.
+				$settings_store = $this->get_service_settings_store();
+				if ($settings_store->is_eligible_for_migration()) {
+					add_action('admin_notices', array($this, 'display_wcst_to_wcshipping_migration_notice'));
+				}
+			}
 		}
 
 		/**
@@ -1800,6 +1821,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function display_woo_shipping_and_woo_tax_are_active_notice() {
 			echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
+		}
+
+		public function display_wcst_to_wcshipping_migration_notice() {
+			echo '<div class="error"><p><strong>' . esc_html__( 'WooCommerce Shipping & Tax is splitting into two dedicated extensions: WooCommerce Shipping and WooCommerce Tax. To minimize disruption, your settings and data will be carried over to the new extensions when you upgrade. Learn more about this change.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 	}
 }
