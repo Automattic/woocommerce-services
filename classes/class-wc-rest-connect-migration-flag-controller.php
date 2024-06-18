@@ -29,6 +29,12 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 			return new WP_REST_Response( array( 'result' => 'Migration flag updated successfully.' ), 200 );
 		}
 
-		return new WP_REST_Response( array( 'result' => 'Migration flag did not update.' ), 304 );
+		$error = new WP_Error(
+			'wcst_to_wcshipping_migration_failed_to_update',
+			__( 'Unable to update migration flag. The flag could not be updated.', 'woocommerce-services' ),
+			array( 'status' => 500 )
+		);
+		$this->logger->log( $error, __CLASS__ );
+		return $error;
 	}
 }
