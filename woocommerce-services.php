@@ -261,10 +261,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * When we deactivate the plugin after wcshipping_migration_state has started,
 			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
 			 */
+			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
+
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
-			if ( ! class_exists( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::class ) ) {
-				require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
-			}
 			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED ) {
 				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
 			}
