@@ -644,7 +644,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 
-
 			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;
 			}
@@ -896,7 +895,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
-			add_action('current_screen', array ($this, 'edit_orders_page_actions'));
+			add_action(' current_screen', array( $this, 'edit_orders_page_actions' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1443,20 +1442,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function edit_orders_page_actions() {
-			if (is_admin()) {
+			if ( is_admin() ) {
 				$screen = get_current_screen();
 				if ( ! $screen || ! isset( $screen->id ) ) {
 					return false;
 				}
 
-				if ('edit-shop_order' !== $screen->id) {
+				if ( 'edit-shop_order' !== $screen->id ) {
 					return false;
 				}
 
 				// Add the WCS&T to WCShipping migratio notice, creating a button to update.
 				$settings_store = $this->get_service_settings_store();
-				if ($settings_store->is_eligible_for_migration()) {
-					add_action('admin_notices', array($this, 'display_wcst_to_wcshipping_migration_notice'));
+				if ( $settings_store->is_eligible_for_migration() ) {
+					add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 				}
 			}
 		}
