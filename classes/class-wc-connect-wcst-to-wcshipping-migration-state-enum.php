@@ -16,9 +16,6 @@ class WC_Connect_WCST_To_WCShipping_Migration_State_Enum {
 			self::COMPLETED,
 			self::FAILED,
 		);
-		if ( in_array( $state, $valid_states, true ) ) {
-			return true;
-		}
-		return false;
+		return in_array( $state, $valid_states, true );
 	}
 }
