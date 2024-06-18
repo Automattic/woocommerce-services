@@ -1438,7 +1438,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 			// Return empty if we have nothing to return so it doesn't fail when parsed in JS.
-		return '{}';
+			return '{}';
 		}
 
 		public function edit_orders_page_actions() {
