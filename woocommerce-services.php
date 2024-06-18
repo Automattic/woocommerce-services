@@ -1824,7 +1824,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function display_wcst_to_wcshipping_migration_notice() {
-			echo '<div class="error"><p><strong>' . esc_html__( 'WooCommerce Shipping & Tax is splitting into two dedicated extensions: WooCommerce Shipping and WooCommerce Tax. To minimize disruption, your settings and data will be carried over to the new extensions when you upgrade. Learn more about this change.', 'woocommerce-services' ) . '</strong></p></div>';
+			echo wp_kses_post( sprintf(
+				/* translators: %s: documentation URL */
+				__( '<div class="notice notice-error is-dismissible"><p>WooCommerce Shipping & Tax is splitting into two dedicated extensions: WooCommerce Shipping and WooCommerce Tax. To minimize disruption, your settings and data will be carried over to the new extensions when you upgrade. <a href="%s">Learn more about this change.</a></p></div>', 'woocommerce-services' ),
+				'https://wordpress.org/plugins/woocommerce-services/'
+			) );
 		}
 	}
 }
