@@ -918,7 +918,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
-			add_action(' current_screen', array( $this, 'edit_orders_page_actions' ) );
+			add_action( 'current_screen', array( $this, 'edit_orders_page_actions' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
