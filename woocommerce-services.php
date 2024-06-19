@@ -190,6 +190,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_delete_controller;
 
 		/**
+		 * WC_REST_Connect_Migration_Flag_Controller
+		 *
+		 * @var WC_REST_Connect_Migration_Flag_Controller
+		 */
+		protected $rest_migration_flag_controller;
+
+		/**
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
@@ -249,6 +256,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+
+			/*
+			 * When we deactivate the plugin after wcshipping_migration_state has started,
+			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
+			 */
+			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
+
+			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
+			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED ) {
+				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
+			}
 		}
 
 		public static function plugin_uninstall() {
@@ -332,7 +350,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->wc_connect_base_url = self::get_wc_connect_base_url();
 			add_action(
 				'before_woocommerce_init',
-				function() {
+				function () {
 					if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-services/woocommerce-services.php' );
 					}
@@ -519,6 +537,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->rest_carrier_types_controller = $rest_carrier_types_controller;
 		}
 
+		public function set_rest_migration_flag_controller( WC_REST_Connect_Migration_Flag_Controller $rest_migration_flag_controller ) {
+			$this->rest_migration_flag_controller = $rest_migration_flag_controller;
+		}
+
 		public function get_carrier_types_controller() {
 			return $this->rest_carrier_types_controller;
 		}
@@ -609,7 +631,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
 					'admin_notices',
-					function() {
+					function () {
 						/* translators: %s WC download URL link. */
 						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
@@ -751,6 +773,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Load all plugin dependencies.
 		 */
 		public function load_dependencies() {
+			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 			require_once __DIR__ . '/classes/class-wc-connect-utils.php';
 			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
 			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-validator.php';
@@ -1046,6 +1069,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_carrier_types_controller( $rest_carrier_types_controller );
 			$rest_carrier_types_controller->register_routes();
 
+			require_once __DIR__ . '/classes/class-wc-rest-connect-migration-flag-controller.php';
+			$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger );
+			$this->set_rest_migration_flag_controller( $rest_migration_flag_controller );
+			$rest_migration_flag_controller->register_routes();
+
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
 
@@ -1252,8 +1280,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Abort if no $order was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
 			if ( ! $order
-				 || ! $order->has_status( 'completed' )
-				 || ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
+				|| ! $order->has_status( 'completed' )
+				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
 				return;
 			}
 
@@ -1494,8 +1522,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wc_connect_admin',
 				'wcsPluginData',
 				array(
-					'assetPath' => self::get_wc_connect_base_url(),
-					'adminPluginPath' => admin_url('plugins.php'),
+					'assetPath'       => self::get_wc_connect_base_url(),
+					'adminPluginPath' => admin_url( 'plugins.php' ),
 				)
 			);
 		}
