@@ -1862,7 +1862,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				 sprintf(
 					/* translators: %s: documentation URL */
 					__( 'WooCommerce Shipping & Tax is splitting into two dedicated extensions: WooCommerce Shipping and WooCommerce Tax. To minimize disruption, your settings and data will be carried over to the new extensions when you upgrade. <a href="%s" style="color:#3858E9;">Learn more about this change.</a>', 'woocommerce-services' ),
-					'https://wordpress.org/plugins/woocommerce-services/'
+					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
 				)  .
 				'</p>
 				<button style="color:#3858E9;margin: 12px 0;border: 1px solid #3858E9;padding: 11.5px 12px 11.5px 12px;border-radius: 2px;background-color:#fff;">Confirm update</button>
