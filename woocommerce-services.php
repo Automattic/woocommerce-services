@@ -1469,28 +1469,61 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return '{}';
 		}
 
-		public function edit_orders_page_actions() {
-			if ( is_admin() ) {
-				$screen = get_current_screen();
-				if ( ! $screen || ! isset( $screen->id ) ) {
-					return false;
-				}
+		/**
+		 * Return true if we are on the order list page wp-admin/edit.php?post_type=shop_order.
+		 *
+		 * @return boolean
+		 */
+		public function is_on_order_list_page() {
+			if ( !is_admin() ) {
+				return false;
+			}
 
-				if (
-				( // Orders list and edit order page when not using HPOS.
-					'shop_order' === $screen->post_type
-					&& in_array( $screen->base, array( 'edit', 'post' ), true )
-				)
-				|| ( // Orders list and edit order page when using HPOS.
-					wc_get_page_screen_id( 'shop_order' ) === $screen->id
-				)
-				) {
-					// Add the WCS&T to WCShipping migratio notice, creating a button to update.
-					$settings_store = $this->get_service_settings_store();
-					if ( $settings_store->is_eligible_for_migration() ) {
-						add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
-					}
-				}
+			$screen = get_current_screen();
+			if ( ! $screen || ! isset( $screen->id ) ) {
+				return false;
+			}
+
+			if ( ! function_exists( 'wc_get_page_screen_id' ) ) {
+				return false;
+			}
+
+			$wc_order_screen_id = wc_get_page_screen_id( 'shop_order' );
+			if ( ! $wc_order_screen_id ) {
+				return false;
+			}
+
+			// Order list page doesn't have the action parameter in the querystring.
+			if ( isset( $_GET['action'] ) ) {
+				return false;
+			}
+
+			/*
+			* Non-HPOS:
+			*   $screen->id = "edit-shop_order"
+			*   $wc_order_screen_id = "shop_order"
+			*
+			* HPOS:
+			*   $screen->id = "woocommerce_page_wc-orders"
+			*   $$wc_order_screen_id = "woocommerce_page_wc-orders"
+			*/
+			if ( $screen->id !== "edit-shop_order" && $screen->id !== "woocommerce_page_wc-orders" ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		public function edit_orders_page_actions() {
+			if ( !$this->is_on_order_list_page() ) {
+				// If this is not on the order list page, then don't add any action.
+				return;
+			}
+
+			// Add the WCS&T to WCShipping migratio notice, creating a button to update.
+			$settings_store = $this->get_service_settings_store();
+			if ( $settings_store->is_eligible_for_migration() ) {
+				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 			}
 		}
 
