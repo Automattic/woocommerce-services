@@ -1476,14 +1476,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					return false;
 				}
 
-				if ( 'edit-shop_order' !== $screen->id ) {
-					return false;
-				}
-
-				// Add the WCS&T to WCShipping migratio notice, creating a button to update.
-				$settings_store = $this->get_service_settings_store();
-				if ( $settings_store->is_eligible_for_migration() ) {
-					add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
+				if (
+				( // Orders list and edit order page when not using HPOS.
+					'shop_order' === $screen->post_type
+					&& in_array( $screen->base, array( 'edit', 'post' ), true )
+				)
+				|| ( // Orders list and edit order page when using HPOS.
+					wc_get_page_screen_id( 'shop_order' ) === $screen->id
+				)
+				) {
+					// Add the WCS&T to WCShipping migratio notice, creating a button to update.
+					$settings_store = $this->get_service_settings_store();
+					if ( $settings_store->is_eligible_for_migration() ) {
+						add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
+					}
 				}
 			}
 		}
