@@ -3,6 +3,6 @@ module.exports = {
 		'npm run eslint:fix',
 	],
 	'*.php': [
-		'bin/wc-phpcbf',
+		'sh bin/wc-phpcbf.sh',
 	],
 };
