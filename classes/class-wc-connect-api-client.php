@@ -38,7 +38,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return array|WP_Error
 		 */
 		public function get_service_schemas() {
-			$response_body = $this->request( 'POST', '/services' );
+			$response_body = $this->request( 'POST', '/services', array( 'settings' => array( 'wcship_migration_supported' => true ) ) );
 
 			if ( is_wp_error( $response_body ) ) {
 				return $response_body;
