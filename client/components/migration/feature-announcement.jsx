@@ -189,7 +189,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				&nbsp;
 			</FlexItem>
 		</Flex>
-	</Modal>)};
+	</Modal>)}
 	</>;
 
 };
