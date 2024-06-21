@@ -1525,6 +1525,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas_store  = $this->get_service_schemas_store();
 			if ( $settings_store->is_eligible_for_migration() && $schemas_store->get_wcship_wctax_upgrade_banner() ) {
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
+				add_action( 'admin_notices', array( $this, 'register_wcshipping_migration_modal' ) );
+
 			}
 		}
 
@@ -1913,6 +1915,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					$banner->action
 				)
 			);
+		}
+
+		public function register_wcshipping_migration_modal() {
+			$plugin_version = self::get_wcs_version();
+			wp_register_style( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null );
+			wp_enqueue_script( 'wcst_wcshipping_migration_admin_notice' );
+			wp_enqueue_style( 'wcst_wcshipping_migration_admin_notice' );
 		}
 	}
 }
