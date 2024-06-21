@@ -1523,7 +1523,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Add the WCS&T to WCShipping migratio notice, creating a button to update.
 			$settings_store = $this->get_service_settings_store();
 			$schemas_store  = $this->get_service_schemas_store();
-			if ( $settings_store->is_eligible_for_migration() && $schemas_store->get_wcship_wctax_upgrade_banner() ) {
+			if ( $settings_store->is_eligible_for_migration() ) {
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 			}
 		}
