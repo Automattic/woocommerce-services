@@ -32,7 +32,12 @@ If you'd just like to check out the latest code and/or wish to contribute code, 
     * For Development: run `npm run up`, let the process finish, connect your site to Jetpack using Jurassic Tube or ngrok.
     * For testing or pre-production use: Run `npm run dist` which will build the files into the `dist` folder, and will be loaded by the plugin without any additional configuration
 
-## Security
+*note*: if `npm install` gets stuck, you may have to update your GitHub urls in your git config. Use this command to fix it:
+
+```git config --global url.https://github.com/.insteadOf git://github.com/```
+
+
+## SECURITY
 
 Need to report a security vulnerability? Go to [https://automattic.com/security/](https://automattic.com/security/) or directly to our security bug bounty site [https://hackerone.com/automattic](https://hackerone.com/automattic).
 

@@ -1506,7 +1506,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return boolean
 		 */
 		public function is_on_order_list_page() {
-			if ( !is_admin() ) {
+			if ( ! is_admin() ) {
 				return false;
 			}
 
@@ -1538,7 +1538,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			*   $screen->id = "woocommerce_page_wc-orders"
 			*   $$wc_order_screen_id = "woocommerce_page_wc-orders"
 			*/
-			if ( $screen->id !== "edit-shop_order" && $screen->id !== "woocommerce_page_wc-orders" ) {
+			if ( $screen->id !== 'edit-shop_order' && $screen->id !== 'woocommerce_page_wc-orders' ) {
 				return false;
 			}
 
@@ -1546,14 +1546,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function edit_orders_page_actions() {
-			if ( !$this->is_on_order_list_page() ) {
+			if ( ! $this->is_on_order_list_page() ) {
 				// If this is not on the order list page, then don't add any action.
 				return;
 			}
 
 			// Add the WCS&T to WCShipping migratio notice, creating a button to update.
 			$settings_store = $this->get_service_settings_store();
-			if ( $settings_store->is_eligible_for_migration() ) {
+			$schemas_store  = $this->get_service_schemas_store();
+			if ( $settings_store->is_eligible_for_migration() && $schemas_store->get_wcship_wctax_upgrade_banner() ) {
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 			}
 		}
@@ -1928,18 +1929,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			echo '<div class="error"><p><strong>' . esc_html__( 'WC Shipping and WC Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 
+		/**
+		 * Returns the notice for migrating from WCST to WC Shipping.
+		 *
+		 * @return bool
+		 */
 		public function display_wcst_to_wcshipping_migration_notice() {
+			$schema = $this->get_service_schemas_store();
+			$banner = $schema->get_wcship_wctax_upgrade_banner();
 			echo wp_kses_post(
-				'<div class="notice notice-error is-dismissible wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">' .
-				 sprintf(
+				sprintf(
+					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">',
+					$banner->type
+				) .
+				sprintf(
 					/* translators: %s: documentation URL */
-					__( 'WooCommerce Shipping & Tax is splitting into two dedicated extensions: WooCommerce Shipping and WooCommerce Tax. To minimize disruption, your settings and data will be carried over to the new extensions when you upgrade. <a href="%s" style="color:#3858E9;">Learn more about this change.</a>', 'woocommerce-services' ),
+					__( $banner->message, 'woocommerce-services' ),
 					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
-				)  .
-				'</p>
-				<button style="color:#3858E9;margin: 12px 0;border: 1px solid #3858E9;padding: 11.5px 12px 11.5px 12px;border-radius: 2px;background-color:#fff;">Confirm update</button>
-				</div>'
-		)	;
+				) .
+				sprintf(
+					'</p><button style="color:#3858E9;margin: 12px 0;border: 1px solid #3858E9;padding: 11.5px 12px 11.5px 12px;border-radius: 2px;background-color:#fff;">Confirm update</button></div>',
+					$banner->action
+				)
+			);
 		}
 	}
 }
