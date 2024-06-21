@@ -1899,7 +1899,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schema = $this->get_service_schemas_store();
 			$banner = $schema->get_wcship_wctax_upgrade_banner();
 			echo wp_kses_post(
-				'<div class="notice notice-error is-dismissible wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">' .
+				sprintf(
+					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">',
+					$banner->type
+				) .
 				sprintf(
 					/* translators: %s: documentation URL */
 					__( $banner->message, 'woocommerce-services' ),

@@ -271,7 +271,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		public function get_wcship_wctax_upgrade_banner() {
 			$service_schemas = $this->get_service_schemas();
 			// check if $service_schemas->features->wcshippingtax_upgrade_banner exists
-			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'features' ) || ! property_exists( $service_schemas->features, 'wcshippingtax_upgrade_banner' ) ) {
+			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'features' ) || ! property_exists( $service_schemas->features, 'wcshippingtax_upgrade_banner' ) || empty( $service_schemas->features->wcshippingtax_upgrade_banner ) ) {
 				return null;
 			}
 
