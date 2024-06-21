@@ -1,0 +1,4 @@
+// Manunally load the migration component's style sheet because it is bundled(webpack)
+// in style.css but style.css isn't loaded in the order listing page.
+// This .scss file will be loaded so we are including it here.
+@import 'components/migration/style';

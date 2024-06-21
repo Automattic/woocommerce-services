@@ -1900,12 +1900,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function display_wcst_to_wcshipping_migration_notice() {
 			$schema = $this->get_service_schemas_store();
 			$banner = $schema->get_wcship_wctax_upgrade_banner();
+
+			$account_settings  = new WC_Connect_Account_Settings(
+				$this->service_settings_store,
+				$this->payment_methods_store
+			);
+			$packages_settings = new WC_Connect_Package_Settings(
+				$this->service_settings_store,
+				$this->service_schemas_store
+			);
+			$encoded_arguments = wp_json_encode(
+				array(
+					'accountSettings'  => $account_settings->get(),
+					'packagesSettings' => $packages_settings->get(),
+				)
+			);
+
 			echo wp_kses_post(
 				sprintf(
 					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice">
-					<div id="wcst_wcshipping_migration_admin_notice_feature_announcement"></div>
+					<div id="wcst_wcshipping_migration_admin_notice_feature_announcement" data-args="%s"></div>
 					<p style="margin-bottom:0px">',
-					$banner->type
+					$banner->type,
+					wc_esc_json( $encoded_arguments )
 				) .
 				sprintf(
 					/* translators: %s: documentation URL */
