@@ -1902,7 +1902,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$banner = $schema->get_wcship_wctax_upgrade_banner();
 			echo wp_kses_post(
 				sprintf(
-					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">',
+					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice">
+					<div id="wcst_wcshipping_migration_admin_notice_feature_announcement"></div>
+					<p style="margin-bottom:0px">',
 					$banner->type
 				) .
 				sprintf(
