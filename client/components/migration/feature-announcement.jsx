@@ -72,33 +72,89 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				})
 			} );
 
+		const stateErrorHandling = () => {
+		};
 
 		const installAndActivatePlugins = async() => {
-			const tasks = [
-				markMigrationStartedAPICall,
-				installPluginAPICall,
-				activatePluginAPICall,
-				// Note: Anything that needs the plugin's code needs to happen before deactivating it.
-				deactivateWCSTPluginAPICall,
-			];
+			const migrationStateTransitions = {
+				s0: {
+					success: 's1',
+					fail: 's0',
+					callback: markMigrationStartedAPICall,
+				},
+				s1: {
+					success: 's3',
+					fail: 's2',
+					callback: installPluginAPICall,
+				},
+				s2: {
+					success: 's1',
+					fail: 's2',
+					callback: stateErrorHandling,
+				},
+				s3: {
+					success: 's7', // TODO: This should be s5 to migrate DB.
+					fail: 's4',
+					callback: activatePluginAPICall,
+				},
+				s4: {
+					success: 's3',
+					fail: 's4',
+					callback: stateErrorHandling,
+				},
+				s5: {
+					success: 's7',
+					fail: 's6',
+					callback: new Promise((resolve) => resolve({status: 200})), // TODO: DB migration
+				},
+				s6: {
+					success: 's5',
+					fail: 's6',
+					callback: stateErrorHandling,
+				},
+				s7: {
+					success: 's9',
+					fail: 's8',
+					callback: deactivateWCSTPluginAPICall,
+				},
+				s8: {
+					success: 's7',
+					fail: 's8',
+					callback: stateErrorHandling,
+				},
+				s9: { // Done state.
+					success: null,
+					fail: null,
+					callback: null,
+				}
+			}
 
-			try {
-				setIsUpdating(true);
-
-				for (const task of tasks) {
-					const apiResponse = await task();
+			const runNext = async (migrationState) => {
+				const currentMigrationState = migrationStateTransitions[migrationState];
+				let nextMigrationStateToRun = '';
+				try {
+					setIsUpdating(true);
+					const apiResponse = await currentMigrationState.callback();
 					const apiJSONResponse = await apiResponse.json();
-					if (task.status >= 400) {
+					if (apiResponse.status >= 400) {
 						throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
 					}
-				}
 
-				window.location = global.wcsPluginData.adminPluginPath;
-			} catch (e) {
-				//TODO: error handling.
-				// console.log('Failed to install or activate.', e);
-			} finally {
-				setIsUpdating(false);
+					nextMigrationStateToRun = currentMigrationState.success;
+				} catch (e) {
+					nextMigrationStateToRun = currentMigrationState.fail;
+				} finally {
+					setIsUpdating(false);
+					return nextMigrationStateToRun;
+				}
+			};
+
+			// Run the migration chain
+			let nextMigrationStateToRun = 's0';
+			let runAttemps = 0;
+			while ( runAttemps++ < 15 && nextMigrationStateToRun !== 's9' ) {
+				nextMigrationStateToRun = await runNext(nextMigrationStateToRun);
+				console.log(runAttemps);
 			}
 		};
 
