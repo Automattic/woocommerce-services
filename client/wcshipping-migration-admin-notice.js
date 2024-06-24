@@ -12,9 +12,12 @@ import { createStore } from 'redux';
 import '../assets/stylesheets/migration_to_wcshipping_admin_notice.scss';
 import FeatureAnnouncement from 'components/migration/feature-announcement';
 import ShippingLabel from 'wcs-client/apps/shipping-label';
+import { setNonce, setBaseURL } from 'wcs-client/api/request';
 
 const container = document.getElementById('wcst_wcshipping_migration_admin_notice_feature_announcement');
 const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
+setNonce( args.nonce );
+setBaseURL( args.baseURL );
 const ShippingLabelStore = ShippingLabel(args);
 const store = createStore(ShippingLabelStore.getReducer(), ShippingLabelStore.getInitialState());
 

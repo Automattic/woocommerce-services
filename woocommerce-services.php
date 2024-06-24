@@ -1911,6 +1911,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 			$encoded_arguments = wp_json_encode(
 				array(
+					'nonce'            => wp_create_nonce( 'wp_rest' ),
+					'baseURL'          => get_rest_url(),
 					'accountSettings'  => $account_settings->get(),
 					'packagesSettings' => $packages_settings->get(),
 				)
@@ -1942,6 +1944,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null );
 			wp_enqueue_script( 'wcst_wcshipping_migration_admin_notice' );
 			wp_enqueue_style( 'wcst_wcshipping_migration_admin_notice' );
+			wp_enqueue_script( 'wc_connect_admin' );
 		}
 	}
 }
