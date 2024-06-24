@@ -2,3 +2,18 @@
 // in style.css but style.css isn't loaded in the order listing page.
 // This .scss file will be loaded so we are including it here.
 @import 'components/migration/style';
+
+.wcst-wcshipping-migration-notice {
+    .wcst-wcshipping-migration-notice__p {
+        margin-bottom: 0px;
+    }
+    .wcst-wcshipping-migration-notice__button {
+        color:#3858E9;
+        margin: 12px 0;
+        border: 1px solid #3858E9;
+        padding: 11.5px 12px 11.5px 12px;
+        border-radius: 2px;
+        background-color:#fff;
+        line-height: normal;
+    }
+}

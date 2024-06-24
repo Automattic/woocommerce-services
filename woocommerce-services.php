@@ -1922,7 +1922,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				sprintf(
 					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice">
 					<div id="wcst_wcshipping_migration_admin_notice_feature_announcement" data-args="%s"></div>
-					<p style="margin-bottom:0px">',
+					<p class="wcst-wcshipping-migration-notice__p">',
 					$banner->type,
 					wc_esc_json( $encoded_arguments )
 				) .
@@ -1932,7 +1932,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
 				) .
 				sprintf(
-					'</p><button style="color:#3858E9;margin: 12px 0;border: 1px solid #3858E9;padding: 11.5px 12px 11.5px 12px;border-radius: 2px;background-color:#fff;">Confirm update</button></div>',
+					'</p><button class="button action wcst-wcshipping-migration-notice__button">Confirm update</button></div>',
 					$banner->action
 				)
 			);
