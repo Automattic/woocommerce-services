@@ -7,7 +7,7 @@ import { useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { getNonce, getBaseURL } from 'api/request'; // client/api/request.js
+import { getNonce, getBaseURL } from 'wcs-client/api/request';
 
 /**
  * Internal dependencies
