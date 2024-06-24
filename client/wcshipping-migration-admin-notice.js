@@ -21,9 +21,23 @@ setBaseURL( args.baseURL );
 const ShippingLabelStore = ShippingLabel(args);
 const store = createStore(ShippingLabelStore.getReducer(), ShippingLabelStore.getInitialState());
 
- ReactDOM.render(
- 	<Provider store={store}>
-		<FeatureAnnouncement />
-	 </Provider>,
-	container
+const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcshipping-migration-notice__click');
+
+// Clicking "Confirm update" will start the migration. This is the same as popping up the modal and clicking the "Update" button there.
+["click", "keydown"].forEach(eventName =>
+	wcstWCShippingMigrationNoticeButton.addEventListener(eventName, () => {
+		// Pop open feature announcement modal.
+		ReactDOM.render(
+			<Provider store={store}>
+				<FeatureAnnouncement />
+			</Provider>,
+			container
+		);
+
+		// Click the update button in the modal to start the migration.
+		const update_button = document.getElementsByClassName('migration__announcement-update-button');
+		if (update_button.length > 0) {
+			update_button[0].click();
+		}
+	})
 );
