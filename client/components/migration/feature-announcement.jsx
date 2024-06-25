@@ -30,6 +30,22 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 		// Todo: implement maybe later
 	};
 
+	// Check WC_Connect_WCST_To_WCShipping_Migration_State_Enum
+	const MIGRATION_STATE_ENUM = {
+		NOT_STARTED: 1,
+		STARTED: 2,
+		ERROR_STARTED: 3,
+		INSTALLING: 4,
+		ERROR_INSTALLING: 5,
+		ACTIVATING: 6,
+		ERROR_ACTIVATING: 7,
+		DB_MIGRATION: 8,
+		ERROR_DB_MIGRATION: 9,
+		DEACTIVATING: 10,
+		ERROR_DEACTIVATING: 11,
+		COMPLETED: 12,
+	}
+
 	const update = () => {
 		const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
 		const headers = {
@@ -38,7 +54,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 	   };
 
 		const installPluginAPICall = () =>
-			fetch( getBaseURL() + 'wc-admin/plugins/install2', {
+			fetch( getBaseURL() + 'wc-admin/plugins/install', {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
@@ -69,13 +85,13 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
-					migration_state: migrationState // Check WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED
+					migration_state: migrationState
 				})
 			} );
 
-		const stateErrorHandlingAPICall = async (failedMigrationState) => () => {
+		const stateErrorHandlingAPICall = (failedMigrationState) => () => {
 			// TODO: Print the error somewhere in an inbox box?
-			console.log(failedMigrationState);
+			console.log("Migration failed at", failedMigrationState, "calling wc/v1/connect/migration-flag");
 
 			return fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
 				method: 'POST',
@@ -108,12 +124,12 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateInit: {
 					success: 'stateInstalling',
 					fail: 'stateInit',
-					callback: fetchAPICall(markMigrationStartedAPICall(2)),
+					callback: fetchAPICall(markMigrationStartedAPICall(MIGRATION_STATE_ENUM.STARTED)),
 				},
 				stateErrorInit: {
 					success: 'stateInit',
 					fail: 'stateErrorInit',
-					callback: stateErrorHandlingAPICall('stateInit'),
+					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_STARTED),
 				},
 				stateInstalling: {
 					success: 'stateActivating',
@@ -123,7 +139,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateErrorInstalling: {
 					success: 'stateInstalling',
 					fail: 'stateErrorInstalling',
-					callback: stateErrorHandlingAPICall('stateInstalling'),
+					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_INSTALLING),
 				},
 				stateActivating: {
 					success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
@@ -133,17 +149,17 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateErrorActivating: {
 					success: 'stateActivating',
 					fail: 'stateErrorActivating',
-					callback: stateErrorHandlingAPICall('stateActivating'),
+					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_ACTIVATING),
 				},
 				stateDB: {
-					success: 's7',
+					success: 'stateDeactivating',
 					fail: 'stateErrorDB',
 					callback: new Promise((resolve) => resolve({status: 200})), // TODO: DB migration
 				},
 				stateErrorDB: {
 					success: 'stateDBMigrating',
 					fail: 'stateErrorDB',
-					callback: stateErrorHandlingAPICall('stateDBMigrating'),
+					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DB_MIGRATION),
 				},
 				stateDeactivating: {
 					success: 'stateDone',
@@ -153,7 +169,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateErrorDeactivating: {
 					success: 'stateDeactivating',
 					fail: 'stateErrorDeactivating',
-					callback: stateErrorHandlingAPICall('stateDeactivating'),
+					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DEACTIVATING),
 				},
 				stateDone: { // Done state.
 					success: null,
@@ -183,10 +199,19 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			let nextMigrationStateToRun = 'stateInit';
 			let runAttemps = 0;
 			const maxAttempts = Object.keys(migrationStateTransitions).length; // The states don't loop, thus it can't be more than its size. Serve as a safe guard in case of infinite loop.
-			while ( runAttemps++ < maxAttempts && nextMigrationStateToRun !== 'stateDone' && ! errorStates.includes(nextMigrationStateToRun)) {
+			while ( runAttemps++ < maxAttempts && nextMigrationStateToRun !== 'stateDone') {
 				nextMigrationStateToRun = await runNext(nextMigrationStateToRun);
+				if (errorStates.includes(nextMigrationStateToRun)) {
+					// If this is any of the error states, run the callback once and then quit.
+					// The callback is run once more to handle any error handling logic before quitting.
+					await runNext(nextMigrationStateToRun);
+					break;
+				}
 				console.log(runAttemps);
 			}
+
+			//Redirect to plugins page regardless of migration success. If there was an error, the best place to check is the plugins page.
+			window.location = global.wcsPluginData.adminPluginPath;
 		};
 
 		installAndActivatePlugins();
