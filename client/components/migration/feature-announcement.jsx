@@ -63,6 +63,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 					status: 'inactive'
 				})
 			} );
+
 		const markMigrationStartedAPICall = (migrationState) => () =>
 			fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
 				method: 'POST',
@@ -72,15 +73,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				})
 			} );
 
-		const makeAPICall = (apiFn) => async () => {
-			const apiResponse = await apiFn();
-			const apiJSONResponse = await apiResponse.json();
-			if (apiResponse.status >= 400) {
-				throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
-			}
-		};
-
-		const stateErrorHandling = async (failedMigrationState) => () => {
+		const stateErrorHandlingAPICall = async (failedMigrationState) => () => {
 			// TODO: Print the error somewhere in an inbox box?
 			console.log(failedMigrationState);
 
@@ -93,37 +86,54 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			} );
 		};
 
+		/**
+		 * A wrapper function to make API calls and check the API status response.
+		 * Throw an exception up if the status > 400.
+		 *
+		 * @param {function} apiFn The API function that uses fetch.
+		 * @returns {Object} The API JSON response from fetch.
+		 */
+		const fetchAPICall = (apiFn) => async () => {
+			const apiResponse = await apiFn();
+			const apiJSONResponse = await apiResponse.json();
+			if (apiResponse.status >= 400) {
+				throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
+			}
+			return apiJSONResponse;
+		};
+
+
 		const installAndActivatePlugins = async() => {
 			const migrationStateTransitions = {
 				stateInit: {
 					success: 'stateInstalling',
 					fail: 'stateInit',
-					callback: markMigrationStartedAPICall(2),
+					callback: fetchAPICall(markMigrationStartedAPICall(2)),
 				},
 				stateErrorInit: {
 					success: 'stateInit',
 					fail: 'stateErrorInit',
-					callback: stateErrorHandling('stateInit'),
+					callback: stateErrorHandlingAPICall('stateInit'),
 				},
 				stateInstalling: {
 					success: 'stateActivating',
 					fail: 'stateErrorInstalling',
-					callback: makeAPICall(installPluginAPICall),
+					callback: fetchAPICall(installPluginAPICall),
 				},
 				stateErrorInstalling: {
 					success: 'stateInstalling',
 					fail: 'stateErrorInstalling',
-					callback: stateErrorHandling('stateInstalling'),
+					callback: stateErrorHandlingAPICall('stateInstalling'),
 				},
 				stateActivating: {
 					success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
 					fail: 'stateErrorActivating',
-					callback: makeAPICall(activatePluginAPICall),
+					callback: fetchAPICall(activatePluginAPICall),
 				},
 				stateErrorActivating: {
 					success: 'stateActivating',
 					fail: 'stateErrorActivating',
-					callback: stateErrorHandling('stateActivating'),
+					callback: stateErrorHandlingAPICall('stateActivating'),
 				},
 				stateDB: {
 					success: 's7',
@@ -133,17 +143,17 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateErrorDB: {
 					success: 'stateDBMigrating',
 					fail: 'stateErrorDB',
-					callback: stateErrorHandling('stateDBMigrating'),
+					callback: stateErrorHandlingAPICall('stateDBMigrating'),
 				},
 				stateDeactivating: {
 					success: 'stateDone',
 					fail: 'stateErrorDeactivating',
-					callback: makeAPICall(deactivateWCSTPluginAPICall),
+					callback: fetchAPICall(deactivateWCSTPluginAPICall),
 				},
 				stateErrorDeactivating: {
 					success: 'stateDeactivating',
 					fail: 'stateErrorDeactivating',
-					callback: stateErrorHandling('stateDeactivating'),
+					callback: stateErrorHandlingAPICall('stateDeactivating'),
 				},
 				stateDone: { // Done state.
 					success: null,
