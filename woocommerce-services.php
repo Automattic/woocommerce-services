@@ -1553,8 +1553,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Add the WCS&T to WCShipping migratio notice, creating a button to update.
 			$settings_store = $this->get_service_settings_store();
-			$schemas_store  = $this->get_service_schemas_store();
-			if ( $settings_store->is_eligible_for_migration() && $schemas_store->get_wcship_wctax_upgrade_banner() ) {
+			if ( $settings_store->is_eligible_for_migration() ) {
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 			}
 		}
@@ -1937,6 +1936,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function display_wcst_to_wcshipping_migration_notice() {
 			$schema = $this->get_service_schemas_store();
 			$banner = $schema->get_wcship_wctax_upgrade_banner();
+			if ( empty( $banner ) ) {
+				return;
+			}
 			echo wp_kses_post(
 				sprintf(
 					'<div class="notice notice-%s is-dismissible wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">',
