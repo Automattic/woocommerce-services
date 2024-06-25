@@ -72,7 +72,15 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				})
 			} );
 
-		const stateErrorHandling = (failedMigrationState) => () => {
+		const makeAPICall = (apiFn) => async () => {
+			const apiResponse = await apiFn();
+			const apiJSONResponse = await apiResponse.json();
+			if (apiResponse.status >= 400) {
+				throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
+			}
+		};
+
+		const stateErrorHandling = async (failedMigrationState) => () => {
 			// TODO: Print the error somewhere in an inbox box?
 			console.log(failedMigrationState);
 
@@ -100,7 +108,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateInstalling: {
 					success: 'stateActivating',
 					fail: 'stateErrorInstalling',
-					callback: installPluginAPICall,
+					callback: makeAPICall(installPluginAPICall),
 				},
 				stateErrorInstalling: {
 					success: 'stateInstalling',
@@ -110,7 +118,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateActivating: {
 					success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
 					fail: 'stateErrorActivating',
-					callback: activatePluginAPICall,
+					callback: makeAPICall(activatePluginAPICall),
 				},
 				stateErrorActivating: {
 					success: 'stateActivating',
@@ -130,7 +138,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				stateDeactivating: {
 					success: 'stateDone',
 					fail: 'stateErrorDeactivating',
-					callback: deactivateWCSTPluginAPICall,
+					callback: makeAPICall(deactivateWCSTPluginAPICall),
 				},
 				stateErrorDeactivating: {
 					success: 'stateDeactivating',
@@ -151,12 +159,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				let nextMigrationStateToRun = '';
 				try {
 					setIsUpdating(true);
-					const apiResponse = await currentMigrationState.callback();
-					const apiJSONResponse = await apiResponse.json();
-					if (apiResponse.status >= 400) {
-						throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
-					}
-
+					await currentMigrationState.callback();
 					nextMigrationStateToRun = currentMigrationState.success;
 				} catch (e) {
 					nextMigrationStateToRun = currentMigrationState.fail;
@@ -169,7 +172,8 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 			// Run the migration chain
 			let nextMigrationStateToRun = 'stateInit';
 			let runAttemps = 0;
-			while ( runAttemps++ < 15 && nextMigrationStateToRun !== 'stateDone' && ! errorStates.includes(nextMigrationStateToRun)) {
+			const maxAttempts = Object.keys(migrationStateTransitions).length; // The states don't loop, thus it can't be more than its size. Serve as a safe guard in case of infinite loop.
+			while ( runAttemps++ < maxAttempts && nextMigrationStateToRun !== 'stateDone' && ! errorStates.includes(nextMigrationStateToRun)) {
 				nextMigrationStateToRun = await runNext(nextMigrationStateToRun);
 				console.log(runAttemps);
 			}
