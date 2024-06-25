@@ -1523,6 +1523,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Add the WCS&T to WCShipping migratio notice, creating a button to update.
 			$settings_store = $this->get_service_settings_store();
 			if ( $settings_store->is_eligible_for_migration() ) {
+				wp_enqueue_script( 'wc_connect_admin_notices' );
+				wp_enqueue_style( 'wc_connect_admin_notices' );
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 			}
 		}
@@ -1543,9 +1545,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					"var link = document.createElement('link');link.rel = 'stylesheet';link.type = 'text/css';link.href = '" . esc_js( $stylesheet_url ) . "';document.getElementsByTagName('HEAD')[0].appendChild(link);"
 				);
 			}
+
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null );
+			wp_register_script( 'wc_connect_admin_notices', $this->wc_connect_base_url . 'woocommerce-services-admin-notices-' . $plugin_version . '.js', array(), null );
+			wp_register_style( 'wc_connect_admin_notices', $this->wc_connect_base_url . 'woocommerce-services-admin-notices-' . $plugin_version . '.css', array(), null );
 
 			$i18n_json = $this->get_i18n_json();
 			/** @var array $i18nStrings defined in i18n/strings.php */
@@ -1902,9 +1907,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 			echo wp_kses_post(
 				sprintf(
-					'<div class="notice notice-%s %s wcst-wcshipping-migration-notice"><p style="margin-bottom:0px">',
+					'<div class="notice notice-%s %s wcst-wcshipping-migration-notice"><div class="notice-content"><p>',
 					$banner->type,
-          $banner->dismissible ? 'is-dismissible' : ''
+					$banner->dismissible ? 'is-dismissible' : ''
 				) .
 				sprintf(
 					/* translators: %s: documentation URL */
@@ -1912,7 +1917,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
 				) .
 				sprintf(
-					'</p><button style="color:#3858E9;margin: 12px 0;border: 1px solid #3858E9;padding: 11.5px 12px 11.5px 12px;border-radius: 2px;background-color:#fff;">%s</button></div>',
+					'</p><div><button class="action-button">%s</button></div></div></div>',
 					$banner->action
 				)
 			);
