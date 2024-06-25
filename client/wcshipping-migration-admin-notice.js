@@ -35,9 +35,7 @@ const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcship
 		);
 
 		// Click the update button in the modal to start the migration.
-		const update_button = document.getElementsByClassName('migration__announcement-update-button');
-		if (update_button.length > 0) {
-			update_button[0].click();
-		}
+		const update_button = document.getElementById('migration__announcement-update-button');
+		update_button.click();
 	})
 );

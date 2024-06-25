@@ -178,7 +178,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 					{!isUpdating && <Button isTertiary onClick={snooze}>
 						{translate('Maybe later')}
 					</Button>}
-					<Button className="migration__announcement-update-button" isPrimary onClick={update} isBusy={isUpdating} disabled={isUpdating}>
+					<Button id="migration__announcement-update-button" isPrimary onClick={update} isBusy={isUpdating} disabled={isUpdating}>
 						{isUpdating ? translate('Updating') : translate('Update now')}
 					</Button>
 				</Flex>
