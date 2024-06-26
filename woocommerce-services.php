@@ -254,6 +254,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected static $wcs_version;
 
+		const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
+
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 
@@ -1549,7 +1551,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
 			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null );
-			wp_register_script( 'wc_connect_admin_notices', $this->wc_connect_base_url . 'woocommerce-services-admin-notices-' . $plugin_version . '.js', array(), null );
+			wp_register_script( 'wc_connect_admin_notices', $this->wc_connect_base_url . 'woocommerce-services-admin-notices-' . $plugin_version . '.js', array( 'wp-util', 'jquery' ), null, array( 'in_footer' => true ) );
 			wp_register_style( 'wc_connect_admin_notices', $this->wc_connect_base_url . 'woocommerce-services-admin-notices-' . $plugin_version . '.css', array(), null );
 
 			$i18n_json = $this->get_i18n_json();
@@ -1568,6 +1570,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				array(
 					'assetPath'       => self::get_wc_connect_base_url(),
 					'adminPluginPath' => admin_url( 'plugins.php' ),
+				)
+			);
+			wp_localize_script(
+				'wc_connect_admin_notices',
+				'wc_connect_admin_notices',
+				array(
+					'dismissalCookieKey' => self::MIGRATION_DISMISSAL_COOKIE_KEY,
 				)
 			);
 		}
@@ -1900,6 +1909,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool
 		 */
 		public function display_wcst_to_wcshipping_migration_notice() {
+			if ( isset( $_COOKIE[ self::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && (int) $_COOKIE[ self::MIGRATION_DISMISSAL_COOKIE_KEY ] === 1 ) {
+				return;
+			}
 			$schema = $this->get_service_schemas_store();
 			$banner = $schema->get_wcship_wctax_upgrade_banner();
 			if ( empty( $banner ) ) {
