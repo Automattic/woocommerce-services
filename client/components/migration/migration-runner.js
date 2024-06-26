@@ -8,7 +8,8 @@ import { translate } from 'i18n-calypso';
  */
 import { getNonce, getBaseURL } from 'wcs-client/api/request';
 
-// Check WC_Connect_WCST_To_WCShipping_Migration_State_Enum
+// These are used by the "wc/v1/connect/migration-flag" API call. The parameter
+// needs to map to the PHP's enum WC_Connect_WCST_To_WCShipping_Migration_State_Enum.
 const MIGRATION_STATE_ENUM = {
     NOT_STARTED: 1,
     STARTED: 2,
@@ -23,8 +24,12 @@ const MIGRATION_STATE_ENUM = {
     ERROR_DEACTIVATING: 11,
     COMPLETED: 12,
 }
-// Maps the numeric state from PHP to the more descriptive installAndActivatePlugins object we use below.
-const MIGRATION_STATE_NAME = {
+
+// MIGRATION_ENUM_TO_STATE_NAME_MAP maps the PHP's WC_Connect_WCST_To_WCShipping_Migration_State_Enum
+// to our state machine's state names. These are one-to-one mapping.
+// These state names are the key in the migrationStateTransitions object below.
+// Ref: Check state diagram in https://github.com/Automattic/woocommerce-services/pull/2757.
+const MIGRATION_ENUM_TO_STATE_NAME_MAP = {
     2: 'stateInit',
     3: 'stateErrorInit',
     4: 'stateInstalling',
@@ -111,6 +116,15 @@ const fetchAPICall = (apiFn) => async () => {
     return apiJSONResponse;
 };
 
+/**
+ * This is the implementation of the state transition diagram. Please check https://github.com/Automattic/woocommerce-services/pull/2757.
+ * The key of this object can be found in the MIGRATION_ENUM_TO_STATE_NAME_MAP above.
+ *
+ * The value is an {object} with these properties:
+ *   success: {string|null} This is the state to go to "next". We can only go to this state when callback is successful.
+ *   fail: {string|null} This is the state to go to when callback fails. All failed state immediately halt the machine, check diagram.
+ *   callback: {function|null} This is the function to run when the machine is on this state. It can make API call.
+ */
 const migrationStateTransitions = {
     stateInit: {
         success: 'stateInstalling',
@@ -172,6 +186,12 @@ const migrationStateTransitions = {
 // Any of the state that halts the machine. Including "done" or any errors.
 const stopStates = ['stateDone', 'stateErrorInstalling', 'stateErrorActivating', 'stateErrorDB', 'stateErrorDeactivating'];
 
+/**
+ * This function runs the entire migration based on what the previousMigrationState is. It will stop
+ * when it lands on an "error state" or when the migration is completed.
+ *
+ * @param {number} previousMigrationState This is the "wcshipping_migration_state" stored in the option table. This is the last state recorded for this migration before it stopped.
+ */
 const installAndActivatePlugins = async(previousMigrationState) => {
     const runNext = async (migrationState) => {
         if (!migrationState) {
@@ -192,19 +212,20 @@ const installAndActivatePlugins = async(previousMigrationState) => {
     };
 
     /**
-     * This function checks what the next state to run is. If there is no record of any migration run, then we start from the beginning.
-     * If there is a record of where it was stuck at, then we start from its next state.
+     * This function checks what the next state to run is. If there is no record of any previous migration run,
+     * then we will start from the beginning.
+     * If there is a record about where we last stopped at, then we start from that state's next state.
      *
      * @returns {string} The next state to run. The name of the state is the key in this object migrationStateTransitions.
      */
     const getNextStateToRun = () => {
         if ( ! previousMigrationState) {
             // stateInit
-            return MIGRATION_STATE_NAME[2];
+            return MIGRATION_ENUM_TO_STATE_NAME_MAP[2];
         }
 
-        const currentStateName = MIGRATION_STATE_NAME[previousMigrationState];
-        return migrationStateTransitions[currentStateName].success;
+        const currentStateName = MIGRATION_ENUM_TO_STATE_NAME_MAP[previousMigrationState];
+        return migrationStateTransitions[currentStateName].success; // The next state is "success".
     };
 
     // Run the migration chain from where it last stopped. If there is no record, start from the beginning.
