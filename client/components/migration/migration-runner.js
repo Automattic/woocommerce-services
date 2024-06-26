@@ -6,7 +6,7 @@ import { translate } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import { getNonce, getBaseURL } from 'api/request'; // client/api/request.js
+import { getNonce, getBaseURL } from 'wcs-client/api/request';
 
 // Check WC_Connect_WCST_To_WCShipping_Migration_State_Enum
 const MIGRATION_STATE_ENUM = {
@@ -222,7 +222,7 @@ const installAndActivatePlugins = async(previousMigrationState) => {
     }
 
     //Redirect to plugins page regardless of migration success. If there was an error, the best place to check is the plugins page.
-    // window.location = global.wcsPluginData.adminPluginPath;
+    window.location = global.wcsPluginData.adminPluginPath;
 };
 
 export {
