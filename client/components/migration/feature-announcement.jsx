@@ -19,7 +19,7 @@ import {
 	wcshippingMigrationState,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
-const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }) => {
+const FeatureAnnouncement = ({ translate, isEligable, previousMigrationState }) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
 
@@ -95,8 +95,14 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 				})
 			} );
 
-		// Note: this function can not be called after WCS&T is deactivated because the endpoint will no longer be there.
-		// This means that this function can not be called after "stateDeactivating".
+		/**
+		 * Note: this function can not be called under these conditions:
+		 * 1. WCS&T, Woo Shipping, Woo Tax are all activated. WCS&T will not load the migration-flag controller, returning 404.
+		 * 2. WCS&T is deactivated. The migration-flag controller is not loaded, this will return 404.
+		 *
+		 * @param {string} migrationState The numeric migration number from the PHP side. Check classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php.
+		 * @returns {Promise} Check fetch.
+		 */
 		const markMigrationStartedAPICall = (migrationState) => () =>
 			fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
 				method: 'POST',
@@ -107,16 +113,10 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 			} );
 
 		const stateErrorHandlingAPICall = (failedMigrationState) => () => {
-			// TODO: Print the error somewhere in an inbox box?
-			console.log("Migration failed at", failedMigrationState, "calling wc/v1/connect/migration-flag");
+			// TODO: The error message doesn't show up anywhere. For now, update the flag in the option table so
+			// we know where it failed at.
 
-			return fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					migration_state: failedMigrationState
-				})
-			} );
+			return markMigrationStartedAPICall(failedMigrationState)();
 		};
 
 		/**
@@ -220,14 +220,16 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 			/**
 			 * This function checks what the next state to run is. If there is no record of any migration run, then we start from the beginning.
 			 * If there is a record of where it was stuck at, then we start from its next state.
+			 *
+			 * @returns {string} The next state to run. The name of the state is the key in this object migrationStateTransitions.
 			 */
 			const getNextStateToRun = () => {
-				if ( ! wcshippingMigrationState) {
+				if ( ! previousMigrationState) {
 					// stateInit
 					return MIGRATION_STATE_NAME[2];
 				}
 
-				const currentStateName = MIGRATION_STATE_NAME[wcshippingMigrationState];
+				const currentStateName = MIGRATION_STATE_NAME[previousMigrationState];
 				return migrationStateTransitions[currentStateName].success;
 			};
 
@@ -243,7 +245,6 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 					await runNext(nextMigrationStateToRun);
 					break;
 				}
-				console.log(runAttemps);
 			}
 
 			//Redirect to plugins page regardless of migration success. If there was an error, the best place to check is the plugins page.
@@ -344,7 +345,7 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 
 const mapStateToProps = (state, { siteId }) => ({
 	isEligable: isEligableToMigrate(state, siteId),
-	wcshippingMigrationState: wcshippingMigrationState(state, siteId),
+	previousMigrationState: wcshippingMigrationState(state, siteId),
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
