@@ -95,6 +95,8 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 				})
 			} );
 
+		// Note: this function can not be called after WCS&T is deactivated because the endpoint will no longer be there.
+		// This means that this function can not be called after "stateDeactivating".
 		const markMigrationStartedAPICall = (migrationState) => () =>
 			fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
 				method: 'POST',
@@ -133,69 +135,74 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 			return apiJSONResponse;
 		};
 
+		const migrationStateTransitions = {
+			stateInit: {
+				success: 'stateInstalling',
+				fail: 'stateInit',
+				callback: fetchAPICall(markMigrationStartedAPICall(MIGRATION_STATE_ENUM.STARTED)),
+			},
+			stateErrorInit: {
+				success: 'stateInit',
+				fail: 'stateErrorInit',
+				callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_STARTED),
+			},
+			stateInstalling: {
+				success: 'stateActivating',
+				fail: 'stateErrorInstalling',
+				callback: fetchAPICall(installPluginAPICall),
+			},
+			stateErrorInstalling: {
+				success: 'stateInstalling',
+				fail: 'stateErrorInstalling',
+				callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_INSTALLING),
+			},
+			stateActivating: {
+				success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
+				fail: 'stateErrorActivating',
+				callback: fetchAPICall(activatePluginAPICall),
+			},
+			stateErrorActivating: {
+				success: 'stateActivating',
+				fail: 'stateErrorActivating',
+				callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_ACTIVATING),
+			},
+			stateDB: {
+				success: 'stateDeactivating',
+				fail: 'stateErrorDB',
+				callback: new Promise((resolve) => resolve({status: 200})), // TODO: DB migration
+			},
+			stateErrorDB: {
+				success: 'stateDBMigrating',
+				fail: 'stateErrorDB',
+				callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DB_MIGRATION),
+			},
+			stateDeactivating: {
+				success: 'stateDone',
+				fail: 'stateErrorDeactivating',
+				callback: fetchAPICall(deactivateWCSTPluginAPICall),
+			},
+			stateErrorDeactivating: {
+				success: 'stateDeactivating',
+				fail: 'stateErrorDeactivating',
+				callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DEACTIVATING),
+			},
+			stateDone: { // Done state.
+				success: null,
+				fail: null,
+				callback: null
+			}
+		}
+
+		// Any of the state that halts the machine. Including "done" or any errors.
+		const stopStates = ['stateDone', 'stateErrorInstalling', 'stateErrorActivating', 'stateErrorDB', 'stateErrorDeactivating'];
 
 		const installAndActivatePlugins = async() => {
-			const migrationStateTransitions = {
-				stateInit: {
-					success: 'stateInstalling',
-					fail: 'stateInit',
-					callback: fetchAPICall(markMigrationStartedAPICall(MIGRATION_STATE_ENUM.STARTED)),
-				},
-				stateErrorInit: {
-					success: 'stateInit',
-					fail: 'stateErrorInit',
-					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_STARTED),
-				},
-				stateInstalling: {
-					success: 'stateActivating',
-					fail: 'stateErrorInstalling',
-					callback: fetchAPICall(installPluginAPICall),
-				},
-				stateErrorInstalling: {
-					success: 'stateInstalling',
-					fail: 'stateErrorInstalling',
-					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_INSTALLING),
-				},
-				stateActivating: {
-					success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
-					fail: 'stateErrorActivating',
-					callback: fetchAPICall(activatePluginAPICall),
-				},
-				stateErrorActivating: {
-					success: 'stateActivating',
-					fail: 'stateErrorActivating',
-					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_ACTIVATING),
-				},
-				stateDB: {
-					success: 'stateDeactivating',
-					fail: 'stateErrorDB',
-					callback: new Promise((resolve) => resolve({status: 200})), // TODO: DB migration
-				},
-				stateErrorDB: {
-					success: 'stateDBMigrating',
-					fail: 'stateErrorDB',
-					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DB_MIGRATION),
-				},
-				stateDeactivating: {
-					success: 'stateDone',
-					fail: 'stateErrorDeactivating',
-					callback: fetchAPICall(deactivateWCSTPluginAPICall),
-				},
-				stateErrorDeactivating: {
-					success: 'stateDeactivating',
-					fail: 'stateErrorDeactivating',
-					callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DEACTIVATING),
-				},
-				stateDone: { // Done state.
-					success: null,
-					fail: null,
-					callback: null,
-				}
-			}
-
-			const errorStates = ['stateErrorInstalling', 'stateErrorActivating', 'stateErrorDB', 'stateErrorDeactivating'];
-
 			const runNext = async (migrationState) => {
+				if (!migrationState) {
+					// Nothing to run, do nothing and return.
+					return;
+				}
+
 				const currentMigrationState = migrationStateTransitions[migrationState];
 				let nextMigrationStateToRun = '';
 				try {
@@ -210,15 +217,29 @@ const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }
 				}
 			};
 
+			/**
+			 * This function checks what the next state to run is. If there is no record of any migration run, then we start from the beginning.
+			 * If there is a record of where it was stuck at, then we start from its next state.
+			 */
+			const getNextStateToRun = () => {
+				if ( ! wcshippingMigrationState) {
+					// stateInit
+					return MIGRATION_STATE_NAME[2];
+				}
+
+				const currentStateName = MIGRATION_STATE_NAME[wcshippingMigrationState];
+				return migrationStateTransitions[currentStateName].success;
+			};
+
 			// Run the migration chain from where it last stopped. If there is no record, start from the beginning.
-			let nextMigrationStateToRun = wcshippingMigrationState ? MIGRATION_STATE_NAME[wcshippingMigrationState] : MIGRATION_STATE_NAME[2];
+			let nextMigrationStateToRun = getNextStateToRun();
 			let runAttemps = 0;
 			const maxAttempts = Object.keys(migrationStateTransitions).length; // The states don't loop, thus it can't be more than its size. Serve as a safe guard in case of infinite loop.
-			while ( runAttemps++ < maxAttempts && nextMigrationStateToRun !== 'stateDone') {
+			while ( runAttemps++ < maxAttempts ) {
 				nextMigrationStateToRun = await runNext(nextMigrationStateToRun);
-				if (errorStates.includes(nextMigrationStateToRun)) {
-					// If this is any of the error states, run the callback once and then quit.
-					// The callback is run once more to handle any error handling logic before quitting.
+				if (stopStates.includes(nextMigrationStateToRun)) {
+					// If this is the end of any of the error states, run the callback once more and then quit.
+					// This gives the state a chance to run its job before the machine quits.
 					await runNext(nextMigrationStateToRun);
 					break;
 				}
