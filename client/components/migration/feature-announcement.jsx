@@ -16,9 +16,10 @@ import bg from './images/wcshipping-migration.jpg';
 import { Dashboard, Preformatted, LessonPlan, Shipping } from './icons';
 import {
 	isEligableToMigrate,
+	wcshippingMigrationState,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 
-const FeatureAnnouncement = ({ translate, isEligable }) => {
+const FeatureAnnouncement = ({ translate, isEligable, wcshippingMigrationState }) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
 
@@ -44,6 +45,20 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 		DEACTIVATING: 10,
 		ERROR_DEACTIVATING: 11,
 		COMPLETED: 12,
+	}
+	// Maps the numeric state from PHP to the more descriptive installAndActivatePlugins object we use below.
+	const MIGRATION_STATE_NAME = {
+		2: 'stateInit',
+		3: 'stateErrorInit',
+		4: 'stateInstalling',
+		5: 'stateErrorInstalling',
+		6: 'stateActivating',
+		7: 'stateErrorActivating',
+		8: 'stateDB',
+		9: 'stateErrorDB',
+		10: 'stateDeactivating',
+		11: 'stateErrorDeactivating',
+		12: 'stateDone'
 	}
 
 	const update = () => {
@@ -195,8 +210,8 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 				}
 			};
 
-			// Run the migration chain
-			let nextMigrationStateToRun = 'stateInit';
+			// Run the migration chain from where it last stopped. If there is no record, start from the beginning.
+			let nextMigrationStateToRun = wcshippingMigrationState ? MIGRATION_STATE_NAME[wcshippingMigrationState] : MIGRATION_STATE_NAME[2];
 			let runAttemps = 0;
 			const maxAttempts = Object.keys(migrationStateTransitions).length; // The states don't loop, thus it can't be more than its size. Serve as a safe guard in case of infinite loop.
 			while ( runAttemps++ < maxAttempts && nextMigrationStateToRun !== 'stateDone') {
@@ -308,6 +323,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 
 const mapStateToProps = (state, { siteId }) => ({
 	isEligable: isEligableToMigrate(state, siteId),
+	wcshippingMigrationState: wcshippingMigrationState(state, siteId),
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
