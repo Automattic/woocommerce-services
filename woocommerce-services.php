@@ -919,7 +919,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
 			add_action( 'current_screen', array( $this, 'edit_orders_page_actions' ) );
-			add_action( 'after_plugin_row', array( $this, 'add_custom_message_to_plugin_list' ), 10, 2 );
+			add_action( 'after_plugin_row_woocommerce-services/woocommerce-services.php', array( $this, 'add_custom_message_to_plugin_list' ), 10, 2 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1534,8 +1534,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param string $plugin_file
 		 * @param array  $plugin_data
 		 */
-		public function add_custom_message_to_plugin_list( $plugin_file ) {
-			if ( 'woocommerce-services/woocommerce-services.php' === $plugin_file && false ) {
+		public function add_custom_message_to_plugin_list() {
+			if ( false ) {
 				printf(
 					'<style>
 						.plugins tr[data-slug="woocommerce-services"] td, .plugins tr[data-slug="woocommerce-services"] th { box-shadow: none; }
