@@ -1536,20 +1536,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function add_custom_message_to_plugin_list( $plugin_file ) {
 			if ( 'woocommerce-services/woocommerce-services.php' === $plugin_file && false ) {
-				esc_html(
-					printf(
-						'<style>
-							.plugins tr[data-slug="woocommerce-services"] td, .plugins tr[data-slug="woocommerce-services"] th { box-shadow: none; }
-						</style>
-						<tr class="plugin-update-tr active update">
-    						<td colspan="4" class="plugin-update colspanchange">
-    	    					<div class="notice inline notice-warning" style="border:0; border-left: 5px solid #4AB866; padding: 12px;">
-    	        					<p>%s</p>
-    	    					</div>
-							</td>
-						 </tr>',
-						wp_kses_post( __( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' ) )
-					)
+				printf(
+					'<style>
+						.plugins tr[data-slug="woocommerce-services"] td, .plugins tr[data-slug="woocommerce-services"] th { box-shadow: none; }
+					</style>
+					<tr class="plugin-update-tr active update">
+    					<td colspan="4" class="plugin-update colspanchange">
+    	    				<div class="notice inline notice-warning" style="border:0; border-left: 5px solid #4AB866; padding: 12px;">
+    	        				<p>%s</p>
+    	    				</div>
+						</td>
+					 </tr>',
+					wp_kses_post( __( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' ) )
 				);
 			}
 		}
