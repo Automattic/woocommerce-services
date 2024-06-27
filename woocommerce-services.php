@@ -1542,7 +1542,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					</style>
 					<tr class="plugin-update-tr active update">
     					<td colspan="4" class="plugin-update colspanchange">
-    	    				<div class="notice inline notice-warning" style="border:0; border-left: 5px solid #4AB866; padding: 12px;">
+    	    				<div class="notice inline notice-warning" style="border:0; border-left: 5px solid #4AB866; padding: 12px; background-color: #EFF9F1;">
     	        				<p>%s</p>
     	    				</div>
 						</td>
