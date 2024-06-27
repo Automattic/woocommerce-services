@@ -52,7 +52,10 @@ const setCookie = (name, value, days) => {
 		update_button.click();
 	});
 
+	// Dismiss it for 3 days, then remove it from view.
 	wcstMigrationNoticeDimissButton.addEventListener(eventName, () => {
 		setCookie('wcst-wcshipping-migration-dismissed', 1, 3);
+		const wcstMigrationAdminNotice = document.querySelector('.wcst-wcshipping-migration-notice');
+		wcstMigrationAdminNotice.remove();
 	});
 });
