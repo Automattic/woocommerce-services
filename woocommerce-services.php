@@ -1569,13 +1569,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'adminPluginPath' => admin_url( 'plugins.php' ),
 				)
 			);
-			wp_localize_script(
-				'wcst_wcshipping_migration_admin_notice',
-				'wcst_wcshipping_migration_admin_notice',
-				array(
-					'dismissalCookieKey' => self::MIGRATION_DISMISSAL_COOKIE_KEY,
-				)
-			);
 		}
 
 		public function get_active_shipping_services() {
@@ -1934,12 +1927,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			echo wp_kses_post(
 				sprintf(
-					'<div class="notice notice-%s %s wcst-wcshipping-migration-notice">
+					'<div class="notice notice-%s wcst-wcshipping-migration-notice">
+					<div class="wcst-wcshipping-migration-notice__content">
 					<div id="wcst_wcshipping_migration_admin_notice_feature_announcement" data-args="%s"></div>
-					<div class="notice-content"><p>',
+					<p>',
 					$banner->type,
-					$banner->dismissible ? 'is-dismissible' : '',
-					wc_esc_json( $encoded_arguments ),
+					wc_esc_json( $encoded_arguments )
 				) .
 				sprintf(
 					/* translators: %s: documentation URL */
@@ -1947,7 +1940,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
 				) .
 				sprintf(
-					'</p><div><button id="wcst-wcshipping-migration-notice__click" class="action-button">%s</button></div></div></div>',
+					'</p>
+					<button type="button" class="notice-dismiss %s"><span class="screen-reader-text">Dismiss this notice.</span></button>
+					</div>
+					<div class="notice-action"><button id="wcst-wcshipping-migration-notice__click" class="action-button">%s</button></div>
+					</div>',
+					$banner->dismissible ? '' : 'hide-dismissible',
 					$banner->action
 				)
 			);
@@ -1956,7 +1954,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function register_wcshipping_migration_modal() {
 			$plugin_version = self::get_wcs_version();
 			wp_register_style( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array( 'wp-util', 'jquery' ), null, array( 'in_footer' => true ) );
+			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null );
 			wp_enqueue_script( 'wcst_wcshipping_migration_admin_notice' );
 			wp_enqueue_style( 'wcst_wcshipping_migration_admin_notice' );
 			wp_enqueue_script( 'wc_connect_admin' );

@@ -3,28 +3,39 @@
 // This .scss file will be loaded so we are including it here.
 @import 'components/migration/style';
 
-.notice.wcst-wcshipping-migration-notice,
-.notice.wcst-wcshipping-migration-notice.is-dismissible {
-  padding: 12px;
-  color: var(--Gutenberg-Gray-900, #1E1E1E);
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 150%;
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  justify-content: space-between;
+.notice.wcst-wcshipping-migration-notice {
+    padding: 12px;
+    color: var(--Gutenberg-Gray-900, #1E1E1E);
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
 
-  .notice-content {
+  .wcst-wcshipping-migration-notice__content {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    justify-content: space-between;
-  }
+    flex-direction: row;
+    margin-bottom: 12px;
 
-  p {
-    margin: 0
+    p {
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .notice-dismiss {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      position: relative;
+
+      &:before {
+        content: '\f335';
+        color: #1E1E1E;
+      }
+    }
+
+    .hide-dismissible {
+      display: none;
+    }
   }
 
   .action-button {
@@ -36,20 +47,5 @@
     background-color: #fff;
     cursor: pointer;
     margin: 0;
-  }
-
-  .notice-dismiss {
-    width: 24px;
-    height: 24px;
-    position: relative;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    &:before {
-      content: '\f335';
-      color: #1E1E1E;
-    }
   }
 }

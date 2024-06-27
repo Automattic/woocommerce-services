@@ -22,9 +22,22 @@ const ShippingLabelStore = ShippingLabel(args);
 const store = createStore(ShippingLabelStore.getReducer(), ShippingLabelStore.getInitialState());
 
 const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcshipping-migration-notice__click');
+const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping-migration-notice button.notice-dismiss');
 
-// Clicking "Confirm update" will start the migration. This is the same as popping up the modal and clicking the "Update" button there.
-["click", "keydown"].forEach(eventName =>
+// Helper function to set simple name=>value cookie in days.
+const setCookie = (name, value, days) => {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + ";";
+}
+
+// Add all button events
+["click", "keydown"].forEach(eventName => {
+	// Clicking "Confirm update" will start the migration. This is the same as popping up the modal and clicking the "Update" button there.
 	wcstWCShippingMigrationNoticeButton.addEventListener(eventName, () => {
 		// Pop open feature announcement modal.
 		ReactDOM.render(
@@ -37,13 +50,9 @@ const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcship
 		// Click the update button in the modal to start the migration.
 		const update_button = document.getElementById('migration__announcement-update-button');
 		update_button.click();
-	})
-);
+	});
 
-// This handles the dimiss button.
-const TIME_TO_REMMEMBER_DISMISSAL_SECONDS = 3 * 24 * 60 * 60; // 3 Days - number of seconds
-( function ( $ ) {
-	$( '.wcst-wcshipping-migration-notice' ).on( 'click', '.notice-dismiss', () => {
-		window.wpCookies.set( window.wcst_wcshipping_migration_admin_notice.dismissalCookieKey, 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS );
-	} );
-})( window.jQuery );
+	wcstMigrationNoticeDimissButton.addEventListener(eventName, () => {
+		setCookie('wcst-wcshipping-migration-dismissed', 1, 3);
+	});
+});
