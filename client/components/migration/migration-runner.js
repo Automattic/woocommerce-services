@@ -183,6 +183,14 @@ const migrationStateTransitions = {
     }
 }
 
+// Before using the migration state, check if migration state exists, if not throw error.
+const getMigrationStateByName = (stateName) => {
+    if ( ! migrationStateTransitions[stateName] ) {
+        throw new Error( "Migration state [" + stateName + "] not found" );
+    }
+    return migrationStateTransitions[stateName];
+}
+
 // Any of the state that halts the machine. Including "done" or any errors.
 const stopStates = [ 'stateDone', 'stateErrorInstalling', 'stateErrorActivating', 'stateErrorDB', 'stateErrorDeactivating' ];
 
@@ -199,7 +207,7 @@ const installAndActivatePlugins = async( previousMigrationState ) => {
             return;
         }
 
-        const currentMigrationState = migrationStateTransitions[ migrationState ];
+        const currentMigrationState = getMigrationStateByName(migrationState);
         let nextMigrationStateToRun = '';
         try {
             await currentMigrationState.callback();
@@ -225,7 +233,8 @@ const installAndActivatePlugins = async( previousMigrationState ) => {
         }
 
         const currentStateName = MIGRATION_ENUM_TO_STATE_NAME_MAP[ previousMigrationState ];
-        return migrationStateTransitions[ currentStateName ].success; // The next state is "success".
+        const nextMigrationState = getMigrationStateByName( currentStateName );
+        return nextMigrationState.success; // The next state is "success".
     };
 
     // Run the migration chain from where it last stopped. If there is no record, start from the beginning.
