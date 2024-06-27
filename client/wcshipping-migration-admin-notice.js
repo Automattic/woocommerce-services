@@ -39,3 +39,11 @@ const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcship
 		update_button.click();
 	})
 );
+
+// This handles the dimiss button.
+const TIME_TO_REMMEMBER_DISMISSAL_SECONDS = 10; // 3 Days - number of seconds
+( function ( $ ) {
+	$( '.wcst-wcshipping-migration-notice' ).on( 'click', '.notice-dismiss', () => {
+		window.wpCookies.set( window.wcst_wcshipping_migration_admin_notice.dismissalCookieKey, 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS );
+	} );
+})( window.jQuery );
