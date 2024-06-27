@@ -1548,7 +1548,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
     	    					</div>
 							</td>
 						 </tr>',
-						__( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-tax' )
+						__( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' )
 					)
 				);
 			}
