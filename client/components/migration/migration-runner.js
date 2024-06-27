@@ -84,7 +84,7 @@ const deactivateWCSTPluginAPICall = () =>
  * @param {string} migrationState The numeric migration number from the PHP side. Check classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php.
  * @returns {Promise} Check fetch.
  */
-const markMigrationStartedAPICall = (migrationState) => () =>
+const markMigrationStartedAPICall = ( migrationState ) => () =>
     fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
         method: 'POST',
         headers,
@@ -93,11 +93,11 @@ const markMigrationStartedAPICall = (migrationState) => () =>
         })
     } );
 
-const stateErrorHandlingAPICall = (failedMigrationState) => () => {
+const stateErrorHandlingAPICall = ( failedMigrationState ) => () => {
     // TODO: The error message doesn't show up anywhere. For now, update the flag in the option table so
     // we know where it failed at.
 
-    return markMigrationStartedAPICall(failedMigrationState)();
+    return markMigrationStartedAPICall( failedMigrationState )();
 };
 
 /**
@@ -107,11 +107,11 @@ const stateErrorHandlingAPICall = (failedMigrationState) => () => {
  * @param {function} apiFn The API function that uses fetch.
  * @returns {Object} The API JSON response from fetch.
  */
-const fetchAPICall = (apiFn) => async () => {
+const fetchAPICall = ( apiFn ) => async () => {
     const apiResponse = await apiFn();
     const apiJSONResponse = await apiResponse.json();
-    if (apiResponse.status >= 400) {
-        throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
+    if ( apiResponse.status >= 400 ) {
+        throw new Error( apiJSONResponse.message || translate( "Failed to setup WooCommerce Shipping. Please try again." ) );
     }
     return apiJSONResponse;
 };
@@ -129,52 +129,52 @@ const migrationStateTransitions = {
     stateInit: {
         success: 'stateInstalling',
         fail: 'stateInit',
-        callback: fetchAPICall(markMigrationStartedAPICall(MIGRATION_STATE_ENUM.STARTED)),
+        callback: fetchAPICall( markMigrationStartedAPICall( MIGRATION_STATE_ENUM.STARTED ) ),
     },
     stateErrorInit: {
         success: 'stateInit',
         fail: 'stateErrorInit',
-        callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_STARTED),
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_STARTED ),
     },
     stateInstalling: {
         success: 'stateActivating',
         fail: 'stateErrorInstalling',
-        callback: fetchAPICall(installPluginAPICall),
+        callback: fetchAPICall( installPluginAPICall ),
     },
     stateErrorInstalling: {
         success: 'stateInstalling',
         fail: 'stateErrorInstalling',
-        callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_INSTALLING),
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_INSTALLING ),
     },
     stateActivating: {
         success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
         fail: 'stateErrorActivating',
-        callback: fetchAPICall(activatePluginAPICall),
+        callback: fetchAPICall( activatePluginAPICall ),
     },
     stateErrorActivating: {
         success: 'stateActivating',
         fail: 'stateErrorActivating',
-        callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_ACTIVATING),
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_ACTIVATING ),
     },
     stateDB: {
         success: 'stateDeactivating',
         fail: 'stateErrorDB',
-        callback: new Promise((resolve) => resolve({status: 200})), // TODO: DB migration
+        callback: new Promise( ( resolve ) => resolve( { status: 200 } ) ), // TODO: DB migration
     },
     stateErrorDB: {
         success: 'stateDBMigrating',
         fail: 'stateErrorDB',
-        callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DB_MIGRATION),
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_DB_MIGRATION ),
     },
     stateDeactivating: {
         success: 'stateDone',
         fail: 'stateErrorDeactivating',
-        callback: fetchAPICall(deactivateWCSTPluginAPICall),
+        callback: fetchAPICall( deactivateWCSTPluginAPICall ),
     },
     stateErrorDeactivating: {
         success: 'stateDeactivating',
         fail: 'stateErrorDeactivating',
-        callback: stateErrorHandlingAPICall(MIGRATION_STATE_ENUM.ERROR_DEACTIVATING),
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_DEACTIVATING ),
     },
     stateDone: { // Done state.
         success: null,
@@ -184,7 +184,7 @@ const migrationStateTransitions = {
 }
 
 // Any of the state that halts the machine. Including "done" or any errors.
-const stopStates = ['stateDone', 'stateErrorInstalling', 'stateErrorActivating', 'stateErrorDB', 'stateErrorDeactivating'];
+const stopStates = [ 'stateDone', 'stateErrorInstalling', 'stateErrorActivating', 'stateErrorDB', 'stateErrorDeactivating' ];
 
 /**
  * This function runs the entire migration based on what the previousMigrationState is. It will stop
@@ -192,14 +192,14 @@ const stopStates = ['stateDone', 'stateErrorInstalling', 'stateErrorActivating',
  *
  * @param {number} previousMigrationState This is the "wcshipping_migration_state" stored in the option table. This is the last state recorded for this migration before it stopped.
  */
-const installAndActivatePlugins = async(previousMigrationState) => {
-    const runNext = async (migrationState) => {
-        if (!migrationState) {
+const installAndActivatePlugins = async( previousMigrationState ) => {
+    const runNext = async ( migrationState ) => {
+        if ( !migrationState ) {
             // Nothing to run, do nothing and return.
             return;
         }
 
-        const currentMigrationState = migrationStateTransitions[migrationState];
+        const currentMigrationState = migrationStateTransitions[ migrationState ];
         let nextMigrationStateToRun = '';
         try {
             await currentMigrationState.callback();
@@ -219,25 +219,25 @@ const installAndActivatePlugins = async(previousMigrationState) => {
      * @returns {string} The next state to run. The name of the state is the key in this object migrationStateTransitions.
      */
     const getNextStateToRun = () => {
-        if ( ! previousMigrationState) {
+        if ( ! previousMigrationState ) {
             // stateInit
-            return MIGRATION_ENUM_TO_STATE_NAME_MAP[2];
+            return MIGRATION_ENUM_TO_STATE_NAME_MAP[ 2 ];
         }
 
-        const currentStateName = MIGRATION_ENUM_TO_STATE_NAME_MAP[previousMigrationState];
-        return migrationStateTransitions[currentStateName].success; // The next state is "success".
+        const currentStateName = MIGRATION_ENUM_TO_STATE_NAME_MAP[ previousMigrationState ];
+        return migrationStateTransitions[ currentStateName ].success; // The next state is "success".
     };
 
     // Run the migration chain from where it last stopped. If there is no record, start from the beginning.
     let nextMigrationStateToRun = getNextStateToRun();
     let runAttemps = 0;
-    const maxAttempts = Object.keys(migrationStateTransitions).length; // The states don't loop, thus it can't be more than its size. Serve as a safe guard in case of infinite loop.
+    const maxAttempts = Object.keys( migrationStateTransitions ).length; // The states don't loop, thus it can't be more than its size. Serve as a safe guard in case of infinite loop.
     while ( runAttemps++ < maxAttempts ) {
-        nextMigrationStateToRun = await runNext(nextMigrationStateToRun);
-        if (stopStates.includes(nextMigrationStateToRun)) {
+        nextMigrationStateToRun = await runNext( nextMigrationStateToRun );
+        if ( stopStates.includes( nextMigrationStateToRun ) ) {
             // If this is the end of any of the error states, run the callback once more and then quit.
             // This gives the state a chance to run its job before the machine quits.
-            await runNext(nextMigrationStateToRun);
+            await runNext( nextMigrationStateToRun );
             break;
         }
     }

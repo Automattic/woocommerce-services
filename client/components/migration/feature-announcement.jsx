@@ -17,9 +17,9 @@ import {
 	isEligableToMigrate,
 	wcshippingMigrationState,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
-import {installAndActivatePlugins} from './migration-runner';
+import { installAndActivatePlugins } from './migration-runner';
 
-const FeatureAnnouncement = ({ translate, isEligable, previousMigrationState }) => {
+const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } ) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
 
@@ -32,9 +32,9 @@ const FeatureAnnouncement = ({ translate, isEligable, previousMigrationState }) 
 	};
 
 	const update = () => {
-		setIsUpdating(true);
-		installAndActivatePlugins(previousMigrationState);
-		setIsUpdating(false);
+		setIsUpdating( true );
+		installAndActivatePlugins( previousMigrationState );
+		setIsUpdating( false );
 	};
 
 	return <>{isOpen && (<Modal
@@ -128,7 +128,7 @@ const FeatureAnnouncement = ({ translate, isEligable, previousMigrationState }) 
 
 const mapStateToProps = (state, { siteId }) => ({
 	isEligable: isEligableToMigrate(state, siteId),
-	previousMigrationState: wcshippingMigrationState(state, siteId),
+	previousMigrationState: wcshippingMigrationState( state, siteId ),
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
