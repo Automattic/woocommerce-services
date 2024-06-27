@@ -31,9 +31,9 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } 
 		// Todo: implement maybe later
 	};
 
-	const update = () => {
+	const update = async () => {
 		setIsUpdating( true );
-		installAndActivatePlugins( previousMigrationState );
+		await installAndActivatePlugins( previousMigrationState );
 		setIsUpdating( false );
 	};
 
