@@ -1534,7 +1534,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @param string $plugin_file
 		 * @param array  $plugin_data
 		 */
-		public function add_custom_message_to_plugin_list( $plugin_file, $plugin_data ) {
+		public function add_custom_message_to_plugin_list( $plugin_file ) {
 			if ( 'woocommerce-services/woocommerce-services.php' === $plugin_file && false ) {
 				esc_html(
 					printf(
@@ -1548,7 +1548,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
     	    					</div>
 							</td>
 						 </tr>',
-						__( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' )
+						wp_kses_post( __( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' ) )
 					)
 				);
 			}
