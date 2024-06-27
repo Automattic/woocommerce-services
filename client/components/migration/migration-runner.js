@@ -109,11 +109,11 @@ const stateErrorHandlingAPICall = ( failedMigrationState ) => () => {
  */
 const fetchAPICall = ( apiFn ) => async () => {
     const apiResponse = await apiFn();
-    const apiJSONResponse = await apiResponse.json();
     if ( apiResponse.status >= 400 ) {
+        const apiJSONResponse = await apiResponse.json();
         throw new Error( apiJSONResponse.message || translate( "Failed to setup WooCommerce Shipping. Please try again." ) );
     }
-    return apiJSONResponse;
+    return apiResponse;
 };
 
 /**
