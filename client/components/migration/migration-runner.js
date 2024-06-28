@@ -188,7 +188,7 @@ const getMigrationStateByName = ( stateName ) => {
     if ( ! migrationStateTransitions[ stateName ] ) {
         throw new Error( "Migration state [" + stateName + "] not found" );
     }
-    return migrationStateTransitions[stateName];
+    return migrationStateTransitions[ stateName ];
 }
 
 // Any of the state that halts the machine. Including "done" or any errors.
