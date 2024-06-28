@@ -207,7 +207,7 @@ const installAndActivatePlugins = async( previousMigrationState ) => {
             return;
         }
 
-        const currentMigrationState = getMigrationStateByName(migrationState);
+        const currentMigrationState = getMigrationStateByName( migrationState );
         let nextMigrationStateToRun = '';
         try {
             await currentMigrationState.callback();
