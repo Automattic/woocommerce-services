@@ -959,6 +959,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 			add_action( 'current_screen', array( $this, 'edit_orders_page_actions' ) );
+			add_action( 'after_plugin_row_woocommerce-services/woocommerce-services.php', array( $this, 'add_custom_message_to_plugin_list' ), 10, 2 );
 		}
 
 		/**
@@ -1559,6 +1560,30 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				wp_enqueue_script( 'wc_connect_admin_notices' );
 				wp_enqueue_style( 'wc_connect_admin_notices' );
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
+			}
+		}
+
+		/**
+		 * Add a "deactivated" message to the plugin list table for WooCommerce Shipping & Tax
+		 *
+		 * @param string $plugin_file
+		 * @param array  $plugin_data
+		 */
+		public function add_custom_message_to_plugin_list() {
+			if ( false ) {
+				printf(
+					'<style>
+						.plugins tr[data-slug="woocommerce-services"] td, .plugins tr[data-slug="woocommerce-services"] th { box-shadow: none; }
+					</style>
+					<tr class="plugin-update-tr active update">
+    					<td colspan="4" class="plugin-update colspanchange">
+    	    				<div class="notice inline notice-warning" style="border:0; border-left: 5px solid #4AB866; padding: 12px; background-color: #EFF9F1;">
+    	        				<p>%s</p>
+    	    				</div>
+						</td>
+					 </tr>',
+					wp_kses_post( __( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' ) )
+				);
 			}
 		}
 
