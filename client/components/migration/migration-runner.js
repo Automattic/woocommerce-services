@@ -184,8 +184,8 @@ const migrationStateTransitions = {
 }
 
 // Before using the migration state, check if migration state exists, if not throw error.
-const getMigrationStateByName = (stateName) => {
-    if ( ! migrationStateTransitions[stateName] ) {
+const getMigrationStateByName = ( stateName ) => {
+    if ( ! migrationStateTransitions[ stateName ] ) {
         throw new Error( "Migration state [" + stateName + "] not found" );
     }
     return migrationStateTransitions[stateName];
