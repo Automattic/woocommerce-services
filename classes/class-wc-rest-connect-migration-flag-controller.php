@@ -11,6 +11,31 @@ if ( class_exists( 'WC_REST_Connect_Migration_Flag_Controller' ) ) {
 class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Controller {
 	protected $rest_base = 'connect/migration-flag';
 
+	/**
+	 * Tracks instance.
+	 *
+	 * @var WC_Connect_Tracks
+	 */
+	protected $tracks;
+
+	public function __construct( $api_client, $settings_store, $logger, $tracks ) {
+		parent::__construct( $api_client, $settings_store, $logger );
+
+		error_log( 'WC_REST_Connect_Migration_Flag_Controller::__construct' );
+		error_log( print_r( $tracks, true ) );
+
+		$this->set_tracks( $tracks );
+	}
+
+	/**
+	 * Set tracks instance.
+	 *
+	 * @param WC_Connect_Tracks $tracks Tracks instance.
+	 */
+	public function set_tracks( $tracks ) {
+		$this->tracks = $tracks;
+	}
+
 	public function post( $request ) {
 		$params          = $request->get_json_params();
 		$migration_state = intval( $params['migration_state'] );
@@ -31,6 +56,7 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 		$result = WC_Connect_Options::update_option( 'wcshipping_migration_state', $migration_state );
 
 		if ( $result ) {
+			$this->tracks->record_user_event( 'migration_flag_updated', array( 'migration_state' => $migration_state ) );
 			return new WP_REST_Response( array( 'result' => 'Migration flag updated successfully.' ), 200 );
 		}
 
