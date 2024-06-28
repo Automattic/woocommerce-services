@@ -266,7 +266,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
-			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED ) {
+			if ( $migration_state !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
 				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
 			}
 		}

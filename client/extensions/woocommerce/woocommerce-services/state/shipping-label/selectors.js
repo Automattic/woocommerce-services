@@ -729,3 +729,12 @@ export const isEligableToMigrate = ( state, siteId = getSelectedSiteId( state ) 
 	);
 	return settingsMeta.is_eligible_to_migrate;
 }
+
+export const wcshippingMigrationState = ( state, siteId = getSelectedSiteId( state ) ) => {
+	const settingsMeta = get(
+		state,
+		[ 'extensions', 'woocommerce', 'woocommerceServices', siteId, 'labelSettings', 'meta' ],
+		null
+	);
+	return settingsMeta.wcshipping_migration_state;
+}
