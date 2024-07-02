@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.6.1 - 2024-07-02 =
+= 2.6.1 - 2024-xx-xx =
 * Tweak - WooCommerce 9.0 and WordPress 6.6 compatibility.
 
 = 2.6.0 - 2024-06-04 =
