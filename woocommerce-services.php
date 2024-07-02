@@ -266,7 +266,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
-			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED ) {
+			if ( $migration_state !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
 				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
 			}
 		}
@@ -921,6 +921,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
 			add_action( 'current_screen', array( $this, 'edit_orders_page_actions' ) );
+			add_action( 'after_plugin_row_woocommerce-services/woocommerce-services.php', array( $this, 'add_custom_message_to_plugin_list' ), 10, 2 );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1527,6 +1528,30 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( $settings_store->is_eligible_for_migration() ) {
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
 				add_action( 'admin_notices', array( $this, 'register_wcshipping_migration_modal' ) );
+			}
+		}
+
+		/**
+		 * Add a "deactivated" message to the plugin list table for WooCommerce Shipping & Tax
+		 *
+		 * @param string $plugin_file
+		 * @param array  $plugin_data
+		 */
+		public function add_custom_message_to_plugin_list() {
+			if ( false ) {
+				printf(
+					'<style>
+						.plugins tr[data-slug="woocommerce-services"] td, .plugins tr[data-slug="woocommerce-services"] th { box-shadow: none; }
+					</style>
+					<tr class="plugin-update-tr active update">
+    					<td colspan="4" class="plugin-update colspanchange">
+    	    				<div class="notice inline notice-warning" style="border:0; border-left: 5px solid #4AB866; padding: 12px; background-color: #EFF9F1;">
+    	        				<p>%s</p>
+    	    				</div>
+						</td>
+					 </tr>',
+					wp_kses_post( __( 'WooCommerce Shipping & Tax has been deactivated. Your data and settings have been carried over to the dedicated WooCommerce Shipping and WooCommerce Tax extensions.<br />For support, please <a href="https://woocommerce.com/my-account/create-a-ticket/">contact our Happiness Engineers</a>.', 'woocommerce-services' ) )
+				);
 			}
 		}
 

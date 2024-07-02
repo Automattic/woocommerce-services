@@ -7,7 +7,6 @@ import { useState } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
-import { getNonce, getBaseURL } from 'wcs-client/api/request';
 
 /**
  * Internal dependencies
@@ -16,9 +15,11 @@ import bg from './images/wcshipping-migration.jpg';
 import { Dashboard, Preformatted, LessonPlan, Shipping } from './icons';
 import {
 	isEligableToMigrate,
+	wcshippingMigrationState,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import { installAndActivatePlugins } from './migration-runner';
 
-const FeatureAnnouncement = ({ translate, isEligable }) => {
+const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } ) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
 
@@ -30,79 +31,10 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 		// Todo: implement maybe later
 	};
 
-	const update = () => {
-		const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
-		const headers = {
-			"Content-Type": "application/json",
-			'X-WP-Nonce': getNonce()
-	   };
-
-		const installPluginAPICall = () =>
-			fetch( getBaseURL() + 'wc-admin/plugins/install', {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					plugins
-				})
-			} );
-
-		const activatePluginAPICall = () =>
-			fetch( getBaseURL() + 'wc-admin/plugins/activate', {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					plugins
-				})
-			} );
-
-		const deactivateWCSTPluginAPICall = () =>
-			fetch( getBaseURL() + 'wp/v2/plugins/woocommerce-services/woocommerce-services', {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					status: 'inactive'
-				})
-			} );
-		const markMigrationStartedAPICall = () =>
-			fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					migration_state: 2 // Check WC_Connect_WCST_To_WCShipping_Migration_State_Enum::STARTED
-				})
-			} );
-
-
-		const installAndActivatePlugins = async() => {
-			const tasks = [
-				markMigrationStartedAPICall,
-				installPluginAPICall,
-				activatePluginAPICall,
-				// Note: Anything that needs the plugin's code needs to happen before deactivating it.
-				deactivateWCSTPluginAPICall,
-			];
-
-			try {
-				setIsUpdating(true);
-
-				for (const task of tasks) {
-					const apiResponse = await task();
-					const apiJSONResponse = await apiResponse.json();
-					if (task.status >= 400) {
-						throw new Error(apiJSONResponse.message || translate("Failed to setup WooCommerce Shipping. Please try again."));
-					}
-				}
-
-				window.location = global.wcsPluginData.adminPluginPath;
-			} catch (e) {
-				//TODO: error handling.
-				// console.log('Failed to install or activate.', e);
-			} finally {
-				setIsUpdating(false);
-			}
-		};
-
-		installAndActivatePlugins();
+	const update = async () => {
+		setIsUpdating( true );
+		await installAndActivatePlugins( previousMigrationState );
+		setIsUpdating( false );
 	};
 
 	return <>{isOpen && (<Modal
@@ -196,6 +128,7 @@ const FeatureAnnouncement = ({ translate, isEligable }) => {
 
 const mapStateToProps = (state, { siteId }) => ({
 	isEligable: isEligableToMigrate(state, siteId),
+	previousMigrationState: wcshippingMigrationState( state, siteId ),
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
