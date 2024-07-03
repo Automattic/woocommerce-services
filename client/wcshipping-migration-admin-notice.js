@@ -23,17 +23,7 @@ const store = createStore(ShippingLabelStore.getReducer(), ShippingLabelStore.ge
 
 const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcshipping-migration-notice__click');
 const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping-migration-notice button.notice-dismiss');
-
-// Helper function to set simple name=>value cookie in days.
-const setCookie = (name, value, days) => {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "")  + expires + ";";
-}
+const TIME_TO_REMMEMBER_DISMISSAL_SECONDS = 3 * 24 * 60 * 60; // 3 Days - number of seconds
 
 // Add all button events
 ["click", "keydown"].forEach(eventName => {
@@ -54,7 +44,8 @@ const setCookie = (name, value, days) => {
 
 	// Dismiss it for 3 days, then remove it from view.
 	wcstMigrationNoticeDimissButton.addEventListener(eventName, () => {
-		setCookie('wcst-wcshipping-migration-dismissed', 1, 3);
+		// window.wpCookies API: wordpress/wp-includes/js/utils.js
+		window.wpCookies.set('wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS)
 		const wcstMigrationAdminNotice = document.querySelector('.wcst-wcshipping-migration-notice');
 		wcstMigrationAdminNotice.remove();
 	});
