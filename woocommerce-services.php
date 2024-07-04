@@ -1094,7 +1094,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$rest_carrier_types_controller->register_routes();
 
 				require_once __DIR__ . '/classes/class-wc-rest-connect-migration-flag-controller.php';
-				$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger );
+				$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger, $this->tracks );
 				$this->set_rest_migration_flag_controller( $rest_migration_flag_controller );
 				$rest_migration_flag_controller->register_routes();
 			}
