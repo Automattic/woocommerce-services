@@ -44,15 +44,16 @@ const MIGRATION_ENUM_TO_STATE_NAME_MAP = {
 }
 
 const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
-const headers = {
+
+const getHeaders = () => ({
     "Content-Type": "application/json",
     'X-WP-Nonce': getNonce()
-};
+});
 
 const installPluginAPICall = () =>
     fetch( getBaseURL() + 'wc-admin/plugins/install', {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
             plugins
         })
@@ -61,7 +62,7 @@ const installPluginAPICall = () =>
 const activatePluginAPICall = () =>
     fetch( getBaseURL() + 'wc-admin/plugins/activate', {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
             plugins
         })
@@ -70,7 +71,7 @@ const activatePluginAPICall = () =>
 const deactivateWCSTPluginAPICall = () =>
     fetch( getBaseURL() + 'wp/v2/plugins/woocommerce-services/woocommerce-services', {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
             status: 'inactive'
         })
@@ -87,7 +88,7 @@ const deactivateWCSTPluginAPICall = () =>
 const markMigrationStartedAPICall = ( migrationState ) => () =>
     fetch( getBaseURL() + 'wc/v1/connect/migration-flag', {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
             migration_state: migrationState
         })

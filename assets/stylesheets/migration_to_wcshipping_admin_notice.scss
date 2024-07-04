@@ -1,0 +1,51 @@
+// Manunally load the migration component's style sheet because it is bundled(webpack)
+// in style.css but style.css isn't loaded in the order listing page.
+// This .scss file will be loaded so we are including it here.
+@import 'components/migration/style';
+
+.notice.wcst-wcshipping-migration-notice {
+    padding: 12px;
+    color: var(--Gutenberg-Gray-900, #1E1E1E);
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+
+  .wcst-wcshipping-migration-notice__content {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 12px;
+
+    p {
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .notice-dismiss {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      position: relative;
+
+      &:before {
+        content: '\f335';
+        color: #1E1E1E;
+      }
+    }
+
+    .hide-dismissible {
+      display: none;
+    }
+  }
+
+  .action-button {
+    color: #3858E9;
+    margin: 12px 0;
+    border: 1px solid #3858E9;
+    padding: 11.5px 12px 11.5px 12px;
+    border-radius: 2px;
+    background-color: #fff;
+    cursor: pointer;
+    margin: 0;
+  }
+}

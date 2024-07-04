@@ -55,7 +55,7 @@ module.exports = {
 		'woocommerce-services-banner': [ './client/banner.js' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 		'woocommerce-services-new-order-taxjar': [ './client/new-order-taxjar.js' ],
-		'woocommerce-services-admin-notices': [ './client/admin-notices.js' ],
+		'woocommerce-services-wcshipping-migration-admin-notice': [ './client/wcshipping-migration-admin-notice.js' ],
 	},
 	output: Object.assign(
 			{},

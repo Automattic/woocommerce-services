@@ -18,7 +18,6 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			$this->api_client = $api_client;
 			$this->logger     = $logger;
-
 		}
 
 		public function fetch_service_schemas_from_connect_server() {
