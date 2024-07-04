@@ -21,9 +21,6 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 	public function __construct( $api_client, $settings_store, $logger, $tracks ) {
 		parent::__construct( $api_client, $settings_store, $logger );
 
-		error_log( 'WC_REST_Connect_Migration_Flag_Controller::__construct' );
-		error_log( print_r( $tracks, true ) );
-
 		$this->set_tracks( $tracks );
 	}
 
