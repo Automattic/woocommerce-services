@@ -254,7 +254,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected static $wcs_version;
 
-		const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
+		public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
@@ -1523,7 +1523,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			// Add the WCS&T to WCShipping migratio notice, creating a button to update.
+			// Add the WCS&T to WCShipping migration notice, creating a button to update.
 			$settings_store = $this->get_service_settings_store();
 			if ( $settings_store->is_eligible_for_migration() ) {
 				add_action( 'admin_notices', array( $this, 'display_wcst_to_wcshipping_migration_notice' ) );
