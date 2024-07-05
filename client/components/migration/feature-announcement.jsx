@@ -18,6 +18,7 @@ import {
 	wcshippingMigrationState,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { installAndActivatePlugins } from './migration-runner';
+import { TIME_TO_REMMEMBER_DISMISSAL_SECONDS } from './constants';
 
 const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } ) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
@@ -28,7 +29,8 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } 
 	};
 
 	const snooze = () => {
-		// Todo: implement maybe later
+		window.wpCookies.set('wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS)
+		setIsOpen(false);
 	};
 
 	const update = async () => {
