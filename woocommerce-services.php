@@ -258,6 +258,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		/**
 		 * Deletes WC Admin notices.
+		 *
+		 * @todo We'd need to make sure the DHL Live Rates class reachable during uninstall.
+		 *       We should be able to require everything in the 'pre_uninstall_plugin' action, so it shouldn't be an issue.
 		 */
 		public static function delete_notices() {
 			if ( self::can_add_wc_admin_notice() ) {
@@ -340,18 +343,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
-
-			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
-				/**
-				 * Used to let Woo Shipping and Woo Tax know WCS&T will handle the plugins' coexistence.
-				 *
-				 * WCS&T does it by not registering its functionality and displaying an appropriate notice
-				 * in WP admin.
-				 */
-				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
-				return;
-			}
-
 			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 		}
 
@@ -582,7 +573,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'connection',
 				array(
 					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'name' => __( 'WooCommerce Tax', 'woocommerce-services' ),
 				)
 			);
 		}
@@ -598,6 +589,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * plugins are activated at the same time.
 			 *
 			 * @since {{next-release}}
+			 *
+			 * @todo Replace this notice with something that says "This will purely be a Tax plugin by <date>".
 			 *
 			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
 			 */
@@ -703,6 +696,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function init_core_wizard_shipping_config() {
+			// @todo Verify what happens if WCS&T was installed without this, and WC Shipping is then deactivated.
+			if ( $this->is_wc_shipping_activated() ) {
+				return;
+			}
+
 			$store_currency = get_woocommerce_currency();
 
 			if ( 'USD' === $store_currency ) {
@@ -827,10 +825,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-debug-tools.php';
 			new WC_Connect_Debug_Tools( $this->api_client );
 
-			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
-			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
-			$this->set_settings_pages( $settings_pages );
-
 			$schema   = $this->get_service_schemas_store();
 			$settings = $this->get_service_settings_store();
 			$logger   = $this->get_logger();
@@ -838,10 +832,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
-			// Add WC Admin Notices.
-			if ( self::can_add_wc_admin_notice() ) {
-				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
+			if ( ! $this->is_wc_shipping_activated() ) {
+				// We only use the settings page for shipping since tax settings are part of
+				// the core "WooCommerce > Settings > Tax" tab.
+				require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
+				$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
+				$this->set_settings_pages( $settings_pages );
+
+				// Add WC Admin Notices.
+				if ( self::can_add_wc_admin_notice() ) {
+					require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+					WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
+				}
 			}
 		}
 
@@ -849,8 +851,41 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Hook plugin classes into WP/WC core.
 		 */
 		public function attach_hooks() {
+			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+			add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
+
+			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
+			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
+			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
+			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
+
+			$tracks = $this->get_tracks();
+			$tracks->init();
+
+			$this->taxjar->init();
+			$this->paypal_ec->init();
+
+			// Primary condition to initiate shipping.
+			if ( ! $this->is_wc_shipping_activated() ) {
+				$this->init_shipping();
+			}
+
+			if ( is_admin() ) {
+				$this->load_admin_dependencies();
+			}
+		}
+
+		public function init_shipping() {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas       = $schemas_store->get_service_schemas();
+
+			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
+			// Make sure to update the service schemas when these options change.
+			// TODO: Add other options that change the schema here, or figure out a way to do it automatically.
+			add_action( 'update_option_woocommerce_store_postcode', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'update_option_woocommerce_currency', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'update_option_woocommerce_weight_unit', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'update_option_woocommerce_dimension_unit', array( $this, 'queue_service_schema_refresh' ) );
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -870,41 +905,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 			}
 
-			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
-			// Make sure to update the service schemas when these options change.
-			// TODO: Add other options that change the schema here, or figure out a way to do it automatically.
-			add_action( 'update_option_woocommerce_store_postcode', array( $this, 'queue_service_schema_refresh' ) );
-			add_action( 'update_option_woocommerce_currency', array( $this, 'queue_service_schema_refresh' ) );
-			add_action( 'update_option_woocommerce_weight_unit', array( $this, 'queue_service_schema_refresh' ) );
-			add_action( 'update_option_woocommerce_dimension_unit', array( $this, 'queue_service_schema_refresh' ) );
-
-			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
-			add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
-			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
-			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5, 2 );
-			add_filter( 'woocommerce_shipping_fields', array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
-			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_or_billing_phone_from_order' ), 10, 3 );
-			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
-			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
-			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
+			add_filter( 'woocommerce_shipping_fields', array( $this, 'add_shipping_phone_to_checkout' ) );
+			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_or_billing_phone_from_order' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
-			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
-
-			$tracks = $this->get_tracks();
-			$tracks->init();
-
-			$this->taxjar->init();
-			$this->paypal_ec->init();
-
-			if ( is_admin() ) {
-				$this->load_admin_dependencies();
-			}
+			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
+			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 		}
 
 		/**
@@ -945,15 +956,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			if ( ! class_exists( 'WP_REST_Controller' ) ) {
 				$this->logger->debug( 'Error. WP_REST_Controller could not be found', __FUNCTION__ );
+
 				return;
 			}
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-base-controller.php';
-
-			require_once __DIR__ . '/classes/class-wc-rest-connect-packages-controller.php';
-			$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
-			$this->set_rest_packages_controller( $rest_packages_controller );
-			$rest_packages_controller->register_routes();
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-account-settings-controller.php';
 			$rest_account_settings_controller = new WC_REST_Connect_Account_Settings_Controller( $this->api_client, $settings_store, $logger, $this->payment_methods_store );
@@ -975,51 +982,73 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
 			$rest_service_data_refresh_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-controller.php';
-			$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger, $this->shipping_label, $this->payment_methods_store );
-			$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
-			$rest_shipping_label_controller->register_routes();
+			if ( ! $this->is_wc_shipping_activated() ) {
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-status-controller.php';
-			$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_label_status_controller( $rest_shipping_label_status_controller );
-			$rest_shipping_label_status_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-packages-controller.php';
+				$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
+				$this->set_rest_packages_controller( $rest_packages_controller );
+				$rest_packages_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-refund-controller.php';
-			$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_label_refund_controller( $rest_shipping_label_refund_controller );
-			$rest_shipping_label_refund_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-controller.php';
+				$rest_shipping_label_controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client, $settings_store, $logger, $this->shipping_label, $this->payment_methods_store );
+				$this->set_rest_shipping_label_controller( $rest_shipping_label_controller );
+				$rest_shipping_label_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-preview-controller.php';
-			$rest_shipping_label_preview_controller = new WC_REST_Connect_Shipping_Label_Preview_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_label_preview_controller( $rest_shipping_label_preview_controller );
-			$rest_shipping_label_preview_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-status-controller.php';
+				$rest_shipping_label_status_controller = new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_shipping_label_status_controller( $rest_shipping_label_status_controller );
+				$rest_shipping_label_status_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-print-controller.php';
-			$rest_shipping_label_print_controller = new WC_REST_Connect_Shipping_Label_Print_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_label_print_controller( $rest_shipping_label_print_controller );
-			$rest_shipping_label_print_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-refund-controller.php';
+				$rest_shipping_label_refund_controller = new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_shipping_label_refund_controller( $rest_shipping_label_refund_controller );
+				$rest_shipping_label_refund_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-rates-controller.php';
-			$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_shipping_rates_controller( $rest_shipping_rates_controller );
-			$rest_shipping_rates_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-preview-controller.php';
+				$rest_shipping_label_preview_controller = new WC_REST_Connect_Shipping_Label_Preview_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_shipping_label_preview_controller( $rest_shipping_label_preview_controller );
+				$rest_shipping_label_preview_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-address-normalization-controller.php';
-			$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
-			$rest_address_normalization_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-print-controller.php';
+				$rest_shipping_label_print_controller = new WC_REST_Connect_Shipping_Label_Print_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_shipping_label_print_controller( $rest_shipping_label_print_controller );
+				$rest_shipping_label_print_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-assets-controller.php';
-			$rest_assets_controller = new WC_REST_Connect_Assets_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_assets_controller( $rest_assets_controller );
-			$rest_assets_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-rates-controller.php';
+				$rest_shipping_rates_controller = new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_shipping_rates_controller( $rest_shipping_rates_controller );
+				$rest_shipping_rates_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-controller.php';
-			$rest_carrier_controller = new WC_REST_Connect_Shipping_Carrier_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_carrier_controller( $rest_carrier_controller );
-			$rest_carrier_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-address-normalization-controller.php';
+				$rest_address_normalization_controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_address_normalization_controller( $rest_address_normalization_controller );
+				$rest_address_normalization_controller->register_routes();
 
+				require_once __DIR__ . '/classes/class-wc-rest-connect-assets-controller.php';
+				$rest_assets_controller = new WC_REST_Connect_Assets_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_assets_controller( $rest_assets_controller );
+				$rest_assets_controller->register_routes();
+
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-controller.php';
+				$rest_carrier_controller = new WC_REST_Connect_Shipping_Carrier_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_carrier_controller( $rest_carrier_controller );
+				$rest_carrier_controller->register_routes();
+
+				require_once __DIR__ . '/classes/class-wc-rest-connect-subscription-activate-controller.php';
+				$rest_subscription_activate_controller = new WC_REST_Connect_Subscription_activate_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_subscription_activate_controller( $rest_subscription_activate_controller );
+				$rest_subscription_activate_controller->register_routes();
+
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-delete-controller.php';
+				$rest_carrier_delete_controller = new WC_REST_Connect_Shipping_Carrier_Delete_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_carrier_delete_controller( $rest_carrier_delete_controller );
+				$rest_carrier_delete_controller->register_routes();
+
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-types-controller.php';
+				$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_carrier_types_controller( $rest_carrier_types_controller );
+				$rest_carrier_types_controller->register_routes();
+			}
 			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carriers-controller.php';
 			$rest_carriers_controller = new WC_REST_Connect_Shipping_Carriers_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_carriers_controller( $rest_carriers_controller );
@@ -1030,27 +1059,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
 			$rest_subscriptions_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-subscription-activate-controller.php';
-			$rest_subscription_activate_controller = new WC_REST_Connect_Subscription_activate_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_subscription_activate_controller( $rest_subscription_activate_controller );
-			$rest_subscription_activate_controller->register_routes();
-
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-delete-controller.php';
-			$rest_carrier_delete_controller = new WC_REST_Connect_Shipping_Carrier_Delete_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_carrier_delete_controller( $rest_carrier_delete_controller );
-			$rest_carrier_delete_controller->register_routes();
-
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carrier-types-controller.php';
-			$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_carrier_types_controller( $rest_carrier_types_controller );
-			$rest_carrier_types_controller->register_routes();
-
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
 
 		/**
 		 * If the required v3 REST API endpoints haven't been loaded at this point, load the local copies of said endpoints.
 		 * Delete this when the "v3" REST API is included in all the WC versions we support.
+		 *
+		 * @todo Make sure the Woo mobile app is supported as well.
 		 */
 		public function wc_api_dev_init() {
 			$rest_server     = rest_get_server();
@@ -1779,15 +1795,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Check if WooCommerce Shipping has been activated.
+		 *
+		 * @return bool
+		 */
+		public function is_wc_shipping_activated() {
+			return in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+		}
+
+		/**
 		 * Returns if both Woo Shipping and Woo Tax are active.
 		 *
 		 * @return bool
 		 */
 		public function are_woo_shipping_and_woo_tax_active() {
-			$is_woo_shipping_active = in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
-			$is_woo_tax_active      = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
+			$is_woo_tax_active = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
 
-			return $is_woo_shipping_active && $is_woo_tax_active;
+			return $this->is_wc_shipping_activated() && $is_woo_tax_active;
 		}
 
 		/**
