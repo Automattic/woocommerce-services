@@ -60,6 +60,12 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 					'updated'         => $result,
 				)
 			);
+
+			if ( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED === $migration_state ) {
+				set_transient( 'wcshipping_migration_completed', true, DAY_IN_SECONDS );
+				set_transient( 'wctax_migration_completed', true, DAY_IN_SECONDS );
+			}
+
 			return new WP_REST_Response( array( 'result' => 'Migration flag updated successfully.' ), 200 );
 		}
 

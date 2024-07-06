@@ -268,6 +268,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
 			if ( $migration_state !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
 				WC_Connect_Options::update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
+				set_transient( 'wcshipping_migration_completed', true, DAY_IN_SECONDS );
+				set_transient( 'wctax_migration_completed', true, DAY_IN_SECONDS );
 			}
 		}
 
