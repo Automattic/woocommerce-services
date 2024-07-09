@@ -39,7 +39,7 @@ class WC_Connect_Account_Settings {
 		$last_box_id                 = $last_box_id === 'individual' ? '' : $last_box_id;
 		$last_service_id             = get_user_meta( get_current_user_id(), 'wc_connect_last_service_id', true );
 		$last_carrier_id             = get_user_meta( get_current_user_id(), 'wc_connect_last_carrier_id', true );
-		$wcshipping_migration_state  = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
+		$wcshipping_migration_state  = get_option( 'wcshipping_migration_state' );
 
 		return array(
 			'storeOptions' => $this->settings_store->get_store_options(),
