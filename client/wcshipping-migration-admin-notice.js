@@ -13,6 +13,7 @@ import '../assets/stylesheets/migration_to_wcshipping_admin_notice.scss';
 import FeatureAnnouncement from 'components/migration/feature-announcement';
 import ShippingLabel from 'wcs-client/apps/shipping-label';
 import { setNonce, setBaseURL } from 'wcs-client/api/request';
+import { TIME_TO_REMMEMBER_DISMISSAL_SECONDS } from 'components/migration/constants';
 
 const container = document.getElementById('wcst_wcshipping_migration_admin_notice_feature_announcement');
 const args = container.dataset.args && JSON.parse( container.dataset.args ) || {};
@@ -23,7 +24,6 @@ const store = createStore(ShippingLabelStore.getReducer(), ShippingLabelStore.ge
 
 const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcshipping-migration-notice__click');
 const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping-migration-notice button.notice-dismiss');
-const TIME_TO_REMMEMBER_DISMISSAL_SECONDS = 3 * 24 * 60 * 60; // 3 Days - number of seconds
 
 // Add all button events
 ["click", "keydown"].forEach(eventName => {
