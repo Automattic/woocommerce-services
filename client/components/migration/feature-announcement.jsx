@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Flex, FlexItem, Modal, Icon, Button } from '@wordpress/components';
-import { useState } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { localize } from 'i18n-calypso';
@@ -18,17 +18,26 @@ import {
 	wcshippingMigrationState,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
 import { installAndActivatePlugins } from './migration-runner';
+import { TIME_TO_REMMEMBER_DISMISSAL_SECONDS } from './constants';
 
 const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } ) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
+
+	useEffect( () => {
+		const isMigrationDismissed = window.wpCookies.get( 'wcst-wcshipping-migration-dismissed' ) && parseInt( window.wpCookies.get( 'wcst-wcshipping-migration-dismissed' ) );
+		if ( isMigrationDismissed ) {
+			setIsOpen( false );
+		}
+	}, [] );
 
 	const closeModal = () => {
 		setIsOpen(false);
 	};
 
 	const snooze = () => {
-		// Todo: implement maybe later
+		window.wpCookies.set( 'wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS );
+		setIsOpen( false );
 	};
 
 	const update = async () => {
