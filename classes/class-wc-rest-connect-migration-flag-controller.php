@@ -46,7 +46,7 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 		}
 
 		$existing_migration_state = get_option( 'wcshipping_migration_state' );
-		if ( $existing_migration_state === $migration_state ) {
+		if ( $existing_migration_state && intval( $existing_migration_state ) === $migration_state ) {
 			return new WP_REST_Response( array( 'result' => 'Migration flag is the same, no changes needed.' ), 304 );
 		}
 
