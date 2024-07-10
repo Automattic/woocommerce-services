@@ -29,7 +29,7 @@ import { mergeHandlers } from 'state/action-watchers/utils';
 import initializeLabelsState from 'woocommerce/woocommerce-services/lib/initialize-labels-state';
 import './style.scss';
 
-export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, context, items } ) => {
+export default ( { order, accountSettings, packagesSettings, shippingLabelData, continents, euCountries, context, items } ) => {
 	const orderId = order ? order.id : null;
 	const isPreloaded = ( undefined !== accountSettings );
 
@@ -81,6 +81,7 @@ export default ( { order, accountSettings, packagesSettings, shippingLabelData, 
 		}
 		initialState.extensions.woocommerce.sites[1].data = {
 			locations: continents,
+			euCountries
 		}
 
 		return initialState;

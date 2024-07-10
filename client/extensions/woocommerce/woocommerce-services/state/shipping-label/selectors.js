@@ -51,6 +51,7 @@ import {
 	areLocationsErrored,
 	getCountryName,
 	getAllCountryNames,
+	getEUCountries,
 	getStates,
 	hasStates,
 } from 'woocommerce/state/sites/data/locations/selectors';
@@ -339,7 +340,9 @@ export const getCustomsErrors = (
 	packages,
 	customs,
 	destinationCountryCode,
-	destinationCountryName
+	destinationCountryName,
+	state,
+	siteId = getSelectedSiteId( state )
 ) => {
 	const usedProductIds = uniq(
 		flatten( map( packages, pckg => map( pckg.items, 'product_id' ) ) )
@@ -437,6 +440,8 @@ export const getCustomsErrors = (
 			}
 			if ( itemData.tariffNumber && 6 !== itemData.tariffNumber.length ) {
 				itemErrors.tariffNumber = translate( 'The tariff number must be 6 digits long' );
+			} else if ( ! itemData.tariffNumber && isEUCountry( state, destinationCountryCode, siteId ) ) {
+				itemErrors.tariffNumber = translate( 'The tariff number is required for EU countries' );
 			}
 			return itemErrors;
 		} ),
@@ -501,7 +506,9 @@ export const getFormErrors = createSelector(
 				form.packages.selected,
 				form.customs,
 				destinationCountryCode,
-				destinationCountryName
+				destinationCountryName,
+				state,
+				siteId
 			),
 			rates: getRatesErrors( form.rates ),
 			sidebar: getSidebarErrors( paperSize ),
@@ -535,6 +542,16 @@ export const isAddressUsable = createSelector(
 		getShippingLabel( state, orderId, siteId ).form[ group ],
 	]
 );
+
+export const isEUCountry = ( state, destinationCountryCode, siteId = getSelectedSiteId( state ) ) => {
+	const EUCountries = getEUCountries( state, siteId );
+
+	return includes( EUCountries, destinationCountryCode ); 
+}
+
+export const getTariffNumberPlaceholder = ( state, destinationCountryCode, siteId = getSelectedSiteId( state ) ) => {
+	return ! isEUCountry( state, destinationCountryCode, siteId ) ? translate( 'Optional' ) : '';
+}
 
 export const isCustomsFormStepSubmitted = (
 	state,
