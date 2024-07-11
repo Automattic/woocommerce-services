@@ -441,7 +441,7 @@ export const getCustomsErrors = (
 			if ( itemData.tariffNumber && 6 !== itemData.tariffNumber.length ) {
 				itemErrors.tariffNumber = translate( 'The tariff number must be 6 digits long' );
 			} else if ( ! itemData.tariffNumber && isEUCountry( state, destinationCountryCode, siteId ) ) {
-				itemErrors.tariffNumber = translate( 'The tariff number is required for EU countries' );
+				itemErrors.tariffNumber = translate( 'The tariff number is required for EU countries destination' );
 			}
 			return itemErrors;
 		} ),
