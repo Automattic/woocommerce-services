@@ -267,7 +267,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$migration_state = get_option( 'wcshipping_migration_state' );
 			if ( ! $migration_state || intval( $migration_state ) !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
-				update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
+				$result = update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
+
+				if ( $result ) {
+					$this->tracks->record_user_event(
+						'migration_flag_state_update',
+						array(
+							'migration_state' => $migration_state,
+							'updated'         => $result,
+						)
+					);
+				}
 			}
 		}
 
