@@ -263,6 +263,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * When we deactivate the plugin after wcshipping_migration_state has started,
 			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
 			 */
+			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
+			require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
 			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 
 			$migration_state = get_option( 'wcshipping_migration_state' );
@@ -270,7 +272,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$result = update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
 
 				if ( $result ) {
-					$this->tracks->record_user_event(
+					$core_logger = new WC_Logger();
+					$logger      = new WC_Connect_Logger( $core_logger );
+					$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
+					$tracks->record_user_event(
 						'migration_flag_state_update',
 						array(
 							'migration_state' => $migration_state,
