@@ -79,6 +79,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.6.2 - 2024-xx-xx =
+* Fix - Tariff number field on customs should be required field when the destination country is within EU.
+
 = 2.6.1 - 2024-07-02 =
 * Tweak - WooCommerce 9.0 and WordPress 6.6 compatibility.
 
