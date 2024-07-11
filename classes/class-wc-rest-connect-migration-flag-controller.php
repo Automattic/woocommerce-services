@@ -45,12 +45,12 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 			return $error;
 		}
 
-		$existing_migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
-		if ( $existing_migration_state === $migration_state ) {
+		$existing_migration_state = get_option( 'wcshipping_migration_state' );
+		if ( $existing_migration_state && intval( $existing_migration_state ) === $migration_state ) {
 			return new WP_REST_Response( array( 'result' => 'Migration flag is the same, no changes needed.' ), 304 );
 		}
 
-		$result = WC_Connect_Options::update_option( 'wcshipping_migration_state', $migration_state );
+		$result = update_option( 'wcshipping_migration_state', $migration_state );
 
 		if ( $result ) {
 			$this->tracks->record_user_event(
@@ -60,6 +60,7 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 					'updated'         => $result,
 				)
 			);
+
 			return new WP_REST_Response( array( 'result' => 'Migration flag updated successfully.' ), 200 );
 		}
 
