@@ -622,9 +622,9 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$migration_dismissed = true;
 			}
 
-			$migration_state = WC_Connect_Options::get_option( 'wcshipping_migration_state' );
+			$migration_state = get_option( 'wcshipping_migration_state' );
 
-			$migration_pending = WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED !== $migration_state;
+			$migration_pending = ! $migration_state || WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED !== intval( $migration_state );
 			$migration_enabled = $this->service_schemas_store->is_wcship_wctax_migration_enabled();
 
 			return $migration_pending && $migration_enabled && ! $migration_dismissed;
