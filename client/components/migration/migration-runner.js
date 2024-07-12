@@ -148,7 +148,7 @@ const migrationStateTransitions = {
         callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_INSTALLING ),
     },
     stateActivating: {
-        success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
+        success: 'stateDone',
         fail: 'stateErrorActivating',
         callback: fetchAPICall( activatePluginAPICall ),
     },
