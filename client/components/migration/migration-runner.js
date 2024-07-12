@@ -180,7 +180,7 @@ const migrationStateTransitions = {
     stateDone: { // Done state.
         success: null,
         fail: null,
-        callback: null
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.COMPLETED )
     }
 }
 
