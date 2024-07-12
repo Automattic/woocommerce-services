@@ -267,22 +267,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
 			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 
-			$migration_state = get_option( 'wcshipping_migration_state' );
-			if ( ! $migration_state || intval( $migration_state ) !== WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
-				$result = update_option( 'wcshipping_migration_state', WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
-
-				if ( $result ) {
-					$core_logger = new WC_Logger();
-					$logger      = new WC_Connect_Logger( $core_logger );
-					$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
-					$tracks->record_user_event(
-						'migration_flag_state_update',
-						array(
-							'migration_state' => $migration_state,
-							'updated'         => $result,
-						)
-					);
-				}
+			$migration_state = intval( get_option( 'wcshipping_migration_state' ) );
+			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
+				$core_logger = new WC_Logger();
+				$logger      = new WC_Connect_Logger( $core_logger );
+				$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
+				$tracks->record_user_event(
+					'migration_flag_state_update',
+					array(
+						'migration_state' => $migration_state,
+						'updated'         => $result,
+					)
+				);
 			}
 		}
 
