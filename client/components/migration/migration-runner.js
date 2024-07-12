@@ -43,7 +43,7 @@ const MIGRATION_ENUM_TO_STATE_NAME_MAP = {
     12: 'stateDone'
 }
 
-const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
+const plugins = 'woocommerce-shipping'; //this needs to be a CSV string.
 
 const getHeaders = () => ({
     "Content-Type": "application/json",
