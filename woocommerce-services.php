@@ -599,6 +599,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			// We indicate that we will handle coexistence with WC Shipping
+			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
+
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
 					'admin_notices',
