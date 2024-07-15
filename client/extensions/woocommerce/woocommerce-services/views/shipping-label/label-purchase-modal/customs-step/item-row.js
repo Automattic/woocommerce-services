@@ -19,6 +19,7 @@ import {
 } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel,
+	getTariffNumberPlaceholder,
 	isLoaded,
 	getFormErrors,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
@@ -40,6 +41,7 @@ const ItemRow = props => {
 		value,
 		tariffNumber,
 		originCountry,
+		TariffNumberPlaceholder,
 		countryNames,
 		weightUnit,
 	} = props;
@@ -59,7 +61,7 @@ const ItemRow = props => {
 				id={ packageId + '_' + productId + '_tariffNumber' }
 				className="customs-step__item-code-column"
 				title={ <TariffCodeTitle /> }
-				placeholder={ translate( 'Optional' ) }
+				placeholder={ TariffNumberPlaceholder }
 				value={ tariffNumber }
 				updateValue={ props.setCustomsItemTariffNumber }
 				error={ errors.tariffNumber }
@@ -104,6 +106,7 @@ ItemRow.propTypes = {
 	weight: PropTypes.oneOfType( [ PropTypes.string, PropTypes.number ] ).isRequired,
 	value: PropTypes.oneOfType( [ PropTypes.string, PropTypes.number ] ).isRequired,
 	originCountry: PropTypes.string.isRequired,
+	TariffNumberPlaceholder: PropTypes.string.isRequired,
 	errors: PropTypes.object,
 	countryNames: PropTypes.object.isRequired,
 	setCustomsItemDescription: PropTypes.func.isRequired,
@@ -116,6 +119,8 @@ ItemRow.propTypes = {
 const mapStateToProps = ( state, { orderId, siteId, productId } ) => {
 	const isShippingLabelLoaded = isLoaded( state, orderId, siteId );
 	const shippingLabel = getShippingLabel( state, orderId, siteId );
+	const destinationCountry = shippingLabel.form.destination.values.country;
+	const TariffNumberPlaceholder = getTariffNumberPlaceholder( state, destinationCountry, siteId );
 	const {
 		description,
 		defaultDescription,
@@ -132,6 +137,7 @@ const mapStateToProps = ( state, { orderId, siteId, productId } ) => {
 		weight,
 		value,
 		originCountry,
+		TariffNumberPlaceholder,
 		errors: isShippingLabelLoaded
 			? getFormErrors( state, orderId, siteId ).customs.items[ productId ]
 			: {},
