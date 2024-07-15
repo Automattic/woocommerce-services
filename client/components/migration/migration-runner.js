@@ -43,7 +43,7 @@ const MIGRATION_ENUM_TO_STATE_NAME_MAP = {
     12: 'stateDone'
 }
 
-const plugins = 'woocommerce-shipping,woocommerce-tax'; //this needs to be a CSV string.
+const plugins = 'woocommerce-shipping'; //this needs to be a CSV string.
 
 const getHeaders = () => ({
     "Content-Type": "application/json",
@@ -148,7 +148,7 @@ const migrationStateTransitions = {
         callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.ERROR_INSTALLING ),
     },
     stateActivating: {
-        success: 'stateDeactivating', // TODO: This should be stateDBMigrating to migrate DB.
+        success: 'stateDone',
         fail: 'stateErrorActivating',
         callback: fetchAPICall( activatePluginAPICall ),
     },
@@ -180,7 +180,7 @@ const migrationStateTransitions = {
     stateDone: { // Done state.
         success: null,
         fail: null,
-        callback: null
+        callback: stateErrorHandlingAPICall( MIGRATION_STATE_ENUM.COMPLETED )
     }
 }
 
