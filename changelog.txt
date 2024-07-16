@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.6.2 - 2024-xx-xx =
+= 2.6.2 - 2024-07-16 =
 * Fix - Require HS Tariff number on customs form for EU destination countries.
 
 = 2.6.1 - 2024-07-02 =
