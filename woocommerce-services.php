@@ -1959,7 +1959,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'</p>
 					<button type="button" class="notice-dismiss %s"><span class="screen-reader-text">Dismiss this notice.</span></button>
 					</div>
-					<div class="notice-action"><button id="wcst-wcshipping-migration-notice__click" class="action-button">%s</button></div>
+					<div class="notice-action"><button id="wcst-wcshipping-migration-notice__click" type="button" class="action-button">%s</button></div>
 					</div>',
 					$banner->dismissible ? '' : 'hide-dismissible',
 					$banner->action
