@@ -931,7 +931,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
-			add_action( 'current_screen', array( $this, 'edit_orders_page_actions' ) );
+			add_action( 'current_screen', array( $this, 'maybe_render_upgrade_banner' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -1487,7 +1487,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return boolean
 		 */
-		public function is_on_order_list_page() {
+		public function should_render_upgrade_banner() {
 			if ( ! is_admin() ) {
 				return false;
 			}
@@ -1511,6 +1511,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return false;
 			}
 
+			// All WC settings pages
+			if ( $screen->id === 'woocommerce_page_wc-settings' ) {
+				return true;
+			}
+
 			/*
 			* Non-HPOS:
 			*   $screen->id = "edit-shop_order"
@@ -1527,8 +1532,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return true;
 		}
 
-		public function edit_orders_page_actions() {
-			if ( ! $this->is_on_order_list_page() ) {
+		public function maybe_render_upgrade_banner() {
+			if ( ! $this->should_render_upgrade_banner() ) {
 				// If this is not on the order list page, then don't add any action.
 				return;
 			}
@@ -1954,7 +1959,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'</p>
 					<button type="button" class="notice-dismiss %s"><span class="screen-reader-text">Dismiss this notice.</span></button>
 					</div>
-					<div class="notice-action"><button id="wcst-wcshipping-migration-notice__click" class="action-button">%s</button></div>
+					<div class="notice-action"><button id="wcst-wcshipping-migration-notice__click" type="button" class="action-button">%s</button></div>
 					</div>',
 					$banner->dismissible ? '' : 'hide-dismissible',
 					$banner->action

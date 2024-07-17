@@ -28,7 +28,11 @@ const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping
 // Add all button events
 ["click", "keydown"].forEach(eventName => {
 	// Clicking "Confirm update" will start the migration. This is the same as popping up the modal and clicking the "Update" button there.
-	wcstWCShippingMigrationNoticeButton.addEventListener(eventName, () => {
+	wcstWCShippingMigrationNoticeButton.addEventListener(eventName, (evt) => {
+		/**
+		 * Prevent form submission when rendered in a form or alike that listens to button click
+		 */
+		evt.preventDefault();
 		// Pop open feature announcement modal.
 		ReactDOM.render(
 			<Provider store={store}>
