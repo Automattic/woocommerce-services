@@ -1511,8 +1511,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return false;
 			}
 
-			// WC settings page the "WooCommerce Shipping" tab
-			if ( $screen->id === 'woocommerce_page_wc-settings' && isset( $_GET['section'] ) && $_GET['section'] === 'woocommerce-services-settings' ) {
+			// All WC settings pages
+			if ( $screen->id === 'woocommerce_page_wc-settings' ) {
 				return true;
 			}
 
