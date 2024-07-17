@@ -61,8 +61,7 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } 
 					<h2>
 						{translate('A new dedicated WooCommerce Shipping extension is now available')}
 					</h2>
-					<p>{translate(
-						'WooCommerce Shipping is now a new dedicated extension. We\'ll allow you to carry over your settings and shipping labels when you update.')}</p>
+					<p>{translate('We\'ll ensure a smooth transition by providing the functionality to carry over all your settings and shipping labels when you update.')}</p>
 					<p>{translate('Here\'s what you can expect from the new shipping experience:')}</p>
 
 					<ul>
