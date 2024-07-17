@@ -21,10 +21,6 @@ import { setNonce, setBaseURL } from 'api/request';
 import wpcomApiMiddleware from 'state/data-layer/wpcom-api-middleware';
 import localApiMiddleware from 'lib/local-api-middleware';
 
-// Modify webpack pubilcPath at runtime based on location of WordPress Plugin.
-// eslint-disable-next-line no-undef
-__webpack_public_path__ = global.wcsPluginData.assetPath;
-
 // We need to lazy load the moment locale files.
 // First we try language code with region if it's different then fall back to language code only.
 if ( window.i18nLocale && ! [ 'en-US', 'en' ].includes( window.i18nLocale.localeSlug ) ) {
