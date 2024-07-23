@@ -587,8 +587,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 *
 			 * @since {{next-release}}
 			 *
-			 * @todo Replace this notice with something that says "This will purely be a Tax plugin by <date>".
-			 *
 			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
 			 */
 			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
@@ -696,7 +694,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function init_core_wizard_shipping_config() {
-			// @todo Verify what happens if WCS&T was installed without this, and WC Shipping is then deactivated.
 			if ( $this->is_wc_shipping_activated() ) {
 				return;
 			}
@@ -852,7 +849,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function attach_hooks() {
 			add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
-			add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
@@ -867,6 +863,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Primary condition to initiate shipping.
 			if ( ! $this->is_wc_shipping_activated() ) {
+				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
+
 				$this->init_shipping();
 			}
 
@@ -1065,8 +1063,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * If the required v3 REST API endpoints haven't been loaded at this point, load the local copies of said endpoints.
 		 * Delete this when the "v3" REST API is included in all the WC versions we support.
-		 *
-		 * @todo Make sure the Woo mobile app is supported as well.
 		 */
 		public function wc_api_dev_init() {
 			$rest_server     = rest_get_server();
