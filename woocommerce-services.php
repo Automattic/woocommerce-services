@@ -335,7 +335,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->wc_connect_base_url = self::get_wc_connect_base_url();
 			add_action(
 				'before_woocommerce_init',
-				function() {
+				function () {
 					if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-services/woocommerce-services.php' );
 					}
@@ -344,6 +344,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
 			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
+
+			/**
+			 * Used to let WC Tax know WCS&T will handle the plugins' coexistence.
+			 *
+			 * WCS&T does it by not registering its functionality and displaying an appropriate notice
+			 * in WP admin.
+			 *
+			 * The filter also includes "woo_shipping" in its name, but we've since implemented conditional
+			 * loading of all shipping functionality inside WCS&T, so there's no special need for any
+			 * "parallel support" being done in WC Shipping anymore.
+			 *
+			 * This filter is documented in woocommerce-services.php
+			 */
+			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
+				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
+			}
 		}
 
 		public function get_logger() {
@@ -584,28 +600,26 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			/**
 			 * Allow third party logic to determine if this plugin should initiate its logic.
 			 *
-			 * The primary purpose here is to allow a smooth transition between the new Woo Shipping / Woo Tax plugins
+			 * The primary purpose here is to allow a smooth transition between the new WC Tax plugin
 			 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
 			 * plugins are activated at the same time.
 			 *
 			 * @since {{next-release}}
 			 *
-			 * @todo Replace this notice with something that says "This will purely be a Tax plugin by <date>".
-			 *
 			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
 			 */
 			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
+				// Show message that WCS&T is no longer doing anything.
 				add_action( 'admin_notices', array( $this, 'display_woo_shipping_and_woo_tax_are_active_notice' ) );
+
+				// Bail, so none of our tax and shipping logic will be initiated.
 				return;
 			}
-
-			// We indicate that we will handle coexistence with WC Shipping
-			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
 
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				add_action(
 					'admin_notices',
-					function() {
+					function () {
 						/* translators: %s WC download URL link. */
 						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
@@ -699,7 +713,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function init_core_wizard_shipping_config() {
-			// @todo Verify what happens if WCS&T was installed without this, and WC Shipping is then deactivated.
 			if ( $this->is_wc_shipping_activated() ) {
 				return;
 			}
@@ -1270,8 +1283,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Abort if no $order was passed, if the order is not marked as 'completed' or if another extension is handling the emailing.
 			if ( ! $order
-				 || ! $order->has_status( 'completed' )
-				 || ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
+				|| ! $order->has_status( 'completed' )
+				|| ! WC_Connect_Extension_Compatibility::should_email_tracking_details( $order->get_id() ) ) {
 				return;
 			}
 
@@ -1825,7 +1838,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return void
 		 */
 		public function display_woo_shipping_and_woo_tax_are_active_notice() {
-			echo '<div class="error"><p><strong>' . esc_html__( 'Woo Shipping and Woo Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
+			echo '<div class="error"><p><strong>' . esc_html__( 'WC Shipping and WC Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 	}
 }
