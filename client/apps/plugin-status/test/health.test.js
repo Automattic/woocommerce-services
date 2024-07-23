@@ -50,7 +50,8 @@ const Wrapper = ({ children, healthStoreOverrides }) => (
 			health_items: {
 				...defaultHealthStoreValues,
 				...healthStoreOverrides,
-			}
+			},
+			is_shipping_loaded: true,
 		},
 	})}>
 		{children}
