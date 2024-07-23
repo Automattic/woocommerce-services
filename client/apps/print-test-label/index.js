@@ -10,7 +10,7 @@ import './style.scss';
 import PrintTestLabelView from './view';
 import reducer from './state/reducer';
 
-export default ( { paperSize, storeOptions } ) => ( {
+export default ( { paperSize, storeOptions, isShippingLoaded } ) => ( {
 	getReducer() {
 		return reducer;
 	},
@@ -19,6 +19,7 @@ export default ( { paperSize, storeOptions } ) => ( {
 		return {
 			paperSize,
 			country: storeOptions.origin_country,
+			isShippingLoaded,
 		};
 	},
 
