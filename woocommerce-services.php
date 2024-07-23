@@ -346,7 +346,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 
 			/**
-			 * Used to let WC Tax know WCS&T will handle the plugins' coexistence.
+			 * Used to let WC Tax know WCS&T will handle the plugin's coexistence.
 			 *
 			 * WCS&T does it by not registering its functionality and displaying an appropriate notice
 			 * in WP admin.
@@ -355,11 +355,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * loading of all shipping functionality inside WCS&T, so there's no special need for any
 			 * "parallel support" being done in WC Shipping anymore.
 			 *
-			 * This filter is documented in woocommerce-services.php
+			 * This new feature is represented via the "wc_services_will_disable_shipping_logic" hook.
 			 */
 			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
 				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
 			}
+
+			// Let WC Shipping know that the current version of WCS&T supports conditional shipping logic loading.
+			add_filter( 'wc_services_will_disable_shipping_logic', '__return_true' );
 		}
 
 		public function get_logger() {
