@@ -79,6 +79,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.7.0 - 2024-xx-xx =
+* Add - Parallel compatibility with WooCommerce Shipping plugin.
+
 = 2.6.2 - 2024-07-16 =
 * Fix - Require HS Tariff number on customs form for EU destination countries.
 
