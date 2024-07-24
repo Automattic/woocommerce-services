@@ -14,7 +14,7 @@ import WooCommerceServicesIndicator from './woocommerce-services-indicator';
 import SettingsGroupCard from 'woocommerce/woocommerce-services/components/settings-group-card';
 import FormSettingExplanation from 'components/forms/form-setting-explanation';
 
-const HealthView = ( { translate, healthItems } ) => {
+const HealthView = ( { translate, healthItems, isShippingLoaded } ) => {
 	return (
 		<SettingsGroupCard heading={translate('Health', {
 			context: 'This section displays the overall health of WooCommerce Shipping & Tax and the things it depends on',
@@ -62,7 +62,8 @@ const HealthView = ( { translate, healthItems } ) => {
 					</ExternalLink>
 				</FormSettingExplanation>
 			</Indicator>
-			<WooCommerceServicesIndicator/>
+
+			{ isShippingLoaded && <WooCommerceServicesIndicator/> }
 		</SettingsGroupCard>
 
 	);
@@ -71,5 +72,6 @@ const HealthView = ( { translate, healthItems } ) => {
 export default connect(
 	( state ) => ( {
 		healthItems: state.status.health_items,
+		isShippingLoaded: state.status.is_shipping_loaded
 	} )
 )( localize( HealthView ) );

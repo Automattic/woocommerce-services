@@ -119,6 +119,10 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			return $health_items;
 		}
 
+		protected function is_shipping_loaded() {
+			return ! in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+		}
+
 		protected function get_services_items() {
 			$available_service_method_ids = $this->service_schemas_store->get_all_shipping_method_ids();
 			if ( empty( $available_service_method_ids ) ) {
@@ -261,16 +265,17 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 */
 		protected function get_form_data() {
 			return array(
-				'health_items'     => $this->get_health_items(),
-				'services'         => $this->get_services_items(),
-				'logging_enabled'  => $this->logger->is_logging_enabled(),
-				'debug_enabled'    => $this->logger->is_debug_enabled(),
-				'logs'             => array(
+				'health_items'       => $this->get_health_items(),
+				'services'           => $this->get_services_items(),
+				'logging_enabled'    => $this->logger->is_logging_enabled(),
+				'debug_enabled'      => $this->logger->is_debug_enabled(),
+				'logs'               => array(
 					'shipping' => $this->get_debug_log_data( 'shipping' ),
 					'taxes'    => $this->get_debug_log_data( 'taxes' ),
 					'other'    => $this->get_debug_log_data(),
 				),
-				'tax_rate_backups' => WC_Connect_Functions::get_backed_up_tax_rate_files(),
+				'tax_rate_backups'   => WC_Connect_Functions::get_backed_up_tax_rate_files(),
+				'is_shipping_loaded' => $this->is_shipping_loaded(),
 			);
 		}
 
@@ -296,8 +301,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'enqueue_wc_connect_script',
 				'wc-connect-admin-test-print',
 				array(
-					'storeOptions' => $this->service_settings_store->get_store_options(),
-					'paperSize'    => $this->service_settings_store->get_preferred_paper_size(),
+					'isShippingLoaded' => $this->is_shipping_loaded(),
+					'storeOptions'     => $this->service_settings_store->get_store_options(),
+					'paperSize'        => $this->service_settings_store->get_preferred_paper_size(),
 				)
 			);
 		}
@@ -308,42 +314,42 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		protected function get_tax_health_item() {
 			$store_country = WC()->countries->get_base_country();
 			if ( ! $this->taxjar_integration->is_supported_country( $store_country ) ) {
-				return [
+				return array(
 					'state'              => 'error',
 					'settings_link_type' => '',
 					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automated taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
-				];
+				);
 			}
 
 			if ( class_exists( 'WC_Taxjar' ) ) {
-				return [
+				return array(
 					'state'              => 'error',
 					'settings_link_type' => '',
 					'message'            => __( 'TaxJar extension detected. Automated taxes functionality is disabled', 'woocommerce-services' ),
-				];
+				);
 			}
 
 			if ( ! wc_tax_enabled() ) {
-				return [
+				return array(
 					'state'              => 'error',
 					'settings_link_type' => 'general',
 					'message'            => __( 'The core WooCommerce taxes functionality is disabled. Please ensure the "Enable tax rates and calculations" setting is turned "on" in the WooCommerce settings page', 'woocommerce-services' ),
-				];
+				);
 			}
 
 			if ( ! $this->taxjar_integration->is_enabled() ) {
-				return [
+				return array(
 					'state'              => 'error',
 					'settings_link_type' => 'tax',
 					'message'            => __( 'The automated taxes functionality is disabled. Enable the "Automated taxes" setting on the WooCommerce settings page', 'woocommerce-services' ),
-				];
+				);
 			}
 
-			return [
+			return array(
 				'state'              => 'success',
 				'settings_link_type' => 'tax',
 				'message'            => __( 'Automated taxes are enabled', 'woocommerce-services' ),
-			];
+			);
 		}
 	}
 

@@ -2,12 +2,12 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 7.4
-Requires at least: 6.3
+Requires at least: 6.4
 Requires Plugins: woocommerce
-Tested up to: 6.5
-WC requires at least: 8.7
-WC tested up to: 8.9
-Stable tag: 2.6.0
+Tested up to: 6.6
+WC requires at least: 8.8
+WC tested up to: 9.0
+Stable tag: 2.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,12 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.6.2 - 2024-07-16 =
+* Fix - Require HS Tariff number on customs form for EU destination countries.
+
+= 2.6.1 - 2024-07-02 =
+* Tweak - WooCommerce 9.0 and WordPress 6.6 compatibility.
 
 = 2.6.0 - 2024-06-04 =
 * Add - Logger for "Live Rates" feature on the front-end.
