@@ -809,7 +809,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
 			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
-			$options               = new WC_Connect_Options();
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
@@ -872,7 +871,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
-			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
 			$tracks = $this->get_tracks();
 			$tracks->init();
@@ -895,6 +893,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init_shipping() {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas       = $schemas_store->get_service_schemas();
+
+			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
 			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
 			// Make sure to update the service schemas when these options change.
