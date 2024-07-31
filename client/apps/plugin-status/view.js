@@ -22,7 +22,7 @@ import {
 	toggleDebugging,
 } from './state/actions';
 
-const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, taxRateBackups, translate } ) => {
+const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, taxRateBackups, translate, isShippingLoaded } ) => {
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
@@ -47,9 +47,7 @@ const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isD
 					falseText={ translate( 'Disabled' ) }
 					onUpdate={ onLoggingToggle }
 				/>
-				<LogView
-					logKey="shipping"
-					title={ translate( 'Shipping Log' ) } />
+				{ isShippingLoaded && <LogView logKey="shipping" title={ translate( 'Shipping Log' ) }/> }
 				<LogView
 					logKey="taxes"
 					title={ translate( 'Taxes Log' ) } />
@@ -112,6 +110,7 @@ const mapStateToProps = ( state ) => ( {
 	isLoggingEnabled: Boolean( state.status.logging_enabled ),
 	isDebuggingEnabled: Boolean( state.status.debug_enabled ),
 	taxRateBackups: state.status.tax_rate_backups,
+	isShippingLoaded: state.status.is_shipping_loaded,
 } );
 
 const mapDispatchToProps = {
