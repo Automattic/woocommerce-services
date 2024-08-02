@@ -2018,9 +2018,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'adminPluginPath' => admin_url( 'plugins.php' ),
 				)
 			);
+			wp_enqueue_script( 'wc_connect_admin' );
 			wp_enqueue_script( 'wcst_wcshipping_migration_admin_notice' );
 			wp_enqueue_style( 'wcst_wcshipping_migration_admin_notice' );
-			wp_enqueue_script( 'wc_connect_admin' );
 		}
 	}
 }
