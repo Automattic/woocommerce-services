@@ -32,8 +32,13 @@ class PrintTestLabelView extends Component {
 	onPaperSizeChange = ( event ) => this.props.updatePaperSize( event.target.value );
 
 	render() {
-		const { paperSize, country, printingInProgress, error, print } = this.props;
+		const { paperSize, country, printingInProgress, error, print, isShippingLoaded } = this.props;
 		const paperSizes = getPaperSizes( country );
+
+		// Bail early if shipping is not enabled since it no longer makes sense to do label test prints.
+		if ( ! isShippingLoaded ) {
+			return null;
+		}
 
 		return (
 			<SettingsGroupCard heading={ __( 'Print' ) } >

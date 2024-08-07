@@ -1,0 +1,196 @@
+$modal-height: 700px;
+$view-port-width-small: 660px;
+$view-port-width-medium: 1080px;
+
+.wp-admin.woocommerce-feature-enabled-product-block-editor .migration__announcement-modal.components-modal__frame,
+.migration__announcement-modal.components-modal__frame {
+  display: flex;
+  width: 860px;
+  align-items: flex-start;
+  background: var(--Woo-Purple-Woo-Purple-0, #F2EDFF);
+  border-radius: 2px;
+  height: $modal-height;
+  box-shadow: 0px 3px 30px 0px rgba(25, 30, 35, 0.20);
+
+  @media( max-width: $view-port-width-small ) {
+    height: unset;
+  }
+
+  .components-modal__header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: calc(100% - 100px);
+    width: 100px;
+  }
+
+
+  h2 {
+    color: var(--Gutenberg-Gray-900, #1E1E1E);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 35px;
+    margin: 0 0 16px 0;
+  }
+
+  h3 {
+    height: 24px;
+    color: var(--Gutenberg-Gray-900, #1E1E1E);
+
+    /* WordPress/Subtitle Small */
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 20px;
+    margin-bottom: 6px;
+    margin-top: 0;
+  }
+
+  .components-modal__content {
+    margin-top: 0;
+    padding: 0;
+    height: 100%;
+    position: relative;
+
+    > .components-flex {
+
+      @media( max-width: $view-port-width-small ) {
+        height: 100%;
+        flex-direction: column;
+      }
+
+      .components-flex__item {
+        padding: var(--grid-unit-40, 32px);
+        margin: 0;
+        flex: 1;
+
+        &:first-child {
+          background: #FFFFFF;
+          display: flex;
+          flex: 7;
+          flex-direction: column;
+          gap: 32px;
+          justify-content: space-between;
+
+          span {
+            display: flex;
+            padding: 2px 12px;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            border-radius: 40px;
+            border: 1px solid var(--Gutenberg-Gray-700, #757575);
+            background: var(--Gutenberg-White, #FFF);
+            margin: 0 0 16px 0;
+          }
+
+          .components-flex {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+
+            & > p {
+              margin-top: 0;
+              margin-right: 0;
+              color: var(--Gutenberg-Gray-900, #1E1E1E);
+
+              font-size: 12px;
+              font-style: normal;
+              font-weight: 400;
+              line-height: 16px;
+
+              &:last-of-type {
+                margin-bottom: 0;
+              }
+            }
+
+            &:last-child {
+              display: flex;
+              justify-content: flex-end;
+              flex-direction: row;
+
+              .components-button {
+                border: none;
+                box-shadow: none;
+                font-size: 13px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: 13px;
+                height: 40px;
+
+                &.is-tertiary {
+                  color: var(--Upcoming-Blueberry, #3858E9);
+                }
+
+                &.is-primary {
+                  border-radius: 2px;
+                  background: var(--Upcoming-Blueberry, #3858E9);
+                  display: flex;
+                  height: 40px;
+                  padding: 0px 12px;
+                  justify-content: center;
+                  align-items: center;
+                  gap: 4px;
+
+                  &.is-busy {
+                    animation: components-button__busy-animation 2500ms infinite linear;
+                    background-image: linear-gradient(-45deg, #294cf6 33%, #3858E9 33%, #3858E9 70%, #294cf6 70%)
+                  }
+                }
+              }
+            }
+
+          }
+        }
+
+        &:last-child {
+          width: 392px;
+          min-width: 392px;
+          max-width: 392px;
+          flex: 5;
+          padding: 0;
+          min-height: $modal-height;
+
+          @media ( max-width: $view-port-width-medium ) {
+            min-width: 200px;
+          }
+
+          @media( max-width: $view-port-width-small ) {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+
+
+  ul {
+    margin: 40px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px
+  }
+
+  li {
+    margin-bottom: 0;
+    display: flex;
+    gap: var(--grid-unit-20, 16px);
+
+    svg {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+    }
+
+    p {
+      color: var(--Gutenberg-Gray-700, #757575);
+
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px;
+      margin: 0;
+    }
+  }
+}

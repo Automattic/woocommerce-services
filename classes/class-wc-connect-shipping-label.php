@@ -598,6 +598,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					'packagesSettings'  => $this->package_settings->get(),
 					'shippingLabelData' => $this->get_label_payload( $order->get_id() ),
 					'continents'        => $this->continents->get(),
+					'euCountries'       => WC()->countries->get_european_union_countries(),
 					'context'           => $args['args']['context'],
 					'items'             => $items_count,
 				),

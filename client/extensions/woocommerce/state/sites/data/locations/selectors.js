@@ -96,6 +96,15 @@ export const getAllCountries = ( state, siteId = getSelectedSiteId( state ) ) =>
 
 /**
  * @param {Object} state Whole Redux state tree
+ * @param {Number} [siteId] Site ID to check. If not provided, the Site ID selected in the UI will be used
+ * @return {Array} An array of EU countries represented by { code, name, states } objects. Sorted alphabetically by name.
+ */
+export const getEUCountries = ( state, siteId = getSelectedSiteId( state ) ) => {
+	return get( state, [ 'extensions', 'woocommerce', 'sites', siteId, 'data', 'euCountries' ] );
+};
+
+/**
+ * @param {Object} state Whole Redux state tree
  * @param {String} continentCode 2-letter continent code
  * @param {Number} [siteId] Site ID to check. If not provided, the Site ID selected in the UI will be used
  * @return {Array} A list of countries in the given continent, represented by { code, name } pairs. Sorted alphabetically by name.

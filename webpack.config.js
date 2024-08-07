@@ -51,10 +51,17 @@ module.exports = {
 	devtool: isDev ? 'inline-source-map' : false,
 	cache: true,
 	entry: {
-		'woocommerce-services': [ './client/main.js' ],
+		'woocommerce-services': [
+			'./client/provide-public-path.js',
+			'./client/main.js'
+		],
 		'woocommerce-services-banner': [ './client/banner.js' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 		'woocommerce-services-new-order-taxjar': [ './client/new-order-taxjar.js' ],
+		'woocommerce-services-wcshipping-migration-admin-notice': [
+			'./client/provide-public-path.js',
+			'./client/wcshipping-migration-admin-notice.js'
+		],
 	},
 	output: Object.assign(
 			{},

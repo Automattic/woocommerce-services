@@ -18,7 +18,6 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			$this->api_client = $api_client;
 			$this->logger     = $logger;
-
 		}
 
 		public function fetch_service_schemas_from_connect_server() {
@@ -261,6 +260,32 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			}
 
 			return $predefined_packages;
+		}
+
+		/**
+		 * Returns the WooCommerce Shipping and WooCommerce Tax migration enabled status
+		 *
+		 * @return bool
+		 */
+		public function is_wcship_wctax_migration_enabled() {
+			$service_schemas = $this->get_service_schemas();
+
+			return is_object( $service_schemas ) && property_exists( $service_schemas, 'features' ) && property_exists( $service_schemas->features, 'wcshippingtax_upgrade_banner' ) && ! empty( $service_schemas->features->wcshippingtax_upgrade_banner );
+		}
+
+		/**
+		 * Returns the WooCommerce Shipping and WooCommerce Tax upgrade banners
+		 *
+		 * @return object|null The banners schema or null if no such id was found
+		 */
+		public function get_wcship_wctax_upgrade_banner() {
+			$service_schemas = $this->get_service_schemas();
+
+			if ( $this->is_wcship_wctax_migration_enabled() ) {
+				return $service_schemas->features->wcshippingtax_upgrade_banner;
+			}
+
+			return null;
 		}
 	}
 }
