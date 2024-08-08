@@ -1,8 +1,5 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.7.1 - 2024-xx-xx =
-* Update - Update readme.txt file to indicate that a new Woo Shipping plugin is available for download.
-
 = 2.7.0 - 2024-07-25 =
 * Add - Parallel compatibility with WooCommerce Shipping plugin.
 
