@@ -25,7 +25,7 @@ program
 		args = options.args ? options.args : options;
 		if ( args[ 0 ] === 'up' ) {
 			command = 'up';
-			dockerArgs.push( 'up', '--build', '-d' );
+			dockerArgs.push( 'up', '--build' );
 			customInitFile = args[ 1 ] ? args[ 1 ] : '';
 		}
 
