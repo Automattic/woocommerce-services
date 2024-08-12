@@ -48,6 +48,11 @@ jobs:
       - name: Check containers
         run: docker ps
       - name: Setup E2E container
+        run: npm run test:e2e-docker-prepare
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 'v16'
+      - name: Start E2E container
         run: |
             npm run test:e2e-docker-up
             npm run test:e2e-docker-ping
