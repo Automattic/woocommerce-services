@@ -35,3 +35,4 @@ docker/logs
 docker/bin/jt
 .idea
 docker-compose.override.yml
+e2e-environment/node_modules
