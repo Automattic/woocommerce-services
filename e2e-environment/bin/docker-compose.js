@@ -94,7 +94,7 @@ if ( ! process.env.WORDPRESS_URL ) {
 dockerArgs.unshift( '-f', resolvePackagePath( 'docker-compose.yaml' ) );
 
 const dockerProcess = spawnSync( 'docker-compose', dockerArgs, {
-	stdio: 'inherit',
+	stdio: [process.stdin, process.stdout, process.stderr],
 	env: Object.assign( {}, process.env, envVars ),
 } );
 
