@@ -43,9 +43,14 @@ jobs:
             composer install
             npm ci
             npm run dist
+      - name: Check Docker service status
+        run: sudo service docker status
+      - name: Check containers
+        run: docker ps
       - name: Setup E2E container
         run: |
             npm run test:e2e-docker-up
+            docker logs $(docker ps | grep "8084" | awk '{print $1}')
             npm run test:e2e-docker-ping
       - name: Run E2E tests
         run: npm run test:e2e
