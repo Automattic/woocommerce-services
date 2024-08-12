@@ -50,7 +50,6 @@ jobs:
       - name: Setup E2E container
         run: |
             npm run test:e2e-docker-up
-            docker logs $(docker ps | grep "8084" | awk '{print $1}')
             npm run test:e2e-docker-ping
       - name: Run E2E tests
         run: npm run test:e2e
