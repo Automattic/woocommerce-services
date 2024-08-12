@@ -25,7 +25,7 @@ program
 		args = options.args ? options.args : options;
 		if ( args[ 0 ] === 'up' ) {
 			command = 'up';
-			dockerArgs.push( 'up', '--build' );
+			dockerArgs.push( 'up', '--build', '-d' );
 			customInitFile = args[ 1 ] ? args[ 1 ] : '';
 		}
 
@@ -97,6 +97,8 @@ const dockerProcess = spawnSync( 'docker-compose', dockerArgs, {
 	stdio: [process.stdin, process.stdout, process.stderr],
 	env: Object.assign( {}, process.env, envVars ),
 } );
+
+console.log('dockerProcess', dockerProcess);
 
 console.log( 'Docker exit code: ' + dockerProcess.status );
 
