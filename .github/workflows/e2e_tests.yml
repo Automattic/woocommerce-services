@@ -43,21 +43,21 @@ jobs:
             composer install
             npm ci
             npm run dist
-      - name: Check Docker service status
-        run: sudo service docker status
-      - name: Check containers
-        run: docker ps
-      - name: Setup E2E container
-        run: npm run test:e2e-docker-prepare
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 'v16'
+#      - name: Check Docker service status
+#        run: sudo service docker status
+#      - name: Check containers
+#        run: docker ps
+#      - name: Setup E2E container
+#        run: npm run test:e2e-docker-prepare
+#      - uses: actions/setup-node@v2
+#        with:
+#          node-version: 'v16'
       - name: Install docker-compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
-      - name: Start E2E container
+      - name: Setup E2E container
         run: |
             npm run test:e2e-docker-up
             npm run test:e2e-docker-ping
