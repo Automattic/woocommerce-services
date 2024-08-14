@@ -229,10 +229,10 @@
 	@import 'shared/forms'; // form styling
 
 	// Main
-	@import 'main'; // global layout and responsive styles
+	// @import 'main'; // global layout and responsive styles
 
 	// Components
-	@import 'components';
+	// @import 'components';
 	@import 'fix-image-paths';
 
 	@import 'woocommerce/woocommerce-services/style';
@@ -250,16 +250,16 @@
 	}
 }
 
-@import 'components/dialog/style';
-@import 'components/popover/style';
-@import 'components/tooltip/style';
+// @import 'components/dialog/style';
+// @import 'components/popover/style';
+// @import 'components/tooltip/style';
 
 // Just the tooltip WordPress Component styles is all we use for now.
 @import "~@wordpress/base-styles/colors";
 @import "~@wordpress/base-styles/variables";
 @import "~@wordpress/base-styles/z-index";
 @import '~@wordpress/components/src/tooltip/style.scss';
-@import '~@wordpress/components/src/external-link/style.scss';
+// @import '~@wordpress/components/src/external-link/style.scss';
 @import '~@wordpress/components/src/visually-hidden/style.scss';
 
 #woocommerce-order-label .inside {
