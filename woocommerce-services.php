@@ -1852,10 +1852,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
 			$is_alive = $this->api_client->is_alive_cached();
 
-			$payload = array(
+			$account_settings  = new WC_Connect_Account_Settings(
+				$this->service_settings_store,
+				$this->payment_methods_store
+			);
+			$packages_settings = new WC_Connect_Package_Settings(
+				$this->service_settings_store,
+				$this->service_schemas_store
+			);
+			$payload           = array(
 				'nonce'                 => wp_create_nonce( 'wp_rest' ),
 				'baseURL'               => get_rest_url(),
 				'wcs_server_connection' => $is_alive,
+				'accountSettings'       => $account_settings->get(),
+				'packagesSettings'      => $packages_settings->get(),
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
