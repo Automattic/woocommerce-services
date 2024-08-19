@@ -39,6 +39,9 @@ class MigratorSettingsRootView extends Component {
 	};
 
 	showMigrationNotice = () => {
+		if ( window.wcTracks ) {
+			window.wcTracks.recordEvent( 'woocommerceconnect_migration_started_from_settings' );
+		}
 		window.wpCookies.remove( 'wcst-wcshipping-migration-dismissed' );
 		this.setState({ isMigrationNoticeVisible: true });
 	}
