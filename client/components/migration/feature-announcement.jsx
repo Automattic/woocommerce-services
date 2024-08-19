@@ -20,7 +20,7 @@ import {
 import { installAndActivatePlugins } from './migration-runner';
 import { TIME_TO_REMMEMBER_DISMISSAL_SECONDS } from './constants';
 
-const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } ) => {
+const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, onClose } ) => {
 	const [isOpen, setIsOpen] = useState(isEligable);
 	const [isUpdating, setIsUpdating] = useState(false);
 
@@ -33,11 +33,13 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState } 
 
 	const closeModal = () => {
 		setIsOpen(false);
+		onClose && onClose();
 	};
 
 	const snooze = () => {
 		window.wpCookies.set( 'wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS );
 		setIsOpen( false );
+		onClose && onClose();
 	};
 
 	const update = async () => {
