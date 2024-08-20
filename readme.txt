@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.7.1 - 2024-xx-xx =
+* Add - User interface components to perform the migration to the new WooCommerce Shipping plugin.
+
 = 2.7.0 - 2024-07-25 =
 * Add - Parallel compatibility with WooCommerce Shipping plugin.
 
