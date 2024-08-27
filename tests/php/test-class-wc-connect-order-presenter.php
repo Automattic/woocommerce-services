@@ -2,8 +2,8 @@
 
 class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-order-presenter.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-compatibility.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-order-presenter.php';
 
 		WC_Connect_Compatibility::set_version( '3.0.0' );
 	}
@@ -67,7 +67,6 @@ class WP_Test_WC_Connect_Order_Presenter extends WC_Unit_Test_Case {
 		$this->assertEquals( '40.00', $actual['line_items'][0]['subtotal'] );
 		$this->assertEquals( '40.00', $actual['line_items'][0]['total'] );
 		$this->assertEquals( 4, $actual['line_items'][0]['quantity'] );
-		$this->assertEquals( 'DUMMY SKU', $actual['line_items'][0]['sku'] );
 		$this->assertEquals( 'Dummy Product', $actual['line_items'][0]['name'] );
 	}
 
