@@ -20,59 +20,55 @@ import RatesStep from './rates-step';
 import Sidebar from './sidebar';
 import { exitPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
-	getShippingLabel,
-	isLoaded,
-	isCustomsFormRequired,
+	getShippingLabel, isLoaded, isCustomsFormRequired,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import FeatureAnnouncement from 'components/migration/feature-announcement';
 
 const LabelPurchaseModal = props => {
 	const { loaded, translate, showPurchaseDialog } = props;
 
-	if ( ! loaded ) {
+	if ( !loaded ) {
 		return null;
 	}
 
+	const onClose = () => props.exitPrintingFlow(props.orderId, props.siteId, false);
 
-	const onClose = () => props.exitPrintingFlow( props.orderId, props.siteId, false );
-
-	return (
-		showPurchaseDialog ? (
-			<Modal
-				className="woocommerce label-purchase-modal wcc-root"
-				shouldCloseOnClickOutside={ false }
-				onRequestClose={ onClose }
-				title={ translate( 'Create shipping label', 'Create shipping labels', { count: Object.keys( props.form.packages.selected ).length } ) }
-			>
-				<div className="label-purchase-modal__content">
-					<div className="label-purchase-modal__main-section">
-						<AddressStep
-							type="origin"
-							title={ translate( 'Origin address' ) }
-							siteId={ props.siteId }
-							orderId={ props.orderId }
-						/>
-						<AddressStep
-							type="destination"
-							title={ translate( 'Destination address' ) }
-							siteId={ props.siteId }
-							orderId={ props.orderId }
-						/>
-						<PackagesStep siteId={ props.siteId } orderId={ props.orderId } />
-						{ props.isCustomsFormRequired && (
-							<CustomsStep siteId={ props.siteId } orderId={ props.orderId } />
-						) }
-						<RatesStep siteId={ props.siteId } orderId={ props.orderId } />
-					</div>
-					<Sidebar siteId={ props.siteId } orderId={ props.orderId } />
-				</div>
-			</Modal>
-		) : null
-	);
+	return showPurchaseDialog ? (<><Modal
+		className="woocommerce label-purchase-modal wcc-root"
+		shouldCloseOnClickOutside={false}
+		onRequestClose={onClose}
+		title={translate('Create shipping label',
+			'Create shipping labels',
+			{ count: Object.keys(props.form.packages.selected).length }
+		)}
+	>
+		<div className="label-purchase-modal__content">
+			<div className="label-purchase-modal__main-section">
+				<AddressStep
+					type="origin"
+					title={translate('Origin address')}
+					siteId={props.siteId}
+					orderId={props.orderId}
+				/>
+				<AddressStep
+					type="destination"
+					title={translate('Destination address')}
+					siteId={props.siteId}
+					orderId={props.orderId}
+				/>
+				<PackagesStep siteId={props.siteId} orderId={props.orderId}/>
+				{props.isCustomsFormRequired && (<CustomsStep siteId={props.siteId} orderId={props.orderId}/>)}
+				<RatesStep siteId={props.siteId} orderId={props.orderId}/>
+			</div>
+			<Sidebar siteId={props.siteId} orderId={props.orderId}/>
+		</div>
+	</Modal>
+		<FeatureAnnouncement siteId={props.siteId} orderId={props.orderId}/>
+	</>) : null;
 };
 
 LabelPurchaseModal.propTypes = {
-	siteId: PropTypes.number.isRequired,
-	orderId: PropTypes.number.isRequired,
+	siteId: PropTypes.number.isRequired, orderId: PropTypes.number.isRequired,
 };
 
 const mapStateToProps = ( state, { orderId, siteId } ) => {
@@ -91,6 +87,5 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(
-	mapStateToProps,
-	mapDispatchToProps
+	mapStateToProps, mapDispatchToProps
 )( localize( LabelPurchaseModal ) );

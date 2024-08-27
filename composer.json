@@ -7,17 +7,17 @@
       "woocommerce/qit-cli": "^0.5.3",
         "woocommerce/woocommerce-sniffs": "^0.0.2"
     },
-	"require": {
-		"automattic/jetpack-connection": "^2.1.0",
-		"automattic/jetpack-config": "^2.0.0",
-		"automattic/jetpack-autoloader": "^3.0.2",
-		"automattic/jetpack-status": "^2.0.2"
-	},
+    "require": {
+      "automattic/jetpack-connection": "^2.11.3",
+        "automattic/jetpack-config": "^2.0.4",
+        "automattic/jetpack-autoloader": "^3.0.9",
+        "automattic/jetpack-status": "^3.3.2"
+    },
     "config": {
-      "allow-plugins": {
-        "dealerdirect/phpcodesniffer-composer-installer": true,
-        "automattic/jetpack-autoloader": true
-      }
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "automattic/jetpack-autoloader": true
+        }
     },
     "scripts": {
       "test": [

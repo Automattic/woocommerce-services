@@ -13,6 +13,7 @@ import classNames from 'classnames';
  */
 // from calypso
 import GlobalNotices from 'components/global-notices';
+import MigratorSettings from '../../extensions/woocommerce/woocommerce-services/views/migrator-settings';
 import LabelSettings from '../../extensions/woocommerce/woocommerce-services/views/label-settings';
 import notices from 'notices';
 import Packages from '../../extensions/woocommerce/woocommerce-services/views/packages';
@@ -69,6 +70,7 @@ class LabelSettingsWrapper extends Component {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
+					<MigratorSettings />
 					<LabelSettings onChange={ this.onChange } />
 					<Packages onChange={ this.onChange } />
 					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
