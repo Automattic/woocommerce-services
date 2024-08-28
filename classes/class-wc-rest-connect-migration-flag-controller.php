@@ -37,8 +37,10 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 		$params          = $request->get_json_params();
 		$migration_state = intval( $params['migration_state'] );
 
-		// If the migration state is greater than COMPLETED, then we can assume that the next part of the migration
+		// If the migration state is greater than "COMPLETED", then we can assume that the next part of the migration
 		// state is being handled by WooCommerce Shipping.
+		// This shouldn't be necessary since our migration shouldn't be displayed to begin with, but we're adding
+		// support for it, just in case.
 		if ( $migration_state > WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
 			return new WP_REST_Response(
 				array(
