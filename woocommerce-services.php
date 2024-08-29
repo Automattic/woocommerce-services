@@ -276,7 +276,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'migration_flag_state_update',
 					array(
 						'migration_state' => $migration_state,
-						'updated'         => $result,
+						'updated'         => false,
 					)
 				);
 			}
