@@ -36,18 +36,31 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 	public function post( $request ) {
 		$params          = $request->get_json_params();
 		$migration_state = intval( $params['migration_state'] );
+
+		// If the migration state is greater than "COMPLETED", then we can assume that the next part of the migration
+		// state is being handled by WooCommerce Shipping.
+		// This shouldn't be necessary since our migration shouldn't be displayed to begin with, but we're adding
+		// support for it, just in case.
+		if ( $migration_state > WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
+			return new WP_REST_Response(
+				array(
+					'result' => __( 'WooCommerce Shipping has taken over the migration process.', 'woocommerce-services' ),
+				),
+				200
+			);
+		}
+
 		if ( ! WC_Connect_WCST_To_WCShipping_Migration_State_Enum::is_valid_value( $migration_state ) ) {
-			$error = new WP_Error(
+			return new WP_Error(
 				'invalid_migration_state',
 				__( 'Invalid migration state. Can not update migration state.', 'woocommerce-services' ),
 				array( 'status' => 400 )
 			);
-			return $error;
 		}
 
 		$existing_migration_state = get_option( 'wcshipping_migration_state' );
 		if ( $existing_migration_state && intval( $existing_migration_state ) === $migration_state ) {
-			return new WP_REST_Response( array( 'result' => 'Migration flag is the same, no changes needed.' ), 304 );
+			return new WP_REST_Response( array( 'result' => __( 'Migration flag is the same, no changes needed.', 'woocommerce-services' ) ), 304 );
 		}
 
 		$result = update_option( 'wcshipping_migration_state', $migration_state );
@@ -61,7 +74,7 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 				)
 			);
 
-			return new WP_REST_Response( array( 'result' => 'Migration flag updated successfully.' ), 200 );
+			return new WP_REST_Response( array( 'result' => __( 'Migration flag updated successfully.', 'woocommerce-services' ) ), 200 );
 		}
 
 		$error = new WP_Error(
