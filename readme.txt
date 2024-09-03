@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.6
 WC requires at least: 8.8
 WC tested up to: 9.0
-Stable tag: 2.8.0
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,7 +81,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.8.0 - 2024-09-03 =
+= 2.8.0 - 2024-xx-xx =
 * Add - A new shipping migration experience from this plugin to the newly released WooCommerce Shipping plugin.
 
 = 2.7.0 - 2024-07-25 =

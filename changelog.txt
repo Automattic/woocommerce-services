@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.8.0 - 2024-09-03 =
+= 2.8.0 - 2024-xx-xx =
 * Add - A new shipping migration experience from this plugin to the newly released WooCommerce Shipping plugin.
 
 = 2.7.0 - 2024-07-25 =
