@@ -625,6 +625,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				return false;
 			}
 
+			// Hide the migration notification if the site has any active shipping methods defined by WCS&T.
+			if ( ! empty( $this->get_enabled_services() ) ) {
+				return false;
+			}
+
 			$migration_dismissed = false;
 			if ( isset( $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && (int) $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] === 1 ) {
 				$migration_dismissed = true;
