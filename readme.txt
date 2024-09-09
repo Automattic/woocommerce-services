@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.8.1 - 2024-xx-xx =
+* Tweak - Hide migration banner for merchants still using legacy functionality.
+
 = 2.8.0 - 2024-09-03 =
 * Add - A new shipping migration experience from this plugin to the newly released WooCommerce Shipping plugin.
 
