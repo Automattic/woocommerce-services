@@ -66,7 +66,7 @@ module.exports = {
 	output: Object.assign(
 			{},
 			{
-			path: path.join( __dirname, 'dist' ),
+			path: path.join( __dirname, 'assets/legacy' ),
 			filename: '[name]-' + process.env.npm_package_version + '.js',
 			chunkFilename: 'chunks/[chunkhash].min.js',
 			devtoolModuleFilenameTemplate: 'app:///[resource-path]',
