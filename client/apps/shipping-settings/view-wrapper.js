@@ -72,27 +72,27 @@ class LabelSettingsWrapper extends Component {
 		if ( ! carrier ) {
 			return (
 				<div>
-					<GlobalNotices id="notices" notices={ notices.list } />
-					<MigratorSettings />
-					<h1>Live shipping rates configuration</h1>
-					{ isWCShippingActive && <div>
-						{/* eslint-disable-next-line wpcalypso/jsx-classname-namespace */}
-						<a className="button" href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-shipping-settings">&larr; Back to WooCommerce Shipping settings</a>
-					</div> }
-					{ ! isWCShippingActive && <LabelSettings onChange={ this.onChange } /> }
-					<Packages onChange={ this.onChange } />
-					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
-					{ ! isWCShippingActive && <CarrierAccounts accounts={ carrierAccounts } /> }
-					{ ! isWCShippingActive && <SubscriptionsUsage subscriptions={ subscriptions } /> }
+					<GlobalNotices id="notices" notices={ notices.list }/>
+					<MigratorSettings/>
+					{ isWCShippingActive && ( <div>
+						<h2>
+							<a href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-shipping-settings">{ translate( 'WooCommerce Shipping' ) }</a> &gt; { translate( 'Live rates' ) }
+						</h2>
+					</div> ) }
+					{ !isWCShippingActive && <LabelSettings onChange={ this.onChange }/> }
+					<Packages onChange={ this.onChange }/>
+					<LiveRatesCarriersList carrierIds={ liveRatesTypes }/>
+					{ !isWCShippingActive && <CarrierAccounts accounts={ carrierAccounts }/> }
+					{ !isWCShippingActive && <SubscriptionsUsage subscriptions={ subscriptions }/> }
 					<Button
 						isPrimary
-						className = { classNames( 'button' ) }
+						className={ classNames( 'button' ) }
 						onClick={ this.onSaveChanges }
 						isBusy={ isSaving }
 						disabled={ isSaving }>
 						{ translate( 'Save changes' ) }
 					</Button>
-					<ProtectFormGuard isChanged={ ! this.state.pristine } />
+					<ProtectFormGuard isChanged={ !this.state.pristine }/>
 				</div>
 			);
 		}
@@ -100,8 +100,8 @@ class LabelSettingsWrapper extends Component {
 		if ( carrier === 'UpsAccount' ) {
 			return (
 				<div>
-					<GlobalNotices id="notices" notices={ notices.list } />
-					<UpsSettingsForm />
+					<GlobalNotices id="notices" notices={ notices.list }/>
+					<UpsSettingsForm/>
 				</div>
 			);
 		}
