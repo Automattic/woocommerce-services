@@ -47,7 +47,7 @@ jobs:
         run: cat ${{ github.workspace }}/qit-results/qit-security-results.txt
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: qit-results
           path: ${{ github.workspace }}/qit-results/
