@@ -845,7 +845,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
-			if ( ! $this->is_wc_shipping_activated() ) {
+			if ( ! self::is_wc_shipping_activated() ) {
 				// We only use the settings page for shipping since tax settings are part of
 				// the core "WooCommerce > Settings > Tax" tab.
 				require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
@@ -879,7 +879,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			/*
 			 * Only register shipping label-related logic if WC Shipping is not active.
 			 */
-			if ( ! $this->is_wc_shipping_activated() ) {
+			if ( ! self::is_wc_shipping_activated() ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 				$this->init_shipping_labels();
@@ -1012,7 +1012,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
 			$rest_service_data_refresh_controller->register_routes();
 
-			if ( ! $this->is_wc_shipping_activated() ) {
+			if ( ! self::is_wc_shipping_activated() ) {
 
 				require_once __DIR__ . '/classes/class-wc-rest-connect-packages-controller.php';
 				$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
@@ -1910,7 +1910,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return bool
 		 */
-		public function is_wc_shipping_activated() {
+		public static function is_wc_shipping_activated() {
 			return in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
 		}
 
@@ -1922,7 +1922,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function are_woo_shipping_and_woo_tax_active() {
 			$is_woo_tax_active = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
 
-			return $this->is_wc_shipping_activated() && $is_woo_tax_active;
+			return self::is_wc_shipping_activated() && $is_woo_tax_active;
 		}
 
 		/**
