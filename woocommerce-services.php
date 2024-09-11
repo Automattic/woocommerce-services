@@ -880,6 +880,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * Only register shipping label-related logic if WC Shipping is not active.
 			 */
 			if ( ! $this->is_wc_shipping_activated() ) {
+				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
+
 				$this->init_shipping_labels();
 			}
 
@@ -1093,6 +1095,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_subscriptions_controller->register_routes();
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
+		}
+
+		/**
+		 * If the required v3 REST API endpoints haven't been loaded at this point, load the local copies of said endpoints.
+		 * Delete this when the "v3" REST API is included in all the WC versions we support.
+		 */
+		public function wc_api_dev_init() {
+			$rest_server     = rest_get_server();
+			$existing_routes = $rest_server->get_routes();
+			if ( ! isset( $existing_routes['/wc/v3/data/continents'] ) ) {
+				require_once __DIR__ . '/classes/wc-api-dev/class-wc-rest-dev-data-controller.php';
+				require_once __DIR__ . '/classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php';
+				$continents = new WC_REST_Dev_Data_Continents_Controller();
+				$continents->register_routes();
+			}
 		}
 
 		/**
