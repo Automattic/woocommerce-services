@@ -66,16 +66,24 @@ class LabelSettingsWrapper extends Component {
 	render() {
 		const { carrier, carrierAccounts, liveRatesTypes, subscriptions, isSaving, translate } = this.props;
 
+		// eslint-disable-next-line no-undef
+		const isWCShippingActive = wcConnectData.is_wcshipping_active;
+
 		if ( ! carrier ) {
 			return (
 				<div>
 					<GlobalNotices id="notices" notices={ notices.list } />
 					<MigratorSettings />
-					<LabelSettings onChange={ this.onChange } />
+					<h1>Live shipping rates configuration</h1>
+					{ isWCShippingActive && <div>
+						{/* eslint-disable-next-line wpcalypso/jsx-classname-namespace */}
+						<a className="button" href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-shipping-settings">&larr; Back to WooCommerce Shipping settings</a>
+					</div> }
+					{ ! isWCShippingActive && <LabelSettings onChange={ this.onChange } /> }
 					<Packages onChange={ this.onChange } />
 					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
-					<CarrierAccounts accounts={ carrierAccounts } />
-					<SubscriptionsUsage subscriptions={ subscriptions } />
+					{ ! isWCShippingActive && <CarrierAccounts accounts={ carrierAccounts } /> }
+					{ ! isWCShippingActive && <SubscriptionsUsage subscriptions={ subscriptions } /> }
 					<Button
 						isPrimary
 						className = { classNames( 'button' ) }
