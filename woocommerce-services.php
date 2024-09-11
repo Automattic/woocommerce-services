@@ -747,44 +747,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux->dismiss_pointer( 'wc_services_add_service_to_zone' );
 		}
 
-		public function init_core_wizard_shipping_config() {
-			if ( $this->is_wc_shipping_activated() ) {
-				return;
-			}
-
-			$store_currency = get_woocommerce_currency();
-
-			if ( 'USD' === $store_currency ) {
-				$currency_method = 'usps';
-			} elseif ( 'CAD' === $store_currency ) {
-				$currency_method = 'canada_post';
-			} else {
-				return; // Only set up live rates for USD and CAD.
-			}
-
-			if ( get_option( 'woocommerce_setup_intl_live_rates_zone' ) ) {
-				$this->add_method_to_shipping_zone( 0, $currency_method );
-				delete_option( 'woocommerce_setup_intl_live_rates_zone' );
-			}
-
-			if ( get_option( 'woocommerce_setup_domestic_live_rates_zone' ) ) {
-				$store_country = WC()->countries->get_base_country();
-
-				// Find the "domestic" zone (only location must be the base country).
-				foreach ( WC_Shipping_Zones::get_zones() as $zone ) {
-					if (
-						1 === count( $zone['zone_locations'] ) &&
-						'country' === $zone['zone_locations'][0]->type &&
-						$store_country === $zone['zone_locations'][0]->code
-					) {
-						$this->add_method_to_shipping_zone( $zone['id'], $currency_method );
-						break;
-					}
-				}
-				delete_option( 'woocommerce_setup_domestic_live_rates_zone' );
-			}
-		}
-
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
@@ -914,11 +876,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->taxjar->init();
 			$this->paypal_ec->init();
 
-			// Primary condition to initiate shipping.
+			/*
+			 * Regardless of disabling shipping labels if WC Shipping is installed,
+			 * keep live rates enabled if the store supports them.
+			 */
+			$this->init_live_rates();
+
+			// Primary condition to initiate shipping label-related logic.
 			if ( ! $this->is_wc_shipping_activated() ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
-				$this->init_shipping();
+				$this->init_shipping_labels();
 			}
 
 			if ( is_admin() ) {
@@ -926,19 +894,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
-		public function init_shipping() {
+		public function init_live_rates() {
 			$schemas_store = $this->get_service_schemas_store();
 			$schemas       = $schemas_store->get_service_schemas();
-
-			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
-
-			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
-			// Make sure to update the service schemas when these options change.
-			// TODO: Add other options that change the schema here, or figure out a way to do it automatically.
-			add_action( 'update_option_woocommerce_store_postcode', array( $this, 'queue_service_schema_refresh' ) );
-			add_action( 'update_option_woocommerce_currency', array( $this, 'queue_service_schema_refresh' ) );
-			add_action( 'update_option_woocommerce_weight_unit', array( $this, 'queue_service_schema_refresh' ) );
-			add_action( 'update_option_woocommerce_dimension_unit', array( $this, 'queue_service_schema_refresh' ) );
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -950,22 +908,28 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'save_defaults_to_shipping_method' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
-
-				// Initialize user choices from the core setup wizard.
-				// Note: Avoid doing so on non-primary requests so we don't duplicate efforts.
-				if ( ! defined( 'DOING_AJAX' ) && is_admin() && ! isset( $_GET['noheader'] ) ) {
-					$this->init_core_wizard_shipping_config();
-				}
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
+			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
+		}
+
+		public function init_shipping_labels() {
+			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
+
+			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
+			// Make sure to update the service schemas when these options change.
+			// TODO: Add other options that change the schema here, or figure out a way to do it automatically.
+			add_action( 'update_option_woocommerce_store_postcode', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'update_option_woocommerce_currency', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'update_option_woocommerce_weight_unit', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'update_option_woocommerce_dimension_unit', array( $this, 'queue_service_schema_refresh' ) );
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5, 2 );
 			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
-			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
 			add_filter( 'woocommerce_shipping_fields', array( $this, 'add_shipping_phone_to_checkout' ) );
 			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_or_billing_phone_from_order' ), 10, 3 );
 			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
-			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
@@ -1201,6 +1165,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Load shipping method settings.
+		 *
 		 * This function is added to the wc_connect_service_admin_options action by this class
 		 * (see attach_hooks) and then that action is fired by WC_Connect_Shipping_Method::admin_options
 		 * to get the service instance form layout and settings bundled inside wcConnectData
