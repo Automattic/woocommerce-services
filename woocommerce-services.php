@@ -895,32 +895,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Register live rates-related hooks.
-		 *
-		 * @return void
-		 */
-		public function init_live_rates() {
-			$schemas_store = $this->get_service_schemas_store();
-			$schemas       = $schemas_store->get_service_schemas();
-
-			if ( $schemas ) {
-				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
-				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
-				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
-				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
-				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
-				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
-				add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'save_defaults_to_shipping_method' ), 10, 3 );
-				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
-				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
-			}
-
-			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
-			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
-			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
-		}
-
-		/**
 		 * Register shipping labels-related hooks.
 		 *
 		 * @return void
@@ -944,6 +918,32 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
 			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
 			add_action( 'current_screen', array( $this, 'maybe_render_upgrade_banner' ) );
+		}
+
+		/**
+		 * Register live rates-related hooks.
+		 *
+		 * @return void
+		 */
+		public function init_live_rates() {
+			$schemas_store = $this->get_service_schemas_store();
+			$schemas       = $schemas_store->get_service_schemas();
+
+			if ( $schemas ) {
+				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
+				add_action( 'woocommerce_load_shipping_methods', array( $this, 'woocommerce_load_shipping_methods' ) );
+				add_filter( 'woocommerce_payment_gateways', array( $this, 'woocommerce_payment_gateways' ) );
+				add_action( 'wc_connect_service_init', array( $this, 'init_service' ), 10, 2 );
+				add_action( 'wc_connect_service_admin_options', array( $this, 'localize_and_enqueue_service_script' ), 10, 2 );
+				add_action( 'woocommerce_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
+				add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'save_defaults_to_shipping_method' ), 10, 3 );
+				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
+				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
+			}
+
+			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
+			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
+			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
 		}
 
 		/**
