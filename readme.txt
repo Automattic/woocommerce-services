@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.8.2 - 2024-xx-xx =
+* Tweak - Try WooCommerce Shipping modal copy.
+
 = 2.8.1 - 2024-09-09 =
 * Tweak - Hide migration banner for merchants still using legacy functionality.
 
