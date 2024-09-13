@@ -875,9 +875,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->taxjar->init();
 			$this->paypal_ec->init();
 
-			/*
-			 * Only register shipping label-related logic if WC Shipping is not active.
-			 */
+			// Only register shipping label-related logic if WC Shipping is not active.
 			if ( ! self::is_wc_shipping_activated() ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
