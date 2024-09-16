@@ -519,7 +519,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_packages() {
-			return WC_Connect_Options::get_option( 'packages', array() );
+			do_action( 'wcservices_pre_get_packages' );
+
+			return apply_filters(
+				'wcservices_get_packages',
+				WC_Connect_Options::get_option( 'packages', array() )
+			);
 		}
 
 		/**
@@ -528,12 +533,21 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array new_packages - packages to extend
 		 */
 		public function create_packages( $new_packages ) {
+			do_action( 'wcservices_pre_create_packages' );
+
 			if ( is_null( $new_packages ) ) {
-				return;
+				return apply_filters(
+					'wcservices_create_packages',
+					null
+				);
 			}
 			$packages = $this->get_packages();
 			$packages = array_merge( $packages, $new_packages );
-			WC_Connect_Options::update_option( 'packages', $packages );
+
+			return apply_filters(
+				'wcservices_create_packages',
+				WC_Connect_Options::update_option( 'packages', $packages )
+			);
 		}
 
 		/**
@@ -542,7 +556,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_packages( $packages ) {
-			WC_Connect_Options::update_option( 'packages', $packages );
+			do_action( 'wcservices_pre_update_packages' );
+
+			return apply_filters(
+				'wcservices_update_packages',
+				WC_Connect_Options::update_option( 'packages', $packages )
+			);
 		}
 
 		/**
@@ -551,7 +570,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_predefined_packages() {
-			return WC_Connect_Options::get_option( 'predefined_packages', array() );
+			do_action( 'wcservices_pre_get_predefined_packages' );
+
+			return apply_filters(
+				'wcservices_get_predefined_packages',
+				WC_Connect_Options::get_option( 'predefined_packages', array() )
+			);
 		}
 
 		/**
@@ -561,12 +585,20 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return array
 		 */
 		public function get_predefined_packages_for_service( $service_id ) {
+			do_action( 'wcservices_pre_get_predefined_packages_for_service', $service_id );
+
 			$packages = $this->get_predefined_packages();
 			if ( ! isset( $packages[ $service_id ] ) ) {
-				return array();
+				return apply_filters(
+					'wcservices_get_predefined_packages_for_service',
+					array()
+				);
 			}
 
-			return $packages[ $service_id ];
+			return apply_filters(
+				'wcservices_get_predefined_packages_for_service',
+				$packages[ $service_id ]
+			);
 		}
 
 		/**
@@ -575,12 +607,21 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array new_packages - packages to extend
 		 */
 		public function create_predefined_packages( $new_packages ) {
+			do_action( 'wcservices_pre_create_predefined_packages' );
+
 			if ( is_null( $new_packages ) ) {
-				return;
+				return apply_filters(
+					'wcservices_create_predefined_packages',
+					null
+				);
 			}
 			$packages = $this->get_predefined_packages();
 			$packages = array_merge_recursive( $packages, $new_packages );
-			WC_Connect_Options::update_option( 'predefined_packages', $packages );
+
+			return apply_filters(
+				'wcservices_create_predefined_packages',
+				WC_Connect_Options::update_option( 'predefined_packages', $packages )
+			);
 		}
 
 		/**
@@ -589,10 +630,17 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @param array packages
 		 */
 		public function update_predefined_packages( $packages ) {
-			WC_Connect_Options::update_option( 'predefined_packages', $packages );
+			do_action( 'wcservices_pre_update_predefined_packages' );
+
+			return apply_filters(
+				'wcservices_update_predefined_packages',
+				WC_Connect_Options::update_option( 'predefined_packages', $packages )
+			);
 		}
 
 		public function get_package_lookup() {
+			do_action( 'wcservices_pre_get_package_lookup' );
+
 			$lookup = array();
 
 			$custom_packages = $this->get_packages();
@@ -602,7 +650,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			$predefined_packages_schema = $this->service_schemas_store->get_predefined_packages_schema();
 			if ( is_null( $predefined_packages_schema ) ) {
-				return $lookup;
+				return apply_filters(
+					'wcservices_get_package_lookup',
+					$lookup
+				);
 			}
 
 			foreach ( $predefined_packages_schema as $service_id => $groups ) {
@@ -613,7 +664,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				}
 			}
 
-			return $lookup;
+			return apply_filters(
+				'wcservices_get_package_lookup',
+				$lookup
+			);
 		}
 
 		public function is_eligible_for_migration() {

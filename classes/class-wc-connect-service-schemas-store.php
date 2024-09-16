@@ -236,18 +236,31 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 * @return object|null Packages schema on success, null on failure
 		 */
 		public function get_packages_schema() {
+			do_action( 'wcservices_pre_get_packages_schema' );
+
 			$service_schemas = $this->get_service_schemas();
 			if ( ! is_object( $service_schemas ) || ! property_exists( $service_schemas, 'boxes' ) ) {
-				return null;
+				return apply_filters(
+					'wcservices_get_packages_schema',
+					null
+				);
 			}
 
-			return $service_schemas->boxes;
+			return apply_filters(
+				'wcservices_get_packages_schema',
+				$service_schemas->boxes
+			);
 		}
 
 		public function get_predefined_packages_schema() {
+			do_action( 'wcservices_pre_get_predefined_packages_schema' );
+
 			$service_schemas = $this->get_service_schemas();
 			if ( ! is_object( $service_schemas ) ) {
-				return null;
+				return apply_filters(
+					'wcservices_get_predefined_packages_schema',
+					null
+				);
 			}
 
 			$predefined_packages = array();
@@ -259,7 +272,10 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 				$predefined_packages[ $service_schema->id ] = $service_schema->packages;
 			}
 
-			return $predefined_packages;
+			return apply_filters(
+				'wcservices_get_predefined_packages_schema',
+				$predefined_packages
+			);
 		}
 
 		/**
