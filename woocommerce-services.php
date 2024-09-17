@@ -849,18 +849,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
-			if ( ! self::is_wc_shipping_activated() ) {
-				// We only use the settings page for shipping since tax settings are part of
-				// the core "WooCommerce > Settings > Tax" tab.
-				require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
-				$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
-				$this->set_settings_pages( $settings_pages );
+			// We only use the settings page for shipping since tax settings are part of
+			// the core "WooCommerce > Settings > Tax" tab.
+			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
+			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
+			$this->set_settings_pages( $settings_pages );
 
-				// Add WC Admin Notices.
-				if ( ! self::is_wc_shipping_activated() && self::can_add_wc_admin_notice() ) {
-					require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-					WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
-				}
+			// Add WC Admin Notices.
+			if ( ! self::is_wc_shipping_activated() && self::can_add_wc_admin_notice() ) {
+				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
 		}
 
