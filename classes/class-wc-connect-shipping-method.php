@@ -377,10 +377,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		}
 
 		public function calculate_shipping( $package = array() ) {
-			WC_Connect_Compatibility_WCShipping::maybe_enable_options_overwriting();
-
 			if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
-				WC_Connect_Compatibility_WCShipping::disable_options_overwriting();
 				return;
 			}
 
@@ -400,7 +397,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						}
 					}
 				}
-				WC_Connect_Compatibility_WCShipping::disable_options_overwriting();
 				return;
 			}
 
@@ -416,7 +412,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 					),
 					__FUNCTION__
 				);
-				WC_Connect_Compatibility_WCShipping::disable_options_overwriting();
 				return;
 			}
 
@@ -446,7 +441,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			} else {
 				$response_body = $this->api_client->get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes );
 				if ( $this->check_and_handle_response_error( $response_body, $service_settings ) ) {
-					WC_Connect_Compatibility_WCShipping::disable_options_overwriting();
 					return;
 				}
 				set_transient( $cache_key, $response_body, HOUR_IN_SECONDS );
@@ -578,8 +572,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 
 			$this->update_last_rate_request_timestamp();
-
-			WC_Connect_Compatibility_WCShipping::disable_options_overwriting();
 		}
 
 		public function update_last_rate_request_timestamp() {
