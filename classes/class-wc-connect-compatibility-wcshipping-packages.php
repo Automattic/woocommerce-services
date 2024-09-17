@@ -86,14 +86,6 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		update_option( 'wcshipping_options', $wcshipping_options );
 	}
 
-	public static function intercept_wcshipping_packages_read( $wcshipping_options ) {
-		if ( is_array( $wcshipping_options ) && isset( $wcshipping_options['packages'] ) ) {
-			$wcshipping_options['predefined_packages'] = self::map_packages_to_wcshipping_format( $wcshipping_options['predefined_packages'] );
-		}
-
-		return $wcshipping_options;
-	}
-
 	public static function map_packages_to_wcservices_format( $custom_packages ) {
 		$old_custom_packages = $custom_packages;
 
