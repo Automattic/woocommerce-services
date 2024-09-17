@@ -1094,6 +1094,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
 			$rest_subscriptions_controller->register_routes();
 
+			if ( self::is_wc_shipping_activated() ) {
+				// REST controller using WCS&T's settings store instead of WCShipping's.
+				require_once __DIR__ . '/classes/class-wc-rest-connect-packages-controller.php';
+				require_once __DIR__ . '/classes/class-wc-rest-connect-wcshipping-compatibility-packages-controller.php';
+				$rest_wcshipping_package_compatibility_controller = new WC_REST_Connect_WCShipping_Compatibility_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
+				$rest_wcshipping_package_compatibility_controller->register_routes();
+			}
+
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
 

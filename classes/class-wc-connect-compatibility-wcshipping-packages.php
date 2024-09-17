@@ -27,7 +27,7 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	const KEYS_UNUSED_BY_WCSHIPPING = array( 'is_letter' );
 
 	public static function maybe_enable() {
-		$is_migration_to_wcshipping_completed = self::WCSHIP_DATA_MIGRATION_COMPLETED === get_option( 'wcshipping_migration_state' );
+		$is_migration_to_wcshipping_completed = self::WCSHIP_DATA_MIGRATION_COMPLETED === (int) get_option( 'wcshipping_migration_state' );
 
 		if ( WC_Connect_Loader::is_wc_shipping_activated() && $is_migration_to_wcshipping_completed ) {
 			self::register_hooks();
@@ -35,10 +35,10 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	}
 
 	public static function register_hooks() {
+		// Remapping the "packages" key of "wc_connect_options".
 		add_filter( 'option_wc_connect_options', array( self::class, 'intercept_packages_read' ) );
-		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_packages_update' ), 10, 2 );
-
 		add_filter( 'option_wc_connect_options', array( self::class, 'intercept_predefined_packages_read' ) );
+		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_packages_update' ), 10, 2 );
 		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_predefined_packages_update' ), 10, 2 );
 	}
 
@@ -86,18 +86,26 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		update_option( 'wcshipping_options', $wcshipping_options );
 	}
 
+	public static function intercept_wcshipping_packages_read( $wcshipping_options ) {
+		if ( is_array( $wcshipping_options ) && isset( $wcshipping_options['packages'] ) ) {
+			$wcshipping_options['predefined_packages'] = self::map_packages_to_wcshipping_format( $wcshipping_options['predefined_packages'] );
+		}
+
+		return $wcshipping_options;
+	}
+
 	public static function map_packages_to_wcservices_format( $custom_packages ) {
 		$old_custom_packages = $custom_packages;
 
 		foreach ( $custom_packages as &$package ) {
-			$package = self::rename_keys( $package, array_flip( self::WCSHIPPING_TO_WCSERVICES_KEY_MAP ) );
+			$package = self::rename_keys( $package, self::WCSHIPPING_TO_WCSERVICES_KEY_MAP );
 			$package = self::map_type_to_is_letter( $package );
 			$package = self::unset_keys( $package, self::KEYS_UNUSED_BY_WCSERVICES );
 		}
 		unset( $package ); // Unset the reference so the variable can't be accidentally replaced.
 
 		return apply_filters(
-			'wcservices_map_custom_package_data_to_wcservices_format',
+			'wcservices_map_packages_to_wcservices_format',
 			$custom_packages,
 			$old_custom_packages
 		);
@@ -115,7 +123,7 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		unset( $package ); // Unset the reference so the variable can't be accidentally replaced.
 
 		return apply_filters(
-			'wcservices_map_custom_package_data_to_wcshipping_format',
+			'wcservices_map_packages_to_wcshipping_format',
 			$custom_packages,
 			$old_custom_packages
 		);
