@@ -40,10 +40,6 @@ const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping
 			</Provider>,
 			container
 		);
-
-		// Click the update button in the modal to start the migration.
-		const update_button = document.getElementById('migration__announcement-update-button');
-		update_button.click();
 	});
 
 	// Dismiss it for 3 days, then remove it from view.
