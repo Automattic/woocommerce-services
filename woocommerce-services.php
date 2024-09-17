@@ -48,804 +48,808 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
 
-	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
-		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
-	}
+if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
+	define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
+}
 
-	class WC_Connect_Loader {
+class WC_Connect_Loader {
 
-		/**
-		 * @var WC_Connect_Logger
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $logger;
+
+	/**
+	 * @var WC_Connect_Logger
+	 */
+	protected $shipping_logger;
+
+	/**
+	 * @var WC_Connect_API_Client
+	 */
+	protected $api_client;
+
+	/**
+	 * @var WC_Connect_Service_Schemas_Store
+	 */
+	protected $service_schemas_store;
+
+	/**
+	 * @var WC_Connect_Service_Settings_Store
+	 */
+	protected $service_settings_store;
+
+	/**
+	 * @var WC_Connect_Payment_Methods_Store
+	 */
+	protected $payment_methods_store;
+
+	/**
+	 * @var WC_REST_Connect_Account_Settings_Controller
+	 */
+	protected $rest_account_settings_controller;
+
+	/**
+	 * @var WC_REST_Connect_Packages_Controller
+	 */
+	protected $rest_packages_controller;
+
+	/**
+	 * @var WC_REST_Connect_Services_Controller
+	 */
+	protected $rest_services_controller;
+
+	/**
+	 * @var WC_REST_Connect_Self_Help_Controller
+	 */
+	protected $rest_self_help_controller;
+
+	/**
+	 * @var WC_REST_Connect_Shipping_Label_Controller
+	 */
+	protected $rest_shipping_label_controller;
+
+	/**
+	 * @var WC_REST_Connect_Shipping_Label_Status_Controller
+	 */
+	protected $rest_shipping_label_status_controller;
+
+	/**
+	 * @var WC_REST_Connect_Shipping_Label_Refund_Controller
+	 */
+	protected $rest_shipping_label_refund_controller;
+
+	/**
+	 * @var WC_REST_Connect_Shipping_Label_Preview_Controller
+	 */
+	protected $rest_shipping_label_preview_controller;
+
+	/**
+	 * @var WC_REST_Connect_Shipping_Label_Print_Controller
+	 */
+	protected $rest_shipping_label_print_controller;
+
+	/**
+	 * @var WC_REST_Connect_Shipping_Rates_Controller
+	 */
+	protected $rest_shipping_rates_controller;
+
+	/**
+	 * @var WC_REST_Connect_Address_Normalization_Controller
+	 */
+	protected $rest_address_normalization_controller;
+
+	/**
+	 *
+	 * WC_REST_Connect_Shipping_Carrier_Types_Controller
+	 *
+	 * @var WC_REST_Connect_Shipping_Carrier_Types_Controller
+	 */
+	protected $rest_carrier_types_controller;
+
+	/**
+	 * WC_REST_Connect_Assets_Controller
+	 *
+	 * @var WC_REST_Connect_Assets_Controller
+	 */
+	protected $rest_assets_controller;
+
+	/**
+	 * WC_REST_Connect_Shipping_Carrier_Controller
+	 *
+	 * @var WC_REST_Connect_Shipping_Carrier_Controller
+	 */
+	protected $rest_carrier_controller;
+
+	/**
+	 * WC_REST_Connect_Shipping_Carriers_Controller
+	 *
+	 * @var WC_REST_Connect_Shipping_Carriers_Controller
+	 */
+	protected $rest_carriers_controller;
+
+	/**
+	 * WC_REST_Connect_Subscriptions_Controller
+	 *
+	 * @var WC_REST_Connect_Subscriptions_Controller
+	 */
+	protected $rest_subscriptions_controller;
+
+	/**
+	 * WC_REST_Connect_Subscription_Activate_Controller
+	 *
+	 * @var WC_REST_Connect_Subscription_Activate_Controller
+	 */
+	protected $rest_subscription_activate_controller;
+
+	/**
+	 * WC_REST_Connect_Shipping_Carrier_Delete_Controller
+	 *
+	 * @var WC_REST_Connect_Shipping_Carrier_Delete_Controller
+	 */
+	protected $rest_carrier_delete_controller;
+
+	/**
+	 * WC_REST_Connect_Migration_Flag_Controller
+	 *
+	 * @var WC_REST_Connect_Migration_Flag_Controller
+	 */
+	protected $rest_migration_flag_controller;
+
+	/**
+	 * @var WC_Connect_Service_Schemas_Validator
+	 */
+	protected $service_schemas_validator;
+
+	/**
+	 * @var WC_Connect_Settings_Pages
+	 */
+	protected $settings_pages;
+
+	/**
+	 * @var WC_Connect_Help_View
+	 */
+	protected $help_view;
+
+	/**
+	 * @var WC_Connect_Shipping_Label
+	 */
+	protected $shipping_label;
+
+	/**
+	 * @var WC_Connect_Nux
+	 */
+	protected $nux;
+
+	/**
+	 * @var WC_Connect_TaxJar_Integration
+	 */
+	protected $taxjar;
+
+	/**
+	 * @var WC_Connect_PayPal_EC
+	 */
+	protected $paypal_ec;
+
+	/**
+	 * @var WC_Connect_Tracks
+	 */
+	protected $tracks;
+
+	/**
+	 * @var WC_Connect_Label_Reports
+	 */
+	protected $label_reports;
+
+	/**
+	 * @var WC_REST_Connect_Tos_Controller
+	 */
+	protected $rest_tos_controller;
+
+	protected $services = array();
+
+	protected $service_object_cache = array();
+
+	protected $wc_connect_base_url;
+
+	protected static $wcs_version;
+
+	public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
+
+	public static function plugin_deactivation() {
+		wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
+
+		/*
+		 * When we deactivate the plugin after wcshipping_migration_state has started,
+		 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
 		 */
-		protected $logger;
-
-		/**
-		 * @var WC_Connect_Logger
-		 */
-		protected $shipping_logger;
-
-		/**
-		 * @var WC_Connect_API_Client
-		 */
-		protected $api_client;
-
-		/**
-		 * @var WC_Connect_Service_Schemas_Store
-		 */
-		protected $service_schemas_store;
-
-		/**
-		 * @var WC_Connect_Service_Settings_Store
-		 */
-		protected $service_settings_store;
-
-		/**
-		 * @var WC_Connect_Payment_Methods_Store
-		 */
-		protected $payment_methods_store;
-
-		/**
-		 * @var WC_REST_Connect_Account_Settings_Controller
-		 */
-		protected $rest_account_settings_controller;
-
-		/**
-		 * @var WC_REST_Connect_Packages_Controller
-		 */
-		protected $rest_packages_controller;
-
-		/**
-		 * @var WC_REST_Connect_Services_Controller
-		 */
-		protected $rest_services_controller;
-
-		/**
-		 * @var WC_REST_Connect_Self_Help_Controller
-		 */
-		protected $rest_self_help_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Label_Controller
-		 */
-		protected $rest_shipping_label_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Label_Status_Controller
-		 */
-		protected $rest_shipping_label_status_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Label_Refund_Controller
-		 */
-		protected $rest_shipping_label_refund_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Label_Preview_Controller
-		 */
-		protected $rest_shipping_label_preview_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Label_Print_Controller
-		 */
-		protected $rest_shipping_label_print_controller;
-
-		/**
-		 * @var WC_REST_Connect_Shipping_Rates_Controller
-		 */
-		protected $rest_shipping_rates_controller;
-
-		/**
-		 * @var WC_REST_Connect_Address_Normalization_Controller
-		 */
-		protected $rest_address_normalization_controller;
-
-		/**
-		 *
-		 * WC_REST_Connect_Shipping_Carrier_Types_Controller
-		 *
-		 * @var WC_REST_Connect_Shipping_Carrier_Types_Controller
-		 */
-		protected $rest_carrier_types_controller;
-
-		/**
-		 * WC_REST_Connect_Assets_Controller
-		 *
-		 * @var WC_REST_Connect_Assets_Controller
-		 */
-		protected $rest_assets_controller;
-
-		/**
-		 * WC_REST_Connect_Shipping_Carrier_Controller
-		 *
-		 * @var WC_REST_Connect_Shipping_Carrier_Controller
-		 */
-		protected $rest_carrier_controller;
-
-		/**
-		 * WC_REST_Connect_Shipping_Carriers_Controller
-		 *
-		 * @var WC_REST_Connect_Shipping_Carriers_Controller
-		 */
-		protected $rest_carriers_controller;
-
-		/**
-		 * WC_REST_Connect_Subscriptions_Controller
-		 *
-		 * @var WC_REST_Connect_Subscriptions_Controller
-		 */
-		protected $rest_subscriptions_controller;
-
-		/**
-		 * WC_REST_Connect_Subscription_Activate_Controller
-		 *
-		 * @var WC_REST_Connect_Subscription_Activate_Controller
-		 */
-		protected $rest_subscription_activate_controller;
-
-		/**
-		 * WC_REST_Connect_Shipping_Carrier_Delete_Controller
-		 *
-		 * @var WC_REST_Connect_Shipping_Carrier_Delete_Controller
-		 */
-		protected $rest_carrier_delete_controller;
-
-		/**
-		 * WC_REST_Connect_Migration_Flag_Controller
-		 *
-		 * @var WC_REST_Connect_Migration_Flag_Controller
-		 */
-		protected $rest_migration_flag_controller;
-
-		/**
-		 * @var WC_Connect_Service_Schemas_Validator
-		 */
-		protected $service_schemas_validator;
-
-		/**
-		 * @var WC_Connect_Settings_Pages
-		 */
-		protected $settings_pages;
-
-		/**
-		 * @var WC_Connect_Help_View
-		 */
-		protected $help_view;
-
-		/**
-		 * @var WC_Connect_Shipping_Label
-		 */
-		protected $shipping_label;
-
-		/**
-		 * @var WC_Connect_Nux
-		 */
-		protected $nux;
-
-		/**
-		 * @var WC_Connect_TaxJar_Integration
-		 */
-		protected $taxjar;
-
-		/**
-		 * @var WC_Connect_PayPal_EC
-		 */
-		protected $paypal_ec;
-
-		/**
-		 * @var WC_Connect_Tracks
-		 */
-		protected $tracks;
-
-		/**
-		 * @var WC_Connect_Label_Reports
-		 */
-		protected $label_reports;
-
-		/**
-		 * @var WC_REST_Connect_Tos_Controller
-		 */
-		protected $rest_tos_controller;
-
-		protected $services = array();
-
-		protected $service_object_cache = array();
-
-		protected $wc_connect_base_url;
-
-		protected static $wcs_version;
-
-		public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
-
-		public static function plugin_deactivation() {
-			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
-
-			/*
-			 * When we deactivate the plugin after wcshipping_migration_state has started,
-			 * that means the migration is done. We can mark it as completed before we deactivate the plugin.
-			 */
-			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
-			require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
-			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
-
-			$migration_state = intval( get_option( 'wcshipping_migration_state' ) );
-			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
-				$core_logger = new WC_Logger();
-				$logger      = new WC_Connect_Logger( $core_logger );
-				$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
-				$tracks->record_user_event(
-					'migration_flag_state_update',
-					array(
-						'migration_state' => $migration_state,
-						'updated'         => false,
-					)
-				);
-			}
-		}
-
-		public static function plugin_uninstall() {
-			WC_Connect_Options::delete_all_options();
-			self::delete_notices();
-		}
-
-		/**
-		 * Deletes WC Admin notices.
-		 */
-		public static function delete_notices() {
-			if ( self::can_add_wc_admin_notice() ) {
-				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-				WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
-			}
-		}
-		/**
-		 * Checks if WC Admin is active and includes needed classes.
-		 *
-		 * @return bool true|false.
-		 */
-		public static function can_add_wc_admin_notice() {
-			if ( ! class_exists( 'WC_Data_Store' ) ) {
-				return false;
-			}
-
-			try {
-				WC_Data_Store::load( 'admin-note' );
-			} catch ( Exception $e ) {
-				return false;
-			}
-
-			return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' ) && class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
-		}
-
-		/**
-		 * Get WCS plugin version
-		 *
-		 * @return string
-		 */
-		public static function get_wcs_version() {
-			if ( null === self::$wcs_version ) {
-				$plugin_data       = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
-				self::$wcs_version = $plugin_data['Version'];
-			}
-			return self::$wcs_version;
-		}
-
-		/**
-		 * Get base url.
-		 *
-		 * @return string
-		 */
-		private static function get_wc_connect_base_url() {
-			return trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
-		}
-
-		/**
-		 * Get WCS admin script url.
-		 *
-		 * @return string
-		 */
-		public static function get_wcs_admin_script_url() {
-			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.js';
-		}
-
-		/**
-		 * Get WCS admin css url.
-		 *
-		 * @return string
-		 */
-		public static function get_wcs_admin_style_url() {
-			if ( ! defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ) {
-				return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.css';
-			} else {
-				return '';
-			}
-		}
-
-		public function __construct() {
-			$this->wc_connect_base_url = self::get_wc_connect_base_url();
-			add_action(
-				'before_woocommerce_init',
-				function () {
-					if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-services/woocommerce-services.php' );
-					}
-				}
-			);
-
-			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
-			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
-
-			/**
-			 * Used to let WC Tax know WCS&T will handle the plugin's coexistence.
-			 *
-			 * WCS&T does it by not registering its functionality and displaying an appropriate notice
-			 * in WP admin.
-			 *
-			 * The filter also includes "woo_shipping" in its name, but we've since implemented conditional
-			 * loading of all shipping functionality inside WCS&T, so there's no special need for any
-			 * "parallel support" being done in WC Shipping anymore.
-			 *
-			 * This new feature is represented via the "wc_services_will_disable_shipping_logic" hook.
-			 */
-			if ( $this->are_woo_shipping_and_woo_tax_active() ) {
-				add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
-			}
-
-			// Let WC Shipping know that the current version of WCS&T supports conditional shipping logic loading.
-			add_filter( 'wc_services_will_disable_shipping_logic', '__return_true' );
-		}
-
-		public function get_logger() {
-			return $this->logger;
-		}
-
-		public function set_logger( WC_Connect_Logger $logger ) {
-			$this->logger = $logger;
-		}
-
-		public function get_shipping_logger() {
-			return $this->shipping_logger;
-		}
-
-		public function set_shipping_logger( WC_Connect_Logger $logger ) {
-			$this->shipping_logger = $logger;
-		}
-
-		public function get_api_client() {
-			return $this->api_client;
-		}
-
-		public function set_api_client( WC_Connect_API_Client $api_client ) {
-			$this->api_client = $api_client;
-		}
-
-		public function get_service_schemas_store() {
-			return $this->service_schemas_store;
-		}
-
-		public function set_service_schemas_store( WC_Connect_Service_Schemas_Store $schemas_store ) {
-			$this->service_schemas_store = $schemas_store;
-		}
-
-		public function get_service_settings_store() {
-			return $this->service_settings_store;
-		}
-
-		public function set_service_settings_store( WC_Connect_Service_Settings_Store $settings_store ) {
-			$this->service_settings_store = $settings_store;
-		}
-
-		public function get_payment_methods_store() {
-			return $this->payment_methods_store;
-		}
-
-		public function set_payment_methods_store( WC_Connect_Payment_Methods_Store $payment_methods_store ) {
-			$this->payment_methods_store = $payment_methods_store;
-		}
-
-		public function get_tracks() {
-			return $this->tracks;
-		}
-
-		public function set_tracks( WC_Connect_Tracks $tracks ) {
-			$this->tracks = $tracks;
-		}
-
-		public function get_rest_account_settings_controller() {
-			return $this->rest_account_settings_controller;
-		}
-
-		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
-			$this->rest_tos_controller = $rest_tos_controller;
-		}
-
-		public function set_rest_assets_controller( WC_REST_Connect_Assets_Controller $rest_assets_controller ) {
-			$this->rest_assets_controller = $rest_assets_controller;
-		}
-
-		public function set_rest_carriers_controller( WC_REST_Connect_Shipping_Carriers_Controller $rest_carriers_controller ) {
-			$this->rest_carriers_controller = $rest_carriers_controller;
-		}
-
-		public function set_rest_subscriptions_controller( WC_REST_Connect_Subscriptions_Controller $rest_subscriptions_controller ) {
-			$this->rest_subscriptions_controller = $rest_subscriptions_controller;
-		}
-
-		public function set_rest_subscription_activate_controller( WC_REST_Connect_Subscription_Activate_Controller $rest_subscription_activate_controller ) {
-			$this->rest_subscription_activate_controller = $rest_subscription_activate_controller;
-		}
-
-		public function set_rest_carrier_controller( WC_REST_Connect_Shipping_Carrier_Controller $rest_carrier_controller ) {
-			$this->rest_carrier_controller = $rest_carrier_controller;
-		}
-
-		public function set_rest_carrier_delete_controller( WC_REST_Connect_Shipping_Carrier_Delete_Controller $rest_carrier_delete_controller ) {
-			$this->rest_carrier_delete_controller = $rest_carrier_delete_controller;
-		}
-
-		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
-			$this->rest_packages_controller = $rest_packages_controller;
-		}
-
-		public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
-			$this->rest_account_settings_controller = $rest_account_settings_controller;
-		}
-
-		public function get_rest_services_controller() {
-			return $this->rest_services_controller;
-		}
-
-		public function set_rest_services_controller( WC_REST_Connect_Services_Controller $rest_services_controller ) {
-			$this->rest_services_controller = $rest_services_controller;
-		}
-
-		public function get_rest_self_help_controller() {
-			return $this->rest_self_help_controller;
-		}
-
-		public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
-			$this->rest_self_help_controller = $rest_self_help_controller;
-		}
-
-		public function get_rest_shipping_label_controller() {
-			return $this->rest_shipping_label_controller;
-		}
-
-		public function set_rest_shipping_label_controller( WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller ) {
-			$this->rest_shipping_label_controller = $rest_shipping_label_controller;
-		}
-
-		public function get_rest_shipping_label_status_controller() {
-			return $this->rest_shipping_label_status_controller;
-		}
-
-		public function set_rest_shipping_label_status_controller( WC_REST_Connect_Shipping_Label_Status_Controller $rest_shipping_label_status_controller ) {
-			$this->rest_shipping_label_status_controller = $rest_shipping_label_status_controller;
-		}
-
-		public function get_rest_shipping_label_refund_controller() {
-			return $this->rest_shipping_label_refund_controller;
-		}
-
-		public function set_rest_shipping_label_refund_controller( WC_REST_Connect_Shipping_Label_Refund_Controller $rest_shipping_label_refund_controller ) {
-			$this->rest_shipping_label_refund_controller = $rest_shipping_label_refund_controller;
-		}
-
-		public function get_rest_shipping_label_preview_controller() {
-			return $this->rest_shipping_label_preview_controller;
-		}
-
-		public function set_rest_shipping_label_preview_controller( WC_REST_Connect_Shipping_Label_Preview_Controller $rest_shipping_label_preview_controller ) {
-			$this->rest_shipping_label_preview_controller = $rest_shipping_label_preview_controller;
-		}
-
-		public function get_rest_shipping_label_print_controller() {
-			return $this->rest_shipping_label_print_controller;
-		}
-
-		public function set_rest_shipping_label_print_controller( WC_REST_Connect_Shipping_Label_Print_Controller $rest_shipping_label_print_controller ) {
-			$this->rest_shipping_label_print_controller = $rest_shipping_label_print_controller;
-		}
-
-		public function set_rest_shipping_rates_controller( WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller ) {
-			$this->rest_shipping_rates_controller = $rest_shipping_rates_controller;
-		}
-
-		public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
-			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
-		}
-
-		public function set_carrier_types_controller( WC_REST_Connect_Shipping_Carrier_Types_Controller $rest_carrier_types_controller ) {
-			$this->rest_carrier_types_controller = $rest_carrier_types_controller;
-		}
-
-		public function set_rest_migration_flag_controller( WC_REST_Connect_Migration_Flag_Controller $rest_migration_flag_controller ) {
-			$this->rest_migration_flag_controller = $rest_migration_flag_controller;
-		}
-
-		public function get_carrier_types_controller() {
-			return $this->rest_carrier_types_controller;
-		}
-
-		public function get_service_schemas_validator() {
-			return $this->service_schemas_validator;
-		}
-
-		public function set_service_schemas_validator( WC_Connect_Service_Schemas_Validator $validator ) {
-			$this->service_schemas_validator = $validator;
-		}
-
-		public function get_settings_pages() {
-			return $this->settings_pages;
-		}
-
-		public function set_settings_pages( WC_Connect_Settings_Pages $settings_pages ) {
-			$this->settings_pages = $settings_pages;
-		}
-
-		public function get_help_view() {
-			return $this->help_view;
-		}
-
-		public function set_help_view( WC_Connect_Help_View $help_view ) {
-			$this->help_view = $help_view;
-		}
-
-		public function set_shipping_label( WC_Connect_Shipping_Label $shipping_label ) {
-			$this->shipping_label = $shipping_label;
-		}
-
-		public function set_nux( WC_Connect_Nux $nux ) {
-			$this->nux = $nux;
-		}
-
-		public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
-			$this->taxjar = $taxjar;
-		}
-
-		public function set_paypal_ec( WC_Connect_PayPal_EC $paypal_ec ) {
-			$this->paypal_ec = $paypal_ec;
-		}
-
-		public function set_label_reports( WC_Connect_Label_Reports $label_reports ) {
-			$this->label_reports = $label_reports;
-		}
-
-		/**
-		 * Load our textdomain
-		 *
-		 * @codeCoverageIgnore
-		 */
-		public function load_textdomain() {
-			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
-		}
-
-		public function jetpack_on_plugins_loaded() {
-			$jetpack_config = new Automattic\Jetpack\Config();
-			$jetpack_config->ensure(
-				'connection',
+		require_once __DIR__ . '/classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
+
+		$migration_state = intval( get_option( 'wcshipping_migration_state' ) );
+		if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
+			$core_logger = new WC_Logger();
+			$logger      = new WC_Connect_Logger( $core_logger );
+			$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
+			$tracks->record_user_event(
+				'migration_flag_state_update',
 				array(
-					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'migration_state' => $migration_state,
+					'updated'         => false,
 				)
 			);
 		}
+	}
 
-		public function on_plugins_loaded() {
-			$this->load_textdomain();
+	public static function plugin_uninstall() {
+		WC_Connect_Options::delete_all_options();
+		self::delete_notices();
+	}
 
-			/**
-			 * Allow third party logic to determine if this plugin should initiate its logic.
-			 *
-			 * The primary purpose here is to allow a smooth transition between the new WC Tax plugin
-			 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
-			 * plugins are activated at the same time.
-			 *
-			 * @since {{next-release}}
-			 *
-			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
-			 */
-			if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
-				// Show message that WCS&T is no longer doing anything.
-				add_action( 'admin_notices', array( $this, 'display_woo_shipping_and_woo_tax_are_active_notice' ) );
-
-				// Bail, so none of our tax and shipping logic will be initiated.
-				return;
-			}
-
-			if ( ! class_exists( 'WooCommerce' ) ) {
-				add_action(
-					'admin_notices',
-					function () {
-						/* translators: %s WC download URL link. */
-						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
-					}
-				);
-				return;
-			}
-
-			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+	/**
+	 * Deletes WC Admin notices.
+	 */
+	public static function delete_notices() {
+		if ( self::can_add_wc_admin_notice() ) {
+			require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+			WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
 		}
+	}
+	/**
+	 * Checks if WC Admin is active and includes needed classes.
+	 *
+	 * @return bool true|false.
+	 */
+	public static function can_add_wc_admin_notice() {
+		if ( ! class_exists( 'WC_Data_Store' ) ) {
+			return false;
+		}
+
+		try {
+			WC_Data_Store::load( 'admin-note' );
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		return trait_exists( 'Automattic\WooCommerce\Admin\Notes\NoteTraits' ) && class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
+	}
+
+	/**
+	 * Get WCS plugin version
+	 *
+	 * @return string
+	 */
+	public static function get_wcs_version() {
+		if ( null === self::$wcs_version ) {
+			$plugin_data       = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
+			self::$wcs_version = $plugin_data['Version'];
+		}
+		return self::$wcs_version;
+	}
+
+	/**
+	 * Get base url.
+	 *
+	 * @return string
+	 */
+	private static function get_wc_connect_base_url() {
+		return trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
+	}
+
+	/**
+	 * Get WCS admin script url.
+	 *
+	 * @return string
+	 */
+	public static function get_wcs_admin_script_url() {
+		return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.js';
+	}
+
+	/**
+	 * Get WCS admin css url.
+	 *
+	 * @return string
+	 */
+	public static function get_wcs_admin_style_url() {
+		if ( ! defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ) {
+			return self::get_wc_connect_base_url() . 'woocommerce-services-' . self::get_wcs_version() . '.css';
+		} else {
+			return '';
+		}
+	}
+
+	public function __construct() {
+		$this->wc_connect_base_url = self::get_wc_connect_base_url();
+		add_action(
+			'before_woocommerce_init',
+			function () {
+				if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+					\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', 'woocommerce-services/woocommerce-services.php' );
+				}
+			}
+		);
+
+		add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
+		add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
 
 		/**
-		 * Perform plugin bootstrapping that needs to happen before WC init.
+		 * Used to let WC Tax know WCS&T will handle the plugin's coexistence.
 		 *
-		 * This allows the modification of extensions, integrations, etc.
+		 * WCS&T does it by not registering its functionality and displaying an appropriate notice
+		 * in WP admin.
+		 *
+		 * The filter also includes "woo_shipping" in its name, but we've since implemented conditional
+		 * loading of all shipping functionality inside WCS&T, so there's no special need for any
+		 * "parallel support" being done in WC Shipping anymore.
+		 *
+		 * This new feature is represented via the "wc_services_will_disable_shipping_logic" hook.
 		 */
-		public function pre_wc_init() {
-			$this->load_dependencies();
-
-			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
-
-			// Prevent presenting users with TOS they've already
-			// accepted in the core WC Setup Wizard or on WP.com.
-			if ( ! $tos_accepted &&
-				( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() )
-			) {
-				WC_Connect_Options::update_option( 'tos_accepted', true );
-				delete_option( 'woocommerce_setup_jetpack_opted_in' );
-
-				$tos_accepted = true;
-			}
-
-			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
-			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
-
-			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
-				return;
-			}
-
-			add_action( 'rest_api_init', array( $this, 'tos_rest_init' ) );
-
-			// The entire plugin should be enabled if dev mode or connected + TOS.
-			if ( ! $tos_accepted ) {
-				return;
-			}
-
-			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
+		if ( $this->are_woo_shipping_and_woo_tax_active() ) {
+			add_filter( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', '__return_true' );
 		}
 
-		public function get_service_schema_defaults( $schema ) {
-			$defaults = array();
+		// Let WC Shipping know that the current version of WCS&T supports conditional shipping logic loading.
+		add_filter( 'wc_services_will_disable_shipping_logic', '__return_true' );
+	}
 
-			if ( ! property_exists( $schema, 'properties' ) ) {
-				return $defaults;
-			}
+	public function get_logger() {
+		return $this->logger;
+	}
 
-			foreach ( get_object_vars( $schema->properties ) as $prop_id => $prop_schema ) {
-				if ( property_exists( $prop_schema, 'default' ) ) {
-					$defaults[ $prop_id ] = $prop_schema->default;
+	public function set_logger( WC_Connect_Logger $logger ) {
+		$this->logger = $logger;
+	}
+
+	public function get_shipping_logger() {
+		return $this->shipping_logger;
+	}
+
+	public function set_shipping_logger( WC_Connect_Logger $logger ) {
+		$this->shipping_logger = $logger;
+	}
+
+	public function get_api_client() {
+		return $this->api_client;
+	}
+
+	public function set_api_client( WC_Connect_API_Client $api_client ) {
+		$this->api_client = $api_client;
+	}
+
+	public function get_service_schemas_store() {
+		return $this->service_schemas_store;
+	}
+
+	public function set_service_schemas_store( WC_Connect_Service_Schemas_Store $schemas_store ) {
+		$this->service_schemas_store = $schemas_store;
+	}
+
+	public function get_service_settings_store() {
+		return $this->service_settings_store;
+	}
+
+	public function set_service_settings_store( WC_Connect_Service_Settings_Store $settings_store ) {
+		$this->service_settings_store = $settings_store;
+	}
+
+	public function get_payment_methods_store() {
+		return $this->payment_methods_store;
+	}
+
+	public function set_payment_methods_store( WC_Connect_Payment_Methods_Store $payment_methods_store ) {
+		$this->payment_methods_store = $payment_methods_store;
+	}
+
+	public function get_tracks() {
+		return $this->tracks;
+	}
+
+	public function set_tracks( WC_Connect_Tracks $tracks ) {
+		$this->tracks = $tracks;
+	}
+
+	public function get_rest_account_settings_controller() {
+		return $this->rest_account_settings_controller;
+	}
+
+	public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
+		$this->rest_tos_controller = $rest_tos_controller;
+	}
+
+	public function set_rest_assets_controller( WC_REST_Connect_Assets_Controller $rest_assets_controller ) {
+		$this->rest_assets_controller = $rest_assets_controller;
+	}
+
+	public function set_rest_carriers_controller( WC_REST_Connect_Shipping_Carriers_Controller $rest_carriers_controller ) {
+		$this->rest_carriers_controller = $rest_carriers_controller;
+	}
+
+	public function set_rest_subscriptions_controller( WC_REST_Connect_Subscriptions_Controller $rest_subscriptions_controller ) {
+		$this->rest_subscriptions_controller = $rest_subscriptions_controller;
+	}
+
+	public function set_rest_subscription_activate_controller( WC_REST_Connect_Subscription_Activate_Controller $rest_subscription_activate_controller ) {
+		$this->rest_subscription_activate_controller = $rest_subscription_activate_controller;
+	}
+
+	public function set_rest_carrier_controller( WC_REST_Connect_Shipping_Carrier_Controller $rest_carrier_controller ) {
+		$this->rest_carrier_controller = $rest_carrier_controller;
+	}
+
+	public function set_rest_carrier_delete_controller( WC_REST_Connect_Shipping_Carrier_Delete_Controller $rest_carrier_delete_controller ) {
+		$this->rest_carrier_delete_controller = $rest_carrier_delete_controller;
+	}
+
+	public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
+		$this->rest_packages_controller = $rest_packages_controller;
+	}
+
+	public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
+		$this->rest_account_settings_controller = $rest_account_settings_controller;
+	}
+
+	public function get_rest_services_controller() {
+		return $this->rest_services_controller;
+	}
+
+	public function set_rest_services_controller( WC_REST_Connect_Services_Controller $rest_services_controller ) {
+		$this->rest_services_controller = $rest_services_controller;
+	}
+
+	public function get_rest_self_help_controller() {
+		return $this->rest_self_help_controller;
+	}
+
+	public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
+		$this->rest_self_help_controller = $rest_self_help_controller;
+	}
+
+	public function get_rest_shipping_label_controller() {
+		return $this->rest_shipping_label_controller;
+	}
+
+	public function set_rest_shipping_label_controller( WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller ) {
+		$this->rest_shipping_label_controller = $rest_shipping_label_controller;
+	}
+
+	public function get_rest_shipping_label_status_controller() {
+		return $this->rest_shipping_label_status_controller;
+	}
+
+	public function set_rest_shipping_label_status_controller( WC_REST_Connect_Shipping_Label_Status_Controller $rest_shipping_label_status_controller ) {
+		$this->rest_shipping_label_status_controller = $rest_shipping_label_status_controller;
+	}
+
+	public function get_rest_shipping_label_refund_controller() {
+		return $this->rest_shipping_label_refund_controller;
+	}
+
+	public function set_rest_shipping_label_refund_controller( WC_REST_Connect_Shipping_Label_Refund_Controller $rest_shipping_label_refund_controller ) {
+		$this->rest_shipping_label_refund_controller = $rest_shipping_label_refund_controller;
+	}
+
+	public function get_rest_shipping_label_preview_controller() {
+		return $this->rest_shipping_label_preview_controller;
+	}
+
+	public function set_rest_shipping_label_preview_controller( WC_REST_Connect_Shipping_Label_Preview_Controller $rest_shipping_label_preview_controller ) {
+		$this->rest_shipping_label_preview_controller = $rest_shipping_label_preview_controller;
+	}
+
+	public function get_rest_shipping_label_print_controller() {
+		return $this->rest_shipping_label_print_controller;
+	}
+
+	public function set_rest_shipping_label_print_controller( WC_REST_Connect_Shipping_Label_Print_Controller $rest_shipping_label_print_controller ) {
+		$this->rest_shipping_label_print_controller = $rest_shipping_label_print_controller;
+	}
+
+	public function set_rest_shipping_rates_controller( WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller ) {
+		$this->rest_shipping_rates_controller = $rest_shipping_rates_controller;
+	}
+
+	public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
+		$this->rest_address_normalization_controller = $rest_address_normalization_controller;
+	}
+
+	public function set_carrier_types_controller( WC_REST_Connect_Shipping_Carrier_Types_Controller $rest_carrier_types_controller ) {
+		$this->rest_carrier_types_controller = $rest_carrier_types_controller;
+	}
+
+	public function set_rest_migration_flag_controller( WC_REST_Connect_Migration_Flag_Controller $rest_migration_flag_controller ) {
+		$this->rest_migration_flag_controller = $rest_migration_flag_controller;
+	}
+
+	public function get_carrier_types_controller() {
+		return $this->rest_carrier_types_controller;
+	}
+
+	public function get_service_schemas_validator() {
+		return $this->service_schemas_validator;
+	}
+
+	public function set_service_schemas_validator( WC_Connect_Service_Schemas_Validator $validator ) {
+		$this->service_schemas_validator = $validator;
+	}
+
+	public function get_settings_pages() {
+		return $this->settings_pages;
+	}
+
+	public function set_settings_pages( WC_Connect_Settings_Pages $settings_pages ) {
+		$this->settings_pages = $settings_pages;
+	}
+
+	public function get_help_view() {
+		return $this->help_view;
+	}
+
+	public function set_help_view( WC_Connect_Help_View $help_view ) {
+		$this->help_view = $help_view;
+	}
+
+	public function set_shipping_label( WC_Connect_Shipping_Label $shipping_label ) {
+		$this->shipping_label = $shipping_label;
+	}
+
+	public function set_nux( WC_Connect_Nux $nux ) {
+		$this->nux = $nux;
+	}
+
+	public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
+		$this->taxjar = $taxjar;
+	}
+
+	public function set_paypal_ec( WC_Connect_PayPal_EC $paypal_ec ) {
+		$this->paypal_ec = $paypal_ec;
+	}
+
+	public function set_label_reports( WC_Connect_Label_Reports $label_reports ) {
+		$this->label_reports = $label_reports;
+	}
+
+	/**
+	 * Load our textdomain
+	 *
+	 * @codeCoverageIgnore
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
+	}
+
+	public function jetpack_on_plugins_loaded() {
+		$jetpack_config = new Automattic\Jetpack\Config();
+		$jetpack_config->ensure(
+			'connection',
+			array(
+				'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
+				'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-services' ),
+			)
+		);
+	}
+
+	public function on_plugins_loaded() {
+		$this->load_textdomain();
+
+		/**
+		 * Allow third party logic to determine if this plugin should initiate its logic.
+		 *
+		 * The primary purpose here is to allow a smooth transition between the new WC Tax plugin
+		 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
+		 * plugins are activated at the same time.
+		 *
+		 * @since {{next-release}}
+		 *
+		 * @param bool $status The value will determine if we should initiate the plugins logic or not.
+		 */
+		if ( apply_filters( 'wc_services_will_handle_coexistence_with_woo_shipping_and_woo_tax', false ) ) {
+			// Show message that WCS&T is no longer doing anything.
+			add_action( 'admin_notices', array( $this, 'display_woo_shipping_and_woo_tax_are_active_notice' ) );
+
+			// Bail, so none of our tax and shipping logic will be initiated.
+			return;
+		}
+
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			add_action(
+				'admin_notices',
+				function () {
+					/* translators: %s WC download URL link. */
+					echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 				}
+			);
+			return;
+		}
 
-				if (
-					property_exists( $prop_schema, 'type' ) &&
-					'object' === $prop_schema->type
-				) {
-					$defaults[ $prop_id ] = $this->get_service_schema_defaults( $prop_schema );
-				}
-			}
+		add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+	}
 
+	/**
+	 * Perform plugin bootstrapping that needs to happen before WC init.
+	 *
+	 * This allows the modification of extensions, integrations, etc.
+	 */
+	public function pre_wc_init() {
+		$this->load_dependencies();
+
+		$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
+
+		// Prevent presenting users with TOS they've already
+		// accepted in the core WC Setup Wizard or on WP.com.
+		if ( ! $tos_accepted &&
+			( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() )
+		) {
+			WC_Connect_Options::update_option( 'tos_accepted', true );
+			delete_option( 'woocommerce_setup_jetpack_opted_in' );
+
+			$tos_accepted = true;
+		}
+
+		add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
+
+		if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
+			return;
+		}
+
+		add_action( 'rest_api_init', array( $this, 'tos_rest_init' ) );
+
+		// The entire plugin should be enabled if dev mode or connected + TOS.
+		if ( ! $tos_accepted ) {
+			return;
+		}
+
+		add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
+	}
+
+	public function get_service_schema_defaults( $schema ) {
+		$defaults = array();
+
+		if ( ! property_exists( $schema, 'properties' ) ) {
 			return $defaults;
 		}
 
-		public function save_defaults_to_shipping_method( $instance_id, $service_id, $zone_id ) {
-			$shipping_method = WC_Shipping_Zones::get_shipping_method( $instance_id );
-			$schema          = $shipping_method->get_service_schema();
-			$defaults        = (object) $this->get_service_schema_defaults( $schema->service_settings );
-			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $service_id, $instance_id );
-		}
-
-		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
-			$method = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
-			if ( empty( $method ) ) {
-				return;
+		foreach ( get_object_vars( $schema->properties ) as $prop_id => $prop_schema ) {
+			if ( property_exists( $prop_schema, 'default' ) ) {
+				$defaults[ $prop_id ] = $prop_schema->default;
 			}
 
-			$zone        = WC_Shipping_Zones::get_zone( $zone_id );
-			$instance_id = $zone->add_shipping_method( $method->method_id );
-			$zone->save();
-
-			// Dismiss the "add a method to zone" pointer.
-			$this->nux->dismiss_pointer( 'wc_services_add_service_to_zone' );
-		}
-
-		/**
-		 * Bootstrap our plugin and hook into WP/WC core.
-		 *
-		 * @codeCoverageIgnore
-		 */
-		public function after_wc_init() {
-			$this->schedule_service_schemas_fetch();
-			$this->service_settings_store->migrate_legacy_services();
-			$this->attach_hooks();
-		}
-
-		/**
-		 * Load all plugin dependencies.
-		 */
-		public function load_dependencies() {
-			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
-			require_once __DIR__ . '/classes/class-wc-connect-utils.php';
-			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
-			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-validator.php';
-			require_once __DIR__ . '/classes/class-wc-connect-taxjar-integration.php';
-			require_once __DIR__ . '/classes/class-wc-connect-error-notice.php';
-			require_once __DIR__ . '/classes/class-wc-connect-compatibility.php';
-			require_once __DIR__ . '/classes/class-wc-connect-compatibility-wcshipping.php';
-			require_once __DIR__ . '/classes/class-wc-connect-shipping-method.php';
-			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-store.php';
-			require_once __DIR__ . '/classes/class-wc-connect-service-settings-store.php';
-			require_once __DIR__ . '/classes/class-wc-connect-payment-methods-store.php';
-			require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
-			require_once __DIR__ . '/classes/class-wc-connect-help-view.php';
-			require_once __DIR__ . '/classes/class-wc-connect-shipping-label.php';
-			require_once __DIR__ . '/classes/class-wc-connect-nux.php';
-			require_once __DIR__ . '/classes/class-wc-connect-paypal-ec.php';
-			require_once __DIR__ . '/classes/class-wc-connect-label-reports.php';
-			require_once __DIR__ . '/classes/class-wc-connect-privacy.php';
-			require_once __DIR__ . '/classes/class-wc-connect-account-settings.php';
-			require_once __DIR__ . '/classes/class-wc-connect-package-settings.php';
-			require_once __DIR__ . '/classes/class-wc-connect-continents.php';
-			require_once __DIR__ . '/classes/class-wc-connect-order-presenter.php';
-			require_once __DIR__ . '/classes/class-wc-connect-cart-validation.php';
-
-			$core_logger     = new WC_Logger();
-			$logger          = new WC_Connect_Logger( $core_logger );
-			$taxes_logger    = new WC_Connect_Logger( $core_logger, 'taxes' );
-			$shipping_logger = new WC_Connect_Logger( $core_logger, 'shipping' );
-
-			$validator = new WC_Connect_Service_Schemas_Validator();
-
-			if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
-				require_once __DIR__ . '/tests/php/class-wc-connect-api-client-local-test-mock.php';
-				$api_client = new WC_Connect_API_Client_Local_Test_Mock( $validator, $this );
-			} else {
-				require_once __DIR__ . '/classes/class-wc-connect-api-client-live.php';
-				$api_client = new WC_Connect_API_Client_Live( $validator, $this );
+			if (
+				property_exists( $prop_schema, 'type' ) &&
+				'object' === $prop_schema->type
+			) {
+				$defaults[ $prop_id ] = $this->get_service_schema_defaults( $prop_schema );
 			}
-			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
-			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
-			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
-			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
-			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
-			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
-			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
-
-			new WC_Connect_Privacy( $settings_store, $api_client );
-
-			$this->set_logger( $logger );
-			$this->set_shipping_logger( $shipping_logger );
-			$this->set_api_client( $api_client );
-			$this->set_service_schemas_validator( $validator );
-			$this->set_service_schemas_store( $schemas_store );
-			$this->set_service_settings_store( $settings_store );
-			$this->set_payment_methods_store( $payment_methods_store );
-			$this->set_tracks( $tracks );
-			$this->set_shipping_label( $shipping_label );
-			$this->set_nux( $nux );
-			$this->set_taxjar( $taxjar );
-			$this->set_paypal_ec( $paypal_ec );
-			$this->set_label_reports( $label_reports );
-
-			$cart_validation = new WC_Connect_Cart_Validation();
-			$cart_validation->register_filters();
-			$cart_validation->register_actions();
 		}
 
-		/**
-		 * Load admin-only plugin dependencies.
-		 */
-		public function load_admin_dependencies() {
-			require_once __DIR__ . '/classes/class-wc-connect-debug-tools.php';
-			new WC_Connect_Debug_Tools( $this->api_client );
+		return $defaults;
+	}
 
-			$schema   = $this->get_service_schemas_store();
-			$settings = $this->get_service_settings_store();
-			$logger   = $this->get_logger();
-			$this->set_help_view( new WC_Connect_Help_View( $schema, $this->taxjar, $settings, $logger ) );
-			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
-			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
+	public function save_defaults_to_shipping_method( $instance_id, $service_id, $zone_id ) {
+		$shipping_method = WC_Shipping_Zones::get_shipping_method( $instance_id );
+		$schema          = $shipping_method->get_service_schema();
+		$defaults        = (object) $this->get_service_schema_defaults( $schema->service_settings );
+		WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $service_id, $instance_id );
+	}
 
+	protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
+		$method = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
+		if ( empty( $method ) ) {
+			return;
+		}
+
+		$zone        = WC_Shipping_Zones::get_zone( $zone_id );
+		$instance_id = $zone->add_shipping_method( $method->method_id );
+		$zone->save();
+
+		// Dismiss the "add a method to zone" pointer.
+		$this->nux->dismiss_pointer( 'wc_services_add_service_to_zone' );
+	}
+
+	/**
+	 * Bootstrap our plugin and hook into WP/WC core.
+	 *
+	 * @codeCoverageIgnore
+	 */
+	public function after_wc_init() {
+		$this->schedule_service_schemas_fetch();
+		$this->service_settings_store->migrate_legacy_services();
+		$this->attach_hooks();
+	}
+
+	/**
+	 * Load all plugin dependencies.
+	 */
+	public function load_dependencies() {
+		require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
+		require_once __DIR__ . '/classes/class-wc-connect-utils.php';
+		require_once __DIR__ . '/classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/classes/class-wc-connect-service-schemas-validator.php';
+		require_once __DIR__ . '/classes/class-wc-connect-taxjar-integration.php';
+		require_once __DIR__ . '/classes/class-wc-connect-error-notice.php';
+		require_once __DIR__ . '/classes/class-wc-connect-compatibility.php';
+		require_once __DIR__ . '/classes/class-wc-connect-compatibility-wcshipping-packages.php';
+		require_once __DIR__ . '/classes/class-wc-connect-shipping-method.php';
+		require_once __DIR__ . '/classes/class-wc-connect-service-schemas-store.php';
+		require_once __DIR__ . '/classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/classes/class-wc-connect-payment-methods-store.php';
+		require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/classes/class-wc-connect-help-view.php';
+		require_once __DIR__ . '/classes/class-wc-connect-shipping-label.php';
+		require_once __DIR__ . '/classes/class-wc-connect-nux.php';
+		require_once __DIR__ . '/classes/class-wc-connect-paypal-ec.php';
+		require_once __DIR__ . '/classes/class-wc-connect-label-reports.php';
+		require_once __DIR__ . '/classes/class-wc-connect-privacy.php';
+		require_once __DIR__ . '/classes/class-wc-connect-account-settings.php';
+		require_once __DIR__ . '/classes/class-wc-connect-package-settings.php';
+		require_once __DIR__ . '/classes/class-wc-connect-continents.php';
+		require_once __DIR__ . '/classes/class-wc-connect-order-presenter.php';
+		require_once __DIR__ . '/classes/class-wc-connect-cart-validation.php';
+
+		$core_logger     = new WC_Logger();
+		$logger          = new WC_Connect_Logger( $core_logger );
+		$taxes_logger    = new WC_Connect_Logger( $core_logger, 'taxes' );
+		$shipping_logger = new WC_Connect_Logger( $core_logger, 'shipping' );
+
+		$wcshipping_package_compatibility = new WC_Connect_Compatibility_WCShipping_Packages();
+		$wcshipping_package_compatibility::maybe_enable();
+
+		$validator = new WC_Connect_Service_Schemas_Validator();
+
+		if ( defined( 'WOOCOMMERCE_SERVICES_LOCAL_TEST_MODE' ) ) {
+			require_once __DIR__ . '/tests/php/class-wc-connect-api-client-local-test-mock.php';
+			$api_client = new WC_Connect_API_Client_Local_Test_Mock( $validator, $this );
+		} else {
+			require_once __DIR__ . '/classes/class-wc-connect-api-client-live.php';
+			$api_client = new WC_Connect_API_Client_Live( $validator, $this );
+		}
+		$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+		$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+		$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
+		$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
+		$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
+		$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
+		$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
+		$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
+		$label_reports         = new WC_Connect_Label_Reports( $settings_store );
+
+		new WC_Connect_Privacy( $settings_store, $api_client );
+
+		$this->set_logger( $logger );
+		$this->set_shipping_logger( $shipping_logger );
+		$this->set_api_client( $api_client );
+		$this->set_service_schemas_validator( $validator );
+		$this->set_service_schemas_store( $schemas_store );
+		$this->set_service_settings_store( $settings_store );
+		$this->set_payment_methods_store( $payment_methods_store );
+		$this->set_tracks( $tracks );
+		$this->set_shipping_label( $shipping_label );
+		$this->set_nux( $nux );
+		$this->set_taxjar( $taxjar );
+		$this->set_paypal_ec( $paypal_ec );
+		$this->set_label_reports( $label_reports );
+
+		$cart_validation = new WC_Connect_Cart_Validation();
+		$cart_validation->register_filters();
+		$cart_validation->register_actions();
+	}
+
+	/**
+	 * Load admin-only plugin dependencies.
+	 */
+	public function load_admin_dependencies() {
+		require_once __DIR__ . '/classes/class-wc-connect-debug-tools.php';
+		new WC_Connect_Debug_Tools( $this->api_client );
+
+		$schema   = $this->get_service_schemas_store();
+		$settings = $this->get_service_settings_store();
+		$logger   = $this->get_logger();
+		$this->set_help_view( new WC_Connect_Help_View( $schema, $this->taxjar, $settings, $logger ) );
+		add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
+		add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
+
+		if ( ! self::is_wc_shipping_activated() ) {
 			// We only use the settings page for shipping since tax settings are part of
 			// the core "WooCommerce > Settings > Tax" tab.
 			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
@@ -1470,7 +1474,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				WC_Shipping::instance()->register_shipping_method( $shipping_method );
 			}
 		}
-
 
 		public function woocommerce_payment_gateways( $payment_gateways ) {
 			return $payment_gateways;
