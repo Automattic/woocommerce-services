@@ -58,12 +58,12 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, o
 			<FlexItem>
 				<Flex>
 					<span>
-						{translate('Update')}
+						{translate('Try WooCommerce Shipping')}
 					</span>
 					<h2>
-						{translate('A new dedicated WooCommerce Shipping extension is now available')}
+						{translate('A new WooCommerce Shipping experience is now available')}
 					</h2>
-					<p>{translate('We\'ll ensure a seamless transition by transferring all your settings and shipping labels when you update.')}</p>
+					<p>{translate('We\'ll ensure a seamless transition by allowing you to migrate all your compatible settings and shipping labels when you update.')}</p>
 					<p>{translate('Here\'s what you can expect from the new shipping experience:')}</p>
 
 					<ul>
@@ -74,7 +74,7 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, o
 									{translate('A seamless transition')}
 								</h3>
 								<p>
-									{translate('All of your settings and shipment history have been imported to the new extension.')}
+									{translate('Automatically migrate all your compatible settings and shipment history to the new extension.')}
 								</p>
 							</div>
 						</li>
@@ -98,7 +98,7 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, o
 								</h3>
 								<p>
 									{translate(
-										'Send using trusted shipping carriers like USPS and DHL Express, with more options and carriers coming soon.')}
+										'Ship your productss using trusted shipping carriers like USPS and DHL Express at discounted rates, with more options and carriers coming soon.')}
 								</p>
 							</div>
 						</li>
@@ -121,7 +121,7 @@ const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, o
 						{translate('Maybe later')}
 					</Button>}
 					<Button id="migration__announcement-update-button" isPrimary onClick={update} isBusy={isUpdating} disabled={isUpdating}>
-						{isUpdating ? translate('Updating') : translate('Update now')}
+						{isUpdating ? translate('Installing WooCommerce Shipping…') : translate('Try WooCommerce Shipping now')}
 					</Button>
 				</Flex>
 			</FlexItem>
