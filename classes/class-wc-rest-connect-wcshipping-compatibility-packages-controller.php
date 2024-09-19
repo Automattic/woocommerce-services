@@ -15,5 +15,5 @@ require_once __DIR__ . '/class-wc-rest-connect-wcshipping-compatibility-packages
  * REST controller using WCS&T's settings store instead of WCShipping's.
  */
 class WC_REST_Connect_WCShipping_Compatibility_Packages_Controller extends WC_REST_Connect_Packages_Controller {
-	protected $rest_base = 'connect/wcshipping-compatibility-packages';
+	protected $rest_base = 'connect/wcservices/packages';
 }

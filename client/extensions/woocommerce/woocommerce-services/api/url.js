@@ -1,6 +1,6 @@
 /** @format */
 export const accountSettings = 'connect/account/settings';
-export const packages = ( window.wcConnectData && '1' === window.wcConnectData.is_wcshipping_active ) ? 'connect/wcshipping-compatibility-packages' : 'connect/packages';
+export const packages = ( window.wcConnectData && '1' === window.wcConnectData.is_wcshipping_active ) ? 'connect/wcservices/packages' : 'connect/packages';
 export const orderLabels = ( orderId ) => `connect/label/${ orderId }`;
 export const getLabelRates = ( orderId ) => `connect/label/${ orderId }/rates`;
 export const labelsStatus = ( orderId, labelIds ) => `connect/label/${ orderId }/${ labelIds.join() }`;

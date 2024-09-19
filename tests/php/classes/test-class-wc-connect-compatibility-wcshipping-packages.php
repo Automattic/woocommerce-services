@@ -227,6 +227,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		$this->set_is_wcshipping_active( false );
 		$this->set_has_completed_migration( false );
 
+		// This won't actually enable anything because the conditions above prevent it.
 		WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
 
 		// Read.
@@ -236,7 +237,9 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		update_option(
 			'wc_connect_options',
 			array(
-				'packages' => array( array( 'name' => 'foo' ) ),
+				'foo'                 => 'bar',
+				'packages'            => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['packages'],
+				'predefined_packages' => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['predefined_packages'],
 			)
 		);
 		$this->assertEquals( self::EXAMPLE_VALID_WCSHIPPING_OPTIONS, get_option( 'wcshipping_options' ) );
