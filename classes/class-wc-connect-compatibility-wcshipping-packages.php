@@ -27,6 +27,13 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		'maxWeight'  => 'max_weight',
 	);
 
+	/**
+	 * Keys that are allowed in packages mapped to the WCS&T package data format.
+	 *
+	 * Other keys will be removed.
+	 *
+	 * @var array
+	 */
 	const KEYS_USED_BY_WCSERVICES = array(
 		'box_weight',
 		'inner_dimensions',
@@ -36,6 +43,13 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		'outer_dimensions', // This could be set in the past to old custom packages might still have it.
 	);
 
+	/**
+	 * Keys that are allowed in packages mapped to the WCShipping package data format.
+	 *
+	 * Other keys will be removed.
+	 *
+	 * @var array
+	 */
 	const KEYS_USED_BY_WCSHIPPING = array(
 		'boxWeight',
 		'dimensions',
@@ -45,6 +59,11 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		'type',
 	);
 
+	/**
+	 * Registers all, some, or no hooks based on store configuration.
+	 *
+	 * @return void
+	 */
 	public static function maybe_enable() {
 		// Don't do anything if WooCommerce Shipping is not active.
 		if ( ! WC_Connect_Loader::is_wc_shipping_activated() ) {
@@ -68,6 +87,14 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		add_action( 'wcservices_rest_api_init', array( self::class, 'register_wcshipping_compatibility_rest_controller' ) );
 	}
 
+	/**
+	 * Registers hooks intercepting reads/writes to "wc_connect_options".
+	 *
+	 * This is done to replace the keys "packages" and "predefined_packages" with values from WCShipping's options
+	 * after doing some mapping.
+	 *
+	 * @return void
+	 */
 	public static function register_option_overwriting_hooks() {
 		// Intercept reads of "wc_connect_options[packages]" and "wc_connect_options[predefined_packages]".
 		add_filter( 'option_wc_connect_options', array( self::class, 'intercept_packages_read' ) );
@@ -78,6 +105,15 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_predefined_packages_update' ), 10, 2 );
 	}
 
+	/**
+	 * Replaces `wc_connect_options[packages]` with mapped values from `wcshipping_options[packages]`.
+	 *
+	 * Leaves the rest of `wc_connect_options` intact.
+	 *
+	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table.
+	 *
+	 * @return mixed
+	 */
 	public static function intercept_packages_read( $wc_connect_options ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
@@ -88,6 +124,15 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		return $wc_connect_options;
 	}
 
+	/**
+	 * Replaces `wc_connect_options[predefined_packages]` with values from `wcshipping_options[predefined_packages]`.
+	 *
+	 * Leaves the rest of `wc_connect_options` intact.
+	 *
+	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table.
+	 *
+	 * @return mixed
+	 */
 	public static function intercept_predefined_packages_read( $wc_connect_options ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
@@ -98,6 +143,16 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		return $wc_connect_options;
 	}
 
+	/**
+	 * Saves the mapped value of `wc_connect_options[packages]` to `wcshipping_options[packages]`.
+	 *
+	 * Leaves the rest of `wcshipping_options` intact.
+	 *
+	 * @param mixed $old_wc_connect_options "wc_connect_options" value from the WP options table prior to the update.
+	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table after updating.
+	 *
+	 * @return mixed
+	 */
 	public static function intercept_packages_update( $old_wc_connect_options, $wc_connect_options ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
@@ -110,6 +165,16 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		update_option( 'wcshipping_options', $wcshipping_options );
 	}
 
+	/**
+	 * Saves the mapped value of `wc_connect_options[predefined_packages]` to `wcshipping_options[predefined_packages]`.
+	 *
+	 * Leaves the rest of `wcshipping_options` intact.
+	 *
+	 * @param mixed $old_wc_connect_options "wc_connect_options" value from the WP options table prior to the update.
+	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table after updating.
+	 *
+	 * @return mixed
+	 */
 	public static function intercept_predefined_packages_update( $old_wc_connect_options, $wc_connect_options ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
@@ -153,6 +218,13 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		$rest_wcshipping_package_compatibility_controller->register_routes();
 	}
 
+	/**
+	 * Maps package data from WCShipping's to WCS&T's format.
+	 *
+	 * @param array $custom_packages The custom packages to map from WCShipping's to WCS&T's format.
+	 *
+	 * @return array
+	 */
 	public static function map_packages_to_wcservices_format( $custom_packages ) {
 		$old_custom_packages = $custom_packages;
 
@@ -169,6 +241,13 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		);
 	}
 
+	/**
+	 * Maps package data from WCS&T's to WCShipping's format.
+	 *
+	 * @param array $custom_packages The custom packages to map from WCS&T's to WCShipping's format.
+	 *
+	 * @return array
+	 */
 	public static function map_packages_to_wcshipping_format( $custom_packages ) {
 		$old_custom_packages = $custom_packages;
 
@@ -186,7 +265,12 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	}
 
 	/**
-	 * Rename keys from WCShipping's format to WCS&T's, then unset WCShipping's.
+	 * Renames keys according to provided key map then unsets the original keys.
+	 *
+	 * @param array $package Package data.
+	 * @param array $key_map Mapping to follow.
+	 *
+	 * @return array
 	 */
 	private static function rename_keys( $package, $key_map ) {
 		foreach ( $key_map as $source => $target ) {
@@ -199,10 +283,28 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		return $package;
 	}
 
+	/**
+	 * Unsets keys that aren't in `$allowed_keys`.
+	 *
+	 * @param array $package Package data.
+	 * @param array $allowed_keys Keys that will be left in the array, if present. Other keys are unset.
+	 *
+	 * @return array
+	 */
 	private static function unset_unused_keys( $package, $allowed_keys ) {
 		return array_intersect_key( $package, array_flip( $allowed_keys ) );
 	}
 
+	/**
+	 * Maps a package's "type" prop ("box"/"envelope") to "is_letter" (true/false).
+	 *
+	 * "type" is the format used by WCShipping.
+	 * "is_letter" is the format used by WCS&T.
+	 *
+	 * @param array $package Package data.
+	 *
+	 * @return array
+	 */
 	private static function map_type_to_is_letter( $package ) {
 		if ( isset( $package['type'] ) ) {
 			$package['is_letter'] = 'envelope' === $package['type'];
@@ -212,6 +314,16 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		return $package;
 	}
 
+	/**
+	 * Maps a package's "is_letter" prop (true/false) to "type" ("box"/"envelope").
+	 *
+	 * "type" is the format used by WCShipping.
+	 * "is_letter" is the format used by WCS&T.
+	 *
+	 * @param array $package Package data.
+	 *
+	 * @return array
+	 */
 	private static function map_is_letter_to_type( $package ) {
 		if ( isset( $package['is_letter'] ) ) {
 			$package['type'] = $package['is_letter'] ? 'envelope' : 'box';
