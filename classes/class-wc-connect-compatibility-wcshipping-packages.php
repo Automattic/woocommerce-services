@@ -38,9 +38,9 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		'box_weight',
 		'inner_dimensions',
 		'is_letter',
+		'is_user_defined',
 		'max_weight',
 		'name',
-		'outer_dimensions', // This could be set in the past to old custom packages might still have it.
 	);
 
 	/**
@@ -54,6 +54,7 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		'boxWeight',
 		'dimensions',
 		'id',
+		'is_user_defined',
 		'maxWeight',
 		'name',
 		'type',

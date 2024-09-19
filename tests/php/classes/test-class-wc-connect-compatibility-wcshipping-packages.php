@@ -5,13 +5,14 @@
  */
 class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_Case {
 
-	const EXAMPLE_VALID_WC_CONNECT_OPTIONS = array(
+	const EXAMPLE_WC_CONNECT_OPTIONS = array(
 		'paper_size'          => 'letter',
 		'packages'            => array(
 			array(
 				'box_weight'       => 101,
 				'inner_dimensions' => '102 x 103 x 104',
 				'is_letter'        => false,
+				'is_user_defined'  => true,
 				'max_weight'       => 105,
 				'name'             => 'WCS&T custom box',
 				'outer_dimensions' => '106 x 107 x 108',
@@ -20,6 +21,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 				'box_weight'       => 201,
 				'inner_dimensions' => '202 x 203 x 204',
 				'is_letter'        => true,
+				'is_user_defined'  => true,
 				'max_weight'       => 205,
 				'name'             => 'WCS&T custom envelope',
 				'outer_dimensions' => '206 x 207 x 208',
@@ -28,24 +30,26 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		'predefined_packages' => array( 'WCS&T predefined package' ),
 	);
 
-	const EXAMPLE_VALID_WCSHIPPING_OPTIONS = array(
+	const EXAMPLE_WCSHIPPING_OPTIONS = array(
 		'paper_size'          => 'legal',
 		'packages'            => array(
 			array(
-				'boxWeight'  => 301,
-				'dimensions' => '302 x 303 x 304',
-				'id'         => 305,
-				'maxWeight'  => 306,
-				'name'       => 'WCShipping custom box',
-				'type'       => 'box',
+				'boxWeight'       => 301,
+				'dimensions'      => '302 x 303 x 304',
+				'id'              => 305,
+				'is_user_defined' => true,
+				'maxWeight'       => 306,
+				'name'            => 'WCShipping custom box',
+				'type'            => 'box',
 			),
 			array(
-				'boxWeight'  => 401,
-				'dimensions' => '402 x 403 x 404',
-				'id'         => 405,
-				'maxWeight'  => 406,
-				'name'       => 'WCShipping custom envelope',
-				'type'       => 'envelope',
+				'boxWeight'       => 401,
+				'dimensions'      => '402 x 403 x 404',
+				'id'              => 405,
+				'is_user_defined' => true,
+				'maxWeight'       => 406,
+				'name'            => 'WCShipping custom envelope',
+				'type'            => 'envelope',
 			),
 			array(
 				'boxWeight'                  => 501,
@@ -55,6 +59,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 				'inner_dimensions'           => '507 x 508 x 509',
 				'is_letter'                  => true,
 				'isLetter'                   => true,
+				'is_user_defined'            => true,
 				'maxWeight'                  => 510,
 				'max_weight'                 => 511,
 				'name'                       => 'WCShipping custom envelope with some leftover fields from WCS&T migration or previous package data formatting',
@@ -83,8 +88,8 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 
 	public function setUp(): void {
 		parent::setUp();
-		update_option( 'wc_connect_options', self::EXAMPLE_VALID_WC_CONNECT_OPTIONS );
-		update_option( 'wcshipping_options', self::EXAMPLE_VALID_WCSHIPPING_OPTIONS );
+		update_option( 'wc_connect_options', self::EXAMPLE_WC_CONNECT_OPTIONS );
+		update_option( 'wcshipping_options', self::EXAMPLE_WCSHIPPING_OPTIONS );
 	}
 
 	public function test_it_enables_all_compatibility_features_if_wcshipping_is_active_and_settings_were_migrated_from_wcservices() {
@@ -139,6 +144,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 				'box_weight'       => 301,
 				'inner_dimensions' => '302 x 303 x 304',
 				'is_letter'        => false,
+				'is_user_defined'  => true,
 				'max_weight'       => 306,
 				'name'             => 'WCShipping custom box',
 			),
@@ -146,6 +152,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 				'box_weight'       => 401,
 				'inner_dimensions' => '402 x 403 x 404',
 				'is_letter'        => true,
+				'is_user_defined'  => true,
 				'max_weight'       => 406,
 				'name'             => 'WCShipping custom envelope',
 			),
@@ -153,18 +160,18 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 				'box_weight'       => 501,
 				'inner_dimensions' => '503 x 504 x 505',
 				'is_letter'        => false,
+				'is_user_defined'  => true,
 				'max_weight'       => 510,
 				'name'             => 'WCShipping custom envelope with some leftover fields from WCS&T migration or previous package data formatting',
-				'outer_dimensions' => '512 x 513 x 514',
 			),
 		);
 
 		$this->assertEquals(
 			array_merge(
-				self::EXAMPLE_VALID_WC_CONNECT_OPTIONS,
+				self::EXAMPLE_WC_CONNECT_OPTIONS,
 				array(
 					'packages'            => $expected_custom_wcshipping_packages_mapped_to_wcservices_format,
-					'predefined_packages' => self::EXAMPLE_VALID_WCSHIPPING_OPTIONS['predefined_packages'],
+					'predefined_packages' => self::EXAMPLE_WCSHIPPING_OPTIONS['predefined_packages'],
 				)
 			),
 			get_option( 'wc_connect_options' )
@@ -181,8 +188,8 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 			'wc_connect_options',
 			array(
 				'foo'                 => 'bar',
-				'packages'            => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['packages'],
-				'predefined_packages' => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['predefined_packages'],
+				'packages'            => self::EXAMPLE_WC_CONNECT_OPTIONS['packages'],
+				'predefined_packages' => self::EXAMPLE_WC_CONNECT_OPTIONS['predefined_packages'],
 			)
 		);
 
@@ -196,27 +203,29 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		 */
 		$expected_custom_wcservices_packages_mapped_to_wcshipping_format = array(
 			array(
-				'boxWeight'  => 101,
-				'dimensions' => '102 x 103 x 104',
-				'maxWeight'  => 105,
-				'name'       => 'WCS&T custom box',
-				'type'       => 'box',
+				'boxWeight'       => 101,
+				'dimensions'      => '102 x 103 x 104',
+				'is_user_defined' => true,
+				'maxWeight'       => 105,
+				'name'            => 'WCS&T custom box',
+				'type'            => 'box',
 			),
 			array(
-				'boxWeight'  => 201,
-				'dimensions' => '202 x 203 x 204',
-				'maxWeight'  => 205,
-				'name'       => 'WCS&T custom envelope',
-				'type'       => 'envelope',
+				'boxWeight'       => 201,
+				'dimensions'      => '202 x 203 x 204',
+				'is_user_defined' => true,
+				'maxWeight'       => 205,
+				'name'            => 'WCS&T custom envelope',
+				'type'            => 'envelope',
 			),
 		);
 
 		$this->assertEquals(
 			array_merge(
-				self::EXAMPLE_VALID_WCSHIPPING_OPTIONS,
+				self::EXAMPLE_WCSHIPPING_OPTIONS,
 				array(
 					'packages'            => $expected_custom_wcservices_packages_mapped_to_wcshipping_format,
-					'predefined_packages' => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['predefined_packages'],
+					'predefined_packages' => self::EXAMPLE_WC_CONNECT_OPTIONS['predefined_packages'],
 				)
 			),
 			get_option( 'wcshipping_options' )
@@ -231,18 +240,18 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
 
 		// Read.
-		$this->assertEquals( self::EXAMPLE_VALID_WC_CONNECT_OPTIONS, get_option( 'wc_connect_options' ) );
+		$this->assertEquals( self::EXAMPLE_WC_CONNECT_OPTIONS, get_option( 'wc_connect_options' ) );
 
 		// Write.
 		update_option(
 			'wc_connect_options',
 			array(
 				'foo'                 => 'bar',
-				'packages'            => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['packages'],
-				'predefined_packages' => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['predefined_packages'],
+				'packages'            => self::EXAMPLE_WC_CONNECT_OPTIONS['packages'],
+				'predefined_packages' => self::EXAMPLE_WC_CONNECT_OPTIONS['predefined_packages'],
 			)
 		);
-		$this->assertEquals( self::EXAMPLE_VALID_WCSHIPPING_OPTIONS, get_option( 'wcshipping_options' ) );
+		$this->assertEquals( self::EXAMPLE_WCSHIPPING_OPTIONS, get_option( 'wcshipping_options' ) );
 	}
 
 	public function set_is_wcshipping_active( $is_active ) {
