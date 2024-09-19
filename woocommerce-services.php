@@ -1094,6 +1094,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
 			$rest_subscriptions_controller->register_routes();
 
+			/**
+			 * We need 4 objects instantiated in `WC_Connect_Loader` to construct WC_REST_Connect_WCShipping_Compatibility_Packages_Controller.
+			 *
+			 * Since these objects are created here but the call to
+			 * WC_Connect_Compatibility_WCShipping_Packages::maybe_enable() happens earlier,
+			 * to keep the REST controller instantiation within that class this hook is introduced,
+			 * passing the `WC_Connect_Loader` as an argument.
+			 *
+			 * @see WC_Connect_Compatibility_WCShipping_Packages::register_rest_controller_hooks
+			 */
 			do_action( 'wcservices_rest_api_init', $this );
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
