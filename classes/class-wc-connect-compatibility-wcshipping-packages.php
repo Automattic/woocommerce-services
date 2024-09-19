@@ -46,14 +46,29 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	);
 
 	public static function maybe_enable() {
-		$is_migration_to_wcshipping_completed = self::WCSHIP_DATA_MIGRATION_COMPLETED === (int) get_option( 'wcshipping_migration_state' );
+		// Don't do anything if WooCommerce Shipping is not active.
+		if ( ! WC_Connect_Loader::is_wc_shipping_activated() ) {
+			return;
+		}
 
-		if ( WC_Connect_Loader::is_wc_shipping_activated() && $is_migration_to_wcshipping_completed ) {
-			self::register_hooks();
+		self::register_rest_controller_hooks();
+
+		$is_migration_to_wcshipping_completed = self::WCSHIP_DATA_MIGRATION_COMPLETED === (int) get_option( 'wcshipping_migration_state' );
+		if ( $is_migration_to_wcshipping_completed ) {
+			self::register_option_overwriting_hooks();
 		}
 	}
 
-	public static function register_hooks() {
+	/**
+	 * Enqueue REST controller registration after WCS&T has finished initializing its other controllers.
+	 *
+	 * @return void
+	 */
+	public static function register_rest_controller_hooks() {
+		add_action( 'wcservices_rest_api_init', array( self::class, 'register_wcshipping_compatibility_rest_controller' ) );
+	}
+
+	public static function register_option_overwriting_hooks() {
 		// Intercept reads of "wc_connect_options[packages]" and "wc_connect_options[predefined_packages]".
 		add_filter( 'option_wc_connect_options', array( self::class, 'intercept_packages_read' ) );
 		add_filter( 'option_wc_connect_options', array( self::class, 'intercept_predefined_packages_read' ) );
@@ -61,12 +76,6 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		// Intercept updates to "wc_connect_options[packages]" and "wc_connect_options[predefined_packages]".
 		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_packages_update' ), 10, 2 );
 		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_predefined_packages_update' ), 10, 2 );
-
-		/*
-		 * Register a REST controller that reads "wc_connect_options" (that we'll overwrite
-		 * with the above option read/write-intercepting filters).
-		 */
-		add_action( 'wcservices_rest_api_init', array( self::class, 'register_wcshipping_compatibility_rest_controller' ) );
 	}
 
 	public static function intercept_packages_read( $wc_connect_options ) {
@@ -114,14 +123,24 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	}
 
 	/**
-	 * Register WCS&T's "packages" REST controller under a different namespace.
+	 * Register a REST controller that reads "wc_connect_options".
 	 *
-	 * This is because WCShipping registers its controller under the namespace
-	 * that WCS&T used to use.
+	 * We do this because if WCShipping is active, it registers its own controller under /wc/v1/connect/packages
+	 * that accesses "wcshipping_options". For the purpose of the WCS&T settings page, we still want the page
+	 * accessing `wc_connect_options` that we'll possibly overwrite with the option read/write-intercepting filters
+	 * if migration of options from WCS&T to WCShipping has been completed.
+	 *
+	 * This is so that we can always modify the value of "wc_connect_options" but leave the value of
+	 * "wcshipping_options" intact.
+	 *
+	 * If migration has been completed, the controller will overwrite the value of "wc_connect_options[packages]" with
+	 * WCShipping's packages.
+	 *
+	 * If migration hasn't been completed, it will return the value of "wc_connect_options[packages]" with no changes.
+	 *
+	 * @see self::register_option_overwriting_hooks
 	 *
 	 * @param WC_Connect_Loader $loader WCS&T's main class.
-	 *
-	 * @return void
 	 */
 	public static function register_wcshipping_compatibility_rest_controller( WC_Connect_Loader $loader ) {
 		require_once __DIR__ . '/class-wc-rest-connect-wcshipping-compatibility-packages-controller.php';
