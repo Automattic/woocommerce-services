@@ -117,7 +117,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		$this->assert_are_option_interception_hooks_registered( false );
 	}
 
-	public function test_it_uses_wcshipping_packages_and_predefined_packages_mapped_to_wcservices_format() {
+	public function test_wc_connect_options_contains_wcshipping_packages_mapped_to_wcservices_format() {
 		$this->set_is_wcshipping_active( true );
 		$this->set_has_completed_migration( true );
 
@@ -171,12 +171,75 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		);
 	}
 
+	public function test_updating_wc_connect_options_updates_packages_in_wcshipping_options_mapped_to_wcshipping_format() {
+		$this->set_is_wcshipping_active( true );
+		$this->set_has_completed_migration( true );
+
+		WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
+
+		update_option(
+			'wc_connect_options',
+			array(
+				'foo'                 => 'bar',
+				'packages'            => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['packages'],
+				'predefined_packages' => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['predefined_packages'],
+			)
+		);
+
+		/*
+		 * The approach to mapping is the same as described in the comment to
+		 * test_wc_connect_options_contains_wcshipping_packages_mapped_to_wcservices_format
+		 * except here we map a WCS&T custom package to WCShipping custom package format when an update
+		 * to "wc_connect_options" is requested.
+		 *
+		 * @see self::test_wc_connect_options_contains_wcshipping_packages_mapped_to_wcservices_format
+		 */
+		$expected_custom_wcservices_packages_mapped_to_wcshipping_format = array(
+			array(
+				'boxWeight'  => 101,
+				'dimensions' => '102 x 103 x 104',
+				'maxWeight'  => 105,
+				'name'       => 'WCS&T custom box',
+				'type'       => 'box',
+			),
+			array(
+				'boxWeight'  => 201,
+				'dimensions' => '202 x 203 x 204',
+				'maxWeight'  => 205,
+				'name'       => 'WCS&T custom envelope',
+				'type'       => 'envelope',
+			),
+		);
+
+		$this->assertEquals(
+			array_merge(
+				self::EXAMPLE_VALID_WCSHIPPING_OPTIONS,
+				array(
+					'packages'            => $expected_custom_wcservices_packages_mapped_to_wcshipping_format,
+					'predefined_packages' => self::EXAMPLE_VALID_WC_CONNECT_OPTIONS['predefined_packages'],
+				)
+			),
+			get_option( 'wcshipping_options' )
+		);
+	}
+
 	public function test_it_does_not_intercept_reads_or_writes_if_it_did_not_enable() {
 		$this->set_is_wcshipping_active( false );
 		$this->set_has_completed_migration( false );
 
 		WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
-		$this->assert_wc_connect_options_are_left_intact();
+
+		// Read.
+		$this->assertEquals( self::EXAMPLE_VALID_WC_CONNECT_OPTIONS, get_option( 'wc_connect_options' ) );
+
+		// Write.
+		update_option(
+			'wc_connect_options',
+			array(
+				'packages' => array( array( 'name' => 'foo' ) ),
+			)
+		);
+		$this->assertEquals( self::EXAMPLE_VALID_WCSHIPPING_OPTIONS, get_option( 'wcshipping_options' ) );
 	}
 
 	public function set_is_wcshipping_active( $is_active ) {
@@ -205,9 +268,5 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 				)
 			)
 		);
-	}
-
-	public function assert_wc_connect_options_are_left_intact() {
-		$this->assertEquals( self::EXAMPLE_VALID_WC_CONNECT_OPTIONS, get_option( 'wc_connect_options' ) );
 	}
 }
