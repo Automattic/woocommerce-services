@@ -102,8 +102,8 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		add_filter( 'option_wc_connect_options', array( self::class, 'intercept_predefined_packages_read' ) );
 
 		// Intercept updates to "wc_connect_options[packages]" and "wc_connect_options[predefined_packages]".
-		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_packages_update' ), 10, 2 );
-		add_action( 'update_option_wc_connect_options', array( self::class, 'intercept_predefined_packages_update' ), 10, 2 );
+		add_action( 'pre_update_option_wc_connect_options', array( self::class, 'intercept_packages_update' ), 10, 2 );
+		add_action( 'pre_update_option_wc_connect_options', array( self::class, 'intercept_predefined_packages_update' ), 10, 2 );
 	}
 
 	/**
@@ -152,9 +152,9 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	 * @param mixed $old_wc_connect_options "wc_connect_options" value from the WP options table prior to the update.
 	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table after updating.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
-	public static function intercept_packages_update( $old_wc_connect_options, $wc_connect_options ) {
+	public static function intercept_packages_update( $wc_connect_options, $old_wc_connect_options ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
 		if ( ! empty( $wc_connect_options['packages'] ) ) {
@@ -164,6 +164,13 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		}
 
 		update_option( 'wcshipping_options', $wcshipping_options );
+
+		/*
+		 * Revert the update of WCS&T's predefined packages.
+		 */
+		$wc_connect_options['packages'] = $old_wc_connect_options['packages'];
+
+		return $wc_connect_options;
 	}
 
 	/**
@@ -174,9 +181,9 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	 * @param mixed $old_wc_connect_options "wc_connect_options" value from the WP options table prior to the update.
 	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table after updating.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
-	public static function intercept_predefined_packages_update( $old_wc_connect_options, $wc_connect_options ) {
+	public static function intercept_predefined_packages_update( $wc_connect_options, $old_wc_connect_options ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
 		if ( ! empty( $wc_connect_options['predefined_packages'] ) ) {
@@ -186,6 +193,13 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		}
 
 		update_option( 'wcshipping_options', $wcshipping_options );
+
+		/*
+		 * Revert the update of WCS&T's predefined packages.
+		 */
+		$wc_connect_options['predefined_packages'] = $old_wc_connect_options['predefined_packages'];
+
+		return $wc_connect_options;
 	}
 
 	/**

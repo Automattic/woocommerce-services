@@ -88,8 +88,16 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 
 	public function setUp(): void {
 		parent::setUp();
+
+		// Reset options.
 		update_option( 'wc_connect_options', self::EXAMPLE_WC_CONNECT_OPTIONS );
 		update_option( 'wcshipping_options', self::EXAMPLE_WCSHIPPING_OPTIONS );
+
+		// Reset hooks.
+		remove_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_read' ) );
+		remove_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_read' ) );
+		remove_action( 'update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_update' ) );
+		remove_action( 'update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_update' ) );
 	}
 
 	public function test_it_enables_all_compatibility_features_if_wcshipping_is_active_and_settings_were_migrated_from_wcservices() {
@@ -254,7 +262,7 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		$this->assertEquals( self::EXAMPLE_WCSHIPPING_OPTIONS, get_option( 'wcshipping_options' ) );
 	}
 
-	public function test_adding_a_package_by_updating_wc_connect_options_also_adds_it_to_wcshipping_options() {
+	public function test_adding_a_package_changes_the_return_value_of_wc_connect_options_and_wcshipping_options() {
 		$this->set_is_wcshipping_active( true );
 		$this->set_has_completed_migration( true );
 
@@ -277,6 +285,40 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		$this->assertEquals( array( 301, 401, 501, 601 ), array_column( get_option( 'wcshipping_options' )['packages'], 'boxWeight' ) );
 	}
 
+	public function test_adding_a_package_by_updating_wc_connect_options_does_not_change_the_actual_db_field() {
+		$this->set_is_wcshipping_active( true );
+		$this->set_has_completed_migration( true );
+
+		WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
+
+		$wc_connect_options                          = get_option( 'wc_connect_options' );
+		$wc_connect_options['packages'][]            = array(
+			'box_weight'       => 601,
+			'inner_dimensions' => '602 x 603 x 604',
+			'is_letter'        => false,
+			'is_user_defined'  => true,
+			'max_weight'       => 605,
+			'name'             => 'WCS&T new package',
+			'outer_dimensions' => '606 x 607 x 608',
+		);
+		$wc_connect_options['predefined_packages'][] = 'foo';
+
+		update_option( 'wc_connect_options', $wc_connect_options );
+
+		$wc_connect_options = get_option( 'wc_connect_options' );
+		$this->assertEquals( array( 301, 401, 501, 601 ), array_column( $wc_connect_options['packages'], 'box_weight' ) );
+		$this->assertEquals( array( 'WCShipping predefined package', 'foo' ), $wc_connect_options['predefined_packages'] );
+
+		// Deregister the "read" hook so we can access the actual values in the DB without interception.
+		remove_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_read' ) );
+		remove_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_read' ) );
+
+		// Assert the original `wc_connect_options` remain unchanged throughout the entire test.
+		$wc_connect_options = get_option( 'wc_connect_options' );
+		$this->assertEquals( array( 101, 201 ), array_column( $wc_connect_options['packages'], 'box_weight' ) );
+		$this->assertEquals( array( 'WCS&T predefined package' ), $wc_connect_options['predefined_packages'] );
+	}
+
 	public function set_is_wcshipping_active( $is_active ) {
 		update_option( 'active_plugins', $is_active ? array( 'woocommerce-shipping/woocommerce-shipping.php' ) : array() );
 	}
@@ -288,8 +330,8 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 	public function assert_are_option_interception_hooks_registered( $expected_registration_status ) {
 		$this->assertEquals( $expected_registration_status, has_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_read' ) ) );
 		$this->assertEquals( $expected_registration_status, has_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_read' ) ) );
-		$this->assertEquals( $expected_registration_status, has_filter( 'update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_update' ) ) );
-		$this->assertEquals( $expected_registration_status, has_filter( 'update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_update' ) ) );
+		$this->assertEquals( $expected_registration_status, has_filter( 'pre_update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_update' ) ) );
+		$this->assertEquals( $expected_registration_status, has_filter( 'pre_update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_update' ) ) );
 	}
 
 	public function assert_is_rest_controller_registration_hook_registered( $expected_registration_status ) {
