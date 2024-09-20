@@ -792,8 +792,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$taxes_logger    = new WC_Connect_Logger( $core_logger, 'taxes' );
 			$shipping_logger = new WC_Connect_Logger( $core_logger, 'shipping' );
 
-			$wcshipping_package_compatibility = new WC_Connect_Compatibility_WCShipping_Packages();
-			$wcshipping_package_compatibility::maybe_enable();
+			WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
 
 			$validator = new WC_Connect_Service_Schemas_Validator();
 
