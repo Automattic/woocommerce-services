@@ -92,12 +92,6 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		// Reset options.
 		update_option( 'wc_connect_options', self::EXAMPLE_WC_CONNECT_OPTIONS );
 		update_option( 'wcshipping_options', self::EXAMPLE_WCSHIPPING_OPTIONS );
-
-		// Reset hooks.
-		remove_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_read' ) );
-		remove_filter( 'option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_read' ) );
-		remove_action( 'update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_packages_update' ) );
-		remove_action( 'update_option_wc_connect_options', array( WC_Connect_Compatibility_WCShipping_Packages::class, 'intercept_predefined_packages_update' ) );
 	}
 
 	public function test_it_enables_all_compatibility_features_if_wcshipping_is_active_and_settings_were_migrated_from_wcservices() {
