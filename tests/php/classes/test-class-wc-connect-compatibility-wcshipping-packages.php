@@ -254,6 +254,29 @@ class WP_Test_WC_Connect_Compatibility_WCShipping_Packages extends WC_Unit_Test_
 		$this->assertEquals( self::EXAMPLE_WCSHIPPING_OPTIONS, get_option( 'wcshipping_options' ) );
 	}
 
+	public function test_adding_a_package_by_updating_wc_connect_options_also_adds_it_to_wcshipping_options() {
+		$this->set_is_wcshipping_active( true );
+		$this->set_has_completed_migration( true );
+
+		WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
+
+		$wc_connect_options               = get_option( 'wc_connect_options' );
+		$wc_connect_options['packages'][] = array(
+			'box_weight'       => 601,
+			'inner_dimensions' => '602 x 603 x 604',
+			'is_letter'        => false,
+			'is_user_defined'  => true,
+			'max_weight'       => 605,
+			'name'             => 'WCS&T new package',
+			'outer_dimensions' => '606 x 607 x 608',
+		);
+
+		update_option( 'wc_connect_options', $wc_connect_options );
+
+		$this->assertEquals( array( 301, 401, 501, 601 ), array_column( get_option( 'wc_connect_options' )['packages'], 'box_weight' ) );
+		$this->assertEquals( array( 301, 401, 501, 601 ), array_column( get_option( 'wcshipping_options' )['packages'], 'boxWeight' ) );
+	}
+
 	public function set_is_wcshipping_active( $is_active ) {
 		update_option( 'active_plugins', $is_active ? array( 'woocommerce-shipping/woocommerce-shipping.php' ) : array() );
 	}
