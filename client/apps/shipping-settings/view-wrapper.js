@@ -66,25 +66,33 @@ class LabelSettingsWrapper extends Component {
 	render() {
 		const { carrier, carrierAccounts, liveRatesTypes, subscriptions, isSaving, translate } = this.props;
 
+		// eslint-disable-next-line no-undef
+		const isWCShippingActive = wcConnectData.is_wcshipping_active;
+
 		if ( ! carrier ) {
 			return (
 				<div>
-					<GlobalNotices id="notices" notices={ notices.list } />
-					<MigratorSettings />
-					<LabelSettings onChange={ this.onChange } />
-					<Packages onChange={ this.onChange } />
-					<LiveRatesCarriersList carrierIds={ liveRatesTypes } />
-					<CarrierAccounts accounts={ carrierAccounts } />
-					<SubscriptionsUsage subscriptions={ subscriptions } />
+					<GlobalNotices id="notices" notices={ notices.list }/>
+					<MigratorSettings/>
+					{ isWCShippingActive && ( <div>
+						<h2>
+							<a href="admin.php?page=wc-settings&tab=shipping&section=woocommerce-shipping-settings">{ translate( 'WooCommerce Shipping' ) }</a> &gt; { translate( 'Live rates' ) }
+						</h2>
+					</div> ) }
+					{ !isWCShippingActive && <LabelSettings onChange={ this.onChange }/> }
+					<Packages onChange={ this.onChange }/>
+					<LiveRatesCarriersList carrierIds={ liveRatesTypes }/>
+					{ !isWCShippingActive && <CarrierAccounts accounts={ carrierAccounts }/> }
+					{ !isWCShippingActive && <SubscriptionsUsage subscriptions={ subscriptions }/> }
 					<Button
 						isPrimary
-						className = { classNames( 'button' ) }
+						className={ classNames( 'button' ) }
 						onClick={ this.onSaveChanges }
 						isBusy={ isSaving }
 						disabled={ isSaving }>
 						{ translate( 'Save changes' ) }
 					</Button>
-					<ProtectFormGuard isChanged={ ! this.state.pristine } />
+					<ProtectFormGuard isChanged={ !this.state.pristine }/>
 				</div>
 			);
 		}
@@ -92,8 +100,8 @@ class LabelSettingsWrapper extends Component {
 		if ( carrier === 'UpsAccount' ) {
 			return (
 				<div>
-					<GlobalNotices id="notices" notices={ notices.list } />
-					<UpsSettingsForm />
+					<GlobalNotices id="notices" notices={ notices.list }/>
+					<UpsSettingsForm/>
 				</div>
 			);
 		}

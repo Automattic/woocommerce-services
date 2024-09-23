@@ -45,6 +45,11 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 * @return array
 		 */
 		public function get_sections( $shipping_tabs ) {
+			// If WC Shipping is active, it will register its page instead.
+			if ( WC_Connect_Loader::is_wc_shipping_activated() ) {
+				return $shipping_tabs;
+			}
+
 			if ( ! is_array( $shipping_tabs ) ) {
 				$shipping_tabs = array();
 			}
@@ -125,7 +130,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 					$carrier_information = current(
 						array_filter(
 							$extra_args['carrier_accounts'],
-							function( $carrier ) {
+							function ( $carrier ) {
 								return $carrier->type === $carrier;
 							}
 						)

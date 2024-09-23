@@ -678,7 +678,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Prevent presenting users with TOS they've already
 			// accepted in the core WC Setup Wizard or on WP.com.
 			if ( ! $tos_accepted &&
-				( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() )
+			( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() )
 			) {
 				WC_Connect_Options::update_option( 'tos_accepted', true );
 				delete_option( 'woocommerce_setup_jetpack_opted_in' );
@@ -716,8 +716,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				}
 
 				if (
-					property_exists( $prop_schema, 'type' ) &&
-					'object' === $prop_schema->type
+				property_exists( $prop_schema, 'type' ) &&
+				'object' === $prop_schema->type
 				) {
 					$defaults[ $prop_id ] = $this->get_service_schema_defaults( $prop_schema );
 				}
@@ -747,44 +747,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->nux->dismiss_pointer( 'wc_services_add_service_to_zone' );
 		}
 
-		public function init_core_wizard_shipping_config() {
-			if ( $this->is_wc_shipping_activated() ) {
-				return;
-			}
-
-			$store_currency = get_woocommerce_currency();
-
-			if ( 'USD' === $store_currency ) {
-				$currency_method = 'usps';
-			} elseif ( 'CAD' === $store_currency ) {
-				$currency_method = 'canada_post';
-			} else {
-				return; // Only set up live rates for USD and CAD.
-			}
-
-			if ( get_option( 'woocommerce_setup_intl_live_rates_zone' ) ) {
-				$this->add_method_to_shipping_zone( 0, $currency_method );
-				delete_option( 'woocommerce_setup_intl_live_rates_zone' );
-			}
-
-			if ( get_option( 'woocommerce_setup_domestic_live_rates_zone' ) ) {
-				$store_country = WC()->countries->get_base_country();
-
-				// Find the "domestic" zone (only location must be the base country).
-				foreach ( WC_Shipping_Zones::get_zones() as $zone ) {
-					if (
-						1 === count( $zone['zone_locations'] ) &&
-						'country' === $zone['zone_locations'][0]->type &&
-						$store_country === $zone['zone_locations'][0]->code
-					) {
-						$this->add_method_to_shipping_zone( $zone['id'], $currency_method );
-						break;
-					}
-				}
-				delete_option( 'woocommerce_setup_domestic_live_rates_zone' );
-			}
-		}
-
 		/**
 		 * Bootstrap our plugin and hook into WP/WC core.
 		 *
@@ -807,6 +769,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-taxjar-integration.php';
 			require_once __DIR__ . '/classes/class-wc-connect-error-notice.php';
 			require_once __DIR__ . '/classes/class-wc-connect-compatibility.php';
+			require_once __DIR__ . '/classes/class-wc-connect-compatibility-wcshipping-packages.php';
 			require_once __DIR__ . '/classes/class-wc-connect-shipping-method.php';
 			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-store.php';
 			require_once __DIR__ . '/classes/class-wc-connect-service-settings-store.php';
@@ -828,6 +791,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$logger          = new WC_Connect_Logger( $core_logger );
 			$taxes_logger    = new WC_Connect_Logger( $core_logger, 'taxes' );
 			$shipping_logger = new WC_Connect_Logger( $core_logger, 'shipping' );
+
+			WC_Connect_Compatibility_WCShipping_Packages::maybe_enable();
 
 			$validator = new WC_Connect_Service_Schemas_Validator();
 
@@ -883,18 +848,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
-			if ( ! $this->is_wc_shipping_activated() ) {
-				// We only use the settings page for shipping since tax settings are part of
-				// the core "WooCommerce > Settings > Tax" tab.
-				require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
-				$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
-				$this->set_settings_pages( $settings_pages );
+			// We only use the settings page for shipping since tax settings are part of
+			// the core "WooCommerce > Settings > Tax" tab.
+			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
+			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
+			$this->set_settings_pages( $settings_pages );
 
-				// Add WC Admin Notices.
-				if ( self::can_add_wc_admin_notice() ) {
-					require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
-					WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
-				}
+			// Add WC Admin Notices.
+			if ( ! self::is_wc_shipping_activated() && self::can_add_wc_admin_notice() ) {
+				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
+				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
 		}
 
@@ -914,22 +877,30 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->taxjar->init();
 			$this->paypal_ec->init();
 
-			// Primary condition to initiate shipping.
-			if ( ! $this->is_wc_shipping_activated() ) {
+			// Only register shipping label-related logic if WC Shipping is not active.
+			if ( ! self::is_wc_shipping_activated() ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
-				$this->init_shipping();
+				$this->init_shipping_labels();
 			}
+
+			/*
+			 * Regardless of disabling shipping labels if WC Shipping is active,
+			 * keep live rates enabled if the store supports them.
+			 */
+			$this->init_live_rates();
 
 			if ( is_admin() ) {
 				$this->load_admin_dependencies();
 			}
 		}
 
-		public function init_shipping() {
-			$schemas_store = $this->get_service_schemas_store();
-			$schemas       = $schemas_store->get_service_schemas();
-
+		/**
+		 * Register shipping labels-related hooks.
+		 *
+		 * @return void
+		 */
+		public function init_shipping_labels() {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
 			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
@@ -939,6 +910,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'update_option_woocommerce_currency', array( $this, 'queue_service_schema_refresh' ) );
 			add_action( 'update_option_woocommerce_weight_unit', array( $this, 'queue_service_schema_refresh' ) );
 			add_action( 'update_option_woocommerce_dimension_unit', array( $this, 'queue_service_schema_refresh' ) );
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5, 2 );
+			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
+			add_filter( 'woocommerce_shipping_fields', array( $this, 'add_shipping_phone_to_checkout' ) );
+			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_or_billing_phone_from_order' ), 10, 3 );
+			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
+			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
+			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
+			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
+			add_action( 'current_screen', array( $this, 'maybe_render_upgrade_banner' ) );
+		}
+
+		/**
+		 * Register live rates-related hooks.
+		 *
+		 * @return void
+		 */
+		public function init_live_rates() {
+			$schemas_store = $this->get_service_schemas_store();
+			$schemas       = $schemas_store->get_service_schemas();
 
 			if ( $schemas ) {
 				add_filter( 'woocommerce_shipping_methods', array( $this, 'woocommerce_shipping_methods' ) );
@@ -950,26 +940,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'save_defaults_to_shipping_method' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
 				add_action( 'woocommerce_shipping_zone_method_status_toggled', array( $this, 'shipping_zone_method_status_toggled' ), 10, 4 );
-
-				// Initialize user choices from the core setup wizard.
-				// Note: Avoid doing so on non-primary requests so we don't duplicate efforts.
-				if ( ! defined( 'DOING_AJAX' ) && is_admin() && ! isset( $_GET['noheader'] ) ) {
-					$this->init_core_wizard_shipping_config();
-				}
 			}
 
 			add_action( 'wc_connect_fetch_service_schemas', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
-			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 5, 2 );
-			add_action( 'woocommerce_admin_shipping_fields', array( $this, 'add_shipping_phone_to_order_fields' ) );
 			add_filter( 'wc_connect_shipping_service_settings', array( $this, 'shipping_service_settings' ), 10, 3 );
-			add_filter( 'woocommerce_shipping_fields', array( $this, 'add_shipping_phone_to_checkout' ) );
-			add_filter( 'woocommerce_get_order_address', array( $this, 'get_shipping_or_billing_phone_from_order' ), 10, 3 );
-			add_action( 'woocommerce_email_after_order_table', array( $this, 'add_tracking_info_to_emails' ), 10, 3 );
 			add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_completed_order' ), 10, 3 );
-			add_action( 'admin_print_footer_scripts', array( $this, 'add_sift_js_tracker' ) );
-			add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_wc_connect_package_meta_data' ) );
-			add_filter( 'is_protected_meta', array( $this, 'hide_wc_connect_order_meta_data' ), 10, 3 );
-			add_action( 'current_screen', array( $this, 'maybe_render_upgrade_banner' ) );
 		}
 
 		/**
@@ -1036,7 +1011,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
 			$rest_service_data_refresh_controller->register_routes();
 
-			if ( ! $this->is_wc_shipping_activated() ) {
+			if ( ! self::is_wc_shipping_activated() ) {
 
 				require_once __DIR__ . '/classes/class-wc-rest-connect-packages-controller.php';
 				$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
@@ -1117,6 +1092,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
 			$rest_subscriptions_controller->register_routes();
+
+			/**
+			 * We need 4 objects instantiated in `WC_Connect_Loader` to construct WC_REST_Connect_WCShipping_Compatibility_Packages_Controller.
+			 *
+			 * Since these objects are created here but the call to
+			 * WC_Connect_Compatibility_WCShipping_Packages::maybe_enable() happens earlier,
+			 * to keep the REST controller instantiation within that class this hook is introduced,
+			 * passing the `WC_Connect_Loader` as an argument.
+			 *
+			 * @see WC_Connect_Compatibility_WCShipping_Packages::register_rest_controller_hooks
+			 */
+			do_action( 'wcservices_rest_api_init', $this );
 
 			add_filter( 'rest_request_before_callbacks', array( $this, 'log_rest_api_errors' ), 10, 3 );
 		}
@@ -1201,6 +1188,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Load shipping method settings.
+		 *
 		 * This function is added to the wc_connect_service_admin_options action by this class
 		 * (see attach_hooks) and then that action is fired by WC_Connect_Shipping_Method::admin_options
 		 * to get the service instance form layout and settings bundled inside wcConnectData
@@ -1495,7 +1484,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				WC_Shipping::instance()->register_shipping_method( $shipping_method );
 			}
 		}
-
 
 		public function woocommerce_payment_gateways( $payment_gateways ) {
 			return $payment_gateways;
@@ -1866,6 +1854,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'wcs_server_connection' => $is_alive,
 				'accountSettings'       => $account_settings->get(),
 				'packagesSettings'      => $packages_settings->get(),
+				'is_wcshipping_active'  => self::is_wc_shipping_activated(),
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcConnectData', $payload );
@@ -1932,7 +1921,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return bool
 		 */
-		public function is_wc_shipping_activated() {
+		public static function is_wc_shipping_activated() {
 			return in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
 		}
 
@@ -1944,7 +1933,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function are_woo_shipping_and_woo_tax_active() {
 			$is_woo_tax_active = in_array( 'woocommerce-tax/woocommerce-tax.php', get_option( 'active_plugins' ) );
 
-			return $this->is_wc_shipping_activated() && $is_woo_tax_active;
+			return self::is_wc_shipping_activated() && $is_woo_tax_active;
 		}
 
 		/**

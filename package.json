@@ -3,6 +3,7 @@
 	"version": "2.8.1",
 	"scripts": {
 		"start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085 --host 0.0.0.0",
+		"watch": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack --watch",
 		"prepare": "cd wp-calypso && npm ci && cd .. && husky install",
 		"dist": "cross-env NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
 		"analyze": "cross-env ANALYZE=true NODE_ENV=production DISABLE_FEATURES=wpcom-user-bootstrap CALYPSO_CLIENT=true webpack",
