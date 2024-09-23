@@ -147,18 +147,21 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 	/**
 	 * Saves the mapped value of `wc_connect_options[packages]` to `wcshipping_options[packages]`.
 	 *
+	 * Reverts `wc_connect_options[packages]` to old value so that only the packages
+	 * in `wcshipping_options` get updated.
+	 *
 	 * Leaves the rest of `wcshipping_options` intact.
 	 *
-	 * @param mixed $old_wc_connect_options "wc_connect_options" value from the WP options table prior to the update.
-	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table after updating.
+	 * @param mixed $value New value for "wc_connect_options" to extract packages from.
+	 * @param mixed $old_value Old value of "wc_connect_options".
 	 *
-	 * @return void
+	 * @return array `$value` with the `packages` field reverted to current DB value to prevent updating.
 	 */
-	public static function intercept_packages_update( $wc_connect_options, $old_wc_connect_options ) {
+	public static function intercept_packages_update( $value, $old_value ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
-		if ( ! empty( $wc_connect_options['packages'] ) ) {
-			$wcshipping_options['packages'] = self::map_packages_to_wcshipping_format( $wc_connect_options['packages'] );
+		if ( ! empty( $value['packages'] ) ) {
+			$wcshipping_options['packages'] = self::map_packages_to_wcshipping_format( $value['packages'] );
 		} else {
 			$wcshipping_options['packages'] = array();
 		}
@@ -166,28 +169,31 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		update_option( 'wcshipping_options', $wcshipping_options );
 
 		/*
-		 * Revert the update of WCS&T's predefined packages.
+		 * Prevent update of WCS&T's packages so that only `wcshipping_options` get updated.
 		 */
-		$wc_connect_options['packages'] = $old_wc_connect_options['packages'];
+		$value['packages'] = $old_value['packages'];
 
-		return $wc_connect_options;
+		return $value;
 	}
 
 	/**
 	 * Saves the mapped value of `wc_connect_options[predefined_packages]` to `wcshipping_options[predefined_packages]`.
 	 *
+	 * Reverts `wc_connect_options[predefined_packages]` to old value so that only the predefined packages
+	 * in `wcshipping_options` get updated.
+	 *
 	 * Leaves the rest of `wcshipping_options` intact.
 	 *
-	 * @param mixed $old_wc_connect_options "wc_connect_options" value from the WP options table prior to the update.
-	 * @param mixed $wc_connect_options "wc_connect_options" value from the WP options table after updating.
+	 * @param mixed $value New value for "wc_connect_options" to extract predefined packages from.
+	 * @param mixed $old_value Old value of "wc_connect_options".
 	 *
-	 * @return void
+	 * @return array `$value` with the `predefined_packages` field reverted to current DB value to prevent updating.
 	 */
-	public static function intercept_predefined_packages_update( $wc_connect_options, $old_wc_connect_options ) {
+	public static function intercept_predefined_packages_update( $value, $old_value ) {
 		$wcshipping_options = get_option( 'wcshipping_options' );
 
-		if ( ! empty( $wc_connect_options['predefined_packages'] ) ) {
-			$wcshipping_options['predefined_packages'] = $wc_connect_options['predefined_packages'];
+		if ( ! empty( $value['predefined_packages'] ) ) {
+			$wcshipping_options['predefined_packages'] = $value['predefined_packages'];
 		} else {
 			$wcshipping_options['predefined_packages'] = array();
 		}
@@ -195,11 +201,11 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		update_option( 'wcshipping_options', $wcshipping_options );
 
 		/*
-		 * Revert the update of WCS&T's predefined packages.
+		 * Prevent update of WCS&T's predefined packages so that only `wcshipping_options` get updated.
 		 */
-		$wc_connect_options['predefined_packages'] = $old_wc_connect_options['predefined_packages'];
+		$value['predefined_packages'] = $old_value['predefined_packages'];
 
-		return $wc_connect_options;
+		return $value;
 	}
 
 	/**
