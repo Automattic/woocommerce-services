@@ -72,6 +72,7 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		}
 
 		self::register_rest_controller_hooks();
+		add_action( 'wcservices_load_admin_dependencies', array( self::class, 'maybe_register_plugin_list_notice' ) );
 
 		$is_migration_to_wcshipping_completed = self::WCSHIP_DATA_MIGRATION_COMPLETED === (int) get_option( 'wcshipping_migration_state' );
 		if ( $is_migration_to_wcshipping_completed ) {
@@ -352,5 +353,58 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 		unset( $package['is_letter'] );
 
 		return $package;
+	}
+
+	public static function maybe_register_plugin_list_notice( WC_Connect_Loader $loader ) {
+		if ( count( $loader->get_service_settings_store()->get_enabled_services() ) === 0 ) {
+			return;
+		}
+
+		//      add_action(
+		//          'after_plugin_row_woocommerce-services/woocommerce-services.php',
+		//          array(
+		//              self::class,
+		//              'display_plugin_list_notice'
+		//          )
+		//      );
+		//
+		add_filter(
+			'plugin_row_meta',
+			array(
+				self::class,
+				'display_plugin_list_notice_in_description',
+			),
+			10,
+			2
+		);
+	}
+
+	public static function display_plugin_list_notice_in_description( $plugin_meta, $plugin_file ) {
+		if ( 'woocommerce-services/woocommerce-services.php' !== $plugin_file ) {
+			return $plugin_meta;
+		}
+
+		echo '<strong>Warning:</strong> <span>' . __( 'Both WooCommerce Shipping and WooCommerce Shipping &amp; Tax are active on your site.', 'woocommerce-services' ) . '</span><br>
+								<span>' . __( 'WooCommerce Shipping &amp; Tax displays live shipping rates to customers on your site.', 'woocommerce-services' ) . '</span><br>
+								<span>' . __( 'WooCommerce Shipping provides the rest of the shipping experience.', 'woocommerce-services' ) . '</span><br>
+								<span>' . __( 'Please keep WooCommerce Shipping &amp; Tax active if you wish to continue displaying live rates to shoppers.', 'woocommerce-services' ) . '</span><br><br>';
+
+		return $plugin_meta;
+	}
+
+	public static function display_plugin_list_notice() {
+
+		return;
+
+		echo '<tr class="plugin-update-tr">
+						<td colspan="4" class="colspanchange">
+							<div class="notice notice-alt inline notice-warning">
+								<p>' . __( 'Both WooCommerce Shipping and WooCommerce Shipping &amp; Tax are active on your site.', 'woocommerce-services' ) . '</p>
+								<p>' . __( 'WooCommerce Shipping &amp; Tax displays live shipping rates to customers on your site.', 'woocommerce-services' ) . '</p>
+								<p>' . __( 'WooCommerce Shipping provides the rest of the shipping experience.', 'woocommerce-services' ) . '</p>
+								<p>' . __( 'Please keep WooCommerce Shipping &amp; Tax active if you wish to continue displaying live rates to shoppers.', 'woocommerce-services' ) . '</p>
+							</div>
+						</td>
+					</tr>';
 	}
 }

@@ -62,6 +62,7 @@ module.exports = {
 			'./client/provide-public-path.js',
 			'./client/wcshipping-migration-admin-notice.js'
 		],
+		'woocommerce-services-jetpack-deleted-notice': [ './client/jetpack-deleted-notice.js' ],
 	},
 	output: Object.assign(
 			{},

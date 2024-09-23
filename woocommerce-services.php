@@ -859,6 +859,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
 				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
+
+			do_action( 'wcservices_load_admin_dependencies', $this );
 		}
 
 		/**
