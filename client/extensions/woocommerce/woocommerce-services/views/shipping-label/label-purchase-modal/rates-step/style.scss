@@ -70,6 +70,8 @@
 		// Unset the translate() transform introduced in Gutenberg.
 		// See: https://github.com/WordPress/gutenberg/pull/27377
 		transform: none;
+		left:0;
+		top:0;
 	}
 }
 
