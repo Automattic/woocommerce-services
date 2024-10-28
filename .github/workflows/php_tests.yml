@@ -52,6 +52,15 @@ jobs:
         wp-version: ${{ fromJSON(needs.find_latest_versions.outputs.wp-versions) }}
         wc-version: ${{ fromJSON(needs.find_latest_versions.outputs.wc-versions) }}
     steps:
+      - name: Install SVN if not already installed
+        run: |
+          if ! svn --version &> /dev/null
+          then
+            echo "SVN is not installed. Installing SVN..."
+            sudo apt-get update && sudo apt-get install -y subversion
+          else
+            echo "SVN is already installed."
+          fi
       - name: Checkout WCS&T
         uses: actions/checkout@v2
         with:

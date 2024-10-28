@@ -9,10 +9,10 @@
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
  * Version: 2.8.2
- * Requires at least: 6.4
- * Tested up to: 6.6
- * WC requires at least: 8.8
- * WC tested up to: 9.0
+ * Requires at least: 6.5
+ * Tested up to: 6.7
+ * WC requires at least: 9.1
+ * WC tested up to: 9.3
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -630,7 +630,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function on_plugins_loaded() {
-			$this->load_textdomain();
+			add_action( 'after_setup_theme', array( $this, 'load_textdomain' ) );
 
 			/**
 			 * Allow third party logic to determine if this plugin should initiate its logic.
