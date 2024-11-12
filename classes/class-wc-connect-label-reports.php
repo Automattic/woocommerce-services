@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
+
 if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 	include_once WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php';
 
@@ -36,13 +38,18 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 		private function get_all_labels() {
 			global $wpdb;
 
+			$table_name = OrderUtil::get_table_for_order_meta();
+			$id_column  = OrderUtil::custom_orders_table_usage_is_enabled() ? 'order_id' : 'post_id';
 			$db_results = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s",
+					'SELECT %i, meta_value FROM %i WHERE meta_key = %s',
+					$id_column,
+					$table_name,
 					'wc_connect_labels'
 				)
 			);
-			$results    = array();
+
+			$results = array();
 
 			foreach ( $db_results as $meta ) {
 				$labels = maybe_unserialize( $meta->meta_value );
@@ -56,7 +63,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				}
 
 				foreach ( $labels as $label ) {
-					$results[] = array_merge( $label, array( 'order_id' => $meta->post_id ) );
+					$results[] = array_merge( $label, array( 'order_id' => $meta->{$id_column} ) );
 				}
 			}
 
