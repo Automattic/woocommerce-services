@@ -79,9 +79,15 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				set_transient( self::LABELS_TRANSIENT_KEY, $all_labels, 1800 );
 			}
 
-			// translate timestamps to JS timestapms
-			$start_date = $this->start_date * 1000;
-			$end_date   = $this->end_date * 1000;
+			/**
+			 * Translate timestamps to JS timestamps.
+			 *
+			 * The start_date is set to the beginning of the day (midnight) of the start_date property, converted to milliseconds.
+			 * The end_date is set to the end of the day (one millisecond before midnight) of the end_date property, converted to milliseconds.
+			 * This ensures that the date range includes the entire days specified by start_date and end_date.
+			 */
+			$start_date = strtotime( 'midnight', $this->start_date ) * 1000;
+			$end_date   = strtotime( 'tomorrow', $this->end_date ) * 1000 - 1;
 
 			$results = array();
 			foreach ( $all_labels as $label ) {
