@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.8.4 - 2024-xx-xx =
+* Fix   - Support High-Performance Order Storage in shipping label reports.
+
 = 2.8.3 - 2024-10-29 =
 * Tweak - WordPress 6.7 Compatibility.
 
