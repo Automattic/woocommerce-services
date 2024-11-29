@@ -25,6 +25,13 @@ jobs:
         run: npm ci
       - name: Build plugin zip
         run: npm run build
+
+      - name: Unzip woocommerce-services.zip
+        run: unzip woocommerce-services.zip -d woocommerce-services
+
+      - name: Re-zip woocommerce-services folder
+        run: zip -r woocommerce-services.zip woocommerce-services
+
       - name: Require woocommerce/qit-cli
         run: composer require woocommerce/qit-cli
       - name: Add Partner
