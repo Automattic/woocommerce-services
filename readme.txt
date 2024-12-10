@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.5
 Requires Plugins: woocommerce
 Tested up to: 6.7
-WC requires at least: 9.1
-WC tested up to: 9.3
+WC requires at least: 9.2
+WC tested up to: 9.4
 Stable tag: 2.8.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
