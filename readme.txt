@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.7
 WC requires at least: 9.2
 WC tested up to: 9.4
-Stable tag: 2.8.4
+Stable tag: 2.8.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,7 +81,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.8.5 - 2024-xx-xx =
+= 2.8.5 - 2024-12-10 =
 * Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.
 
 = 2.8.4 - 2024-12-09 =
