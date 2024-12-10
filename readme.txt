@@ -82,7 +82,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.8.5 - 2024-xx-xx =
-* Fix   - Adding Product Add-Ons on order edit page is stucked when automated tax is enabled.
+* Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.
 
 = 2.8.4 - 2024-12-09 =
 * Fix   - Support High-Performance Order Storage in shipping label reports.
