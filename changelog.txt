@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.8.5 - 2024-xx-xx =
+= 2.8.5 - 2024-12-10 =
 * Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.
 
 = 2.8.4 - 2024-12-09 =
