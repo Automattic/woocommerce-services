@@ -8,10 +8,10 @@
         "woocommerce/woocommerce-sniffs": "^0.0.2"
     },
     "require": {
-      "automattic/jetpack-connection": "^2.11.3",
-        "automattic/jetpack-config": "^2.0.4",
-        "automattic/jetpack-autoloader": "^3.0.9",
-        "automattic/jetpack-status": "^3.3.2"
+      	"automattic/jetpack-connection": "^6.2.0",
+        "automattic/jetpack-config": "^3.0.0",
+        "automattic/jetpack-autoloader": "^5.0.0",
+        "automattic/jetpack-status": "^5.0.1"
     },
     "config": {
         "allow-plugins": {

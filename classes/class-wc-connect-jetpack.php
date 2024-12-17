@@ -3,6 +3,7 @@
 use Automattic\Jetpack\Connection\Manager;
 use Automattic\Jetpack\Connection\Package_Version;
 use Automattic\Jetpack\Status;
+use Automattic\Jetpack\Status\Host;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
@@ -60,15 +61,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * @return bool
 		 */
 		public static function is_atomic_site() {
-			if ( function_exists( 'jetpack_is_atomic_site' ) ) {
-				return jetpack_is_atomic_site();
-			}
-
-			if ( function_exists( 'jetpack_is_automated_transfer_site' ) ) {
-				return jetpack_is_automated_transfer_site();
-			}
-
-			return false;
+			return ( new Host() )->is_woa_site();
 		}
 
 		public static function get_connection_owner_wpcom_data() {
