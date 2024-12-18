@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.8.6 - 2024-xx-xx =
+* Add   - Custom surcharge ( Retail Delivery Fee ) for shipment to Colorado, US.
+
 = 2.8.5 - 2024-12-10 =
 * Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.
 
