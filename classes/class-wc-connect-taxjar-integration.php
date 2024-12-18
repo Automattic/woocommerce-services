@@ -1549,7 +1549,19 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );
+			/**
+			 * Filter for toggling whether apply the custom surcharge or not.
+			 * Set to `false` to disable the custom surcharge.
+			 *
+			 * @since 2.8.6
+			 *
+			 * @param boolean Custom surcharge toggle.
+			 * @param array   Custom surcharge info.
+			 * @param WC_Cart WooCommerce cart object.
+			 */
+			if ( true === apply_filters( 'wc_services_apply_custom_surcharge_fee', true, $custom_info, $cart ) ) {
+				$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );	
+			}
 		}
 	}
 
@@ -1559,6 +1571,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array.
 	 */
 	public function get_custom_surcharges() {
+		/**
+		 * Filter to manipulate the custom surcharge info.
+		 *
+		 * @since 2.8.6
+		 *
+		 * @param array List of custom surcharge info.
+		 */
 		return apply_filters(
 			'wc_services_custom_surcharges',
 			array(
