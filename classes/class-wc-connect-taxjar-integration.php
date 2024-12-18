@@ -170,6 +170,9 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
+		
+		// Add custom state surcharge.
+		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'add_custom_state_surcharge_fee' ), 10 );
 	}
 
 	/**
@@ -1498,5 +1501,91 @@ class WC_Connect_TaxJar_Integration {
 		}
 		// Load Javascript for WooCommerce new order page
 		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
+	}
+
+	/**
+	 * Add a 27 cent surcharge to your cart / checkout based on delivery country & state
+	 * Taxes, shipping costs and order subtotal are all included in the surcharge amount
+	 *
+	 * Fee won't be added if all products in the cart are virtual
+	 * 
+	 * Change $fee to set the surcharge to a value to suit
+	 *
+	 * 
+	 * Change $country to set the country
+	 * http://en.wikipedia.org/wiki/ISO_3166-1#Current_codes for available alpha-2 country codes
+	 *
+	 * Change $state to set the state
+	 * Example: The state code for Colorado would be 'CO'
+	 * https://en.wikipedia.org/wiki/ISO_3166-2:US
+	 *
+	 * Uses the WooCommerce fees API
+	 *
+	 * @param WC_Cart $cart WooCommerce Cart object.
+	 */
+	public function add_custom_state_surcharge_fee( $cart ) {
+		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+			return;
+		}
+		
+		if( $this->maybe_all_products_are_virtual( $cart ) ) {
+			return;
+		}
+
+		/** Checks if Local Pickup is selected to not apply the fee */
+		if ( count( array_intersect( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+			return;
+		}
+
+		$customer = WC()->customer;
+
+		foreach ( $this->get_custom_surcharges() as $custom_info ) {
+			// Making sure all info is not empty.
+			if ( ! isset( $custom_info['country'] ) || ! isset( $custom_info['state'] ) || ! isset( $custom_info['fee'] ) || ! isset( $custom_info['fee_text'] ) || ! is_float( $custom_info['fee'] ) ) {
+				continue;
+			}
+
+			if ( $customer->get_shipping_country() !== $custom_info['country'] || $customer->get_shipping_state() !== $custom_info['state'] ) {	
+				continue;
+			}
+
+			$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );
+		}
+	}
+
+	/**
+	 * Get list of custom surcharges.
+	 *
+	 * @return array.
+	 */
+	public function get_custom_surcharges() {
+		return apply_filters(
+			'wc_services_custom_surcharges',
+			array(
+				array(
+					'country'  => 'US',
+					'state'    => 'CO',
+					'fee'      => 0.27,
+					'fee_text' => __( 'Retail Delivery Fee', 'woocommerce_services' ),
+				)
+			)
+		);
+	}
+
+	/**
+	 * Check if all products are virtual or not.
+	 *
+	 * @param WC_Cart $cart WooCommerce Cart object.
+	 *
+	 * @return boolean.
+	 */
+	public function maybe_all_products_are_virtual( $cart ) {
+		foreach ( $cart->get_cart() as $cart_item ) {
+			if ( ! $cart_item['data']->is_virtual() ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
