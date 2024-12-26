@@ -1544,12 +1544,12 @@ class WC_Connect_TaxJar_Integration {
 		$customer = WC()->customer;
 
 		foreach ( $this->get_custom_surcharges() as $key => $custom_info ) {
-			if ( $customer->get_shipping_country() . ':' . $customer->get_shipping_state() !== $key ) {
+			if ( $customer->get_shipping_country() . '-' . $customer->get_shipping_state() !== $key ) {
 				continue;
 			}
 
 			// Making sure all info is not empty.
-			if ( ! isset( $custom_info['function'] ) || ! isset( $custom_info['fee'] ) || ! isset( $custom_info['fee_text'] ) || ! is_float( $custom_info['fee'] ) || ! is_callable( $custom_info['function'], true ) ) {
+			if ( ! isset( $custom_info['function'] ) || ! isset( $custom_info['fee'] ) || ! isset( $custom_info['fee_text'] ) || ! is_float( $custom_info['fee'] ) || ! is_callable( $custom_info['function'] ) ) {
 				continue;
 			}
 
@@ -1562,11 +1562,12 @@ class WC_Connect_TaxJar_Integration {
 			 * @since 2.8.6
 			 *
 			 * @param boolean Custom surcharge toggle.
+			 * @param string  Custom surcharge area string. Example: "US-CO".
 			 * @param array   Custom surcharge info.
 			 * @param WC_Cart WooCommerce cart object.
 			 */
-			if ( true === apply_filters( 'wc_services_apply_custom_surcharge_fee', $eligible_to_add_fee, $custom_info, $cart ) ) {
-				$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );	
+			if ( true === apply_filters( 'wc_services_apply_custom_surcharge_fee', $eligible_to_add_fee, $key, $custom_info, $cart ) ) {
+				$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );
 			}
 		}
 	}
@@ -1588,7 +1589,7 @@ class WC_Connect_TaxJar_Integration {
 			'wc_services_custom_surcharges',
 			array(
 				'US-CO' => array(
-					'function' => array( 'WC_Connect_Custom_Surcharge', 'get_us_co_custom_surcharge' ),
+					'function' => array( 'WC_Connect_Custom_Surcharge', 'get_us_co_eligibility' ),
 					'fee'      => 0.27,
 					'fee_text' => __( 'Retail Delivery Fee', 'woocommerce_services' ),
 				)

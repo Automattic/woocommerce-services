@@ -23,11 +23,22 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 		 * @return boolean.
 		 */
 		public static function get_us_co_eligibility( $cart = null ) {
-			if ( $cart instanceof WC_Cart ) {
-				return true;
+			if ( false === ( $cart instanceof WC_Cart ) ) {
+				return false;
 			}
 
-			return false;
+			$has_taxable_product = false;
+
+			foreach ( $cart->get_cart() as $cart_item ) {
+				if ( $cart_item['data']->is_taxable() ) {
+					$has_taxable_product = true;
+					break;
+				}
+			}
+
+			$content_taxes = $cart->get_cart_contents_taxes();
+
+			return $has_taxable_product && ! empty( $content_taxes );
 		}
 	}
 }
