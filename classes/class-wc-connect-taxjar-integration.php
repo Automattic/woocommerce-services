@@ -1537,17 +1537,23 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		if ( ! is_array( $this->get_custom_surcharges() ) ) {
+			return;
+		}
+
 		$customer = WC()->customer;
 
-		foreach ( $this->get_custom_surcharges() as $custom_info ) {
-			// Making sure all info is not empty.
-			if ( ! isset( $custom_info['country'] ) || ! isset( $custom_info['state'] ) || ! isset( $custom_info['fee'] ) || ! isset( $custom_info['fee_text'] ) || ! is_float( $custom_info['fee'] ) ) {
+		foreach ( $this->get_custom_surcharges() as $key => $custom_info ) {
+			if ( $customer->get_shipping_country() . ':' . $customer->get_shipping_state() !== $key ) {
 				continue;
 			}
 
-			if ( $customer->get_shipping_country() !== $custom_info['country'] || $customer->get_shipping_state() !== $custom_info['state'] ) {	
+			// Making sure all info is not empty.
+			if ( ! isset( $custom_info['function'] ) || ! isset( $custom_info['fee'] ) || ! isset( $custom_info['fee_text'] ) || ! is_float( $custom_info['fee'] ) || ! is_callable( $custom_info['function'], true ) ) {
 				continue;
 			}
+
+			$eligible_to_add_fee = call_user_func( $custom_info['function'], $cart );
 
 			/**
 			 * Filter for toggling whether apply the custom surcharge or not.
@@ -1559,7 +1565,7 @@ class WC_Connect_TaxJar_Integration {
 			 * @param array   Custom surcharge info.
 			 * @param WC_Cart WooCommerce cart object.
 			 */
-			if ( true === apply_filters( 'wc_services_apply_custom_surcharge_fee', true, $custom_info, $cart ) ) {
+			if ( true === apply_filters( 'wc_services_apply_custom_surcharge_fee', $eligible_to_add_fee, $custom_info, $cart ) ) {
 				$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );	
 			}
 		}
@@ -1581,9 +1587,8 @@ class WC_Connect_TaxJar_Integration {
 		return apply_filters(
 			'wc_services_custom_surcharges',
 			array(
-				array(
-					'country'  => 'US',
-					'state'    => 'CO',
+				'US-CO' => array(
+					'function' => array( 'WC_Connect_Custom_Surcharge', 'get_us_co_custom_surcharge' ),
 					'fee'      => 0.27,
 					'fee_text' => __( 'Retail Delivery Fee', 'woocommerce_services' ),
 				)
