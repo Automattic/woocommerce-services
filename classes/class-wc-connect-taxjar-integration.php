@@ -1532,8 +1532,8 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		/** Checks if Local Pickup is selected to not apply the fee */
-		if ( count( array_intersect( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+		/** Do not apply the fee if all shipping methods use Local Pickup */
+		if ( 0 === count( array_diff( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) ) {
 			return;
 		}
 
