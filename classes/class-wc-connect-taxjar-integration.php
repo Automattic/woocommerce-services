@@ -1528,7 +1528,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 		
-		if( $this->maybe_all_products_are_virtual( $cart ) ) {
+		if ( $this->maybe_all_products_are_virtual( $cart ) ) {
 			return;
 		}
 
