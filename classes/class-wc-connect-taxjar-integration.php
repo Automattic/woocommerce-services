@@ -397,6 +397,22 @@ class WC_Connect_TaxJar_Integration {
 		$this->logger->log( $formatted_message, 'WCS Tax' );
 	}
 
+	public function _notice( $message ) {
+		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
+
+		// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
+		if ( (
+				( is_cart() || ( is_checkout() && is_ajax() ) ) ||
+				( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
+			)
+			&& ! wc_has_notice( $message, 'notice' )
+		) {
+			wc_add_notice( $message, 'notice' );
+		}
+
+	return;
+	}
+
 	/**
 	 * @param $message
 	 */
@@ -1348,6 +1364,10 @@ class WC_Connect_TaxJar_Integration {
 			$this->_error( 'API request is stopped. Country store is set to US but the zip code has incorrect format.' );
 
 			return false;
+		}
+
+		if ( ! empty( $json['to_country'] ) && ! empty( $json['to_zip'] ) && 'US' === $json['to_country'] && ! ( (bool) preg_match( '/^([0-9]{5})([-]?)([0-9]{4})$/', $json['to_zip'] ) ) ) {
+			$this->_notice( sprintf( __( 'Use 9 digits zip code for more accurate tax calculation. %1$sClick here for zip code look up%2$s.', 'woocommerce-services' ), '<a href="https://tools.usps.com/zip-code-lookup.htm?byaddress" target="_blank">', '</a>' ) );
 		}
 
 		$this->_log( 'API request is in good format.' );
