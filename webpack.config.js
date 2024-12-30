@@ -55,6 +55,7 @@ module.exports = {
 			'./client/provide-public-path.js',
 			'./client/main.js'
 		],
+		'woocommerce-services-checkout': [ './client/checkout-notices/index.js' ],
 		'woocommerce-services-banner': [ './client/banner.js' ],
 		'woocommerce-services-admin-pointers': [ './client/admin-pointers.js' ],
 		'woocommerce-services-new-order-taxjar': [ './client/new-order-taxjar.js' ],

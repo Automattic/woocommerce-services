@@ -58,6 +58,7 @@ class WC_Connect_TaxJar_Integration {
 	const PROXY_PATH               = 'taxjar/v2';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
+	const NOTICE_KEY               = 'woocommerce_services_notices';
 
 	public function __construct(
 		WC_Connect_API_Client $api_client,
@@ -401,13 +402,11 @@ class WC_Connect_TaxJar_Integration {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
 		// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
-		if ( (
-				( is_cart() || ( is_checkout() && is_ajax() ) ) ||
-				( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
-			)
-			&& ! wc_has_notice( $message, 'notice' )
+		if (
+			( is_cart() || ( is_checkout() && is_ajax() ) ) ||
+			( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
 		) {
-			wc_add_notice( $message, 'notice' );
+			$this->maybe_add_notice_error( $message, 'notice' );
 		}
 
 	return;
@@ -439,13 +438,11 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
-			if ( (
-					( is_cart() || ( is_checkout() && is_ajax() ) ) ||
-					( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
-				)
-				&& ! wc_has_notice( $message, 'error' )
+			if (
+				( is_cart() || ( is_checkout() && is_ajax() ) ) ||
+				( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
 			) {
-				wc_add_notice( $message, 'error' );
+				$this->maybe_add_notice_error( $message, 'error' );
 			}
 
 			return;
@@ -1081,6 +1078,9 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function calculate_tax( $options = array() ) {
 		$this->_log( ':::: TaxJar Plugin requested ::::' );
+		
+		// Unset the error notice.
+		WC()->session->set( self::NOTICE_KEY, array() );
 
 		// Process $options array and turn them into variables
 		$options = is_array( $options ) ? $options : array();
@@ -1453,6 +1453,26 @@ class WC_Connect_TaxJar_Integration {
 		} else {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response['response']['code'] . '): ' . $response['body'] );
 		}
+	}
+
+	public function maybe_add_notice_error( $message, $type = 'error' ) {
+		if ( ! wc_has_notice( $message, $type ) ) {
+			wc_add_notice( $message, $type );
+		}
+
+		$this->add_notice_error( $message, $type );
+	}
+
+	public function add_notice_error( $message, $type = 'error' ) {
+		$notices = WC()->session->get( self::NOTICE_KEY );
+
+		if ( ! is_array( $notices ) ) {
+			$notices = array();
+		}
+
+		$notices[ $type ] = $message;
+
+		WC()->session->set( self::NOTICE_KEY, $notices );
 	}
 
 	/**
