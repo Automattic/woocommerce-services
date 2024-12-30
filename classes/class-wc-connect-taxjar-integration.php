@@ -1155,6 +1155,8 @@ class WC_Connect_TaxJar_Integration {
 			$body['line_items'] = $line_items;
 		}
 
+		$this->maybe_add_taxjar_suggestion( $body );
+
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
 		// if no response, no need to keep going - bail early
@@ -1324,6 +1326,22 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Add suggestion for a better TaxJar result.
+	 *
+	 * @param array $body_request Body TaxJar request.
+	 */
+	public function maybe_add_taxjar_suggestion( $body_request ) {
+		if ( 
+			! empty( $body_request['to_country'] ) && 
+			! empty( $body_request['to_zip'] ) && 
+			'US' === $body_request['to_country'] && 
+			! ( (bool) preg_match( '/^([0-9]{5})([-]?)([0-9]{4})$/', $body_request['to_zip'] ) ) 
+		) {
+			$this->_notice( sprintf( __( 'Use 9 digits zip code for more accurate tax calculation. %1$sClick here for zip code look up%2$s.', 'woocommerce-services' ), '<a href="https://tools.usps.com/zip-code-lookup.htm?byaddress" target="_blank">', '</a>' ) );
+		}
+	}
+
+	/**
 	 * Validate TaxJar API request json value and add the error to log.
 	 *
 	 * @param $json
@@ -1364,10 +1382,6 @@ class WC_Connect_TaxJar_Integration {
 			$this->_error( 'API request is stopped. Country store is set to US but the zip code has incorrect format.' );
 
 			return false;
-		}
-
-		if ( ! empty( $json['to_country'] ) && ! empty( $json['to_zip'] ) && 'US' === $json['to_country'] && ! ( (bool) preg_match( '/^([0-9]{5})([-]?)([0-9]{4})$/', $json['to_zip'] ) ) ) {
-			$this->_notice( sprintf( __( 'Use 9 digits zip code for more accurate tax calculation. %1$sClick here for zip code look up%2$s.', 'woocommerce-services' ), '<a href="https://tools.usps.com/zip-code-lookup.htm?byaddress" target="_blank">', '</a>' ) );
 		}
 
 		$this->_log( 'API request is in good format.' );
