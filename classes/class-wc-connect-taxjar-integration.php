@@ -1527,33 +1527,21 @@ class WC_Connect_TaxJar_Integration {
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 			return;
 		}
-		
-		if ( $this->maybe_all_products_are_virtual( $cart ) ) {
-			return;
-		}
-
-		/** Do not apply the fee if all shipping methods use Local Pickup */
-		if ( 0 === count( array_diff( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) ) {
-			return;
-		}
 
 		if ( ! is_array( $this->get_custom_surcharges() ) ) {
 			return;
 		}
 
-		$customer = WC()->customer;
+		$custom_surcharges = $this->get_custom_surcharges();
+		$customer          = WC()->customer;
+		$key               = $customer->get_shipping_country() . ':' . $customer->get_shipping_state();
 
-		foreach ( $this->get_custom_surcharges() as $key => $custom_info ) {
-			if ( $customer->get_shipping_country() . '-' . $customer->get_shipping_state() !== $key ) {
-				continue;
-			}
+		if ( ! isset( $custom_surcharges[ $key ] ) || ! is_array( $custom_surcharges[ $key ] ) )  {
+			return;
+		}
 
-			// Making sure all info is not empty.
-			if ( ! isset( $custom_info['function'] ) || ! isset( $custom_info['fee'] ) || ! isset( $custom_info['fee_text'] ) || ! is_float( $custom_info['fee'] ) || ! is_callable( $custom_info['function'] ) ) {
-				continue;
-			}
-
-			$eligible_to_add_fee = call_user_func( $custom_info['function'], $cart );
+		foreach ( $custom_surcharges[ $key ] as $function_rule ) {
+			$fee_info = call_user_func( $function_rule, $cart );
 
 			/**
 			 * Filter for toggling whether apply the custom surcharge or not.
@@ -1561,13 +1549,15 @@ class WC_Connect_TaxJar_Integration {
 			 *
 			 * @since 2.8.6
 			 *
-			 * @param boolean Custom surcharge toggle.
-			 * @param string  Custom surcharge area string. Example: "US-CO".
 			 * @param array   Custom surcharge info.
+			 * @param string  Custom surcharge area string. Example: "US-CO".
+			 * @param array   Custom surcharge function or method.
 			 * @param WC_Cart WooCommerce cart object.
 			 */
-			if ( true === apply_filters( 'wc_services_apply_custom_surcharge_fee', $eligible_to_add_fee, $key, $custom_info, $cart ) ) {
-				$cart->add_fee( $custom_info['fee_text'], $custom_info['fee'], true, 'standard' );
+			$fee_info = apply_filters( 'wc_services_apply_custom_surcharge_fee', $fee_info, $key, $function_rule, $cart );
+			
+			if ( isset( $fee_info['fee_text'] ) && isset( $fee_info['fee'] ) && is_float( $fee_info['fee'] ) ) {
+				$cart->add_fee( $fee_info['fee_text'], $fee_info['fee'], true, 'standard' );
 			}
 		}
 	}
@@ -1588,29 +1578,10 @@ class WC_Connect_TaxJar_Integration {
 		return apply_filters(
 			'wc_services_custom_surcharges',
 			array(
-				'US-CO' => array(
-					'function' => array( 'WC_Connect_Custom_Surcharge', 'get_us_co_eligibility' ),
-					'fee'      => 0.27,
-					'fee_text' => __( 'Retail Delivery Fee', 'woocommerce_services' ),
+				'US:CO' => array(
+					array( 'WC_Connect_Custom_Surcharge', 'get_us_co_eligibility' ),
 				)
 			)
 		);
-	}
-
-	/**
-	 * Check if all products are virtual or not.
-	 *
-	 * @param WC_Cart $cart WooCommerce Cart object.
-	 *
-	 * @return boolean.
-	 */
-	public function maybe_all_products_are_virtual( $cart ) {
-		foreach ( $cart->get_cart() as $cart_item ) {
-			if ( ! $cart_item['data']->is_virtual() ) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 }

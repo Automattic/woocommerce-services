@@ -23,8 +23,20 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 		 * @return boolean.
 		 */
 		public static function get_us_co_eligibility( $cart = null ) {
+			$fee_info = array();
+
 			if ( false === ( $cart instanceof WC_Cart ) ) {
-				return false;
+				return $fee_info;
+			}
+
+			// Do not apply the fee if all products are virtual.
+			if ( WC_Connect_Utils::is_all_products_are_virtual( $cart ) ) {
+				return $fee_info;
+			}
+	
+			// Do not apply the fee if all shipping methods use Local Pickup.
+			if ( 0 === count( array_diff( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) ) {
+				return $fee_info;
 			}
 
 			$has_taxable_product = false;
@@ -38,7 +50,14 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 
 			$content_taxes = $cart->get_cart_contents_taxes();
 
-			return $has_taxable_product && ! empty( $content_taxes );
+			if ( $has_taxable_product && ! empty( $content_taxes ) ) {
+				$fee_info = array(
+					'fee'      => 0.27,
+					'fee_text' => __( 'Retail Delivery Fee', 'woocommerce_services' ),
+				);
+			}
+			
+			return $fee_info;
 		}
 	}
 }
