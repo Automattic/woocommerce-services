@@ -398,25 +398,32 @@ class WC_Connect_TaxJar_Integration {
 		$this->logger->log( $formatted_message, 'WCS Tax' );
 	}
 
+	/**
+	 * Display notice in cart or checkout page.
+	 *
+	 * @param string|array $message Error message.
+	 */
 	public function _notice( $message ) {
-		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
+		$formatted_message = is_scalar( $message ) ? $message : wp_json_encode( $message );
 
 		// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
 		if (
 			( is_cart() || ( is_checkout() && is_ajax() ) ) ||
 			( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
 		) {
-			$this->maybe_add_notice_error( $message, 'notice' );
+			$this->maybe_add_error_notice( $message, 'notice' );
 		}
 
 	return;
 	}
 
 	/**
-	 * @param $message
+	 * Display error on cart or checkout page.
+	 *
+	 * @param string|array $message Error message.
 	 */
 	public function _error( $message ) {
-		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
+		$formatted_message = is_scalar( $message ) ? $message : wp_json_encode( $message );
 
 		// ignore error messages caused by customer input
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
@@ -442,7 +449,7 @@ class WC_Connect_TaxJar_Integration {
 				( is_cart() || ( is_checkout() && is_ajax() ) ) ||
 				( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
 			) {
-				$this->maybe_add_notice_error( $message, 'error' );
+				$this->maybe_add_error_notice( $message, 'error' );
 			}
 
 			return;
@@ -1469,15 +1476,15 @@ class WC_Connect_TaxJar_Integration {
 		}
 	}
 
-	public function maybe_add_notice_error( $message, $type = 'error' ) {
+	public function maybe_add_error_notice( $message, $type = 'error' ) {
 		if ( ! wc_has_notice( $message, $type ) ) {
 			wc_add_notice( $message, $type );
 		}
 
-		$this->add_notice_error( $message, $type );
+		$this->add_error_notice( $message, $type );
 	}
 
-	public function add_notice_error( $message, $type = 'error' ) {
+	public function add_error_notice( $message, $type = 'error' ) {
 		$notices = WC()->session->get( self::NOTICE_KEY );
 
 		if ( ! is_array( $notices ) ) {

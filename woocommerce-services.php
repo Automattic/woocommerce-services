@@ -333,7 +333,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return string
 		 */
-		private static function get_wc_connect_base_url() {
+		public static function get_wc_connect_base_url() {
 			return trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : plugins_url( 'dist/', __FILE__ ) );
 		}
 
@@ -357,6 +357,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			} else {
 				return '';
 			}
+		}
+
+		/**
+		 * Get plugin absolute path.
+		 *
+		 * @return string
+		 */
+		public static function get_wcs_abs_path() {
+			return __DIR__ . '/';
+		}
+
+		/**
+		 * Get plugin distribution path.
+		 *
+		 * @return string
+		 */
+		public static function get_wc_connect_base_path() {
+			return __DIR__ . '/dist/';
 		}
 
 		public function __construct() {
@@ -663,6 +681,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+			add_action( 'woocommerce_blocks_loaded', array( $this, 'register_blocks_integration' ) );
 			add_action( 'woocommerce_blocks_loaded', array( $this, 'extend_store_api' ) );
 		}
 
@@ -701,7 +720,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
-			add_action( 'wp_enqueue_scripts', array( $this, 'frontend_enqueue_scripts' ) );
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
 		}
 
@@ -895,6 +913,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( is_admin() ) {
 				$this->load_admin_dependencies();
 			}
+		}
+
+		/**
+		 * Register blocks integration.
+		 */
+		public function register_blocks_integration() {
+			require_once __DIR__ . '/classes/class-wc-connect-blocks-integration.php';
+
+			add_action(
+				'woocommerce_blocks_cart_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WC_Connect_Blocks_Integration() );
+				}
+			);
+
+			add_action(
+				'woocommerce_blocks_checkout_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WC_Connect_Blocks_Integration() );
+				}
+			);
 		}
 
 		/**
@@ -1614,14 +1653,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'adminPluginPath' => admin_url( 'plugins.php' ),
 				)
 			);
-		}
-
-		public function frontend_enqueue_scripts() {
-			$plugin_version = self::get_wcs_version();
-
-			if ( WC_Connect_Functions::has_cart_or_checkout_block() ) {
-				wp_enqueue_script( 'wc_services_checkout', $this->wc_connect_base_url . 'woocommerce-services-checkout-' . $plugin_version . '.js', array(), null );
-			}
 		}
 
 		public function get_active_shipping_services() {
