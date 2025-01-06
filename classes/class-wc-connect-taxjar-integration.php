@@ -171,8 +171,7 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
 		
-		// Add custom state surcharge.
-		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'add_custom_state_surcharge_fee' ), 10 );
+		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_add_custom_state_surcharge_fee' ), 10 );
 	}
 
 	/**
@@ -1523,7 +1522,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param WC_Cart $cart WooCommerce Cart object.
 	 */
-	public function add_custom_state_surcharge_fee( $cart ) {
+	public function maybe_add_custom_state_surcharge_fee( $cart ) {
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 			return;
 		}
