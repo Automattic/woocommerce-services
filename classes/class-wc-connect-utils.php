@@ -104,22 +104,5 @@ if ( ! class_exists( 'WC_Connect_Utils' ) ) {
 
 			return false;
 		}
-
-		/**
-		 * Check if all products are virtual or not.
-		 *
-		 * @param WC_Cart $cart WooCommerce Cart object.
-		 *
-		 * @return boolean.
-		 */
-		public static function is_all_products_are_virtual( $cart ) {
-			foreach ( $cart->get_cart() as $cart_item ) {
-				if ( ! $cart_item['data']->is_virtual() ) {
-					return false;
-				}
-			}
-
-			return true;
-		}
 	}
 }

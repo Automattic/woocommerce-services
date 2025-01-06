@@ -1541,6 +1541,12 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		foreach ( $surcharges[ $key ] as $function_rule ) {
+			if ( ! is_callable( $function_rule ) ) {
+				$callback_string = is_array( $function_rule ) ? implode( '::', $function_rule ) : $function_rule;
+				$this->_log( 'This surcharge rule cannot be called: ' . $callback_string );
+				continue;
+			}
+
 			$fee_info = call_user_func( $function_rule, $cart );
 
 			/**

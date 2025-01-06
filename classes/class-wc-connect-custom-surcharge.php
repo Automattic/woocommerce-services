@@ -20,7 +20,7 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 		 *
 		 * @param WC_Cart|null $cart Cart object or null.
 		 *
-		 * @return boolean.
+		 * @return array|false.
 		 */
 		public static function add_us_co_rdf( $cart = null ) {
 			if ( false === ( $cart instanceof WC_Cart ) ) {
@@ -42,7 +42,7 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 			}
 			
 			return array(
-				'fee'      => 0.27,
+				'fee'      => 0.29,
 				'fee_text' => __( 'Retail Delivery Fee', 'woocommerce_services' ),
 			);
 		}
