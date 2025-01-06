@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 2.8.6 - 2025-xx-xx =
+= 2.8.6 - 2025-01-06 =
 * Tweak - PHP 8.4 compatibility.
 
 = 2.8.5 - 2024-12-10 =
