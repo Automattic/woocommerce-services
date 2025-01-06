@@ -1556,8 +1556,8 @@ class WC_Connect_TaxJar_Integration {
 			 */
 			$fee_info = apply_filters( 'wc_services_apply_custom_surcharge_fee', $fee_info, $key, $function_rule, $cart );
 			
-			if ( isset( $fee_info['fee_text'] ) && isset( $fee_info['fee'] ) && is_float( $fee_info['fee'] ) ) {
-				$cart->add_fee( $fee_info['fee_text'], $fee_info['fee'], true, 'standard' );
+			if ( isset( $fee_info['fee_text'] ) && isset( $fee_info['fee'] ) && is_numeric( $fee_info['fee'] ) ) {
+				$cart->add_fee( $fee_info['fee_text'], floatval( $fee_info['fee'] ), true, 'standard' );
 			}
 		}
 	}
@@ -1579,7 +1579,7 @@ class WC_Connect_TaxJar_Integration {
 			'wc_services_custom_surcharges',
 			array(
 				'US:CO' => array(
-					array( 'WC_Connect_Custom_Surcharge', 'get_us_co_eligibility' ),
+					array( 'WC_Connect_Custom_Surcharge', 'add_us_co_rdf' ),
 				)
 			)
 		);
