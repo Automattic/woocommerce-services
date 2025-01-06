@@ -1528,19 +1528,20 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		if ( ! is_array( $this->get_custom_surcharges() ) ) {
+		$surcharges = $this->get_custom_surcharges();
+
+		if ( ! is_array( $surcharges ) ) {
 			return;
 		}
 
-		$custom_surcharges = $this->get_custom_surcharges();
-		$customer          = WC()->customer;
-		$key               = $customer->get_shipping_country() . ':' . $customer->get_shipping_state();
+		$customer = WC()->customer;
+		$key      = $customer->get_shipping_country() . ':' . $customer->get_shipping_state();
 
-		if ( ! isset( $custom_surcharges[ $key ] ) || ! is_array( $custom_surcharges[ $key ] ) )  {
+		if ( ! isset( $surcharges[ $key ] ) || ! is_array( $surcharges[ $key ] ) )  {
 			return;
 		}
 
-		foreach ( $custom_surcharges[ $key ] as $function_rule ) {
+		foreach ( $surcharges[ $key ] as $function_rule ) {
 			$fee_info = call_user_func( $function_rule, $cart );
 
 			/**
