@@ -2,7 +2,7 @@
 /**
  * Blocks Integration class.
  *
- * @package WooCommerce_Table_Rate_Shipping
+ * @package WooCommerce_Services
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
