@@ -16,10 +16,11 @@ const createStoreNotice = ( notice, index, type = 'info' ) => {
 		type = 'info';
 	}
 
-	// eslint-ignore-nextline
+	// eslint-disable-next-line react/react-in-jsx-scope
 	const message = <RawHTML>{notice}</RawHTML>;
 
 	return (
+		// eslint-disable-next-line react/react-in-jsx-scope
 		<StoreNotice key={index} status={type} isDismissible={false}>
 			{message}
 		</StoreNotice>
@@ -27,14 +28,15 @@ const createStoreNotice = ( notice, index, type = 'info' ) => {
 };
 
 const Notices = ({ messages }) => {
-	if ( ! messages['notice'] ) {
+	if ( ! messages.notice ) {
 		return null;
 	}
 
-	const currentMessage = messages['notice'];
+	const currentMessage = messages.notice;
 
 	return (
-		<div className="woocommerce-services-block-notices">
+		// eslint-disable-next-line react/react-in-jsx-scope
+		<div className="checkout-notices__message-info">
 			{createStoreNotice( currentMessage, 0, 'info' )}
 		</div>
 	);
@@ -44,11 +46,11 @@ const render = () => {
 	const { errorNotices } = useSelect((select) => {
 		const storeCartData     = select( 'wc/store/cart' ).getCartData();
 
-		if ( ! storeCartData.extensions || ! storeCartData.extensions['woocommerce_services'] || ! storeCartData.extensions['woocommerce_services'].error_notices ) {
+		if ( ! storeCartData.extensions || ! storeCartData.extensions.woocommerce_services || ! storeCartData.extensions.woocommerce_services.error_notices ) {
 			return {};
 		}
-		
-		const errorNotices = storeCartData.extensions['woocommerce_services'].error_notices;
+		// eslint-disable-next-line no-shadow
+		const errorNotices = storeCartData.extensions.woocommerce_services.error_notices;
 		
 		return {
 			errorNotices,
@@ -61,9 +63,8 @@ const render = () => {
 	}
 
 	return (
-		<ExperimentalOrderShippingPackages>
-			<Notices messages={errorNotices} />
-		</ExperimentalOrderShippingPackages>
+		// eslint-disable-next-line react/react-in-jsx-scope
+		<ExperimentalOrderShippingPackages><Notices messages={errorNotices} /></ExperimentalOrderShippingPackages>
 	);
 };
 
