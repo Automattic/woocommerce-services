@@ -1,5 +1,8 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
+= 2.9.0 - 2024-xx-xx =
+* Add   - Display a notice if the user does not use 9-digit zip code.
+
 = 2.8.5 - 2024-12-10 =
 * Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.
 

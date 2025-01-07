@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.5
 Requires Plugins: woocommerce
 Tested up to: 6.7
-WC requires at least: 9.2
-WC tested up to: 9.4
+WC requires at least: 9.3
+WC tested up to: 9.5
 Stable tag: 2.8.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -80,6 +80,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.9.0 - 2024-xx-xx =
+* Add   - Display a notice if the user does not use 9-digit zip code.
 
 = 2.8.5 - 2024-12-10 =
 * Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.

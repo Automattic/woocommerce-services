@@ -11,8 +11,8 @@
  * Version: 2.8.5
  * Requires at least: 6.5
  * Tested up to: 6.7
- * WC requires at least: 9.2
- * WC tested up to: 9.4
+ * WC requires at least: 9.3
+ * WC tested up to: 9.5
  *
  * Copyright (c) 2017-2023 Automattic
  *
