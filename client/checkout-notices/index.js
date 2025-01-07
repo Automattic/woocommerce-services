@@ -1,7 +1,7 @@
 /**
  * Block Notices
  *
- * This file is responsible for rendering Abort Messages from the Table Rate Shipping plugin.
+ * This file is responsible for rendering Abort Messages from the WooCommerce Shipping & Tax plugin.
  *
  * @package WooCommerce_Services
  */
@@ -44,7 +44,7 @@ const Notices = ({ messages }) => {
 
 const render = () => {
 	const { errorNotices } = useSelect((select) => {
-		const storeCartData     = select( 'wc/store/cart' ).getCartData();
+		const storeCartData = select( 'wc/store/cart' ).getCartData();
 
 		if ( ! storeCartData.extensions || ! storeCartData.extensions.woocommerce_services || ! storeCartData.extensions.woocommerce_services.error_notices ) {
 			return {};

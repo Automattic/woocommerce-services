@@ -2,9 +2,9 @@
 /**
  * Store_API_Extension class.
  *
- * A class to extend the store public API with Table Rate Shipping Abort Message functionality.
+ * A class to extend the store public API with WooCommerce Shipping & Tax Error/Notice Message functionality.
  *
- * @package WooCommerce_Table_Rate_Shipping
+ * @package WooCommerce_Services
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
