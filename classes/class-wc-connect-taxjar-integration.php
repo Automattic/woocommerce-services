@@ -170,8 +170,7 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
-		
-		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_add_custom_state_surcharge_fee' ), 10 );
+		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_add_custom_fee' ), 10 );
 	}
 
 	/**
@@ -1502,92 +1501,29 @@ class WC_Connect_TaxJar_Integration {
 		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
 	}
 
-	/**
-	 * Add a 27 cent surcharge to your cart / checkout based on delivery country & state
-	 * Taxes, shipping costs and order subtotal are all included in the surcharge amount
-	 *
-	 * Fee won't be added if all products in the cart are virtual
-	 * 
-	 * Change $fee to set the surcharge to a value to suit
-	 *
-	 * 
-	 * Change $country to set the country
-	 * http://en.wikipedia.org/wiki/ISO_3166-1#Current_codes for available alpha-2 country codes
-	 *
-	 * Change $state to set the state
-	 * Example: The state code for Colorado would be 'CO'
-	 * https://en.wikipedia.org/wiki/ISO_3166-2:US
-	 *
-	 * Uses the WooCommerce fees API
-	 *
-	 * @param WC_Cart $cart WooCommerce Cart object.
-	 */
-	public function maybe_add_custom_state_surcharge_fee( $cart ) {
-		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-			return;
-		}
+	public function maybe_add_custom_fee( $cart ) {
+		/**
+		 * Filter to manipulate the custom surcharge methods.
+		 *
+		 * @since 2.8.6
+		 *
+		 * @param array List of custom surcharge methods.
+		 */
+		$surcharge_funcs = apply_filters(
+			'wc_services_custom_surcharge_methods',
+			array(
+				array( 'WC_Connect_Custom_Surcharge', 'add_us_co_rdf' ),
+			)
+		);
 
-		$surcharges = $this->get_custom_surcharges();
-
-		if ( ! is_array( $surcharges ) ) {
-			return;
-		}
-
-		$customer = WC()->customer;
-		$key      = $customer->get_shipping_country() . ':' . $customer->get_shipping_state();
-
-		if ( ! isset( $surcharges[ $key ] ) || ! is_array( $surcharges[ $key ] ) )  {
-			return;
-		}
-
-		foreach ( $surcharges[ $key ] as $function_rule ) {
+		foreach ( $surcharge_funcs as $function_rule ) {
 			if ( ! is_callable( $function_rule ) ) {
 				$callback_string = is_array( $function_rule ) ? implode( '::', $function_rule ) : $function_rule;
 				$this->_log( 'This surcharge rule cannot be called: ' . $callback_string );
 				continue;
 			}
 
-			$fee_info = call_user_func( $function_rule, $cart );
-
-			/**
-			 * Filter for toggling whether apply the custom surcharge or not.
-			 * Set to `false` to disable the custom surcharge.
-			 *
-			 * @since 2.8.6
-			 *
-			 * @param array   Custom surcharge info.
-			 * @param string  Custom surcharge area string. Example: "US-CO".
-			 * @param array   Custom surcharge function or method.
-			 * @param WC_Cart WooCommerce cart object.
-			 */
-			$fee_info = apply_filters( 'wc_services_apply_custom_surcharge_fee', $fee_info, $key, $function_rule, $cart );
-			
-			if ( isset( $fee_info['fee_text'] ) && isset( $fee_info['fee'] ) && is_numeric( $fee_info['fee'] ) ) {
-				$cart->add_fee( $fee_info['fee_text'], floatval( $fee_info['fee'] ), true, 'standard' );
-			}
+			call_user_func( $function_rule, $cart );
 		}
-	}
-
-	/**
-	 * Get list of custom surcharges.
-	 *
-	 * @return array.
-	 */
-	public function get_custom_surcharges() {
-		/**
-		 * Filter to manipulate the custom surcharge info.
-		 *
-		 * @since 2.8.6
-		 *
-		 * @param array List of custom surcharge info.
-		 */
-		return apply_filters(
-			'wc_services_custom_surcharges',
-			array(
-				'US:CO' => array(
-					array( 'WC_Connect_Custom_Surcharge', 'add_us_co_rdf' ),
-				)
-			)
-		);
 	}
 }
