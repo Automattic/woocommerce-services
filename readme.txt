@@ -82,7 +82,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 == Changelog ==
 
 = 2.8.6 - 2024-xx-xx =
-* Add   - Custom surcharge ( Retail Delivery Fee ) for shipment to Colorado, US.
+* Add   - Option to apply US Colorado Retail Delivery Fee tax by using `wc_services_apply_us_co_retail_delivery_fee` filter.
 
 = 2.8.5 - 2024-12-10 =
 * Fix   - Fixed an issue that prevented editing an order when automated tax is enabled.
