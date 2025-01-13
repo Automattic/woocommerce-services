@@ -40,12 +40,12 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 			 * Filter should Retail Delivery Fee be applied.
 			 * Default: false.
 			 *
-			 * @since 2.8.6
+			 * @since 2.9.0
 			 *
 			 * @param bool    Should the Retail Delivery Fee be applied.
 			 * @param WC_Cart WooCommerce cart object.
 			 */
-			if ( ! apply_filters( 'wc_services_apply_us_co_retail_delivery_fee', false, $cart ) ) {
+			if ( ! apply_filters( 'wc_services_enable_us_co_retail_delivery_fee', false, $cart ) ) {
 				return;
 			}
 
@@ -95,10 +95,33 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 				return;
 			}
 
-			// As of July 1, 2024 till June 30, 2025 RDF is 29 cents per order
-			// RDF is subject to sales tax.
-			// https://www.avalara.com/blog/en/north-america/2022/10/what-you-need-to-know-about-the-colorado-retail-delivery-fee-now.html.
-			$cart->add_fee( __( 'Retail Delivery Fee', 'woocommerce_services' ), 0.29, true, 'standard' );
+			/**
+			 * Filter for manipulate the custom surcharge.
+			 * 
+			 * As of July 1, 2024 till June 30, 2025 RDF is 29 cents per order
+			 * RDF is subject to sales tax.
+			 * https://www.avalara.com/blog/en/north-america/2022/10/what-you-need-to-know-about-the-colorado-retail-delivery-fee-now.html.
+			 *
+			 * @since 2.9.0
+			 *
+			 * @param array   Custom surcharge info.
+			 * @param WC_Cart WooCommerce cart object.
+			 */
+			$fee_info = apply_filters(
+				'wc_services_apply_us_co_retail_delivery_fee',
+				array(
+					'value' => 0.29,
+					'text'  => __( 'Retail Delivery Fee', 'woocommerce_services' ),
+				),
+				$cart
+			);
+
+			if (
+				! empty( $fee_info['text'] ) &&
+				isset( $fee_info['value'] ) && is_numeric( $fee_info['value'] )
+			) {
+				$cart->add_fee( $fee_info['text'], floatval( $fee_info['value'] ), true, 'standard' );
+			}
 		}
 	}
 }
