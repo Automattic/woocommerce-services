@@ -767,6 +767,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-logger.php';
 			require_once __DIR__ . '/classes/class-wc-connect-service-schemas-validator.php';
 			require_once __DIR__ . '/classes/class-wc-connect-taxjar-integration.php';
+			require_once __DIR__ . '/classes/class-wc-connect-custom-surcharge.php';
 			require_once __DIR__ . '/classes/class-wc-connect-error-notice.php';
 			require_once __DIR__ . '/classes/class-wc-connect-compatibility.php';
 			require_once __DIR__ . '/classes/class-wc-connect-compatibility-wcshipping-packages.php';
