@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.7
 WC requires at least: 9.2
 WC tested up to: 9.4
-Stable tag: 2.8.6
+Stable tag: 2.8.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,7 +81,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.9.0 - 2025-xx-xx =
+= 2.8.7 - 2025-01-20 =
 * Add   - Option to apply US Colorado Retail Delivery Fee tax by using `wc_services_apply_us_co_retail_delivery_fee` filter.
 
 = 2.8.6 - 2025-01-06 =
