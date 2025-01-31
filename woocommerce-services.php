@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: WooCommerce Shipping & Tax
+ * Plugin Name: WooCommerce Tax
  * Requires Plugins: woocommerce
  * Plugin URI: https://woocommerce.com/
- * Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.
+ * Description: Automated tax calculation for WooCommerce.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
@@ -255,6 +255,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected static $wcs_version;
 
 		public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
+
+		public const PLUGIN_NAME_FOR_LEGACY_SITES        = 'WooCommerce Tax (previously WooCommerce Shipping & Tax)';
+		public const PLUGIN_DESCRIPTION_FOR_LEGACY_SITES = 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.';
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
@@ -630,6 +633,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function on_plugins_loaded() {
+			// Initialize legacy_site option if it doesn't exist yet
+			if ( WC_Connect_Options::get_option( 'legacy_site' ) === false ) {
+				WC_Connect_Options::update_option( 'legacy_site', true );
+			}
 			add_action( 'after_setup_theme', array( $this, 'load_textdomain' ) );
 
 			/**
@@ -870,6 +877,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
+			add_filter( 'all_plugins', array( $this, 'maybe_rename_plugin' ) );
+
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 
 			$tracks = $this->get_tracks();
@@ -879,7 +888,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->paypal_ec->init();
 
 			// Only register shipping label-related logic if WC Shipping is not active.
-			if ( ! self::is_wc_shipping_activated() ) {
+			if ( WC_Connect_Options::get_option( 'legacy_site' ) ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 				$this->init_shipping_labels();
@@ -1797,6 +1806,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
 			);
 			return $links;
+		}
+
+		public function maybe_rename_plugin( $plugins ) {
+			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
+
+			if ( isset( $plugins[ $plugin_basename ] ) ) {
+				// Change the name of the plugin
+				if ( WC_Connect_Options::get_option( 'legacy_site' ) ) {
+					$plugins[ $plugin_basename ]['Name']        = self::PLUGIN_NAME_FOR_LEGACY_SITES;
+					$plugins[ $plugin_basename ]['Description'] = self::PLUGIN_DESCRIPTION_FOR_LEGACY_SITES;
+				}
+			}
+			return $plugins;
 		}
 
 		/**
