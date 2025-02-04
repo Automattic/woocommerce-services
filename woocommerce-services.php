@@ -257,7 +257,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
 
 		public const PLUGIN_NAME_FOR_LEGACY_SITES        = 'WooCommerce Tax (previously WooCommerce Shipping & Tax)';
-		public const PLUGIN_DESCRIPTION_FOR_LEGACY_SITES = 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.';
+		public const PLUGIN_DESCRIPTION_FOR_LEGACY_SITES = 'Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.';
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
