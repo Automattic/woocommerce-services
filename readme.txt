@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.8.8 - 2025-xx-xx =
+* Tweak - WooCommerce 9.7 Compatibility.
+
 = 2.8.7 - 2025-01-20 =
 * Add   - Option to apply US Colorado Retail Delivery Fee tax by using `wc_services_apply_us_co_retail_delivery_fee` filter.
 
