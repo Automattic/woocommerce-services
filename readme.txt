@@ -81,7 +81,7 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.8.8 - 2025-xx-xx =
+= 3.0.0 - 2025-xx-xx =
 * Add   - Legacy site detection to maintain shipping functionality for existing installations.
 
 = 2.8.7 - 2025-01-20 =
