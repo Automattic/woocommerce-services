@@ -29,7 +29,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 						'origin_address',
 						'last_rate_request',
 						'services_last_result_code',
-						'legacy_site',
+						'only_tax',
 					);
 				case 'shipping_method':
 					return array(

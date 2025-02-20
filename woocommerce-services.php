@@ -256,11 +256,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
 
-		public const PLUGIN_NAME_FOR_LEGACY_SITES        = __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
-		public const PLUGIN_DESCRIPTION_FOR_LEGACY_SITES = __( 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
-		public const PLUGIN_NAME_FOR_NEW_SITES           = __( 'WooCommerce Tax', 'woocommerce-services' );
-		public const PLUGIN_DESCRIPTION_FOR_NEW_SITES    = __( 'Description: Automated tax calculation for WooCommerce.', 'woocommerce-services' );
-
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 
@@ -635,10 +630,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function on_plugins_loaded() {
-			// Initialize legacy_site option if it doesn't exist yet
-			if ( WC_Connect_Options::get_option( 'legacy_site' ) === false ) {
-				WC_Connect_Options::update_option( 'legacy_site', true );
-			}
 			add_action( 'after_setup_theme', array( $this, 'load_textdomain' ) );
 
 			/**
@@ -890,7 +881,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->paypal_ec->init();
 
 			// Only register shipping label-related logic if WC Shipping is not active.
-			if ( ! self::is_wc_shipping_activated() && WC_Connect_Options::get_option( 'legacy_site' ) ) {
+			if ( ! self::is_wc_shipping_activated() && '1' !== WC_Connect_Options::get_option( 'only_tax' ) ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 				$this->init_shipping_labels();
@@ -1813,14 +1804,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
+			$plugin_name_for_legacy_sites        = __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
+			$plugin_description_for_legacy_sites = __( 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
+			$plugin_name_for_new_sites           = __( 'WooCommerce Tax', 'woocommerce-services' );
+			$plugin_description_for_new_sites    = __( 'Description: Automated tax calculation for WooCommerce.', 'woocommerce-services' );
+
 			if ( isset( $plugins[ $plugin_basename ] ) ) {
-				// Change the name of the plugin
-				if ( WC_Connect_Options::get_option( 'legacy_site' ) ) {
-					$plugins[ $plugin_basename ]['Name']        = self::PLUGIN_NAME_FOR_LEGACY_SITES;
-					$plugins[ $plugin_basename ]['Description'] = self::PLUGIN_DESCRIPTION_FOR_LEGACY_SITES;
+				if ( '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
+					$plugins[ $plugin_basename ]['Name']        = $plugin_name_for_new_sites;
+					$plugins[ $plugin_basename ]['Description'] = $plugin_description_for_new_sites;
 				} else {
-					$plugins[ $plugin_basename ]['Name']        = self::PLUGIN_NAME_FOR_NEW_SITES;
-					$plugins[ $plugin_basename ]['Description'] = self::PLUGIN_DESCRIPTION_FOR_NEW_SITES;
+					$plugins[ $plugin_basename ]['Name']        = $plugin_name_for_legacy_sites;
+					$plugins[ $plugin_basename ]['Description'] = $plugin_description_for_legacy_sites;
 				}
 			}
 			return $plugins;

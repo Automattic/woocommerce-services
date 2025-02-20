@@ -100,7 +100,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 		protected function maybe_mark_as_legacy_site( $service_schemas ) {
 			if ( isset( $service_schemas->features->first_install ) && $service_schemas->features->first_install === true ) {
-				WC_Connect_Options::update_option( 'legacy_site', false );
+				WC_Connect_Options::update_option( 'only_tax', '1' );
 			}
 		}
 
