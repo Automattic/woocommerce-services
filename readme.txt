@@ -81,8 +81,8 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
-= 2.9.0 - 2024-xx-xx =
-* Add   - Display a notice if the user does not use 9-digit zip code.
+= 2.9.0 - 2025-xx-xx =
+* Add   - Display a notice if the user does not use a 9-digit zip code.
 * Tweak - WooCommerce 9.7 Compatibility.
 
 = 2.8.7 - 2025-01-20 =
