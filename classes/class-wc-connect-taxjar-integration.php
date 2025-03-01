@@ -91,12 +91,12 @@ class WC_Connect_TaxJar_Integration {
 		// for a list of possible attributes in the `jurisdictions` attribute, see:
 		// https://developers.taxjar.com/api/reference/#post-calculate-sales-tax-for-an-order
 		$jurisdiction_pieces = array_merge(
-			[
+			array(
 				'city'    => '',
 				'county'  => '',
 				'state'   => $to_state,
 				'country' => $to_country,
-			],
+			),
 			(array) $taxjar_response->jurisdictions
 		);
 
@@ -108,7 +108,7 @@ class WC_Connect_TaxJar_Integration {
 		return join(
 			'-',
 			array_filter(
-				[
+				array(
 					// the `$jurisdiction_pieces` is not really sorted
 					// so let's sort it with COUNTRY-STATE-COUNTY-CITY
 					// `array_filter` will take care of filtering out the "falsy" entries
@@ -116,7 +116,7 @@ class WC_Connect_TaxJar_Integration {
 					$jurisdiction_pieces['state'],
 					$jurisdiction_pieces['county'],
 					$jurisdiction_pieces['city'],
-				]
+				)
 			)
 		);
 	}
@@ -171,6 +171,8 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
+
+		WC_Connect_Custom_Surcharge::init();
 	}
 
 	/**
@@ -212,11 +214,11 @@ class WC_Connect_TaxJar_Integration {
 
 		$automated_taxes_description = join(
 			'',
-			$enabled ? [
+			$enabled ? array(
 				$powered_by_wct_notice,
 				$backup_notice,
 				$tax_nexus_notice,
-			] : [ $desctructive_action_notice, $desctructive_backup_notice, $tax_nexus_notice ]
+			) : array( $desctructive_action_notice, $desctructive_backup_notice, $tax_nexus_notice )
 		);
 		$automated_taxes             = array(
 			'title'    => __( 'Automated taxes', 'woocommerce-services' ),
@@ -618,14 +620,12 @@ class WC_Connect_TaxJar_Integration {
 					$item_tax->save();
 				}
 			}
-		} else { // Recalculate tax for Woo 2.6 to apply new tax rates
-			if ( class_exists( 'WC_AJAX' ) ) {
+		} elseif ( class_exists( 'WC_AJAX' ) ) { // Recalculate tax for Woo 2.6 to apply new tax rates
 				remove_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-				if ( check_ajax_referer( 'calc-totals', 'security', false ) ) {
-					WC_AJAX::calc_line_taxes();
-				}
-				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
+			if ( check_ajax_referer( 'calc-totals', 'security', false ) ) {
+				WC_AJAX::calc_line_taxes();
 			}
+				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
 		}
 	}
 
@@ -696,10 +696,8 @@ class WC_Connect_TaxJar_Integration {
 			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
 				$tax_based_on = 'base';
 			}
-		} else {
-			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( WC()->session->get( 'chosen_shipping_methods', array() ), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+		} elseif ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( WC()->session->get( 'chosen_shipping_methods', array() ), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
 				$tax_based_on = 'base';
-			}
 		}
 
 		if ( 'base' === $tax_based_on ) {
@@ -933,10 +931,8 @@ class WC_Connect_TaxJar_Integration {
 			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
 				$tax_based_on = 'base';
 			}
-		} else {
-			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( WC()->session->get( 'chosen_shipping_methods', array() ), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+		} elseif ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( WC()->session->get( 'chosen_shipping_methods', array() ), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
 				$tax_based_on = 'base';
-			}
 		}
 
 		if ( 'base' == $tax_based_on ) {
@@ -976,7 +972,7 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
 			$taxjar_resp_tax->breakdown->line_items = array_map(
-				function( $line_item ) use ( $new_tax_rate ) {
+				function ( $line_item ) use ( $new_tax_rate ) {
 					$line_item->combined_tax_rate       = $new_tax_rate;
 					$line_item->country_tax_rate        = $new_tax_rate;
 					$line_item->country_tax_collectable = $line_item->country_taxable_amount * $new_tax_rate;
@@ -1218,10 +1214,8 @@ class WC_Connect_TaxJar_Integration {
 
 				if ( $product ) {
 					$tax_class = $product->get_tax_class();
-				} else {
-					if ( isset( $this->backend_tax_classes[ $product_id ] ) ) {
+				} elseif ( isset( $this->backend_tax_classes[ $product_id ] ) ) {
 						$tax_class = $this->backend_tax_classes[ $product_id ];
-					}
 				}
 
 				if ( $line_item->combined_tax_rate ) {

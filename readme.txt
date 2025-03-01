@@ -2,12 +2,12 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 7.4
-Requires at least: 6.5
+Requires at least: 6.6
 Requires Plugins: woocommerce
 Tested up to: 6.7
-WC requires at least: 9.3
-WC tested up to: 9.5
-Stable tag: 2.8.6
+WC requires at least: 9.5
+WC tested up to: 9.7
+Stable tag: 2.8.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,10 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = 2.9.0 - 2024-xx-xx =
 * Add   - Display a notice if the user does not use 9-digit zip code.
+* Tweak - WooCommerce 9.7 Compatibility.
+
+= 2.8.7 - 2025-01-20 =
+* Add   - Option to apply US Colorado Retail Delivery Fee tax by using `wc_services_apply_us_co_retail_delivery_fee` filter.
 
 = 2.8.6 - 2025-01-06 =
 * Tweak - PHP 8.4 compatibility.
