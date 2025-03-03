@@ -244,7 +244,7 @@ jobs:
           add-paths: ${{ env.EDITED_FILES }}
           commit-message: "Update Requires headers"
           title: "Update Requires headers for WooCommerce compatibility"
-          team-reviewers: woocommerce/progressus, woocommerce/escargot
+          team-reviewers: woocommerce/progressus
           body: |
             This PR updates plugin headers to ensure compatibility with the latest WooCommerce release.
 
