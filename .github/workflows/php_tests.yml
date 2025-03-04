@@ -73,11 +73,11 @@ jobs:
           php-version: '8.2'
       - name: Get WC pinned pnpm version
         id: get_wc_pnpm_version
-        run: echo "WC_PNPM=$(node -p "require('/tmp/woocommerce/plugins/woocommerce/package.json').engines.pnpm")" >> "$GITHUB_OUTPUT"
+        run: echo "WC_PNPM=$( grep packageManager /tmp/woocommerce/package.json | sed -nr 's/.+packageManager.+pnpm@([[:digit:].]+).+/\1/p' )" >> "$GITHUB_OUTPUT"
       - name: Setup PNPM
         uses: pnpm/action-setup@v2
         with:
-          version: 9.1.3
+          version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
         with:
           node-version: 'v16'
