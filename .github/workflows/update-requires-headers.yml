@@ -158,6 +158,7 @@ jobs:
       - name: Compare and Update Headers in README File
         run: |
           README_FILE="readme.txt"
+          CHANGES_MADE=${{ env.CHANGES_MADE }}
 
           if [ -f "$README_FILE" ]; then
             echo "Found $README_FILE. Updating headers..."
@@ -171,12 +172,14 @@ jobs:
               if [ "$(printf "%s\n%s" "$current_req" "$REQUIRES_AT_LEAST" | sort -V | head -n1)" = "$current_req" ] && [ "$current_req" != "$REQUIRES_AT_LEAST" ]; then
                 echo "Updating 'Requires at least' header to $REQUIRES_AT_LEAST"
                 sed -i "s#^Requires at least:.*#Requires at least: $REQUIRES_AT_LEAST#" "$README_FILE"
+                CHANGES_MADE=true
               else
                 echo "Existing 'Requires at least' ($current_req) is greater than or equal to required ($REQUIRES_AT_LEAST); not updating."
               fi
             else
               echo "Adding missing 'Requires at least' header."
               sed -i "/^Stable tag:/i Requires at least: $REQUIRES_AT_LEAST" "$README_FILE"
+              CHANGES_MADE=true
             fi
 
             # -------------------------------
@@ -188,12 +191,14 @@ jobs:
               if [ "$(printf "%s\n%s" "$current_php" "$REQUIRES_PHP" | sort -V | head -n1)" = "$current_php" ] && [ "$current_php" != "$REQUIRES_PHP" ]; then
                 echo "Updating 'Requires PHP' header to $REQUIRES_PHP"
                 sed -i "s#^Requires PHP:.*#Requires PHP: $REQUIRES_PHP#" "$README_FILE"
+                CHANGES_MADE=true
               else
                 echo "Existing 'Requires PHP' ($current_php) is greater than or equal to required ($REQUIRES_PHP); not updating."
               fi
             else
               echo "Adding missing 'Requires PHP' header."
               sed -i "/^Stable tag:/i Requires PHP: $REQUIRES_PHP" "$README_FILE"
+              CHANGES_MADE=true
             fi
 
             # -------------------------------
@@ -205,15 +210,16 @@ jobs:
               if [ "$(printf "%s\n%s" "$current_wc" "$LATEST_MINOR_RELEASE" | sort -V | head -n1)" = "$current_wc" ] && [ "$current_wc" != "$LATEST_MINOR_RELEASE" ]; then
                 echo "Updating 'WC requires at least' header to $LATEST_MINOR_RELEASE"
                 sed -i "s#^WC requires at least:.*#WC requires at least: $LATEST_MINOR_RELEASE#" "$README_FILE"
+                CHANGES_MADE=true
               else
                 echo "Existing 'WC requires at least' ($current_wc) is greater than or equal to required ($LATEST_MINOR_RELEASE); not updating."
               fi
             else
               echo "Adding missing 'WC requires at least' header."
               sed -i "/^Stable tag:/i WC requires at least: $LATEST_MINOR_RELEASE" "$README_FILE"
+              CHANGES_MADE=true
             fi
 
-            CHANGES_MADE=true
             echo "CHANGES_MADE=$CHANGES_MADE" >> $GITHUB_ENV
             echo "FILES_TO_CHECK=${{ env.PLUGIN_FILE_NAME }},readme.txt" >> $GITHUB_ENV
           else
