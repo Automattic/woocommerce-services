@@ -10,7 +10,7 @@ wp core update --quiet
 # install default theme
 wp theme install storefront --activate
 
-wp plugin install woocommerce --activate
+wp plugin install woocommerce --version=9.6.2 --activate
 
 ## adding basic settings and configuration
 wp option set woocommerce_store_address "60 29th Street"
