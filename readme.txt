@@ -2,12 +2,12 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 7.4
-Requires at least: 6.5
+Requires at least: 6.6
 Requires Plugins: woocommerce
 Tested up to: 6.7
-WC requires at least: 9.2
-WC tested up to: 9.4
-Stable tag: 2.8.7
+WC requires at least: 9.5
+WC tested up to: 9.7
+Stable tag: 2.8.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.8.8 - 2025-03-03 =
+* Tweak - WooCommerce 9.7 Compatibility.
 
 = 2.8.7 - 2025-01-20 =
 * Add   - Option to apply US Colorado Retail Delivery Fee tax by using `wc_services_apply_us_co_retail_delivery_fee` filter.
