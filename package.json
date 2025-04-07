@@ -92,7 +92,7 @@
 		"@babel/polyfill": "7.0.0",
 		"@babel/preset-env": "7.1.0",
 		"@babel/preset-react": "7.0.0",
-		"@babel/runtime": "7.1.2",
+		"@babel/runtime": "7.27.0",
 		"@hot-loader/react-dom": "^16.14.0",
 		"@woocommerce/e2e-environment": "^0.2.2",
 		"@woocommerce/woocommerce-rest-api": "^1.0.1",
