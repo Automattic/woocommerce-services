@@ -4,10 +4,10 @@ Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
 Requires PHP: 7.4
 Requires at least: 6.6
 Requires Plugins: woocommerce
-Tested up to: 6.7
-WC requires at least: 9.5
-WC tested up to: 9.7
-Stable tag: 2.8.8
+Tested up to: 6.8
+WC requires at least: 9.6
+WC tested up to: 9.8
+Stable tag: 2.8.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 6. Checking and exporting the label purchase reports
 
 == Changelog ==
+
+= 2.8.9 - 2025-04-07 =
+* Tweak - WordPress 6.8 & WooCommerce 9.8 Compatibility.
 
 = 2.8.8 - 2025-03-03 =
 * Tweak - WooCommerce 9.7 Compatibility.
