@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 2.8.10 - 2025-xx-xx =
+* Tweak - Improve tax tracking.
+
 = 2.8.9 - 2025-04-07 =
 * Tweak - WordPress 6.8 & WooCommerce 9.8 Compatibility.
 
