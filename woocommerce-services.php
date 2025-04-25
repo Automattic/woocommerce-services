@@ -373,7 +373,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
-			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
+			add_action( 'after_setup_theme', array( $this, 'ensure_jetpack_connection' ), 1 );
 
 			/**
 			 * Used to let WC Tax know WCS&T will handle the plugin's coexistence.
@@ -620,13 +620,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
 		}
 
-		public function jetpack_on_plugins_loaded() {
+		public function ensure_jetpack_connection() {
 			$jetpack_config = new Automattic\Jetpack\Config();
 			$jetpack_config->ensure(
 				'connection',
 				array(
 					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'name' => _x( 'WooCommerce Shipping & Tax', 'The brand of WooCommerce Shipping and Tax', 'woocommerce-services' ),
 				)
 			);
 		}

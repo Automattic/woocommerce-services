@@ -7,7 +7,7 @@ permissions:
 jobs:
   qit_security:
     name: QIT Security Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       NO_COLOR: 1
       QIT_DISABLE_ONBOARDING: yes
