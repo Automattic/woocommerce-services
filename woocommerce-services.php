@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: WooCommerce Shipping & Tax
+ * Plugin Name: WooCommerce Tax
  * Requires Plugins: woocommerce
  * Plugin URI: https://woocommerce.com/
- * Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.
+ * Description: Automated tax calculation for WooCommerce.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
@@ -31,7 +31,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * WooCommerce Shipping & Tax incorporates code from WooCommerce Sales Tax Plugin by TaxJar, Copyright 2014-2017 TaxJar.
+ * WooCommerce Tax incorporates code from WooCommerce Sales Tax Plugin by TaxJar, Copyright 2014-2017 TaxJar.
  * WooCommerce Sales Tax Plugin by TaxJar is distributed under the terms of the GNU GPL, Version 2 (or later).
  */
 
@@ -626,7 +626,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'connection',
 				array(
 					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => _x( 'WooCommerce Shipping & Tax', 'The brand of WooCommerce Shipping and Tax', 'woocommerce-services' ),
+					'name' => $this->get_plugin_name_for_new_sites(),
 				)
 			);
 		}
@@ -658,7 +658,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'admin_notices',
 					function () {
 						/* translators: %s WC download URL link. */
-						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
+						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
 				);
 				return;
@@ -1806,21 +1806,32 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
-			$plugin_name_for_legacy_sites        = __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
-			$plugin_description_for_legacy_sites = __( 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
-			$plugin_name_for_new_sites           = __( 'WooCommerce Tax', 'woocommerce-services' );
-			$plugin_description_for_new_sites    = __( 'Description: Automated tax calculation for WooCommerce.', 'woocommerce-services' );
-
 			if ( isset( $plugins[ $plugin_basename ] ) ) {
 				if ( '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
-					$plugins[ $plugin_basename ]['Name']        = $plugin_name_for_new_sites;
-					$plugins[ $plugin_basename ]['Description'] = $plugin_description_for_new_sites;
+					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_new_sites();
+					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_new_sites();
 				} else {
-					$plugins[ $plugin_basename ]['Name']        = $plugin_name_for_legacy_sites;
-					$plugins[ $plugin_basename ]['Description'] = $plugin_description_for_legacy_sites;
+					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_legacy_sites();
+					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_legacy_sites();
 				}
 			}
 			return $plugins;
+		}
+
+		private function get_plugin_name_for_legacy_sites() {
+			return __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
+		}
+
+		private function get_plugin_description_for_legacy_sites() {
+			return __( 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
+		}
+
+		private function get_plugin_name_for_new_sites() {
+			return __( 'WooCommerce Tax', 'woocommerce-services' );
+		}
+
+		private function get_plugin_description_for_new_sites() {
+			return __( 'Description: Automated tax calculation for WooCommerce.', 'woocommerce-services' );
 		}
 
 		/**

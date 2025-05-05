@@ -98,49 +98,41 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		public function get_service_schema() {
 
 			return $this->service_schema;
-
 		}
 
 		public function set_service_schema( $service_schema ) {
 
 			$this->service_schema = $service_schema;
-
 		}
 
 		public function get_service_settings_store() {
 
 			return $this->service_settings_store;
-
 		}
 
 		public function set_service_settings_store( $service_settings_store ) {
 
 			$this->service_settings_store = $service_settings_store;
-
 		}
 
 		public function get_logger() {
 
 			return $this->logger;
-
 		}
 
 		public function set_logger( WC_Connect_Logger $logger ) {
 
 			$this->logger = $logger;
-
 		}
 
 		public function get_api_client() {
 
 			return $this->api_client;
-
 		}
 
 		public function set_api_client( WC_Connect_API_Client $api_client ) {
 
 			$this->api_client = $api_client;
-
 		}
 
 		/**
@@ -162,7 +154,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$logger->log( $message, $context );
 
 			}
-
 		}
 
 		protected function log_error( $message, $context = '' ) {
@@ -185,7 +176,6 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			if ( property_exists( $form_settings, 'title' ) ) {
 				$this->title = $form_settings->title;
 			}
-
 		}
 
 		/**
@@ -233,7 +223,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->package_validation_errors->add(
 					'country_required',
 					esc_html__( 'A country is required', 'woocommerce-services' ),
-					[ 'id' => 'country' ]
+					array( 'id' => 'country' )
 				);
 			}
 
@@ -252,7 +242,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							'<strong>' . esc_html( $fields['postcode']['label'] ) . '</strong>',
 							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
 						),
-						[ 'id' => 'postcode' ]
+						array( 'id' => 'postcode' )
 					);
 				} else {
 					$this->package_validation_errors->add(
@@ -267,7 +257,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							'<strong>' . esc_html( $postcode ) . '</strong>',
 							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
 						),
-						[ 'id' => 'postcode' ]
+						array( 'id' => 'postcode' )
 					);
 				}
 			}
@@ -289,7 +279,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							'<strong>' . esc_html( $fields['state']['label'] ) . '</strong>',
 							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
 						),
-						[ 'id' => 'state' ]
+						array( 'id' => 'state' )
 					);
 				} else {
 					$this->package_validation_errors->add(
@@ -303,7 +293,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 							'<strong>' . esc_html( $state ) . '</strong>',
 							'<strong>' . esc_html( $countries[ $country ] ) . '</strong>'
 						),
-						[ 'id' => 'state' ]
+						array( 'id' => 'state' )
 					);
 				}
 			}
@@ -393,7 +383,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			$this->debug(
 				sprintf(
-					'WooCommerce Shipping & Tax debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
+					'WooCommerce Tax debug mode is on - to hide these messages, turn debug mode off in the <a href="%s" style="text-decoration: underline;">settings</a>.',
 					admin_url( 'admin.php?page=wc-status&tab=connect' )
 				)
 			);
@@ -739,6 +729,5 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 			return true;
 		}
-
 	}
 }

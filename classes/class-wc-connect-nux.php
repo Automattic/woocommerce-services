@@ -74,7 +74,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 		public function show_pointers( $hook ) {
 			/*
-			 Get admin pointers for the current admin page.
+			Get admin pointers for the current admin page.
 			 *
 			 * @since 0.9.6
 			 *
@@ -226,7 +226,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			/*
-			 The NUX Flow:
+			The NUX Flow:
 			- Case 1: Jetpack not connected (with TOS or no TOS accepted):
 				1. show_banner_before_connection()
 				2. connect to JP
@@ -437,13 +437,13 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 			$banner_content   = array(
-				'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
+				'title'             => __( 'Connect your site to activate WooCommerce Tax', 'woocommerce-services' ),
 				'description'       => sprintf( $description_base, $feature_list ),
 				'button_text'       => __( 'Connect', 'woocommerce-services' ),
-				'image_url'         => plugins_url( 'images/wcs-notice.png', dirname( __FILE__ ) ),
+				'image_url'         => plugins_url( 'images/wcs-notice.png', __DIR__ ),
 				'should_show_terms' => true,
 			);
 
@@ -489,7 +489,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					),
 					'image_url'         => plugins_url(
 						'images/wcs-notice.png',
-						dirname( __FILE__ )
+						__DIR__
 					),
 					'should_show_terms' => false,
 				)
@@ -516,12 +516,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$country = WC()->countries->get_base_country();
 			/* translators: %s: list of features, potentially comma separated */
-			$description_base = __( "WooCommerce Shipping & Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
+			$description_base = __( "WooCommerce Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
 
 			$this->show_nux_banner(
 				array(
-					'title'             => __( 'Connect your site to activate WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'title'             => __( 'Connect your site to activate WooCommerce Tax', 'woocommerce-services' ),
 					'description'       => esc_html( sprintf( $description_base, $feature_list ) ),
 					'button_text'       => __( 'Connect', 'woocommerce-services' ),
 					'button_link'       => add_query_arg(
@@ -531,7 +531,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					),
 					'image_url'         => plugins_url(
 						'images/wcs-notice.png',
-						dirname( __FILE__ )
+						__DIR__
 					),
 					'should_show_terms' => true,
 				)
@@ -586,7 +586,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						<form action="<?php echo esc_attr( admin_url( 'admin-post.php' ) ); ?>" method="post">
 							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>
 							<input type="hidden" name="redirect_url"
-								   value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>
+									value="<?php echo esc_url( $this->get_jetpack_redirect_url() ); ?>"/>
 							<?php wp_nonce_field( 'wcs_nux_notice' ); ?>
 							<button
 								type="submit"
