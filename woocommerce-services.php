@@ -1803,11 +1803,37 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $links;
 		}
 
+		/**
+		 * Performs a direct database check to see if any order has shipping labels.
+		 * Static method to be callable from early hooks like 'all_plugins'.
+		 *
+		 * @return bool True if any labels exist, false otherwise.
+		 */
+		private static function _has_any_labels_db_check() {
+			global $wpdb;
+			// If $wpdb is not available yet, assume no labels (safer default).
+			if ( ! is_object( $wpdb ) || ! isset( $wpdb->postmeta ) ) {
+				return false;
+			}
+			return (bool) $wpdb->get_var(
+				"SELECT EXISTS (
+					SELECT 1
+					FROM {$wpdb->postmeta}
+					WHERE meta_key = 'wc_connect_labels'
+					LIMIT 1
+				)"
+			);
+		}
+
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
 			if ( isset( $plugins[ $plugin_basename ] ) ) {
-				if ( '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
+				// Check if the store is configured for tax only or if it has no legacy shipping labels (only check labels if not connected).
+				if (
+					( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
+					( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() )
+				) {
 					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_new_sites();
 					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_new_sites();
 				} else {
@@ -1823,7 +1849,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		private function get_plugin_description_for_legacy_sites() {
-			return __( 'Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
+			return __( 'Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
 		}
 
 		private function get_plugin_name_for_new_sites() {
@@ -1831,7 +1857,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		private function get_plugin_description_for_new_sites() {
-			return __( 'Description: Automated tax calculation for WooCommerce.', 'woocommerce-services' );
+			return __( 'Automated tax calculation for WooCommerce.', 'woocommerce-services' );
 		}
 
 		/**
