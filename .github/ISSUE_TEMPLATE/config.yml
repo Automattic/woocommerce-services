@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: We have moved to Linear!
+    url: http://linear.app/team/WOOSHIP/new?label=woocommerce-services
+    about: Please open new issues on Linear.

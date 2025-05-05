@@ -20,7 +20,7 @@ jobs:
           coverage: none
       - uses: actions/setup-node@v2
         with:
-            node-version-file: '.nvmrc'
+          node-version-file: '.nvmrc'
       - name: Kill process running on port 8084 to unblock it
         shell: bash
         run: |

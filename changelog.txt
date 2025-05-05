@@ -1,6 +1,15 @@
 *** WooCommerce Shipping & Tax Changelog ***
+
 = 3.0.0 - 2025-xx-xx =
 * Add   - Legacy site detection to maintain shipping functionality for existing installations.
+
+= 2.8.10 - 2025-xx-xx =
+* Tweak - Improve tax tracking.
+
+= 2.8.9 - 2025-04-07 =
+* Tweak - WordPress 6.8 & WooCommerce 9.8 Compatibility.
+
+= 2.8.8 - 2025-03-03 =
 * Tweak - WooCommerce 9.7 Compatibility.
 
 = 2.8.7 - 2025-01-20 =

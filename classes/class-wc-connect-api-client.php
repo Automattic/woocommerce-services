@@ -29,7 +29,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			$this->validator         = $validator;
 			$this->wc_connect_loader = $wc_connect_loader;
-
 		}
 
 		/**
@@ -437,7 +436,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			if ( is_wp_error( $authorization ) ) {
 				return $authorization;
 			}
-			$args['headers']['Authorization'] = $authorization;
+			$args['headers']['Authorization']  = $authorization;
+			$args['headers']['X-Woo-Settings'] = $this->get_request_additional_header();
 
 			$http_timeout = 60; // 1 minute
 
@@ -450,6 +450,44 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$response = wp_remote_request( $proxy_url, $args );
 
 			return $response;
+		}
+
+		/**
+		 * Get useful settings values for use in a requests
+		 *
+		 * @return array
+		 */
+		protected function get_settings_values() {
+			return array(
+				'store_guid'           => $this->get_guid(),
+				'base_city'            => WC()->countries->get_base_city(),
+				'base_country'         => WC()->countries->get_base_country(),
+				'base_state'           => WC()->countries->get_base_state(),
+				'base_postcode'        => WC()->countries->get_base_postcode(),
+				'currency'             => get_woocommerce_currency(),
+				'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
+				'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
+				'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
+				'jetpack_version'      => 'embed-' . WC_Connect_Jetpack::get_jetpack_connection_package_version(),
+				'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
+				'wc_version'           => WC()->version,
+				'wp_version'           => get_bloginfo( 'version' ),
+				'last_services_update' => WC_Connect_Options::get_option( 'services_last_update', 0 ),
+				'last_heartbeat'       => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
+				'last_rate_request'    => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
+				'active_services'      => $this->wc_connect_loader->get_active_services(),
+				'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
+				'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
+			);
+		}
+
+		/**
+		 * Add useful WP/WC/WCC information for use in a request header
+		 *
+		 * @return json
+		 */
+		protected function get_request_additional_header() {
+			return json_encode( $this->get_settings_values() );
 		}
 
 		/**
@@ -467,27 +505,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			// Add interesting fields to the body of each request
 			$body['settings'] = wp_parse_args(
 				$body['settings'],
-				array(
-					'store_guid'           => $this->get_guid(),
-					'base_city'            => WC()->countries->get_base_city(),
-					'base_country'         => WC()->countries->get_base_country(),
-					'base_state'           => WC()->countries->get_base_state(),
-					'base_postcode'        => WC()->countries->get_base_postcode(),
-					'currency'             => get_woocommerce_currency(),
-					'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
-					'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
-					'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
-					'jetpack_version'      => 'embed-' . WC_Connect_Jetpack::get_jetpack_connection_package_version(),
-					'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
-					'wc_version'           => WC()->version,
-					'wp_version'           => get_bloginfo( 'version' ),
-					'last_services_update' => WC_Connect_Options::get_option( 'services_last_update', 0 ),
-					'last_heartbeat'       => WC_Connect_Options::get_option( 'last_heartbeat', 0 ),
-					'last_rate_request'    => WC_Connect_Options::get_option( 'last_rate_request', 0 ),
-					'active_services'      => $this->wc_connect_loader->get_active_services(),
-					'disable_stats'        => WC_Connect_Jetpack::is_staging_site(),
-					'taxes_enabled'        => wc_tax_enabled() && 'yes' === get_option( 'wc_connect_taxes_enabled' ),
-				)
+				$this->get_settings_values()
 			);
 
 			return $body;

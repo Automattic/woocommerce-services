@@ -8,11 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 2.8.7
+ * Version: 2.8.9
+ * Requires Plugins: woocommerce
+ * Requires PHP: 7.4
  * Requires at least: 6.6
- * Tested up to: 6.7
- * WC requires at least: 9.5
- * WC tested up to: 9.7
+ * Tested up to: 6.8
+ * WC requires at least: 9.6
+ * WC tested up to: 9.8
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -371,7 +373,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			add_action( 'plugins_loaded', array( $this, 'on_plugins_loaded' ) );
-			add_action( 'plugins_loaded', array( $this, 'jetpack_on_plugins_loaded' ), 1 );
+			add_action( 'after_setup_theme', array( $this, 'ensure_jetpack_connection' ), 1 );
 
 			/**
 			 * Used to let WC Tax know WCS&T will handle the plugin's coexistence.
@@ -618,13 +620,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
 		}
 
-		public function jetpack_on_plugins_loaded() {
+		public function ensure_jetpack_connection() {
 			$jetpack_config = new Automattic\Jetpack\Config();
 			$jetpack_config->ensure(
 				'connection',
 				array(
 					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => __( 'WooCommerce Shipping & Tax', 'woocommerce-services' ),
+					'name' => _x( 'WooCommerce Shipping & Tax', 'The brand of WooCommerce Shipping and Tax', 'woocommerce-services' ),
 				)
 			);
 		}

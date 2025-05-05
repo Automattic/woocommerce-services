@@ -1,6 +1,6 @@
 {
 	"name": "woocommerce-services",
-	"version": "2.8.7",
+	"version": "2.8.9",
 	"scripts": {
 		"start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085 --host 0.0.0.0",
 		"watch": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack --watch",
@@ -20,7 +20,7 @@
 		"build": "echo yes | npm run release && cp release/woocommerce-services.zip ./",
 		"up": "docker-compose up --build --force-recreate -d && ./bin/docker-setup.sh",
 		"down": "docker-compose down",
-		"test:e2e-docker-up": "env WP_VERSION=6.6.1 TRAVIS_MARIADB_VERSION=10.8.3 npx wc-e2e docker:up",
+		"test:e2e-docker-up": "env WP_VERSION=6.7.2 TRAVIS_MARIADB_VERSION=10.8.3 npx wc-e2e docker:up",
 		"test:e2e-docker-down": "npx wc-e2e docker:down",
 		"test:e2e-docker-ping": "bash ./tests/bin/wait-for-e2e-build.sh",
 		"test:e2e": "npx wc-e2e test:e2e",
@@ -67,7 +67,7 @@
 		"optimize-css-assets-webpack-plugin": "^5.0.4",
 		"po2json": "^0.4.5",
 		"postcss-safe-parser": "^4.0.2",
-		"puppeteer": "^2.0.0",
+		"puppeteer": "^13.7.0",
 		"redux-mock-store": "^1.5.4",
 		"request": "^2.88.2",
 		"shelljs": "^0.7.6",
