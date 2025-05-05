@@ -83,8 +83,6 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 = 3.0.0 - 2025-xx-xx =
 * Add   - Legacy site detection to maintain shipping functionality for existing installations.
-
-= 2.8.10 - 2025-xx-xx =
 * Tweak - Improve tax tracking.
 
 = 2.8.9 - 2025-04-07 =
