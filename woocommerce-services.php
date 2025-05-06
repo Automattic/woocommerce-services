@@ -1845,19 +1845,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		private function get_plugin_name_for_legacy_sites() {
-			return __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
+			return 'WooCommerce Tax (previously WooCommerce Shipping & Tax)';
 		}
 
 		private function get_plugin_description_for_legacy_sites() {
-			return __( 'Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
+			return 'Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.';
 		}
 
 		private function get_plugin_name_for_new_sites() {
-			return __( 'WooCommerce Tax', 'woocommerce-services' );
+			return 'WooCommerce Tax';
 		}
 
 		private function get_plugin_description_for_new_sites() {
-			return __( 'Automated tax calculation for WooCommerce.', 'woocommerce-services' );
+			return 'Automated tax calculation for WooCommerce.';
 		}
 
 		/**
