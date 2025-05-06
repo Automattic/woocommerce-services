@@ -632,7 +632,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		public function on_plugins_loaded() {
-			add_action( 'after_setup_theme', array( $this, 'load_textdomain' ) );
 
 			/**
 			 * Allow third party logic to determine if this plugin should initiate its logic.
@@ -673,6 +672,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * This allows the modification of extensions, integrations, etc.
 		 */
 		public function pre_wc_init() {
+			$this->load_textdomain();
 			$this->load_dependencies();
 
 			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
