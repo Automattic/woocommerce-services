@@ -20,7 +20,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 			if ( ! is_array( $body ) ) {
 				return new WP_Error(
 					'request_body_should_be_array',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. Body must be an array.', 'woocommerce-services' )
+					__( 'Unable to send request to WooCommerce Tax server. Body must be an array.', 'woocommerce-services' )
 				);
 			}
 
@@ -36,7 +36,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 				if ( ! $body ) {
 					return new WP_Error(
 						'unable_to_json_encode_body',
-						__( 'Unable to encode body for request to WooCommerce Shipping & Tax server.', 'woocommerce-services' )
+						__( 'Unable to encode body for request to WooCommerce Tax server.', 'woocommerce-services' )
 					);
 				}
 			}
@@ -70,7 +70,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					return new WP_Error(
 						'wcc_server_error',
 						sprintf(
-							__( 'Error: The WooCommerce Shipping & Tax server returned HTTP code: %d', 'woocommerce-services' ),
+							__( 'Error: The WooCommerce Tax server returned HTTP code: %d', 'woocommerce-services' ),
 							$response_code
 						),
 						array(
@@ -91,7 +91,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
-							__( 'Error: The WooCommerce Shipping & Tax server returned ( %d ) and an empty response body.', 'woocommerce-services' ),
+							__( 'Error: The WooCommerce Tax server returned ( %d ) and an empty response body.', 'woocommerce-services' ),
 							$response_code
 						),
 						array(
@@ -110,7 +110,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					'wcc_server_error_response',
 					sprintf(
 						/* translators: %1$s: error code, %2$s: error message, %3$d: HTTP response code */
-						__( 'Error: The WooCommerce Shipping & Tax server returned: %1$s %2$s ( %3$d )', 'woocommerce-services' ),
+						__( 'Error: The WooCommerce Tax server returned: %1$s %2$s ( %3$d )', 'woocommerce-services' ),
 						$error,
 						$message,
 						$response_code

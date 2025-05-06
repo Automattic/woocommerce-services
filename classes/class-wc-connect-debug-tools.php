@@ -22,9 +22,9 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 
 		function woocommerce_debug_tools( $tools ) {
 			$tools['test_wcc_connection'] = array(
-				'name'     => __( 'Test your WooCommerce Shipping & Tax connection', 'woocommerce-services' ),
+				'name'     => __( 'Test your WooCommerce Tax connection', 'woocommerce-services' ),
 				'button'   => __( 'Test Connection', 'woocommerce-services' ),
-				'desc'     => __( 'This will test your WooCommerce Shipping & Tax connection to ensure everything is working correctly', 'woocommerce-services' ),
+				'desc'     => __( 'This will test your WooCommerce Tax connection to ensure everything is working correctly', 'woocommerce-services' ),
 				'callback' => array( $this, 'test_connection' ),
 			);
 
@@ -58,10 +58,10 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 		function test_connection() {
 			$test_request = $this->api_client->auth_test();
 			if ( $test_request && ! is_wp_error( $test_request ) && $test_request->authorized ) {
-				echo '<div class="updated inline"><p>' . esc_html__( 'Your site is successfully communicating to the WooCommerce Shipping & Tax API.', 'woocommerce-services' ) . '</p></div>';
+				echo '<div class="updated inline"><p>' . esc_html__( 'Your site is successfully communicating to the WooCommerce Tax API.', 'woocommerce-services' ) . '</p></div>';
 			} else {
 				echo '<div class="error inline"><p>'
-				. esc_html__( 'ERROR: Your site has a problem connecting to the WooCommerce Shipping & Tax API. Please make sure your WordPress.com connection is working.', 'woocommerce-services' )
+				. esc_html__( 'ERROR: Your site has a problem connecting to the WooCommerce Tax API. Please make sure your WordPress.com connection is working.', 'woocommerce-services' )
 				. '</p></div>';
 			}
 		}
@@ -119,11 +119,11 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 				}
 
 				WC_Tax::_delete_tax_rate( $rate['tax_rate_id'] );
-				$deleted_count ++;
+				++$deleted_count;
 			}
 
 			echo '<div class="updated inline"><p>';
-			echo sprintf( esc_html__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
+			printf( esc_html__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
 			echo '</p></div>';
 		}
 
@@ -142,7 +142,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			);
 
 			echo '<div class="updated inline"><p>';
-			echo sprintf( esc_html__( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
+			printf( esc_html__( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
 			echo '</p></div>';
 		}
 	}

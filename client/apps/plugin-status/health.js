@@ -17,7 +17,7 @@ import FormSettingExplanation from 'components/forms/form-setting-explanation';
 const HealthView = ( { translate, healthItems, isShippingLoaded } ) => {
 	return (
 		<SettingsGroupCard heading={translate('Health', {
-			context: 'This section displays the overall health of WooCommerce Shipping & Tax and the things it depends on',
+			context: 'This section displays the overall health of WooCommerce Tax and the things it depends on',
 		})}>
 			<Indicator
 				title={translate('WooCommerce')}

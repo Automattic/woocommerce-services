@@ -335,28 +335,19 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function get_feature_list_for_country( $country ) {
-			$feature_list    = false;
-			$supports_taxes  = $this->is_taxjar_supported_country( $country );
-			$supports_labels = ( 'US' === $country );
+			$feature_list   = false;
+			$supports_taxes = $this->is_taxjar_supported_country( $country );
 
 			$is_ppec_active    = is_plugin_active( 'woocommerce-gateway-paypal-express-checkout/woocommerce-gateway-paypal-express-checkout.php' );
 			$ppec_settings     = get_option( 'woocommerce_ppec_paypal_settings', array() );
 			$supports_payments = $is_ppec_active && ( ! isset( $ppec_settings['enabled'] ) || 'yes' === $ppec_settings['enabled'] );
 
-			if ( $supports_payments && $supports_taxes && $supports_labels ) {
-				$feature_list = __( 'automated tax calculation, shipping label printing, and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_payments && $supports_taxes ) {
+			if ( $supports_payments && $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation and smoother payment setup', 'woocommerce-services' );
-			} elseif ( $supports_taxes && $supports_labels ) {
-				$feature_list = __( 'automated tax calculation and shipping label printing', 'woocommerce-services' );
-			} elseif ( $supports_payments && $supports_labels ) {
-				$feature_list = __( 'shipping label printing and smoother payment setup', 'woocommerce-services' );
 			} elseif ( $supports_payments ) {
 				$feature_list = __( 'smoother payment setup', 'woocommerce-services' );
 			} elseif ( $supports_taxes ) {
 				$feature_list = __( 'automated tax calculation', 'woocommerce-services' );
-			} elseif ( $supports_labels ) {
-				$feature_list = __( 'shipping label printing', 'woocommerce-services' );
 			}
 
 			return $feature_list;
