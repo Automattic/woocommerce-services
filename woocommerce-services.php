@@ -46,6 +46,8 @@ require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
+
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
 	define( 'WOOCOMMERCE_CONNECT_MAX_JSON_DECODE_DEPTH', 32 );
@@ -1817,7 +1819,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return false;
 			}
 
-			$meta_table_to_check = $wpdb->prefix . 'wc_orders_meta';
+			$meta_table_to_check = OrderUtil::get_table_for_order_meta();
 
 			return (bool) $wpdb->get_var(
 				$wpdb->prepare(
