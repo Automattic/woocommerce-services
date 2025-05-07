@@ -33,7 +33,7 @@ class WC_Connect_Privacy {
 			return;
 		}
 
-		$title   = __( 'WooCommerce Shipping', 'woocommerce-services' );
+		$title   = __( 'WooCommerce Tax', 'woocommerce-services' );
 		$content = wpautop(
 			sprintf(
 				wp_kses(
