@@ -690,6 +690,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
+			add_filter( 'all_plugins', array( $this, 'maybe_rename_plugin' ) );
 
 			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;
@@ -872,7 +873,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
-			add_filter( 'all_plugins', array( $this, 'maybe_rename_plugin' ) );
 
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 
@@ -1811,17 +1811,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		private static function _has_any_labels_db_check() {
 			global $wpdb;
+
 			// If $wpdb is not available yet, assume no labels (safer default).
-			if ( ! is_object( $wpdb ) || ! isset( $wpdb->postmeta ) ) {
+			if ( ! is_object( $wpdb ) ) {
 				return false;
 			}
+
+			$meta_table_to_check = $wpdb->prefix . 'wc_orders_meta';
+
 			return (bool) $wpdb->get_var(
-				"SELECT EXISTS (
-					SELECT 1
-					FROM {$wpdb->postmeta}
-					WHERE meta_key = 'wc_connect_labels'
-					LIMIT 1
-				)"
+				$wpdb->prepare(
+					'SELECT EXISTS (
+						SELECT 1
+						FROM %i
+						WHERE meta_key = %s
+						LIMIT 1
+					)',
+					$meta_table_to_check,
+					'wc_connect_labels'
+				)
 			);
 		}
 
