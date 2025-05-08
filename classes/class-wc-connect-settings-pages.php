@@ -82,9 +82,9 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 			if ( WC_Connect_Jetpack::is_offline_mode() ) {
 				if ( WC_Connect_Jetpack::is_connected() ) {
-					$message = __( 'Note: Your site is connected but WooCommerce Shipping & Tax is configured to work in offline mode. Please disable offline mode.', 'woocommerce-services' );
+					$message = __( 'Note: Your site is connected but WooCommerce Tax is configured to work in offline mode. Please disable offline mode.', 'woocommerce-services' );
 				} else {
-					$message = __( 'Note: WooCommerce Shipping & Tax is configured to work in offline mode. This site will not be able to obtain payment methods from WooCommerce Shipping & Tax production servers.', 'woocommerce-services' );
+					$message = __( 'Note: WooCommerce Tax is configured to work in offline mode. This site will not be able to obtain payment methods from WooCommerce Tax production servers.', 'woocommerce-services' );
 				}
 				?>
 					<div class="wc-connect-admin-dev-notice">
@@ -139,7 +139,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				if ( ! empty( $carrier_information ) ) {
 					?>
 					<h2>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Shipping & Tax', 'woocommerce-services' ); ?></a> &gt;
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=woocommerce-services-settings' ) ); ?>"><?php esc_html_e( 'WooCommerce Tax', 'woocommerce-services' ); ?></a> &gt;
 						<span><?php echo esc_html( $carrier_information->carrier ); ?></span>
 					</h2>
 					<?php

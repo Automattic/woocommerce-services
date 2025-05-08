@@ -33,7 +33,7 @@ class WC_Connect_Privacy {
 			return;
 		}
 
-		$title   = __( 'WooCommerce Shipping & Tax', 'woocommerce-services' );
+		$title   = __( 'WooCommerce Tax', 'woocommerce-services' );
 		$content = wpautop(
 			sprintf(
 				wp_kses(
@@ -68,7 +68,7 @@ class WC_Connect_Privacy {
 
 		?>
 			<div class="notice notice-warning" style="position: relative;">
-				<p><?php esc_html_e( 'Warning: Erasing personal data will cause the ability to reprint or refund WooCommerce Shipping & Tax shipping labels to be lost on the affected orders.', 'woocommerce-services' ); ?></p>
+				<p><?php esc_html_e( 'Warning: Erasing personal data will cause the ability to reprint or refund WooCommerce Tax shipping labels to be lost on the affected orders.', 'woocommerce-services' ); ?></p>
 			</div>
 		<?php
 	}

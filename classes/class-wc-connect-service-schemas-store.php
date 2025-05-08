@@ -37,6 +37,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 			$this->logger->log( 'Successfully loaded service schemas from server response.', __FUNCTION__ );
 			$this->update_last_fetch_timestamp();
 			$this->maybe_update_heartbeat();
+			$this->maybe_mark_as_legacy_site( $response_body );
 
 			$old_schemas = $this->get_service_schemas();
 			if ( $old_schemas == $response_body ) {
@@ -94,6 +95,12 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 			if ( $should_update ) {
 				WC_Connect_Options::update_option( 'last_heartbeat', $now );
+			}
+		}
+
+		protected function maybe_mark_as_legacy_site( $service_schemas ) {
+			if ( isset( $service_schemas->features->first_install ) && $service_schemas->features->first_install === true ) {
+				WC_Connect_Options::update_option( 'only_tax', '1' );
 			}
 		}
 

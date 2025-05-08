@@ -46,7 +46,7 @@ const WooCommerceServicesIndicator = ({ translate, moment, status, onRefreshClic
 
 	return (
 		<Indicator
-			title={translate('WooCommerce Shipping & Tax Data')}
+			title={translate('WooCommerce Tax Data')}
 			state={indicatorState}
 			message={indicatorMessage}
 		>

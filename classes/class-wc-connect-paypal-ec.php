@@ -215,7 +215,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					'description'    => esc_html( __( 'Link a new or existing PayPal account to make sure future orders are marked “Processing” instead of “On hold”, and so refunds can be issued without leaving WooCommerce.', 'woocommerce-services' ) ),
 					'button_text'    => __( 'Link account', 'woocommerce-services' ),
 					'button_link'    => wc_gateway_ppec()->ips->get_signup_url( 'live' ),
-					'image_url'      => plugins_url( 'images/cashier.svg', dirname( __FILE__ ) ),
+					'image_url'      => plugins_url( 'images/cashier.svg', __DIR__ ),
 					'should_show_jp' => false,
 					'dismissible_id' => 'ppec',
 				)
@@ -277,7 +277,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
-				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Shipping & Tax and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
+				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Tax and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text                                = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'live', $reset_link ) ) );
 					$form_fields['api_credentials']['description'] = $api_creds_text;
@@ -297,7 +297,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
-				$api_creds_template = __( 'To authenticate payments with WooCommerce Shipping & Tax, <a href="%s">click here</a>.', 'woocommerce-services' );
+				$api_creds_template = __( 'To authenticate payments with WooCommerce Tax, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text                                 = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'live', $reset_link ) ) );
 					$form_fields['api_credentials']['description'] .= '<br /><br />' . $api_creds_text;

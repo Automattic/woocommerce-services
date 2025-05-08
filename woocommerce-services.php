@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: WooCommerce Shipping & Tax
+ * Plugin Name: WooCommerce Tax
  * Requires Plugins: woocommerce
  * Plugin URI: https://woocommerce.com/
- * Description: Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.
+ * Description: Automated tax calculation for WooCommerce.
  * Author: WooCommerce
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
@@ -31,7 +31,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * WooCommerce Shipping & Tax incorporates code from WooCommerce Sales Tax Plugin by TaxJar, Copyright 2014-2017 TaxJar.
+ * WooCommerce Tax incorporates code from WooCommerce Sales Tax Plugin by TaxJar, Copyright 2014-2017 TaxJar.
  * WooCommerce Sales Tax Plugin by TaxJar is distributed under the terms of the GNU GPL, Version 2 (or later).
  */
 
@@ -45,6 +45,8 @@ require_once __DIR__ . '/classes/class-wc-connect-extension-compatibility.php';
 require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
+
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION', '2.6' );
@@ -626,13 +628,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'connection',
 				array(
 					'slug' => WC_Connect_Jetpack::JETPACK_PLUGIN_SLUG,
-					'name' => _x( 'WooCommerce Shipping & Tax', 'The brand of WooCommerce Shipping and Tax', 'woocommerce-services' ),
+					'name' => $this->get_plugin_name_for_new_sites(),
 				)
 			);
 		}
 
 		public function on_plugins_loaded() {
-			add_action( 'after_setup_theme', array( $this, 'load_textdomain' ) );
 
 			/**
 			 * Allow third party logic to determine if this plugin should initiate its logic.
@@ -658,7 +659,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					'admin_notices',
 					function () {
 						/* translators: %s WC download URL link. */
-						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Shipping & Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
+						echo '<div class="error"><p><strong>' . sprintf( esc_html__( 'WooCommerce Tax requires the WooCommerce plugin to be installed and active. You can download %s here.', 'woocommerce-services' ), '<a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>' ) . '</strong></p></div>';
 					}
 				);
 				return;
@@ -673,6 +674,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * This allows the modification of extensions, integrations, etc.
 		 */
 		public function pre_wc_init() {
+			$this->load_textdomain();
 			$this->load_dependencies();
 
 			$tos_accepted = WC_Connect_Options::get_option( 'tos_accepted' );
@@ -690,6 +692,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
+			add_filter( 'all_plugins', array( $this, 'maybe_rename_plugin' ) );
 
 			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;
@@ -872,6 +875,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'admin_enqueue_scripts', array( $this->nux, 'show_pointers' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
+
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 
 			$tracks = $this->get_tracks();
@@ -881,7 +885,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->paypal_ec->init();
 
 			// Only register shipping label-related logic if WC Shipping is not active.
-			if ( ! self::is_wc_shipping_activated() ) {
+			if ( ! self::is_wc_shipping_activated() && '1' !== WC_Connect_Options::get_option( 'only_tax' ) ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 				$this->init_shipping_labels();
@@ -1799,6 +1803,71 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				esc_url( 'https://woocommerce.com/my-account/create-a-ticket/' )
 			);
 			return $links;
+		}
+
+		/**
+		 * Performs a direct database check to see if any order has shipping labels.
+		 * Static method to be callable from early hooks like 'all_plugins'.
+		 *
+		 * @return bool True if any labels exist, false otherwise.
+		 */
+		private static function _has_any_labels_db_check() {
+			global $wpdb;
+
+			// If $wpdb is not available yet, assume no labels (safer default).
+			if ( ! is_object( $wpdb ) ) {
+				return false;
+			}
+
+			$meta_table_to_check = OrderUtil::get_table_for_order_meta();
+
+			return (bool) $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT EXISTS (
+						SELECT 1
+						FROM %i
+						WHERE meta_key = %s
+						LIMIT 1
+					)',
+					$meta_table_to_check,
+					'wc_connect_labels'
+				)
+			);
+		}
+
+		public function maybe_rename_plugin( $plugins ) {
+			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
+
+			if ( isset( $plugins[ $plugin_basename ] ) ) {
+				// Check if the store is configured for tax only or if it has no legacy shipping labels (only check labels if not connected).
+				if (
+					( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
+					( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() )
+				) {
+					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_new_sites();
+					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_new_sites();
+				} else {
+					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_legacy_sites();
+					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_legacy_sites();
+				}
+			}
+			return $plugins;
+		}
+
+		private function get_plugin_name_for_legacy_sites() {
+			return __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
+		}
+
+		private function get_plugin_description_for_legacy_sites() {
+			return __( 'Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
+		}
+
+		private function get_plugin_name_for_new_sites() {
+			return __( 'WooCommerce Tax', 'woocommerce-services' );
+		}
+
+		private function get_plugin_description_for_new_sites() {
+			return __( 'Automated tax calculation for WooCommerce.', 'woocommerce-services' );
 		}
 
 		/**

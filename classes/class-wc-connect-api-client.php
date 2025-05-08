@@ -546,14 +546,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error(
 					'missing_token',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. WordPress.com token is missing', 'woocommerce-services' )
+					__( 'Unable to send request to WooCommerce Tax server. WordPress.com token is missing', 'woocommerce-services' )
 				);
 			}
 
 			if ( false === strpos( $token->secret, '.' ) ) {
 				return new WP_Error(
 					'invalid_token',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. WordPress.com token is malformed.', 'woocommerce-services' )
+					__( 'Unable to send request to WooCommerce Tax server. WordPress.com token is malformed.', 'woocommerce-services' )
 				);
 			}
 
@@ -614,7 +614,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			if ( $local_time < time() - 600 || $local_time > time() + 300 ) {
 				return new WP_Error(
 					'invalid_signature',
-					__( 'Unable to send request to WooCommerce Shipping & Tax server. The timestamp generated for the signature is too old.', 'woocommerce-services' )
+					__( 'Unable to send request to WooCommerce Tax server. The timestamp generated for the signature is too old.', 'woocommerce-services' )
 				);
 			}
 
