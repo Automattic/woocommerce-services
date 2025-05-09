@@ -16,7 +16,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Option name for dismissing success banner
 		 * after the JP connection flow
 		 */
-		const SHOULD_SHOW_AFTER_CXN_BANNER = 'should_display_nux_after_jp_cxn_banner';
+		const SHOULD_SHOW_AFTER_CXN_BANNER  = 'should_display_nux_after_jp_cxn_banner';
+		const SHOULD_SHOW_CONTEXTUAL_BANNER = 'should_display_nux_contextual_banner';
 
 		/**
 		 * @var WC_Connect_Tracks
@@ -241,23 +242,48 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
 				case self::JETPACK_OFFLINE_MODE:
-					// Has the user just gone through our NUX connection flow?
+					// Priority 1: Standard "after connection" banner (if pending from NUX flow).
+					// This banner also handles initial TOS acceptance if coming from the NUX connection flow.
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
 						return 'after_jetpack_connection';
 					}
 
-					// Has the user already accepted our TOS? Then do nothing.
-					// Note: TOS is accepted during the after_connection banner
-					if (
-						isset( $status['tos_accepted'] )
-						&& ! $status['tos_accepted']
-						&& isset( $status['can_accept_tos'] )
-						&& $status['can_accept_tos']
-					) {
+					// Priority 2: TOS acceptance banner (if Jetpack connected, but TOS not yet accepted,
+					// and the standard "after connection" banner is not pending).
+					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] &&
+						isset( $status['can_accept_tos'] ) && $status['can_accept_tos'] ) {
 						return 'tos_only_banner';
 					}
 
-					return false;
+					// For existing users: if TOS accepted, after_cxn_banner done, but contextual_banner flag not yet set, set it now.
+					if ( isset( $status['tos_accepted'] ) && $status['tos_accepted'] &&
+						( ! isset( $status['should_display_after_cxn_banner'] ) || ! $status['should_display_after_cxn_banner'] ) &&
+						( ! isset( $status['should_display_contextual_banner'] ) || ! $status['should_display_contextual_banner'] )
+					) {
+						// This user is eligible for contextual banners but the flag isn't set. Set it now.
+						WC_Connect_Options::update_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER, true );
+						// Update the status for the current execution path, so Priority 3 check below can pick it up.
+						$status['should_display_contextual_banner'] = true;
+					}
+
+					// Priority 3: Contextual banners (if standard "after connection" is done or was not applicable,
+					// TOS is accepted, and the contextual flag is set - either previously or by the block above).
+					if ( isset( $status['should_display_contextual_banner'] ) && $status['should_display_contextual_banner'] ) {
+						// Determine which specific contextual banner to show.
+						$is_us_store = ( isset( $status['store_country'] ) && 'US' === $status['store_country'] );
+
+						if ( $is_us_store ) {
+							if ( isset( $status['is_wcs_shipping_plugin_active'] ) && ! $status['is_wcs_shipping_plugin_active'] ) {
+								return 'after_cxn_us_no_wcs_plugin';
+							} else {
+								return 'after_cxn_us_with_wcs_plugin';
+							}
+						} else {
+							return 'after_cxn_non_us';
+						}
+					}
+
+					return false; // All NUX banners handled or no NUX banner needed for this state.
 				default:
 					return false;
 			}
@@ -372,12 +398,22 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
+			// Ensure is_plugin_active() is available for WCS check
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+			$is_wcs_shipping_plugin_active = is_plugin_active( 'woocommerce-shipping/woocommerce-shipping.php' );
+			$store_country                 = WC()->countries->get_base_country();
+
 			$banner_to_display = self::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => $jetpack_install_status,
-					'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
-					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode(),
-					'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
+					'jetpack_connection_status'        => $jetpack_install_status,
+					'tos_accepted'                     => WC_Connect_Options::get_option( 'tos_accepted' ),
+					'can_accept_tos'                   => WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode(),
+					'should_display_after_cxn_banner'  => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
+					'should_display_contextual_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER ),
+					'store_country'                    => $store_country,
+					'is_wcs_shipping_plugin_active'    => $is_wcs_shipping_plugin_active,
 				)
 			);
 
@@ -391,13 +427,25 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
 					break;
+				case 'after_jetpack_connection':
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
+					break;
 				case 'tos_only_banner':
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
-				case 'after_jetpack_connection':
+				case 'after_cxn_us_no_wcs_plugin':
+				case 'after_cxn_us_with_wcs_plugin':
+				case 'after_cxn_non_us':
 					wp_enqueue_style( 'wc_connect_banner' );
-					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
+					// Using a closure to correctly pass the argument to the new handler method.
+					add_action(
+						'admin_notices',
+						function () use ( $banner_to_display ) {
+							$this->show_contextual_after_connection_banner( $banner_to_display );
+						}
+					);
 					break;
 			}
 
@@ -452,8 +500,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// Did the user just dismiss?
 			if ( isset( $_GET['wcs-nux-notice'] ) && 'dismiss' === $_GET['wcs-nux-notice'] ) {
-				// No longer need to keep track of whether the before connection banner was displayed.
+				// Delete the flag for this banner
 				WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
+				// Set the flag for the next contextual banner
+				WC_Connect_Options::update_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER, true );
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
 				exit;
 			}
@@ -487,6 +537,73 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 		}
 
+		public function show_contextual_after_connection_banner( $banner_type ) {
+			$screen = get_current_screen();
+
+			// This specific banner should only appear on the plugins page.
+			if ( ! $screen || 'plugins' !== $screen->base ) {
+				return;
+			}
+
+			// Still respect the store locale check.
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
+			// Did the user just dismiss?
+			if ( isset( $_GET['wcs-nux-notice'] ) && 'dismiss' === $_GET['wcs-nux-notice'] ) {
+				// Delete the flag for this contextual banner
+				WC_Connect_Options::delete_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER );
+				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
+				exit;
+			}
+
+			// By going through the connection process, the user has accepted our TOS
+			WC_Connect_Options::update_option( 'tos_accepted', true );
+
+			// Using a generic tracks event, can be made more specific if needed.
+			$this->tracks->opted_in( 'contextual_connection_banner_viewed' );
+
+			$banner_title       = '';
+			$banner_description = '';
+
+			switch ( $banner_type ) {
+				case 'after_cxn_us_no_wcs_plugin':
+					$banner_title       = __( 'US Store: WooCommerce Shipping Plugin Not Active - Title', 'woocommerce-services' );
+					$banner_description = __( 'US Store: WooCommerce Shipping Plugin Not Active - Description.', 'woocommerce-services' );
+					break;
+				case 'after_cxn_us_with_wcs_plugin':
+					$banner_title       = __( 'US Store: WooCommerce Shipping Plugin Active - Title', 'woocommerce-services' );
+					$banner_description = __( 'US Store: WooCommerce Shipping Plugin Active - Description.', 'woocommerce-services' );
+					break;
+				case 'after_cxn_non_us':
+					$banner_title       = __( 'Non-US Store - Title', 'woocommerce-services' );
+					$banner_description = __( 'Non-US Store - Description.', 'woocommerce-services' );
+					break;
+				default:
+					// Fallback for an unknown banner type, though this shouldn't be reached with current logic.
+					return;
+			}
+
+			$this->show_nux_banner(
+				array(
+					'title'             => $banner_title,
+					'description'       => esc_html( $banner_description ),
+					'button_text'       => __( 'Got it, thanks!', 'woocommerce-services' ),
+					'button_link'       => add_query_arg(
+						array(
+							'wcs-nux-notice' => 'dismiss',
+						)
+					),
+					'image_url'         => plugins_url(
+						'images/wcs-notice.png',
+						__DIR__
+					),
+					'should_show_terms' => false,
+				)
+			);
+		}
+
 		public function show_tos_banner() {
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
@@ -498,6 +615,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos'] ) {
 				WC_Connect_Options::update_option( 'tos_accepted', true );
+				// Signal that the contextual banner can now be shown
+				WC_Connect_Options::update_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER, true );
 
 				$this->tracks->opted_in( 'tos_banner' );
 
@@ -625,6 +744,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Make sure we always display the after-connection banner
 			// after the before_connection button is clicked
 			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+			// Ensure the contextual banner flag is not set prematurely
+			WC_Connect_Options::delete_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER );
 
 			WC_Connect_Jetpack::connect_site( $redirect_url );
 		}
