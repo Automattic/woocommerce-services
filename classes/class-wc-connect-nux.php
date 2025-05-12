@@ -566,19 +566,31 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$banner_title       = '';
 			$banner_description = '';
+			$banner_button_text = '';
+			$banner_button_link = null;
 
 			switch ( $banner_type ) {
 				case 'after_cxn_us_no_wcs_plugin':
-					$banner_title       = __( 'US Store: WooCommerce Shipping Plugin Not Active - Title', 'woocommerce-services' );
-					$banner_description = __( 'US Store: WooCommerce Shipping Plugin Not Active - Description.', 'woocommerce-services' );
+					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
+					$banner_description = __( 'Your tax functionality will continue to work as expected. The shipping functionality in this plugin will be discontinued on September 1, 2025. Please migrate to the new WooCommerce Shipping extension to get discounted labels for UPS, USPS, DHL Express— and more coming soon!', 'woocommerce-services' );
+					$banner_button_text = __( 'Try WooCommerce Shipping ', 'woocommerce-services' );
+					$banner_button_link = '';
 					break;
 				case 'after_cxn_us_with_wcs_plugin':
-					$banner_title       = __( 'US Store: WooCommerce Shipping Plugin Active - Title', 'woocommerce-services' );
-					$banner_description = __( 'US Store: WooCommerce Shipping Plugin Active - Description.', 'woocommerce-services' );
+					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
+					$banner_description = __( 'Your tax functionality will continue to work as expected. Use WooCommerce Shipping to access deeply discounted UPS, USPS, and DHL shipping labels, reliable shipments, and on-time delivery options.', 'woocommerce-services' );
+					$banner_button_text = __( 'Ship with UPS on WooCommerce', 'woocommerce-services' );
+					$banner_button_link = '<pending>';
 					break;
 				case 'after_cxn_non_us':
-					$banner_title       = __( 'Non-US Store - Title', 'woocommerce-services' );
-					$banner_description = __( 'Non-US Store - Description.', 'woocommerce-services' );
+					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
+					$banner_description = __( 'Your tax functionality will continue to work as expected. No action is required.', 'woocommerce-services' );
+					$banner_button_text = __( 'Close', 'woocommerce-services' );
+					$banner_button_link = add_query_arg(
+						array(
+							'wcs-nux-notice' => 'dismiss',
+						)
+					);
 					break;
 				default:
 					// Fallback for an unknown banner type, though this shouldn't be reached with current logic.
@@ -589,12 +601,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				array(
 					'title'             => $banner_title,
 					'description'       => esc_html( $banner_description ),
-					'button_text'       => __( 'Got it, thanks!', 'woocommerce-services' ),
-					'button_link'       => add_query_arg(
-						array(
-							'wcs-nux-notice' => 'dismiss',
-						)
-					),
+					'button_text'       => $banner_button_text,
+					'button_link'       => $banner_button_link,
 					'image_url'         => plugins_url(
 						'images/wcs-notice.png',
 						__DIR__
