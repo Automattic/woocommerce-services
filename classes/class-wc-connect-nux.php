@@ -291,6 +291,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						$status['should_display_contextual_banner'] = true;
 					}
 
+					// Fallback for non-US stores if contextual banner flag is not set
+					if ( isset( $status['tos_accepted'] ) && $status['tos_accepted'] &&
+						( ! isset( $status['should_display_after_cxn_banner'] ) || ! $status['should_display_after_cxn_banner'] ) &&
+						( ! isset( $status['should_display_contextual_banner'] ) || ! $status['should_display_contextual_banner'] )
+					) {
+						$is_us_store = ( isset( $status['store_country'] ) && 'US' === $status['store_country'] );
+						if ( ! $is_us_store ) {
+							return 'after_cxn_non_us';
+						}
+					}
+
 					// Priority 3: Contextual banners (if standard "after connection" is done or was not applicable,
 					// TOS is accepted, and the contextual flag is set - either previously or by the block above).
 					if ( isset( $status['should_display_contextual_banner'] ) && $status['should_display_contextual_banner'] ) {
