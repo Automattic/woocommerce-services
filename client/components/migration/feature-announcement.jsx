@@ -20,8 +20,9 @@ import {
 import { installAndActivatePlugins } from './migration-runner';
 import { TIME_TO_REMMEMBER_DISMISSAL_SECONDS } from './constants';
 
-const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, onClose } ) => {
-	const [isOpen, setIsOpen] = useState(isEligable);
+const FeatureAnnouncement = ( { translate, isEligable, previousMigrationState, onClose, forceOpen = false } ) => {
+	// Open if either normally eligible OR if forced open by the prop.
+	const [isOpen, setIsOpen] = useState( forceOpen || isEligable );
 	const [isUpdating, setIsUpdating] = useState(false);
 
 	useEffect( () => {

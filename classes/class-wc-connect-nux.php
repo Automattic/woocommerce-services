@@ -29,9 +29,34 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 */
 		private $shipping_label;
 
-		function __construct( WC_Connect_Tracks $tracks, WC_Connect_Shipping_Label $shipping_label ) {
-			$this->tracks         = $tracks;
-			$this->shipping_label = $shipping_label;
+		/**
+		 * @var WC_Connect_Service_Settings_Store
+		 */
+		protected $service_settings_store;
+
+		/**
+		 * @var WC_Connect_Payment_Methods_Store
+		 */
+		protected $payment_methods_store;
+
+		/**
+		 * @var WC_Connect_Service_Schemas_Store
+		 */
+		protected $service_schemas_store;
+
+
+		function __construct(
+			WC_Connect_Tracks $tracks,
+			WC_Connect_Shipping_Label $shipping_label,
+			WC_Connect_Service_Settings_Store $service_settings_store,
+			WC_Connect_Payment_Methods_Store $payment_methods_store,
+			WC_Connect_Service_Schemas_Store $service_schemas_store
+		) {
+			$this->tracks                 = $tracks;
+			$this->shipping_label         = $shipping_label;
+			$this->service_settings_store = $service_settings_store;
+			$this->payment_methods_store  = $payment_methods_store;
+			$this->service_schemas_store  = $service_schemas_store;
 
 			$this->init_pointers();
 		}
@@ -436,6 +461,68 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					add_action( 'admin_notices', array( $this, 'show_tos_banner' ) );
 					break;
 				case 'after_cxn_us_no_wcs_plugin':
+					// Enqueue the migration modal assets specifically for this banner on the plugins page.
+					$plugin_version = WC_Connect_Loader::get_wcs_version();
+					// Use the public static method from WC_Connect_Loader
+					$base_url = WC_Connect_Loader::get_wc_connect_base_url(); // Assuming get_wc_connect_base_url is static
+
+					wp_register_style( 'wcst_wcshipping_migration_admin_notice', $base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+					// Add 'wp-element' and 'wc_connect_admin' dependency for React and base script
+					wp_register_script( 'wcst_wcshipping_migration_admin_notice', $base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array( 'wc_connect_admin', 'wp-element' ), null, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+
+					// Localize script data - MATCHING the original register_wcshipping_migration_modal
+					// Note: The modal primarily uses data-args, localization is minimal here.
+					wp_localize_script(
+						'wcst_wcshipping_migration_admin_notice',
+						'wcsPluginData', // Ensure this matches the expected object name in the script
+						array(
+							'assetPath'       => $base_url,
+							'adminPluginPath' => admin_url( 'plugins.php' ),
+						)
+					);
+
+					// Enqueue scripts/styles needed for the banner and modal
+					wp_enqueue_script( 'wc_connect_admin' ); // Ensure base script is loaded first
+					wp_enqueue_script( 'wcst_wcshipping_migration_admin_notice' );
+					wp_enqueue_style( 'wcst_wcshipping_migration_admin_notice' );
+					wp_enqueue_style( 'wc_connect_banner' );
+
+					// Add the action to render the notice and container div
+					add_action(
+						'admin_notices',
+						function () use ( $banner_to_display ) {
+							// Instantiate settings classes HERE, inside the closure, using stored dependencies
+							$account_settings  = new WC_Connect_Account_Settings(
+								$this->service_settings_store,
+								$this->payment_methods_store
+							);
+							$packages_settings = new WC_Connect_Package_Settings(
+								$this->service_settings_store,
+								$this->service_schemas_store
+							);
+
+							// Prepare the data for the data-args attribute by calling get()
+							$container_data_args    = array(
+								'nonce'            => wp_create_nonce( 'wp_rest' ),
+								'baseURL'          => get_rest_url(),
+								'accountSettings'  => $account_settings->get(),  // Get REAL data
+								'packagesSettings' => $packages_settings->get(), // Get REAL data
+							);
+							$encoded_container_args = wp_json_encode( $container_data_args );
+
+							// Echo the container div needed for the modal React component BEFORE the banner.
+							// Add 'display: none;' initially; the script should manage visibility.
+							printf(
+								'<div id="wcst_wcshipping_migration_admin_notice_feature_announcement" data-args="%s" style="display: none;"></div>',
+								esc_attr( $encoded_container_args ) // Use the REAL encoded data
+							);
+
+							// Now show the banner itself
+							$this->show_contextual_after_connection_banner( $banner_to_display );
+						}
+					);
+					break; // End case 'after_cxn_us_no_wcs_plugin'
+
 				case 'after_cxn_us_with_wcs_plugin':
 				case 'after_cxn_non_us':
 					wp_enqueue_style( 'wc_connect_banner' );
@@ -453,6 +540,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_banner_before_connection() {
+			if ( get_option( 'wcs_nux_any_banner_shown', false ) ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
 			}
@@ -486,10 +577,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'should_show_terms' => true,
 			);
 
+			update_option( 'wcs_nux_any_banner_shown', true );
+
 			$this->show_nux_banner( $banner_content );
 		}
 
 		public function show_banner_after_connection() {
+			if ( get_option( 'wcs_nux_any_banner_shown', false ) ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
 			}
@@ -504,6 +601,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 				// Set the flag for the next contextual banner
 				WC_Connect_Options::update_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER, true );
+				delete_option( 'wcs_nux_any_banner_shown' );
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
 				exit;
 			}
@@ -517,6 +615,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			/* translators: %s: list of features, potentially comma separated */
 			$description_base = __( 'You can now enjoy %s.', 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
+
+			update_option( 'wcs_nux_any_banner_shown', true );
 
 			$this->show_nux_banner(
 				array(
@@ -538,6 +638,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_contextual_after_connection_banner( $banner_type ) {
+			if ( get_option( 'wcs_nux_any_banner_shown', false ) ) {
+				return;
+			}
+
 			$screen = get_current_screen();
 
 			// This specific banner should only appear on the plugins page.
@@ -554,6 +658,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			if ( isset( $_GET['wcs-nux-notice'] ) && 'dismiss' === $_GET['wcs-nux-notice'] ) {
 				// Delete the flag for this contextual banner
 				WC_Connect_Options::delete_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER );
+				delete_option( 'wcs_nux_any_banner_shown' );
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-notice' ) );
 				exit;
 			}
@@ -564,17 +669,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Using a generic tracks event, can be made more specific if needed.
 			$this->tracks->opted_in( 'contextual_connection_banner_viewed' );
 
+			update_option( 'wcs_nux_any_banner_shown', true );
+
 			$banner_title       = '';
 			$banner_description = '';
 			$banner_button_text = '';
 			$banner_button_link = null;
 
+			update_option( 'wcshipping_migration_state', '0' );
 			switch ( $banner_type ) {
 				case 'after_cxn_us_no_wcs_plugin':
 					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
 					$banner_description = __( 'Your tax functionality will continue to work as expected. The shipping functionality in this plugin will be discontinued on September 1, 2025. Please migrate to the new WooCommerce Shipping extension to get discounted labels for UPS, USPS, DHL Express— and more coming soon!', 'woocommerce-services' );
 					$banner_button_text = __( 'Try WooCommerce Shipping ', 'woocommerce-services' );
-					$banner_button_link = '';
+					// Ensure this line uses the special trigger value:
+					$banner_button_link = '#trigger-migration-modal';
 					break;
 				case 'after_cxn_us_with_wcs_plugin':
 					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
@@ -613,6 +722,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		public function show_tos_banner() {
+			if ( get_option( 'wcs_nux_any_banner_shown', false ) ) {
+				return;
+			}
+
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
 			}
@@ -628,6 +741,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 				$this->tracks->opted_in( 'tos_banner' );
 
+				delete_option( 'wcs_nux_any_banner_shown' );
+
 				wp_safe_redirect( remove_query_arg( 'wcs-nux-tos' ) );
 				exit;
 			}
@@ -636,6 +751,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			/* translators: %s: list of features, potentially comma separated */
 			$description_base = __( "WooCommerce Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
+
+			update_option( 'wcs_nux_any_banner_shown', true );
 
 			$this->show_nux_banner(
 				array(
@@ -694,12 +811,23 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						</p>
 					<?php endif; ?>
 					<?php if ( isset( $content['button_link'] ) ) : ?>
-						<a
-							class="wcs-nux__notice-content-button button button-primary"
-							href="<?php echo esc_url( $content['button_link'] ); ?>"
-						>
-							<?php echo esc_html( $content['button_text'] ); ?>
-						</a>
+						<?php // Check for the special modal trigger value ?>
+						<?php if ( '#trigger-migration-modal' === $content['button_link'] ) : ?>
+							<button
+								type="button"
+								id="wcst-wcshipping-migration-notice__click" <?php // Ensure this ID matches what the JS expects ?>
+								class="wcs-nux__notice-content-button button button-primary"
+							>
+								<?php echo esc_html( $content['button_text'] ); ?>
+							</button>
+						<?php else : ?>
+							<a
+								class="wcs-nux__notice-content-button button button-primary"
+								href="<?php echo esc_url( $content['button_link'] ); ?>"
+							>
+								<?php echo esc_html( $content['button_text'] ); ?>
+							</a>
+						<?php endif; ?>
 					<?php else : ?>
 						<form action="<?php echo esc_attr( admin_url( 'admin-post.php' ) ); ?>" method="post">
 							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>

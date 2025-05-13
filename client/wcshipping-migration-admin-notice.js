@@ -33,20 +33,24 @@ const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping
 		 * Prevent form submission when rendered in a form or alike that listens to button click
 		 */
 		evt.preventDefault();
-		// Pop open feature announcement modal.
+		// Pop open feature announcement modal, forcing it open regardless of eligibility state.
 		ReactDOM.render(
 			<Provider store={store}>
-				<FeatureAnnouncement />
+				<FeatureAnnouncement forceOpen={ true } />
 			</Provider>,
 			container
 		);
 	});
 
 	// Dismiss it for 3 days, then remove it from view.
-	wcstMigrationNoticeDimissButton.addEventListener(eventName, () => {
-		// window.wpCookies API: wordpress/wp-includes/js/utils.js
-		window.wpCookies.set('wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS)
-		const wcstMigrationAdminNotice = document.querySelector('.wcst-wcshipping-migration-notice');
-		wcstMigrationAdminNotice.remove();
-	});
+	if (wcstMigrationNoticeDimissButton) {
+		wcstMigrationNoticeDimissButton.addEventListener(eventName, () => {
+			// window.wpCookies API: wordpress/wp-includes/js/utils.js
+			window.wpCookies.set('wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS)
+			const wcstMigrationAdminNotice = document.querySelector('.wcst-wcshipping-migration-notice');
+			if (wcstMigrationAdminNotice) {
+				wcstMigrationAdminNotice.remove();
+			}
+		});
+	}
 });

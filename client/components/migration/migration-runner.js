@@ -228,11 +228,14 @@ const installAndActivatePlugins = async( previousMigrationState ) => {
      * @returns {string} The next state to run. The name of the state is the key in this object migrationStateTransitions.
      */
     const getNextStateToRun = () => {
-        if ( ! previousMigrationState ) {
-            // stateInit
+        // Check if previousMigrationState is a valid key in the map.
+        // If not, or if it's falsy, default to the initial state (stateInit).
+        if ( ! previousMigrationState || ! MIGRATION_ENUM_TO_STATE_NAME_MAP.hasOwnProperty( previousMigrationState ) ) {
+            // stateInit (key 2)
             return MIGRATION_ENUM_TO_STATE_NAME_MAP[ 2 ];
         }
 
+        // If it's a valid key, find the corresponding state name and return its success transition.
         const currentStateName = MIGRATION_ENUM_TO_STATE_NAME_MAP[ previousMigrationState ];
         const nextMigrationState = getMigrationStateByName( currentStateName );
         return nextMigrationState.success; // The next state is "success".
