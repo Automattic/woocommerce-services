@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:10.9
+    container_name: mariadb_container
+    environment:
+      MYSQL_USER: wp_test
+      MYSQL_PASSWORD: wp_test
+      MYSQL_DATABASE: wordpress_default
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3307:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  php-tests:
+    build: .
+    container_name: php_tests_container
+    depends_on:
+      - mariadb
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+    volumes:
+      - ../../:/workspace:cached
+    environment:
+      MYSQL_USER: wp_test
+      MYSQL_PASSWORD: wp_test
+      MYSQL_DATABASE: wordpress_default
+      MYSQL_ROOT_PASSWORD: root
+      WP_VERSION: "6.3.0"    # adjust as needed
+      WC_VERSION: "7.6.1"    # adjust as needed
