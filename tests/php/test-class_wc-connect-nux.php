@@ -3,7 +3,7 @@
 class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-nux.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-nux.php';
 	}
 
 	public function test_get_banner_type_to_display_dev_jp() {
@@ -22,13 +22,15 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE_MODE,
-					'tos_accepted'                    => true,
-					'can_accept_tos'                  => null, // irrelevant here, TOS is accepted (DEV)
-					'should_display_after_cxn_banner' => false,
+					'jetpack_connection_status'        => WC_Connect_Nux::JETPACK_OFFLINE_MODE,
+					'tos_accepted'                     => true,
+					'can_accept_tos'                   => null, // irrelevant here, TOS is accepted (DEV)
+					'should_display_after_cxn_banner'  => false,
+					'store_country'                    => 'JP',
+					'should_display_contextual_banner' => true,
 				)
 			),
-			false
+			'after_cxn_non_us'
 		);
 
 		$this->assertEquals(
@@ -158,13 +160,15 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_CONNECTED,
-					'tos_accepted'                    => true,
-					'can_accept_tos'                  => true,
-					'should_display_after_cxn_banner' => false,
+					'jetpack_connection_status'        => WC_Connect_Nux::JETPACK_CONNECTED,
+					'tos_accepted'                     => true,
+					'can_accept_tos'                   => true,
+					'should_display_after_cxn_banner'  => false,
+					'store_country'                    => 'JP',
+					'should_display_contextual_banner' => true,
 				)
 			),
-			false
+			'after_cxn_non_us'
 		);
 	}
 }
