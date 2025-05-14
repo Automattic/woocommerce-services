@@ -25,25 +25,29 @@ const store = createStore(ShippingLabelStore.getReducer(), ShippingLabelStore.ge
 const wcstWCShippingMigrationNoticeButton = document.getElementById('wcst-wcshipping-migration-notice__click');
 const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping-migration-notice button.notice-dismiss');
 
-// Add all button events
-["click", "keydown"].forEach(eventName => {
-	// Clicking "Confirm update" will start the migration. This is the same as popping up the modal and clicking the "Update" button there.
-	wcstWCShippingMigrationNoticeButton.addEventListener(eventName, (evt) => {
-		/**
-		 * Prevent form submission when rendered in a form or alike that listens to button click
-		 */
-		evt.preventDefault();
-		// Pop open feature announcement modal, forcing it open regardless of eligibility state.
-		ReactDOM.render(
-			<Provider store={store}>
-				<FeatureAnnouncement forceOpen={ true } />
-			</Provider>,
-			container
-		);
+if (wcstWCShippingMigrationNoticeButton) {
+	// Add all button events
+	["click", "keydown"].forEach(eventName => {
+		// Clicking "Confirm update" will start the migration. This is the same as popping up the modal and clicking the "Update" button there.
+		wcstWCShippingMigrationNoticeButton.addEventListener(eventName, (evt) => {
+			/**
+			 * Prevent form submission when rendered in a form or alike that listens to button click
+			 */
+			evt.preventDefault();
+			// Pop open feature announcement modal, forcing it open regardless of eligibility state.
+			ReactDOM.render(
+				<Provider store={store}>
+					<FeatureAnnouncement forceOpen={ true } />
+				</Provider>,
+				container
+			);
+		});
 	});
+}
 
-	// Dismiss it for 3 days, then remove it from view.
-	if (wcstMigrationNoticeDimissButton) {
+// Dismiss it for 3 days, then remove it from view.
+if (wcstMigrationNoticeDimissButton) {
+	["click", "keydown"].forEach(eventName => {
 		wcstMigrationNoticeDimissButton.addEventListener(eventName, () => {
 			// window.wpCookies API: wordpress/wp-includes/js/utils.js
 			window.wpCookies.set('wcst-wcshipping-migration-dismissed', 1, TIME_TO_REMMEMBER_DISMISSAL_SECONDS)
@@ -52,5 +56,5 @@ const wcstMigrationNoticeDimissButton = document.querySelector('.wcst-wcshipping
 				wcstMigrationAdminNotice.remove();
 			}
 		});
-	}
-});
+	});
+}
