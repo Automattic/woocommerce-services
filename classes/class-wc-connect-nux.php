@@ -700,7 +700,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
 					$banner_description = __( 'Your tax functionality will continue to work as expected. Use WooCommerce Shipping to access deeply discounted UPS, USPS, and DHL shipping labels, reliable shipments, and on-time delivery options.', 'woocommerce-services' );
 					$banner_button_text = __( 'Ship with UPS on WooCommerce', 'woocommerce-services' );
-					$banner_button_link = '<pending>';
+					$banner_button_link = 'https://woocommerce.com/document/woocommerce-shipping/#creating-shipping-labels';
 					break;
 				case 'after_cxn_non_us':
 					$banner_title       = __( 'WooCommerce Shipping & Tax has been renamed to WooCommerce Tax', 'woocommerce-services' );
