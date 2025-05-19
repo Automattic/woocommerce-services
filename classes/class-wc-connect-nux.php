@@ -267,6 +267,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
 				case self::JETPACK_OFFLINE_MODE:
+					$is_us_store = ( isset( $status['store_country'] ) && 'US' === $status['store_country'] );
+
 					// Priority 1: Standard "after connection" banner (if pending from NUX flow).
 					// This banner also handles initial TOS acceptance if coming from the NUX connection flow.
 					if ( isset( $status['should_display_after_cxn_banner'] ) && $status['should_display_after_cxn_banner'] ) {
@@ -276,27 +278,20 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					// Priority 2: TOS acceptance banner (if Jetpack connected, but TOS not yet accepted,
 					// and the standard "after connection" banner is not pending).
 					if ( isset( $status['tos_accepted'] ) && ! $status['tos_accepted'] &&
-						isset( $status['can_accept_tos'] ) && $status['can_accept_tos'] ) {
+					isset( $status['can_accept_tos'] ) && $status['can_accept_tos'] ) {
 						return 'tos_only_banner';
 					}
 
 					// For existing users: if TOS accepted, after_cxn_banner done, but contextual_banner flag not yet set, set it now.
 					if ( isset( $status['tos_accepted'] ) && $status['tos_accepted'] &&
-						( ! isset( $status['should_display_after_cxn_banner'] ) || ! $status['should_display_after_cxn_banner'] ) &&
-						( ! isset( $status['should_display_contextual_banner'] ) || ! $status['should_display_contextual_banner'] )
+					( ! isset( $status['should_display_after_cxn_banner'] ) || ! $status['should_display_after_cxn_banner'] ) &&
+					( ! isset( $status['should_display_contextual_banner'] ) || ! $status['should_display_contextual_banner'] )
 					) {
 						// This user is eligible for contextual banners but the flag isn't set. Set it now.
 						WC_Connect_Options::update_option( self::SHOULD_SHOW_CONTEXTUAL_BANNER, true );
 						// Update the status for the current execution path, so Priority 3 check below can pick it up.
 						$status['should_display_contextual_banner'] = true;
-					}
-
-					// Fallback for non-US stores if contextual banner flag is not set
-					if ( isset( $status['tos_accepted'] ) && $status['tos_accepted'] &&
-						( ! isset( $status['should_display_after_cxn_banner'] ) || ! $status['should_display_after_cxn_banner'] ) &&
-						( ! isset( $status['should_display_contextual_banner'] ) || ! $status['should_display_contextual_banner'] )
-					) {
-						$is_us_store = ( isset( $status['store_country'] ) && 'US' === $status['store_country'] );
+						// Fallback for non-US stores if contextual banner flag is not set
 						if ( ! $is_us_store ) {
 							return 'after_cxn_non_us';
 						}
@@ -306,8 +301,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					// TOS is accepted, and the contextual flag is set - either previously or by the block above).
 					if ( isset( $status['should_display_contextual_banner'] ) && $status['should_display_contextual_banner'] ) {
 						// Determine which specific contextual banner to show.
-						$is_us_store = ( isset( $status['store_country'] ) && 'US' === $status['store_country'] );
-
 						if ( $is_us_store ) {
 							if ( isset( $status['is_wcs_shipping_plugin_active'] ) && ! $status['is_wcs_shipping_plugin_active'] ) {
 								return 'after_cxn_us_no_wcs_plugin';
@@ -477,9 +470,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					// Use the public static method from WC_Connect_Loader
 					$base_url = WC_Connect_Loader::get_wc_connect_base_url(); // Assuming get_wc_connect_base_url is static
 
-					wp_register_style( 'wcst_wcshipping_migration_admin_notice', $base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+					wp_register_style( 'wcst_wcshipping_migration_admin_notice', $base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 					// Add 'wp-element' and 'wc_connect_admin' dependency for React and base script
-					wp_register_script( 'wcst_wcshipping_migration_admin_notice', $base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array( 'wc_connect_admin', 'wp-element' ), null, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+					wp_register_script( 'wcst_wcshipping_migration_admin_notice', $base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array( 'wc_connect_admin', 'wp-element' ), false, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 
 					// Localize script data - MATCHING the original register_wcshipping_migration_modal
 					// Note: The modal primarily uses data-args, localization is minimal here.
@@ -713,7 +706,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					);
 					break;
 				default:
-					// Fallback for an unknown banner type, though this shouldn't be reached with current logic.
+					$this->tracks->opted_in( 'contextual_connection_banner_viewed_unknown' );
 					return;
 			}
 
