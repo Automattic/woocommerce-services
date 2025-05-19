@@ -581,8 +581,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				'should_show_terms' => true,
 			);
 
-			update_option( 'wcs_nux_any_banner_shown', true );
-
 			$this->show_nux_banner( $banner_content );
 		}
 
@@ -619,8 +617,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			/* translators: %s: list of features, potentially comma separated */
 			$description_base = __( 'You can now enjoy %s.', 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
-
-			update_option( 'wcs_nux_any_banner_shown', true );
 
 			$this->show_nux_banner(
 				array(
@@ -755,8 +751,6 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			/* translators: %s: list of features, potentially comma separated */
 			$description_base = __( "WooCommerce Tax is almost ready to go! Once you connect your site to WordPress.com you'll have access to %s.", 'woocommerce-services' );
 			$feature_list     = $this->get_feature_list_for_country( $country );
-
-			update_option( 'wcs_nux_any_banner_shown', true );
 
 			$this->show_nux_banner(
 				array(
