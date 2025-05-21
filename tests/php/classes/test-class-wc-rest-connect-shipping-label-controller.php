@@ -425,6 +425,33 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		$this->assertEquals( $expected_data, $response->get_data() );
 	}
 
+		/**
+	 * Test that when has_only_tax_functionality is true, the controller returns the correct response.
+	 */
+	public function test_has_only_tax_functionality_returns_correct_response() {
+		// Given.
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			true // has_only_tax_functionality is true
+		);
+
+		// When.
+		$request  = new WP_REST_Request( 'GET', '/wc/v1/connect/label/creation_eligibility' );
+		$response = $controller->get_creation_eligibility( $request );
+
+		// Then.
+		$this->assertEquals( 200, $response->status );
+		$expected_data = array(
+			'is_eligible' => false,
+			'reason'      => 'only_tax_functionality_is_supported',
+		);
+		$this->assertEquals( $expected_data, $response->get_data() );
+	}
+
 	/**
 	 * A helper to create a simple product that is default to be shippable.
 	 *
