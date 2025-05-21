@@ -444,7 +444,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 		$response = $controller->get_creation_eligibility( $request );
 
 		// Then.
-		$this->assertEquals( 200, $response->status );
+		$this->assertEquals( 200, $response->get_status() );
 		$expected_data = array(
 			'is_eligible' => false,
 			'reason'      => 'only_tax_functionality_is_supported',

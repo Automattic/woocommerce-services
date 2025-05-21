@@ -1847,7 +1847,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 		}
 
-		// Check if the store is configured for tax only or if it has no legacy shipping labels (only check labels if not connected).
+		/**
+		 * Determines if the store is configured for tax-only functionality.
+		 *
+		 * This method checks two conditions:
+		 * 1. If Jetpack is connected and the 'only_tax' option is set to '1', it returns true.
+		 * 2. If Jetpack is not connected and there are no legacy shipping labels in the database, it returns true.
+		 *
+		 * @return bool True if the store is configured for tax-only functionality, false otherwise.
+		 */
 		private function has_only_tax_functionality() {
 			return ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
 			( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );

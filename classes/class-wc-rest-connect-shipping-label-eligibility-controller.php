@@ -67,7 +67,8 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 					'args'                => array(
 						'order_id' => array(
 							'required' => false,
-							'type'     => 'is_numeric',
+							'type'     => 'integer',
+							'validate_callback' => 'is_numeric',
 						),
 					),
 					'permission_callback' => array( $this, 'check_permission' ),
@@ -78,7 +79,7 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 		// Accept request with order_id
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '(?P<order_id>\d+)/creation_eligibility',
+			'/' . $this->rest_base . '/(?P<order_id>\d+)/creation_eligibility',
 			array(
 				array(
 					'methods'             => 'GET',
