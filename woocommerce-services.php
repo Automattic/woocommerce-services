@@ -1100,6 +1100,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
 			$rest_subscriptions_controller->register_routes();
 
+			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-eligibility-controller.php';
+			$rest_shipping_label_eligibility_controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+				$this->api_client,
+				$settings_store,
+				$logger,
+				$this->shipping_label,
+				$this->payment_methods_store,
+				$this->has_only_tax_functionality()
+			);
+
+			$rest_shipping_label_eligibility_controller->register_routes();
+
 			/**
 			 * We need 4 objects instantiated in `WC_Connect_Loader` to construct WC_REST_Connect_WCShipping_Compatibility_Packages_Controller.
 			 *
@@ -1835,15 +1847,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 		}
 
+		// Check if the store is configured for tax only or if it has no legacy shipping labels (only check labels if not connected).
+		private function has_only_tax_functionality() {
+			return ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
+			( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
+		}
+
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
 			if ( isset( $plugins[ $plugin_basename ] ) ) {
-				// Check if the store is configured for tax only or if it has no legacy shipping labels (only check labels if not connected).
-				if (
-					( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
-					( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() )
-				) {
+				if ( $this->has_only_tax_functionality() ) {
 					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_new_sites();
 					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_new_sites();
 				} else {
