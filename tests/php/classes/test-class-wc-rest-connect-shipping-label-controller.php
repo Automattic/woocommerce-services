@@ -28,17 +28,18 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 * @inherit
 	 */
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-logger.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-schemas-store.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-package-settings.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-account-settings.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-continents.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-compatibility.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-shipping-label.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-base-controller.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-shipping-label-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-service-schemas-store.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-package-settings.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-account-settings.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-continents.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-compatibility.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-shipping-label.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-base-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-shipping-label-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-shipping-label-eligibility-controller.php';
 	}
 
 	/**
@@ -71,7 +72,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_with_account_settings_disabled_is_not_eligible_for_shipping_label_creation() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$this->update_shipping_labels_account_settings( false, $this->settings_store );
 		$product = $this->create_simple_product();
@@ -96,7 +104,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_in_supported_countries_is_eligible_for_shipping_label_creation() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -119,7 +134,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_non_US_store_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_customs_form() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		update_option( 'woocommerce_default_country', 'PR' );
 		$product = $this->create_simple_product();
@@ -145,7 +167,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_US_store_with_non_US_destination_address_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_customs_form() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -174,7 +203,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_US_store_with_US_addresses_is_eligible_for_shipping_label_creation_when_client_cannot_create_customs_form() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -200,7 +236,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_without_existing_packages_is_eligible_for_shipping_label_creation_when_client_can_create_package() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -224,7 +267,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_without_existing_packages_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_package() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -250,7 +300,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_with_one_existing_custom_package_is_eligible_for_shipping_label_creation_when_client_cannot_create_package() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -275,7 +332,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_order_with_virtual_product_is_not_eligible_for_shipping_label_creation() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$product = $this->create_simple_product( false );
 		$order   = WC_Helper_Order::create_order( 1, $product );
@@ -299,7 +363,14 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_without_selected_payment_method_is_not_eligible_for_shipping_label_creation_when_user_cannot_manage_payment() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$this->unset_selected_payment_method( $this->settings_store );
 		$product = $this->create_simple_product();
@@ -324,11 +395,18 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	public function test_store_without_selected_payment_method_is_not_eligible_for_shipping_label_creation_when_client_cannot_create_payment_method() {
 		// Given.
-		$controller = new WC_REST_Connect_Shipping_Label_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock, $this->shipping_label, $this->payment_methods_store );
+		$controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+			$this->api_client_mock,
+			$this->settings_store,
+			$this->connect_logger_mock,
+			$this->shipping_label,
+			$this->payment_methods_store,
+			false
+		);
 		$this->set_store_and_settings_to_be_eligible_for_shipping_label_creation();
 		$this->payment_methods_store->expects( $this->once() )
 			->method( 'get_payment_methods' )
-			->willReturn( [] );
+			->willReturn( array() );
 		$product = $this->create_simple_product();
 		$order   = WC_Helper_Order::create_order( 1, $product );
 
