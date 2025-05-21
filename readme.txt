@@ -81,6 +81,9 @@ The source code is freely available [in GitHub](https://github.com/Automattic/wo
 
 == Changelog ==
 
+= 3.0.1 - 2025-xx-xx =
+* Fix   - Maintain label purchase functionality on iOS app for eligible installations.
+
 = 3.0.0 - 2025-05-08 =
 * Add   - Legacy site detection to maintain shipping functionality for existing installations.
 * Tweak - Improve tax tracking.
