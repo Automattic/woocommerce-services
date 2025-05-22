@@ -4,8 +4,8 @@
       "squizlabs/php_codesniffer": "^3.10",
       "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
       "wp-coding-standards/wpcs": "^3.1",
-      "woocommerce/qit-cli": "^0.9.1",
-        "woocommerce/woocommerce-sniffs": "^0.0.2"
+      "woocommerce/qit-cli": "^0.10.0",
+      "woocommerce/woocommerce-sniffs": "^0.0.2"
     },
     "require": {
       	"automattic/jetpack-connection": "^6.2.0",
