@@ -68,7 +68,6 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 						'order_id' => array(
 							'required' => false,
 							'type'     => 'integer',
-							'validate_callback' => 'is_numeric',
 						),
 					),
 					'permission_callback' => array( $this, 'check_permission' ),
@@ -87,7 +86,7 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 					'args'                => array(
 						'order_id' => array(
 							'required' => true,
-							'type'     => 'is_numeric',
+							'type'     => 'integer',
 						),
 					),
 					'permission_callback' => array( $this, 'check_permission' ),
