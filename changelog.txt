@@ -1,6 +1,6 @@
 *** WooCommerce Shipping & Tax Changelog ***
 
-= 3.0.1 - 2025-xx-xx =
+= 3.0.1 - 2025-05-22 =
 * Fix   - Maintain label purchase functionality on iOS app for eligible installations.
 
 = 3.0.0 - 2025-05-08 =
