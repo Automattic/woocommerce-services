@@ -17,10 +17,8 @@ We’re here to help with tax rates: collect accurate sales tax, automatically.
 
 Attention: Shipping features have moved to a new dedicated plugin. Download WooCommerce Shipping.
 
-WooCommerce Shipping & Tax makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
-
 Enable automated taxes
-That’s it! Once you update your tax settings, your store will collect sales tax at checkout based on the store address in your WooCommerce Settings.
+That's it! Once you update your tax settings, your store will collect sales tax at checkout based on the store address in your WooCommerce Settings.
 
 Eliminate the need to even think about sales taxes for your store
 Automatically calculate how much sales tax should be collected for WooCommerce orders — by city, country, or state — at checkout.
