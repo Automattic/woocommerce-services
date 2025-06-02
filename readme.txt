@@ -74,6 +74,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.2 - 2025-06-02 =
+* Rename the plugin and updates the description in the Org store.
+
 = 3.0.1 - 2025-05-22 =
 * Fix   - Maintain label purchase functionality on iOS app for eligible installations.
 
