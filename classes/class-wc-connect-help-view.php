@@ -254,7 +254,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			if ( ! is_array( $tabs ) ) {
 				$tabs = array();
 			}
-			$tabs['connect'] = _x( 'WooCommerce Shipping & Tax', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
+			$tabs['connect'] = _x( 'WooCommerce Tax', 'The WooCommerce Tax brandname', 'woocommerce-services' );
 			return $tabs;
 		}
 
@@ -285,7 +285,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		public function page() {
 			?>
 				<h2>
-					<?php esc_html_e( 'WooCommerce Shipping & Tax Status', 'woocommerce-services' ); ?>
+					<?php esc_html_e( 'WooCommerce Tax Status', 'woocommerce-services' ); ?>
 				</h2>
 			<?php
 
