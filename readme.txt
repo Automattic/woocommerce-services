@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.3 - 2025-xx-xx =
+* Tweak - Update Org store screenshots.
+
 = 3.0.2 - 2025-06-02 =
 * Rename the plugin and updates the description in the Org store.
 
