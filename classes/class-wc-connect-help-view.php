@@ -104,9 +104,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			// Automated taxes status
 			$health_items['automated_taxes'] = $this->get_tax_health_item();
 
-			// Lastly, do the WooCommerce Shipping & Tax health check
+			// Lastly, do the WooCommerce Tax health check
 			// Check that we have schema
-			// Check that we are able to talk to the WooCommerce Shipping & Tax server
+			// Check that we are able to talk to the WooCommerce Tax server
 			$schemas                              = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp                 = $this->service_schemas_store->get_last_fetch_timestamp();
 			$health_items['woocommerce_services'] = array(
@@ -182,7 +182,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		/**
-		 * Gets the last 10 lines from the WooCommerce Shipping & Tax log by feature, if it exists
+		 * Gets the last 10 lines from the WooCommerce Tax log by feature, if it exists
 		 */
 		protected function get_debug_log_data( $feature = '' ) {
 			$data       = new stdClass();

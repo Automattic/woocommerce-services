@@ -18,7 +18,7 @@ if ( ! class_exists( 'WC_Connect_Extension_Compatibility' ) ) {
 		}
 
 		/**
-		 * Checks if WooCommerce Shipping & Tax should email the tracking details, or if another extension is taking care of that already
+		 * Checks if WooCommerce Tax should email the tracking details, or if another extension is taking care of that already
 		 *
 		 * @param $order_id - order ID
 		 * @return boolean true if WCS should send the tracking info, false otherwise

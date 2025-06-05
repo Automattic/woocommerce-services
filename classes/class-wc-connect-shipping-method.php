@@ -415,7 +415,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			// TODO: Request rates for all WooCommerce Shipping & Tax powered methods in
+			// TODO: Request rates for all WooCommerce Tax powered methods in
 			// the current shipping zone to avoid each method making an independent request.
 			$services = array(
 				array(
