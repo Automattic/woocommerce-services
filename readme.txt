@@ -65,14 +65,13 @@ This plugin relies on the following external services:
 
 == Screenshots ==
 
-1. Buying a USPS shipping label for an order
-2. Setting up custom packages
-3. Selecting your preferred payment method
-4. Enabling automated taxes
-5. Checking on the health of WooCommerce Shipping & Tax
-6. Checking and exporting the label purchase reports
+1. Enabling automated taxes
+2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.0.3 - 2025-xx-xx =
+* Tweak - Update Org store screenshots.
 
 = 3.0.2 - 2025-06-02 =
 * Rename the plugin and updates the description in the Org store.

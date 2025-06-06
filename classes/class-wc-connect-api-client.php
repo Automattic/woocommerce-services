@@ -32,7 +32,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Requests the available services for this site from the WooCommerce Shipping & Tax Server
+		 * Requests the available services for this site from the WooCommerce Tax Server
 		 *
 		 * @return array|WP_Error
 		 */
@@ -52,7 +52,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Validates the settings for a given service with the WooCommerce Shipping & Tax Server
+		 * Validates the settings for a given service with the WooCommerce Tax Server
 		 *
 		 * @param $service_slug
 		 * @param $service_settings
@@ -62,7 +62,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		public function validate_service_settings( $service_slug, $service_settings ) {
 			// Make sure the service slug only contains dashes, underscores or letters
 			if ( 1 === preg_match( '/[^a-z_\-]/i', $service_slug ) ) {
-				return new WP_Error( 'invalid_service_slug', __( 'Invalid WooCommerce Shipping & Tax service slug provided', 'woocommerce-services' ) );
+				return new WP_Error( 'invalid_service_slug', __( 'Invalid WooCommerce Tax service slug provided', 'woocommerce-services' ) );
 			}
 
 			return $this->request( 'POST', "/services/{$service_slug}/settings", array( 'service_settings' => $service_settings ) );
@@ -137,7 +137,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Gets shipping rates (for checkout) from the WooCommerce Shipping & Tax Server
+		 * Gets shipping rates (for checkout) from the WooCommerce Tax Server
 		 *
 		 * @param $services All settings for all services we want rates for
 		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
@@ -194,7 +194,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Asks the WooCommerce Shipping & Tax server for an array of payment methods
+		 * Asks the WooCommerce Tax server for an array of payment methods
 		 *
 		 * @return mixed|WP_Error
 		 */
@@ -212,7 +212,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Gets shipping rates (for labels) from the WooCommerce Shipping & Tax Server
+		 * Gets shipping rates (for labels) from the WooCommerce Tax Server
 		 *
 		 * @param array $request - array(
 		 *  'packages' => array(
@@ -354,7 +354,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Tests the connection to the WooCommerce Shipping & Tax Server
+		 * Tests the connection to the WooCommerce Tax Server
 		 *
 		 * @return true|WP_Error
 		 */
@@ -411,7 +411,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Sends a request to the WooCommerce Shipping & Tax Server
+		 * Sends a request to the WooCommerce Tax Server
 		 *
 		 * @param $method
 		 * @param $path
@@ -512,7 +512,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 
 		/**
-		 * Generates headers for our request to the WooCommerce Shipping & Tax Server
+		 * Generates headers for our request to the WooCommerce Tax Server
 		 *
 		 * @return array|WP_Error
 		 */

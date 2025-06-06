@@ -9,7 +9,7 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Carrier_Types_Controller' ) ) {
 }
 
 /**
- * Retrieve a list of carrier WooCommerce Shipping & Tax supports, along with the
+ * Retrieve a list of carrier WooCommerce Tax supports, along with the
  * fields needed for each carrier in order to do carrier account registration.
  */
 class WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_REST_Connect_Base_Controller {
@@ -32,11 +32,10 @@ class WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_REST_Connect_
 			return $response;
 		}
 		return new WP_REST_Response(
-			[
+			array(
 				'success'  => true,
 				'carriers' => $response->carriers,
-			]
+			)
 		);
 	}
-
 }

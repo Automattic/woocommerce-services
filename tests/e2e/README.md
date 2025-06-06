@@ -1,6 +1,6 @@
 # WooCommerce End to End Tests
 
-Automated end-to-end tests for WooCommerce Shipping & Tax.
+Automated end-to-end tests for WooCommerce Tax.
 
 ## Table of contents
 
