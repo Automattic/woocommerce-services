@@ -46,6 +46,10 @@ require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
+use Automattic\WCServices\Integrations\WooCommerceBlocksIntegration;
+use Automattic\WCServices\StoreApi\Extensions\BlockCheckoutNoticesExtension;
+use Automattic\WCServices\StoreApi\StoreApiExtendSchema;
+use Automattic\WCServices\StoreApi\StoreApiExtensionController;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
@@ -665,7 +669,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			add_action( 'woocommerce_blocks_loaded', array( $this, 'register_blocks_integration' ) );
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+		}
+
+		/**
+		 * Register the WooCommerceBlocks integration.
+		 */
+		public function register_blocks_integration() {
+			add_action(
+				'woocommerce_blocks_checkout_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+				}
+			);
 		}
 
 		/**
@@ -761,6 +778,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
+			$this->extend_store_api();
 		}
 
 		/**
@@ -900,6 +918,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( is_admin() ) {
 				$this->load_admin_dependencies();
 			}
+		}
+
+		/**
+		 * Extend WC Checkout.
+		 */
+		public function extend_checkout() {
+			new CheckoutController( $this->get_logger(), $this->get_checkout_service(), $this->get_service_settings_store() );
+		}
+
+		/**
+		 * Extend the Store API.
+		 */
+		public function extend_store_api() {
+			$store_api_extend_schema        = StoreApiExtendSchema::instance();
+			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
+
+			// Register Store API extensions.
+			$store_api_extension_controller->register_extension( new BlockCheckoutNoticesExtension( $store_api_extend_schema ) );
+
+			// Extend the Store API.
+			$store_api_extension_controller->extend_store();
 		}
 
 		/**
