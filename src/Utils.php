@@ -9,6 +9,8 @@
 
 namespace Automattic\WCServices;
 
+use WC_Connect_Loader;
+
 /**
  * Automattic\WCServices utils class.
  */
@@ -18,13 +20,8 @@ class Utils {
 	 *
 	 * @return string
 	 */
-	public static function get_wcshipping_version() {
-		if ( defined( 'WCSHIPPING_VERSION' ) ) {
-			return WCSHIPPING_VERSION;
-		}
-		// Fallback to reading the version from the plugin file.
-		$plugin_data = get_file_data( WCSHIPPING_PLUGIN_FILE, array( 'Version' => 'Version' ) );
-		return $plugin_data['Version'];
+	public static function get_wcservices_version() {
+		return WC_Connect_Loader::get_wcs_version();
 	}
 
 	/**
@@ -33,7 +30,7 @@ class Utils {
 	 * @return string
 	 */
 	public static function get_enqueue_base_url(): string {
-		return trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : WCSHIPPING_PLUGIN_DIST_URL );
+		return trailingslashit( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ? WOOCOMMERCE_CONNECT_DEV_SERVER_URL : WCSERVICES_PLUGIN_DIST_URL );
 	}
 
 	/**
@@ -44,7 +41,7 @@ class Utils {
 	 * @return string The plugin directory path.
 	 */
 	public static function get_plugin_path( $for_woocommerce = false ) {
-		return $for_woocommerce ? plugin_dir_path( WC_PLUGIN_FILE ) : plugin_dir_path( WCSHIPPING_PLUGIN_FILE );
+		return $for_woocommerce ? plugin_dir_path( WC_PLUGIN_FILE ) : plugin_dir_path( WCSERVICES_PLUGIN_FILE );
 	}
 
 	/**
@@ -75,9 +72,9 @@ class Utils {
 	 */
 	public static function get_constants_for_js() {
 		return array(
-			'WCSHIPPING_PLUGIN_FILE'         => WCSHIPPING_PLUGIN_FILE,
-			'WCSHIPPING_PLUGIN_DIR'          => self::get_plugin_path(),
-			'WCSHIPPING_RELATIVE_PLUGIN_DIR' => self::get_relative_plugin_path(),
+			'WCSERVICES_PLUGIN_FILE'         => WCSERVICES_PLUGIN_FILE,
+			'WCSERVICES_PLUGIN_DIR'          => self::get_plugin_path(),
+			'WCSERVICES_RELATIVE_PLUGIN_DIR' => self::get_relative_plugin_path(),
 			'WC_PLUGIN_RELATIVE_DIR'         => self::get_relative_plugin_path( true ),
 		);
 	}
@@ -94,6 +91,6 @@ class Utils {
 			return (string) filemtime( $file );
 		}
 
-		return self::get_wcshipping_version();
+		return self::get_wcservices_version();
 	}
 }

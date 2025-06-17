@@ -21,7 +21,7 @@ class CheckoutNotifier {
 	 *
 	 * @var string
 	 */
-	const WC_SESSION_KEY = 'wcshipping_checkout_notices';
+	const WC_SESSION_KEY = 'wcservices_checkout_notices';
 
 	/**
 	 * Valid notice types.
@@ -44,48 +44,6 @@ class CheckoutNotifier {
 	 */
 	public function __construct( bool $is_debug_enabled ) {
 		$this->is_debug_enabled = $is_debug_enabled;
-	}
-
-	/**
-	 * Clear all notices.
-	 *
-	 * @param string $group Optional. Group of notices to clear.
-	 */
-	public function clear_notices( string $group = '' ): void {
-		if ( ! self::wc_session_exists() ) {
-			return;
-		}
-
-		// Clear all notices.
-		if ( empty( $group ) ) {
-			WC()->session->set( self::WC_SESSION_KEY, array() );
-
-			return;
-		}
-
-		$notices = WC()->session->get( self::WC_SESSION_KEY, array() );
-		if ( ! is_array( $notices ) ) {
-			return;
-		}
-
-		$updated_notices = array();
-
-		// Clear notices by group.
-		foreach ( self::$valid_notice_types as $type ) {
-			if ( empty( $notices[ $type ] ) || ! is_array( $notices[ $type ] ) ) {
-				continue;
-			}
-
-			foreach ( $notices[ $type ] as $notice ) {
-				if ( $notice['group'] === $group ) {
-					continue;
-				}
-
-				$updated_notices[ $type ][] = $notice;
-			}
-		}
-
-		WC()->session->set( self::WC_SESSION_KEY, $updated_notices );
 	}
 
 	/**
@@ -158,7 +116,7 @@ class CheckoutNotifier {
 
 		$type = $this->sanitize_type( $type );
 
-		// Add a custom notice so that we can pull only WooCommerce Shipping related notices when needed.
+		// Add a custom notice so that we can pull only WooCommerce Services related notices when needed.
 		$this->add_notice( $message, $type, $data, $group );
 	}
 
@@ -299,6 +257,48 @@ class CheckoutNotifier {
 	 */
 	public static function get_notices(): array {
 		return self::wc_session_exists() ? WC()->session->get( self::WC_SESSION_KEY, array() ) : array();
+	}
+
+	/**
+	 * Clear all notices.
+	 *
+	 * @param string $group Optional. Group of notices to clear.
+	 */
+	public static function clear_notices( string $group = '' ): void {
+		if ( ! self::wc_session_exists() ) {
+			return;
+		}
+
+		// Clear all notices.
+		if ( empty( $group ) ) {
+			WC()->session->set( self::WC_SESSION_KEY, array() );
+
+			return;
+		}
+
+		$notices = WC()->session->get( self::WC_SESSION_KEY, array() );
+		if ( ! is_array( $notices ) ) {
+			return;
+		}
+
+		$updated_notices = array();
+
+		// Clear notices by group.
+		foreach ( self::$valid_notice_types as $type ) {
+			if ( empty( $notices[ $type ] ) || ! is_array( $notices[ $type ] ) ) {
+				continue;
+			}
+
+			foreach ( $notices[ $type ] as $notice ) {
+				if ( $notice['group'] === $group ) {
+					continue;
+				}
+
+				$updated_notices[ $type ][] = $notice;
+			}
+		}
+
+		WC()->session->set( self::WC_SESSION_KEY, $updated_notices );
 	}
 
 	/**

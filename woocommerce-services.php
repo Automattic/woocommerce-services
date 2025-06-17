@@ -46,6 +46,8 @@ require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
+use Automattic\WCServices\Checkout\CheckoutController;
+use Automattic\WCServices\Checkout\CheckoutNotifier;
 use Automattic\WCServices\Integrations\WooCommerceBlocksIntegration;
 use Automattic\WCServices\StoreApi\Extensions\BlockCheckoutNoticesExtension;
 use Automattic\WCServices\StoreApi\StoreApiExtendSchema;
@@ -59,6 +61,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
 		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
 	}
+
+	define( 'WCSERVICES_PLUGIN_FILE', __FILE__ );
+	define( 'WCSERVICES_PLUGIN_DIR', __DIR__ );
+	define( 'WCSERVICES_PLUGIN_DIST_DIR', WCSERVICES_PLUGIN_DIR . '/dist/' );
+	define( 'WCSERVICES_PLUGIN_URL', plugin_dir_url( WCSERVICES_PLUGIN_FILE ) );
+	define( 'WCSERVICES_PLUGIN_DIST_URL', plugin_dir_url( WCSERVICES_PLUGIN_FILE ) . 'dist/' );
+	define( 'WCSERVICES_ASSETS_URL', WCSERVICES_PLUGIN_URL . 'assets/' );
+	define( 'WCSERVICES_STYLESHEETS_URL', WCSERVICES_ASSETS_URL . 'stylesheets/' );
+	define( 'WCSERVICES_JAVASCRIPT_URL', WCSERVICES_ASSETS_URL . 'javascript/' );
+	define( 'WCSERVICES_ASSETS_DIR', WCSERVICES_PLUGIN_DIR . '/assets/' );
+	define( 'WCSERVICES_STYLESHEETS_DIR', WCSERVICES_ASSETS_DIR . 'stylesheets/' );
+	define( 'WCSERVICES_JAVASCRIPT_DIR', WCSERVICES_ASSETS_URL . 'javascript/' );
 
 	class WC_Connect_Loader {
 
@@ -168,6 +182,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @var WC_REST_Connect_Shipping_Carrier_Controller
 		 */
 		protected $rest_carrier_controller;
+
+		/**
+		 * @var CheckoutNotifier
+		 */
+		protected $checkout_notifier;
 
 		/**
 		 * WC_REST_Connect_Shipping_Carriers_Controller
@@ -618,6 +637,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * @return CheckoutNotifier
+		 */
+		public function get_checkout_notifier() {
+			return $this->checkout_notifier;
+		}
+
+		/**
+		 * @param CheckoutNotifier $checkout_notifier
+		 */
+		public function set_checkout_notifier( CheckoutNotifier $checkout_notifier ) {
+			$this->checkout_notifier = $checkout_notifier;
+		}
+
+		/**
 		 * Load our textdomain
 		 *
 		 * @codeCoverageIgnore
@@ -778,6 +811,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
+			$this->extend_checkout();
 			$this->extend_store_api();
 		}
 
@@ -833,9 +867,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
-			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
-			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
+			$checkout_notifier     = new CheckoutNotifier( $taxes_logger->is_debug_enabled() );
+			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url, $checkout_notifier );
+			$this->set_checkout_notifier( $checkout_notifier );
+			$paypal_ec     = new WC_Connect_PayPal_EC( $api_client, $nux );
+			$label_reports = new WC_Connect_Label_Reports( $settings_store );
 
 			new WC_Connect_Privacy( $settings_store, $api_client );
 
@@ -924,7 +960,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Extend WC Checkout.
 		 */
 		public function extend_checkout() {
-			new CheckoutController( $this->get_logger(), $this->get_checkout_service(), $this->get_service_settings_store() );
+			new CheckoutController( $this->get_checkout_notifier() );
 		}
 
 		/**

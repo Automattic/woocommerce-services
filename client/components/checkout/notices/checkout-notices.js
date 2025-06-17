@@ -1,15 +1,23 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
-import { useDispatch, useSelect } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+const { useDispatch, useSelect } = window.wp.data;
+const { useEffect } = window.wp.element;
 
 const noticesContext = 'wc/checkout/shipping-address';
-const noticeIdPrefix = 'wcservices-av-';
+const noticeIdPrefix = 'wcservices-notices-';
 
+/**
+ * A simplified version of the CheckoutNotices component that doesn't rely on @wordpress/data.
+ * This is a temporary solution for the build process.
+ *
+ * @return {JSX.Element} The checkout notices component.
+ */
 export const CheckoutNotices = ( {
-	extensions,
-	cart,
+	extensions, cart,
 } ) => {
-	const shipToCountry = cart?.shippingAddress?.country;
+	const shipToCountry                   = cart.shippingAddress.country;
 	const { createNotice, removeNotices } = useDispatch( 'core/notices' );
 
 	// Get all existing notices that are related to the address validation.
@@ -22,24 +30,21 @@ export const CheckoutNotices = ( {
 	}, [] );
 
 	// If the shipToCountry changes, remove the notices.
-	useEffect(
-		() => {
+	useEffect( () => {
 			if ( ! shipToCountry ) {
 				return;
 			}
 
 			removeNotices( existingNoticeIds, noticesContext );
-		}, // The effect should only rely on shipToCountry
+		},
 		[ shipToCountry ]
 	);
 
 	// If the notices change, update the notices.
-	useEffect(
-		() => {
+	useEffect( () => {
 			removeNotices( existingNoticeIds, noticesContext );
 
-			const newNotices =
-				      extensions[ 'woocommerce-shipping' ]?.notices ?? [];
+			const newNotices = extensions[ 'woocommerce-services' ].notices;
 
 			if ( newNotices.length === 0 ) {
 				return;
@@ -49,11 +54,10 @@ export const CheckoutNotices = ( {
 				const { type, message } = notice;
 
 				createNotice( type, message, {
-					id: noticeIdPrefix + index,
-					context: noticesContext,
+					id: noticeIdPrefix + index, context: noticesContext,
 				} );
 			} );
-		}, // The effect should only rely on extensions
+		},
 		[ extensions ]
 	);
 

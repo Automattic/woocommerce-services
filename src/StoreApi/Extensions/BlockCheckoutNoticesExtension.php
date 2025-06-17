@@ -9,10 +9,9 @@
 
 namespace Automattic\WCServices\StoreApi\Extensions;
 
+use Automattic\WCServices\Checkout\CheckoutNotifier;
+use Automattic\WCServices\Checkout\StoreNotice;
 use Automattic\WCServices\StoreApi\AbstractStoreApiExtension;
-use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
-use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
-use WC_Customer;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,21 +43,39 @@ class BlockCheckoutNoticesExtension extends AbstractStoreApiExtension {
 			'notices' => array(),
 		);
 
+		// Get notices from the CheckoutNotifier
+		$notices = CheckoutNotifier::get_notices();
+		CheckoutNotifier::clear_notices();
+
+		if ( empty( $notices ) ) {
+			return $data;
+		}
+
 		// Get the HTML formatter.
 		$html_formatter = self::$extend_schema->get_formatter( 'html' );
 
 		// Format the notices.
-		foreach ( $response['notices'] as $notice ) {
-			$notice_message = $notice->get_message();
-			$notice_data    = $notice->get_data();
+		foreach ( $notices as $type => $messages ) {
+			foreach ( $messages as $notice_data ) {
+				// Create a StoreNotice object
+				$notice = new StoreNotice(
+					$notice_data['message'],
+					$type,
+					! empty( $notice_data['data'] ) ? array( 'details' => $notice_data['data'] ) : null
+				);
 
-			$notice->set_message( $html_formatter->format( $notice_message ) );
+				$notice_message = $notice->get_message();
+				$notice_details = $notice->get_data();
 
-			if ( ! empty( $notice_data ) ) {
-				$notice->set_data( $html_formatter->format( $notice_data ) );
+				// Format the message with the HTML formatter
+				$notice->set_message( $html_formatter->format( $notice_message ) );
+
+				if ( ! empty( $notice_details ) ) {
+					$notice->set_data( $notice_details );
+				}
+
+				$data['notices'][] = $notice->to_array();
 			}
-
-			$data['notices'][] = $notice->to_array();
 		}
 
 		return $data;
@@ -91,5 +108,18 @@ class BlockCheckoutNoticesExtension extends AbstractStoreApiExtension {
 	 */
 	public function get_schema_type(): string {
 		return self::$schema_types['array_a'];
+	}
+
+	/**
+	 * The update callback method.
+	 *
+	 * This is where you can listen for updates to the endpoint and handle accordingly.
+	 *
+	 * @param array $data Data to update.
+	 *
+	 * @return void
+	 */
+	public function update_callback( array $data ): void {
+		// TODO: Implement update_callback() method.
 	}
 }
