@@ -8,7 +8,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.0.1
+ * Version: 3.0.3
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.6
@@ -676,7 +676,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * Allow third party logic to determine if this plugin should initiate its logic.
 			 *
 			 * The primary purpose here is to allow a smooth transition between the new WC Tax plugin
-			 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
+			 * and WooCommerce Tax (this plugin), by letting them take over all responsibilities if all three
 			 * plugins are activated at the same time.
 			 *
 			 * @since {{next-release}}
@@ -2113,7 +2113,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return void
 		 */
 		public function display_woo_shipping_and_woo_tax_are_active_notice() {
-			echo '<div class="error"><p><strong>' . esc_html__( 'WC Shipping and WC Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
+			echo '<div class="error"><p><strong>' . esc_html__( 'WC Shipping and WC Tax plugins are already active. Please deactivate WooCommerce Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 
 		/**
