@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.4 - 2025-xx-xx =
+* Fix   - Arizona tax calculation for the store located in Arizona and ship the product within Arizona.
+
 = 3.0.3 - 2025-06-12 =
 * Tweak - Update Org store screenshots.
 
