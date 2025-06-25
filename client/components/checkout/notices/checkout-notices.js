@@ -2,25 +2,34 @@
  * External dependencies
  */
 import React from 'react';
+
 const { useDispatch, useSelect } = window.wp.data;
-const { useEffect } = window.wp.element;
+const { useEffect }              = window.wp.element;
 
 const noticesContext = 'wc/checkout/shipping-address';
 const noticeIdPrefix = 'wcservices-notices-';
 
 /**
- * A simplified version of the CheckoutNotices component that doesn't rely on @wordpress/data.
- * This is a temporary solution for the build process.
+ * Component responsible for managing checkout-related notices.
  *
- * @return {JSX.Element} The checkout notices component.
+ * Allows handling and displaying notices on the checkout page based on certain conditions,
+ * such as changes in the shipping country or notices provided by extensions.
+ *
+ * @param {Object} props - The props for the component.
+ * @param {Object} props.extensions - An object containing store API response data related for all extensions.
+ * @param {Object} props.cart - An object containing details about the cart.
+ *
+ * @returns {JSX.Element} - An empty React fragment.
  */
 export const CheckoutNotices = ( {
 	extensions, cart,
 } ) => {
 	const shipToCountry                   = cart.shippingAddress.country;
+	const shipToState                     = cart.shippingAddress.state;
+	const shipToPostcode                  = cart.shippingAddress.postcode;
 	const { createNotice, removeNotices } = useDispatch( 'core/notices' );
 
-	// Get all existing notices that are related to the address validation.
+	// Get all existing notices with our noticeIdPrefix.
 	const existingNoticeIds = useSelect( ( select ) => {
 		const notices = select( 'core/notices' ).getNotices( noticesContext );
 
@@ -29,32 +38,37 @@ export const CheckoutNotices = ( {
 			.filter( ( id ) => id.startsWith( noticeIdPrefix ) );
 	}, [] );
 
-	// If the shipToCountry changes, remove the notices.
+	// Remove our notices when shipping country|state|postcode are changed.
 	useEffect( () => {
-			if ( ! shipToCountry ) {
+			if ( 'US' !== shipToCountry ) {
 				return;
 			}
 
 			removeNotices( existingNoticeIds, noticesContext );
 		},
-		[ shipToCountry ]
+		[ shipToState, shipToPostcode, shipToCountry ]
 	);
 
 	// If the notices change, update the notices.
 	useEffect( () => {
-			removeNotices( existingNoticeIds, noticesContext );
-
-			const newNotices = extensions[ 'woocommerce-services' ].notices;
-
-			if ( newNotices.length === 0 ) {
+			if ( 'US' !== shipToCountry ) {
 				return;
 			}
 
+			// Get new notices from the API response.
+			const newNotices = extensions[ 'woocommerce-services' ].notices;
+
+			if ( 0 === newNotices.length ) {
+				return;
+			}
+
+			// Loop through and add the new notices to the specified context.
 			newNotices.forEach( ( notice, index ) => {
 				const { type, message } = notice;
 
 				createNotice( type, message, {
-					id: noticeIdPrefix + index, context: noticesContext,
+					id: noticeIdPrefix + index,
+					context: noticesContext,
 				} );
 			} );
 		},
