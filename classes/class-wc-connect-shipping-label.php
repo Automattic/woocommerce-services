@@ -532,7 +532,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @return bool True if shipping label is enabled from the settings.
 		 */
 		public function is_shipping_label_enabled() {
-			if ( get_option( 'wc_connect_disable_shipping' ) === 'yes' ) {
+			if ( ! WC_Connect_Loader::is_wc_shipping_activated() ) {
 				return false;
 			}
 

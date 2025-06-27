@@ -236,17 +236,6 @@ class WC_Connect_TaxJar_Integration {
 		// Insert the "automated taxes" setting at the top (under the section title)
 		array_splice( $tax_settings, 1, 0, array( $automated_taxes ) );
 
-		// Insert Disable Legacy Shipping Features setting
-		$disable_shipping_setting = array(
-			'title'    => __( 'Disable Legacy Shipping Features in WooCommerce Tax', 'woocommerce-services' ),
-			'desc'     => __( 'Enabling this option will turn off the shipping features on the Edit Order pages and will improve overall performance.', 'woocommerce-services' ),
-			'id'       => 'wc_connect_disable_shipping',
-			'default'  => 'no',
-			'type'     => 'checkbox',
-			'desc_tip' => true,
-		);
-		array_splice( $tax_settings, 2, 0, array( $disable_shipping_setting ) );
-
 		if ( $enabled ) {
 			// If the automated taxes are enabled, disable the settings that would be reverted in the original plugin
 			foreach ( $tax_settings as $index => $tax_setting ) {
