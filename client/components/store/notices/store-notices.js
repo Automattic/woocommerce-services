@@ -6,13 +6,13 @@ import React from 'react';
 const { useDispatch, useSelect } = window.wp.data;
 const { useEffect }              = window.wp.element;
 
-const noticesContext = 'wc/checkout/shipping-address';
-const noticeIdPrefix = 'wcservices-notices-';
+const noticesContext = 'wc/cart';
+const noticeIdPrefix = 'wcservices-store-notices-';
 
 /**
- * Component responsible for managing checkout-related notices.
+ * Component responsible for managing store-related notices.
  *
- * Allows handling and displaying notices on the checkout page based on certain conditions,
+ * Allows handling and displaying notices on the cart and checkout pages based on certain conditions,
  * such as changes in the shipping country or notices provided by extensions.
  *
  * @param {Object} props - The props for the component.
@@ -21,7 +21,7 @@ const noticeIdPrefix = 'wcservices-notices-';
  *
  * @returns {JSX.Element} - An empty React fragment.
  */
-export const CheckoutNotices = ( {
+export const StoreNotices = ( {
 	extensions, cart,
 } ) => {
 	const shipToCountry                   = cart.shippingAddress.country;

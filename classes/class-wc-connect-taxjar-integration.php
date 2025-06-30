@@ -1,6 +1,6 @@
 <?php
 
-use Automattic\WCServices\Checkout\CheckoutNotifier;
+use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -15,7 +15,7 @@ class WC_Connect_TaxJar_Integration {
 	public $logger;
 
 	/**
-	 * @var CheckoutNotifier
+	 * @var StoreNoticesNotifier
 	 */
 	private $notifier;
 
@@ -70,7 +70,7 @@ class WC_Connect_TaxJar_Integration {
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Logger $logger,
 		$wc_connect_base_url,
-		CheckoutNotifier $notifier = null
+		StoreNoticesNotifier $notifier = null
 	) {
 		$this->api_client          = $api_client;
 		$this->logger              = $logger;

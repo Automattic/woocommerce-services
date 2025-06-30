@@ -7,21 +7,21 @@
  * @package Automattic/WCServices
  */
 
-namespace Automattic\WCServices\Checkout;
+namespace Automattic\WCServices\StoreNotices;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Notifier class.
  */
-class CheckoutNotifier {
+class StoreNoticesNotifier {
 
 	/**
 	 * WC Session variable key
 	 *
 	 * @var string
 	 */
-	const WC_SESSION_KEY = 'wcservices_checkout_notices';
+	const WC_SESSION_KEY = 'wcservices_store_notices';
 
 	/**
 	 * Valid notice types.

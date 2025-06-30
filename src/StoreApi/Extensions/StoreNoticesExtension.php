@@ -1,24 +1,24 @@
 <?php
 /**
- * BlockCheckoutNoticesExtension class.
+ * StoreNoticesExtension class.
  *
- * Extends the WooCommerce Store API to add address validation to the checkout block.
+ * Extends the WooCommerce Store API to add address validation to the cart and checkout blocks.
  *
  * @package Automattic/WCServices
  */
 
 namespace Automattic\WCServices\StoreApi\Extensions;
 
-use Automattic\WCServices\Checkout\CheckoutNotifier;
-use Automattic\WCServices\Checkout\StoreNotice;
+use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
+use Automattic\WCServices\StoreNotices\StoreNotice;
 use Automattic\WCServices\StoreApi\AbstractStoreApiExtension;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class BlockCheckoutNoticesExtension
+ * Class StoreNoticesExtension
  */
-class BlockCheckoutNoticesExtension extends AbstractStoreApiExtension {
+class StoreNoticesExtension extends AbstractStoreApiExtension {
 
 	/**
 	 * Get the endpoint to extend.
@@ -43,9 +43,9 @@ class BlockCheckoutNoticesExtension extends AbstractStoreApiExtension {
 			'notices' => array(),
 		);
 
-		// Get notices from the CheckoutNotifier
-		$notices = CheckoutNotifier::get_notices();
-		CheckoutNotifier::clear_notices();
+		// Get notices from the StoreNoticesNotifier
+		$notices = StoreNoticesNotifier::get_notices();
+		StoreNoticesNotifier::clear_notices();
 
 		if ( empty( $notices ) ) {
 			return $data;
@@ -91,7 +91,7 @@ class BlockCheckoutNoticesExtension extends AbstractStoreApiExtension {
 	public function schema_callback(): array {
 		return array(
 			'notices' => array(
-				'description' => __( 'WC Services checkout notices', 'woocommerce-services' ),
+				'description' => __( 'WC Services store notices', 'woocommerce-services' ),
 				'type'        => array( 'array' ),
 				'context'     => array( 'view' ),
 				'readonly'    => true,

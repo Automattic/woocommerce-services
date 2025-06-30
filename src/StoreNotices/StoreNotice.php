@@ -5,7 +5,7 @@
  * @package Automattic/WCServices
  */
 
-namespace Automattic\WCServices\Checkout;
+namespace Automattic\WCServices\StoreNotices;
 
 defined( 'ABSPATH' ) || exit;
 

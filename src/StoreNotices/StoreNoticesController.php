@@ -1,34 +1,34 @@
 <?php
 /**
- * CheckoutController class.
+ * StoreNoticesController class.
  *
- * Controller class for checkout-related hooks.
+ * Controller class for store notices-related hooks.
  *
  * @package Automattic/WCServices
  */
 
-namespace Automattic\WCServices\Checkout;
+namespace Automattic\WCServices\StoreNotices;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class CheckoutController
+ * Class StoreNoticesController
  */
-class CheckoutController {
+class StoreNoticesController {
 
 	/**
 	 * Notifier instance.
 	 *
-	 * @var CheckoutNotifier
+	 * @var StoreNoticesNotifier
 	 */
-	private CheckoutNotifier $notifier;
+	private StoreNoticesNotifier $notifier;
 
 	/**
-	 * CheckoutController constructor.
+	 * StoreNoticesController constructor.
 	 *
-	 * @param CheckoutNotifier $notifier The WC_Connect_Logger instance.
+	 * @param StoreNoticesNotifier $notifier The WC_Connect_Logger instance.
 	 */
-	public function __construct( CheckoutNotifier $notifier ) {
+	public function __construct( StoreNoticesNotifier $notifier ) {
 		$this->notifier = $notifier;
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_display_notices' ) );

@@ -53,7 +53,7 @@ class WooCommerceBlocksIntegration implements IntegrationInterface {
 	public function get_script_handles(): array {
 		$script_handles = array();
 
-		$script_handles[] = 'woocommerce-services-checkout-notices';
+		$script_handles[] = 'woocommerce-services-store-notices';
 
 		return $script_handles;
 	}
