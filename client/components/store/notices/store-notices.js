@@ -10,7 +10,7 @@ const noticesContext = 'wc/cart';
 const noticeIdPrefix = 'wcservices-store-notices-';
 
 /**
- * Component responsible for managing store-related notices.
+ * Component responsible for managing frontend store-related notices.
  *
  * Allows handling and displaying notices on the cart and checkout pages based on certain conditions,
  * such as changes in the shipping country or notices provided by extensions.

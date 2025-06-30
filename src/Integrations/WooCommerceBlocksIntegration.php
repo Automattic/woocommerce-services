@@ -91,20 +91,20 @@ class WooCommerceBlocksIntegration implements IntegrationInterface {
 	 * @param string $handle Script handle.
 	 */
 	protected function register_script( string $handle ) {
-		$script_name         = "$handle.js";
+		$plugin_version      = Utils::get_wcservices_version();
+		$script_name         = "$handle-$plugin_version.js";
 		$script_path         = $this->base_url . $script_name;
 		$script_url          = Utils::get_enqueue_base_url() . $script_name;
 		$script_asset_path   = $this->base_url . $handle . '.asset.php';
 		$script_asset        = file_exists( $script_asset_path )
-		? require $script_asset_path : array();  // nosemgrep: audit.php.lang.security.file.inclusion-arg --- This is a safe file inclusion.
+			? require $script_asset_path : array();  // nosemgrep: audit.php.lang.security.file.inclusion-arg --- This is a safe file inclusion.
 		$script_dependencies = $script_asset['dependencies'] ?? array();
-		$script_version      = $script_asset['version'] ?? Utils::get_file_version( $script_path );
 
 		wp_register_script(
 			$handle,
 			$script_url,
 			$script_dependencies,
-			$script_version,
+			null,
 			true
 		);
 	}

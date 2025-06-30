@@ -9,7 +9,6 @@
 
 namespace Automattic\WCServices\StoreApi;
 
-use Automattic\WCServices\Logger;
 use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
 use Automattic\WooCommerce\StoreApi\StoreApi;
 use Exception;
@@ -41,7 +40,7 @@ class StoreApiExtendSchema {
 		try {
 			self::$instance = StoreApi::container()->get( ExtendSchema::class );
 		} catch ( Exception $e ) {
-			Logger::debug( 'Failed to get ExtendSchema instance.', array( 'exception' => $e ) );
+			wc_get_logger()->debug( 'Failed to get ExtendSchema instance.', array( 'exception' => $e ) );
 		}
 	}
 

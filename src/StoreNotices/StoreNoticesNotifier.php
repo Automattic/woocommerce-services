@@ -28,7 +28,7 @@ class StoreNoticesNotifier {
 	 *
 	 * @var array
 	 */
-	private static array $valid_notice_types = array( 'error', 'success', 'notice' );
+	private static array $valid_notice_types = array( StoreNoticeTypes::ERROR, StoreNoticeTypes::SUCCESS, StoreNoticeTypes::INFO );
 
 	/**
 	 * Is debug enabled.
@@ -202,7 +202,7 @@ class StoreNoticesNotifier {
 	 * @param string $group   Optional. Group to categorize notices.
 	 */
 	public function info( string $message, array $data = array(), string $group = '' ) {
-		$this->maybe_add_notice( $message, 'notice', $data, $group );
+		$this->maybe_add_notice( $message, StoreNoticeTypes::INFO, $data, $group );
 	}
 
 	/**
@@ -213,7 +213,7 @@ class StoreNoticesNotifier {
 	 * @param string $group   Optional. Group to categorize notices.
 	 */
 	public function error( string $message, array $data = array(), string $group = '' ) {
-		$this->maybe_add_notice( $message, 'error', $data, $group );
+		$this->maybe_add_notice( $message, StoreNoticeTypes::ERROR, $data, $group );
 	}
 
 	/**
@@ -224,7 +224,7 @@ class StoreNoticesNotifier {
 	 * @param string $group   Optional. Group to categorize notices.
 	 */
 	public function success( string $message, array $data = array(), string $group = '' ) {
-		$this->maybe_add_notice( $message, 'success', $data, $group );
+		$this->maybe_add_notice( $message, StoreNoticeTypes::SUCCESS, $data, $group );
 	}
 
 	/**

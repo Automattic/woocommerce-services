@@ -27,7 +27,7 @@ class StoreNoticeTypes {
 	const ERROR = 'error';
 
 	/**
-	 * The notice type for an info.
+	 * The notice type for an info notice.
 	 */
 	const INFO = 'info';
 

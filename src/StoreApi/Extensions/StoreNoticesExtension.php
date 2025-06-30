@@ -43,7 +43,7 @@ class StoreNoticesExtension extends AbstractStoreApiExtension {
 			'notices' => array(),
 		);
 
-		// Get notices from the StoreNoticesNotifier
+		// Get notices from the StoreNoticesNotifier.
 		$notices = StoreNoticesNotifier::get_notices();
 		StoreNoticesNotifier::clear_notices();
 
@@ -57,7 +57,7 @@ class StoreNoticesExtension extends AbstractStoreApiExtension {
 		// Format the notices.
 		foreach ( $notices as $type => $messages ) {
 			foreach ( $messages as $notice_data ) {
-				// Create a StoreNotice object
+				// Create a StoreNotice object.
 				$notice = new StoreNotice(
 					$notice_data['message'],
 					$type,
@@ -67,7 +67,7 @@ class StoreNoticesExtension extends AbstractStoreApiExtension {
 				$notice_message = $notice->get_message();
 				$notice_details = $notice->get_data();
 
-				// Format the message with the HTML formatter
+				// Format the message with the HTML formatter.
 				$notice->set_message( $html_formatter->format( $notice_message ) );
 
 				if ( ! empty( $notice_details ) ) {

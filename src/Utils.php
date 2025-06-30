@@ -45,41 +45,6 @@ class Utils {
 	}
 
 	/**
-	 * Get the relative path to the plugin directory.
-	 * This is a helper function to get the relative path to the plugin directory for either the main plugin or the WooCommerce plugin.
-	 *
-	 * @param bool $for_woocommerce Whether to get the path for the WooCommerce plugin.
-	 * @return string The relative path to the plugin directory.
-	 */
-	public static function get_relative_plugin_path( $for_woocommerce = false ) {
-		// Full path to the plugins directory using plugin_dir_path.
-		$plugin_full_path = self::get_plugin_path( $for_woocommerce );
-
-		// Normalize paths to avoid issues with different directory separators.
-		$plugin_full_path = wp_normalize_path( $plugin_full_path );
-		$root_path        = wp_normalize_path( ABSPATH );
-
-		// Remove the root path part, leaving only the relative path in place.
-		$relative_path = str_replace( $root_path, '', $plugin_full_path );
-
-		return $relative_path;
-	}
-
-	/**
-	 * Get constants that are useful for JavaScript.
-	 *
-	 * @return array
-	 */
-	public static function get_constants_for_js() {
-		return array(
-			'WCSERVICES_PLUGIN_FILE'         => WCSERVICES_PLUGIN_FILE,
-			'WCSERVICES_PLUGIN_DIR'          => self::get_plugin_path(),
-			'WCSERVICES_RELATIVE_PLUGIN_DIR' => self::get_relative_plugin_path(),
-			'WC_PLUGIN_RELATIVE_DIR'         => self::get_relative_plugin_path( true ),
-		);
-	}
-
-	/**
 	 * Get the file modified time as a cache buster if we're in dev mode.
 	 *
 	 * @param string $file Local path to the file.
