@@ -91,12 +91,12 @@ jobs:
     name: JS ESLint Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
-          node-version: '10.16.0'
+          node-version-file: '.nvmrc'
       - run: git config --global url.https://github.com/.insteadOf git://github.com/
       - run: npm ci
       - run: npm run eslint
