@@ -9,6 +9,9 @@ on:
             wp_version:
                 required: true
                 type: string
+            php_version:
+                required: true
+                type: string
 
 jobs:
   php_lint:
@@ -43,31 +46,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - php: 7.4
-            wp_version: 6.2
-            wc_version: 8.2.3
-            wc_order_datastore: cpt
-          - php: 7.4
-            wp_version: ${{ inputs.wp_version }}
-            wc_version: ${{ inputs.wc_version }}
-            wc_order_datastore: cpt
-          - php: 8.0
-            wp_version: ${{ inputs.wp_version }}
-            wc_version: ${{ inputs.wc_version }}
-            wc_order_datastore: cpt
-          - php: 8.1
-            wp_version: ${{ inputs.wp_version }}
-            wc_version: ${{ inputs.wc_version }}
-            wc_order_datastore: cpt
-          - php: 8.2
-            wp_version: ${{ inputs.wp_version }}
-            wc_version: ${{ inputs.wc_version }}
-            wc_order_datastore: hpos
-          - php: 8.3
-            wp_version: ${{ inputs.wp_version }}
-            wc_version: ${{ inputs.wc_version }}
-            wc_order_datastore: hpos
-          - php: 8.4
+          - php: ${{ inputs.php_version }}
             wp_version: ${{ inputs.wp_version }}
             wc_version: ${{ inputs.wc_version }}
             wc_order_datastore: hpos
@@ -106,16 +85,16 @@ jobs:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: '/tmp/woocommerce/.nvmrc'
       - name: Build WooCommerce essentials for running tests
         run: |
           cd /tmp/woocommerce/plugins/woocommerce
           composer install
           php bin/generate-feature-config.php
       - name: Setup WordPress
-        run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ matrix.wp-version }}
+        run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ env.WP_VERSION }}
       - name: Use PHPUnit v8 for WC < 7.7.0
-        if: contains(fromJSON('["7.5.1", "7.6.1"]'), matrix.wc-version)
+        if: contains(fromJSON('["7.5.1", "7.6.1"]'), env.WC_VERSION)
         run: composer require -W phpunit/phpunit:^8
       - name: Install Composer dependencies
         run: composer install

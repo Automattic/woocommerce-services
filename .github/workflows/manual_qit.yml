@@ -111,6 +111,7 @@ jobs:
     with:
       wp_version: ${{ inputs.wp-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wp_versions)[0] || inputs.wp-version }}
       wc_version: ${{ inputs.wc-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wc_versions)[0] || inputs.wc-version == 'rc' && needs.find_latest_versions.outputs.wc_rc_version || inputs.wc-version }}
+      php_version: ${{ inputs.php-version }}
 
   build_project:
     name: Package
