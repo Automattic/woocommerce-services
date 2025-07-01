@@ -85,7 +85,7 @@ jobs:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '/tmp/woocommerce/.nvmrc'
+          node-version: 'v20'
       - name: Build WooCommerce essentials for running tests
         run: |
           cd /tmp/woocommerce/plugins/woocommerce
