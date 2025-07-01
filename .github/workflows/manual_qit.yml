@@ -25,6 +25,7 @@ on:
           - 'Unit Tests'
           - 'All'
           - 'None'
+          - 'E2E'
       qit-tests:
         description: 'QIT Tests'
         type: choice
