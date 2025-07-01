@@ -32,11 +32,22 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
       - name: Install NPM dependencies
         run: npm ci
 
       - name: Build plugin zip
         run: npm run build
+
+      - name: Unzip woocommerce-services.zip
+        run: unzip woocommerce-services.zip -d woocommerce-services
+
+      - name: Re-zip woocommerce-services folder
+        run: zip -r woocommerce-services.zip woocommerce-services
 
       - name: Upload plugin zip
         uses: actions/upload-artifact@v4

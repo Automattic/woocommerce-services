@@ -102,14 +102,14 @@ jobs:
       - run: npm run eslint
       - run: npm run test
 
-    php-tests:
-      if: contains(inputs.extension-tests, 'All') || contains(inputs.extension-tests, 'Unit')
-      name: PHP Tests
-      needs: find_latest_versions
-      uses: ./.github/workflows/unit_test_runner.yml
-      with:
-          wp_version: ${{ inputs.wp-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wp_versions)[0] || inputs.wp-version }}
-          wc_version: ${{ inputs.wc-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wc_versions)[0] || inputs.wc-version == 'rc' && needs.find_latest_versions.outputs.wc_rc_version || inputs.wc-version }}
+  php-tests:
+    if: contains(inputs.extension-tests, 'All') || contains(inputs.extension-tests, 'Unit')
+    name: PHP Tests
+    needs: find_latest_versions
+    uses: ./.github/workflows/unit_test_runner.yml
+    with:
+      wp_version: ${{ inputs.wp-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wp_versions)[0] || inputs.wp-version }}
+      wc_version: ${{ inputs.wc-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wc_versions)[0] || inputs.wc-version == 'rc' && needs.find_latest_versions.outputs.wc_rc_version || inputs.wc-version }}
 
   build_project:
     name: Package
