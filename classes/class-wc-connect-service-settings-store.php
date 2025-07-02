@@ -31,7 +31,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * @return object|array
 		 */
 		public function get_store_options() {
-			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol() ) );
+			// ENT_COMPAT is explicitly set for cross-version compatibility as it was the default prior to PHP v8.1.
+			$currency_symbol = sanitize_text_field( html_entity_decode( get_woocommerce_currency_symbol(), ENT_COMPAT ) );
 			$dimension_unit  = sanitize_text_field( strtolower( get_option( 'woocommerce_dimension_unit' ) ) );
 			$weight_unit     = sanitize_text_field( strtolower( get_option( 'woocommerce_weight_unit' ) ) );
 			$base_location   = wc_get_base_location();
