@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.0.5 - 2025-xx-xx =
+* Fix   - TaxJar error notices displaying incorrectly on block cart and checkout.
+
 = 3.0.4 - 2025-06-30 =
 * Fix   - Corrected tax calculation for orders shipped within Arizona from stores based in Arizona.
 
