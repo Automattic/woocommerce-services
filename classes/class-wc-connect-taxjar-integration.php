@@ -1372,6 +1372,9 @@ class WC_Connect_TaxJar_Integration {
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
 
+		// Clear the taxjar notices before calculating taxes or using cached response.
+		$this->notifier->clear_notices( 'taxjar' );
+
 		if ( false === $response ) {
 			$response      = $this->smartcalcs_request( $json );
 			$response_code = wp_remote_retrieve_response_code( $response );
