@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 9.6
 WC tested up to: 9.8
-Stable tag: 3.0.3
+Stable tag: 3.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,9 @@ This plugin relies on the following external services:
 2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.0.4 - 2025-06-30 =
+* Fix   - Corrected tax calculation for orders shipped within Arizona from stores based in Arizona.
 
 = 3.0.3 - 2025-06-12 =
 * Tweak - Update Org store screenshots.

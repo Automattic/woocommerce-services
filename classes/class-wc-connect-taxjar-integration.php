@@ -1009,6 +1009,12 @@ class WC_Connect_TaxJar_Integration {
 				'from_country' => 'US',
 				'from_state'   => 'CO',
 			),
+			'US-AZ' => array(
+				'to_country'   => 'US',
+				'to_state'     => 'AZ',
+				'from_country' => 'US',
+				'from_state'   => 'AZ',
+			),
 		);
 
 		foreach ( $cases as $case ) {

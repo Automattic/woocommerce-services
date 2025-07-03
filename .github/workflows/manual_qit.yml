@@ -1,0 +1,196 @@
+name: Manual Test Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      wp-version:
+        description: 'WordPress Version to be tested: `latest` or a specific version number.'
+        type: string
+        default: 'latest'
+      wc-version:
+        description: 'WooCommerce Version to be tested: `latest`, `nightly` or a specific version number.'
+        type: string
+        default: 'latest'
+      php-version:
+        description: |
+          PHP version. Default is `8.4`.
+        type: string
+        default: '8.4'
+      extension-tests:
+        description: 'Extension Tests'
+        type: choice
+        default: 'All'
+        options:
+          #   - 'E2E Tests' // enable this once we have E2E tests
+          - 'Unit Tests'
+          - 'All'
+          - 'None'
+          - 'E2E'
+      qit-tests:
+        description: 'QIT Tests'
+        type: choice
+        options:
+          - 'WooCommerce Pre-Release Tests (includes Activation, WooCommerce E2E and API tests)'
+          - 'Code Quality Checks (includes Security, Validation, Malware, PHPStan, and PHP Compatibility tests)'
+          - 'Activation'
+          - 'Security'
+          - 'Validation'
+          - 'Malware'
+          - 'PHPStan'
+          - 'PHP Compatibility'
+          - 'WooCommerce E2E and API tests'
+          - 'Plugin Checks (for dotOrg metadata)'
+          - 'None'
+      qit-wait:
+        description: 'Wait for QIT? Requires additional time for the QIT tests to complete within GHA.'
+        type: boolean
+        default: true
+      options:
+        description: 'QIT Additional options for `qit` command, like `--optional_features=hpos`.'
+        type: string
+        default: ''
+
+run-name: Tests with WP-${{ inputs.wp-version }} - WC-${{ inputs.wc-version }} - PHP ${{ inputs.php-version }} - Tests ${{ inputs.extension-tests }} - QIT ${{ inputs.qit-tests }}
+
+jobs:
+  find_latest_versions:
+    name: Get supported WP & WC versions
+    runs-on: ubuntu-latest
+    outputs:
+      wc_versions: ${{ steps.get_wc_versions_for_matrix.outputs.wc_versions }}
+      wp_versions: ${{ steps.get_wp_versions_for_matrix.outputs.wp_versions }}
+      wc_rc_version: ${{ steps.get_wc_rc_versions_for_matrix.outputs.wc_rc_version }}
+    steps:
+      - name: Checkout WooCommerce Shipping
+        uses: actions/checkout@v4
+      - name: Get current branch
+        id: get_branch
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
+      - name: Get WordPress versions
+        id: get_wp_versions_for_matrix
+        run: |
+          if [ "${{ steps.get_branch.outputs.branch }}" == "trunk" ]; then
+            echo "wp_versions=$(git ls-remote --tags --refs https://github.com/WordPress/WordPress.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php 3)" >> $GITHUB_OUTPUT
+          else
+            echo "wp_versions=$(git ls-remote --tags --refs https://github.com/WordPress/WordPress.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php 1)" >> $GITHUB_OUTPUT
+          fi
+      - name: Get WooCommerce versions
+        id: get_wc_versions_for_matrix
+        run: |
+          if [ "${{ steps.get_branch.outputs.branch }}" == "trunk" ]; then
+            echo "wc_versions=$(git ls-remote --tags --refs https://github.com/woocommerce/woocommerce.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php 3)" >> $GITHUB_OUTPUT
+          else
+            echo "wc_versions=$(git ls-remote --tags --refs https://github.com/woocommerce/woocommerce.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php 1)" >> $GITHUB_OUTPUT
+          fi
+      - name: Get WooCommerce RC versions
+        id: get_wc_rc_versions_for_matrix
+        run: |
+          echo "wc_rc_version=$(curl -s https://api.github.com/repos/woocommerce/woocommerce/releases | jq -r '[.[] | select(.tag_name | ascii_downcase | contains("rc"))] | sort_by(.published_at) | reverse | .[0].tag_name')" >> $GITHUB_OUTPUT
+
+  js-tests:
+    if: contains(inputs.extension-tests, 'All') || contains(inputs.extension-tests, 'Unit')
+    name: JS ESLint Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - run: git config --global url.https://github.com/.insteadOf git://github.com/
+      - run: npm ci
+      - run: npm run eslint
+      - run: npm run test
+
+  php-tests:
+    if: contains(inputs.extension-tests, 'All') || contains(inputs.extension-tests, 'Unit')
+    name: PHP Tests
+    needs: find_latest_versions
+    uses: ./.github/workflows/unit_test_runner.yml
+    with:
+      wp_version: ${{ inputs.wp-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wp_versions)[0] || inputs.wp-version }}
+      wc_version: ${{ inputs.wc-version == 'latest' && fromJSON(needs.find_latest_versions.outputs.wc_versions)[0] || inputs.wc-version == 'rc' && needs.find_latest_versions.outputs.wc_rc_version || inputs.wc-version }}
+      php_version: ${{ inputs.php-version }}
+
+  build_project:
+    name: Package
+    uses: ./.github/workflows/build.yml
+    with:
+      plugin_name: woocommerce-services
+
+  qit-tests:
+    name: QIT
+    needs: build_project
+    uses: ./.github/workflows/qit_runner.yml
+    with:
+      extension: ${{ needs.build_project.outputs.plugin_name }}
+      artifact: ${{ needs.build_project.outputs.plugin_name }}
+      wp-version: ${{ inputs.wp-version == 'latest' && 'stable' || inputs.wp-version }}
+      wc-version: ${{ inputs.wc-version == 'latest' && 'stable' || contains( inputs.wc-version, 'rc' ) && 'rc' || inputs.wc-version }}
+      php-version: ${{ inputs.php-version }}
+      test-activation: ${{ contains(inputs.qit-tests, 'Activation') && true || false }}
+      test-security: ${{ contains(inputs.qit-tests, 'Security') && true || false }}
+      test-phpcompatibility: ${{ contains(inputs.qit-tests, 'Compatibility') && true || false }}
+      test-phpstan: ${{ contains(inputs.qit-tests, 'PHPStan') && true || false }}
+      test-woo-api: ${{ contains(inputs.qit-tests, 'API') && true || false }}
+      test-woo-e2e: ${{ contains(inputs.qit-tests, 'WooCommerce E2E') && true || false }}
+      test-malware: ${{ contains(inputs.qit-tests, 'Malware') && true || false }}
+      test-validation: ${{ contains(inputs.qit-tests, 'Validation') && true || false }}
+      test-plugin-check: ${{ contains(inputs.qit-tests, 'dotOrg') && true || false }}
+      options: ${{ inputs.options }}
+      wait: ${{ inputs.qit-wait }}
+    secrets: inherit
+
+  e2e-tests:
+    if: contains(inputs.extension-tests, 'All') || contains(inputs.extension-tests, 'E2E')
+    name: E2E tests
+    needs: build_project
+    uses: ./.github/workflows/e2e_runner.yml
+    with:
+      php_version: ${{ inputs.php-version }}
+    secrets: inherit
+
+  handle-success:
+    if: |
+      always() &&
+      (needs.qit-tests.result == 'success' || needs.qit-tests.result == 'skipped') &&
+      (needs.php-tests.result == 'success' || needs.php-tests.result == 'skipped') &&
+      (needs.js-tests.result == 'success' || needs.js-tests.result == 'skipped') &&
+      (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
+    needs: [qit-tests, php-tests, js-tests, e2e-tests]
+    name: Handle success
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: act10ns/slack@v2
+        with:
+          status: success
+          message: 'Test Runner Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> passed.'
+
+  handle-cancelled:
+    if: cancelled()
+    needs: [qit-tests, php-tests, js-tests, e2e-tests]
+    name: Handle cancellation
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: act10ns/slack@v2
+        with:
+          status: cancelled
+          message: 'Test Runner Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> cancelled.'
+
+  handle-error:
+    if: failure()
+    needs: [qit-tests, php-tests, js-tests, e2e-tests]
+    name: Handle failure
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: act10ns/slack@v2
+        with:
+          status: failure
+          message: 'Test Runner Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> failed.'
