@@ -54,12 +54,11 @@ class StoreNoticesController {
 	private static function is_classic_cart(): bool {
 		if (
 			! function_exists( 'is_cart' )
-			|| ! function_exists( 'wc_post_content_has_shortcode' )
 			|| ! function_exists( 'has_block' )
 		) {
 			return false;
 		}
-		return is_cart() && ( wc_post_content_has_shortcode( 'woocommerce_cart' ) || has_block( 'woocommerce/classic-shortcode' ) );
+		return is_cart() && ! has_block( 'woocommerce/cart' );
 	}
 
 	/**
@@ -70,12 +69,11 @@ class StoreNoticesController {
 	private static function is_classic_checkout(): bool {
 		if (
 			! function_exists( 'is_checkout' )
-			|| ! function_exists( 'wc_post_content_has_shortcode' )
 			|| ! function_exists( 'has_block' )
 		) {
 			return false;
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing --- No need to verify nonce here.
-		return ! empty( $_POST ) && is_checkout() && ( wc_post_content_has_shortcode( 'woocommerce_checkout' ) || has_block( 'woocommerce/classic-shortcode' ) );
+		return ! empty( $_POST ) && is_checkout() && ! has_block( 'woocommerce/checkout' );
 	}
 }
