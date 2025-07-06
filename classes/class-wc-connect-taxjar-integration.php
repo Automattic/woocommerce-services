@@ -478,9 +478,6 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$cart_taxes     = array();
-		$cart_tax_total = 0;
-
 		/**
 		 * WC Coupon object.
 		 *
@@ -496,7 +493,7 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		$address    = $this->get_address( $wc_cart_object );
+		$address    = $this->get_address();
 		$line_items = $this->get_line_items( $wc_cart_object );
 
 		$taxes = $this->calculate_tax(
