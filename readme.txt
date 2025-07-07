@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.5 - 2025-xx-xx =
+* Tweak - WooCommerce 10.0 Compatibility.
+
 = 3.0.4 - 2025-06-30 =
 * Fix   - Corrected tax calculation for orders shipped within Arizona from stores based in Arizona.
 
