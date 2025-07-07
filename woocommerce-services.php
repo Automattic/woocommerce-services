@@ -13,8 +13,8 @@
  * Requires PHP: 7.4
  * Requires at least: 6.6
  * Tested up to: 6.8
- * WC requires at least: 9.6
- * WC tested up to: 9.8
+ * WC requires at least: 9.8
+ * WC tested up to: 10.0
  *
  * Copyright (c) 2017-2023 Automattic
  *
