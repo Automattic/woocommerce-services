@@ -162,6 +162,10 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				)
 			);
 
+			if ( empty( $rates ) ) {
+				return false;
+			}
+
 			ob_start();
 			$header =
 				__( 'Country Code', 'woocommerce' ) . ',' .
@@ -278,7 +282,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				return false;
 			}
 
-			$files = [];
+			$files = array();
 			foreach ( $found_files as $file ) {
 				$filename           = basename( $file );
 				$files[ $filename ] = $upload_dir['baseurl'] . '/' . $filename;
