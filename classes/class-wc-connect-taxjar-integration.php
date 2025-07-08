@@ -60,6 +60,12 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private $itemized_taxes;
 
+	/**
+	 * Backend tax classes.
+	 *
+	 * @var array
+	 */
+	private $backend_tax_classes;
 
 	const PROXY_PATH               = 'taxjar/v2';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
