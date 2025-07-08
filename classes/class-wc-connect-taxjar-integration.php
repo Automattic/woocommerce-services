@@ -27,8 +27,6 @@ class WC_Connect_TaxJar_Integration {
 		'woocommerce_tax_display_shop'      => 'excl',
 		// TaxJar returns one total amount, not line item amounts
 		'woocommerce_tax_display_cart'      => 'excl',
-		// TaxJar returns one total amount, not line item amounts
-		'woocommerce_tax_total_display'     => 'single',
 	);
 
 	/**
