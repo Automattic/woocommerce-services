@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.1.0 - 2025-xx-xx =
+* Add   - Support for Itemized tax rates.
+
 = 3.0.5 - 2025-07-07 =
 * Tweak - WooCommerce 10.0 Compatibility.
 
