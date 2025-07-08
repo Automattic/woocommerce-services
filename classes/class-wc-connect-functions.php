@@ -262,7 +262,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			$csv        = ob_get_clean();
 			$upload_dir = wp_upload_dir();
-			$backed_up  = file_put_contents( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-' . date( 'm-d-Y' ) . '-' . time() . '.csv', $csv );
+			$backed_up  = file_put_contents( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-' . date( 'Y-m-d' ) . '-' . time() . '.csv', $csv );
 
 			return (bool) $backed_up;
 		}
