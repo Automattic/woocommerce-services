@@ -336,6 +336,16 @@ class WC_Connect_TaxJar_Integration {
 			return $value;
 		}
 
+		// If itemized taxes are enabled or disabled - backup the rates and flush the rates table.
+		if (
+			( 'single' === $value && $this->itemized_taxes() )
+			|| ( 'itemized' === $value && ! $this->itemized_taxes() )
+		) {
+			$this->backup_existing_tax_rates();
+			$this->itemized_taxes = null;
+			return $value;
+		}
+
 		// skip if unexpected option
 		if ( ! array_key_exists( $option['id'], $this->expected_options ) ) {
 			return $value;
