@@ -53,6 +53,14 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private $response_line_items;
 
+	/**
+	 * Use itemized taxes.
+	 *
+	 * @var bool
+	 */
+	private $itemized_taxes;
+
+
 	const PROXY_PATH               = 'taxjar/v2';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
@@ -1496,5 +1504,13 @@ class WC_Connect_TaxJar_Integration {
 		}
 		// Load Javascript for WooCommerce new order page
 		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
+	}
+
+	private function itemized_taxes() {
+		if ( null === $this->itemized_taxes ) {
+			$this->itemized_taxes = 'itemized' === get_option( 'woocommerce_tax_total_display', 'single' );
+		}
+
+		return $this->itemized_taxes;
 	}
 }
