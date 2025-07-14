@@ -88,12 +88,12 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Undocumented function
+	 * Generates an itemized tax rate name based on the provided tax rate and country.
 	 *
-	 * @param string $taxjar_rate_name Rate name from TaxJar API.
-	 * @param string $to_country       Country code.
+	 * @param string $taxjar_rate_name The tax rate name from TaxJar, typically including '_tax_rate'.
+	 * @param string $to_country       The destination country for the tax calculation.
 	 *
-	 * @return string
+	 * @return string The formatted and localized tax rate name.
 	 */
 	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country ) {
 		$rate_name = str_replace( '_tax_rate', '', $taxjar_rate_name );
