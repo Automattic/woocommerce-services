@@ -63,11 +63,15 @@ jobs:
           MINOR_VERSION=$(echo "$LATEST_RELEASE" | grep -oE '^[0-9]+\.[0-9]+' | cut -d. -f2)
           ADJUSTED_MINOR_VERSION=$((MINOR_VERSION - 2))
 
-          if [ "$ADJUSTED_MINOR_VERSION" -lt 0 ]; then
-            ADJUSTED_MINOR_VERSION=0
+          if [ "$MINOR_VERSION" -eq 0 ]; then
+            ADJUSTED_MAJOR_VERSION=$((MAJOR_VERSION - 1))
+            ADJUSTED_MINOR_VERSION=8
+          else
+            ADJUSTED_MAJOR_VERSION=$MAJOR_VERSION
+            ADJUSTED_MINOR_VERSION=$((MINOR_VERSION - 2))
           fi
 
-          LATEST_MINOR_RELEASE="$MAJOR_VERSION.$ADJUSTED_MINOR_VERSION"
+          LATEST_MINOR_RELEASE="$ADJUSTED_MAJOR_VERSION.$ADJUSTED_MINOR_VERSION"
 
           echo "Latest WooCommerce Release: $LATEST_RELEASE"
           echo "LATEST_RELEASE=$LATEST_RELEASE" >> $GITHUB_ENV
@@ -91,7 +95,7 @@ jobs:
           # Get required versions from WooCommerce core
           REQUIRES_AT_LEAST=$(grep -oP 'Requires at least: \K[\d.]+' "$WC_CORE_FILE")
           REQUIRES_PHP=$(grep -oP 'Requires PHP: \K[\d.]+' "$WC_CORE_FILE")
-          LATEST_MINOR_RELEASE=$(echo "$LATEST_RELEASE" | grep -oE '^[0-9]+\.[0-9]+' | awk -F. '{printf("%d.%d", $1, ($2-2 < 0 ? 0 : $2-2))}')
+          LATEST_MINOR_RELEASE=${{ env.LATEST_MINOR_RELEASE }}
           echo "REQUIRES_AT_LEAST=$REQUIRES_AT_LEAST" >> $GITHUB_ENV
           echo "REQUIRES_PHP=$REQUIRES_PHP" >> $GITHUB_ENV
 
@@ -250,7 +254,11 @@ jobs:
           add-paths: ${{ env.EDITED_FILES }}
           commit-message: "Update Requires headers"
           title: "Update Requires headers for WooCommerce compatibility"
-          team-reviewers: woocommerce/progressus
+          reviewers: |
+            dustinparker
+            iyut
+            bartech
+            abdalsalaam
           body: |
             This PR updates plugin headers to ensure compatibility with the latest WooCommerce release.
 
