@@ -88,9 +88,32 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * @param mixed  $taxjar_taxes
-	 * @param string $to_country
-	 * @param string $to_state
+	 * Undocumented function
+	 *
+	 * @param string $taxjar_rate_name Rate name from TaxJar API.
+	 * @param string $to_country       Country code.
+	 *
+	 * @return string
+	 */
+	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country ) {
+		$rate_name = str_replace( '_tax_rate', '', $taxjar_rate_name );
+		if ( 'country' === $rate_name && in_array( $to_country, WC()->countries->get_vat_countries(), true ) ) {
+			$rate_name = 'VAT';
+		} elseif ( 'US' === $to_country ) {
+			$rate_name = str_replace( '_', ' ', $rate_name );
+			$rate_name = ucwords( $rate_name ) . ' ' . __( 'Tax', 'woocommerce-services' );
+
+		} else {
+			$rate_name = strtoupper( $rate_name );
+		}
+
+		return $rate_name;
+	}
+
+	/**
+	 * @param object|array  $jurisdictions
+	 * @param string        $to_country
+	 * @param string        $to_state
 	 *
 	 * @return string
 	 */
@@ -1266,19 +1289,14 @@ class WC_Connect_TaxJar_Integration {
 					if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
 						continue;
 					}
-
-					$rate_name = strtoupper( str_replace( '_tax_rate', '', $tax_rate_name ) );
-					if ( 'COUNTRY' === $rate_name && in_array( $to_country, WC()->countries->get_vat_countries(), true ) ) {
-						$rate_name = 'VAT';
-					}
-					$taxes['rate_ids'][ $line_item_key ][ $rate_name ] = $this->create_or_update_tax_rate(
+					$taxes['rate_ids'][ $line_item_key ][] = $this->create_or_update_tax_rate(
 						$taxjar_taxes->jurisdictions,
 						$location,
 						round( $tax_rate * 100, 4 ),
 						$tax_class,
 						$taxes['freight_taxable'],
 						$priority,
-						$rate_name
+						self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country )
 					);
 
 					++$priority;
@@ -1289,22 +1307,17 @@ class WC_Connect_TaxJar_Integration {
 			$_tax_rates = (array) $taxjar_taxes->breakdown->shipping;
 			$priority   = 1;
 			foreach ( $_tax_rates as $tax_rate_name => $tax_rate ) {
-				if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, 'tax_rate' ) ) {
+				if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
 					continue;
 				}
-
-				$rate_name = strtoupper( str_replace( '_tax_rate', '', $tax_rate_name ) );
-				if ( 'COUNTRY' === $rate_name && in_array( $to_country, WC()->countries->get_vat_countries(), true ) ) {
-					$rate_name = 'VAT';
-				}
-				$taxes['rate_ids']['shipping'][ $rate_name ] = $this->create_or_update_tax_rate(
+				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
 					$taxjar_taxes->jurisdictions,
 					$location,
 					round( $tax_rate * 100, 4 ),
 					$tax_class,
 					$taxes['freight_taxable'],
 					$priority,
-					$rate_name
+					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country )
 				);
 
 				++$priority;
@@ -1382,7 +1395,9 @@ class WC_Connect_TaxJar_Integration {
 						$location,
 						round( $line_item->combined_tax_rate * 100, 4 ),
 						$tax_class,
-						$taxes['freight_taxable']
+						$taxes['freight_taxable'],
+						1,
+						self::generate_combined_tax_rate_name( $taxjar_taxes->jurisdictions, $location['to_country'], $to_state )
 					);
 				}
 			}
@@ -1393,7 +1408,9 @@ class WC_Connect_TaxJar_Integration {
 				$location,
 				round( $taxes['tax_rate'] * 100, 4 ),
 				'',
-				$taxes['freight_taxable']
+				$taxes['freight_taxable'],
+				1,
+				self::generate_combined_tax_rate_name( $taxjar_taxes->jurisdictions, $location['to_country'], $to_state )
 			);
 		} // End if().
 
@@ -1408,7 +1425,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return int
 	 */
-	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $tax_rate_priority = 1, $rate_name = '' ) {
+	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $rate_name = '' ) {
 		// all the states in GB have the same tax rate
 		// prevents from saving a "state" column value for GB
 		$to_state = 'GB' === $location['to_country'] ? '' : $location['to_state'];
@@ -1441,8 +1458,8 @@ class WC_Connect_TaxJar_Integration {
 			// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
 			// I would love to do this for other locations, but it looks like that would create issues.
 			// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
-			'tax_rate_name'     => $tax_rate_name,
-			'tax_rate_priority' => $tax_rate_priority,
+			'tax_rate_name'     => $rate_name,
+			'tax_rate_priority' => $rate_priority,
 			'tax_rate_compound' => false,
 			'tax_rate_shipping' => $freight_taxable,
 			'tax_rate'          => $rate,
@@ -1460,8 +1477,8 @@ class WC_Connect_TaxJar_Integration {
 		);
 
 		$wc_rates_ids = array_keys( $wc_rates );
-		if ( isset( $wc_rates_ids[ $tax_rate_priority - 1 ] ) ) {
-			$wc_rate[ $wc_rates_ids[ $tax_rate_priority - 1 ] ] = $wc_rates[ $wc_rates_ids[ $tax_rate_priority - 1 ] ];
+		if ( isset( $wc_rates_ids[ $rate_priority - 1 ] ) ) {
+			$wc_rate[ $wc_rates_ids[ $rate_priority - 1 ] ] = $wc_rates[ $wc_rates_ids[ $rate_priority - 1 ] ];
 		} else {
 			$wc_rate = array();
 		}
