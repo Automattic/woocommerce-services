@@ -1,5 +1,11 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.0.5 - 2025-07-14 =
+* Tweak - WooCommerce 10.0 Compatibility.
+
+= 3.0.4 - 2025-06-30 =
+* Fix   - Corrected tax calculation for orders shipped within Arizona from stores based in Arizona.
+
 = 3.0.3 - 2025-06-12 =
 * Tweak - Update Org store screenshots.
 

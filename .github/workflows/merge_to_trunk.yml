@@ -1,0 +1,74 @@
+name: Merge to Trunk CI
+
+on:
+  pull_request:
+    branches:
+      - trunk
+    types:
+      - closed
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build project
+    uses: ./.github/workflows/build.yml
+    with:
+      plugin_name: woocommerce-services
+
+  qit-tests:
+    if: github.event.pull_request.merged == true
+    name: QIT tests
+    needs: build
+    uses: ./.github/workflows/qit_runner.yml
+    secrets: inherit
+    with:
+      extension: ${{ needs.build.outputs.plugin_name }}
+      artifact: ${{ needs.build.outputs.plugin_name }}
+      test-activation: true
+      test-security: true
+      test-phpcompatibility: true
+      test-validation: true
+      test-phpstan: false # TODO: Enable this once the PHPStan tests are fixed
+
+  handle-success:
+    if: ${{ success() }}
+    needs: qit-tests
+    name: Handle success
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: act10ns/slack@v2
+        with:
+          status: success
+          message: "Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> in PR <{{refUrl}}|{{ref}}> passed."
+
+  handle-cancelled:
+    if: ${{ cancelled() }}
+    needs: qit-tests
+    name: Handle cancellation
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: act10ns/slack@v2
+        with:
+          status: cancelled
+          message: "Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> in PR <{{refUrl}}|{{ref}}> cancelled."
+
+  handle-error:
+    if: ${{ failure() }}
+    needs: qit-tests
+    name: Handle failure
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: act10ns/slack@v2
+        with:
+          status: failure
+          message: "Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> in PR <{{refUrl}}|{{ref}}> failed."
+

@@ -1,0 +1,56 @@
+name: Build
+on:
+  workflow_call:
+    inputs:
+      plugin_name:
+        required: true
+        type: string
+        description: 'The name of the plugin (e.g. woocommerce-services)'
+    outputs:
+      plugin_name:
+        description: "The name of the plugin"
+        value: ${{ jobs.build.outputs.plugin_name }}
+
+jobs:
+  build:
+    name: Build plugin artifact (zip file)
+    runs-on: ubuntu-latest
+    outputs:
+      plugin_name: ${{ inputs.plugin_name }}
+    env:
+      PLUGIN_NAME: ${{ inputs.plugin_name }}
+    steps:
+      - name: Set Git to use HTTPS instead of SSH
+        run: git config --global url.https://github.com/.insteadOf git://github.com/
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build plugin zip
+        run: npm run build
+
+      - name: Unzip woocommerce-services.zip
+        run: unzip woocommerce-services.zip -d woocommerce-services
+
+      - name: Re-zip woocommerce-services folder
+        run: zip -r woocommerce-services.zip woocommerce-services
+
+      - name: Upload plugin zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PLUGIN_NAME }}
+          path: ${{ env.PLUGIN_NAME }}.zip
