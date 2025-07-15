@@ -54,11 +54,11 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
-	 * Use itemized taxes.
+	 * Indicates whether taxes should be displayed in an itemized format.
 	 *
 	 * @var bool
 	 */
-	private $itemized_taxes;
+	private $is_tax_display_itemized;
 
 	/**
 	 * Backend tax classes.
@@ -111,11 +111,14 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * @param object|array  $jurisdictions
-	 * @param string        $to_country
-	 * @param string        $to_state
+	 * Generates a combined tax rate name based on jurisdictions and location information.
 	 *
-	 * @return string
+	 * @param array  $jurisdictions Details for the tax jurisdictions (e.g., city, county, state, country).
+	 *                              This may include attributes for tax determination purposes.
+	 * @param string $to_country    The destination country for the tax calculation.
+	 * @param string $to_state      The destination state for the tax calculation.
+	 *
+	 * @return string The formatted and combined tax rate name including relevant jurisdictions and location data.
 	 */
 	private static function generate_combined_tax_rate_name( $jurisdictions, $to_country, $to_state ) {
 		if ( 'US' !== $to_country ) {
@@ -367,11 +370,11 @@ class WC_Connect_TaxJar_Integration {
 
 		// If itemized taxes are enabled or disabled - backup the rates and flush the rates table.
 		if (
-			( 'single' === $value && $this->itemized_taxes() )
-			|| ( 'itemized' === $value && ! $this->itemized_taxes() )
+			( 'single' === $value && $this->is_tax_display_itemized() )
+			|| ( 'itemized' === $value && ! $this->is_tax_display_itemized() )
 		) {
 			$this->backup_existing_tax_rates();
-			$this->itemized_taxes = null;
+			$this->is_tax_display_itemized = null;
 			return $value;
 		}
 
@@ -1210,7 +1213,7 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		if ( $this->itemized_taxes() ) {
+		if ( $this->is_tax_display_itemized() ) {
 			$taxjar_taxes = $taxjar_response->tax;
 			$taxes        = $this->get_itemized_tax_rates( $taxes, $taxjar_taxes, $options );
 		} else {
@@ -1495,7 +1498,7 @@ class WC_Connect_TaxJar_Integration {
 			$this->_log( $tax_rate );
 			if ( $wc_rate[ $rate_id ]['label'] !== $tax_rate_name || (float) $wc_rate[ $rate_id ]['rate'] !== (float) $rate ) {
 				// Allow to manually change is Shipping taxable, won't be overwritten automatically.
-				if ( $this->itemized_taxes() ) {
+				if ( $this->is_tax_display_itemized() ) {
 					$tax_rate['tax_rate_shipping'] = wc_string_to_bool( $wc_rate[ $rate_id ]['shipping'] );
 				}
 				WC_Tax::_update_tax_rate( $rate_id, $tax_rate );
@@ -1709,11 +1712,16 @@ class WC_Connect_TaxJar_Integration {
 		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
 	}
 
-	private function itemized_taxes() {
-		if ( null === $this->itemized_taxes ) {
-			$this->itemized_taxes = 'itemized' === get_option( 'woocommerce_tax_total_display', 'single' );
+	/**
+	 * Determines whether taxes are displayed itemized based on WooCommerce settings.
+	 *
+	 * @return bool True if taxes are displayed itemized, false otherwise.
+	 */
+	private function is_tax_display_itemized() {
+		if ( null === $this->is_tax_display_itemized ) {
+			$this->is_tax_display_itemized = 'itemized' === get_option( 'woocommerce_tax_total_display', 'single' );
 		}
 
-		return $this->itemized_taxes;
+		return $this->is_tax_display_itemized;
 	}
 }
