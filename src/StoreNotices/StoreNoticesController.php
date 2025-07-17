@@ -9,6 +9,9 @@
 
 namespace Automattic\WCServices\StoreNotices;
 
+use WC_Cart;
+use WP_Error;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -32,6 +35,7 @@ class StoreNoticesController {
 		$this->notifier = $notifier;
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_display_notices' ) );
+		add_filter( 'woocommerce_store_api_cart_errors', array( $this, 'add_store_api_cart_errors' ), 10, 2 );
 	}
 
 	/**
@@ -75,5 +79,27 @@ class StoreNoticesController {
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing --- No need to verify nonce here.
 		return ! empty( $_POST ) && is_checkout() && ! has_block( 'woocommerce/checkout' );
+	}
+
+	/**
+	 * If there are error notices, we need to block the block checkout to prevent proceeding with checkout.
+	 *
+	 * @param WP_Error $cart_errors List of errors in the cart.
+	 * @param WC_Cart  $cart Cart object.
+	 * @return WP_Error
+	 */
+	public function add_store_api_cart_errors( $cart_errors, $cart ) {
+		// Get notices from StoreNoticesNotifier.
+		$notices = StoreNoticesNotifier::get_notices();
+
+		// Check if there are any error notices.
+		if ( ! empty( $notices['error'] ) ) {
+			foreach ( $notices['error'] as $notice ) {
+				// Add each error notice to the $cart_errors object to block checkout.
+				$cart_errors->add( 'wcservices_validation', $notice['message'] );
+			}
+		}
+
+		return $cart_errors;
 	}
 }
