@@ -1308,7 +1308,7 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			// Add shipping tax rate.
-			$_tax_rates = (array) $taxjar_taxes->breakdown->shipping;
+			$_tax_rates = isset( $taxjar_taxes->breakdown->shipping ) ? (array) $taxjar_taxes->breakdown->shipping : array();
 			$priority   = 1;
 			foreach ( $_tax_rates as $tax_rate_name => $tax_rate ) {
 				if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
