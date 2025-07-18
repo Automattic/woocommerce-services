@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.1.0 - 2025-xx-xx =
 * Add   - Support for Itemized tax rates.
+* Fix   - TaxJar error notices displaying incorrectly on block cart and checkout.
 
 = 3.0.5 - 2025-07-14 =
 * Tweak - WooCommerce 10.0 Compatibility.
