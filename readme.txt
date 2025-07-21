@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 9.8
 WC tested up to: 10.0
-Stable tag: 3.0.5
+Stable tag: 3.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.1.0 - 2025-xx-xx =
+= 3.0.6 - 2025-07-21 =
 * Add   - Support for Itemized tax rates.
 * Fix   - TaxJar error notices displaying incorrectly on block cart and checkout.
 
