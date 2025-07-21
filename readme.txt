@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.7 - 2025-xx-xx =
+* Fix   - Missing release files.
+
 = 3.0.6 - 2025-07-21 =
 * Add   - Support for Itemized tax rates.
 * Fix   - TaxJar error notices displaying incorrectly on block cart and checkout.
