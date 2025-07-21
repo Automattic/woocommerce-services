@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 9.8
 WC tested up to: 10.0
-Stable tag: 3.0.6
+Stable tag: 3.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
