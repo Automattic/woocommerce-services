@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.0.7 - 2025-xx-xx =
+= 3.0.7 - 2025-07-21 =
 * Fix   - Missing release files.
 
 = 3.0.6 - 2025-07-21 =
