@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
+
 class WC_Connect_TaxJar_Integration {
 
 	/**
@@ -11,6 +13,11 @@ class WC_Connect_TaxJar_Integration {
 	 * @var WC_Connect_Logger
 	 */
 	public $logger;
+
+	/**
+	 * @var StoreNoticesNotifier
+	 */
+	private $notifier;
 
 	public $wc_connect_base_url;
 
@@ -74,11 +81,13 @@ class WC_Connect_TaxJar_Integration {
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Logger $logger,
-		$wc_connect_base_url
+		$wc_connect_base_url,
+		StoreNoticesNotifier $notifier = null
 	) {
 		$this->api_client          = $api_client;
 		$this->logger              = $logger;
 		$this->wc_connect_base_url = $wc_connect_base_url;
+		$this->notifier            = $notifier;
 
 		// Cache rates for 1 hour.
 		$this->cache_time = HOUR_IN_SECONDS;
@@ -478,15 +487,7 @@ class WC_Connect_TaxJar_Integration {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
-			// if on checkout page load (not ajax), don't set an error as it prevents checkout page from displaying
-			if ( (
-					( is_cart() || ( is_checkout() && is_ajax() ) ) ||
-					( WC_Connect_Functions::has_cart_or_checkout_block() || WC_Connect_functions::is_store_api_call() )
-				)
-				&& ! wc_has_notice( $message, 'error' )
-			) {
-				wc_add_notice( $message, 'error' );
-			}
+			$this->notifier->error( $message, array(), 'taxjar' );
 
 			return;
 		}
@@ -1307,7 +1308,7 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			// Add shipping tax rate.
-			$_tax_rates = (array) $taxjar_taxes->breakdown->shipping;
+			$_tax_rates = isset( $taxjar_taxes->breakdown->shipping ) ? (array) $taxjar_taxes->breakdown->shipping : array();
 			$priority   = 1;
 			foreach ( $_tax_rates as $tax_rate_name => $tax_rate ) {
 				if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
@@ -1582,6 +1583,9 @@ class WC_Connect_TaxJar_Integration {
 		$response         = get_transient( $cache_key );
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
+
+		// Clear the taxjar notices before calculating taxes or using cached response.
+		$this->notifier->clear_notices( 'taxjar' );
 
 		if ( false === $response ) {
 			$response      = $this->smartcalcs_request( $json );

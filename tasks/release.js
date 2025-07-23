@@ -16,6 +16,7 @@ const dirsToCopy = [
 	'i18n',
 	'images',
 	'vendor',
+	'src',
 ];
 
 confirm( chalk.cyan( 'Howdy! This script is going to create a release folder with a compiled ' +
