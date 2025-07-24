@@ -1,12 +1,12 @@
-name: QIT Security Test
+name: QIT Tests
 on:
   workflow_dispatch:
   pull_request:
 permissions:
   pull-requests: write
 jobs:
-  qit_security:
-    name: QIT Security Test
+  qit_tests:
+    name: QIT Tests
     runs-on: ubuntu-latest
     env:
       NO_COLOR: 1
