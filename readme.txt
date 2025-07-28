@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.8 - 2025-xx-xx =
+* Fix   - Disable shipping features unless WC Shipping plugin is active.
+
 = 3.0.7 - 2025-07-21 =
 * Fix   - Missing release files.
 
