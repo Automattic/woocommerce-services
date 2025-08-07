@@ -78,11 +78,19 @@ class WC_Connect_TaxJar_Integration {
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
 
+	/**
+	 * WCS TaxJar integration constructor.
+	 *
+	 * @param WC_Connect_API_Client     $api_client          TaxJar API client.
+	 * @param WC_Connect_Logger         $logger              Logger.
+	 * @param string                    $wc_connect_base_url WC Connect base URL.
+	 * @param StoreNoticesNotifier|null $notifier            Notifier.
+	 */
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Logger $logger,
 		$wc_connect_base_url,
-		StoreNoticesNotifier $notifier = null
+		?StoreNoticesNotifier $notifier = null
 	) {
 		$this->api_client          = $api_client;
 		$this->logger              = $logger;
