@@ -1937,7 +1937,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return bool True if the store is configured for tax-only functionality, false otherwise.
 		 */
-		private function has_only_tax_functionality() {
+		public function has_only_tax_functionality() {
 			return ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
 			( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
 		}
