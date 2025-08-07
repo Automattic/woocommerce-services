@@ -532,7 +532,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @return bool True if shipping label is enabled from the settings.
 		 */
 		public function is_shipping_label_enabled() {
-			if ( ! WC_Connect_Loader::is_wc_shipping_activated() ) {
+			// Check if this is a tax-only installation
+			if ( WC_Connect_Loader::instance()->has_only_tax_functionality() ) {
 				return false;
 			}
 
