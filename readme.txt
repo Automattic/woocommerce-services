@@ -70,11 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.0.9 - 2025-xx-xx =
-* Tweak - WooCommerce 10.1 Compatibility.
-
 = 3.0.8 - 2025-xx-xx =
 * Fix   - Improves performance when WooCommerce Shipping is not active.
+* Tweak - WooCommerce 10.1 Compatibility.
 
 = 3.0.7 - 2025-07-21 =
 * Fix   - Missing release files.
