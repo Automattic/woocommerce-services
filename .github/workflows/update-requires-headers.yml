@@ -63,12 +63,11 @@ jobs:
           MINOR_VERSION=$(echo "$LATEST_RELEASE" | grep -oE '^[0-9]+\.[0-9]+' | cut -d. -f2)
           ADJUSTED_MINOR_VERSION=$((MINOR_VERSION - 2))
 
-          if [ "$MINOR_VERSION" -le 0 ]; then
+          if [ "$ADJUSTED_MINOR_VERSION" -lt 0 ]; then
             ADJUSTED_MAJOR_VERSION=$((MAJOR_VERSION - 1))
-            ADJUSTED_MINOR_VERSION=8
+            ADJUSTED_MINOR_VERSION=$((ADJUSTED_MINOR_VERSION + 10))
           else
             ADJUSTED_MAJOR_VERSION=$MAJOR_VERSION
-            ADJUSTED_MINOR_VERSION=$((MINOR_VERSION - 2))
           fi
 
           LATEST_MINOR_RELEASE="$ADJUSTED_MAJOR_VERSION.$ADJUSTED_MINOR_VERSION"
