@@ -65,7 +65,7 @@ jobs:
 
           if [ "$ADJUSTED_MINOR_VERSION" -lt 0 ]; then
             ADJUSTED_MAJOR_VERSION=$((MAJOR_VERSION - 1))
-            ADJUSTED_MINOR_VERSION=9
+            ADJUSTED_MINOR_VERSION=$((ADJUSTED_MINOR_VERSION + 10))
           else
             ADJUSTED_MAJOR_VERSION=$MAJOR_VERSION
           fi
