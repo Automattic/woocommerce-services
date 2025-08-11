@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.6
 Requires Plugins: woocommerce
 Tested up to: 6.8
-WC requires at least: 9.8
-WC tested up to: 10.0
+WC requires at least: 9.9
+WC tested up to: 10.1
 Stable tag: 3.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -73,6 +73,7 @@ This plugin relies on the following external services:
 = 3.0.8 - 2025-xx-xx =
 * Fix   - Improves performance when WooCommerce Shipping is not active.
 * Fix   - Restore shipping label functionality for merchants with shipping features enabled.
+* Tweak - WooCommerce 10.1 Compatibility.
 
 = 3.0.7 - 2025-07-21 =
 * Fix   - Missing release files.
