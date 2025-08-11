@@ -1938,8 +1938,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool True if the store is configured for tax-only functionality, false otherwise.
 		 */
 		public static function has_only_tax_functionality() {
-			return ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
-			( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
+			$result = ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
+						( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
+
+			// Allow tests to override this functionality
+			return apply_filters( 'wc_connect_has_only_tax_functionality', $result );
 		}
 
 		public function maybe_rename_plugin( $plugins ) {

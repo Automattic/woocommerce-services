@@ -529,17 +529,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @return bool True if shipping label is enabled from the settings.
 		 */
 		public function is_shipping_label_enabled() {
-			$account_settings = $this->account_settings->get();
-
-			// If we have account settings with enabled=true, respect that over tax-only logic
-			if ( isset( $account_settings['formData']['enabled'] ) && $account_settings['formData']['enabled'] ) {
-				return true;
-			}
-
-			// Check if this is a tax-only installation
+			// For tax-only installations, shipping labels are disabled
 			if ( WC_Connect_Loader::has_only_tax_functionality() ) {
 				return false;
 			}
+			$account_settings = $this->account_settings->get();
 
 			if ( isset( $account_settings['formData']['enabled'] ) && is_bool( $account_settings['formData']['enabled'] ) ) {
 				return $account_settings['formData']['enabled'];
