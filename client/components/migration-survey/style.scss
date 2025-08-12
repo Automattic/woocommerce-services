@@ -77,7 +77,12 @@
 		font-size: 16px;
 		font-weight: 600;
 		color: #1e1e1e;
-		text-align: center;
+	}
+	
+	// Add padding to the options container to center the block
+	> label {
+		padding-left: 20%;
+		padding-right: 20%;
 	}
 }
 
@@ -89,25 +94,22 @@
 }
 
 .migration-survey__option {
+	display: flex;
+	align-items: flex-start;
 	margin-bottom: 12px;
 	cursor: pointer;
-	text-align: center;
 
-	// Create an inline container for radio + text
 	input[type="radio"],
 	input[type="checkbox"] {
 		margin-right: 8px;
-		margin-top: 0;
-		vertical-align: top;
+		margin-top: 2px;
+		flex-shrink: 0;
 	}
 
 	span {
 		line-height: 1.4;
 		color: #1e1e1e;
-		display: inline-block;
-		vertical-align: top;
-		text-align: left;
-		max-width: 400px;
+		flex: 1;
 	}
 
 	&:hover span {
@@ -116,15 +118,13 @@
 
 	// For textarea options
 	> div {
-		text-align: center;
+		width: 100%;
 		
 		label {
-			display: inline-block;
+			display: block;
 			margin-bottom: 8px;
 			font-weight: 500;
 			color: #1e1e1e;
-			text-align: left;
-			max-width: 400px;
 		}
 	}
 }
