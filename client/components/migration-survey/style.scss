@@ -98,6 +98,7 @@
 	align-items: flex-start;
 	margin-bottom: 12px;
 	cursor: pointer;
+	text-align: left;
 
 	input[type="radio"],
 	input[type="checkbox"] {
@@ -110,6 +111,7 @@
 		line-height: 1.4;
 		color: #1e1e1e;
 		flex: 1;
+		margin-left: 0 !important;
 	}
 
 	&:hover span {

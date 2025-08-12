@@ -149,22 +149,19 @@ const MigrationSurveyModal = ( { isVisible, onClose, onSubmit, translate } ) => 
 
 					<div className="migration-survey__question">
 						<h4>{ translate( 'What\'s the main reason you\'re still using WooCommerce Shipping & Tax as your shipping tool?' ) }</h4>
-						<div style={{ paddingLeft: '50px', paddingRight: '50px' }}>
-							{ primaryQuestions.map( question => (
-								<label key={ question.value } className="migration-survey__option" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', marginBottom: '12px', cursor: 'pointer' }}>
-									<input
-										className="migration-survey__radio"
-										type="radio"
-										name="primary_reason"
-										value={ question.value }
-										checked={ primaryAnswer === question.value }
-										onChange={ () => handlePrimaryChange( question.value ) }
-										style={{ marginRight: '8px', marginTop: '2px', flexShrink: 0 }}
-									/>
-									<span style={{ lineHeight: '1.4', color: '#1e1e1e', marginLeft: '0 !important', margin: '0' }}>{ question.label }</span>
-								</label>
-							) ) }
-						</div>
+						{ primaryQuestions.map( question => (
+							<label key={ question.value } className="migration-survey__option">
+								<input
+									className="migration-survey__radio"
+									type="radio"
+									name="primary_reason"
+									value={ question.value }
+									checked={ primaryAnswer === question.value }
+									onChange={ () => handlePrimaryChange( question.value ) }
+								/>
+								<span>{ question.label }</span>
+							</label>
+						) ) }
 					</div>
 
 					{ showFollowup && followupQuestions[ primaryAnswer ] && (
