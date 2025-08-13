@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.0.8 - 2025-xx-xx =
+= 3.0.8 - 2025-08-13 =
 * Fix   - Improves performance when WooCommerce Shipping is not active.
 * Fix   - Restore shipping label functionality for merchants with shipping features enabled.
 * Tweak - WooCommerce 10.1 Compatibility.
