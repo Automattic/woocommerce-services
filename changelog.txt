@@ -1,6 +1,7 @@
 *** WooCommerce Tax Changelog ***
 
 = 3.0.8 - 2025-xx-xx =
+* Add   - Migration survey to understand WooCommerce Shipping adoption blockers.
 * Fix   - Improves performance when WooCommerce Shipping is not active.
 * Tweak - WooCommerce 10.1 Compatibility.
 
