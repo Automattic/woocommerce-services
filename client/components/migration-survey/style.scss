@@ -30,12 +30,14 @@
 	padding: 20px 24px 0;
 	border-bottom: 1px solid #e0e0e0;
 	margin-bottom: 20px;
+	text-align: left;
 
 	h3 {
 		margin: 0 0 20px 0;
 		font-size: 20px;
 		font-weight: 600;
 		color: #1e1e1e;
+		text-align: left;
 	}
 }
 
@@ -61,28 +63,26 @@
 
 .migration-survey__modal-content {
 	padding: 0 24px 20px;
+	text-align: left;
 
 	> p {
 		color: #666;
 		margin-bottom: 24px;
 		line-height: 1.5;
+		text-align: left;
 	}
 }
 
 .migration-survey__question {
 	margin-bottom: 24px;
+	text-align: left;
 
 	h4 {
 		margin: 0 0 16px 0;
 		font-size: 16px;
 		font-weight: 600;
 		color: #1e1e1e;
-	}
-	
-	// Add padding to the options container to center the block
-	> label {
-		padding-left: 20%;
-		padding-right: 20%;
+		text-align: left;
 	}
 }
 
@@ -153,8 +153,9 @@
 	padding: 16px 24px 24px;
 	border-top: 1px solid #e0e0e0;
 	display: flex;
-	justify-content: flex-end;
+	justify-content: flex-start;
 	gap: 12px;
+	text-align: left;
 
 	.button {
 		min-width: 80px;
