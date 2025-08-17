@@ -263,6 +263,14 @@ jobs:
       - name: Create Pull Request
         if: env.CHANGES_MADE == 'true'
         run: |
+          # Check if there are commits between base and head branch
+          COMMIT_COUNT=$(git rev-list --count ${{ env.MAIN_BRANCH }}..${{ env.BRANCH_NAME }} 2>/dev/null || echo "0")
+
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "No commits found between ${{ env.MAIN_BRANCH }} and ${{ env.BRANCH_NAME }}. Skipping PR creation."
+            exit 0
+          fi
+
           # Check if PR already exists for this branch
           if gh pr list --head ${{ env.BRANCH_NAME }} --json number --jq length | grep -q "^0$"; then
             echo "Creating new PR for branch ${{ env.BRANCH_NAME }}"
