@@ -252,8 +252,11 @@ jobs:
           # Create and checkout the branch
           git checkout -b "${{ env.BRANCH_NAME }}"
 
-          # Commit changes
-          git add .
+          # Commit only the modified files
+          git add ${{ env.PLUGIN_FILE_NAME }}
+          if [ -f "readme.txt" ]; then
+            git add readme.txt
+          fi
           git commit -m "Update Requires headers"
 
           # Push the branch
