@@ -289,4 +289,4 @@ jobs:
             echo "PR already exists for branch ${{ env.BRANCH_NAME }}. Skipping PR creation."
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.WCSHIPBOT_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
