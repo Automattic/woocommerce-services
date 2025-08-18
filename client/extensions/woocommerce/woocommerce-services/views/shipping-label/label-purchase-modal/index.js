@@ -28,74 +28,55 @@ import FeatureAnnouncement from 'components/migration/feature-announcement';
 const LabelPurchaseModal = props => {
 	const { loaded, translate, showPurchaseDialog } = props;
 	const [ showSurveyModal, setShowSurveyModal ] = React.useState( false );
-	const [ purchaseDialogWasShown, setPurchaseDialogWasShown ] = React.useState( false );
+	const [ dialogWasShown, setDialogWasShown ] = React.useState( false );
 
 	if ( !loaded ) {
 		return null;
 	}
 
-	// Track when purchase dialog is shown
+	// Track when dialog is shown
 	React.useEffect( () => {
-		if ( loaded && showPurchaseDialog ) {
-			setPurchaseDialogWasShown( true );
+		if ( showPurchaseDialog ) {
+			setDialogWasShown( true );
 		}
-	}, [ loaded, showPurchaseDialog ] );
+	}, [ showPurchaseDialog ] );
 
-	// Show survey when purchase dialog is closed (after it was actually shown)
+	// Listen for successful label purchase/print completion
 	React.useEffect( () => {
-		// Only show survey if purchase dialog was previously shown AND is now closed
-		if ( loaded && 
-			 purchaseDialogWasShown && 
-			 !showPurchaseDialog && 
-			 window.wcsMigrationSurvey && 
-			 window.wcsMigrationSurvey.shouldShow ) {
+		const handleSurveyTrigger = () => {
+			const shouldShow = window.wcsMigrationSurvey && window.wcsMigrationSurvey.shouldShow;
+			const isForced = new URLSearchParams(window.location.search).get('force_survey') !== null;
 			
-			// Add a small delay to ensure any print dialogs have also closed
-			setTimeout( () => {
-				setShowSurveyModal( true );
-				
-				// Track that survey is being displayed (update user meta via AJAX)
-				trackSurveyDisplay();
-			}, 500 ); // 500ms delay to allow print dialogs to close
-		}
-	}, [ loaded, showPurchaseDialog, purchaseDialogWasShown ] );
+			// Show survey if conditions are met and dialog was shown (or forced)
+			if ( shouldShow && (dialogWasShown || isForced) ) {
+				setTimeout( () => {
+					setShowSurveyModal( true );
+				}, 500 ); // Small delay to ensure print dialogs have closed
+			}
+		};
 
-	const onClose = () => props.exitPrintingFlow(props.orderId, props.siteId, false);
+		// Listen for custom event that we'll dispatch on successful completion
+		window.addEventListener('wcs-label-purchase-completed', handleSurveyTrigger);
+		
+		return () => {
+			window.removeEventListener('wcs-label-purchase-completed', handleSurveyTrigger);
+		};
+	}, [ dialogWasShown ] );
 
-	const trackSurveyDisplay = async () => {
-		try {
-			await fetch( window.wcsMigrationSurvey.ajaxUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'wcs_migration_survey_track_display',
-					nonce: window.wcsMigrationSurvey.nonce,
-				} ),
-			} );
-		} catch ( error ) {
-			console.error( 'Failed to track survey display:', error );
+	// Handle force_survey - simulate successful purchase when modal closes
+	React.useEffect( () => {
+		const isForced = new URLSearchParams(window.location.search).get('force_survey') !== null;
+		
+		if ( isForced && !showPurchaseDialog && dialogWasShown ) {
+			// Dialog was shown and now closed with force_survey - simulate successful completion
+			window.dispatchEvent(new CustomEvent('wcs-label-purchase-completed'));
 		}
+	}, [ showPurchaseDialog, dialogWasShown ] );
+
+	const onClose = () => {
+		props.exitPrintingFlow(props.orderId, props.siteId, false);
 	};
 
-	const handleSurveySubmit = async ( surveyData ) => {
-		try {
-			await fetch( window.wcsMigrationSurvey.ajaxUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'wcs_migration_survey_submit',
-					nonce: window.wcsMigrationSurvey.nonce,
-					survey_data: JSON.stringify( surveyData ),
-				} ),
-			} );
-		} catch ( error ) {
-			console.error( 'Failed to submit survey:', error );
-		}
-	};
 
 	return (<>
 		{ showPurchaseDialog && (
@@ -135,7 +116,6 @@ const LabelPurchaseModal = props => {
 			<MigrationSurveyModal
 				isVisible={ showSurveyModal }
 				onClose={ () => setShowSurveyModal( false ) }
-				onSubmit={ handleSurveySubmit }
 			/>
 		) }
 	</>);

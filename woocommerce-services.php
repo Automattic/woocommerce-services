@@ -873,13 +873,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$tracks                 = new WC_Connect_Tracks( $logger, __FILE__ );
 			$shipping_label         = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
 			$nux                    = new WC_Connect_Nux( $tracks, $shipping_label );
-			$store_notices_notifier = class_exists( 'Automattic\WCServices\StoreNotices\StoreNoticesNotifier' )
-				? new StoreNoticesNotifier( $taxes_logger->is_debug_enabled() )
-				: null;
+			$store_notices_notifier = new StoreNoticesNotifier( $taxes_logger->is_debug_enabled() );
 			$taxjar                 = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url, $store_notices_notifier );
-			if ( $store_notices_notifier ) {
-				$this->set_store_notices_notifier( $store_notices_notifier );
-			}
+			$this->set_store_notices_notifier( $store_notices_notifier );
 			$paypal_ec     = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports = new WC_Connect_Label_Reports( $settings_store );
 
@@ -970,23 +966,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Init WC Store Notices.
 		 */
 		public function init_store_notices() {
-			$notifier = $this->get_store_notices_notifier();
-			if ( $notifier ) {
-				new StoreNoticesController( $notifier );
-			}
+			new StoreNoticesController( $this->get_store_notices_notifier() );
 		}
 
 		/**
 		 * Extend the Store API.
 		 */
 		public function extend_store_api() {
-			// Check if Store API classes are available before instantiating
-			if ( ! class_exists( 'Automattic\WCServices\StoreApi\StoreApiExtendSchema' ) ||
-				! class_exists( 'Automattic\WCServices\StoreApi\StoreApiExtensionController' ) ||
-				! class_exists( 'Automattic\WCServices\StoreApi\Extensions\StoreNoticesExtension' ) ) {
-				return;
-			}
-
 			$store_api_extend_schema        = StoreApiExtendSchema::instance();
 			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
 

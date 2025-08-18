@@ -1,7 +1,7 @@
 <?php
 /**
  * Migration Survey Class
- * 
+ *
  * Handles the display and submission of migration survey for users
  * who haven't migrated from WCS&T to WooCommerce Shipping
  */
@@ -27,7 +27,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		public function __construct() {
 			// Hook into script enqueue action
 			add_action( 'enqueue_wc_connect_script', array( $this, 'add_survey_data_to_script' ), 10, 2 );
-			
+
 			// AJAX handlers
 			add_action( 'wp_ajax_wcs_migration_survey_submit', array( $this, 'handle_survey_submission' ) );
 			add_action( 'wp_ajax_wcs_migration_survey_dismiss', array( $this, 'handle_survey_dismissal' ) );
@@ -49,9 +49,9 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			}
 
 			// Check if user has already been shown the survey max times
-			$user_id = get_current_user_id();
+			$user_id       = get_current_user_id();
 			$display_count = get_user_meta( $user_id, 'wcs_migration_survey_count', true );
-			
+
 			if ( $display_count >= self::MAX_DISPLAY_COUNT ) {
 				return false;
 			}
@@ -81,7 +81,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			}
 
 			$should_show = $this->should_show_survey();
-			
+
 			if ( ! $should_show ) {
 				return;
 			}
@@ -90,8 +90,8 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			// NOTE: We don't update user meta here - only when survey is actually displayed in frontend
 			$survey_data = array(
 				'shouldShow' => true,
-				'nonce' => wp_create_nonce( 'wcs_migration_survey' ),
-				'ajaxUrl' => admin_url( 'admin-ajax.php' )
+				'nonce'      => wp_create_nonce( 'wcs_migration_survey' ),
+				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
 			);
 
 			wp_localize_script( 'wc_connect_admin', 'wcsMigrationSurvey', $survey_data );
@@ -108,7 +108,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 
 			// Get survey data
 			$survey_data = json_decode( stripslashes( $_POST['survey_data'] ), true );
-			
+
 			if ( ! $survey_data ) {
 				wp_send_json_error( 'Invalid survey data' );
 			}
@@ -119,20 +119,20 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 
 			// Track submission event with detailed properties
 			$track_properties = array(
-				'primary_reason' => sanitize_text_field( $survey_data['primary'] )
+				'primary_reason' => sanitize_text_field( $survey_data['primary'] ),
 			);
-			
+
 			// Add followup responses to tracking (flatten the array)
 			if ( ! empty( $survey_data['followup'] ) ) {
 				foreach ( $survey_data['followup'] as $key => $value ) {
 					if ( is_bool( $value ) ) {
-						$track_properties['followup_' . $key] = $value ? 'true' : 'false';
+						$track_properties[ 'followup_' . $key ] = $value ? 'true' : 'false';
 					} else {
-						$track_properties['followup_' . $key] = sanitize_text_field( $value );
+						$track_properties[ 'followup_' . $key ] = sanitize_text_field( $value );
 					}
 				}
 			}
-			
+
 			$this->track_event( 'survey_submitted', $track_properties );
 
 			wp_send_json_success();
@@ -163,7 +163,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			}
 
 			// Update user meta to track that survey was displayed
-			$user_id = get_current_user_id();
+			$user_id       = get_current_user_id();
 			$display_count = get_user_meta( $user_id, 'wcs_migration_survey_count', true );
 			update_user_meta( $user_id, 'wcs_migration_survey_count', intval( $display_count ) + 1 );
 			update_user_meta( $user_id, 'wcs_migration_survey_last_shown', time() );
@@ -178,18 +178,10 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		 * Track survey events
 		 */
 		private function track_event( $event_name, $properties = array() ) {
-			if ( class_exists( 'WC_Connect_Tracks' ) && class_exists( 'WC_Connect_Logger' ) && function_exists( 'wc_get_logger' ) ) {
-				try {
-					$wc_logger = wc_get_logger();
-					$logger = new WC_Connect_Logger( $wc_logger );
-					$tracks = new WC_Connect_Tracks( $logger, WCSERVICES_PLUGIN_FILE );
-					$tracks->record_user_event( 'migration_survey_' . $event_name, $properties );
-				} catch ( Exception $e ) {
-					// Silently fail if tracking doesn't work
-					error_log( 'Migration Survey: Failed to track event: ' . $e->getMessage() );
-				}
-			}
+			$wc_logger = wc_get_logger();
+			$logger    = new WC_Connect_Logger( $wc_logger );
+			$tracks    = new WC_Connect_Tracks( $logger, WCSERVICES_PLUGIN_FILE );
+			$tracks->record_user_event( 'migration_survey_' . $event_name, $properties );
 		}
-
 	}
 }

@@ -10,7 +10,7 @@ import { localize } from 'i18n-calypso';
  * For users with WCS&T version >= 3.0.0
  */
 
-const MigrationSurveyModal = ( { isVisible, onClose, onSubmit, translate } ) => {
+const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 	const [ primaryAnswer, setPrimaryAnswer ] = useState( '' );
 	const [ followupAnswers, setFollowupAnswers ] = useState( {} );
 	const [ showFollowup, setShowFollowup ] = useState( false );
@@ -72,13 +72,55 @@ const MigrationSurveyModal = ( { isVisible, onClose, onSubmit, translate } ) => 
 		} ) );
 	};
 
+	const trackSurveyDisplay = async () => {
+		try {
+			await fetch( window.wcsMigrationSurvey.ajaxUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: new URLSearchParams( {
+					action: 'wcs_migration_survey_track_display',
+					nonce: window.wcsMigrationSurvey.nonce,
+				} ),
+			} );
+		} catch ( error ) {
+			// Silently fail tracking
+		}
+	};
+
+	const handleSurveySubmit = async ( surveyData ) => {
+		try {
+			await fetch( window.wcsMigrationSurvey.ajaxUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: new URLSearchParams( {
+					action: 'wcs_migration_survey_submit',
+					nonce: window.wcsMigrationSurvey.nonce,
+					survey_data: JSON.stringify( surveyData ),
+				} ),
+			} );
+		} catch ( error ) {
+			// Silently fail submission
+		}
+	};
+
+	// Track when survey is displayed
+	React.useEffect( () => {
+		if ( isVisible && window.wcsMigrationSurvey ) {
+			trackSurveyDisplay();
+		}
+	}, [ isVisible ] );
+
 	const handleSubmit = async () => {
 		if ( ! primaryAnswer ) return;
 
 		setIsSubmitting( true );
 
 		try {
-			await onSubmit( {
+			await handleSurveySubmit( {
 				primary: primaryAnswer,
 				followup: followupAnswers
 			} );
@@ -90,7 +132,7 @@ const MigrationSurveyModal = ( { isVisible, onClose, onSubmit, translate } ) => 
 	};
 
 	const handleSkip = () => {
-		onSubmit( { primary: 'skipped', followup: {} } );
+		handleSurveySubmit( { primary: 'skipped', followup: {} } );
 		onClose();
 	};
 
