@@ -914,15 +914,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
-			/**
-			 * Don't load shipping settings and notices when:
-			 * 1. WC Shipping plugin is active (it handles its own settings).
-			 * 2. Plugin is in tax-only mode (shipping features are disabled).
-			 */
-			if ( self::is_wc_shipping_activated() || '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
-				return;
-			}
-
 			// We only use the settings page for shipping since tax settings are part of
 			// the core "WooCommerce > Settings > Tax" tab.
 			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
@@ -930,7 +921,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_settings_pages( $settings_pages );
 
 			// Add WC Admin Notices.
-			if ( self::can_add_wc_admin_notice() ) {
+			if ( ! self::is_wc_shipping_activated() && self::can_add_wc_admin_notice() ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
 				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
