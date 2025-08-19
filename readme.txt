@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.9 - 2025-xx-xx =
+* Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
+
 = 3.0.8 - 2025-08-13 =
 * Fix   - Improves performance when WooCommerce Shipping is not active.
 * Fix   - Restore shipping label functionality for merchants with shipping features enabled.
