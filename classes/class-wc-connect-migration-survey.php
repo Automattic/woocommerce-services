@@ -6,6 +6,8 @@
  * who haven't migrated from WCS&T to WooCommerce Shipping
  */
 
+use Automattic\WCServices\Utils;
+
 if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 
 	class WC_Connect_Migration_Survey {
@@ -102,7 +104,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		 */
 		public function handle_survey_submission() {
 			// Verify nonce
-			if ( ! wp_verify_nonce( $_POST['nonce'], 'wcs_migration_survey' ) ) {
+			if ( ! wp_verify_nonce( Utils::get_sanitized_request_data( 'nonce' ), 'wcs_migration_survey' ) ) {
 				wp_die( 'Security check failed' );
 			}
 
@@ -143,7 +145,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		 */
 		public function handle_survey_dismissal() {
 			// Verify nonce
-			if ( ! wp_verify_nonce( $_POST['nonce'], 'wcs_migration_survey' ) ) {
+			if ( ! wp_verify_nonce( Utils::get_sanitized_request_data( 'nonce' ), 'wcs_migration_survey' ) ) {
 				wp_die( 'Security check failed' );
 			}
 
@@ -158,7 +160,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		 */
 		public function handle_survey_display_tracking() {
 			// Verify nonce
-			if ( ! wp_verify_nonce( $_POST['nonce'], 'wcs_migration_survey' ) ) {
+			if ( ! wp_verify_nonce( Utils::get_sanitized_request_data( 'nonce' ), 'wcs_migration_survey' ) ) {
 				wp_die( 'Security check failed' );
 			}
 

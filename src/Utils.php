@@ -58,4 +58,15 @@ class Utils {
 
 		return self::get_wcservices_version();
 	}
+
+	/**
+	 * Get sanitized request data.
+	 *
+	 * @param string $key     The key to get the data for.
+	 * @param string $default The default value to return if the key is not set.
+	 * @return string The sanitized data as a string.
+	 */
+	public static function get_sanitized_request_data( string $key, string $default = '' ): string {
+		return sanitize_text_field( wp_unslash( $_REQUEST[ $key ] ?? $default ) );
+	}
 }
