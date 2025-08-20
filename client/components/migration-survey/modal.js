@@ -131,8 +131,22 @@ const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 		}
 	};
 
-	const handleSkip = () => {
-		handleSurveySubmit( { primary: 'skipped', followup: {} } );
+	const handleSkip = async () => {
+
+		try {
+			await fetch( window.wcsMigrationSurvey.ajaxUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: new URLSearchParams( {
+					action: 'wcs_migration_survey_dismiss',
+					nonce: window.wcsMigrationSurvey.nonce,
+				} ),
+			} );
+		} catch ( error ) {
+			// Silently fail submission
+		}
 		onClose();
 	};
 
@@ -161,7 +175,7 @@ const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 					</div>
 					<div className="migration-survey__modal-footer">
 						<button 
-							className="migration-survey__button migration-survey__button-primary"
+							className="migration-survey__button button is-primary"
 							onClick={ onClose }
 						>
 							{ translate( 'Close' ) }
@@ -226,16 +240,20 @@ const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 
 				<div className="migration-survey__modal-footer">
 					<button 
-						className="migration-survey__button migration-survey__button-secondary"
+						className="migration-survey__button button is-secondary"
 						onClick={ handleSkip }
 						disabled={ isSubmitting }
+						type="button" // Prevent form submission as it's being rendered in the order form
+						aria-label={ translate( 'Skip' ) }
 					>
 						{ translate( 'Skip' ) }
 					</button>
 					<button 
-						className="migration-survey__button migration-survey__button-primary"
+						className="migration-survey__button button is-primary"
 						onClick={ handleSubmit }
 						disabled={ ! primaryAnswer || isSubmitting }
+						type="button" // Prevent form submission as it's being rendered in the order form
+						aria-label={ isSubmitting ? translate( 'Submitting…' ) : translate( 'Submit Feedback' ) }
 					>
 						{ isSubmitting ? translate( 'Submitting…' ) : translate( 'Submit Feedback' ) }
 					</button>

@@ -157,11 +157,10 @@
 	gap: 12px;
 	text-align: left;
 
-	.button {
+	button {
 		min-width: 80px;
 		
 		&:disabled {
-			opacity: 0.6;
 			cursor: not-allowed;
 		}
 	}
