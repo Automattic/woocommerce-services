@@ -177,6 +177,7 @@ const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 						<button 
 							className="migration-survey__button button is-primary"
 							onClick={ onClose }
+							aria-label={ translate( 'Close after submitting feedback' ) }
 						>
 							{ translate( 'Close' ) }
 						</button>
@@ -193,7 +194,8 @@ const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 					<h3>{ translate( 'A Quick Question About Shipping' ) }</h3>
 					<button 
 						className="migration-survey__modal-close"
-						onClick={ onClose }
+						onClick={ handleSkip }
+						type="button" // Prevent form submission as it's being rendered in the order form
 						aria-label={ translate( 'Close survey' ) }
 					>
 						×
