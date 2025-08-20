@@ -991,6 +991,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init_shipping_labels() {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
+			// Initialize migration survey
+			require_once __DIR__ . '/classes/class-wc-connect-migration-survey.php';
+			new WC_Connect_Migration_Survey();
+
 			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
 			// Make sure to update the service schemas when these options change.
 			// TODO: Add other options that change the schema here, or figure out a way to do it automatically.
