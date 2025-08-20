@@ -135,7 +135,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 				}
 			}
 
-			$this->track_event( 'survey_submitted', $track_properties );
+			$this->track_event( 'submitted', $track_properties );
 
 			wp_send_json_success();
 		}
@@ -150,7 +150,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			}
 
 			// Track dismissal event
-			$this->track_event( 'survey_dismissed', array() );
+			$this->track_event( 'dismissed', array() );
 
 			wp_send_json_success();
 		}
@@ -171,7 +171,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			update_user_meta( $user_id, 'wcs_migration_survey_last_shown', time() );
 
 			// Track survey display event
-			$this->track_event( 'survey_displayed', array() );
+			$this->track_event( 'displayed', array() );
 
 			wp_send_json_success();
 		}
