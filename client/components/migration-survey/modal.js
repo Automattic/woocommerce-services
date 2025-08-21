@@ -172,7 +172,7 @@ const MigrationSurveyModal = ( { isVisible, onClose, translate } ) => {
 					</div>
 					<div className="migration-survey__modal-content">
 						<p>{ translate( 'Your feedback is incredibly valuable. We want to make sure the new WooCommerce Shipping is an excellent replacement for you before we officially retire the shipping functionality in this plugin.' ) }</p>
-						<p>{ translate( 'P.S. While we work on improvements, did you know the new WooCommerce Shipping includes discounted UPS rates? You can print USPS, DHL, and now UPS labels right from your dashboard – no separate accounts needed. Want to see how easy it is?' ) } <a href={ MigrationGuideURL } target="_blank" rel="noopener noreferrer">{ translate( 'Read the step-by-step migration guide.' ) }</a></p>
+						<p>{ translate( 'P.S. While we work on improvements, did you know the new WooCommerce Shipping includes discounted UPS rates? You can print USPS, DHL, and now UPS labels right from your dashboard – no separate accounts needed. Want to see how easy it is?' ) } <a href={ MigrationGuideURL } target="_blank" rel="noopener noreferrer">{ translate( 'Read the migration guide.' ) }</a></p>
 					</div>
 					<div className="migration-survey__modal-footer">
 						<button 
