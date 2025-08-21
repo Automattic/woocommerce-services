@@ -2108,6 +2108,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Get the version of WooCommerce Shipping plugin
+		 *
+		 * @return string
+		 */
+		public static function get_wc_shipping_version() {
+			if ( ! self::is_wc_shipping_activated() ) {
+				return 'undefined';
+			}
+			// Ensure this code runs within the WordPress admin context or after wp-admin/includes/plugin.php is loaded.
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+			$all_plugins = get_plugins();
+			return $all_plugins['woocommerce-shipping/woocommerce-shipping.php']['Version'];
+		}
+
+		/**
 		 * Returns if both Woo Shipping and Woo Tax are active.
 		 *
 		 * @return bool
