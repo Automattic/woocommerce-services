@@ -468,6 +468,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
 				'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 				'wcs_version'          => WC_Connect_Loader::get_wcs_version(),
+				'wcshipping_version'   => WC_Connect_Loader::get_wc_shipping_version(),
 				'jetpack_version'      => 'embed-' . WC_Connect_Jetpack::get_jetpack_connection_package_version(),
 				'is_atomic'            => WC_Connect_Jetpack::is_atomic_site(),
 				'wc_version'           => WC()->version,
