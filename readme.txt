@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.10 - 2025-xx-xx =
+* Fix   - Corrected migration guide link in survey modal.
+
 = 3.0.9 - 2025-08-26 =
 * Add   - Migration survey to understand WooCommerce Shipping adoption blockers.
 
