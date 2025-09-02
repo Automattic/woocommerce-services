@@ -51,6 +51,9 @@
       ],
       "qit:security": [
         "npm run build && composer install && ./vendor/bin/qit run:security woocommerce-services --zip=woocommerce-services.zip"
+      ],
+      "qit:woo-api": [
+        "npm run build && composer install && ./vendor/bin/qit run:woo-api woocommerce-services --zip=woocommerce-services.zip"
       ]
     }
 }
