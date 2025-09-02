@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 9.9
 WC tested up to: 10.1
-Stable tag: 3.0.9
+Stable tag: 3.0.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.0.10 - 2025-xx-xx =
+= 3.0.10 - 2025-09-02 =
 * Fix   - Corrected migration guide link in survey modal.
 
 = 3.0.9 - 2025-08-26 =
