@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.0.11 - 2025-xx-xx =
+* Add   - Increase cache time for address validation errors.
+
 = 3.0.10 - 2025-09-02 =
 * Fix   - Corrected migration guide link in survey modal.
 
