@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.0.11- 2025-xx-xx =
+= 3.0.11 - 2025-09-08 =
 * Tweak - Bump jetpack autoloader version
 
 = 3.0.10 - 2025-09-02 =
