@@ -175,16 +175,16 @@
         },
         {
             "name": "automattic/jetpack-autoloader",
-            "version": "v5.0.7",
+            "version": "v5.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Automattic/jetpack-autoloader.git",
-                "reference": "8ab8cc721937030a7a3d77d3d6698649f56de4d9"
+                "reference": "c9e9b82cc515d9ed093fa0ff21245f277aeceb4e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Automattic/jetpack-autoloader/zipball/8ab8cc721937030a7a3d77d3d6698649f56de4d9",
-                "reference": "8ab8cc721937030a7a3d77d3d6698649f56de4d9",
+                "url": "https://api.github.com/repos/Automattic/jetpack-autoloader/zipball/c9e9b82cc515d9ed093fa0ff21245f277aeceb4e",
+                "reference": "c9e9b82cc515d9ed093fa0ff21245f277aeceb4e",
                 "shasum": ""
             },
             "require": {
@@ -234,9 +234,9 @@
                 "wordpress"
             ],
             "support": {
-                "source": "https://github.com/Automattic/jetpack-autoloader/tree/v5.0.7"
+                "source": "https://github.com/Automattic/jetpack-autoloader/tree/v5.0.9"
             },
-            "time": "2025-04-28T15:12:56+00:00"
+            "time": "2025-07-28T19:49:50+00:00"
         },
         {
             "name": "automattic/jetpack-config",

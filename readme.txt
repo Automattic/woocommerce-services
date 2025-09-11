@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 9.9
 WC tested up to: 10.1
-Stable tag: 3.0.10
+Stable tag: 3.0.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,9 @@ This plugin relies on the following external services:
 
 = 3.1.0 - 2025-xx-xx =
 * Add   - Increase cache time for address validation errors.
+
+= 3.0.11 - 2025-09-08 =
+* Tweak - Bump jetpack autoloader version
 
 = 3.0.10 - 2025-09-02 =
 * Fix   - Corrected migration guide link in survey modal.
