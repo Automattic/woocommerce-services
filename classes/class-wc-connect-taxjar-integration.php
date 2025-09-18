@@ -829,13 +829,6 @@ class WC_Connect_TaxJar_Integration {
 				$tax_code = '99999';
 			}
 
-			// Get WC Subscription sign-up fees for calculations
-			if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
-				if ( 'none' == WC_Subscriptions_Cart::get_calculation_type() ) {
-					$unit_price = WC_Subscriptions_Cart::set_subscription_prices_for_calculation( $unit_price, $product );
-				}
-			}
-
 			array_push(
 				$line_items,
 				array(
