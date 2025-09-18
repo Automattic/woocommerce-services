@@ -887,6 +887,9 @@ const handlePrintFinished = ( orderId, siteId, dispatch, getState, hasError, lab
 	if ( hasError ) {
 		return;
 	}
+	
+	// Trigger survey after successful label purchase/print
+	window.dispatchEvent(new CustomEvent('wcs-label-purchase-completed'));
 
 	if ( shouldEmailDetails( getState(), orderId, siteId ) ) {
 		dispatch(

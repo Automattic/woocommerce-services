@@ -1,3 +1,6 @@
+[![CI](https://github.com/Automattic/woocommerce-services/actions/workflows/merge_to_trunk.yml/badge.svg)](https://github.com/Automattic/woocommerce-services/actions/workflows/merge_to_trunk.yml)
+[![CI](https://github.com/Automattic/woocommerce-services/actions/workflows/cron_qit.yml/badge.svg)](https://github.com/Automattic/woocommerce-services/actions/workflows/cron_qit.yml)
+
 # WooCommerce Tax
 
 WooCommerce Tax makes basic eCommerce features like taxes more reliable by taking the burden off of your site’s infrastructure.

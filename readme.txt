@@ -2,12 +2,12 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
-Requires at least: 6.6
+Requires at least: 6.7
 Requires Plugins: woocommerce
 Tested up to: 6.8
-WC requires at least: 9.6
-WC tested up to: 9.8
-Stable tag: 3.0.4
+WC requires at least: 10.0
+WC tested up to: 10.2
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,34 @@ This plugin relies on the following external services:
 2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.1.0 - 2025-09-16 =
+* Add   - Increase cache time for address validation errors.
+* Tweak - WooCommerce 10.2 Compatibility.
+
+= 3.0.11 - 2025-09-08 =
+* Tweak - Bump jetpack autoloader version
+
+= 3.0.10 - 2025-09-02 =
+* Fix   - Corrected migration guide link in survey modal.
+
+= 3.0.9 - 2025-08-26 =
+* Add   - Migration survey to understand WooCommerce Shipping adoption blockers.
+
+= 3.0.8 - 2025-08-13 =
+* Fix   - Improves performance when WooCommerce Shipping is not active.
+* Fix   - Restore shipping label functionality for merchants with shipping features enabled.
+* Tweak - WooCommerce 10.1 Compatibility.
+
+= 3.0.7 - 2025-07-21 =
+* Fix   - Missing release files.
+
+= 3.0.6 - 2025-07-21 =
+* Add   - Support for Itemized tax rates.
+* Fix   - TaxJar error notices displaying incorrectly on block cart and checkout.
+
+= 3.0.5 - 2025-07-14 =
+* Tweak - WooCommerce 10.0 Compatibility.
 
 = 3.0.4 - 2025-06-30 =
 * Fix   - Corrected tax calculation for orders shipped within Arizona from stores based in Arizona.

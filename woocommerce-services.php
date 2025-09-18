@@ -8,13 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.0.4
+ * Version: 3.1.0
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
- * Requires at least: 6.6
+ * Requires at least: 6.7
  * Tested up to: 6.8
- * WC requires at least: 9.6
- * WC tested up to: 9.8
+ * WC requires at least: 10.0
+ * WC tested up to: 10.2
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -46,6 +46,12 @@ require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
+use Automattic\WCServices\StoreNotices\StoreNoticesController;
+use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
+use Automattic\WCServices\Integrations\WooCommerceBlocksIntegration;
+use Automattic\WCServices\StoreApi\Extensions\StoreNoticesExtension;
+use Automattic\WCServices\StoreApi\StoreApiExtendSchema;
+use Automattic\WCServices\StoreApi\StoreApiExtensionController;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
@@ -55,6 +61,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
 		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
 	}
+
+	define( 'WCSERVICES_PLUGIN_FILE', __FILE__ );
+	define( 'WCSERVICES_PLUGIN_DIR', __DIR__ );
+	define( 'WCSERVICES_PLUGIN_DIST_DIR', WCSERVICES_PLUGIN_DIR . '/dist/' );
+	define( 'WCSERVICES_PLUGIN_URL', plugin_dir_url( WCSERVICES_PLUGIN_FILE ) );
+	define( 'WCSERVICES_PLUGIN_DIST_URL', plugin_dir_url( WCSERVICES_PLUGIN_FILE ) . 'dist/' );
+	define( 'WCSERVICES_ASSETS_URL', WCSERVICES_PLUGIN_URL . 'assets/' );
+	define( 'WCSERVICES_STYLESHEETS_URL', WCSERVICES_ASSETS_URL . 'stylesheets/' );
+	define( 'WCSERVICES_JAVASCRIPT_URL', WCSERVICES_ASSETS_URL . 'javascript/' );
+	define( 'WCSERVICES_ASSETS_DIR', WCSERVICES_PLUGIN_DIR . '/assets/' );
+	define( 'WCSERVICES_STYLESHEETS_DIR', WCSERVICES_ASSETS_DIR . 'stylesheets/' );
+	define( 'WCSERVICES_JAVASCRIPT_DIR', WCSERVICES_ASSETS_URL . 'javascript/' );
 
 	class WC_Connect_Loader {
 
@@ -164,6 +182,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @var WC_REST_Connect_Shipping_Carrier_Controller
 		 */
 		protected $rest_carrier_controller;
+
+		/**
+		 * @var StoreNoticesNotifier
+		 */
+		protected $store_notices_notifier;
 
 		/**
 		 * WC_REST_Connect_Shipping_Carriers_Controller
@@ -614,6 +637,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * @return StoreNoticesNotifier
+		 */
+		public function get_store_notices_notifier() {
+			return $this->store_notices_notifier;
+		}
+
+		/**
+		 * @param StoreNoticesNotifier $store_notices_notifier
+		 */
+		public function set_store_notices_notifier( StoreNoticesNotifier $store_notices_notifier ) {
+			$this->store_notices_notifier = $store_notices_notifier;
+		}
+
+		/**
 		 * Load our textdomain
 		 *
 		 * @codeCoverageIgnore
@@ -665,7 +702,26 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			add_action( 'woocommerce_blocks_loaded', array( $this, 'register_blocks_integration' ) );
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+		}
+
+		/**
+		 * Register the WooCommerceBlocks integration.
+		 */
+		public function register_blocks_integration() {
+			add_action(
+				'woocommerce_blocks_checkout_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+				}
+			);
+			add_action(
+				'woocommerce_blocks_cart_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+				}
+			);
 		}
 
 		/**
@@ -761,6 +817,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
+			$this->init_store_notices();
+			$this->extend_store_api();
 		}
 
 		/**
@@ -809,15 +867,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				require_once __DIR__ . '/classes/class-wc-connect-api-client-live.php';
 				$api_client = new WC_Connect_API_Client_Live( $validator, $this );
 			}
-			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
-			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
-			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
-			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
-			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
-			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
-			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
+			$schemas_store          = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store         = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$payment_methods_store  = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
+			$tracks                 = new WC_Connect_Tracks( $logger, __FILE__ );
+			$shipping_label         = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
+			$nux                    = new WC_Connect_Nux( $tracks, $shipping_label );
+			$store_notices_notifier = new StoreNoticesNotifier( $taxes_logger->is_debug_enabled() );
+			$taxjar                 = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url, $store_notices_notifier );
+			$this->set_store_notices_notifier( $store_notices_notifier );
+			$paypal_ec     = new WC_Connect_PayPal_EC( $api_client, $nux );
+			$label_reports = new WC_Connect_Label_Reports( $settings_store );
 
 			new WC_Connect_Privacy( $settings_store, $api_client );
 
@@ -903,12 +963,37 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Init WC Store Notices.
+		 */
+		public function init_store_notices() {
+			new StoreNoticesController( $this->get_store_notices_notifier() );
+		}
+
+		/**
+		 * Extend the Store API.
+		 */
+		public function extend_store_api() {
+			$store_api_extend_schema        = StoreApiExtendSchema::instance();
+			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
+
+			// Register Store API extensions.
+			$store_api_extension_controller->register_extension( new StoreNoticesExtension( $store_api_extend_schema ) );
+
+			// Extend the Store API.
+			$store_api_extension_controller->extend_store();
+		}
+
+		/**
 		 * Register shipping labels-related hooks.
 		 *
 		 * @return void
 		 */
 		public function init_shipping_labels() {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
+
+			// Initialize migration survey
+			require_once __DIR__ . '/classes/class-wc-connect-migration-survey.php';
+			new WC_Connect_Migration_Survey();
 
 			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
 			// Make sure to update the service schemas when these options change.
@@ -1107,7 +1192,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$logger,
 				$this->shipping_label,
 				$this->payment_methods_store,
-				$this->has_only_tax_functionality()
+				self::has_only_tax_functionality()
 			);
 
 			$rest_shipping_label_eligibility_controller->register_routes();
@@ -1856,16 +1941,19 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * @return bool True if the store is configured for tax-only functionality, false otherwise.
 		 */
-		private function has_only_tax_functionality() {
-			return ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
-			( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
+		public static function has_only_tax_functionality() {
+			$result = ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
+						( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
+
+			// Allow tests to override this functionality
+			return apply_filters( 'wc_connect_has_only_tax_functionality', $result );
 		}
 
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
 			if ( isset( $plugins[ $plugin_basename ] ) ) {
-				if ( $this->has_only_tax_functionality() ) {
+				if ( self::has_only_tax_functionality() ) {
 					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_new_sites();
 					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_new_sites();
 				} else {
