@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.1.1 - 2025-xx-xx =
+* Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
+
 = 3.1.0 - 2025-09-16 =
 * Add   - Increase cache time for address validation errors.
 * Tweak - WooCommerce 10.2 Compatibility.
@@ -82,7 +85,6 @@ This plugin relies on the following external services:
 
 = 3.0.9 - 2025-08-26 =
 * Add   - Migration survey to understand WooCommerce Shipping adoption blockers.
-* Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
 
 = 3.0.8 - 2025-08-13 =
 * Fix   - Improves performance when WooCommerce Shipping is not active.
