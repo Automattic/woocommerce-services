@@ -1187,6 +1187,7 @@ class WC_Connect_TaxJar_Integration {
 		$from_city       = $store_settings['city'];
 		$from_street     = $store_settings['street'];
 		$shipping_amount = is_null( $shipping_amount ) ? 0.0 : $shipping_amount;
+		$items_total     = array_sum( array_column( $line_items, 'unit_price' ) );
 
 		$this->_log( ':::: TaxJar API called ::::' );
 
@@ -1208,8 +1209,12 @@ class WC_Connect_TaxJar_Integration {
 		$body = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
-		if ( empty( $line_items ) ) {
-			$body['amount'] = 0.0;
+		if (
+			empty( $line_items )
+			|| ( 0 == $items_total
+			&& ! $this->is_tax_display_itemized() )
+		) {
+			$body['amount'] = 0.01;
 		} else {
 			$body['line_items'] = $line_items;
 		}
