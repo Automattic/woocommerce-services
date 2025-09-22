@@ -1225,7 +1225,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! isset( $response ) || ! $response ) {
 			$this->_log( 'Received: none.' );
 
-			return $taxes;
+			return false;
 		}
 
 		// Log the response
