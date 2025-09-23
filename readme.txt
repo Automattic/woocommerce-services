@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.1.1 - 2025-xx-xx =
+* Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
+
 = 3.1.0 - 2025-09-16 =
 * Add   - Increase cache time for address validation errors.
 * Tweak - WooCommerce 10.2 Compatibility.
