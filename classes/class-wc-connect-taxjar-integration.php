@@ -1503,7 +1503,7 @@ class WC_Connect_TaxJar_Integration {
 			)
 		);
 
-		$wc_rates_ids = array_keys( $wc_rates );
+		$wc_rates_ids = is_array( $wc_rates ) ? array_keys( $wc_rates ) : array();
 		if ( isset( $wc_rates_ids[ $rate_priority - 1 ] ) ) {
 			$wc_rate[ $wc_rates_ids[ $rate_priority - 1 ] ] = $wc_rates[ $wc_rates_ids[ $rate_priority - 1 ] ];
 		} else {
