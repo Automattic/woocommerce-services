@@ -1379,7 +1379,7 @@ class WC_Connect_TaxJar_Integration {
 		$wc_rates = WC_Tax::find_rates(
 			array(
 				'country'   => $location['to_country'],
-				'state'     => $to_state,
+				'state'     => str_replace( ' ', '', $to_state ),
 				'postcode'  => $location['to_zip'],
 				'city'      => $location['to_city'],
 				'tax_class' => $tax_class,
