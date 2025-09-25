@@ -130,60 +130,6 @@ class WC_Connect_TaxJar_Integration {
 		return $rate_name;
 	}
 
-	/**
-	 * Generates a combined tax rate name based on jurisdictions and location information.
-	 *
-	 * @param array  $jurisdictions Details for the tax jurisdictions (e.g., city, county, state, country).
-	 *                              This may include attributes for tax determination purposes.
-	 * @param string $to_country    The destination country for the tax calculation.
-	 * @param string $to_state      The destination state for the tax calculation.
-	 *
-	 * @return string The formatted and combined tax rate name including relevant jurisdictions and location data.
-	 */
-	private static function generate_combined_tax_rate_name( $jurisdictions, $to_country, $to_state ) {
-		if ( 'US' !== $to_country ) {
-			return sprintf(
-				'%s Tax',
-				$to_state
-			);
-		}
-
-		// for a list of possible attributes in the `jurisdictions` attribute, see:
-		// https://developers.taxjar.com/api/reference/#post-calculate-sales-tax-for-an-order
-		$jurisdiction_pieces = array_merge(
-			array(
-				'city'    => '',
-				'county'  => '',
-				'state'   => $to_state,
-				'country' => $to_country,
-			),
-			(array) $jurisdictions
-		);
-
-		// sometimes TaxJar returns a string with the value 'FALSE' for `state`.
-		if ( rest_is_boolean( $to_state ) ) {
-			$jurisdiction_pieces['state'] = '';
-		}
-
-		return sprintf(
-			'%s Tax',
-			join(
-				'-',
-				array_filter(
-					array(
-						// the `$jurisdiction_pieces` is not really sorted
-						// so let's sort it with COUNTRY-STATE-COUNTY-CITY
-						// `array_filter` will take care of filtering out the "falsy" entries
-						$jurisdiction_pieces['country'],
-						$jurisdiction_pieces['state'],
-						$jurisdiction_pieces['county'],
-						$jurisdiction_pieces['city'],
-					)
-				)
-			)
-		);
-	}
-
 	public function init() {
 		// Only enable WCS TaxJar integration if the official TaxJar plugin isn't active.
 		if ( class_exists( 'WC_Taxjar' ) ) {
@@ -1334,10 +1280,10 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return int
 	 */
-	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $rate_name = '' ) {
+	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $tax_rate_name = 'Tax' ) {
 		// Prevent filling "State code" column for countries with VAT tax.
 		// VAT tax is country wide.
-		$to_state      = 'VAT' === $rate_name ? '' : $location['to_state'];
+		$to_state      = 'VAT' === $tax_rate_name ? '' : $location['to_state'];
 		$rate_priority = absint( $rate_priority );
 
 		/**
@@ -1361,14 +1307,14 @@ class WC_Connect_TaxJar_Integration {
 		if ( true === apply_filters( 'woocommerce_taxjar_enable_florida_shipping_tax', true ) && 'US' === $location['to_country'] && 'FL' === $location['from_state'] && 'FL' === $location['to_state'] ) {
 			$freight_taxable = 1;
 		}
-		$tax_rate_name = $rate_name ? $rate_name : self::generate_combined_tax_rate_name( $jurisdictions, $location['to_country'], $to_state );
-		$tax_rate      = array(
+
+		$tax_rate = array(
 			'tax_rate_country'  => $location['to_country'],
 			'tax_rate_state'    => $to_state,
 			// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
 			// I would love to do this for other locations, but it looks like that would create issues.
 			// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
-			'tax_rate_name'     => $rate_name,
+			'tax_rate_name'     => $tax_rate_name,
 			'tax_rate_priority' => $rate_priority,
 			'tax_rate_compound' => false,
 			'tax_rate_shipping' => $freight_taxable,
