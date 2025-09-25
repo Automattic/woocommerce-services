@@ -1455,7 +1455,8 @@ class WC_Connect_TaxJar_Integration {
 	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $rate_name = '' ) {
 		// all the states in GB have the same tax rate
 		// prevents from saving a "state" column value for GB
-		$to_state = 'GB' === $location['to_country'] ? '' : $location['to_state'];
+		$to_state      = 'GB' === $location['to_country'] ? '' : $location['to_state'];
+		$rate_priority = absint( $rate_priority );
 
 		/**
 		 * @see https://github.com/Automattic/woocommerce-services/issues/2531
@@ -1503,7 +1504,7 @@ class WC_Connect_TaxJar_Integration {
 			)
 		);
 
-		$wc_rates_ids = array_keys( $wc_rates );
+		$wc_rates_ids = is_array( $wc_rates ) ? array_keys( $wc_rates ) : array();
 		if ( isset( $wc_rates_ids[ $rate_priority - 1 ] ) ) {
 			$wc_rate[ $wc_rates_ids[ $rate_priority - 1 ] ] = $wc_rates[ $wc_rates_ids[ $rate_priority - 1 ] ];
 		} else {
