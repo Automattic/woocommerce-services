@@ -1335,9 +1335,9 @@ class WC_Connect_TaxJar_Integration {
 	 * @return int
 	 */
 	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $rate_name = '' ) {
-		// all the states in GB have the same tax rate
-		// prevents from saving a "state" column value for GB
-		$to_state      = 'GB' === $location['to_country'] ? '' : $location['to_state'];
+		// Prevent filling "State code" column for countries with VAT tax.
+		// VAT tax is country wide.
+		$to_state      = 'VAT' === $rate_name ? '' : $location['to_state'];
 		$rate_priority = absint( $rate_priority );
 
 		/**
