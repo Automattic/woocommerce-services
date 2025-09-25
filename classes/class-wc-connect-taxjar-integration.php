@@ -1235,7 +1235,6 @@ class WC_Connect_TaxJar_Integration {
 						continue;
 					}
 					$taxes['rate_ids'][ $line_item_key ][] = $this->create_or_update_tax_rate(
-						$taxjar_taxes->jurisdictions,
 						$location,
 						round( $tax_rate * 100, 4 ),
 						$tax_class,
@@ -1256,7 +1255,6 @@ class WC_Connect_TaxJar_Integration {
 					continue;
 				}
 				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
-					$taxjar_taxes->jurisdictions,
 					$location,
 					round( $tax_rate * 100, 4 ),
 					$tax_class,
@@ -1273,14 +1271,18 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Add or update a native WooCommerce tax rate
+	 * Add or update WooCommerce tax rate.
 	 *
-	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/9d8e725/includes/class-wc-taxjar-integration.php#L396
+	 * @param  array     $location
+	 * @param  int|float $rate
+	 * @param  string    $tax_class
+	 * @param  int       $freight_taxable
+	 * @param  int       $rate_priority
+	 * @param  string    $tax_rate_name
 	 *
 	 * @return int
 	 */
-	public function create_or_update_tax_rate( $jurisdictions, $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $tax_rate_name = 'Tax' ) {
+	public function create_or_update_tax_rate( $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $tax_rate_name = 'Tax' ) {
 		// Prevent filling "State code" column for countries with VAT tax.
 		// VAT tax is country wide.
 		$to_state      = 'VAT' === $tax_rate_name ? '' : $location['to_state'];
