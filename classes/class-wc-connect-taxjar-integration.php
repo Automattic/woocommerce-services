@@ -1413,7 +1413,7 @@ class WC_Connect_TaxJar_Integration {
 			$this->_log( ':: Adding New Tax Rate ::' );
 			$this->_log( $tax_rate );
 			$rate_id = WC_Tax::_insert_tax_rate( $tax_rate );
-			// VAT is alwyas country wide, no need to create spearate entires for each zip and city.
+			// VAT is always country wide, no need to create separate entires for each zip and city.
 			if ( 'VAT' !== $tax_rate_name ) {
 				WC_Tax::_update_tax_rate_postcodes( $rate_id, wc_normalize_postcode( wc_clean( $location['to_zip'] ) ) );
 				WC_Tax::_update_tax_rate_cities( $rate_id, wc_clean( $location['to_city'] ) );
@@ -1421,6 +1421,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$this->_log( 'Tax Rate ID Set for ' . $rate_id );
+
 		return $rate_id;
 	}
 
