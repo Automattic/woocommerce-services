@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 10.0
 WC tested up to: 10.2
-Stable tag: 3.1.0
+Stable tag: 3.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.1.1 - 2025-xx-xx =
+= 3.1.1 - 2025-09-29 =
 * Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
 * Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
 
