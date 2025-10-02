@@ -1216,10 +1216,11 @@ class WC_Connect_TaxJar_Integration {
 				$product_id           = $line_item_key_chunks[0];
 				$product              = wc_get_product( $product_id );
 
+				$tax_class = '';
 				if ( $product ) {
 					$tax_class = $product->get_tax_class();
 				} elseif ( isset( $this->backend_tax_classes[ $product_id ] ) ) {
-						$tax_class = $this->backend_tax_classes[ $product_id ];
+					$tax_class = $this->backend_tax_classes[ $product_id ];
 				}
 
 				$_tax_rates = (array) $line_item;
@@ -1251,7 +1252,7 @@ class WC_Connect_TaxJar_Integration {
 				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
 					$location,
 					round( $tax_rate * 100, 4 ),
-					$tax_class,
+					'',
 					$taxes['freight_taxable'],
 					$priority,
 					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country )
