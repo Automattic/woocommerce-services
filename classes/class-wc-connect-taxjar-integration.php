@@ -1092,7 +1092,7 @@ class WC_Connect_TaxJar_Integration {
 			'tax_rate'        => 0,
 		);
 
-		// Strict conditions to be met before API call can be conducted
+		// Strict conditions to be met before API call can be conducted.
 		if (
 			empty( $to_country ) ||
 			empty( $to_zip ) ||
@@ -1140,17 +1140,17 @@ class WC_Connect_TaxJar_Integration {
 
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
 
-		// if no response, no need to keep going - bail early
+		// if no response, no need to keep going - bail early.
 		if ( ! isset( $response ) || ! $response ) {
 			$this->_log( 'Received: none.' );
 
 			return false;
 		}
 
-		// Log the response
+		// Log the response.
 		$this->_log( 'Received: ' . $response['body'] );
 
-		// Decode Response
+		// Decode Response.
 		$taxjar_response = json_decode( $response['body'] );
 		if ( empty( $taxjar_response->tax ) ) {
 			return false;
@@ -1184,7 +1184,7 @@ class WC_Connect_TaxJar_Integration {
 		$from_country   = $store_settings['country'];
 		$from_state     = $store_settings['state'];
 
-		// Update Properties based on Response
+		// Update Properties based on Response.
 		$taxes['freight_taxable'] = (int) $taxjar_taxes->freight_taxable;
 		$taxes['has_nexus']       = (int) $taxjar_taxes->has_nexus;
 		$taxes['tax_rate']        = $taxjar_taxes->rate;
@@ -1200,7 +1200,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( $taxes['has_nexus'] ) {
-			// Use Woo core to find matching rates for taxable address
+			// Use Woo core to find matching rates for taxable address.
 			$location = array(
 				'from_country' => $from_country,
 				'from_state'   => $from_state,
@@ -1259,7 +1259,7 @@ class WC_Connect_TaxJar_Integration {
 
 				++$priority;
 			}
-		} // End if().
+		}
 
 		return $taxes;
 	}
