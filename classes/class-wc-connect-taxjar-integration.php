@@ -1070,23 +1070,19 @@ class WC_Connect_TaxJar_Integration {
 	public function calculate_tax( $options = array() ) {
 		$this->_log( ':::: TaxJar Plugin requested ::::' );
 
-		// Process $options array and turn them into variables
+		// Normalize options to an array and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		extract(
-			array_replace_recursive(
-				array(
-					'to_country'      => null,
-					'to_state'        => null,
-					'to_zip'          => null,
-					'to_city'         => null,
-					'to_street'       => null,
-					'shipping_amount' => null,
-					'line_items'      => null,
-				),
-				$options
-			)
-		);
+		$to_country      = $options['to_country'] ?? null;
+		$to_state        = $options['to_state'] ?? null;
+		$to_zip          = $options['to_zip'] ?? null;
+		$to_city         = $options['to_city'] ?? null;
+		$to_street       = $options['to_street'] ?? null;
+		$shipping_amount = $options['shipping_amount'] ?? null;
+		$line_items      = $options['line_items'] ?? null;
+
+		// Treat null shipping amount as zero for validation purposes.
+		$shipping_amount = is_null( $shipping_amount ) ? 0.0 : $shipping_amount;
 
 		$taxes = array(
 			'freight_taxable' => 1,
@@ -1100,7 +1096,7 @@ class WC_Connect_TaxJar_Integration {
 		if (
 			empty( $to_country ) ||
 			empty( $to_zip ) ||
-			( empty( $line_items ) && ( 0 == $shipping_amount ) ) ||
+			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
 			WC()->customer->is_vat_exempt()
 		) {
 			return false;
@@ -1109,13 +1105,12 @@ class WC_Connect_TaxJar_Integration {
 		$to_zip = explode( ',', $to_zip );
 		$to_zip = array_shift( $to_zip );
 
-		$store_settings  = $this->get_store_settings();
-		$from_country    = $store_settings['country'];
-		$from_state      = $store_settings['state'];
-		$from_zip        = $store_settings['postcode'];
-		$from_city       = $store_settings['city'];
-		$from_street     = $store_settings['street'];
-		$shipping_amount = is_null( $shipping_amount ) ? 0.0 : $shipping_amount;
+		$store_settings = $this->get_store_settings();
+		$from_country   = $store_settings['country'];
+		$from_state     = $store_settings['state'];
+		$from_zip       = $store_settings['postcode'];
+		$from_city      = $store_settings['city'];
+		$from_street    = $store_settings['street'];
 
 		$this->_log( ':::: TaxJar API called ::::' );
 
@@ -1166,25 +1161,24 @@ class WC_Connect_TaxJar_Integration {
 		return $taxes;
 	} // End calculate_tax().
 
-	private function get_itemized_tax_rates( $taxes, $taxjar_taxes, $options ) {
+	/**
+	 * Get itemized tax rates from TaxJar response.
+	 *
+	 * @param array  $taxes        The tax data array that will be modified and returned.
+	 * @param object $taxjar_taxes TaxJar response object.
+	 * @param array  $options      Cart data used for tax calculation.
+	 *
+	 * @return array
+	 */
+	private function get_itemized_tax_rates( $taxes, $taxjar_taxes, $options ): array {
 
-		// Process $options array and turn them into variables
+		// Normalize options and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		extract(
-			array_replace_recursive(
-				array(
-					'to_country'      => null,
-					'to_state'        => null,
-					'to_zip'          => null,
-					'to_city'         => null,
-					'to_street'       => null,
-					'shipping_amount' => null,
-					'line_items'      => null,
-				),
-				$options
-			)
-		);
+		$to_country = $options['to_country'] ?? null;
+		$to_state   = $options['to_state'] ?? null;
+		$to_zip     = $options['to_zip'] ?? null;
+		$to_city    = $options['to_city'] ?? null;
 
 		$store_settings = $this->get_store_settings();
 		$from_country   = $store_settings['country'];
