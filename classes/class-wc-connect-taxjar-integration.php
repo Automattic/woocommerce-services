@@ -861,32 +861,39 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function override_woocommerce_tax_rates( $taxes, $price, $rates ) {
-		if ( isset( $this->response_line_items ) && array_values( $rates ) ) {
-			// Get tax rate ID for current item
-			$keys        = array_keys( $taxes );
-			$tax_rate_id = $keys[0];
-			$line_items  = array();
+		if (
+			! isset( $this->response_line_items )
+			|| empty( $rates )
+			|| ! is_array( $rates )
+			|| ! is_array( $taxes )
+		) {
+				return $taxes;
+		}
 
-			// Map line items using rate ID
-			foreach ( $this->response_rate_ids as $line_item_key => $rate_id ) {
-				if ( $rate_id == $tax_rate_id ) {
-					$line_items[] = $line_item_key;
-				}
+		// Get tax rate ID for current item
+		$keys        = array_keys( $taxes );
+		$tax_rate_id = $keys[0];
+		$line_items  = array();
+
+		// Map line items using rate ID
+		foreach ( $this->response_rate_ids as $line_item_key => $rate_id ) {
+			if ( $rate_id == $tax_rate_id ) {
+				$line_items[] = $line_item_key;
 			}
+		}
 
-			// Remove number precision if Woo 3.2+
-			if ( function_exists( 'wc_remove_number_precision' ) ) {
-				$price = wc_remove_number_precision( $price );
-			}
+		// Remove number precision if Woo 3.2+
+		if ( function_exists( 'wc_remove_number_precision' ) ) {
+			$price = wc_remove_number_precision( $price );
+		}
 
-			foreach ( $this->response_line_items as $line_item_key => $line_item ) {
-				// If line item belongs to rate and matches the price, manually set the tax
-				if ( in_array( $line_item_key, $line_items ) && $price == $line_item->line_total ) {
-					if ( function_exists( 'wc_add_number_precision' ) ) {
-						$taxes[ $tax_rate_id ] = wc_add_number_precision( $line_item->tax_collectable );
-					} else {
-						$taxes[ $tax_rate_id ] = $line_item->tax_collectable;
-					}
+		foreach ( $this->response_line_items as $line_item_key => $line_item ) {
+			// If line item belongs to rate and matches the price, manually set the tax
+			if ( in_array( $line_item_key, $line_items ) && $price == $line_item->line_total ) {
+				if ( function_exists( 'wc_add_number_precision' ) ) {
+					$taxes[ $tax_rate_id ] = wc_add_number_precision( $line_item->tax_collectable );
+				} else {
+					$taxes[ $tax_rate_id ] = $line_item->tax_collectable;
 				}
 			}
 		}
