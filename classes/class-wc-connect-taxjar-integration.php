@@ -1085,11 +1085,8 @@ class WC_Connect_TaxJar_Integration {
 		$to_zip          = $options['to_zip'] ?? null;
 		$to_city         = $options['to_city'] ?? null;
 		$to_street       = $options['to_street'] ?? null;
-		$shipping_amount = $options['shipping_amount'] ?? null;
+		$shipping_amount = $options['shipping_amount'] ?? 0;
 		$line_items      = $options['line_items'] ?? null;
-
-		// Treat null shipping amount as zero for validation purposes.
-		$shipping_amount = is_null( $shipping_amount ) ? 0.0 : $shipping_amount;
 
 		$taxes = array(
 			'freight_taxable' => 1,
