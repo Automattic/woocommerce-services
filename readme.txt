@@ -76,6 +76,7 @@ This plugin relies on the following external services:
 * Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
 * Tweak - Update tax rate and tax nexus links.
 * Tweak - Unify tax rate saving to always save itemized tax rates.
+* Tweak - WooCommerce 10.3 Compatibility.
 
 = 3.1.0 - 2025-09-16 =
 * Add   - Increase cache time for address validation errors.
