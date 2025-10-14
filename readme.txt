@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.1.1 - 2025-xx-xx =
+= 3.1.1 - 2025-10-14 =
 * Fix   - No tax calculated for multi-word state/counties.
 * Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
 * Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
