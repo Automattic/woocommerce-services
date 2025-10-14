@@ -272,12 +272,12 @@ class WC_Connect_TaxJar_Integration {
 		$country_state = ( $full_state ) ? $full_state . ', ' . $full_country : $full_country;
 
 		if ( ! $this->is_enabled() ) {
-			/* translators: 1: full state and country name */
-			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a %2$stax rate%3$s for that state in addition to using automated taxes. %4$sLearn more about Tax Nexus here%5$s.', 'woocommerce-services' ), $country_state, '<a href="https://woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">', '</a>', '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-taxes-do-not-appear-to-be-calculating">', '</a>' );
+			/* translators: 1: full state and country name, 2: anchor opening with tax rate link, 3: anchor closer, 4: anchor opening with tax nexus link, 5: anchor closer */
+			return sprintf( __( 'Your tax rates and settings will be automatically configured for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a %2$stax rate%3$s for that state in addition to using automated taxes. %4$sLearn more about Tax Nexus here%5$s.', 'woocommerce-services' ), $country_state, '<a href="https://woocommerce.com/document/setting-up-taxes-in-woocommerce/#setting-up-tax-rates">', '</a>', '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#section-14">', '</a>' );
 		}
 
-		/* translators: 1: full state and country name, 2: anchor opening with link, 3: anchor closing */
-		return sprintf( __( 'Your tax rates are now automatically calculated for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a %2$stax rate%3$s for that state in addition to using automated taxes. %4$sLearn more about Tax Nexus here%5$s.', 'woocommerce-services' ), $country_state, '<a href="https://woocommerce.com/document/setting-up-taxes-in-woocommerce/#section-12">', '</a>', '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#automated-taxes-do-not-appear-to-be-calculating">', '</a>' );
+		/* translators: 1: full state and country name, 2: anchor opening with tax rate link, 3: anchor closer, 4: anchor opening with tax nexus link, 5: anchor closer */
+		return sprintf( __( 'Your tax rates are now automatically calculated for %1$s. Automated taxes uses your store address as your "tax nexus". If you want to charge tax for any other state, you can add a %2$stax rate%3$s for that state in addition to using automated taxes. %4$sLearn more about Tax Nexus here%5$s.', 'woocommerce-services' ), $country_state, '<a href="https://woocommerce.com/document/setting-up-taxes-in-woocommerce/#setting-up-tax-rates">', '</a>', '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#section-14">', '</a>' );
 	}
 
 	/**
