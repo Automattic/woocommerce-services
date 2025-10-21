@@ -8,13 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.1.0
+ * Version: 3.2.0
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.7
  * Tested up to: 6.8
- * WC requires at least: 10.0
- * WC tested up to: 10.2
+ * WC requires at least: 10.1
+ * WC tested up to: 10.3
  *
  * Copyright (c) 2017-2023 Automattic
  *
