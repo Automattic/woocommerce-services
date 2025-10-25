@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.2.1 - 2025-xx-xx =
+* Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
+
 = 3.2.0 - 2025-10-14 =
 * Fix   - No tax calculated for multi-word state/counties.
 * Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.

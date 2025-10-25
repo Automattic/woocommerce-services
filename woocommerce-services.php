@@ -914,6 +914,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
+			// Don't register settings if only_tax mode.
+			if ( '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
+				return;
+			}
+
 			// We only use the settings page for shipping since tax settings are part of
 			// the core "WooCommerce > Settings > Tax" tab.
 			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
