@@ -1444,7 +1444,7 @@ class WC_Connect_TaxJar_Integration {
 		$response = $response ? $response : get_transient( $cache_key );
 		if ( $response && 'CA' !== $from_state ) {
 			// If $from_state is not California, we need to check for incorrect California tax nexus.
-			$this->check_for_incorrect_california_tax_nexus( $response['body'], true, $from_state );
+			$this->check_for_incorrect_california_tax_nexus( $response['body'], true );
 		}
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
@@ -1458,7 +1458,7 @@ class WC_Connect_TaxJar_Integration {
 			$body          = json_decode( wp_remote_retrieve_body( $response ) );
 			if ( 'CA' !== $from_state ) {
 				// If $from_state is not California, we need to check for incorrect California tax nexus.
-				$this->check_for_incorrect_california_tax_nexus( $body, false, $from_state );
+				$this->check_for_incorrect_california_tax_nexus( $body, false );
 			}
 			$is_zip_to_state_mismatch = (
 				isset( $body->detail )
