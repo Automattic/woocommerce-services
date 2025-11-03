@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.2.1 - 2025-xx-xx =
+= 3.2.1 - 2025-11-03 =
 * Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
 
 = 3.2.0 - 2025-10-14 =

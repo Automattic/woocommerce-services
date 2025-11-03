@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 10.1
 WC tested up to: 10.3
-Stable tag: 3.2.0
+Stable tag: 3.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.2.1 - 2025-xx-xx =
+= 3.2.1 - 2025-11-03 =
 * Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
 
 = 3.2.0 - 2025-10-14 =
