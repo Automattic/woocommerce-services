@@ -1097,7 +1097,7 @@ class WC_Connect_TaxJar_Integration {
 		// Strict conditions to be met before API call can be conducted.
 		if (
 			empty( $to_country ) ||
-			empty( $to_zip ) ||
+			( empty( $to_zip ) && ! in_array( $to_country, WC()->countries->get_vat_countries() ) ) ||
 			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
 			WC()->customer->is_vat_exempt()
 		) {
