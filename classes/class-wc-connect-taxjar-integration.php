@@ -1444,7 +1444,7 @@ class WC_Connect_TaxJar_Integration {
 			$zip_state_cache_key = strtolower( 'tj_tax_' . $to_zip . '_' . $to_state );
 			$response            = get_transient( $zip_state_cache_key );
 		}
-		$response         = $response ? $response : get_transient( $cache_key );
+		$response         = ! empty( $response ) ? $response : get_transient( $cache_key );
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
 
