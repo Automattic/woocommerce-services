@@ -23,17 +23,15 @@ class WC_Connect_TaxJar_Integration {
 
 	private $expected_options = array(
 		// Users can set either billing or shipping address for tax rates but not shop
-		'woocommerce_tax_based_on'          => 'shipping',
+		'woocommerce_tax_based_on'       => 'shipping',
 		// Rate calculations assume tax not included
-		'woocommerce_prices_include_tax'    => 'no',
+		'woocommerce_prices_include_tax' => 'no',
 		// Use no special handling on shipping taxes, our API handles that
-		'woocommerce_shipping_tax_class'    => '',
-		// API handles rounding precision
-		'woocommerce_tax_round_at_subtotal' => 'no',
+		'woocommerce_shipping_tax_class' => '',
 		// Rates are calculated in the cart assuming tax not included
-		'woocommerce_tax_display_shop'      => 'excl',
+		'woocommerce_tax_display_shop'   => 'excl',
 		// TaxJar returns one total amount, not line item amounts
-		'woocommerce_tax_display_cart'      => 'excl',
+		'woocommerce_tax_display_cart'   => 'excl',
 	);
 
 	/**
