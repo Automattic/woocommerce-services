@@ -1444,7 +1444,11 @@ class WC_Connect_TaxJar_Integration {
 		$response = $response ? $response : get_transient( $cache_key );
 		if ( $response && 'CA' !== $from_state ) {
 			// If $from_state is not California, we need to check for incorrect California tax nexus.
-			$this->check_for_incorrect_california_tax_nexus( $response['body'], true );
+			try {
+				$this->check_for_incorrect_california_tax_nexus( $response['body'], true, $from_state );
+			} catch ( Exception $e ) {
+				$this->_log( 'Error checking for incorrect California tax nexus: ' . $e->getMessage() );
+			}
 		}
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
@@ -1458,7 +1462,11 @@ class WC_Connect_TaxJar_Integration {
 			$body          = json_decode( wp_remote_retrieve_body( $response ) );
 			if ( 'CA' !== $from_state ) {
 				// If $from_state is not California, we need to check for incorrect California tax nexus.
-				$this->check_for_incorrect_california_tax_nexus( $body, false );
+				try {
+					$this->check_for_incorrect_california_tax_nexus( $body, false, $from_state );
+				} catch ( Exception $e ) {
+					$this->_log( 'Error checking for incorrect California tax nexus: ' . $e->getMessage() );
+				}
 			}
 			$is_zip_to_state_mismatch = (
 				isset( $body->detail )
@@ -1612,7 +1620,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return void
 	 */
-	private function check_for_incorrect_california_tax_nexus( $response_body, $cached ): void {
+	private function check_for_incorrect_california_tax_nexus( $response_body, $cached, $from_state ): void {
 		$log_suffix = 'in TaxJar API response.';
 
 		if ( $cached ) {
@@ -1625,7 +1633,16 @@ class WC_Connect_TaxJar_Integration {
 		$has_nexus  = $response_body->tax->has_nexus;
 
 		if ( 'CA' === $to_state && 'US' === $to_country && true === $has_nexus ) {
-			$this->_log( 'Incorrect California tax nexus detected ' . $log_suffix );
+			$this->_log(
+				sprintf(
+					'Incorrect California tax nexus detected %s (from_state: %s, to_state: %s, to_country: %s, has_nexus: %s).',
+					$log_suffix,
+					$from_state ?: 'unknown',
+					$to_state,
+					$to_country,
+					$has_nexus ? 'true' : 'false'
+				)
+			);
 		}
 	}
 }
