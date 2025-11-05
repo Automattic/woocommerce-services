@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.2.2 - 2025-xx-xx =
+* Fix   - Error notices is displayed after value is corrected in legacy cart/checkout.
+
 = 3.2.1 - 2025-11-03 =
 * Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
 
