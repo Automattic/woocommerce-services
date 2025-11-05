@@ -541,5 +541,7 @@ class WP_Test_WC_REST_Connect_Shipping_Label_Controller extends WC_Unit_Test_Cas
 	 */
 	private function set_destination_address( WC_Order $order, $address = array() ) {
 		$order->set_address( $address, 'shipping' );
+
+		$order->save(); // Required for WC 10.3+ HPOS compatibility
 	}
 }
