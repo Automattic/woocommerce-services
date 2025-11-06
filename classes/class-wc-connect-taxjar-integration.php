@@ -1146,7 +1146,7 @@ class WC_Connect_TaxJar_Integration {
 			$body['line_items'] = $line_items;
 		}
 
-		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ) );
+		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ), $from_state );
 
 		// if no response, no need to keep going - bail early.
 		if ( ! isset( $response ) || ! $response ) {
@@ -1431,10 +1431,11 @@ class WC_Connect_TaxJar_Integration {
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L451
 	 *
 	 * @param $json
+	 * @param $from_state
 	 *
 	 * @return mixed|WP_Error
 	 */
-	public function smartcalcs_cache_request( $json ) {
+	public function smartcalcs_cache_request( $json, $from_state ) {
 		$cache_key           = 'tj_tax_' . hash( 'md5', $json );
 		$zip_state_cache_key = false;
 		$request             = json_decode( $json );
@@ -1444,7 +1445,15 @@ class WC_Connect_TaxJar_Integration {
 			$zip_state_cache_key = strtolower( 'tj_tax_' . $to_zip . '_' . $to_state );
 			$response            = get_transient( $zip_state_cache_key );
 		}
-		$response         = ! empty( $response ) ? $response : get_transient( $cache_key );
+		$response = ! empty( $response ) ? $response : get_transient( $cache_key );
+		if ( $response && 'CA' !== $from_state ) {
+			// If $from_state is not California, we need to check for incorrect California tax nexus.
+			try {
+				$this->check_for_incorrect_california_tax_nexus( $response['body'], true, $from_state );
+			} catch ( Exception $e ) {
+				$this->_log( 'Error checking for incorrect California tax nexus: ' . $e->getMessage() );
+			}
+		}
 		$response_code    = wp_remote_retrieve_response_code( $response );
 		$save_error_codes = array( 404, 400 );
 
@@ -1452,9 +1461,17 @@ class WC_Connect_TaxJar_Integration {
 		$this->notifier->clear_notices( 'taxjar' );
 
 		if ( false === $response ) {
-			$response                 = $this->smartcalcs_request( $json );
-			$response_code            = wp_remote_retrieve_response_code( $response );
-			$body                     = json_decode( wp_remote_retrieve_body( $response ) );
+			$response      = $this->smartcalcs_request( $json );
+			$response_code = wp_remote_retrieve_response_code( $response );
+			$body          = json_decode( wp_remote_retrieve_body( $response ) );
+			if ( 'CA' !== $from_state ) {
+				// If $from_state is not California, we need to check for incorrect California tax nexus.
+				try {
+					$this->check_for_incorrect_california_tax_nexus( $body, false, $from_state );
+				} catch ( Exception $e ) {
+					$this->_log( 'Error checking for incorrect California tax nexus: ' . $e->getMessage() );
+				}
+			}
 			$is_zip_to_state_mismatch = (
 				isset( $body->detail )
 				&& is_string( $body->detail )
@@ -1597,5 +1614,39 @@ class WC_Connect_TaxJar_Integration {
 		}
 		// Load Javascript for WooCommerce new order page
 		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
+	}
+
+	/**
+	 * Check for incorrect California tax nexus in the TaxJar API response or cached response.
+	 *
+	 * @param $response_body
+	 * @param $cached
+	 *
+	 * @return void
+	 */
+	private function check_for_incorrect_california_tax_nexus( $response_body, $cached, $from_state ): void {
+		$log_suffix = 'in TaxJar API response.';
+
+		if ( $cached ) {
+			$response_body = json_decode( $response_body );
+			$log_suffix    = 'in cached response.';
+		}
+
+		$to_state   = $response_body->tax->jurisdictions->state;
+		$to_country = $response_body->tax->jurisdictions->country;
+		$has_nexus  = $response_body->tax->has_nexus;
+
+		if ( 'CA' === $to_state && 'US' === $to_country && true === $has_nexus ) {
+			$this->_log(
+				sprintf(
+					'Incorrect California tax nexus detected %s (from_state: %s, to_state: %s, to_country: %s, has_nexus: %s).',
+					$log_suffix,
+					$from_state ?: 'unknown',
+					$to_state,
+					$to_country,
+					$has_nexus ? 'true' : 'false'
+				)
+			);
+		}
 	}
 }
