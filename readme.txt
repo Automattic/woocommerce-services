@@ -75,6 +75,7 @@ This plugin relies on the following external services:
 
 = 3.2.1 - 2025-11-03 =
 * Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
+* Tweak - Add logging check for incorrect California tax nexus in the TaxJar API response or cached response.
 
 = 3.2.0 - 2025-10-14 =
 * Fix   - No tax calculated for multi-word state/counties.
