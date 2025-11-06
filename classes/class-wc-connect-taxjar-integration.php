@@ -1628,9 +1628,9 @@ class WC_Connect_TaxJar_Integration {
 			$log_suffix    = 'in cached response.';
 		}
 
-		$to_state   = $response_body->tax->jurisdictions->state;
-		$to_country = $response_body->tax->jurisdictions->country;
-		$has_nexus  = $response_body->tax->has_nexus;
+		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? $response_body->tax->jurisdictions->state : '';
+		$to_country = isset( $response_body->tax->jurisdictions->country ) ? $response_body->tax->jurisdictions->country : '';
+		$has_nexus  = isset( $response_body->tax->has_nexus ) ? $response_body->tax->has_nexus : false;
 
 		if ( 'CA' === $to_state && 'US' === $to_country && true === $has_nexus ) {
 			$this->_log(
