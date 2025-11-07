@@ -1628,9 +1628,9 @@ class WC_Connect_TaxJar_Integration {
 			$log_suffix    = 'in cached response.';
 		}
 
-		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? $response_body->tax->jurisdictions->state : '';
-		$to_country = isset( $response_body->tax->jurisdictions->country ) ? $response_body->tax->jurisdictions->country : '';
-		$has_nexus  = isset( $response_body->tax->has_nexus ) ? $response_body->tax->has_nexus : false;
+		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? $response_body->tax->jurisdictions->state : 'not set';
+		$to_country = isset( $response_body->tax->jurisdictions->country ) ? $response_body->tax->jurisdictions->country : 'not set';
+		$has_nexus  = isset( $response_body->tax->has_nexus ) ? $response_body->tax->has_nexus : null;
 
 		if ( 'CA' === $to_state && 'US' === $to_country && true === $has_nexus ) {
 			$this->_log(
@@ -1643,6 +1643,10 @@ class WC_Connect_TaxJar_Integration {
 					$has_nexus ? 'true' : 'false'
 				)
 			);
+		}
+
+		if ( 'not set' === $to_state || 'not set' === $to_country || null === $has_nexus || true ) {
+			throw new Exception( sprintf( __( 'One or more value is not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$d', 'woocommerce-services' ), $to_state, $to_country, $has_nexus ) );
 		}
 	}
 }
