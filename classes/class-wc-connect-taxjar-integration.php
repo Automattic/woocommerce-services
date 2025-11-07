@@ -1646,7 +1646,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( 'not set' === $to_state || 'not set' === $to_country || null === $has_nexus ) {
-			throw new Exception( sprintf( 'One or more value is not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', $to_state, $to_country, json_encode( $has_nexus ) ) );
+			throw new Exception( sprintf( 'One or more values are not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', $to_state, $to_country, json_encode( $has_nexus ) ) );
 		}
 	}
 }
