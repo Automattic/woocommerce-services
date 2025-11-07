@@ -71,8 +71,8 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.2.2 - 2025-xx-xx =
-* Fix   - Ensure the TaxJar error notices is displayed after tax is calculated.
-* Tweak - Add logging check for incorrect California tax nexus in the TaxJar API response or cached response.
+* Fix   - Display TaxJar error notices only after taxes are calculated.
+* Tweak - Log detection of potential incorrect California tax nexus in successful TaxJar API and cached responses.
 
 = 3.2.1 - 2025-11-03 =
 * Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
