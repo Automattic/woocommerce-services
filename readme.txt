@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.2.2 - 2025-xx-xx =
+* Fix - Resolved issue where shipping features were incorrectly loading when in tax-only mode for some installations.
+
 = 3.2.1 - 2025-11-03 =
 * Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
 * Tweak - Add logging check for incorrect California tax nexus in the TaxJar API response or cached response.
