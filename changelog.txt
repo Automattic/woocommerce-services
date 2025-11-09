@@ -1,5 +1,31 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.2.1 - 2025-11-03 =
+* Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
+* Tweak - Add logging check for incorrect California tax nexus in the TaxJar API response or cached response.
+
+= 3.2.0 - 2025-10-14 =
+* Fix   - No tax calculated for multi-word state/counties.
+* Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
+* Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
+* Tweak - Update tax rate and tax nexus links.
+* Tweak - Unify tax rate saving to always save itemized tax rates.
+* Tweak - WooCommerce 10.3 Compatibility.
+
+= 3.1.1 - 2025-09-29 =
+* Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
+* Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
+
+= 3.1.0 - 2025-09-16 =
+* Add   - Increase cache time for address validation errors.
+* Tweak - WooCommerce 10.2 Compatibility.
+
+= 3.0.11 - 2025-09-08 =
+* Tweak - Bump jetpack autoloader version
+
+= 3.0.10 - 2025-09-02 =
+* Fix   - Corrected migration guide link in survey modal.
+
 = 3.0.9 - 2025-08-26 =
 * Add   - Migration survey to understand WooCommerce Shipping adoption blockers.
 

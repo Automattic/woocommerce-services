@@ -8,13 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.0.9
+ * Version: 3.2.1
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.7
  * Tested up to: 6.8
- * WC requires at least: 9.9
- * WC tested up to: 10.1
+ * WC requires at least: 10.1
+ * WC tested up to: 10.3
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -913,6 +913,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->set_help_view( new WC_Connect_Help_View( $schema, $this->taxjar, $settings, $logger ) );
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
+
+			// Don't register settings if only_tax mode.
+			if ( '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
+				return;
+			}
 
 			// We only use the settings page for shipping since tax settings are part of
 			// the core "WooCommerce > Settings > Tax" tab.
