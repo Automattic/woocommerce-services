@@ -298,7 +298,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			);
 
 			// Shipping related.
-			if ( ! WC_Connect_Loader::is_wc_shipping_activated() && ! WC_Connect_Loader::has_only_tax_functionality() ) {
+			if ( WC_Connect_Loader::should_load_shipping_features() ) {
 				do_action(
 					'enqueue_wc_connect_script',
 					'wc-connect-admin-test-print',
