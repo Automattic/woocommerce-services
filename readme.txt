@@ -71,6 +71,9 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.2.2 - 2025-xx-xx =
+* Add   - Allow round tax at subtotal level, instead of rounding per line.
+* Add   - Allow calculating taxes for VAT countries without providing ZIP.
+* Fix   - Taxes were incorrectly calculated using the store’s base address for Ohio.
 * Fix   - Display TaxJar error notices only after taxes are calculated.
 * Tweak - Log detection of potential incorrect California tax nexus in successful TaxJar API and cached responses.
 
