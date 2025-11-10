@@ -34,7 +34,7 @@ class StoreNoticesController {
 	public function __construct( StoreNoticesNotifier $notifier ) {
 		$this->notifier = $notifier;
 
-		add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_display_notices' ) );
+		add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_display_notices' ), 30 );
 		add_filter( 'woocommerce_store_api_cart_errors', array( $this, 'add_store_api_cart_errors' ), 10, 2 );
 	}
 
