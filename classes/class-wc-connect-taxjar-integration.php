@@ -1632,21 +1632,25 @@ class WC_Connect_TaxJar_Integration {
 			$log_suffix    = 'in cached response.';
 		}
 
-		$to_state   = $response_body->tax->jurisdictions->state;
-		$to_country = $response_body->tax->jurisdictions->country;
-		$has_nexus  = $response_body->tax->has_nexus;
+		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? $response_body->tax->jurisdictions->state : 'not set';
+		$to_country = isset( $response_body->tax->jurisdictions->country ) ? $response_body->tax->jurisdictions->country : 'not set';
+		$has_nexus  = isset( $response_body->tax->has_nexus ) ? $response_body->tax->has_nexus : null;
 
 		if ( 'CA' === $to_state && 'US' === $to_country && true === $has_nexus ) {
 			$this->_log(
 				sprintf(
-					'Incorrect California tax nexus detected %s (from_state: %s, to_state: %s, to_country: %s, has_nexus: %s).',
+					'Incorrect California tax nexus detected %1$s (from_state: %2$s, to_state: %3$s, to_country: %4$s, has_nexus: %5$s).',
 					$log_suffix,
 					$from_state ?: 'unknown',
 					$to_state,
 					$to_country,
-					$has_nexus ? 'true' : 'false'
+					json_encode( $has_nexus ),
 				)
 			);
+		}
+
+		if ( 'not set' === $to_state || 'not set' === $to_country || null === $has_nexus ) {
+			throw new Exception( sprintf( 'One or more values are not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', $to_state, $to_country, json_encode( $has_nexus ) ) );
 		}
 	}
 }
