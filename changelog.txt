@@ -1,6 +1,9 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.2.2 - 2025-xx-xx =
+= 3.2.2 - 2025-11-10 =
+* Add   - Allow round tax at subtotal level, instead of rounding per line.
+* Add   - Allow calculating taxes for VAT countries without providing ZIP.
+* Fix   - Taxes were incorrectly calculated using the store’s base address for Ohio.
 * Fix   - Display TaxJar error notices only after taxes are calculated.
 * Fix   - Resolved issue where shipping features were incorrectly loading when in tax-only mode for some installations.
 * Tweak - Log detection of potential incorrect California tax nexus in successful TaxJar API and cached responses.

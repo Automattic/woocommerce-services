@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 10.1
 WC tested up to: 10.3
-Stable tag: 3.2.1
+Stable tag: 3.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,10 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.2.2 - 2025-xx-xx =
+= 3.2.2 - 2025-11-10 =
+* Add   - Allow round tax at subtotal level, instead of rounding per line.
+* Add   - Allow calculating taxes for VAT countries without providing ZIP.
+* Fix   - Taxes were incorrectly calculated using the store’s base address for Ohio.
 * Fix   - Display TaxJar error notices only after taxes are calculated.
 * Fix   - Resolved issue where shipping features were incorrectly loading when in tax-only mode for some installations.
 * Tweak - Log detection of potential incorrect California tax nexus in successful TaxJar API and cached responses.
