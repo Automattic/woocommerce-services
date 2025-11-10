@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.2.3 - 2025-xx-xx =
+* Fix   - Resolved issue where shipping features loaded despite the site being set to tax-only mode.
+
 = 3.2.2 - 2025-11-10 =
 * Add   - Allow round tax at subtotal level, instead of rounding per line.
 * Add   - Allow calculating taxes for VAT countries without providing ZIP.

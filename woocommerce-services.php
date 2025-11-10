@@ -915,7 +915,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
 			// Don't register settings if only_tax mode.
-			if ( '1' === WC_Connect_Options::get_option( 'only_tax' ) ) {
+			if ( ! self::should_load_shipping_features() ) {
 				return;
 			}
 
@@ -950,7 +950,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->paypal_ec->init();
 
 			// Only register shipping label-related logic if WC Shipping is not active.
-			if ( ! self::is_wc_shipping_activated() && '1' !== WC_Connect_Options::get_option( 'only_tax' ) ) {
+			if ( self::should_load_shipping_features() ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 				$this->init_shipping_labels();
@@ -1950,8 +1950,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$result = ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
 						( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
 
-			// Allow tests to override this functionality
+			// Allow tests to override this functionality.
 			return apply_filters( 'wc_connect_has_only_tax_functionality', $result );
+		}
+
+		/**
+		 * Checks whether shipping-related functionality and views should be loaded.
+		 *
+		 * Shipping features should only be loaded when the WooCommerce Shipping plugin
+		 * is not active and the site is not restricted to tax-only functionality.
+		 *
+		 * @return bool True if shipping features should be loaded, false otherwise.
+		 */
+		public static function should_load_shipping_features(): bool {
+			return ! self::is_wc_shipping_activated() && ! self::has_only_tax_functionality();
 		}
 
 		public function maybe_rename_plugin( $plugins ) {
