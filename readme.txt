@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.8
 WC requires at least: 10.1
 WC tested up to: 10.3
-Stable tag: 3.2.2
+Stable tag: 3.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.2.3 - 2025-xx-xx =
+= 3.2.3 - 2025-11-17 =
 * Fix   - Resolved issue where shipping features loaded despite the site being set to tax-only mode.
 
 = 3.2.2 - 2025-11-10 =
