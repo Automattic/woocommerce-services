@@ -98,9 +98,9 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 			/**
 			 * Filter for manipulate the custom surcharge.
 			 *
-			 * As of July 1, 2024 till June 30, 2025 RDF is 29 cents per order
+			 * As of July 2025 to June 2026 RDF is 28 cents per order.
 			 * RDF is subject to sales tax.
-			 * https://www.avalara.com/blog/en/north-america/2022/10/what-you-need-to-know-about-the-colorado-retail-delivery-fee-now.html.
+			 * https://tax.colorado.gov/retail-delivery-fee-rates.
 			 *
 			 * @since 2.9.0
 			 *
