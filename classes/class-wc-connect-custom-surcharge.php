@@ -28,9 +28,9 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 		 * https://www.avalara.com/blog/en/north-america/2022/10/what-you-need-to-know-about-the-colorado-retail-delivery-fee-now.html
 		 *
 		 * RDF fee is DISABLED by default - not all business are required to charge the fee.
-		 * To apply the fee use `wc_services_apply_us_co_retail_delivery_fee` filter.
-		 * Change boolian flag to `true`
-		 * Example: `add_filter( 'wc_services_apply_us_co_retail_delivery_fee', '__return_true' );`
+		 * To apply the fee use `wc_services_enable_us_co_retail_delivery_fee` filter.
+		 * Change boolean flag to `true`
+		 * Example: `add_filter( 'wc_services_enable_us_co_retail_delivery_fee', '__return_true' );`
 		 *
 		 * @param WC_Cart $cart WooCommerce Cart object.
 		 */
@@ -97,7 +97,7 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 
 			/**
 			 * Filter for manipulate the custom surcharge.
-			 * 
+			 *
 			 * As of July 1, 2024 till June 30, 2025 RDF is 29 cents per order
 			 * RDF is subject to sales tax.
 			 * https://www.avalara.com/blog/en/north-america/2022/10/what-you-need-to-know-about-the-colorado-retail-delivery-fee-now.html.
