@@ -66,6 +66,11 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * @var bool
+	 */
+	private $is_itemized_tax_display;
+
+	/**
 	 * Backend tax classes.
 	 *
 	 * @var array
@@ -103,6 +108,8 @@ class WC_Connect_TaxJar_Integration {
 
 		// Cache error response for 5 minutes.
 		$this->error_cache_time = MINUTE_IN_SECONDS * 5;
+
+		$this->is_itemized_tax_display = ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) );
 	}
 
 	/**
@@ -188,6 +195,8 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
+
+		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 
 		WC_Connect_Custom_Surcharge::init();
 	}
@@ -670,6 +679,18 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 		return $matched_tax_rates;
+	}
+
+	public function cleanup_tax_label( $rate_name ) {
+
+		if ( ! $this->is_itemized_tax_display ) {
+			return $rate_name;
+		}
+
+		$label_parts = explode( ' : ', $rate_name );
+		$clean_label = ! empty( $label_parts[1] ) ? $label_parts[1] : $label_parts[0];
+
+		return $clean_label;
 	}
 
 	/**
