@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.2.4 - 2025-xx-xx =
+* Tweak  - Change default Retail Delivery Fee for Colorado to 28c.
+
 = 3.2.3 - 2025-11-17 =
 * Fix   - Resolved issue where shipping features loaded despite the site being set to tax-only mode.
 
