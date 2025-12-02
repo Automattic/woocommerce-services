@@ -110,7 +110,7 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 			$fee_info = apply_filters(
 				'wc_services_apply_us_co_retail_delivery_fee',
 				array(
-					'value' => 0.29,
+					'value' => 0.28,
 					'text'  => __( 'Retail Delivery Fee', 'woocommerce_services' ),
 				),
 				$cart
