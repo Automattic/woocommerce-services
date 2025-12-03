@@ -121,7 +121,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return string The formatted and localized tax rate name.
 	 */
-	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country, $jurisdictions ) {
+	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country, array $jurisdictions ) {
 		// Normalize the base key by stripping the trailing "_tax_rate" and converting underscores to spaces.
 		$base_key   = str_replace( '_tax_rate', '', $taxjar_rate_name );
 		$label_core = ucwords( str_replace( '_', ' ', $base_key ) );
@@ -143,17 +143,9 @@ class WC_Connect_TaxJar_Integration {
 			return strtoupper( $rate_name );
 		}
 
-		// United States specific naming enhancements with defensive jurisdiction access.
-		$county = '';
-		$city   = '';
-		if ( is_array( $jurisdictions ) ) {
-			$county = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
-			$city   = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
-		} elseif ( is_object( $jurisdictions ) ) {
-			// Objects may be returned by upstream callers; access safely.
-			$county = isset( $jurisdictions->county ) ? trim( (string) $jurisdictions->county ) : '';
-			$city   = isset( $jurisdictions->city ) ? trim( (string) $jurisdictions->city ) : '';
-		}
+		// United States specific naming enhancements.
+		$county = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
+		$city   = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
 
 		switch ( $taxjar_rate_name ) {
 			case 'city_tax_rate':
