@@ -66,6 +66,11 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * @var bool
+	 */
+	private $is_itemized_tax_display;
+
+	/**
 	 * Backend tax classes.
 	 *
 	 * @var array
@@ -103,6 +108,8 @@ class WC_Connect_TaxJar_Integration {
 
 		// Cache error response for 5 minutes.
 		$this->error_cache_time = MINUTE_IN_SECONDS * 5;
+
+		$this->is_itemized_tax_display = ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) );
 	}
 
 	/**
@@ -110,22 +117,55 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param string $taxjar_rate_name The tax rate name from TaxJar, typically including '_tax_rate'.
 	 * @param string $to_country       The destination country for the tax calculation.
+	 * @param array  $jurisdictions    Tax jurisdictions.
 	 *
 	 * @return string The formatted and localized tax rate name.
 	 */
-	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country ) {
-		$rate_name = str_replace( '_tax_rate', '', $taxjar_rate_name );
-		if ( 'country' === $rate_name && in_array( $to_country, WC()->countries->get_vat_countries(), true ) ) {
-			$rate_name = 'VAT';
-		} elseif ( 'US' === $to_country ) {
-			$rate_name = str_replace( '_', ' ', $rate_name );
-			$rate_name = ucwords( $rate_name ) . ' ' . __( 'Tax', 'woocommerce-services' );
+	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country, array $jurisdictions ) {
+		// Normalize the base key by stripping the trailing "_tax_rate" and converting underscores to spaces.
+		$base_key   = str_replace( '_tax_rate', '', $taxjar_rate_name );
+		$label_core = ucwords( str_replace( '_', ' ', $base_key ) );
+		$rate_name  = $label_core . ' ' . __( 'Tax', 'woocommerce-services' );
 
-		} else {
-			$rate_name = strtoupper( $rate_name );
+		// Handle VAT countries where country-level tax should be labeled as VAT.
+		$is_vat_country = false;
+		if ( function_exists( 'WC' ) && WC() && isset( WC()->countries ) && method_exists( WC()->countries, 'get_vat_countries' ) ) {
+			$is_vat_country = in_array( $to_country, WC()->countries->get_vat_countries(), true );
 		}
 
-		return $rate_name;
+		if ( 'country' === $base_key && $is_vat_country ) {
+			return 'VAT';
+		}
+
+		// Default, country-agnostic formatting for non‑US destinations.
+		if ( 'US' !== $to_country ) {
+			// Preserve previous behavior of uppercasing for non‑US.
+			return strtoupper( $rate_name );
+		}
+
+		// United States specific naming enhancements.
+		$county = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
+		$city   = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
+
+		switch ( $taxjar_rate_name ) {
+			case 'city_tax_rate':
+			case 'special_tax_rate':
+				// Example: "Some County Some City : City Tax".
+				$prefix = trim( $county . ' ' . $city );
+				return ( '' !== $prefix ? $prefix . ' : ' : '' ) . $rate_name;
+
+			case 'county_tax_rate':
+				// Example: "Some County : County Tax".
+				return ( '' !== $county ? $county . ' : ' : '' ) . $rate_name;
+
+			case 'state_sales_tax_rate':
+				// Example: "State Sales Tax" (no jurisdiction prefix).
+				return $rate_name;
+
+			default:
+				// Fallback for any other US rate types.
+				return $rate_name;
+		}
 	}
 
 	public function init() {
@@ -178,6 +218,8 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
+
+		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 
 		WC_Connect_Custom_Surcharge::init();
 	}
@@ -660,6 +702,18 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 		return $matched_tax_rates;
+	}
+
+	public function cleanup_tax_label( $rate_name ) {
+
+		if ( ! $this->is_itemized_tax_display ) {
+			return $rate_name;
+		}
+
+		$label_parts = explode( ' : ', $rate_name );
+		$clean_label = ! empty( $label_parts[1] ) ? $label_parts[1] : $label_parts[0];
+
+		return $clean_label;
 	}
 
 	/**
@@ -1209,7 +1263,11 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( $taxes['has_nexus'] ) {
 			// Use Woo core to find matching rates for taxable address.
-			$location = array(
+			$jurisdictions = array(
+				'county' => $taxjar_taxes->jurisdictions->county ?? null,
+				'city'   => $taxjar_taxes->jurisdictions->city ?? null,
+			);
+			$location      = array(
 				'from_country' => $from_country,
 				'from_state'   => $from_state,
 				'to_country'   => $to_country,
@@ -1243,7 +1301,7 @@ class WC_Connect_TaxJar_Integration {
 						$tax_class,
 						$taxes['freight_taxable'],
 						$priority,
-						self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country )
+						self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions )
 					);
 
 					++$priority;
@@ -1263,7 +1321,7 @@ class WC_Connect_TaxJar_Integration {
 					'',
 					$taxes['freight_taxable'],
 					$priority,
-					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country )
+					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions )
 				);
 
 				++$priority;
