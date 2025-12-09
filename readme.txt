@@ -4,9 +4,9 @@ Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
 Requires at least: 6.7
 Requires Plugins: woocommerce
-Tested up to: 6.8
-WC requires at least: 10.1
-WC tested up to: 10.3
+Tested up to: 6.9
+WC requires at least: 10.2
+WC tested up to: 10.4
 Stable tag: 3.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -71,8 +71,9 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.3.0 - 2025-xx-xx =
-* Add    - Jurisdiction information to generated US tax rate names to improve tax analytics accuracy.
-* Tweak  - Change default Retail Delivery Fee for Colorado to 28c.
+* Add   - Jurisdiction information to generated US tax rate names to improve tax analytics accuracy.
+* Tweak - Change default Retail Delivery Fee for Colorado to 28c.
+* Tweak - WordPress 6.9 and WooCommerce 10.4 Compatibility.
 
 = 3.2.3 - 2025-11-17 =
 * Fix   - Resolved issue where shipping features loaded despite the site being set to tax-only mode.
