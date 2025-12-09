@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.3.0 - 2025-xx-xx =
 * Add   - Jurisdiction information to generated US tax rate names to improve tax analytics accuracy.
+* Tweak - Change default Retail Delivery Fee for Colorado to 28c.
 * Tweak - WordPress 6.9 and WooCommerce 10.4 Compatibility.
 
 = 3.2.3 - 2025-11-17 =
