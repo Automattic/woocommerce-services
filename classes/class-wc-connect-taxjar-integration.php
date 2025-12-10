@@ -1054,7 +1054,7 @@ class WC_Connect_TaxJar_Integration {
 	 * TaxJar request body and the "from" address needs to be removed from it in order to
 	 * get the correct rates. This is due to a limitation/miscalculation at the TaxJar API.
 	 *
-	 * This method adds the "nexus_addresses" element to the request body
+	 * This method returns a nexus address to be used as a workaround
 	 * if the workaround is enabled and an address case is matched.
 	 *
 	 * New edge cases can be added to the $cases array as needed.
