@@ -1203,15 +1203,15 @@ class WC_Connect_TaxJar_Integration {
 			? array_merge( array( $workaround_nexus_addresses ), array( $default_nexus_addresses ) )
 			: array( $default_nexus_addresses );
 
-		/*
-		Add, remove or modify nexus addresses.
+		/**
+		 * Add, remove or modify nexus addresses.
 		 *
 		 * @since 3.3.0
 		 *
 		 * @param array $nexus_addresses Array of nexus addresses.
 		 * @param array $body TaxJar request body.
 		 *
-		 * to remove nexus_addresses property return `false` in your filter.
+		 * if empty $nexus_addresses is passed, the nexus setting is skipped.
 		 * example: add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
 		 */
 		$nexus_addresses = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_addresses, $body );
