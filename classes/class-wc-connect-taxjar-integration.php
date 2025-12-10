@@ -1178,7 +1178,25 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
-		$body = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
+		$workaround_nexus_addresses = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
+
+		$default_nexus_addresses = array(
+			'country' => $body['from_country'],
+			'zip'     => $body['from_zip'],
+			'state'   => $body['from_state'],
+			'city'    => $body['from_city'],
+			'street'  => $body['from_street'],
+		);
+
+		$nexus_addresses = ! empty( $workaround_nexus_addresses )
+			? array_merge( array( $workaround_nexus_addresses ), array( $default_nexus_addresses ) )
+			: array( $default_nexus_addresses );
+
+		$nexus_addresses = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_addresses, $body );
+
+		if ( is_array( $nexus_addresses ) && ! empty( $nexus_addresses ) ) {
+			$body['nexus_addresses'] = $nexus_addresses;
+		}
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
 		if ( empty( $line_items ) ) {
