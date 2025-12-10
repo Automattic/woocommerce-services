@@ -1165,12 +1165,15 @@ class WC_Connect_TaxJar_Integration {
 			),
 		);
 
+		if ( ! is_array( $addresses ) ) {
+			return array( 0 => array( 'Nexus addresses has invalid format' ) );
+		}
+
 		foreach ( $addresses as $i => $data ) {
 			$entryErrors = array();
 
 			if ( ! is_array( $data ) ) {
-				$errors[ $i ] = array( 'Nexus address has invalid format' );
-				continue;
+				return array( 0 => array( 'Nexus addresses has invalid format' ) );
 			}
 
 			foreach ( $schema as $field => $rules ) {
