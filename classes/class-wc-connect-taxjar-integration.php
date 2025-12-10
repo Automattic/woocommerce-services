@@ -1063,7 +1063,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return array
 	 */
-	public function maybe_apply_taxjar_nexus_addresses_workaround( $body ) {
+	private function maybe_apply_taxjar_nexus_addresses_workaround( $body ) {
 		$workaround_nexus_addresses = array();
 		if ( true !== apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
 			return $workaround_nexus_addresses;
