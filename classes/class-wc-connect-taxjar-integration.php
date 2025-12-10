@@ -77,6 +77,13 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private $backend_tax_classes;
 
+	/**
+	 * Tracks instance.
+	 *
+	 * @var WC_Connect_Tracks
+	 */
+	protected $tracks;
+
 	const PROXY_PATH               = 'taxjar/v2';
 	const OPTION_NAME              = 'wc_connect_taxes_enabled';
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
@@ -87,18 +94,21 @@ class WC_Connect_TaxJar_Integration {
 	 * @param WC_Connect_API_Client     $api_client          TaxJar API client.
 	 * @param WC_Connect_Logger         $logger              Logger.
 	 * @param string                    $wc_connect_base_url WC Connect base URL.
+	 * @param WC_Connect_Tracks         $tracks              Tracks.
 	 * @param StoreNoticesNotifier|null $notifier            Notifier.
 	 */
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Logger $logger,
 		$wc_connect_base_url,
+		WC_Connect_Tracks $tracks,
 		?StoreNoticesNotifier $notifier = null
 	) {
 		$this->api_client          = $api_client;
 		$this->logger              = $logger;
 		$this->wc_connect_base_url = $wc_connect_base_url;
 		$this->notifier            = $notifier;
+		$this->tracks              = $tracks;
 
 		// Cache rates for 1 hour.
 		$this->cache_time = HOUR_IN_SECONDS;
@@ -631,6 +641,9 @@ class WC_Connect_TaxJar_Integration {
 			)
 		);
 		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
+			/**
+			 * @var WC_Order_Item_Product $item Product Order Item.
+			 */
 			foreach ( $order->get_items() as $item_key => $item ) {
 				$product_id    = $item->get_product_id();
 				$line_item_key = $product_id . '-' . $item_key;
@@ -985,8 +998,6 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( '' != $street ) {
 			return array( $country, $state, $postcode, $city, $street );
-		} else {
-			return array( $country, $state, $postcode, $city );
 		}
 
 		return array( $country, $state, $postcode, $city );
@@ -1278,6 +1289,21 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( $taxes['has_nexus'] ) {
+
+			$this->tracks->record_user_event(
+				'tax_calculation_nexus_detected',
+				array(
+					'from_country'      => $from_country,
+					'from_state'        => $from_state,
+					'to_country'        => $to_country,
+					'to_state'          => $to_state,
+					'to_zip'            => $to_zip,
+					'to_city'           => $to_city,
+					'freight_taxable'   => $taxes['freight_taxable'],
+					'combined_tax_rate' => $taxes['tax_rate'],
+				)
+			);
+
 			// Use Woo core to find matching rates for taxable address.
 			$jurisdictions = array(
 				'county' => $taxjar_taxes->jurisdictions->county ?? null,
