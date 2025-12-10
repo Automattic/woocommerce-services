@@ -696,7 +696,7 @@ class WC_Connect_TaxJar_Integration {
 					'country'   => $country,
 					'state'     => $state,
 					'postcode'  => $postcode,
-					'city'      => $city,
+					'city'      => strtoupper( $city ),
 					'tax_class' => $tax_class,
 				)
 			);
@@ -1395,7 +1395,7 @@ class WC_Connect_TaxJar_Integration {
 				'country'   => $location['to_country'],
 				'state'     => str_replace( ' ', '', $to_state ),
 				'postcode'  => $location['to_zip'],
-				'city'      => $location['to_city'],
+				'city'      => strtoupper( $location['to_city'] ),
 				'tax_class' => $tax_class,
 			)
 		);
