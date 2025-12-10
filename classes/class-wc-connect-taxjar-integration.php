@@ -1199,6 +1199,9 @@ class WC_Connect_TaxJar_Integration {
 		 *
 		 * @param array $nexus_addresses Array of nexus addresses.
 		 * @param array $body TaxJar request body.
+		 *
+		 * to remove nexus_addresses property return `false` in your filter.
+		 * example: add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
 		 */
 		$nexus_addresses = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_addresses, $body );
 
