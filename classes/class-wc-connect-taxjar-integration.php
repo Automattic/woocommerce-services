@@ -1122,6 +1122,98 @@ class WC_Connect_TaxJar_Integration {
 		return $workaround_nexus_addresses;
 	}
 
+	private function validate_nexus_addresses( array $addresses ): array {
+		$errors = array();
+		$schema = array(
+			'id'      => array(
+				'type'        => 'string',
+				'required'    => false,
+				'description' => 'Unique identifier for the nexus address (optional).',
+				'max_length'  => 255,
+			),
+			'country' => array(
+				'type'        => 'string',
+				'required'    => true,
+				'pattern'     => '/^[A-Z]{2}$/', // two-letter ISO alpha-2 (upper-case)
+				'description' => 'Two-letter ISO country code (e.g. "US").',
+				'max_length'  => 2,
+			),
+			'zip'     => array(
+				'type'        => 'string',
+				'required'    => false,
+				'description' => 'Postal code (format varies by country).',
+				'max_length'  => 20,
+			),
+			'state'   => array(
+				'type'        => 'string',
+				'required'    => true,
+				'pattern'     => '/^[A-Z0-9\-]{1,100}$/', // typical short code like "NY", "CA", "NSW"
+				'description' => 'Two-letter (or short) ISO state/province code where applicable.',
+				'max_length'  => 100,
+			),
+			'city'    => array(
+				'type'        => 'string',
+				'required'    => false,
+				'description' => 'City name.',
+				'max_length'  => 100,
+			),
+			'street'  => array(
+				'type'        => 'string',
+				'required'    => false,
+				'description' => 'Street address (line).',
+				'max_length'  => 255,
+			),
+		);
+
+		foreach ( $addresses as $i => $data ) {
+			$entryErrors = array();
+
+			if ( ! is_array( $data ) ) {
+				$errors[ $i ] = array( 'Nexus address has invalid format' );
+				continue;
+			}
+
+			foreach ( $schema as $field => $rules ) {
+				$exists = array_key_exists( $field, $data );
+				$value  = $exists ? $data[ $field ] : null;
+
+				if ( ! empty( $rules['required'] ) && ! $exists ) {
+					$entryErrors[] = "[$field] field is required";
+					continue;
+				}
+
+				if ( ! $exists || $value === '' || $value === null ) {
+					continue;
+				}
+
+				if ( isset( $rules['type'] ) ) {
+					if ( $rules['type'] === 'string' && ! is_string( $value ) ) {
+						$entryErrors[] = "[$field] field must be a string";
+						continue;
+					}
+				}
+
+				if ( isset( $rules['max_length'] ) && is_string( $value ) ) {
+					if ( strlen( $value ) > $rules['max_length'] ) {
+						$entryErrors[] = "[$field] field exceeds maximum length of {$rules['max_length']}";
+					}
+				}
+
+				if ( isset( $rules['pattern'] ) && is_string( $value ) ) {
+					if ( ! preg_match( $rules['pattern'], $value ) ) {
+						$entryErrors[] = "[$field] field format is invalid";
+					}
+				}
+			}
+
+			if ( ! empty( $entryErrors ) ) {
+				$errors[ $i ] = $entryErrors;
+			}
+		}
+
+		return $errors;
+	}
+
 	/**
 	 * Calculate sales tax using SmartCalcs
 	 *
@@ -1215,6 +1307,13 @@ class WC_Connect_TaxJar_Integration {
 		 * example: add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
 		 */
 		$nexus_addresses = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_addresses, $body );
+
+		$errors = $this->validate_nexus_addresses( $nexus_addresses );
+
+		foreach ( $errors as $address_index => $address_errors ) {
+			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $address_errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $nexus_addresses[ $address_index ], true ), 'WCS Tax' );
+			unset( $nexus_addresses[ $address_index ] );
+		}
 
 		if ( is_array( $nexus_addresses ) && ! empty( $nexus_addresses ) ) {
 			$body['nexus_addresses'] = $nexus_addresses;
