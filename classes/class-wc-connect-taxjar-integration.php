@@ -1043,8 +1043,8 @@ class WC_Connect_TaxJar_Integration {
 	 * TaxJar request body and the "from" address needs to be removed from it in order to
 	 * get the correct rates. This is due to a limitation/miscalculation at the TaxJar API.
 	 *
-	 * This method adds the "nexus_addresses" element to the request body and unsets the "from"
-	 * address elements if the workaround is enabled and an address case is matched.
+	 * This method adds the "nexus_addresses" element to the request body
+	 * if the workaround is enabled and an address case is matched.
 	 *
 	 * New edge cases can be added to the $cases array as needed.
 	 *
@@ -1053,8 +1053,9 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function maybe_apply_taxjar_nexus_addresses_workaround( $body ) {
+		$workaround_nexus_addresses = array();
 		if ( true !== apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
-			return $body;
+			return $workaround_nexus_addresses;
 		}
 
 		$cases = array(
@@ -1096,32 +1097,18 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			$body['nexus_addresses'] = array(
-				array(
-					'street'  => $body['to_street'],
-					'city'    => $body['to_city'],
-					'state'   => $body['to_state'],
-					'country' => $body['to_country'],
-					'zip'     => $body['to_zip'],
-				),
+			$workaround_nexus_addresses = array(
+				'country' => $body['to_country'],
+				'zip'     => $body['to_zip'],
+				'state'   => $body['to_state'],
+				'city'    => $body['to_city'],
+				'street'  => $body['to_street'],
 			);
-
-			$params_to_unset = array(
-				'from_country',
-				'from_state',
-				'from_zip',
-				'from_city',
-				'from_street',
-			);
-
-			foreach ( $params_to_unset as $param ) {
-				unset( $body[ $param ] );
-			}
 
 			break;
 		}
 
-		return $body;
+		return $workaround_nexus_addresses;
 	}
 
 	/**
