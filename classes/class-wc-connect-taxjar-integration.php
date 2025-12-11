@@ -1122,6 +1122,13 @@ class WC_Connect_TaxJar_Integration {
 		return $workaround_nexus_addresses;
 	}
 
+	/**
+	 * Validates TaxJar nexus address.
+	 *
+	 * @param  array $address
+	 *
+	 * @return bool
+	 */
 	private function is_nexus_address_valid( array $address ): bool {
 		$errors = array();
 		$schema = array(
