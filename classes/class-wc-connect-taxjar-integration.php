@@ -1334,11 +1334,11 @@ class WC_Connect_TaxJar_Integration {
 		 *
 		 * @example
 		 * // Disable nexus addresses entirely.
-		 * add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
+		 * add_filter( 'woocommerce_taxjar_nexus_address', '__return_false' );
 		 *
 		 * @example
 		 * // Modify the nexus address.
-		 * add_filter( 'woocommerce_taxjar_nexus_addresses', function( $nexus_address, $body ) {
+		 * add_filter( 'woocommerce_taxjar_nexus_address', function( $nexus_address, $body ) {
 		 *     $nexus_address['street'] = '123 Custom Street';
 		 *     return $nexus_address;
 		 * }, 10, 2 );
