@@ -1309,17 +1309,41 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		/**
-		 * Remove or modify nexus address.
+		 * Filter to modify or disable the nexus address sent to TaxJar API.
+		 *
+		 * This filter allows modification of the nexus address that will be sent
+		 * in the TaxJar API request. The nexus address replaces the standard from_*
+		 * address fields when provided.
+		 *
+		 * Return false or an empty array to disable sending nexus addresses entirely,
+		 * which will cause the request to use the standard from_* address fields instead.
+		 *
+		 * The nexus address array should contain the following keys:
+		 * - country: Two-letter country code (required).
+		 * - state: Two-letter state/province code (required for US/CA).
+		 * - zip: Postal/ZIP code (required).
+		 * - city: City name (required).
+		 * - street: Street address (optional).
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array $nexus_address TaxJar nexus address.
-		 * @param array $body TaxJar request body.
+		 * @param array $nexus_address The nexus address array to be sent to TaxJar.
+		 * @param array $body          The complete TaxJar API request body.
 		 *
-		 * if empty $nexus_addresses is passed, the nexus setting is skipped.
-		 * example: add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
+		 * @return array|false Modified nexus address array, or false to disable nexus addresses.
+		 *
+		 * @example
+		 * // Disable nexus addresses entirely.
+		 * add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
+		 *
+		 * @example
+		 * // Modify the nexus address.
+		 * add_filter( 'woocommerce_taxjar_nexus_addresses', function( $nexus_address, $body ) {
+		 *     $nexus_address['street'] = '123 Custom Street';
+		 *     return $nexus_address;
+		 * }, 10, 2 );
 		 */
-		$nexus_address = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_address, $body );
+		$nexus_address = apply_filters( 'woocommerce_taxjar_nexus_address', $nexus_address, $body );
 
 		if ( is_array( $nexus_address ) && ! empty( $nexus_address ) && $this->is_nexus_address_valid( $nexus_address ) ) {
 			$params_to_unset = array(
