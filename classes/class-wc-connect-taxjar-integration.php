@@ -1172,6 +1172,14 @@ class WC_Connect_TaxJar_Integration {
 			),
 		);
 
+		/**
+		 * Return without logging as empty array() or false
+		 * might be return on purpose from filter to remove nexus address.
+		 */
+		if ( empty( $address ) ) {
+			return false;
+		}
+
 		if ( ! is_array( $address ) ) {
 			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
 			return false;
