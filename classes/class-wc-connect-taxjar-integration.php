@@ -1129,7 +1129,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @return bool
 	 */
-	private function is_nexus_address_valid( array $address ): bool {
+	private function is_nexus_address_valid( $address ): bool {
 		$errors = array();
 		$schema = array(
 			'id'      => array(
