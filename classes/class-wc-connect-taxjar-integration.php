@@ -1319,6 +1319,17 @@ class WC_Connect_TaxJar_Integration {
 		$nexus_address = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_address, $body );
 
 		if ( is_array( $nexus_address ) && ! empty( $nexus_address ) && $this->is_nexus_address_valid( $nexus_address ) ) {
+			$params_to_unset = array(
+				'from_country',
+				'from_state',
+				'from_zip',
+				'from_city',
+				'from_street',
+			);
+
+			foreach ( $params_to_unset as $param ) {
+				unset( $body[ $param ] );
+			}
 			$body['nexus_addresses'] = array( $nexus_address );
 		}
 
