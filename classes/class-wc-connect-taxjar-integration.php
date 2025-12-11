@@ -1182,6 +1182,7 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( ! is_array( $address ) ) {
 			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+
 			return false;
 		}
 
@@ -1220,6 +1221,8 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( ! empty( $errors ) ) {
 			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+
+			return false;
 		}
 
 		return true;
