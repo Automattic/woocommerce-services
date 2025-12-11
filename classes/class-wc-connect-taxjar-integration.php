@@ -1122,7 +1122,7 @@ class WC_Connect_TaxJar_Integration {
 		return $workaround_nexus_addresses;
 	}
 
-	private function validate_nexus_addresses( array $addresses ): array {
+	private function is_nexus_address_valid( array $address ): bool {
 		$errors = array();
 		$schema = array(
 			'id'      => array(
@@ -1165,56 +1165,49 @@ class WC_Connect_TaxJar_Integration {
 			),
 		);
 
-		if ( ! is_array( $addresses ) ) {
-			return array( 0 => array( 'Nexus addresses has invalid format' ) );
+		if ( ! is_array( $address ) ) {
+			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+			return false;
 		}
 
-		foreach ( $addresses as $i => $data ) {
-			$entryErrors = array();
+		foreach ( $schema as $field => $rules ) {
+			$exists = array_key_exists( $field, $address );
+			$value  = $exists ? $address[ $field ] : null;
 
-			if ( ! is_array( $data ) ) {
-				return array( 0 => array( 'Nexus addresses has invalid format' ) );
+			if ( ! empty( $rules['required'] ) && ! $exists ) {
+				$errors[] = "[$field] field is required";
+				continue;
 			}
 
-			foreach ( $schema as $field => $rules ) {
-				$exists = array_key_exists( $field, $data );
-				$value  = $exists ? $data[ $field ] : null;
+			if ( ! $exists || $value === '' || $value === null ) {
+				continue;
+			}
 
-				if ( ! empty( $rules['required'] ) && ! $exists ) {
-					$entryErrors[] = "[$field] field is required";
+			if ( isset( $rules['type'] ) ) {
+				if ( $rules['type'] === 'string' && ! is_string( $value ) ) {
+					$errors[] = "[$field] field must be a string";
 					continue;
-				}
-
-				if ( ! $exists || $value === '' || $value === null ) {
-					continue;
-				}
-
-				if ( isset( $rules['type'] ) ) {
-					if ( $rules['type'] === 'string' && ! is_string( $value ) ) {
-						$entryErrors[] = "[$field] field must be a string";
-						continue;
-					}
-				}
-
-				if ( isset( $rules['max_length'] ) && is_string( $value ) ) {
-					if ( strlen( $value ) > $rules['max_length'] ) {
-						$entryErrors[] = "[$field] field exceeds maximum length of {$rules['max_length']}";
-					}
-				}
-
-				if ( isset( $rules['pattern'] ) && is_string( $value ) ) {
-					if ( ! preg_match( $rules['pattern'], $value ) ) {
-						$entryErrors[] = "[$field] field format is invalid";
-					}
 				}
 			}
 
-			if ( ! empty( $entryErrors ) ) {
-				$errors[ $i ] = $entryErrors;
+			if ( isset( $rules['max_length'] ) && is_string( $value ) ) {
+				if ( strlen( $value ) > $rules['max_length'] ) {
+					$errors[] = "[$field] field exceeds maximum length of {$rules['max_length']}";
+				}
+			}
+
+			if ( isset( $rules['pattern'] ) && is_string( $value ) ) {
+				if ( ! preg_match( $rules['pattern'], $value ) ) {
+					$errors[] = "[$field] field format is invalid";
+				}
 			}
 		}
 
-		return $errors;
+		if ( ! empty( $errors ) ) {
+			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+		}
+
+		return true;
 	}
 
 	/**
@@ -1284,42 +1277,49 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
-		$workaround_nexus_addresses = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
+		$nexus_address = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
 
-		$default_nexus_addresses = array(
-			'country' => $body['from_country'],
-			'zip'     => $body['from_zip'],
-			'state'   => $body['from_state'],
-			'city'    => $body['from_city'],
-			'street'  => $body['from_street'],
+		// If workaround empty use default store address as nexus address.
+		if ( empty( $nexus_address ) ) {
+			$nexus_address = array(
+				'country' => $body['from_country'],
+				'zip'     => $body['from_zip'],
+				'state'   => $body['from_state'],
+				'city'    => $body['from_city'],
+				'street'  => $body['from_street'],
+			);
+		}
+
+		add_filter(
+			'woocommerce_taxjar_nexus_addresses',
+			function ( $nexus_address ) {
+
+				$nexus_address = array(
+					'zip'    => '93307',
+					'state'  => 'CA',
+					'city'   => 'Bakersfield',
+					'street' => '1200 Bachelor St',
+				);
+
+				return $nexus_address;
+			}
 		);
 
-		$nexus_addresses = ! empty( $workaround_nexus_addresses )
-			? array_merge( array( $workaround_nexus_addresses ), array( $default_nexus_addresses ) )
-			: array( $default_nexus_addresses );
-
 		/**
-		 * Add, remove or modify nexus addresses.
+		 * Remove or modify nexus address.
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array $nexus_addresses Array of nexus addresses.
+		 * @param array $nexus_address TaxJar nexus address.
 		 * @param array $body TaxJar request body.
 		 *
 		 * if empty $nexus_addresses is passed, the nexus setting is skipped.
 		 * example: add_filter( 'woocommerce_taxjar_nexus_addresses', '__return_false' );
 		 */
-		$nexus_addresses = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_addresses, $body );
+		$nexus_address = apply_filters( 'woocommerce_taxjar_nexus_addresses', $nexus_address, $body );
 
-		$errors = $this->validate_nexus_addresses( $nexus_addresses );
-
-		foreach ( $errors as $address_index => $address_errors ) {
-			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $address_errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $nexus_addresses[ $address_index ], true ), 'WCS Tax' );
-			unset( $nexus_addresses[ $address_index ] );
-		}
-
-		if ( is_array( $nexus_addresses ) && ! empty( $nexus_addresses ) ) {
-			$body['nexus_addresses'] = $nexus_addresses;
+		if ( is_array( $nexus_address ) && ! empty( $nexus_address ) && $this->is_nexus_address_valid( $nexus_address ) ) {
+			$body['nexus_addresses'] = array( $nexus_address );
 		}
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
