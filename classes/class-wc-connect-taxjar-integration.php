@@ -1305,21 +1305,6 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
-		add_filter(
-			'woocommerce_taxjar_nexus_addresses',
-			function ( $nexus_address ) {
-
-				$nexus_address = array(
-					'zip'    => '93307',
-					'state'  => 'CA',
-					'city'   => 'Bakersfield',
-					'street' => '1200 Bachelor St',
-				);
-
-				return $nexus_address;
-			}
-		);
-
 		/**
 		 * Remove or modify nexus address.
 		 *
