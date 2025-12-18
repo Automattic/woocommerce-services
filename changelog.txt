@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.5.0 - 2025-xx-xx =
+* Revamp - Tax Rate Table population logic.
+
 = 3.4.0 - 2026-02-03 =
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
