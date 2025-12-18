@@ -218,7 +218,8 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
-		add_filter( 'woocommerce_get_tax_location', array( $this, 'get_tax_location' ), 10, 3 );
+		add_filter( 'woocommerce_get_tax_location', array( $this, 'get_tax_location' ), 20, 3 );
+		add_filter( 'woocommerce_order_get_tax_location', array( $this, 'get_tax_location_for_order' ), 20 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 
@@ -657,9 +658,7 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Get jurisdictions stored in transient and replace WooCommerce tax locations.
-	 *
-	 * When OK response is received from TaxJar in smartcalcs_cache_request() method jurisdictions are stored in transient.
+	 * Replace WooCommerce tax locations with TaxJar jurisdictions.
 	 *
 	 * @param  array       $location  Location address.
 	 * @param  string      $tax_class Tax class.
@@ -668,16 +667,55 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	public function get_tax_location( $location, $tax_class, $customer ) {
-		$key           = 'tj_jurisdictions_' . md5( strtoupper( implode( '', $location ) . $customer->get_shipping_address() ) );
-		$jurisdictions = get_transient( $key );
-
-		$county = $jurisdictions->county ?? '';
-		$city   = $jurisdictions->city ?? '';
+		$jurisdictions = $this->get_jurisdictions( $location, $customer );
+		$county        = $jurisdictions->county ?? '';
+		$city          = $jurisdictions->city ?? '';
 
 		$location[2] = '';
 		$location[3] = trim( $county . ' ' . $city );
 
 		return $location;
+	}
+
+	/**
+	 * Replace WooCommerce tax locations for Order with TaxJar jurisdictions.
+	 *
+	 * @param  array $location  Location address.
+	 *
+	 * @return array
+	 */
+	public function get_tax_location_for_order( $location ) {
+
+		if ( ! is_null( WC()->customer ) ) {
+			$jurisdictions        = $this->get_jurisdictions( $location, WC()->customer );
+			$county               = $jurisdictions->county ?? '';
+			$city                 = $jurisdictions->city ?? '';
+			$location['postcode'] = '';
+			$location['city']     = trim( $county . ' ' . $city );
+		}
+
+		return $location;
+	}
+
+	/**
+	 * Get jurisdictions stored in transient.
+	 *
+	 * When OK response is received from TaxJar in smartcalcs_cache_request() method jurisdictions are stored in transient.
+	 *
+	 * @param  array       $location  Location address.
+	 * @param  WC_Customer $customer  Customer.
+	 *
+	 * @return object|false
+	 */
+	private function get_jurisdictions( $location, $customer ) {
+		if ( is_null( $customer ) ) {
+			return false;
+		}
+
+		$key           = 'tj_jurisdictions_' . md5( strtoupper( implode( '', $location ) . $customer->get_shipping_address() ) );
+		$jurisdictions = get_transient( $key );
+
+		return $jurisdictions;
 	}
 
 	/**
