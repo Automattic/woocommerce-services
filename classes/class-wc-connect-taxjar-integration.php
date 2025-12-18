@@ -569,6 +569,8 @@ class WC_Connect_TaxJar_Integration {
 	 * Unchanged from the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
 	 *
+	 * @param int $order_id WC Order ID.
+	 *
 	 * @return void
 	 */
 	public function calculate_backend_totals( $order_id ) {
@@ -601,11 +603,16 @@ class WC_Connect_TaxJar_Integration {
 				$product_id    = $item->get_product_id();
 				$line_item_key = $product_id . '-' . $item_key;
 				if ( isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
-					$rate_id  = $taxes['rate_ids'][ $line_item_key ];
-					$item_tax = new WC_Order_Item_Tax();
-					$item_tax->set_rate( $rate_id );
-					$item_tax->set_order_id( $order_id );
-					$item_tax->save();
+					$rate_ids = $taxes['rate_ids'][ $line_item_key ];
+					if ( ! is_array( $rate_ids ) ) {
+						continue;
+					}
+					foreach ( $rate_ids as $rate_id ) {
+						$item_tax = new WC_Order_Item_Tax();
+						$item_tax->set_rate( $rate_id );
+						$item_tax->set_order_id( $order_id );
+						$item_tax->save();
+					}
 				}
 			}
 		}
