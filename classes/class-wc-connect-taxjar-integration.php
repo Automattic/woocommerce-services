@@ -734,11 +734,11 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function get_normalized_location( $request ) {
 		return array(
-			'to_country' => strtoupper( (string) $request['to_country'] ) ?? '',
-			'to_state'   => strtoupper( (string) $request['to_state'] ) ?? '',
-			'to_zip'     => strtoupper( (string) $request['to_zip'] ) ?? '',
-			'to_city'    => strtoupper( (string) $request['to_city'] ) ?? '',
-			'to_street'  => strtoupper( (string) $request['to_street'] ) ?? '',
+			'to_country' => strtoupper( (string) ( $request['to_country'] ?? '' ) ),
+			'to_state'   => strtoupper( (string) ( $request['to_state'] ?? '' ) ),
+			'to_zip'     => strtoupper( (string) ( $request['to_zip'] ?? '' ) ),
+			'to_city'    => strtoupper( (string) ( $request['to_city'] ?? '' ) ),
+			'to_street'  => strtoupper( (string) ( $request['to_street'] ?? '' ) ),
 		);
 	}
 
@@ -854,7 +854,7 @@ class WC_Connect_TaxJar_Integration {
 
 			// Get WC Subscription sign-up fees for calculations.
 			if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
-				if ( 'none' == WC_Subscriptions_Cart::get_calculation_type() ) {
+				if ( 'none' === WC_Subscriptions_Cart::get_calculation_type() ) {
 					if ( class_exists( 'WC_Subscriptions_Synchroniser' ) ) {
 						WC_Subscriptions_Synchroniser::maybe_set_free_trial();
 					}
@@ -1253,7 +1253,7 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			if ( is_string( $value ) && strlen( $value ) > $rules['max_length'] ) {
+			if ( isset( $rules['max_length'] ) && is_string( $value ) && strlen( $value ) > $rules['max_length'] ) {
 				$errors[] = "[$field] field exceeds maximum length of {$rules['max_length']}";
 			}
 
