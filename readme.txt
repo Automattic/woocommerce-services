@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.3.1 - 20256-xx-xx =
+= 3.3.1 - 2026-xx-xx =
 * Fix   - Normalize state and country codes to uppercase in TaxJar integration.
 
 = 3.3.0 - 2025-12-11 =
