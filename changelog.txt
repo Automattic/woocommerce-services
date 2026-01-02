@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.3.1 - 20256-xx-xx =
+* Fix   - Normalize state and country codes to uppercase in TaxJar integration.
+
 = 3.3.0 - 2025-12-11 =
 * Add   - Add default nexus address.
 * Add   - Add woocommerce_taxjar_nexus_address filter.
