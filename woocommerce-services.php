@@ -74,6 +74,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WCSERVICES_STYLESHEETS_DIR', WCSERVICES_ASSETS_DIR . 'stylesheets/' );
 	define( 'WCSERVICES_JAVASCRIPT_DIR', WCSERVICES_ASSETS_URL . 'javascript/' );
 
+	/**
+	 * Live rates feature flag.
+	 * Set to false to disable live rates (USPS/DHL Express) globally.
+	 * Can be overridden via the 'wc_connect_live_rates_enabled' filter.
+	 */
+	if ( ! defined( 'WCSERVICES_LIVE_RATES_ENABLED' ) ) {
+		define( 'WCSERVICES_LIVE_RATES_ENABLED', true );
+	}
+
 	class WC_Connect_Loader {
 
 		/**
@@ -957,10 +966,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			/*
-			 * Regardless of disabling shipping labels if WC Shipping is active,
-			 * keep live rates enabled if the store supports them.
+			 * Initialize live rates if enabled.
+			 * Can be disabled via WCSERVICES_LIVE_RATES_ENABLED constant,
+			 * wc_connect_live_rates_enabled option, or wc_connect_live_rates_enabled filter.
 			 */
-			$this->init_live_rates();
+			if ( self::is_live_rates_enabled() ) {
+				$this->init_live_rates();
+			}
 
 			if ( is_admin() ) {
 				$this->load_admin_dependencies();
@@ -2122,6 +2134,35 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public static function is_wc_shipping_activated() {
 			return in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
+		}
+
+		/**
+		 * Check if live rates (USPS/DHL Express) should be enabled.
+		 *
+		 * This checks multiple sources in order of priority:
+		 * 1. The WCSERVICES_LIVE_RATES_ENABLED constant (for global override)
+		 * 2. The wc_connect_live_rates_enabled option (for admin settings)
+		 * 3. The wc_connect_live_rates_enabled filter (for developer override)
+		 *
+		 * @return bool True if live rates should be enabled, false otherwise.
+		 */
+		public static function is_live_rates_enabled() {
+			// Check constant first.
+			if ( defined( 'WCSERVICES_LIVE_RATES_ENABLED' ) && ! WCSERVICES_LIVE_RATES_ENABLED ) {
+				$enabled = false;
+			} else {
+				// Check option (defaults to true for backward compatibility).
+				$enabled = get_option( 'wc_connect_live_rates_enabled', true );
+			}
+
+			/**
+			 * Filter whether live rates (USPS/DHL Express) should be enabled.
+			 *
+			 * @since 3.3.1
+			 *
+			 * @param bool $enabled Whether live rates are enabled.
+			 */
+			return apply_filters( 'wc_connect_live_rates_enabled', $enabled );
 		}
 
 		/**
