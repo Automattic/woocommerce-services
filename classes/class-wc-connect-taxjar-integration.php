@@ -676,8 +676,8 @@ class WC_Connect_TaxJar_Integration {
 		$taxable_address = $this->get_taxable_address();
 		$taxable_address = is_array( $taxable_address ) ? $taxable_address : array();
 
-		$to_country = isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ? $taxable_address[0] : false;
-		$to_state   = isset( $taxable_address[1] ) && ! empty( $taxable_address[1] ) ? $taxable_address[1] : false;
+		$to_country = isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ? strtoupper( $taxable_address[0] ) : false;
+		$to_state   = isset( $taxable_address[1] ) && ! empty( $taxable_address[1] ) ? strtoupper( $taxable_address[1] ) : false;
 		$to_zip     = isset( $taxable_address[2] ) && ! empty( $taxable_address[2] ) ? $taxable_address[2] : false;
 		$to_city    = isset( $taxable_address[3] ) && ! empty( $taxable_address[3] ) ? $taxable_address[3] : false;
 		$to_street  = isset( $taxable_address[4] ) && ! empty( $taxable_address[4] ) ? $taxable_address[4] : false;
@@ -1242,8 +1242,8 @@ class WC_Connect_TaxJar_Integration {
 		// Normalize options to an array and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		$to_country      = $options['to_country'] ?? null;
-		$to_state        = $options['to_state'] ?? null;
+		$to_country      = isset( $options['to_country'] ) ? strtoupper( $options['to_country'] ) : null;
+		$to_state        = isset( $options['to_state'] ) ? strtoupper( $options['to_state'] ) : null;
 		$to_zip          = $options['to_zip'] ?? null;
 		$to_city         = $options['to_city'] ?? null;
 		$to_street       = $options['to_street'] ?? null;
@@ -1272,8 +1272,8 @@ class WC_Connect_TaxJar_Integration {
 		$to_zip = array_shift( $to_zip );
 
 		$store_settings = $this->get_store_settings();
-		$from_country   = $store_settings['country'];
-		$from_state     = $store_settings['state'];
+		$from_country   = strtoupper( $store_settings['country'] );
+		$from_state     = strtoupper( $store_settings['state'] );
 		$from_zip       = $store_settings['postcode'];
 		$from_city      = $store_settings['city'];
 		$from_street    = $store_settings['street'];
@@ -1404,14 +1404,14 @@ class WC_Connect_TaxJar_Integration {
 		// Normalize options and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		$to_country = $options['to_country'] ?? null;
-		$to_state   = $options['to_state'] ?? null;
+		$to_country = isset( $options['to_country'] ) ? strtoupper( $options['to_country'] ) : null;
+		$to_state   = isset( $options['to_state'] ) ? strtoupper( $options['to_state'] ) : null;
 		$to_zip     = $options['to_zip'] ?? null;
 		$to_city    = $options['to_city'] ?? null;
 
 		$store_settings = $this->get_store_settings();
-		$from_country   = $store_settings['country'];
-		$from_state     = $store_settings['state'];
+		$from_country   = strtoupper( $store_settings['country'] );
+		$from_state     = strtoupper( $store_settings['state'] );
 
 		// Update Properties based on Response.
 		$taxes['freight_taxable'] = (int) $taxjar_taxes->freight_taxable;
@@ -1528,7 +1528,7 @@ class WC_Connect_TaxJar_Integration {
 	public function create_or_update_tax_rate( $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $tax_rate_name = 'Tax' ) {
 		// Prevent filling "State code" column for countries with VAT tax.
 		// VAT tax is country wide.
-		$to_state      = 'VAT' === $tax_rate_name ? '' : $location['to_state'];
+		$to_state      = 'VAT' === $tax_rate_name ? '' : strtoupper( $location['to_state'] );
 		$rate_priority = absint( $rate_priority );
 
 		/**
@@ -1680,7 +1680,7 @@ class WC_Connect_TaxJar_Integration {
 		$zip_state_cache_key = false;
 		$request             = json_decode( $json );
 		$to_zip              = isset( $request->to_zip ) ? (string) $request->to_zip : false;
-		$to_state            = isset( $request->to_state ) ? (string) $request->to_state : false;
+		$to_state            = isset( $request->to_state ) ? strtoupper( (string) $request->to_state ) : false;
 		if ( $to_zip && $to_state ) {
 			$zip_state_cache_key = strtolower( 'tj_tax_' . $to_zip . '_' . $to_state );
 			$response            = get_transient( $zip_state_cache_key );
@@ -1872,8 +1872,8 @@ class WC_Connect_TaxJar_Integration {
 			$log_suffix    = 'in cached response.';
 		}
 
-		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? $response_body->tax->jurisdictions->state : 'not set';
-		$to_country = isset( $response_body->tax->jurisdictions->country ) ? $response_body->tax->jurisdictions->country : 'not set';
+		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? strtoupper( $response_body->tax->jurisdictions->state ) : 'not set';
+		$to_country = isset( $response_body->tax->jurisdictions->country ) ? strtoupper( $response_body->tax->jurisdictions->country ) : 'not set';
 		$has_nexus  = isset( $response_body->tax->has_nexus ) ? $response_body->tax->has_nexus : null;
 
 		if ( 'CA' === $to_state && 'US' === $to_country && true === $has_nexus ) {
