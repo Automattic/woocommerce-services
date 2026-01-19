@@ -1278,6 +1278,16 @@ class WC_Connect_TaxJar_Integration {
 		$from_city      = $store_settings['city'];
 		$from_street    = $store_settings['street'];
 
+		// Require from_country.
+		if ( empty( $from_country ) ) {
+			return;
+		}
+
+		// Don't calculate taxes for US when from_state and to_state are different.
+		if ( 'US' === $from_country && $from_state !== $to_state ) {
+			return;
+		}
+
 		$this->_log( ':::: TaxJar API called ::::' );
 
 		$body = array(
@@ -1642,6 +1652,23 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( 'US' === $json['to_country'] && empty( $json['to_zip'] ) ) {
 			$this->_error( 'API request is stopped. Country destination is set to US but the zip code is empty.' );
+
+			return false;
+		}
+
+		if (
+			'US' === $json['to_country']
+			&& ! empty( $json['to_state'] )
+			&& (
+				( isset( $json['from_country'] ) && 'US' === $json['from_country'] )
+				|| ( isset( $json['nexus_addresses'][0]['country'] ) && 'US' === $json['nexus_addresses'][0]['country'] )
+			)
+			&& (
+				( ! empty( $json['from_state'] ) && $json['from_state'] !== $json['to_state'] )
+				|| ( ! empty( $json['nexus_addresses'][0]['state'] ) && $json['nexus_addresses'][0]['state'] !== $json['to_state'] )
+			)
+		) {
+			$this->_error( 'API request is stopped. from_state !== to_state.' );
 
 			return false;
 		}
