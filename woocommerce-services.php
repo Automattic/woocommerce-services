@@ -8,7 +8,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.3.1
+ * Version: 3.4.0
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.7
@@ -965,6 +965,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( is_admin() ) {
 				$this->load_admin_dependencies();
 			}
+
+			add_filter( 'wc_services_enable_us_co_retail_delivery_fee', '__return_true' );
 		}
 
 		/**
