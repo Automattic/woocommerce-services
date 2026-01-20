@@ -965,8 +965,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			if ( is_admin() ) {
 				$this->load_admin_dependencies();
 			}
-
-			add_filter( 'wc_services_enable_us_co_retail_delivery_fee', '__return_true' );
 		}
 
 		/**
