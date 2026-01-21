@@ -1278,16 +1278,6 @@ class WC_Connect_TaxJar_Integration {
 		$from_city      = $store_settings['city'];
 		$from_street    = $store_settings['street'];
 
-		// Require from_country.
-		if ( empty( $from_country ) ) {
-			return;
-		}
-
-		// Don't calculate taxes for US when from_state and to_state are different.
-		if ( 'US' === $from_country && $from_state !== $to_state ) {
-			return;
-		}
-
 		$this->_log( ':::: TaxJar API called ::::' );
 
 		$body = array(
@@ -1370,6 +1360,18 @@ class WC_Connect_TaxJar_Integration {
 			$body['nexus_addresses'] = array( $nexus_address );
 		}
 
+		$address_parts = $this->get_address_parts( $body );
+
+		// Require from_country.
+		if ( empty( $address_parts['from_country'] ) ) {
+			return false;
+		}
+
+		// Don't calculate taxes for US when from_state and to_state are different.
+		if ( 'US' === $address_parts['from_country'] && 'US' === $address_parts['to_country'] && $address_parts['from_state'] !== $address_parts['to_state'] ) {
+			return false;
+		}
+
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
 		if ( empty( $line_items ) ) {
 			$body['amount'] = 0.01;
@@ -1399,6 +1401,26 @@ class WC_Connect_TaxJar_Integration {
 
 		return $taxes;
 	} // End calculate_tax().
+
+
+	/**
+	 * Return address parts.
+	 * Primarily used in address validation to operate on normalized and predictable indexes.
+	 *
+	 * @param array $body Request body.
+	 *
+	 * @return array
+	 */
+	private function get_address_parts( $body ) {
+		return array(
+			'from_country' => strtoupper( $body['nexus_addresses'][0]['country'] ?? $body['from_country'] ?? '' ),
+			'from_state'   => strtoupper( $body['nexus_addresses'][0]['state'] ?? $body['from_state'] ?? '' ),
+			'from_zip'     => strtoupper( $body['nexus_addresses'][0]['zip'] ?? $body['from_zip'] ?? '' ),
+			'to_country'   => strtoupper( $body['to_country'] ?? '' ),
+			'to_state'     => strtoupper( $body['to_state'] ?? '' ),
+			'to_zip'       => strtoupper( $body['to_zip'] ?? '' ),
+		);
+	}
 
 	/**
 	 * Get itemized tax rates from TaxJar response.
@@ -1636,51 +1658,50 @@ class WC_Connect_TaxJar_Integration {
 	public function validate_taxjar_request( $json ) {
 		$this->_log( ':::: TaxJar API request validation ::::' );
 
-		$json = json_decode( $json, true );
+		$body    = json_decode( $json, true );
+		$address = $this->get_address_parts( $body );
 
-		if ( empty( $json['to_country'] ) ) {
-			$this->_error( 'API request is stopped. Empty country destination.' );
+		if ( empty( $address['from_country'] ) ) {
+			$this->_error( 'API request is stopped. Empty origin country.' );
 
 			return false;
 		}
 
-		if ( ( 'US' === $json['to_country'] || 'CA' === $json['to_country'] ) && empty( $json['to_state'] ) ) {
+		if ( empty( $address['to_country'] ) ) {
+			$this->_error( 'API request is stopped. Empty destination country.' );
+
+			return false;
+		}
+
+		if ( ( 'US' === $address['to_country'] || 'CA' === $address['to_country'] ) && empty( $address['to_state'] ) ) {
 			$this->_error( 'API request is stopped. Country destination is set to US or CA but the state is empty.' );
 
 			return false;
 		}
 
-		if ( 'US' === $json['to_country'] && empty( $json['to_zip'] ) ) {
+		if ( 'US' === $address['to_country'] && empty( $address['to_zip'] ) ) {
 			$this->_error( 'API request is stopped. Country destination is set to US but the zip code is empty.' );
 
 			return false;
 		}
 
 		if (
-			'US' === $json['to_country']
-			&& ! empty( $json['to_state'] )
-			&& (
-				( isset( $json['from_country'] ) && 'US' === $json['from_country'] )
-				|| ( isset( $json['nexus_addresses'][0]['country'] ) && 'US' === $json['nexus_addresses'][0]['country'] )
-			)
-			&& (
-				( ! empty( $json['from_state'] ) && $json['from_state'] !== $json['to_state'] )
-				|| ( ! empty( $json['nexus_addresses'][0]['state'] ) && $json['nexus_addresses'][0]['state'] !== $json['to_state'] )
-			)
+			'US' === $address['to_country'] && 'US' === $address['from_country']
+			&& $address['from_state'] !== $address['to_state']
 		) {
-			$this->_error( 'API request is stopped. from_state !== to_state.' );
+			$this->_error( 'API request is stopped. US from_state !== to_state, tax don\'t apply.' );
 
 			return false;
 		}
 
 		// Apply this validation only if the destination country is the US and the zip code is 5 or 10 digits long.
-		if ( 'US' === $json['to_country'] && ! empty( $json['to_zip'] ) && in_array( strlen( $json['to_zip'] ), array( 5, 10 ) ) && ! WC_Validation::is_postcode( $json['to_zip'], $json['to_country'] ) ) {
+		if ( 'US' === $address['to_country'] && in_array( strlen( $address['to_zip'] ), array( 5, 10 ) ) && ! WC_Validation::is_postcode( $address['to_zip'], $address['to_country'] ) ) {
 			$this->_error( 'API request is stopped. Country destination is set to US but the zip code has incorrect format.' );
 
 			return false;
 		}
 
-		if ( ! empty( $json['from_country'] ) && ! empty( $json['from_zip'] ) && 'US' === $json['from_country'] && ! WC_Validation::is_postcode( $json['from_zip'], $json['from_country'] ) ) {
+		if ( 'US' === $address['from_country'] && ! WC_Validation::is_postcode( $address['from_zip'], $address['from_country'] ) ) {
 			$this->_error( 'API request is stopped. Country store is set to US but the zip code has incorrect format.' );
 
 			return false;
