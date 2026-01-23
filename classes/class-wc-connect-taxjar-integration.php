@@ -1364,11 +1364,13 @@ class WC_Connect_TaxJar_Integration {
 
 		// Require from_country.
 		if ( empty( $address_parts['from_country'] ) ) {
+			$this->_log( 'From country is missing. Aborting.' );
 			return false;
 		}
 
 		// Don't calculate taxes for US when from_state and to_state are different.
 		if ( 'US' === $address_parts['from_country'] && 'US' === $address_parts['to_country'] && $address_parts['from_state'] !== $address_parts['to_state'] ) {
+			$this->_log( 'US from_state and to_state are different. Aborting.' );
 			return false;
 		}
 
