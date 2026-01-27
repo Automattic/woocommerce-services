@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.3.2 - 2026-xx-xx =
+* Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
+
 = 3.3.1 - 2026-01-12 =
 * Fix   - Normalize state and country codes to uppercase in TaxJar integration.
 
