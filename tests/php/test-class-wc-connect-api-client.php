@@ -14,9 +14,8 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 	 * Undocumented function
 	 */
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
-
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client-live.php';
 	}
 
 	/**
@@ -132,5 +131,77 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		);
 
 		$this->assertEquals( $actual, $expected );
+	}
+
+	/**
+	 * Test get_sift_configuration returns cached config.
+	 */
+	public function test_get_sift_configuration_returns_cached() {
+		$expected_config = array( 'beacon_key' => 'test_key_123' );
+
+		set_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY, $expected_config );
+
+		$actual = $this->api_client->get_sift_configuration();
+
+		$this->assertEquals( $expected_config, $actual );
+	}
+
+	/**
+	 * Test get_sift_configuration returns error when not cached and non-blocking.
+	 */
+	public function test_get_sift_configuration_non_blocking_returns_error_when_not_cached() {
+		delete_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY );
+
+		$actual = $this->api_client->get_sift_configuration( false );
+
+		$this->assertWPError( $actual );
+		$this->assertEquals( 'sift_not_cached', $actual->get_error_code() );
+	}
+
+	/**
+	 * Test get_sift_configuration caches successful config.
+	 */
+	public function test_get_sift_configuration_caches_successful_response() {
+		delete_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY );
+
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'request' ) )
+			->getMock();
+
+		$expected_config = array( 'beacon_key' => 'test_key_123' );
+		$api_client->expects( $this->once() )
+			->method( 'request' )
+			->with( 'GET', '/payment/sift' )
+			->willReturn( $expected_config );
+
+		$actual = $api_client->get_sift_configuration( true );
+
+		$this->assertEquals( $expected_config, $actual );
+		$this->assertEquals( $expected_config, get_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY ) );
+	}
+
+	/**
+	 * Test get_sift_configuration caches errors temporarily.
+	 */
+	public function test_get_sift_configuration_caches_errors_temporarily() {
+		delete_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY );
+
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client_Live' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'request' ) )
+			->getMock();
+
+		$expected_error = new WP_Error( 'api_error', 'API request failed' );
+		$api_client->expects( $this->once() )
+			->method( 'request' )
+			->with( 'GET', '/payment/sift' )
+			->willReturn( $expected_error );
+
+		$actual = $api_client->get_sift_configuration( true );
+
+		$this->assertWPError( $actual );
+		$this->assertEquals( $expected_error, $actual );
+		$this->assertEquals( $expected_error, get_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY ) );
 	}
 }
