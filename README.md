@@ -31,9 +31,19 @@ If you'd just like to check out the latest code and/or wish to contribute code, 
 * Clone this repository into the `plugins` folder of the WordPress installation.
 * This project uses [Git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules). You'll need to run `git submodule update --init`, or enable `submodule.recurse` ([#](https://git-scm.com/docs/git-config#Documentation/git-config.txt-submodulerecurse)) like this: `git config --global submodule.recurse true`
 * Run `npm install && composer install` to set up all the dependencies
-* You now have two choices:
-    * For Development: run `npm run up`, let the process finish, connect your site to Jetpack using Jurassic Tube or ngrok.
-    * For testing or pre-production use: Run `npm run dist` which will build the files into the `dist` folder, and will be loaded by the plugin without any additional configuration
+* For local development:
+    1. Install [wp-env](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) globally: `npm install -g @wordpress/env`
+    2. Start the environment: `npm run up` (starts wp-env on port 8887)
+    3. In another terminal, start the dev server: `npm run start` (webpack dev server on port 8085)
+    4. Access your site at `http://localhost:8887` (admin: `admin` / `password`)
+    5. Connect to Jetpack using Jurassic Tube (`npm run tube:setup` then `npm run tube:start`) or ngrok
+
+The `.wp-env.json` configuration automatically:
+- Installs WooCommerce and WordPress Importer plugins
+- Enables debug mode and script debugging
+- Configures the dev server URL for hot reloading
+
+* For testing or pre-production use: Run `npm run dist` which will build the files into the `dist` folder, and will be loaded by the plugin without any additional configuration
 
 *note*: if `npm install` gets stuck, you may have to update your GitHub urls in your git config. Use this command to fix it:
 

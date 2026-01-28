@@ -1,0 +1,18 @@
+{
+	"core": null,
+	"phpVersion": "8.1",
+	"port": 8887,
+	"plugins": [
+		"https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip",
+		"https://downloads.wordpress.org/plugin/wordpress-importer.latest-stable.zip",
+		"."
+	],
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_LOG": true,
+		"SCRIPT_DEBUG": true,
+		"JETPACK_DEV_DEBUG": true,
+		"WOOCOMMERCE_CONNECT_FREQUENT_FETCH": true,
+		"WOOCOMMERCE_CONNECT_DEV_SERVER_URL": "http://localhost:8085/"
+	}
+}
