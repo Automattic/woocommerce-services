@@ -224,8 +224,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 			if ( ! is_wp_error( $config ) ) {
 				set_transient( self::SIFT_CONFIG_TRANSIENT_KEY, $config, MONTH_IN_SECONDS );
-			} else {
-				set_transient( self::SIFT_CONFIG_TRANSIENT_KEY, $config, 5 * MINUTE_IN_SECONDS );
 			}
 
 			return $config;

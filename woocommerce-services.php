@@ -2076,7 +2076,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function background_fetch_sift_config() {
 			$config = $this->api_client->get_sift_configuration( true );
-			delete_transient( self::SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY );
+
+			if ( ! is_wp_error( $config ) ) {
+				delete_transient( self::SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY );
+			}
 		}
 
 		public function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
