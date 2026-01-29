@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 
 = 3.3.2 - 2026-xx-xx =
+* Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
 * Tweak - WooCommerce 10.5 Compatibility.
 
 = 3.3.1 - 2026-01-12 =
