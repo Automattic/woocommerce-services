@@ -1464,20 +1464,6 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( $taxes['has_nexus'] ) {
 
-			$this->tracks->record_user_event(
-				'tax_calculation_nexus_detected',
-				array(
-					'from_country'      => $from_country,
-					'from_state'        => $from_state,
-					'to_country'        => $to_country,
-					'to_state'          => $to_state,
-					'to_zip'            => $to_zip,
-					'to_city'           => $to_city,
-					'freight_taxable'   => $taxes['freight_taxable'],
-					'combined_tax_rate' => $taxes['tax_rate'],
-				)
-			);
-
 			// Use Woo core to find matching rates for taxable address.
 			$jurisdictions = array(
 				'county' => $taxjar_taxes->jurisdictions->county ?? null,
