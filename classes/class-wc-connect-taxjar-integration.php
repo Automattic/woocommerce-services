@@ -1321,8 +1321,6 @@ class WC_Connect_TaxJar_Integration {
 		$from_city      = $store_settings['city'];
 		$from_street    = $store_settings['street'];
 
-		$this->_log( ':::: TaxJar API called ::::' );
-
 		$body = array(
 			'from_country' => $from_country,
 			'from_state'   => $from_state,
@@ -1851,7 +1849,9 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		$this->_log( 'Requesting: ' . $path . ' - ' . $json );
+		$this->_log( ':::: TaxJar API called ::::' );
+
+		$this->_log( 'Request: ' . $path . ' - ' . $json );
 
 		$response = $this->api_client->proxy_request(
 			$path,
