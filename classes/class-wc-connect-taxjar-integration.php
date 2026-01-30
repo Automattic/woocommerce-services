@@ -862,6 +862,7 @@ class WC_Connect_TaxJar_Integration {
 					'product_tax_code' => $tax_code,
 					'unit_price'       => $unit_price,
 					'discount'         => $discount,
+					'tax_location'     => $tax_location,
 				)
 			);
 		}
@@ -922,6 +923,7 @@ class WC_Connect_TaxJar_Integration {
 						'product_tax_code' => $tax_code,
 						'unit_price'       => $unit_price,
 						'discount'         => $discount,
+						'tax_location'     => $tax_location,
 					)
 				);
 			}
