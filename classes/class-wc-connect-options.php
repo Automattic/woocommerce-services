@@ -121,7 +121,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 					return self::update_grouped_option( $group, $name, $value );
 				}
 			}
-			wp_trigger_error( 'WC_Connect_Options::get_option', esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ) ), E_USER_WARNING );
+			wp_trigger_error( 'WC_Connect_Options::update_option', esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ) ), E_USER_WARNING );
 			return false;
 		}
 
