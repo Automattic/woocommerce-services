@@ -806,7 +806,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	protected function get_line_items( $wc_cart_object ) {
-		$line_items = array();
+		$line_items       = array();
+		$default_location = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
 			$product       = $cart_item['data'];
@@ -838,6 +839,20 @@ class WC_Connect_TaxJar_Integration {
 					}
 				}
 			}
+
+			/**
+			 * Filter the tax location type for a line item.
+			 *
+			 * Allows plugins to specify where a product should be taxed.
+			 * For example, service products (bookings) can be taxed at the shop
+			 * base address instead of the customer's shipping address.
+			 *
+			 * @since 2.8.0
+			 *
+			 * @param string     $location Tax location type: 'base', 'shipping', or 'billing'.
+			 * @param WC_Product $product  The product being taxed.
+			 */
+			$tax_location = apply_filters( 'woocommerce_tax_line_item_location', $default_location, $product );
 
 			array_push(
 				$line_items,
