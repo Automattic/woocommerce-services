@@ -880,6 +880,8 @@ class WC_Connect_TaxJar_Integration {
 	protected function get_backend_line_items( $order ) {
 		$line_items                = array();
 		$this->backend_tax_classes = array();
+		$default_location          = get_option( 'woocommerce_tax_based_on', 'shipping' );
+
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
 				$id             = $item->get_product_id();
@@ -907,6 +909,10 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'taxable' !== $tax_status ) {
 				$tax_code = '99999';
 			}
+
+			/** This filter is documented in get_line_items() */
+			$tax_location = apply_filters( 'woocommerce_tax_line_item_location', $default_location, $product );
+
 			if ( $unit_price ) {
 				array_push(
 					$line_items,
