@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.7
 Requires Plugins: woocommerce
 Tested up to: 6.9
-WC requires at least: 10.2
-WC tested up to: 10.4
+WC requires at least: 10.3
+WC tested up to: 10.5
 Stable tag: 3.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -74,6 +74,7 @@ This plugin relies on the following external services:
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
 * Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
+* Tweak - WooCommerce 10.5 Compatibility.
 
 = 3.3.1 - 2026-01-12 =
 * Fix   - Normalize state and country codes to uppercase in TaxJar integration.
