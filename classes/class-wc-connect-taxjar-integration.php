@@ -888,6 +888,7 @@ class WC_Connect_TaxJar_Integration {
 				$discount       = wc_format_decimal( $item->get_subtotal() - $item->get_total() );
 				$tax_class_name = $item->get_tax_class();
 				$tax_status     = $item->get_tax_status();
+				$product        = $item->get_product();
 			} else { // Woo 2.6
 				$id             = $item['product_id'];
 				$quantity       = $item['qty'];
