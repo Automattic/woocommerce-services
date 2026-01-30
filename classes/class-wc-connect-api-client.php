@@ -10,7 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
 	abstract class WC_Connect_API_Client {
-		const API_VERSION = WOOCOMMERCE_CONNECT_SERVER_API_VERSION;
+		const API_VERSION               = WOOCOMMERCE_CONNECT_SERVER_API_VERSION;
+		const SIFT_CONFIG_TRANSIENT_KEY = 'wc_connect_sift_configuration';
 
 		/**
 		 * @var WC_Connect_Services_Validator
@@ -205,10 +206,27 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Retrieve Sift configurations.
 		 *
+		 * @param bool $blocking Whether to make a blocking request if not cached. Default false.
 		 * @return object|WP_Error
 		 */
-		public function get_sift_configuration() {
-			return $this->request( 'GET', '/payment/sift' );
+		public function get_sift_configuration( $blocking = false ) {
+			$cached_config = get_transient( self::SIFT_CONFIG_TRANSIENT_KEY );
+
+			if ( false !== $cached_config ) {
+				return $cached_config;
+			}
+
+			if ( ! $blocking ) {
+				return new WP_Error( 'sift_not_cached', 'Sift configuration not cached.' );
+			}
+
+			$config = $this->request( 'GET', '/payment/sift' );
+
+			if ( ! is_wp_error( $config ) ) {
+				set_transient( self::SIFT_CONFIG_TRANSIENT_KEY, $config, MONTH_IN_SECONDS );
+			}
+
+			return $config;
 		}
 
 		/**
