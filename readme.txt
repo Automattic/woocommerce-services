@@ -70,7 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.3.2 - 2026-xx-xx =
+= 3.4.0 - 2026-xx-xx =
+* Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
+* Add   - Country validation for TaxJar requests.
 * Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
 
 = 3.3.1 - 2026-01-12 =
