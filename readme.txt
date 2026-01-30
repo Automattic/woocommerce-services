@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.3.2 - 2026-xx-xx =
+* Add   - Add woocommerce_tax_line_item_location filter for per-item tax location override.
 * Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
 
 = 3.3.1 - 2026-01-12 =
