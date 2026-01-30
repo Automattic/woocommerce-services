@@ -110,6 +110,7 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 			$log_message = $this->format_message( $message, $context );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound -- Intended debug logging when WP_DEBUG is enabled.
 				error_log( $log_message );
 			}
 
