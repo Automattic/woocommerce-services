@@ -806,7 +806,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	protected function get_line_items( $wc_cart_object ) {
-		$line_items = array();
+		$line_items       = array();
+		$default_location = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
 			$product       = $cart_item['data'];
@@ -839,6 +840,20 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
+			/**
+			 * Filter the tax location type for a line item.
+			 *
+			 * Allows plugins to specify where a product should be taxed.
+			 * For example, service products (bookings) can be taxed at the shop
+			 * base address instead of the customer's shipping address.
+			 *
+			 * @since 2.8.0
+			 *
+			 * @param string     $location Tax location type: 'base', 'shipping', or 'billing'.
+			 * @param WC_Product $product  The product being taxed.
+			 */
+			$tax_location = apply_filters( 'woocommerce_tax_line_item_location', $default_location, $product );
+
 			array_push(
 				$line_items,
 				array(
@@ -847,6 +862,7 @@ class WC_Connect_TaxJar_Integration {
 					'product_tax_code' => $tax_code,
 					'unit_price'       => $unit_price,
 					'discount'         => $discount,
+					'tax_location'     => $tax_location,
 				)
 			);
 		}
@@ -865,6 +881,8 @@ class WC_Connect_TaxJar_Integration {
 	protected function get_backend_line_items( $order ) {
 		$line_items                = array();
 		$this->backend_tax_classes = array();
+		$default_location          = get_option( 'woocommerce_tax_based_on', 'shipping' );
+
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
 				$id             = $item->get_product_id();
@@ -873,6 +891,7 @@ class WC_Connect_TaxJar_Integration {
 				$discount       = wc_format_decimal( $item->get_subtotal() - $item->get_total() );
 				$tax_class_name = $item->get_tax_class();
 				$tax_status     = $item->get_tax_status();
+				$product        = $item->get_product();
 			} else { // Woo 2.6
 				$id             = $item['product_id'];
 				$quantity       = $item['qty'];
@@ -891,6 +910,10 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'taxable' !== $tax_status ) {
 				$tax_code = '99999';
 			}
+
+			/** This filter is documented in get_line_items() */
+			$tax_location = apply_filters( 'woocommerce_tax_line_item_location', $default_location, $product );
+
 			if ( $unit_price ) {
 				array_push(
 					$line_items,
@@ -900,6 +923,7 @@ class WC_Connect_TaxJar_Integration {
 						'product_tax_code' => $tax_code,
 						'unit_price'       => $unit_price,
 						'discount'         => $discount,
+						'tax_location'     => $tax_location,
 					)
 				);
 			}
