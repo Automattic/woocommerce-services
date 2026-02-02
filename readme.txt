@@ -74,6 +74,7 @@ This plugin relies on the following external services:
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
 * Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
+* Fix   - Prevent opted_out tracks event from being sent when user never opted in.
 * Tweak - WooCommerce 10.5 Compatibility.
 
 = 3.3.1 - 2026-01-12 =
