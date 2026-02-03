@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.4.0 - 2026-xx-xx =
+= 3.4.0 - 2026-02-03 =
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
 * Add   - Add woocommerce_tax_line_item_location filter for per-item tax location override.

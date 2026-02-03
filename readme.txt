@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 6.9
 WC requires at least: 10.3
 WC tested up to: 10.5
-Stable tag: 3.3.1
+Stable tag: 3.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.4.0 - 2026-xx-xx =
+= 3.4.0 - 2026-02-03 =
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
 * Add   - Add woocommerce_tax_line_item_location filter for per-item tax location override.
