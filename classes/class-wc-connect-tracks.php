@@ -44,7 +44,10 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		}
 
 		public function opted_out() {
-			$this->record_user_event( 'opted_out' );
+			// Only send opted_out if user has previously opted in
+			if ( WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+				$this->record_user_event( 'opted_out' );
+			}
 		}
 
 		public function shipping_zone_method_added( $instance_id, $service_id ) {
