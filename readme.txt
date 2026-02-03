@@ -76,6 +76,7 @@ This plugin relies on the following external services:
 * Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
 * Fix   - Prevent opted_out tracks event from being sent when user never opted in.
 * Tweak - WooCommerce 10.5 Compatibility.
+* Add   - Add woocommerce_tax_line_item_location filter for per-item tax location override.
 
 = 3.3.1 - 2026-01-12 =
 * Fix   - Normalize state and country codes to uppercase in TaxJar integration.
