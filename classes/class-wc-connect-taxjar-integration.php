@@ -1057,6 +1057,71 @@ class WC_Connect_TaxJar_Integration {
 		return null;
 	}
 
+	/**
+	 * Override tax rates for individual cart items.
+	 *
+	 * This filter intercepts WooCommerce's tax rate lookup and returns
+	 * the correct rates for each item based on its tax location (base vs shipping).
+	 * This enables mixed carts where some items are taxed at the store address
+	 * and others at the customer's shipping address.
+	 *
+	 * @param array  $item_tax_rates Tax rates found by WooCommerce's native lookup.
+	 * @param object $item           Cart item object with product, quantity, etc.
+	 * @param object $cart           The WC_Cart object.
+	 * @return array Tax rates to use for this item.
+	 */
+	public function override_item_tax_rates( $item_tax_rates, $item, $cart ) {
+		// Only override if we have calculated rate IDs from TaxJar.
+		if ( empty( $this->response_rate_ids ) || ! is_array( $this->response_rate_ids ) ) {
+			return $item_tax_rates;
+		}
+
+		// Get the product ID and cart item key to build the line_item_key.
+		$product = $item->product ?? null;
+		if ( ! $product ) {
+			return $item_tax_rates;
+		}
+
+		$product_id = $product->get_id();
+
+		// Find the matching line_item_key in response_rate_ids.
+		// Format is "product_id-cart_item_key".
+		$matching_rate_ids = null;
+		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
+			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
+				$matching_rate_ids = $rate_ids;
+				break;
+			}
+		}
+
+		if ( empty( $matching_rate_ids ) || ! is_array( $matching_rate_ids ) ) {
+			return $item_tax_rates;
+		}
+
+		// Fetch the tax rates from the database using the rate IDs.
+		$tax_rates = array();
+		foreach ( $matching_rate_ids as $rate_id ) {
+			$rate_id = absint( $rate_id );
+			if ( ! $rate_id ) {
+				continue;
+			}
+
+			// Get rate data from WooCommerce.
+			$rate_data = WC_Tax::_get_tax_rate( $rate_id );
+			if ( $rate_data ) {
+				$tax_rates[ $rate_id ] = array(
+					'rate'     => (float) $rate_data['tax_rate'],
+					'label'    => $rate_data['tax_rate_name'],
+					'shipping' => 'yes' === $rate_data['tax_rate_shipping'] ? 'yes' : 'no',
+					'compound' => 'yes' === $rate_data['tax_rate_compound'] ? 'yes' : 'no',
+				);
+			}
+		}
+
+		// Return our rates if we found any, otherwise fall back to WooCommerce's.
+		return ! empty( $tax_rates ) ? $tax_rates : $item_tax_rates;
+	}
+
 		/**
 		 * Override Woo's native tax rates to handle multiple line items with the same tax rate
 		 * within the same tax class with different rates due to exemption thresholds
