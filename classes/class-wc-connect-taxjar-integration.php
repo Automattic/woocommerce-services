@@ -548,8 +548,14 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		$line_items = $this->get_line_items( $wc_cart_object );
+		$line_items      = $this->get_line_items( $wc_cart_object );
+		$shipping_amount = method_exists( $wc_cart_object, 'get_shipping_total' )
+			? $wc_cart_object->get_shipping_total()
+			: WC()->shipping->shipping_total;
 
+		// Group items by tax location and calculate taxes.
+		$items_by_location = $this->group_items_by_location( $line_items, $this->is_local_pickup() );
+		$taxes             = $this->calculate_taxes_by_location( $items_by_location, $shipping_amount );
 		// Return if taxes could not be calculated.
 		if ( false === $taxes ) {
 			return;
