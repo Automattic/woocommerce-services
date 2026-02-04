@@ -730,6 +730,33 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Check if local pickup shipping method is selected.
+	 *
+	 * @return bool
+	 */
+	protected function is_local_pickup() {
+		if ( ! apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) ) {
+			return false;
+		}
+
+		$local_pickup_methods = apply_filters(
+			'woocommerce_local_pickup_methods',
+			array( 'legacy_local_pickup', 'local_pickup' )
+		);
+
+		if ( function_exists( 'wc_get_chosen_shipping_method_ids' ) ) {
+			return count( array_intersect( wc_get_chosen_shipping_method_ids(), $local_pickup_methods ) ) > 0;
+		}
+
+		return count(
+			array_intersect(
+				WC()->session->get( 'chosen_shipping_methods', array() ),
+				$local_pickup_methods
+			)
+		) > 0;
+	}
+
+	/**
 	 * Get taxable address.
 	 *
 	 * @return array
