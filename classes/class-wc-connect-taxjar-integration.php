@@ -1127,21 +1127,21 @@ class WC_Connect_TaxJar_Integration {
 		return ! empty( $tax_rates ) ? $tax_rates : $item_tax_rates;
 	}
 
-		/**
-		 * Override Woo's native tax rates to handle multiple line items with the same tax rate
-		 * within the same tax class with different rates due to exemption thresholds
-		 *
-		 * Unchanged from the TaxJar plugin.
-		 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L729
-		 *
-		 * @return array
-		 */
+	/**
+	 * Override Woo's native tax rates to handle multiple line items with the same tax rate
+	 * within the same tax class with different rates due to exemption thresholds
+	 *
+	 * Unchanged from the TaxJar plugin.
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L729
+	 *
+	 * @return array
+	 */
 	public function override_woocommerce_tax_rates( $taxes, $price, $rates ) {
 		if (
-		! isset( $this->response_line_items )
-		|| empty( $rates )
-		|| ! is_array( $rates )
-		|| ! is_array( $taxes )
+			! isset( $this->response_line_items )
+			|| empty( $rates )
+			|| ! is_array( $rates )
+			|| ! is_array( $taxes )
 		) {
 			return $taxes;
 		}
@@ -1471,10 +1471,10 @@ class WC_Connect_TaxJar_Integration {
 
 		// Strict conditions to be met before API call can be conducted.
 		if (
-		empty( $to_country ) ||
-		( empty( $to_zip ) && ! in_array( $to_country, WC()->countries->get_vat_countries() ) ) ||
-		( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
-		WC()->customer->is_vat_exempt()
+			empty( $to_country ) ||
+			( empty( $to_zip ) && ! in_array( $to_country, WC()->countries->get_vat_countries() ) ) ||
+			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
+			WC()->customer->is_vat_exempt()
 		) {
 			return false;
 		}
@@ -1614,6 +1614,7 @@ class WC_Connect_TaxJar_Integration {
 
 		return $taxes;
 	} // End calculate_tax().
+
 
 	/**
 	 * Return address parts.
