@@ -687,7 +687,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Replace WooCommerce tax locations for Order with TaxJar jurisdictions.
 	 *
-	 * @param  array $location  Location address.
+	 * @param array $location  Location address.
 	 *
 	 * @return array
 	 */
@@ -709,8 +709,8 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * When OK response is received from TaxJar in smartcalcs_cache_request() method jurisdictions are stored in transient.
 	 *
-	 * @param  array       $location  Location address.
-	 * @param  WC_Customer $customer  Customer.
+	 * @param array       $location  Location address.
+	 * @param WC_Customer $customer  Customer.
 	 *
 	 * @return object|false
 	 */
@@ -719,7 +719,10 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		$key           = 'tj_jurisdictions_' . md5( strtoupper( implode( '', $location ) . $customer->get_shipping_address() ) );
+		$address = $this->get_taxable_address( $customer );
+		$street  = $address[4] ?? '';
+
+		$key           = 'tj_jurisdictions_' . hash( 'md5', strtoupper( implode( '', $location ) . $street ) );
 		$jurisdictions = get_transient( $key );
 
 		return $jurisdictions;
@@ -745,9 +748,12 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Get taxable address.
 	 *
+	 * @param WC_Customer $customer WC_Customer.
+	 *
 	 * @return array
 	 */
-	public function get_taxable_address() {
+	public function get_taxable_address( $customer = null ) {
+		$customer     = $customer instanceof WC_Customer ? $customer : WC()->customer;
 		$tax_based_on = get_option( 'woocommerce_tax_based_on' );
 		// Check shipping method at this point to see if we need special handling
 		// See WC_Customer get_taxable_address()
@@ -775,17 +781,17 @@ class WC_Connect_TaxJar_Integration {
 			$city           = $store_settings['city'];
 			$street         = $store_settings['street'];
 		} elseif ( 'billing' === $tax_based_on ) {
-			$country  = WC()->customer->get_billing_country();
-			$state    = WC()->customer->get_billing_state();
-			$postcode = WC()->customer->get_billing_postcode();
-			$city     = WC()->customer->get_billing_city();
-			$street   = WC()->customer->get_billing_address();
+			$country  = $customer->get_billing_country();
+			$state    = $customer->get_billing_state();
+			$postcode = $customer->get_billing_postcode();
+			$city     = $customer->get_billing_city();
+			$street   = $customer->get_billing_address();
 		} else {
-			$country  = WC()->customer->get_shipping_country();
-			$state    = WC()->customer->get_shipping_state();
-			$postcode = WC()->customer->get_shipping_postcode();
-			$city     = WC()->customer->get_shipping_city();
-			$street   = WC()->customer->get_shipping_address();
+			$country  = $customer->get_shipping_country();
+			$state    = $customer->get_shipping_state();
+			$postcode = $customer->get_shipping_postcode();
+			$city     = $customer->get_shipping_city();
+			$street   = $customer->get_shipping_address();
 		}
 
 		return apply_filters( 'woocommerce_customer_taxable_address', array( $country, $state, $postcode, $city, $street ) );
@@ -1757,7 +1763,7 @@ class WC_Connect_TaxJar_Integration {
 		$json                = wp_json_encode( $request_body );
 		$cache_key           = 'tj_tax_' . hash( 'md5', $json );
 		$location            = $this->get_normalized_location( $request_body );
-		$location_catch_key  = 'tj_jurisdictions_' . hash( 'md5', $location['to_country'] . $location['to_state'] . $location['to_zip'] . $location['to_city'] . $location['to_street'] );
+		$location_cache_key  = 'tj_jurisdictions_' . hash( 'md5', strtoupper( $location['to_country'] . $location['to_state'] . $location['to_zip'] . $location['to_city'] . $location['to_street'] ) );
 		$zip_state_cache_key = false;
 		if ( $location['to_zip'] && $location['to_state'] ) {
 			$zip_state_cache_key = strtolower( 'tj_tax_' . $location['to_zip'] . '_' . $location['to_state'] );
@@ -1806,7 +1812,7 @@ class WC_Connect_TaxJar_Integration {
 				set_transient( $cache_key, $response, $this->cache_time );
 				$jurisdictions = isset( $response_body_decoded->tax->jurisdictions ) ? $response_body_decoded->tax->jurisdictions : null;
 				if ( ! empty( $jurisdictions ) ) {
-					set_transient( $location_catch_key, $jurisdictions, $this->cache_time );
+					set_transient( $location_cache_key, $jurisdictions, $this->cache_time );
 				}
 			} elseif ( in_array( $response_code, $save_error_codes, true ) ) {
 				if ( 400 === $response_code
