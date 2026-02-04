@@ -260,6 +260,7 @@ class WC_Connect_TaxJar_Integration {
 
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
+		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this, 'override_item_tax_rates' ), 10, 3 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 
