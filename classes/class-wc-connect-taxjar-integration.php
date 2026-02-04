@@ -548,21 +548,7 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		$address    = $this->get_address( $wc_cart_object );
 		$line_items = $this->get_line_items( $wc_cart_object );
-
-		$taxes = $this->calculate_tax(
-			array(
-				'to_country'      => $address['to_country'],
-				'to_zip'          => $address['to_zip'],
-				'to_state'        => $address['to_state'],
-				'to_city'         => $address['to_city'],
-				'to_street'       => $address['to_street'],
-				'shipping_amount' => method_exists( $wc_cart_object, 'get_shipping_total' ) ?
-					$wc_cart_object->get_shipping_total() : WC()->shipping->shipping_total,
-				'line_items'      => $line_items,
-			)
-		);
 
 		// Return if taxes could not be calculated.
 		if ( false === $taxes ) {
