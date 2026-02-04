@@ -722,6 +722,42 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Aggregate tax totals by label.
+	 *
+	 * When items are taxed at different locations (e.g., services at store address,
+	 * products at customer address), this combines taxes with the same label into
+	 * a single line for cleaner display.
+	 *
+	 * Example: Two "County Tax" entries ($0.25 + $0.12) become one "County Tax" ($0.37).
+	 *
+	 * @param array   $tax_totals Array of tax total objects from WooCommerce.
+	 * @param WC_Cart $cart       The cart object.
+	 * @return array Aggregated tax totals.
+	 */
+	public function aggregate_tax_totals( $tax_totals, $cart ) {
+		if ( ! is_array( $tax_totals ) || count( $tax_totals ) <= 1 ) {
+			return $tax_totals;
+		}
+
+		$aggregated = array();
+
+		foreach ( $tax_totals as $code => $tax ) {
+			$label = $tax->label;
+
+			if ( isset( $aggregated[ $label ] ) ) {
+				// Add to existing entry with same label.
+				$aggregated[ $label ]->amount          += $tax->amount;
+				$aggregated[ $label ]->formatted_amount = wc_price( $aggregated[ $label ]->amount );
+			} else {
+				// First entry for this label - clone to avoid modifying original.
+				$aggregated[ $label ] = clone $tax;
+			}
+		}
+
+		return $aggregated;
+	}
+
+	/**
 	 * Check if local pickup shipping method is selected.
 	 *
 	 * @return bool
