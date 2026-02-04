@@ -893,22 +893,22 @@ class WC_Connect_TaxJar_Integration {
 		return apply_filters( 'woocommerce_customer_taxable_address', array( $country, $state, $postcode, $city, $street ) );
 	}
 
-		/**
-		 * Get address details of customer for backend orders
-		 *
-		 * Unchanged from the TaxJar plugin.
-		 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L607
-		 *
-		 * @return array
-		 */
+	/**
+	 * Get address details of customer for backend orders
+	 *
+	 * Unchanged from the TaxJar plugin.
+	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L607
+	 *
+	 * @return array
+	 */
 	protected function get_backend_address() {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing --- Security handled by WooCommerce
+	// phpcs:disable WordPress.Security.NonceVerification.Missing --- Security handled by WooCommerce
 		$to_country = isset( $_POST['country'] ) ? strtoupper( wc_clean( $_POST['country'] ) ) : false;
 		$to_state   = isset( $_POST['state'] ) ? strtoupper( wc_clean( $_POST['state'] ) ) : false;
 		$to_zip     = isset( $_POST['postcode'] ) ? strtoupper( wc_clean( $_POST['postcode'] ) ) : false;
 		$to_city    = isset( $_POST['city'] ) ? strtoupper( wc_clean( $_POST['city'] ) ) : false;
 		$to_street  = isset( $_POST['street'] ) ? strtoupper( wc_clean( $_POST['street'] ) ) : false;
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return array(
 			'to_country' => $to_country,
