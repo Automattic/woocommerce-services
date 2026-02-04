@@ -1871,18 +1871,15 @@ class WC_Connect_TaxJar_Integration {
 		);
 
 		$response_code = (int) wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
 
 		if ( is_wp_error( $response ) ) {
 			$this->_error( 'Error retrieving the tax rates. Received (' . $response->get_error_code() . '): ' . $response->get_error_message() );
-		} elseif ( 200 === $response_code ) {
-			return $response;
-		} elseif ( 404 === $response_code || 400 === $response_code ) {
-			$this->_error( 'Error retrieving the tax rates. Received (' . $response_code . '): ' . $response['body'] );
-
-			return $response;
-		} else {
-			$this->_error( 'Error retrieving the tax rates. Received (' . $response_code . '): ' . $response['body'] );
+		} elseif ( 200 !== $response_code ) {
+			$this->_error( 'Error retrieving the tax rates. Received (' . $response_code . '): ' . $response_body );
 		}
+
+		return $response;
 	}
 
 	/**
