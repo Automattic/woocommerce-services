@@ -1885,8 +1885,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if (
-		'US' === $address['to_country'] && 'US' === $address['from_country']
-		&& $address['from_state'] !== $address['to_state']
+			'US' === $address['to_country'] && 'US' === $address['from_country']
+			&& $address['from_state'] !== $address['to_state']
 		) {
 			$this->_error( 'API request is stopped. US from_state !== to_state, tax don\'t apply.' );
 
@@ -1960,12 +1960,12 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 			$is_zip_to_state_mismatch = (
-			isset( $body->detail )
-			&& is_string( $body->detail )
-			&& $to_zip
-			&& $to_state
-			&& false !== strpos( $body->detail, 'to_zip ' . $to_zip )
-			&& false !== strpos( $body->detail, 'to_state ' . $to_state )
+				isset( $body->detail )
+				&& is_string( $body->detail )
+				&& $to_zip
+				&& $to_state
+				&& false !== strpos( $body->detail, 'to_zip ' . $to_zip )
+				&& false !== strpos( $body->detail, 'to_state ' . $to_state )
 			);
 			$transient_set            = false;
 
@@ -1973,8 +1973,8 @@ class WC_Connect_TaxJar_Integration {
 				set_transient( $cache_key, $response, $this->cache_time );
 			} elseif ( in_array( $response_code, $save_error_codes ) ) {
 				if ( 400 == $response_code
-				&& $is_zip_to_state_mismatch
-				&& $zip_state_cache_key
+					&& $is_zip_to_state_mismatch
+					&& $zip_state_cache_key
 				) {
 					$transient_set = set_transient( $zip_state_cache_key, $response, $this->address_cache_time );
 				}
