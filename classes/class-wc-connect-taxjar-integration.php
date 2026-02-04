@@ -1390,6 +1390,7 @@ class WC_Connect_TaxJar_Integration {
 		$to_street       = $options['to_street'] ?? null;
 		$shipping_amount = $options['shipping_amount'] ?? 0;
 		$line_items      = $options['line_items'] ?? null;
+		$location_type   = $options['location_type'] ?? null;
 
 		$taxes = array(
 			'freight_taxable' => 1,
@@ -1578,10 +1579,11 @@ class WC_Connect_TaxJar_Integration {
 		// Normalize options and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		$to_country = isset( $options['to_country'] ) ? strtoupper( $options['to_country'] ) : null;
-		$to_state   = isset( $options['to_state'] ) ? strtoupper( $options['to_state'] ) : null;
-		$to_zip     = $options['to_zip'] ?? null;
-		$to_city    = $options['to_city'] ?? null;
+		$to_country    = isset( $options['to_country'] ) ? strtoupper( $options['to_country'] ) : null;
+		$to_state      = isset( $options['to_state'] ) ? strtoupper( $options['to_state'] ) : null;
+		$to_zip        = $options['to_zip'] ?? null;
+		$to_city       = $options['to_city'] ?? null;
+		$location_type = $options['location_type'] ?? null;
 
 		$store_settings = $this->get_store_settings();
 		$from_country   = strtoupper( $store_settings['country'] );
@@ -1643,7 +1645,7 @@ class WC_Connect_TaxJar_Integration {
 						$tax_class,
 						$taxes['freight_taxable'],
 						$priority,
-						self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions )
+						self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions, $location_type )
 					);
 
 					++$priority;
@@ -1663,7 +1665,7 @@ class WC_Connect_TaxJar_Integration {
 					'',
 					$taxes['freight_taxable'],
 					$priority,
-					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions )
+					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions, $location_type )
 				);
 
 				++$priority;
