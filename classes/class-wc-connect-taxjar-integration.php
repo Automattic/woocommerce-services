@@ -657,15 +657,14 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Get address details of customer at checkout
+	 * Get formatted address for tax calculation.
 	 *
-	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L585
-	 *
-	 * @return array
+	 * @param string|null $location_type Location type: 'base', 'shipping', or 'billing'.
+	 *                                   If null, uses default behavior from get_taxable_address().
+	 * @return array Address array with to_country, to_state, etc.
 	 */
-	protected function get_address() {
-		$taxable_address = $this->get_taxable_address();
+	protected function get_address( $location_type = null ) {
+		$taxable_address = $this->get_taxable_address( $location_type );
 		$taxable_address = is_array( $taxable_address ) ? $taxable_address : array();
 
 		$to_country = isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ? strtoupper( $taxable_address[0] ) : false;
