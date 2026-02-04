@@ -809,22 +809,25 @@ class WC_Connect_TaxJar_Integration {
 		}
 	}
 
-		/**
-		 * Get taxable address.
-		 *
-		 * @return array
-		 */
-	public function get_taxable_address() {
-		$tax_based_on = get_option( 'woocommerce_tax_based_on' );
-		// Check shipping method at this point to see if we need special handling
-		// See WC_Customer get_taxable_address()
-		// wc_get_chosen_shipping_method_ids() available since Woo 2.6.2+
-		if ( function_exists( 'wc_get_chosen_shipping_method_ids' ) ) {
-			if ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( wc_get_chosen_shipping_method_ids(), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
+	/**
+	 * Get taxable address.
+	 *
+	 * @param string|null $location_type Location type: 'base', 'shipping', or 'billing'.
+	 *                                   If null, uses woocommerce_tax_based_on option with
+	 *                                   local pickup override. Null is kept for backward
+	 *                                   compatibility - internal code always passes explicit type.
+	 * @return array
+	 */
+	public function get_taxable_address( $location_type = null ) {
+		if ( null === $location_type ) {
+			// Backward compatibility: external plugins may call without parameter.
+			// Internal code always passes explicit location type.
+			$tax_based_on = get_option( 'woocommerce_tax_based_on' );
+			if ( $this->is_local_pickup() ) {
 				$tax_based_on = 'base';
 			}
-		} elseif ( true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && sizeof( array_intersect( WC()->session->get( 'chosen_shipping_methods', array() ), apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ) ) ) > 0 ) {
-			$tax_based_on = 'base';
+		} else {
+			$tax_based_on = $location_type;
 		}
 
 		if ( 'base' === $tax_based_on ) {
