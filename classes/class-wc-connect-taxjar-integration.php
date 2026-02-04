@@ -125,13 +125,15 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Generates an itemized tax rate name based on the provided tax rate and country.
 	 *
-	 * @param string $taxjar_rate_name The tax rate name from TaxJar, typically including '_tax_rate'.
-	 * @param string $to_country       The destination country for the tax calculation.
-	 * @param array  $jurisdictions    Tax jurisdictions.
+	 * @param string      $taxjar_rate_name The tax rate name from TaxJar, typically including '_tax_rate'.
+	 * @param string      $to_country       The destination country for the tax calculation.
+	 * @param array       $jurisdictions    Tax jurisdictions.
+	 * @param string|null $location_type    Location type: 'base', 'shipping', or 'billing'. Used to distinguish
+	 *                                      tax rates for different locations in multi-location tax scenarios.
 	 *
 	 * @return string The formatted and localized tax rate name.
 	 */
-	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country, array $jurisdictions ) {
+	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country, array $jurisdictions, ?string $location_type = null ) {
 		// Normalize the base key by stripping the trailing "_tax_rate" and converting underscores to spaces.
 		$base_key   = str_replace( '_tax_rate', '', $taxjar_rate_name );
 		$label_core = ucwords( str_replace( '_', ' ', $base_key ) );
@@ -144,13 +146,13 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( 'country' === $base_key && $is_vat_country ) {
-			return 'VAT';
+			return self::append_location_suffix( 'VAT', $location_type );
 		}
 
 		// Default, country-agnostic formatting for non‑US destinations.
 		if ( 'US' !== $to_country ) {
 			// Preserve previous behavior of uppercasing for non‑US.
-			return strtoupper( $rate_name );
+			return self::append_location_suffix( strtoupper( $rate_name ), $location_type );
 		}
 
 		// United States specific naming enhancements.
@@ -161,21 +163,51 @@ class WC_Connect_TaxJar_Integration {
 			case 'city_tax_rate':
 			case 'special_tax_rate':
 				// Example: "Some County Some City : City Tax".
-				$prefix = trim( $county . ' ' . $city );
-				return ( '' !== $prefix ? $prefix . ' : ' : '' ) . $rate_name;
+				$prefix     = trim( $county . ' ' . $city );
+				$final_name = ( '' !== $prefix ? $prefix . ' : ' : '' ) . $rate_name;
+				return self::append_location_suffix( $final_name, $location_type );
 
 			case 'county_tax_rate':
 				// Example: "Some County : County Tax".
-				return ( '' !== $county ? $county . ' : ' : '' ) . $rate_name;
+				$final_name = ( '' !== $county ? $county . ' : ' : '' ) . $rate_name;
+				return self::append_location_suffix( $final_name, $location_type );
 
 			case 'state_sales_tax_rate':
 				// Example: "State Sales Tax" (no jurisdiction prefix).
-				return $rate_name;
+				return self::append_location_suffix( $rate_name, $location_type );
 
 			default:
 				// Fallback for any other US rate types.
-				return $rate_name;
+				return self::append_location_suffix( $rate_name, $location_type );
 		}
+	}
+
+	/**
+	 * Appends a location suffix to the tax rate name for multi-location tax scenarios.
+	 *
+	 * @param string      $rate_name     The tax rate name.
+	 * @param string|null $location_type Location type: 'base', 'shipping', or 'billing'.
+	 *
+	 * @return string The rate name with location suffix if applicable.
+	 */
+	private static function append_location_suffix( string $rate_name, ?string $location_type ): string {
+		if ( null === $location_type ) {
+			return $rate_name;
+		}
+
+		$location_labels = array(
+			'base'     => __( 'Store Address', 'woocommerce-services' ),
+			'shipping' => __( 'Customer Address', 'woocommerce-services' ),
+			'billing'  => __( 'Billing Address', 'woocommerce-services' ),
+		);
+
+		$suffix = $location_labels[ $location_type ] ?? null;
+
+		if ( null === $suffix ) {
+			return $rate_name;
+		}
+
+		return $rate_name . ' (' . $suffix . ')';
 	}
 
 	public function init() {
