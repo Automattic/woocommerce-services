@@ -777,68 +777,70 @@ class WC_Connect_TaxJar_Integration {
 				$local_pickup_methods
 			)
 		) > 0;
-		/**
-		 * Group line items by their tax location.
-		 *
-		 * @param array $line_items      Line items with 'tax_location' key.
-		 * @param bool  $is_local_pickup If true, all items grouped under 'base'.
-		 * @return array Items grouped by location type.
-		 */
-		protected function group_items_by_location( $line_items, $is_local_pickup = false ) {
-			$groups           = array();
-			$default_location = get_option( 'woocommerce_tax_based_on', 'shipping' );
+	}
 
-			foreach ( $line_items as $item ) {
-				$location              = $is_local_pickup ? 'base' : ( $item['tax_location'] ?? $default_location );
-				$groups[ $location ][] = $item;
-			}
+	/**
+	 * Group line items by their tax location.
+	 *
+	 * @param array $line_items      Line items with 'tax_location' key.
+	 * @param bool  $is_local_pickup If true, all items grouped under 'base'.
+	 * @return array Items grouped by location type.
+	 */
+	protected function group_items_by_location( $line_items, $is_local_pickup = false ) {
+		$groups           = array();
+		$default_location = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
-			return $groups;
+		foreach ( $line_items as $item ) {
+			$location              = $is_local_pickup ? 'base' : ( $item['tax_location'] ?? $default_location );
+			$groups[ $location ][] = $item;
 		}
 
-		/**
-		 * Calculate taxes for items grouped by location.
-		 *
-		 * @param array $items_by_location Items grouped by location type.
-		 * @param float $shipping_amount   Shipping amount.
-		 * @return array|false Merged taxes or false if any calculation fails.
-		 */
-		protected function calculate_taxes_by_location( $items_by_location, $shipping_amount ) {
-			$merged_taxes = array(
-				'rate_ids'   => array(),
-				'line_items' => array(),
+		return $groups;
+	}
+
+	/**
+	 * Calculate taxes for items grouped by location.
+	 *
+	 * @param array $items_by_location Items grouped by location type.
+	 * @param float $shipping_amount   Shipping amount.
+	 * @return array|false Merged taxes or false if any calculation fails.
+	 */
+	protected function calculate_taxes_by_location( $items_by_location, $shipping_amount ) {
+		$merged_taxes = array(
+			'rate_ids'   => array(),
+			'line_items' => array(),
+		);
+
+		foreach ( $items_by_location as $location_type => $items ) {
+			$address = $this->get_address( $location_type );
+
+			// Shipping only applies to 'shipping' location group.
+			// Note: Service fees could be added to 'base' group here in the future.
+			$group_shipping = ( 'shipping' === $location_type ) ? $shipping_amount : 0;
+
+			$taxes = $this->calculate_tax(
+				array(
+					'to_country'      => $address['to_country'],
+					'to_state'        => $address['to_state'],
+					'to_zip'          => $address['to_zip'],
+					'to_city'         => $address['to_city'],
+					'to_street'       => $address['to_street'],
+					'shipping_amount' => $group_shipping,
+					'line_items'      => $items,
+					'location_type'   => $location_type,
+				)
 			);
 
-			foreach ( $items_by_location as $location_type => $items ) {
-				$address = $this->get_address( $location_type );
-
-				// Shipping only applies to 'shipping' location group.
-				// Note: Service fees could be added to 'base' group here in the future.
-				$group_shipping = ( 'shipping' === $location_type ) ? $shipping_amount : 0;
-
-				$taxes = $this->calculate_tax(
-					array(
-						'to_country'      => $address['to_country'],
-						'to_state'        => $address['to_state'],
-						'to_zip'          => $address['to_zip'],
-						'to_city'         => $address['to_city'],
-						'to_street'       => $address['to_street'],
-						'shipping_amount' => $group_shipping,
-						'line_items'      => $items,
-					)
-				);
-
-				// If any group fails, fail entire calculation.
-				if ( false === $taxes ) {
-					return false;
-				}
-
-				$merged_taxes['rate_ids']   += $taxes['rate_ids'];
-				$merged_taxes['line_items'] += $taxes['line_items'];
+			// If any group fails, fail entire calculation.
+			if ( false === $taxes ) {
+				return false;
 			}
 
-			return $merged_taxes;
+			$merged_taxes['rate_ids']   += $taxes['rate_ids'];
+			$merged_taxes['line_items'] += $taxes['line_items'];
 		}
+
+		return $merged_taxes;
 	}
 
 	/**
