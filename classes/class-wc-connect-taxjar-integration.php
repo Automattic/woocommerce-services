@@ -231,6 +231,7 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this, 'override_item_tax_rates' ), 10, 3 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
+		add_filter( 'woocommerce_cart_tax_totals', array( $this, 'aggregate_tax_totals' ), 10, 2 );
 
 		WC_Connect_Custom_Surcharge::init();
 	}
