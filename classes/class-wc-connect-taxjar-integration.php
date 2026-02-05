@@ -845,6 +845,13 @@ class WC_Connect_TaxJar_Integration {
 			$merged_taxes['line_items'] += $taxes['line_items'];
 		}
 
+		// If no group produced any taxes (e.g. all groups were cross-state), return false
+		// to preserve backward compatibility with callers that check for false.
+		if ( empty( $merged_taxes['rate_ids'] ) && empty( $merged_taxes['line_items'] ) ) {
+			return false;
+		}
+
+		$this->_log( $merged_taxes );
 		return $merged_taxes;
 	}
 
@@ -1579,10 +1586,11 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		// Don't calculate taxes for US when from_state and to_state are different.
+		// US cross-state: no nexus means no tax applies. Return empty taxes (not false)
+		// so that calculate_taxes_by_location() can continue with other groups.
 		if ( 'US' === $address_parts['from_country'] && 'US' === $address_parts['to_country'] && $address_parts['from_state'] !== $address_parts['to_state'] ) {
-			$this->_log( 'US from_state and to_state are different. Aborting.' );
-			return false;
+			$this->_log( 'US from_state and to_state are different. No tax applies.' );
+			return $taxes;
 		}
 
 		// Either `amount` or `line_items` parameters are required to perform tax calculations.
