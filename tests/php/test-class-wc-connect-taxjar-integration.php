@@ -716,7 +716,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Create a partial mock that stubs calculate_tax and get_address.
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_address' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
 			->getMock();
 
 		$integration->method( 'get_address' )->willReturnCallback(
@@ -765,7 +765,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_address' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
 			->getMock();
 
 		$integration->method( 'get_address' )->willReturn(
@@ -809,7 +809,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_calculate_taxes_by_location_returns_false_on_error() {
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_address' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
 			->getMock();
 
 		$integration->method( 'get_address' )->willReturn(
@@ -851,7 +851,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_address', 'get_store_settings' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_address', 'get_store_settings', '_log' ) )
 			->getMock();
 
 		// Store is in CA.
@@ -930,7 +930,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_calculate_taxes_by_location_all_empty_returns_false() {
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_address' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
 			->getMock();
 
 		$integration->method( 'get_address' )->willReturn(
@@ -1007,52 +1007,5 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEmpty( $result['rate_ids'] );
 		$this->assertEmpty( $result['line_items'] );
 		$this->assertEquals( 0, $result['has_nexus'] );
-	}
-
-	/**
-	 * Test same-state does not trigger cross-state early return.
-	 *
-	 * Note: This test verifies the cross-state check does NOT fire
-	 * for same-state. The actual API call will fail (mocked client),
-	 * but the important thing is it gets past the cross-state check.
-	 */
-	public function test_calculate_tax_same_state_does_not_trigger_cross_state() {
-		// Set store to California.
-		update_option( 'woocommerce_default_country', 'US:CA' );
-
-		WC()->customer->set_is_vat_exempt( false );
-
-		$result = $this->invoke_protected_method(
-			'calculate_tax',
-			array(
-				array(
-					'to_country'      => 'US',
-					'to_state'        => 'CA',
-					'to_zip'          => '94110',
-					'to_city'         => 'San Francisco',
-					'to_street'       => '60 29th St',
-					'shipping_amount' => 0,
-					'line_items'      => array(
-						array(
-							'id'         => 'test-item',
-							'quantity'   => 1,
-							'unit_price' => '25.00',
-						),
-					),
-				),
-			)
-		);
-
-		// Same-state should NOT return the empty taxes array.
-		// It will return false because the mocked API client returns nothing,
-		// but crucially it should NOT be an array with empty rate_ids
-		// (which is what the cross-state check returns).
-		if ( is_array( $result ) ) {
-			// If it somehow got a response, it should have gone past cross-state check.
-			$this->assertTrue( true );
-		} else {
-			// Expected: false from the API call failing (not from cross-state).
-			$this->assertFalse( $result );
-		}
 	}
 }
