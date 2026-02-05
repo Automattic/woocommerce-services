@@ -706,6 +706,101 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	// -------------------------------------------------------------------------
+	// override_order_item_taxes() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test no-op when response_rate_ids is empty (no TaxJar calc this request).
+	 */
+	public function test_override_order_item_taxes_noop_when_no_response() {
+		$order = WC_Helper_Order::create_order();
+		$items = $order->get_items();
+		$item  = reset( $items );
+		$orig  = $item->get_taxes();
+
+		$this->integration->override_order_item_taxes( $item, array() );
+
+		$this->assertSame( $orig, $item->get_taxes() );
+		$order->delete( true );
+	}
+
+	/**
+	 * Test no-op when item is not a WC_Order_Item_Product (e.g. fee or shipping).
+	 */
+	public function test_override_order_item_taxes_skips_non_product_items() {
+		$this->set_private_property( 'response_rate_ids', array( '10-abc' => array( 1 ) ) );
+
+		$fee = new WC_Order_Item_Fee();
+		$fee->set_total( '5.00' );
+
+		// Should not throw or modify.
+		$this->integration->override_order_item_taxes( $fee, array() );
+
+		$this->assertEmpty( $fee->get_taxes()['total'] );
+	}
+
+	/**
+	 * Test no-op when the product is not found in response_rate_ids (cross-state item).
+	 */
+	public function test_override_order_item_taxes_skips_unmatched_product() {
+		$this->set_private_property( 'response_rate_ids', array( '999-abc' => array( 1 ) ) );
+
+		$order = WC_Helper_Order::create_order();
+		$items = $order->get_items();
+		$item  = reset( $items );
+		$orig  = $item->get_taxes();
+
+		$this->integration->override_order_item_taxes( $item, array() );
+
+		$this->assertSame( $orig, $item->get_taxes() );
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that TaxJar rates are applied for a matched base-group item.
+	 */
+	public function test_override_order_item_taxes_applies_taxjar_rates_when_matched() {
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( '20.00' );
+		$this->product->save();
+
+		// Insert a tax rate into the database.
+		$rate_id = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CA',
+				'tax_rate'          => '10.0000',
+				'tax_rate_name'     => 'CA Tax',
+				'tax_rate_shipping' => 'no',
+				'tax_rate_compound' => 'no',
+				'tax_rate_priority' => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$product_id = $this->product->get_id();
+		$this->set_private_property( 'response_rate_ids', array( $product_id . '-abc123' => array( $rate_id ) ) );
+
+		// Create an order item.
+		$item = new WC_Order_Item_Product();
+		$item->set_product( $this->product );
+		$item->set_quantity( 1 );
+		$item->set_total( '20.00' );
+		$item->set_subtotal( '20.00' );
+
+		$this->integration->override_order_item_taxes( $item, array() );
+
+		$taxes = $item->get_taxes();
+		$this->assertArrayHasKey( $rate_id, $taxes['total'] );
+		$this->assertEquals( 2.0, (float) $taxes['total'][ $rate_id ] );
+		$this->assertArrayHasKey( $rate_id, $taxes['subtotal'] );
+		$this->assertEquals( 2.0, (float) $taxes['subtotal'][ $rate_id ] );
+
+		// Clean up.
+		WC_Tax::_delete_tax_rate( $rate_id );
+	}
+
+	// -------------------------------------------------------------------------
 	// calculate_taxes_by_location() tests
 	// -------------------------------------------------------------------------
 
