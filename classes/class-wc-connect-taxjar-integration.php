@@ -1,6 +1,8 @@
 <?php
 
 use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
+use Automattic\WooCommerce\Utilities\ArrayUtil;
+use Automattic\WooCommerce\StoreApi\Utilities\LocalPickupUtils;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -214,12 +216,10 @@ class WC_Connect_TaxJar_Integration {
 		// Calculate Taxes for Backend Orders.
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
 
-		// Set customer taxable location for local pickup.
-		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
-
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_get_tax_location', array( $this, 'get_tax_location' ), 20, 3 );
-		add_filter( 'woocommerce_order_get_tax_location', array( $this, 'get_tax_location_for_order' ), 20 );
+		add_filter( 'woocommerce_order_get_tax_location', array( $this, 'get_tax_location_for_order' ), 20, 2 );
+		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'filter_taxable_address' ), 20 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 
@@ -406,11 +406,11 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function get_store_settings() {
 		$store_settings = array(
-			'street'   => WC()->countries->get_base_address(),
-			'city'     => WC()->countries->get_base_city(),
-			'state'    => WC()->countries->get_base_state(),
 			'country'  => WC()->countries->get_base_country(),
+			'state'    => WC()->countries->get_base_state(),
 			'postcode' => WC()->countries->get_base_postcode(),
+			'city'     => WC()->countries->get_base_city(),
+			'street'   => WC()->countries->get_base_address(),
 		);
 
 		return apply_filters( 'taxjar_store_settings', $store_settings, array() );
@@ -584,11 +584,11 @@ class WC_Connect_TaxJar_Integration {
 
 		$taxes = $this->calculate_tax(
 			array(
-				'to_country'      => $address['to_country'],
-				'to_state'        => $address['to_state'],
-				'to_zip'          => $address['to_zip'],
-				'to_city'         => $address['to_city'],
-				'to_street'       => $address['to_street'],
+				'to_country'      => $address['country'],
+				'to_state'        => $address['state'],
+				'to_zip'          => $address['postcode'],
+				'to_city'         => $address['city'],
+				'to_street'       => $address['street'],
 				'shipping_amount' => $shipping,
 				'line_items'      => $line_items,
 			)
@@ -667,9 +667,9 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Replace WooCommerce tax locations with TaxJar jurisdictions.
 	 *
-	 * @param  array       $location  Location address.
-	 * @param  string      $tax_class Tax class.
-	 * @param  WC_Customer $customer  Customer.
+	 * @param array       $location  Location address.
+	 * @param string      $tax_class Tax class.
+	 * @param WC_Customer $customer  Customer.
 	 *
 	 * @return array
 	 */
@@ -681,24 +681,123 @@ class WC_Connect_TaxJar_Integration {
 		$location[2] = '';
 		$location[3] = trim( $county . ' ' . $city );
 
-		return $location;
+		return array_slice( $location, 0, 4 );
+	}
+
+	/**
+	 * Filter the location used for taxes based on the chosen pickup location.
+	 *
+	 * @param array $address Location args.
+	 *
+	 * @return array
+	 */
+	public function filter_taxable_address( $address ) {
+
+		if ( null === WC()->session ) {
+			return $address;
+		}
+		// We only need to select from the first package, since pickup_location only supports a single package.
+		$chosen_method          = current( WC()->session->get( 'chosen_shipping_methods', array() ) ) ?? '';
+		$chosen_method_id       = explode( ':', $chosen_method )[0];
+		$chosen_method_instance = explode( ':', $chosen_method )[1] ?? 0;
+
+		// phpcs:ignore WooCommerce.Commenting.CommentHooks.MissingHookComment
+		if ( $chosen_method_id && true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true ) && in_array( $chosen_method_id, LocalPickupUtils::get_local_pickup_method_ids(), true ) ) {
+			$pickup_locations = get_option( 'pickup_location_pickup_locations', array() );
+			$pickup_location  = $pickup_locations[ $chosen_method_instance ] ?? array();
+
+			if ( isset( $pickup_location['address'], $pickup_location['address']['country'] ) && ! empty( $pickup_location['address']['country'] ) ) {
+				$address = array(
+					$pickup_locations[ $chosen_method_instance ]['address']['country'],
+					$pickup_locations[ $chosen_method_instance ]['address']['state'],
+					$pickup_locations[ $chosen_method_instance ]['address']['postcode'],
+					$pickup_locations[ $chosen_method_instance ]['address']['city'],
+					$pickup_locations[ $chosen_method_instance ]['address']['address_1'],
+				);
+			}
+		}
+
+		return $address;
 	}
 
 	/**
 	 * Replace WooCommerce tax locations for Order with TaxJar jurisdictions.
 	 *
-	 * @param array $location  Location address.
+	 * @param array    $location  Location address.
+	 * @param WC_Order $order     WC_Order.
 	 *
 	 * @return array
 	 */
-	public function get_tax_location_for_order( $location ) {
+	public function get_tax_location_for_order( $location, $order ) {
 
-		if ( ! is_null( WC()->customer ) ) {
-			$jurisdictions        = $this->get_jurisdictions( $location, WC()->customer );
-			$county               = $jurisdictions->county ?? '';
-			$city                 = $jurisdictions->city ?? '';
-			$location['postcode'] = '';
-			$location['city']     = trim( $county . ' ' . $city );
+		$location = $this->get_location_for_order( $location, $order );
+
+		$jurisdictions        = $this->get_jurisdictions( $location );
+		$county               = $jurisdictions->county ?? '';
+		$city                 = $jurisdictions->city ?? '';
+		$location['postcode'] = '';
+		$location['city']     = trim( $county . ' ' . $city );
+
+		return array_slice( $location, 0, 4, true );
+	}
+
+	/**
+	 * Replace WooCommerce tax locations for Order with TaxJar jurisdictions.
+	 *
+	 * @param array    $location  Location address.
+	 * @param WC_Order $order     WC_Order.
+	 *
+	 * @return array
+	 */
+	public function get_location_for_order( $location, $order ) {
+
+		if ( ! $order instanceof WC_Order ) {
+			return $location;
+		}
+
+		$tax_based_on         = get_option( 'woocommerce_tax_based_on', 'shipping' );
+		$apply_base_tax       = true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true );
+		$local_pickup_methods = apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) );
+
+		if ( 'shipping' === $tax_based_on && ! $order->get_shipping_country() ) {
+			$tax_based_on = 'billing';
+		}
+
+		$shipping_method_ids = ArrayUtil::select( $order->get_shipping_methods(), 'get_method_id', ArrayUtil::SELECT_BY_OBJECT_METHOD );
+
+		// Set shop base address as a tax location if order has local pickup shipping method.
+		if ( $apply_base_tax && count( array_intersect( $shipping_method_ids, $local_pickup_methods ) ) > 0 ) {
+			$tax_based_on = 'base';
+		}
+
+		switch ( $tax_based_on ) {
+			case 'shipping':
+				$location = array(
+					'country'  => ! empty( $location['country'] ) ? $location['country'] : $order->get_shipping_country(),
+					'state'    => ! empty( $location['state'] ) ? $location['state'] : $order->get_shipping_state(),
+					'postcode' => ! empty( $location['postcode'] ) ? $location['postcode'] : $order->get_shipping_postcode(),
+					'city'     => ! empty( $location['city'] ) ? $location['city'] : $order->get_shipping_city(),
+					'street'   => ! empty( $location['street'] ) ? $location['street'] : $order->get_shipping_address_1(),
+				);
+				break;
+			case 'billing':
+				$location = array(
+					'country'  => ! empty( $location['country'] ) ? $location['country'] : $order->get_billing_country(),
+					'state'    => ! empty( $location['state'] ) ? $location['state'] : $order->get_billing_state(),
+					'postcode' => ! empty( $location['postcode'] ) ? $location['postcode'] : $order->get_billing_postcode(),
+					'city'     => ! empty( $location['city'] ) ? $location['city'] : $order->get_billing_city(),
+					'street'   => ! empty( $location['street'] ) ? $location['street'] : $order->get_billing_address_1(),
+				);
+				break;
+			case 'base':
+				$location = array(
+					'country'  => WC()->countries->get_base_country(),
+					'state'    => WC()->countries->get_base_state(),
+					'postcode' => WC()->countries->get_base_postcode(),
+					'city'     => WC()->countries->get_base_city(),
+					'street'   => WC()->countries->get_base_address(),
+				);
+				break;
 		}
 
 		return $location;
@@ -710,17 +809,23 @@ class WC_Connect_TaxJar_Integration {
 	 * When OK response is received from TaxJar in smartcalcs_cache_request() method jurisdictions are stored in transient.
 	 *
 	 * @param array       $location  Location address.
-	 * @param WC_Customer $customer  Customer.
+	 * @param ?WC_Customer $customer  Customer.
 	 *
 	 * @return object|false
 	 */
-	private function get_jurisdictions( $location, $customer ) {
-		if ( is_null( $customer ) ) {
+	private function get_jurisdictions( $location, $customer = null ) {
+		if (
+			! is_array( $location )
+			|| ( is_null( $customer ) && 5 > count( $location ) )
+		) {
 			return false;
 		}
-
-		$address = $this->get_taxable_address( $customer );
-		$street  = $address[4] ?? '';
+		if ( $customer instanceof WC_Customer && 5 > count( $location ) ) {
+			$address = $this->get_taxable_address( $customer );
+			$street  = $address[4] ?? '';
+		} elseif ( 5 === count( $location ) ) {
+			$street = '';
+		}
 
 		$key           = 'tj_jurisdictions_' . hash( 'md5', strtoupper( implode( '', $location ) . $street ) );
 		$jurisdictions = get_transient( $key );
@@ -806,21 +911,31 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	protected function get_backend_address() {
-    // phpcs:disable WordPress.Security.NonceVerification.Missing --- Security handled by WooCommerce
+		// phpcs:disable WordPress.Security.NonceVerification.Missing --- Security handled by WooCommerce
 		$to_country = isset( $_POST['country'] ) ? strtoupper( wc_clean( wp_unslash( $_POST['country'] ) ) ) : false;
 		$to_state   = isset( $_POST['state'] ) ? strtoupper( wc_clean( wp_unslash( $_POST['state'] ) ) ) : false;
 		$to_zip     = isset( $_POST['postcode'] ) ? strtoupper( wc_clean( wp_unslash( $_POST['postcode'] ) ) ) : false;
 		$to_city    = isset( $_POST['city'] ) ? strtoupper( wc_clean( wp_unslash( $_POST['city'] ) ) ) : false;
 		$to_street  = isset( $_POST['street'] ) ? strtoupper( wc_clean( wp_unslash( $_POST['street'] ) ) ) : false;
-    // phpcs:enable WordPress.Security.NonceVerification.Missing
+		$order_id   = isset( $_POST['order_id'] ) ? (int) wc_clean( wp_unslash( $_POST['order_id'] ) ) : 0;
 
-		return array(
-			'to_country' => $to_country,
-			'to_state'   => $to_state,
-			'to_zip'     => $to_zip,
-			'to_city'    => $to_city,
-			'to_street'  => $to_street,
+		if ( ! $order_id ) {
+			$order_id = isset( $_POST['post_ID'] ) ? (int) wc_clean( wp_unslash( $_POST['post_ID'] ) ) : 0;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$location = array(
+			'country'  => $to_country,
+			'state'    => $to_state,
+			'postcode' => $to_zip,
+			'city'     => $to_city,
+			'street'   => $to_street,
 		);
+
+		$order    = wc_get_order( $order_id );
+		$location = $this->get_location_for_order( $location, $order );
+
+		return $location;
 	}
 
 	/**
@@ -1019,43 +1134,6 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $taxes;
-	}
-
-	/**
-	 * Set customer zip code and state to store if local shipping option set
-	 *
-	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c587/includes/class-wc-taxjar-integration.php#L653
-	 *
-	 * @return array
-	 */
-	public function append_base_address_to_customer_taxable_address( $address ) {
-		list( $country, $state, $postcode, $city, $street ) = array_pad( $address, 5, '' );
-
-		// See WC_Customer get_taxable_address().
-		if (
-			true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true )
-			&& count(
-				array_intersect(
-					wc_get_chosen_shipping_method_ids(),
-					apply_filters(
-						'woocommerce_local_pickup_methods',
-						array( 'legacy_local_pickup', 'local_pickup' )
-					)
-				)
-			) > 0
-		) {
-			$store_settings = $this->get_store_settings();
-			$postcode       = $store_settings['postcode'];
-			$city           = strtoupper( $store_settings['city'] );
-			$street         = $store_settings['street'];
-		}
-
-		if ( empty( $street ) ) {
-			return array( $country, $state, $postcode, $city );
-		}
-
-		return array( $country, $state, $postcode, $city, $street );
 	}
 
 	/**
@@ -1312,7 +1390,7 @@ class WC_Connect_TaxJar_Integration {
 			empty( $to_country ) ||
 			( empty( $to_zip ) && ! in_array( $to_country, WC()->countries->get_vat_countries() ) ) ||
 			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
-			WC()->customer->is_vat_exempt()
+			( WC()->customer instanceof WC_Customer && WC()->customer->is_vat_exempt() )
 		) {
 			return false;
 		}
@@ -1372,12 +1450,12 @@ class WC_Connect_TaxJar_Integration {
 		 * - city: City name (required).
 		 * - street: Street address (optional).
 		 *
-		 * @since 3.3.0
-		 *
 		 * @param array $nexus_address The nexus address array to be sent to TaxJar.
 		 * @param array $body          The complete TaxJar API request body.
 		 *
 		 * @return array|false Modified nexus address array, or false to disable nexus addresses.
+		 *
+		 * @since 3.3.0
 		 *
 		 * @example
 		 * // Disable nexus addresses entirely.
@@ -1950,19 +2028,19 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Check for incorrect California tax nexus in the TaxJar API response or cached response.
 	 *
-	 * @param string $response_body Response body JSON.
-	 * @param bool   $cached        Is cached response.
-	 * @param string $from_state    State.
+	 * @param string $response_body_json Response body JSON.
+	 * @param bool   $cached             Is cached response.
+	 * @param string $from_state         State.
 	 *
 	 * @return void
 	 * @throws Exception Throws exceptions when One or more values are not set.
 	 */
-	private function check_for_incorrect_california_tax_nexus( $response_body, $cached, $from_state ): void {
+	private function check_for_incorrect_california_tax_nexus( $response_body_json, $cached, $from_state ): void {
 		$log_suffix = 'in TaxJar API response.';
 
+		$response_body = json_decode( $response_body_json );
 		if ( $cached ) {
-			$response_body = json_decode( $response_body );
-			$log_suffix    = 'in cached response.';
+			$log_suffix = 'in cached response.';
 		}
 
 		$to_state   = isset( $response_body->tax->jurisdictions->state ) ? strtoupper( $response_body->tax->jurisdictions->state ) : 'not set';
