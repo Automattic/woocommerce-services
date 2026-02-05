@@ -1135,6 +1135,82 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Re-apply TaxJar-calculated taxes to order items after WooCommerce recalculates them.
+	 *
+	 * When the Store API creates an order from a cart, it calls $order->calculate_taxes()
+	 * which looks up tax rates using the customer's address. For mixed-location carts
+	 * (some items taxed at base, others at customer address), the customer-address lookup
+	 * can zero out taxes for base-taxed items. This hook restores the correct TaxJar rates.
+	 *
+	 * @param WC_Order_Item $item             The order item.
+	 * @param array         $calculate_tax_for Tax calculation arguments.
+	 */
+	public function override_order_item_taxes( $item, $calculate_tax_for ) {
+		// Only act if we have TaxJar-calculated rate IDs from this request.
+		if ( empty( $this->response_rate_ids ) || ! is_array( $this->response_rate_ids ) ) {
+			return;
+		}
+
+		// Only override product line items.
+		if ( ! ( $item instanceof \WC_Order_Item_Product ) ) {
+			return;
+		}
+
+		$product_id = $item->get_product_id();
+		if ( ! $product_id ) {
+			return;
+		}
+
+		// Find matching rate_ids by product_id prefix (format: "product_id-cart_item_key").
+		$matching_rate_ids = null;
+		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
+			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
+				$matching_rate_ids = $rate_ids;
+				break;
+			}
+		}
+
+		// No match means this item wasn't TaxJar-calculated (e.g. cross-state) — leave as-is.
+		if ( empty( $matching_rate_ids ) || ! is_array( $matching_rate_ids ) ) {
+			return;
+		}
+
+		// Build tax rates array from the stored rate IDs.
+		$tax_rates = array();
+		foreach ( $matching_rate_ids as $rate_id ) {
+			$rate_id = absint( $rate_id );
+			if ( ! $rate_id ) {
+				continue;
+			}
+
+			$rate_data = \WC_Tax::_get_tax_rate( $rate_id );
+			if ( $rate_data ) {
+				$tax_rates[ $rate_id ] = array(
+					'rate'     => (float) $rate_data['tax_rate'],
+					'label'    => $rate_data['tax_rate_name'],
+					'shipping' => 'yes' === $rate_data['tax_rate_shipping'] ? 'yes' : 'no',
+					'compound' => 'yes' === $rate_data['tax_rate_compound'] ? 'yes' : 'no',
+				);
+			}
+		}
+
+		if ( empty( $tax_rates ) ) {
+			return;
+		}
+
+		// Recalculate taxes using TaxJar rates and apply to the item.
+		$taxes          = \WC_Tax::calc_tax( $item->get_total(), $tax_rates, false );
+		$subtotal_taxes = \WC_Tax::calc_tax( $item->get_subtotal(), $tax_rates, false );
+
+		$item->set_taxes(
+			array(
+				'total'    => $taxes,
+				'subtotal' => $subtotal_taxes,
+			)
+		);
+	}
+
+	/**
 	 * Override Woo's native tax rates to handle multiple line items with the same tax rate
 	 * within the same tax class with different rates due to exemption thresholds
 	 *
