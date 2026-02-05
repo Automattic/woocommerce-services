@@ -229,6 +229,7 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this, 'override_item_tax_rates' ), 10, 3 );
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'override_order_item_taxes' ), 10, 2 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 		add_filter( 'woocommerce_cart_tax_totals', array( $this, 'aggregate_tax_totals' ), 10, 2 );
