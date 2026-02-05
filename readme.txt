@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.4.1 - 2026-xx-xx =
+* Add   - Itemized tax calculation for mixed carts with per-item tax locations.
+
 = 3.4.0 - 2026-02-03 =
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
