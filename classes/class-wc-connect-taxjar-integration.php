@@ -888,6 +888,9 @@ class WC_Connect_TaxJar_Integration {
 			$postcode       = $store_settings['postcode'];
 			$city           = $store_settings['city'];
 			$street         = $store_settings['street'];
+		} elseif ( null === WC()->customer ) {
+			$this->_log( 'Warning: WC()->customer is null when resolving ' . $tax_based_on . ' address.' );
+			return array( '', '', '', '', '' );
 		} elseif ( 'billing' === $tax_based_on ) {
 			$country  = WC()->customer->get_billing_country();
 			$state    = WC()->customer->get_billing_state();
