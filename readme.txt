@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.4.1 - 2026-xx-xx =
+* Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
+
 = 3.4.0 - 2026-02-03 =
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
 * Add   - Country validation for TaxJar requests.
