@@ -843,6 +843,9 @@ class WC_Connect_TaxJar_Integration {
 				return false;
 			}
 
+			// Using += (array union) is safe here because keys are line item IDs (e.g. "42-abc123")
+			// and each item exists in exactly one location group, so keys can't collide across groups.
+			// array_merge() would be incorrect as it re-indexes numeric keys.
 			$merged_taxes['rate_ids']   += $taxes['rate_ids'];
 			$merged_taxes['line_items'] += $taxes['line_items'];
 		}
@@ -1099,7 +1102,10 @@ class WC_Connect_TaxJar_Integration {
 		$product_id = $product->get_id();
 
 		// Find the matching line_item_key in response_rate_ids.
-		// Format is "product_id-cart_item_key".
+		// Format is "product_id-cart_item_key". The trailing "-" delimiter prevents
+		// false prefix matches (e.g. product ID 1 won't match "10-xyz" because "1-" != "10").
+		// First-match-wins is safe: if the same product ID appears multiple times (e.g.
+		// two bookings), they share the same tax_location and thus the same tax rates.
 		$matching_rate_ids = null;
 		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
 			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
@@ -1164,6 +1170,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// Find matching rate_ids by product_id prefix (format: "product_id-cart_item_key").
+		// The trailing "-" delimiter prevents false prefix matches between IDs (e.g. 1 vs 10).
+		// First-match-wins is safe: same product always shares the same tax_location and rates.
 		$matching_rate_ids = null;
 		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
 			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
