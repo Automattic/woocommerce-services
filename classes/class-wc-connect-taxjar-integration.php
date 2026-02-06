@@ -977,7 +977,7 @@ class WC_Connect_TaxJar_Integration {
 			 * For example, service products (bookings) can be taxed at the shop
 			 * base address instead of the customer's shipping address.
 			 *
-			 * @since 2.8.0
+			 * @since 3.4.0
 			 *
 			 * @param string     $location Tax location type: 'base', 'shipping', or 'billing'.
 			 * @param WC_Product $product  The product being taxed.
