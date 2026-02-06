@@ -532,6 +532,49 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		delete_option( 'woocommerce_tax_based_on' );
 	}
 
+	/**
+	 * Test get_taxable_address returns early with empty array when WC()->customer is null.
+	 */
+	public function test_get_taxable_address_returns_empty_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'shipping' ) );
+
+		$this->assertEquals( array( '', '', '', '', '' ), $address );
+
+		WC()->customer = $original_customer;
+	}
+
+	/**
+	 * Test get_taxable_address returns early for billing type when WC()->customer is null.
+	 */
+	public function test_get_taxable_address_billing_returns_empty_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'billing' ) );
+
+		$this->assertEquals( array( '', '', '', '', '' ), $address );
+
+		WC()->customer = $original_customer;
+	}
+
+	/**
+	 * Test get_taxable_address base type still works when WC()->customer is null.
+	 */
+	public function test_get_taxable_address_base_works_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		$store_country = WC()->countries->get_base_country();
+		$address       = $this->invoke_protected_method( 'get_taxable_address', array( 'base' ) );
+
+		$this->assertEquals( $store_country, $address[0] );
+
+		WC()->customer = $original_customer;
+	}
+
 	// -------------------------------------------------------------------------
 	// aggregate_tax_totals() tests
 	// -------------------------------------------------------------------------
