@@ -988,6 +988,10 @@ class WC_Connect_TaxJar_Integration {
 			 */
 			$tax_location = apply_filters( 'woocommerce_tax_line_item_location', $default_location, $product );
 
+			if ( $tax_location !== $default_location ) {
+				$this->_log( 'Tax location override for product ' . $id . ': ' . $default_location . ' -> ' . $tax_location );
+			}
+
 			array_push(
 				$line_items,
 				array(
@@ -1047,6 +1051,10 @@ class WC_Connect_TaxJar_Integration {
 
 			/** This filter is documented in get_line_items() */
 			$tax_location = apply_filters( 'woocommerce_tax_line_item_location', $default_location, $product );
+
+			if ( $tax_location !== $default_location ) {
+				$this->_log( 'Tax location override for product ' . $id . ': ' . $default_location . ' -> ' . $tax_location );
+			}
 
 			if ( $unit_price ) {
 				array_push(
