@@ -618,18 +618,18 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	// -------------------------------------------------------------------------
-	// override_item_tax_rates() tests
+	// override_cart_item_tax_rates() tests
 	// -------------------------------------------------------------------------
 
 	/**
 	 * Test returns original rates when response_rate_ids is empty.
 	 */
-	public function test_override_item_tax_rates_returns_original_when_no_response() {
+	public function test_override_cart_item_tax_rates_returns_original_when_no_response() {
 		$original_rates = array( 1 => array( 'rate' => 8.5 ) );
 		$item           = new stdClass();
 		$item->product  = null;
 
-		$result = $this->integration->override_item_tax_rates( $original_rates, $item, WC()->cart );
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
 
 		$this->assertSame( $original_rates, $result );
 	}
@@ -637,13 +637,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * Test returns original rates when item has no product.
 	 */
-	public function test_override_item_tax_rates_returns_original_when_no_product() {
+	public function test_override_cart_item_tax_rates_returns_original_when_no_product() {
 		$this->set_private_property( 'response_rate_ids', array( '10-abc' => array( 1, 2 ) ) );
 
 		$original_rates = array( 1 => array( 'rate' => 8.5 ) );
 		$item           = new stdClass();
 
-		$result = $this->integration->override_item_tax_rates( $original_rates, $item, WC()->cart );
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
 
 		$this->assertSame( $original_rates, $result );
 	}
@@ -651,7 +651,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * Test returns original rates when no matching product in response_rate_ids.
 	 */
-	public function test_override_item_tax_rates_returns_original_when_no_match() {
+	public function test_override_cart_item_tax_rates_returns_original_when_no_match() {
 		$this->set_private_property( 'response_rate_ids', array( '999-abc' => array( 1, 2 ) ) );
 
 		$this->product = WC_Helper_Product::create_simple_product();
@@ -661,7 +661,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$item           = new stdClass();
 		$item->product  = $this->product;
 
-		$result = $this->integration->override_item_tax_rates( $original_rates, $item, WC()->cart );
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
 
 		$this->assertSame( $original_rates, $result );
 	}
@@ -669,7 +669,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * Test returns TaxJar rates when matching product found.
 	 */
-	public function test_override_item_tax_rates_returns_taxjar_rates_when_matched() {
+	public function test_override_cart_item_tax_rates_returns_taxjar_rates_when_matched() {
 		$this->product = WC_Helper_Product::create_simple_product();
 		$this->product->save();
 
@@ -694,7 +694,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$item           = new stdClass();
 		$item->product  = $this->product;
 
-		$result = $this->integration->override_item_tax_rates( $original_rates, $item, WC()->cart );
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
 
 		$this->assertNotEmpty( $result );
 		$this->assertArrayHasKey( $rate_id, $result );
