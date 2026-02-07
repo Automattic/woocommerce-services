@@ -23,7 +23,7 @@ class WC_Connect_TaxJar_Integration {
 
 	private $expected_options = array(
 		// Users can set either billing or shipping address for tax rates but not shop
-		'woocommerce_tax_based_on' => 'shipping',
+		'woocommerce_tax_based_on'       => 'shipping',
 		// Use no special handling on shipping taxes, our API handles that
 		'woocommerce_shipping_tax_class' => '',
 	);
