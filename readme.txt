@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.4.1 - 2026-xx-xx =
+* Add   - Itemized tax calculation for mixed carts with per-item tax locations.
 * Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
 
 = 3.4.0 - 2026-02-03 =

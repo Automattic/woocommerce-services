@@ -99,6 +99,18 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Helper to set private properties via reflection.
+	 *
+	 * @param string $property_name Property name.
+	 * @param mixed  $value         Value to set.
+	 */
+	private function set_private_property( $property_name, $value ) {
+		$reflection = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $property_name );
+		$reflection->setAccessible( true );
+		$reflection->setValue( $this->integration, $value );
+	}
+
+	/**
 	 * Test that get_line_items includes tax_location key with default value.
 	 */
 	public function test_get_line_items_includes_tax_location_with_default() {
@@ -372,5 +384,766 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Assert quantity.
 		$this->assertEquals( 2, $item['quantity'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// group_items_by_location() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test grouping items by tax_location key.
+	 */
+	public function test_group_items_by_location_groups_by_tax_location() {
+		$line_items = array(
+			array(
+				'id'           => 'item-1',
+				'tax_location' => 'shipping',
+			),
+			array(
+				'id'           => 'item-2',
+				'tax_location' => 'base',
+			),
+			array(
+				'id'           => 'item-3',
+				'tax_location' => 'shipping',
+			),
+		);
+
+		$groups = $this->invoke_protected_method( 'group_items_by_location', array( $line_items, false ) );
+
+		$this->assertCount( 2, $groups );
+		$this->assertArrayHasKey( 'shipping', $groups );
+		$this->assertArrayHasKey( 'base', $groups );
+		$this->assertCount( 2, $groups['shipping'] );
+		$this->assertCount( 1, $groups['base'] );
+		$this->assertEquals( 'item-2', $groups['base'][0]['id'] );
+	}
+
+	/**
+	 * Test local pickup forces all items to base.
+	 */
+	public function test_group_items_by_location_local_pickup_forces_base() {
+		$line_items = array(
+			array(
+				'id'           => 'item-1',
+				'tax_location' => 'shipping',
+			),
+			array(
+				'id'           => 'item-2',
+				'tax_location' => 'billing',
+			),
+		);
+
+		$groups = $this->invoke_protected_method( 'group_items_by_location', array( $line_items, true ) );
+
+		$this->assertCount( 1, $groups );
+		$this->assertArrayHasKey( 'base', $groups );
+		$this->assertCount( 2, $groups['base'] );
+	}
+
+	/**
+	 * Test missing tax_location uses woocommerce_tax_based_on default.
+	 */
+	public function test_group_items_by_location_uses_default_when_missing() {
+		update_option( 'woocommerce_tax_based_on', 'billing' );
+
+		$line_items = array(
+			array( 'id' => 'item-1' ), // No tax_location key.
+		);
+
+		$groups = $this->invoke_protected_method( 'group_items_by_location', array( $line_items, false ) );
+
+		$this->assertArrayHasKey( 'billing', $groups );
+		$this->assertCount( 1, $groups['billing'] );
+
+		delete_option( 'woocommerce_tax_based_on' );
+	}
+
+	/**
+	 * Test empty input returns empty groups.
+	 */
+	public function test_group_items_by_location_empty_input() {
+		$groups = $this->invoke_protected_method( 'group_items_by_location', array( array(), false ) );
+
+		$this->assertIsArray( $groups );
+		$this->assertEmpty( $groups );
+	}
+
+	// -------------------------------------------------------------------------
+	// get_taxable_address() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test that location_type 'base' returns store address.
+	 */
+	public function test_get_taxable_address_base_returns_store_address() {
+		$store_country = WC()->countries->get_base_country();
+		$store_state   = WC()->countries->get_base_state();
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'base' ) );
+
+		$this->assertIsArray( $address );
+		$this->assertEquals( $store_country, $address[0] );
+		$this->assertEquals( $store_state, $address[1] );
+	}
+
+	/**
+	 * Test that location_type 'shipping' returns customer shipping address.
+	 */
+	public function test_get_taxable_address_shipping_returns_customer_address() {
+		WC()->customer->set_shipping_country( 'US' );
+		WC()->customer->set_shipping_state( 'NY' );
+		WC()->customer->set_shipping_postcode( '10001' );
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'shipping' ) );
+
+		$this->assertEquals( 'US', $address[0] );
+		$this->assertEquals( 'NY', $address[1] );
+		$this->assertEquals( '10001', $address[2] );
+	}
+
+	/**
+	 * Test that location_type 'billing' returns customer billing address.
+	 */
+	public function test_get_taxable_address_billing_returns_billing_address() {
+		WC()->customer->set_billing_country( 'US' );
+		WC()->customer->set_billing_state( 'TX' );
+		WC()->customer->set_billing_postcode( '73301' );
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'billing' ) );
+
+		$this->assertEquals( 'US', $address[0] );
+		$this->assertEquals( 'TX', $address[1] );
+		$this->assertEquals( '73301', $address[2] );
+	}
+
+	/**
+	 * Test that null location_type uses woocommerce_tax_based_on option (backward compat).
+	 */
+	public function test_get_taxable_address_null_uses_option() {
+		update_option( 'woocommerce_tax_based_on', 'base' );
+
+		$store_country = WC()->countries->get_base_country();
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( null ) );
+
+		$this->assertEquals( $store_country, $address[0] );
+
+		delete_option( 'woocommerce_tax_based_on' );
+	}
+
+	/**
+	 * Test get_taxable_address returns early with empty array when WC()->customer is null.
+	 */
+	public function test_get_taxable_address_returns_empty_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'shipping' ) );
+
+		$this->assertEquals( array( '', '', '', '', '' ), $address );
+
+		WC()->customer = $original_customer;
+	}
+
+	/**
+	 * Test get_taxable_address returns early for billing type when WC()->customer is null.
+	 */
+	public function test_get_taxable_address_billing_returns_empty_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'billing' ) );
+
+		$this->assertEquals( array( '', '', '', '', '' ), $address );
+
+		WC()->customer = $original_customer;
+	}
+
+	/**
+	 * Test get_taxable_address base type still works when WC()->customer is null.
+	 */
+	public function test_get_taxable_address_base_works_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		$store_country = WC()->countries->get_base_country();
+		$address       = $this->invoke_protected_method( 'get_taxable_address', array( 'base' ) );
+
+		$this->assertEquals( $store_country, $address[0] );
+
+		WC()->customer = $original_customer;
+	}
+
+	// -------------------------------------------------------------------------
+	// aggregate_tax_totals() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test aggregation combines entries with same label.
+	 */
+	public function test_aggregate_tax_totals_combines_same_labels() {
+		$tax_a         = new stdClass();
+		$tax_a->label  = 'County Tax';
+		$tax_a->amount = 0.25;
+
+		$tax_b         = new stdClass();
+		$tax_b->label  = 'County Tax';
+		$tax_b->amount = 0.12;
+
+		$tax_c         = new stdClass();
+		$tax_c->label  = 'State Tax';
+		$tax_c->amount = 1.50;
+
+		$tax_totals = array(
+			'US-CA-1' => $tax_a,
+			'US-NY-1' => $tax_b,
+			'US-CA-2' => $tax_c,
+		);
+
+		$result = $this->integration->aggregate_tax_totals( $tax_totals, WC()->cart );
+
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'County Tax', $result );
+		$this->assertArrayHasKey( 'State Tax', $result );
+		$this->assertEquals( 0.37, $result['County Tax']->amount );
+		$this->assertEquals( 1.50, $result['State Tax']->amount );
+	}
+
+	/**
+	 * Test aggregation returns input unchanged when count <= 1.
+	 */
+	public function test_aggregate_tax_totals_single_entry_unchanged() {
+		$tax         = new stdClass();
+		$tax->label  = 'Tax';
+		$tax->amount = 1.00;
+
+		$tax_totals = array( 'US-1' => $tax );
+
+		$result = $this->integration->aggregate_tax_totals( $tax_totals, WC()->cart );
+
+		$this->assertSame( $tax_totals, $result );
+	}
+
+	/**
+	 * Test aggregation returns input unchanged when not an array.
+	 */
+	public function test_aggregate_tax_totals_non_array_unchanged() {
+		$result = $this->integration->aggregate_tax_totals( null, WC()->cart );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Test aggregation does not mutate original objects.
+	 */
+	public function test_aggregate_tax_totals_clones_objects() {
+		$tax_a         = new stdClass();
+		$tax_a->label  = 'Tax';
+		$tax_a->amount = 1.00;
+
+		$tax_b         = new stdClass();
+		$tax_b->label  = 'Tax';
+		$tax_b->amount = 2.00;
+
+		$tax_totals = array(
+			'A' => $tax_a,
+			'B' => $tax_b,
+		);
+
+		$result = $this->integration->aggregate_tax_totals( $tax_totals, WC()->cart );
+
+		// Original objects should not be modified.
+		$this->assertEquals( 1.00, $tax_a->amount );
+		$this->assertEquals( 2.00, $tax_b->amount );
+
+		// Aggregated result should have combined amount.
+		$this->assertEquals( 3.00, $result['Tax']->amount );
+	}
+
+	// -------------------------------------------------------------------------
+	// override_cart_item_tax_rates() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test returns original rates when response_rate_ids is empty.
+	 */
+	public function test_override_cart_item_tax_rates_returns_original_when_no_response() {
+		$original_rates = array( 1 => array( 'rate' => 8.5 ) );
+		$item           = new stdClass();
+		$item->product  = null;
+
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
+
+		$this->assertSame( $original_rates, $result );
+	}
+
+	/**
+	 * Test returns original rates when item has no product.
+	 */
+	public function test_override_cart_item_tax_rates_returns_original_when_no_product() {
+		$this->set_private_property( 'response_rate_ids', array( '10-abc' => array( 1, 2 ) ) );
+
+		$original_rates = array( 1 => array( 'rate' => 8.5 ) );
+		$item           = new stdClass();
+
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
+
+		$this->assertSame( $original_rates, $result );
+	}
+
+	/**
+	 * Test returns original rates when no matching product in response_rate_ids.
+	 */
+	public function test_override_cart_item_tax_rates_returns_original_when_no_match() {
+		$this->set_private_property( 'response_rate_ids', array( '999-abc' => array( 1, 2 ) ) );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->save();
+
+		$original_rates = array( 1 => array( 'rate' => 8.5 ) );
+		$item           = new stdClass();
+		$item->product  = $this->product;
+
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
+
+		$this->assertSame( $original_rates, $result );
+	}
+
+	/**
+	 * Test returns TaxJar rates when matching product found.
+	 */
+	public function test_override_cart_item_tax_rates_returns_taxjar_rates_when_matched() {
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->save();
+
+		// Insert a tax rate into the database.
+		$rate_id = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CA',
+				'tax_rate'          => '8.5',
+				'tax_rate_name'     => 'CA Tax',
+				'tax_rate_shipping' => 'no',
+				'tax_rate_compound' => 'no',
+				'tax_rate_priority' => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$product_id = $this->product->get_id();
+		$this->set_private_property( 'response_rate_ids', array( $product_id . '-abc123' => array( $rate_id ) ) );
+
+		$original_rates = array();
+		$item           = new stdClass();
+		$item->product  = $this->product;
+
+		$result = $this->integration->override_cart_item_tax_rates( $original_rates, $item, WC()->cart );
+
+		$this->assertNotEmpty( $result );
+		$this->assertArrayHasKey( $rate_id, $result );
+		$this->assertEquals( 8.5, $result[ $rate_id ]['rate'] );
+		$this->assertEquals( 'CA Tax', $result[ $rate_id ]['label'] );
+
+		// Clean up.
+		WC_Tax::_delete_tax_rate( $rate_id );
+	}
+
+	// -------------------------------------------------------------------------
+	// override_order_item_taxes() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test no-op when response_rate_ids is empty (no TaxJar calc this request).
+	 */
+	public function test_override_order_item_taxes_noop_when_no_response() {
+		$order = WC_Helper_Order::create_order();
+		$items = $order->get_items();
+		$item  = reset( $items );
+		$orig  = $item->get_taxes();
+
+		$this->integration->override_order_item_taxes( $item, array() );
+
+		$this->assertSame( $orig, $item->get_taxes() );
+		$order->delete( true );
+	}
+
+	/**
+	 * Test no-op when item is not a WC_Order_Item_Product (e.g. fee or shipping).
+	 */
+	public function test_override_order_item_taxes_skips_non_product_items() {
+		$this->set_private_property( 'response_rate_ids', array( '10-abc' => array( 1 ) ) );
+
+		$fee = new WC_Order_Item_Fee();
+		$fee->set_total( '5.00' );
+
+		// Should not throw or modify.
+		$this->integration->override_order_item_taxes( $fee, array() );
+
+		$this->assertEmpty( $fee->get_taxes()['total'] );
+	}
+
+	/**
+	 * Test no-op when the product is not found in response_rate_ids (cross-state item).
+	 */
+	public function test_override_order_item_taxes_skips_unmatched_product() {
+		$this->set_private_property( 'response_rate_ids', array( '999-abc' => array( 1 ) ) );
+
+		$order = WC_Helper_Order::create_order();
+		$items = $order->get_items();
+		$item  = reset( $items );
+		$orig  = $item->get_taxes();
+
+		$this->integration->override_order_item_taxes( $item, array() );
+
+		$this->assertSame( $orig, $item->get_taxes() );
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that TaxJar rates are applied for a matched base-group item.
+	 */
+	public function test_override_order_item_taxes_applies_taxjar_rates_when_matched() {
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( '20.00' );
+		$this->product->save();
+
+		// Insert a tax rate into the database.
+		$rate_id = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CA',
+				'tax_rate'          => '10.0000',
+				'tax_rate_name'     => 'CA Tax',
+				'tax_rate_shipping' => 'no',
+				'tax_rate_compound' => 'no',
+				'tax_rate_priority' => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$product_id = $this->product->get_id();
+		$this->set_private_property( 'response_rate_ids', array( $product_id . '-abc123' => array( $rate_id ) ) );
+
+		// Create an order item.
+		$item = new WC_Order_Item_Product();
+		$item->set_product( $this->product );
+		$item->set_quantity( 1 );
+		$item->set_total( '20.00' );
+		$item->set_subtotal( '20.00' );
+
+		$this->integration->override_order_item_taxes( $item, array() );
+
+		$taxes = $item->get_taxes();
+		$this->assertArrayHasKey( $rate_id, $taxes['total'] );
+		$this->assertEquals( 2.0, (float) $taxes['total'][ $rate_id ] );
+		$this->assertArrayHasKey( $rate_id, $taxes['subtotal'] );
+		$this->assertEquals( 2.0, (float) $taxes['subtotal'][ $rate_id ] );
+
+		// Clean up.
+		WC_Tax::_delete_tax_rate( $rate_id );
+	}
+
+	// -------------------------------------------------------------------------
+	// calculate_taxes_by_location() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test merges results from multiple location groups.
+	 */
+	public function test_calculate_taxes_by_location_merges_groups() {
+		// Create a partial mock that stubs calculate_tax and get_address.
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
+			->getMock();
+
+		$integration->method( 'get_address' )->willReturnCallback(
+			function ( $type ) {
+				return array(
+					'to_country' => 'US',
+					'to_state'   => 'CA',
+					'to_zip'     => '94110',
+					'to_city'    => 'San Francisco',
+					'to_street'  => '123 Main St',
+				);
+			}
+		);
+
+		$integration->method( 'calculate_tax' )->willReturnCallback(
+			function ( $options ) {
+				$has_shipping = ! empty( $options['shipping_amount'] );
+				return array(
+					'rate_ids'   => $has_shipping ? array( 'ship-item' => array( 5 ) ) : array( 'base-item' => array( 6 ) ),
+					'line_items' => $has_shipping ? array( 'ship-item' => array( 'tax' => 1.0 ) ) : array( 'base-item' => array( 'tax' => 0.5 ) ),
+				);
+			}
+		);
+
+		$items_by_location = array(
+			'shipping' => array( array( 'id' => 'ship-item' ) ),
+			'base'     => array( array( 'id' => 'base-item' ) ),
+		);
+
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'calculate_taxes_by_location' );
+		$reflection->setAccessible( true );
+		$result = $reflection->invokeArgs( $integration, array( $items_by_location, 10.0 ) );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'ship-item', $result['rate_ids'] );
+		$this->assertArrayHasKey( 'base-item', $result['rate_ids'] );
+		$this->assertArrayHasKey( 'ship-item', $result['line_items'] );
+		$this->assertArrayHasKey( 'base-item', $result['line_items'] );
+	}
+
+	/**
+	 * Test shipping amount only applied to shipping group.
+	 */
+	public function test_calculate_taxes_by_location_shipping_only_on_shipping_group() {
+		$received_options = array();
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
+			->getMock();
+
+		$integration->method( 'get_address' )->willReturn(
+			array(
+				'to_country' => 'US',
+				'to_state'   => 'CA',
+				'to_zip'     => '94110',
+				'to_city'    => 'San Francisco',
+				'to_street'  => '',
+			)
+		);
+
+		$integration->method( 'calculate_tax' )->willReturnCallback(
+			function ( $options ) use ( &$received_options ) {
+				$received_options[] = $options;
+				return array(
+					'rate_ids'   => array( 'x' => array( 1 ) ),
+					'line_items' => array( 'x' => array() ),
+				);
+			}
+		);
+
+		$items_by_location = array(
+			'base'     => array( array( 'id' => 'item-1' ) ),
+			'shipping' => array( array( 'id' => 'item-2' ) ),
+		);
+
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'calculate_taxes_by_location' );
+		$reflection->setAccessible( true );
+		$reflection->invokeArgs( $integration, array( $items_by_location, 15.0 ) );
+
+		// Base group should have 0 shipping.
+		$this->assertEquals( 0, $received_options[0]['shipping_amount'] );
+		// Shipping group should have full shipping amount.
+		$this->assertEquals( 15.0, $received_options[1]['shipping_amount'] );
+	}
+
+	/**
+	 * Test returns false when calculate_tax returns false for any group.
+	 */
+	public function test_calculate_taxes_by_location_returns_false_on_error() {
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
+			->getMock();
+
+		$integration->method( 'get_address' )->willReturn(
+			array(
+				'to_country' => 'US',
+				'to_state'   => 'CA',
+				'to_zip'     => '94110',
+				'to_city'    => 'San Francisco',
+				'to_street'  => '',
+			)
+		);
+
+		// First group succeeds, second group fails.
+		$integration->method( 'calculate_tax' )->willReturnOnConsecutiveCalls(
+			array(
+				'rate_ids'   => array( 'a' => array( 1 ) ),
+				'line_items' => array( 'a' => array() ),
+			),
+			false
+		);
+
+		$items_by_location = array(
+			'base'     => array( array( 'id' => 'item-1' ) ),
+			'shipping' => array( array( 'id' => 'item-2' ) ),
+		);
+
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'calculate_taxes_by_location' );
+		$reflection->setAccessible( true );
+		$result = $reflection->invokeArgs( $integration, array( $items_by_location, 0 ) );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Test cross-state group returns empty taxes, other groups still proceed.
+	 */
+	public function test_calculate_taxes_by_location_cross_state_skips_group() {
+		$call_count = 0;
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', 'get_address', 'get_store_settings', '_log' ) )
+			->getMock();
+
+		// Store is in CA.
+		$integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'CA',
+				'postcode' => '94110',
+				'city'     => 'San Francisco',
+				'street'   => '',
+			)
+		);
+
+		$integration->method( 'get_address' )->willReturnCallback(
+			function ( $type ) {
+				if ( 'base' === $type ) {
+					return array(
+						'to_country' => 'US',
+						'to_state'   => 'CA',
+						'to_zip'     => '94110',
+						'to_city'    => 'San Francisco',
+						'to_street'  => '',
+					);
+				}
+				// Shipping group goes to NY (cross-state).
+				return array(
+					'to_country' => 'US',
+					'to_state'   => 'NY',
+					'to_zip'     => '10001',
+					'to_city'    => 'New York',
+					'to_street'  => '',
+				);
+			}
+		);
+
+		$integration->method( 'calculate_tax' )->willReturnCallback(
+			function ( $options ) use ( &$call_count ) {
+				$call_count++;
+				$to_state = strtoupper( $options['to_state'] );
+				// Cross-state returns empty taxes (the behavior under test).
+				if ( 'NY' === $to_state ) {
+					return array(
+						'freight_taxable' => 1,
+						'has_nexus'       => 0,
+						'line_items'      => array(),
+						'rate_ids'        => array(),
+						'tax_rate'        => 0,
+					);
+				}
+				return array(
+					'rate_ids'   => array( 'base-item' => array( 1, 2 ) ),
+					'line_items' => array( 'base-item' => array( 'tax' => 1.04 ) ),
+				);
+			}
+		);
+
+		$items_by_location = array(
+			'base'     => array( array( 'id' => 'base-item' ) ),
+			'shipping' => array( array( 'id' => 'ship-item' ) ),
+		);
+
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'calculate_taxes_by_location' );
+		$reflection->setAccessible( true );
+		$result = $reflection->invokeArgs( $integration, array( $items_by_location, 0 ) );
+
+		// Should not be false — base group has taxes.
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'base-item', $result['rate_ids'] );
+		// Both groups were called.
+		$this->assertEquals( 2, $call_count );
+	}
+
+	/**
+	 * Test all groups empty (all cross-state) returns false.
+	 */
+	public function test_calculate_taxes_by_location_all_empty_returns_false() {
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', 'get_address', '_log' ) )
+			->getMock();
+
+		$integration->method( 'get_address' )->willReturn(
+			array(
+				'to_country' => 'US',
+				'to_state'   => 'NY',
+				'to_zip'     => '10001',
+				'to_city'    => 'New York',
+				'to_street'  => '',
+			)
+		);
+
+		// All groups return empty taxes (cross-state).
+		$integration->method( 'calculate_tax' )->willReturn(
+			array(
+				'freight_taxable' => 1,
+				'has_nexus'       => 0,
+				'line_items'      => array(),
+				'rate_ids'        => array(),
+				'tax_rate'        => 0,
+			)
+		);
+
+		$items_by_location = array(
+			'shipping' => array( array( 'id' => 'item-1' ) ),
+		);
+
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'calculate_taxes_by_location' );
+		$reflection->setAccessible( true );
+		$result = $reflection->invokeArgs( $integration, array( $items_by_location, 0 ) );
+
+		$this->assertFalse( $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// calculate_tax() cross-state change tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test US cross-state returns empty taxes array, not false.
+	 */
+	public function test_calculate_tax_cross_state_returns_empty_taxes() {
+		// Set store to California.
+		update_option( 'woocommerce_default_country', 'US:CA' );
+
+		// Set customer to not VAT exempt so the early return doesn't trigger.
+		WC()->customer->set_is_vat_exempt( false );
+
+		$result = $this->invoke_protected_method(
+			'calculate_tax',
+			array(
+				array(
+					'to_country'      => 'US',
+					'to_state'        => 'NY',
+					'to_zip'          => '10001',
+					'to_city'         => 'New York',
+					'to_street'       => '123 Broadway',
+					'shipping_amount' => 0,
+					'line_items'      => array(
+						array(
+							'id'         => 'test-item',
+							'quantity'   => 1,
+							'unit_price' => '25.00',
+						),
+					),
+				),
+			)
+		);
+
+		// Should be an array (empty taxes), not false.
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'rate_ids', $result );
+		$this->assertArrayHasKey( 'line_items', $result );
+		$this->assertEmpty( $result['rate_ids'] );
+		$this->assertEmpty( $result['line_items'] );
+		$this->assertEquals( 0, $result['has_nexus'] );
 	}
 }
