@@ -2029,7 +2029,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 
 			$inline_script = sprintf(
-				'var _sift = window._sift || [];' .
+				'var _sift = window._sift = window._sift || [];' .
 				'_sift.push(["_setAccount", %s]);' .
 				'_sift.push(["_setUserId", %s]);' .
 				'_sift.push(["_trackPageview"]);',
