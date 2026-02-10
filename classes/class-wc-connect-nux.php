@@ -257,6 +257,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 						return 'tos_only_banner';
 					}
 
+					// TOS not accepted, but current user is not the connection owner.
+					// Show an informational banner directing them to the connection owner.
+					if (
+						isset( $status['tos_accepted'] )
+						&& ! $status['tos_accepted']
+					) {
+						return 'tos_informational_banner';
+					}
+
 					return false;
 				default:
 					return false;
@@ -399,6 +408,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_after_connection' ) );
 					break;
+				case 'tos_informational_banner':
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_tos_informational_banner' ) );
+					break;
 			}
 
 			add_action( 'wp_ajax_wc_connect_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
@@ -529,6 +542,25 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 		}
 
+		public function show_tos_informational_banner() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
+			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
+				return;
+			}
+
+			$this->show_nux_banner(
+				array(
+					'title'             => __( 'WooCommerce Tax requires Terms of Service acceptance', 'woocommerce-services' ),
+					'description'       => __( 'The Jetpack connection owner needs to accept the Terms of Service to activate WooCommerce Tax features.', 'woocommerce-services' ),
+					'image_url'         => plugins_url( 'images/wcs-notice.png', __DIR__ ),
+					'should_show_terms' => false,
+				)
+			);
+		}
+
 		public function show_nux_banner( $content ) {
 			if ( isset( $content['dismissible_id'] ) && $this->is_notice_dismissed( sanitize_key( $content['dismissible_id'] ) ) ) {
 				return;
@@ -566,14 +598,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 							?>
 						</p>
 					<?php endif; ?>
-					<?php if ( isset( $content['button_link'] ) ) : ?>
+					<?php if ( isset( $content['button_text'] ) ) : ?>
+						<?php if ( isset( $content['button_link'] ) ) : ?>
 						<a
 							class="wcs-nux__notice-content-button button button-primary"
 							href="<?php echo esc_url( $content['button_link'] ); ?>"
 						>
 							<?php echo esc_html( $content['button_text'] ); ?>
 						</a>
-					<?php else : ?>
+						<?php else : ?>
 						<form action="<?php echo esc_attr( admin_url( 'admin-post.php' ) ); ?>" method="post">
 							<input type="hidden" name="action" value="register_woocommerce_services_jetpack"/>
 							<input type="hidden" name="redirect_url"
@@ -586,6 +619,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 								<?php echo esc_html( $content['button_text'] ); ?>
 							</button>
 						</form>
+						<?php endif; ?>
 					<?php endif; ?>
 				</div>
 			</div>
