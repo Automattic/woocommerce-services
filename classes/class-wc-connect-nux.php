@@ -551,10 +551,18 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			$connection_owner = WC_Connect_Jetpack::get_connection_owner();
+			if ( $connection_owner ) {
+				/* translators: %s: display name of the Jetpack connection owner */
+				$description = sprintf( __( 'The Jetpack connection owner (%s) needs to accept the Terms of Service to activate WooCommerce Tax features.', 'woocommerce-services' ), $connection_owner->display_name );
+			} else {
+				$description = __( 'The Jetpack connection owner needs to accept the Terms of Service to activate WooCommerce Tax features.', 'woocommerce-services' );
+			}
+
 			$this->show_nux_banner(
 				array(
 					'title'             => __( 'WooCommerce Tax requires Terms of Service acceptance', 'woocommerce-services' ),
-					'description'       => __( 'The Jetpack connection owner needs to accept the Terms of Service to activate WooCommerce Tax features.', 'woocommerce-services' ),
+					'description'       => $description,
 					'image_url'         => plugins_url( 'images/wcs-notice.png', __DIR__ ),
 					'should_show_terms' => false,
 				)
