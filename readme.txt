@@ -75,6 +75,7 @@ This plugin relies on the following external services:
 
 = 3.4.1 - 2026-02-09 =
 * Add   - Itemized tax calculation for mixed carts with per-item tax locations.
+* Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
 
 = 3.4.0 - 2026-02-03 =
 * Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
