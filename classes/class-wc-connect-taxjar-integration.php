@@ -398,6 +398,7 @@ class WC_Connect_TaxJar_Integration {
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L66-L91
 	 */
 	public function configure_tax_settings() {
+		// If "include taxes" is enabled, Charge the same price regardless of location and taxes.
 		if ( get_option ( 'woocommerce_prices_include_tax' ) == 'yes' ) {
 			add_filter( 'woocommerce_adjust_non_base_location_prices', '__return_false' );
 		}
