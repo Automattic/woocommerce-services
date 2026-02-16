@@ -15,7 +15,7 @@
     "require": {
       	"automattic/jetpack-connection": "^6.2.0",
         "automattic/jetpack-config": "^3.0.0",
-        "automattic/jetpack-autoloader": "^5.0.0",
+        "automattic/jetpack-autoloader": "^5.0.15",
         "automattic/jetpack-status": "^5.0.1"
     },
     "config": {
