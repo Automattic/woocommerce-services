@@ -24,7 +24,7 @@ Activate this skill when the user:
 **This skill ONLY:**
 - ✅ Generates PR title and description
 - ✅ Outputs as markdown
-- ✅ Copies to clipboard via `pbcopy`
+- ✅ Copies to clipboard (platform-specific: `pbcopy` on macOS, `xclip`/`xsel` on Linux, `clip.exe` on Windows)
 
 ## Workflow
 
@@ -152,10 +152,43 @@ Based on the git diff and commit history:
 ### Step 7: Copy to Clipboard and Display
 
 1. **Display the generated PR description** to the user in a markdown code block
-2. **Copy to clipboard** using `pbcopy`:
+2. **Copy to clipboard** using the appropriate platform-specific command:
+   
+   **macOS:**
    ```bash
    echo "{PR title and body}" | pbcopy
    ```
+   
+   **Linux:**
+   ```bash
+   # Using xclip (install: apt-get install xclip or yum install xclip)
+   echo "{PR title and body}" | xclip -selection clipboard
+   
+   # Or using xsel (install: apt-get install xsel or yum install xsel)
+   echo "{PR title and body}" | xsel --clipboard --input
+   ```
+   
+   **Windows (Git Bash/WSL):**
+   ```bash
+   echo "{PR title and body}" | clip.exe
+   ```
+   
+   **Cross-platform detection example:**
+   ```bash
+   # Detect OS and use appropriate clipboard command
+   if command -v pbcopy > /dev/null; then
+       echo "{PR title and body}" | pbcopy
+   elif command -v xclip > /dev/null; then
+       echo "{PR title and body}" | xclip -selection clipboard
+   elif command -v xsel > /dev/null; then
+       echo "{PR title and body}" | xsel --clipboard --input
+   elif command -v clip.exe > /dev/null; then
+       echo "{PR title and body}" | clip.exe
+   else
+       echo "⚠️  No clipboard utility found. Please copy manually."
+   fi
+   ```
+
 3. **Confirm to user:**
    ```
    ✅ PR description generated and copied to clipboard!
@@ -163,7 +196,7 @@ Based on the git diff and commit history:
    Next steps:
    1. Push your branch: git push -u origin HEAD
    2. Create PR on GitHub
-   3. Paste from clipboard (Cmd+V)
+   3. Paste from clipboard
    ```
 
 ## Repository-Specific Patterns
@@ -255,7 +288,7 @@ Closes WOOSHIP-1761
 Next steps:
 1. Push your branch: git push -u origin HEAD
 2. Create PR on GitHub
-3. Paste description from clipboard (Cmd+V)
+3. Paste description from clipboard
 ```
 
 ### **Example 2: Multiple Repos Detected**
@@ -336,9 +369,16 @@ Always output in this structure:
 {Filled template body}
 ```
 
-Then run:
+Then run the appropriate clipboard command for the user's platform (see Step 7 for cross-platform options):
 ```bash
+# macOS
 echo "{full content}" | pbcopy
+
+# Linux (xclip)
+echo "{full content}" | xclip -selection clipboard
+
+# Windows
+echo "{full content}" | clip.exe
 ```
 
 And tell the user:
@@ -348,7 +388,7 @@ And tell the user:
 Next steps:
 1. Push your branch: git push -u origin HEAD
 2. Create PR on GitHub
-3. Paste description from clipboard (Cmd+V)
+3. Paste description from clipboard
 ```
 
 ## Notes
@@ -359,5 +399,5 @@ Next steps:
 - **Follow the template EXACTLY** - preserve HTML comments, section headers, and checkbox items
 - Some repos use issue templates in `.github/ISSUE_TEMPLATE/` - don't confuse with PR templates
 - If commits or branch names reference Linear issues (WOOSHIP-1234, WOO13-143), use the short ID format in "Closes" - NOT the full linear.app URL
-- Use `pbcopy` to copy to clipboard (macOS)
+- Use platform-appropriate clipboard command (`pbcopy` on macOS, `xclip`/`xsel` on Linux, `clip.exe` on Windows)
 - The clipboard content should be the PR body only (not wrapped in code blocks) - ready to paste directly into GitHub
