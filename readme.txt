@@ -72,7 +72,6 @@ This plugin relies on the following external services:
 
 = 3.4.2 - 2026-xx-xx =
 * Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
-* Tweak - Update Jetpack Autoloader version.
 
 = 3.4.1 - 2026-02-09 =
 * Add   - Itemized tax calculation for mixed carts with per-item tax locations.
