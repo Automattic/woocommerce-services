@@ -172,7 +172,7 @@ Example: `* Tweak - ScanForm history caching for improved performance.`
 ```
 * Fix   - [Generic description without revealing vulnerability details].
 ```
-Example: `* Fix   - node-forge vulnerability (CVE-2025-12816)`
+Example: `* Fix   - node-forge vulnerability (CVE-YYYY-XXXXX)`
 
 ### Developer-Only Change
 ```
