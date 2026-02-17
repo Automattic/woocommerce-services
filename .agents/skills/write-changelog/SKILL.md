@@ -1,6 +1,6 @@
 # Write Changelog Entry Skill
 
-Generate professional changelog entries for WooCommerce Shipping based on the current branch changes.
+Generate professional changelog entries for WooCommerce Tax based on the current branch changes.
 
 ## When to Use
 
