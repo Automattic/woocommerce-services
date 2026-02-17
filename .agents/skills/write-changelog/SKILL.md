@@ -114,7 +114,7 @@ Insert the new version block at the **top** of the changelog, after line 2:
 
 Note: Leave one blank line after the entries, before the previous version.
 
-Location: `/Users/samnajian/Dev/woocommerce-shipping/changelog.txt`
+Location: `changelog.txt` (in the repository root)
 
 ### Step 7: Update readme.txt
 
