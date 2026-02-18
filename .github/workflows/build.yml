@@ -43,6 +43,15 @@ jobs:
       - name: Build plugin zip
         run: npm run build
 
+      # Re-zip so the archive has a single top-level directory matching the plugin slug (required by QIT).
+      - name: Re-zip with parent directory for QIT
+        run: |
+          PLUGIN_NAME="${{ env.PLUGIN_NAME }}"
+          unzip -q -d "$PLUGIN_NAME" "$PLUGIN_NAME.zip"
+          rm "$PLUGIN_NAME.zip"
+          zip -rq "$PLUGIN_NAME.zip" "$PLUGIN_NAME"
+          rm -rf "$PLUGIN_NAME"
+
       - name: Debug — plugin name and zip structure
         run: |
           echo "::group::Build debug: plugin name and zip contents"
@@ -55,8 +64,8 @@ jobs:
             echo "Zip exists. Listing contents (first 45 lines):"
             unzip -l "$ZIPFILE" | head -45
             echo ""
-            echo "First path in archive (expect single top-level dir for QIT):"
-            unzip -l "$ZIPFILE" | tail -n +4 | head -1
+            echo "First path in archive (QIT expects single top-level dir matching slug):"
+            unzip -l "$ZIPFILE" | sed -n '4p'
           else
             echo "ERROR: Zip file not found."
             ls -la
