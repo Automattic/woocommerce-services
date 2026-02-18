@@ -43,6 +43,32 @@ jobs:
       - name: Build plugin zip
         run: npm run build
 
+      - name: Debug — plugin name and zip structure
+        run: |
+          echo "::group::Build debug: plugin name and zip contents"
+          echo "PLUGIN_NAME (env): ${{ env.PLUGIN_NAME }}"
+          echo "inputs.plugin_name: ${{ inputs.plugin_name }}"
+          echo ""
+          echo "Zip file: ${{ env.PLUGIN_NAME }}.zip"
+          if [ -f "${{ env.PLUGIN_NAME }}.zip" ]; then
+            echo "Zip exists. Listing contents (first 40 entries):"
+            unzip -l "${{ env.PLUGIN_NAME }}.zip" | head -40
+            echo ""
+            echo "Top-level entries (no path prefix):"
+            unzip -l "${{ env.PLUGIN_NAME }}.zip" | awk 'NR>3 { print $4 }' | while read -r entry; do
+              case "$entry" in
+                */*) echo "  (nested) $entry" ;;
+                *)   echo "  (root)   $entry" ;;
+              esac
+            done | head -30
+          else
+            echo "ERROR: Zip file not found."
+            ls -la
+          fi
+          echo "::endgroup::"
+        env:
+          PLUGIN_NAME: ${{ env.PLUGIN_NAME }}
+
       - name: Upload plugin zip
         uses: actions/upload-artifact@v4
         with:
