@@ -49,18 +49,14 @@ jobs:
           echo "PLUGIN_NAME (env): ${{ env.PLUGIN_NAME }}"
           echo "inputs.plugin_name: ${{ inputs.plugin_name }}"
           echo ""
-          echo "Zip file: ${{ env.PLUGIN_NAME }}.zip"
-          if [ -f "${{ env.PLUGIN_NAME }}.zip" ]; then
-            echo "Zip exists. Listing contents (first 40 entries):"
-            unzip -l "${{ env.PLUGIN_NAME }}.zip" | head -40
+          ZIPFILE="${{ env.PLUGIN_NAME }}.zip"
+          echo "Zip file: $ZIPFILE"
+          if [ -f "$ZIPFILE" ]; then
+            echo "Zip exists. Listing contents (first 45 lines):"
+            unzip -l "$ZIPFILE" | head -45
             echo ""
-            echo "Top-level entries (no path prefix):"
-            unzip -l "${{ env.PLUGIN_NAME }}.zip" | awk 'NR>3 { print $4 }' | while read -r entry; do
-              case "$entry" in
-                */*) echo "  (nested) $entry" ;;
-                *)   echo "  (root)   $entry" ;;
-              esac
-            done | head -30
+            echo "First path in archive (expect single top-level dir for QIT):"
+            unzip -l "$ZIPFILE" | tail -n +4 | head -1
           else
             echo "ERROR: Zip file not found."
             ls -la
