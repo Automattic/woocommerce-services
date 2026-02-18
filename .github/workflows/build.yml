@@ -43,12 +43,6 @@ jobs:
       - name: Build plugin zip
         run: npm run build
 
-      - name: Unzip woocommerce-services.zip
-        run: unzip woocommerce-services.zip -d woocommerce-services
-
-      - name: Re-zip woocommerce-services folder
-        run: zip -r woocommerce-services.zip woocommerce-services
-
       - name: Upload plugin zip
         uses: actions/upload-artifact@v4
         with:
