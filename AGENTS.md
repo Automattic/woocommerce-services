@@ -51,7 +51,10 @@ composer phpcs
 - Treating shipping migrations as feature expansion instead of compatibility maintenance.
 
 ## Commit Attribution
-- AI commits MUST include:
+- AI commits MUST include the appropriate co-author trailer:
+```text
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+```
 ```text
 Co-Authored-By: Codex (GPT-5) <codex@openai.com>
 ```
