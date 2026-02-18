@@ -15,7 +15,7 @@
 - Tests: `tests/`
 
 ## Package Managers
-- Node/npm: `npm install`, `npm run dist`, `npm run test-client`, `npm run eslint`
+- Node/npm: `npm i --ignore-scripts --ignore-optional`, `npm run dist`, `npm run test-client`, `npm run eslint`
 - Composer: `composer install`, `composer test`, `composer phpcs`
 
 ## Runtime Compatibility
@@ -25,7 +25,7 @@
 
 ## Common Commands
 ```bash
-npm install
+npm i --ignore-scripts --ignore-optional
 composer install
 npm run dist
 npm run test-client
