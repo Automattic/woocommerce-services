@@ -52,28 +52,6 @@ jobs:
           zip -rq "$PLUGIN_NAME.zip" "$PLUGIN_NAME"
           rm -rf "$PLUGIN_NAME"
 
-      - name: Debug — plugin name and zip structure
-        run: |
-          echo "::group::Build debug: plugin name and zip contents"
-          echo "PLUGIN_NAME (env): ${{ env.PLUGIN_NAME }}"
-          echo "inputs.plugin_name: ${{ inputs.plugin_name }}"
-          echo ""
-          ZIPFILE="${{ env.PLUGIN_NAME }}.zip"
-          echo "Zip file: $ZIPFILE"
-          if [ -f "$ZIPFILE" ]; then
-            echo "Zip exists. Listing contents (first 45 lines):"
-            unzip -l "$ZIPFILE" | head -45
-            echo ""
-            echo "First path in archive (QIT expects single top-level dir matching slug):"
-            unzip -l "$ZIPFILE" | sed -n '4p'
-          else
-            echo "ERROR: Zip file not found."
-            ls -la
-          fi
-          echo "::endgroup::"
-        env:
-          PLUGIN_NAME: ${{ env.PLUGIN_NAME }}
-
       - name: Upload plugin zip
         uses: actions/upload-artifact@v4
         with:
