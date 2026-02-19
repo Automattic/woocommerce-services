@@ -43,11 +43,14 @@ jobs:
       - name: Build plugin zip
         run: npm run build
 
-      - name: Unzip woocommerce-services.zip
-        run: unzip woocommerce-services.zip -d woocommerce-services
-
-      - name: Re-zip woocommerce-services folder
-        run: zip -r woocommerce-services.zip woocommerce-services
+      # Re-zip so the archive has a single top-level directory matching the plugin slug (required by QIT).
+      - name: Re-zip with parent directory for QIT
+        run: |
+          PLUGIN_NAME="${{ env.PLUGIN_NAME }}"
+          unzip -q -d "$PLUGIN_NAME" "$PLUGIN_NAME.zip"
+          rm "$PLUGIN_NAME.zip"
+          zip -rq "$PLUGIN_NAME.zip" "$PLUGIN_NAME"
+          rm -rf "$PLUGIN_NAME"
 
       - name: Upload plugin zip
         uses: actions/upload-artifact@v4
