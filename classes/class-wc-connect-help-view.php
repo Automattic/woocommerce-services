@@ -43,6 +43,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			add_filter( 'woocommerce_admin_status_tabs', array( $this, 'status_tabs' ) );
 			add_action( 'woocommerce_admin_status_content_connect', array( $this, 'page' ) );
+			add_action( 'wp_ajax_wcs_download_tax_backup', array( $this, 'handle_tax_backup_download' ) );
 		}
 
 		protected function get_health_items() {
@@ -265,17 +266,18 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		 */
 		protected function get_form_data() {
 			return array(
-				'health_items'       => $this->get_health_items(),
-				'services'           => $this->get_services_items(),
-				'logging_enabled'    => $this->logger->is_logging_enabled(),
-				'debug_enabled'      => $this->logger->is_debug_enabled(),
-				'logs'               => array(
+				'health_items'             => $this->get_health_items(),
+				'services'                 => $this->get_services_items(),
+				'logging_enabled'          => $this->logger->is_logging_enabled(),
+				'debug_enabled'            => $this->logger->is_debug_enabled(),
+				'logs'                     => array(
 					'shipping' => $this->get_debug_log_data( 'shipping' ),
 					'taxes'    => $this->get_debug_log_data( 'taxes' ),
 					'other'    => $this->get_debug_log_data(),
 				),
-				'tax_rate_backups'   => WC_Connect_Functions::get_backed_up_tax_rate_files(),
-				'is_shipping_loaded' => $this->is_shipping_loaded(),
+				'tax_rate_backups'         => WC_Connect_Functions::get_backed_up_tax_rate_files(),
+				'tax_backup_download_url'  => wp_nonce_url( admin_url( 'admin-ajax.php?action=wcs_download_tax_backup' ), 'wcs_tax_backup_download' ),
+				'is_shipping_loaded'       => $this->is_shipping_loaded(),
 			);
 		}
 
@@ -353,6 +355,44 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				'settings_link_type' => 'tax',
 				'message'            => __( 'Automated taxes are enabled', 'woocommerce-services' ),
 			);
+		}
+
+		/**
+		 * AJAX handler for secure tax backup file downloads.
+		 *
+		 * Verifies nonce and capability before streaming the file.
+		 */
+		public function handle_tax_backup_download() {
+			check_ajax_referer( 'wcs_tax_backup_download', '_wpnonce' );
+
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_die( esc_html__( 'You do not have permission to download this file.', 'woocommerce-services' ), 403 );
+			}
+
+			$filename = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : '';
+
+			// Validate filename matches expected pattern.
+			if ( ! preg_match( '/^taxjar-wc_tax_rates-\d{4}-\d{2}-\d{2}-\d+\.csv$/', $filename ) ) {
+				wp_die( esc_html__( 'Invalid file name.', 'woocommerce-services' ), 400 );
+			}
+
+			$upload_dir = wp_upload_dir();
+			$file_path  = $upload_dir['basedir'] . '/taxjar-backups/' . $filename;
+
+			// Fall back to legacy location if not in the new directory.
+			if ( ! file_exists( $file_path ) ) {
+				$file_path = $upload_dir['basedir'] . '/' . $filename;
+			}
+
+			if ( ! file_exists( $file_path ) ) {
+				wp_die( esc_html__( 'File not found.', 'woocommerce-services' ), 404 );
+			}
+
+			header( 'Content-Type: text/csv' );
+			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+			header( 'Content-Length: ' . filesize( $file_path ) );
+			readfile( $file_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+			exit;
 		}
 	}
 

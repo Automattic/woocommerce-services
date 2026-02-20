@@ -262,9 +262,36 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			$csv        = ob_get_clean();
 			$upload_dir = wp_upload_dir();
-			$backed_up  = file_put_contents( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-' . date( 'Y-m-d' ) . '-' . time() . '.csv', $csv );
+			$backup_dir = $upload_dir['basedir'] . '/taxjar-backups';
+
+			// Create the protected backup directory if it doesn't exist.
+			if ( ! file_exists( $backup_dir ) ) {
+				wp_mkdir_p( $backup_dir );
+				self::protect_backup_directory( $backup_dir );
+			}
+
+			$backed_up = file_put_contents( $backup_dir . '/taxjar-wc_tax_rates-' . date( 'Y-m-d' ) . '-' . time() . '.csv', $csv );
 
 			return (bool) $backed_up;
+		}
+
+		/**
+		 * Creates protection files in the backup directory to prevent direct HTTP access.
+		 *
+		 * @param string $dir The directory to protect.
+		 */
+		private static function protect_backup_directory( $dir ) {
+			// .htaccess to deny direct access (Apache).
+			$htaccess_file = $dir . '/.htaccess';
+			if ( ! file_exists( $htaccess_file ) ) {
+				file_put_contents( $htaccess_file, "deny from all\n" );
+			}
+
+			// index.php to prevent directory listing.
+			$index_file = $dir . '/index.php';
+			if ( ! file_exists( $index_file ) ) {
+				file_put_contents( $index_file, "<?php\n// Silence is golden.\n" );
+			}
 		}
 
 		/**
@@ -274,9 +301,19 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 * @return array|false
 		 */
 		public static function get_backed_up_tax_rate_files() {
-			$upload_dir  = wp_upload_dir();
-			$pattern     = $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv';
-			$found_files = glob( $pattern );
+			$upload_dir = wp_upload_dir();
+
+			// Search both the new protected directory and the legacy location.
+			$new_pattern = $upload_dir['basedir'] . '/taxjar-backups/taxjar-wc_tax_rates-*.csv';
+			$old_pattern = $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv';
+
+			$new_files = glob( $new_pattern );
+			$old_files = glob( $old_pattern );
+
+			$found_files = array_merge(
+				is_array( $new_files ) ? $new_files : array(),
+				is_array( $old_files ) ? $old_files : array()
+			);
 
 			if ( empty( $found_files ) ) {
 				return false;
@@ -284,8 +321,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			$files = array();
 			foreach ( $found_files as $file ) {
-				$filename           = basename( $file );
-				$files[ $filename ] = $upload_dir['baseurl'] . '/' . $filename;
+				$files[] = basename( $file );
 			}
 
 			return $files;
