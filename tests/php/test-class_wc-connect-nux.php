@@ -10,10 +10,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(
 				array(
-					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE_MODE,
-					'tos_accepted'                    => false,
-					'can_accept_tos'                  => false,
-					'should_display_after_cxn_banner' => false,
+					'jetpack_connection_status' => WC_Connect_Nux::JETPACK_OFFLINE_MODE,
 				)
 			),
 			false
@@ -149,6 +146,21 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 				)
 			),
 			'after_jetpack_connection'
+		);
+	}
+
+	public function test_get_banner_type_to_display_with_jp_cxn_without_tos_acceptance_non_owner() {
+		// Jetpack is already connected, TOS was not yet accepted, user is not the connection owner
+		$this->assertEquals(
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_CONNECTED,
+					'tos_accepted'                    => false,
+					'can_accept_tos'                  => false,
+					'should_display_after_cxn_banner' => false,
+				)
+			),
+			'tos_informational_banner'
 		);
 	}
 
