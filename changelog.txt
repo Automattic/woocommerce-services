@@ -1,6 +1,7 @@
 *** WooCommerce Tax Changelog ***
 
 = 3.4.2 - 2026-xx-xx =
+* Fix   - Prevent unauthenticated downloads of tax rate backup CSV files.
 * Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
 * Fix   - Fix zip file structure in GitHub workflow build process.
 
