@@ -276,7 +276,13 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'other'    => $this->get_debug_log_data(),
 				),
 				'tax_rate_backups'         => WC_Connect_Functions::get_backed_up_tax_rate_files(),
-				'tax_backup_download_url'  => wp_nonce_url( admin_url( 'admin-ajax.php?action=wcs_download_tax_backup' ), 'wcs_tax_backup_download' ),
+				'tax_backup_download_url'  => add_query_arg(
+					array(
+						'action'   => 'wcs_download_tax_backup',
+						'_wpnonce' => wp_create_nonce( 'wcs_tax_backup_download' ),
+					),
+					admin_url( 'admin-ajax.php' )
+				),
 				'is_shipping_loaded'       => $this->is_shipping_loaded(),
 			);
 		}
@@ -372,17 +378,12 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$filename = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : '';
 
 			// Validate filename matches expected pattern.
-			if ( ! preg_match( '/^taxjar-wc_tax_rates-\d{4}-\d{2}-\d{2}-\d+\.csv$/', $filename ) ) {
+			if ( ! preg_match( '/^taxjar-wc_tax_rates-\d{2,4}-\d{2,4}-\d{2,4}-\d+\.csv$/', $filename ) ) {
 				wp_die( esc_html__( 'Invalid file name.', 'woocommerce-services' ), 400 );
 			}
 
 			$upload_dir = wp_upload_dir();
 			$file_path  = $upload_dir['basedir'] . '/taxjar-backups/' . $filename;
-
-			// Fall back to legacy location if not in the new directory.
-			if ( ! file_exists( $file_path ) ) {
-				$file_path = $upload_dir['basedir'] . '/' . $filename;
-			}
 
 			if ( ! file_exists( $file_path ) ) {
 				wp_die( esc_html__( 'File not found.', 'woocommerce-services' ), 404 );

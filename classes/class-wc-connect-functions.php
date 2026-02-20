@@ -302,18 +302,31 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 */
 		public static function get_backed_up_tax_rate_files() {
 			$upload_dir = wp_upload_dir();
+			$backup_dir = $upload_dir['basedir'] . '/taxjar-backups';
 
-			// Search both the new protected directory and the legacy location.
-			$new_pattern = $upload_dir['basedir'] . '/taxjar-backups/taxjar-wc_tax_rates-*.csv';
+			// Move any legacy files from the public uploads root into the protected directory.
 			$old_pattern = $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv';
+			$old_files   = glob( $old_pattern );
 
-			$new_files = glob( $new_pattern );
-			$old_files = glob( $old_pattern );
+			if ( ! empty( $old_files ) ) {
+				if ( ! file_exists( $backup_dir ) ) {
+					wp_mkdir_p( $backup_dir );
+					self::protect_backup_directory( $backup_dir );
+				}
 
-			$found_files = array_merge(
-				is_array( $new_files ) ? $new_files : array(),
-				is_array( $old_files ) ? $old_files : array()
-			);
+				foreach ( $old_files as $old_file ) {
+					$dest = $backup_dir . '/' . basename( $old_file );
+					if ( ! file_exists( $dest ) ) {
+						rename( $old_file, $dest );
+					} else {
+						unlink( $old_file );
+					}
+				}
+			}
+
+			// Now search only the protected directory.
+			$new_pattern = $backup_dir . '/taxjar-wc_tax_rates-*.csv';
+			$found_files = glob( $new_pattern );
 
 			if ( empty( $found_files ) ) {
 				return false;
