@@ -385,6 +385,11 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			$upload_dir = wp_upload_dir();
 			$file_path  = $upload_dir['basedir'] . '/taxjar-backups/' . $filename;
 
+			// Fall back to the uploads root for sites where the protected directory could not be created.
+			if ( ! file_exists( $file_path ) ) {
+				$file_path = $upload_dir['basedir'] . '/' . $filename;
+			}
+
 			if ( ! file_exists( $file_path ) ) {
 				wp_die( esc_html__( 'File not found.', 'woocommerce-services' ), 404 );
 			}

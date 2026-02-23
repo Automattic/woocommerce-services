@@ -266,8 +266,12 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			// Create the protected backup directory if it doesn't exist.
 			if ( ! file_exists( $backup_dir ) ) {
-				wp_mkdir_p( $backup_dir );
-				self::protect_backup_directory( $backup_dir );
+				if ( ! wp_mkdir_p( $backup_dir ) ) {
+					// Directory could not be created; fall back to the uploads root.
+					$backup_dir = $upload_dir['basedir'];
+				} else {
+					self::protect_backup_directory( $backup_dir );
+				}
 			}
 
 			$backed_up = file_put_contents( $backup_dir . '/taxjar-wc_tax_rates-' . date( 'Y-m-d' ) . '-' . time() . '.csv', $csv );
@@ -304,29 +308,38 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			$upload_dir = wp_upload_dir();
 			$backup_dir = $upload_dir['basedir'] . '/taxjar-backups';
 
-			// Move any legacy files from the public uploads root into the protected directory.
+			// Attempt to migrate legacy files from the public uploads root into the protected directory.
 			$old_pattern = $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv';
 			$old_files   = glob( $old_pattern );
 
 			if ( ! empty( $old_files ) ) {
-				if ( ! file_exists( $backup_dir ) ) {
-					wp_mkdir_p( $backup_dir );
-					self::protect_backup_directory( $backup_dir );
-				}
+				$dir_ready = file_exists( $backup_dir );
 
-				foreach ( $old_files as $old_file ) {
-					$dest = $backup_dir . '/' . basename( $old_file );
-					if ( ! file_exists( $dest ) ) {
-						rename( $old_file, $dest );
-					} else {
-						unlink( $old_file );
+				if ( ! $dir_ready ) {
+					$dir_ready = wp_mkdir_p( $backup_dir );
+					if ( $dir_ready ) {
+						self::protect_backup_directory( $backup_dir );
 					}
 				}
+
+				if ( $dir_ready ) {
+					foreach ( $old_files as $old_file ) {
+						$dest = $backup_dir . '/' . basename( $old_file );
+						if ( ! file_exists( $dest ) ) {
+							rename( $old_file, $dest );
+						} else {
+							unlink( $old_file );
+						}
+					}
+				}
+				// If $dir_ready is false, old files remain in place and are picked up below.
 			}
 
-			// Now search only the protected directory.
-			$new_pattern = $backup_dir . '/taxjar-wc_tax_rates-*.csv';
-			$found_files = glob( $new_pattern );
+			// Collect files from the protected directory and, if migration was not possible, the uploads root.
+			$found_files = array_merge(
+				glob( $backup_dir . '/taxjar-wc_tax_rates-*.csv' ) ?: array(),
+				glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' ) ?: array()
+			);
 
 			if ( empty( $found_files ) ) {
 				return false;
