@@ -372,14 +372,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			check_ajax_referer( 'wcs_tax_backup_download', '_wpnonce' );
 
 			if ( ! current_user_can( 'manage_woocommerce' ) ) {
-				wp_die( esc_html__( 'You do not have permission to download this file.', 'woocommerce-services' ), 403 );
+				wp_die( esc_html__( 'You do not have permission to download this file.', 'woocommerce-services' ), '', array( 'response' => 403 ) );
 			}
 
 			$filename = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : '';
 
 			// Validate filename matches expected pattern.
 			if ( ! preg_match( '/^taxjar-wc_tax_rates-\d{2,4}-\d{2,4}-\d{2,4}-\d+\.csv$/', $filename ) ) {
-				wp_die( esc_html__( 'Invalid file name.', 'woocommerce-services' ), 400 );
+				wp_die( esc_html__( 'Invalid file name.', 'woocommerce-services' ), '', array( 'response' => 400 ) );
 			}
 
 			$upload_dir = wp_upload_dir();
@@ -391,7 +391,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			}
 
 			if ( ! file_exists( $file_path ) ) {
-				wp_die( esc_html__( 'File not found.', 'woocommerce-services' ), 404 );
+				wp_die( esc_html__( 'File not found.', 'woocommerce-services' ), '', array( 'response' => 404 ) );
 			}
 
 			header( 'Content-Type: text/csv' );
