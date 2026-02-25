@@ -4,8 +4,8 @@ const request = require( 'request' );
 const { version } = require( '../package.json' );
 
 const REQUEST_DELAY_MS = 1500; // pause between every download to stay under burst limit
-const RETRY_DELAY_MS   = 30000;
-const MAX_RETRIES      = 3;
+const RETRY_BASE_MS = 30000; // first retry wait; subsequent retries double (exponential backoff)
+const MAX_RETRIES   = 5;
 
 const sleep = ( ms ) => new Promise( ( resolve ) => setTimeout( resolve, ms ) );
 
@@ -70,8 +70,9 @@ const downloadWithRetry = async ( uri, filename ) => {
 			return;
 		} catch ( err ) {
 			if ( err.message.startsWith( 'HTTP 429' ) && attempt < MAX_RETRIES ) {
-				console.warn( 'Rate limited, retrying in ' + RETRY_DELAY_MS + 'ms...' );
-				await sleep( RETRY_DELAY_MS );
+				const delay = RETRY_BASE_MS * Math.pow( 2, attempt );
+				console.warn( 'Rate limited (attempt ' + ( attempt + 1 ) + '/' + MAX_RETRIES + '), retrying in ' + ( delay / 1000 ) + 's...' );
+				await sleep( delay );
 			} else {
 				throw err;
 			}
@@ -80,7 +81,7 @@ const downloadWithRetry = async ( uri, filename ) => {
 };
 
 const base_url        = 'https://translate.wordpress.org/projects/wp-plugins/woocommerce-services/stable/';
-const filename_prefix = __dirname + '/../i18n/languages/woocommerce-services-';
+const filename_prefix = __dirname + '/../translations/woocommerce-services-';
 
 const supported_languages = {
 	'ar':    'ar',
@@ -90,7 +91,7 @@ const supported_languages = {
 	'fr-ca': 'fr_CA',
 	'ja':    'ja',
 	'nl':    'nl_NL',
-	'ru':    'ru',
+	'ru':    'ru_RU',
 	'pt-br': 'pt_BR',
 	'ro':    'ro_RO',
 	'sv':    'sv_SE',
@@ -128,4 +129,14 @@ const supported_languages = {
 			await sleep( REQUEST_DELAY_MS );
 		}
 	}
+	// Copy committed translations into i18n/languages/ for the downstream build pipeline.
+	const translationsDir = __dirname + '/../translations/';
+	const i18nDir         = __dirname + '/../i18n/languages/';
+	fs.mkdirSync( i18nDir, { recursive: true } );
+	for ( const file of fs.readdirSync( translationsDir ) ) {
+		if ( file.endsWith( '.po' ) || file.endsWith( '.mo' ) ) {
+			fs.copyFileSync( translationsDir + file, i18nDir + file );
+		}
+	}
+	console.log( 'Copied translation files to i18n/languages/' );
 } )();
