@@ -111,7 +111,7 @@ const supported_languages = {
 		const fileLocale   = supported_languages[ locale ];
 		const remoteUpdate = translationMeta[ fileLocale ] || null;
 
-		for ( const format of [ 'po', 'mo' ] ) {
+		for ( const format of [ 'po' ] ) {
 			const url      = base_url + locale + '/default/export-translations/?format=' + format;
 			const filename = filename_prefix + fileLocale + '.' + format;
 
@@ -129,14 +129,5 @@ const supported_languages = {
 			await sleep( REQUEST_DELAY_MS );
 		}
 	}
-	// Copy committed translations into i18n/languages/ for the downstream build pipeline.
-	const translationsDir = __dirname + '/../translations/';
-	const i18nDir         = __dirname + '/../i18n/languages/';
-	fs.mkdirSync( i18nDir, { recursive: true } );
-	for ( const file of fs.readdirSync( translationsDir ) ) {
-		if ( file.endsWith( '.po' ) || file.endsWith( '.mo' ) ) {
-			fs.copyFileSync( translationsDir + file, i18nDir + file );
-		}
-	}
-	console.log( 'Copied translation files to i18n/languages/' );
+	console.log( 'Translation download complete. Run the i18n-json task to generate .json files.' );
 } )();
