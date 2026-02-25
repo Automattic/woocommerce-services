@@ -38,25 +38,25 @@
 	},
 	"scripts": {
 		"check-all": [
-			"./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
+			"./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
 		],
 		"check-all:fix": [
-			"./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
+			"./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra,WordPress-Docs  --report-full --report-summary --colors"
 		],
 		"check-php": [
-			"./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
+			"./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
 		],
 		"check-php:fix": [
-			"./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
+			"./vendor/bin/phpcbf . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra  --report-full --report-summary --colors"
 		],
 		"check-security": [
-			"./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=./.phpcs.security.xml  --report-full --report-summary"
+			"./vendor/bin/phpcs . --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=./.phpcs.security.xml  --report-full --report-summary"
 		],
 		"phpcbf": [
-			"./vendor/bin/phpcbf . -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra "
+			"./vendor/bin/phpcbf . -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra "
 		],
 		"phpcs": [
-			"./vendor/bin/phpcs . -s -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra"
+			"./vendor/bin/phpcs . -s -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra"
 		],
 		"qit:security": [
 			"npm run build && composer install && ./vendor/bin/qit run:security woocommerce-services --zip=woocommerce-services.zip"
