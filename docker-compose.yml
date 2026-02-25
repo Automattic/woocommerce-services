@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 volumes:
     ## Kludge for not having the ./docker directory bound recursively
@@ -9,7 +9,7 @@ services:
         build:
             context: ./docker/wordpress_xdebug
             # Options: Dockerfile-php73, Dockerfile-php81
-            dockerfile: Dockerfile-php73
+            dockerfile: Dockerfile-php84
         container_name: woocommerce_services_wordpress
         image: woocommerce_services_wordpress
         depends_on:
@@ -45,7 +45,7 @@ services:
                 limits:
                     memory: 4G
         volumes:
-            - './:/home/node/app'
+            - "./:/home/node/app"
         ports:
             # used by webpack dev server
             - "8085:8085"
