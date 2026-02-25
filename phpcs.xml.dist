@@ -9,17 +9,21 @@
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>bin/*</exclude-pattern>
+	<exclude-pattern>docker/*</exclude-pattern>
+	<exclude-pattern>wp-calypso/*</exclude-pattern>
 
 	<!-- Configs -->
-	<config name="minimum_supported_wp_version" value="4.7" />
-	<config name="testVersion" value="5.6-"/>
+	<config name="minimum_supported_wp_version" value="6.7" />
+	<config name="testVersion" value="7.4-"/>
 
 	<!-- Rules -->
 	<rule ref="WooCommerce-Core" />
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="text_domain" type="array" value="woocommerce-services" />
+			<property name="text_domain" type="array">
+				<element value="woocommerce-services" />
+			</property>
 		</properties>
 	</rule>
 
@@ -31,14 +35,6 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 		<exclude-pattern>woocommerce-services.php</exclude-pattern>
 	</rule>
-
-	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
-		<exclude-pattern>classes/*</exclude-pattern>
-	</rule>
-
-	<rule ref="Generic.Arrays.DisallowShortArraySyntax.Found">
-      <exclude-pattern>classes/*</exclude-pattern>
-    </rule>
 
 	<rule ref="Generic.Commenting">
 		<exclude-pattern>tests/</exclude-pattern>
