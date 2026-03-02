@@ -399,6 +399,7 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function configure_tax_settings() {
 		// If "include taxes" is enabled, Charge the same price regardless of location and taxes.
+		// Note that this is still broken in admin/mobile app order creation. Fix for this is unknown.
 		if ( get_option ( 'woocommerce_prices_include_tax' ) == 'yes' ) {
 			add_filter( 'woocommerce_adjust_non_base_location_prices', '__return_false' );
 		}
