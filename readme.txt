@@ -70,8 +70,11 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.5.1 - 2026-xx-xx =
+* Tweak - Unify tax rate naming.
+
 = 3.5.0 - 2026-02-23 =
-* Add   - Add informational banner for non-connection-owner administrators when WooCommerce Tax Terms of Service have not been accepted, displaying the Jetpack connection owner's name. 
+* Add   - Add informational banner for non-connection-owner administrators when WooCommerce Tax Terms of Service have not been accepted, displaying the Jetpack connection owner's name.
 * Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
 * Fix   - Fix zip file structure in GitHub workflow build process.
 * Fix   - Update Docker Compose version to 2.24.0 in E2E Tests GitHub workflow.
