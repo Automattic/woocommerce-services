@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.5.1 - 2026-02-23 =
+= 3.5.1 - 2026-xx-xx =
 * Fix   - Fix plugin translation files located in i18n/languages folder.
 
 = 3.5.0 - 2026-02-23 =
