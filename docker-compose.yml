@@ -8,7 +8,7 @@ services:
     wordpress:
         build:
             context: ./docker/wordpress_xdebug
-            # Options: Dockerfile-php73, Dockerfile-php81
+            # Options: Dockerfile-php73, Dockerfile-php81, Dockerfile-php84
             dockerfile: Dockerfile-php84
         container_name: woocommerce_services_wordpress
         image: woocommerce_services_wordpress
