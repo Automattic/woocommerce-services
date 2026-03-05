@@ -71,7 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.5.1 - 2026-xx-xx =
-* Tweak - Unify tax rate naming.
+* Tweak - Unify tax rate naming, use full jurisdictions for all tax rates.
 
 = 3.5.0 - 2026-02-23 =
 * Add   - Add informational banner for non-connection-owner administrators when WooCommerce Tax Terms of Service have not been accepted, displaying the Jetpack connection owner's name.
