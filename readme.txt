@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.5.1 - 2026-xx-xx =
+* Fix   - Fix plugin translation files located in i18n/languages folder.
 * Tweak - Unify tax rate naming, use full jurisdictions for all tax rates.
 
 = 3.5.0 - 2026-02-23 =
