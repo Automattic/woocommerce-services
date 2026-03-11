@@ -5,9 +5,9 @@ Requires PHP: 7.4
 Requires at least: 6.7
 Requires Plugins: woocommerce
 Tested up to: 6.9
-WC requires at least: 10.3
-WC tested up to: 10.5
-Stable tag: 3.5.0
+WC requires at least: 10.4
+WC tested up to: 10.6
+Stable tag: 3.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,8 +70,13 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.5.1 - 2026-03-10 =
+* Fix   - Fix plugin translation files located in i18n/languages folder.
+* Tweak - Unify tax rate naming, use full jurisdictions for all tax rates.
+* Tweak - WooCommerce 10.6 Compatibility.
+
 = 3.5.0 - 2026-02-23 =
-* Add   - Add informational banner for non-connection-owner administrators when WooCommerce Tax Terms of Service have not been accepted, displaying the Jetpack connection owner's name. 
+* Add   - Add informational banner for non-connection-owner administrators when WooCommerce Tax Terms of Service have not been accepted, displaying the Jetpack connection owner's name.
 * Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
 * Fix   - Fix zip file structure in GitHub workflow build process.
 * Fix   - Update Docker Compose version to 2.24.0 in E2E Tests GitHub workflow.

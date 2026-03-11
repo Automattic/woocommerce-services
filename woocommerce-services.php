@@ -8,13 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.5.0
+ * Version: 3.5.1
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.7
  * Tested up to: 6.9
- * WC requires at least: 10.3
- * WC tested up to: 10.5
+ * WC requires at least: 10.4
+ * WC tested up to: 10.6
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -1697,7 +1697,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null );
 
 			$i18n_json = $this->get_i18n_json();
-			/** @var array $i18nStrings defined in i18n/strings.php */
+			// JS translations loaded from i18n/languages/woocommerce-services-{LOCALE}.json via get_i18n_json().
 			wp_localize_script(
 				'wc_connect_admin',
 				'i18nLocale',

@@ -1,4 +1,4 @@
-FROM wordpress:php8.1
+FROM wordpress:php8.4
 RUN pecl install xdebug \
 	&& echo 'xdebug.mode=debug' >> $PHP_INI_DIR/php.ini \
 	&& echo 'xdebug.start_with_request=trigger' >> $PHP_INI_DIR/php.ini \
@@ -13,9 +13,9 @@ RUN pecl install xdebug \
 	&& docker-php-ext-enable xdebug
 RUN apt-get update \
 	&& apt-get install --assume-yes --quiet --no-install-recommends gnupg2 subversion mariadb-client less jq \
-    && apt-get update && apt-get install -y openssh-client \
-       libxml2-dev \
-    && docker-php-ext-install soap
+	&& apt-get update && apt-get install -y openssh-client \
+	libxml2-dev \
+	&& docker-php-ext-install soap
 
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
 	&& chmod +x wp-cli.phar \
