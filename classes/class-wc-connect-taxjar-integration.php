@@ -154,28 +154,11 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// United States specific naming enhancements.
-		$county = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
-		$city   = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
+		$county       = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
+		$city         = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
+		$jurisdiction = trim( $county . ' ' . $city );
 
-		switch ( $taxjar_rate_name ) {
-			case 'city_tax_rate':
-			case 'special_tax_rate':
-				// Example: "Some County Some City : City Tax".
-				$prefix = trim( $county . ' ' . $city );
-				return ( '' !== $prefix ? $prefix . ' : ' : '' ) . $rate_name;
-
-			case 'county_tax_rate':
-				// Example: "Some County : County Tax".
-				return ( '' !== $county ? $county . ' : ' : '' ) . $rate_name;
-
-			case 'state_sales_tax_rate':
-				// Example: "State Sales Tax" (no jurisdiction prefix).
-				return $rate_name;
-
-			default:
-				// Fallback for any other US rate types.
-				return $rate_name;
-		}
+		return ( '' !== $jurisdiction ? $jurisdiction . ' : ' : '' ) . $rate_name;
 	}
 
 	public function init() {

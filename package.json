@@ -1,6 +1,6 @@
 {
 	"name": "woocommerce-services",
-	"version": "3.4.1",
+	"version": "3.5.1",
 	"scripts": {
 		"start": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack-dev-server --hot --inline --watch --content-base dist --port 8085 --host 0.0.0.0",
 		"watch": "cross-env NODE_ENV=development CALYPSO_CLIENT=true webpack --watch",
@@ -68,6 +68,7 @@
 		"po2json": "^0.4.5",
 		"postcss-safe-parser": "^4.0.2",
 		"puppeteer": "^13.7.0",
+		"react-modal": "^3.16.3",
 		"redux-mock-store": "^1.5.4",
 		"request": "^2.88.2",
 		"shelljs": "^0.7.6",
