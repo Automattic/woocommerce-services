@@ -370,7 +370,11 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				}
 
 				// Mark migration complete only when no old files remain, so it retries if rename() failed.
-				if ( empty( glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' ) ) ) {
+				// Check for false explicitly: glob() returns false on filesystem error (not just an empty
+				// array), and empty(false) would be true, prematurely marking migration as complete and
+				// leaving old publicly-accessible files in the uploads root permanently.
+				$remaining_old_files = glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' );
+				if ( false !== $remaining_old_files && empty( $remaining_old_files ) ) {
 					update_option( 'wcs_tax_backup_files_migrated', true, false );
 				}
 			}
