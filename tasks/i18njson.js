@@ -4,7 +4,7 @@ const fs = require( 'fs' ),
 	path = require( 'path' ),
 	po2json = require( 'po2json' );
 
-const poFilePaths = globby.sync( [ 'i18n/languages/*.po' ] );
+const poFilePaths = globby.sync( [ 'translations/*.po' ] );
 
 if ( ! poFilePaths.length ) {
 	console.log( 'no .po files found' );
