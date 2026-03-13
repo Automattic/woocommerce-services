@@ -11,7 +11,7 @@
  * Version: 3.5.1
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
- * Requires at least: 6.7
+ * Requires at least: 6.8
  * Tested up to: 6.9
  * WC requires at least: 10.4
  * WC tested up to: 10.6
