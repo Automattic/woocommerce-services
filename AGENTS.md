@@ -50,12 +50,6 @@ composer phpcs
 - Regressing legacy label purchase support for eligible installs.
 - Treating shipping migrations as feature expansion instead of compatibility maintenance.
 
-## Commit Attribution
-- AI commits MUST include:
-```text
-Co-Authored-By: Codex (GPT-5) <codex@openai.com>
-```
-
 ## Local Skills
 - Use `create-pr` for PR preparation workflows. See `.agents/skills/create-pr/SKILL.md`.
 - Use `write-changelog` for changelog entry workflows. See `.agents/skills/write-changelog/SKILL.md`.
