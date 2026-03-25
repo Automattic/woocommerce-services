@@ -67,5 +67,11 @@
 		"test": [
 			"phpunit --testdox"
 		]
+	},
+	"archive": {
+		"exclude": [
+			"AGENTS.md",
+			"CLAUDE.md"
+		]
 	}
 }
