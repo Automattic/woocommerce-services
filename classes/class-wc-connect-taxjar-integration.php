@@ -191,6 +191,15 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// Notify developers still using the removed filter.
+		if ( has_filter( 'woocommerce_apply_taxjar_nexus_addresses_workaround' ) ) {
+			_doing_it_wrong(
+				'woocommerce_apply_taxjar_nexus_addresses_workaround',
+				esc_html__( 'The woocommerce_apply_taxjar_nexus_addresses_workaround filter has been removed. Use the woocommerce_taxjar_nexus_address filter instead.', 'woocommerce-services' ),
+				'3.5.2'
+			);
+		}
+
 		// Scripts / Stylesheets
 		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
 
@@ -1345,82 +1354,6 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Maybe apply a temporary workaround for the TaxJar API to get the correct rates for
-	 * specific edge cases.
-	 *
-	 * For these specific edge cases a "nexus_addresses" element needs to be added to the
-	 * TaxJar request body and the "from" address needs to be removed from it in order to
-	 * get the correct rates. This is due to a limitation/miscalculation at the TaxJar API.
-	 *
-	 * This method returns a nexus address to be used as a workaround
-	 * if the workaround is enabled and an address case is matched.
-	 *
-	 * New edge cases can be added to the $cases array as needed.
-	 *
-	 * @param array $body Request body.
-	 *
-	 * @return array
-	 */
-	private function maybe_apply_taxjar_nexus_addresses_workaround( $body ) {
-		$workaround_nexus_addresses = array();
-		if ( true !== apply_filters( 'woocommerce_apply_taxjar_nexus_addresses_workaround', true ) ) {
-			return $workaround_nexus_addresses;
-		}
-
-		$cases = array(
-			'CA-QC' => array(
-				'to_country'   => 'CA',
-				'to_state'     => 'QC',
-				'from_country' => 'CA',
-			),
-			'US-CO' => array(
-				'to_country'   => 'US',
-				'to_state'     => 'CO',
-				'from_country' => 'US',
-				'from_state'   => 'CO',
-			),
-			'US-AZ' => array(
-				'to_country'   => 'US',
-				'to_state'     => 'AZ',
-				'from_country' => 'US',
-				'from_state'   => 'AZ',
-			),
-			'US-OH' => array(
-				'to_country'   => 'US',
-				'to_state'     => 'OH',
-				'from_country' => 'US',
-				'from_state'   => 'OH',
-			),
-		);
-
-		foreach ( $cases as $case ) {
-
-			/**
-			 * Ensure the body has all the required address keys, and that the body address
-			 * values match the case address values before applying the workaround.
-			 */
-			$address_keys = array_keys( $case );
-			foreach ( $address_keys as $address_key ) {
-				if ( ! isset( $body[ $address_key ] ) || $body[ $address_key ] !== $case[ $address_key ] ) {
-					continue 2;
-				}
-			}
-
-			$workaround_nexus_addresses = array(
-				'country' => $body['to_country'],
-				'zip'     => $body['to_zip'],
-				'state'   => $body['to_state'],
-				'city'    => $body['to_city'],
-				'street'  => $body['to_street'],
-			);
-
-			break;
-		}
-
-		return $workaround_nexus_addresses;
-	}
-
-	/**
 	 * Validates TaxJar nexus address.
 	 *
 	 * @param  array $address
@@ -1593,18 +1526,13 @@ class WC_Connect_TaxJar_Integration {
 			'plugin'       => 'woo',
 		);
 
-		$nexus_address = $this->maybe_apply_taxjar_nexus_addresses_workaround( $body );
-
-		// If workaround empty use default store address as nexus address.
-		if ( empty( $nexus_address ) ) {
-			$nexus_address = array(
-				'country' => $body['from_country'],
-				'zip'     => $body['from_zip'],
-				'state'   => $body['from_state'],
-				'city'    => $body['from_city'],
-				'street'  => $body['from_street'],
-			);
-		}
+		$nexus_address = array(
+			'country' => $body['from_country'],
+			'zip'     => $body['from_zip'],
+			'state'   => $body['from_state'],
+			'city'    => $body['from_city'],
+			'street'  => $body['from_street'],
+		);
 
 		/**
 		 * Filter to modify or disable the nexus address sent to TaxJar API.
