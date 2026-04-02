@@ -3,10 +3,9 @@
 # phpcbf returns exit-code as 1 even if all errors were fixed.
 # https://github.com/squizlabs/PHP_CodeSniffer/issues/3057#issuecomment-919794895
 
-# Run phpcbf directly on the passed files instead of using `composer run phpcbf`
-# which hardcodes `.` as the scan path and would format the entire directory
-# (including JS files) regardless of the file list lint-staged provides.
-./vendor/bin/phpcbf --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra "$@"
+# Use --filter=GitStaged so phpcbf only processes files staged in git.
+# Use --extensions=php to skip JS/CSS (those are handled by ESLint via lint-staged).
+./vendor/bin/phpcbf . --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra --filter=GitStaged --extensions=php
 
 status=$?
 
