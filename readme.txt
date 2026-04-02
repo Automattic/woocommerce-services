@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.5.2 - 2026-xx-xx =
+* Fix   - Correct nexus address handling for stores in CO, AZ, and OH (US) and QC (CA).
+
 = 3.5.1 - 2026-03-10 =
 * Fix   - Fix plugin translation files located in i18n/languages folder.
 * Tweak - Unify tax rate naming, use full jurisdictions for all tax rates.
