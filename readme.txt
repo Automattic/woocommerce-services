@@ -71,7 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.5.2 - 2026-xx-xx =
-* Fix   - Remove nexus address workaround.
+* Fix   - Correct nexus address handling for stores in CO, AZ, and OH (US) and QC (CA).
 
 = 3.5.1 - 2026-03-10 =
 * Fix   - Fix plugin translation files located in i18n/languages folder.

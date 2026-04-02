@@ -191,6 +191,15 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// Notify developers still using the removed filter.
+		if ( has_filter( 'woocommerce_apply_taxjar_nexus_addresses_workaround' ) ) {
+			_doing_it_wrong(
+				'woocommerce_apply_taxjar_nexus_addresses_workaround',
+				esc_html__( 'The woocommerce_apply_taxjar_nexus_addresses_workaround filter has been removed. Use the woocommerce_taxjar_nexus_address filter instead.', 'woocommerce-services' ),
+				'3.5.2'
+			);
+		}
+
 		// Scripts / Stylesheets
 		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
 
