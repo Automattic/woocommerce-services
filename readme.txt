@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.0 - 2026-xx-xx =
+* Add   - Prevent unauthenticated downloads of tax rate backup CSV files.
+
 = 3.5.2 - 2026-04-06 =
 * Fix   - Correct nexus address handling for stores in CO, AZ, and OH (US) and QC (CA).
 
