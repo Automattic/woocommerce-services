@@ -1,6 +1,9 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.5.2 - 2026-xx-xx =
+= 3.6.0 - 2026-xx-xx =
+* Fix   - Prevent unauthenticated downloads of tax rate backup CSV files.
+
+= 3.5.2 - 2026-04-06 =
 * Fix   - Correct nexus address handling for stores in CO, AZ, and OH (US) and QC (CA).
 
 = 3.5.1 - 2026-03-10 =
