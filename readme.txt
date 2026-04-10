@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 6.7
 Requires Plugins: woocommerce
 Tested up to: 6.9
-WC requires at least: 10.4
-WC tested up to: 10.6
+WC requires at least: 10.5
+WC tested up to: 10.7
 Stable tag: 3.5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.6.0 - 2026-xx-xx =
 * Add   - Prevent unauthenticated downloads of tax rate backup CSV files.
+* Tweak - WooCommerce 10.7 Compatibility.
 
 = 3.5.2 - 2026-04-06 =
 * Fix   - Correct nexus address handling for stores in CO, AZ, and OH (US) and QC (CA).
