@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.6.0 - 2026-xx-xx =
+= 3.6.0 - 2026-04-13 =
 * Fix   - Prevent unauthenticated downloads of tax rate backup CSV files.
 * Tweak - WooCommerce 10.7 Compatibility.
 
