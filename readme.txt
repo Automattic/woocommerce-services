@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.1 - 2026-xx-xx =
+* Fix   - Prevent informational tax logs from being written to debug.log when debug logging is disabled.
+
 = 3.6.0 - 2026-04-13 =
 * Add   - Prevent unauthenticated downloads of tax rate backup CSV files.
 * Tweak - WooCommerce 10.7 Compatibility.
