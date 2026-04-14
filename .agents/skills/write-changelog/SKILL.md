@@ -105,12 +105,14 @@ Check current version in `readme.txt` (line 10: `Stable tag: X.Y.Z`):
 Insert the new version block at the **top** of the changelog, after line 2:
 
 ```
-= X.Y.Z - YYYY-MM-DD =
+= X.Y.Z - YYYY-xx-xx =
 * Add   - New feature description.
 * Fix   - Bug fix description.
 * Tweak - Improvement description.
 
 ```
+
+**Date format:** Use `<current-year>-xx-xx` (e.g. `2026-xx-xx`) as a placeholder. The release script (`woorelease`) substitutes the actual release date on deploy. Do NOT write the real date — that change would be overwritten and creates merge churn when multiple PRs add entries before release.
 
 Note: Leave one blank line after the entries, before the previous version.
 
@@ -121,16 +123,18 @@ Location: `changelog.txt` (in the repository root)
 Insert the same version block in the `== Changelog ==` section (around line 131):
 
 ```
-= X.Y.Z - YYYY-MM-DD =
+= X.Y.Z - YYYY-xx-xx =
 * Add   - New feature description.
 * Fix   - Bug fix description.
 * Tweak - Improvement description.
 
 ```
 
-Also update `Stable tag:` on line 10 if this is a release.
+Use the same `<current-year>-xx-xx` placeholder format as in `changelog.txt`.
 
-Location: `/Users/samnajian/Dev/woocommerce-shipping/readme.txt`
+Do NOT update `Stable tag:` on line 10 from a feature/fix PR. The `woorelease` automation handles the stable tag bump on actual release.
+
+Location: `readme.txt` (in the repository root)
 
 ### Step 8: Copy to Clipboard
 
@@ -188,8 +192,9 @@ Before finalizing, verify:
 - [ ] Entry is user-facing (no code details)
 - [ ] Entry ends with a period
 - [ ] Version number follows semver
-- [ ] Date format is `YYYY-MM-DD`
+- [ ] Date is `<current-year>-xx-xx` placeholder (NOT the actual date — `woorelease` fills it in)
 - [ ] Entry added to both `changelog.txt` and `readme.txt`
+- [ ] `Stable tag` in `readme.txt` line 10 is NOT touched
 - [ ] Entries are in order: Add → Fix → Tweak → Dev
 
 ## Output Format
