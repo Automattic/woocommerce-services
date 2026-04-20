@@ -21,6 +21,7 @@
 ## Runtime Compatibility
 - CRITICAL: This repo is tied to an old Node runtime; use `.nvmrc` (`10.18.1`) for local work unless a migration is explicitly planned.
 - CRITICAL: The old Node requirement is intentional because this project depends on a forked legacy Calypso package in the `wp-calypso` submodule (package name: `wp-calypso`).
+- CRITICAL: Always run `source ~/.nvm/nvm.sh && nvm use` before any command that invokes Node (e.g., `npm install`, `npm run`, `git push` — the pre-push hook runs `npm test`). Without this, tests will fail with Node version incompatibilities.
 - MUST NOT perform incidental Node/toolchain upgrades while making feature or bugfix changes.
 
 ## Common Commands
@@ -49,12 +50,6 @@ composer phpcs
 - Accidentally enabling shipping UI/features for non-grandfathered stores.
 - Regressing legacy label purchase support for eligible installs.
 - Treating shipping migrations as feature expansion instead of compatibility maintenance.
-
-## Commit Attribution
-- AI commits MUST include:
-```text
-Co-Authored-By: Codex (GPT-5) <codex@openai.com>
-```
 
 ## Local Skills
 - Use `create-pr` for PR preparation workflows. See `.agents/skills/create-pr/SKILL.md`.

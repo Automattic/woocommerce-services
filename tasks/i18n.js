@@ -1,8 +1,11 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
+const fs = require( 'fs' );
 const i18nCli = require( 'i18n-calypso-cli' );
-const glob = require('glob');
+const glob = require( 'glob' );
 
-glob(__dirname + '/../dist/**/*.js', {}, (err, files) => {
+glob( __dirname + '/../dist/**/*.js', {}, ( err, files ) => {
+	fs.mkdirSync( 'i18n/languages', { recursive: true } );
+
 	i18nCli( {
 		inputPaths: files,
 		output: 'i18n/strings.php',
@@ -20,6 +23,4 @@ glob(__dirname + '/../dist/**/*.js', {}, (err, files) => {
 		projectName: 'woocommerce-services',
 		textdomain: 'woocommerce-services',
 	} );
-})
-
-
+} );
