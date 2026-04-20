@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.6.1 - 2026-xx-xx =
+= 3.6.1 - 2026-04-20 =
 * Fix   - Prevent informational tax logs from being written to debug.log when debug logging is disabled.
 
 = 3.6.0 - 2026-04-13 =
