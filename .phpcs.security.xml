@@ -15,13 +15,28 @@
 	<rule ref="WordPress.Security.EscapeOutput"/>
 	<rule ref="WordPress.Security.EscapeOutput">
 		<properties>
-			<property name="customEscapingFunctions" type="array" value="wc_help_tip,wc_sanitize_tooltip,wc_selected,wc_kses_notice,wc_esc_json,wc_query_string_form_fields,wc_make_phone_clickable" />
+			<property name="customEscapingFunctions" type="array">
+				<element value="wc_help_tip"/>
+				<element value="wc_sanitize_tooltip"/>
+				<element value="wc_selected"/>
+				<element value="wc_kses_notice"/>
+				<element value="wc_esc_json"/>
+				<element value="wc_query_string_form_fields"/>
+				<element value="wc_make_phone_clickable"/>
+			</property>
 		</properties>
 	</rule>
 	<rule ref="WordPress.Security.ValidatedSanitizedInput.InputNotSanitized"/>
 	<rule ref="WordPress.Security.ValidatedSanitizedInput">
 		<properties>
-			<property name="customSanitizingFunctions" type="array" value="wc_clean,wc_sanitize_tooltip,wc_format_decimal,wc_stock_amount,wc_sanitize_permalink,wc_sanitize_textarea" />
+			<property name="customSanitizingFunctions" type="array">
+				<element value="wc_clean"/>
+				<element value="wc_sanitize_tooltip"/>
+				<element value="wc_format_decimal"/>
+				<element value="wc_stock_amount"/>
+				<element value="wc_sanitize_permalink"/>
+				<element value="wc_sanitize_textarea"/>
+			</property>
 		</properties>
 	</rule>
 	<!-- Encourage use of wp_safe_redirect() to avoid open redirect vulnerabilities.
