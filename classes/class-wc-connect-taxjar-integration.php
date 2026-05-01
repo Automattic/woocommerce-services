@@ -450,6 +450,10 @@ class WC_Connect_TaxJar_Integration {
 	 * @param $message
 	 */
 	public function _log( $message ) {
+		if ( ! $this->logger->is_logging_enabled() ) {
+			return;
+		}
+
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
 		$this->logger->log( $formatted_message, 'WCS Tax' );
