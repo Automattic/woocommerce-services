@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.7 - 2026-xx-xx =
+* Fix   - Prevent unbounded growth of WooCommerce tax rate rows when checkout city contains a semicolon.
+
 = 3.6.6 - 2026-06-22 =
 * Tweak - WooCommerce 10.9 Compatibility.
 
