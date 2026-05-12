@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.2 - 2026-xx-xx =
+* Tweak - WooCommerce 10.8 Compatibility.
+
 = 3.6.1 - 2026-04-20 =
 * Fix   - Prevent informational tax logs from being written to debug.log when debug logging is disabled.
 
