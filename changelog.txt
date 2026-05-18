@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.3 - 2026-xx-xx =
+* Tweak - WordPress 7.0 Compatibility.
+
 = 3.6.2 - 2026-05-18 =
 * Tweak - WooCommerce 10.8 Compatibility.
 
