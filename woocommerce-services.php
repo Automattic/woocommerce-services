@@ -8,13 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.0.0
+ * Version: 3.6.2
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
- * Requires at least: 6.6
- * Tested up to: 6.8
- * WC requires at least: 9.6
- * WC tested up to: 9.8
+ * Requires at least: 6.9
+ * Tested up to: 7.0
+ * WC requires at least: 10.6
+ * WC tested up to: 10.8
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -46,6 +46,12 @@ require_once __DIR__ . '/classes/class-wc-connect-functions.php';
 require_once __DIR__ . '/classes/class-wc-connect-jetpack.php';
 require_once __DIR__ . '/classes/class-wc-connect-options.php';
 
+use Automattic\WCServices\StoreNotices\StoreNoticesController;
+use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
+use Automattic\WCServices\Integrations\WooCommerceBlocksIntegration;
+use Automattic\WCServices\StoreApi\Extensions\StoreNoticesExtension;
+use Automattic\WCServices\StoreApi\StoreApiExtendSchema;
+use Automattic\WCServices\StoreApi\StoreApiExtensionController;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
@@ -55,6 +61,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION' ) ) {
 		define( 'WOOCOMMERCE_CONNECT_SERVER_API_VERSION', '5' );
 	}
+
+	define( 'WCSERVICES_PLUGIN_FILE', __FILE__ );
+	define( 'WCSERVICES_PLUGIN_DIR', __DIR__ );
+	define( 'WCSERVICES_PLUGIN_DIST_DIR', WCSERVICES_PLUGIN_DIR . '/dist/' );
+	define( 'WCSERVICES_PLUGIN_URL', plugin_dir_url( WCSERVICES_PLUGIN_FILE ) );
+	define( 'WCSERVICES_PLUGIN_DIST_URL', plugin_dir_url( WCSERVICES_PLUGIN_FILE ) . 'dist/' );
+	define( 'WCSERVICES_ASSETS_URL', WCSERVICES_PLUGIN_URL . 'assets/' );
+	define( 'WCSERVICES_STYLESHEETS_URL', WCSERVICES_ASSETS_URL . 'stylesheets/' );
+	define( 'WCSERVICES_ASSETS_DIR', WCSERVICES_PLUGIN_DIR . '/assets/' );
+	define( 'WCSERVICES_STYLESHEETS_DIR', WCSERVICES_ASSETS_DIR . 'stylesheets/' );
 
 	class WC_Connect_Loader {
 
@@ -166,6 +182,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_controller;
 
 		/**
+		 * @var StoreNoticesNotifier
+		 */
+		protected $store_notices_notifier;
+
+		/**
 		 * WC_REST_Connect_Shipping_Carriers_Controller
 		 *
 		 * @var WC_REST_Connect_Shipping_Carriers_Controller
@@ -258,7 +279,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 		protected static $wcs_version;
 
-		public const MIGRATION_DISMISSAL_COOKIE_KEY = 'wcst-wcshipping-migration-dismissed';
+		public const MIGRATION_DISMISSAL_COOKIE_KEY        = 'wcst-wcshipping-migration-dismissed';
+		private const SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY = 'wc_connect_sift_fetch_in_progress';
 
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
@@ -614,6 +636,20 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * @return StoreNoticesNotifier
+		 */
+		public function get_store_notices_notifier() {
+			return $this->store_notices_notifier;
+		}
+
+		/**
+		 * @param StoreNoticesNotifier $store_notices_notifier
+		 */
+		public function set_store_notices_notifier( StoreNoticesNotifier $store_notices_notifier ) {
+			$this->store_notices_notifier = $store_notices_notifier;
+		}
+
+		/**
 		 * Load our textdomain
 		 *
 		 * @codeCoverageIgnore
@@ -639,7 +675,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * Allow third party logic to determine if this plugin should initiate its logic.
 			 *
 			 * The primary purpose here is to allow a smooth transition between the new WC Tax plugin
-			 * and WooCommerce Shipping & Tax (this plugin), by letting them take over all responsibilities if all three
+			 * and WooCommerce Tax (this plugin), by letting them take over all responsibilities if all three
 			 * plugins are activated at the same time.
 			 *
 			 * @since {{next-release}}
@@ -665,7 +701,26 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			add_action( 'woocommerce_blocks_loaded', array( $this, 'register_blocks_integration' ) );
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
+		}
+
+		/**
+		 * Register the WooCommerceBlocks integration.
+		 */
+		public function register_blocks_integration() {
+			add_action(
+				'woocommerce_blocks_checkout_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+				}
+			);
+			add_action(
+				'woocommerce_blocks_cart_block_registration',
+				function ( $integration_registry ) {
+					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+				}
+			);
 		}
 
 		/**
@@ -761,6 +816,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->schedule_service_schemas_fetch();
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
+			$this->init_store_notices();
+			$this->extend_store_api();
 		}
 
 		/**
@@ -809,13 +866,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				require_once __DIR__ . '/classes/class-wc-connect-api-client-live.php';
 				$api_client = new WC_Connect_API_Client_Live( $validator, $this );
 			}
-			$schemas_store         = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
-			$settings_store        = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
-			$payment_methods_store = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
-			$tracks                = new WC_Connect_Tracks( $logger, __FILE__ );
-			$shipping_label        = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
-			$nux                   = new WC_Connect_Nux( $tracks, $shipping_label, $settings_store, $payment_methods_store, $schemas_store );
-			$taxjar                = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url );
+			$schemas_store          = new WC_Connect_Service_Schemas_Store( $api_client, $logger );
+			$settings_store         = new WC_Connect_Service_Settings_Store( $schemas_store, $api_client, $logger );
+			$payment_methods_store  = new WC_Connect_Payment_Methods_Store( $settings_store, $api_client, $logger );
+			$tracks                 = new WC_Connect_Tracks( $logger, __FILE__ );
+			$shipping_label         = new WC_Connect_Shipping_Label( $api_client, $settings_store, $schemas_store, $payment_methods_store );
+			$nux                    = new WC_Connect_Nux( $tracks, $shipping_label, $settings_store, $payment_methods_store, $schemas_store );
+			$store_notices_notifier = new StoreNoticesNotifier( $taxes_logger->is_debug_enabled() );
+			$taxjar                 = new WC_Connect_TaxJar_Integration( $api_client, $taxes_logger, $this->wc_connect_base_url, $tracks, $store_notices_notifier );
+			$this->set_store_notices_notifier( $store_notices_notifier );
 			$paypal_ec             = new WC_Connect_PayPal_EC( $api_client, $nux );
 			$label_reports         = new WC_Connect_Label_Reports( $settings_store );
 
@@ -854,6 +913,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_notices', array( WC_Connect_Error_Notice::instance(), 'render_notice' ) );
 			add_action( 'admin_notices', array( $this, 'render_schema_notices' ) );
 
+			// Don't register settings if only_tax mode.
+			if ( ! self::should_load_shipping_features() ) {
+				return;
+			}
+
 			// We only use the settings page for shipping since tax settings are part of
 			// the core "WooCommerce > Settings > Tax" tab.
 			require_once __DIR__ . '/classes/class-wc-connect-settings-pages.php';
@@ -878,6 +942,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			add_action( 'enqueue_wc_connect_script', array( $this, 'enqueue_wc_connect_script' ), 10, 2 );
 
+			add_action( 'wc_connect_fetch_sift_config', array( $this, 'background_fetch_sift_config' ) );
+
 			$tracks = $this->get_tracks();
 			$tracks->init();
 
@@ -885,7 +951,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->paypal_ec->init();
 
 			// Only register shipping label-related logic if WC Shipping is not active.
-			if ( ! self::is_wc_shipping_activated() && '1' !== WC_Connect_Options::get_option( 'only_tax' ) ) {
+			if ( self::should_load_shipping_features() ) {
 				add_action( 'rest_api_init', array( $this, 'wc_api_dev_init' ), 9999 );
 
 				$this->init_shipping_labels();
@@ -903,12 +969,37 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
+		 * Init WC Store Notices.
+		 */
+		public function init_store_notices() {
+			new StoreNoticesController( $this->get_store_notices_notifier() );
+		}
+
+		/**
+		 * Extend the Store API.
+		 */
+		public function extend_store_api() {
+			$store_api_extend_schema        = StoreApiExtendSchema::instance();
+			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
+
+			// Register Store API extensions.
+			$store_api_extension_controller->register_extension( new StoreNoticesExtension( $store_api_extend_schema ) );
+
+			// Extend the Store API.
+			$store_api_extension_controller->extend_store();
+		}
+
+		/**
 		 * Register shipping labels-related hooks.
 		 *
 		 * @return void
 		 */
 		public function init_shipping_labels() {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
+
+			// Initialize migration survey
+			require_once __DIR__ . '/classes/class-wc-connect-migration-survey.php';
+			new WC_Connect_Migration_Survey();
 
 			// Changing the postcode, currency, weight or dimension units affect the returned schema from the server.
 			// Make sure to update the service schemas when these options change.
@@ -1099,6 +1190,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client, $settings_store, $logger );
 			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
 			$rest_subscriptions_controller->register_routes();
+
+			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-eligibility-controller.php';
+			$rest_shipping_label_eligibility_controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
+				$this->api_client,
+				$settings_store,
+				$logger,
+				$this->shipping_label,
+				$this->payment_methods_store,
+				self::has_only_tax_functionality()
+			);
+
+			$rest_shipping_label_eligibility_controller->register_routes();
 
 			/**
 			 * We need 4 objects instantiated in `WC_Connect_Loader` to construct WC_REST_Connect_WCShipping_Compatibility_Packages_Controller.
@@ -1594,7 +1697,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null );
 
 			$i18n_json = $this->get_i18n_json();
-			/** @var array $i18nStrings defined in i18n/strings.php */
+			// JS translations loaded from i18n/languages/woocommerce-services-{LOCALE}.json via get_i18n_json().
 			wp_localize_script(
 				'wc_connect_admin',
 				'i18nLocale',
@@ -1835,15 +1938,40 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 		}
 
+		/**
+		 * Determines if the store is configured for tax-only functionality.
+		 *
+		 * This method checks two conditions:
+		 * 1. If Jetpack is connected and the 'only_tax' option is set to '1', it returns true.
+		 * 2. If Jetpack is not connected and there are no legacy shipping labels in the database, it returns true.
+		 *
+		 * @return bool True if the store is configured for tax-only functionality, false otherwise.
+		 */
+		public static function has_only_tax_functionality() {
+			$result = ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
+						( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
+
+			// Allow tests to override this functionality.
+			return apply_filters( 'wc_connect_has_only_tax_functionality', $result );
+		}
+
+		/**
+		 * Checks whether shipping-related functionality and views should be loaded.
+		 *
+		 * Shipping features should only be loaded when the WooCommerce Shipping plugin
+		 * is not active and the site is not restricted to tax-only functionality.
+		 *
+		 * @return bool True if shipping features should be loaded, false otherwise.
+		 */
+		public static function should_load_shipping_features(): bool {
+			return ! self::is_wc_shipping_activated() && ! self::has_only_tax_functionality();
+		}
+
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
 			if ( isset( $plugins[ $plugin_basename ] ) ) {
-				// Check if the store is configured for tax only or if it has no legacy shipping labels (only check labels if not connected).
-				if (
-					( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
-					( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() )
-				) {
+				if ( self::has_only_tax_functionality() ) {
 					$plugins[ $plugin_basename ]['Name']        = $this->get_plugin_name_for_new_sites();
 					$plugins[ $plugin_basename ]['Description'] = $this->get_plugin_description_for_new_sites();
 				} else {
@@ -1871,42 +1999,77 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Adds the Sift JS page tracker if needed. See the comments for the detailed logic.
+		 * Adds the Sift JS page tracker if needed.
 		 *
-		 * @return  void
+		 * @return void
 		 */
 		public function add_sift_js_tracker() {
 			$sift_configurations = $this->api_client->get_sift_configuration();
 
-			$connected_data = WC_Connect_Jetpack::get_connection_owner_wpcom_data();
-
-			if ( is_wp_error( $sift_configurations ) || empty( $sift_configurations->beacon_key ) || empty( $connected_data['ID'] ) ) {
-				// Don't add sift tracking if we can't have the parameters to initialize Sift
+			if ( is_wp_error( $sift_configurations ) ) {
+				$this->schedule_background_sift_fetch();
 				return;
 			}
 
-			$fraud_config = array(
-				'beacon_key' => $sift_configurations->beacon_key,
-				'user_id'    => $connected_data['ID'],
+			$connected_data = WC_Connect_Jetpack::get_connection_owner_wpcom_data();
+
+			if ( empty( $sift_configurations->beacon_key ) || empty( $connected_data['ID'] ) ) {
+				return;
+			}
+
+			wp_register_script(
+				'sift-science',
+				'https://cdn.sift.com/s.js',
+				array(),
+				null,
+				array(
+					'strategy'  => 'defer',
+					'in_footer' => true,
+				)
 			);
 
-			?>
-			<script type="text/javascript">
-				var src = 'https://cdn.sift.com/s.js';
+			$inline_script = sprintf(
+				'var _sift = window._sift = window._sift || [];' .
+				'_sift.push(["_setAccount", %s]);' .
+				'_sift.push(["_setUserId", %s]);' .
+				'_sift.push(["_trackPageview"]);',
+				wp_json_encode( $sift_configurations->beacon_key ),
+				wp_json_encode( $connected_data['ID'] )
+			);
 
-				var _sift = ( window._sift = window._sift || [] );
-				_sift.push( [ '_setAccount', '<?php echo esc_attr( $fraud_config['beacon_key'] ); ?>' ] );
-				_sift.push( [ '_setUserId', '<?php echo esc_attr( $fraud_config['user_id'] ); ?>' ] );
-				_sift.push( [ '_trackPageview' ] );
+			wp_add_inline_script( 'sift-science', $inline_script, 'after' );
 
-				if ( ! document.querySelector( '[src="' + src + '"]' ) ) {
-					var script = document.createElement( 'script' );
-					script.src = src;
-					script.async = true;
-					document.body.appendChild( script );
-				}
-			</script>
-			<?php
+			wp_enqueue_script( 'sift-science' );
+		}
+
+		/**
+		 * Schedule a background fetch for Sift configuration.
+		 *
+		 * @return void
+		 */
+		private function schedule_background_sift_fetch() {
+			if ( get_transient( self::SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY ) ) {
+				return;
+			}
+
+			set_transient( self::SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY, true, 5 * MINUTE_IN_SECONDS );
+
+			if ( ! wp_next_scheduled( 'wc_connect_fetch_sift_config' ) ) {
+				wp_schedule_single_event( time() + 1, 'wc_connect_fetch_sift_config' );
+			}
+		}
+
+		/**
+		 * Fetch Sift configuration in the background.
+		 *
+		 * @return void
+		 */
+		public function background_fetch_sift_config() {
+			$config = $this->api_client->get_sift_configuration( true );
+
+			if ( ! is_wp_error( $config ) ) {
+				delete_transient( self::SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY );
+			}
 		}
 
 		public function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
@@ -2016,7 +2179,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return void
 		 */
 		public function display_woo_shipping_and_woo_tax_are_active_notice() {
-			echo '<div class="error"><p><strong>' . esc_html__( 'WC Shipping and WC Tax plugins are already active. Please deactivate WooCommerce Shipping & Tax.', 'woocommerce-services' ) . '</strong></p></div>';
+			echo '<div class="error"><p><strong>' . esc_html__( 'WC Shipping and WC Tax plugins are already active. Please deactivate WooCommerce Tax.', 'woocommerce-services' ) . '</strong></p></div>';
 		}
 
 		/**

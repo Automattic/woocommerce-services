@@ -58,7 +58,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		}
 
 		/**
-		 * Deletes all options created by WooCommerce Shipping & Tax, including shipping method options
+		 * Deletes all options created by WooCommerce Tax, including shipping method options
 		 */
 		public static function delete_all_options() {
 			if ( defined( 'WOOCOMMERCE_CONNECT_DEV_SERVER_URL' ) ) {
@@ -101,7 +101,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 				}
 			}
 
-			trigger_error( esc_html( sprintf( 'Invalid WooCommerce Shipping & Tax option name: %s', $name ), E_USER_WARNING ) );
+			wp_trigger_error( 'WC_Connect_Options::get_option', esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ) ), E_USER_WARNING );
 			return $default;
 		}
 
@@ -122,7 +122,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 					return self::update_grouped_option( $group, $name, $value );
 				}
 			}
-			trigger_error( esc_html( sprintf( 'Invalid WooCommerce Shipping & Tax option name: %s', $name ), E_USER_WARNING ) );
+			wp_trigger_error( 'WC_Connect_Options::update_option', esc_html( sprintf( 'Invalid WooCommerce Tax option name: %s', $name ) ), E_USER_WARNING );
 			return false;
 		}
 
@@ -138,7 +138,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$result = true;
 			$names  = (array) $names;
 			if ( ! self::is_valid( $names ) ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Shipping & Tax option names: %s', print_r( $names, 1 ) ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::delete_option', esc_html( sprintf( 'Invalid WooCommerce Tax option names: %s', print_r( $names, 1 ) ) ), E_USER_WARNING );
 				return false;
 			}
 			foreach ( array_intersect( $names, self::get_option_names( 'non_compact' ) ) as $name ) {
@@ -168,7 +168,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$option_name = self::get_shipping_method_option_name( $name, $service_id, $service_instance );
 
 			if ( ! $option_name ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Shipping & Tax shipping method option name: %s', $name ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::get_shipping_method_option', esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ) ), E_USER_WARNING );
 				return $default;
 			}
 
@@ -189,7 +189,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$option_name = self::get_shipping_method_option_name( $name, $service_id, $service_instance );
 
 			if ( ! $option_name ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Shipping & Tax shipping method option name: %s', $name ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::update_shipping_method_option', esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ) ), E_USER_WARNING );
 				return false;
 			}
 
@@ -209,7 +209,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$option_name = self::get_shipping_method_option_name( $name, $service_id, $service_instance );
 
 			if ( ! $option_name ) {
-				trigger_error( esc_html( sprintf( 'Invalid WooCommerce Shipping & Tax shipping method option name: %s', $name ), E_USER_WARNING ) );
+				wp_trigger_error( 'WC_Connect_Options::delete_shipping_method_option', esc_html( sprintf( 'Invalid WooCommerce Tax shipping method option name: %s', $name ) ), E_USER_WARNING );
 				return false;
 			}
 

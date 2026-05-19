@@ -64,20 +64,22 @@ jobs:
           ADJUSTED_MINOR_VERSION=$((MINOR_VERSION - 2))
 
           if [ "$ADJUSTED_MINOR_VERSION" -lt 0 ]; then
-            ADJUSTED_MINOR_VERSION=0
+            ADJUSTED_MAJOR_VERSION=$((MAJOR_VERSION - 1))
+            ADJUSTED_MINOR_VERSION=$((ADJUSTED_MINOR_VERSION + 10))
+          else
+            ADJUSTED_MAJOR_VERSION=$MAJOR_VERSION
           fi
 
-          LATEST_MINOR_RELEASE="$MAJOR_VERSION.$ADJUSTED_MINOR_VERSION"
+          LATEST_MINOR_RELEASE="$ADJUSTED_MAJOR_VERSION.$ADJUSTED_MINOR_VERSION"
 
           echo "Latest WooCommerce Release: $LATEST_RELEASE"
           echo "LATEST_RELEASE=$LATEST_RELEASE" >> $GITHUB_ENV
           echo "LATEST_MINOR_RELEASE=$LATEST_MINOR_RELEASE" >> $GITHUB_ENV
 
-      # Step 3: Create and Checkout a New Branch
-      - name: Create and Checkout Branch
+      # Step 3: Set Branch Name
+      - name: Set Branch Name
         run: |
           BRANCH_NAME="tweak/update-requires-headers-${{ env.LATEST_RELEASE }}"
-          git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       # Step 4: Compare and Update Headers
@@ -91,7 +93,7 @@ jobs:
           # Get required versions from WooCommerce core
           REQUIRES_AT_LEAST=$(grep -oP 'Requires at least: \K[\d.]+' "$WC_CORE_FILE")
           REQUIRES_PHP=$(grep -oP 'Requires PHP: \K[\d.]+' "$WC_CORE_FILE")
-          LATEST_MINOR_RELEASE=$(echo "$LATEST_RELEASE" | grep -oE '^[0-9]+\.[0-9]+' | awk -F. '{printf("%d.%d", $1, ($2-2 < 0 ? 0 : $2-2))}')
+          LATEST_MINOR_RELEASE=${{ env.LATEST_MINOR_RELEASE }}
           echo "REQUIRES_AT_LEAST=$REQUIRES_AT_LEAST" >> $GITHUB_ENV
           echo "REQUIRES_PHP=$REQUIRES_PHP" >> $GITHUB_ENV
 
@@ -233,25 +235,58 @@ jobs:
           echo "woocommerce.zip" >> .gitignore
           git clean -fdx
 
-      # Step 5: Push Branch
-      - name: Push Branch
+      # Step 5: Create and Push Branch
+      - name: Create and Push Branch
         if: env.CHANGES_MADE == 'true'
         run: |
+          # Check if branch already exists remotely
+          if git ls-remote --exit-code --heads origin ${{ env.BRANCH_NAME }}; then
+            echo "Branch ${{ env.BRANCH_NAME }} already exists remotely. Skipping creation."
+            exit 0
+          fi
+
+          # Configure Git user
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          # Create and checkout the branch
+          git checkout -b "${{ env.BRANCH_NAME }}"
+
+          # Commit only the modified files
+          git add ${{ env.PLUGIN_FILE_NAME }}
+          if [ -f "readme.txt" ]; then
+            git add readme.txt
+          fi
+          git commit -m "Update Requires headers"
+
+          # Push the branch
           git push --set-upstream origin ${{ env.BRANCH_NAME }}
 
       # Step 6: Create Pull Request
       - name: Create Pull Request
         if: env.CHANGES_MADE == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.WCSHIPBOT_GITHUB_TOKEN }}
-          branch: ${{ env.BRANCH_NAME }}
-          base: ${{ env.MAIN_BRANCH }}
-          add-paths: ${{ env.EDITED_FILES }}
-          commit-message: "Update Requires headers"
-          title: "Update Requires headers for WooCommerce compatibility"
-          team-reviewers: woocommerce/progressus
-          body: |
-            This PR updates plugin headers to ensure compatibility with the latest WooCommerce release.
+        run: |
+          # Check if there are commits between base and head branch
+          COMMIT_COUNT=$(git rev-list --count ${{ env.MAIN_BRANCH }}..${{ env.BRANCH_NAME }} 2>/dev/null || echo "0")
 
-            Please test the plugin and merge.
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "No commits found between ${{ env.MAIN_BRANCH }} and ${{ env.BRANCH_NAME }}. Skipping PR creation."
+            exit 0
+          fi
+
+          # Check if PR already exists for this branch
+          if gh pr list --head ${{ env.BRANCH_NAME }} --json number --jq length | grep -q "^0$"; then
+            echo "Creating new PR for branch ${{ env.BRANCH_NAME }}"
+            gh pr create \
+              --title "Update Requires headers for WooCommerce compatibility" \
+              --body "This PR updates plugin headers to ensure compatibility with the latest WooCommerce release.
+
+            Please test the plugin and merge." \
+              --base ${{ env.MAIN_BRANCH }} \
+              --head ${{ env.BRANCH_NAME }} \
+              --reviewer dustinparker,iyut,bartech,abdalsalaam
+          else
+            echo "PR already exists for branch ${{ env.BRANCH_NAME }}. Skipping PR creation."
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

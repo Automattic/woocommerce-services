@@ -26,3 +26,10 @@ function wc_test_connect_jetpack_access_fake_token( $token ) {
 }
 
 add_filter( 'wc_connect_jetpack_access_token', 'wc_test_connect_jetpack_access_fake_token' );
+
+function wc_test_connect_override_tax_only_functionality( $is_tax_only ) {
+	// For e2e tests, always return false so shipping labels are enabled
+	return false;
+}
+
+add_filter( 'wc_connect_has_only_tax_functionality', 'wc_test_connect_override_tax_only_functionality' );

@@ -28,6 +28,7 @@ dist/
 .cache/
 tests/e2e-tests/screenshots
 tests/docker/docker-compose.override.yml
+.phpunit.result.cache
 
 # docker data for local development
 docker/data

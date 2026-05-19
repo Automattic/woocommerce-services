@@ -7,6 +7,7 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	protected $jetpack_tracker;
 
 	public static function set_up_before_class() {
+		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-options.php';
 		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-tracks.php';
 	}
 
@@ -94,6 +95,9 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	}
 
 	public function test_opted_out() {
+		// Set tos_accepted to true to simulate user has opted in
+		WC_Connect_Options::update_option( 'tos_accepted', true );
+
 		$this->logger->expects( $this->once() )
 					 ->method( 'log' )
 					->with(
@@ -127,6 +131,25 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 		);
 
 		// $record will contain the args received by jetpack_tracks_record_event
+		$this->tracks->opted_out();
+
+		// Clean up
+		WC_Connect_Options::delete_option( 'tos_accepted' );
+	}
+
+	public function test_opted_out_without_opt_in() {
+		// Ensure tos_accepted is not set (user never opted in)
+		WC_Connect_Options::delete_option( 'tos_accepted' );
+
+		// Logger should NOT be called since user never opted in
+		$this->logger->expects( $this->never() )
+					 ->method( 'log' );
+
+		// Jetpack tracker should NOT be called
+		$this->jetpack_tracker->expects( $this->never() )
+							   ->method( 'tracks_record_event' );
+
+		// Call opted_out - should not send any event
 		$this->tracks->opted_out();
 	}
 

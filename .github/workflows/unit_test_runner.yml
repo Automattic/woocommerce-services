@@ -1,0 +1,102 @@
+name: Unit Tests Runner (PHP)
+
+on:
+    workflow_call:
+        inputs:
+            wc_version:
+                required: true
+                type: string
+            wp_version:
+                required: true
+                type: string
+            php_version:
+                required: true
+                type: string
+
+jobs:
+  php_lint:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest WCS
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+      - name: Lint
+        run: find . -type f -name "*.php" -exec php -l {} \;
+
+  php_build_and_test:
+    name: PHP Tests (WP ${{ matrix.wp_version }} WC ${{ matrix.wc_version }})
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.9
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_USER: wp_test
+          MYSQL_PASSWORD: wp_test
+          MYSQL_DATABASE: wordpress_default
+          MYSQL_ROOT_PASSWORD: root
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    strategy:
+      matrix:
+        include:
+          - php: ${{ inputs.php_version }}
+            wp_version: ${{ inputs.wp_version }}
+            wc_version: ${{ inputs.wc_version }}
+            wc_order_datastore: hpos
+    env:
+      WP_VERSION: ${{ matrix.wp_version }}
+      WC_VERSION: ${{ matrix.wc_version }}
+      PHP_VERSION: ${{ matrix.php }}
+      RUN_UNIT_TESTS: 1
+      WC_ORDER_DATASTORE: ${{ matrix.wc_order_datastore }}
+    steps:
+      - name: Install SVN if not already installed
+        run: |
+          if ! svn --version &> /dev/null
+          then
+            echo "SVN is not installed. Installing SVN..."
+            sudo apt-get update && sudo apt-get install -y subversion
+          else
+            echo "SVN is already installed."
+          fi
+      - name: Checkout WCS&T
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout WooCommerce
+        run: git clone --depth=1 --branch=${{ env.WC_VERSION }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+      - name: Get WC pinned pnpm version
+        id: get_wc_pnpm_version
+        run: echo "WC_PNPM=$( grep packageManager /tmp/woocommerce/package.json | sed -nr 's/.+packageManager.+pnpm@([[:digit:].]+).+/\1/p' )" >> "$GITHUB_OUTPUT"
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'v20'
+      - name: Build WooCommerce essentials for running tests
+        run: |
+          cd /tmp/woocommerce/plugins/woocommerce
+          composer install
+          php bin/generate-feature-config.php
+      - name: Setup WordPress
+        run: bash /tmp/woocommerce/plugins/woocommerce/tests/bin/install.sh wordpress_test root root 127.0.0.1 ${{ env.WP_VERSION }}
+      - name: Use PHPUnit v8 for WC < 7.7.0
+        if: contains(fromJSON('["7.5.1", "7.6.1"]'), env.WC_VERSION)
+        run: composer require -W phpunit/phpunit:^8
+      - name: Install Composer dependencies
+        run: composer install
+      - name: Run PHPUnit tests
+        run: ./vendor/bin/phpunit -c phpunit.xml.dist

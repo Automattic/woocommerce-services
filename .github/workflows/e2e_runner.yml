@@ -1,0 +1,62 @@
+name: E2E Tests Runner
+
+on:
+  workflow_call:
+    inputs:
+      php_version:
+        required: true
+        type: string
+
+jobs:
+  e2e_build_and_test:
+    name: Build Container and Run E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Git to use HTTPS instead of SSH
+        run: git config --global url.https://github.com/.insteadOf git://github.com/
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php_version }}
+          tools: composer
+          extensions: mysql
+          coverage: none
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - name: Kill process running on port 8084 to unblock it
+        shell: bash
+        run: |
+            echo "::group::Kill webserver running on port 8084"
+            set +e #
+            sudo fuser -k -n tcp 8084 > /dev/null 2>&1
+            EXIT_CODE=$?
+            set -e
+            if [ $EXIT_CODE -eq 1 ]; then
+              echo "No process found on port 8084, ignoring exit code 1."
+              exit 0
+            fi
+            if [ $EXIT_CODE -ne 0 ]; then
+              echo "fuser encountered an error with exit code $EXIT_CODE."
+              exit $EXIT_CODE
+            fi
+            echo "::endgroup::"
+      - name: Build WCS&T
+        run: |
+            composer install
+            npm ci
+            npm run dist
+      - name: Install docker-compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+      - name: Setup E2E container
+        run: |
+            npm run test:e2e-docker-up
+            npm run test:e2e-docker-ping
+      - name: Run E2E tests
+        run: npm run test:e2e
+      - name: Stop E2E container
+        run: npm run test:e2e-docker-down

@@ -14,9 +14,8 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 	 * Undocumented function
 	 */
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
-
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client-live.php';
 	}
 
 	/**
@@ -43,8 +42,10 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		// release the test client instance.
 		unset( $this->api_client );
 
-		// delete test product.
-		WC_Helper_Product::delete_product( $this->product->get_id() );
+		// delete test product if it exists.
+		if ( $this->product ) {
+			WC_Helper_Product::delete_product( $this->product->get_id() );
+		}
 	}
 
 	/**
@@ -132,5 +133,30 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		);
 
 		$this->assertEquals( $actual, $expected );
+	}
+
+	/**
+	 * Test get_sift_configuration returns cached config.
+	 */
+	public function test_get_sift_configuration_returns_cached() {
+		$expected_config = array( 'beacon_key' => 'test_key_123' );
+
+		set_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY, $expected_config );
+
+		$actual = $this->api_client->get_sift_configuration();
+
+		$this->assertEquals( $expected_config, $actual );
+	}
+
+	/**
+	 * Test get_sift_configuration returns error when not cached and non-blocking.
+	 */
+	public function test_get_sift_configuration_non_blocking_returns_error_when_not_cached() {
+		delete_transient( WC_Connect_API_Client::SIFT_CONFIG_TRANSIENT_KEY );
+
+		$actual = $this->api_client->get_sift_configuration( false );
+
+		$this->assertWPError( $actual );
+		$this->assertEquals( 'sift_not_cached', $actual->get_error_code() );
 	}
 }

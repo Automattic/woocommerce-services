@@ -62,6 +62,7 @@ module.exports = {
 			'./client/provide-public-path.js',
 			'./client/wcshipping-migration-admin-notice.js'
 		],
+		'woocommerce-services-store-notices': [ './client/store-notices.js' ],
 	},
 	output: Object.assign(
 			{},

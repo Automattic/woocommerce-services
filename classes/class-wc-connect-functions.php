@@ -162,6 +162,10 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				)
 			);
 
+			if ( empty( $rates ) ) {
+				return false;
+			}
+
 			ob_start();
 			$header =
 				__( 'Country Code', 'woocommerce' ) . ',' .
@@ -258,9 +262,64 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			$csv        = ob_get_clean();
 			$upload_dir = wp_upload_dir();
-			$backed_up  = file_put_contents( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-' . date( 'm-d-Y' ) . '-' . time() . '.csv', $csv );
+			$backup_dir = $upload_dir['basedir'] . '/woocommerce_uploads/taxes';
+
+			// Create the protected backup directory if it doesn't exist.
+			if ( ! file_exists( $backup_dir ) ) {
+				if ( ! wp_mkdir_p( $backup_dir ) ) {
+					// Directory could not be created; fall back to the uploads root.
+					$backup_dir = $upload_dir['basedir'];
+				} else {
+					self::protect_backup_directory( $backup_dir );
+				}
+			} elseif ( ! file_exists( $backup_dir . '/.htaccess' ) ) {
+				// Re-create protection files if they were removed.
+				self::protect_backup_directory( $backup_dir );
+			}
+
+			// Build filename with wp_hash() suffix to prevent URL guessing (same pattern as WC log files).
+			$base_name   = 'taxjar-wc_tax_rates-' . gmdate( 'Y-m-d' ) . '-' . time();
+			$hash_suffix = wp_hash( $base_name );
+			$backed_up   = file_put_contents( $backup_dir . '/' . $base_name . '-' . $hash_suffix . '.csv', $csv ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 
 			return (bool) $backed_up;
+		}
+
+		/**
+		 * Creates protection files in the backup directory to prevent direct HTTP access.
+		 *
+		 * Follows the same pattern used by WooCommerce's ReportCSVExporter::maybe_create_directory().
+		 *
+		 * @param string $dir The directory to protect.
+		 */
+		private static function protect_backup_directory( $dir ) {
+			$files = array(
+				array(
+					'base'    => $dir,
+					'file'    => '.htaccess',
+					'content' => 'DirectoryIndex index.php index.html' . PHP_EOL . 'deny from all',
+				),
+				array(
+					'base'    => $dir,
+					'file'    => 'index.html',
+					'content' => '',
+				),
+				array(
+					'base'    => $dir,
+					'file'    => 'index.php',
+					'content' => '<?php' . PHP_EOL . '// Silence is golden.',
+				),
+			);
+
+			foreach ( $files as $file ) {
+				if ( ! file_exists( trailingslashit( $file['base'] ) . $file['file'] ) ) {
+					$file_handle = @fopen( trailingslashit( $file['base'] ) . $file['file'], 'wb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_read_fopen
+					if ( $file_handle ) {
+						fwrite( $file_handle, $file['content'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fwrite
+						fclose( $file_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+					}
+				}
+			}
 		}
 
 		/**
@@ -270,18 +329,69 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 * @return array|false
 		 */
 		public static function get_backed_up_tax_rate_files() {
-			$upload_dir  = wp_upload_dir();
-			$pattern     = $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv';
-			$found_files = glob( $pattern );
+			$upload_dir = wp_upload_dir();
+			$backup_dir = $upload_dir['basedir'] . '/woocommerce_uploads/taxes';
+
+			// Attempt to migrate legacy files from the public uploads root into the protected directory.
+			if ( ! get_option( 'wcs_tax_backup_files_migrated' ) ) {
+				$old_files = glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' );
+
+				if ( ! empty( $old_files ) ) {
+					$dir_ready = file_exists( $backup_dir );
+
+					if ( ! $dir_ready ) {
+						$dir_ready = wp_mkdir_p( $backup_dir );
+						if ( $dir_ready ) {
+							self::protect_backup_directory( $backup_dir );
+						}
+					}
+
+					if ( $dir_ready ) {
+						foreach ( $old_files as $old_file ) {
+							$old_basename = pathinfo( $old_file, PATHINFO_FILENAME );
+
+							// Add wp_hash() suffix if the file doesn't already have one (32-char hex at the end).
+							if ( ! preg_match( '/-[0-9a-f]{32}$/', $old_basename ) ) {
+								$hash_suffix  = wp_hash( $old_basename );
+								$new_filename = $old_basename . '-' . $hash_suffix . '.csv';
+							} else {
+								$new_filename = basename( $old_file );
+							}
+
+							$dest = $backup_dir . '/' . $new_filename;
+							if ( ! file_exists( $dest ) ) {
+								rename( $old_file, $dest ); // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+							} else {
+								wp_delete_file( $old_file );
+							}
+						}
+					}
+					// If $dir_ready is false, legacy files remain in place and are picked up below.
+				}
+
+				// Mark migration complete only when no old files remain, so it retries if rename() failed.
+				// Check for false explicitly: glob() returns false on filesystem error (not just an empty
+				// array), and empty(false) would be true, prematurely marking migration as complete and
+				// leaving old publicly-accessible files in the uploads root permanently.
+				$remaining_old_files = glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' );
+				if ( false !== $remaining_old_files && empty( $remaining_old_files ) ) {
+					update_option( 'wcs_tax_backup_files_migrated', true, false );
+				}
+			}
+
+			// Collect files from the protected directory and, if migration was not possible, the uploads root.
+			$found_files = array_merge(
+				glob( $backup_dir . '/taxjar-wc_tax_rates-*.csv' ) ?: array(),
+				glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' ) ?: array()
+			);
 
 			if ( empty( $found_files ) ) {
 				return false;
 			}
 
-			$files = [];
+			$files = array();
 			foreach ( $found_files as $file ) {
-				$filename           = basename( $file );
-				$files[ $filename ] = $upload_dir['baseurl'] . '/' . $filename;
+				$files[] = basename( $file );
 			}
 
 			return $files;

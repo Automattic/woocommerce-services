@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Service_Schemas_Store $service_schemas_store ) {
 			$this->id                    = 'connect';
-			$this->label                 = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping & Tax brandname', 'woocommerce-services' );
+			$this->label                 = _x( 'WooCommerce Shipping', 'The WooCommerce Shipping brandname', 'woocommerce-services' );
 			$this->continents            = new WC_Connect_Continents();
 			$this->api_client            = $api_client;
 			$this->service_schemas_store = $service_schemas_store;

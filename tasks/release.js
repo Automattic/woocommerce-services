@@ -16,6 +16,7 @@ const dirsToCopy = [
 	'i18n',
 	'images',
 	'vendor',
+	'src',
 ];
 
 confirm( chalk.cyan( 'Howdy! This script is going to create a release folder with a compiled ' +
@@ -45,6 +46,9 @@ confirm( chalk.cyan( 'Howdy! This script is going to create a release folder wit
 
 	// copy the directories to the release folder
 	cp( '-Rf', dirsToCopy, targetFolder );
+
+	// remove build artifacts not needed in the release
+	rm( '-f', targetFolder + '/i18n/strings.php' );
 
 	const output = fs.createWriteStream( releaseFolder + '/woocommerce-services.zip' );
 	const archive = archiver( 'zip' );

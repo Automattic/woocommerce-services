@@ -415,7 +415,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				return;
 			}
 
-			// TODO: Request rates for all WooCommerce Shipping & Tax powered methods in
+			// TODO: Request rates for all WooCommerce Tax powered methods in
 			// the current shipping zone to avoid each method making an independent request.
 			$services = array(
 				array(
@@ -611,7 +611,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 		public static function format_rate_title( $rate_title ) {
 			$formatted_title = wp_kses(
-				html_entity_decode( $rate_title ),
+				html_entity_decode( $rate_title, ENT_COMPAT ), // ENT_COMPAT is explicitly set for cross-version compatibility as it was the default prior to PHP v8.1.
 				array(
 					'sup'    => array(),
 					'del'    => array(),

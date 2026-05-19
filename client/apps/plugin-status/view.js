@@ -22,7 +22,7 @@ import {
 	toggleDebugging,
 } from './state/actions';
 
-const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, taxRateBackups, translate, isShippingLoaded } ) => {
+const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isDebuggingEnabled, taxRateBackups, taxBackupDownloadUrl, translate, isShippingLoaded } ) => {
 	return (
 		<div>
 			<GlobalNotices id="notices" notices={ notices.list } />
@@ -72,9 +72,9 @@ const StatusView = ( { onLoggingToggle, onDebuggingToggle, isLoggingEnabled, isD
 						<br />
 
 						<ul>
-							{ Object.keys( taxRateBackups ).map( ( filename, i ) => {
+							{ taxRateBackups.map( ( filename, i ) => {
 								return ( <li key={ i }>
-									<a href={ taxRateBackups[ filename ] }>{ filename }</a>
+									<a href={ taxBackupDownloadUrl + '&file=' + encodeURIComponent( filename ) }>{ filename }</a>
 								</li> );
 							} ) }
 						</ul>
@@ -110,6 +110,7 @@ const mapStateToProps = ( state ) => ( {
 	isLoggingEnabled: Boolean( state.status.logging_enabled ),
 	isDebuggingEnabled: Boolean( state.status.debug_enabled ),
 	taxRateBackups: state.status.tax_rate_backups,
+	taxBackupDownloadUrl: state.status.tax_backup_download_url,
 	isShippingLoaded: state.status.is_shipping_loaded,
 } );
 

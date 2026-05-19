@@ -1,85 +1,187 @@
-=== WooCommerce Shipping & Tax ===
+=== WooCommerce Tax (formerly WooCommerce Shipping & Tax) ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
-Tags: shipping, stamps, usps, woocommerce, taxes, payment, dhl, labels
+Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
-Requires at least: 6.6
+Requires at least: 6.9
 Requires Plugins: woocommerce
-Tested up to: 6.8
-WC requires at least: 9.6
-WC tested up to: 9.8
-Stable tag: 3.0.0
+Tested up to: 7.0
+WC requires at least: 10.6
+WC tested up to: 10.8
+Stable tag: 3.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WooCommerce Shipping & Tax offers automated tax calculation, shipping label printing, smoother payment setup, and other hosted services for WooCommerce.
+We’re here to help with tax rates: collect accurate sales tax, automatically.
 
 == Description ==
 
-**Attention:** Shipping features have moved to a new dedicated plugin. [Download WooCommerce Shipping](https://wordpress.org/plugins/woocommerce-shipping/).
+Attention: Shipping features have moved to a new dedicated plugin. Download WooCommerce Shipping.
 
-WooCommerce Shipping & Tax makes basic eCommerce features like shipping more reliable by taking the burden off of your site’s infrastructure.
+Enable automated taxes
+That's it! Once you update your tax settings, your store will collect sales tax at checkout based on the store address in your WooCommerce Settings.
 
-With WooCommerce Shipping & Tax, critical services are hosted on Automattic’s best-in-class infrastructure, rather than relying on your store’s hosting. That means your store will be more stable and faster.
-To use the features, simply install this plugin and activate the ones you want directly in your dashboard. As we add more services, you’ll see more features available directly in WooCommerce – making setup simpler.
-
-NOTE: This extension was previously referred to as WooCommerce Services.
-
-= Print USPS and DHL shipping labels and save up to 90% =
-Ship domestically and internationally right from your WooCommerce dashboard. Print USPS and DHL labels and instantly save up to 90%.
-
-= Collect accurate taxes at checkout =
-We've got taxes for you - no need to enter tax rates manually.
+Eliminate the need to even think about sales taxes for your store
+Automatically calculate how much sales tax should be collected for WooCommerce orders — by city, country, or state — at checkout.
 
 == Installation ==
 
 This section describes how to install the plugin and get it working.
 
-1. Upload the plugin files to the `/wp-content/plugins/plugin-name` directory, or install the plugin through the WordPress plugins screen directly.
-1. Activate the plugin through the 'Plugins' screen in WordPress
 1. Install and activate WooCommerce if you haven't already done so
-1. Install, activate and connect to your WordPress.com account if you haven't already done so
-1. Want to buy shipping labels? First, add your credit card to https://wordpress.com/me/purchases/billing and then print labels for orders right from the Edit Order page
-1. Enable automated taxes from WooCommerce > Settings > Tax (make sure "enable taxes" is checked in General settings first)
+2. Upload the plugin files to the `/wp-content/plugins/woocommerce-tax` directory, or install the plugin through the WordPress plugins screen directly.
+3. Activate the plugin through the 'Plugins' screen in WordPress
+4. Install, activate and connect to your WordPress.com account if you haven't already done so
+5. Enable automated taxes from WooCommerce > Settings > Tax (make sure "enable taxes" is checked in General settings first)
 
 == Frequently Asked Questions ==
 
 = Why is a WordPress.com account connection required? =
 
-We connect to your WordPress.com account to authenticate your site and user account so we can securely charge the payment method on file for any labels purchased.
-
-= What services are included? =
-
-* USPS and DHL label purchase/printing
-* Automated tax calculation
-* PayPal Checkout payment authorization
-
-= Can I buy and print shipping labels for US domestic and international packages? =
-
-Yes! You can buy and print USPS shipping labels for domestic destinations and USPS and DHL shipping labels for international destinations. Shipments need to originate from the U.S.
+A WordPress.com connection is required to securely access our tax APIs, and to avoid API abuse.
 
 = This works with WooCommerce, right? =
 
-Yep! WooCommerce version 3.0 or newer, please.
+Yep! We follow the L-2 policy, meaning if the latest version of WooCommerce is 8.7, we support back to WooCommerce version 8.5.
 
-= Are there Terms of Service and data usage policies? =
+= Are there Terms of Service? =
 
-Absolutely! You can read our Terms of Service [here](https://en.wordpress.com/tos) and our data policy [here](https://jetpack.com/support/what-data-does-jetpack-sync/).
+Absolutely! You can read our Terms of Service [here](https://wordpress.com/tos).
 
-= Where can I see the source code for this plugin? =
+== External services ==
 
-The source code is freely available [in GitHub](https://github.com/Automattic/woocommerce-services).
+This plugin relies on the following external services:
 
+1. WordPress.com connection:
+   - Description: The plugin makes requests to our own endpoints at WordPress.com (proxied via https://api.woocommerce.com) to fetch automated tax calculations.
+   - Website: https://wordpress.com/
+   - Terms of Service: https://wordpress.com/tos/
+   - Privacy Policy: https://automattic.com/privacy/
+
+2. Usage Tracking:
+   - Description: The plugin will send usage statistics to our own service, after the user has accepted our Terms of Service.
+   - Script: https://stats.wp.com/w.js
+   - Terms of Service: https://wordpress.com/tos/
+   - Privacy Policy: https://automattic.com/privacy/
 
 == Screenshots ==
 
-1. Buying a USPS shipping label for an order
-2. Setting up custom packages
-3. Selecting your preferred payment method
-4. Enabling automated taxes
-5. Checking on the health of WooCommerce Shipping & Tax
-6. Checking and exporting the label purchase reports
+1. Enabling automated taxes
+2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.6.3 - 2026-xx-xx =
+* Tweak - WordPress 7.0 Compatibility.
+
+= 3.6.2 - 2026-05-18 =
+* Tweak - WooCommerce 10.8 Compatibility.
+
+= 3.6.1 - 2026-04-20 =
+* Fix   - Prevent informational tax logs from being written to debug.log when debug logging is disabled.
+
+= 3.6.0 - 2026-04-13 =
+* Add   - Prevent unauthenticated downloads of tax rate backup CSV files.
+* Tweak - WooCommerce 10.7 Compatibility.
+
+= 3.5.2 - 2026-04-06 =
+* Fix   - Correct nexus address handling for stores in CO, AZ, and OH (US) and QC (CA).
+
+= 3.5.1 - 2026-03-10 =
+* Fix   - Fix plugin translation files located in i18n/languages folder.
+* Tweak - Unify tax rate naming, use full jurisdictions for all tax rates.
+* Tweak - WooCommerce 10.6 Compatibility.
+
+= 3.5.0 - 2026-02-23 =
+* Add   - Add informational banner for non-connection-owner administrators when WooCommerce Tax Terms of Service have not been accepted, displaying the Jetpack connection owner's name.
+* Fix   - Fix missing Sift tracker script by inlining it instead of loading a non-distributed file.
+* Fix   - Fix zip file structure in GitHub workflow build process.
+* Fix   - Update Docker Compose version to 2.24.0 in E2E Tests GitHub workflow.
+
+= 3.4.1 - 2026-02-09 =
+* Add   - Itemized tax calculation for mixed carts with per-item tax locations.
+
+= 3.4.0 - 2026-02-03 =
+* Add   - Optimize Woo Tax API calls by restricting same-state tax checks.
+* Add   - Country validation for TaxJar requests.
+* Add   - Add woocommerce_tax_line_item_location filter for per-item tax location override.
+* Fix   - Prevent admin slowdown by making Sift configuration non-blocking.
+* Fix   - Prevent opted_out tracks event from being sent when user never opted in.
+* Tweak - WooCommerce 10.5 Compatibility.
+
+= 3.3.1 - 2026-01-12 =
+* Fix   - Normalize state and country codes to uppercase in TaxJar integration.
+
+= 3.3.0 - 2025-12-11 =
+* Add   - Add default nexus address.
+* Add   - Add woocommerce_taxjar_nexus_address filter.
+* Add   - Jurisdiction information to generated US tax rate names to improve tax analytics accuracy.
+* Tweak - Change default Retail Delivery Fee for Colorado to 28c.
+* Tweak - WordPress 6.9 and WooCommerce 10.4 Compatibility.
+
+= 3.2.3 - 2025-11-17 =
+* Fix   - Resolved issue where shipping features loaded despite the site being set to tax-only mode.
+
+= 3.2.2 - 2025-11-10 =
+* Add   - Allow round tax at subtotal level, instead of rounding per line.
+* Add   - Allow calculating taxes for VAT countries without providing ZIP.
+* Fix   - Taxes were incorrectly calculated using the store’s base address for Ohio.
+* Fix   - Display TaxJar error notices only after taxes are calculated.
+* Tweak - Log detection of potential incorrect California tax nexus in successful TaxJar API and cached responses.
+
+= 3.2.1 - 2025-11-03 =
+* Fix   - Exclude shipping-related admin components when shipping functionality is disabled.
+
+= 3.2.0 - 2025-10-14 =
+* Fix   - No tax calculated for multi-word state/counties.
+* Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
+* Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
+* Tweak - Update tax rate and tax nexus links.
+* Tweak - Unify tax rate saving to always save itemized tax rates.
+* Tweak - WooCommerce 10.3 Compatibility.
+
+= 3.1.1 - 2025-09-29 =
+* Fix   - Incorrect tax rate saved in Woo Tax Table when Cart total is 0.
+* Fix   - Compatibility issue with plugins and themes that use woocommerce_find_rates filter.
+
+= 3.1.0 - 2025-09-16 =
+* Add   - Increase cache time for address validation errors.
+* Tweak - WooCommerce 10.2 Compatibility.
+
+= 3.0.11 - 2025-09-08 =
+* Tweak - Bump jetpack autoloader version
+
+= 3.0.10 - 2025-09-02 =
+* Fix   - Corrected migration guide link in survey modal.
+
+= 3.0.9 - 2025-08-26 =
+* Add   - Migration survey to understand WooCommerce Shipping adoption blockers.
+
+= 3.0.8 - 2025-08-13 =
+* Fix   - Improves performance when WooCommerce Shipping is not active.
+* Fix   - Restore shipping label functionality for merchants with shipping features enabled.
+* Tweak - WooCommerce 10.1 Compatibility.
+
+= 3.0.7 - 2025-07-21 =
+* Fix   - Missing release files.
+
+= 3.0.6 - 2025-07-21 =
+* Add   - Support for Itemized tax rates.
+* Fix   - TaxJar error notices displaying incorrectly on block cart and checkout.
+
+= 3.0.5 - 2025-07-14 =
+* Tweak - WooCommerce 10.0 Compatibility.
+
+= 3.0.4 - 2025-06-30 =
+* Fix   - Corrected tax calculation for orders shipped within Arizona from stores based in Arizona.
+
+= 3.0.3 - 2025-06-12 =
+* Tweak - Update Org store screenshots.
+
+= 3.0.2 - 2025-06-02 =
+* Rename the plugin and updates the description in the Org store.
+
+= 3.0.1 - 2025-05-22 =
+* Fix   - Maintain label purchase functionality on iOS app for eligible installations.
 
 = 3.0.0 - 2025-05-08 =
 * Add   - Legacy site detection to maintain shipping functionality for existing installations.

@@ -18,6 +18,7 @@ import PackagesStep from './packages-step';
 import CustomsStep from './customs-step';
 import RatesStep from './rates-step';
 import Sidebar from './sidebar';
+import MigrationSurveyModal from 'components/migration-survey/modal';
 import { exitPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
 	getShippingLabel, isLoaded, isCustomsFormRequired,
@@ -26,45 +27,98 @@ import FeatureAnnouncement from 'components/migration/feature-announcement';
 
 const LabelPurchaseModal = props => {
 	const { loaded, translate, showPurchaseDialog } = props;
+	const [ showSurveyModal, setShowSurveyModal ] = React.useState( false );
+	const [ dialogWasShown, setDialogWasShown ] = React.useState( false );
 
 	if ( !loaded ) {
 		return null;
 	}
 
-	const onClose = () => props.exitPrintingFlow(props.orderId, props.siteId, false);
+	// Track when dialog is shown
+	React.useEffect( () => {
+		if ( showPurchaseDialog ) {
+			setDialogWasShown( true );
+		}
+	}, [ showPurchaseDialog ] );
 
-	return showPurchaseDialog ? (<><Modal
-		className="woocommerce label-purchase-modal wcc-root"
-		shouldCloseOnClickOutside={false}
-		onRequestClose={onClose}
-		title={translate('Create shipping label',
-			'Create shipping labels',
-			{ count: Object.keys(props.form.packages.selected).length }
-		)}
-	>
-		<div className="label-purchase-modal__content">
-			<div className="label-purchase-modal__main-section">
-				<AddressStep
-					type="origin"
-					title={translate('Origin address')}
-					siteId={props.siteId}
-					orderId={props.orderId}
-				/>
-				<AddressStep
-					type="destination"
-					title={translate('Destination address')}
-					siteId={props.siteId}
-					orderId={props.orderId}
-				/>
-				<PackagesStep siteId={props.siteId} orderId={props.orderId}/>
-				{props.isCustomsFormRequired && (<CustomsStep siteId={props.siteId} orderId={props.orderId}/>)}
-				<RatesStep siteId={props.siteId} orderId={props.orderId}/>
-			</div>
-			<Sidebar siteId={props.siteId} orderId={props.orderId}/>
-		</div>
-	</Modal>
+	// Listen for successful label purchase/print completion
+	React.useEffect( () => {
+		const handleSurveyTrigger = () => {
+			const shouldShow = window.wcsMigrationSurvey && window.wcsMigrationSurvey.shouldShow;
+			const isForced = new URLSearchParams(window.location.search).get('force_survey') !== null;
+			
+			// Show survey if conditions are met and dialog was shown (or forced)
+			if ( shouldShow && (dialogWasShown || isForced) ) {
+				setTimeout( () => {
+					setShowSurveyModal( true );
+				}, 500 ); // Small delay to ensure print dialogs have closed
+			}
+		};
+
+		// Listen for custom event that we'll dispatch on successful completion
+		window.addEventListener('wcs-label-purchase-completed', handleSurveyTrigger);
+		
+		return () => {
+			window.removeEventListener('wcs-label-purchase-completed', handleSurveyTrigger);
+		};
+	}, [ dialogWasShown ] );
+
+	// Handle force_survey - simulate successful purchase when modal closes
+	React.useEffect( () => {
+		const isForced = new URLSearchParams(window.location.search).get('force_survey') !== null;
+		
+		if ( isForced && !showPurchaseDialog && dialogWasShown ) {
+			// Dialog was shown and now closed with force_survey - simulate successful completion
+			window.dispatchEvent(new CustomEvent('wcs-label-purchase-completed'));
+		}
+	}, [ showPurchaseDialog, dialogWasShown ] );
+
+	const onClose = () => {
+		props.exitPrintingFlow(props.orderId, props.siteId, false);
+	};
+
+
+	return (<>
+		{ showPurchaseDialog && (
+			<Modal
+				className="woocommerce label-purchase-modal wcc-root"
+				shouldCloseOnClickOutside={false}
+				onRequestClose={onClose}
+				title={translate('Create shipping label',
+					'Create shipping labels',
+					{ count: Object.keys(props.form.packages.selected).length }
+				)}
+			>
+				<div className="label-purchase-modal__content">
+					<div className="label-purchase-modal__main-section">
+						<AddressStep
+							type="origin"
+							title={translate('Origin address')}
+							siteId={props.siteId}
+							orderId={props.orderId}
+						/>
+						<AddressStep
+							type="destination"
+							title={translate('Destination address')}
+							siteId={props.siteId}
+							orderId={props.orderId}
+						/>
+						<PackagesStep siteId={props.siteId} orderId={props.orderId}/>
+						{props.isCustomsFormRequired && (<CustomsStep siteId={props.siteId} orderId={props.orderId}/>)}
+						<RatesStep siteId={props.siteId} orderId={props.orderId}/>
+					</div>
+					<Sidebar siteId={props.siteId} orderId={props.orderId}/>
+				</div>
+			</Modal>
+		) }
 		<FeatureAnnouncement siteId={props.siteId} orderId={props.orderId}/>
-	</>) : null;
+		{ showSurveyModal && (
+			<MigrationSurveyModal
+				isVisible={ showSurveyModal }
+				onClose={ () => setShowSurveyModal( false ) }
+			/>
+		) }
+	</>);
 };
 
 LabelPurchaseModal.propTypes = {
