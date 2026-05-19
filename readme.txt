@@ -2,9 +2,9 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
-Requires at least: 6.8
+Requires at least: 6.9
 Requires Plugins: woocommerce
-Tested up to: 6.9
+Tested up to: 7.0
 WC requires at least: 10.6
 WC tested up to: 10.8
 Stable tag: 3.6.2
@@ -69,6 +69,9 @@ This plugin relies on the following external services:
 2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.6.3 - 2026-xx-xx =
+* Tweak - WordPress 7.0 Compatibility.
 
 = 3.6.2 - 2026-05-18 =
 * Tweak - WooCommerce 10.8 Compatibility.
