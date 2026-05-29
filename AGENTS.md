@@ -31,9 +31,25 @@ composer install
 npm run dist
 npm run test-client
 npm run eslint
-composer test
+composer test          # PHPUnit; auto-checks the test env and repairs only what's broken
+composer test:setup    # one-shot: bring up the Dockerized DB + install WP/WC test deps
 composer phpcs
 ```
+
+### PHPUnit test environment
+- `composer test` is the single entry point. It runs `tests/bin/run-tests.sh`, which
+  health-checks the environment (`tests/bin/check-test-env.sh`) and repairs only the
+  components that fail their probe before running PHPUnit. No manual setup step is needed
+  on a healthy machine.
+- The test DB is a throwaway MariaDB container defined in `tests/docker-compose.yml`
+  (published on `127.0.0.1:4416`; credentials in `tests/test.env`). Docker is required;
+  a local mysql client is not (the installer materialises shims that proxy through the
+  container when no client is present).
+- `composer test:setup` installs/repairs every missing component; for a full rebuild that
+  also wipes the DB volume run `bash tests/bin/install-wc-tests.sh --force`.
+- WP/WC are installed under the system temp dir (honors `TMPDIR`). The WC clone builds
+  with its own modern Node via the WC checkout's `.nvmrc`; this is independent of the
+  plugin's own pinned Node (`.nvmrc` = 10.18.1) and PHPUnit needs no Node at all.
 
 ## Key Conventions
 - Base new behavior on tax-only mode rules and existing shipping eligibility checks.

@@ -65,7 +65,13 @@
 			"npm run build && composer install && ./vendor/bin/qit run:woo-api woocommerce-services --zip=woocommerce-services.zip"
 		],
 		"test": [
-			"phpunit --testdox"
+			"./tests/bin/run-tests.sh"
+		],
+		"test:check": [
+			"./tests/bin/check-test-env.sh"
+		],
+		"test:setup": [
+			"./tests/bin/install-wc-tests.sh"
 		]
 	}
 }
