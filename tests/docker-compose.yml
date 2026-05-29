@@ -1,0 +1,23 @@
+version: '3'
+
+# Pin an explicit project name. Without it Compose derives the project from the
+# parent directory ("tests"), which collides with sibling shipping plugins whose
+# compose files also live in tests/ — a `down --remove-orphans` from one would
+# tear down another's DB container. A unique name keeps this plugin isolated.
+name: wcservices_test
+
+volumes:
+    dockerdirectory:
+
+services:
+    test_db:
+        container_name: wcservices_test_sql
+        image: mariadb:10.11
+        env_file:
+            - test.env
+        ports:
+            - 4416:3306
+    test_adminer:
+        image: adminer
+        ports:
+            - "8062:8080"
