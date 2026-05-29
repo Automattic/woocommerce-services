@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<ruleset name="WooCommerce Shipping &amp; Tax — common">
+	<description>Shared file/exclude/arg/config for all WooCommerce Shipping &amp; Tax PHPCS rulesets. Imported by .phpcs.security.xml, .phpcs.l18n.xml, and .phpcs.php.xml so settings stay in one place.</description>
+
+	<file>.</file>
+
+	<!-- Exclude paths. The first pattern excludes any folder whose name starts with a dot
+	     (.git/, .github/, .husky/, …) so dotfile dirs don't need to be listed. The remaining
+	     entries mirror the ignore list the composer check-* scripts used to carry. -->
+	<exclude-pattern>/\.[^/]+/</exclude-pattern>
+	<exclude-pattern>vendor/</exclude-pattern>
+	<exclude-pattern>assets/</exclude-pattern>
+	<exclude-pattern>node_modules/</exclude-pattern>
+	<exclude-pattern>dist/</exclude-pattern>
+	<exclude-pattern>docker/</exclude-pattern>
+	<exclude-pattern>release/</exclude-pattern>
+	<exclude-pattern>bin/</exclude-pattern>
+	<exclude-pattern>wp-calypso/</exclude-pattern>
+
+	<!-- Show progress + source codes; colors; PHP only. -->
+	<arg value="ps"/>
+	<arg name="colors"/>
+	<arg name="extensions" value="php"/>
+
+	<!-- Strip the filepaths in reports down to the relevant bit. -->
+	<arg name="basepath" value="./"/>
+
+	<!-- Check up to 8 files simultaneously. -->
+	<arg name="parallel" value="8"/>
+
+	<!-- Configs -->
+	<config name="testVersion" value="7.4-"/>
+	<config name="minimum_supported_wp_version" value="6.9"/>
+</ruleset>

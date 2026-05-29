@@ -1,50 +1,8 @@
 <?xml version="1.0"?>
-<ruleset name="WordPress Coding Standards">
-	<!-- See https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-ruleset.xml -->
-	<!-- See https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/blob/develop/WordPress-Core/ruleset.xml -->
+<ruleset name="WooCommerce Shipping &amp; Tax">
+	<description>WooCommerce Shipping &amp; Tax dev PHP_CodeSniffer ruleset. Aggregator: imports the three concern-specific rulesets so `composer run check-all` runs them together.</description>
 
-	<description>WooCommerce dev PHP_CodeSniffer ruleset.</description>
-
-	<!-- Exclude paths -->
-	<exclude-pattern>*/node_modules/*</exclude-pattern>
-	<exclude-pattern>*/vendor/*</exclude-pattern>
-	<exclude-pattern>bin/*</exclude-pattern>
-	<exclude-pattern>docker/*</exclude-pattern>
-	<exclude-pattern>wp-calypso/*</exclude-pattern>
-
-	<!-- Configs -->
-	<config name="minimum_supported_wp_version" value="6.7" />
-	<config name="testVersion" value="7.4-"/>
-
-	<!-- Rules -->
-	<rule ref="WooCommerce-Core" />
-
-	<rule ref="WordPress.WP.I18n">
-		<properties>
-			<property name="text_domain" type="array">
-				<element value="woocommerce-services" />
-			</property>
-		</properties>
-	</rule>
-
-	<rule ref="PHPCompatibility">
-		<exclude-pattern>tests/</exclude-pattern>
-	</rule>
-
-	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
-		<exclude-pattern>tests/*</exclude-pattern>
-		<exclude-pattern>woocommerce-services.php</exclude-pattern>
-	</rule>
-
-	<rule ref="Generic.Commenting">
-		<exclude-pattern>tests/</exclude-pattern>
-	</rule>
-	<rule ref="Squiz.Commenting.FileComment.MissingPackageTag">
-		<exclude-pattern>classes/</exclude-pattern>
-		<exclude-pattern>tests/</exclude-pattern>
-	</rule>
-	<rule ref="Squiz.Commenting.FileComment.Missing">
-		<exclude-pattern>classes/</exclude-pattern>
-		<exclude-pattern>tests/</exclude-pattern>
-	</rule>
+	<rule ref="./.phpcs.php.xml"/>
+	<rule ref="./.phpcs.l18n.xml"/>
+	<rule ref="./.phpcs.security.xml"/>
 </ruleset>
