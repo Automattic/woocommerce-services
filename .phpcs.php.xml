@@ -18,10 +18,14 @@
 		Test files use PascalCase_Underscored naming by convention (e.g. My_Class_Test.php),
 		and the plugin bootstrap is named for the plugin slug. Suppress file-naming sniffs there.
 		(woocommerce-services.php exclusion preserved from the previous phpcs.xml.dist.)
+		src/ is the modern PSR-4 tree (Automattic\WCServices): Composer's autoloader requires
+		the file name to match the class name (PascalCase, e.g. WooCommerceBlocksIntegration.php),
+		which is incompatible with WordPress.Files.FileName's hyphenated-lowercase rule. (WOOTAX-288)
 	-->
 	<rule ref="WordPress.Files.FileName">
 		<exclude-pattern>tests/</exclude-pattern>
 		<exclude-pattern>woocommerce-services.php</exclude-pattern>
+		<exclude-pattern>src/</exclude-pattern>
 	</rule>
 
 	<!--
@@ -33,20 +37,95 @@
 	</rule>
 
 	<!--
-		Test methods use @testdox as their description. Generic.Commenting requires a
-		prose short description before any tags, which conflicts with @testdox-only
-		docblocks. Suppress for tests/ only.
+		Test fixtures use readable non-snake_case locals (e.g. $product_A / $product_B to
+		pair with assertions). Variable naming in test code is not a production concern;
+		exclude the snake_case variable-name sniff for tests/ only. (WOOTAX-288)
 	-->
-	<rule ref="Generic.Commenting">
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<exclude-pattern>tests/</exclude-pattern>
 	</rule>
 
 	<!--
-		Tests invoke core filters and actions as test setup; requiring a docblock
-		for every apply_filters / do_action call in test code adds noise without value.
+		WOOTAX-288 (M2) docblock-family deferrals. The comment sniffs (Squiz.Commenting,
+		Generic.Commenting, WooCommerce.Commenting) are EXCLUDED for two scopes and fully
+		ENFORCED everywhere else (the tax + always-loaded entry path, which is what every
+		new tax-only site loads — documented for real in this milestone):
+
+		  1. tests/                       — test methods self-document via their names +
+		                                    @testdox; restating that in docblocks is noise
+		                                    (Bartosz-confirmed M2 decision; also resolves
+		                                    the @testdox-vs-prose-short Generic.Commenting
+		                                    conflict and the per-test-hook CommentHooks
+		                                    noise the M1 ruleset already deferred for tests).
+		  2. shipping-feature-gated files — REST controllers / admin UI loaded ONLY behind
+		                                    should_load_shipping_features() /
+		                                    !is_wc_shipping_activated() in woocommerce-
+		                                    services.php. New (tax-only) installs never load
+		                                    them; documenting this shipping-only legacy is
+		                                    out of scope for the Tax-focused cleanup. NOTE:
+		                                    shipping-label-eligibility-controller and
+		                                    shipping-carriers-controller are NOT here — they
+		                                    load unconditionally, so they stay enforced.
 	-->
-	<rule ref="WooCommerce.Commenting.CommentHooks">
+	<rule ref="Squiz.Commenting">
 		<exclude-pattern>tests/</exclude-pattern>
+		<exclude-pattern>classes/class-wc-connect-settings-pages.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-connect-note-dhl-live-rates-available.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-packages-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-status-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-refund-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-preview-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-print-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-rates-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-address-normalization-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-assets-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-delete-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-types-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-subscription-activate-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-wcshipping-compatibility-packages-controller.php</exclude-pattern>
+		<exclude-pattern>classes/wc-api-dev/</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Commenting">
+		<exclude-pattern>tests/</exclude-pattern>
+		<exclude-pattern>classes/class-wc-connect-settings-pages.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-connect-note-dhl-live-rates-available.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-packages-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-status-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-refund-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-preview-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-print-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-rates-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-address-normalization-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-assets-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-delete-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-types-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-subscription-activate-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-wcshipping-compatibility-packages-controller.php</exclude-pattern>
+		<exclude-pattern>classes/wc-api-dev/</exclude-pattern>
+	</rule>
+	<rule ref="WooCommerce.Commenting">
+		<exclude-pattern>tests/</exclude-pattern>
+		<exclude-pattern>classes/class-wc-connect-settings-pages.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-connect-note-dhl-live-rates-available.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-packages-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-status-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-refund-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-preview-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-label-print-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-rates-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-address-normalization-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-assets-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-delete-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-shipping-carrier-types-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-subscription-activate-controller.php</exclude-pattern>
+		<exclude-pattern>classes/class-wc-rest-connect-wcshipping-compatibility-packages-controller.php</exclude-pattern>
+		<exclude-pattern>classes/wc-api-dev/</exclude-pattern>
 	</rule>
 
 	<!--

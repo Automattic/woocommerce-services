@@ -8,9 +8,23 @@ if ( class_exists( 'WC_REST_Connect_Self_Help_Controller' ) ) {
 	return;
 }
 
+/**
+ * REST controller for updating the self-help logging and debug settings.
+ */
 class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controller {
+	/**
+	 * The REST base for this controller.
+	 *
+	 * @var string
+	 */
 	protected $rest_base = 'connect/self-help';
 
+	/**
+	 * Update the logging and debug settings from the submitted form data.
+	 *
+	 * @param WP_REST_Request $request The REST request containing the settings.
+	 * @return WP_REST_Response|WP_Error The response on success, or a WP_Error on failure.
+	 */
 	public function post( $request ) {
 		$settings = $request->get_json_params();
 
@@ -42,5 +56,4 @@ class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controll
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
-
 }

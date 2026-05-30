@@ -1,6 +1,9 @@
 <?php
 
 if ( ! class_exists( 'WC_Connect_Functions' ) ) {
+	/**
+	 * Collection of static helper functions for WooCommerce Services.
+	 */
 	class WC_Connect_Functions {
 		/**
 		 * Checks if the potentially expensive Shipping/Tax API requests should be sent
@@ -53,8 +56,8 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			}
 			$rest_route = $GLOBALS['wp']->query_vars['rest_route'];
 
-			// Use regex to check any route that has "wc/store" with any of these text : "cart", "checkout", or "batch"
-			// Example : wc/store/v3/batch
+			// Use regex to check any route that has "wc/store" with any of these text : "cart", "checkout", or "batch".
+			// Example : wc/store/v3/batch.
 			preg_match( '/wc\/store\/v[0-9]{1,}\/(batch|cart|checkout)/', $rest_route, $route_matches, PREG_OFFSET_CAPTURE );
 
 			return ( ! empty( $route_matches ) );
@@ -134,7 +137,11 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 */
 		public static function user_can_manage_labels() {
 			/**
+			 * Filters whether the current user can manage shipping labels.
+			 *
 			 * @since 1.25.14
+			 *
+			 * @param bool $can_manage_labels Whether the current user can manage shipping labels.
 			 */
 			return apply_filters( 'wcship_user_can_manage_labels', current_user_can( 'manage_woocommerce' ) || current_user_can( 'wcship_manage_labels' ) );
 		}
@@ -150,7 +157,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		public static function backup_existing_tax_rates() {
 			global $wpdb;
 
-			// Export Tax Rates
+			// Export Tax Rates.
 			$rates = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
@@ -168,16 +175,16 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			ob_start();
 			$header =
-				__( 'Country Code', 'woocommerce' ) . ',' .
-				__( 'State Code', 'woocommerce' ) . ',' .
-				__( 'ZIP/Postcode', 'woocommerce' ) . ',' .
-				__( 'City', 'woocommerce' ) . ',' .
-				__( 'Rate %', 'woocommerce' ) . ',' .
-				__( 'Tax Name', 'woocommerce' ) . ',' .
-				__( 'Priority', 'woocommerce' ) . ',' .
-				__( 'Compound', 'woocommerce' ) . ',' .
-				__( 'Shipping', 'woocommerce' ) . ',' .
-				__( 'Tax Class', 'woocommerce' ) . "\n";
+				__( 'Country Code', 'woocommerce-services' ) . ',' .
+				__( 'State Code', 'woocommerce-services' ) . ',' .
+				__( 'ZIP/Postcode', 'woocommerce-services' ) . ',' .
+				__( 'City', 'woocommerce-services' ) . ',' .
+				__( 'Rate %', 'woocommerce-services' ) . ',' .
+				__( 'Tax Name', 'woocommerce-services' ) . ',' .
+				__( 'Priority', 'woocommerce-services' ) . ',' .
+				__( 'Compound', 'woocommerce-services' ) . ',' .
+				__( 'Shipping', 'woocommerce-services' ) . ',' .
+				__( 'Tax Class', 'woocommerce-services' ) . "\n";
 
 			echo $header; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
@@ -258,7 +265,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				echo ',';
 
 				echo "\n";
-			} // End foreach().
+			}//end foreach
 
 			$csv        = ob_get_clean();
 			$upload_dir = wp_upload_dir();
@@ -367,7 +374,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 						}
 					}
 					// If $dir_ready is false, legacy files remain in place and are picked up below.
-				}
+				}//end if
 
 				// Mark migration complete only when no old files remain, so it retries if rename() failed.
 				// Check for false explicitly: glob() returns false on filesystem error (not just an empty
@@ -377,12 +384,12 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				if ( false !== $remaining_old_files && empty( $remaining_old_files ) ) {
 					update_option( 'wcs_tax_backup_files_migrated', true, false );
 				}
-			}
+			}//end if
 
 			// Collect files from the protected directory and, if migration was not possible, the uploads root.
 			$found_files = array_merge(
-				glob( $backup_dir . '/taxjar-wc_tax_rates-*.csv' ) ?: array(),
-				glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' ) ?: array()
+				(array) glob( $backup_dir . '/taxjar-wc_tax_rates-*.csv' ),
+				(array) glob( $upload_dir['basedir'] . '/taxjar-wc_tax_rates-*.csv' )
 			);
 
 			if ( empty( $found_files ) ) {
@@ -397,4 +404,4 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			return $files;
 		}
 	}
-}
+}//end if

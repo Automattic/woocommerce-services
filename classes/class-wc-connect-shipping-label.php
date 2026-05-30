@@ -2,50 +2,82 @@
 
 if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
+	/**
+	 * Handles shipping label data preparation and the order shipping label meta box.
+	 */
 	class WC_Connect_Shipping_Label {
 
 		/**
+		 * API client instance.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
 
 		/**
+		 * Service settings store instance.
+		 *
 		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $settings_store;
 
 		/**
+		 * Service schemas store instance.
+		 *
 		 * @var WC_Connect_Service_Schemas_Store
 		 */
 		protected $service_schemas_store;
 
 		/**
+		 * Account settings instance.
+		 *
 		 * @var WC_Connect_Account_Settings
 		 */
 		protected $account_settings;
 
 		/**
+		 * Package settings instance.
+		 *
 		 * @var WC_Connect_Package_Settings
 		 */
 		protected $package_settings;
 
 		/**
+		 * Continents instance.
+		 *
 		 * @var WC_Connect_Continents
 		 */
 		protected $continents;
 
 		/**
-		 * @var array Supported countries by USPS, see: https://webpmt.usps.gov/pmt010.cfm
+		 * Supported countries by USPS, see: https://webpmt.usps.gov/pmt010.cfm.
+		 *
+		 * @var array
 		 */
 		private $supported_countries = array( 'US', 'AS', 'PR', 'VI', 'GU', 'MP', 'UM', 'FM', 'MH' );
 
 		/**
-		 * @var array Supported currencies
+		 * Supported currencies.
+		 *
+		 * @var array
 		 */
 		private $supported_currencies = array( 'USD' );
 
+		/**
+		 * Whether the meta box should be shown. Null until calculated.
+		 *
+		 * @var bool|null
+		 */
 		private $show_metabox = null;
 
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_API_Client             $api_client            API client instance.
+		 * @param WC_Connect_Service_Settings_Store $settings_store        Service settings store instance.
+		 * @param WC_Connect_Service_Schemas_Store  $service_schemas_store Service schemas store instance.
+		 * @param WC_Connect_Payment_Methods_Store  $payment_methods_store Payment methods store instance.
+		 */
 		public function __construct(
 			WC_Connect_API_Client $api_client,
 			WC_Connect_Service_Settings_Store $settings_store,
@@ -66,6 +98,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			$this->continents            = new WC_Connect_Continents();
 		}
 
+		/**
+		 * Build the shipping item data for a single order item.
+		 *
+		 * @param WC_Order $order The order the item belongs to.
+		 * @param mixed    $item  The order item to build data for.
+		 * @return array|null The item shipping data, or null when the item does not need shipping.
+		 */
 		public function get_item_data( WC_Order $order, $item ) {
 			$product = WC_Connect_Utils::get_item_product( $order, $item );
 			if ( ! $product || ! $product->needs_shipping() ) {
@@ -100,6 +139,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $product_data;
 		}
 
+		/**
+		 * Extract the WC Connect packages from a shipping method's metadata.
+		 *
+		 * @param mixed $shipping_method The order shipping method.
+		 * @return array The packages stored on the shipping method, or an empty array.
+		 */
 		protected function get_packaging_from_shipping_method( $shipping_method ) {
 			if ( ! $shipping_method || ! isset( $shipping_method['wc_connect_packages'] ) ) {
 				return array();
@@ -136,6 +181,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return array();
 		}
 
+		/**
+		 * Get the packaging metadata for an order.
+		 *
+		 * @param WC_Order $order The order to read packaging metadata from.
+		 * @return array The packaging metadata, or an empty array.
+		 */
 		protected function get_packaging_metadata( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method  = reset( $shipping_methods );
@@ -148,6 +199,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return array();
 		}
 
+		/**
+		 * Build a display name for a product using its SKU or ID.
+		 *
+		 * @param WC_Product $product The product to build the name for.
+		 * @return string The formatted product name.
+		 */
 		protected function get_name( WC_Product $product ) {
 			if ( $product->get_sku() ) {
 				$identifier = $product->get_sku();
@@ -157,6 +214,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return sprintf( '%s - %s', $identifier, $product->get_title() );
 		}
 
+		/**
+		 * Get the selected packages for an order, formatted for the label UI.
+		 *
+		 * @param WC_Order $order The order to get the selected packages for.
+		 * @return array The formatted packages keyed by package ID.
+		 */
 		public function get_selected_packages( WC_Order $order ) {
 			$packages = $this->get_packaging_metadata( $order );
 			if ( ! $packages ) {
@@ -206,12 +269,18 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 					}
 
 					$formatted_packages[ $package_id ]['items'][ $item_index ] = $product_data;
-				}
-			}
+				}//end foreach
+			}//end foreach
 
 			return $formatted_packages;
 		}
 
+		/**
+		 * Get all shippable items for an order when no packaging metadata is present.
+		 *
+		 * @param WC_Order $order The order to get the items for.
+		 * @return array The list of shippable item data.
+		 */
 		public function get_all_items( WC_Order $order ) {
 			if ( $this->get_packaging_metadata( $order ) ) {
 				return array();
@@ -230,11 +299,19 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				 * The threshold at which we will start batching items together.
 				 * As an example, if a single order item has a quantity 60, which is more than the default threshold
 				 * value of 20 we will start batching together.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param int $threshold The item quantity threshold for batching. Default 20.
 				 */
 				$threshold = apply_filters( 'wc_connect_shipment_item_quantity_threshold', 20 );
 				/**
 				 * Max number of shipments allowed to be created for this item should quantity of this order items
-				 * exceeds `wc_connect_shipment_item_quantity_threshold`
+				 * exceeds `wc_connect_shipment_item_quantity_threshold`.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param int $max_shipments The maximum number of shipments to create. Default 5.
 				 */
 				$max_shipments = apply_filters( 'wc_connect_max_shipments_if_quantity_exceeds_threshold', 5 );
 
@@ -260,11 +337,17 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 						$items[] = $item_data;
 					}
 				}
-			}
+			}//end foreach
 
 			return $items;
 		}
 
+		/**
+		 * Get the selected shipping rates for an order, keyed by package ID.
+		 *
+		 * @param WC_Order $order The order to get the selected rates for.
+		 * @return array The selected service IDs keyed by package ID.
+		 */
 		public function get_selected_rates( WC_Order $order ) {
 			$shipping_methods = $order->get_shipping_methods();
 			$shipping_method  = reset( $shipping_methods );
@@ -273,7 +356,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 			foreach ( $packages as $idx => $package_obj ) {
 				$package = (array) $package_obj;
-				// Abort if the package data is malformed
+				// Abort if the package data is malformed.
 				if ( ! isset( $package['id'] ) || ! isset( $package['service_id'] ) ) {
 					return array();
 				}
@@ -284,6 +367,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $rates;
 		}
 
+		/**
+		 * Normalize an address array into the shape expected by the API.
+		 *
+		 * @param array $address The address to format.
+		 * @return array The formatted address.
+		 */
 		protected function format_address_for_api( $address ) {
 			// Combine first and last name.
 			if ( ! isset( $address['name'] ) ) {
@@ -304,12 +393,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $address;
 		}
 
+		/**
+		 * Get the store origin address formatted for the API.
+		 *
+		 * @return array The formatted origin address.
+		 */
 		protected function get_origin_address() {
 			$origin = $this->format_address_for_api( $this->settings_store->get_origin_address() );
 
 			return $origin;
 		}
 
+		/**
+		 * Get the order destination (shipping) address formatted for the API.
+		 *
+		 * @param WC_Order $order The order to get the destination address from.
+		 * @return array The formatted destination address.
+		 */
 		protected function get_destination_address( WC_Order $order ) {
 			$order_address = $order->get_address( 'shipping' );
 			$destination   = $this->format_address_for_api( $order_address );
@@ -317,6 +417,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $destination;
 		}
 
+		/**
+		 * Build the label form data for an order.
+		 *
+		 * @param WC_Order $order The order to build the form data for.
+		 * @return array The label form data.
+		 */
 		protected function get_form_data( WC_Order $order ) {
 			$order_id          = $order->get_id();
 			$selected_packages = $this->get_selected_packages( $order );
@@ -435,12 +541,22 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return in_array( $currency_code, $this->supported_currencies, true );
 		}
 
+		/**
+		 * Check whether the DHL Express service schema is available.
+		 *
+		 * @return bool True when DHL Express is available.
+		 */
 		public function is_dhl_express_available() {
 			$dhl_express = $this->service_schemas_store->get_service_schema_by_id( 'dhlexpress' );
 
 			return (bool) $dhl_express;
 		}
 
+		/**
+		 * Check whether the current order is eligible for DHL Express.
+		 *
+		 * @return bool True when the order is eligible for DHL Express.
+		 */
 		public function is_order_dhl_express_eligible() {
 			if ( ! $this->is_dhl_express_available() ) {
 				return false;
@@ -538,6 +654,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return true;
 		}
 
+		/**
+		 * Build the shipping label payload for an order.
+		 *
+		 * @param mixed $post_order_or_id A post, order, or order ID.
+		 * @return array|false The label payload, or false when the order cannot be resolved.
+		 */
 		public function get_label_payload( $post_order_or_id ) {
 			$order = wc_get_order( $post_order_or_id );
 			if ( ! is_a( $order, 'WC_Order' ) ) {
@@ -581,12 +703,29 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 			return $sum + $item->get_quantity();
 		}
 
+		/**
+		 * Render the shipping label meta box for an order.
+		 *
+		 * @param WP_Post $post The post object for the order.
+		 * @param array   $args The meta box arguments.
+		 * @return void
+		 */
 		public function meta_box( $post, $args ) {
 
 			$connect_order_presenter = new WC_Connect_Order_Presenter();
 			$order                   = WC_Connect_Compatibility::instance()->init_theorder_object( $post );
 			$items                   = array_filter( $order->get_items(), array( $this, 'filter_items_needing_shipping' ) );
 			$items_count             = array_reduce( $items, array( $this, 'reducer_items_quantity' ), 0 ) - absint( $order->get_item_count_refunded() );
+			/**
+			 * Filter the payload passed to the shipping label meta box.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param array    $payload The meta box payload data.
+			 * @param array    $args    The meta box arguments.
+			 * @param WC_Order $order   The order being rendered.
+			 * @param WC_Connect_Shipping_Label $shipping_label The shipping label instance.
+			 */
 			$payload                 = apply_filters(
 				'wc_connect_meta_box_payload',
 				array(
@@ -604,7 +743,15 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 				$this
 			);
 
+			/**
+			 * Enqueue the WC Connect script for the shipping label meta box.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param string $script_id The script identifier to enqueue.
+			 * @param array  $payload   The payload data for the script.
+			 */
 			do_action( 'enqueue_wc_connect_script', 'wc-connect-create-shipping-label', $payload );
 		}
 	}
-}
+}//end if

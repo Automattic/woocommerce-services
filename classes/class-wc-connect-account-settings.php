@@ -4,18 +4,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Builds the settings payload for the account settings screen.
+ */
 class WC_Connect_Account_Settings {
 
 	/**
+	 * The settings store instance.
+	 *
 	 * @var WC_Connect_Service_Settings_Store
 	 */
 	protected $settings_store;
 
 	/**
+	 * The payment methods store instance.
+	 *
 	 * @var WC_Connect_Payment_Methods_Store
 	 */
 	protected $payment_methods_store;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param WC_Connect_Service_Settings_Store $settings_store        The settings store instance.
+	 * @param WC_Connect_Payment_Methods_Store  $payment_methods_store The payment methods store instance.
+	 */
 	public function __construct(
 		WC_Connect_Service_Settings_Store $settings_store,
 		WC_Connect_Payment_Methods_Store $payment_methods_store
@@ -25,6 +38,11 @@ class WC_Connect_Account_Settings {
 	}
 
 
+	/**
+	 * Get the account settings payload.
+	 *
+	 * @return array The store options, form data, form meta, and user meta.
+	 */
 	public function get() {
 		$payment_methods_warning = false;
 		$payment_methods_success = $this->payment_methods_store->fetch_payment_methods_from_connect_server();
@@ -36,7 +54,7 @@ class WC_Connect_Account_Settings {
 		$connection_owner            = WC_Connect_Jetpack::get_connection_owner();
 		$connection_owner_wpcom_data = WC_Connect_Jetpack::get_connection_owner_wpcom_data();
 		$last_box_id                 = get_user_meta( get_current_user_id(), 'wc_connect_last_box_id', true );
-		$last_box_id                 = $last_box_id === 'individual' ? '' : $last_box_id;
+		$last_box_id                 = 'individual' === $last_box_id ? '' : $last_box_id;
 		$last_service_id             = get_user_meta( get_current_user_id(), 'wc_connect_last_service_id', true );
 		$last_carrier_id             = get_user_meta( get_current_user_id(), 'wc_connect_last_carrier_id', true );
 		$wcshipping_migration_state  = intval( get_option( 'wcshipping_migration_state' ) );

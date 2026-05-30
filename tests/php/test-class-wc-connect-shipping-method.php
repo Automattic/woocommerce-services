@@ -2,7 +2,7 @@
 
 class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 
-	static function set_up_before_class() {
+	public static function set_up_before_class() {
 		require_once __DIR__ . '/../../classes/class-wc-connect-shipping-method.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-cart-validation.php';
 	}
@@ -110,7 +110,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 				true,
 			),
 		);
-
 	}
 
 	/**
@@ -122,7 +121,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 		$shipping_method = new WC_Connect_Shipping_Method();
 
 		$this->assertEquals( $expected, $shipping_method->is_valid_package_destination( $package ) );
-
 	}
 
 	/**
@@ -151,7 +149,6 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 			);
 
 		$shipping_method->calculate_shipping();
-
 	}
 
 	/**
@@ -245,7 +242,5 @@ class WP_Test_WC_Connect_Shipping_Method extends WP_UnitTestCase {
 		$this->assertTrue( $empty_method->is_available( $fully_valid ) );
 		$this->assertTrue( $empty_method->is_available( $partially_valid ) );
 		$this->assertTrue( $empty_method->is_available( $fully_invalid ) );
-
 	}
-
 }

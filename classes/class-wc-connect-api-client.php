@@ -2,27 +2,40 @@
 
 use Automattic\Jetpack\Constants;
 
-// No direct access please
+// No direct access please.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 
+	/**
+	 * Abstract client for communicating with the WooCommerce Tax/Shipping server.
+	 */
 	abstract class WC_Connect_API_Client {
 		const API_VERSION               = WOOCOMMERCE_CONNECT_SERVER_API_VERSION;
 		const SIFT_CONFIG_TRANSIENT_KEY = 'wc_connect_sift_configuration';
 
 		/**
+		 * Validator used to validate service schemas and settings.
+		 *
 		 * @var WC_Connect_Services_Validator
 		 */
 		protected $validator;
 
 		/**
+		 * Loader instance providing access to plugin services.
+		 *
 		 * @var WC_Connect_Loader
 		 */
 		protected $wc_connect_loader;
 
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_Service_Schemas_Validator $validator         Service schemas validator.
+		 * @param WC_Connect_Loader                    $wc_connect_loader Plugin loader instance.
+		 */
 		public function __construct(
 			WC_Connect_Service_Schemas_Validator $validator,
 			WC_Connect_Loader $wc_connect_loader
@@ -55,13 +68,13 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Validates the settings for a given service with the WooCommerce Tax Server
 		 *
-		 * @param $service_slug
-		 * @param $service_settings
+		 * @param string $service_slug     Slug of the service to validate settings for.
+		 * @param array  $service_settings Settings to validate for the service.
 		 *
 		 * @return bool|WP_Error
 		 */
 		public function validate_service_settings( $service_slug, $service_settings ) {
-			// Make sure the service slug only contains dashes, underscores or letters
+			// Make sure the service slug only contains dashes, underscores or letters.
 			if ( 1 === preg_match( '/[^a-z_\-]/i', $service_slug ) ) {
 				return new WP_Error( 'invalid_service_slug', __( 'Invalid WooCommerce Tax service slug provided', 'woocommerce-services' ) );
 			}
@@ -72,7 +85,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Build the server's expected contents array, for rates requests.
 		 *
-		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
+		 * @param array $package Package provided to WC_Shipping_Method::calculate_shipping().
 		 *
 		 * @return array|WP_Error {
 		 *      @type float $height Product height.
@@ -96,6 +109,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						return new WP_Error(
 							'product_missing_weight',
 							sprintf(
+								/* translators: %d: product ID */
 								__( 'Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.', 'woocommerce-services' ),
 								$product->get_id()
 							),
@@ -111,6 +125,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						return new WP_Error(
 							'product_missing_dimension',
 							sprintf(
+								/* translators: %d: product ID */
 								__( 'Product ( ID: %d ) is missing a dimension value. Shipping rates cannot be calculated.', 'woocommerce-services' ),
 								$product->get_id()
 							),
@@ -131,8 +146,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						'weight'     => (float) $weight,
 						'width'      => (float) $width,
 					);
-				}
-			}
+				}//end if
+			}//end foreach
 
 			return $contents;
 		}
@@ -140,16 +155,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets shipping rates (for checkout) from the WooCommerce Tax Server
 		 *
-		 * @param $services All settings for all services we want rates for
-		 * @param $package Package provided to WC_Shipping_Method::calculate_shipping()
-		 * @param $custom_boxes array of custom boxes definitions (objects)
-		 * @param $predefined_boxes array of enabled predefined box IDs (strings)
+		 * @param array $services         All settings for all services we want rates for.
+		 * @param array $package          Package provided to WC_Shipping_Method::calculate_shipping().
+		 * @param array $custom_boxes     Array of custom boxes definitions (objects).
+		 * @param array $predefined_boxes Array of enabled predefined box IDs (strings).
 		 *
 		 * @return object|WP_Error
 		 */
 		public function get_shipping_rates( $services, $package, $custom_boxes, $predefined_boxes ) {
-			// First, build the contents array
-			// each item needs to specify quantity, weight, length, width and height
+			// First, build the contents array.
+			// each item needs to specify quantity, weight, length, width and height.
 			$contents = $this->build_shipment_contents( $package );
 
 			if ( is_wp_error( $contents ) ) {
@@ -163,7 +178,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				);
 			}
 
-			// Then, make the request
+			// Then, make the request.
 			$body = array(
 				'contents'         => $contents,
 				'destination'      => $package['destination'],
@@ -186,10 +201,22 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $this->request( 'POST', '/subscriptions/checkout', array( 'services' => $services ) );
 		}
 
+		/**
+		 * Sends a shipping label purchase request to the WooCommerce Tax Server.
+		 *
+		 * @param array $body Request body describing the label(s) to purchase.
+		 * @return object|WP_Error
+		 */
 		public function send_shipping_label_request( $body ) {
 			return $this->request( 'POST', '/shipping/label', $body );
 		}
 
+		/**
+		 * Sends an address normalization request to the WooCommerce Tax Server.
+		 *
+		 * @param array $body Request body containing the address to normalize.
+		 * @return object|WP_Error
+		 */
 		public function send_address_normalization_request( $body ) {
 			return $this->request( 'POST', '/shipping/address/normalize', $body );
 		}
@@ -232,7 +259,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets shipping rates (for labels) from the WooCommerce Tax Server
 		 *
-		 * @param array $request - array(
+		 * Example request structure:
+		 *
+		 *  array(
 		 *  'packages' => array(
 		 *      array(
 		 *          'id' => 'box_1',
@@ -266,6 +295,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 *      'country' => 'US',
 		 *  ),
 		 * )
+		 *
+		 * @param array $request Label rates request payload.
 		 * @return object|WP_Error
 		 */
 		public function get_label_rates( $request ) {
@@ -275,7 +306,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets a PDF with the set of dummy labels specified in the request
 		 *
-		 * @param $request
+		 * @param array $request Request payload describing the labels to preview.
 		 * @return object|WP_Error
 		 */
 		public function get_labels_preview_pdf( $request ) {
@@ -285,7 +316,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets a PDF with the requested shipping labels in it
 		 *
-		 * @param $request
+		 * @param array $request Request payload describing the labels to print.
 		 * @return object|WP_Error
 		 */
 		public function get_labels_print_pdf( $request ) {
@@ -295,7 +326,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets the shipping label status (refund status, tracking code, etc)
 		 *
-		 * @param $label_id integer
+		 * @param int $label_id Identifier of the shipping label.
 		 * @return object|WP_Error
 		 */
 		public function get_label_status( $label_id ) {
@@ -305,7 +336,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets the shipping label status (refund status, tracking code, etc)
 		 *
-		 * @param $order_id integer
+		 * @param int $order_id Identifier of the order to anonymize.
 		 * @return object|WP_Error
 		 */
 		public function anonymize_order( $order_id ) {
@@ -315,7 +346,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Request a refund for a given shipping label
 		 *
-		 * @param $label_id integer
+		 * @param int $label_id Identifier of the shipping label to refund.
 		 * @return object|WP_Error
 		 */
 		public function send_shipping_label_refund_request( $label_id ) {
@@ -325,7 +356,6 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Gets the configured carrier accounts
 		 *
-		 * @param $request
 		 * @return object|WP_Error
 		 */
 		public function get_carrier_accounts() {
@@ -334,7 +364,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Disconnects the provided carrier account
 		 *
-		 * @param $carrier_id
+		 * @param string $carrier_id Identifier of the carrier account to disconnect.
 		 * @return object|WP_Error
 		 */
 		public function disconnect_carrier_account( $carrier_id ) {
@@ -343,7 +373,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Register a new carrier account
 		 *
-		 * @param $body
+		 * @param array $body Carrier account registration details.
 		 * @return object|WP_Error
 		 */
 		public function create_shipping_carrier_account( $body ) {
@@ -353,8 +383,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Get a list of the subscriptions for WooCommerce.com linked account.
 		 *
-		 * @param $body
-		 * @param object|WP_Error
+		 * @return object|WP_Error
 		 */
 		public function get_wccom_subscriptions() {
 			return $this->request( 'POST', '/subscriptions' );
@@ -431,9 +460,9 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Sends a request to the WooCommerce Tax Server
 		 *
-		 * @param $method
-		 * @param $path
-		 * @param $body
+		 * @param string $method HTTP method to use for the request.
+		 * @param string $path   Server path to request.
+		 * @param array  $body   Optional. Request body. Default empty array.
 		 * @return mixed|WP_Error
 		 */
 		abstract protected function request( $method, $path, $body = array() );
@@ -441,8 +470,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Proxy an HTTP request through the WCS Server
 		 *
-		 * @param $path Path of proxy route
-		 * @param $args WP_Http request args
+		 * @param string $path Path of proxy route.
+		 * @param array  $args WP_Http request args.
 		 *
 		 * @return array|WP_Error
 		 */
@@ -457,7 +486,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$args['headers']['Authorization']  = $authorization;
 			$args['headers']['X-Woo-Settings'] = $this->get_request_additional_header();
 
-			$http_timeout = 60; // 1 minute
+			$http_timeout = 60;
+			// 1 minute.
 
 			if ( function_exists( 'wc_set_time_limit' ) ) {
 				wc_set_time_limit( $http_timeout + 10 );
@@ -511,7 +541,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Adds useful WP/WC/WCC information to request bodies
 		 *
-		 * @param array $initial_body
+		 * @param array $initial_body Optional. Initial request body to merge into. Default empty array.
 		 * @return array
 		 */
 		protected function request_body( $initial_body = array() ) {
@@ -520,7 +550,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			);
 			$body         = array_merge( $default_body, $initial_body );
 
-			// Add interesting fields to the body of each request
+			// Add interesting fields to the body of each request.
 			$body['settings'] = wp_parse_args(
 				$body['settings'],
 				$this->get_settings_values()
@@ -558,8 +588,20 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return $headers;
 		}
 
+		/**
+		 * Builds the X_JP_Auth authorization header for requests to the WooCommerce Tax Server.
+		 *
+		 * @return string|WP_Error Authorization header string, or WP_Error on failure.
+		 */
 		protected function authorization_header() {
 			$token = WC_Connect_Jetpack::get_blog_access_token();
+			/**
+			 * Filters the Jetpack blog access token used to authorize requests.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param object $token Jetpack blog access token.
+			 */
 			$token = apply_filters( 'wc_connect_jetpack_access_token', $token );
 			if ( ! $token || empty( $token->secret ) ) {
 				return new WP_Error(
@@ -605,18 +647,20 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		/**
 		 * Generate a signature for WCCOM API request validation.
 		 *
-		 * @param string $token_secret
-		 * @param string $endpoint
-		 * @param string $method
-		 * @param array  $body
+		 * @param string $token_secret Token secret used to sign the request.
+		 * @param string $endpoint     WCCOM API endpoint being requested.
+		 * @param string $method       HTTP method used for the request.
+		 * @param array  $body         Optional. Request body included in the signature. Default empty array.
 		 * @return string
 		 */
 		protected function request_signature_wccom( $token_secret, $endpoint, $method, $body = array() ) {
 			$request_url = WC_Helper_API::url( $endpoint );
 
 			$data = array(
-				'host'        => parse_url( $request_url, PHP_URL_HOST ), // host URL.
-				'request_uri' => parse_url( $request_url, PHP_URL_PATH ), // endpoint URL.
+				// Host URL.
+				'host'        => parse_url( $request_url, PHP_URL_HOST ),
+				// Endpoint URL.
+				'request_uri' => parse_url( $request_url, PHP_URL_PATH ),
 				'method'      => $method,
 			);
 
@@ -627,6 +671,16 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return hash_hmac( 'sha256', wp_json_encode( $data ), $token_secret );
 		}
 
+		/**
+		 * Generates the signature used to authorize a request to the WooCommerce Tax Server.
+		 *
+		 * @param string $token_key    Token key identifying the request.
+		 * @param string $token_secret Token secret used to sign the request.
+		 * @param int    $timestamp    Timestamp of the request.
+		 * @param string $nonce        Nonce for the request.
+		 * @param int    $time_diff    Time difference between local and server clocks.
+		 * @return string|WP_Error Base64-encoded signature, or WP_Error if the timestamp is invalid.
+		 */
 		protected function request_signature( $token_key, $token_secret, $timestamp, $nonce, $time_diff ) {
 			$local_time = $timestamp - $time_diff;
 			if ( $local_time < time() - 600 || $local_time > time() + 300 ) {
@@ -648,6 +702,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return base64_encode( hash_hmac( 'sha1', $normalized_request_string, $token_secret, true ) );
 		}
 
+		/**
+		 * Gets the store GUID, generating and persisting one if it does not yet exist.
+		 *
+		 * @return string The store GUID.
+		 */
 		private function get_guid() {
 			$guid = WC_Connect_Options::get_option( 'store_guid', false );
 			if ( false === $guid ) {
@@ -682,4 +741,4 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		}
 	}
 
-}
+}//end if

@@ -8,6 +8,9 @@ if ( class_exists( 'WC_REST_Connect_Shipping_Label_Eligibility_Controller' ) ) {
 	return;
 }
 
+/**
+ * Handles the shipping label creation eligibility REST endpoint.
+ */
 class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Connect_Base_Controller {
 
 	/**
@@ -26,18 +29,36 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 
 
 	/**
+	 * The shipping label instance.
+	 *
 	 * @var WC_Connect_Shipping_Label
 	 */
 	protected $shipping_label;
 
 	/**
+	 * The payment methods store instance.
+	 *
 	 * @var WC_Connect_Payment_Methods_Store
 	 */
 	protected $payment_methods_store;
 
-
+	/**
+	 * Whether the plugin only provides tax functionality.
+	 *
+	 * @var bool
+	 */
 	protected $has_only_tax_functionality;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param WC_Connect_API_Client             $api_client                 The API client instance.
+	 * @param WC_Connect_Service_Settings_Store $settings_store             The service settings store instance.
+	 * @param WC_Connect_Logger                 $logger                     The logger instance.
+	 * @param WC_Connect_Shipping_Label         $shipping_label             The shipping label instance.
+	 * @param WC_Connect_Payment_Methods_Store  $payment_methods_store      The payment methods store instance.
+	 * @param bool                              $has_only_tax_functionality Whether the plugin only provides tax functionality.
+	 */
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Service_Settings_Store $settings_store,
@@ -56,7 +77,7 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 	 * Register the routes for the shipping label eligibility.
 	 */
 	public function register_routes() {
-		// Accept request without order_id
+		// Accept request without order_id.
 		register_rest_route(
 			$this->namespace,
 			'/' . $this->rest_base . '/creation_eligibility',
@@ -75,7 +96,7 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 			)
 		);
 
-		// Accept request with order_id
+		// Accept request with order_id.
 		register_rest_route(
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<order_id>\d+)/creation_eligibility',
@@ -183,7 +204,7 @@ class WC_REST_Connect_Shipping_Label_Eligibility_Controller extends WC_REST_Conn
 					200
 				);
 			}
-		}
+		}//end if
 
 		// If the client cannot create a package (`can_create_package` param is set to `false`), a pre-existing package
 		// is required.

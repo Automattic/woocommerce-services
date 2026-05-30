@@ -1,26 +1,48 @@
 <?php
+/**
+ * WooCommerce Tax debug tools.
+ *
+ * Registers entries on the WooCommerce > Status > Tools screen for testing the
+ * WooCommerce Tax connection and clearing cached tax data.
+ */
 
-// No direct access please
+// No direct access please.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 
+	/**
+	 * Adds WooCommerce Tax tools to the WooCommerce status tools screen.
+	 */
 	class WC_Connect_Debug_Tools {
 
 		/**
+		 * API client used to reach the WooCommerce Connect server.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
 
-		function __construct( WC_Connect_API_Client $api_client ) {
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_API_Client $api_client API client instance.
+		 */
+		public function __construct( WC_Connect_API_Client $api_client ) {
 			$this->api_client = $api_client;
 
 			add_filter( 'woocommerce_debug_tools', array( $this, 'woocommerce_debug_tools' ) );
 		}
 
-		function woocommerce_debug_tools( $tools ) {
+		/**
+		 * Registers the WooCommerce Tax entries on the WooCommerce status tools screen.
+		 *
+		 * @param array $tools Existing WooCommerce debug tools.
+		 * @return array Tools with the WooCommerce Tax entries added.
+		 */
+		public function woocommerce_debug_tools( $tools ) {
 			$tools['test_wcc_connection'] = array(
 				'name'     => __( 'Test your WooCommerce Tax connection', 'woocommerce-services' ),
 				'button'   => __( 'Test Connection', 'woocommerce-services' ),
@@ -55,7 +77,12 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			return $tools;
 		}
 
-		function test_connection() {
+		/**
+		 * Tests the connection to the WooCommerce Tax API and prints the result.
+		 *
+		 * @return void
+		 */
+		public function test_connection() {
 			$test_request = $this->api_client->auth_test();
 			if ( $test_request && ! is_wp_error( $test_request ) && $test_request->authorized ) {
 				echo '<div class="updated inline"><p>' . esc_html__( 'Your site is successfully communicating to the WooCommerce Tax API.', 'woocommerce-services' ) . '</p></div>';
@@ -76,7 +103,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 		 *
 		 * @return void
 		 */
-		function delete_california_tax_rates() {
+		public function delete_california_tax_rates() {
 			$backed_up = WC_Connect_Functions::backup_existing_tax_rates();
 
 			if ( ! $backed_up ) {
@@ -123,6 +150,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			}
 
 			echo '<div class="updated inline"><p>';
+			/* translators: %1$d: number of database rows deleted */
 			printf( esc_html__( 'Successfully deleted %1$d rows from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
 			echo '</p></div>';
 		}
@@ -132,7 +160,7 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 		 *
 		 * @return void
 		 */
-		function delete_cached_tax_server_responses() {
+		public function delete_cached_tax_server_responses() {
 			global $wpdb;
 
 			$deleted_count = absint(
@@ -142,8 +170,9 @@ if ( ! class_exists( 'WC_Connect_Debug_Tools' ) ) {
 			);
 
 			echo '<div class="updated inline"><p>';
+			/* translators: %1$d: number of database transients deleted */
 			printf( esc_html__( 'Successfully deleted %1$d transients from the database.', 'woocommerce-services' ), intval( $deleted_count ) );
 			echo '</p></div>';
 		}
 	}
-}
+}//end if

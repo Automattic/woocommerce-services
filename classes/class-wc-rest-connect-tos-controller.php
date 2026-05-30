@@ -8,10 +8,23 @@ if ( class_exists( 'WC_REST_Connect_Tos_Controller' ) ) {
 	return;
 }
 
+/**
+ * REST controller for reading and accepting the Terms of Service.
+ */
 class WC_REST_Connect_Tos_Controller extends WC_REST_Connect_Base_Controller {
 
+	/**
+	 * The REST base for this controller.
+	 *
+	 * @var string
+	 */
 	protected $rest_base = 'connect/tos';
 
+	/**
+	 * Get the current Terms of Service acceptance status.
+	 *
+	 * @return WP_REST_Response The response containing the acceptance status.
+	 */
 	public function get() {
 		return new WP_REST_Response(
 			array(
@@ -22,6 +35,12 @@ class WC_REST_Connect_Tos_Controller extends WC_REST_Connect_Base_Controller {
 		);
 	}
 
+	/**
+	 * Record acceptance of the Terms of Service.
+	 *
+	 * @param WP_REST_Request $request The REST request.
+	 * @return WP_REST_Response|WP_Error The response containing the acceptance status, or an error.
+	 */
 	public function post( $request ) {
 		$settings = $request->get_json_params();
 
@@ -41,7 +60,10 @@ class WC_REST_Connect_Tos_Controller extends WC_REST_Connect_Base_Controller {
 	}
 
 	/**
-	 * Validate the requester's permissions
+	 * Validate the requester's permissions.
+	 *
+	 * @param WP_REST_Request $request The REST request.
+	 * @return bool Whether the requester has permission.
 	 */
 	public function check_permission( $request ) {
 		return current_user_can( 'manage_woocommerce' ) &&

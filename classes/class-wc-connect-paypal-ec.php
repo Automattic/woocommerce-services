@@ -14,25 +14,42 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 	class WC_Connect_PayPal_EC {
 
 		/**
+		 * API client used to proxy requests to the WCS server.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		private $api_client;
 
 		/**
+		 * NUX helper used to display onboarding banners.
+		 *
 		 * @var WC_Connect_Nux
 		 */
 		private $nux;
 
 		/**
 		 * Express Checkout API methods to proxy.
+		 *
+		 * @var array Array of Express Checkout API method names.
 		 */
 		private $methods_to_proxy = array( 'SetExpressCheckout', 'GetExpressCheckoutDetails', 'DoExpressCheckoutPayment' );
 
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_API_Client $api_client API client used to proxy requests.
+		 * @param WC_Connect_Nux        $nux        NUX helper used to display banners.
+		 */
 		public function __construct( WC_Connect_API_Client $api_client, WC_Connect_Nux $nux ) {
 			$this->api_client = $api_client;
 			$this->nux        = $nux;
 		}
 
+		/**
+		 * Hook into the PayPal Checkout gateway to enable WCS request proxying.
+		 *
+		 * @return void
+		 */
 		public function init() {
 			if ( ! function_exists( 'wc_gateway_ppec' ) ) {
 				return;
@@ -49,12 +66,12 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$this->initialize_settings();
 			$settings = $ppec_plugin->settings;
 
-			// Don't modify any PPEC plugin behavior if WCS request proxying is not enabled
+			// Don't modify any PPEC plugin behavior if WCS request proxying is not enabled.
 			if ( 'yes' !== $settings->reroute_requests ) {
 				return;
 			}
 
-			// If empty, populate Sandbox and Live API Subject values with provided email
+			// If empty, populate Sandbox and Live API Subject values with provided email.
 			if (
 				empty( $settings->sandbox_api_subject ) &&
 				empty( $settings->sandbox_api_username ) &&
@@ -69,7 +86,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			$username = $settings->get_active_api_credentials()->get_username();
 			$subject  = $settings->get_active_api_credentials()->get_subject();
 
-			// Proceed to attach PPEC-related hooks if email address is present but credentials are missing
+			// Proceed to attach PPEC-related hooks if email address is present but credentials are missing.
 			if ( empty( $username ) && ! empty( $subject ) ) {
 				add_filter( 'woocommerce_paypal_express_checkout_request_body', array( $this, 'request_body' ) );
 
@@ -77,21 +94,25 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'ppec_supports' ), 10, 3 );
 
 				if ( 'live' === $settings->environment ) {
-					// If PPEC order comes in, activate prompt to connect a PayPal account
+					// If PPEC order comes in, activate prompt to connect a PayPal account.
 					add_action( 'woocommerce_order_status_on-hold', array( $this, 'maybe_trigger_banner' ) );
 					add_action( 'woocommerce_payment_complete', array( $this, 'maybe_trigger_banner' ) );
 
-					// Once a payment is received, show prompt to connect a PayPal account on certain screens
+					// Once a payment is received, show prompt to connect a PayPal account on certain screens.
 					add_action( 'admin_enqueue_scripts', array( $this, 'maybe_show_banner' ) );
 
 					add_filter( 'wc_services_pointer_post.php', array( $this, 'register_refund_pointer' ) );
 				}
-				add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' ); // Disable default PPEC notice.
+				add_filter( 'pre_option_wc_gateway_ppce_prompt_to_connect', '__return_empty_string' );
+				// Disable default PPEC notice.
 			}
 		}
 
 		/**
-		 * Attach request proxying hook if it's an Express Checkout method
+		 * Attach request proxying hook if it's an Express Checkout method.
+		 *
+		 * @param array $body Request body for the PayPal Checkout request.
+		 * @return array The unmodified request body.
 		 */
 		public function request_body( $body ) {
 			if ( in_array( $body['METHOD'], $this->methods_to_proxy ) ) {
@@ -103,7 +124,12 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Reroute Express Checkout requests from the PPEC extension via WCS server to pick up API credentials
+		 * Reroute Express Checkout requests from the PPEC extension via WCS server to pick up API credentials.
+		 *
+		 * @param mixed  $preempt Whether to preempt an HTTP request's return value.
+		 * @param array  $r       HTTP request arguments.
+		 * @param string $url     The request URL.
+		 * @return mixed The preempt value, or the proxied request result.
 		 */
 		public function proxy_request( $preempt, $r, $url ) {
 			if ( ! preg_match( '/paypal.com\/nvp$/', $url ) ) {
@@ -115,14 +141,22 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Limit supported payment gateway features to payments alone
+		 * Limit supported payment gateway features to payments alone.
+		 *
+		 * @param bool               $supported Whether the feature is supported.
+		 * @param string             $feature   The feature being checked.
+		 * @param WC_Payment_Gateway $gateway   The payment gateway instance.
+		 * @return bool Whether the feature is supported.
 		 */
 		public function ppec_supports( $supported, $feature, $gateway ) {
 			return 'ppec_paypal' === $gateway->id ? 'products' === $feature : $supported;
 		}
 
 		/**
-		 * Add a pointer clarifying the need to link an account before refunding payment
+		 * Add a pointer clarifying the need to link an account before refunding payment.
+		 *
+		 * @param array $pointers Existing admin pointers.
+		 * @return array The pointers with the refund pointer appended.
 		 */
 		public function register_refund_pointer( $pointers ) {
 			$pointers[] = array(
@@ -134,6 +168,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 						__( 'Link a PayPal account', 'woocommerce-services' ),
 						sprintf(
 							wp_kses(
+								/* translators: %s: URL to link a PayPal account */
 								__( 'To issue refunds via PayPal Checkout, you will need to <a href="%s">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
 								array( 'a' => array( 'href' => array() ) )
 							),
@@ -157,7 +192,10 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Trigger banner to appear based on order paid with PPEC
+		 * Trigger banner to appear based on order paid with PPEC.
+		 *
+		 * @param int $order_id The order ID.
+		 * @return void
 		 */
 		public function maybe_trigger_banner( $order_id ) {
 			$order          = wc_get_order( $order_id );
@@ -232,7 +270,8 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				$settings['reroute_requests'] = 'no';
 			} elseif ( 'no' === $settings['reroute_requests'] ) {
 				return;
-			} elseif ( ! isset( $settings['button_size'] ) ) { // Check if settings are initialized, represented by button_size as its absence would be first to affect the customer
+			} elseif ( ! isset( $settings['button_size'] ) ) {
+				// Check if settings are initialized, represented by button_size as its absence would be first to affect the customer.
 				$payment_gateways = WC()->payment_gateways->payment_gateways();
 				$gateway          = $payment_gateways['ppec_paypal'];
 
@@ -248,7 +287,10 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Force setting values that will work when proxying requests
+		 * Force setting values that will work when proxying requests.
+		 *
+		 * @param array $settings The PPEC settings array.
+		 * @return array The adjusted settings array.
 		 */
 		public function adjust_settings( $settings ) {
 			$settings['paymentaction'] = 'sale';
@@ -256,20 +298,24 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 		}
 
 		/**
-		 * Modify PPEC settings form to include a toggle (and other accommodations) for WCS request proxying
+		 * Modify PPEC settings form to include a toggle (and other accommodations) for WCS request proxying.
+		 *
+		 * @param array $form_fields The gateway settings form fields.
+		 * @return array The adjusted form fields.
 		 */
 		public function adjust_form_fields( $form_fields ) {
 			$settings = wc_gateway_ppec()->settings;
 
-			// Modify form fields and descriptions depending on whether WCS request proxying is enabled
+			// Modify form fields and descriptions depending on whether WCS request proxying is enabled.
 			if ( 'yes' === $settings->reroute_requests ) {
 				$form_fields = $this->adjust_api_subject_form_field( $form_fields );
 
-				// Prevent user from changing Payment Action away from "Sale", the only option for which payments will work
+				// Prevent user from changing Payment Action away from "Sale", the only option for which payments will work.
 				$form_fields['paymentaction']['disabled']    = true;
+				/* translators: %s: existing payment action field description */
 				$form_fields['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking a PayPal account.)', 'woocommerce-services' ), $form_fields['paymentaction']['description'] );
 
-				// Communicate WCS proxying and provide option to disable
+				// Communicate WCS proxying and provide option to disable.
 				$reset_link         = add_query_arg(
 					array(
 						'reroute_requests' => 'no',
@@ -277,6 +323,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
+				/* translators: %s: URL to disable request proxying and link a PayPal account */
 				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Tax and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text                                = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'live', $reset_link ) ) );
@@ -289,7 +336,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					unset( $form_fields['sandbox_api_username'], $form_fields['sandbox_api_password'], $form_fields['sandbox_api_signature'], $form_fields['sandbox_api_certificate'] );
 				}
 			} else {
-				// Provide option to enable request proxying
+				// Provide option to enable request proxying.
 				$reset_link         = add_query_arg(
 					array(
 						'reroute_requests' => 'yes',
@@ -297,6 +344,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
+				/* translators: %s: URL to enable request proxying */
 				$api_creds_template = __( 'To authenticate payments with WooCommerce Tax, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text                                 = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'live', $reset_link ) ) );
@@ -306,13 +354,16 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					$api_creds_text = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'sandbox', $reset_link ) ) );
 					$form_fields['sandbox_api_credentials']['description'] .= '<br /><br />' . $api_creds_text;
 				}
-			}
+			}//end if
 
 			return $form_fields;
 		}
 
 		/**
-		 * Present the "API Subject" setting in a way that's simpler, more comprehensible, and more appropriate to the way it's being used
+		 * Present the "API Subject" setting in a way that's simpler, more comprehensible, and more appropriate to the way it's being used.
+		 *
+		 * @param array $form_fields The gateway settings form fields.
+		 * @return array The adjusted form fields.
 		 */
 		public function adjust_api_subject_form_field( $form_fields ) {
 			$api_subject_title                           = __( 'Payment Email', 'woocommerce-services' );
@@ -338,7 +389,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] ||
 				empty( $_GET['reroute_requests'] ) ||
 				empty( $_GET['nonce'] ) ||
-				! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ) ), 'reroute_requests' )
 			) {
 				return;
 			}
@@ -354,4 +405,4 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 			exit;
 		}
 	}
-}
+}//end if

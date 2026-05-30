@@ -1,16 +1,31 @@
 <?php
+/**
+ * Tracks analytics integration for WooCommerce Services.
+ *
+ * @package WooCommerce_Services
+ */
 
-// No direct access please
+// No direct access please.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 
+	/**
+	 * Records Tracks analytics events for WooCommerce Services.
+	 */
 	class WC_Connect_Tracks {
-		static $product_name = 'woocommerceconnect';
+		/**
+		 * The product name prefix used for event names.
+		 *
+		 * @var string
+		 */
+		public static $product_name = 'woocommerceconnect';
 
 		/**
+		 * The logger instance.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
@@ -22,11 +37,22 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 		 */
 		public $plugin_file;
 
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_Logger $logger      The logger instance.
+		 * @param string            $plugin_file Plugin file path.
+		 */
 		public function __construct( WC_Connect_Logger $logger, $plugin_file ) {
 			$this->logger      = $logger;
 			$this->plugin_file = $plugin_file;
 		}
 
+		/**
+		 * Register hooks for tracking events.
+		 *
+		 * @return void
+		 */
 		public function init() {
 			add_action( 'wc_connect_shipping_zone_method_added', array( $this, 'shipping_zone_method_added' ), 10, 3 );
 			add_action( 'wc_connect_shipping_zone_method_deleted', array( $this, 'shipping_zone_method_deleted' ), 10, 3 );
@@ -35,6 +61,12 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			register_deactivation_hook( $this->plugin_file, array( $this, 'opted_out' ) );
 		}
 
+		/**
+		 * Record an opt-in event.
+		 *
+		 * @param string|null $source Optional. The source of the opt-in.
+		 * @return void
+		 */
 		public function opted_in( $source = null ) {
 			if ( is_null( $source ) ) {
 				$this->record_user_event( 'opted_in' );
@@ -43,23 +75,51 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			}
 		}
 
+		/**
+		 * Record an opt-out event when the plugin is deactivated.
+		 *
+		 * @return void
+		 */
 		public function opted_out() {
-			// Only send opted_out if user has previously opted in
+			// Only send opted_out if user has previously opted in.
 			if ( WC_Connect_Options::get_option( 'tos_accepted' ) ) {
 				$this->record_user_event( 'opted_out' );
 			}
 		}
 
+		/**
+		 * Record a shipping zone method added event.
+		 *
+		 * @param int    $instance_id The shipping method instance ID.
+		 * @param string $service_id  The service ID.
+		 * @return void
+		 */
 		public function shipping_zone_method_added( $instance_id, $service_id ) {
 			$this->record_user_event( 'shipping_zone_method_added' );
 			$this->record_user_event( 'shipping_zone_' . $service_id . '_added' );
 		}
 
+		/**
+		 * Record a shipping zone method deleted event.
+		 *
+		 * @param int    $instance_id The shipping method instance ID.
+		 * @param string $service_id  The service ID.
+		 * @return void
+		 */
 		public function shipping_zone_method_deleted( $instance_id, $service_id ) {
 			$this->record_user_event( 'shipping_zone_method_deleted' );
 			$this->record_user_event( 'shipping_zone_' . $service_id . '_deleted' );
 		}
 
+		/**
+		 * Record a shipping zone method status toggled event.
+		 *
+		 * @param int    $instance_id The shipping method instance ID.
+		 * @param string $service_id  The service ID.
+		 * @param int    $zone_id     The shipping zone ID.
+		 * @param bool   $enabled     Whether the method was enabled.
+		 * @return void
+		 */
 		public function shipping_zone_method_status_toggled( $instance_id, $service_id, $zone_id, $enabled ) {
 			if ( $enabled ) {
 				$this->record_user_event( 'shipping_zone_method_enabled' );
@@ -70,15 +130,28 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			}
 		}
 
+		/**
+		 * Record a saved service settings event.
+		 *
+		 * @param string $service_id The service ID.
+		 * @return void
+		 */
 		public function saved_service_settings( $service_id ) {
 			$this->record_user_event( 'saved_service_settings' );
 			$this->record_user_event( 'saved_' . $service_id . '_settings' );
 		}
 
+		/**
+		 * Record a user event in Tracks.
+		 *
+		 * @param string $event_type The event type name.
+		 * @param array  $data       Optional. Additional event properties.
+		 * @return void
+		 */
 		public function record_user_event( $event_type, $data = array() ) {
 			$user = wp_get_current_user();
 
-			// Check for WooCommerce
+			// Check for WooCommerce.
 			$wc_version = 'unavailable';
 			if ( function_exists( 'WC' ) ) {
 				$wc_version = WC()->version;
@@ -110,12 +183,17 @@ if ( ! class_exists( 'WC_Connect_Tracks' ) ) {
 			WC_Connect_Jetpack::tracks_record_event( $user, $event_type, $data );
 		}
 
+		/**
+		 * Log a debug message via the logger.
+		 *
+		 * @param string $message The message to log.
+		 * @return void
+		 */
 		protected function debug( $message ) {
 			if ( ! is_null( $this->logger ) ) {
 				$this->logger->log( $message );
 			}
 		}
-
 	}
 
-}
+}//end if

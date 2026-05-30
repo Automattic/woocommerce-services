@@ -22,6 +22,17 @@
 				<element value="woocommerce_services"/>
 				<element value="wc_services"/>
 				<element value="Automattic\WCServices"/>
+				<!-- WOOTAX-288 (PrefixAllGlobals.NonPrefixed{Hookname,Constant,Class}Found):
+				     additional namespaces for this first-party WooCommerce tax/shipping
+				     feature plugin's PUBLIC symbols. These are extension points and
+				     constants third parties depend on; per the M2 compat policy they are
+				     whitelisted, never renamed. -->
+				<element value="woocommerce"/>      <!-- plugin-defined woocommerce_* hooks + WOOCOMMERCE_CONNECT_* constants; also the WC-core hooks this extension legitimately fires/filters -->
+				<element value="wcservices"/>        <!-- WCSERVICES_* path/URL constants + wcservices_* hooks -->
+				<element value="WC_REST_Dev"/>       <!-- public dev REST controller classes in classes/wc-api-dev/ -->
+				<element value="taxjar"/>            <!-- taxjar_* filters: drop-in compatibility with the standalone TaxJar plugin's public hooks -->
+				<element value="wcship"/>            <!-- wcship_* label-management capability hooks -->
+				<element value="enqueue_wc_connect"/> <!-- enqueue_wc_connect_script: public action third parties hook to enqueue admin scripts -->
 			</property>
 		</properties>
 		<exclude-pattern>tests/</exclude-pattern>

@@ -14,7 +14,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	/**
 	 * Prefix to add in package name for making requests with multiple rates.
 	 */
-	public $SPECIAL_RATE_PREFIX = '_wcs_rate_type_';
+	public $special_rate_prefix = '_wcs_rate_type_';
 
 	/**
 	 * Array of extra options to collect rates for.
@@ -88,8 +88,8 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * @return WPError|stdClass
 	 */
 	public function get_all_rates( $payload ) {
-		$signature_packages     = [];
-		$original_package_names = [];
+		$signature_packages     = array();
+		$original_package_names = array();
 
 		// Add extra package requests with special options set.
 		foreach ( $this->extra_rates as $rate_name => $rate_option ) {
@@ -99,7 +99,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 					$new_package                 = $package;
 					$new_package[ $option_name ] = $option_value;
 
-					$new_package['id']   .= $this->SPECIAL_RATE_PREFIX . $rate_name;
+					$new_package['id']   .= $this->special_rate_prefix . $rate_name;
 					$signature_packages[] = $new_package;
 				}
 			}
@@ -130,7 +130,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	 * @return array Rates
 	 */
 	public function merge_all_rates( $rates, $original_package_names ) {
-		$parsed_rates = [];
+		$parsed_rates = array();
 
 		foreach ( $original_package_names as $name ) {
 			// Add a 'default' entry for the rate with no special options.
@@ -140,7 +140,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 
 			// Get package for each extra rate to group them under the original package name.
 			foreach ( $this->extra_rates as $extra_rate_name => $option ) {
-				$extra_rate_package_name = $name . $this->SPECIAL_RATE_PREFIX . $extra_rate_name;
+				$extra_rate_package_name = $name . $this->special_rate_prefix . $extra_rate_name;
 				if ( isset( $rates->{ $extra_rate_package_name } ) ) {
 					$parsed_rates[ $name ][ $extra_rate_name ] = $rates->{ $extra_rate_package_name };
 				}

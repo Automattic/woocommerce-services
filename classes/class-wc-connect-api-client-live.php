@@ -1,6 +1,9 @@
 <?php
+/**
+ * Live implementation of the WooCommerce Connect API client.
+ */
 
-// No direct access please
+// No direct access please.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,11 +15,22 @@ if ( ! defined( 'WOOCOMMERCE_CONNECT_SERVER_URL' ) ) {
 if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 	require_once plugin_basename( 'class-wc-connect-api-client.php' );
 
+	/**
+	 * Sends live HTTP requests to the WooCommerce Connect server.
+	 */
 	class WC_Connect_API_Client_Live extends WC_Connect_API_Client {
 
+		/**
+		 * Send a request to the WooCommerce Connect server.
+		 *
+		 * @param string $method The HTTP method to use.
+		 * @param string $path   The request path relative to the server URL.
+		 * @param array  $body   Optional. The request body.
+		 * @return mixed|WP_Error The decoded response body, the raw response, or a WP_Error on failure.
+		 */
 		protected function request( $method, $path, $body = array() ) {
 
-			// TODO - incorporate caching for repeated identical requests
+			// TODO - incorporate caching for repeated identical requests.
 			if ( ! is_array( $body ) ) {
 				return new WP_Error(
 					'request_body_should_be_array',
@@ -25,12 +39,26 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 			}
 
 			$url = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
+			/**
+			 * Filters the WooCommerce Connect server URL.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param string $url The WooCommerce Connect server URL.
+			 */
 			$url = apply_filters( 'wc_connect_server_url', $url );
 			$url = trailingslashit( $url ) . ltrim( $path, '/' );
 
-			// Add useful system information to requests that contain bodies
+			// Add useful system information to requests that contain bodies.
 			if ( in_array( $method, array( 'POST', 'PUT' ) ) ) {
 				$body = $this->request_body( $body );
+				/**
+				 * Filters the request body sent to the WooCommerce Connect server.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param array $body The request body.
+				 */
 				$body = wp_json_encode( apply_filters( 'wc_connect_api_client_body', $body ) );
 
 				if ( ! $body ) {
@@ -46,7 +74,8 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 				return $headers;
 			}
 
-			$http_timeout = 60; // 1 minute
+			$http_timeout = 60;
+			// 1 minute
 			if ( function_exists( 'wc_set_time_limit' ) ) {
 				wc_set_time_limit( $http_timeout + 10 );
 			}
@@ -58,6 +87,13 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 				'compress'    => true,
 				'timeout'     => $http_timeout,
 			);
+			/**
+			 * Filters the arguments passed to wp_remote_request().
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param array $args The request arguments.
+			 */
 			$args = apply_filters( 'wc_connect_request_args', $args );
 
 			$response      = wp_remote_request( $url, $args );
@@ -70,6 +106,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					return new WP_Error(
 						'wcc_server_error',
 						sprintf(
+							/* translators: %d: HTTP response code */
 							__( 'Error: The WooCommerce Tax server returned HTTP code: %d', 'woocommerce-services' ),
 							$response_code
 						),
@@ -91,6 +128,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
+							/* translators: %d: HTTP response code */
 							__( 'Error: The WooCommerce Tax server returned ( %d ) and an empty response body.', 'woocommerce-services' ),
 							$response_code
 						),
@@ -117,9 +155,9 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					),
 					$data
 				);
-			}
+			}//end if
 
 			return $response_body;
 		}
 	}
-}
+}//end if

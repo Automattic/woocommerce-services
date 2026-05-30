@@ -2,30 +2,48 @@
 
 if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 
+	/**
+	 * Stores and synchronizes saved payment methods from the Connect server.
+	 */
 	class WC_Connect_Payment_Methods_Store {
 
 		/**
+		 * The service settings store instance.
+		 *
 		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $service_settings_store;
 
 		/**
+		 * The Connect API client instance.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
 
 		/**
+		 * The logger instance.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
 
-		public function __construct( WC_Connect_Service_Settings_Store $service_settings_store,
-			WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_Service_Settings_Store $service_settings_store The service settings store instance.
+		 * @param WC_Connect_API_Client             $api_client             The Connect API client instance.
+		 * @param WC_Connect_Logger                 $logger                 The logger instance.
+		 */
+		public function __construct(
+			WC_Connect_Service_Settings_Store $service_settings_store,
+			WC_Connect_API_Client $api_client,
+			WC_Connect_Logger $logger
+		) {
 
 			$this->service_settings_store = $service_settings_store;
 			$this->api_client             = $api_client;
 			$this->logger                 = $logger;
-
 		}
 
 		/**
@@ -60,6 +78,12 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			return true;
 		}
 
+		/**
+		 * Update the selected payment method based on the available payment methods.
+		 *
+		 * @param array $payment_methods The available payment methods.
+		 * @return void
+		 */
 		protected function potentially_update_selected_payment_method_from_payment_methods( $payment_methods ) {
 			$payment_method_ids = array();
 
@@ -87,10 +111,21 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			}
 		}
 
+		/**
+		 * Get the stored payment methods.
+		 *
+		 * @return array The stored payment methods.
+		 */
 		public function get_payment_methods() {
 			return WC_Connect_Options::get_option( 'payment_methods', array() );
 		}
 
+		/**
+		 * Update the stored payment methods.
+		 *
+		 * @param array $payment_methods The payment methods to store.
+		 * @return void
+		 */
 		protected function update_payment_methods( $payment_methods ) {
 			WC_Connect_Options::update_option( 'payment_methods', $payment_methods );
 		}
@@ -117,6 +152,12 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			return true;
 		}
 
+		/**
+		 * Extract and validate payment methods from the response body.
+		 *
+		 * @param object $response_body The response body object.
+		 * @return array|WP_Error The payment methods, or a WP_Error on failure.
+		 */
 		protected function get_payment_methods_from_response_body( $response_body ) {
 			$payment_methods = $response_body->payment_methods;
 			if ( ! is_array( $payment_methods ) ) {
@@ -164,4 +205,4 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 			WC_Connect_Options::update_option( 'add_payment_method_url', esc_url_raw( $add_payment_method_url ) );
 		}
 	}
-}
+}//end if

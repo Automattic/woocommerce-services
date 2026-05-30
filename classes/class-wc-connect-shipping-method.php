@@ -2,24 +2,35 @@
 
 if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
+	/**
+	 * Shipping method that fetches live rates from the WooCommerce Shipping & Tax service.
+	 */
 	class WC_Connect_Shipping_Method extends WC_Shipping_Method {
 
 		/**
-		 * @var object A reference to a the fetched properties of the service
+		 * A reference to the fetched properties of the service.
+		 *
+		 * @var object
 		 */
 		protected $service_schema = null;
 
 		/**
+		 * The service settings store.
+		 *
 		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $service_settings_store;
 
 		/**
+		 * The logger instance.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
 
 		/**
+		 * The API client instance.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
@@ -38,6 +49,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 */
 		protected $validated_package_destinations = array();
 
+		/**
+		 * Constructor.
+		 *
+		 * @param int|string|null $id_or_instance_id The method id or numeric instance id.
+		 */
 		public function __construct( $id_or_instance_id = null ) {
 			parent::__construct( $id_or_instance_id );
 
@@ -57,8 +73,10 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			 * to provide a hook for our plugin to inject dependencies into each
 			 * shipping method instance.
 			 *
-			 * @param WC_Connect_Shipping_Method $this
-			 * @param int|string                 $id_or_instance_id
+			 * @since 3.6.3
+			 *
+			 * @param WC_Connect_Shipping_Method $this              The shipping method instance.
+			 * @param int|string                 $id_or_instance_id The method id or numeric instance id.
 			 */
 			do_action( 'wc_connect_service_init', $this, $id_or_instance_id );
 
@@ -91,45 +109,89 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				// and this constructor is not called with an instance id until after
 				// admin_enqueue_scripts has already fired.  This is why WC_Connect_Loader
 				// does it instead.
-			}
+			}//end if
 			$this->package_validation_errors = new WP_Error();
 		}
 
+		/**
+		 * Get the service schema.
+		 *
+		 * @return object The service schema.
+		 */
 		public function get_service_schema() {
 
 			return $this->service_schema;
 		}
 
+		/**
+		 * Set the service schema.
+		 *
+		 * @param object $service_schema The service schema.
+		 * @return void
+		 */
 		public function set_service_schema( $service_schema ) {
 
 			$this->service_schema = $service_schema;
 		}
 
+		/**
+		 * Get the service settings store.
+		 *
+		 * @return WC_Connect_Service_Settings_Store The service settings store.
+		 */
 		public function get_service_settings_store() {
 
 			return $this->service_settings_store;
 		}
 
+		/**
+		 * Set the service settings store.
+		 *
+		 * @param WC_Connect_Service_Settings_Store $service_settings_store The service settings store.
+		 * @return void
+		 */
 		public function set_service_settings_store( $service_settings_store ) {
 
 			$this->service_settings_store = $service_settings_store;
 		}
 
+		/**
+		 * Get the logger.
+		 *
+		 * @return WC_Connect_Logger The logger instance.
+		 */
 		public function get_logger() {
 
 			return $this->logger;
 		}
 
+		/**
+		 * Set the logger.
+		 *
+		 * @param WC_Connect_Logger $logger The logger instance.
+		 * @return void
+		 */
 		public function set_logger( WC_Connect_Logger $logger ) {
 
 			$this->logger = $logger;
 		}
 
+		/**
+		 * Get the API client.
+		 *
+		 * @return WC_Connect_API_Client The API client instance.
+		 */
 		public function get_api_client() {
 
 			return $this->api_client;
 		}
 
+		/**
+		 * Set the API client.
+		 *
+		 * @param WC_Connect_API_Client $api_client The API client instance.
+		 * @return void
+		 */
 		public function set_api_client( WC_Connect_API_Client $api_client ) {
 
 			$this->api_client = $api_client;
@@ -142,8 +204,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 		 * injected during the init action in the constructor.
 		 *
 		 * @see WC_Connect_Logger::debug()
-		 * @param string|WP_Error $message
-		 * @param string          $context
+		 * @param string|WP_Error $message Either a string message, or WP_Error object.
+		 * @param string          $context Optional. Context for the logged message.
 		 */
 		protected function log( $message, $context = '' ) {
 
@@ -156,6 +218,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		/**
+		 * Logging helper for errors.
+		 *
+		 * @param string|WP_Error $message Either a string message, or WP_Error object.
+		 * @param string          $context Optional. Context for the logged message.
+		 * @return void
+		 */
 		protected function log_error( $message, $context = '' ) {
 			$logger = $this->get_logger();
 			if ( is_a( $logger, 'WC_Connect_Logger' ) ) {
@@ -259,8 +328,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						),
 						array( 'id' => 'postcode' )
 					);
-				}
-			}
+				}//end if
+			}//end if
 
 			// Validate State.
 			$valid_states = WC()->countries->get_states( $country );
@@ -295,8 +364,8 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 						),
 						array( 'id' => 'state' )
 					);
-				}
-			}
+				}//end if
+			}//end if
 			$is_valid = ! $this->package_validation_errors->has_errors();
 			$this->validated_package_destinations[ $destination_key ] = $is_valid;
 			return $is_valid;
@@ -311,6 +380,13 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return $this->package_validation_errors;
 		}
 
+		/**
+		 * Look up a product within a package by its product or variation id.
+		 *
+		 * @param array $package    The shipping package.
+		 * @param int   $product_id The product or variation id to look up.
+		 * @return WC_Product|false The product data, or false if not found.
+		 */
 		private function lookup_product( $package, $product_id ) {
 			foreach ( $package['contents'] as $item ) {
 				if ( $item['product_id'] === $product_id || $item['variation_id'] === $product_id ) {
@@ -321,10 +397,23 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return false;
 		}
 
+		/**
+		 * Filter callback to keep only string preset box ids.
+		 *
+		 * @param mixed $preset_id The preset box id to test.
+		 * @return bool Whether the preset id is a string.
+		 */
 		private function filter_preset_boxes( $preset_id ) {
 			return is_string( $preset_id );
 		}
 
+		/**
+		 * Check the rate response for errors and handle them by adding a fallback rate.
+		 *
+		 * @param object|WP_Error $response_body    The rate response body.
+		 * @param object          $service_settings The service settings.
+		 * @return bool True if an error was found and handled, false otherwise.
+		 */
 		private function check_and_handle_response_error( $response_body, $service_settings ) {
 			if ( is_wp_error( $response_body ) ) {
 				$this->debug(
@@ -348,7 +437,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->log_error( $response_body, __FUNCTION__ );
 				$this->add_fallback_rate( $service_settings );
 				return true;
-			}
+			}//end if
 
 			if ( ! property_exists( $response_body, 'rates' ) ) {
 				$this->debug( 'Response is missing `rates` property', 'error' );
@@ -360,6 +449,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			return false;
 		}
 
+		/**
+		 * Add a fallback rate when no rates are returned and a fallback is configured.
+		 *
+		 * @param object $service_settings The service settings.
+		 * @return void
+		 */
 		private function add_fallback_rate( $service_settings ) {
 			if ( ! property_exists( $service_settings, 'fallback_rate' ) || 0 >= $service_settings->fallback_rate ) {
 				return;
@@ -376,6 +471,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$this->add_rate( $rate_to_add );
 		}
 
+		/**
+		 * Calculate shipping rates for the given package and register them with WooCommerce.
+		 *
+		 * @param array $package Optional. The shipping package to rate.
+		 * @return void
+		 */
 		public function calculate_shipping( $package = array() ) {
 			if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
 				return;
@@ -519,7 +620,7 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 						$package_summaries[] = sprintf( '<strong>%s</strong> %s', $package_name, $package_measurements )
 							. '<ul><li>' . implode( '</li><li>', $product_summaries ) . '</li></ul>';
-					}
+					}//end foreach
 
 					$packaging_info  = implode( ', ', $package_summaries );
 					$services_list   = implode( '-', array_unique( $service_ids ) );
@@ -559,11 +660,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 
 							$this->debug( $rate_debug, 'success' );
 						}
-					}
+					}//end if
 
 					$this->add_rate( $rate_to_add );
-				}
-			}
+				}//end foreach
+			}//end foreach
 
 			if ( 0 === count( $this->rates ) ) {
 				$this->add_fallback_rate( $service_settings );
@@ -574,6 +675,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			$this->update_last_rate_request_timestamp();
 		}
 
+		/**
+		 * Update the stored timestamp of the last rate request.
+		 *
+		 * @return void
+		 */
 		public function update_last_rate_request_timestamp() {
 			$previous_timestamp = WC_Connect_Options::get_option( 'last_rate_request' );
 			if ( false === $previous_timestamp ||
@@ -582,6 +688,12 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			}
 		}
 
+		/**
+		 * Record the timestamp of the last failed rate request.
+		 *
+		 * @param int|null $timestamp Optional. The timestamp to record. Defaults to the current time.
+		 * @return void
+		 */
 		public function set_last_request_failed( $timestamp = null ) {
 			if ( is_null( $timestamp ) ) {
 				$timestamp = time();
@@ -590,28 +702,52 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 			WC_Connect_Options::update_shipping_method_option( 'failure_timestamp', $timestamp, $this->id, $this->instance_id );
 		}
 
+		/**
+		 * Render the admin options for this shipping method.
+		 *
+		 * @return void
+		 */
 		public function admin_options() {
-			// hide WP native save button on settings page.
+			// Hide WP native save button on settings page.
 			global $hide_save_button;
-			$hide_save_button = true;
+			// $hide_save_button is a WooCommerce core global (WC_Admin_Settings reads it to
+			// suppress the native Save button); it is not a plugin-owned global to prefix.
+			$hide_save_button = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WC core global.
 
+			/**
+			 * Render the admin options for a WooCommerce Shipping & Tax service.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param string   $id          The shipping method id.
+			 * @param int|null $instance_id The shipping method instance id.
+			 */
 			do_action( 'wc_connect_service_admin_options', $this->id, $this->instance_id );
 		}
 
 		/**
-		 * @param string $method_id
-		 * @param int    $instance_id
-		 * @param string $service_ids
+		 * Format a rate id from its component parts.
 		 *
-		 * @return string
+		 * @param string $method_id   The shipping method id.
+		 * @param int    $instance_id The shipping method instance id.
+		 * @param string $service_ids The service ids.
+		 *
+		 * @return string The formatted rate id.
 		 */
 		public static function format_rate_id( $method_id, $instance_id, $service_ids ) {
 			return sprintf( '%s:%d:%s', $method_id, $instance_id, $service_ids );
 		}
 
+		/**
+		 * Sanitize and format a rate title for display.
+		 *
+		 * @param string $rate_title The raw rate title.
+		 * @return string The sanitized rate title.
+		 */
 		public static function format_rate_title( $rate_title ) {
 			$formatted_title = wp_kses(
-				html_entity_decode( $rate_title, ENT_COMPAT ), // ENT_COMPAT is explicitly set for cross-version compatibility as it was the default prior to PHP v8.1.
+				html_entity_decode( $rate_title, ENT_COMPAT ),
+				// ENT_COMPAT is explicitly set for cross-version compatibility as it was the default prior to PHP v8.1.
 				array(
 					'sup'    => array(),
 					'del'    => array(),
@@ -725,9 +861,9 @@ if ( ! class_exists( 'WC_Connect_Shipping_Method' ) ) {
 				$this->debug( $message );
 
 				return false;
-			}
+			}//end foreach
 
 			return true;
 		}
 	}
-}
+}//end if

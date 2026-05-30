@@ -8,7 +8,15 @@ if ( class_exists( 'WC_REST_Connect_Migration_Flag_Controller' ) ) {
 	return;
 }
 
+/**
+ * REST controller for updating the WCS&T to WooCommerce Shipping migration flag.
+ */
 class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Controller {
+	/**
+	 * The REST base for this controller's endpoint.
+	 *
+	 * @var string
+	 */
 	protected $rest_base = 'connect/migration-flag';
 
 	/**
@@ -18,6 +26,14 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 	 */
 	protected $tracks;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param WC_Connect_API_Client             $api_client     The API client instance.
+	 * @param WC_Connect_Service_Settings_Store $settings_store The settings store instance.
+	 * @param WC_Connect_Logger                 $logger         The logger instance.
+	 * @param WC_Connect_Tracks                 $tracks         The tracks instance.
+	 */
 	public function __construct( $api_client, $settings_store, $logger, $tracks ) {
 		parent::__construct( $api_client, $settings_store, $logger );
 
@@ -33,6 +49,12 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 		$this->tracks = $tracks;
 	}
 
+	/**
+	 * Handle the request to update the migration flag.
+	 *
+	 * @param WP_REST_Request $request The REST request object.
+	 * @return WP_REST_Response|WP_Error The REST response on success, or a WP_Error on failure.
+	 */
 	public function post( $request ) {
 		$params          = $request->get_json_params();
 		$migration_state = intval( $params['migration_state'] );

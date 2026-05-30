@@ -21,13 +21,13 @@ class WP_Test_WC_REST_Connect_Packages_Controller extends WC_REST_Unit_Test_Case
 	 * @inherit
 	 */
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-logger.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-schemas-store.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-package-settings.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-base-controller.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-packages-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-service-schemas-store.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-package-settings.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-base-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-packages-controller.php';
 	}
 
 	/**

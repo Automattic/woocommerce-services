@@ -76,9 +76,11 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 		 * Localizes the bootstrap, enqueues the script and styles for the settings page
 		 */
 		public function output_shipping_settings_screen() {
-			// hiding the save button because the react container has its own.
+			// Hiding the save button because the React container has its own.
 			global $hide_save_button;
-			$hide_save_button = true;
+			// $hide_save_button is a WooCommerce core global (WC_Admin_Settings reads it to
+			// suppress the native Save button); it is not a plugin-owned global to prefix.
+			$hide_save_button = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WC core global.
 
 			if ( WC_Connect_Jetpack::is_offline_mode() ) {
 				if ( WC_Connect_Jetpack::is_connected() ) {
@@ -115,13 +117,13 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			if ( isset( $_GET['from_order'] ) ) {
-				$from_order               = sanitize_text_field( $_GET['from_order'] );
+				$from_order               = sanitize_text_field( wp_unslash( $_GET['from_order'] ) );
 				$extra_args['order_id']   = $from_order;
 				$extra_args['order_href'] = get_edit_post_link( $from_order );
 			}
 
 			if ( ! empty( $_GET['carrier'] ) ) {
-				$carrier                  = sanitize_text_field( $_GET['carrier'] );
+				$carrier                  = sanitize_text_field( wp_unslash( $_GET['carrier'] ) );
 				$extra_args['carrier']    = $carrier;
 				$extra_args['continents'] = $this->continents->get();
 

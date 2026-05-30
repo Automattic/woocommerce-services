@@ -1,6 +1,10 @@
 <?php
 
 if ( ! class_exists( 'WC_Connect_Options' ) ) {
+	/**
+	 * Manages reading, writing, and deleting WooCommerce Tax plugin options,
+	 * including grouped options and per-shipping-method options.
+	 */
 	class WC_Connect_Options {
 		/**
 		 * An array that maps a grouped option type to an option name.
@@ -65,7 +69,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			}
 
 			foreach ( self::$grouped_options as $group_key => $group ) {
-				// delete legacy options
+				// Delete legacy options.
 				foreach ( self::get_option_names( $group_key ) as $group_option ) {
 					delete_option( "wc_connect_$group_option" );
 				}
@@ -84,8 +88,8 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Returns the requested option.  Looks in wc_connect_options or wc_connect_$name as appropriate.
 		 *
-		 * @param string $name Option name
-		 * @param mixed  $default (optional)
+		 * @param string $name    Option name.
+		 * @param mixed  $default Default value to return if the option is not set (optional).
 		 *
 		 * @return mixed
 		 */
@@ -107,8 +111,8 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Updates the single given option.  Updates wc_connect_options or wc_connect_$name as appropriate.
 		 *
-		 * @param string $name Option name
-		 * @param mixed  $value Option value
+		 * @param string $name  Option name.
+		 * @param mixed  $value Option value.
 		 *
 		 * @return bool Was the option successfully updated?
 		 */
@@ -129,7 +133,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		 * Deletes the given option.  May be passed multiple option names as an array.
 		 * Updates wc_connect_options and/or deletes wc_connect_$name as appropriate.
 		 *
-		 * @param string|array $names
+		 * @param string|array $names Option name, or an array of option names, to delete.
 		 *
 		 * @return bool Was the option successfully deleted?
 		 */
@@ -156,10 +160,10 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Gets a shipping method option
 		 *
-		 * @param $name
-		 * @param $default
-		 * @param $service_id
-		 * @param $service_instance
+		 * @param string          $name             Shipping method option name.
+		 * @param mixed           $default          Default value to return if the option is not set.
+		 * @param int|string      $service_id       Shipping service identifier.
+		 * @param int|string|bool $service_instance Shipping service instance identifier, or false when not instance-specific.
 		 *
 		 * @return mixed
 		 */
@@ -177,10 +181,10 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Updates a shipping method option
 		 *
-		 * @param $name
-		 * @param $value
-		 * @param $service_id
-		 * @param $service_instance
+		 * @param string          $name             Shipping method option name.
+		 * @param mixed           $value            Option value.
+		 * @param int|string      $service_id       Shipping service identifier.
+		 * @param int|string|bool $service_instance Shipping service instance identifier, or false when not instance-specific.
 		 *
 		 * @return bool
 		 */
@@ -198,9 +202,9 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Deletes a shipping method option
 		 *
-		 * @param $name
-		 * @param $service_id
-		 * @param $service_instance
+		 * @param string          $name             Shipping method option name.
+		 * @param int|string      $service_id       Shipping service identifier.
+		 * @param int|string|bool $service_instance Shipping service instance identifier, or false when not instance-specific.
 		 *
 		 * @return bool
 		 */
@@ -218,8 +222,10 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Deletes all options related to a shipping method
 		 *
-		 * @param $service_id
-		 * @param $service_instance
+		 * @param int|string      $service_id       Shipping service identifier.
+		 * @param int|string|bool $service_instance Shipping service instance identifier, or false when not instance-specific.
+		 *
+		 * @return void
 		 */
 		public static function delete_shipping_method_options( $service_id, $service_instance = false ) {
 			$option_names = self::get_option_names( 'shipping_method' );
@@ -229,13 +235,22 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			}
 		}
 
+		/**
+		 * Returns a single option stored within a grouped option, migrating any legacy value if present.
+		 *
+		 * @param string $group   The grouped option key.
+		 * @param string $name    The option name within the group.
+		 * @param mixed  $default Default value to return if the option is not set.
+		 *
+		 * @return mixed
+		 */
 		private static function get_grouped_option( $group, $name, $default ) {
 			$options = get_option( self::$grouped_options[ $group ] );
 			if ( is_array( $options ) && isset( $options[ $name ] ) ) {
 				return $options[ $name ];
 			}
 
-			// make the grouped options backwards-compatible and migrate the old options
+			// Make the grouped options backwards-compatible and migrate the old options.
 			$legacy_name   = "wc_connect_$name";
 			$legacy_option = get_option( $legacy_name, false );
 			if ( ! $legacy_option ) {
@@ -248,6 +263,15 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			return $legacy_option;
 		}
 
+		/**
+		 * Updates a single option stored within a grouped option.
+		 *
+		 * @param string $group The grouped option key.
+		 * @param string $name  The option name within the group.
+		 * @param mixed  $value Option value.
+		 *
+		 * @return bool Was the grouped option successfully updated?
+		 */
 		private static function update_grouped_option( $group, $name, $value ) {
 			$options = get_option( self::$grouped_options[ $group ] );
 			if ( ! is_array( $options ) ) {
@@ -257,6 +281,14 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			return update_option( self::$grouped_options[ $group ], $options );
 		}
 
+		/**
+		 * Deletes one or more options stored within a grouped option.
+		 *
+		 * @param string $group The grouped option key.
+		 * @param array  $names The option names within the group to delete.
+		 *
+		 * @return bool Was the grouped option successfully updated?
+		 */
 		private static function delete_grouped_option( $group, $names ) {
 			$options   = get_option( self::$grouped_options[ $group ], array() );
 			$to_delete = array_intersect( $names, self::get_option_names( $group ), array_keys( $options ) );
@@ -272,9 +304,9 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Based on the service id and optional instance, generates the option name
 		 *
-		 * @param $name
-		 * @param $service_id
-		 * @param $service_instance
+		 * @param string          $name             Shipping method option name.
+		 * @param int|string      $service_id       Shipping service identifier.
+		 * @param int|string|bool $service_instance Shipping service instance identifier, or false when not instance-specific.
 		 *
 		 * @return string|bool
 		 */
@@ -293,7 +325,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		/**
 		 * Is the option name valid?
 		 *
-		 * @param string $name  The name of the option
+		 * @param string $name  The name of the option.
 		 * @param string $group The name of the group that the option is in. Defaults to compact.
 		 *
 		 * @return bool Is the option name valid?
@@ -338,4 +370,4 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			}
 		}
 	}
-}
+}//end if

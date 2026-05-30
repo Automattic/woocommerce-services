@@ -8,14 +8,32 @@ if ( class_exists( 'WC_REST_Connect_Services_Controller' ) ) {
 	return;
 }
 
+/**
+ * Handles the connect service settings REST endpoint.
+ */
 class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controller {
+	/**
+	 * The REST base for this controller.
+	 *
+	 * @var string
+	 */
 	protected $rest_base = 'connect/services/(?P<id>[a-z_]+)\/(?P<instance>[\d]+)';
 
 	/**
+	 * The service schemas store instance.
+	 *
 	 * @var WC_Connect_Service_Schemas_Store
 	 */
 	protected $service_schemas_store;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param WC_Connect_API_Client             $api_client     The API client instance.
+	 * @param WC_Connect_Service_Settings_Store $settings_store The service settings store instance.
+	 * @param WC_Connect_Logger                 $logger         The logger instance.
+	 * @param WC_Connect_Service_Schemas_Store  $schemas_store  The service schemas store instance.
+	 */
 	public function __construct(
 		WC_Connect_API_Client $api_client,
 		WC_Connect_Service_Settings_Store $settings_store,
@@ -26,6 +44,12 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 		$this->service_schemas_store = $schemas_store;
 	}
 
+	/**
+	 * Get the settings for a particular service and instance.
+	 *
+	 * @param WP_REST_Request $request The REST request object.
+	 * @return WP_Error|WP_REST_Response The response on success, or a WP_Error on failure.
+	 */
 	public function get( $request ) {
 		$method_id   = $request['id'];
 		$instance_id = isset( $request['instance'] ) ? $request['instance'] : false;
@@ -40,6 +64,15 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 			return new WP_Error( 'schemas_not_found', __( 'Service schemas were not loaded', 'woocommerce-services' ), array( 'status' => 500 ) );
 		}
 
+		/**
+		 * Filters the shipping service settings payload returned for a service instance.
+		 *
+		 * @since 3.6.3
+		 *
+		 * @param array  $payload     The service settings payload.
+		 * @param string $method_id   The shipping method ID.
+		 * @param int    $instance_id The shipping method instance ID.
+		 */
 		$payload = apply_filters(
 			'wc_connect_shipping_service_settings',
 			array(
@@ -53,7 +86,10 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 	}
 
 	/**
-	 * Attempts to update the settings on a particular service and instance
+	 * Attempts to update the settings on a particular service and instance.
+	 *
+	 * @param WP_REST_Request $request The REST request object.
+	 * @return WP_Error|WP_REST_Response The response on success, or a WP_Error on failure.
 	 */
 	public function post( $request ) {
 		$request_params = $request->get_params();
@@ -89,6 +125,7 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 			$error = new WP_Error(
 				'validation_failed',
 				sprintf(
+					/* translators: %s: validation error message */
 					__( 'Unable to update service settings. Validation failed. %s', 'woocommerce-services' ),
 					$validation_result->get_error_message()
 				),
@@ -100,5 +137,4 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
-
 }

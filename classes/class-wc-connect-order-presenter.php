@@ -2,13 +2,16 @@
 
 if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 
+	/**
+	 * Transforms WC_Order objects into the representational form consumed by the React app.
+	 */
 	class WC_Connect_Order_Presenter {
 
 		/**
 		 * This function transform the WC_Order object to a representational JSON form for the react app.
 		 * This is based on WooCommerce v3's get_order API woocommerce/includes/legacy/api/v3/class-wc-api-orders.php
 		 *
-		 * @param WC_Order $order
+		 * @param WC_Order $order The order to transform.
 		 * @return array
 		 */
 		public function get_order_for_api( WC_Order $order ) {
@@ -104,7 +107,7 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 				);
 
 				$order_data['line_items'][] = $line_item;
-			}
+			}//end foreach
 
 			// Add shipping.
 			foreach ( $order->get_shipping_methods() as $shipping_item_id => $shipping_item ) {
@@ -160,4 +163,4 @@ if ( ! class_exists( 'WC_Connect_Order_Presenter' ) ) {
 			return $order_data;
 		}
 	}
-}
+}//end if

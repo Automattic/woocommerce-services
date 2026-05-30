@@ -15,15 +15,15 @@ class WC_Connect_Cart_Validation {
 	 * Register actions when required instead of using constructor.
 	 */
 	public function register_actions() {
-		add_action( 'woocommerce_store_api_cart_errors', [ $this, 'add_api_cart_errors' ], 10, 2 );
+		add_action( 'woocommerce_store_api_cart_errors', array( $this, 'add_api_cart_errors' ), 10, 2 );
 	}
 
 	/**
 	 * Register filters when required instead of using constructor.
 	 */
 	public function register_filters() {
-		add_filter( 'woocommerce_cart_no_shipping_available_html', [ $this, 'error_no_shipping_available_html' ] );
-		add_filter( 'woocommerce_shipping_package_name', [ $this, 'set_current_package' ], 10, 3 );
+		add_filter( 'woocommerce_cart_no_shipping_available_html', array( $this, 'error_no_shipping_available_html' ) );
+		add_filter( 'woocommerce_shipping_package_name', array( $this, 'set_current_package' ), 10, 3 );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class WC_Connect_Cart_Validation {
 				if ( ! in_array( $notice['notice'], $added_notices ) ) {
 					$added_notices[] = $notice['notice'];
 					$cart_errors->add( 'notice_' . $i, $notice['notice'] );
-					$i++;
+					++$i;
 				}
 			}
 		}

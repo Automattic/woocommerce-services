@@ -255,6 +255,14 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 			$package = self::unset_unused_keys( $package, self::KEYS_USED_BY_WCSERVICES );
 		}
 
+		/**
+		 * Filters the package data after mapping it from WCShipping's to WCS&T's format.
+		 *
+		 * @since 3.6.3
+		 *
+		 * @param array $custom_packages     The packages mapped to WCS&T's format.
+		 * @param array $old_custom_packages The packages in WCShipping's format before mapping.
+		 */
 		return apply_filters(
 			'wcservices_map_packages_to_wcservices_format',
 			$custom_packages,
@@ -278,6 +286,14 @@ class WC_Connect_Compatibility_WCShipping_Packages {
 			$package = self::unset_unused_keys( $package, self::KEYS_USED_BY_WCSHIPPING );
 		}
 
+		/**
+		 * Filters the package data after mapping it from WCS&T's to WCShipping's format.
+		 *
+		 * @since 3.6.3
+		 *
+		 * @param array $custom_packages     The packages mapped to WCShipping's format.
+		 * @param array $old_custom_packages The packages in WCS&T's format before mapping.
+		 */
 		return apply_filters(
 			'wcservices_map_packages_to_wcshipping_format',
 			$custom_packages,

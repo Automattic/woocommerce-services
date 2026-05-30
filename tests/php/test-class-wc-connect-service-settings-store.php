@@ -41,11 +41,11 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	protected $order_id;
 
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-service-schemas-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-logger.php';
 	}
 
 	private function get_settings_store( $service_schemas_store = false, $api_client = false, $logger = false ) {

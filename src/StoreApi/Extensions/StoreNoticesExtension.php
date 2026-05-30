@@ -76,7 +76,7 @@ class StoreNoticesExtension extends AbstractStoreApiExtension {
 
 				$data['notices'][] = $notice->to_array();
 			}
-		}
+		}//end foreach
 
 		return $data;
 	}

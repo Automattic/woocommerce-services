@@ -4,17 +4,30 @@ if ( class_exists( 'WC_Connect_Privacy' ) ) {
 	return;
 }
 
+/**
+ * Handles privacy policy content and personal data export/erasure for WooCommerce Services.
+ */
 class WC_Connect_Privacy {
 	/**
+	 * The service settings store.
+	 *
 	 * @var WC_Connect_Service_Settings_Store
 	 */
 	protected $settings_store;
 
 	/**
+	 * The API client.
+	 *
 	 * @var WC_Connect_API_Client
 	 */
 	protected $api_client;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param WC_Connect_Service_Settings_Store $settings_store The service settings store.
+	 * @param WC_Connect_API_Client             $api_client     The API client.
+	 */
 	public function __construct( WC_Connect_Service_Settings_Store $settings_store, WC_Connect_API_Client $api_client ) {
 		$this->settings_store = $settings_store;
 		$this->api_client     = $api_client;
@@ -37,6 +50,7 @@ class WC_Connect_Privacy {
 		$content = wpautop(
 			sprintf(
 				wp_kses(
+					/* translators: %s: URL to documentation about privacy policy */
 					__( 'By using this extension, you may be storing personal data or sharing data with external services. <a href="%s" target="_blank">Learn more about how this works, including what you may want to include in your privacy policy.</a>', 'woocommerce-services' ),
 					array(
 						'a' => array(
@@ -76,9 +90,9 @@ class WC_Connect_Privacy {
 	/**
 	 * Filter for woocommerce_privacy_export_order_personal_data that adds WCS personal data to the exported orders
 	 *
-	 * @param array  $personal_data
-	 * @param object $order
-	 * @return array
+	 * @param array  $personal_data The personal data to export.
+	 * @param object $order         The order being exported.
+	 * @return array The personal data with WCS label data appended.
 	 */
 	public function label_data_exporter( $personal_data, $order ) {
 		$order_id = $order->get_id();
