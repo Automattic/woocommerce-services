@@ -13,6 +13,17 @@
 		<exclude-pattern>tests/</exclude-pattern>
 	</rule>
 
+	<!-- WOOTAX-288 (WordPress.WP.I18n.TextDomainMismatch): the dev-data REST
+	     controllers in classes/wc-api-dev/ are forks of WooCommerce core's
+	     /wc/v3/data controllers and reuse core's verbatim strings (continent
+	     codes, location labels) under the 'woocommerce' text domain on purpose,
+	     so they inherit core's existing translations rather than shipping
+	     untranslated copies under this plugin's domain. Suppress the mismatch
+	     for this directory only; the rest of the plugin stays on 'woocommerce-services'. -->
+	<rule ref="WordPress.WP.I18n.TextDomainMismatch">
+		<exclude-pattern>classes/wc-api-dev/</exclude-pattern>
+	</rule>
+
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">

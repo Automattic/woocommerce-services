@@ -174,17 +174,21 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			}
 
 			ob_start();
+			// These tax-rate CSV column headers intentionally reuse WooCommerce core's
+			// translation catalog so the export matches core's own tax-rate export columns.
+			// phpcs:disable WordPress.WP.I18n.TextDomainMismatch
 			$header =
-				__( 'Country Code', 'woocommerce-services' ) . ',' .
-				__( 'State Code', 'woocommerce-services' ) . ',' .
-				__( 'ZIP/Postcode', 'woocommerce-services' ) . ',' .
-				__( 'City', 'woocommerce-services' ) . ',' .
-				__( 'Rate %', 'woocommerce-services' ) . ',' .
-				__( 'Tax Name', 'woocommerce-services' ) . ',' .
-				__( 'Priority', 'woocommerce-services' ) . ',' .
-				__( 'Compound', 'woocommerce-services' ) . ',' .
-				__( 'Shipping', 'woocommerce-services' ) . ',' .
-				__( 'Tax Class', 'woocommerce-services' ) . "\n";
+				__( 'Country Code', 'woocommerce' ) . ',' .
+				__( 'State Code', 'woocommerce' ) . ',' .
+				__( 'ZIP/Postcode', 'woocommerce' ) . ',' .
+				__( 'City', 'woocommerce' ) . ',' .
+				__( 'Rate %', 'woocommerce' ) . ',' .
+				__( 'Tax Name', 'woocommerce' ) . ',' .
+				__( 'Priority', 'woocommerce' ) . ',' .
+				__( 'Compound', 'woocommerce' ) . ',' .
+				__( 'Shipping', 'woocommerce' ) . ',' .
+				__( 'Tax Class', 'woocommerce' ) . "\n";
+			// phpcs:enable WordPress.WP.I18n.TextDomainMismatch
 
 			echo $header; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
