@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.4 - 2026-xx-xx =
+* Dev   - Update JS dependencies.
+
 = 3.6.3 - 2026-05-20 =
 * Tweak - WordPress 7.0 Compatibility.
 
