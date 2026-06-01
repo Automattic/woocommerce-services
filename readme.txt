@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.0
 WC requires at least: 10.6
 WC tested up to: 10.8
-Stable tag: 3.6.3
+Stable tag: 3.6.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.6.4 - 2026-xx-xx =
+= 3.6.4 - 2026-06-01 =
 * Dev   - Update JS dependencies.
 
 = 3.6.3 - 2026-05-20 =
