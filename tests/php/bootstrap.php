@@ -40,7 +40,7 @@ require_once $wp_tests_dir . '/includes/functions.php';
  * @return void
  */
 function _manually_load_plugin() {
-	require dirname( __FILE__ ) . '/../../woocommerce-services.php';
+	require __DIR__ . '/../../woocommerce-services.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
