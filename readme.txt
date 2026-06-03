@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.5 - 2026-xx-xx =
+* Fix   - Prevent PHP "undefined variable" warning when WooCommerce Helper authentication data is unavailable.
+
 = 3.6.4 - 2026-06-01 =
 * Dev   - Update JS dependencies.
 

@@ -28,6 +28,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 		 * @return array|WP_Error
 		 */
 		public static function get_wc_helper_auth_info() {
+			$helper_auth_data = false;
 			if ( class_exists( 'WC_Helper_Options' ) && is_callable( 'WC_Helper_Options::get' ) ) {
 				$helper_auth_data = WC_Helper_Options::get( 'auth' );
 			}
