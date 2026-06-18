@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.6 - 2026-xx-xx =
+* Fix   - Prevent currency-switcher plugins from limiting the available shipping services.
+
 = 3.6.5 - 2026-06-08 =
 * Fix   - Prevent PHP "undefined variable" warning when WooCommerce Helper authentication data is unavailable.
 

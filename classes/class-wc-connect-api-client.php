@@ -482,7 +482,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				'base_country'         => WC()->countries->get_base_country(),
 				'base_state'           => WC()->countries->get_base_state(),
 				'base_postcode'        => WC()->countries->get_base_postcode(),
-				'currency'             => get_woocommerce_currency(),
+				// Report the store's configured base currency, not get_woocommerce_currency(), which applies the
+				// `woocommerce_currency` filter. Currency-switcher plugins filter that value per customer session,
+				// so a scheduled service-schema fetch running in such a session would otherwise report a display
+				// currency to the server and receive a currency-limited service list (WOOTAX-49).
+				'currency'             => get_option( 'woocommerce_currency' ),
 				'dimension_unit'       => strtolower( get_option( 'woocommerce_dimension_unit' ) ),
 				'weight_unit'          => strtolower( get_option( 'woocommerce_weight_unit' ) ),
 				'wcs_version'          => WC_Connect_Loader::get_wcs_version(),

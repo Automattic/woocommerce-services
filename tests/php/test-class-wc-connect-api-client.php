@@ -159,4 +159,49 @@ class WP_Test_WC_Connect_API_Client extends WC_Unit_Test_Case {
 		$this->assertWPError( $actual );
 		$this->assertEquals( 'sift_not_cached', $actual->get_error_code() );
 	}
+
+	/**
+	 * The currency reported to the WooCommerce Tax / Connect server must be the store's
+	 * configured base currency, never a per-session display currency injected by a
+	 * currency-switcher plugin through the `woocommerce_currency` filter.
+	 *
+	 * Regression test for WOOTAX-49: a scheduled service-schema fetch that ran inside a
+	 * customer session (where the currency had been filtered, e.g. to USD) reported the
+	 * filtered currency to the server, which then returned a currency-limited service
+	 * list and hid the store's configured shipping methods until settings were re-saved.
+	 */
+	public function test_get_settings_values_currency_ignores_woocommerce_currency_filter() {
+		$original_currency = get_option( 'woocommerce_currency' );
+		update_option( 'woocommerce_currency', 'CAD' );
+
+		$force_usd = static function () {
+			return 'USD';
+		};
+		add_filter( 'woocommerce_currency', $force_usd );
+
+		try {
+			// Precondition: a currency switcher really is filtering the display currency.
+			$this->assertSame( 'USD', get_woocommerce_currency(), 'Expected the woocommerce_currency filter to be active.' );
+
+			// Stub the loader collaborator so get_settings_values() can run in isolation.
+			$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
+				->disableOriginalConstructor()
+				->setMethods( array( 'get_active_services' ) )
+				->getMock();
+			$loader->method( 'get_active_services' )->willReturn( array() );
+
+			$loader_prop = new ReflectionProperty( 'WC_Connect_API_Client', 'wc_connect_loader' );
+			$loader_prop->setAccessible( true );
+			$loader_prop->setValue( $this->api_client, $loader );
+
+			$get_settings_values = new ReflectionMethod( 'WC_Connect_API_Client', 'get_settings_values' );
+			$get_settings_values->setAccessible( true );
+			$values = $get_settings_values->invoke( $this->api_client );
+
+			$this->assertSame( 'CAD', $values['currency'], 'Settings currency must be the unfiltered store base currency.' );
+		} finally {
+			remove_filter( 'woocommerce_currency', $force_usd );
+			update_option( 'woocommerce_currency', $original_currency );
+		}
+	}
 }
