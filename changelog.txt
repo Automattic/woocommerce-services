@@ -1,5 +1,11 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.5 - 2026-06-08 =
+* Fix   - Prevent PHP "undefined variable" warning when WooCommerce Helper authentication data is unavailable.
+
+= 3.6.4 - 2026-06-01 =
+* Dev   - Update JS dependencies.
+
 = 3.6.3 - 2026-05-20 =
 * Tweak - WordPress 7.0 Compatibility.
 

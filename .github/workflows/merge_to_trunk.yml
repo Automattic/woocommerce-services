@@ -41,7 +41,7 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
-      - uses: act10ns/slack@v2
+      - uses: act10ns/slack@d96404edccc6d6467fc7f8134a420c851b1e9054 # v2.2.0
         with:
           status: success
           message: "Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> in PR <{{refUrl}}|{{ref}}> passed."
@@ -54,7 +54,7 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
-      - uses: act10ns/slack@v2
+      - uses: act10ns/slack@d96404edccc6d6467fc7f8134a420c851b1e9054 # v2.2.0
         with:
           status: cancelled
           message: "Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> in PR <{{refUrl}}|{{ref}}> cancelled."
@@ -67,7 +67,7 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
-      - uses: act10ns/slack@v2
+      - uses: act10ns/slack@d96404edccc6d6467fc7f8134a420c851b1e9054 # v2.2.0
         with:
           status: failure
           message: "Workflow <{{workflowUrl}}|{{workflow}}> with run ID <{{workflowRunUrl}}|{{runId}}> in PR <{{refUrl}}|{{ref}}> failed."
