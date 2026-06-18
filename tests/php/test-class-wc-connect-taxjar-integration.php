@@ -1146,4 +1146,84 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEmpty( $result['line_items'] );
 		$this->assertEquals( 0, $result['has_nexus'] );
 	}
+
+	/**
+	 * A tax calculation whose taxable amount is zero must not zero out the tax rate.
+	 *
+	 * When a subscription is switched, or when a free-trial subscription's initial
+	 * cart total is $0, TaxJar returns a response whose top-level `rate` (and
+	 * `amount_to_collect`) is 0 because `taxable_amount` is 0 — yet the real
+	 * per-jurisdiction rates are still present inside `breakdown.line_items`. The
+	 * itemized rate builder must persist those real rates and must never write the
+	 * zeroed top-level rate, which previously clobbered an existing tax rate to
+	 * 0.0000%.
+	 *
+	 * Regression test for WOOTAX-25 (free-trial renewal charged no tax) and
+	 * WOOTAX-18 (subscription switch zeroed an existing rate). The fixture mirrors
+	 * the exact response captured in WOOTAX-18.
+	 */
+	public function test_zero_amount_response_persists_real_itemized_rates() {
+		$options = array(
+			'to_country' => 'US',
+			'to_state'   => 'MO',
+			'to_zip'     => '64150',
+			'to_city'    => 'RIVERSIDE',
+		);
+
+		// taxable_amount and the top-level rate are 0, but the line item still
+		// carries the real jurisdiction rates (city 1.5%, county 1.25%, state 4.225%).
+		$line_item = (object) array(
+			'id'                   => '351-regressionkey',
+			'city_tax_rate'        => 0.015,
+			'county_tax_rate'      => 0.0125,
+			'state_sales_tax_rate' => 0.04225,
+			'special_tax_rate'     => 0.0,
+			'combined_tax_rate'    => 0.06975,
+			'taxable_amount'       => 0.0,
+		);
+		$taxjar_taxes = (object) array(
+			'freight_taxable' => 0,
+			'has_nexus'       => 1,
+			'rate'            => 0.0,
+			'jurisdictions'   => (object) array(
+				'country' => 'US',
+				'state'   => 'MO',
+				'county'  => 'PLATTE COUNTY',
+				'city'    => 'RIVERSIDE',
+			),
+			'breakdown'       => (object) array(
+				'line_items' => array( $line_item ),
+			),
+		);
+
+		$taxes = array(
+			'freight_taxable' => 1,
+			'has_nexus'       => 0,
+			'line_items'      => array(),
+			'rate_ids'        => array(),
+			'tax_rate'        => 0,
+		);
+
+		$result = $this->invoke_protected_method( 'get_itemized_tax_rates', array( $taxes, $taxjar_taxes, $options ) );
+
+		$this->assertArrayHasKey( '351-regressionkey', $result['rate_ids'] );
+
+		$persisted = array();
+		foreach ( $result['rate_ids']['351-regressionkey'] as $rate_id ) {
+			$rate        = WC_Tax::_get_tax_rate( $rate_id );
+			$persisted[] = (float) $rate['tax_rate'];
+		}
+		sort( $persisted );
+
+		// One row per jurisdiction component (city, county, state, special district).
+		$this->assertCount( 4, $persisted );
+		$this->assertEqualsWithDelta( 0.0, $persisted[0], 0.0001, 'Special district rate.' );
+		$this->assertEqualsWithDelta( 1.25, $persisted[1], 0.0001, 'County rate.' );
+		$this->assertEqualsWithDelta( 1.5, $persisted[2], 0.0001, 'City rate.' );
+		$this->assertEqualsWithDelta( 4.225, $persisted[3], 0.0001, 'State rate.' );
+
+		// The combined persisted rate must equal the real 6.975%, never the zeroed
+		// top-level rate. This is the core guard against the zeroing-out regression.
+		$this->assertEqualsWithDelta( 6.975, array_sum( $persisted ), 0.0001, 'Existing tax rate must not be zeroed out by a $0 calculation.' );
+	}
 }
