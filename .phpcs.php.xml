@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<ruleset name="WooCommerce Shipping &amp; Tax — PHP">
+	<description>WooCommerce Shipping &amp; Tax generic PHP coding standards. Mirrors the shipping-plugin family layout; the classes/ and bootstrap suppressions are carried over verbatim from the previous phpcs.xml.dist so this change surfaces no new violations.</description>
+
+	<rule ref="./.phpcs.common.xml"/>
+
+	<!-- Rules -->
+	<rule ref="WooCommerce-Core"/>
+	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress-Extra"/>
+	<rule ref="WordPress-Docs"/>
+
+	<rule ref="PHPCompatibility">
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+
+	<!--
+		Test files use PascalCase_Underscored naming by convention (e.g. My_Class_Test.php),
+		and the plugin bootstrap is named for the plugin slug. Suppress file-naming sniffs there.
+		(woocommerce-services.php exclusion preserved from the previous phpcs.xml.dist.)
+	-->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>tests/</exclude-pattern>
+		<exclude-pattern>woocommerce-services.php</exclude-pattern>
+	</rule>
+
+	<!--
+		Tests sometimes need to override WP globals (and restore them after the test).
+		Exclude the override sniff for tests/ only.
+	-->
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+
+	<!--
+		Test methods use @testdox as their description. Generic.Commenting requires a
+		prose short description before any tags, which conflicts with @testdox-only
+		docblocks. Suppress for tests/ only.
+	-->
+	<rule ref="Generic.Commenting">
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+
+	<!--
+		Tests invoke core filters and actions as test setup; requiring a docblock
+		for every apply_filters / do_action call in test code adds noise without value.
+	-->
+	<rule ref="WooCommerce.Commenting.CommentHooks">
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+
+	<!--
+		Preserved from the previous phpcs.xml.dist: the procedural WC_Connect_* classes in
+		classes/ predate per-file docblocks. Kept to avoid surfacing legacy file-comment
+		violations here (that cleanup belongs to a later milestone).
+	-->
+	<rule ref="Squiz.Commenting.FileComment.MissingPackageTag">
+		<exclude-pattern>classes/</exclude-pattern>
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FileComment.Missing">
+		<exclude-pattern>classes/</exclude-pattern>
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+</ruleset>
