@@ -2207,4 +2207,93 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 	}
+
+	/**
+	 * Snapshot the current tax state of an order before recalculation.
+	 *
+	 * Captures tax line items and per-item tax arrays so they can be restored
+	 * if a subsequent TaxJar API call fails.
+	 *
+	 * @since x.x.x
+	 * @param WC_Order $order The order to snapshot.
+	 * @return array {
+	 *   @type array $tax_lines  Keyed by item_id; each has 'rate_id', 'tax_total', 'shipping_tax_total'.
+	 *   @type array $item_taxes Keyed by item_id (prefix 'shipping_' for shipping items); each is a taxes array.
+	 * }
+	 */
+	private function snapshot_order_taxes( $order ) {
+		$snapshot = array(
+			'tax_lines'  => array(),
+			'item_taxes' => array(),
+		);
+
+		foreach ( $order->get_taxes() as $item_id => $tax_item ) {
+			$snapshot['tax_lines'][ $item_id ] = array(
+				'rate_id'            => $tax_item->get_rate_id(),
+				'tax_total'          => $tax_item->get_tax_total(),
+				'shipping_tax_total' => $tax_item->get_shipping_tax_total(),
+			);
+		}
+
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			$snapshot['item_taxes'][ $item_id ] = $item->get_taxes();
+		}
+
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			$snapshot['item_taxes'][ 'shipping_' . $item_id ] = $item->get_taxes();
+		}
+
+		return $snapshot;
+	}
+
+	/**
+	 * Restore order taxes from a previously taken snapshot.
+	 *
+	 * Called when TaxJar API fails during a non-cart recalculation, to undo
+	 * whatever WC's update_taxes() did and put the original tax data back.
+	 *
+	 * @since x.x.x
+	 * @param WC_Order $order    The order to restore into.
+	 * @param array    $snapshot Snapshot returned by snapshot_order_taxes().
+	 */
+	private function restore_order_taxes( $order, $snapshot ) {
+		if ( empty( $snapshot ) ) {
+			return;
+		}
+
+		// Restore per-item tax arrays on line items and fees.
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			if ( isset( $snapshot['item_taxes'][ $item_id ] ) ) {
+				$item->set_taxes( $snapshot['item_taxes'][ $item_id ] );
+				$item->save();
+			}
+		}
+
+		// Restore per-item tax arrays on shipping items.
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			if ( isset( $snapshot['item_taxes'][ 'shipping_' . $item_id ] ) ) {
+				$item->set_taxes( $snapshot['item_taxes'][ 'shipping_' . $item_id ] );
+				$item->save();
+			}
+		}
+
+		// Remove all current tax line items (update_taxes() may have wiped and re-added wrong ones).
+		foreach ( $order->get_taxes() as $tax_item ) {
+			$order->remove_item( $tax_item->get_id() );
+		}
+
+		// Re-add tax lines from snapshot.
+		foreach ( $snapshot['tax_lines'] as $tax_data ) {
+			$tax_item = new WC_Order_Item_Tax();
+			$tax_item->set_rate( $tax_data['rate_id'] );
+			$tax_item->set_tax_total( $tax_data['tax_total'] );
+			$tax_item->set_shipping_tax_total( $tax_data['shipping_tax_total'] );
+			$order->add_item( $tax_item );
+		}
+
+		// Recalculate order-level totals from restored snapshot data.
+		$order->set_cart_tax( array_sum( array_column( $snapshot['tax_lines'], 'tax_total' ) ) );
+		$order->set_shipping_tax( array_sum( array_column( $snapshot['tax_lines'], 'shipping_tax_total' ) ) );
+		$order->save();
+	}
 }

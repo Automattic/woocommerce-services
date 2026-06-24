@@ -1206,4 +1206,81 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Act.
 		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
 	}
+
+	// -------------------------------------------------------------------------
+	// snapshot_order_taxes() and restore_order_taxes() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test that snapshot_order_taxes captures existing tax lines and item taxes.
+	 */
+	public function test_snapshot_order_taxes_captures_tax_state() {
+		// Create a real order with a tax line item.
+		$order = wc_create_order();
+
+		// Add a tax line.
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_code( 'US-CA-TAX-1' );
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->save();
+
+		// Act.
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+
+		// Assert structure.
+		$this->assertArrayHasKey( 'tax_lines', $snapshot );
+		$this->assertArrayHasKey( 'item_taxes', $snapshot );
+		$this->assertCount( 1, $snapshot['tax_lines'] );
+
+		$saved_tax = reset( $snapshot['tax_lines'] );
+		$this->assertEquals( 6, $saved_tax['rate_id'] );
+		$this->assertEquals( '1.76', $saved_tax['tax_total'] );
+		$this->assertEquals( '0.00', $saved_tax['shipping_tax_total'] );
+
+		// Clean up.
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that restore_order_taxes re-adds tax lines removed from an order.
+	 */
+	public function test_restore_order_taxes_restores_tax_lines() {
+		// Create a real order.
+		$order = wc_create_order();
+
+		// Add a tax line and save snapshot before wiping.
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+
+		// Simulate wipe: remove all tax items.
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->save();
+		$this->assertCount( 0, $order->get_taxes() );
+
+		// Act: restore from snapshot.
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		// Re-fetch order to confirm DB was updated.
+		$restored_order = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $restored_order->get_taxes() );
+
+		$restored_tax = reset( $restored_order->get_taxes() );
+		$this->assertEquals( 6, $restored_tax->get_rate_id() );
+		$this->assertEquals( '1.76', $restored_tax->get_tax_total() );
+
+		// Clean up.
+		$order->delete( true );
+	}
 }
