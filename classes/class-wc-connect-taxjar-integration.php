@@ -2361,5 +2361,11 @@ class WC_Connect_TaxJar_Integration {
 		$order->set_cart_tax( array_sum( array_column( $snapshot['tax_lines'], 'tax_total' ) ) );
 		$order->set_shipping_tax( array_sum( array_column( $snapshot['tax_lines'], 'shipping_tax_total' ) ) );
 		$order->save();
+
+		// Update the order total to include the restored taxes.
+		$cart_tax     = $order->get_cart_tax();
+		$shipping_tax = $order->get_shipping_tax();
+		$order->set_total( $order->get_subtotal() - $order->get_discount_total() + $order->get_shipping_total() + $order->get_total_fees() + $cart_tax + $shipping_tax );
+		$order->save();
 	}
 }
