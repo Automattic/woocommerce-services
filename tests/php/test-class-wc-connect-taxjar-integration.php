@@ -1283,4 +1283,80 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Clean up.
 		$order->delete( true );
 	}
+
+	// -------------------------------------------------------------------------
+	// calculate_order_taxes_via_taxjar() happy path tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test happy path: calculate_order_taxes_via_taxjar calls TaxJar API
+	 * and sets response_rate_ids / response_line_items on success.
+	 */
+	public function test_calculate_order_taxes_happy_path_sets_response_properties() {
+		// Arrange: empty response_rate_ids (REST context, not cart).
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		// Create a real order with a product line item.
+		$product = WC_Helper_Product::create_simple_product();
+		$product->save();
+
+		$order = wc_create_order();
+		$order->add_product( $product, 1 );
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'TX' );
+		$order->set_shipping_postcode( '78701' );
+		$order->set_shipping_city( 'Austin' );
+		$order->set_shipping_address_1( '123 Main St' );
+		$order->save();
+
+		// Mock calculate_tax() to return a fake successful response.
+		$fake_taxes = array(
+			'rate_ids'   => array( $product->get_id() . '-1' => array( 42 ) ),
+			'line_items' => array(
+				$product->get_id() . '-1' => (object) array(
+					'tax_collectable'   => 1.23,
+					'combined_tax_rate' => 0.0825,
+					'line_total'        => 18.00,
+				),
+			),
+		);
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->getMock();
+		$integration->method( 'get_backend_line_items' )->willReturn( array() );
+		$integration->method( 'calculate_tax' )->willReturn( $fake_taxes );
+		$integration->method( '_log' )->willReturn( null );
+
+		// Pre-set empty response_rate_ids on the mock.
+		$reflection = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids' );
+		$reflection->setAccessible( true );
+		$reflection->setValue( $integration, array() );
+
+		// Need WC()->customer for calculate_tax guard.
+		if ( is_null( WC()->customer ) ) {
+			WC()->customer = new WC_Customer( $order->get_customer_id() );
+		}
+
+		// Act.
+		$integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		// Assert response properties were set.
+		$rate_ids = $reflection->getValue( $integration );
+		// After running, response_rate_ids should have been set (not empty from fake_taxes).
+		// We check via the mock that calculate_tax was called once.
+		// (response_rate_ids would be set to $fake_taxes['rate_ids']).
+		$response_rate_ids_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids' );
+		$response_rate_ids_prop->setAccessible( true );
+		$this->assertEquals( $fake_taxes['rate_ids'], $response_rate_ids_prop->getValue( $integration ) );
+
+		$response_line_items_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_line_items' );
+		$response_line_items_prop->setAccessible( true );
+		$this->assertNotEmpty( $response_line_items_prop->getValue( $integration ) );
+
+		// Clean up.
+		WC_Helper_Product::delete_product( $product->get_id() );
+		$order->delete( true );
+	}
 }

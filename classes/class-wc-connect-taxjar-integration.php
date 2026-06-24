@@ -2192,6 +2192,9 @@ class WC_Connect_TaxJar_Integration {
 	 * @param WC_Order $order The order being recalculated.
 	 */
 	public function calculate_order_taxes_via_taxjar( $args, $order ) {
+		// Reset failure flag from any previous call.
+		$this->taxjar_recalculation_failed = false;
+
 		// Skip if TaxJar already ran for this request (cart/checkout path populated response_rate_ids).
 		if ( ! empty( $this->response_rate_ids ) ) {
 			return;
@@ -2205,6 +2208,69 @@ class WC_Connect_TaxJar_Integration {
 		// Skip if new order being created from scratch (no existing taxes to recalculate).
 		if ( ! $order->get_id() ) {
 			return;
+		}
+
+		// Snapshot existing tax state in case we need to restore on API failure.
+		$this->pre_recalculation_tax_snapshot = $this->snapshot_order_taxes( $order );
+
+		// Ensure WC customer object is available (may be null in REST/CLI context).
+		if ( is_null( WC()->customer ) ) {
+			WC()->customer = new WC_Customer( $order->get_customer_id() );
+		}
+
+		// Build address from order (reflects any address update already applied by REST request).
+		$to_country = strtoupper( $order->get_shipping_country() ?: $order->get_billing_country() );
+		$to_state   = strtoupper( $order->get_shipping_state() ?: $order->get_billing_state() );
+		$to_zip     = $order->get_shipping_postcode() ?: $order->get_billing_postcode();
+		$to_city    = $order->get_shipping_city() ?: $order->get_billing_city();
+		$to_street  = $order->get_shipping_address_1() ?: $order->get_billing_address_1();
+
+		// Get line items and shipping using the existing backend helper.
+		$line_items = $this->get_backend_line_items( $order );
+		$shipping   = $order->get_shipping_total();
+
+		// Call TaxJar API.
+		$taxes = $this->calculate_tax(
+			array(
+				'to_country'      => $to_country,
+				'to_state'        => $to_state,
+				'to_zip'          => $to_zip,
+				'to_city'         => $to_city,
+				'to_street'       => $to_street,
+				'shipping_amount' => $shipping,
+				'line_items'      => $line_items,
+			)
+		);
+
+		if ( false === $taxes ) {
+			$this->_log( 'TaxJar API failed for order ' . $order->get_id() . '. Preserving existing taxes as fallback.' );
+			$this->taxjar_recalculation_failed = true;
+			$snapshot                          = $this->pre_recalculation_tax_snapshot;
+			add_action(
+				'woocommerce_order_after_calculate_totals',
+				function ( $and_taxes, $updated_order ) use ( $order, $snapshot ) {
+					if ( $updated_order->get_id() === $order->get_id() ) {
+						$this->restore_order_taxes( $updated_order, $snapshot );
+					}
+				},
+				10,
+				2
+			);
+			return;
+		}
+
+		$this->response_rate_ids   = $taxes['rate_ids'];
+		$this->response_line_items = $taxes['line_items'];
+
+		// Adjust line_total on response_line_items to match what override_woocommerce_tax_rates expects.
+		if ( isset( $this->response_line_items ) ) {
+			foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
+				$line_item = $this->get_line_item( $response_line_item_key, $line_items );
+				if ( isset( $line_item ) ) {
+					$this->response_line_items[ $response_line_item_key ]->line_total =
+						( $line_item['unit_price'] * $line_item['quantity'] ) - $line_item['discount'];
+				}
+			}
 		}
 	}
 
