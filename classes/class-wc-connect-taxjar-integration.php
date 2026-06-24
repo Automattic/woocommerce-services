@@ -2192,5 +2192,19 @@ class WC_Connect_TaxJar_Integration {
 	 * @param WC_Order $order The order being recalculated.
 	 */
 	public function calculate_order_taxes_via_taxjar( $args, $order ) {
+		// Skip if TaxJar already ran for this request (cart/checkout path populated response_rate_ids).
+		if ( ! empty( $this->response_rate_ids ) ) {
+			return;
+		}
+
+		// Skip if admin AJAX — handled by calculate_backend_totals().
+		if ( wp_doing_ajax() ) {
+			return;
+		}
+
+		// Skip if new order being created from scratch (no existing taxes to recalculate).
+		if ( ! $order->get_id() ) {
+			return;
+		}
 	}
 }

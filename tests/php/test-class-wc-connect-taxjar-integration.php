@@ -1169,4 +1169,41 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEmpty( $result['line_items'] );
 		$this->assertEquals( 0, $result['has_nexus'] );
 	}
+
+	/**
+	 * Test that calculate_order_taxes_via_taxjar skips when response_rate_ids already set (cart path ran).
+	 */
+	public function test_calculate_order_taxes_skips_when_response_rate_ids_populated() {
+		// Arrange: pre-populate response_rate_ids as the cart path would.
+		$this->set_private_property( 'response_rate_ids', array( 'product-key' => array( 1, 2 ) ) );
+
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		// Assert: get_id() should never be called if gate triggers.
+		$order->expects( $this->never() )->method( 'get_id' );
+
+		// Act.
+		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
+	}
+
+	/**
+	 * Test that calculate_order_taxes_via_taxjar skips when order ID is 0 (new order).
+	 */
+	public function test_calculate_order_taxes_skips_when_order_id_is_zero() {
+		// Arrange: response_rate_ids is empty (REST context).
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->getMock();
+		$order->method( 'get_id' )->willReturn( 0 );
+
+		// Assert: get_shipping_country() should never be called if gate triggers.
+		$order->expects( $this->never() )->method( 'get_shipping_country' );
+
+		// Act.
+		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
+	}
 }
