@@ -78,6 +78,22 @@ class WC_Connect_TaxJar_Integration {
 	private $backend_tax_classes;
 
 	/**
+	 * Whether TaxJar API recalculation failed on the current order update.
+	 *
+	 * @since x.x.x
+	 * @var bool
+	 */
+	private $taxjar_recalculation_failed = false;
+
+	/**
+	 * Snapshotted tax state saved before a non-cart recalculation, for fallback restore.
+	 *
+	 * @since x.x.x
+	 * @var array
+	 */
+	private $pre_recalculation_tax_snapshot = array();
+
+	/**
 	 * Tracks instance.
 	 *
 	 * @var WC_Connect_Tracks
@@ -214,6 +230,9 @@ class WC_Connect_TaxJar_Integration {
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
+
+		// Calculate taxes via TaxJar API for REST API / programmatic order updates.
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'calculate_order_taxes_via_taxjar' ), 10, 2 );
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
@@ -2159,5 +2178,19 @@ class WC_Connect_TaxJar_Integration {
 		if ( 'not set' === $to_state || 'not set' === $to_country || null === $has_nexus ) {
 			throw new Exception( sprintf( 'One or more values are not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', $to_state, $to_country, json_encode( $has_nexus ) ) );
 		}
+	}
+
+	/**
+	 * Calculate order taxes via TaxJar API for non-cart, non-admin contexts.
+	 *
+	 * Fires on woocommerce_order_before_calculate_taxes to intercept tax
+	 * recalculation triggered by REST API or direct programmatic calls to
+	 * $order->calculate_totals(), before WC's native find_rates() runs.
+	 *
+	 * @since x.x.x
+	 * @param array    $args  Args passed to calculate_taxes().
+	 * @param WC_Order $order The order being recalculated.
+	 */
+	public function calculate_order_taxes_via_taxjar( $args, $order ) {
 	}
 }

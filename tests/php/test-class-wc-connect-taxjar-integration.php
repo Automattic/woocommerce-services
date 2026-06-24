@@ -86,6 +86,29 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Test that calculate_order_taxes_via_taxjar hook is registered after init().
+	 */
+	public function test_calculate_order_taxes_hook_registered_after_init() {
+		// Arrange: enable automated taxes option so init() does not bail early.
+		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		// Act.
+		$this->integration->init();
+
+		// Assert.
+		$this->assertNotFalse(
+			has_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'calculate_order_taxes_via_taxjar' ) ),
+			'Hook woocommerce_order_before_calculate_taxes should be registered'
+		);
+
+		// Clean up.
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
+		delete_option( 'woocommerce_calc_taxes' );
+	}
+
+	/**
 	 * Helper to invoke protected methods via reflection.
 	 *
 	 * @param string $method_name Method name.
