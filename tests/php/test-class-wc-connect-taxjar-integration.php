@@ -1359,4 +1359,131 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		WC_Helper_Product::delete_product( $product->get_id() );
 		$order->delete( true );
 	}
+
+	// -------------------------------------------------------------------------
+	// calculate_order_taxes_via_taxjar() failure fallback tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test that API failure sets taxjar_recalculation_failed and registers restore hook.
+	 */
+	public function test_calculate_order_taxes_api_failure_registers_restore_hook() {
+		// Arrange.
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order = wc_create_order();
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'TX' );
+		$order->set_shipping_postcode( '78701' );
+		$order->save();
+
+		// Mock integration to make calculate_tax() return false.
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->getMock();
+		$integration->method( 'calculate_tax' )->willReturn( false );
+		$integration->method( 'get_backend_line_items' )->willReturn( array() );
+		$integration->method( '_log' )->willReturn( null );
+
+		foreach ( array( 'response_rate_ids', 'taxjar_recalculation_failed', 'pre_recalculation_tax_snapshot' ) as $prop ) {
+			$r = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $prop );
+			$r->setAccessible( true );
+			$r->setValue( $integration, is_string( $prop ) && 'taxjar_recalculation_failed' === $prop ? false : array() );
+		}
+
+		if ( is_null( WC()->customer ) ) {
+			WC()->customer = new WC_Customer( $order->get_customer_id() );
+		}
+
+		// Act.
+		$integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		// Assert: failure flag set.
+		$failed_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'taxjar_recalculation_failed' );
+		$failed_prop->setAccessible( true );
+		$this->assertTrue( $failed_prop->getValue( $integration ) );
+
+		// Assert: restore hook was registered.
+		$this->assertGreaterThan(
+			0,
+			has_action( 'woocommerce_order_after_calculate_totals' ),
+			'Restore hook should be registered on woocommerce_order_after_calculate_totals'
+		);
+
+		// Clean up.
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	/**
+	 * End-to-end test: when TaxJar API fails, original taxes are preserved.
+	 */
+	public function test_calculate_order_taxes_api_failure_preserves_existing_taxes() {
+		// Create order with a real tax line.
+		$product = WC_Helper_Product::create_simple_product();
+		$product->save();
+
+		$order = wc_create_order();
+		$order->add_product( $product, 1 );
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'TX' );
+		$order->set_shipping_postcode( '78701' );
+		$order->save();
+
+		// Add a TaxJar-style tax line.
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->save();
+
+		$this->assertCount( 1, $order->get_taxes() );
+
+		// Mock integration with failing API.
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->getMock();
+		$integration->method( 'calculate_tax' )->willReturn( false );
+		$integration->method( 'get_backend_line_items' )->willReturn( array() );
+		$integration->method( '_log' )->willReturn( null );
+
+		foreach ( array( 'response_rate_ids', 'taxjar_recalculation_failed', 'pre_recalculation_tax_snapshot' ) as $prop ) {
+			$r = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $prop );
+			$r->setAccessible( true );
+			$r->setValue( $integration, 'taxjar_recalculation_failed' === $prop ? false : array() );
+		}
+
+		if ( is_null( WC()->customer ) ) {
+			WC()->customer = new WC_Customer( $order->get_customer_id() );
+		}
+
+		// Simulate the full flow: run our hook, then wipe taxes (as WC would), then trigger after hook.
+		$integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		// Simulate WC wiping taxes (what update_taxes() does when no rates found).
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_cart_tax( 0 );
+		$order->save();
+		$this->assertCount( 0, $order->get_taxes() );
+
+		// Simulate woocommerce_order_after_calculate_totals firing.
+		do_action( 'woocommerce_order_after_calculate_totals', true, $order );
+
+		// Assert: tax line was restored.
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $restored->get_taxes() );
+		$restored_tax = reset( $restored->get_taxes() );
+		$this->assertEquals( 6, $restored_tax->get_rate_id() );
+		$this->assertEquals( '1.76', $restored_tax->get_tax_total() );
+
+		// Clean up.
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		WC_Helper_Product::delete_product( $product->get_id() );
+		$order->delete( true );
+	}
 }
