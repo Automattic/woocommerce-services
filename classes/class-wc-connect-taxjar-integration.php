@@ -86,6 +86,15 @@ class WC_Connect_TaxJar_Integration {
 	private $taxjar_recalculation_failed = false;
 
 	/**
+	 * Whether response_rate_ids was populated by calculate_order_taxes_via_taxjar()
+	 * (as opposed to the cart/checkout path). Used to detect stale state in batch requests.
+	 *
+	 * @since x.x.x
+	 * @var bool
+	 */
+	private $response_rate_ids_from_order = false;
+
+	/**
 	 * Snapshotted tax state saved before a non-cart recalculation, for fallback restore.
 	 *
 	 * @since x.x.x
@@ -2195,7 +2204,16 @@ class WC_Connect_TaxJar_Integration {
 		// Reset failure flag from any previous call.
 		$this->taxjar_recalculation_failed = false;
 
-		// Skip if TaxJar already ran for this request (cart/checkout path populated response_rate_ids).
+		// If response_rate_ids was set by a previous order in this process (e.g. batch REST
+		// request or programmatic loop), clear it so each order gets its own TaxJar call.
+		// We do NOT clear when the cart/checkout path set response_rate_ids (that flag stays false).
+		if ( $this->response_rate_ids_from_order ) {
+			$this->response_rate_ids          = null;
+			$this->response_line_items        = null;
+			$this->response_rate_ids_from_order = false;
+		}
+
+		// Skip if TaxJar already ran for this request via the cart/checkout path.
 		if ( ! empty( $this->response_rate_ids ) ) {
 			return;
 		}
@@ -2214,6 +2232,8 @@ class WC_Connect_TaxJar_Integration {
 		$this->pre_recalculation_tax_snapshot = $this->snapshot_order_taxes( $order );
 
 		// Ensure WC customer object is available (may be null in REST/CLI context).
+		// Save and restore the previous value to avoid polluting global state across orders.
+		$previous_customer = WC()->customer;
 		if ( is_null( WC()->customer ) ) {
 			WC()->customer = new WC_Customer( $order->get_customer_id() );
 		}
@@ -2242,25 +2262,29 @@ class WC_Connect_TaxJar_Integration {
 			)
 		);
 
+		// Restore customer regardless of outcome to avoid cross-order contamination.
+		WC()->customer = $previous_customer;
+
 		if ( false === $taxes ) {
 			$this->_log( 'TaxJar API failed for order ' . $order->get_id() . '. Preserving existing taxes as fallback.' );
 			$this->taxjar_recalculation_failed = true;
 			$snapshot                          = $this->pre_recalculation_tax_snapshot;
-			add_action(
-				'woocommerce_order_after_calculate_totals',
-				function ( $and_taxes, $updated_order ) use ( $order, $snapshot ) {
-					if ( $updated_order->get_id() === $order->get_id() ) {
-						$this->restore_order_taxes( $updated_order, $snapshot );
-					}
-				},
-				10,
-				2
-			);
+			// Use a named variable so the closure can remove itself after firing once
+			// for the matching order, preventing it from persisting on the hook indefinitely.
+			$restore_callback = null;
+			$restore_callback = function ( $and_taxes, $updated_order ) use ( $order, $snapshot, &$restore_callback ) {
+				if ( $updated_order->get_id() === $order->get_id() ) {
+					remove_action( 'woocommerce_order_after_calculate_totals', $restore_callback, 10 );
+					$this->restore_order_taxes( $updated_order, $snapshot );
+				}
+			};
+			add_action( 'woocommerce_order_after_calculate_totals', $restore_callback, 10, 2 );
 			return;
 		}
 
-		$this->response_rate_ids   = $taxes['rate_ids'];
-		$this->response_line_items = $taxes['line_items'];
+		$this->response_rate_ids            = $taxes['rate_ids'];
+		$this->response_line_items          = $taxes['line_items'];
+		$this->response_rate_ids_from_order = true;
 
 		// Adjust line_total on response_line_items to match what override_woocommerce_tax_rates expects.
 		if ( isset( $this->response_line_items ) ) {

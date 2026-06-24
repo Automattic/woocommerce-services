@@ -1190,6 +1190,67 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Test that stale response_rate_ids from a previous order (batch context) are cleared
+	 * so each order in a batch gets its own TaxJar call.
+	 */
+	public function test_calculate_order_taxes_clears_stale_order_state_in_batch() {
+		// Arrange: simulate state left over from a previous order in the same batch.
+		$this->set_private_property( 'response_rate_ids', array( 'old-product-key' => array( 99 ) ) );
+		$this->set_private_property( 'response_rate_ids_from_order', true );
+
+		// Use an order with ID 0 to short-circuit after the clear, keeping the test simple.
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'get_id' ) )
+			->getMock();
+		$order->method( 'get_id' )->willReturn( 0 );
+
+		// Act.
+		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		// Assert: stale state was cleared before the new order was evaluated.
+		$prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids' );
+		$prop->setAccessible( true );
+		$this->assertEmpty( $prop->getValue( $this->integration ) );
+
+		$flag_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids_from_order' );
+		$flag_prop->setAccessible( true );
+		$this->assertFalse( $flag_prop->getValue( $this->integration ) );
+	}
+
+	/**
+	 * Test that calculate_order_taxes_via_taxjar restores WC()->customer to its
+	 * previous value after the API call, preventing cross-order contamination.
+	 */
+	public function test_calculate_order_taxes_restores_wc_customer_after_call() {
+		$previous_customer = WC()->customer;
+
+		// Ensure WC()->customer is null so our code creates a temporary one.
+		WC()->customer = null;
+
+		$order = wc_create_order();
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->getMock();
+		$integration->method( 'calculate_tax' )->willReturn( false );
+		$integration->method( 'get_backend_line_items' )->willReturn( array() );
+		$integration->method( '_log' )->willReturn( null );
+
+		// Act.
+		$integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		// Assert: WC()->customer is restored to null (its value before the call).
+		$this->assertNull( WC()->customer );
+
+		// Clean up.
+		WC()->customer = $previous_customer;
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	/**
 	 * Test that calculate_order_taxes_via_taxjar skips when order ID is 0 (new order).
 	 */
 	public function test_calculate_order_taxes_skips_when_order_id_is_zero() {
