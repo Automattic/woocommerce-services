@@ -2351,7 +2351,7 @@ class WC_Connect_TaxJar_Integration {
 		// Re-add tax lines from snapshot.
 		foreach ( $snapshot['tax_lines'] as $tax_data ) {
 			$tax_item = new WC_Order_Item_Tax();
-			$tax_item->set_rate( $tax_data['rate_id'] );
+			$tax_item->set_rate_id( $tax_data['rate_id'] );
 			$tax_item->set_tax_total( $tax_data['tax_total'] );
 			$tax_item->set_shipping_tax_total( $tax_data['shipping_tax_total'] );
 			$order->add_item( $tax_item );

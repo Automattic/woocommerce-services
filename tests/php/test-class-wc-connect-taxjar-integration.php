@@ -35,6 +35,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-logger.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-custom-surcharge.php';
 	}
 
 	/**
@@ -1302,7 +1303,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$restored_order = wc_get_order( $order->get_id() );
 		$this->assertCount( 1, $restored_order->get_taxes() );
 
-		$restored_tax = reset( $restored_order->get_taxes() );
+		$taxes_list   = $restored_order->get_taxes();
+		$restored_tax = reset( $taxes_list );
 		$this->assertEquals( 6, $restored_tax->get_rate_id() );
 		$this->assertEquals( '1.76', $restored_tax->get_tax_total() );
 
@@ -1349,7 +1351,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
 			->getMock();
 		$integration->method( 'get_backend_line_items' )->willReturn( array() );
 		$integration->method( 'calculate_tax' )->willReturn( $fake_taxes );
@@ -1396,7 +1398,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_calculate_order_taxes_sets_failure_flag_on_api_error() {
 		$order       = wc_create_order();
 		$integration = $this->getMockBuilder( WC_Connect_TaxJar_Integration::class )
-			->setConstructorArgs( array( $this->mock_connect_api_client, $this->mock_error_notice, $this->mock_logger ) )
+			->disableOriginalConstructor()
 			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
 			->getMock();
 		$integration->method( 'calculate_tax' )->willReturn( false );
@@ -1425,7 +1427,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$order       = wc_create_order();
 		$integration = $this->getMockBuilder( WC_Connect_TaxJar_Integration::class )
-			->setConstructorArgs( array( $this->mock_connect_api_client, $this->mock_error_notice, $this->mock_logger ) )
+			->disableOriginalConstructor()
 			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
 			->getMock();
 		$integration->method( 'calculate_tax' )->willReturn( false );
@@ -1467,7 +1469,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Mock integration with failing API.
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
 			->getMock();
 		$integration->method( 'calculate_tax' )->willReturn( false );
 		$integration->method( 'get_backend_line_items' )->willReturn( array() );
@@ -1500,7 +1502,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Assert: tax line was restored.
 		$restored = wc_get_order( $order->get_id() );
 		$this->assertCount( 1, $restored->get_taxes() );
-		$restored_tax = reset( $restored->get_taxes() );
+		$taxes_list   = $restored->get_taxes();
+		$restored_tax = reset( $taxes_list );
 		$this->assertEquals( 6, $restored_tax->get_rate_id() );
 		$this->assertEquals( '1.76', $restored_tax->get_tax_total() );
 
