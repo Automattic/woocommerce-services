@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.7 - 2026-xx-xx =
+* Fix   - TaxJar tax lines wiped when REST API order update includes address change.
+
 = 3.6.6 - 2026-06-22 =
 * Tweak - WooCommerce 10.9 Compatibility.
 
