@@ -1406,16 +1406,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$integration->calculate_order_taxes_via_taxjar( array(), $order );
 
-		$props = ( new ReflectionClass( $integration ) )->getProperties( ReflectionProperty::IS_PRIVATE );
-		$flag  = false;
-		foreach ( $props as $prop ) {
-			if ( 'taxjar_recalculation_failed' === $prop->getName() ) {
-				$prop->setAccessible( true );
-				$flag = $prop->getValue( $integration );
-				break;
-			}
-		}
-		$this->assertTrue( $flag );
+		$prop = new ReflectionProperty( WC_Connect_TaxJar_Integration::class, 'taxjar_recalculation_failed' );
+		$prop->setAccessible( true );
+		$this->assertTrue( $prop->getValue( $integration ) );
 		$order->delete( true );
 	}
 
