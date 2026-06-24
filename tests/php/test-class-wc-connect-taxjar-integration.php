@@ -1365,53 +1365,50 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Test that API failure sets taxjar_recalculation_failed and registers restore hook.
+	 * Test that failure flag is set when TaxJar API fails.
 	 */
-	public function test_calculate_order_taxes_api_failure_registers_restore_hook() {
-		// Arrange.
-		$this->set_private_property( 'response_rate_ids', array() );
-
-		$order = wc_create_order();
-		$order->set_shipping_country( 'US' );
-		$order->set_shipping_state( 'TX' );
-		$order->set_shipping_postcode( '78701' );
-		$order->save();
-
-		// Mock integration to make calculate_tax() return false.
-		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
-			->disableOriginalConstructor()
-			->setMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+	public function test_calculate_order_taxes_sets_failure_flag_on_api_error() {
+		$order       = wc_create_order();
+		$integration = $this->getMockBuilder( WC_Connect_TaxJar_Integration::class )
+			->setConstructorArgs( array( $this->mock_connect_api_client, $this->mock_error_notice, $this->mock_logger ) )
+			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
 			->getMock();
 		$integration->method( 'calculate_tax' )->willReturn( false );
 		$integration->method( 'get_backend_line_items' )->willReturn( array() );
 		$integration->method( '_log' )->willReturn( null );
 
-		foreach ( array( 'response_rate_ids', 'taxjar_recalculation_failed', 'pre_recalculation_tax_snapshot' ) as $prop ) {
-			$r = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $prop );
-			$r->setAccessible( true );
-			$r->setValue( $integration, is_string( $prop ) && 'taxjar_recalculation_failed' === $prop ? false : array() );
-		}
-
-		if ( is_null( WC()->customer ) ) {
-			WC()->customer = new WC_Customer( $order->get_customer_id() );
-		}
-
-		// Act.
 		$integration->calculate_order_taxes_via_taxjar( array(), $order );
 
-		// Assert: failure flag set.
-		$failed_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'taxjar_recalculation_failed' );
-		$failed_prop->setAccessible( true );
-		$this->assertTrue( $failed_prop->getValue( $integration ) );
+		$props = ( new ReflectionClass( $integration ) )->getProperties( ReflectionProperty::IS_PRIVATE );
+		$flag  = false;
+		foreach ( $props as $prop ) {
+			if ( 'taxjar_recalculation_failed' === $prop->getName() ) {
+				$prop->setAccessible( true );
+				$flag = $prop->getValue( $integration );
+				break;
+			}
+		}
+		$this->assertTrue( $flag );
+		$order->delete( true );
+	}
 
-		// Assert: restore hook was registered.
-		$this->assertGreaterThan(
-			0,
-			has_action( 'woocommerce_order_after_calculate_totals' ),
-			'Restore hook should be registered on woocommerce_order_after_calculate_totals'
-		);
+	/**
+	 * Test that restore hook is registered when TaxJar API fails.
+	 */
+	public function test_calculate_order_taxes_registers_restore_hook_on_api_failure() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order       = wc_create_order();
+		$integration = $this->getMockBuilder( WC_Connect_TaxJar_Integration::class )
+			->setConstructorArgs( array( $this->mock_connect_api_client, $this->mock_error_notice, $this->mock_logger ) )
+			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
+			->getMock();
+		$integration->method( 'calculate_tax' )->willReturn( false );
+		$integration->method( 'get_backend_line_items' )->willReturn( array() );
+		$integration->method( '_log' )->willReturn( null );
 
-		// Clean up.
+		$integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		$this->assertGreaterThan( 0, has_action( 'woocommerce_order_after_calculate_totals' ) );
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$order->delete( true );
 	}
@@ -1419,7 +1416,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * End-to-end test: when TaxJar API fails, original taxes are preserved.
 	 */
-	public function test_calculate_order_taxes_api_failure_preserves_existing_taxes() {
+	public function test_calculate_order_taxes_preserves_existing_taxes_on_api_failure() {
 		// Create order with a real tax line.
 		$product = WC_Helper_Product::create_simple_product();
 		$product->save();
