@@ -3,6 +3,6 @@
 	<description>WooCommerce Shipping &amp; Tax dev PHP_CodeSniffer ruleset. Aggregator: imports the three concern-specific rulesets so `composer run check-all` runs them together.</description>
 
 	<rule ref="./.phpcs.php.xml"/>
-	<rule ref="./.phpcs.l18n.xml"/>
+	<rule ref="./.phpcs.identity.xml"/>
 	<rule ref="./.phpcs.security.xml"/>
 </ruleset>

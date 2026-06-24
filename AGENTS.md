@@ -38,13 +38,13 @@ composer check-all
 ## Linting (PHPCS) — split by concern
 The PHPCS ruleset is split into concern-specific files, all importing `.phpcs.common.xml` (shared file/exclude/arg/config). Run `check-all` (the `phpcs.xml.dist` aggregator) before pushing, or a single scope while iterating:
 ```bash
-composer run check-all          # Aggregator (phpcs.xml.dist): runs security + l18n + php together
+composer run check-all          # Aggregator (phpcs.xml.dist): runs security + identity + php together
 composer run check-php          # Generic PHP rules only (WC-Core + WP-Core/Extra/Docs, minus security & i18n)
 composer run check-php:fix      # Auto-fix for the check-php scope
 composer run check-security     # Security sniffs (escaping, sanitization, nonces, eval)
-composer run check-l18n         # Plugin identity: text_domain (i18n) + global prefix whitelist
+composer run check-identity     # Plugin identity: text_domain (i18n) + global prefix whitelist
 ```
-The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) still auto-fixes staged PHP independently of these scopes.
+The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) auto-fixes staged PHP using the same `phpcs.xml.dist` aggregator, so pre-commit fixes stay aligned with `check-all`.
 
 ## Key Conventions
 - Base new behavior on tax-only mode rules and existing shipping eligibility checks.

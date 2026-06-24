@@ -40,8 +40,8 @@
 		"check-security": [
 			"./vendor/bin/phpcs --standard=./.phpcs.security.xml --report-full --report-summary -s"
 		],
-		"check-l18n": [
-			"./vendor/bin/phpcs --standard=./.phpcs.l18n.xml --report-full --report-summary -s"
+		"check-identity": [
+			"./vendor/bin/phpcs --standard=./.phpcs.identity.xml --report-full --report-summary -s"
 		],
 		"check-php": [
 			"./vendor/bin/phpcs --standard=./.phpcs.php.xml --report-full --report-summary -s"
@@ -56,10 +56,10 @@
 			"./vendor/bin/phpcbf --standard=./phpcs.xml.dist --report-full --report-summary"
 		],
 		"phpcbf": [
-			"./vendor/bin/phpcbf . -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra "
+			"@check-all:fix"
 		],
 		"phpcs": [
-			"./vendor/bin/phpcs . -s -p --ignore=vendor,.git,assets,node_modules,dist,docker,release,bin,wp-calypso --standard=WooCommerce-Core,WordPress-Core,WordPress-Extra"
+			"@check-all"
 		],
 		"qit:security": [
 			"npm run build && composer install && ./vendor/bin/qit run:security woocommerce-services --zip=woocommerce-services.zip"

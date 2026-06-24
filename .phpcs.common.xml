@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="WooCommerce Shipping &amp; Tax — common">
-	<description>Shared file/exclude/arg/config for all WooCommerce Shipping &amp; Tax PHPCS rulesets. Imported by .phpcs.security.xml, .phpcs.l18n.xml, and .phpcs.php.xml so settings stay in one place.</description>
+	<description>Shared file/exclude/arg/config for all WooCommerce Shipping &amp; Tax PHPCS rulesets. Imported by .phpcs.security.xml, .phpcs.identity.xml, and .phpcs.php.xml so settings stay in one place.</description>
 
 	<file>.</file>
 
