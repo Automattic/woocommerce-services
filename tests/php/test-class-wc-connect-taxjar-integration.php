@@ -1212,12 +1212,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * Test that calculate_order_taxes_via_taxjar skips when wp_doing_ajax() is true.
 	 */
 	public function test_calculate_order_taxes_skips_when_doing_ajax() {
-		if ( ! defined( 'DOING_AJAX' ) ) {
-			define( 'DOING_AJAX', true );
-		}
-		if ( ! DOING_AJAX ) {
-			$this->markTestSkipped( 'DOING_AJAX constant cannot be overridden in this environment.' );
-		}
+		// Use a filter instead of define() — constants pollute the entire test run.
+		add_filter( 'wp_doing_ajax', '__return_true' );
 
 		// Arrange: response_rate_ids is empty so the first gate does not trigger.
 		$this->set_private_property( 'response_rate_ids', array() );
@@ -1232,6 +1228,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Act.
 		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
+
+		// Clean up.
+		remove_filter( 'wp_doing_ajax', '__return_true' );
 	}
 
 	// -------------------------------------------------------------------------
