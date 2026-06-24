@@ -39,4 +39,4 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC30' ) ) {
 			return wc_get_order( $post_or_order_object->ID );
 		}
 	}
-}
+}//end if

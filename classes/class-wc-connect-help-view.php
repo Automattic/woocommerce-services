@@ -2,33 +2,54 @@
 
 if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
+	/**
+	 * Renders the WooCommerce Tax help/status admin view.
+	 */
 	class WC_Connect_Help_View {
 
 		/**
+		 * Service schemas store instance.
+		 *
 		 * @var WC_Connect_Service_Schemas_Store
 		 */
 		protected $service_schemas_store;
 
 		/**
+		 * Service settings store instance.
+		 *
 		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $service_settings_store;
 
 		/**
+		 * Logger instance.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
 
 		/**
+		 * TaxJar integration instance.
+		 *
 		 * @var WC_Connect_TaxJar_Integration
 		 */
 		protected $taxjar_integration;
 
 		/**
-		 * @array
+		 * Form fieldsets.
+		 *
+		 * @var array
 		 */
 		protected $fieldsets;
 
+		/**
+		 * WC_Connect_Help_View constructor.
+		 *
+		 * @param WC_Connect_Service_Schemas_Store  $service_schemas_store  Service schemas store instance.
+		 * @param WC_Connect_TaxJar_Integration     $taxjar_integration     TaxJar integration instance.
+		 * @param WC_Connect_Service_Settings_Store $service_settings_store Service settings store instance.
+		 * @param WC_Connect_Logger                 $logger                 Logger instance.
+		 */
 		public function __construct(
 			WC_Connect_Service_Schemas_Store $service_schemas_store,
 			WC_Connect_TaxJar_Integration $taxjar_integration,
@@ -46,18 +67,24 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			add_action( 'wp_ajax_wcs_download_tax_backup', array( $this, 'handle_tax_backup_download' ) );
 		}
 
+		/**
+		 * Builds the list of system health items shown on the help page.
+		 *
+		 * @return array
+		 */
 		protected function get_health_items() {
 			$health_items = array();
 
-			// WooCommerce
-			// Only one of the following should present
-			// Check that WooCommerce is at least 2.6 or higher (feature-plugin only)
-			// Check that WooCommerce base_country is set
+			// WooCommerce.
+			// Only one of the following should present.
+			// Check that WooCommerce is at least 2.6 or higher (feature-plugin only).
+			// Check that WooCommerce base_country is set.
 			$base_country = WC()->countries->get_base_country();
 			if ( version_compare( WC()->version, WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION, '<' ) ) {
 				$health_item = array(
 					'state'   => 'error',
 					'message' => sprintf(
+						/* translators: %1$s: minimum required WooCommerce version, %2$s: currently running WooCommerce version */
 						__( 'WooCommerce %1$s or higher is required (You are running %2$s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
 						WC()->version
@@ -72,11 +99,12 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = array(
 					'state'   => 'success',
 					'message' => sprintf(
+						/* translators: %s: WooCommerce version */
 						__( 'WooCommerce %s is configured correctly', 'woocommerce-services' ),
 						WC()->version
 					),
 				);
-			}
+			}//end if
 			$health_items['woocommerce'] = $health_item;
 
 			if ( WC_Connect_Jetpack::is_offline_mode() ) {
@@ -99,15 +127,15 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'state'   => 'success',
 					'message' => __( 'Connected to WordPress.com', 'woocommerce-services' ),
 				);
-			}
+			}//end if
 			$health_items['wpcom_connection'] = $health_item;
 
-			// Automated taxes status
+			// Automated taxes status.
 			$health_items['automated_taxes'] = $this->get_tax_health_item();
 
-			// Lastly, do the WooCommerce Tax health check
-			// Check that we have schema
-			// Check that we are able to talk to the WooCommerce Tax server
+			// Lastly, do the WooCommerce Tax health check.
+			// Check that we have schema.
+			// Check that we are able to talk to the WooCommerce Tax server.
 			$schemas                              = $this->service_schemas_store->get_service_schemas();
 			$last_fetch_timestamp                 = $this->service_schemas_store->get_last_fetch_timestamp();
 			$health_items['woocommerce_services'] = array(
@@ -120,10 +148,20 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 			return $health_items;
 		}
 
+		/**
+		 * Determines whether the WooCommerce Shipping plugin is not active.
+		 *
+		 * @return bool
+		 */
 		protected function is_shipping_loaded() {
 			return ! in_array( 'woocommerce-shipping/woocommerce-shipping.php', get_option( 'active_plugins' ) );
 		}
 
+		/**
+		 * Builds the list of enabled shipping service status items.
+		 *
+		 * @return array|false
+		 */
 		protected function get_services_items() {
 			$available_service_method_ids = $this->service_schemas_store->get_all_shipping_method_ids();
 			if ( empty( $available_service_method_ids ) ) {
@@ -148,7 +186,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					)
 				);
 
-				// Figure out if the service has any settings saved at all
+				// Figure out if the service has any settings saved at all.
 				$service_settings = $this->service_settings_store->get_service_settings( $enabled_service->method_id, $enabled_service->instance_id );
 				if ( empty( $service_settings ) ) {
 					$state   = 'error';
@@ -165,6 +203,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				}
 
 				$subtitle = sprintf(
+					/* translators: %s: shipping zone name */
 					__( '%s Shipping Zone', 'woocommerce-services' ),
 					$enabled_service->zone_name
 				);
@@ -177,13 +216,16 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 					'timestamp' => $last_failed_request_timestamp,
 					'url'       => $service_settings_url,
 				);
-			}
+			}//end foreach
 
 			return $service_items;
 		}
 
 		/**
-		 * Gets the last 10 lines from the WooCommerce Tax log by feature, if it exists
+		 * Gets the last 10 lines from the WooCommerce Tax log by feature, if it exists.
+		 *
+		 * @param string $feature Optional. Feature slug used to scope the log file lookup.
+		 * @return array
 		 */
 		protected function get_debug_log_data( $feature = '' ) {
 			$data       = new stdClass();
@@ -246,9 +288,9 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		/**
-		 * Filters the WooCommerce System Status Tabs to add connect
+		 * Filters the WooCommerce System Status Tabs to add connect.
 		 *
-		 * @param array $tabs
+		 * @param array $tabs Existing system status tabs.
 		 * @return array
 		 */
 		public function status_tabs( $tabs ) {
@@ -297,6 +339,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				</h2>
 			<?php
 
+			/**
+			 * Enqueues a WooCommerce Connect admin script with localized data.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param string $script_handle The handle of the script to enqueue.
+			 * @param array  $data          Data to localize for the script.
+			 */
 			do_action(
 				'enqueue_wc_connect_script',
 				'wc-connect-admin-status',
@@ -307,6 +357,14 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 
 			// Shipping related.
 			if ( WC_Connect_Loader::should_load_shipping_features() ) {
+				/**
+				 * Enqueues a WooCommerce Connect admin script with localized data.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param string $script_handle The handle of the script to enqueue.
+				 * @param array  $data          Data to localize for the script.
+				 */
 				do_action(
 					'enqueue_wc_connect_script',
 					'wc-connect-admin-test-print',
@@ -320,6 +378,8 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 
 		/**
+		 * Builds the automated taxes health status item.
+		 *
 		 * @return array
 		 */
 		protected function get_tax_health_item() {
@@ -328,6 +388,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				return array(
 					'state'              => 'error',
 					'settings_link_type' => '',
+					/* translators: %s: store country code */
 					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automated taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
 				);
 			}
@@ -409,4 +470,4 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 		}
 	}
 
-}
+}//end if

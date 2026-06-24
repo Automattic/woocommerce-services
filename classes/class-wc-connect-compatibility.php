@@ -95,6 +95,5 @@ if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
 		 * @return bool|WC_Order|WC_Order_Refund.
 		 */
 		abstract public function init_theorder_object( $post_or_order_object );
-
 	}
-}
+}//end if

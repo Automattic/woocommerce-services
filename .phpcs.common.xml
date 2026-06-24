@@ -16,6 +16,10 @@
 	<exclude-pattern>release/</exclude-pattern>
 	<exclude-pattern>bin/</exclude-pattern>
 	<exclude-pattern>wp-calypso/</exclude-pattern>
+	<!-- Generated build artifact: i18n/strings.php is emitted by the i18n build
+	     ("THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY.") and is gitignored. Same
+	     class as dist/ and assets/ above; never hand-edited, so not lintable. -->
+	<exclude-pattern>i18n/</exclude-pattern>
 
 	<!-- Show progress + source codes; colors; PHP only. -->
 	<arg value="ps"/>

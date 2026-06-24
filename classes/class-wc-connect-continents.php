@@ -8,13 +8,16 @@ if ( class_exists( 'WC_Connect_Continents' ) ) {
 	return;
 }
 
+/**
+ * Builds continent, country, and state data for the REST API responses.
+ */
 class WC_Connect_Continents {
 
 	/**
 	 * Return the list of countries and states for a given continent.
 	 *
 	 * @since  3.1.0
-	 * @param  string $continent_code
+	 * @param  string $continent_code The continent code to look up.
 	 * @return array|mixed Response data, ready for insertion into collection data.
 	 */
 	public function get_continent( $continent_code = false ) {
@@ -43,9 +46,9 @@ class WC_Connect_Continents {
 					'name' => $countries[ $country_code ],
 				);
 
-				// If we have detailed locale information include that in the response
+				// If we have detailed locale information include that in the response.
 				if ( array_key_exists( $country_code, $locale_info ) ) {
-					// Defensive programming against unexpected changes in locale-info.php
+					// Defensive programming against unexpected changes in locale-info.php.
 					$country_data = wp_parse_args(
 						$locale_info[ $country_code ],
 						array(
@@ -73,7 +76,7 @@ class WC_Connect_Continents {
 				}
 				$country['states'] = $local_states;
 
-				// Allow only desired keys (e.g. filter out tax rates)
+				// Allow only desired keys (e.g. filter out tax rates).
 				$allowed = array(
 					'code',
 					'currency_code',
@@ -89,14 +92,19 @@ class WC_Connect_Continents {
 				$country = array_intersect_key( $country, array_flip( $allowed ) );
 
 				$local_countries[] = $country;
-			}
-		}
+			}//end if
+		}//end foreach
 
 		$continent['countries'] = $local_countries;
 		return $continent;
 	}
 
 
+	/**
+	 * Return the list of continents with their countries and states.
+	 *
+	 * @return array The list of continents.
+	 */
 	public function get() {
 		$continents = array();
 		foreach ( array_keys( WC()->countries->get_continents() ) as $continent_code ) {

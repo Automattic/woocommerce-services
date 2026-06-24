@@ -1,8 +1,8 @@
 <?php
 
 if ( ! class_exists( 'WC_Connect_Compatibility' ) ) {
-	require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php';
-	require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-utils.php';
+	require_once __DIR__ . '/../../classes/class-wc-connect-compatibility.php';
+	require_once __DIR__ . '/../../classes/class-wc-connect-utils.php';
 }
 
 class WP_Test_WC_Services_Compatibility extends WC_Unit_Test_Case {

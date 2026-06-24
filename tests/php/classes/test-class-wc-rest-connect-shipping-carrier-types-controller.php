@@ -20,11 +20,11 @@ class WP_Test_WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_Unit_
 	 * @inherit
 	 */
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-logger.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-base-controller.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-shipping-carrier-types-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-base-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-shipping-carrier-types-controller.php';
 	}
 
 	/**
@@ -36,7 +36,7 @@ class WP_Test_WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_Unit_
 		// Creating a mock class and overide protected request method so that we can mock the API response.
 		$this->api_client_mock = $this->getMockBuilder( WC_Connect_API_Client_Live::class )
 			->disableOriginalConstructor()
-			->setMethods( [ 'request' ] )
+			->setMethods( array( 'request' ) )
 			->getMock();
 
 		$this->setting_store_mock  = $this->createMock( WC_Connect_Service_Settings_Store::class );
@@ -57,10 +57,10 @@ class WP_Test_WC_REST_Connect_Shipping_Carrier_Types_Controller extends WC_Unit_
 
 		$wc_connect_shipping_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client_mock, $this->setting_store_mock, $this->connect_logger_mock );
 		$actual                                       = $wc_connect_shipping_carrier_types_controller->get();
-		$expected                                     = [
+		$expected                                     = array(
 			'success'  => true,
 			'carriers' => $api_client_response->carriers,
-		];
+		);
 
 		$this->assertEquals( 200, $actual->status );
 		$this->assertEquals( $expected, $actual->data );

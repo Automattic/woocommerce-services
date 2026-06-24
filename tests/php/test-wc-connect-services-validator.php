@@ -37,7 +37,6 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 			),
 			'boxes'    => new stdClass(),
 		);
-
 	}
 
 	public function set_up() {
@@ -52,13 +51,11 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 		if ( ! is_a( $this->validator, 'WC_Connect_Service_Schemas_Validator' ) ) {
 			$this->validator = new WC_Connect_Service_Schemas_Validator();
 		}
-
 	}
 
 	public function test_class_exists() {
 
 		$this->assertTrue( class_exists( 'WC_Connect_Service_Schemas_Validator' ) );
-
 	}
 
 	public function validate_services_errors_provider() {
@@ -156,7 +153,6 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 			'service settings properties should have title' => array( $service_settings_title_required, 'service_properties_missing_required_property' ),
 			'boxes should be an object'                    => array( $service_settings_boxes_required, 'boxes_not_object' ),
 		);
-
 	}
 
 	/**
@@ -169,7 +165,6 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 
 		$this->assertWPError( $result );
 		$this->assertEquals( $expected, $result->get_error_code() );
-
 	}
 
 	/**
@@ -182,7 +177,5 @@ class WP_Test_WC_Connect_Service_Schemas_Validator extends WC_Unit_Test_Case {
 
 		$this->assertNotWPError( $result );
 		$this->assertTrue( $result );
-
 	}
-
 }

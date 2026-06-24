@@ -153,16 +153,16 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	);
 
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-compatibility.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-shipping-label.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-payment-methods-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-account-settings.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-package-settings.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-continents.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-compatibility.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-shipping-label.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-service-schemas-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-payment-methods-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-account-settings.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-package-settings.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-continents.php';
 
 		WC_Connect_Compatibility::set_version( '3.0.0' );
 	}
@@ -170,9 +170,9 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 	private function get_shipping_label( $api_client = false, $settings_store = false, $service_schemas_store = false, $payment_methods_store = false ) {
 		if ( ! $settings_store ) {
 			$settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
-				 ->disableOriginalConstructor()
-				 ->setMethods( null )
-				 ->getMock();
+				->disableOriginalConstructor()
+				->setMethods( null )
+				->getMock();
 		}
 
 		if ( ! $api_client ) {
@@ -668,12 +668,18 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 
 	public function test_shipment_for_items_with_big_quantity_is_capped() {
 
-		add_filter( 'wc_connect_shipment_item_quantity_threshold', function (){
-			return 20;
-		} );
-		add_filter( 'wc_connect_max_shipments_if_quantity_exceeds_threshold', function (){
-			return 5;
-		} );
+		add_filter(
+			'wc_connect_shipment_item_quantity_threshold',
+			function () {
+				return 20;
+			}
+		);
+		add_filter(
+			'wc_connect_max_shipments_if_quantity_exceeds_threshold',
+			function () {
+				return 5;
+			}
+		);
 
 		$product_A = $this->create_simple_product();
 		$product_A->save();
@@ -691,15 +697,17 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		$order->add_product( $product_B, 19 );
 		$order->save();
 
-		$shipping_label  = $this->get_shipping_label();
-		$all_items       = $shipping_label->get_all_items( $order );
+		$shipping_label = $this->get_shipping_label();
+		$all_items      = $shipping_label->get_all_items( $order );
 
 		$all_items_of_product_A_type = array_values(
-				array_filter( $all_items, function ($item) use($product_A) {
+			array_filter(
+				$all_items,
+				function ( $item ) use ( $product_A ) {
 					return $item['product_id'] === $product_A->get_id();
-				})
+				}
+			)
 		);
-
 
 		/**
 		 * An item with quantity = 32 would yield 5 shipments all having 6 quantity and  the last shipment having 8.
@@ -712,16 +720,19 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		$this->assertEquals( 8, $all_items_of_product_A_type[4]['quantity'] );
 
 		$all_items_of_product_B_type = array_values(
-			array_filter( $all_items, function ($item) use( $product_B ) {
-				return $item['product_id'] === $product_B->get_id();
-			})
+			array_filter(
+				$all_items,
+				function ( $item ) use ( $product_B ) {
+					return $item['product_id'] === $product_B->get_id();
+				}
+			)
 		);
 
 		/**
 		 * Everything remains like before for the order item with quantity NOT exceeding the threshold
 		 * e.g. each split will have quantity = 1, and we'll 19 splits.
 		 */
-		$this->assertEquals(19, count( $all_items_of_product_B_type ) );
+		$this->assertEquals( 19, count( $all_items_of_product_B_type ) );
 		foreach ( $all_items_of_product_B_type as $item ) {
 			$this->assertEquals( 1, $item['quantity'] );
 		}

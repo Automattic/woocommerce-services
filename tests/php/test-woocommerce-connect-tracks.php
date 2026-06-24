@@ -7,16 +7,16 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 	protected $jetpack_tracker;
 
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-options.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-options.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-tracks.php';
 	}
 
 	public function set_up() {
 		$this->jetpack_tracker = $this->createMock( Automattic\Jetpack\Tracking::class );
 		$this->logger          = $this->getMockBuilder( 'WC_Connect_Logger' )
-									  ->disableOriginalConstructor()
-									  ->setMethods( array( 'log' ) )
-									  ->getMock();
+										->disableOriginalConstructor()
+										->setMethods( array( 'log' ) )
+										->getMock();
 
 		$this->tracks = new WC_Connect_Tracks( $this->logger, __FILE__ );
 		$this->tracks->init();
@@ -24,7 +24,7 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 
 	public function test_record_user_event() {
 		$this->logger->expects( $this->once() )
-					 ->method( 'log' )
+					->method( 'log' )
 					->with(
 						$this->stringContains( 'woocommerceconnect_test' )
 					);
@@ -37,20 +37,20 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 			),
 			$this->callback(
 				function ( $argument ) {
-					return $argument === 'woocommerceconnect_test';
+					return 'woocommerceconnect_test' === $argument;
 				}
 			),
 			$this->callback(
 				function ( $argument ) {
 					return is_array( $argument ) &&
-					  isset( $argument['_via_ua'] ) &&
-					  isset( $argument['_via_ip'] ) &&
-					  isset( $argument['_lg'] ) &&
-					  isset( $argument['blog_url'] ) &&
-					  isset( $argument['blog_id'] ) &&
-					  isset( $argument['jetpack_version'] ) &&
-					  isset( $argument['wc_version'] ) &&
-					  isset( $argument['wp_version'] );
+						isset( $argument['_via_ua'] ) &&
+						isset( $argument['_via_ip'] ) &&
+						isset( $argument['_lg'] ) &&
+						isset( $argument['blog_url'] ) &&
+						isset( $argument['blog_id'] ) &&
+						isset( $argument['jetpack_version'] ) &&
+						isset( $argument['wc_version'] ) &&
+						isset( $argument['wp_version'] );
 				}
 			)
 		);
@@ -60,7 +60,7 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 
 	public function test_opted_in() {
 		$this->logger->expects( $this->once() )
-					 ->method( 'log' )
+					->method( 'log' )
 					->with(
 						$this->stringContains( 'woocommerceconnect_opted_in' )
 					);
@@ -73,20 +73,20 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 			),
 			$this->callback(
 				function ( $argument ) {
-					return $argument === 'woocommerceconnect_opted_in';
+					return 'woocommerceconnect_opted_in' === $argument;
 				}
 			),
 			$this->callback(
 				function ( $argument ) {
 					return is_array( $argument ) &&
-					  isset( $argument['_via_ua'] ) &&
-					  isset( $argument['_via_ip'] ) &&
-					  isset( $argument['_lg'] ) &&
-					  isset( $argument['blog_url'] ) &&
-					  isset( $argument['blog_id'] ) &&
-					  isset( $argument['jetpack_version'] ) &&
-					  isset( $argument['wc_version'] ) &&
-					  isset( $argument['wp_version'] );
+						isset( $argument['_via_ua'] ) &&
+						isset( $argument['_via_ip'] ) &&
+						isset( $argument['_lg'] ) &&
+						isset( $argument['blog_url'] ) &&
+						isset( $argument['blog_id'] ) &&
+						isset( $argument['jetpack_version'] ) &&
+						isset( $argument['wc_version'] ) &&
+						isset( $argument['wp_version'] );
 				}
 			)
 		);
@@ -99,7 +99,7 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 		WC_Connect_Options::update_option( 'tos_accepted', true );
 
 		$this->logger->expects( $this->once() )
-					 ->method( 'log' )
+					->method( 'log' )
 					->with(
 						$this->stringContains( 'woocommerceconnect_opted_out' )
 					);
@@ -112,20 +112,20 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 			),
 			$this->callback(
 				function ( $argument ) {
-					return $argument === 'woocommerceconnect_opted_out';
+					return 'woocommerceconnect_opted_out' === $argument;
 				}
 			),
 			$this->callback(
 				function ( $argument ) {
 					return is_array( $argument ) &&
-					  isset( $argument['_via_ua'] ) &&
-					  isset( $argument['_via_ip'] ) &&
-					  isset( $argument['_lg'] ) &&
-					  isset( $argument['blog_url'] ) &&
-					  isset( $argument['blog_id'] ) &&
-					  isset( $argument['jetpack_version'] ) &&
-					  isset( $argument['wc_version'] ) &&
-					  isset( $argument['wp_version'] );
+						isset( $argument['_via_ua'] ) &&
+						isset( $argument['_via_ip'] ) &&
+						isset( $argument['_lg'] ) &&
+						isset( $argument['blog_url'] ) &&
+						isset( $argument['blog_id'] ) &&
+						isset( $argument['jetpack_version'] ) &&
+						isset( $argument['wc_version'] ) &&
+						isset( $argument['wp_version'] );
 				}
 			)
 		);
@@ -143,11 +143,11 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 
 		// Logger should NOT be called since user never opted in
 		$this->logger->expects( $this->never() )
-					 ->method( 'log' );
+					->method( 'log' );
 
 		// Jetpack tracker should NOT be called
 		$this->jetpack_tracker->expects( $this->never() )
-							   ->method( 'tracks_record_event' );
+								->method( 'tracks_record_event' );
 
 		// Call opted_out - should not send any event
 		$this->tracks->opted_out();
@@ -227,5 +227,4 @@ class WP_Test_WC_Connect_Tracks extends WC_Unit_Test_Case {
 
 		do_action( 'wc_connect_shipping_zone_method_status_toggled', 2, 'usps', 3, false );
 	}
-
 }

@@ -86,7 +86,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	public function test_class_exists() {
 
 		$this->assertTrue( class_exists( 'WC_Connect_Loader' ) );
-
 	}
 
 	/**
@@ -104,7 +103,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$attached = has_action( 'before_woocommerce_init', array( $loader, 'pre_wc_init' ) );
 		$this->assertNotFalse( $attached, 'WC_Connect_Loader::pre_wc_init() not attached to `before_woocommerce_init`.' );
-
 	}
 
 	/**
@@ -121,7 +119,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_logger( $logger );
 
 		$this->assertEquals( $logger, $loader->get_logger() );
-
 	}
 
 	/**
@@ -138,7 +135,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_api_client( $client );
 
 		$this->assertEquals( $client, $loader->get_api_client() );
-
 	}
 
 	/**
@@ -156,7 +152,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_service_schemas_store( $store );
 
 		$this->assertEquals( $store, $loader->get_service_schemas_store() );
-
 	}
 
 	/**
@@ -173,7 +168,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_service_schemas_validator( $validator );
 
 		$this->assertEquals( $validator, $loader->get_service_schemas_validator() );
-
 	}
 
 	/**
@@ -218,7 +212,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$this->assertEquals( $loader->get_logger(), $method->get_logger() );
 		$this->assertEquals( $loader->get_api_client(), $method->get_api_client() );
 		$this->assertEquals( $service_data, $method->get_service_schema() );
-
 	}
 
 	/**
@@ -229,7 +222,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$this->assertTrue( $loader->is_wc_connect_shipping_service( 'test_method_that_is_from_wc_connect' ) );
 		$this->assertFalse( $loader->is_wc_connect_shipping_service( 'test_method_that_is_not_from_wc_connect' ) );
-
 	}
 
 	/**
@@ -246,5 +238,4 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->shipping_zone_method_added( 3, 'test_method_that_is_from_wc_connect', 2 );
 		$this->assertEquals( 2, did_action( 'wc_connect_shipping_zone_method_added' ) );
 	}
-
 }

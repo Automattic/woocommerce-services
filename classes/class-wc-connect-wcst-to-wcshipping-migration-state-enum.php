@@ -17,6 +17,12 @@ class WC_Connect_WCST_To_WCShipping_Migration_State_Enum {
 	public const ERROR_DEACTIVATING = 11;
 	public const COMPLETED          = 12;
 
+	/**
+	 * Determines whether the given value is a valid migration state.
+	 *
+	 * @param mixed $state The value to validate against the known migration states.
+	 * @return bool True if the value is a valid migration state, false otherwise.
+	 */
 	public static function is_valid_value( $state ) {
 		$valid_states = array(
 			self::NOT_STARTED,

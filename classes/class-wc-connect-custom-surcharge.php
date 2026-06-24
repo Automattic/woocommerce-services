@@ -111,7 +111,7 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 				'wc_services_apply_us_co_retail_delivery_fee',
 				array(
 					'value' => 0.28,
-					'text'  => __( 'Retail Delivery Fee', 'woocommerce_services' ),
+					'text'  => __( 'Retail Delivery Fee', 'woocommerce-services' ),
 				),
 				$cart
 			);
@@ -124,4 +124,4 @@ if ( ! class_exists( 'WC_Connect_Custom_Surcharge' ) ) {
 			}
 		}
 	}
-}
+}//end if

@@ -44,5 +44,4 @@ class WC_REST_Connect_Shipping_Label_Refund_Controller extends WC_REST_Connect_B
 			'refund'  => $response->refund,
 		);
 	}
-
 }

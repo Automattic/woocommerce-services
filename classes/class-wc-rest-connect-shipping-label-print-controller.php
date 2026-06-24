@@ -65,5 +65,4 @@ class WC_REST_Connect_Shipping_Label_Print_Controller extends WC_REST_Connect_Ba
 			die();
 		}
 	}
-
 }

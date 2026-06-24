@@ -2,23 +2,39 @@
 
 if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
+	/**
+	 * Stores and retrieves WooCommerce Connect service settings.
+	 */
 	class WC_Connect_Service_Settings_Store {
 
 		/**
+		 * Service schemas store instance.
+		 *
 		 * @var WC_Connect_Service_Schemas_Store
 		 */
 		protected $service_schemas_store;
 
 		/**
+		 * API client instance.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
 
 		/**
+		 * Logger instance.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
 
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_Service_Schemas_Store $service_schemas_store Service schemas store instance.
+		 * @param WC_Connect_API_Client            $api_client            API client instance.
+		 * @param WC_Connect_Logger                $logger                Logger instance.
+		 */
 		public function __construct( WC_Connect_Service_Schemas_Store $service_schemas_store, WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
 			$this->service_schemas_store = $service_schemas_store;
 			$this->api_client            = $api_client;
@@ -78,12 +94,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates connect account settings (e.g. payment method)
 		 *
-		 * @param array $settings
+		 * @param array $settings Account settings to update.
 		 *
 		 * @return true
 		 */
 		public function update_account_settings( $settings ) {
-			// simple validation for now.
+			// Simple validation for now.
 			if ( ! is_array( $settings ) ) {
 				$this->logger->log( 'Array expected but not received', __FUNCTION__ );
 				return false;
@@ -96,11 +112,22 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return WC_Connect_Options::update_option( 'account_settings', $settings );
 		}
 
+		/**
+		 * Returns the selected payment method ID.
+		 *
+		 * @return int The selected payment method ID.
+		 */
 		public function get_selected_payment_method_id() {
 			$account_settings = $this->get_account_settings();
 			return intval( $account_settings['selected_payment_method_id'] );
 		}
 
+		/**
+		 * Sets the selected payment method ID.
+		 *
+		 * @param int $new_payment_method_id The payment method ID to select.
+		 * @return void
+		 */
 		public function set_selected_payment_method_id( $new_payment_method_id ) {
 			$new_payment_method_id = intval( $new_payment_method_id );
 			$account_settings      = $this->get_account_settings();
@@ -112,19 +139,30 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$this->update_account_settings( $account_settings );
 		}
 
+		/**
+		 * Determines whether the current user can manage payment methods.
+		 *
+		 * @return bool True if the user can manage payment methods.
+		 */
 		public function can_user_manage_payment_methods() {
 			return WC_Connect_Jetpack::is_offline_mode() || WC_Connect_Jetpack::is_current_user_connection_owner();
 		}
 
+		/**
+		 * Returns the store origin address.
+		 *
+		 * @return array The origin address fields.
+		 */
 		public function get_origin_address() {
 			$wc_address_fields            = array();
-			$wc_address_fields['company'] = html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES ); // HTML entities may be saved in the option.
-			$wc_address_fields['name']    = wp_get_current_user()->display_name;
-			$wc_address_fields['phone']   = '';
+			$wc_address_fields['company'] = html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+			// HTML entities may be saved in the option.
+			$wc_address_fields['name']  = wp_get_current_user()->display_name;
+			$wc_address_fields['phone'] = '';
 
 			$wc_countries = WC()->countries;
-			// WC 3.2 introduces ability to configure a full address in the settings
-			// Use it for address defaults if available
+			// WC 3.2 introduces ability to configure a full address in the settings.
+			// Use it for address defaults if available.
 			if ( method_exists( $wc_countries, 'get_base_address' ) ) {
 				$wc_address_fields['country']   = $wc_countries->get_base_country();
 				$wc_address_fields['state']     = $wc_countries->get_base_state();
@@ -144,10 +182,16 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 			$stored_address_fields    = WC_Connect_Options::get_option( 'origin_address', array() );
 			$merged_fields            = is_array( $stored_address_fields ) ? array_merge( $wc_address_fields, $stored_address_fields ) : $wc_address_fields;
-			$merged_fields['company'] = html_entity_decode( $merged_fields['company'], ENT_QUOTES ); // Decode again for any existing stores that had some html entities saved in the option.
+			$merged_fields['company'] = html_entity_decode( $merged_fields['company'], ENT_QUOTES );
+			// Decode again for any existing stores that had some html entities saved in the option.
 			return $merged_fields;
 		}
 
+		/**
+		 * Returns the preferred paper size, falling back to a sensible default by country.
+		 *
+		 * @return string The preferred paper size.
+		 */
 		public function get_preferred_paper_size() {
 			$paper_size = WC_Connect_Options::get_option( 'paper_size', '' );
 			if ( $paper_size ) {
@@ -162,6 +206,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return 'a4';
 		}
 
+		/**
+		 * Sets the preferred paper size.
+		 *
+		 * @param string $size The paper size to store.
+		 * @return bool Whether the option was updated.
+		 */
 		public function set_preferred_paper_size( $size ) {
 			return WC_Connect_Options::update_option( 'paper_size', $size );
 		}
@@ -169,8 +219,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Attempts to recover faulty json string fields that might contain strings with unescaped quotes
 		 *
-		 * @param string $field_name
-		 * @param string $json
+		 * @param string $field_name The JSON field name to recover.
+		 * @param string $json       The JSON string to process.
 		 *
 		 * @return string
 		 */
@@ -190,8 +240,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Attempts to recover faulty json string array fields that might contain strings with unescaped quotes
 		 *
-		 * @param string $field_name
-		 * @param string $json
+		 * @param string $field_name The JSON field name to recover.
+		 * @param string $json       The JSON string to process.
 		 *
 		 * @return string
 		 */
@@ -208,8 +258,14 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $json;
 		}
 
+		/**
+		 * Attempts to deserialize label data stored as a JSON string.
+		 *
+		 * @param string $label_data The raw label data to deserialize.
+		 * @return array The deserialized labels, or an empty array on failure.
+		 */
 		public function try_deserialize_labels_json( $label_data ) {
-			// attempt to decode the JSON (legacy way of storing the labels data).
+			// Attempt to decode the JSON (legacy way of storing the labels data).
 			$decoded_labels = json_decode( $label_data, true );
 			if ( $decoded_labels ) {
 				return $decoded_labels;
@@ -233,7 +289,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Returns labels for the specific order ID
 		 *
-		 * @param $order_id
+		 * @param int $order_id The order ID.
 		 *
 		 * @return array
 		 */
@@ -261,8 +317,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates the existing label data
 		 *
-		 * @param $order_id
-		 * @param $new_label_data
+		 * @param int    $order_id       The order ID.
+		 * @param object $new_label_data The new label data to merge in.
 		 *
 		 * @return array updated label info
 		 */
@@ -289,8 +345,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Adds new labels to the order
 		 *
-		 * @param $order_id
-		 * @param array    $new_labels - labels to be added
+		 * @param int   $order_id   The order ID.
+		 * @param array $new_labels Labels to be added.
 		 */
 		public function add_labels_to_order( $order_id, $new_labels ) {
 			$labels_data = $this->get_label_order_meta_data( $order_id );
@@ -300,10 +356,23 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$order->save();
 		}
 
+		/**
+		 * Updates the stored store origin address.
+		 *
+		 * @param array $address The origin address to store.
+		 * @return bool Whether the option was updated.
+		 */
 		public function update_origin_address( $address ) {
 			return WC_Connect_Options::update_option( 'origin_address', $address );
 		}
 
+		/**
+		 * Updates the destination address on an order from a normalized API address.
+		 *
+		 * @param int   $order_id    The order ID.
+		 * @param array $api_address The normalized address returned from the API.
+		 * @return void
+		 */
 		public function update_destination_address( $order_id, $api_address ) {
 			$order      = wc_get_order( $order_id );
 			$wc_address = $order->get_address( 'shipping' );
@@ -324,6 +393,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$order->save();
 		}
 
+		/**
+		 * Comparison callback that sorts services by zone order and instance ID.
+		 *
+		 * @param object $a The first service to compare.
+		 * @param object $b The second service to compare.
+		 * @return int Negative, zero, or positive ordering value.
+		 */
 		protected function sort_services( $a, $b ) {
 
 			if ( $a->zone_order === $b->zone_order ) {
@@ -359,6 +435,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $this->get_enabled_services_by_ids( $shipping_services );
 		}
 
+		/**
+		 * Returns enabled services for the given shipping method IDs.
+		 *
+		 * @param array $service_ids The shipping method IDs to look up.
+		 * @return array The enabled services.
+		 */
 		public function get_enabled_services_by_ids( $service_ids ) {
 			if ( empty( $service_ids ) ) {
 				return array();
@@ -416,11 +498,13 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Checks if the shipping method ids have been migrated to the "wc_services_*" format and migrates them
 		 */
 		public function migrate_legacy_services() {
-			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) ) { // check if the method have already been migrated.
+			if ( WC_Connect_Options::get_option( 'shipping_methods_migrated', false ) ) {
+				// check if the method have already been migrated.
 				return;
 			}
 
-			if ( ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) { // ensure the latest schemas are fetched.
+			if ( ! $this->service_schemas_store->fetch_service_schemas_from_connect_server() ) {
+				// ensure the latest schemas are fetched.
 				// No schemes exist this is a site that has nothing to migrate.
 				WC_Connect_Options::update_option( 'shipping_methods_migrated', true );
 				return;
@@ -438,7 +522,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				$service_schema   = $this->service_schemas_store->get_service_schema_by_id( $service_id );
 				$service_settings = $this->get_service_settings( $service_id, $instance_id );
 				if ( ( is_array( $service_settings ) && ! $service_settings ) // check for an empty array.
-					|| ( ! is_array( $service_settings ) && ! is_object( $service_settings ) ) ) { // settings are neither an array nor an object.
+					|| ( ! is_array( $service_settings ) && ! is_object( $service_settings ) ) ) {
+					// settings are neither an array nor an object.
 					continue;
 				}
 
@@ -459,7 +544,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				WC_Connect_Options::update_shipping_method_option( 'form_settings', $service_settings, $new_method_id, $instance_id );
 				// delete the old service settings.
 				WC_Connect_Options::delete_shipping_method_options( $service_id, $instance_id );
-			}
+			}//end foreach
 
 			WC_Connect_Options::update_option( 'shipping_methods_migrated', true );
 		}
@@ -468,8 +553,8 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Given a service's id and optional instance, returns the settings for that
 		 * service or an empty array
 		 *
-		 * @param string  $service_id
-		 * @param integer $service_instance
+		 * @param string  $service_id       The service ID.
+		 * @param integer $service_instance Optional. The service instance ID.
 		 *
 		 * @return object|array
 		 */
@@ -479,6 +564,10 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 		/**
 		 * Given id and possibly instance, validates the settings and, if they validate, saves them to options
+		 *
+		 * @param array   $settings The settings to validate and save.
+		 * @param string  $id       The service ID.
+		 * @param integer $instance Optional. The service instance ID.
 		 *
 		 * @return bool|WP_Error
 		 */
@@ -501,7 +590,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$response_body = $this->api_client->validate_service_settings( $service_schema->id, $settings );
 
 			if ( is_wp_error( $response_body ) ) {
-				// TODO - handle multiple error messages when the validation endpoint can return them
+				// TODO - handle multiple error messages when the validation endpoint can return them.
 				return $response_body;
 			}
 
@@ -509,6 +598,15 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			WC_Connect_Options::update_shipping_method_option( 'form_settings', $settings, $id, $instance );
 			// Invalidate shipping rates session cache.
 			WC_Cache_Helper::get_transient_version( 'shipping', /* $refresh = */ true );
+			/**
+			 * Fires after service settings have been validated and saved.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param string  $id       The service ID.
+			 * @param integer $instance The service instance ID.
+			 * @param array   $settings The saved service settings.
+			 */
 			do_action( 'wc_connect_saved_service_settings', $id, $instance, $settings );
 
 			return true;
@@ -526,7 +624,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Extends the global list of packages with a list of new packages
 		 *
-		 * @param array new_packages - packages to extend
+		 * @param array $new_packages Packages to extend the list with.
 		 */
 		public function create_packages( $new_packages ) {
 			if ( is_null( $new_packages ) ) {
@@ -540,7 +638,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates the global list of packages
 		 *
-		 * @param array packages
+		 * @param array $packages The packages to store.
 		 */
 		public function update_packages( $packages ) {
 			WC_Connect_Options::update_option( 'packages', $packages );
@@ -558,7 +656,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Returns a list of enabled predefined packages for the specified service
 		 *
-		 * @param $service_id
+		 * @param string $service_id The service ID.
 		 * @return array
 		 */
 		public function get_predefined_packages_for_service( $service_id ) {
@@ -573,7 +671,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Extends the global list of enabled predefined packages with a list of new packages
 		 *
-		 * @param array new_packages - packages to extend
+		 * @param array $new_packages Packages to extend the list with.
 		 */
 		public function create_predefined_packages( $new_packages ) {
 			if ( is_null( $new_packages ) ) {
@@ -587,12 +685,17 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		/**
 		 * Updates the global list of enabled predefined packages for all services
 		 *
-		 * @param array packages
+		 * @param array $packages The packages to store.
 		 */
 		public function update_predefined_packages( $packages ) {
 			WC_Connect_Options::update_option( 'predefined_packages', $packages );
 		}
 
+		/**
+		 * Builds a lookup table of custom and predefined packages keyed by package identifier.
+		 *
+		 * @return array The package lookup table.
+		 */
 		public function get_package_lookup() {
 			$lookup = array();
 
@@ -617,6 +720,11 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $lookup;
 		}
 
+		/**
+		 * Determines whether the site is eligible for migration to WooCommerce Shipping.
+		 *
+		 * @return bool True if the site is eligible for migration.
+		 */
 		public function is_eligible_for_migration() {
 			$migration_state = intval( get_option( 'wcshipping_migration_state', 0 ) );
 
@@ -632,7 +740,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			}
 
 			$migration_dismissed = false;
-			if ( isset( $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && (int) $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] === 1 ) {
+			if ( isset( $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && 1 === (int) $_COOKIE[ WC_Connect_Loader::MIGRATION_DISMISSAL_COOKIE_KEY ] ) {
 				$migration_dismissed = true;
 			}
 
@@ -642,6 +750,12 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			return $migration_pending && $migration_enabled && ! $migration_dismissed;
 		}
 
+		/**
+		 * Translates a measurement unit slug into its localized label.
+		 *
+		 * @param string $value The measurement unit slug.
+		 * @return string The localized unit label, or the original value if unrecognized.
+		 */
 		private function translate_unit( $value ) {
 			switch ( $value ) {
 				case 'kg':
@@ -665,7 +779,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 				default:
 					$this->logger->log( 'Unexpected measurement unit: ' . $value, __FUNCTION__ );
 					return $value;
-			}
+			}//end switch
 		}
 	}
-}
+}//end if

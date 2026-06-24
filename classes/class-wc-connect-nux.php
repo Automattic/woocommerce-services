@@ -2,6 +2,9 @@
 
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
+	/**
+	 * Handles the new user experience (NUX) notices, banners, and admin pointers.
+	 */
 	class WC_Connect_Nux {
 		/**
 		 * Jetpack status constants.
@@ -19,22 +22,37 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		const SHOULD_SHOW_AFTER_CXN_BANNER = 'should_display_nux_after_jp_cxn_banner';
 
 		/**
+		 * Tracks instance.
+		 *
 		 * @var WC_Connect_Tracks
 		 */
 		protected $tracks;
 
 		/**
+		 * Shipping label instance.
+		 *
 		 * @var WC_Connect_Shipping_Label
 		 */
 		private $shipping_label;
 
-		function __construct( WC_Connect_Tracks $tracks, WC_Connect_Shipping_Label $shipping_label ) {
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Connect_Tracks         $tracks         Tracks instance.
+		 * @param WC_Connect_Shipping_Label $shipping_label Shipping label instance.
+		 */
+		public function __construct( WC_Connect_Tracks $tracks, WC_Connect_Shipping_Label $shipping_label ) {
 			$this->tracks         = $tracks;
 			$this->shipping_label = $shipping_label;
 
 			$this->init_pointers();
 		}
 
+		/**
+		 * Get the current user's NUX notice dismissal states.
+		 *
+		 * @return array Array of notice states keyed by notice ID.
+		 */
 		private function get_notice_states() {
 			$states = get_user_meta( get_current_user_id(), 'wc_connect_nux_notices', true );
 
@@ -45,18 +63,35 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $states;
 		}
 
+		/**
+		 * Determine whether a given notice has been dismissed by the current user.
+		 *
+		 * @param string $notice Notice ID.
+		 * @return bool True if the notice has been dismissed.
+		 */
 		public function is_notice_dismissed( $notice ) {
 			$notices = $this->get_notice_states();
 
 			return isset( $notices[ $notice ] ) && $notices[ $notice ];
 		}
 
+		/**
+		 * Mark a notice as dismissed for the current user.
+		 *
+		 * @param string $notice Notice ID.
+		 * @return void
+		 */
 		public function dismiss_notice( $notice ) {
 			$notices            = $this->get_notice_states();
 			$notices[ $notice ] = true;
 			update_user_meta( get_current_user_id(), 'wc_connect_nux_notices', $notices );
 		}
 
+		/**
+		 * AJAX handler to dismiss a notice for the current user.
+		 *
+		 * @return void
+		 */
 		public function ajax_dismiss_notice() {
 			if ( empty( $_POST['dismissible_id'] ) ) {
 				return;
@@ -67,14 +102,25 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			wp_die();
 		}
 
+		/**
+		 * Register the admin pointer filters.
+		 *
+		 * @return void
+		 */
 		private function init_pointers() {
 			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_order_page_labels_pointer' ) );
 			add_filter( 'wc_services_pointer_post.php', array( $this, 'register_new_carrier_dhl_pointer' ) );
 		}
 
+		/**
+		 * Enqueue the admin pointers for the current admin page.
+		 *
+		 * @param string $hook Current admin page hook suffix.
+		 * @return void
+		 */
 		public function show_pointers( $hook ) {
-			/*
-			Get admin pointers for the current admin page.
+			/**
+			 * Get admin pointers for the current admin page.
 			 *
 			 * @since 0.9.6
 			 *
@@ -104,6 +150,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			wp_enqueue_script( 'wc_services_admin_pointers' );
 		}
 
+		/**
+		 * Get the list of WP pointers the current user has dismissed.
+		 *
+		 * @return array Array of dismissed pointer IDs.
+		 */
 		public function get_dismissed_pointers() {
 			$data = get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true );
 			if ( is_string( $data ) && 0 < strlen( $data ) ) {
@@ -116,7 +167,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		/**
 		 * Dismiss a WP pointer for the current user.
 		 *
-		 * @param string $pointer_to_dismiss Pointer ID to dismiss for the current user
+		 * @param string $pointer_to_dismiss Pointer ID to dismiss for the current user.
 		 */
 		public function dismiss_pointer( $pointer_to_dismiss ) {
 			$dismissed_pointers = $this->get_dismissed_pointers();
@@ -130,6 +181,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', $dismissed_data );
 		}
 
+		/**
+		 * Determine whether the current site is new to shipping labels.
+		 *
+		 * @return bool True if no labels have been purchased on the site.
+		 */
 		public function is_new_labels_user() {
 			$is_new_user = get_transient( self::IS_NEW_LABEL_USER );
 			if ( false === $is_new_user ) {
@@ -148,8 +204,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return 'yes' === $is_new_user;
 		}
 
+		/**
+		 * Register the order page shipping labels pointer.
+		 *
+		 * @param array $pointers Array of pointers.
+		 * @return array Filtered array of pointers.
+		 */
 		public function register_order_page_labels_pointer( $pointers ) {
-			// If the user is not new to labels, we should just dismiss this pointer
+			// If the user is not new to labels, we should just dismiss this pointer.
 			if ( ! $this->is_new_labels_user() ) {
 				$this->dismiss_pointer( 'wc_services_labels_metabox' );
 
@@ -174,6 +236,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'content'  => sprintf(
 						'<h3>%s</h3><p>%s</p>',
 						__( 'Discounted Shipping Labels', 'woocommerce-services' ),
+						/* translators: %s: list of supported shipping carriers */
 						sprintf( __( "When you're ready, purchase and print discounted labels from %s right here.", 'woocommerce-services' ), implode( ' or ', $supported_carriers ) )
 					),
 					'position' => array(
@@ -187,15 +250,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
+		/**
+		 * Register the new DHL carrier pointer for existing label users.
+		 *
+		 * @param array $pointers Array of pointers.
+		 * @return array Filtered array of pointers.
+		 */
 		public function register_new_carrier_dhl_pointer( $pointers ) {
-			// new user? no need to show this alert, `wc_services_labels_metabox` will take care of communicating about DHL
+			// New user? No need to show this alert, `wc_services_labels_metabox` will take care of communicating about DHL.
 			if ( $this->is_new_labels_user() ) {
 				$this->dismiss_pointer( 'wc_services_new_carrier_dhl_express' );
 
 				return $pointers;
 			}
 
-			// existing user? figure out if the order supports DHL, then let them know DHL is a new carrier!
+			// Existing user? Figure out if the order supports DHL, then let them know DHL is a new carrier!
 			if ( ! $this->shipping_label->is_order_dhl_express_eligible() ) {
 				return $pointers;
 			}
@@ -220,6 +289,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $pointers;
 		}
 
+		/**
+		 * Determine which NUX banner, if any, should be displayed for the given status.
+		 *
+		 * @param array $status Connection and TOS status flags.
+		 * @return string|false Banner type identifier, or false when no banner should display.
+		 */
 		public static function get_banner_type_to_display( $status = array() ) {
 			if ( ! isset( $status['jetpack_connection_status'] ) ) {
 				return false;
@@ -247,7 +322,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					}
 
 					// Has the user already accepted our TOS? Then do nothing.
-					// Note: TOS is accepted during the after_connection banner
+					// Note: TOS is accepted during the after_connection banner.
 					if (
 						isset( $status['tos_accepted'] )
 						&& ! $status['tos_accepted']
@@ -269,16 +344,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					return false;
 				default:
 					return false;
-			}
+			}//end switch
 		}
 
+		/**
+		 * Get the current Jetpack installation/connection status.
+		 *
+		 * @return string One of the JETPACK_* status constants.
+		 */
 		public function get_jetpack_install_status() {
 			if ( WC_Connect_Jetpack::is_offline_mode() ) {
-				// activated, and dev mode on
+				// Activated, and dev mode on.
 				return self::JETPACK_OFFLINE_MODE;
 			}
 
-			// dev mode off, check if connected
+			// Dev mode off, check if connected.
 			if ( ! WC_Connect_Jetpack::is_connected() ) {
 				return self::JETPACK_NOT_CONNECTED;
 			}
@@ -286,6 +366,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return self::JETPACK_CONNECTED;
 		}
 
+		/**
+		 * Determine whether a NUX notice should display on the given admin screen.
+		 *
+		 * @param WP_Screen $screen Current admin screen.
+		 * @return bool True if a notice should display on this screen.
+		 */
 		public function should_display_nux_notice_on_screen( $screen ) {
 			if ( // Display if on any of these admin pages.
 				( // Products list.
@@ -302,11 +388,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				|| ( // WooCommerce settings.
 					'woocommerce_page_wc-settings' === $screen->base
 					)
-				|| ( // WooCommerce featured extension page
+				|| ( // WooCommerce featured extension page.
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
 					)
-				|| ( // WooCommerce shipping extension page
+				|| ( // WooCommerce shipping extension page.
 					'woocommerce_page_wc-addons' === $screen->base
 					&& isset( $_GET['section'] ) && 'shipping_methods' === $_GET['section']
 					)
@@ -319,7 +405,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
-		 * https://developers.taxjar.com/api/reference/#countries
+		 * Determine whether TaxJar supports the given country.
+		 *
+		 * @see https://developers.taxjar.com/api/reference/#countries
+		 *
+		 * @param string $country_code Two-letter country code.
+		 * @return bool True if the country is supported by TaxJar.
 		 */
 		public function is_taxjar_supported_country( $country_code ) {
 			$taxjar_supported_countries = array_merge(
@@ -334,6 +425,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return in_array( $country_code, $taxjar_supported_countries );
 		}
 
+		/**
+		 * Determine whether a NUX notice should display for the current store locale.
+		 *
+		 * @return bool True if the store's base country supports shipping or taxes.
+		 */
 		public function should_display_nux_notice_for_current_store_locale() {
 			$store_country = WC()->countries->get_base_country();
 
@@ -343,6 +439,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $supports_shipping || $supports_taxes;
 		}
 
+		/**
+		 * Build the human-readable feature list available for a given country.
+		 *
+		 * @param string $country Two-letter country code.
+		 * @return string|false Translated feature list, or false when no features apply.
+		 */
 		public function get_feature_list_for_country( $country ) {
 			$feature_list   = false;
 			$supports_taxes = $this->is_taxjar_supported_country( $country );
@@ -362,6 +464,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return $feature_list;
 		}
 
+		/**
+		 * Build the admin redirect URL used after the Jetpack connection flow.
+		 *
+		 * @return string Escaped admin URL.
+		 */
 		public function get_jetpack_redirect_url() {
 			$full_path = add_query_arg( array() );
 			// Remove [...]/wp-admin so we can use admin_url().
@@ -371,6 +478,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return esc_url( admin_url( $path ) );
 		}
 
+		/**
+		 * Set up the appropriate NUX notices and banners for the current request.
+		 *
+		 * @return void
+		 */
 		public function set_up_nux_notices() {
 			if ( ! current_user_can( 'manage_woocommerce' ) ) {
 				return;
@@ -378,7 +490,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// Check for plugin install and activate permissions to handle Jetpack on multisites:
 			// Admins might not be able to install or activate plugins, but Jetpack might already have been installed by a superadmin.
-			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
+			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal.
 			$jetpack_install_status = $this->get_jetpack_install_status();
 
 			$banner_to_display = self::get_banner_type_to_display(
@@ -412,11 +524,16 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_tos_informational_banner' ) );
 					break;
-			}
+			}//end switch
 
 			add_action( 'wp_ajax_wc_connect_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
 		}
 
+		/**
+		 * Render the NUX banner shown before the Jetpack connection.
+		 *
+		 * @return void
+		 */
 		public function show_banner_before_connection() {
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
@@ -436,7 +553,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// Make sure that we wait until the button is clicked before displaying
 			// the after_connection banner
-			// so that we don't accept the TOS pre-maturely
+			// so that we don't accept the TOS pre-maturely.
 			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
 
 			$country = WC()->countries->get_base_country();
@@ -454,6 +571,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			$this->show_nux_banner( $banner_content );
 		}
 
+		/**
+		 * Render the NUX banner shown after the Jetpack connection completes.
+		 *
+		 * @return void
+		 */
 		public function show_banner_after_connection() {
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
@@ -471,7 +593,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				exit;
 			}
 
-			// By going through the connection process, the user has accepted our TOS
+			// By going through the connection process, the user has accepted our TOS.
 			WC_Connect_Options::update_option( 'tos_accepted', true );
 
 			$this->tracks->opted_in( 'connection_banner' );
@@ -500,6 +622,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 		}
 
+		/**
+		 * Render the Terms of Service acceptance banner.
+		 *
+		 * @return void
+		 */
 		public function show_tos_banner() {
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
@@ -542,6 +669,11 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 		}
 
+		/**
+		 * Render the informational banner directing users to the Jetpack connection owner.
+		 *
+		 * @return void
+		 */
 		public function show_tos_informational_banner() {
 			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
 				return;
@@ -569,6 +701,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 		}
 
+		/**
+		 * Render a NUX banner with the given content.
+		 *
+		 * @param array $content Banner content (title, description, button, image, etc.).
+		 * @return void
+		 */
 		public function show_nux_banner( $content ) {
 			if ( isset( $content['dismissible_id'] ) && $this->is_notice_dismissed( sanitize_key( $content['dismissible_id'] ) ) ) {
 				return;
@@ -589,9 +727,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p class="wcs-nux__notice-content-tos">
 							<?php
-							/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 							printf(
 								wp_kses(
+									/* translators: %1$s: button text (e.g. "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >"), %2$s: URL to Terms of Service, %3$s: URL to Privacy Policy */
 									__( 'By clicking "%1$s", you agree to our <a href="%2$s">Terms of Service</a> and have read our <a href="%3$s">Privacy Policy</a>.', 'woocommerce-services' ),
 									array(
 										'a' => array(
@@ -633,7 +771,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			</div>
 			<?php
 			if ( isset( $content['dismissible_id'] ) ) :
-				// Add handler for dismissing banner. Only supports a single banner at a time
+				// Add handler for dismissing banner. Only supports a single banner at a time.
 				wp_enqueue_script( 'wp-util' );
 				?>
 				<script>
@@ -665,10 +803,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			// Make sure we always display the after-connection banner
-			// after the before_connection button is clicked
+			// after the before_connection button is clicked.
 			WC_Connect_Options::update_option( self::SHOULD_SHOW_AFTER_CXN_BANNER, true );
 
 			WC_Connect_Jetpack::connect_site( $redirect_url );
 		}
 	}
-}
+}//end if

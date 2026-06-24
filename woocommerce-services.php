@@ -33,6 +33,8 @@
  *
  * WooCommerce Tax incorporates code from WooCommerce Sales Tax Plugin by TaxJar, Copyright 2014-2017 TaxJar.
  * WooCommerce Sales Tax Plugin by TaxJar is distributed under the terms of the GNU GPL, Version 2 (or later).
+ *
+ * @package WooCommerce Services
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -72,89 +74,129 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	define( 'WCSERVICES_ASSETS_DIR', WCSERVICES_PLUGIN_DIR . '/assets/' );
 	define( 'WCSERVICES_STYLESHEETS_DIR', WCSERVICES_ASSETS_DIR . 'stylesheets/' );
 
+	/**
+	 * Main plugin bootstrap class.
+	 *
+	 * Wires up loggers, API client, REST controllers, settings stores and the
+	 * shipping/tax integrations that make up WooCommerce Tax.
+	 */
 	class WC_Connect_Loader {
 
 		/**
+		 * Logger instance.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
 
 		/**
+		 * Logger instance used for shipping-specific logging.
+		 *
 		 * @var WC_Connect_Logger
 		 */
 		protected $shipping_logger;
 
 		/**
+		 * API client for communicating with the Connect server.
+		 *
 		 * @var WC_Connect_API_Client
 		 */
 		protected $api_client;
 
 		/**
+		 * Store for cached service schemas.
+		 *
 		 * @var WC_Connect_Service_Schemas_Store
 		 */
 		protected $service_schemas_store;
 
 		/**
+		 * Store for service settings.
+		 *
 		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $service_settings_store;
 
 		/**
+		 * Store for saved payment methods.
+		 *
 		 * @var WC_Connect_Payment_Methods_Store
 		 */
 		protected $payment_methods_store;
 
 		/**
+		 * REST controller for account settings.
+		 *
 		 * @var WC_REST_Connect_Account_Settings_Controller
 		 */
 		protected $rest_account_settings_controller;
 
 		/**
+		 * REST controller for packages.
+		 *
 		 * @var WC_REST_Connect_Packages_Controller
 		 */
 		protected $rest_packages_controller;
 
 		/**
+		 * REST controller for services.
+		 *
 		 * @var WC_REST_Connect_Services_Controller
 		 */
 		protected $rest_services_controller;
 
 		/**
+		 * REST controller for the self-help page.
+		 *
 		 * @var WC_REST_Connect_Self_Help_Controller
 		 */
 		protected $rest_self_help_controller;
 
 		/**
+		 * REST controller for shipping labels.
+		 *
 		 * @var WC_REST_Connect_Shipping_Label_Controller
 		 */
 		protected $rest_shipping_label_controller;
 
 		/**
+		 * REST controller for shipping label status.
+		 *
 		 * @var WC_REST_Connect_Shipping_Label_Status_Controller
 		 */
 		protected $rest_shipping_label_status_controller;
 
 		/**
+		 * REST controller for shipping label refunds.
+		 *
 		 * @var WC_REST_Connect_Shipping_Label_Refund_Controller
 		 */
 		protected $rest_shipping_label_refund_controller;
 
 		/**
+		 * REST controller for shipping label previews.
+		 *
 		 * @var WC_REST_Connect_Shipping_Label_Preview_Controller
 		 */
 		protected $rest_shipping_label_preview_controller;
 
 		/**
+		 * REST controller for printing shipping labels.
+		 *
 		 * @var WC_REST_Connect_Shipping_Label_Print_Controller
 		 */
 		protected $rest_shipping_label_print_controller;
 
 		/**
+		 * REST controller for shipping rates.
+		 *
 		 * @var WC_REST_Connect_Shipping_Rates_Controller
 		 */
 		protected $rest_shipping_rates_controller;
 
 		/**
+		 * REST controller for address normalization.
+		 *
 		 * @var WC_REST_Connect_Address_Normalization_Controller
 		 */
 		protected $rest_address_normalization_controller;
@@ -182,6 +224,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_carrier_controller;
 
 		/**
+		 * Notifier for store notices.
+		 *
 		 * @var StoreNoticesNotifier
 		 */
 		protected $store_notices_notifier;
@@ -222,66 +266,111 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		protected $rest_migration_flag_controller;
 
 		/**
+		 * Validator for service schemas.
+		 *
 		 * @var WC_Connect_Service_Schemas_Validator
 		 */
 		protected $service_schemas_validator;
 
 		/**
+		 * Settings pages handler.
+		 *
 		 * @var WC_Connect_Settings_Pages
 		 */
 		protected $settings_pages;
 
 		/**
+		 * Help view handler.
+		 *
 		 * @var WC_Connect_Help_View
 		 */
 		protected $help_view;
 
 		/**
+		 * Shipping label handler.
+		 *
 		 * @var WC_Connect_Shipping_Label
 		 */
 		protected $shipping_label;
 
 		/**
+		 * New user experience (NUX) handler.
+		 *
 		 * @var WC_Connect_Nux
 		 */
 		protected $nux;
 
 		/**
+		 * TaxJar integration handler.
+		 *
 		 * @var WC_Connect_TaxJar_Integration
 		 */
 		protected $taxjar;
 
 		/**
+		 * PayPal Express Checkout integration handler.
+		 *
 		 * @var WC_Connect_PayPal_EC
 		 */
 		protected $paypal_ec;
 
 		/**
+		 * Tracks event recorder.
+		 *
 		 * @var WC_Connect_Tracks
 		 */
 		protected $tracks;
 
 		/**
+		 * Label reports handler.
+		 *
 		 * @var WC_Connect_Label_Reports
 		 */
 		protected $label_reports;
 
 		/**
+		 * REST controller for the Terms of Service.
+		 *
 		 * @var WC_REST_Connect_Tos_Controller
 		 */
 		protected $rest_tos_controller;
 
+		/**
+		 * Registered service instances.
+		 *
+		 * @var array
+		 */
 		protected $services = array();
 
+		/**
+		 * Runtime cache of instantiated service objects.
+		 *
+		 * @var array
+		 */
 		protected $service_object_cache = array();
 
+		/**
+		 * Base URL of the WooCommerce Connect server.
+		 *
+		 * @var string
+		 */
 		protected $wc_connect_base_url;
 
+		/**
+		 * Cached plugin version string.
+		 *
+		 * @var string
+		 */
 		protected static $wcs_version;
 
 		public const MIGRATION_DISMISSAL_COOKIE_KEY        = 'wcst-wcshipping-migration-dismissed';
 		private const SIFT_FETCH_IN_PROGRESS_TRANSIENT_KEY = 'wc_connect_sift_fetch_in_progress';
 
+		/**
+		 * Handles plugin deactivation cleanup.
+		 *
+		 * @return void
+		 */
 		public static function plugin_deactivation() {
 			wp_clear_scheduled_hook( 'wc_connect_fetch_service_schemas' );
 
@@ -294,7 +383,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 
 			$migration_state = intval( get_option( 'wcshipping_migration_state' ) );
-			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
+			if ( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED === $migration_state ) {
 				$core_logger = new WC_Logger();
 				$logger      = new WC_Connect_Logger( $core_logger );
 				$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
@@ -308,6 +397,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Handles plugin uninstall cleanup.
+		 *
+		 * @return void
+		 */
 		public static function plugin_uninstall() {
 			WC_Connect_Options::delete_all_options();
 			self::delete_notices();
@@ -385,6 +479,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Constructor. Registers core hooks and feature-coexistence filters.
+		 */
 		public function __construct() {
 			$this->wc_connect_base_url = self::get_wc_connect_base_url();
 			add_action(
@@ -419,223 +516,565 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_filter( 'wc_services_will_disable_shipping_logic', '__return_true' );
 		}
 
+		/**
+		 * Gets the logger instance.
+		 *
+		 * @return WC_Connect_Logger
+		 */
 		public function get_logger() {
 			return $this->logger;
 		}
 
+		/**
+		 * Sets the logger instance.
+		 *
+		 * @param WC_Connect_Logger $logger Logger instance.
+		 *
+		 * @return void
+		 */
 		public function set_logger( WC_Connect_Logger $logger ) {
 			$this->logger = $logger;
 		}
 
+		/**
+		 * Gets the shipping logger instance.
+		 *
+		 * @return WC_Connect_Logger
+		 */
 		public function get_shipping_logger() {
 			return $this->shipping_logger;
 		}
 
+		/**
+		 * Sets the shipping logger instance.
+		 *
+		 * @param WC_Connect_Logger $logger Logger instance.
+		 *
+		 * @return void
+		 */
 		public function set_shipping_logger( WC_Connect_Logger $logger ) {
 			$this->shipping_logger = $logger;
 		}
 
+		/**
+		 * Gets the API client instance.
+		 *
+		 * @return WC_Connect_API_Client
+		 */
 		public function get_api_client() {
 			return $this->api_client;
 		}
 
+		/**
+		 * Sets the API client instance.
+		 *
+		 * @param WC_Connect_API_Client $api_client API client instance.
+		 *
+		 * @return void
+		 */
 		public function set_api_client( WC_Connect_API_Client $api_client ) {
 			$this->api_client = $api_client;
 		}
 
+		/**
+		 * Gets the service schemas store.
+		 *
+		 * @return WC_Connect_Service_Schemas_Store
+		 */
 		public function get_service_schemas_store() {
 			return $this->service_schemas_store;
 		}
 
+		/**
+		 * Sets the service schemas store.
+		 *
+		 * @param WC_Connect_Service_Schemas_Store $schemas_store Service schemas store.
+		 *
+		 * @return void
+		 */
 		public function set_service_schemas_store( WC_Connect_Service_Schemas_Store $schemas_store ) {
 			$this->service_schemas_store = $schemas_store;
 		}
 
+		/**
+		 * Gets the service settings store.
+		 *
+		 * @return WC_Connect_Service_Settings_Store
+		 */
 		public function get_service_settings_store() {
 			return $this->service_settings_store;
 		}
 
+		/**
+		 * Sets the service settings store.
+		 *
+		 * @param WC_Connect_Service_Settings_Store $settings_store Service settings store.
+		 *
+		 * @return void
+		 */
 		public function set_service_settings_store( WC_Connect_Service_Settings_Store $settings_store ) {
 			$this->service_settings_store = $settings_store;
 		}
 
+		/**
+		 * Gets the payment methods store.
+		 *
+		 * @return WC_Connect_Payment_Methods_Store
+		 */
 		public function get_payment_methods_store() {
 			return $this->payment_methods_store;
 		}
 
+		/**
+		 * Sets the payment methods store.
+		 *
+		 * @param WC_Connect_Payment_Methods_Store $payment_methods_store Payment methods store.
+		 *
+		 * @return void
+		 */
 		public function set_payment_methods_store( WC_Connect_Payment_Methods_Store $payment_methods_store ) {
 			$this->payment_methods_store = $payment_methods_store;
 		}
 
+		/**
+		 * Gets the Tracks event recorder.
+		 *
+		 * @return WC_Connect_Tracks
+		 */
 		public function get_tracks() {
 			return $this->tracks;
 		}
 
+		/**
+		 * Sets the Tracks event recorder.
+		 *
+		 * @param WC_Connect_Tracks $tracks Tracks event recorder.
+		 *
+		 * @return void
+		 */
 		public function set_tracks( WC_Connect_Tracks $tracks ) {
 			$this->tracks = $tracks;
 		}
 
+		/**
+		 * Gets the REST account settings controller.
+		 *
+		 * @return WC_REST_Connect_Account_Settings_Controller
+		 */
 		public function get_rest_account_settings_controller() {
 			return $this->rest_account_settings_controller;
 		}
 
+		/**
+		 * Sets the REST Terms of Service controller.
+		 *
+		 * @param WC_REST_Connect_Tos_Controller $rest_tos_controller REST ToS controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_tos_controller( WC_REST_Connect_Tos_Controller $rest_tos_controller ) {
 			$this->rest_tos_controller = $rest_tos_controller;
 		}
 
+		/**
+		 * Sets the REST assets controller.
+		 *
+		 * @param WC_REST_Connect_Assets_Controller $rest_assets_controller REST assets controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_assets_controller( WC_REST_Connect_Assets_Controller $rest_assets_controller ) {
 			$this->rest_assets_controller = $rest_assets_controller;
 		}
 
+		/**
+		 * Sets the REST carriers controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Carriers_Controller $rest_carriers_controller REST carriers controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_carriers_controller( WC_REST_Connect_Shipping_Carriers_Controller $rest_carriers_controller ) {
 			$this->rest_carriers_controller = $rest_carriers_controller;
 		}
 
+		/**
+		 * Sets the REST subscriptions controller.
+		 *
+		 * @param WC_REST_Connect_Subscriptions_Controller $rest_subscriptions_controller REST subscriptions controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_subscriptions_controller( WC_REST_Connect_Subscriptions_Controller $rest_subscriptions_controller ) {
 			$this->rest_subscriptions_controller = $rest_subscriptions_controller;
 		}
 
+		/**
+		 * Sets the REST subscription activate controller.
+		 *
+		 * @param WC_REST_Connect_Subscription_Activate_Controller $rest_subscription_activate_controller REST subscription activate controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_subscription_activate_controller( WC_REST_Connect_Subscription_Activate_Controller $rest_subscription_activate_controller ) {
 			$this->rest_subscription_activate_controller = $rest_subscription_activate_controller;
 		}
 
+		/**
+		 * Sets the REST shipping carrier controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Carrier_Controller $rest_carrier_controller REST carrier controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_carrier_controller( WC_REST_Connect_Shipping_Carrier_Controller $rest_carrier_controller ) {
 			$this->rest_carrier_controller = $rest_carrier_controller;
 		}
 
+		/**
+		 * Sets the REST shipping carrier delete controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Carrier_Delete_Controller $rest_carrier_delete_controller REST carrier delete controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_carrier_delete_controller( WC_REST_Connect_Shipping_Carrier_Delete_Controller $rest_carrier_delete_controller ) {
 			$this->rest_carrier_delete_controller = $rest_carrier_delete_controller;
 		}
 
+		/**
+		 * Sets the REST packages controller.
+		 *
+		 * @param WC_REST_Connect_Packages_Controller $rest_packages_controller REST packages controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_packages_controller( WC_REST_Connect_Packages_Controller $rest_packages_controller ) {
 			$this->rest_packages_controller = $rest_packages_controller;
 		}
 
+		/**
+		 * Sets the REST account settings controller.
+		 *
+		 * @param WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller REST account settings controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_account_settings_controller( WC_REST_Connect_Account_Settings_Controller $rest_account_settings_controller ) {
 			$this->rest_account_settings_controller = $rest_account_settings_controller;
 		}
 
+		/**
+		 * Gets the REST services controller.
+		 *
+		 * @return WC_REST_Connect_Services_Controller
+		 */
 		public function get_rest_services_controller() {
 			return $this->rest_services_controller;
 		}
 
+		/**
+		 * Sets the REST services controller.
+		 *
+		 * @param WC_REST_Connect_Services_Controller $rest_services_controller REST services controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_services_controller( WC_REST_Connect_Services_Controller $rest_services_controller ) {
 			$this->rest_services_controller = $rest_services_controller;
 		}
 
+		/**
+		 * Gets the REST self-help controller.
+		 *
+		 * @return WC_REST_Connect_Self_Help_Controller
+		 */
 		public function get_rest_self_help_controller() {
 			return $this->rest_self_help_controller;
 		}
 
+		/**
+		 * Sets the REST self-help controller.
+		 *
+		 * @param WC_REST_Connect_Self_Help_Controller $rest_self_help_controller REST self-help controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_self_help_controller( WC_REST_Connect_Self_Help_Controller $rest_self_help_controller ) {
 			$this->rest_self_help_controller = $rest_self_help_controller;
 		}
 
+		/**
+		 * Gets the REST shipping label controller.
+		 *
+		 * @return WC_REST_Connect_Shipping_Label_Controller
+		 */
 		public function get_rest_shipping_label_controller() {
 			return $this->rest_shipping_label_controller;
 		}
 
+		/**
+		 * Sets the REST shipping label controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller REST shipping label controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_shipping_label_controller( WC_REST_Connect_Shipping_Label_Controller $rest_shipping_label_controller ) {
 			$this->rest_shipping_label_controller = $rest_shipping_label_controller;
 		}
 
+		/**
+		 * Gets the REST shipping label status controller.
+		 *
+		 * @return WC_REST_Connect_Shipping_Label_Status_Controller
+		 */
 		public function get_rest_shipping_label_status_controller() {
 			return $this->rest_shipping_label_status_controller;
 		}
 
+		/**
+		 * Sets the REST shipping label status controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Label_Status_Controller $rest_shipping_label_status_controller REST shipping label status controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_shipping_label_status_controller( WC_REST_Connect_Shipping_Label_Status_Controller $rest_shipping_label_status_controller ) {
 			$this->rest_shipping_label_status_controller = $rest_shipping_label_status_controller;
 		}
 
+		/**
+		 * Gets the REST shipping label refund controller.
+		 *
+		 * @return WC_REST_Connect_Shipping_Label_Refund_Controller
+		 */
 		public function get_rest_shipping_label_refund_controller() {
 			return $this->rest_shipping_label_refund_controller;
 		}
 
+		/**
+		 * Sets the REST shipping label refund controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Label_Refund_Controller $rest_shipping_label_refund_controller REST shipping label refund controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_shipping_label_refund_controller( WC_REST_Connect_Shipping_Label_Refund_Controller $rest_shipping_label_refund_controller ) {
 			$this->rest_shipping_label_refund_controller = $rest_shipping_label_refund_controller;
 		}
 
+		/**
+		 * Gets the REST shipping label preview controller.
+		 *
+		 * @return WC_REST_Connect_Shipping_Label_Preview_Controller
+		 */
 		public function get_rest_shipping_label_preview_controller() {
 			return $this->rest_shipping_label_preview_controller;
 		}
 
+		/**
+		 * Sets the REST shipping label preview controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Label_Preview_Controller $rest_shipping_label_preview_controller REST shipping label preview controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_shipping_label_preview_controller( WC_REST_Connect_Shipping_Label_Preview_Controller $rest_shipping_label_preview_controller ) {
 			$this->rest_shipping_label_preview_controller = $rest_shipping_label_preview_controller;
 		}
 
+		/**
+		 * Gets the REST shipping label print controller.
+		 *
+		 * @return WC_REST_Connect_Shipping_Label_Print_Controller
+		 */
 		public function get_rest_shipping_label_print_controller() {
 			return $this->rest_shipping_label_print_controller;
 		}
 
+		/**
+		 * Sets the REST shipping label print controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Label_Print_Controller $rest_shipping_label_print_controller REST shipping label print controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_shipping_label_print_controller( WC_REST_Connect_Shipping_Label_Print_Controller $rest_shipping_label_print_controller ) {
 			$this->rest_shipping_label_print_controller = $rest_shipping_label_print_controller;
 		}
 
+		/**
+		 * Sets the REST shipping rates controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller REST shipping rates controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_shipping_rates_controller( WC_REST_Connect_Shipping_Rates_Controller $rest_shipping_rates_controller ) {
 			$this->rest_shipping_rates_controller = $rest_shipping_rates_controller;
 		}
 
+		/**
+		 * Sets the REST address normalization controller.
+		 *
+		 * @param WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller REST address normalization controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_address_normalization_controller( WC_REST_Connect_Address_Normalization_Controller $rest_address_normalization_controller ) {
 			$this->rest_address_normalization_controller = $rest_address_normalization_controller;
 		}
 
+		/**
+		 * Sets the REST shipping carrier types controller.
+		 *
+		 * @param WC_REST_Connect_Shipping_Carrier_Types_Controller $rest_carrier_types_controller REST carrier types controller.
+		 *
+		 * @return void
+		 */
 		public function set_carrier_types_controller( WC_REST_Connect_Shipping_Carrier_Types_Controller $rest_carrier_types_controller ) {
 			$this->rest_carrier_types_controller = $rest_carrier_types_controller;
 		}
 
+		/**
+		 * Sets the REST migration flag controller.
+		 *
+		 * @param WC_REST_Connect_Migration_Flag_Controller $rest_migration_flag_controller REST migration flag controller.
+		 *
+		 * @return void
+		 */
 		public function set_rest_migration_flag_controller( WC_REST_Connect_Migration_Flag_Controller $rest_migration_flag_controller ) {
 			$this->rest_migration_flag_controller = $rest_migration_flag_controller;
 		}
 
+		/**
+		 * Gets the REST shipping carrier types controller.
+		 *
+		 * @return WC_REST_Connect_Shipping_Carrier_Types_Controller
+		 */
 		public function get_carrier_types_controller() {
 			return $this->rest_carrier_types_controller;
 		}
 
+		/**
+		 * Gets the service schemas validator.
+		 *
+		 * @return WC_Connect_Service_Schemas_Validator
+		 */
 		public function get_service_schemas_validator() {
 			return $this->service_schemas_validator;
 		}
 
+		/**
+		 * Sets the service schemas validator.
+		 *
+		 * @param WC_Connect_Service_Schemas_Validator $validator Service schemas validator.
+		 *
+		 * @return void
+		 */
 		public function set_service_schemas_validator( WC_Connect_Service_Schemas_Validator $validator ) {
 			$this->service_schemas_validator = $validator;
 		}
 
+		/**
+		 * Gets the settings pages handler.
+		 *
+		 * @return WC_Connect_Settings_Pages
+		 */
 		public function get_settings_pages() {
 			return $this->settings_pages;
 		}
 
+		/**
+		 * Sets the settings pages handler.
+		 *
+		 * @param WC_Connect_Settings_Pages $settings_pages Settings pages handler.
+		 *
+		 * @return void
+		 */
 		public function set_settings_pages( WC_Connect_Settings_Pages $settings_pages ) {
 			$this->settings_pages = $settings_pages;
 		}
 
+		/**
+		 * Gets the help view handler.
+		 *
+		 * @return WC_Connect_Help_View
+		 */
 		public function get_help_view() {
 			return $this->help_view;
 		}
 
+		/**
+		 * Sets the help view handler.
+		 *
+		 * @param WC_Connect_Help_View $help_view Help view handler.
+		 *
+		 * @return void
+		 */
 		public function set_help_view( WC_Connect_Help_View $help_view ) {
 			$this->help_view = $help_view;
 		}
 
+		/**
+		 * Sets the shipping label handler.
+		 *
+		 * @param WC_Connect_Shipping_Label $shipping_label Shipping label handler.
+		 *
+		 * @return void
+		 */
 		public function set_shipping_label( WC_Connect_Shipping_Label $shipping_label ) {
 			$this->shipping_label = $shipping_label;
 		}
 
+		/**
+		 * Sets the NUX handler.
+		 *
+		 * @param WC_Connect_Nux $nux NUX handler.
+		 *
+		 * @return void
+		 */
 		public function set_nux( WC_Connect_Nux $nux ) {
 			$this->nux = $nux;
 		}
 
+		/**
+		 * Sets the TaxJar integration handler.
+		 *
+		 * @param WC_Connect_TaxJar_Integration $taxjar TaxJar integration handler.
+		 *
+		 * @return void
+		 */
 		public function set_taxjar( WC_Connect_TaxJar_Integration $taxjar ) {
 			$this->taxjar = $taxjar;
 		}
 
+		/**
+		 * Sets the PayPal Express Checkout integration handler.
+		 *
+		 * @param WC_Connect_PayPal_EC $paypal_ec PayPal Express Checkout handler.
+		 *
+		 * @return void
+		 */
 		public function set_paypal_ec( WC_Connect_PayPal_EC $paypal_ec ) {
 			$this->paypal_ec = $paypal_ec;
 		}
 
+		/**
+		 * Sets the label reports handler.
+		 *
+		 * @param WC_Connect_Label_Reports $label_reports Label reports handler.
+		 *
+		 * @return void
+		 */
 		public function set_label_reports( WC_Connect_Label_Reports $label_reports ) {
 			$this->label_reports = $label_reports;
 		}
 
 		/**
+		 * Gets the store notices notifier.
+		 *
 		 * @return StoreNoticesNotifier
 		 */
 		public function get_store_notices_notifier() {
@@ -643,7 +1082,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * @param StoreNoticesNotifier $store_notices_notifier
+		 * Sets the store notices notifier.
+		 *
+		 * @param StoreNoticesNotifier $store_notices_notifier Store notices notifier.
+		 *
+		 * @return void
 		 */
 		public function set_store_notices_notifier( StoreNoticesNotifier $store_notices_notifier ) {
 			$this->store_notices_notifier = $store_notices_notifier;
@@ -658,6 +1101,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			load_plugin_textdomain( 'woocommerce-services', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages' );
 		}
 
+		/**
+		 * Ensures the Jetpack connection package is configured.
+		 *
+		 * @return void
+		 */
 		public function ensure_jetpack_connection() {
 			$jetpack_config = new Automattic\Jetpack\Config();
 			$jetpack_config->ensure(
@@ -669,6 +1117,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 		}
 
+		/**
+		 * Initializes the plugin once all plugins are loaded.
+		 *
+		 * @return void
+		 */
 		public function on_plugins_loaded() {
 
 			/**
@@ -678,7 +1131,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * and WooCommerce Tax (this plugin), by letting them take over all responsibilities if all three
 			 * plugins are activated at the same time.
 			 *
-			 * @since {{next-release}}
+			 * @since 3.6.3
 			 *
 			 * @param bool $status The value will determine if we should initiate the plugins logic or not.
 			 */
@@ -763,6 +1216,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
 		}
 
+		/**
+		 * Extracts default values from a service schema.
+		 *
+		 * @param object $schema Service schema object.
+		 *
+		 * @return array Map of property IDs to their default values.
+		 */
 		public function get_service_schema_defaults( $schema ) {
 			$defaults = array();
 
@@ -786,6 +1246,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $defaults;
 		}
 
+		/**
+		 * Saves schema default settings to a shipping method instance.
+		 *
+		 * @param int    $instance_id Shipping method instance ID.
+		 * @param string $service_id  Service ID.
+		 * @param int    $zone_id     Shipping zone ID.
+		 *
+		 * @return void
+		 */
 		public function save_defaults_to_shipping_method( $instance_id, $service_id, $zone_id ) {
 			$shipping_method = WC_Shipping_Zones::get_shipping_method( $instance_id );
 			$schema          = $shipping_method->get_service_schema();
@@ -793,6 +1262,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			WC_Connect_Options::update_shipping_method_option( 'form_settings', $defaults, $service_id, $instance_id );
 		}
 
+		/**
+		 * Adds a shipping method to a shipping zone.
+		 *
+		 * @param int    $zone_id   Shipping zone ID.
+		 * @param string $method_id Service/method ID to add.
+		 *
+		 * @return void
+		 */
 		protected function add_method_to_shipping_zone( $zone_id, $method_id ) {
 			$method = $this->get_service_schemas_store()->get_service_schema_by_id( $method_id );
 			if ( empty( $method ) ) {
@@ -997,7 +1474,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function init_shipping_labels() {
 			add_filter( 'woocommerce_admin_reports', array( $this, 'reports_tabs' ) );
 
-			// Initialize migration survey
+			// Initialize migration survey.
 			require_once __DIR__ . '/classes/class-wc-connect-migration-survey.php';
 			new WC_Connect_Migration_Survey();
 
@@ -1058,6 +1535,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'shutdown', array( $schemas_store, 'fetch_service_schemas_from_connect_server' ) );
 		}
 
+		/**
+		 * Registers the Terms of Service REST controller.
+		 *
+		 * @return void
+		 */
 		public function tos_rest_init() {
 			$settings_store = $this->get_service_settings_store();
 			$logger         = $this->get_logger();
@@ -1175,7 +1657,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$rest_carrier_types_controller = new WC_REST_Connect_Shipping_Carrier_Types_Controller( $this->api_client, $settings_store, $logger );
 				$this->set_carrier_types_controller( $rest_carrier_types_controller );
 				$rest_carrier_types_controller->register_routes();
-			}
+			}//end if
 			require_once __DIR__ . '/classes/class-wc-rest-connect-migration-flag-controller.php';
 			$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger, $this->tracks );
 			$this->set_rest_migration_flag_controller( $rest_migration_flag_controller );
@@ -1212,6 +1694,10 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * passing the `WC_Connect_Loader` as an argument.
 			 *
 			 * @see WC_Connect_Compatibility_WCShipping_Packages::register_rest_controller_hooks
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param WC_Connect_Loader $this The plugin loader instance.
 			 */
 			do_action( 'wcservices_rest_api_init', $this );
 
@@ -1260,13 +1746,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Added to the wc_connect_shipping_service_settings filter, returns service settings
+		 * Added to the wc_connect_shipping_service_settings filter, returns service settings.
 		 *
-		 * @param $settings
-		 * @param $method_id
-		 * @param $instance_id
+		 * @param array     $settings    Existing service settings.
+		 * @param string    $method_id   Shipping method ID.
+		 * @param int|false $instance_id Shipping method instance ID, or false.
 		 *
-		 * @return array
+		 * @return array Augmented service settings.
 		 */
 		public function shipping_service_settings( $settings, $method_id, $instance_id ) {
 			$settings_store = $this->get_service_settings_store();
@@ -1304,12 +1790,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * (see attach_hooks) and then that action is fired by WC_Connect_Shipping_Method::admin_options
 		 * to get the service instance form layout and settings bundled inside wcConnectData
 		 * as the form container is emitted into the body's HTML
+		 *
+		 * @param string    $method_id   Shipping method ID.
+		 * @param int|false $instance_id Shipping method instance ID, or false.
+		 *
+		 * @return void
 		 */
 		public function localize_and_enqueue_service_script( $method_id, $instance_id = false ) {
 			if ( ! function_exists( 'get_rest_url' ) ) {
 				return;
 			}
 
+			/**
+			 * Enqueues the WC Connect admin script with the given root view and arguments.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param string $root_view  The root view identifier to render.
+			 * @param array  $extra_args Extra arguments passed to the script.
+			 */
 			do_action(
 				'enqueue_wc_connect_script',
 				'wc-connect-service-settings',
@@ -1391,7 +1890,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 						);
 					}
 				}
-			}
+			}//end foreach
 
 			if ( empty( $services ) ) {
 				return;
@@ -1413,11 +1912,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Add tracking info (if available) to completed emails using the woocommerce_email_after_order_table hook
+		 * Add tracking info (if available) to completed emails using the woocommerce_email_after_order_table hook.
 		 *
-		 * @param bool|\WC_Order|\WC_Order_Refund $order
-		 * @param $sent_to_admin
-		 * @param $plain_text
+		 * @param bool|\WC_Order|\WC_Order_Refund $order         Order object the email is for.
+		 * @param bool                            $sent_to_admin Whether the email is sent to the admin.
+		 * @param bool                            $plain_text    Whether the email is plain text.
+		 *
+		 * @return void
 		 */
 		public function add_tracking_info_to_emails( $order, $sent_to_admin, $plain_text ) {
 
@@ -1480,7 +1981,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$markup .= '<a href="' . esc_url( $tracking_url ) . '" style="color: ' . esc_attr( $link_color ) . '">' . esc_html( $tracking ) . '</a>';
 				$markup .= '</td>';
 				$markup .= '</tr>';
-			}
+			}//end foreach
 
 			// Abort if all labels are refunded.
 			if ( empty( $markup ) ) {
@@ -1520,7 +2021,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$schemas           = $schemas_store->get_service_schemas();
 			$last_fetch_result = $schemas_store->get_last_fetch_result_code();
 
-			if ( ! $schemas && '401' !== $last_fetch_result ) { // Don't retry auth failures wait for next scheduled time.
+			if ( ! $schemas && '401' !== $last_fetch_result ) {
+				// Don't retry auth failures wait for next scheduled time.
 				$schemas_store->fetch_service_schemas_from_connect_server();
 			} elseif ( defined( 'WOOCOMMERCE_CONNECT_FREQUENT_FETCH' ) && WOOCOMMERCE_CONNECT_FREQUENT_FETCH ) {
 				$schemas_store->fetch_service_schemas_from_connect_server();
@@ -1532,12 +2034,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Inject API Client and Logger into WC Connect shipping method instances.
 		 *
-		 * @param WC_Connect_Shipping_Method $method
-		 * @param int|string                 $id_or_instance_id
+		 * @param WC_Connect_Shipping_Method $method            Shipping method instance to initialize.
+		 * @param int|string                 $id_or_instance_id Service ID or shipping method instance ID.
+		 *
+		 * @return void
 		 */
 		public function init_service( WC_Connect_Shipping_Method $method, $id_or_instance_id ) {
 
-			// TODO - make more generic - allow things other than WC_Connect_Shipping_Method to work here
+			// TODO - make more generic - allow things other than WC_Connect_Shipping_Method to work here.
 
 			$method->set_api_client( $this->get_api_client() );
 			$method->set_logger( $this->get_shipping_logger() );
@@ -1554,8 +2058,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Returns a reference to a service (e.g. WC_Connect_Shipping_Method) of
 		 * a particular id so we can avoid instantiating them multiple times
 		 *
-		 * @param string $class_name Class name of service to create (e.g. WC_Connect_Shipping_Method)
-		 * @param string $service_id Service id of service to create (e.g. usps)
+		 * @param string $class_name Class name of service to create (e.g. WC_Connect_Shipping_Method).
+		 * @param string $service_id Service id of service to create (e.g. usps).
 		 * @return mixed
 		 */
 		protected function get_service_object_by_id( $class_name, $service_id ) {
@@ -1569,8 +2073,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Filters in shipping methods for things like WC_Shipping::get_shipping_method_class_names
 		 *
-		 * @param $shipping_methods
-		 * @return mixed
+		 * @param array $shipping_methods Registered shipping methods keyed by ID.
+		 * @return mixed Shipping methods including WC Connect services.
 		 */
 		public function woocommerce_shipping_methods( $shipping_methods ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
@@ -1595,10 +2099,22 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Filters the registered WooCommerce payment gateways.
+		 *
+		 * @param array $payment_gateways Registered payment gateways.
+		 *
+		 * @return array Payment gateways.
+		 */
 		public function woocommerce_payment_gateways( $payment_gateways ) {
 			return $payment_gateways;
 		}
 
+		/**
+		 * Reads the localized i18n JSON file for the current locale.
+		 *
+		 * @return string Locale JSON data, or '{}' when unavailable.
+		 */
 		private function get_i18n_json() {
 			$i18n_json = plugin_dir_path( __FILE__ ) . 'i18n/languages/woocommerce-services-' . get_locale() . '.json';
 			if ( is_file( $i18n_json ) && is_readable( $i18n_json ) ) {
@@ -1640,8 +2156,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return false;
 			}
 
-			// All WC settings pages
-			if ( $screen->id === 'woocommerce_page_wc-settings' ) {
+			// All WC settings pages.
+			if ( 'woocommerce_page_wc-settings' === $screen->id ) {
 				return true;
 			}
 
@@ -1654,13 +2170,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			*   $screen->id = "woocommerce_page_wc-orders"
 			*   $$wc_order_screen_id = "woocommerce_page_wc-orders"
 			*/
-			if ( $screen->id !== 'edit-shop_order' && $screen->id !== 'woocommerce_page_wc-orders' ) {
+			if ( 'edit-shop_order' !== $screen->id && 'woocommerce_page_wc-orders' !== $screen->id ) {
 				return false;
 			}
 
 			return true;
 		}
 
+		/**
+		 * Conditionally registers the WCShipping migration upgrade banner.
+		 *
+		 * @return void
+		 */
 		public function maybe_render_upgrade_banner() {
 			if ( ! $this->should_render_upgrade_banner() ) {
 				// If this is not on the order list page, then don't add any action.
@@ -1716,6 +2237,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 		}
 
+		/**
+		 * Returns the IDs of shipping services that are active in any zone.
+		 *
+		 * @return array List of active shipping service IDs.
+		 */
 		public function get_active_shipping_services() {
 			global $wpdb;
 			$active_shipping_services = array();
@@ -1737,34 +2263,109 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $active_shipping_services;
 		}
 
+		/**
+		 * Returns the IDs of active shipping services.
+		 *
+		 * @return array List of active shipping service IDs.
+		 */
 		public function get_active_services() {
 			return $this->get_active_shipping_services();
 		}
 
+		/**
+		 * Determines whether a service ID belongs to a WC Connect shipping service.
+		 *
+		 * @param string $service_id Service ID to check.
+		 *
+		 * @return bool True when the service is a WC Connect shipping service.
+		 */
 		public function is_wc_connect_shipping_service( $service_id ) {
 			$shipping_service_ids = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 			return in_array( $service_id, $shipping_service_ids );
 		}
 
+		/**
+		 * Fires when a WC Connect shipping method is added to a zone.
+		 *
+		 * @param int    $instance_id Shipping method instance ID.
+		 * @param string $service_id  Service/method ID.
+		 * @param int    $zone_id     Shipping zone ID.
+		 *
+		 * @return void
+		 */
 		public function shipping_zone_method_added( $instance_id, $service_id, $zone_id ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				/**
+				 * Fires after a WC Connect shipping method is added to a zone.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param int    $instance_id Shipping method instance ID.
+				 * @param string $service_id  Service/method ID.
+				 * @param int    $zone_id     Shipping zone ID.
+				 */
 				do_action( 'wc_connect_shipping_zone_method_added', $instance_id, $service_id, $zone_id );
 			}
 		}
 
+		/**
+		 * Fires when a WC Connect shipping method is deleted from a zone.
+		 *
+		 * @param int    $instance_id Shipping method instance ID.
+		 * @param string $service_id  Service/method ID.
+		 * @param int    $zone_id     Shipping zone ID.
+		 *
+		 * @return void
+		 */
 		public function shipping_zone_method_deleted( $instance_id, $service_id, $zone_id ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
 				WC_Connect_Options::delete_shipping_method_options( $service_id, $instance_id );
+				/**
+				 * Fires after a WC Connect shipping method is deleted from a zone.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param int    $instance_id Shipping method instance ID.
+				 * @param string $service_id  Service/method ID.
+				 * @param int    $zone_id     Shipping zone ID.
+				 */
 				do_action( 'wc_connect_shipping_zone_method_deleted', $instance_id, $service_id, $zone_id );
 			}
 		}
 
+		/**
+		 * Fires when a WC Connect shipping method's enabled status is toggled.
+		 *
+		 * @param int    $instance_id Shipping method instance ID.
+		 * @param string $service_id  Service/method ID.
+		 * @param int    $zone_id     Shipping zone ID.
+		 * @param bool   $enabled     Whether the method is now enabled.
+		 *
+		 * @return void
+		 */
 		public function shipping_zone_method_status_toggled( $instance_id, $service_id, $zone_id, $enabled ) {
 			if ( $this->is_wc_connect_shipping_service( $service_id ) ) {
+				/**
+				 * Fires after a WC Connect shipping method's status is toggled.
+				 *
+				 * @since 3.6.3
+				 *
+				 * @param int    $instance_id Shipping method instance ID.
+				 * @param string $service_id  Service/method ID.
+				 * @param int    $zone_id     Shipping zone ID.
+				 * @param bool   $enabled     Whether the method is now enabled.
+				 */
 				do_action( 'wc_connect_shipping_zone_method_status_toggled', $instance_id, $service_id, $zone_id, $enabled );
 			}
 		}
 
+		/**
+		 * Determines whether the shipping debug meta box should be shown for a post.
+		 *
+		 * @param int|WP_Post $post Post ID or post object for the order.
+		 *
+		 * @return bool True when packing log data is present.
+		 */
 		public function should_show_shipping_debug_meta_box( $post ) {
 			$order = WC_Connect_Compatibility::instance()->init_theorder_object( $post );
 
@@ -1783,6 +2384,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return false;
 		}
 
+		/**
+		 * Registers WC Connect order meta boxes.
+		 *
+		 * @param string      $screen_id Current admin screen ID.
+		 * @param int|WP_Post $post      Post ID or post object for the order.
+		 *
+		 * @return void
+		 */
 		public function add_meta_boxes( $screen_id, $post ) {
 
 			if ( $this->shipping_label->should_show_meta_box( $post ) ) {
@@ -1797,6 +2406,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Renders the shipping rate packaging debug log meta box.
+		 *
+		 * @param int|WP_Post $post Post ID or post object for the order.
+		 *
+		 * @return void
+		 */
 		public function shipping_rate_packaging_debug_log_meta_box( $post ) {
 			$order            = wc_get_order( $post );
 			$shipping_methods = $order->get_shipping_methods();
@@ -1834,15 +2450,31 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				</p>
 				<pre class="packing-log"><?php echo esc_html( implode( "\n", $method['wc_connect_packing_log'] ) ); ?></pre>
 				<?php
-			}
+			}//end foreach
 		}
 
+		/**
+		 * Hides WC Connect package meta data keys from the order item meta display.
+		 *
+		 * @param array $hidden_keys Existing hidden meta keys.
+		 *
+		 * @return array Hidden meta keys including WC Connect keys.
+		 */
 		public function hide_wc_connect_package_meta_data( $hidden_keys ) {
 			$hidden_keys[] = 'wc_connect_packages';
 			$hidden_keys[] = 'wc_connect_packing_log';
 			return $hidden_keys;
 		}
 
+		/**
+		 * Marks WC Connect order meta data as protected.
+		 *
+		 * @param bool   $protected Whether the meta key is protected.
+		 * @param string $meta_key  Meta key being checked.
+		 * @param string $meta_type Type of object meta is for.
+		 *
+		 * @return bool Whether the meta key is protected.
+		 */
 		public function hide_wc_connect_order_meta_data( $protected, $meta_key, $meta_type ) {
 			if ( in_array( $meta_key, array( 'wc_connect_labels', 'wc_connect_destination_normalized' ), true ) ) {
 				$protected = true;
@@ -1851,6 +2483,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $protected;
 		}
 
+		/**
+		 * Adds a shipping phone field to the checkout shipping fields.
+		 *
+		 * @param array $fields Existing checkout shipping fields.
+		 *
+		 * @return array Shipping fields including the phone field.
+		 */
 		public function add_shipping_phone_to_checkout( $fields ) {
 			$defaults = array(
 				'label'        => __( 'Phone', 'woocommerce-services' ),
@@ -1879,6 +2518,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
+		/**
+		 * Adds a phone field to the order shipping address fields.
+		 *
+		 * @param array $fields Existing order address fields.
+		 *
+		 * @return array Address fields including the phone field.
+		 */
 		public function add_shipping_phone_to_order_fields( $fields ) {
 			$fields['phone'] = array(
 				'label' => __( 'Phone', 'woocommerce-services' ),
@@ -1886,6 +2532,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
+		/**
+		 * Returns the shipping phone, falling back to the billing phone, for an order.
+		 *
+		 * @param array    $fields       Existing formatted address fields.
+		 * @param string   $address_type Address type being formatted (e.g. 'shipping').
+		 * @param WC_Order $order        Order the address belongs to.
+		 *
+		 * @return array Address fields, including the phone for shipping addresses.
+		 */
 		public function get_shipping_or_billing_phone_from_order( $fields, $address_type, WC_Order $order ) {
 			if ( 'shipping' !== $address_type ) {
 				return $fields;
@@ -1896,6 +2551,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $fields;
 		}
 
+		/**
+		 * Adds plugin action links shown on the Plugins screen.
+		 *
+		 * @param array $links Existing plugin action links.
+		 *
+		 * @return array Action links including the Support link.
+		 */
 		public function add_plugin_action_links( $links ) {
 			$links[] = sprintf(
 				wp_kses(
@@ -1951,7 +2613,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$result = ( WC_Connect_Jetpack::is_connected() && '1' === WC_Connect_Options::get_option( 'only_tax' ) ) ||
 						( ! WC_Connect_Jetpack::is_connected() && ! self::_has_any_labels_db_check() );
 
-			// Allow tests to override this functionality.
+			/**
+			 * Filters whether the store is configured for tax-only functionality.
+			 *
+			 * Allows tests to override this functionality.
+			 *
+			 * @since 3.6.3
+			 *
+			 * @param bool $result Whether the store is tax-only.
+			 */
 			return apply_filters( 'wc_connect_has_only_tax_functionality', $result );
 		}
 
@@ -1967,6 +2637,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return ! self::is_wc_shipping_activated() && ! self::has_only_tax_functionality();
 		}
 
+		/**
+		 * Renames the plugin entry shown on the Plugins screen based on functionality.
+		 *
+		 * @param array $plugins Installed plugins data keyed by basename.
+		 *
+		 * @return array Plugins data with updated name and description.
+		 */
 		public function maybe_rename_plugin( $plugins ) {
 			$plugin_basename = 'woocommerce-services/woocommerce-services.php';
 
@@ -1982,18 +2659,38 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			return $plugins;
 		}
 
+		/**
+		 * Returns the plugin name used on legacy (shipping-enabled) sites.
+		 *
+		 * @return string Translated plugin name.
+		 */
 		private function get_plugin_name_for_legacy_sites() {
 			return __( 'WooCommerce Tax (previously WooCommerce Shipping & Tax)', 'woocommerce-services' );
 		}
 
+		/**
+		 * Returns the plugin description used on legacy (shipping-enabled) sites.
+		 *
+		 * @return string Translated plugin description.
+		 */
 		private function get_plugin_description_for_legacy_sites() {
 			return __( 'Hosted services for WooCommerce: automated tax calculation, shipping label printing, and smoother payment setup.', 'woocommerce-services' );
 		}
 
+		/**
+		 * Returns the plugin name used on new (tax-only) sites.
+		 *
+		 * @return string Translated plugin name.
+		 */
 		private function get_plugin_name_for_new_sites() {
 			return __( 'WooCommerce Tax', 'woocommerce-services' );
 		}
 
+		/**
+		 * Returns the plugin description used on new (tax-only) sites.
+		 *
+		 * @return string Translated plugin description.
+		 */
 		private function get_plugin_description_for_new_sites() {
 			return __( 'Automated tax calculation for WooCommerce.', 'woocommerce-services' );
 		}
@@ -2072,6 +2769,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 		}
 
+		/**
+		 * Enqueues the WC Connect admin React bundle and bootstrap data.
+		 *
+		 * @param string $root_view  Root view identifier to render in the bundle.
+		 * @param array  $extra_args Extra arguments merged into the bootstrap data.
+		 *
+		 * @return void
+		 */
 		public function enqueue_wc_connect_script( $root_view, $extra_args = array() ) {
 			$is_alive = $this->api_client->is_alive_cached();
 
@@ -2107,12 +2812,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			?>
 				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo wc_esc_json( $encoded_arguments ); ?>">
 					<span class="form-troubles" style="opacity: 0">
+						<?php /* translators: %s: URL to the status page */ ?>
 						<?php printf( esc_html__( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), esc_url( $debug_page_uri ) ); ?>
 					</span>
 				</div>
 			<?php
 		}
 
+		/**
+		 * Renders admin notices supplied by the service schemas.
+		 *
+		 * @return void
+		 */
 		public function render_schema_notices() {
 			$schemas = $this->get_service_schemas_store()->get_service_schemas();
 			if ( empty( $schemas ) || ! property_exists( $schemas, 'notices' ) || empty( $schemas->notices ) ) {
@@ -2148,7 +2859,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					<p><?php echo wp_kses( $notice->message, $allowed_html ); ?></p>
 				</div>
 				<?php
-			}
+			}//end foreach
 		}
 
 		/**
@@ -2188,7 +2899,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * @return bool
 		 */
 		public function display_wcst_to_wcshipping_migration_notice() {
-			if ( isset( $_COOKIE[ self::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && (int) $_COOKIE[ self::MIGRATION_DISMISSAL_COOKIE_KEY ] === 1 ) {
+			if ( isset( $_COOKIE[ self::MIGRATION_DISMISSAL_COOKIE_KEY ] ) && 1 === (int) $_COOKIE[ self::MIGRATION_DISMISSAL_COOKIE_KEY ] ) {
 				return;
 			}
 			$schema = $this->get_service_schemas_store();
@@ -2224,8 +2935,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					wc_esc_json( $encoded_arguments )
 				) .
 				sprintf(
-					/* translators: %s: documentation URL */
-					__( $banner->message, 'woocommerce-services' ),
+					// $banner->message is a remote-provided format string (already localised
+					// server-side); it is dynamic, so it cannot be wrapped in __().
+					$banner->message,
 					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
 				) .
 				sprintf(
@@ -2240,6 +2952,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			);
 		}
 
+		/**
+		 * Registers assets and data for the WCShipping migration modal.
+		 *
+		 * @return void
+		 */
 		public function register_wcshipping_migration_modal() {
 			$plugin_version = self::get_wcs_version();
 			wp_register_style( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
@@ -2257,7 +2974,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			wp_enqueue_style( 'wcst_wcshipping_migration_admin_notice' );
 		}
 	}
-}
+}//end if
 
 register_deactivation_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_deactivation' ) );
 register_uninstall_hook( __FILE__, array( 'WC_Connect_Loader', 'plugin_uninstall' ) );

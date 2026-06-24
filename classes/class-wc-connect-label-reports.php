@@ -5,20 +5,35 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
 if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 	include_once WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php';
 
+	/**
+	 * Renders the shipping label admin report.
+	 */
 	class WC_Connect_Label_Reports extends WC_Admin_Report {
 		const LABELS_TRANSIENT_KEY = 'wcs_label_reports';
 
 		/**
+		 * The service settings store.
+		 *
 		 * @var WC_Connect_Service_Settings_Store
 		 */
 		protected $settings_store;
 
+		/**
+		 * WC_Connect_Label_Reports constructor.
+		 *
+		 * @param WC_Connect_Service_Settings_Store $settings_store The service settings store.
+		 */
 		public function __construct( WC_Connect_Service_Settings_Store $settings_store ) {
 			$this->settings_store = $settings_store;
 		}
 
+		/**
+		 * Output the CSV export button for the report.
+		 *
+		 * @return void
+		 */
 		public function get_export_button() {
-			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( $_GET['range'] ) : '7day';
+			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( wp_unslash( $_GET['range'] ) ) : '7day';
 			?>
 			<a
 				href="#"
@@ -31,10 +46,22 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			<?php
 		}
 
+		/**
+		 * Compare two labels by creation date, descending.
+		 *
+		 * @param array $label_a The first label to compare.
+		 * @param array $label_b The second label to compare.
+		 * @return int The comparison result.
+		 */
 		private function compare_label_dates_desc( $label_a, $label_b ) {
 			return $label_b['created'] - $label_a['created'];
 		}
 
+		/**
+		 * Retrieve all labels across orders, sorted by creation date descending.
+		 *
+		 * @return array The list of labels.
+		 */
 		private function get_all_labels() {
 			global $wpdb;
 
@@ -71,11 +98,16 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			return $results;
 		}
 
+		/**
+		 * Query the labels that fall within the report's date range.
+		 *
+		 * @return array The filtered list of labels.
+		 */
 		private function query_labels() {
 			$all_labels = get_transient( self::LABELS_TRANSIENT_KEY );
 			if ( false === $all_labels ) {
 				$all_labels = $this->get_all_labels();
-				// set transient with ttl of 30 minutes
+				// Set transient with ttl of 30 minutes.
 				set_transient( self::LABELS_TRANSIENT_KEY, $all_labels, 1800 );
 			}
 
@@ -96,17 +128,19 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 					continue;
 				}
 
-				// labels are sorted in descending order, so if we reached the end, break the loop
+				// Labels are sorted in descending order, so if we reached the end, break the loop.
 				if ( $created < $start_date ) {
 					break;
 				}
 
-				if ( isset( $label['error'] ) || // ignore the error labels
-					! isset( $label['rate'] ) ) { // labels where purchase hasn't completed for any reason
+				// Ignore the error labels.
+				if ( isset( $label['error'] ) ||
+					! isset( $label['rate'] ) ) {
+					// Labels where purchase hasn't completed for any reason.
 					continue;
 				}
 
-				// ignore labels with complete refunds
+				// Ignore labels with complete refunds.
 				if ( isset( $label['refund'] ) ) {
 					$refund = (array) $label['refund'];
 					if ( isset( $refund['status'] ) && 'completed' === $refund['status'] ) {
@@ -115,11 +149,16 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				}
 
 				$results[] = $label;
-			}
+			}//end foreach
 
 			return $results;
 		}
 
+		/**
+		 * Output the labels report.
+		 *
+		 * @return void
+		 */
 		public function output_report() {
 			$ranges = array(
 				'year'       => __( 'Year', 'woocommerce-services' ),
@@ -128,7 +167,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				'7day'       => __( 'Last 7 days', 'woocommerce-services' ),
 			);
 
-			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( $_GET['range'] ) : '7day';
+			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( wp_unslash( $_GET['range'] ) ) : '7day';
 
 			if ( ! in_array( $current_range, array( 'custom', 'year', 'last_month', 'month', '7day' ) ) ) {
 				$current_range = '7day';
@@ -142,6 +181,12 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			include WC()->plugin_path() . '/includes/admin/views/html-report-by-date.php';
 		}
 
+		/**
+		 * Build an edit-order link for the given order.
+		 *
+		 * @param int $post_id The order ID.
+		 * @return string|null The HTML link, or null if the order is invalid.
+		 */
 		private function get_edit_order_link( $post_id ) {
 			$order = wc_get_order( $post_id );
 			if ( ! is_a( $order, 'WC_Order' ) ) {
@@ -150,6 +195,12 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			return '<a href="' . $order->get_edit_order_url() . '">' . $order->get_order_number() . '</a>';
 		}
 
+		/**
+		 * Determine the refund status text for a label.
+		 *
+		 * @param array $label The label data.
+		 * @return string The refund status text.
+		 */
 		private function get_label_refund_status( $label ) {
 			if ( ! isset( $label['refund'] ) ) {
 				return '';
@@ -197,7 +248,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 						<?php foreach ( $labels as $label ) : ?>
 							<tr>
 								<th scope="row">
-									<?php echo esc_html( get_date_from_gmt( date( 'Y-m-d H:i:s', intval( $label['created'] / 1000 ) ) ) ); ?>
+									<?php echo esc_html( get_date_from_gmt( gmdate( 'Y-m-d H:i:s', intval( $label['created'] / 1000 ) ) ) ); ?>
 								</th>
 								<td>
 									<?php
@@ -251,4 +302,4 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 			<?php
 		}
 	}
-}
+}//end if

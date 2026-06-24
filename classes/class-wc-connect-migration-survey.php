@@ -3,54 +3,59 @@
  * Migration Survey Class
  *
  * Handles the display and submission of migration survey for users
- * who haven't migrated from WCS&T to WooCommerce Shipping
+ * who haven't migrated from WCS&T to WooCommerce Shipping.
  */
 
 use Automattic\WCServices\Utils;
 
 if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 
+	/**
+	 * Manages the WooCommerce Shipping migration survey lifecycle.
+	 */
 	class WC_Connect_Migration_Survey {
 
 
 		/**
-		 * Maximum number of times to show the survey
+		 * Maximum number of times to show the survey.
 		 */
 		const MAX_DISPLAY_COUNT = 2;
 
 		/**
-		 * Cooldown period between survey displays (in seconds)
+		 * Cooldown period between survey displays (in seconds). Equals 3 days.
 		 */
-		const COOLDOWN_PERIOD = 259200; // 3 days
+		const COOLDOWN_PERIOD = 259200;
 
 		/**
-		 * Initialize the migration survey
+		 * Initialize the migration survey.
 		 */
 		public function __construct() {
-			// Hook into script enqueue action
+			// Hook into script enqueue action.
 			add_action( 'enqueue_wc_connect_script', array( $this, 'add_survey_data_to_script' ), 10, 2 );
 
-			// AJAX handlers
+			// AJAX handlers.
 			add_action( 'wp_ajax_wcs_migration_survey_submit', array( $this, 'handle_survey_submission' ) );
 			add_action( 'wp_ajax_wcs_migration_survey_dismiss', array( $this, 'handle_survey_dismissal' ) );
 			add_action( 'wp_ajax_wcs_migration_survey_track_display', array( $this, 'handle_survey_display_tracking' ) );
 		}
 
 		/**
-		 * Check if survey should be shown to current user
+		 * Check if survey should be shown to current user.
+		 *
+		 * @return bool True when the survey should be displayed, false otherwise.
 		 */
 		public function should_show_survey() {
-			// Force survey to show for testing/debugging
+			// Force survey to show for testing/debugging.
 			if ( isset( $_GET['force_survey'] ) ) {
 				return true;
 			}
 
-			// Don't show if WooCommerce Shipping is already active
+			// Don't show if WooCommerce Shipping is already active.
 			if ( WC_Connect_Loader::is_wc_shipping_activated() ) {
 				return false;
 			}
 
-			// Check if user has already been shown the survey max times
+			// Check if user has already been shown the survey max times.
 			$user_id       = get_current_user_id();
 			$display_count = get_user_meta( $user_id, 'wcs_migration_survey_count', true );
 
@@ -58,13 +63,13 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 				return false;
 			}
 
-			// Check cooldown period
+			// Check cooldown period.
 			$last_shown = get_user_meta( $user_id, 'wcs_migration_survey_last_shown', true );
 			if ( $last_shown && ( time() - $last_shown ) < self::COOLDOWN_PERIOD ) {
 				return false;
 			}
 
-			// Check if user has already completed the survey
+			// Check if user has already completed the survey.
 			if ( get_user_meta( $user_id, 'wcs_migration_survey_completed', true ) ) {
 				return false;
 			}
@@ -74,10 +79,14 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 
 
 		/**
-		 * Add survey data to shipping label script localization
+		 * Add survey data to shipping label script localization.
+		 *
+		 * @param string $root_view The script root view identifier.
+		 * @param array  $payload   The script localization payload. Unused.
+		 * @return void
 		 */
 		public function add_survey_data_to_script( $root_view, $payload ) {
-			// Only add survey data to shipping label context
+			// Only add survey data to shipping label context.
 			if ( 'wc-connect-create-shipping-label' !== $root_view ) {
 				return;
 			}
@@ -88,8 +97,8 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 				return;
 			}
 
-			// Add survey data via separate localize_script call
-			// NOTE: We don't update user meta here - only when survey is actually displayed in frontend
+			// Add survey data via separate localize_script call.
+			// NOTE: We don't update user meta here - only when survey is actually displayed in frontend.
 			$survey_data = array(
 				'shouldShow' => true,
 				'nonce'      => wp_create_nonce( 'wcs_migration_survey' ),
@@ -100,31 +109,34 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		}
 
 		/**
-		 * Handle survey submission via AJAX
+		 * Handle survey submission via AJAX.
+		 *
+		 * @return void
 		 */
 		public function handle_survey_submission() {
-			// Verify nonce
+			// Verify nonce.
 			if ( ! wp_verify_nonce( Utils::get_sanitized_request_data( 'nonce' ), 'wcs_migration_survey' ) ) {
 				wp_die( 'Security check failed' );
 			}
 
-			// Get survey data
-			$survey_data = json_decode( stripslashes( $_POST['survey_data'] ), true );
+			// Get survey data. This is a JSON payload, so it cannot be pre-sanitized without
+			// corrupting it; it is unslashed here and each decoded value is sanitized below.
+			$survey_data = isset( $_POST['survey_data'] ) ? json_decode( wp_unslash( $_POST['survey_data'] ), true ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON payload sanitized per-value below.
 
 			if ( ! $survey_data ) {
 				wp_send_json_error( 'Invalid survey data' );
 			}
 
-			// Mark survey as completed for this user
+			// Mark survey as completed for this user.
 			$user_id = get_current_user_id();
 			update_user_meta( $user_id, 'wcs_migration_survey_completed', true );
 
-			// Track submission event with detailed properties
+			// Track submission event with detailed properties.
 			$track_properties = array(
 				'primary_reason' => sanitize_text_field( $survey_data['primary'] ),
 			);
 
-			// Add followup responses to tracking (flatten the array)
+			// Add followup responses to tracking (flatten the array).
 			if ( ! empty( $survey_data['followup'] ) ) {
 				foreach ( $survey_data['followup'] as $key => $value ) {
 					if ( is_bool( $value ) ) {
@@ -141,43 +153,51 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		}
 
 		/**
-		 * Handle survey dismissal
+		 * Handle survey dismissal.
+		 *
+		 * @return void
 		 */
 		public function handle_survey_dismissal() {
-			// Verify nonce
+			// Verify nonce.
 			if ( ! wp_verify_nonce( Utils::get_sanitized_request_data( 'nonce' ), 'wcs_migration_survey' ) ) {
 				wp_die( 'Security check failed' );
 			}
 
-			// Track dismissal event
+			// Track dismissal event.
 			$this->track_event( 'dismissed', array() );
 
 			wp_send_json_success();
 		}
 
 		/**
-		 * Handle survey display tracking (update user meta when survey is actually shown)
+		 * Handle survey display tracking (update user meta when survey is actually shown).
+		 *
+		 * @return void
 		 */
 		public function handle_survey_display_tracking() {
-			// Verify nonce
+			// Verify nonce.
 			if ( ! wp_verify_nonce( Utils::get_sanitized_request_data( 'nonce' ), 'wcs_migration_survey' ) ) {
 				wp_die( 'Security check failed' );
 			}
 
-			// Update user meta to track that survey was displayed
+			// Update user meta to track that survey was displayed.
 			$user_id       = get_current_user_id();
 			$display_count = get_user_meta( $user_id, 'wcs_migration_survey_count', true );
 			update_user_meta( $user_id, 'wcs_migration_survey_count', intval( $display_count ) + 1 );
 			update_user_meta( $user_id, 'wcs_migration_survey_last_shown', time() );
 
-			// Track survey display event
+			// Track survey display event.
 			$this->track_event( 'displayed', array() );
 
 			wp_send_json_success();
 		}
 
 		/**
-		 * Track survey events
+		 * Track survey events.
+		 *
+		 * @param string $event_name The survey event name suffix.
+		 * @param array  $properties Optional. Event properties to record. Default empty array.
+		 * @return void
 		 */
 		private function track_event( $event_name, $properties = array() ) {
 			$wc_logger = wc_get_logger();
@@ -186,4 +206,4 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			$tracks->record_user_event( 'migration_survey_' . $event_name, $properties );
 		}
 	}
-}
+}//end if

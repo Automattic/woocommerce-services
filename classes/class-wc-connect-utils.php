@@ -105,4 +105,4 @@ if ( ! class_exists( 'WC_Connect_Utils' ) ) {
 			return false;
 		}
 	}
-}
+}//end if

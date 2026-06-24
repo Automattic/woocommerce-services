@@ -6,9 +6,17 @@ use Automattic\Jetpack\Status;
 use Automattic\Jetpack\Status\Host;
 
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
+	/**
+	 * Wraps the Jetpack connection package for use within WooCommerce Shipping & Tax.
+	 */
 	class WC_Connect_Jetpack {
 		const JETPACK_PLUGIN_SLUG = 'woocommerce-services';
 
+		/**
+		 * Returns the Jetpack connection manager instance.
+		 *
+		 * @return Manager
+		 */
 		public static function get_connection_manager() {
 			return new Manager( self::JETPACK_PLUGIN_SLUG );
 		}
@@ -64,6 +72,11 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			return ( new Host() )->is_woa_site();
 		}
 
+		/**
+		 * Returns the WordPress.com user data for the Jetpack connection owner.
+		 *
+		 * @return array|false
+		 */
 		public static function get_connection_owner_wpcom_data() {
 			$connection_owner = self::get_connection_owner();
 
@@ -90,9 +103,9 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		/**
 		 * Records a Tracks event
 		 *
-		 * @param $user
-		 * @param $event_type
-		 * @param
+		 * @param WP_User $user       The user the event is recorded for.
+		 * @param string  $event_type The Tracks event name.
+		 * @param array   $data       Optional event properties.
 		 */
 		public static function tracks_record_event( $user, $event_type, $data ) {
 			$tracking = new Automattic\Jetpack\Tracking();
@@ -123,7 +136,7 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		 * Connects the site to Jetpack.
 		 * This code performs a redirection, so anything executed after it will be ignored.
 		 *
-		 * @param $redirect_url
+		 * @param string $redirect_url URL to redirect to after the connection flow completes.
 		 */
 		public static function connect_site( $redirect_url ) {
 			$connection_manager = self::get_connection_manager();
@@ -167,4 +180,4 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 			return Manager::get_site_id();
 		}
 	}
-}
+}//end if

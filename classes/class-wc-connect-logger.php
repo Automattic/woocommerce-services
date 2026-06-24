@@ -2,18 +2,45 @@
 
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
+	/**
+	 * Handles logging and debug output for WooCommerce Services.
+	 */
 	class WC_Connect_Logger {
 
 		/**
+		 * The WooCommerce logger instance.
+		 *
 		 * @var WC_Logger
 		 */
 		private $logger;
 
+		/**
+		 * Whether logging to file is enabled.
+		 *
+		 * @var bool
+		 */
 		private $is_logging_enabled = false;
-		private $is_debug_enabled   = false;
 
+		/**
+		 * Whether debug notices are enabled.
+		 *
+		 * @var bool
+		 */
+		private $is_debug_enabled = false;
+
+		/**
+		 * Optional feature name used to namespace the log file.
+		 *
+		 * @var string
+		 */
 		private $feature;
 
+		/**
+		 * Constructor.
+		 *
+		 * @param WC_Logger $logger  The WooCommerce logger instance.
+		 * @param string    $feature Optional. Feature name used to namespace the log file.
+		 */
 		public function __construct( WC_Logger $logger, $feature = '' ) {
 
 			$this->logger  = $logger;
@@ -45,34 +72,64 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 			return $formatted_message;
 		}
 
+		/**
+		 * Enable logging to file.
+		 *
+		 * @return void
+		 */
 		public function enable_logging() {
 			WC_Connect_Options::update_option( 'debug_logging_enabled', true );
 			$this->is_logging_enabled = true;
 			$this->log( 'Logging enabled' );
 		}
 
+		/**
+		 * Disable logging to file.
+		 *
+		 * @return void
+		 */
 		public function disable_logging() {
 			$this->log( 'Logging disabled' );
 			WC_Connect_Options::update_option( 'debug_logging_enabled', false );
 			$this->is_logging_enabled = false;
 		}
 
+		/**
+		 * Enable debug notices.
+		 *
+		 * @return void
+		 */
 		public function enable_debug() {
 			WC_Connect_Options::update_option( 'debug_display_enabled', true );
 			$this->is_debug_enabled = true;
 			$this->log( 'Debug enabled' );
 		}
 
+		/**
+		 * Disable debug notices.
+		 *
+		 * @return void
+		 */
 		public function disable_debug() {
 			$this->log( 'Debug disabled' );
 			WC_Connect_Options::update_option( 'debug_display_enabled', false );
 			$this->is_debug_enabled = false;
 		}
 
+		/**
+		 * Check whether debug notices are enabled.
+		 *
+		 * @return bool True when debug notices are enabled.
+		 */
 		public function is_debug_enabled() {
 			return $this->is_debug_enabled;
 		}
 
+		/**
+		 * Check whether logging to file is enabled.
+		 *
+		 * @return bool True when logging to file is enabled.
+		 */
 		public function is_logging_enabled() {
 			return $this->is_logging_enabled;
 		}
@@ -90,10 +147,10 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		}
 
 		/**
-		 * Logs messages even if debugging is disabled
+		 * Logs messages even if debugging is disabled.
 		 *
-		 * @param string $message Message to log
-		 * @param string $context Optional context (e.g. a class or function name)
+		 * @param string $message Message to log.
+		 * @param string $context Optional context (e.g. a class or function name).
 		 */
 		public function error( $message, $context = '' ) {
 			WC_Connect_Error_Notice::instance()->enable_notice( $message );
@@ -101,10 +158,11 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		}
 
 		/**
-		 * Logs messages to file and error_log if WP_DEBUG
+		 * Logs messages to file and error_log if WP_DEBUG.
 		 *
-		 * @param WP_Error|string $message Message to log
-		 * @param string $context Optional context (e.g. a class or function name)
+		 * @param WP_Error|string $message Message to log.
+		 * @param string          $context Optional context (e.g. a class or function name).
+		 * @param bool            $force   Optional. Whether to log even when logging is disabled.
 		 */
 		public function log( $message, $context = '', $force = false ) {
 			$log_message = $this->format_message( $message, $context );
@@ -128,4 +186,4 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		}
 	}
 
-}
+}//end if

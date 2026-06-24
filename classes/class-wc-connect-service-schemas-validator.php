@@ -2,12 +2,15 @@
 
 if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 
+	/**
+	 * Validates service schemas returned by the WooCommerce Shipping & Tax service.
+	 */
 	class WC_Connect_Service_Schemas_Validator {
 
 		/**
 		 * Validates the overall passed services object (all service types and all services therein)
 		 *
-		 * @param object $services
+		 * @param object $service_schemas The service schemas object to validate.
 		 *
 		 * @return WP_Error|true
 		 */
@@ -44,7 +47,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 					return $result;
 				}
 
-				$service_counter ++;
+				++$service_counter;
 			}
 
 			if ( ! isset( $service_schemas->boxes ) || ! is_object( $service_schemas->boxes ) ) {
@@ -61,9 +64,9 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		 * Validates a particular service schema, especially the parts of the service that WC relies
 		 * on like id, method_title, method_description, etc
 		 *
-		 * @param string  $service_type
-		 * @param integer $service_counter
-		 * @param object  $service
+		 * @param string  $service_type    The service type (e.g. 'shipping').
+		 * @param integer $service_counter The index of the service within its type.
+		 * @param object  $service_schema  The service schema object to validate.
 		 *
 		 * @return WP_Error|true
 		 */
@@ -103,7 +106,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 						)
 					);
 				}
-			}
+			}//end foreach
 
 			return $this->validate_service_schema_settings( $service_schema->id, $service_schema->service_settings );
 		}
@@ -112,8 +115,8 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		 * Validates a particular service's service settings schema, especially the parts of the
 		 * service settings that WC relies on like type, required and properties
 		 *
-		 * @param string $service_id
-		 * @param object $service_settings
+		 * @param string $service_id       The service ID being validated.
+		 * @param object $service_settings The service settings object to validate.
 		 *
 		 * @return WP_Error|true
 		 */
@@ -149,7 +152,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 						)
 					);
 				}
-			}
+			}//end foreach
 
 			$result = $this->validate_service_settings_required_properties( $service_id, $service_settings->properties );
 			if ( is_wp_error( $result ) ) {
@@ -164,8 +167,8 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 		 * Validates a particular service's schema's required properties, especially the parts of the
 		 * properties that WC relies on and title
 		 *
-		 * @param string $service_id
-		 * @param object $service_settings_properties
+		 * @param string $service_id                  The service ID being validated.
+		 * @param object $service_settings_properties The service settings properties object to validate.
 		 *
 		 * @return WP_Error|true
 		 */
@@ -189,7 +192,6 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 
 			return true;
 		}
-
 	}
 
-}
+}//end if

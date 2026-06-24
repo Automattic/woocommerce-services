@@ -20,11 +20,11 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 	 * @inherit
 	 */
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-connect-logger.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-base-controller.php';
-		require_once dirname( __FILE__ ) . '/../../../classes/class-wc-rest-connect-subscriptions-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-base-controller.php';
+		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-subscriptions-controller.php';
 	}
 
 	/**
@@ -36,7 +36,7 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 		// Creating a mock class and overide protected request method so that we can mock the API response.
 		$this->api_client_mock = $this->getMockBuilder( WC_Connect_API_Client_Live::class )
 			->disableOriginalConstructor()
-			->setMethods( [ 'request' ] )
+			->setMethods( array( 'request' ) )
 			->getMock();
 
 		$this->setting_store_mock  = $this->createMock( WC_Connect_Service_Settings_Store::class );
@@ -118,10 +118,10 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 		$actual                              = $wc_connect_subscriptions_controller->post();
 		$expected                            = $api_client_response->subscriptions;
 
-		$expected = [
+		$expected = array(
 			'success'       => true,
 			'subscriptions' => $api_client_response->subscriptions,
-		];
+		);
 
 		$this->assertEquals( 200, $actual->status );
 		$this->assertEquals( $expected, $actual->data );

@@ -3,7 +3,7 @@
 class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-nux.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-nux.php';
 	}
 
 	public function test_get_banner_type_to_display_dev_jp() {

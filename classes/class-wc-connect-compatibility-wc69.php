@@ -37,4 +37,4 @@ if ( ! class_exists( 'WC_Connect_Compatibility_WC69' ) ) {
 			return OrderUtil::init_theorder_object( $post_or_order_object );
 		}
 	}
-}
+}//end if
