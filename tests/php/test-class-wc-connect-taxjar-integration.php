@@ -1172,7 +1172,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// taxable_amount and the top-level rate are 0, but the line item still
 		// carries the real jurisdiction rates (city 1.5%, county 1.25%, state 4.225%).
-		$line_item = (object) array(
+		$line_item    = (object) array(
 			'id'                   => '351-regressionkey',
 			'city_tax_rate'        => 0.015,
 			'county_tax_rate'      => 0.0125,
@@ -1251,7 +1251,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * Data provider for `test_normalize_city_strips_semicolons_and_normalizes_whitespace`.
 	 *
-	 * @return array<string, array{0: string, 1: string}>
+	 * @return array<string, array{0: mixed, 1: mixed}>
 	 */
 	public function normalize_city_provider() {
 		return array(
@@ -1262,9 +1262,37 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'trailing semicolon'                  => array( 'Casselberry;', 'Casselberry' ),
 			'consecutive semicolons'              => array( 'Casse;;Berry', 'Casse Berry' ),
 			'wrapped in whitespace'               => array( '  Casselberry  ', 'Casselberry' ),
+			'tab and newline collapse to space'   => array( "Casse;\t\nBerry", 'Casse Berry' ),
 			'empty string'                        => array( '', '' ),
 			'multi-segment with mixed separators' => array( ' Casse; ;Berry ', 'Casse Berry' ),
+			'null — returned unchanged'           => array( null, null ),
+			'false — returned unchanged'          => array( false, false ),
 		);
+	}
+
+	/**
+	 * `get_backend_address()` strips a semicolon from an admin order city.
+	 *
+	 * The admin "Recalculate" path builds its taxable address from `$_POST`, so a
+	 * `;`-bearing city must be normalized there too — otherwise backend recalculations
+	 * would reintroduce the stored/looked-up asymmetry the frontend path now avoids.
+	 *
+	 * @see WOOTAX-19
+	 */
+	public function test_get_backend_address_normalizes_semicolon_city() {
+		$_POST['country']  = 'US';
+		$_POST['state']    = 'FL';
+		$_POST['postcode'] = '33033';
+		$_POST['city']     = 'Casse;Berry';
+
+		try {
+			$address = $this->invoke_protected_method( 'get_backend_address' );
+		} finally {
+			unset( $_POST['country'], $_POST['state'], $_POST['postcode'], $_POST['city'] );
+		}
+
+		$this->assertStringNotContainsString( ';', $address['to_city'], 'Backend order city must not retain a semicolon — `_update_tax_rate_cities()` would split it.' );
+		$this->assertSame( 'CASSE BERRY', $address['to_city'] );
 	}
 
 	/**

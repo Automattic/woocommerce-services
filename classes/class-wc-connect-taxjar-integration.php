@@ -700,7 +700,7 @@ class WC_Connect_TaxJar_Integration {
 					'country'   => $country,
 					'state'     => $state,
 					'postcode'  => $postcode,
-					'city'      => strtoupper( $city ),
+					'city'      => strtoupper( self::normalize_city( $city ) ),
 					'tax_class' => $tax_class,
 				)
 			);
@@ -1788,9 +1788,10 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$city = str_replace( ';', ' ', $city );
-		$city = preg_replace( '/\s+/', ' ', $city );
+		$city = preg_replace( '/\s+/u', ' ', $city );
 
-		return trim( $city );
+		// `preg_replace` returns null on malformed UTF-8 with the /u flag; cast so trim() stays safe.
+		return trim( (string) $city );
 	}
 
 	/**
