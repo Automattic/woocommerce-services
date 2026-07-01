@@ -41,6 +41,10 @@ composer phpcs
   health-checks the environment (`tests/bin/check-test-env.sh`) and repairs only the
   components that fail their probe before running PHPUnit. No manual setup step is needed
   on a healthy machine.
+- Output format: `composer test` uses PHPUnit's compact progress output when its stdout is
+  captured (CI logs, pre-commit hooks, AI agents) and the readable `--testdox` format at an
+  interactive terminal. Force it either way with `TESTDOX=1` / `TESTDOX=0` (e.g.
+  `TESTDOX=1 composer test`).
 - The test DB is a throwaway MariaDB container defined in `tests/docker-compose.yml`
   (published on `127.0.0.1:4416`; credentials in `tests/test.env`). Docker is required;
   a local mysql client is not (the installer materialises shims that proxy through the
@@ -50,6 +54,11 @@ composer phpcs
 - WP/WC are installed under the system temp dir (honors `TMPDIR`). The WC clone builds
   with its own modern Node via the WC checkout's `.nvmrc`; this is independent of the
   plugin's own pinned Node (`.nvmrc` = 10.18.1) and PHPUnit needs no Node at all.
+- By default the installer clones the **latest** WooCommerce release, whereas CI tests
+  the 3 latest WC minors — so a local `composer test` can run against a different WC than
+  the merge gate. To reproduce a specific version, pin it on a forced (re)install:
+  `WC_VERSION=9.4.0 bash tests/bin/install-wc-tests.sh --force` (`EXPECTED_WP_VERSION`
+  pins WordPress the same way).
 
 ## Key Conventions
 - Base new behavior on tax-only mode rules and existing shipping eligibility checks.

@@ -85,8 +85,13 @@ DB_HOST="${TEST_DB_HOST}:${TEST_DB_PORT}"
 # env-file init. TCP to 127.0.0.1 matches `%` and is always available.
 # ---------------------------------------------------------------------------
 if ! command -v mysqladmin >/dev/null 2>&1 || ! command -v mysql >/dev/null 2>&1; then
-    SHIM_DIR="${TEST_TMP_DIR}/wcservices-mysql-shim"
-    mkdir -p "$SHIM_DIR"
+    # Create the shim dir with `mktemp -d`: a unique name owned by the current
+    # user, mode 0700. A fixed path under shared /tmp could be pre-created and
+    # owned by a hostile local user who could then plant a malicious mysql /
+    # mysqladmin that we would execute via the PATH prepend below. Clean it up on
+    # exit — the shim is only needed while WC's install.sh runs, not by PHPUnit.
+    SHIM_DIR="$(mktemp -d "${TEST_TMP_DIR}/wcservices-mysql-shim.XXXXXX")"
+    trap 'rm -rf "$SHIM_DIR"' EXIT
     for _bin in mysqladmin mysql; do
         cat > "$SHIM_DIR/$_bin" <<SHIM
 #!/usr/bin/env bash
@@ -221,7 +226,7 @@ resolve_wp_tests_tag() {
     elif [[ $WP_VERSION == 'nightly' || $WP_VERSION == 'trunk' ]]; then
         WP_TESTS_TAG="trunk"
     else
-        download http://api.wordpress.org/core/version-check/1.7/ "${TEST_TMP_DIR}/wp-latest.json"
+        download https://api.wordpress.org/core/version-check/1.7/ "${TEST_TMP_DIR}/wp-latest.json"
         local LATEST_VERSION
         LATEST_VERSION=$(grep -o '"version":"[^"]*"' "${TEST_TMP_DIR}/wp-latest.json" | head -1 | sed 's/"version":"//;s/"//')
         if [ -z "$LATEST_VERSION" ]; then
@@ -318,6 +323,9 @@ install_wp_test_suite() {
     sed "${sed_in_place[@]}" "s/yourusernamehere/$TEST_DB_USER/" "$WP_TESTS_DIR/wp-tests-config.php"
     sed "${sed_in_place[@]}" "s/yourpasswordhere/$TEST_DB_PASS/" "$WP_TESTS_DIR/wp-tests-config.php"
     sed "${sed_in_place[@]}" "s|localhost|${DB_HOST}|" "$WP_TESTS_DIR/wp-tests-config.php"
+    # if/fi (not `[[ ]] && rm`): a false `[[ ]]` would make this the function's
+    # non-zero return and abort the `[[ REPAIR_WP ]] && install_wp` dispatch.
+    if [[ "$(uname -s)" == 'Darwin' ]]; then rm -f "$WP_TESTS_DIR/wp-tests-config.php.bak"; fi
 }
 
 install_wp() {
@@ -366,6 +374,7 @@ repair_wp_config() {
     [[ "$(uname -s)" == 'Darwin' ]] && sed_in_place=( -i .bak )
     sed "${sed_in_place[@]}" -E \
         "s|define\(\s*'DB_HOST'\s*,\s*'[^']*'\s*\)|define( 'DB_HOST', '${DB_HOST}' )|" "$cfg"
+    if [[ "$(uname -s)" == 'Darwin' ]]; then rm -f "${cfg}.bak"; fi
     if grep -qE "define\(\s*'DB_HOST'\s*,\s*'${TEST_DB_HOST}:${TEST_DB_PORT}'\s*\)" "$cfg"; then
         echo "✅ → ${DB_HOST}"
     else

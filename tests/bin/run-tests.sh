@@ -29,9 +29,35 @@ bash "$SCRIPT_DIR/check-test-env.sh"
 # 2. Run PHPUnit (pass any extra args through, e.g. --filter)
 # ---------------------------------------------------------------------------
 echo "==> Running PHPUnit..."
+# Output format. --testdox prints one readable line per test (~180 for the full
+# suite) — pleasant for a human, but ~25x PHPUnit's compact progress output, so
+# it floods pre-commit hooks, redirected logs and AI-agent context. Resolve it:
+#   TESTDOX=1  → always --testdox
+#   TESTDOX=0  → always compact
+#   unset      → --testdox only when stdout is an interactive terminal
+fmt=()
+case "${TESTDOX:-auto}" in
+    1) fmt=( --testdox ) ;;
+    0) : ;;
+    *) [ -t 1 ] && fmt=( --testdox ) ;;
+esac
+# Don't pass --testdox twice if the caller already supplied it.
+for _a in "$@"; do [[ "$_a" == "--testdox" ]] && { fmt=(); break; }; done
+
 # WC's bootstrap emits PHP notices/warnings to stderr that bury PHPUnit output.
 # Filter only those known-noisy lines; pass everything else through so real
 # PHPUnit errors (fatal errors, segfaults) remain visible.
-"$PROJECT_ROOT/vendor/bin/phpunit" --testdox "$@" 2>&1 \
+#
+# Exit-code propagation: without pipefail the pipeline's status is grep's (0
+# whenever it prints a line), which masks a failed suite and makes `composer
+# test` exit 0 on red — defeating the point of the command. We enable pipefail
+# and capture PHPUnit's own status via PIPESTATUS[0], then exit with it so
+# callers and pre-commit hooks see the true result. The status is read in the
+# `|| ...` branch on purpose: a bare `|| true` would run `true`, which is itself
+# a pipeline and would overwrite PIPESTATUS before we could read it.
+set -o pipefail
+status=0
+"$PROJECT_ROOT/vendor/bin/phpunit" "${fmt[@]}" "$@" 2>&1 \
     | grep -Ev "^(PHP Deprecated|PHP Notice|PHP Warning|Xdebug)" \
-    || true
+    || status="${PIPESTATUS[0]}"
+exit "$status"
