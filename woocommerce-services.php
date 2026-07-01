@@ -979,6 +979,14 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Extend the Store API.
 		 */
 		public function extend_store_api() {
+			if ( ! class_exists( 'Automattic\WooCommerce\StoreApi\StoreApi' ) ) {
+				wc_get_logger()->notice(
+					'StoreApi class not found. Store API extensions will not be registered.',
+					array( 'source' => 'woocommerce-services' )
+				);
+				return;
+			}
+
 			$store_api_extend_schema        = StoreApiExtendSchema::instance();
 			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
 
