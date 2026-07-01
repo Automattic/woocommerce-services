@@ -373,9 +373,9 @@ repair_wp_config() {
     local sed_in_place=( -i )
     [[ "$(uname -s)" == 'Darwin' ]] && sed_in_place=( -i .bak )
     sed "${sed_in_place[@]}" -E \
-        "s|define\(\s*'DB_HOST'\s*,\s*'[^']*'\s*\)|define( 'DB_HOST', '${DB_HOST}' )|" "$cfg"
+        "s|define\([[:space:]]*'DB_HOST'[[:space:]]*,[[:space:]]*'[^']*'[[:space:]]*\)|define( 'DB_HOST', '${DB_HOST}' )|" "$cfg"
     if [[ "$(uname -s)" == 'Darwin' ]]; then rm -f "${cfg}.bak"; fi
-    if grep -qE "define\(\s*'DB_HOST'\s*,\s*'${TEST_DB_HOST}:${TEST_DB_PORT}'\s*\)" "$cfg"; then
+    if grep -qE "define\([[:space:]]*'DB_HOST'[[:space:]]*,[[:space:]]*'${TEST_DB_HOST}:${TEST_DB_PORT}'[[:space:]]*\)" "$cfg"; then
         echo "✅ → ${DB_HOST}"
     else
         echo "❌ — sed did not rewrite the line; escalating to full WP repair."

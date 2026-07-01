@@ -40,7 +40,7 @@ probe() {
 probe_wp_config_db_host() {
     local cfg="${WP_TESTS_DIR}/wp-tests-config.php"
     [[ -f "$cfg" ]] || return 1
-    grep -qE "define\(\s*'DB_HOST'\s*,\s*'${TEST_DB_HOST}:${TEST_DB_PORT}'\s*\)" "$cfg"
+    grep -qE "define\([[:space:]]*'DB_HOST'[[:space:]]*,[[:space:]]*'${TEST_DB_HOST}:${TEST_DB_PORT}'[[:space:]]*\)" "$cfg"
 }
 
 probe "PHPUnit binary" \
