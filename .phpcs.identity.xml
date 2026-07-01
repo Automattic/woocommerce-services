@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<ruleset name="WooCommerce Shipping &amp; Tax — plugin identity">
+	<description>Plugin identity rules: text_domain (i18n) and global prefix whitelist. Only file in the WooCommerce Shipping &amp; Tax PHPCS layout that differs per plugin.</description>
+
+	<rule ref="./.phpcs.common.xml"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="woocommerce-services"/>
+			</property>
+		</properties>
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="WC_Connect"/>
+				<element value="WC_REST_Connect"/>
+				<element value="wc_connect"/>
+				<element value="woocommerce_services"/>
+				<element value="wc_services"/>
+				<element value="Automattic\WCServices"/>
+			</property>
+		</properties>
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+</ruleset>

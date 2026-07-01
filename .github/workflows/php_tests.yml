@@ -12,7 +12,7 @@ jobs:
         with:
           submodules: recursive
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: '7.4'
       - name: Lint
@@ -68,14 +68,14 @@ jobs:
       - name: Checkout WooCommerce
         run: git clone --depth=1 --branch=${{ matrix.wc-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: '8.2'
       - name: Get WC pinned pnpm version
         id: get_wc_pnpm_version
         run: echo "WC_PNPM=$( grep packageManager /tmp/woocommerce/package.json | sed -nr 's/.+packageManager.+pnpm@([[:digit:].]+).+/\1/p' )" >> "$GITHUB_OUTPUT"
       - name: Setup PNPM
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b # v2.4.1
         with:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
