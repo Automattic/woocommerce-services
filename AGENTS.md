@@ -71,6 +71,12 @@ composer run check-identity     # Plugin identity: text_domain (i18n) + global p
 ```
 The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) auto-fixes staged PHP using the same `phpcs.xml.dist` aggregator, so pre-commit fixes stay aligned with `check-all`.
 
+## Shell Script Portability (GNU vs BSD)
+The test-env scripts (`tests/bin/*.sh`) and hook helpers (`bin/*.sh`) run on Linux/CI (GNU userland) **and** on contributors' machines (stock macOS ships BSD `grep`/`sed`). CI is GNU-only, so BSD-only breakage never shows up in the merge gate — keep both in mind when editing any shell script:
+- Use POSIX character classes, not GNU regex shorthands: `[[:space:]]` / `[[:digit:]]` / `[[:alnum:]]` instead of `\s` / `\d` / `\w`. BSD `grep -E`/`sed -E` treat `\s` as a literal `s`, so patterns silently stop matching — this cost us a full-reinstall misfire in the `wp-tests-config.php` DB_HOST probe.
+- `sed -i` is not portable: GNU is `sed -i`, BSD needs a backup suffix (`sed -i .bak`). Branch on `[[ "$(uname -s)" == 'Darwin' ]]` and remove the `.bak` afterward — see `repair_wp_config()` in `install-wc-tests.sh`.
+- Prefer ERE (`grep -E` / `sed -E`) with POSIX quantifiers; avoid GNU-only escapes like `\+`, `\?`, `\|` in BRE. When a script carries regex, test it on macOS or reason through the BSD case before merging.
+
 ## Key Conventions
 - Base new behavior on tax-only mode rules and existing shipping eligibility checks.
 - Keep shipping logic gated by eligibility; preserve grandfathered behavior.
