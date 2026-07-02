@@ -95,4 +95,18 @@ jobs:
       - name: Install Composer dependencies
         run: composer install
       - name: Run PHPUnit tests
-        run: ./vendor/bin/phpunit -c phpunit.xml.dist
+        # PHPUnit exits 0 even when it executes zero tests (it prints
+        # "No tests executed!"), so a broken bootstrap or misconfigured suite
+        # silently turned CI green before (see #2638). Preserve PHPUnit's own
+        # exit code via PIPESTATUS (tee must not mask it) and additionally fail
+        # the build on an empty run.
+        shell: bash
+        run: |
+          set +e
+          ./vendor/bin/phpunit -c phpunit.xml.dist 2>&1 | tee phpunit-output.log
+          status=${PIPESTATUS[0]}
+          if grep -q 'No tests executed' phpunit-output.log; then
+            echo "::error::PHPUnit executed zero tests — failing the build."
+            exit 1
+          fi
+          exit "$status"
