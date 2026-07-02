@@ -387,7 +387,11 @@ repair_wp_config() {
 # Component dispatch (cheapest first)
 # ---------------------------------------------------------------------------
 [[ "$REPAIR_WP_CONFIG" == "1" ]] && repair_wp_config
-[[ "$REPAIR_WC" == "1" ]] && { resolve_wc_version; install_wc; }
+# resolve_wc_version is best-effort: if the GitHub API is rate-limited or
+# unreachable, WC_VERSION stays "latest", the --branch=latest clone fails,
+# and install_wc's default-branch fallback clone takes over (plain git clone
+# is not subject to the API rate limit).
+[[ "$REPAIR_WC" == "1" ]] && { resolve_wc_version || true; install_wc; }
 [[ "$REPAIR_WP" == "1" ]] && install_wp
 
 echo
