@@ -17,6 +17,6 @@ services:
             # Adminer below must not be reachable from the LAN.
             - "127.0.0.1:4416:3306"
     test_adminer:
-        image: adminer
+        image: adminer:4.8.1
         ports:
             - "127.0.0.1:8062:8080"
