@@ -57,7 +57,19 @@ for _a in "$@"; do [[ "$_a" == "--testdox" ]] && { fmt=(); break; }; done
 # a pipeline and would overwrite PIPESTATUS before we could read it.
 set -o pipefail
 status=0
+# tee the filtered output to a log so we can additionally detect an empty run.
+# mktemp needs an explicit XXXXXX template to work on BSD/macOS as well as GNU.
+phpunit_log="$(mktemp "${TEST_TMP_DIR:-/tmp}/wcs-phpunit.XXXXXX")"
 "$PROJECT_ROOT/vendor/bin/phpunit" "${fmt[@]}" "$@" 2>&1 \
     | grep -Ev "^(PHP Deprecated|PHP Notice|PHP Warning|Xdebug)" \
+    | tee "$phpunit_log" \
     || status="${PIPESTATUS[0]}"
+# PHPUnit exits 0 even when it runs zero tests (it prints "No tests executed!"),
+# so a broken bootstrap or misconfigured suite would report green. Treat an
+# empty run as a failure too (see GitHub #2638).
+if [ "$status" -eq 0 ] && grep -qF 'No tests executed' "$phpunit_log"; then
+    echo "PHPUnit executed zero tests — failing the run." >&2
+    status=1
+fi
+rm -f "$phpunit_log"
 exit "$status"
